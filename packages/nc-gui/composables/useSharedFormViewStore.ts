@@ -29,6 +29,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { sharedView } = storeToRefs(useViewsStore())
 
+  const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
+
   provide(SharedViewPasswordInj, password)
 
   const sharedFormView = ref<FormType>()
@@ -45,9 +47,15 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const sharedViewMeta = ref<SharedViewMeta>({})
   const formResetHook = createEventHook<void>()
 
+  const { isMobileMode } = useGlobal()
+
   const { api, isLoading } = useApi()
 
   const { metas, setMeta, getMeta } = useMetas()
+
+  const worksapce = useWorkspace()
+
+  const { workspaces } = storeToRefs(worksapce)
 
   const baseStore = useBase()
   const { base, sqlUis } = storeToRefs(baseStore)
@@ -119,7 +127,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   )
 
   function supportedFields(col: ColumnType) {
-    return !isSystemColumn(col) && col.uidt !== UITypes.SpecificDBType && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt))
+    return (
+      !isSystemColumn(col) && col.uidt !== UITypes.SpecificDBType && !isAI(col) && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt))
+    )
   }
 
   const loadSharedView = async () => {
@@ -131,6 +141,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           'xc-password': password.value,
         },
       })
+
+      // Set workspace info if present
+      if (viewMeta?.workspace) {
+        workspaces.value.set(viewMeta.workspace.id, viewMeta.workspace)
+      }
 
       passwordDlg.value = false
 
@@ -160,7 +175,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             isValidValue(c?.cdf) &&
             !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(c.cdf)
           ) {
-            const defaultValue = typeof c.cdf === 'string' ? c.cdf.replace(/^'|'$/g, '') : c.cdf
+            const defaultValue = typeof c.cdf === 'string' ? c.cdf.replace(/^['"]|['"]$/g, '') : c.cdf
             if ([UITypes.Number, UITypes.Duration, UITypes.Percent, UITypes.Currency, UITypes.Decimal].includes(c.uidt)) {
               formState.value[c.title] = Number(defaultValue) || null
               preFilledDefaultValueformState.value[c.title] = Number(defaultValue) || null
@@ -215,6 +230,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       await handlePreFillForm()
 
       checkFieldVisibility()
+
+      nextTick(() => {
+        showRecordPlanLimitExceededModal({ isSharedFormView: true, focusBtn: null })
+      })
     } catch (e: any) {
       const error = await extractSdkResponseErrorMsgv2(e)
 
@@ -363,6 +382,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   }
 
   const submitForm = async () => {
+    // If blockAddNewRecord is true that means we have to upgrade plan to add more records
+    if (blockAddNewRecord.value) return
+
     try {
       if (!(await validateAllFields())) {
         return
@@ -662,26 +684,63 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   async function loadLinkedRecords(column: ColumnType, ids: string[]) {
     const relatedMeta = await getMeta((column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id)
-    const pkCol = relatedMeta?.columns?.find((col) => col.pk)
-    const pvCol = relatedMeta?.columns?.find((col) => col.pv)
+
+    if (!relatedMeta) return []
+
+    // Extract necessary columns in a single loop
+    let attachmentCol: ColumnType | undefined
+    let pkCol: ColumnType | undefined
+    let pvCol: ColumnType | undefined
+
+    const requiredFieldsToLoad = new Set<string>()
+
+    for (const col of relatedMeta.columns || []) {
+      if (!pkCol && col.pk) {
+        pkCol = col
+      }
+
+      if (!pvCol && col.pv) {
+        pvCol = col
+      }
+
+      if (!attachmentCol && isAttachment(col)) {
+        attachmentCol = col
+      }
+
+      if (isSystemColumn(col) || isPrimary(col) || isLinksOrLTAR(col) || isAttachment(col)) continue
+
+      if (requiredFieldsToLoad.size < (isMobileMode.value ? 1 : 3)) {
+        requiredFieldsToLoad.add(col.title!)
+      }
+    }
+
+    // Add important fields
+    if (attachmentCol) requiredFieldsToLoad.add(attachmentCol.title!)
+    if (pkCol) requiredFieldsToLoad.add(pkCol.title!)
+    if (pvCol) requiredFieldsToLoad.add(pvCol.title!)
+
+    // If no primary key column or ids are empty, return early
+    if (!pkCol || ids.length === 0) return []
 
     return (
-      await api.public.dataRelationList(
-        route.params.viewId as string,
-        column.id,
-        {},
-        {
-          headers: {
-            'xc-password': password.value,
+      (
+        await api.public.dataRelationList(
+          route.params.viewId as string,
+          column.id,
+          {},
+          {
+            headers: {
+              'xc-password': password.value,
+            },
+            query: {
+              limit: Math.max(25, ids.length),
+              where: `(${pkCol.title},in,${ids.join(',')})`,
+              fields: Array.from(requiredFieldsToLoad),
+            },
           },
-          query: {
-            limit: Math.max(25, ids.length),
-            where: `(${pkCol.title},in,${ids.join(',')})`,
-            fields: [pkCol.title, pvCol.title],
-          },
-        },
-      )
-    )?.list
+        )
+      )?.list || []
+    )
   }
 
   let intvl: NodeJS.Timeout

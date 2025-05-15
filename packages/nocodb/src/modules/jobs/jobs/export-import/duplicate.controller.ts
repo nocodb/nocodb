@@ -8,7 +8,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ProjectStatus, readonlyMetaAllowedTypes } from 'nocodb-sdk';
+import { AppEvents, ProjectStatus, readonlyMetaAllowedTypes } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
@@ -19,8 +19,11 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
-import { RootScopes } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
+import Noco from '~/Noco';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { DuplicateService } from '~/modules/jobs/jobs/export-import/duplicate.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -28,11 +31,13 @@ export class DuplicateController {
   constructor(
     @Inject('JobsService') protected readonly jobsService: IJobsService,
     protected readonly basesService: BasesService,
+    protected readonly appHooksService: AppHooksService,
+    protected readonly duplicateService: DuplicateService,
   ) {}
 
   @Post([
     '/api/v1/db/meta/duplicate/:workspaceId/shared/:sharedBaseId',
-    '/api/v1/meta/duplicate/:workspaceId/shared/:sharedBaseId',
+    '/api/v2/meta/duplicate/:workspaceId/shared/:sharedBaseId',
   ])
   @HttpCode(200)
   @Acl('duplicateSharedBase', {
@@ -96,11 +101,10 @@ export class DuplicateController {
       baseId: base.id,
       sourceId: source.id,
       dupProjectId: dupProject.id,
-      options:
-        {
-          ...body.options,
-          excludeHooks: true,
-        } || {},
+      options: {
+        ...body.options,
+        excludeHooks: true,
+      },
       req: {
         user: req.user,
         clientIp: req.clientIp,
@@ -133,52 +137,13 @@ export class DuplicateController {
       base?: any;
     },
   ) {
-    const base = await Base.get(context, baseId);
-
-    if (!base) {
-      throw new Error(`Base not found for id '${baseId}'`);
-    }
-
-    const source = sourceId
-      ? await Source.get(context, sourceId)
-      : (await base.getSources())[0];
-
-    if (!source) {
-      throw new Error(`Source not found!`);
-    }
-
-    const bases = await Base.list(context.workspace_id);
-
-    const uniqueTitle = generateUniqueName(
-      `${base.title} copy`,
-      bases.map((p) => p.title),
-    );
-
-    const dupProject = await this.basesService.baseCreate({
-      base: {
-        title: uniqueTitle,
-        status: ProjectStatus.JOB,
-        ...(body.base || {}),
-      },
-      user: { id: req.user.id },
-      req,
-    });
-
-    const job = await this.jobsService.add(JobTypes.DuplicateBase, {
+    return await this.duplicateService.duplicateBase({
       context,
-      user: req.user,
-      baseId: base.id,
-      sourceId: source.id,
-      dupProjectId: dupProject.id,
-      options: body.options || {},
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-        headers: req.headers,
-      },
+      req,
+      baseId,
+      sourceId,
+      body,
     });
-
-    return { id: job.id, base_id: dupProject.id };
   }
 
   @Post([
@@ -214,6 +179,18 @@ export class DuplicateController {
       throw new Error(`Model not found!`);
     }
 
+    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+    this.appHooksService.emit(AppEvents.TABLE_DUPLICATE_START, {
+      sourceTable: model,
+      user: req.user,
+      req,
+      context,
+      id: parentAuditId,
+      title: body?.title,
+      options: body?.options,
+    });
+    req.ncParentAuditId = parentAuditId;
+
     const source = await Source.get(context, model.source_id);
 
     // if data/schema is readonly, then restrict duplication
@@ -243,6 +220,7 @@ export class DuplicateController {
         user: req.user,
         clientIp: req.clientIp,
         headers: req.headers,
+        ncParentAuditId: parentAuditId,
       },
     });
 
@@ -289,6 +267,18 @@ export class DuplicateController {
       throw new Error(`Model not found!`);
     }
 
+    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+    this.appHooksService.emit(AppEvents.COLUMN_DUPLICATE_START, {
+      table: model,
+      sourceColumn: column,
+      user: req.user,
+      req,
+      context,
+      id: parentAuditId,
+      options: body?.options,
+    });
+    req.ncParentAuditId = parentAuditId;
+
     const source = await Source.get(context, model.source_id);
 
     // check if source is readonly and column type is not allowed
@@ -314,6 +304,9 @@ export class DuplicateController {
         user: req.user,
         clientIp: req.clientIp,
         headers: req.headers,
+        ncParentAuditId: parentAuditId,
+        ncSourceId: source.id,
+        ncBaseId: baseId,
       },
     });
 

@@ -1,6 +1,7 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
 import { ColumnType } from '~/lib';
+import {SqlUi} from "~/lib/sqlUi/SqlUI.types";
 
 const dbTypes = [
   'int',
@@ -27,7 +28,8 @@ const dbTypes = [
   'timestamp',
 ];
 
-export class SqliteUi {
+export class SqliteUi implements SqlUi {
+  //#region statics
   static getNewTableColumns() {
     return [
       {
@@ -164,6 +166,29 @@ export class SqliteUi {
         dtxs: '',
         altered: 1,
         uidt: UITypes.LastModifiedBy,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: 'nc_order',
+        title: 'nc_order',
+        dt: 'real',
+        dtx: 'specificType',
+        ct: 'real',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        clen: null,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.Order,
         uip: '',
         uicn: '',
         system: true,
@@ -691,6 +716,9 @@ export class SqliteUi {
       case 'JSON':
         colProp.dt = 'text';
         break;
+      case 'Order':
+        colProp.dt = 'real';
+        break;
       default:
         colProp.dt = 'varchar';
         break;
@@ -908,8 +936,6 @@ export class SqliteUi {
         return ['text'];
       case 'JSON':
         return ['text'];
-
-      case 'Button':
       default:
         return dbTypes;
     }
@@ -925,9 +951,6 @@ export class SqliteUi {
       'COUNTA',
       'COUNT',
       'DATESTR',
-      'DAY',
-      'MONTH',
-      'HOUR',
     ];
   }
 
@@ -950,4 +973,99 @@ export class SqliteUi {
 
     return false;
   }
+  //#endregion statics
+
+  //#region methods
+  getNewTableColumns(): readonly any[] {
+    return SqliteUi.getNewTableColumns();
+  }
+  getNewColumn(suffix: string): {
+    column_name: string;
+    dt: string;
+    dtx: string;
+    ct: string;
+    nrqd: boolean;
+    rqd: boolean;
+    ck: boolean;
+    pk: boolean;
+    un: boolean;
+    ai: boolean;
+    cdf: null;
+    clen: number;
+    np: number;
+    ns: number;
+    dtxp: string;
+    dtxs: string;
+    altered: number;
+    uidt: string;
+    uip: string;
+    uicn: string;
+  } {
+    return SqliteUi.getNewColumn(suffix);
+  }
+  getDefaultLengthForDatatype(type: string): number | string {
+    return SqliteUi.getDefaultLengthForDatatype(type);
+  }
+  getDefaultLengthIsDisabled(type: string) {
+    return SqliteUi.getDefaultLengthIsDisabled(type);
+  }
+  getDefaultValueForDatatype(type: string) {
+    return SqliteUi.getDefaultValueForDatatype(type);
+  }
+  getDefaultScaleForDatatype(type: any): string {
+    return SqliteUi.getDefaultScaleForDatatype(type);
+  }
+  colPropAIDisabled(col: ColumnType, columns: ColumnType[]): boolean {
+    return SqliteUi.colPropAIDisabled(col, columns);
+  }
+  colPropUNDisabled(col: ColumnType): boolean {
+    return SqliteUi.colPropUNDisabled(col);
+  }
+  onCheckboxChangeAI(col: ColumnType): void {
+    return SqliteUi.onCheckboxChangeAI(col);
+  }
+  showScale(columnObj: ColumnType): boolean {
+    return SqliteUi.showScale(columnObj);
+  }
+  removeUnsigned(columns: ColumnType[]): void {
+    return SqliteUi.removeUnsigned(columns);
+  }
+  columnEditable(colObj: ColumnType): boolean {
+    return SqliteUi.columnEditable(colObj);
+  }
+  onCheckboxChangeAU(col: ColumnType): void {
+    return SqliteUi.onCheckboxChangeAU(col);
+  }
+  colPropAuDisabled(col: ColumnType): boolean {
+    return SqliteUi.colPropAuDisabled(col);
+  }
+  getAbstractType(col: ColumnType): string {
+    return SqliteUi.getAbstractType(col);
+  }
+  getUIType(col: ColumnType): string {
+    return SqliteUi.getUIType(col);
+  }
+  getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+    return SqliteUi.getDataTypeForUiType(col, idType);
+  }
+  getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType): string[] {
+    return SqliteUi.getDataTypeListForUiType(col, idType);
+  }
+  getUnsupportedFnList(): string[] {
+    return SqliteUi.getUnsupportedFnList();
+  }
+  getCurrentDateDefault(_col: Partial<ColumnType>) {
+    return SqliteUi.getCurrentDateDefault(_col);
+  }
+  isEqual(dataType1: string, dataType2: string): boolean {
+    return SqliteUi.isEqual(dataType1, dataType2);
+  }
+  adjustLengthAndScale(
+    _newColumn: Partial<ColumnType>,
+    _oldColumn?: ColumnType
+  ) {}
+  isParsedJsonReturnType(_col: ColumnType): boolean {
+    return false;
+  }
+  //#endregion methods
 }

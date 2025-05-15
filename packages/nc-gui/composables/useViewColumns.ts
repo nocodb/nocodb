@@ -38,7 +38,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const { isSharedBase } = storeToRefs(useBase())
 
-    const isViewColumnsLoading = ref(false)
+    const isViewColumnsLoading = ref(true)
 
     const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -132,6 +132,38 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
     }
 
+    const updateDefaultViewColumnMeta = async (
+      columnId?: string,
+      colMeta: { defaultViewColOrder?: number; defaultViewColVisibility?: boolean } = {},
+      allFields = false,
+    ) => {
+      if (!meta.value?.columns) return
+
+      meta.value.columns = (meta.value.columns || []).map((c: ColumnType) => {
+        if (!allFields && c.id !== columnId) return c
+
+        if (allFields && c.pv) return c
+
+        c.meta = { ...parseProp(c.meta || {}), ...colMeta }
+        return c
+      })
+
+      if (!allFields && columnId && meta.value?.columnsById?.[columnId]) {
+        meta.value.columnsById[columnId].meta = {
+          ...parseProp(meta.value.columnsById[columnId].meta),
+          ...colMeta,
+        }
+      }
+
+      if (allFields) {
+        meta.value.columnsById = meta.value.columns.reduce((acc, c) => {
+          acc[c.id!] = c
+
+          return acc
+        }, {} as Record<string, ColumnType>)
+      }
+    }
+
     const showAll = async (ignoreIds?: any) => {
       if (isLocalMode.value) {
         const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
@@ -173,6 +205,10 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           })
         } else {
           await $api.dbView.showAllColumn(view.value.id)
+        }
+
+        if (view.value?.is_default) {
+          updateDefaultViewColumnMeta(undefined, { defaultViewColVisibility: true }, true)
         }
       }
 
@@ -222,6 +258,10 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         } else {
           await $api.dbView.hideAllColumn(view.value.id)
         }
+
+        if (view.value?.is_default) {
+          updateDefaultViewColumnMeta(undefined, { defaultViewColVisibility: false }, true)
+        }
       }
 
       await loadViewColumns()
@@ -229,33 +269,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       $e('a:fields:show-all')
     }
 
-    const updateDefaultViewColumnOrder = (columnId: string, order: number) => {
-      if (!meta.value?.columns) return
-
-      const colIndex = meta.value.columns.findIndex((c) => c.id === columnId)
-      if (colIndex !== -1) {
-        meta.value.columns[colIndex].meta = {
-          ...parseProp((meta.value.columns[colIndex] as ColumnType)?.meta || {}),
-          defaultViewColOrder: order,
-        }
-        meta.value.columns = (meta.value.columns || []).map((c: ColumnType) => {
-          if (c.id !== columnId) return c
-
-          c.meta = { ...parseProp(c.meta || {}), defaultViewColOrder: order }
-          return c
-        })
-      }
-      if (meta.value?.columnsById?.[columnId]) {
-        meta.value.columnsById[columnId].meta = { ...parseProp(meta.value.columns[colIndex]?.meta), defaultViewColOrder: order }
-      }
-    }
-
-    const saveOrUpdate = async (
-      field: any,
-      index: number,
-      disableDataReload: boolean = false,
-      updateDefaultViewColOrder: boolean = false,
-    ) => {
+    const saveOrUpdate = async (field: any, index: number, disableDataReload = false, updateDefaultViewColMeta = false) => {
       if (isLocalMode.value && fields.value) {
         fields.value[index] = field
         meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
@@ -272,13 +286,16 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         localChanges.value[field.fk_column_id] = field
       }
 
-      if (updateDefaultViewColOrder && field?.fk_column_id) {
-        updateDefaultViewColumnOrder(field.fk_column_id, field.order)
-      }
-
       if (isUIAllowed('viewFieldEdit')) {
         if (field.id && view?.value?.id) {
           await $api.dbViewColumn.update(view.value.id, field.id, field)
+
+          if (updateDefaultViewColMeta) {
+            updateDefaultViewColumnMeta(field.fk_column_id, {
+              defaultViewColOrder: field.order,
+              defaultViewColVisibility: field.show,
+            })
+          }
         } else if (view.value?.id) {
           const insertedField = (await $api.dbViewColumn.create(view.value.id, field)) as any
 
@@ -393,20 +410,20 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         undo: {
           fn: (v: boolean) => {
             field.show = !v
-            saveOrUpdate(field, fieldIndex)
+            saveOrUpdate(field, fieldIndex, false, !!view.value?.is_default)
           },
           args: [checked],
         },
         redo: {
           fn: (v: boolean) => {
             field.show = v
-            saveOrUpdate(field, fieldIndex)
+            saveOrUpdate(field, fieldIndex, false, !!view.value?.is_default)
           },
           args: [checked],
         },
         scope: defineViewScope({ view: view.value }),
       })
-      saveOrUpdate(field, fieldIndex, !checked)
+      saveOrUpdate(field, fieldIndex, !checked, !!view.value?.is_default)
     }
 
     const toggleFieldStyles = (field: any, style: 'underline' | 'bold' | 'italic', status: boolean) => {
@@ -513,6 +530,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       gridViewCols,
       resizingColOldWith,
       isLocalMode,
+      updateDefaultViewColumnMeta,
     }
   },
   'useViewColumnsOrThrow',

@@ -2,7 +2,7 @@
 import FeedRecents from './Recents/index.vue'
 import FeedChangelog from './Changelog/index.vue'
 import FeedYoutube from './Youtube/index.vue'
-import FeedTwitter from './Twitter.vue'
+// import FeedTwitter from './Twitter.vue'
 // import FeedRoadmap from './Roadmap.vue'
 const { activeTab } = useProductFeed()
 
@@ -44,12 +44,12 @@ const tabs: Array<{
     title: 'Youtube',
     container: FeedYoutube,
   },
-  {
+  /*  {
     key: 'twitter',
     icon: 'ncTwitter',
     title: 'Twitter',
     container: FeedTwitter,
-  },
+  }, */
 ]
 
 const router = useRouter()

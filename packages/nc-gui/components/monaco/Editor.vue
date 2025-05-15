@@ -29,33 +29,70 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emits = defineEmits(['update:modelValue'])
 
-const { modelValue } = toRefs(props)
+const { modelValue, readOnly } = toRefs(props)
 
-const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus, monacoConfig, monacoCustomTheme, placeholder } =
-  props
+const { hideMinimap, lang, validate, disableDeepCompare, autoFocus, monacoConfig, monacoCustomTheme, placeholder } = props
+
+let isInitialLoad = false
 
 const vModel = computed<string>({
   get: () => {
-    if (typeof modelValue.value === 'object') {
-      return JSON.stringify(modelValue.value, null, 2)
-    } else {
-      return modelValue.value ?? ''
+    const value = modelValue.value
+
+    // If value is null or undefined, return null
+    if (ncIsNull(value) || ncIsUndefined(value)) {
+      return null
     }
+
+    // If value is not a string, convert it to a formatted JSON string
+    if (typeof value !== 'string') {
+      return JSON.stringify(value, null, 2)
+    }
+
+    // Handle JSON-specific cases on the initial load
+    if (lang === 'json' && !isInitialLoad) {
+      try {
+        // if null string, return '"null"'
+        if (value.trim() === 'null') {
+          return '"null"'
+        }
+        // If value is a valid JSON string, leave it as is
+        JSON.parse(value)
+      } catch (e) {
+        // If value is an invalid JSON string, convert it to a JSON string format
+        return JSON.stringify(value)
+      } finally {
+        // Ensure this block runs only once during the initial load
+        isInitialLoad = true
+      }
+    }
+
+    return value
   },
   set: (newVal: string | Record<string, any>) => {
-    if (typeof modelValue.value === 'object') {
-      try {
-        emits('update:modelValue', typeof newVal === 'object' ? newVal : JSON.parse(newVal))
-      } catch (e) {
-        console.error(e)
+    try {
+      // if the new value is null, emit null
+      if (newVal === 'null') {
+        emits('update:modelValue', null)
       }
-    } else {
-      emits('update:modelValue', newVal)
+      // If the current value is an object, attempt to parse and update
+      else if (typeof modelValue.value === 'object') {
+        // If the new value is 'null', emit null
+        const parsedValue = typeof newVal === 'object' ? newVal : JSON.parse(newVal)
+        emits('update:modelValue', parsedValue)
+      } else {
+        // Directly emit new value if it's not an object
+        emits('update:modelValue', newVal)
+      }
+    } catch (e) {
+      console.error('Failed to parse JSON:', e)
     }
   },
 })
 
 const isValid = ref(true)
+
+const error = ref('')
 
 const root = ref<HTMLDivElement>()
 
@@ -73,6 +110,7 @@ const format = (space = monacoConfig.tabSize || 2) => {
 defineExpose({
   format,
   isValid,
+  error,
 })
 
 onMounted(async () => {
@@ -107,7 +145,7 @@ onMounted(async () => {
       lineNumbers: 'off',
       tabSize: monacoConfig.tabSize || 2,
       automaticLayout: true,
-      readOnly,
+      readOnly: readOnly.value,
       bracketPairColorization: {
         enabled: true,
         independentColorPoolPerBracketType: true,
@@ -122,6 +160,7 @@ onMounted(async () => {
     editor.onDidChangeModelContent(async () => {
       try {
         isValid.value = true
+        error.value = ''
 
         if (disableDeepCompare || lang !== 'json') {
           vModel.value = editor.getValue()
@@ -132,7 +171,9 @@ onMounted(async () => {
         }
       } catch (e) {
         isValid.value = false
-        console.log(e)
+        const err = await extractSdkResponseErrorMsg(e)
+        error.value = err
+        console.log(err)
       }
     })
 
@@ -141,9 +182,22 @@ onMounted(async () => {
       new PlaceholderContentWidget(placeholder, editor)
     }
 
-    if (!isDrawerOrModalExist() && autoFocus) {
+    const activeDrawerOrModal = isDrawerOrModalExist()
+
+    if (!activeDrawerOrModal && autoFocus) {
       // auto focus on json cells only
       editor.focus()
+    }
+
+    if (activeDrawerOrModal?.classList.contains('json-modal') && autoFocus) {
+      setTimeout(() => {
+        const lineCount = editor.getModel()?.getLineCount() ?? 0
+        const lastLineLength = editor.getModel()?.getLineContent(lineCount).length ?? 0
+        const endPosition = { lineNumber: lineCount, column: lastLineLength + 1 }
+        editor.setPosition(endPosition)
+        editor.revealPositionInCenter(endPosition)
+        editor.focus()
+      }, 200)
     }
 
     if (lang === 'json') {
@@ -165,14 +219,11 @@ watch(vModel, (v) => {
   }
 })
 
-watch(
-  () => readOnly,
-  (v) => {
-    if (!editor) return
+watch(readOnly, (v) => {
+  if (!editor) return
 
-    editor.updateOptions({ readOnly: v })
-  },
-)
+  editor.updateOptions({ readOnly: v })
+})
 </script>
 
 <template>
@@ -183,6 +234,9 @@ watch(
 :deep(.monaco-editor) {
   background-color: transparent !important;
   border-radius: 8px !important;
+  .view-line * {
+    font-family: 'DM Mono', monospace !important;
+  }
 }
 
 :deep(.overflow-guard) {

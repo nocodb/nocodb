@@ -506,6 +506,8 @@ export type ConditionVal = AtLeastOne<{
   le: number | string | Date;
   like: string;
   nlike: string;
+  in: (number | string | Date)[];
+  nin: (number | string | Date)[];
 }>;
 
 export interface Condition {
@@ -990,7 +992,12 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
         break;
       default:
         // if object handle recursively
-        if (typeof val === 'object' && !Array.isArray(val)) {
+        if (
+          val &&
+          typeof val === 'object' &&
+          !(val instanceof Date) &&
+          !Array.isArray(val)
+        ) {
           qb = parseNestedCondition.call(self, val, qb, key, tn, tableAlias);
         } else {
           // handle based on operator
@@ -1247,7 +1254,12 @@ function parseNestedConditionv2(obj, qb, pKey?, table?, tableAlias?) {
         break;
       default:
         // if object handle recursively
-        if (typeof val === 'object' && !Array.isArray(val)) {
+        if (
+          val &&
+          typeof val === 'object' &&
+          !(val instanceof Date) &&
+          !Array.isArray(val)
+        ) {
           qb = parseNestedCondition.call(self, val, qb, key, tn, tableAlias);
         } else {
           // handle based on operator

@@ -35,7 +35,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none w-full h-full"
+    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none w-full h-full font-medium z-2"
     :style="{
       outlineWidth: '1px',
     }"
@@ -56,9 +56,10 @@ onUnmounted(() => {
     >
       <DashboardTreeView v-if="!isWorkspaceLoading" />
     </div>
-    <div v-if="!isSharedBase" class="flex-none overflow-auto">
+    <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
+      <PaymentUpgradeSidebarBanner v-if="isEeUI" />
+
       <GeneralGift v-if="!isEeUI" />
-      <div class="border-t-1 w-full"></div>
       <DashboardSidebarBeforeUserInfo />
       <DashboardSidebarFeed v-if="appInfo.feedEnabled" />
       <DashboardSidebarUserInfo />
@@ -69,5 +70,27 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .nc-sidebar-top-button {
   @apply flex flex-row mx-1 px-3.5 rounded-md items-center py-0.75 my-0.5 gap-x-2 hover:bg-gray-200 cursor-pointer;
+}
+
+.nc-sidebar-bottom-section {
+  @apply flex-none overflow-auto p-1;
+
+  &:not(:has(.nc-upgrade-sidebar-banner)) {
+    @apply border-t-1;
+  }
+  &:has(.nc-upgrade-sidebar-banner) {
+    @apply -mt-2.5 pointer-events-none;
+  }
+
+  & > * {
+    @apply my-0.5 pointer-events-auto;
+  }
+
+  & > :first-child {
+    @apply mt-0;
+  }
+  & > :last-child {
+    @apply mb-0;
+  }
 }
 </style>

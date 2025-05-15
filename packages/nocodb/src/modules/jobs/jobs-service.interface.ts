@@ -10,4 +10,5 @@ export interface IJobsService {
   jobList(): Promise<Bull.Job<any>[]>;
   resumeQueue(): Promise<void>;
   pauseQueue(): Promise<void>;
+  setJobResult(jobId: string, data: any): Promise<void>;
 }

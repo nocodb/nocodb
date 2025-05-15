@@ -19,6 +19,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     baseId: string
   }
 
+  const { isUIAllowed } = useRoles()
+
   const router = useRouter()
   // Store recent views from all Workspaces
   const allRecentViews = ref<RecentView[]>([])
@@ -138,9 +140,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (!force && viewsByTable.value.get(tableId)) {
         viewsByTable.value.set(
           tableId,
-          viewsByTable.value.get(tableId).sort((a, b) => a.order! - b.order!),
+          (viewsByTable.value.get(tableId) ?? []).sort((a, b) => a.order! - b.order!),
         )
-
+        isViewsLoading.value = false
         return
       }
       if (!ignoreLoading) isViewsLoading.value = true
@@ -486,6 +488,47 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
+  const setCurrentViewExpandedFormMode = async (viewId: string, mode: 'field' | 'attachment', columnId?: string) => {
+    /**
+     * Update value only if it is EeUI and active view
+     */
+    if (!isEeUI || !viewId || activeView.value?.id !== viewId) return
+
+    try {
+      if (isUIAllowed('viewCreateOrEdit')) {
+        await $api.dbView.update(viewId, {
+          expanded_record_mode: mode,
+          attachment_mode_column_id: columnId,
+        })
+      }
+
+      Object.assign(activeView.value, { expanded_record_mode: mode, attachment_mode_column_id: columnId })
+    } catch (e: any) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  const setCurrentViewExpandedFormAttachmentColumn = async (viewId: string, columnId: string) => {
+    /**
+     * Update value only if it is EeUI and active view
+     */
+    if (!isEeUI || !viewId || activeView.value?.id !== viewId) return
+
+    try {
+      if (isUIAllowed('viewCreateOrEdit')) {
+        await $api.dbView.update(viewId, {
+          attachment_mode_column_id: columnId,
+        })
+      }
+
+      Object.assign(activeView.value, { attachment_mode_column_id: columnId })
+    } catch (e: any) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   refreshViewTabTitle.on(() => {
     updateTabTitle()
   })
@@ -525,6 +568,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     refreshViewTabTitle: refreshViewTabTitle.trigger,
     updateViewCoverImageColumnId,
     duplicateView,
+    setCurrentViewExpandedFormMode,
+    setCurrentViewExpandedFormAttachmentColumn,
   }
 })
 

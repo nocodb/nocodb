@@ -2,7 +2,7 @@
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
 import { getMarkRange } from '@tiptap/core'
-import type { Mark } from 'prosemirror-model'
+import type { Mark } from '@tiptap/pm/model'
 
 const props = defineProps<Props>()
 

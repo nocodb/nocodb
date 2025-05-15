@@ -4,7 +4,9 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: R2Plugin,
+  id: 'cloudflare-r2',
   title: 'Cloudflare R2',
+  recoveryTitle: 'Cloudflare R2 Storage',
   version: '0.0.3',
   logo: 'plugins/r2.png',
   description:

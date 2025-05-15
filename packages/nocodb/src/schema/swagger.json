@@ -3249,6 +3249,10 @@
                     "roles": {
                       "type": "string",
                       "example": "viewer"
+                    },
+                    "fk_custom_url_id": {
+                      "$ref": "#/components/schemas/StringOrNull",
+                      "description": "ID of custom url"
                     }
                   }
                 },
@@ -3378,6 +3382,10 @@
                     "roles": {
                       "type": "string",
                       "example": "viewer"
+                    },
+                    "fk_custom_url_id": {
+                      "$ref": "#/components/schemas/StringOrNull",
+                      "description": "ID of custom url"
                     }
                   }
                 }
@@ -3392,7 +3400,20 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SharedBaseReq"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SharedBaseReq"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "custom_url_path": {
+                        "$ref": "#/components/schemas/StringOrNull",
+                        "description": "Custom url path"
+                      }
+                    }
+                  }
+                ]
               },
               "examples": {
                 "Example 1": {
@@ -4629,6 +4650,98 @@
             "in": "path",
             "required": true,
             "description": "Unique Column ID"
+          }
+        ]
+      }
+    },
+    "/api/v2/meta/duplicate/{workspaceId}/shared/{sharedBaseId}": {
+      "post": {
+        "summary": "Duplicate Shared Base",
+        "operationId": "base-duplicate-shared",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "excludeData": {
+                        "type": "boolean",
+                        "required": false
+                      },
+                      "excludeViews": {
+                        "type": "boolean",
+                        "required": false
+                      }
+                    }
+                  },
+                  "base": {
+                    "type": "object",
+                    "required": false
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "excludeData": true,
+                    "excludeViews": true,
+                    "excludeHooks": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ],
+        "description": "Duplicate a shared base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "w_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Workspace ID"
+          },
+          {
+            "name": "sharedBaseId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Shared Base ID"
           }
         ]
       }
@@ -5997,7 +6110,20 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SharedViewReq"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SharedViewReq"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "custom_url_path": {
+                        "$ref": "#/components/schemas/StringOrNull",
+                        "description": "Custom url path"
+                      }
+                    }
+                  }
+                ]
               }
             }
           },
@@ -9020,6 +9146,14 @@
             "description": "Comma separated list of pks"
           },
           {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "getHiddenColumns",
+            "description": "Get hidden columns on List Api"
+          },
+          {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
@@ -9163,6 +9297,20 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "undo"
           }
         ]
       }
@@ -9324,6 +9472,90 @@
             },
             "in": "query",
             "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/groupby/count": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseName",
+          "in": "path",
+          "required": true,
+          "description": "Base Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true,
+          "description": "Table Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "query",
+          "name": "column_name",
+          "description": "Column name of the column you want to group by, eg. `column_name=column1`"
+        }
+      ],
+      "get": {
+        "summary": "Group By Table Row Count",
+        "operationId": "db-table-row-group-by-count",
+        "description": "Get the number of groups by the given query",
+        "tags": [
+          "DB Table Row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
           },
           {
             "schema": {
@@ -9753,6 +9985,22 @@
             "schema": {
               "type": "string"
             },
+            "name": "prev_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "next_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
             "name": "to_date",
             "in": "query",
             "required": true
@@ -9958,6 +10206,22 @@
           },
           {
             "schema": {
+              "type": "string"
+            },
+            "name": "prev_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "next_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
               "type": "array"
             },
             "in": "query",
@@ -10047,6 +10311,22 @@
               "type": "string"
             },
             "name": "to_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "prev_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "next_date",
             "in": "query",
             "required": true
           },
@@ -10224,6 +10504,22 @@
             "schema": {
               "type": "string"
             },
+            "name": "prev_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "next_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
             "name": "to_date",
             "in": "query",
             "required": true
@@ -10361,6 +10657,13 @@
             "name": "offset"
           },
           {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "getHiddenColumns"
+          },
+          {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
@@ -10493,6 +10796,22 @@
         },
         "tags": [
           "DB View Row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "undo"
+          }
         ],
         "requestBody": {
           "content": {
@@ -10693,6 +11012,101 @@
             },
             "in": "query",
             "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby/count": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseName",
+          "in": "path",
+          "required": true,
+          "description": "Base Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true,
+          "description": "Table Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "query",
+          "name": "column_name",
+          "description": "Column name of the column you want to group by, eg. `column_name=column1`"
+        }
+      ],
+      "get": {
+        "summary": "Count of Group By Table View Row ",
+        "operationId": "db-view-row-group-by-count",
+        "description": "Get the table view rows grouped by count the given query",
+        "tags": [
+          "DB View Row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
           },
           {
             "schema": {
@@ -11447,6 +11861,134 @@
         }
       }
     },
+    "/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/upsert": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseName",
+          "in": "path",
+          "required": true,
+          "description": "Base Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true,
+          "description": "Table Name"
+        }
+      ],
+      "post": {
+        "summary": "Bulk Upsert Table Rows",
+        "operationId": "db-table-row-bulk-upsert",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "description": "List of returned values. 1 means successful. 0 means failed."
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "Id": 1,
+                        "Title": "abc"
+                      },
+                      {
+                        "Id": 2,
+                        "Title": "def"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "description": "List of data objects",
+                "items": {
+                  "x-stoplight": {
+                    "id": "7u0mp8nzlvysz"
+                  },
+                  "type": "object"
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Id": 1,
+                      "Title": "abc"
+                    },
+                    {
+                      "Title": "def"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "description": ""
+        },
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "description": "List of data objects",
+            "items": {
+              "x-stoplight": {
+                "id": "7u0mp8nzlvysz"
+              },
+              "type": "object"
+            }
+          },
+          "examples": {
+            "Example 1": {
+              "value": [
+                {
+                  "Title": "abc"
+                },
+                {
+                  "Title": "def"
+                }
+              ]
+            }
+          }
+        },
+        "description": "Bulk upsert table rows in one go.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}": {
       "parameters": [
         {
@@ -11558,6 +12100,29 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "undo"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "nc-operation-id",
+            "description": "Operation ID"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "nc-import-type",
+            "description": "Import Type if triggering from import"
           }
         ]
       },
@@ -11838,22 +12403,6 @@
         "tags": [
           "DB Table Row"
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "Title": "foo"
-                  }
-                }
-              }
-            }
-          }
-        },
         "description": "Bulk Delete all Table Rows if the condition is true",
         "parameters": [
           {
@@ -12474,6 +13023,81 @@
           }
         ],
         "description": "Get the table rows but exculding the current record's children and parent"
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/count": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Count Table View Rows",
+        "operationId": "public-db-view-row-count",
+        "description": "Count how many rows in the given Table View",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {},
+            "in": "query",
+            "name": "nested",
+            "description": "Query params for nested data"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "x-stoplight": {
+                        "id": "hwq29x70rcipi"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "count": 25
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v2/public/shared-view/{sharedViewUuid}/bulk/dataList": {
@@ -13391,6 +14015,93 @@
         "description": "List all shared view rows grouped by a column"
       }
     },
+    "/api/v2/public/shared-view/{sharedViewUuid}/groupby/count": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Group By Table Row Count",
+        "operationId": "public-data-group-by-count",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "sort",
+            "description": "The result will be sorted based on `sort` query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "column_name",
+            "description": "Columns to group by"
+          }
+        ],
+        "description": "Get the number of groups by the given query"
+      }
+    },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName}": {
       "parameters": [
         {
@@ -13979,6 +14690,10 @@
                           "id": "d22zkup0c0l80"
                         }
                       }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated",
+                      "description": "Pagination Info"
                     }
                   },
                   "required": [
@@ -14036,6 +14751,22 @@
         },
         "description": "List all audits",
         "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit"
+          },
           {
             "schema": {
               "type": "string",
@@ -14327,8 +15058,7 @@
         ],
         "description": "Delete comment",
         "requestBody": {
-          "content": {
-          }
+          "content": {}
         }
       }
     },
@@ -15265,13 +15995,13 @@
         ]
       }
     },
-    "/api/v1/db/meta/plugins/{pluginTitle}/status": {
+    "/api/v1/db/meta/plugins/{pluginId}/status": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "pluginTitle",
+          "name": "pluginId",
           "in": "path",
           "required": true,
           "description": "Plugin Title"
@@ -16122,6 +16852,48 @@
         ]
       }
     },
+    "/api/v2/cloud-features": {
+      "get": {
+        "summary": "Get Cloud Features",
+        "operationId": "utils-cloud-features",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Id": {
+                        "type": "number"
+                      },
+                      "Title": {
+                        "type": "string"
+                      },
+                      "Highlight": {
+                        "type": "boolean"
+                      },
+                      "Coming Soon": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Utils"
+        ]
+      }
+    },
     "/api/v1/aggregated-meta-info": {
       "parameters": [
         {
@@ -16651,6 +17423,20 @@
           },
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "enum": [
+                "workspacePics",
+                "profilePics",
+                "organizationPics"
+              ],
+              "type": "string",
+              "example": "workspacePics"
+            },
+            "name": "scope",
+            "in": "query",
+            "description": "The scope of the attachment"
           }
         ],
         "description": "Upload attachment"
@@ -16690,6 +17476,20 @@
           },
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "enum": [
+                "workspacePics",
+                "profilePics",
+                "organizationPics"
+              ],
+              "type": "string",
+              "example": "workspacePics"
+            },
+            "name": "scope",
+            "in": "query",
+            "description": "The scope of the attachment"
           }
         ],
         "description": "Upload attachment by URL. Used in Airtable Migration."
@@ -17379,6 +18179,20 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "undo"
           }
         ]
       },
@@ -17545,6 +18359,85 @@
             "in": "query",
             "name": "offset",
             "description": "Offset in rows"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "Title": "baz",
+                      "SingleSelect": null,
+                      "Sheet-1 List": [
+                        {
+                          "Id": 1,
+                          "Title": "baz"
+                        }
+                      ],
+                      "LTAR": [
+                        {
+                          "Id": 1,
+                          "Title": "baz"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v2/tables/{tableId}/records/{rowId}/move": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true,
+          "description": "Row ID"
+        }
+      ],
+      "post": {
+        "summary": "Move Table Row",
+        "operationId": "db-data-table-row-move",
+        "description": "Move the table row to new position",
+        "tags": [
+          "DB Data Table Row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "before",
+            "description": "The row ID before which the row should be moved"
           },
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -18573,6 +19466,389 @@
         ]
       }
     },
+    "/api/v2/ai/bases/{baseId}/utils": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "w124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Base ID"
+        }
+      ],
+      "post": {
+        "summary": "AI Utils",
+        "operationId": "ai-utils",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ai"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "operation": {
+                    "type": "string"
+                  },
+                  "input": {}
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "description": "AI Utils",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v2/ai/bases/{baseId}/schema": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "w124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Base ID"
+        }
+      ],
+      "post": {
+        "summary": "AI Schema",
+        "operationId": "ai-schema",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ai"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "operation": {
+                    "type": "string"
+                  },
+                  "input": {}
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "description": "AI Schema",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v2/ai/workspaces/{workspaceId}/bases": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "w124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Workspace ID"
+        }
+      ],
+      "post": {
+        "summary": "AI Schema",
+        "operationId": "ai-schema-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ai"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "operation": {
+                    "type": "string"
+                  },
+                  "input": {}
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "description": "AI Schema",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v2/ai/tables/{modelId}/rows/generate": {
+      "post": {
+        "summary": "Generate AI Data",
+        "operationId": "ai-data-generate",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {}
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ai"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rowIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "column": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string"
+                          },
+                          "prompt_raw": {
+                            "type": "string"
+                          },
+                          "fk_integration_id": {
+                            "type": "string"
+                          },
+                          "uidt": {
+                            "type": "string"
+                          },
+                          "model": {
+                            "type": "string"
+                          },
+                          "output_column_ids": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "title",
+                          "prompt_raw",
+                          "fk_integration_id",
+                          "uidt"
+                        ]
+                      }
+                    ]
+                  },
+                  "preview": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "rowIds"
+                ]
+              }
+            }
+          }
+        },
+        "description": "Generate AI data for specified rows",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "name": "modelId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Model ID"
+          }
+        ]
+      }
+    },
+    "/api/v2/ai/tables/{modelId}/rows/fill": {
+      "post": {
+        "summary": "Fill AI Data",
+        "operationId": "ai-data-fill",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {}
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ai"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rows": {
+                    "type": "array"
+                  },
+                  "numRows": {
+                    "type": "number"
+                  },
+                  "generateIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "rowIds",
+                  "numRows",
+                  "generateIds"
+                ]
+              }
+            }
+          }
+        },
+        "description": "Fill AI data for specified rows",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "name": "modelId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Model ID"
+          }
+        ]
+      }
+    },
+    "/api/v2/ai/tables/{modelId}/extract": {
+      "post": {
+        "summary": "Extract Data using AI",
+        "operationId": "ai-data-extract",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {}
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ai"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "description": "Extract AI data from the input",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "name": "modelId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Model ID"
+          }
+        ]
+      }
+    },
     "/api/v2/meta/integrations": {
       "get": {
         "summary": "List integrations",
@@ -18748,6 +20024,394 @@
           "name": "integrationId",
           "in": "path",
           "required": true
+        }
+      ]
+    },
+    "/api/v2/meta/integrations/{integrationId}/default": {
+      "patch": {
+        "summary": "Set integration as category default",
+        "operationId": "integration-set-default",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Set integration as category default"
+      }
+    },
+    "/api/v2/integrations/:integrationId/store": {
+      "post": {
+        "summary": "Store integration",
+        "operationId": "integration-store",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "op": {
+                        "type": "string",
+                        "enum": [
+                          "list"
+                        ],
+                        "default": "list"
+                      },
+                      "limit": {
+                        "type": "number"
+                      },
+                      "offset": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "op",
+                      "limit",
+                      "offset"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "op": {
+                        "type": "string",
+                        "enum": [
+                          "get"
+                        ],
+                        "default": "get"
+                      }
+                    },
+                    "required": [
+                      "op"
+                    ]
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "op": {
+                        "type": "string",
+                        "enum": [
+                          "sum"
+                        ],
+                        "default": "sum"
+                      },
+                      "fields": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "op",
+                      "fields"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Store integration",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "integrationId",
+            "in": "path",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/v2/integrations": {
+      "get": {
+        "summary": "Integration List",
+        "operationId": "integrations-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integrations"
+        ],
+        "description": "List available integrations"
+      }
+    },
+    "/api/v2/integrations/:type/:subType": {
+      "get": {
+        "summary": "Get Integration Info",
+        "operationId": "integrations-info",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integrations"
+        ],
+        "description": "Get info for integration"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "type",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "subType",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v2/integrations/:integrationId/:endpoint": {
+      "post": {
+        "summary": "Call exposed integration endpoint",
+        "operationId": "integrations-endpoint",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integrations"
+        ],
+        "description": "Call exposed integration endpoint"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "integrationId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "endpoint",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v2/tables/:tableId/button/:fieldId": {
+      "post": {
+        "summary": "Trigger a button action",
+        "operationId": "action-trigger-button",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customRows": {
+                    "type": "array",
+                    "items": {
+                      "schema": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "rowIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "customField": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Action"
+        ],
+        "description": "Trigger a button action"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "fieldId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "boolean"
+          },
+          "name": "passThrough",
+          "in": "query",
+          "description": "Trigger AI action with custom record data provided in request body as rows",
+          "required": false
+        }
+      ]
+    },
+    "/api/v2/internal/:workspaceId/:baseId": {
+      "post": {
+        "summary": "Trigger an internal operation",
+        "operationId": "internal-post-operation",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "tags": [
+          "Internal"
+        ],
+        "description": "Trigger an internal operation"
+      },
+      "get": {
+        "summary": "Trigger an internal operation",
+        "operationId": "internal-get-operation",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Internal"
+        ],
+        "description": "Trigger an internal operation"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "operation",
+          "in": "query",
+          "description": "Operation to trigger",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "fk_model_id",
+          "in": "query",
+          "description": "Model ID",
+          "required": false
         }
       ]
     }
@@ -19191,6 +20855,10 @@
             "type": "string",
             "description": "Detail",
             "example": "<span class=\"\">Date</span>   : <span class=\"text-decoration-line-through red px-2 lighten-4 black--text\">2023-03-12</span>   <span class=\"black--text green lighten-4 px-2\"></span>"
+          },
+          "version": {
+            "type": "number",
+            "description": "Version of the audit"
           }
         },
         "x-stoplight": {
@@ -19380,6 +21048,9 @@
             "type": "string"
           },
           "is_private": {
+            "$ref": "#/components/schemas/Bool"
+          },
+          "is_default": {
             "$ref": "#/components/schemas/Bool"
           },
           "type": {
@@ -19581,7 +21252,21 @@
         "type": "string",
         "description": "Integration Type",
         "enum": [
-          "database"
+          "database",
+          "ai",
+          "auth",
+          "sync",
+          "communication",
+          "spread-sheet",
+          "project-management",
+          "crm",
+          "marketing",
+          "ats",
+          "development",
+          "finance",
+          "ticketing",
+          "storage",
+          "others"
         ]
       },
       "IntegrationReq": {
@@ -19928,7 +21613,9 @@
               "Links",
               "User",
               "CreatedBy",
-              "LastModifiedBy"
+              "LastModifiedBy",
+              "AI",
+              "Order"
             ],
             "type": "string"
           },
@@ -19943,6 +21630,10 @@
           "visible": {
             "$ref": "#/components/schemas/Bool",
             "description": "Is Visible?"
+          },
+          "readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column readonly?"
           }
         },
         "x-stoplight": {
@@ -21164,6 +22855,9 @@
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
+          },
+          "parsed_tree": {
+            "description": "Parsed Formula Tree"
           }
         },
         "x-stoplight": {
@@ -21180,6 +22874,7 @@
             "formula_raw": "CONCAT(\"FOO\", {Title})",
             "id": "fm_1lo8wqtvvipdns",
             "base_id": "pj34mdkvjfdnkf",
+            "fk_script_id": "sc_1lo8wqtvvipdns",
             "label": "Click Me",
             "theme": "solid",
             "color": "green",
@@ -21195,10 +22890,7 @@
           },
           "type": {
             "description": "Whether button is webhook or url",
-            "enum": [
-              "webhook",
-              "url"
-            ]
+            "$ref": "#/components/schemas/ButtonActions"
           },
           "label": {
             "description": "Label of Button",
@@ -21255,9 +22947,25 @@
             "$ref": "#/components/schemas/Id",
             "description": "Webhook ID"
           },
+          "fk_script_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Script ID"
+          },
           "fk_column_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to Column"
+          },
+          "output_column_ids": {
+            "description": "Comma separated column ids to be updated with the generated value",
+            "type": "string"
+          },
+          "fk_integration_id": {
+            "description": "Foreign key to AI integration",
+            "type": "string"
+          },
+          "model": {
+            "description": "AI model",
+            "type": "string"
           }
         },
         "x-stoplight": {
@@ -21292,10 +23000,7 @@
           },
           "type": {
             "description": "Whether button is webhook or url",
-            "enum": [
-              "webhook",
-              "url"
-            ]
+            "$ref": "#/components/schemas/ButtonActions"
           },
           "theme": {
             "description": "Button Theme",
@@ -22784,6 +24489,58 @@
           "id": "9zirjgj9k1gqa"
         }
       },
+      "MCPToken": {
+        "description": "Model for MCP Token",
+        "title": "MCP Token Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the MCP Token"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order of the Script"
+          },
+          "token": {
+            "type": "string",
+            "description": "MCP Token"
+          },
+          "fk_workspace_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Workspace ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "fk_user_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID of the creator"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Last updated time"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Creation time"
+          }
+        },
+        "x-stoplight": {
+          "id": "4zvzrppfjxrqb"
+        }
+      },
       "Calendar": {
         "description": "Model for Calendar",
         "examples": [
@@ -23681,7 +25438,9 @@
               "Links",
               "User",
               "CreatedBy",
-              "LastModifiedBy"
+              "LastModifiedBy",
+              "AI",
+              "Order"
             ],
             "type": "string",
             "description": "UI Data Type"
@@ -23693,6 +25452,10 @@
           "unique": {
             "$ref": "#/components/schemas/Bool",
             "description": "Is this column unique?"
+          },
+          "readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column readonly?"
           }
         },
         "title": "Normal Column Request Model",
@@ -23778,6 +25541,35 @@
         "x-stoplight": {
           "id": "2x65v3n9xo8q3"
         }
+      },
+      "PaginatedV3": {
+        "description": "Model for Paginated",
+        "examples": [
+          {
+            "next": "http://api.nocodd.com/api/v3/tables/id?page=3",
+            "prev": "http://api.nocodd.com/api/v3/tables/id?page=1"
+          }
+        ],
+        "properties": {
+          "next": {
+            "description": "URL to access next page",
+            "type": "string"
+          },
+          "prev": {
+            "description": "URL to access previous page",
+            "type": "string"
+          },
+          "nestedNext": {
+            "description": "URL to access current page data with next set of nested fields data",
+            "type": "string"
+          },
+          "nestedPrev": {
+            "description": "URL to access current page data with previous set of nested fields data",
+            "type": "string"
+          }
+        },
+        "title": "Paginated Model",
+        "type": "object"
       },
       "Password": {
         "description": "Model for Password",
@@ -24168,6 +25960,10 @@
             "description": "Base Title",
             "example": "my-base",
             "type": "string"
+          },
+          "fk_custom_url_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "ID of custom url"
           }
         },
         "x-stoplight": {
@@ -24314,7 +26110,7 @@
           "title": {
             "description": "Base Title",
             "example": "My Base",
-            "maxLength": 128,
+            "maxLength": 50,
             "minLength": 1,
             "type": "string"
           },
@@ -24444,6 +26240,39 @@
         "x-stoplight": {
           "id": "3bvgqk9tn16ur"
         }
+      },
+      "ProjectUserUpdateReq": {
+        "description": "Model for Base User Request",
+        "examples": [
+          {
+            "roles": "owner"
+          }
+        ],
+        "title": "Base User Request Model",
+        "type": "object",
+        "properties": {
+          "email": {
+            "format": "email",
+            "type": "string",
+            "description": "Base User Email"
+          },
+          "roles": {
+            "enum": [
+              "no-access",
+              "commenter",
+              "editor",
+              "guest",
+              "owner",
+              "viewer",
+              "creator"
+            ],
+            "type": "string",
+            "description": "Base User Role"
+          }
+        },
+        "required": [
+          "roles"
+        ]
       },
       "ProjectUserMetaReq": {
         "description": "Model for Base User Meta Request",
@@ -24579,7 +26408,7 @@
         "examples": [
           {
             "id": "sl_hvfeuagqtlzzbk",
-            "title": "Option A",
+            "title": "OptionA",
             "fk_column_id": "cl_35zmvi2tezfipw",
             "color": "#cfdffe",
             "order": 1
@@ -24821,7 +26650,8 @@
         "examples": [
           {
             "meta": {},
-            "password": "123456789"
+            "password": "123456789",
+            "custom_url_path": "feedback-form"
           }
         ],
         "title": "Shared View Request Model",
@@ -25575,7 +27405,14 @@
           },
           "columnsById": {
             "description": "Column Models grouped by IDs",
-            "type": "object"
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ColumnType"
+            }
+          },
+          "columnsHash": {
+            "description": "Hash of columns",
+            "type": "string"
           },
           "deleted": {
             "$ref": "#/components/schemas/Bool"
@@ -25627,6 +27464,10 @@
           "type": {
             "description": "Table Type",
             "type": "string"
+          },
+          "synced": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this table synced?"
           }
         },
         "required": [
@@ -25931,7 +27772,8 @@
             "bio": "foo",
             "location": "Istanbul",
             "created_at": "2019-08-24",
-            "avatar": "https://dummyimage.com/300.png"
+            "avatar": "https://dummyimage.com/300.png",
+            "meta": {}
           }
         ],
         "title": "User Model",
@@ -25984,6 +27826,10 @@
           "token_version": {
             "description": "Access token version",
             "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for user"
           }
         },
         "required": [
@@ -26251,6 +28097,14 @@
               }
             ],
             "description": "Associated View Model"
+          },
+          "owned_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of view owner user"
+          },
+          "fk_custom_url_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "ID of custom url"
           }
         },
         "required": [
@@ -26553,6 +28407,10 @@
           "show_system_fields": {
             "$ref": "#/components/schemas/Bool",
             "description": "Should this view show system fields?"
+          },
+          "owned_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of view owner user"
           }
         }
       },
@@ -26835,8 +28693,7 @@
           {
             "list": [
               {
-                "body": {
-                },
+                "body": {},
                 "type": "invite",
                 "is_read": false,
                 "is_deleted": false,
@@ -26901,6 +28758,10 @@
           "deleted": {
             "type": "boolean",
             "required": false
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for user"
           }
         }
       },
@@ -27271,6 +29132,45 @@
           }
         }
       },
+      "Snapshot": {
+        "description": "Model for Snapshot",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the Snapshot"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Base"
+          },
+          "snapshot_base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Snapshot Base"
+          },
+          "fk_workspace_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Workspace"
+          },
+          "created_at": {
+            "format": "date",
+            "type": "string",
+            "description": "Date of creation"
+          },
+          "created_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID of the creator"
+          },
+          "status": {
+            "type": "string",
+            "description": "Status of the Snapshot"
+          }
+        }
+      },
       "ExtensionReq": {
         "type": "object",
         "properties": {
@@ -27297,6 +29197,70 @@
           "order": {
             "type": "number",
             "description": "Order of the extension"
+          }
+        }
+      },
+      "AIRecord": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "description": "Value"
+          },
+          "lastModifiedBy": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Last Modified By User ID"
+          },
+          "lastModifiedTime": {
+            "type": "string",
+            "description": "Last Modified Time"
+          },
+          "isStale": {
+            "type": "boolean",
+            "description": "Is any referenced value updated?"
+          }
+        }
+      },
+      "ButtonActions": {
+        "type": "string",
+        "enum": [
+          "webhook",
+          "url",
+          "ai",
+          "script"
+        ]
+      },
+      "CustomUrl": {
+        "description": "Model for Custom Url",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id associated to the Custom url"
+          },
+          "fk_workspace_id": {
+            "type": "string",
+            "description": "Workspace ID"
+          },
+          "base_id": {
+            "type": "string",
+            "description": "Base ID"
+          },
+          "fk_model_id": {
+            "type": "string",
+            "description": "Model ID"
+          },
+          "view_id": {
+            "type": "string",
+            "description": "View ID"
+          },
+          "original_path": {
+            "type": "string",
+            "description": "Original url used for redirection purpose"
+          },
+          "custom_path": {
+            "type": "string",
+            "description": "Custom url path"
           }
         }
       }

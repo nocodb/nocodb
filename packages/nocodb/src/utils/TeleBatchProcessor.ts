@@ -23,7 +23,7 @@ class TeleBatchProcessor {
     if (this.flushInterval) {
       this.timeoutRef = setTimeout(() => {
         this.flushBackground();
-      }, this.flushInterval);
+      }, this.flushInterval).unref();
     }
   }
 

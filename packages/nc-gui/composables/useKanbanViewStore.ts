@@ -15,6 +15,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const addNewStackId = 'addNewStack'
 
+    const uncategorizedStackId = 'uncategorized'
+
     const { t } = useI18n()
 
     const { api } = useApi()
@@ -137,7 +139,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
 
       for (const data of groupData ?? []) {
-        const key = data.key
+        const key = typeof data.key === 'string' ? (data.key?.length ? data.key : null) : null
         formattedData.value.set(key, formatData(data.value.list))
         countByStack.value.set(key, data.value.pageInfo.totalRows || 0)
       }
@@ -165,7 +167,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
       let where = `(${groupingField.value},eq,${stackTitle})`
       if (stackTitle === null) {
-        where = `(${groupingField.value},is,null)`
+        where = `(${groupingField.value},is,blank)`
       }
 
       if (xWhere.value) {
@@ -255,7 +257,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
         // handle deleted options
         const columnOptionIds = (groupingFieldColumn.value?.colOptions as SelectOptionsType)?.options.map(({ id }) => id)
-        const cols = stackMetaObj.value[fk_grp_col_id].filter(({ id }) => id !== 'uncategorized' && !columnOptionIds.includes(id))
+        const cols = stackMetaObj.value[fk_grp_col_id].filter(
+          ({ id }) => id !== uncategorizedStackId && !columnOptionIds.includes(id),
+        )
         for (const col of cols) {
           const idx = stackMetaObj.value[fk_grp_col_id].map((ele: Record<string, any>) => ele.id).indexOf(col.id)
           if (idx !== -1) {
@@ -292,7 +296,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         groupingFieldColOptions.value = [
           ...((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? []),
           // enrich uncategorized stack
-          { id: 'uncategorized', title: null, order: 0, color: themeV3Colors.gray[500] } as any,
+          { id: uncategorizedStackId, title: null, order: 0, color: themeV3Colors.gray[500] } as any,
         ]
           // sort by initial order
           .sort((a, b) => a.order! - b.order!)
@@ -318,7 +322,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
       if (
         !viewMeta?.value?.id ||
-        !isUIAllowed('dataEdit', {
+        !isUIAllowed('viewCreateOrEdit', {
           skipSourceCheck: true,
         })
       )
@@ -553,6 +557,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       const stackTitle = row.row[groupingField.value]
       const oldStackTitle = row.oldRow[groupingField.value]
 
+      // if the update happen on linked table, do not attempt to update stack
+      if (!stackTitle || oldStackTitle) {
+        return
+      }
       if (isNewRow) {
         // add a new record
         if (stackTitle) {
@@ -719,6 +727,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       deleteRow,
       moveHistory,
       addNewStackId,
+      uncategorizedStackId,
     }
   },
   'kanban-view-store',

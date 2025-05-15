@@ -14,7 +14,7 @@ import DiscordPluginConfig from '~/plugins/discord';
 import GcsPluginConfig from '~/plugins/gcs';
 import LinodePluginConfig from '~/plugins/linode';
 import MattermostPluginConfig from '~/plugins/mattermost';
-import MinioPluginConfig from '~/plugins/mino';
+import MinioPluginConfig from '~/plugins/minio';
 import OvhCloudPluginConfig from '~/plugins/ovhCloud';
 import S3PluginConfig from '~/plugins/s3';
 import ScalewayPluginConfig from '~/plugins/scaleway';
@@ -67,15 +67,26 @@ class NcPluginMgrv2 {
   // }
 
   public static async init(ncMeta = Noco.ncMeta): Promise<void> {
+    // extract duplicate plugin ids from default plugins and throw error
+    const duplicateIds = defaultPlugins
+      .map((p) => p.id)
+      .filter((id, index, self) => self.indexOf(id) !== index);
+
+    if (duplicateIds.length) {
+      throw new Error(
+        `Duplicate plugin ids found in default plugins: ${duplicateIds.join(
+          ', ',
+        )}`,
+      );
+    }
+
     /* Populate rows into nc_plugins table if not present */
     for (const plugin of defaultPlugins) {
       const pluginConfig = await ncMeta.metaGet(
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.PLUGIN,
-        {
-          title: plugin.title,
-        },
+        plugin.id,
       );
 
       if (!pluginConfig) {
@@ -84,6 +95,7 @@ class NcPluginMgrv2 {
           RootScopes.ROOT,
           MetaTable.PLUGIN,
           {
+            id: plugin.id,
             title: plugin.title,
             version: plugin.version,
             logo: plugin.logo,
@@ -118,10 +130,17 @@ class NcPluginMgrv2 {
     /*
      * NC_S3_BUCKET_NAME
      * NC_S3_REGION
+     * NC_S3_ENDPOINT
+     * NC_S3_ACCESS_KEY
+     * NC_S3_ACCESS_SECRET
      * */
 
-    if (process.env.NC_S3_BUCKET_NAME && process.env.NC_S3_REGION) {
-      const s3Plugin = await Plugin.getPluginByTitle(S3PluginConfig.title);
+    if (
+      process.env.NC_S3_BUCKET_NAME &&
+      (process.env.NC_S3_REGION || process.env.NC_S3_ENDPOINT)
+    ) {
+      const s3Plugin = await Plugin.getPlugin(S3PluginConfig.id);
+
       const s3CfgData: Record<string, any> = {
         bucket: process.env.NC_S3_BUCKET_NAME,
         region: process.env.NC_S3_REGION,
@@ -129,10 +148,12 @@ class NcPluginMgrv2 {
         force_path_style: process.env.NC_S3_FORCE_PATH_STYLE === 'true',
         acl: process.env.NC_S3_ACL,
       };
+
       if (process.env.NC_S3_ACCESS_KEY && process.env.NC_S3_ACCESS_SECRET) {
         s3CfgData.access_key = process.env.NC_S3_ACCESS_KEY;
         s3CfgData.access_secret = process.env.NC_S3_ACCESS_SECRET;
       }
+
       await Plugin.update(s3Plugin.id, {
         active: true,
         input: JSON.stringify(s3CfgData),
@@ -144,7 +165,7 @@ class NcPluginMgrv2 {
       process.env.NC_SMTP_HOST &&
       process.env.NC_SMTP_PORT
     ) {
-      const smtpPlugin = await Plugin.getPluginByTitle(SMTPPluginConfig.title);
+      const smtpPlugin = await Plugin.getPlugin(SMTPPluginConfig.id);
       await Plugin.update(smtpPlugin.id, {
         active: true,
         input: JSON.stringify({

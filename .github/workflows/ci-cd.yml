@@ -29,7 +29,7 @@ concurrency:
 
 jobs:
   validate-swagger-json:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 10
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
     steps:
@@ -56,7 +56,7 @@ jobs:
             exit 1
           fi
   unit-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 40
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
     steps:
@@ -67,7 +67,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 18.19.1
+          node-version: 22.12.0
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -91,7 +91,7 @@ jobs:
         working-directory: ./packages/nocodb
         run: pnpm run test:unit
   unit-tests-pg:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 40
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
     steps:
@@ -102,7 +102,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 18.19.1
+          node-version: 22.12.0
       - name: Checkout
         uses: actions/checkout@v3
         with:

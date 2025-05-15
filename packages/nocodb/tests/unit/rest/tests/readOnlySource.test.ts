@@ -44,7 +44,9 @@ function sourceTest() {
       base_id: base.id,
     };
 
-    const countryColumns = (await countryTable.getColumns(sakilaCtx)).filter(c => !c.pk);
+    const countryColumns = (await countryTable.getColumns(sakilaCtx)).filter(
+      (c) => !c.pk,
+    );
     const rowAttributes = Array(99)
       .fill(0)
       .map((index) =>
@@ -84,7 +86,9 @@ function sourceTest() {
       base_id: base.id,
     };
 
-    const countryColumns = (await countryTable.getColumns(sakilaCtx)).filter(c => !c.pk);
+    const countryColumns = (await countryTable.getColumns(sakilaCtx)).filter(
+      (c) => !c.pk,
+    );
     const rowAttributes = Array(99)
       .fill(0)
       .map((index) =>
@@ -122,7 +126,9 @@ function sourceTest() {
       base_id: base.id,
     };
 
-    const countryColumns = (await countryTable.getColumns(sakilaCtx)).filter(c => !c.pk);
+    const countryColumns = (await countryTable.getColumns(sakilaCtx)).filter(
+      (c) => !c.pk,
+    );
     const rowAttributes = Array(99)
       .fill(0)
       .map((index) =>

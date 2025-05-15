@@ -2,7 +2,14 @@ import { Catch, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import { ThrottlerException } from '@nestjs/throttler';
 import hash from 'object-hash';
-import { NcErrorType } from 'nocodb-sdk';
+import {
+  NcApiVersion,
+  NcErrorType,
+  NcErrorTypeMap,
+  NcSDKError,
+  NcSDKErrorV2,
+  BadRequest as SdkBadRequest,
+} from 'nocodb-sdk';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import NocoCache from '~/cache/NocoCache';
@@ -16,6 +23,7 @@ import {
   NcBaseError,
   NcBaseErrorv2,
   NotFound,
+  OptionsNotExistsError,
   SsoError,
   TestConnectionError,
   Unauthorized,
@@ -34,12 +42,15 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+    const apiVersion = (request as any).ncApiVersion;
 
     // catch body-parser error and replace with NcBaseErrorv2
     if (
       exception.name === 'BadRequestException' &&
       exception.status === 400 &&
-      /^Unexpected token .*? in JSON/.test(exception.message)
+      /^Unexpected token .*? (?:in JSON|is not valid JSON)/.test(
+        exception.message,
+      )
     ) {
       exception = new NcBaseErrorv2(NcErrorType.BAD_JSON);
     }
@@ -64,6 +75,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof NotFoundException ||
         exception instanceof ThrottlerException ||
         exception instanceof ExternalError ||
+        exception instanceof SdkBadRequest ||
+        exception instanceof NcSDKError ||
         (exception instanceof NcBaseErrorv2 &&
           ![
             NcErrorType.INTERNAL_SERVER_ERROR,
@@ -161,39 +174,72 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     if (dbError) {
-      return response.status(400).json(dbError);
+      const { httpStatus: httpStatus, ...responsePayload } = dbError;
+      if (apiVersion === NcApiVersion.V3) {
+        return response.status(httpStatus).json(responsePayload);
+      } else {
+        return response.status(400).json(responsePayload);
+      }
     }
 
-    if (exception instanceof BadRequest || exception.getStatus?.() === 400) {
+    if (
+      exception instanceof OptionsNotExistsError &&
+      apiVersion === NcApiVersion.V3
+    ) {
+      return response.status(422).json({
+        message: `Invalid option(s) "${exception.options.join(
+          ', ',
+        )}" provided for column "${exception.columnTitle}"`,
+        error: 'INVALID_VALUE_FOR_FIELD',
+      });
+    } else if (
+      exception instanceof BadRequest ||
+      exception.getStatus?.() === 400
+    ) {
       return response.status(400).json({ msg: exception.message });
     } else if (
       exception instanceof Unauthorized ||
-      exception.getStatus?.() === 401
+      (exception.getStatus?.() === 401 && !(exception instanceof NcBaseErrorv2))
     ) {
       return response.status(401).json({ msg: exception.message });
     } else if (
       exception instanceof Forbidden ||
-      exception.getStatus?.() === 403
+      (exception.getStatus?.() === 403 && !(exception instanceof NcBaseErrorv2))
     ) {
       return response.status(403).json({ msg: exception.message });
     } else if (
       exception instanceof NotFound ||
-      exception.getStatus?.() === 404
+      (exception.getStatus?.() === 404 && !(exception instanceof NcBaseErrorv2))
     ) {
       return response.status(404).json({ msg: exception.message });
     } else if (exception instanceof AjvError) {
+      if (exception.humanReadableError) {
+        return response
+          .status(400)
+          .json({ msg: exception.message, errors: exception.errors });
+      }
+
       return response
         .status(400)
         .json({ msg: exception.message, errors: exception.errors });
-    } else if (exception instanceof UnprocessableEntity) {
+    } else if (
+      exception instanceof UnprocessableEntity ||
+      exception instanceof SdkBadRequest ||
+      exception instanceof NcSDKError
+    ) {
       return response.status(422).json({ msg: exception.message });
+    } else if (exception instanceof NcSDKErrorV2) {
+      return response.status(exception.getStatus?.() ?? 422).json({
+        error: NcErrorTypeMap[exception.errorType] ?? exception.errorType,
+        message: exception.message,
+      });
     } else if (exception instanceof TestConnectionError) {
       return response
         .status(422)
         .json({ msg: exception.message, sql_code: exception.sql_code });
     } else if (exception instanceof NcBaseErrorv2) {
       return response.status(exception.code).json({
-        error: exception.error,
+        error: NcErrorTypeMap[exception.error] ?? exception.error,
         message: exception.message,
         details: exception.details,
       });

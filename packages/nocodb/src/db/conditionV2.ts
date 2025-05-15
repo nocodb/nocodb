@@ -1,37 +1,33 @@
+import dayjs from 'dayjs';
 import {
   FormulaDataTypes,
   getEquivalentUIType,
+  isAIPromptCol,
   isDateMonthFormat,
   isNumericCol,
-  RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
-import dayjs from 'dayjs';
+import { FieldHandler } from './field-handler';
+import type { FilterType } from 'nocodb-sdk';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type { Knex } from 'knex';
-import type Column from '~/models/Column';
-import type LookupColumn from '~/models/LookupColumn';
-import type RollupColumn from '~/models/RollupColumn';
-import type FormulaColumn from '~/models/FormulaColumn';
-import { getColumnName } from '~/db/BaseModelSqlv2';
-import { NcError } from '~/helpers/catchError';
-import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
-import genRollupSelectv2 from '~/db/genRollupSelectv2';
-import { sanitize } from '~/helpers/sqlSanitize';
-import Filter from '~/models/Filter';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
-import { getAliasGenerator } from '~/utils';
 import { getRefColumnIfAlias } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
+import { getColumnName } from '~/helpers/dbHelpers';
+import { sanitize } from '~/helpers/sqlSanitize';
 import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
+import Filter from '~/models/Filter';
+import { getAliasGenerator } from '~/utils';
+import { validateAndStringifyJson } from '~/utils/tsUtils';
 
 // tod: tobe fixed
 // extend(customParseFormat);
 
 export default async function conditionV2(
-  baseModelSqlv2: BaseModelSqlv2,
-  conditionObj: Filter | Filter[],
+  baseModelSqlv2: IBaseModelSqlV2,
+  conditionObj: Filter | FilterType | FilterType[] | Filter[],
   qb: Knex.QueryBuilder,
   alias?: string,
   throwErrorIfInvalid = false,
@@ -39,6 +35,11 @@ export default async function conditionV2(
   if (!conditionObj || typeof conditionObj !== 'object') {
     return;
   }
+  await FieldHandler.fromBaseModel(baseModelSqlv2).verifyFilters(
+    Array.isArray(conditionObj)
+      ? (conditionObj as Filter[])
+      : ([conditionObj] as Filter[]),
+  );
   (
     await parseConditionV2(
       baseModelSqlv2,
@@ -65,8 +66,8 @@ function getLogicalOpMethod(filter: Filter) {
 }
 
 const parseConditionV2 = async (
-  baseModelSqlv2: BaseModelSqlv2,
-  _filter: Filter | Filter[],
+  baseModelSqlv2: IBaseModelSqlV2,
+  _filter: Filter | FilterType | FilterType[] | Filter[],
   aliasCount = { count: 0 },
   alias?,
   customWhereClause?,
@@ -187,309 +188,27 @@ const parseConditionV2 = async (
         NcError.fieldNotFound(filter.fk_column_id);
       }
     }
-    if (column.uidt === UITypes.LinkToAnotherRecord) {
-      const colOptions = (await column.getColOptions(
-        context,
-      )) as LinkToAnotherRecordColumn;
-      const childColumn = await colOptions.getChildColumn(context);
-      const parentColumn = await colOptions.getParentColumn(context);
-      const childModel = await childColumn.getModel(context);
-      await childModel.getColumns(context);
-      const parentModel = await parentColumn.getModel(context);
-      await parentModel.getColumns(context);
-
-      let relationType = colOptions.type;
-
-      if (relationType === RelationTypes.ONE_TO_ONE) {
-        relationType = column.meta?.bt
-          ? RelationTypes.BELONGS_TO
-          : RelationTypes.HAS_MANY;
-      }
-
-      if (relationType === RelationTypes.HAS_MANY) {
-        if (
-          ['blank', 'notblank', 'checked', 'notchecked'].includes(
-            filter.comparison_op,
-          )
-        ) {
-          // handle self reference
-          if (parentModel.id === childModel.id) {
-            if (filter.comparison_op === 'blank') {
-              return (qb) => {
-                qb.whereNull(childColumn.column_name);
-              };
-            } else {
-              return (qb) => {
-                qb.whereNotNull(childColumn.column_name);
-              };
-            }
-          }
-
-          const selectHmCount = knex(
-            baseModelSqlv2.getTnPath(childModel.table_name),
-          )
-            .count(childColumn.column_name)
-            .where(
-              childColumn.column_name,
-              knex.raw('??.??', [
-                alias || baseModelSqlv2.getTnPath(parentModel.table_name),
-                parentColumn.column_name,
-              ]),
-            );
-
-          return (qb) => {
-            if (filter.comparison_op === 'blank') {
-              qb.where(knex.raw('0'), selectHmCount);
-            } else {
-              qb.whereNot(knex.raw('0'), selectHmCount);
-            }
-          };
-        }
-        const selectQb = knex(
-          baseModelSqlv2.getTnPath(childModel.table_name),
-        ).select(childColumn.column_name);
-        (
-          await parseConditionV2(
-            baseModelSqlv2,
-            new Filter({
-              ...filter,
-              ...(filter.comparison_op in negatedMapping
-                ? negatedMapping[filter.comparison_op]
-                : {}),
-              fk_model_id: childModel.id,
-              fk_column_id: childModel?.displayValue?.id,
-            }),
-            aliasCount,
-            undefined,
-            undefined,
-            throwErrorIfInvalid,
-          )
-        )(selectQb);
-
-        return (qbP: Knex.QueryBuilder) => {
-          if (filter.comparison_op in negatedMapping)
-            qbP.whereNotIn(parentColumn.column_name, selectQb);
-          else qbP.whereIn(parentColumn.column_name, selectQb);
-        };
-      } else if (relationType === RelationTypes.BELONGS_TO) {
-        if (
-          ['blank', 'notblank', 'checked', 'notchecked'].includes(
-            filter.comparison_op,
-          )
-        ) {
-          // handle self reference
-          if (parentModel.id === childModel.id) {
-            if (filter.comparison_op === 'blank') {
-              return (qb) => {
-                qb.whereNull(childColumn.column_name);
-              };
-            } else {
-              return (qb) => {
-                qb.whereNotNull(childColumn.column_name);
-              };
-            }
-          }
-
-          const selectBtCount = knex(
-            baseModelSqlv2.getTnPath(parentModel.table_name),
-          )
-            .count(parentColumn.column_name)
-            .where(
-              parentColumn.column_name,
-              knex.raw('??.??', [
-                alias || baseModelSqlv2.getTnPath(childModel.table_name),
-                childColumn.column_name,
-              ]),
-            );
-
-          return (qb) => {
-            if (filter.comparison_op === 'blank') {
-              qb.where(knex.raw('0'), selectBtCount);
-            } else {
-              qb.whereNot(knex.raw('0'), selectBtCount);
-            }
-          };
-        }
-
-        const selectQb = knex(
-          baseModelSqlv2.getTnPath(parentModel.table_name),
-        ).select(parentColumn.column_name);
-        (
-          await parseConditionV2(
-            baseModelSqlv2,
-            new Filter({
-              ...filter,
-              ...(filter.comparison_op in negatedMapping
-                ? negatedMapping[filter.comparison_op]
-                : {}),
-              fk_model_id: parentModel.id,
-              fk_column_id: parentModel?.displayValue?.id,
-            }),
-            aliasCount,
-            undefined,
-            undefined,
-            throwErrorIfInvalid,
-          )
-        )(selectQb);
-
-        return (qbP: Knex.QueryBuilder) => {
-          if (filter.comparison_op in negatedMapping) {
-            qbP.where((qb) =>
-              qb
-                .whereNotIn(childColumn.column_name, selectQb)
-                .orWhereNull(childColumn.column_name),
-            );
-          } else qbP.whereIn(childColumn.column_name, selectQb);
-        };
-      } else if (relationType === RelationTypes.MANY_TO_MANY) {
-        const mmModel = await colOptions.getMMModel(context);
-        const mmParentColumn = await colOptions.getMMParentColumn(context);
-        const mmChildColumn = await colOptions.getMMChildColumn(context);
-
-        if (
-          ['blank', 'notblank', 'checked', 'notchecked'].includes(
-            filter.comparison_op,
-          )
-        ) {
-          // handle self reference
-          if (mmModel.id === childModel.id) {
-            if (filter.comparison_op === 'blank') {
-              return (qb) => {
-                qb.whereNull(childColumn.column_name);
-              };
-            } else {
-              return (qb) => {
-                qb.whereNotNull(childColumn.column_name);
-              };
-            }
-          }
-
-          const selectMmCount = knex(
-            baseModelSqlv2.getTnPath(mmModel.table_name),
-          )
-            .count(mmChildColumn.column_name)
-            .where(
-              mmChildColumn.column_name,
-              knex.raw('??.??', [
-                alias || baseModelSqlv2.getTnPath(childModel.table_name),
-                childColumn.column_name,
-              ]),
-            );
-
-          return (qb) => {
-            if (filter.comparison_op === 'blank') {
-              qb.where(knex.raw('0'), selectMmCount);
-            } else {
-              qb.whereNot(knex.raw('0'), selectMmCount);
-            }
-          };
-        }
-
-        const selectQb = knex(baseModelSqlv2.getTnPath(mmModel.table_name))
-          .select(mmChildColumn.column_name)
-          .join(
-            baseModelSqlv2.getTnPath(parentModel.table_name),
-            `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
-              mmParentColumn.column_name
-            }`,
-            `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${
-              parentColumn.column_name
-            }`,
-          );
-
-        (
-          await parseConditionV2(
-            baseModelSqlv2,
-            new Filter({
-              ...filter,
-              ...(filter.comparison_op in negatedMapping
-                ? negatedMapping[filter.comparison_op]
-                : {}),
-              fk_model_id: parentModel.id,
-              fk_column_id: parentModel?.displayValue?.id,
-            }),
-            aliasCount,
-            undefined,
-            undefined,
-            throwErrorIfInvalid,
-          )
-        )(selectQb);
-
-        return (qbP: Knex.QueryBuilder) => {
-          if (filter.comparison_op in negatedMapping)
-            qbP.where((qb) =>
-              qb
-                .whereNotIn(childColumn.column_name, selectQb)
-                .orWhereNull(childColumn.column_name),
-            );
-          else qbP.whereIn(childColumn.column_name, selectQb);
-        };
-      }
-
-      return (_qb) => {};
-    } else if (column.uidt === UITypes.Lookup) {
-      return await generateLookupCondition(
-        baseModelSqlv2,
-        column,
-        filter,
-        knex,
-        aliasCount,
-        throwErrorIfInvalid,
-      );
-    } else if (
-      [UITypes.Rollup, UITypes.Links].includes(column.uidt) &&
-      !customWhereClause
+    if (
+      [UITypes.JSON, UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(
+        column.uidt,
+      ) ||
+      ([UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
+        !customWhereClause)
     ) {
-      const builder = (
-        await genRollupSelectv2({
-          baseModelSqlv2,
-          knex,
+      return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
+        filter,
+        column,
+        {
           alias,
-          columnOptions: (await column.getColOptions(context)) as RollupColumn,
-        })
-      ).builder;
-      return parseConditionV2(
-        baseModelSqlv2,
-        new Filter({
-          ...filter,
-          value: knex.raw('?', [
-            // convert value to number for rollup since rollup is always number
-            isNaN(+filter.value) ? filter.value : +filter.value,
-          ]),
-        } as any),
-        aliasCount,
-        alias,
-        builder,
+          conditionParser: parseConditionV2,
+          depth: aliasCount,
+          context,
+          throwErrorIfInvalid,
+        },
       );
-    } else if (column.uidt === UITypes.Formula && !customWhereClause) {
-      const model = await column.getModel(context);
-      const formula = await column.getColOptions<FormulaColumn>(context);
-      const builder = (
-        await formulaQueryBuilderv2(
-          baseModelSqlv2,
-          formula.formula,
-          null,
-          model,
-          column,
-        )
-      ).builder;
-      return parseConditionV2(
-        baseModelSqlv2,
-        new Filter({
-          ...filter,
-          value: knex.raw('?', [
-            // convert value to number if formulaDataType if numeric
-            formula.getParsedTree()?.dataType === FormulaDataTypes.NUMERIC &&
-            !isNaN(+filter.value)
-              ? +filter.value
-              : filter.value ?? null, // in gp_null value is undefined
-          ]),
-        } as any),
-        aliasCount,
-        alias,
-        builder,
-      );
-    } else if (
+    }
+
+    if (
       [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
         column.uidt,
       ) &&
@@ -598,10 +317,25 @@ const parseConditionV2 = async (
         // based on custom where clause(builder), we need to change the field and val
         // todo: refactor this to use a better approach to make it more readable and clean
         let genVal = customWhereClause ? field : val;
-        const dateFormat =
-          knex.clientType() === 'mysql2'
-            ? 'YYYY-MM-DD HH:mm:ss'
-            : 'YYYY-MM-DD HH:mm:ssZ';
+        const dateFormat = 'YYYY-MM-DD';
+
+        if (isAIPromptCol(column)) {
+          if (knex.clientType() === 'pg') {
+            field = knex.raw(`TRIM('"' FROM (??::jsonb->>'value'))`, [
+              column.column_name,
+            ]);
+          } else if (knex.clientType().startsWith('mysql')) {
+            field = knex.raw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.value'))`, [
+              column.column_name,
+            ]);
+          } else if (knex.clientType() === 'sqlite3') {
+            field = knex.raw(`json_extract(??, '$.value')`, [
+              column.column_name,
+            ]);
+          } else if (knex.clientType() === 'mssql') {
+            field = knex.raw(`JSON_VALUE(??, '$.value')`, [column.column_name]);
+          }
+        }
 
         if (
           (column.uidt === UITypes.Formula &&
@@ -614,7 +348,7 @@ const parseConditionV2 = async (
             UITypes.LastModifiedTime,
           ].includes(column.uidt)
         ) {
-          let now = dayjs(new Date());
+          let now = dayjs(new Date()).utc();
           const dateFormatFromMeta = column?.meta?.date_format;
           if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
             // reset to 1st
@@ -712,74 +446,115 @@ const parseConditionV2 = async (
 
         switch (filter.comparison_op) {
           case 'eq':
-            if (
-              knex.clientType() === 'mysql2' ||
-              knex.clientType() === 'mysql'
-            ) {
-              if (
-                [
-                  UITypes.Duration,
-                  UITypes.Currency,
-                  UITypes.Percent,
-                  UITypes.Number,
-                  UITypes.Decimal,
-                  UITypes.Rating,
-                  UITypes.Rollup,
-                  UITypes.Links,
-                ].includes(column.uidt)
-              ) {
-                qb = qb.where(field, val);
-              } else if (
-                (column.uidt === UITypes.Formula &&
-                  getEquivalentUIType({ formulaColumn: column }) ==
-                    UITypes.DateTime) ||
-                column.ct === 'timestamp' ||
-                column.ct === 'date' ||
-                column.ct === 'datetime'
-              ) {
-                // ignore seconds part in datetime and filter when using it for group by
-                if (filter.groupby && column.ct !== 'date') {
-                  const valWithoutTz = val.replace(/[+-]\d+:\d+$/, '');
-                  qb = qb.where(
-                    knex.raw(
-                      "CONVERT_TZ(DATE_SUB(??, INTERVAL SECOND(??) SECOND), @@GLOBAL.time_zone, '+00:00') = DATE_SUB(?, INTERVAL SECOND(?) SECOND)",
-                      [field, field, valWithoutTz, valWithoutTz],
-                    ),
-                  );
-                } else
-                  qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
+            if (column.uidt === UITypes.JSON) {
+              if (val === '') {
+                // For JSON, "eq" with empty string matches '{}' or '[]' or null
+                if (knex.clientType() === 'pg') {
+                  qb = qb.where((nestedQb) => {
+                    nestedQb
+                      .where(knex.raw("??::jsonb = '{}'::jsonb", [field]))
+                      .orWhere(knex.raw("??::jsonb = '[]'::jsonb", [field]))
+                      .orWhereNull(field);
+                  });
+                } else {
+                  qb = qb.where((nestedQb) => {
+                    nestedQb
+                      .where(field, '{}')
+                      .orWhere(field, '[]')
+                      .orWhereNull(field);
+                  });
+                }
               } else {
-                // mysql is case-insensitive for strings, turn to case-sensitive
-                qb = qb.where(knex.raw('BINARY ?? = ?', [field, val]));
+                const { jsonVal, isValidJson } = validateAndStringifyJson(val);
+                if (knex.clientType() === 'pg') {
+                  qb = qb.where((nestedQb) => {
+                    if (isValidJson) {
+                      // Valid JSON case: use JSONB comparison
+                      nestedQb.where(
+                        knex.raw('??::jsonb = ?::jsonb', [field, jsonVal]),
+                      );
+                    } else {
+                      // Invalid JSON case: fall back to text comparison
+                      nestedQb.where(
+                        knex.raw('??::text = ?', [field, jsonVal]),
+                      );
+                    }
+                  });
+                } else {
+                  qb = qb.where((nestedQb) => {
+                    nestedQb.where(field, jsonVal);
+                  });
+                }
               }
             } else {
               if (
-                (column.uidt === UITypes.Formula &&
-                  getEquivalentUIType({ formulaColumn: column }) ==
-                    UITypes.DateTime) ||
-                [
-                  UITypes.DateTime,
-                  UITypes.CreatedTime,
-                  UITypes.LastModifiedTime,
-                ].includes(column.uidt)
+                knex.clientType() === 'mysql2' ||
+                knex.clientType() === 'mysql'
               ) {
-                if (qb.client.config.client === 'pg') {
+                if (
+                  [
+                    UITypes.Duration,
+                    UITypes.Currency,
+                    UITypes.Percent,
+                    UITypes.Number,
+                    UITypes.Decimal,
+                    UITypes.Rating,
+                    UITypes.Rollup,
+                    UITypes.Links,
+                  ].includes(column.uidt)
+                ) {
+                  qb = qb.where(field, val);
+                } else if (
+                  (column.uidt === UITypes.Formula &&
+                    getEquivalentUIType({ formulaColumn: column }) ==
+                      UITypes.DateTime) ||
+                  column.ct === 'timestamp' ||
+                  column.ct === 'date' ||
+                  column.ct === 'datetime'
+                ) {
                   // ignore seconds part in datetime and filter when using it for group by
-                  if (filter.groupby)
+                  if (filter.groupby && column.ct !== 'date') {
+                    const valWithoutTz = val.replace(/[+-]\d+:\d+$/, '');
                     qb = qb.where(
                       knex.raw(
-                        "date_trunc('minute', ??) + interval '0 seconds' = ?",
-                        [field, val],
+                        "CONVERT_TZ(DATE_SUB(??, INTERVAL SECOND(??) SECOND), @@GLOBAL.time_zone, '+00:00') = DATE_SUB(?, INTERVAL SECOND(?) SECOND)",
+                        [field, field, valWithoutTz, valWithoutTz],
                       ),
                     );
-                  else qb = qb.where(knex.raw('??::date = ?', [field, val]));
+                  } else
+                    qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
                 } else {
-                  // ignore seconds part in datetime and filter when using it for group by
-                  if (filter.groupby) {
-                    if (knex.clientType() === 'sqlite3')
+                  // mysql is case-insensitive for strings, turn to case-sensitive
+                  qb = qb.where(knex.raw('BINARY ?? = ?', [field, val]));
+                }
+              } else {
+                if (
+                  (column.uidt === UITypes.Formula &&
+                    getEquivalentUIType({ formulaColumn: column }) ==
+                      UITypes.DateTime) ||
+                  [
+                    UITypes.DateTime,
+                    UITypes.CreatedTime,
+                    UITypes.LastModifiedTime,
+                  ].includes(column.uidt)
+                ) {
+                  if (qb.client.config.client === 'pg') {
+                    // ignore seconds part in datetime and filter when using it for group by
+                    if (filter.groupby)
                       qb = qb.where(
                         knex.raw(
-                          `Datetime(strftime ('%Y-%m-%d %H:%M:00',:column:) ||
+                          "date_trunc('minute', ??) + interval '0 seconds' = ?",
+                          [field, val],
+                        ),
+                      );
+                    else qb = qb.where(knex.raw('??::date = ?', [field, val]));
+                  } else {
+                    // ignore seconds part in datetime and filter when using it for group by
+                    if (filter.groupby) {
+                      if (knex.clientType() === 'sqlite3')
+                        qb = qb.where(
+                          knex.raw(
+                            `Datetime(strftime ('%Y-%m-%d %H:%M:00',:column:) ||
   (
    CASE WHEN substr(:column:, 20, 1) = '+' THEN
     printf ('+%s:',
@@ -792,25 +567,72 @@ const parseConditionV2 = async (
    ELSE
     '+00:00'
    END)) = Datetime(:val)`,
-                          { column: field, val },
-                        ),
+                            { column: field, val },
+                          ),
+                        );
+                      else qb = qb.where(knex.raw('?? = ?', [field, val]));
+                    } else
+                      qb = qb.where(
+                        knex.raw('DATE(??) = DATE(?)', [field, val]),
                       );
-                    else qb = qb.where(knex.raw('?? = ?', [field, val]));
-                  } else
-                    qb = qb.where(knex.raw('DATE(??) = DATE(?)', [field, val]));
+                  }
+                } else {
+                  qb = qb.where(field, val);
                 }
-              } else {
-                qb = qb.where(field, val);
               }
-            }
-            if (column.uidt === UITypes.Rating && val === 0) {
-              // unset rating is considered as NULL
-              qb = qb.orWhereNull(field);
+              if (column.uidt === UITypes.Rating && val === 0) {
+                // unset rating is considered as NULL
+                qb = qb.orWhereNull(field);
+              }
             }
             break;
           case 'neq':
           case 'not':
-            if (knex.clientType() === 'mysql2') {
+            if (column.uidt === UITypes.JSON) {
+              if (val === '') {
+                if (knex.clientType() === 'pg') {
+                  qb = qb.where((nestedQb) => {
+                    nestedQb
+                      .whereNot(knex.raw("??::jsonb = '{}'::jsonb", [field]))
+                      .whereNot(knex.raw("??::jsonb = '[]'::jsonb", [field]));
+                    nestedQb.orWhereNull(field);
+                  });
+                } else if (
+                  knex.clientType().startsWith('mysql') ||
+                  knex.clientType() === 'sqlite3'
+                ) {
+                  qb = qb.where((nestedQb) => {
+                    nestedQb.whereNot(field, '{}').whereNot(field, '[]');
+                    nestedQb.orWhereNull(field);
+                  });
+                } else {
+                  qb = qb.whereNotNull(field).orWhereNull(field);
+                }
+              } else {
+                const { jsonVal, isValidJson } = validateAndStringifyJson(val);
+                if (knex.clientType() === 'pg') {
+                  qb = qb.where((nestedQb) => {
+                    if (isValidJson) {
+                      // Valid JSON case: use JSONB comparison
+                      nestedQb.where(
+                        knex.raw('??::jsonb != ?::jsonb', [field, jsonVal]),
+                      );
+                      nestedQb.orWhereNull(field);
+                    } else {
+                      // Invalid JSON case: fall back to text comparison
+                      nestedQb
+                        .where(knex.raw('??::text != ?', [field, jsonVal]))
+                        .orWhereNull(field);
+                    }
+                  });
+                } else {
+                  qb = qb.where((nestedQb) => {
+                    nestedQb.whereNot(field, jsonVal);
+                    nestedQb.orWhereNull(field);
+                  });
+                }
+              }
+            } else if (knex.clientType() === 'mysql2') {
               if (
                 [
                   UITypes.Duration,
@@ -824,19 +646,16 @@ const parseConditionV2 = async (
               ) {
                 qb = qb.where((nestedQb) => {
                   nestedQb.whereNot(field, val);
-
                   if (column.uidt !== UITypes.Links)
                     nestedQb.orWhereNull(customWhereClause ? _val : _field);
                 });
               } else if (column.uidt === UITypes.Rating) {
-                // unset rating is considered as NULL
                 if (val === 0) {
                   qb = qb.whereNot(field, val).whereNotNull(field);
                 } else {
                   qb = qb.whereNot(field, val).orWhereNull(field);
                 }
               } else {
-                // mysql is case-insensitive for strings, turn to case-sensitive
                 qb = qb.where((nestedQb) => {
                   nestedQb.where(knex.raw('BINARY ?? != ?', [field, val]));
                   if (column.uidt !== UITypes.Rating) {
@@ -847,7 +666,6 @@ const parseConditionV2 = async (
             } else {
               qb = qb.where((nestedQb) => {
                 nestedQb.whereNot(field, val);
-
                 if (column.uidt !== UITypes.Links)
                   nestedQb.orWhereNull(customWhereClause ? _val : _field);
               });
@@ -860,6 +678,9 @@ const parseConditionV2 = async (
                   .orWhereNull(field)
                   .orWhere(field, '[]')
                   .orWhere(field, 'null');
+              } else if (column.uidt === UITypes.JSON) {
+                // For JSON, empty "like" means all non-null values
+                qb = qb.whereNotNull(field);
               } else {
                 // val is empty -> all values including empty strings but NULL
                 qb.where(field, '');
@@ -888,6 +709,9 @@ const parseConditionV2 = async (
                 qb.whereNot(field, '')
                   .whereNot(field, 'null')
                   .whereNot(field, '[]');
+              } else if (column.uidt === UITypes.JSON) {
+                // For JSON, empty "nlike" means only NULL values
+                qb = qb.whereNull(field);
               } else {
                 // val is empty -> all values including NULL but empty strings
                 qb.whereNot(field, '');
@@ -901,23 +725,35 @@ const parseConditionV2 = async (
                 val =
                   val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
               }
-              qb.where((nestedQb) => {
+              if (column.uidt === UITypes.JSON) {
                 if (knex.clientType() === 'pg') {
-                  nestedQb.where(
-                    knex.raw('??::text not ilike ?', [field, val]),
+                  // Casting to jsonb ensures it’s in the binary format before converting to text.
+                  // This avoids issues with json preserving whitespace or formatting that might affect the NOT ILIKE comparison.
+                  qb = qb.where(
+                    knex.raw('??::jsonb::text NOT ILIKE ?', [field, val]),
                   );
                 } else {
-                  nestedQb.whereNot(field, 'like', val);
+                  qb = qb.whereNot(field, 'like', val);
                 }
-                if (val !== '%%') {
-                  // if value is not empty, empty or null should be included
-                  nestedQb.orWhere(field, '');
-                  nestedQb.orWhereNull(field);
-                } else {
-                  // if value is empty, then only null is included
-                  nestedQb.orWhereNull(field);
-                }
-              });
+              } else {
+                qb.where((nestedQb) => {
+                  if (knex.clientType() === 'pg') {
+                    nestedQb.where(
+                      knex.raw('??::text not ilike ?', [field, val]),
+                    );
+                  } else {
+                    nestedQb.whereNot(field, 'like', val);
+                  }
+                  if (val !== '%%') {
+                    // if value is not empty, empty or null should be included
+                    nestedQb.orWhere(field, '');
+                    nestedQb.orWhereNull(field);
+                  } else {
+                    // if value is empty, then only null is included
+                    nestedQb.orWhereNull(field);
+                  }
+                });
+              }
             }
             break;
           case 'allof':
@@ -976,11 +812,27 @@ const parseConditionV2 = async (
               // then we need to convert the value to timestamptz before comparing
               if (
                 (column.uidt === UITypes.DateTime ||
-                  column.uidt === UITypes.Date) &&
+                  column.uidt === UITypes.Date ||
+                  column.uidt === UITypes.CreatedTime ||
+                  column.uidt === UITypes.LastModifiedTime) &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  qb.where(field, gt_op, knex.raw('?::timestamptz', [val]));
+                  if (
+                    column.dt !== 'timestamp with time zone' &&
+                    column.dt !== 'timestamptz'
+                  ) {
+                    qb.where(
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
+                      gt_op,
+                      knex.raw('?::timestamptz', [val]),
+                    );
+                  } else {
+                    qb.where(field, gt_op, knex.raw('?::timestamptz', [val]));
+                  }
                 } else if (qb.client.config.client === 'sqlite3') {
                   qb.where(
                     field,
@@ -1019,11 +871,27 @@ const parseConditionV2 = async (
               // then we need to convert the value to timestamptz before comparing
               if (
                 (column.uidt === UITypes.DateTime ||
-                  column.uidt === UITypes.Date) &&
+                  column.uidt === UITypes.Date ||
+                  column.uidt === UITypes.CreatedTime ||
+                  column.uidt === UITypes.LastModifiedTime) &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  qb.where(field, ge_op, knex.raw('?::timestamptz', [val]));
+                  if (
+                    column.dt !== 'timestamp with time zone' &&
+                    column.dt !== 'timestamptz'
+                  ) {
+                    qb.where(
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
+                      ge_op,
+                      knex.raw('?::timestamptz', [val]),
+                    );
+                  } else {
+                    qb.where(field, ge_op, knex.raw('?::timestamptz', [val]));
+                  }
                 } else if (qb.client.config.client === 'sqlite3') {
                   qb.where(
                     field,
@@ -1061,11 +929,27 @@ const parseConditionV2 = async (
               // then we need to convert the value to timestamptz before comparing
               if (
                 (column.uidt === UITypes.DateTime ||
-                  column.uidt === UITypes.Date) &&
+                  column.uidt === UITypes.Date ||
+                  column.uidt === UITypes.CreatedTime ||
+                  column.uidt === UITypes.LastModifiedTime) &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  qb.where(field, lt_op, knex.raw('?::timestamptz', [val]));
+                  if (
+                    column.dt !== 'timestamp with time zone' &&
+                    column.dt !== 'timestamptz'
+                  ) {
+                    qb.where(
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
+                      lt_op,
+                      knex.raw('?::timestamptz', [val]),
+                    );
+                  } else {
+                    qb.where(field, lt_op, knex.raw('?::timestamptz', [val]));
+                  }
                 } else if (qb.client.config.client === 'sqlite3') {
                   qb.where(
                     field,
@@ -1105,11 +989,27 @@ const parseConditionV2 = async (
               // then we need to convert the value to timestamptz before comparing
               if (
                 (column.uidt === UITypes.DateTime ||
-                  column.uidt === UITypes.Date) &&
+                  column.uidt === UITypes.Date ||
+                  column.uidt === UITypes.CreatedTime ||
+                  column.uidt === UITypes.LastModifiedTime) &&
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  qb.where(field, le_op, knex.raw('?::timestamptz', [val]));
+                  if (
+                    column.dt !== 'timestamp with time zone' &&
+                    column.dt !== 'timestamptz'
+                  ) {
+                    qb.where(
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
+                      le_op,
+                      knex.raw('?::timestamptz', [val]),
+                    );
+                  } else {
+                    qb.where(field, le_op, knex.raw('?::timestamptz', [val]));
+                  }
                 } else if (qb.client.config.client === 'sqlite3') {
                   qb.where(
                     field,
@@ -1147,7 +1047,7 @@ const parseConditionV2 = async (
             );
             break;
           case 'is':
-            if (filter.value === 'null')
+            if (filter.value === 'null' || filter.value === null)
               qb = qb.whereNull(customWhereClause || field);
             else if (filter.value === 'notnull')
               qb = qb.whereNotNull(customWhereClause || field);
@@ -1200,6 +1100,31 @@ const parseConditionV2 = async (
                 .whereNull(customWhereClause || field)
                 .orWhere(field, '[]')
                 .orWhere(field, 'null');
+            } else if (column.uidt === UITypes.JSON) {
+              if (knex.clientType() === 'pg') {
+                qb = qb
+                  .whereNull(field)
+                  .orWhere(knex.raw("??::jsonb = '{}'::jsonb", [field]))
+                  .orWhere(knex.raw("??::jsonb = '[]'::jsonb", [field]));
+              } else if (
+                knex.clientType().startsWith('mysql') ||
+                knex.clientType() === 'sqlite3'
+              ) {
+                qb = qb
+                  .whereNull(field)
+                  .orWhere(field, '{}')
+                  .orWhere(field, '[]');
+              } else {
+                qb = qb.whereNull(field);
+              }
+            } else if (column.uidt === UITypes.Formula) {
+              qb = qb.whereNull(customWhereClause || field);
+              if (
+                (column?.colOptions as any).parsed_tree?.dataType ===
+                FormulaDataTypes.STRING
+              ) {
+                qb = qb.orWhere(field, '');
+              }
             } else {
               qb = qb.whereNull(customWhereClause || field);
               if (
@@ -1222,6 +1147,31 @@ const parseConditionV2 = async (
                 .whereNotNull(customWhereClause || field)
                 .whereNot(field, '[]')
                 .whereNot(field, 'null');
+            } else if (column.uidt === UITypes.JSON) {
+              if (knex.clientType() === 'pg') {
+                qb = qb
+                  .whereNotNull(field)
+                  .whereNot(knex.raw("??::jsonb = '{}'::jsonb", [field]))
+                  .whereNot(knex.raw("??::jsonb = '[]'::jsonb", [field]));
+              } else if (
+                knex.clientType().startsWith('mysql') ||
+                knex.clientType() === 'sqlite3'
+              ) {
+                qb = qb
+                  .whereNotNull(field)
+                  .whereNot(field, '{}')
+                  .whereNot(field, '[]');
+              } else {
+                qb = qb.whereNotNull(field); // Fallback for other DBs
+              }
+            } else if (column.uidt === UITypes.Formula) {
+              qb = qb.whereNotNull(customWhereClause || field);
+              if (
+                (column?.colOptions as any).parsed_tree?.dataType ===
+                FormulaDataTypes.STRING
+              ) {
+                qb = qb.whereNot(customWhereClause || field, '');
+              }
             } else {
               qb = qb.whereNotNull(customWhereClause || field);
               if (
@@ -1255,7 +1205,7 @@ const parseConditionV2 = async (
             qb = qb.whereNotBetween(field, val.split(','));
             break;
           case 'isWithin': {
-            let now = dayjs(new Date()).format(dateFormat).toString();
+            let now = dayjs(new Date()).utc().format(dateFormat).toString();
             now = column.uidt === UITypes.Date ? now.substring(0, 10) : now;
 
             // switch between arg based on customWhereClause(builder)
@@ -1283,349 +1233,3 @@ const parseConditionV2 = async (
     }
   }
 };
-
-const negatedMapping = {
-  nlike: { comparison_op: 'like' },
-  neq: { comparison_op: 'eq' },
-  blank: { comparison_op: 'notblank' },
-  notchecked: { comparison_op: 'checked' },
-};
-
-function getAlias(aliasCount: { count: number }) {
-  return `__nc${aliasCount.count++}`;
-}
-
-// todo: refactor child , parent in mm
-async function generateLookupCondition(
-  baseModelSqlv2: BaseModelSqlv2,
-  col: Column,
-  filter: Filter,
-  knex,
-  aliasCount = { count: 0 },
-  throwErrorIfInvalid = false,
-): Promise<any> {
-  const context = baseModelSqlv2.context;
-
-  const colOptions = await col.getColOptions<LookupColumn>(context);
-  const relationColumn = await colOptions.getRelationColumn(context);
-  const relationColumnOptions =
-    await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
-  // const relationModel = await relationColumn.getModel();
-  const lookupColumn = await colOptions.getLookupColumn(context);
-  const alias = getAlias(aliasCount);
-  let qb;
-  {
-    const childColumn = await relationColumnOptions.getChildColumn(context);
-    const parentColumn = await relationColumnOptions.getParentColumn(context);
-    const childModel = await childColumn.getModel(context);
-    await childModel.getColumns(context);
-    const parentModel = await parentColumn.getModel(context);
-    await parentModel.getColumns(context);
-
-    let relationType = relationColumnOptions.type;
-
-    if (relationType === RelationTypes.ONE_TO_ONE) {
-      relationType = relationColumn.meta?.bt
-        ? RelationTypes.BELONGS_TO
-        : RelationTypes.HAS_MANY;
-    }
-
-    if (relationType === RelationTypes.HAS_MANY) {
-      qb = knex(
-        knex.raw(`?? as ??`, [
-          baseModelSqlv2.getTnPath(childModel.table_name),
-          alias,
-        ]),
-      );
-
-      qb.select(`${alias}.${childColumn.column_name}`);
-
-      await nestedConditionJoin(
-        baseModelSqlv2,
-        {
-          ...filter,
-          ...(filter.comparison_op in negatedMapping
-            ? negatedMapping[filter.comparison_op]
-            : {}),
-        },
-        lookupColumn,
-        qb,
-        knex,
-        alias,
-        aliasCount,
-        throwErrorIfInvalid,
-      );
-
-      return (qbP: Knex.QueryBuilder) => {
-        if (filter.comparison_op in negatedMapping)
-          qbP.whereNotIn(parentColumn.column_name, qb);
-        else qbP.whereIn(parentColumn.column_name, qb);
-      };
-    } else if (relationType === RelationTypes.BELONGS_TO) {
-      qb = knex(
-        knex.raw(`?? as ??`, [
-          baseModelSqlv2.getTnPath(parentModel.table_name),
-          alias,
-        ]),
-      );
-      qb.select(`${alias}.${parentColumn.column_name}`);
-
-      await nestedConditionJoin(
-        baseModelSqlv2,
-        {
-          ...filter,
-          ...(filter.comparison_op in negatedMapping
-            ? negatedMapping[filter.comparison_op]
-            : {}),
-        },
-        lookupColumn,
-        qb,
-        knex,
-        alias,
-        aliasCount,
-        throwErrorIfInvalid,
-      );
-
-      return (qbP: Knex.QueryBuilder) => {
-        if (filter.comparison_op in negatedMapping)
-          qbP.where((qb1) =>
-            qb1
-              .whereNotIn(childColumn.column_name, qb)
-              .orWhereNull(childColumn.column_name),
-          );
-        else qbP.whereIn(childColumn.column_name, qb);
-      };
-    } else if (relationType === RelationTypes.MANY_TO_MANY) {
-      const mmModel = await relationColumnOptions.getMMModel(context);
-      const mmParentColumn = await relationColumnOptions.getMMParentColumn(
-        context,
-      );
-      const mmChildColumn = await relationColumnOptions.getMMChildColumn(
-        context,
-      );
-
-      const childAlias = `__nc${aliasCount.count++}`;
-
-      qb = knex(
-        knex.raw(`?? as ??`, [
-          baseModelSqlv2.getTnPath(mmModel.table_name),
-          alias,
-        ]),
-      )
-        .select(`${alias}.${mmChildColumn.column_name}`)
-        .join(
-          knex.raw(`?? as ??`, [
-            baseModelSqlv2.getTnPath(parentModel.table_name),
-            childAlias,
-          ]),
-          `${alias}.${mmParentColumn.column_name}`,
-          `${childAlias}.${parentColumn.column_name}`,
-        );
-
-      await nestedConditionJoin(
-        baseModelSqlv2,
-        {
-          ...filter,
-          ...(filter.comparison_op in negatedMapping
-            ? negatedMapping[filter.comparison_op]
-            : {}),
-        },
-        lookupColumn,
-        qb,
-        knex,
-        childAlias,
-        aliasCount,
-        throwErrorIfInvalid,
-      );
-
-      return (qbP: Knex.QueryBuilder) => {
-        if (filter.comparison_op in negatedMapping)
-          qbP.where((qb1) =>
-            qb1
-              .whereNotIn(childColumn.column_name, qb)
-              .orWhereNull(childColumn.column_name),
-          );
-        else qbP.whereIn(childColumn.column_name, qb);
-      };
-    }
-  }
-}
-
-async function nestedConditionJoin(
-  baseModelSqlv2: BaseModelSqlv2,
-  filter: Filter,
-  lookupColumn: Column,
-  qb: Knex.QueryBuilder,
-  knex,
-  alias: string,
-  aliasCount: { count: number },
-  throwErrorIfInvalid = false,
-) {
-  const context = baseModelSqlv2.context;
-
-  if (
-    lookupColumn.uidt === UITypes.Lookup ||
-    lookupColumn.uidt === UITypes.LinkToAnotherRecord
-  ) {
-    const relationColumn =
-      lookupColumn.uidt === UITypes.Lookup
-        ? await (
-            await lookupColumn.getColOptions<LookupColumn>(context)
-          ).getRelationColumn(context)
-        : lookupColumn;
-    const relationColOptions =
-      await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
-    const relAlias = `__nc${aliasCount.count++}`;
-
-    const childColumn = await relationColOptions.getChildColumn(context);
-    const parentColumn = await relationColOptions.getParentColumn(context);
-    const childModel = await childColumn.getModel(context);
-    await childModel.getColumns(context);
-    const parentModel = await parentColumn.getModel(context);
-    await parentModel.getColumns(context);
-    {
-      switch (relationColOptions.type) {
-        case RelationTypes.HAS_MANY:
-          {
-            qb.join(
-              knex.raw(`?? as ??`, [
-                baseModelSqlv2.getTnPath(childModel.table_name),
-                relAlias,
-              ]),
-              `${alias}.${parentColumn.column_name}`,
-              `${relAlias}.${childColumn.column_name}`,
-            );
-          }
-          break;
-        case RelationTypes.BELONGS_TO:
-          {
-            qb.join(
-              knex.raw(`?? as ??`, [
-                baseModelSqlv2.getTnPath(parentModel.table_name),
-                relAlias,
-              ]),
-              `${alias}.${childColumn.column_name}`,
-              `${relAlias}.${parentColumn.column_name}`,
-            );
-          }
-          break;
-        case 'mm':
-          {
-            const mmModel = await relationColOptions.getMMModel(context);
-            const mmParentColumn = await relationColOptions.getMMParentColumn(
-              context,
-            );
-            const mmChildColumn = await relationColOptions.getMMChildColumn(
-              context,
-            );
-
-            const assocAlias = `__nc${aliasCount.count++}`;
-
-            qb.join(
-              knex.raw(`?? as ??`, [
-                baseModelSqlv2.getTnPath(mmModel.table_name),
-                assocAlias,
-              ]),
-              `${assocAlias}.${mmChildColumn.column_name}`,
-              `${alias}.${childColumn.column_name}`,
-            ).join(
-              knex.raw(`?? as ??`, [
-                baseModelSqlv2.getTnPath(parentModel.table_name),
-                relAlias,
-              ]),
-              `${relAlias}.${parentColumn.column_name}`,
-              `${assocAlias}.${mmParentColumn.column_name}`,
-            );
-          }
-          break;
-      }
-    }
-
-    if (lookupColumn.uidt === UITypes.Lookup) {
-      await nestedConditionJoin(
-        baseModelSqlv2,
-        filter,
-        await (
-          await lookupColumn.getColOptions<LookupColumn>(context)
-        ).getLookupColumn(context),
-        qb,
-        knex,
-        relAlias,
-        aliasCount,
-        throwErrorIfInvalid,
-      );
-    } else {
-      switch (relationColOptions.type) {
-        case RelationTypes.HAS_MANY:
-          {
-            (
-              await parseConditionV2(
-                baseModelSqlv2,
-                new Filter({
-                  ...filter,
-                  fk_model_id: childModel.id,
-                  fk_column_id: childModel.displayValue?.id,
-                }),
-                aliasCount,
-                relAlias,
-                undefined,
-                throwErrorIfInvalid,
-              )
-            )(qb);
-          }
-          break;
-        case RelationTypes.BELONGS_TO:
-          {
-            (
-              await parseConditionV2(
-                baseModelSqlv2,
-                new Filter({
-                  ...filter,
-                  fk_model_id: parentModel.id,
-                  fk_column_id: parentModel?.displayValue?.id,
-                }),
-                aliasCount,
-                relAlias,
-                undefined,
-                throwErrorIfInvalid,
-              )
-            )(qb);
-          }
-          break;
-        case 'mm':
-          {
-            (
-              await parseConditionV2(
-                baseModelSqlv2,
-                new Filter({
-                  ...filter,
-                  fk_model_id: parentModel.id,
-                  fk_column_id: parentModel.displayValue?.id,
-                }),
-                aliasCount,
-                relAlias,
-                undefined,
-                throwErrorIfInvalid,
-              )
-            )(qb);
-          }
-          break;
-      }
-    }
-  } else {
-    (
-      await parseConditionV2(
-        baseModelSqlv2,
-        new Filter({
-          ...filter,
-          fk_model_id: (await lookupColumn.getModel(context)).id,
-          fk_column_id: lookupColumn?.id,
-        }),
-        aliasCount,
-        alias,
-        undefined,
-        throwErrorIfInvalid,
-      )
-    )(qb);
-  }
-}

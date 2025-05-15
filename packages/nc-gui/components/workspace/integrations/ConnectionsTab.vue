@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { IntegrationsType, integrationCategoryNeedDefault } from 'nocodb-sdk'
 import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
@@ -11,11 +12,13 @@ const {
   integrationPaginationData,
   successConfirmModal,
   searchQuery,
+  loadDynamicIntegrations,
   loadIntegrations,
   deleteIntegration,
   editIntegration,
   duplicateIntegration,
   getIntegration,
+  setDefaultIntegration,
 } = useIntegrationStore()
 
 const { $api, $e } = useNuxtApp()
@@ -23,6 +26,8 @@ const { $api, $e } = useNuxtApp()
 const { allCollaborators } = storeToRefs(useWorkspace())
 
 const { bases } = storeToRefs(useBases())
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isDeleteIntegrationModalOpen = ref(false)
 const toBeDeletedIntegration = ref<
@@ -61,42 +66,45 @@ const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string 
 })
 
 const filteredIntegrations = computed(() =>
-  (integrations.value || []).sort((a, b) => {
-    if (orderBy.value.title) {
-      if (a.title && b.title) {
-        return orderBy.value.title === 'asc' ? (a.title < b.title ? -1 : 1) : a.title > b.title ? -1 : 1
-      }
-    } else if (orderBy.value.sub_type) {
-      if (a.sub_type && b.sub_type) {
-        return orderBy.value.sub_type === 'asc' ? (a.sub_type < b.sub_type ? -1 : 1) : a.sub_type > b.sub_type ? -1 : 1
-      }
-    } else if (orderBy.value.created_at) {
-      if (a?.created_at && b?.created_at) {
-        return orderBy.value.created_at === 'asc'
-          ? dayjs(a.created_at).local().isBefore(dayjs(b.created_at).local())
+  (integrations.value || [])
+    .filter((i) => IntegrationsType.Sync !== i.type)
+    .sort((a, b) => {
+      if (orderBy.value.title) {
+        if (a.title && b.title) {
+          return orderBy.value.title === 'asc' ? (a.title < b.title ? -1 : 1) : a.title > b.title ? -1 : 1
+        }
+      } else if (orderBy.value.sub_type) {
+        if (a.sub_type && b.sub_type) {
+          return orderBy.value.sub_type === 'asc' ? (a.sub_type < b.sub_type ? -1 : 1) : a.sub_type > b.sub_type ? -1 : 1
+        }
+      } else if (orderBy.value.created_at) {
+        if (a?.created_at && b?.created_at) {
+          return orderBy.value.created_at === 'asc'
+            ? dayjs(a.created_at).local().diff(dayjs(b.created_at).local())
+            : dayjs(b.created_at).local().diff(dayjs(a.created_at).local())
+        }
+      } else if (orderBy.value.created_by) {
+        if (
+          a.created_by &&
+          b.created_by &&
+          collaboratorsMap.value.get(a.created_by) &&
+          collaboratorsMap.value.get(b.created_by)
+        ) {
+          return orderBy.value.created_by === 'asc'
+            ? collaboratorsMap.value.get(a.created_by)?.email < collaboratorsMap.value.get(b.created_by)?.email
+              ? -1
+              : 1
+            : collaboratorsMap.value.get(a.created_by)?.email > collaboratorsMap.value.get(b.created_by)?.email
             ? -1
             : 1
-          : dayjs(a.created_at).local().isAfter(dayjs(b.created_at).local())
-          ? -1
-          : 1
+        }
+      } else if (orderBy.value.source_count) {
+        if (a.source_count !== undefined && b.source_count !== undefined) {
+          return orderBy.value.source_count === 'asc' ? a.source_count - b.source_count : b.source_count - a.source_count
+        }
       }
-    } else if (orderBy.value.created_by) {
-      if (a.created_by && b.created_by && collaboratorsMap.value.get(a.created_by) && collaboratorsMap.value.get(b.created_by)) {
-        return orderBy.value.created_by === 'asc'
-          ? collaboratorsMap.value.get(a.created_by)?.email < collaboratorsMap.value.get(b.created_by)?.email
-            ? -1
-            : 1
-          : collaboratorsMap.value.get(a.created_by)?.email > collaboratorsMap.value.get(b.created_by)?.email
-          ? -1
-          : 1
-      }
-    } else if (orderBy.value.source_count) {
-      if (a.source_count !== undefined && b.source_count !== undefined) {
-        return orderBy.value.source_count === 'asc' ? a.source_count - b.source_count : b.source_count - a.source_count
-      }
-    }
-    return 0
-  }),
+      return 0
+    }),
 )
 
 async function loadConnections(
@@ -109,7 +117,7 @@ async function loadConnections(
       integrationPaginationData.value.page = 1
     }
 
-    await loadIntegrations(undefined, undefined, updateCurrentPage ? 1 : page, limit)
+    await loadIntegrations(null, undefined, updateCurrentPage ? 1 : page, limit)
   } catch {}
 }
 
@@ -138,6 +146,14 @@ const openDeleteIntegration = async (source: IntegrationType) => {
   toBeDeletedIntegration.value.sources = connectionDetails?.sources || []
 
   isLoadingGetLinkedSources.value = false
+}
+
+const openEditIntegration = (integration: IntegrationType) => {
+  if (!isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration.sub_type === SyncDataType.NOCODB) {
+    return
+  }
+
+  editIntegration(integration)
 }
 
 const onDeleteConfirm = async () => {
@@ -198,10 +214,6 @@ const handleSearchConnection = useDebounceFn(() => {
   loadConnections()
 }, 250)
 
-const renderAltOrOptlKey = () => {
-  return isMac() ? '⌥' : 'ALT'
-}
-
 const isUserDeleted = (userId?: string) => {
   if (!userId) return false
 
@@ -235,6 +247,7 @@ useEventListener(tableWrapper, 'scroll', () => {
 })
 
 onMounted(async () => {
+  await loadDynamicIntegrations()
   if (!isEeUI) {
     await Promise.allSettled([!integrations.value.length && loadIntegrations(), loadOrgUsers()])
   } else if (!integrations.value.length) {
@@ -253,9 +266,9 @@ onKeyStroke('ArrowDown', onDown)
     <div class="flex flex-col justify-between gap-2 mx-1">
       <div class="text-sm font-normal text-gray-600">
         <div>
-          Manage connections for your integrations.
+          {{ $t('msg.manageConnections') }}
           <a target="_blank" href="https://docs.nocodb.com/integrations/actions-on-connection" rel="noopener noreferrer">
-            Learn more
+            {{ $t('msg.learnMore') }}
           </a>
         </div>
       </div>
@@ -294,7 +307,7 @@ onKeyStroke('ArrowDown', onDown)
                 @click="updateOrderBy('title')"
               >
                 <div ref="titleHeaderCellRef" class="flex items-center gap-3">
-                  <div>Name</div>
+                  <div>{{ $t('general.name') }}</div>
                   <GeneralIcon
                     v-if="orderBy.title"
                     icon="chevronDown"
@@ -306,6 +319,7 @@ onKeyStroke('ArrowDown', onDown)
                   <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
                 </div>
               </th>
+
               <th
                 class="cell-type !hover:bg-gray-100 select-none cursor-pointer"
                 :class="{
@@ -315,7 +329,7 @@ onKeyStroke('ArrowDown', onDown)
                 @click="updateOrderBy('sub_type')"
               >
                 <div class="flex items-center gap-3">
-                  <div>Type</div>
+                  <div>{{ $t('general.type') }}</div>
                   <GeneralIcon
                     v-if="orderBy.sub_type"
                     icon="chevronDown"
@@ -337,7 +351,7 @@ onKeyStroke('ArrowDown', onDown)
                 @click="updateOrderBy('created_at')"
               >
                 <div class="flex items-center gap-3">
-                  <div>Date added</div>
+                  <div>{{ $t('labels.dateAdded') }}</div>
                   <GeneralIcon
                     v-if="orderBy.created_at"
                     icon="chevronDown"
@@ -358,7 +372,7 @@ onKeyStroke('ArrowDown', onDown)
                 @click="updateOrderBy('created_by')"
               >
                 <div class="flex items-center gap-3">
-                  <div>Added by</div>
+                  <div>{{ $t('labels.addedBy') }}</div>
                   <GeneralIcon
                     v-if="orderBy.created_by"
                     icon="chevronDown"
@@ -378,7 +392,7 @@ onKeyStroke('ArrowDown', onDown)
                 @click="updateOrderBy('source_count')"
               >
                 <div class="flex items-center gap-3">
-                  <div>Usage</div>
+                  <div>{{ $t('general.usage') }}</div>
                   <GeneralIcon
                     v-if="orderBy?.source_count"
                     icon="chevronDown"
@@ -391,7 +405,7 @@ onKeyStroke('ArrowDown', onDown)
                 </div>
               </th>
               <th class="cell-actions">
-                <div>Actions</div>
+                <div>{{ $t('labels.actions') }}</div>
               </th>
             </tr>
           </thead>
@@ -399,7 +413,7 @@ onKeyStroke('ArrowDown', onDown)
         <template v-if="filteredIntegrations?.length">
           <table class="h-full max-h-[calc(100%_-_55px)] w-full">
             <tbody>
-              <tr v-for="integration of filteredIntegrations" :key="integration.id" @click="editIntegration(integration)">
+              <tr v-for="integration of filteredIntegrations" :key="integration.id" @click="openEditIntegration(integration)">
                 <td class="cell-title">
                   <div
                     class="gap-3"
@@ -418,22 +432,20 @@ onKeyStroke('ArrowDown', onDown)
                     </span>
                   </div>
                 </td>
+
                 <td class="cell-type">
                   <div>
-                    <NcBadge rounded="lg" class="flex items-center gap-2 px-0 py-1 !h-7 truncate !border-transparent">
-                      <GeneralIntegrationIcon :type="integration.sub_type" />
-                      <NcTooltip placement="bottom" show-on-truncate-only class="text-sm truncate">
-                        <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
+                    <NcTooltip placement="bottom" class="h-8 w-8 flex-none flex items-center justify-center children:flex-none">
+                      <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
 
-                        {{
-                          integration.sub_type && clientTypesMap[integration.sub_type]
-                            ? clientTypesMap[integration.sub_type]?.text
-                            : integration.sub_type
-                        }}
-                      </NcTooltip>
-                    </NcBadge>
+                      <GeneralIntegrationIcon
+                        :type="integration.sub_type"
+                        :size="integration.sub_type === SyncDataType.NOCODB ? 'xxl' : 'lg'"
+                      />
+                    </NcTooltip>
                   </div>
                 </td>
+
                 <td class="cell-created-date">
                   <div>
                     <NcTooltip placement="bottom" show-on-truncate-only>
@@ -445,7 +457,13 @@ onKeyStroke('ArrowDown', onDown)
                 </td>
                 <td class="cell-added-by">
                   <div>
-                    <NcTooltip :disabled="!isUserDeleted(integration.created_by)" class="w-full">
+                    <div v-if="integration.sub_type === SyncDataType.NOCODB" class="flex items-center gap-3">
+                      <div class="h-8 w-8 grid place-items-center">
+                        <GeneralIcon icon="nocodb1" />
+                      </div>
+                      <div class="text-sm !leading-5 capitalize font-semibold truncate">NocoDB Cloud</div>
+                    </div>
+                    <NcTooltip v-else :disabled="!isUserDeleted(integration.created_by)" class="w-full">
                       <template #title>
                         {{ `User not part of this ${isEeUI ? 'workspace' : 'organisation'} anymore` }}
                       </template>
@@ -454,7 +472,7 @@ onKeyStroke('ArrowDown', onDown)
                         class="w-full flex gap-3 items-center"
                       >
                         <GeneralUserIcon
-                          :email="collaboratorsMap.get(integration.created_by)?.email"
+                          :user="collaboratorsMap.get(integration.created_by)"
                           size="base"
                           class="flex-none"
                           :class="{
@@ -517,9 +535,21 @@ onKeyStroke('ArrowDown', onDown)
                         <GeneralIcon icon="threeDotVertical" />
                       </NcButton>
                       <template #overlay>
-                        <NcMenu>
-                          <NcMenuItem @click="editIntegration(integration)">
-                            <GeneralIcon class="text-gray-800" icon="edit" />
+                        <NcMenu variant="small">
+                          <NcMenuItem
+                            v-if="integration.type && integrationCategoryNeedDefault(integration.type) && !integration.is_default"
+                            @click="setDefaultIntegration(integration)"
+                          >
+                            <GeneralIcon class="text-current opacity-80" icon="star" />
+                            <span>Set as default</span>
+                          </NcMenuItem>
+                          <NcMenuItem
+                            :disabled="
+                              !isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration.sub_type === SyncDataType.NOCODB
+                            "
+                            @click="openEditIntegration(integration)"
+                          >
+                            <GeneralIcon class="text-current opacity-80" icon="edit" />
                             <span>{{ $t('general.edit') }}</span>
                           </NcMenuItem>
                           <NcTooltip :disabled="integration?.sub_type !== ClientType.SQLITE">
@@ -533,24 +563,22 @@ onKeyStroke('ArrowDown', onDown)
                             </template>
 
                             <NcMenuItem
-                              :disabled="integration?.sub_type === ClientType.SQLITE"
+                              :disabled="
+                                integration?.sub_type === ClientType.SQLITE || integration?.sub_type === SyncDataType.NOCODB
+                              "
                               @click="duplicateIntegration(integration)"
                             >
-                              <GeneralIcon
-                                :class="{
-                                  'text-current': integration?.sub_type === ClientType.SQLITE,
-                                  'text-gray-800': integration?.sub_type !== ClientType.SQLITE,
-                                }"
-                                icon="duplicate"
-                              />
+                              <GeneralIcon class="text-current opacity-80" icon="duplicate" />
                               <span>{{ $t('general.duplicate') }}</span>
                             </NcMenuItem>
                           </NcTooltip>
-                          <NcDivider />
-                          <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="openDeleteIntegration(integration)">
-                            <GeneralIcon icon="delete" />
-                            {{ $t('general.delete') }}
-                          </NcMenuItem>
+                          <template v-if="integration?.sub_type !== SyncDataType.NOCODB">
+                            <NcDivider />
+                            <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="openDeleteIntegration(integration)">
+                              <GeneralIcon icon="delete" />
+                              {{ $t('general.delete') }}
+                            </NcMenuItem>
+                          </template>
                         </NcMenu>
                       </template>
                     </NcDropdown>
@@ -837,9 +865,9 @@ onKeyStroke('ArrowDown', onDown)
         }
 
         &.cell-type {
-          @apply basis-[20%];
+          @apply w-[120px];
           & > div {
-            @apply min-w-[178px];
+            @apply min-w-[98px];
           }
         }
 

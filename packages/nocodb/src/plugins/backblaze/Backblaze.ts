@@ -3,6 +3,7 @@ import { S3 as S3Client } from '@aws-sdk/client-s3';
 import type { PutObjectCommandInput, S3ClientConfig } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2 } from '~/types/nc-plugin';
 import GenericS3 from '~/plugins/GenericS3/GenericS3';
+import { S3_PATCH_KEYS } from '~/constants';
 
 interface BackblazeObjectStorageInput {
   bucket: string;
@@ -38,14 +39,16 @@ export default class Backblaze extends GenericS3 implements IStorageAdapterV2 {
       endpoint: `https://s3.${this.patchRegion(
         this.input.region,
       )}.backblazeb2.com`,
+      requestChecksumCalculation: 'WHEN_REQUIRED',
+      responseChecksumValidation: 'WHEN_REQUIRED',
     };
 
     this.s3Client = new S3Client(s3Options);
   }
+
   protected patchKey(key: string): string {
     if (
-      key.startsWith(`${this.input.bucket}/nc/uploads`) ||
-      key.startsWith(`${this.input.bucket}/nc/thumbnails`)
+      S3_PATCH_KEYS.some((k) => key.startsWith(`${this.input.bucket}/nc/${k}`))
     ) {
       key = key.replace(`${this.input.bucket}/`, '');
     }

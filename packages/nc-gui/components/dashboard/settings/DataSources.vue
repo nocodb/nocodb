@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import type { SourceType } from 'nocodb-sdk'
+import { PlanLimitTypes, type SourceType } from 'nocodb-sdk'
 import { ClientType } from '#imports'
 
 interface Props {
@@ -30,6 +30,8 @@ const { isUIAllowed } = useRoles()
 const { projectPageTab } = storeToRefs(useConfigStore())
 
 const { refreshCommandPalette } = useCommandPalette()
+
+const { updateStatLimit, showExternalSourcePlanLimitExceededModal } = useEeConfig()
 
 const sources = ref<SourceType[]>([])
 
@@ -131,6 +133,7 @@ const deleteBase = async () => {
     $e('a:source:delete')
 
     sources.value.splice(sources.value.indexOf(toBeDeletedBase.value), 1)
+    updateStatLimit(PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE, -1)
     await loadProject(base.value.id as string, true)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -244,7 +247,7 @@ watch(
         vState.value = DataSourcesSubTab.New
         break
       case DataSourcesSubTab.New:
-        if (isDataSourceLimitReached.value) {
+        if (showExternalSourcePlanLimitExceededModal() || isDataSourceLimitReached.value) {
           vState.value = ''
         }
         break
@@ -299,7 +302,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
       <a-input
         v-model:value="searchQuery"
         type="text"
-        class="nc-search-data-source-input !max-w-90 nc-input-sm"
+        class="nc-search-data-source-input nc-input-border-on-value !max-w-90 nc-input-sm"
         placeholder="Search data source"
         allow-clear
       >
@@ -313,7 +316,12 @@ const handleClickRow = (source: SourceType, tab?: string) => {
         size="large"
         class="z-10 !px-2"
         type="primary"
-        @click="vState = DataSourcesSubTab.New"
+        @click="
+          () => {
+            if (showExternalSourcePlanLimitExceededModal()) return
+            vState = DataSourcesSubTab.New
+          }
+        "
       >
         <div class="flex flex-row items-center w-full gap-x-1">
           <component :is="iconMap.plus" />
@@ -381,20 +389,11 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                 />
               </div>
             </a-tab-pane>
-            <a-tab-pane v-if="sources && activeSource === sources[0]" key="audit">
-              <template #tab>
-                <div class="tab" data-testid="nc-audit-tab">
-                  <div>{{ $t('title.auditLogs') }}</div>
-                </div>
-              </template>
-              <div class="p-6 h-full">
-                <LazyDashboardSettingsBaseAudit :source-id="activeSource.id" />
-              </div>
-            </a-tab-pane>
+
             <a-tab-pane key="acl">
               <template #tab>
                 <div class="tab" data-testid="nc-acl-tab">
-                  <div>{{ $t('labels.uiAcl') }}</div>
+                  <div>{{ $t('labels.viewHide') }}</div>
                 </div>
               </template>
 
@@ -553,9 +552,9 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                           <GeneralIcon icon="threeDotVertical" />
                         </NcButton>
                         <template #overlay>
-                          <NcMenu>
+                          <NcMenu variant="small">
                             <NcMenuItem @click="handleClickRow(source, 'edit')">
-                              <GeneralIcon class="text-gray-800" icon="edit" />
+                              <GeneralIcon icon="edit" />
                               <span>{{ $t('general.edit') }}</span>
                             </NcMenuItem>
 

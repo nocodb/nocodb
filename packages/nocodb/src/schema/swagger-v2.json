@@ -2651,6 +2651,10 @@
                     "roles": {
                       "type": "string",
                       "example": "viewer"
+                    },
+                    "fk_custom_url_id": {
+                      "$ref": "#/components/schemas/StringOrNull",
+                      "description": "ID of custom url"
                     }
                   }
                 },
@@ -2794,7 +2798,20 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SharedBaseReq"
+                "allOf":[
+                  {
+                    "$ref": "#/components/schemas/SharedBaseReq"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "custom_url_path": {
+                        "$ref": "#/components/schemas/StringOrNull",
+                        "description": "Custom url path"
+                      }
+                    }
+                  }
+                ]
               },
               "examples": {
                 "Example 1": {
@@ -5301,7 +5318,20 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SharedViewReq"
+                "allOf":[
+                  {
+                    "$ref": "#/components/schemas/SharedViewReq"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "custom_url_path": {
+                        "$ref": "#/components/schemas/StringOrNull",
+                        "description": "Custom url path"
+                      }
+                    }
+                  }
+                ]
               }
             }
           },
@@ -10091,80 +10121,6 @@
         ]
       }
     },
-    "/api/v2/meta/audits/rows/{rowId}/update": {
-      "parameters": [
-        {
-          "schema": {
-            "example": "1"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Row ID"
-        }
-      ],
-      "post": {
-        "summary": "Update Audit Row",
-        "operationId": "utils-audit-row-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Audit"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "user": "w@nocodb.com",
-                      "row_id": "1",
-                      "fk_model_id": "md_5mipbdg6ketmv8",
-                      "op_type": "COMMENT",
-                      "description": "Table Sheet-1 : field Column A got changed from foo to bar",
-                      "base_id": "p_63b4q0qengen1x",
-                      "id": "adt_vx58jpp0loo8qy"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Utils", "Internal"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AuditRowUpdateReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "column_name": "baz",
-                    "fk_model_id": "md_ehn5izr99m7d45",
-                    "row_id": "1",
-                    "prev_value": "foo",
-                    "value": "bar"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Update Audit Row",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-token"
-          }
-        ]
-      }
-    },
     "/api/v2/meta/tables/{tableId}/hooks": {
       "parameters": [
         {
@@ -10877,13 +10833,13 @@
         ]
       }
     },
-    "/api/v2/meta/plugins/{pluginTitle}/status": {
+    "/api/v2/meta/plugins/{pluginId}/status": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "pluginTitle",
+          "name": "pluginId",
           "in": "path",
           "required": true,
           "description": "Plugin Title"
@@ -11649,6 +11605,20 @@
           },
           {
             "$ref": "#/components/parameters/xc-token"
+          },
+          {
+            "schema": {
+              "enum": [
+                "workspacePics",
+                "profilePics",
+                "organizationPics"
+              ],
+              "type": "string",
+              "example": "workspacePics"
+            },
+            "name": "scope",
+            "in": "query",
+            "description": "The scope of the attachment"
           }
         ],
         "description": "Upload attachment"
@@ -11688,6 +11658,20 @@
           },
           {
             "$ref": "#/components/parameters/xc-token"
+          },
+          {
+            "schema": {
+              "enum": [
+                "workspacePics",
+                "profilePics",
+                "organizationPics"
+              ],
+              "type": "string",
+              "example": "workspacePics"
+            },
+            "name": "scope",
+            "in": "query",
+            "description": "The scope of the attachment"
           }
         ],
         "description": "Upload attachment by URL. Used in Airtable Migration."
@@ -13400,46 +13384,6 @@
         },
         "x-stoplight": {
           "id": "n44nqsmhm56c7"
-        }
-      },
-      "AuditRowUpdateReq": {
-        "description": "Model for Audit Row Update Request",
-        "examples": [
-          {
-            "column_name": "baz",
-            "fk_model_id": "md_ehn5izr99m7d45",
-            "row_id": "rec0Adp9PMG9o7uJy",
-            "prev_value": "foo",
-            "value": "bar"
-          }
-        ],
-        "title": "Audit Row Update Request Model",
-        "type": "object",
-        "properties": {
-          "column_name": {
-            "type": "string",
-            "description": "Column Name",
-            "example": "baz"
-          },
-          "fk_model_id": {
-            "type": "string",
-            "description": "Foreign Key to Model",
-            "example": "md_ehn5izr99m7d45"
-          },
-          "row_id": {
-            "type": "string",
-            "example": "rec0Adp9PMG9o7uJy",
-            "description": "Row ID"
-          },
-          "prev_value": {
-            "description": "The previous value before the action"
-          },
-          "value": {
-            "description": "The current value after the action"
-          }
-        },
-        "x-stoplight": {
-          "id": "2fzwvc4m1k5or"
         }
       },
       "Source": {
@@ -19212,6 +19156,10 @@
             "description": "Base Title",
             "example": "my-base",
             "type": "string"
+          },
+          "fk_custom_url_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "ID of custom url"
           }
         },
         "x-stoplight": {
@@ -19436,6 +19384,39 @@
         "x-stoplight": {
           "id": "3bvgqk9tn16ur"
         }
+      },
+      "ProjectUserUpdateReq": {
+        "description": "Model for Base User Request",
+        "examples": [
+          {
+            "roles": "owner"
+          }
+        ],
+        "title": "Base User Request Model",
+        "type": "object",
+        "properties": {
+          "email": {
+            "format": "email",
+            "type": "string",
+            "description": "Base User Email"
+          },
+          "roles": {
+            "enum": [
+              "no-access",
+              "commenter",
+              "editor",
+              "guest",
+              "owner",
+              "viewer",
+              "creator"
+            ],
+            "type": "string",
+            "description": "Base User Role"
+          }
+        },
+        "required": [
+          "roles"
+        ]
       },
       "ProjectUserMetaReq": {
         "description": "Model for Base User Meta Request",
@@ -19813,7 +19794,8 @@
         "examples": [
           {
             "meta": {},
-            "password": "123456789"
+            "password": "123456789",
+            "custom_url_path": "feedback-form"
           }
         ],
         "title": "Shared View Request Model",
@@ -20864,7 +20846,8 @@
             "bio": "foo",
             "location": "Istanbul",
             "created_at": "2019-08-24",
-            "avatar": "https://dummyimage.com/300.png"
+            "avatar": "https://dummyimage.com/300.png",
+            "meta": {}
           }
         ],
         "title": "User Model",
@@ -20917,6 +20900,10 @@
           "token_version": {
             "description": "Access token version",
             "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for user"
           }
         },
         "required": [
@@ -21177,6 +21164,14 @@
               }
             ],
             "description": "Associated View Model"
+          },
+          "owned_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of view owner user"
+          },
+          "fk_custom_url_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "ID of custom url"
           }
         },
         "required": [
@@ -21438,6 +21433,10 @@
           "show_system_fields": {
             "$ref": "#/components/schemas/Bool",
             "description": "Should this view show system fields?"
+          },
+          "owned_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of view owner user"
           }
         }
       },
@@ -22010,6 +22009,10 @@
           "title": {
             "type": "string"
           },
+          "sso_only_access": {
+            "description": "SSO only access",
+            "type": "boolean"
+          },
           "updated_at": {}
         },
         "title": "Workspace",
@@ -22083,6 +22086,40 @@
           }
         },
         "type": "object"
+      },
+      "CustomUrl": {
+        "description": "Model for Custom Url",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id associated to the Custom url"
+          },
+          "fk_workspace_id": {
+            "type": "string",
+            "description": "Workspace ID"
+          },
+          "base_id": {
+            "type": "string",
+            "description": "Base ID"
+          },
+          "fk_model_id": {
+            "type": "string",
+            "description": "Model ID"
+          },
+          "view_id": {
+            "type": "string",
+            "description": "View ID"
+          },
+          "original_path": {
+            "type": "string",
+            "description": "Original url used for redirection purpose"
+          },
+          "custom_path": {
+            "type": "string",
+            "description": "Custom url path"
+          }
+        }
       }
     },
     "responses": {

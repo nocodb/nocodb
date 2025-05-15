@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ViewType } from 'nocodb-sdk'
+import { type TableType, type ViewType, viewTypeAlias } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -16,13 +16,17 @@ const { refreshCommandPalette } = useCommandPalette()
 const viewsStore = useViewsStore()
 const { loadViews, navigateToView } = viewsStore
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
 
 const isViewListLoading = ref(false)
-const toBeCreateType = ref<ViewTypes>()
+const toBeCreateType = ref<ViewTypes | 'AI'>()
 
 const isOpen = ref(false)
+
+const isSqlView = computed(() => (table.value as TableType)?.type === 'view')
 
 const overlayClassName = computed(() => {
   if (alignLeftLevel.value === 1) return 'nc-view-create-dropdown nc-view-create-dropdown-left-1'
@@ -62,7 +66,7 @@ async function onOpenModal({
   coverImageColumnId,
 }: {
   title?: string
-  type: ViewTypes
+  type: ViewTypes | 'AI'
   copyViewId?: string
   groupingFieldColumnId?: string
   calendarRange?: Array<{
@@ -72,6 +76,8 @@ async function onOpenModal({
   coverImageColumnId?: string
 }) {
   if (isViewListLoading.value) return
+
+  $e('c:view:create:navdraw', { view: type === 'AI' ? type : viewTypeAlias[type] })
 
   toBeCreateType.value = type
 
@@ -94,8 +100,9 @@ async function onOpenModal({
     calendarRange,
     groupingFieldColumnId,
     coverImageColumnId,
+    'baseId': base.value.id,
     'onUpdate:modelValue': closeDialog,
-    'onCreated': async (view: ViewType) => {
+    'onCreated': async (view?: ViewType) => {
       closeDialog()
 
       refreshCommandPalette()
@@ -110,14 +117,16 @@ async function onOpenModal({
         hasNonDefaultViews: true,
       }
 
-      navigateToView({
-        view,
-        tableId: table.value.id!,
-        baseId: base.value.id!,
-        doNotSwitchTab: true,
-      })
+      if (view) {
+        navigateToView({
+          view,
+          tableId: table.value.id!,
+          baseId: base.value.id!,
+          doNotSwitchTab: true,
+        })
+      }
 
-      $e('a:view:create', { view: view.type })
+      $e('a:view:create', { view: view?.type || type })
     },
   })
 
@@ -134,12 +143,12 @@ async function onOpenModal({
   <NcDropdown v-model:visible="isOpen" :overlay-class-name="overlayClassName" destroy-popup-on-hide @click.stop="isOpen = true">
     <slot />
     <template #overlay>
-      <NcMenu class="max-w-48">
+      <NcMenu class="max-w-48" variant="medium">
         <NcMenuItem @click.stop="onOpenModal({ type: ViewTypes.GRID })">
           <div class="item" data-testid="sidebar-view-create-grid">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.GRID }" />
-              <div>Grid</div>
+              <div>{{ $t('objects.viewType.grid') }}</div>
             </div>
 
             <GeneralLoader v-if="toBeCreateType === ViewTypes.GRID && isViewListLoading" />
@@ -147,22 +156,36 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
 
-        <NcMenuItem v-if="!source.is_data_readonly" @click="onOpenModal({ type: ViewTypes.FORM })">
-          <div class="item" data-testid="sidebar-view-create-form">
-            <div class="item-inner">
-              <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />
-              <div>Form</div>
-            </div>
+        <NcTooltip :title="$t('tooltip.sourceDataIsReadonly')" :disabled="!source.is_data_readonly && !isSqlView">
+          <NcMenuItem :disabled="!!source.is_data_readonly || isSqlView" @click="onOpenModal({ type: ViewTypes.FORM })">
+            <div class="item" data-testid="sidebar-view-create-form">
+              <div class="item-inner">
+                <GeneralViewIcon
+                  :meta="{ type: ViewTypes.FORM }"
+                  :class="{
+                    'opacity-50': !!source.is_data_readonly || isSqlView,
+                  }"
+                />
+                <div>{{ $t('objects.viewType.form') }}</div>
+              </div>
 
-            <GeneralLoader v-if="toBeCreateType === ViewTypes.FORM && isViewListLoading" />
-            <GeneralIcon v-else class="plus" icon="plus" />
-          </div>
-        </NcMenuItem>
+              <GeneralLoader v-if="toBeCreateType === ViewTypes.FORM && isViewListLoading" />
+              <GeneralIcon
+                v-else
+                class="plus"
+                icon="plus"
+                :class="{
+                  '!text-current': !!source.is_data_readonly,
+                }"
+              />
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
         <NcMenuItem @click="onOpenModal({ type: ViewTypes.GALLERY })">
           <div class="item" data-testid="sidebar-view-create-gallery">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.GALLERY }" />
-              <div>Gallery</div>
+              <div>{{ $t('objects.viewType.gallery') }}</div>
             </div>
 
             <GeneralLoader v-if="toBeCreateType === ViewTypes.GALLERY && isViewListLoading" />
@@ -173,7 +196,7 @@ async function onOpenModal({
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.KANBAN }" />
-              <div>Kanban</div>
+              <div>{{ $t('objects.viewType.kanban') }}</div>
             </div>
 
             <GeneralLoader v-if="toBeCreateType === ViewTypes.KANBAN && isViewListLoading" />
@@ -191,6 +214,17 @@ async function onOpenModal({
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
+        <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+          <NcDivider />
+          <NcMenuItem data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
+            <div class="item">
+              <div class="item-inner">
+                <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
+                <div>{{ $t('labels.aiSuggested') }}</div>
+              </div>
+            </div>
+          </NcMenuItem>
+        </template>
       </NcMenu>
     </template>
   </NcDropdown>

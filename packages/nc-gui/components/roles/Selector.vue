@@ -8,7 +8,7 @@ const props = withDefaults(
     role: keyof typeof RoleLabels
     roles: (keyof typeof RoleLabels)[]
     disabledRoles?: (keyof typeof RoleLabels)[]
-    onRoleChange: (role: keyof typeof RoleLabels) => void
+    onRoleChange: (role: keyof typeof RoleLabels) => void | Promise<any>
     border?: boolean
     description?: boolean
     inherit?: string
@@ -31,10 +31,29 @@ const isDropdownOpen = ref(false)
 const dropdownRef = ref(null)
 const sizeRef = toRef(props, 'size')
 
-onClickOutside(dropdownRef, () => (isDropdownOpen.value = false))
+const newRole = ref<null | keyof typeof RoleLabels>(null)
 
-function onChangeRole(val: SelectValue) {
-  props.onRoleChange(val as keyof typeof RoleLabels)
+async function onChangeRole(val: SelectValue) {
+  newRole.value = val as keyof typeof RoleLabels
+
+  await props.onRoleChange(val as keyof typeof RoleLabels)
+
+  newRole.value = null
+  isDropdownOpen.value = false
+}
+
+onClickOutside(dropdownRef, (e) => {
+  if ((e.target as HTMLElement)?.closest('.nc-role-selector-dropdown')) {
+    return
+  }
+
+  isDropdownOpen.value = false
+})
+
+/** Select input will not trigger onChange event if old value is same as new value so manually we have to handle close dropdown */
+const closeOnClickOption = (optionValue: keyof typeof RoleLabels) => {
+  if (!!newRole.value || optionValue !== roleRef.value) return
+
   isDropdownOpen.value = false
 }
 </script>
@@ -84,12 +103,19 @@ function onChangeRole(val: SelectValue) {
         >
           <div class="flex items-center justify-between">
             <RolesBadge disabled :border="false" :inherit="inheritRef === rl" :role="rl" />
-            <GeneralIcon v-if="rl === roleRef" icon="check" class="text-primary" />
+            <GeneralIcon v-if="!newRole && rl === roleRef" icon="check" class="text-primary" />
           </div>
           <div v-if="descriptionRef" class="text-gray-500 text-xs">{{ RoleDescriptions[rl] }}</div>
         </div>
       </a-select-option>
-      <a-select-option v-for="rl in props.roles" :key="rl" v-e="['c:workspace:settings:user-role-change']" :value="rl">
+      <a-select-option
+        v-for="rl in props.roles"
+        :key="rl"
+        v-e="['c:workspace:settings:user-role-change']"
+        :value="rl"
+        :disabled="!!newRole"
+        @click="closeOnClickOption(rl)"
+      >
         <div
           :class="{
             'w-full': descriptionRef,
@@ -99,7 +125,10 @@ function onChangeRole(val: SelectValue) {
         >
           <div class="flex items-center justify-between">
             <RolesBadge :border="false" :class="`nc-role-select-${rl}`" :inherit="inheritRef === rl" :role="rl" />
-            <GeneralIcon v-if="rl === roleRef" icon="check" class="text-primary" />
+
+            <GeneralLoader v-if="rl === newRole" size="medium" />
+
+            <GeneralIcon v-else-if="!newRole && rl === roleRef" icon="check" class="text-primary" />
           </div>
           <div v-if="descriptionRef" class="text-gray-500 text-xs">{{ RoleDescriptions[rl] }}</div>
         </div>

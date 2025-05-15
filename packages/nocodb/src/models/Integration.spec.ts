@@ -5,6 +5,21 @@ import { decryptPropIfRequired, isEE } from '~/utils';
 
 jest.mock('~/Noco');
 
+const knexGenericMock = {
+  select: jest.fn().mockReturnThis(),
+  from: jest.fn().mockReturnThis(),
+  where: jest.fn().mockReturnThis(),
+  whereNull: jest.fn().mockReturnThis(),
+  orWhereNull: jest.fn().mockReturnThis(),
+  leftJoin: jest.fn().mockReturnThis(),
+  innerJoin: jest.fn().mockReturnThis(),
+  andWhere: jest.fn().mockReturnThis(),
+  clone: jest.fn().mockReturnThis(),
+  limit: jest.fn().mockReturnThis(),
+  offset: jest.fn().mockReturnThis(),
+  orderBy: jest.fn().mockReturnThis(),
+};
+
 describe('Integration Model', () => {
   let integration: Integration;
   let mockNcMeta: jest.Mocked<any>;
@@ -22,6 +37,7 @@ describe('Integration Model', () => {
       id: 'test-id',
       title: 'Test Integration',
       base_id: 'project-1',
+      ...(isEE ? { fk_workspace_id: 'workspace-1' } : {}),
     });
   });
 
@@ -37,17 +53,7 @@ describe('Integration Model', () => {
       ];
       // Mock the knex function
       mockNcMeta.knex = jest.fn().mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        from: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        whereNull: jest.fn().mockReturnThis(),
-        orWhereNull: jest.fn().mockReturnThis(),
-        leftJoin: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        clone: jest.fn().mockReturnThis(),
-        limit: jest.fn().mockReturnThis(),
-        offset: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
+        ...knexGenericMock,
         then: jest
           .fn()
           .mockImplementation((callback) =>
@@ -58,7 +64,7 @@ describe('Integration Model', () => {
       const result = await Integration.list(
         {
           userId: 'user-id',
-          workspaceId: 'workspace-id',
+          ...(isEE ? { workspaceId: 'workspace-id' } : {}),
         },
         mockNcMeta,
       );
@@ -97,12 +103,31 @@ describe('Integration Model', () => {
       expect(result).toBeInstanceOf(Integration);
       expect(result).toEqual(expect.objectContaining(mockIntegration));
       expect(mockNcMeta.metaGet2).toBeCalledWith(
-        null,
-        'workspace',
+        'bypass',
+        'bypass',
         MetaTable.INTEGRATIONS,
-        isEE ? { fk_workspace_id: null, id: 'test-id' } : 'test-id',
+        'test-id',
         null,
-        { _or: [{ deleted: { neq: true } }, { deleted: { eq: null } }] },
+        isEE
+          ? {
+              _and: [
+                {
+                  _or: [
+                    {
+                      deleted: {
+                        neq: true,
+                      },
+                    },
+                    {
+                      deleted: {
+                        eq: null,
+                      },
+                    },
+                  ],
+                },
+              ],
+            }
+          : { _or: [{ deleted: { neq: true } }, { deleted: { eq: null } }] },
       );
     });
   });
@@ -224,16 +249,18 @@ describe('Integration Model', () => {
       });
 
       await Integration.updateIntegration(
-        {
-          workspace_id: null,
-        },
+        isEE
+          ? { workspace_id: 'workspace-1' }
+          : {
+              workspace_id: null,
+            },
         'test-id',
         updateData,
         mockNcMeta,
       );
 
       expect(mockNcMeta.metaUpdate).toHaveBeenCalledWith(
-        null,
+        isEE ? 'workspace-1' : 'workspace',
         'workspace',
         MetaTable.INTEGRATIONS,
         updateData,
@@ -244,10 +271,17 @@ describe('Integration Model', () => {
 
   describe('delete', () => {
     it('should delete an integration', async () => {
+      mockNcMeta.knex = jest.fn().mockReturnValue({
+        ...knexGenericMock,
+        then: jest
+          .fn()
+          .mockImplementation((callback) => Promise.resolve(callback([]))),
+      });
+
       await integration.delete(mockNcMeta);
 
       expect(mockNcMeta.metaDelete).toHaveBeenCalledWith(
-        undefined,
+        isEE ? 'workspace-1' : 'workspace',
         'workspace',
         MetaTable.INTEGRATIONS,
         integration.id,

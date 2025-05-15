@@ -1,3 +1,4 @@
+import { PlanLimitTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import Noco from '~/Noco';
@@ -113,6 +114,12 @@ export default class Extension {
       prepareForDb(insertObj, ['kv_store', 'meta']),
     );
 
+    await NocoCache.incrHashField(
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE,
+      1,
+    );
+
     return this.get(context, id, ncMeta).then(async (res) => {
       await NocoCache.appendToList(
         CacheScope.EXTENSION,
@@ -170,6 +177,12 @@ export default class Extension {
     await NocoCache.deepDel(
       `${CacheScope.EXTENSION}:${extensionId}`,
       CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    await NocoCache.incrHashField(
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE,
+      -1,
     );
 
     return res;

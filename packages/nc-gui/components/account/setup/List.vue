@@ -87,7 +87,7 @@ const closeResetModal = () => {
               />
 
               <template #overlay>
-                <NcMenu class="min-w-20">
+                <NcMenu class="min-w-20" variant="small">
                   <NcMenuItem data-testid="nc-config-reset" @click.stop="showResetPluginModal(app)">
                     <span> {{ $t('general.reset') }} </span>
                   </NcMenuItem>

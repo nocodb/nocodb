@@ -37,16 +37,26 @@ MySQL、PostgreSQL、SQL Server、SQLite＆Mariadbをスマートスプレッド
 ### Docker を使う
 
 ```bash
-docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
-```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
+ ```
 
 - NocoDBは入力としてデータベースが必要です:[本番環境設定](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup)を参照してください。
 - この入力がない場合、SQLiteにフォールバックします。SQLiteでデータを保持するために、`/usr/app/data/`をマウントします。
 
   例:
 
-  ```
-  docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
+```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
   ```
 
 

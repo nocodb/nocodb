@@ -8,11 +8,25 @@ const props = withDefaults(defineProps<Props>(), {})
 
 const emits = defineEmits(['update:searchQuery', 'update:isOpen'])
 
+const { $e } = useNuxtApp()
+
 const searchQuery = useVModel(props, 'searchQuery', emits)
 
 const isOpen = useVModel(props, 'isOpen', emits)
 
+watchDebounced(
+  searchQuery,
+  () => {
+    if (searchQuery.value) {
+      $e('c:extensions:marketplace:search')
+    }
+  },
+  { debounce: 3000 },
+)
+
 const { availableExtensions, addExtension, getExtensionAssetsUrl, showExtensionDetails } = useExtensions()
+
+const { blockAddNewExtension } = useEeConfig()
 
 const filteredAvailableExtensions = computed(() =>
   (availableExtensions.value || []).filter(
@@ -23,7 +37,7 @@ const filteredAvailableExtensions = computed(() =>
 )
 
 const onExtensionClick = (extensionId: string) => {
-  showExtensionDetails(extensionId)
+  showExtensionDetails(extensionId, 'market')
   isOpen.value = false
 }
 
@@ -43,12 +57,17 @@ const onAddExtension = (ext: any) => {
         class="pb-2 grid gap-4"
         :class="{
           'h-full': searchQuery && !filteredAvailableExtensions.length && availableExtensions.length,
-          'grid-cols-1 md:grid-cols-2 xl:grid-cols-3': !(searchQuery && !filteredAvailableExtensions.length && availableExtensions.length),
+          'grid-cols-1 md:grid-cols-2 xl:grid-cols-3': !(
+            searchQuery &&
+            !filteredAvailableExtensions.length &&
+            availableExtensions.length
+          ),
         }"
       >
         <template v-for="ext of filteredAvailableExtensions" :key="ext.id">
           <div
             class="nc-market-extension-item flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
+            :data-testid="`nc-extension-${ext.id}`"
             @click="onExtensionClick(ext.id)"
           >
             <div class="h-[56px] w-[56px] overflow-hidden m-auto flex-none">
@@ -68,7 +87,13 @@ const onAddExtension = (ext: any) => {
                 {{ ext.subTitle }}
               </div>
             </div>
-            <NcButton size="small" type="secondary" class="flex-none !px-7px" @click.stop="onAddExtension(ext)">
+            <NcButton
+              v-if="!blockAddNewExtension"
+              size="small"
+              type="secondary"
+              class="flex-none !px-7px"
+              @click.stop="onAddExtension(ext)"
+            >
               <div class="flex items-center gap-1 -ml-3px text-small">
                 <GeneralIcon icon="plus" />
                 {{ $t('general.add') }}

@@ -12,7 +12,7 @@
   "paths": {},
   "components": {
     "schemas": {
-      "Paginated": {
+       "Paginated": {
         "title": "Paginated",
         "type": "object",
         "properties": {

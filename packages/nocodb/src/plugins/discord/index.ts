@@ -4,6 +4,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: DiscordPlugin,
+  id: 'discord',
   title: 'Discord',
   version: '0.0.1',
   logo: 'plugins/discord.png',

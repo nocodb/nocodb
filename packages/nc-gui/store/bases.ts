@@ -108,7 +108,7 @@ export const useBases = defineStore('basesStore', () => {
     await api.auth.baseUserRemove(baseId, user.id)
   }
 
-  const loadProjects = async (page: 'recent' | 'shared' | 'starred' | 'workspace' = 'recent') => {
+  const loadProjects = async (page: 'recent' | 'shared' | 'starred' | 'workspace' = 'recent', _?: string) => {
     // if shared base then get the shared base and create a list
     if (route.value.params.typeOrId === 'base' && route.value.params.baseId) {
       try {
@@ -167,6 +167,8 @@ export const useBases = defineStore('basesStore', () => {
       }, new Map())
 
       await updateIfBaseOrderIsNullOrDuplicate()
+
+      return _projects
     } catch (e) {
       console.error(e)
       message.error(e.message)

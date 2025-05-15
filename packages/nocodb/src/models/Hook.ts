@@ -1,4 +1,9 @@
-import type { BoolType, HookReqType, HookType } from 'nocodb-sdk';
+import {
+  type BoolType,
+  type HookReqType,
+  type HookType,
+  PlanLimitTypes,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
 import Filter from '~/models/Filter';
@@ -172,6 +177,12 @@ export default class Hook implements HookType {
       insertObj,
     );
 
+    await NocoCache.incrHashField(
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE,
+      1,
+    );
+
     return this.get(context, id, ncMeta).then(async (hook) => {
       await NocoCache.appendToList(
         CacheScope.HOOK,
@@ -257,6 +268,13 @@ export default class Hook implements HookType {
       `${CacheScope.HOOK}:${hookId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    await NocoCache.incrHashField(
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE,
+      -1,
+    );
+
     return await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,

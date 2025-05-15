@@ -59,7 +59,7 @@ const closeAndShowAgain = () => {
         <GeneralIcon class="icon" icon="gift" size="xlarge" />
         <h4>Gifts Unlocked!</h4>
       </div>
-      <div class="body">We are giving away $100 worth of amazon coupons to our pro open source users!</div>
+      <div class="body">We are giving away $25 worth of amazon coupons to our pro open source users!</div>
     </div>
     <div v-if="!hideImage && !giftBannerDismissedCount" class="img-wrapper">
       <img src="~assets/img/giftCard.svg" />
@@ -82,9 +82,9 @@ const closeAndShowAgain = () => {
 
 <style scoped lang="scss">
 .container {
-  @apply relative bg-white hover:(shadow-default bg-gray-50) overflow-hidden cursor-pointer;
+  @apply relative bg-white hover:(shadow-default bg-gray-50) overflow-hidden cursor-pointer rounded-lg;
   .wrapper {
-    @apply p-3 border-t-1;
+    @apply p-3;
 
     .header {
       @apply flex items-center gap-3 mb-2;

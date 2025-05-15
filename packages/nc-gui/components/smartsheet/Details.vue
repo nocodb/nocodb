@@ -6,9 +6,11 @@ const { onViewsTabChange } = useViewsStore()
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
+const { isSqlView } = useSmartsheetStoreOrThrow()
+
 const { $e } = useNuxtApp()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
@@ -30,18 +32,26 @@ const openedSubTab = computed({
   },
 })
 
-watch(openedSubTab, () => {
-  // TODO: Find a good way to know when the roles are populated and check
-  // Re-enable this check for first render
-  if (openedSubTab.value === 'field' && !isUIAllowed('fieldAdd')) {
-    onViewsTabChange('relation')
-  }
-  if (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) {
-    onViewsTabChange('relation')
-  }
+watch(
+  [openedSubTab, isBaseRolesLoaded],
+  () => {
+    // Re-enable this check for first render
+    if (
+      // check page access only after base roles are loaded
+      isBaseRolesLoaded.value &&
+      ((openedSubTab.value === 'field' && !isUIAllowed('fieldAdd')) ||
+        (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) ||
+        (['field', 'webhook'].includes(openedSubTab.value) && isSqlView.value))
+    ) {
+      onViewsTabChange('relation')
+    }
 
-  $e(`c:table:tab-open:${openedSubTab.value}`)
-})
+    $e(`c:table:tab-open:${openedSubTab.value}`)
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -53,11 +63,11 @@ watch(openedSubTab, () => {
     }"
   >
     <NcTabs v-model:activeKey="openedSubTab" centered class="nc-details-tab">
-      <a-tab-pane v-if="isUIAllowed('fieldAdd')" key="field">
+      <a-tab-pane v-if="isUIAllowed('fieldAdd') && !isSqlView" key="field">
         <template #tab>
           <div class="tab" data-testid="nc-fields-tab">
-            <GeneralIcon icon="list" class="tab-icon" :class="{}" />
-            <div>Fields</div>
+            <GeneralIcon icon="ncList" class="tab-icon" :class="{}" />
+            <div>{{ $t('objects.fields') }}</div>
           </div>
         </template>
         <LazySmartsheetDetailsFields />
@@ -65,7 +75,7 @@ watch(openedSubTab, () => {
       <a-tab-pane key="relation">
         <template #tab>
           <div class="tab" data-testid="nc-relations-tab">
-            <GeneralIcon icon="erd" class="tab-icon" :class="{}" />
+            <GeneralIcon icon="ncErd" class="tab-icon" :class="{}" />
             <div>{{ $t('title.relations') }}</div>
           </div>
         </template>
@@ -75,7 +85,7 @@ watch(openedSubTab, () => {
       <a-tab-pane key="api">
         <template #tab>
           <div class="tab" data-testid="nc-apis-tab">
-            <GeneralIcon icon="code" class="tab-icon" :class="{}" />
+            <GeneralIcon icon="ncCode" class="tab-icon" :class="{}" />
             <div>{{ $t('labels.apiSnippet') }}</div>
           </div>
         </template>
@@ -85,10 +95,10 @@ watch(openedSubTab, () => {
         </div>
       </a-tab-pane>
 
-      <a-tab-pane v-if="isUIAllowed('hookList')" key="webhook">
+      <a-tab-pane v-if="isUIAllowed('hookList') && !isSqlView" key="webhook">
         <template #tab>
           <div class="tab" data-testid="nc-webhooks-tab">
-            <GeneralIcon icon="webhook" class="tab-icon" :class="{}" />
+            <GeneralIcon icon="ncWebhook" class="tab-icon" :class="{}" />
             <div>{{ $t('objects.webhooks') }}</div>
           </div>
         </template>

@@ -55,6 +55,7 @@ export class IntegrationsService {
       'swagger.json#/components/schemas/IntegrationReq',
       param.integration,
     );
+    const oldIntegration = await Integration.get(context, param.integrationId);
 
     const integrationBody = param.integration;
     const integration = await Integration.updateIntegration(
@@ -75,6 +76,11 @@ export class IntegrationsService {
       integration,
       req: param.req,
       user: param.req?.user,
+      oldIntegration,
+      context: {
+        ...context,
+        base_id: null,
+      },
     });
 
     return integration;
@@ -92,8 +98,6 @@ export class IntegrationsService {
       userId: param.req.user?.id,
       includeDatabaseInfo: param.includeDatabaseInfo,
       type: param.type,
-      limit: param.limit,
-      offset: param.offset,
       includeSourceCount: true,
       query: param.query,
     });
@@ -152,25 +156,15 @@ export class IntegrationsService {
         NcError.integrationLinkedWithMultiple(bases, sources);
       }
 
-      for (const source of sources) {
-        await this.sourcesService.baseDelete(
-          {
-            workspace_id: integration.fk_workspace_id,
-            base_id: source.base_id,
-          },
-          {
-            sourceId: source.id,
-            req: param.req,
-          },
-          ncMeta,
-        );
-      }
-
       await integration.delete(ncMeta);
       this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
         integration,
         req: param.req,
         user: param.req?.user,
+        context: {
+          ...context,
+          base_id: null,
+        },
       });
 
       await ncMeta.commit();
@@ -179,22 +173,69 @@ export class IntegrationsService {
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       NcError.badRequest(e);
     }
+
     return true;
   }
 
   async integrationSoftDelete(
     context: Omit<NcContext, 'base_id'>,
-    param: { integrationId: string },
+    param: { integrationId: string; req: any },
   ) {
     try {
       const integration = await Integration.get(context, param.integrationId);
       if (!integration) {
         NcError.integrationNotFound(param.integrationId);
       }
-      await integration.softDelete();
+
+      const ncMeta = await Noco.ncMeta.startTransaction();
+      try {
+        // get linked sources
+        const sourceListQb = ncMeta
+          .knex(MetaTable.SOURCES)
+          .where({
+            fk_integration_id: integration.id,
+          })
+          .where((qb) => {
+            qb.where('deleted', false).orWhere('deleted', null);
+          });
+
+        if (integration.fk_workspace_id) {
+          sourceListQb.where('fk_workspace_id', integration.fk_workspace_id);
+        }
+
+        const sources: Pick<Source, 'id' | 'base_id'>[] =
+          await sourceListQb.select('id', 'base_id');
+
+        for (const source of sources) {
+          await this.sourcesService.baseSoftDelete(
+            {
+              workspace_id: integration.fk_workspace_id,
+              base_id: source.base_id,
+            },
+            {
+              sourceId: source.id,
+            },
+            ncMeta,
+          );
+        }
+
+        await integration.softDelete(ncMeta);
+        this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
+          integration,
+          req: param.req,
+          user: param.req?.user,
+        });
+
+        await ncMeta.commit();
+      } catch (e) {
+        await ncMeta.rollback(e);
+        if (e instanceof NcError || e instanceof NcBaseError) throw e;
+        NcError.badRequest(e);
+      }
     } catch (e) {
       NcError.badRequest(e);
     }
+
     return true;
   }
 
@@ -237,8 +278,6 @@ export class IntegrationsService {
         includeDatabaseInfo: true,
         type: IntegrationsType.Database,
         sub_type: ClientType.SQLITE,
-        limit: 1000,
-        offset: 0,
         includeSourceCount: false,
         query: '',
       });
@@ -265,8 +304,6 @@ export class IntegrationsService {
         (
           await Integration.list({
             userId: param.req.user?.id,
-            limit: 1000,
-            offset: 0,
             includeSourceCount: false,
             query: '',
           })
@@ -290,14 +327,48 @@ export class IntegrationsService {
       integration,
       req: param.req,
       user: param.req?.user,
+      context: {
+        ...context,
+        base_id: null,
+      },
     });
 
     return integration;
   }
 
+  async integrationStore(
+    context: NcContext,
+    integration: Integration,
+    payload?:
+      | {
+          op: 'list';
+          limit: number;
+          offset: number;
+        }
+      | {
+          op: 'get';
+        }
+      | {
+          op: 'sum';
+          fields: string[];
+        },
+  ) {
+    if (payload.op === 'list') {
+      return await integration.storeList(
+        context,
+        payload.limit,
+        payload.offset,
+      );
+    } else if (payload.op === 'sum') {
+      return await integration.storeSum(context, payload.fields);
+    } else if (payload.op === 'get') {
+      return await integration.storeGetLatest(context);
+    }
+  }
+
   // function to update all the integration source config which are using this integration
   // we are overwriting the source config with the new integration config excluding database name and schema name
-  private async updateIntegrationSourceConfig(
+  protected async updateIntegrationSourceConfig(
     {
       integration,
     }: {
@@ -349,5 +420,34 @@ export class IntegrationsService {
         await JobsRedis.emitPrimaryCommand(InstanceCommands.RELEASE, source.id);
       }
     }
+  }
+
+  public async callIntegrationEndpoint(
+    context: NcContext,
+    params: {
+      integrationId: string;
+      endpoint: string;
+      payload?: any;
+    },
+  ) {
+    const integration = await Integration.get(context, params.integrationId);
+
+    const integrationMeta = integration.getIntegrationMeta();
+
+    const wrapper = integration.getIntegrationWrapper();
+
+    if (!integrationMeta || !wrapper) {
+      NcError.badRequest('Invalid integration');
+    }
+
+    if (
+      !integrationMeta.exposedEndpoints?.includes(params.endpoint) ||
+      !(params.endpoint in wrapper) ||
+      typeof wrapper[params.endpoint] !== 'function'
+    ) {
+      NcError.genericNotFound('Endpoint', params.endpoint);
+    }
+
+    return wrapper[params.endpoint](context, params.payload);
   }
 }

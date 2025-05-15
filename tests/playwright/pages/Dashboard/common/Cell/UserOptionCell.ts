@@ -37,7 +37,10 @@ export class UserOptionCellPageObject extends BasePage {
 
     await selectCell.click();
 
-    await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'visible' });
+    await this.rootPage.locator('.nc-dropdown-user-select-cell.active').waitFor({ state: 'visible' });
+
+    // add 500ms wait to ensure dropdown is open
+    await this.rootPage.waitForTimeout(100);
 
     if (index === -1) {
       const selectOption = this.rootPage.getByTestId(`select-option-${columnHeader}-undefined`).getByText(option);
@@ -54,7 +57,7 @@ export class UserOptionCellPageObject extends BasePage {
       await this.rootPage.keyboard.press('Escape');
     }
 
-    await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'hidden' });
+    await this.rootPage.locator('.nc-dropdown-user-select-cell.active').waitFor({ state: 'hidden' });
   }
 
   async clear({ index, columnHeader, multiSelect }: { index: number; columnHeader: string; multiSelect?: boolean }) {
@@ -81,7 +84,7 @@ export class UserOptionCellPageObject extends BasePage {
 
     // Press `Escape` to close the dropdown
     await this.rootPage.keyboard.press('Escape');
-    await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'hidden' });
+    await this.rootPage.locator('.nc-dropdown-user-select-cell.active').waitFor({ state: 'hidden' });
   }
 
   async verify({

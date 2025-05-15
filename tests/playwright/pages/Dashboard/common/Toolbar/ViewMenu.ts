@@ -92,27 +92,38 @@ export class ToolbarViewMenuPage extends BasePage {
     await this.get().locator(`.ant-dropdown-menu-title-content:has-text("${menu}")`).first().click();
     if (subMenu) {
       // for CSV download, pass locator instead of clicking it here
-      if (subMenu === 'Download CSV') {
+      if (subMenu === 'CSV') {
         await this.verifyDownloadAsCSV({
-          downloadLocator: this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last(),
+          downloadLocator: this.rootPage
+            .locator(`.ant-dropdown-menu-item.ant-dropdown-menu-item-only-child:has-text("${subMenu}")`)
+            .last(),
           expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
         });
-      } else if (subMenu === 'Download Excel') {
+      } else if (subMenu === 'Excel') {
         await this.verifyDownloadAsXLSX({
-          downloadLocator: this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last(),
+          downloadLocator: this.rootPage
+            .locator(`.ant-dropdown-menu-item.ant-dropdown-menu-item-only-child:has-text("${subMenu}")`)
+            .last(),
           expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
         });
       } else {
-        await this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last().click();
+        const locator = this.rootPage.getByTestId(`nc-view-action-lock-subaction-${subMenu}`).last();
+
+        await locator.click();
+
+        if (['Collaborative', 'Locked'].includes(subMenu)) {
+          await this.rootPage.locator(`.nc-lock-view-modal-wrapper`).waitFor({ state: 'visible' });
+          await this.rootPage.locator(`.nc-lock-view-modal-wrapper`).getByTestId('nc-lock-or-unlock-btn').click();
+        }
       }
 
       switch (subMenu) {
-        case 'Download CSV':
+        case 'CSV':
           await this.verifyToast({
             message: 'Successfully exported all table data',
           });
           break;
-        case 'Download Excel':
+        case 'Excel':
           await this.verifyToast({
             message: 'Successfully exported all table data',
           });

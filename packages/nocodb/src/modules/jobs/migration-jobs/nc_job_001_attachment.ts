@@ -3,6 +3,7 @@ import debug from 'debug';
 import PQueue from 'p-queue';
 import { UITypes } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
+import mime from 'mime/lite';
 import { FileReference, Source } from '~/models';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
@@ -10,7 +11,6 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Model } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
-import mimetypes from '~/utils/mimeTypes';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 
 @Injectable()
@@ -340,7 +340,7 @@ export class AttachmentMigration {
 
                         const mimetype =
                           attachment.mimetype ||
-                          mimetypes[path.extname(fileNameWithExt).slice(1)];
+                          mime.getType(path.extname(fileNameWithExt).slice(1));
 
                         await ncMeta
                           .knexConnection(temp_file_references_table)

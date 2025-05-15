@@ -13,7 +13,7 @@ on:
 jobs:
   # Validate Branch
   validate-branch:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - run: |
           if [[ ${{ github.ref }} != 'refs/heads/master' ]]; then
@@ -23,7 +23,7 @@ jobs:
 
   # Process Input
   process-input:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: validate-branch
     outputs:
       target_tag: ${{ steps.process-input.outputs.target_tag }}
@@ -121,3 +121,6 @@ jobs:
     uses: ./.github/workflows/publish-docs.yml
     secrets:
       GH_TOKEN: "${{ secrets.GH_TOKEN }}"
+
+  aiopusher:
+    uses: ./.github/workflows/nix-aiopusher.yml

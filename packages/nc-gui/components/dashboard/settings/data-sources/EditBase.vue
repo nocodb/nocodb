@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { type SourceType, validateAndExtractSSLProp } from 'nocodb-sdk'
-import { Form, message } from 'ant-design-vue'
+import { IntegrationsType, type SourceType, validateAndExtractSSLProp } from 'nocodb-sdk'
+import { Form } from 'ant-design-vue'
 import {
   ClientType,
   type DatabricksConnection,
@@ -27,6 +27,8 @@ const _projectId = inject(ProjectIdInj, undefined)
 const baseId = computed(() => _projectId?.value ?? base.value?.id)
 
 const { refreshCommandPalette } = useCommandPalette()
+
+const filteredIntegrations = computed(() => integrations.value.filter((i) => i.sub_type !== SyncDataType.NOCODB))
 
 const useForm = Form.useForm
 
@@ -282,7 +284,7 @@ onMounted(async () => {
   isLoading.value = true
 
   if (!integrations.value.length) {
-    await loadIntegrations(true, base.value?.id)
+    await loadIntegrations(IntegrationsType.Database, base.value?.id)
   }
 
   if (base.value?.id) {
@@ -411,7 +413,11 @@ function handleAutoScroll(scroll: boolean, className: string) {
                         show-search
                         dropdown-match-select-width
                       >
-                        <a-select-option v-for="integration in integrations" :key="integration.id" :value="integration.id">
+                        <a-select-option
+                          v-for="integration in filteredIntegrations"
+                          :key="integration.id"
+                          :value="integration.id"
+                        >
                           <div class="w-full flex gap-2 items-center" :data-testid="integration.title">
                             <GeneralIntegrationIcon
                               v-if="integration?.sub_type"

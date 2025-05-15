@@ -13,6 +13,7 @@ const setActiveCalendarMode = (mode: 'day' | 'week' | 'month' | 'year', event: M
   changeCalendarView(mode)
   const tabElement = event.target as HTMLElement
   highlightStyle.value.left = `${tabElement.offsetLeft}px`
+  highlightStyle.value.width = `${tabElement.offsetWidth}px`
 }
 
 const updateHighlightPosition = () => {
@@ -20,6 +21,7 @@ const updateHighlightPosition = () => {
     const activeTab = document.querySelector('.nc-calendar-mode-tab .tab.active') as HTMLElement
     if (activeTab) {
       highlightStyle.value.left = `${activeTab.offsetLeft}px`
+      highlightStyle.value.width = `${activeTab.offsetWidth}px`
     }
   })
 }
@@ -35,55 +37,69 @@ watch(activeCalendarView, () => {
 </script>
 
 <template>
-  <div
-    v-if="isTab"
-    class="flex flex-row px-1 pointer-events-auto mx-3 mt-3 rounded-lg gap-x-0.5 nc-calendar-mode-tab"
-    data-testid="nc-calendar-view-mode"
-  >
-    <div :style="highlightStyle" class="highlight"></div>
+  <div v-if="isTab" class="absolute left-[42%] top-0 bottom-0">
     <div
-      v-for="mode in ['day', 'week', 'month', 'year']"
-      :key="mode"
-      :class="{ active: activeCalendarView === mode }"
-      :data-testid="`nc-calendar-view-mode-${mode}`"
-      class="tab"
-      @click="setActiveCalendarMode(mode, $event)"
+      class="px-1 pointer-events-auto relative mx-3 rounded-lg gap-x-0.5 nc-calendar-mode-tab"
+      data-testid="nc-calendar-view-mode"
     >
-      <div class="tab-title !text-xs nc-tab">{{ $t(`objects.${mode}`) }}</div>
+      <div class="flex items-center flex-row">
+        <div
+          :style="highlightStyle"
+          class="highlight h-0.5 rounded-t-md absolute transition-all -bottom-0.7 bg-nc-content-brand"
+        ></div>
+
+        <div
+          v-for="mode in ['day', 'week', 'month', 'year']"
+          :key="mode"
+          :data-testid="`nc-calendar-view-mode-${mode}`"
+          class="cursor-pointer tab transition-all px-1 duration-300 flex items-center h-10 z-10 justify-center"
+          :class="{
+            'text-nc-content-brand font-bold  bg-transparent active': activeCalendarView === mode,
+            'text-nc-content-gray-subtle2 font-[500] hover:text-nc-content-gray-extreme ': activeCalendarView !== mode,
+          }"
+          @click="setActiveCalendarMode(mode, $event)"
+        >
+          <div class="min-w-0 pointer-events-none px-2 leading-[18px] text-[13px] transition-all duration-300">
+            {{ $t(`objects.${mode}`) }}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <NcSelect v-else v-model:value="activeCalendarView" class="!w-21" data-testid="nc-calendar-view-mode" size="small">
-    <a-select-option v-for="option in ['day', 'week', 'month', 'year']" :key="option" :value="option" class="!h-7 !w-21">
-      <div class="flex gap-2 mt-0.5 items-center">
-        <NcTooltip class="!capitalize flex-1 max-w-21" placement="top" show-on-truncate-only>
-          <template #title>
-            <span class="capitalize min-w-21">
-              {{ option }}
-            </span>
-          </template>
-          <span class="text-[13px]">
-            {{ option }}
-          </span>
-        </NcTooltip>
+  <a-select
+    v-else
+    v-model:value="activeCalendarView"
+    class="nc-select-shadow !w-21 !rounded-lg"
+    dropdown-class-name="!rounded-lg"
+    size="small"
+    data-testid="nc-calendar-view-mode"
+    @click.stop
+  >
+    <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
 
-        <component
-          :is="iconMap.check"
+    <a-select-option v-for="option in ['day', 'week', 'month', 'year']" :key="option" :value="option">
+      <div class="w-full flex gap-2 items-center justify-between" :title="option">
+        <div class="flex items-center gap-1">
+          <NcTooltip class="flex-1 capitalize mt-0.5 truncate" show-on-truncate-only>
+            <template #title>
+              {{ option }}
+            </template>
+            <template #default>{{ option }}</template>
+          </NcTooltip>
+        </div>
+        <GeneralIcon
           v-if="option === activeCalendarView"
           id="nc-selected-item-icon"
-          class="text-primary w-4 h-4"
+          icon="check"
+          class="flex-none text-primary w-4 h-4"
         />
       </div>
     </a-select-option>
-  </NcSelect>
+  </a-select>
 </template>
 
 <style lang="scss" scoped>
-.highlight {
-  @apply absolute h-6.5 w-14 transition-all border-b-2 border-brand-500 duration-200;
-  z-index: 0;
-}
-
 .nc-calendar-mode-menu {
   :deep(.nc-menu-item-inner) {
     @apply !text-[13px];
@@ -93,26 +109,6 @@ watch(activeCalendarView, () => {
   .ant-select-selector {
     @apply !px-3;
   }
-}
-
-.tab {
-  @apply flex items-center h-7 w-14 z-10 justify-center px-2 py-1 rounded-lg gap-x-1.5 text-gray-500 hover:text-black cursor-pointer transition-all duration-300 select-none;
-}
-
-.tab .tab-title {
-  @apply min-w-0 mb-3  pointer-events-none;
-  word-break: keep-all;
-  white-space: 'nowrap';
-  display: 'inline';
-  line-height: 0.95;
-}
-
-.active {
-  @apply !text-brand-500 !font-bold  bg-transparent;
-}
-
-.nc-calendar-mode-tab {
-  @apply relative;
 }
 
 :deep(.ant-select-selector) {

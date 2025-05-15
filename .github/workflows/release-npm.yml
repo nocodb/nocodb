@@ -33,7 +33,7 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       working-directory: ./packages/nocodb
     steps:
@@ -50,7 +50,7 @@ jobs:
         # Setup .npmrc file to publish to npm
         uses: actions/setup-node@v3
         with:
-          node-version: 18.19.1
+          node-version: 22.12.0
           registry-url: "https://registry.npmjs.org"
       - run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
@@ -62,12 +62,16 @@ jobs:
           echo $NOCODB_SDK_PKG_NAME
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
           pnpm --filter=${NOCODB_SDK_PKG_NAME} install --ignore-scripts --no-frozen-lockfile --ignore-workspace && pnpm --filter=${NOCODB_SDK_PKG_NAME} run build && pnpm --filter=${NOCODB_SDK_PKG_NAME} publish --no-git-checks &&
-          sleep 90 &&
+          echo "$(date)" &&
+          sleep 300 &&
+          echo "$(date)" &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
           pnpm --filter=nc-gui install --ignore-scripts --no-frozen-lockfile &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} pnpm --filter=nc-gui run build:copy:publish --no-git-checks &&
-          sleep 90 &&
+          echo "$(date)" &&
+          sleep 300 &&
+          echo "$(date)" &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js && cd packages/nocodb && pnpm run obfuscate:build:publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

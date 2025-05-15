@@ -4,10 +4,9 @@ import { expect } from 'chai';
 import request from 'supertest';
 import init from '../../init';
 import { createProject } from '../../factory/base';
-import Base from '~/models/Base';
 import { createTable } from '../../factory/table';
 import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
-import type Model from '../../../../src/models/Model';
+import { type Model, Base } from '../../../../src/models';
 
 const debugMode = true;
 
@@ -23,7 +22,7 @@ async function retrieveRecordsAndValidate(
   },
   title: string,
 ) {
-  let expectedRecords = [];
+  let expectedRecords: any[] = [];
   let toFloat = false;
   if (
     ['Number', 'Decimal', 'Currency', 'Percent', 'Duration', 'Rating'].includes(
@@ -180,7 +179,7 @@ async function retrieveRecordsAndValidate(
 
 let context;
 let ctx: {
-  workspace_id: string;
+  workspace_id?: string;
   base_id: string;
 };
 let base: Base;
@@ -255,14 +254,14 @@ function filterTextBased() {
 
     columns = await table.getColumns(ctx);
 
-    const rowAttributes = [];
+    const rowAttributes: any[] = [];
     for (let i = 0; i < 400; i++) {
       const row = {
-        SingleLineText: rowMixedValue(columns[1], i),
-        MultiLineText: rowMixedValue(columns[2], i),
-        Email: rowMixedValue(columns[3], i),
-        Phone: rowMixedValue(columns[4], i),
-        Url: rowMixedValue(columns[5], i),
+        SingleLineText: rowMixedValue(columns[6], i),
+        MultiLineText: rowMixedValue(columns[7], i),
+        Email: rowMixedValue(columns[8], i),
+        Phone: rowMixedValue(columns[9], i),
+        Url: rowMixedValue(columns[10], i),
       };
       rowAttributes.push(row);
     }
@@ -290,7 +289,7 @@ function filterTextBased() {
       { comparison_op: 'like', value: 'Au' },
       { comparison_op: 'nlike', value: 'Au' },
     ];
-    await verifyFilters('SingleLineText', columns[1].id, filterList);
+    await verifyFilters('SingleLineText', columns[6].id, filterList);
   });
 
   it('Type: Multi Line Text', async () => {
@@ -304,7 +303,7 @@ function filterTextBased() {
       { comparison_op: 'like', value: 'abad' },
       { comparison_op: 'nlike', value: 'abad' },
     ];
-    await verifyFilters('MultiLineText', columns[2].id, filterList);
+    await verifyFilters('MultiLineText', columns[7].id, filterList);
   });
 
   it('Type: Email', async () => {
@@ -318,7 +317,7 @@ function filterTextBased() {
       { comparison_op: 'like', value: 'cox.net' },
       { comparison_op: 'nlike', value: 'cox.net' },
     ];
-    await verifyFilters('Email', columns[3].id, filterList);
+    await verifyFilters('Email', columns[8].id, filterList);
   });
 
   it('Type: Phone', async () => {
@@ -332,7 +331,7 @@ function filterTextBased() {
       { comparison_op: 'like', value: '504' },
       { comparison_op: 'nlike', value: '504' },
     ];
-    await verifyFilters('Phone', columns[4].id, filterList);
+    await verifyFilters('Phone', columns[9].id, filterList);
   });
 
   it('Type: Url', async () => {
@@ -346,7 +345,7 @@ function filterTextBased() {
       { comparison_op: 'like', value: 'e.com' },
       { comparison_op: 'nlike', value: 'e.com' },
     ];
-    await verifyFilters('Url', columns[5].id, filterList);
+    await verifyFilters('Url', columns[10].id, filterList);
   });
 }
 
@@ -395,6 +394,9 @@ function filterNumberBased() {
           column_name: 'Duration',
           title: 'Duration',
           uidt: UITypes.Duration,
+          meta: {
+            duration: 0,
+          },
         },
         {
           column_name: 'Rating',
@@ -406,15 +408,15 @@ function filterNumberBased() {
 
     columns = await table.getColumns(ctx);
 
-    const rowAttributes = [];
+    const rowAttributes: any[] = [];
     for (let i = 0; i < 400; i++) {
       const row = {
-        Number: rowMixedValue(columns[1], i),
-        Decimal: rowMixedValue(columns[2], i),
-        Currency: rowMixedValue(columns[3], i),
-        Percent: rowMixedValue(columns[4], i),
-        Duration: rowMixedValue(columns[5], i),
-        Rating: rowMixedValue(columns[6], i),
+        Number: rowMixedValue(columns[6], i),
+        Decimal: rowMixedValue(columns[7], i),
+        Currency: rowMixedValue(columns[8], i),
+        Percent: rowMixedValue(columns[9], i),
+        Duration: rowMixedValue(columns[10], i),
+        Rating: rowMixedValue(columns[11], i),
       };
       rowAttributes.push(row);
     }
@@ -442,7 +444,7 @@ function filterNumberBased() {
       { comparison_op: 'lt', value: '44' },
       { comparison_op: 'lte', value: '44' },
     ];
-    await verifyFilters('Number', columns[1].id, filterList);
+    await verifyFilters('Number', columns[6].id, filterList);
   });
 
   it('Type: Decimal', async () => {
@@ -456,7 +458,7 @@ function filterNumberBased() {
       { comparison_op: 'lt', value: '44.26' },
       { comparison_op: 'lte', value: '44.26' },
     ];
-    await verifyFilters('Decimal', columns[2].id, filterList);
+    await verifyFilters('Decimal', columns[7].id, filterList);
   });
 
   it('Type: Currency', async () => {
@@ -470,7 +472,7 @@ function filterNumberBased() {
       { comparison_op: 'lt', value: '44.26' },
       { comparison_op: 'lte', value: '44.26' },
     ];
-    await verifyFilters('Decimal', columns[3].id, filterList);
+    await verifyFilters('Decimal', columns[8].id, filterList);
   });
 
   it('Type: Percent', async () => {
@@ -484,7 +486,7 @@ function filterNumberBased() {
       { comparison_op: 'lt', value: '44' },
       { comparison_op: 'lte', value: '44' },
     ];
-    await verifyFilters('Percent', columns[4].id, filterList);
+    await verifyFilters('Percent', columns[9].id, filterList);
   });
 
   it('Type: Duration', async () => {
@@ -498,7 +500,7 @@ function filterNumberBased() {
       { comparison_op: 'lt', value: '50' },
       { comparison_op: 'lte', value: '50' },
     ];
-    await verifyFilters('Duration', columns[5].id, filterList);
+    await verifyFilters('Duration', columns[10].id, filterList);
   });
 
   it('Type: Rating', async () => {
@@ -512,7 +514,7 @@ function filterNumberBased() {
       { comparison_op: 'lt', value: '2' },
       { comparison_op: 'lte', value: '2' },
     ];
-    await verifyFilters('Rating', columns[6].id, filterList);
+    await verifyFilters('Rating', columns[11].id, filterList);
   });
 }
 
@@ -554,11 +556,11 @@ function filterSelectBased() {
 
     columns = await table.getColumns(ctx);
 
-    const rowAttributes = [];
+    const rowAttributes: any[] = [];
     for (let i = 0; i < 400; i++) {
       const row = {
-        SingleSelect: rowMixedValue(columns[1], i),
-        MultiSelect: rowMixedValue(columns[2], i),
+        SingleSelect: rowMixedValue(columns[6], i),
+        MultiSelect: rowMixedValue(columns[7], i),
       };
       rowAttributes.push(row);
     }
@@ -586,7 +588,7 @@ function filterSelectBased() {
       { comparison_op: 'anyof', value: 'jan,feb,mar' },
       { comparison_op: 'nanyof', value: 'jan,feb,mar' },
     ];
-    await verifyFilters('SingleSelect', columns[1].id, filterList);
+    await verifyFilters('SingleSelect', columns[6].id, filterList);
   });
 
   it('Type: Multi select', async () => {
@@ -602,7 +604,7 @@ function filterSelectBased() {
       { comparison_op: 'allof', value: 'jan,feb,mar' },
       { comparison_op: 'nallof', value: 'jan,feb,mar' },
     ];
-    await verifyFilters('MultiSelect', columns[2].id, filterList);
+    await verifyFilters('MultiSelect', columns[7].id, filterList);
   });
 }
 
@@ -657,10 +659,10 @@ function filterDateBased() {
 
     columns = await table.getColumns(ctx);
 
-    const rowAttributes = [];
+    const rowAttributes: any[] = [];
     for (let i = 0; i < 800; i++) {
       const row = {
-        Date: rowMixedValue(columns[1], i),
+        Date: rowMixedValue(columns[6], i),
       };
       rowAttributes.push(row);
     }
@@ -888,7 +890,7 @@ function filterDateBased() {
     // is
     for (let i = 0; i < isFilterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: 'eq',
@@ -901,7 +903,7 @@ function filterDateBased() {
     // is not
     for (let i = 0; i < isFilterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: 'neq',
@@ -914,7 +916,7 @@ function filterDateBased() {
     // is before
     for (let i = 0; i < isAfterFilterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: 'gt',
@@ -927,7 +929,7 @@ function filterDateBased() {
     // is before or on
     for (let i = 0; i < isAfterFilterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: 'gte',
@@ -940,7 +942,7 @@ function filterDateBased() {
     // is after
     for (let i = 0; i < isAfterFilterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: 'lt',
@@ -953,7 +955,7 @@ function filterDateBased() {
     // is after or on
     for (let i = 0; i < isAfterFilterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: 'lte',
@@ -966,7 +968,7 @@ function filterDateBased() {
     // is within
     for (let i = 0; i < isWithinFilterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: 'isWithin',
@@ -979,7 +981,7 @@ function filterDateBased() {
     // rest of the filters (without subop type)
     for (let i = 0; i < filterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: filterList[i].opType,

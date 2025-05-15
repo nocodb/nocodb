@@ -16,8 +16,8 @@
   },
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
-    "lerna": "^7.4.2",
     "husky": "^8.0.3",
+    "lerna": "^7.4.2",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "husky": {
@@ -31,7 +31,7 @@
     ]
   },
   "scripts": {
-    "bootstrap": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-mail-templates --filter=nc-gui --filter=playwright install",
+    "bootstrap": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-mail-templates --filter=nc-gui --filter=playwright install && pnpm run registerIntegrations",
     "start:frontend": "pnpm --filter=nc-gui run dev",
     "start:backend": "pnpm --filter=nocodb run start",
     "lint:staged:playwright": "cd ./tests/playwright; pnpm dlx lint-staged; cd -",
@@ -41,6 +41,7 @@
     "stop:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml down",
     "prepare": "husky install",
     "preinstall": "npx only-allow pnpm",
+    "registerIntegrations": "pnpm --filter=nocodb run registerIntegrations",
     "install:local-sdk": "node scripts/installLocalSdk.js"
   },
   "pnpm": {
@@ -51,12 +52,25 @@
       "node.extend@<1.1.7": ">=1.1.7",
       "tough-cookie@<4.1.3": ">=4.1.3",
       "@babel/traverse@<7.23.2": ">=7.23.2",
-      "follow-redirects@<1.15.4": ">=1.15.4",
-      "axios@>=0.8.1 <0.28.0": ">=0.28.0",
+      "follow-redirects@<1.15.9": ">=1.15.9",
       "ip@<1.1.9": ">=1.1.9",
       "ip@=2.0.0": ">=2.0.1",
       "xml2js@<0.5.0": ">=0.5.0",
-      "ufo": ">=1.5.3"
-    }
+      "ufo": ">=1.5.3",
+      "ws@<8.17.1": ">=8.17.1",
+      "@azure/msal-node": "^2.16.2"
+    },
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@parcel/watcher",
+      "@swc/core",
+      "core-js",
+      "esbuild",
+      "msgpackr-extract",
+      "nx",
+      "sharp",
+      "sqlite3",
+      "vue-demi"
+    ]
   }
 }

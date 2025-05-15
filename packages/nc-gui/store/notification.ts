@@ -1,13 +1,10 @@
 import { defineStore } from 'pinia'
 import type { NotificationType } from 'nocodb-sdk'
 import axios, { type CancelTokenSource } from 'axios'
-import { useStorage } from '@vueuse/core'
 
 const CancelToken = axios.CancelToken
 
 export const useNotification = defineStore('notificationStore', () => {
-  const isTokenRefreshInProgress = useStorage(TOKEN_REFRESH_PROGRESS_KEY, false)
-
   const readNotifications = ref<NotificationType[]>([])
 
   const unreadNotifications = ref<NotificationType[]>([])
@@ -195,7 +192,6 @@ export const useNotification = defineStore('notificationStore', () => {
     cancelTokenSource = null
     // wait if refresh token generation is in progress and cancel the polling after that
     // set a timeout of 10 seconds to avoid hanging
-    await until(isTokenRefreshInProgress).toMatch((v) => !v, { timeout: 10000 })
     source?.cancel()
   }
 
@@ -203,7 +199,7 @@ export const useNotification = defineStore('notificationStore', () => {
     await Promise.allSettled([loadReadNotifications(), loadUnReadNotifications()])
     // For playwright, polling will cause the test to hang indefinitely
     // as we wait for the networkidle event. So, we disable polling for playwright
-    if (!(window as any).isPlaywright) {
+    if (!ncIsPlaywright()) {
       clearPolling().catch((e) => console.log(e))
       pollNotifications().catch((e) => console.log(e))
     }

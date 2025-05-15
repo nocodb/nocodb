@@ -141,7 +141,10 @@ export class ViewSidebarPage extends BasePage {
   }
 
   async renameView({ title, newTitle }: { title: string; newTitle: string }) {
-    await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).dblclick();
+    await this.get()
+      .locator(`[data-testid="view-sidebar-view-${title}"]`)
+      .locator('[data-testid="sidebar-view-title"]')
+      .dblclick();
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).locator('input').fill(newTitle);
     await this.get().press('Enter');
     await this.verifyToast({ message: 'View renamed successfully' });

@@ -15,6 +15,7 @@ import { SourcesService } from '~/services/sources.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
+import { maskKnexConfig } from '~/helpers/responseHelpers';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -38,6 +39,8 @@ export class SourcesController {
       source.config = undefined;
     }
     source.integration_config = undefined;
+
+    maskKnexConfig(source);
 
     return source;
   }

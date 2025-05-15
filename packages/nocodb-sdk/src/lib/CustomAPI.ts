@@ -50,7 +50,7 @@ export interface ListParamsType {
 
 export type CreatePayloadType = BaseType & { external?: boolean };
 
-export interface SharedBaseCreatePayloadType {
+export interface SharedBasePayload {
   roles?: string;
   password?: string;
 }
@@ -238,14 +238,6 @@ export interface AuditListParamsType {
   offset?: string;
   limit?: string;
   baseId: string;
-}
-
-export interface AuditRowUpdatePayloadType {
-  fk_model_id?: string;
-  column_name?: string;
-  row_id?: string;
-  value?: string;
-  prev_value?: string;
 }
 
 export interface TestPayloadType {

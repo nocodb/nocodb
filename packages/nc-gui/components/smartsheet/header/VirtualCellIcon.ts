@@ -1,11 +1,11 @@
 import type { PropType } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { ButtonActionsType, RelationTypes, UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 
 import CountIcon from '~icons/mdi/counter'
 
-const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
+export const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
   switch (column.uidt) {
     case UITypes.LinkToAnotherRecord:
     case UITypes.Links:
@@ -25,7 +25,12 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
     case UITypes.Formula:
       return { icon: iconMap.cellFormula, color: 'text-grey' }
     case UITypes.Button:
-      return { icon: iconMap.cellButton, color: 'text-grey' }
+      switch ((column.colOptions as LinkToAnotherRecordType)?.type) {
+        case ButtonActionsType.Ai:
+          return { icon: iconMap.cellAiButton, color: 'text-grey' }
+        default:
+          return { icon: iconMap.cellButton, color: 'text-grey' }
+      }
     case UITypes.QrCode:
       return { icon: iconMap.cellQrCode, color: 'text-grey' }
     case UITypes.Barcode:
@@ -33,25 +38,25 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
     case UITypes.Lookup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: iconMap.cellLookup, color: 'text-pink-500' }
+          return { icon: iconMap.cellLookup, color: 'text-pink-500', hex: '#FC3AC6' }
         case RelationTypes.HAS_MANY:
-          return { icon: iconMap.cellLookup, color: 'text-orange-500' }
+          return { icon: iconMap.cellLookup, color: 'text-orange-500', hex: '#FA8231' }
         case RelationTypes.BELONGS_TO:
-          return { icon: iconMap.cellLookup, color: 'text-blue-500' }
+          return { icon: iconMap.cellLookup, color: 'text-blue-500', hex: '#36BFFF' }
         case RelationTypes.ONE_TO_ONE:
-          return { icon: iconMap.cellLookup, color: 'text-purple-500' }
+          return { icon: iconMap.cellLookup, color: 'text-purple-500', hex: '#7D26CD' }
       }
       return { icon: iconMap.cellLookup, color: 'text-grey' }
     case UITypes.Rollup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: iconMap.cellRollup, color: 'text-pink-500' }
+          return { icon: iconMap.cellRollup, color: 'text-pink-500', hex: '#FC3AC6' }
         case RelationTypes.HAS_MANY:
-          return { icon: iconMap.cellRollup, color: 'text-orange-500' }
+          return { icon: iconMap.cellRollup, color: 'text-orange-500', hex: '#FA8231' }
         case RelationTypes.BELONGS_TO:
-          return { icon: iconMap.cellRollup, color: 'text-blue-500' }
+          return { icon: iconMap.cellRollup, color: 'text-blue-500', hex: '#36BFFF' }
         case RelationTypes.ONE_TO_ONE:
-          return { icon: iconMap.cellRollup, color: 'text-purple-500' }
+          return { icon: iconMap.cellRollup, color: 'text-purple-500', hex: '#7D26CD' }
       }
       return { icon: iconMap.cellRollup, color: 'text-grey' }
     case UITypes.Count:

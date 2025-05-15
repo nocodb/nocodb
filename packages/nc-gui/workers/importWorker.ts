@@ -1,4 +1,4 @@
-import type { TableType } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import { Api, UITypes } from 'nocodb-sdk'
 import * as xlsx from 'xlsx'
 import type { ImportWorkerPayload } from '../lib/types'
@@ -55,23 +55,29 @@ async function readFileContent(val: any) {
   return data
 }
 
-async function getAdapter(importType: ImportType, sourceType: ImportSource, val: any, config) {
+async function getAdapter(
+  importType: ImportType,
+  sourceType: ImportSource,
+  val: any,
+  config: any,
+  existingColumns?: ColumnType[],
+) {
   if (importType === ImportType.CSV) {
     switch (sourceType) {
       case ImportSource.FILE:
-        return new CSVTemplateAdapter(val, config, progress)
+        return new CSVTemplateAdapter(val, config, progress, existingColumns)
       case ImportSource.URL:
-        return new CSVTemplateAdapter(val, config, progress)
+        return new CSVTemplateAdapter(val, config, progress, existingColumns)
     }
   } else if (importType === ImportType.EXCEL) {
     switch (sourceType) {
       case ImportSource.FILE: {
         const data = await readFileContent(val)
 
-        return new ExcelTemplateAdapter(data, config, xlsx, progress)
+        return new ExcelTemplateAdapter(data, config, xlsx, progress, existingColumns)
       }
       case ImportSource.URL:
-        return new ExcelUrlTemplateAdapter(val, config, state.api!, xlsx, progress)
+        return new ExcelUrlTemplateAdapter(val, config, state.api!, xlsx, progress, existingColumns)
     }
   } else if (importType === 'json') {
     switch (sourceType) {
@@ -110,7 +116,13 @@ const process = async (payload: ImportWorkerPayload) => {
   let importData
 
   try {
-    state.templateGenerator = await getAdapter(payload.importType, payload.importSource, payload.value, payload.config)
+    state.templateGenerator = await getAdapter(
+      payload.importType,
+      payload.importSource,
+      payload.value,
+      payload.config,
+      payload.existingColumns,
+    )
 
     if (!state.templateGenerator) {
       return postMessage([ImportWorkerResponse.ERROR, 'Invalid import type'])

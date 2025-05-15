@@ -16,6 +16,8 @@ interface Props {
   isCellInputField?: boolean
   pickerType?: 'date' | 'time' | 'year' | 'month'
   showCurrentDateOption?: boolean | 'disabled'
+  timezone?: string
+  header?: 'v1' | 'v2'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -29,6 +31,7 @@ const props = withDefaults(defineProps<Props>(), {
   hideCalendar: false,
   isCellInputField: false,
   pickerType: 'date',
+  header: 'v1',
 })
 const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:selectedWeek', 'update:pickerType', 'currentDate'])
 // Page date is the date we use to manage which month/date that is currently being displayed
@@ -42,6 +45,10 @@ const selectedWeek = useVModel(props, 'selectedWeek', emit)
 
 const pickerType = useVModel(props, 'pickerType', emit)
 
+const timezoneDayjs = computed(() => {
+  return withTimezone(props.timezone)
+})
+
 const days = computed(() => {
   if (props.isMondayFirst) {
     return ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
@@ -51,24 +58,23 @@ const days = computed(() => {
 })
 
 const currentMonthYear = computed(() => {
-  return dayjs(pageDate.value).format('MMMM YYYY')
+  return timezoneDayjs.value.dayjsTz(pageDate.value).format('MMMM YYYY')
 })
 
 const currentMonth = computed(() => {
-  return dayjs(pageDate.value).format('MMMM')
+  return timezoneDayjs.value.dayjsTz(pageDate.value).format('MMMM')
 })
 
 const currentYear = computed(() => {
-  return dayjs(pageDate.value).format('YYYY')
+  return timezoneDayjs.value.dayjsTz(pageDate.value).format('YYYY')
 })
 
 const selectWeek = (date: dayjs.Dayjs) => {
-  const dayOffset = +props.isMondayFirst
-  const dayOfWeek = (date.day() - dayOffset + 7) % 7
-  const startDate = date.subtract(dayOfWeek, 'day')
+  const startDate = date.startOf('week')
   const newWeek = {
     start: startDate,
-    end: startDate.endOf('week'),
+    // startOf and endOf dayjs is bugged with timezone
+    end: timezoneDayjs.value.dayjsTz(startDate.add(6, 'day')),
   }
   selectedWeek.value = newWeek
   emit('update:selectedWeek', newWeek)
@@ -77,7 +83,8 @@ const selectWeek = (date: dayjs.Dayjs) => {
 // Generates all dates should be displayed in the calendar
 // Includes all blank days at the start and end of the month
 const dates = computed(() => {
-  const startOfMonth = dayjs(pageDate.value).startOf('month')
+  // startOf and endOf dayjs is bugged with timezone
+  const startOfMonth = timezoneDayjs.value.timezonize(pageDate.value.startOf('month'))
   const dayOffset = +props.isMondayFirst
   const firstDayOfWeek = startOfMonth.day()
   const startDay = startOfMonth.subtract((firstDayOfWeek - dayOffset + 7) % 7, 'day')
@@ -105,12 +112,12 @@ const isSameDate = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
 // Used in DatePicker for checking if the date is currently selected
 const isSelectedDate = (dObj: dayjs.Dayjs) => {
   if (!selectedDate.value) return false
-  const propDate = dayjs(selectedDate.value)
+  const propDate = timezoneDayjs.value.dayjsTz(selectedDate.value)
   return props.selectedDate ? isSameDate(propDate, dObj) : false
 }
 
 const isDayInPagedMonth = (date: dayjs.Dayjs) => {
-  return date.month() === dayjs(pageDate.value).month()
+  return date.month() === timezoneDayjs.value.dayjsTz(pageDate.value).month()
 }
 
 // Since we are using the same component for week picker and date picker we need to handle the date selection differently
@@ -132,7 +139,7 @@ const handleSelectDate = (date: dayjs.Dayjs) => {
 
 // Used to check if a date is in the current month
 const isDateInCurrentMonth = (date: dayjs.Dayjs) => {
-  return date.month() === dayjs(pageDate.value).month()
+  return date.month() === timezoneDayjs.value.dayjsTz(pageDate.value).month()
 }
 
 // Used to Check if an event is in the date
@@ -142,7 +149,7 @@ const isActiveDate = (date: dayjs.Dayjs) => {
 
 // Paginate the calendar
 const paginate = (action: 'next' | 'prev') => {
-  let newDate = dayjs(pageDate.value)
+  let newDate = timezoneDayjs.value.dayjsTz(pageDate.value)
   if (action === 'next') {
     newDate = newDate.add(1, 'month')
   } else {
@@ -159,35 +166,65 @@ const paginate = (action: 'next' | 'prev') => {
       class="flex justify-between border-b-1 nc-date-week-header items-center box-border"
       :class="{
         'px-2 py-1 h-10': isCellInputField,
-        'px-3 py-0.5': !isCellInputField,
+        'px-3 py-2': !isCellInputField,
       }"
     >
-      <NcTooltip hide-on-click>
-        <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
-          <component :is="iconMap.arrowLeft" class="h-4 w-4" />
-        </NcButton>
-        <template #title>
-          <span>{{ $t('labels.previous') }}</span>
-        </template>
-      </NcTooltip>
+      <template v-if="header === 'v1'">
+        <NcTooltip hide-on-click>
+          <NcButton class="!border-0" size="small" type="text" @click="paginate('prev')">
+            <component :is="iconMap.arrowLeft" class="h-4 w-4" />
+          </NcButton>
+          <template #title>
+            <span>{{ $t('labels.previous') }}</span>
+          </template>
+        </NcTooltip>
 
-      <div v-if="isCellInputField" class="text-gray-700 text-sm font-semibold">
-        <span class="nc-month-picker-btn cursor-pointer hover:text-brand-500" @click="pickerType = 'month'">{{
-          currentMonth
-        }}</span>
-        {{ ' ' }}
-        <span class="nc-year-picker-btn cursor-pointer hover:text-brand-500" @click="pickerType = 'year'">{{ currentYear }}</span>
-      </div>
-      <span v-else class="text-gray-700 text-sm font-semibold">{{ currentMonthYear }}</span>
+        <div v-if="isCellInputField" class="text-gray-700 text-sm font-semibold">
+          <span class="nc-month-picker-btn cursor-pointer hover:text-brand-500" @click="pickerType = 'month'">{{
+            currentMonth
+          }}</span>
+          {{ ' ' }}
+          <span class="nc-year-picker-btn cursor-pointer hover:text-brand-500" @click="pickerType = 'year'">{{
+            currentYear
+          }}</span>
+        </div>
+        <span v-else class="text-gray-700 text-sm font-semibold">{{ currentMonthYear }}</span>
 
-      <NcTooltip hide-on-click>
-        <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="secondary" @click="paginate('next')">
-          <component :is="iconMap.arrowRight" class="h-4 w-4" />
-        </NcButton>
-        <template #title>
-          <span>{{ $t('labels.next') }}</span>
-        </template>
-      </NcTooltip>
+        <NcTooltip hide-on-click>
+          <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="text" @click="paginate('next')">
+            <component :is="iconMap.arrowRight" class="h-4 w-4" />
+          </NcButton>
+          <template #title>
+            <span>{{ $t('labels.next') }}</span>
+          </template>
+        </NcTooltip>
+      </template>
+      <template v-else>
+        <div class="text-gray-700 text-sm font-semibold">
+          <span class="px-1 font-bold leading-6 text-sm text-nc-content-gray-subtle py-2">
+            {{ currentMonthYear }}
+          </span>
+        </div>
+
+        <div class="flex items-center justify-center">
+          <NcTooltip hide-on-click>
+            <NcButton class="!border-0" size="small" type="text" @click="paginate('prev')">
+              <GeneralIcon icon="ncChevronLeft" class="h-4 w-4" />
+            </NcButton>
+            <template #title>
+              <span>{{ $t('labels.previous') }}</span>
+            </template>
+          </NcTooltip>
+          <NcTooltip hide-on-click>
+            <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="text" @click="paginate('next')">
+              <GeneralIcon icon="ncChevronRight" class="h-4 w-4" />
+            </NcButton>
+            <template #title>
+              <span>{{ $t('labels.next') }}</span>
+            </template>
+          </NcTooltip>
+        </div>
+      </template>
     </div>
     <div v-if="!hideCalendar" class="max-w-[320px] rounded-y-xl">
       <div class="py-1 px-2.5 h-10">
@@ -200,13 +237,13 @@ const paginate = (action: 'next' | 'prev') => {
           <span
             v-for="(day, index) in days"
             :key="index"
-            class="flex w-8 h-8 items-center uppercase font-medium justify-center text-gray-500"
-            >{{ day[0] }}</span
+            class="flex w-8 h-8 items-center font-[400] justify-center text-gray-500"
+            >{{ day }}</span
           >
         </div>
       </div>
       <div
-        class="grid gap-1 py-1 nc-date-week-grid-wrapper grid-cols-7"
+        class="grid gap-x-1 gap-y-0.25 py-1 nc-date-week-grid-wrapper grid-cols-7"
         :class="{
           'px-2': isCellInputField,
           'px-2.5': !isCellInputField,
@@ -227,13 +264,14 @@ const paginate = (action: 'next' | 'prev') => {
             'text-gray-400': !isDateInCurrentMonth(date),
             'nc-selected-week-start': isSameDate(date, selectedWeek?.start),
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
-            'rounded-md text-brand-500 !font-semibold nc-calendar-today': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
+            'rounded-md text-brand-500 !font-semibold nc-calendar-today':
+              isSameDate(date, timezoneDayjs.dayjsTz()) && isDateInCurrentMonth(date),
             'text-gray-500': date.get('day') === 0 || date.get('day') === 6,
             'nc-date-item font-weight-400': isCellInputField,
             'font-medium': !isCellInputField,
             'rounded': !isWeekPicker && isCellInputField,
           }"
-          class="px-1 h-8 w-8 py-1 relative transition border-1 flex text-gray-700 items-center cursor-pointer justify-center"
+          class="px-1 h-8 w-8 py-1 relative transition border-1 flex text-nc-content-gray-subtle leading-5 font-[400] items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
           :title="isCellInputField ? date.format('YYYY-MM-DD') : undefined"
           @click="handleSelectDate(date)"
@@ -242,7 +280,7 @@ const paginate = (action: 'next' | 'prev') => {
             v-if="isActiveDate(date)"
             :class="{
               '!border-white': isSelectedDate(date),
-              '!border-brand-50': isSameDate(date, dayjs()),
+              '!border-brand-50': isSameDate(date, timezoneDayjs.dayjsTz()),
             }"
             class="absolute top-1 transition right-1 h-1.5 w-1.5 z-2 border-1 rounded-full border-white bg-brand-500"
           ></span>
@@ -252,7 +290,12 @@ const paginate = (action: 'next' | 'prev') => {
         </span>
       </div>
       <div v-if="isCellInputField" class="flex items-center justify-center px-2 pb-2 pt-1 gap-2">
-        <NcButton class="nc-date-picker-now-btn !h-7" size="small" type="secondary" @click="handleSelectDate(dayjs())">
+        <NcButton
+          class="nc-date-picker-now-btn !h-7"
+          size="small"
+          type="secondary"
+          @click="handleSelectDate(timezoneDayjs.dayjsTz())"
+        >
           <span class="text-small"> {{ $t('labels.today') }} </span>
         </NcButton>
         <NcTooltip v-if="showCurrentDateOption" :disabled="showCurrentDateOption !== 'disabled'">

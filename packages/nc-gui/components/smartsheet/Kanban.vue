@@ -69,6 +69,7 @@ const {
   moveHistory,
   addNewStackId,
   removeRowFromUncategorizedStack,
+  uncategorizedStackId,
 } = useKanbanViewStoreOrThrow()
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
@@ -78,6 +79,8 @@ const { isUIAllowed } = useRoles()
 const { appInfo, isMobileMode } = useGlobal()
 
 const { addUndo, defineViewScope } = useUndoRedo()
+
+const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 provide(IsFormInj, ref(false))
 
@@ -101,11 +104,15 @@ const coverImageColumn: any = computed(() =>
     : {},
 )
 
-const coverImageObjectFitClass = computed(() => {
+const coverImageObjectFitStyle = computed(() => {
   const fk_cover_image_object_fit = parseProp(kanbanMetaData.value?.meta)?.fk_cover_image_object_fit || CoverImageObjectFit.FIT
 
-  if (fk_cover_image_object_fit === CoverImageObjectFit.FIT) return '!object-contain'
-  if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return '!object-cover'
+  if (fk_cover_image_object_fit === CoverImageObjectFit.FIT) return 'contain'
+  if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return 'cover'
+})
+
+const isRequiredGroupingFieldColumn = computed(() => {
+  return !!groupingFieldColumn.value?.rqd
 })
 
 const kanbanContainerRef = ref()
@@ -449,6 +456,30 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
 
   isSavingStack.value = null
 }
+
+const draggableStackFilter = (event: Event) => {
+  return event.target?.closest('.not-draggable')
+  // || isTouchEvent(event) // allow drag and drop for touch devices for now
+}
+
+const draggableCardFilter = (event: Event, target: HTMLElement) => {
+  const eventTarget = event.target as HTMLElement | null
+  const closestNotDraggable = eventTarget?.closest('.not-draggable')
+
+  return !!(
+    eventTarget &&
+    target.contains(eventTarget) &&
+    closestNotDraggable &&
+    (target.contains(closestNotDraggable) || closestNotDraggable === target)
+  )
+  // || isTouchEvent(event) // allow drag and drop for touch devices for now
+}
+
+const handleOpenNewRecordForm = (_stackTitle?: string) => {
+  if (showRecordPlanLimitExceededModal()) return
+
+  openNewRecordFormHook.trigger()
+}
 </script>
 
 <template>
@@ -485,7 +516,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
             group="kanban-stack"
             draggable=".nc-kanban-stack"
             handle=".nc-kanban-stack-drag-handler"
-            filter=".not-draggable"
+            :filter="draggableStackFilter"
             :move="onMoveCallback"
             @start="(e) => e.target.classList.add('grabbing')"
             @end="(e) => e.target.classList.remove('grabbing')"
@@ -496,7 +527,9 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                 class="nc-kanban-stack"
                 :class="{
                   'w-[44px]': stack.collapsed,
-                  'hidden': hideEmptyStack && !formattedData.get(stack.title)?.length,
+                  'hidden':
+                    (hideEmptyStack && !formattedData.get(stack.title)?.length) ||
+                    (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId),
                 }"
                 :data-testid="`nc-kanban-stack-${stack.title}`"
               >
@@ -524,7 +557,10 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
 
                   <!-- Stack -->
                   <a-layout v-else>
-                    <a-layout-header class="border-b-1 border-gray-100 min-h-[49px]">
+                    <a-layout-header
+                      class="border-b-1 border-gray-100 min-h-[49px]"
+                      :class="`nc-kanban-stack-header-${stack.id}`"
+                    >
                       <div
                         class="nc-kanban-stack-head w-full flex gap-1"
                         :class="{
@@ -608,7 +644,6 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                           </div>
                         </div>
                         <NcDropdown
-                          v-if="!isLocked"
                           placement="bottomRight"
                           overlay-class-name="nc-dropdown-kanban-stack-context-menu"
                           class="bg-white !rounded-lg"
@@ -624,15 +659,15 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                           </NcButton>
 
                           <template #overlay>
-                            <NcMenu class="!text-sm">
+                            <NcMenu variant="small">
                               <NcMenuItem
-                                v-if="hasEditPermission && !isPublic && !isLocked"
+                                v-if="hasEditPermission && !isPublic"
                                 v-e="['c:kanban:add-new-record']"
                                 data-testid="nc-kanban-context-menu-add-new-record"
                                 @click="
                                   () => {
                                     selectedStackTitle = stack.title
-                                    openNewRecordFormHook.trigger(stack.title)
+                                    handleOpenNewRecordForm(stack.title)
                                   }
                                 "
                               >
@@ -687,7 +722,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                   {{ $t('activity.kanban.expandAll') }}
                                 </div>
                               </NcMenuItem>
-                              <template v-if="stack.title !== null && !isPublic && hasEditPermission">
+                              <template v-if="stack.title !== null && !isPublic && hasEditPermission && !isLocked">
                                 <NcDivider />
                                 <NcMenuItem
                                   v-e="['c:kanban:delete-stack']"
@@ -735,7 +770,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                           draggable=".nc-kanban-item"
                           group="kanban-card"
                           class="flex flex-col h-full"
-                          filter=".not-draggable"
+                          :filter="draggableCardFilter"
                           @start="(e) => e.target.classList.add('grabbing')"
                           @end="(e) => e.target.classList.remove('grabbing')"
                           @change="onMove($event, stack.title)"
@@ -750,13 +785,17 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                   :data-stack="stack.title"
                                   :data-testid="`nc-gallery-card-${record.row.id}`"
                                   :class="{
-                                    'not-draggable': isLocked || !hasEditPermission || isPublic,
-                                    '!cursor-default': isLocked || !hasEditPermission || isPublic,
+                                    'not-draggable': !hasEditPermission || isPublic,
+                                    '!cursor-default': !hasEditPermission || isPublic,
                                   }"
                                   @click="expandFormClick($event, record)"
                                   @contextmenu="showContextMenu($event, record)"
                                 >
-                                  <template v-if="kanbanMetaData?.fk_cover_image_col_id" #cover>
+                                  <!--
+                                     Check the coverImageColumn ID because kanbanMetaData?.fk_cover_image_col_id
+                                     could reference a non-existent column. This is a workaround to handle such scenarios properly.
+                                 -->
+                                  <template v-if="coverImageColumn?.id" #cover>
                                     <template v-if="!reloadAttachments && attachments(record).length">
                                       <a-carousel
                                         :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
@@ -800,7 +839,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                             v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                                             :key="attachment.path"
                                             class="h-52"
-                                            :class="[`${coverImageObjectFitClass}`]"
+                                            :object-fit="coverImageObjectFitStyle"
                                             :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
                                           />
                                         </template>
@@ -814,8 +853,18 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                     </div>
                                   </template>
                                   <div class="flex flex-col gap-3 !children:pointer-events-none">
-                                    <h2 v-if="displayField" class="nc-card-display-value-wrapper">
-                                      <template v-if="!isRowEmpty(record, displayField)">
+                                    <h2
+                                      v-if="displayField"
+                                      class="nc-card-display-value-wrapper"
+                                      :class="{
+                                        '!children:pointer-events-auto':
+                                          isButton(displayField) ||
+                                          (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
+                                      }"
+                                    >
+                                      <template
+                                        v-if="!isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField)"
+                                      >
                                         <LazySmartsheetVirtualCell
                                           v-if="isVirtualCol(displayField)"
                                           v-model="record.row[displayField.title]"
@@ -833,14 +882,16 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                           :read-only="true"
                                         />
                                       </template>
-                                      <template v-else> - </template>
+                                      <template v-else> -</template>
                                     </h2>
 
                                     <div
                                       v-for="col in fieldsWithoutDisplay"
                                       :key="`record-${record.row.id}-${col.id}`"
+                                      class="nc-card-col-wrapper"
                                       :class="{
-                                        '!children:pointer-events-auto': isButton(col),
+                                        '!children:pointer-events-auto':
+                                          isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)),
                                       }"
                                       @click="handleCellClick(col, $event)"
                                     >
@@ -858,7 +909,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                         </div>
 
                                         <div
-                                          v-if="!isRowEmpty(record, col)"
+                                          v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col) || isPercent(col)"
                                           class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
                                         >
                                           <LazySmartsheetVirtualCell
@@ -903,7 +954,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                 @click="
                                   () => {
                                     selectedStackTitle = stack.title
-                                    openNewRecordFormHook.trigger(stack.title)
+                                    handleOpenNewRecordForm(stack.title)
                                   }
                                 "
                               >
@@ -927,7 +978,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                           @click="
                             () => {
                               selectedStackTitle = stack.title
-                              openNewRecordFormHook.trigger(stack.title)
+                              handleOpenNewRecordForm(stack.title)
                             }
                           "
                         >
@@ -1040,11 +1091,13 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
           <div v-if="hasEditPermission && !isPublic && !isLocked && groupingFieldColumn?.id" class="nc-kanban-add-new-stack">
             <!-- Add New Stack -->
             <a-card
-              class="flex flex-col w-68.5 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200"
-              :class="{
-                '!cursor-default': isLocked || !hasEditPermission,
-                '!border-none': !compareStack(addNewStackObj, isRenameOrNewStack),
-              }"
+              class="flex flex-col w-68.5 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200 nc-kanban-stack-header-new-stack"
+              :class="[
+                {
+                  '!cursor-default': isLocked || !hasEditPermission,
+                  '!border-none': !compareStack(addNewStackObj, isRenameOrNewStack),
+                },
+              ]"
               :head-style="{ paddingBottom: '0px' }"
               :body-style="{
                 padding: '0px !important',
@@ -1117,17 +1170,22 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
         </div>
         <!-- Drop down Menu -->
         <template v-if="!isLocked && !isPublic && hasEditPermission" #overlay>
-          <NcMenu @click="contextMenu = false">
-            <NcMenuItem v-if="contextMenuTarget" @click="expandForm(contextMenuTarget)">
-              <div v-e="['a:kanban:expand-record']" class="flex items-center gap-2 nc-kanban-context-menu-item">
-                <component :is="iconMap.expand" class="flex" />
+          <NcMenu variant="small" @click="contextMenu = false">
+            <NcMenuItem v-if="contextMenuTarget" v-e="['a:kanban:expand-record']" @click="expandForm(contextMenuTarget)">
+              <div class="flex items-center gap-2 nc-kanban-context-menu-item">
+                <component :is="iconMap.maximize" class="flex" />
                 <!-- Expand Record -->
                 {{ $t('activity.expandRecord') }}
               </div>
             </NcMenuItem>
             <NcDivider />
-            <NcMenuItem v-if="contextMenuTarget" class="!text-red-600 !hover:bg-red-50" @click="deleteRow(contextMenuTarget)">
-              <div v-e="['a:kanban:delete-record']" class="flex items-center gap-2 nc-kanban-context-menu-item">
+            <NcMenuItem
+              v-if="contextMenuTarget"
+              v-e="['a:kanban:delete-record']"
+              class="!text-red-600 !hover:bg-red-50"
+              @click="deleteRow(contextMenuTarget)"
+            >
+              <div class="flex items-center gap-2 nc-kanban-context-menu-item">
                 <component :is="iconMap.delete" class="flex" />
                 <!-- Delete Record -->
                 {{
@@ -1169,15 +1227,19 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
     />
   </Suspense>
 
-  <GeneralDeleteModal v-model:visible="deleteStackVModel" entity-name="Stack" :on-delete="handleDeleteStackConfirmClick">
+  <GeneralDeleteModal
+    v-model:visible="deleteStackVModel"
+    entity-name="Stack"
+    :show-default-delete-msg="false"
+    :on-delete="handleDeleteStackConfirmClick"
+  >
     <template #entity-preview>
-      <div v-if="stackToBeDeleted" class="flex flex-row items-center py-2 px-2.25 bg-gray-100 rounded-lg text-gray-700 mb-4">
-        <div
-          class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
-          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-        >
-          {{ stackToBeDeleted }}
+      <div v-if="stackToBeDeleted" class="text-nc-content-gray flex flex-col gap-3">
+        <div>
+          This action will also remove the <b>"{{ stackToBeDeleted }}"</b> option from the
+          <b> "{{ groupingFieldColumn?.title ?? 'Grouping' }}"</b> field.
         </div>
+        <div>Records will be moved to Uncategorized stack.</div>
       </div>
     </template>
   </GeneralDeleteModal>
@@ -1190,9 +1252,11 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
 .ant-layout-footer {
   @apply !bg-white;
 }
+
 .ant-layout-content {
   background-color: unset;
 }
+
 .ant-layout-header,
 .ant-layout-footer {
   @apply p-2 text-sm;
@@ -1225,6 +1289,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
 .ant-carousel.gallery-carousel :deep(.slick-dots li) {
   @apply !w-auto;
 }
+
 .ant-carousel.gallery-carousel :deep(.slick-prev) {
   @apply left-0;
 }
@@ -1252,17 +1317,41 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
 }
 
 .nc-card-display-value-wrapper {
-  @apply my-0 text-base leading-8 text-gray-800;
+  @apply my-0 text-xl leading-8 text-gray-600;
 
   .nc-cell,
   .nc-virtual-cell {
-    @apply text-base leading-6;
+    @apply text-xl leading-8;
 
     :deep(.nc-cell-field),
     :deep(input),
     :deep(textarea),
     :deep(.nc-cell-field-link) {
-      @apply !text-base leading-6 text-gray-800;
+      @apply !text-xl leading-8 text-gray-600;
+
+      &:not(.ant-select-selection-search-input) {
+        @apply !text-xl leading-8 text-gray-600;
+      }
+    }
+  }
+}
+
+.nc-card-col-wrapper {
+  @apply !text-small !leading-[18px];
+
+  .nc-cell,
+  .nc-virtual-cell {
+    @apply !text-small !leading-[18px];
+
+    :deep(.nc-cell-field),
+    :deep(input),
+    :deep(textarea),
+    :deep(.nc-cell-field-link) {
+      @apply !text-small leading-[18px];
+
+      &:not(.ant-select-selection-search-input) {
+        @apply !text-small leading-[18px];
+      }
     }
   }
 }
@@ -1274,17 +1363,6 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
   }
 }
 
-:deep(.nc-cell),
-:deep(.nc-virtual-cell) {
-  @apply text-small leading-[18px];
-
-  .nc-cell-field,
-  input,
-  textarea,
-  .nc-cell-field-link {
-    @apply !text-small !leading-[18px];
-  }
-}
 :deep(.nc-cell) {
   &.nc-cell-longtext {
     .long-text-wrapper {
@@ -1292,6 +1370,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
       .nc-readonly-rich-text-wrapper {
         @apply !min-h-1;
       }
+
       .nc-rich-text {
         @apply pl-0;
         .tiptap.ProseMirror {
@@ -1300,15 +1379,19 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
       }
     }
   }
+
   &.nc-cell-checkbox {
     @apply children:pl-0;
   }
+
   &.nc-cell-singleselect .nc-cell-field > div {
     @apply flex items-center;
   }
+
   &.nc-cell-multiselect .nc-cell-field > div {
     @apply h-5;
   }
+
   &.nc-cell-email,
   &.nc-cell-phonenumber {
     @apply flex items-center;
@@ -1321,12 +1404,22 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
       @apply py-0;
     }
   }
+  &.nc-cell-datetime {
+    @apply !w-auto;
+    & > div {
+      @apply !w-auto;
+    }
+    div {
+      @apply flex-none !max-w-none !w-auto;
+    }
+  }
 }
 
 :deep(.nc-virtual-cell) {
   .nc-links-wrapper {
     @apply py-0 children:min-h-4;
   }
+
   &.nc-virtual-cell-linktoanotherrecord {
     .chips-wrapper {
       @apply min-h-4 !children:min-h-4;
@@ -1335,6 +1428,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
       }
     }
   }
+
   &.nc-virtual-cell-lookup {
     .nc-lookup-cell {
       &:has(.nc-attachment-wrapper) {
@@ -1348,14 +1442,17 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
           }
         }
       }
+
       &:not(:has(.nc-attachment-wrapper)) {
         @apply !h-5.5;
       }
+
       .nc-cell-lookup-scroll {
         @apply py-0 h-auto;
       }
     }
   }
+
   &.nc-virtual-cell-formula {
     .nc-cell-field {
       @apply py-0;

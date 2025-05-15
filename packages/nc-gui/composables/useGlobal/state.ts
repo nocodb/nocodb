@@ -111,6 +111,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     dashboardPath: '/dashboard',
     inviteOnlySignup: false,
     giftUrl: '',
+    isOnPrem: false,
   })
 
   /** reactive token payload */

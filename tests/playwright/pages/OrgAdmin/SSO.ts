@@ -1,6 +1,6 @@
 import BasePage from '../Base';
 import { ProjectsPage } from '../ProjectsPage';
-import { expect } from '@playwright/test';
+import { expect, request } from '@playwright/test';
 import { Domain } from './Domain';
 import { OrgAdminPage } from './index';
 
@@ -105,9 +105,19 @@ export class CloudSSO extends BasePage {
 
     await samlModal.locator('[data-test-id="nc-saml-title"]').fill(p.title);
     if (p.url) {
-      await samlModal.locator('[data-test-id="nc-saml-metadata-url"]').fill(p.url);
+      // if url then extract the xml data and fill it, since local urls are not supported
+      const requestContext = await request.newContext();
+
+      const response = await requestContext.get(p.url);
+
+      const text = await response.text(); // extract as plain text
+
+      p.xml = text;
+
+      await requestContext.dispose();
     }
     if (p.xml) {
+      await samlModal.locator('[data-test-id="nc-saml-xml-tab"]').click();
       await samlModal.locator('[data-test-id="nc-saml-xml"]').fill(p.xml);
     }
 

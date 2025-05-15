@@ -3,6 +3,7 @@ import { Logger } from '@nestjs/common';
 import type { ChainableCommander } from 'ioredis';
 import type IORedis from 'ioredis';
 import { CacheDelDirection, CacheGetType } from '~/utils/globals';
+import { NC_REDIS_GRACE_TTL, NC_REDIS_TTL } from '~/helpers/redisHelpers';
 
 const log = debug('nc:cache');
 const logger = new Logger('CacheMgr');
@@ -17,9 +18,6 @@ const logger = new Logger('CacheMgr');
   - get returns `value` only
   - getRaw returns the whole cache object with metadata
 */
-
-const NC_REDIS_TTL = +process.env.NC_REDIS_TTL || 60 * 60 * 24 * 3; // 3 days
-const NC_REDIS_GRACE_TTL = +process.env.NC_REDIS_GRACE_TTL || 60 * 60 * 24 * 1; // 1 day
 
 export default abstract class CacheMgr {
   client: IORedis;
@@ -665,6 +663,98 @@ export default abstract class CacheMgr {
     }
 
     return pipeline;
+  }
+
+  async setHash(
+    key: string,
+    hash: Record<string, any>,
+    options: {
+      ttl?: number;
+    } = {},
+  ) {
+    log(`${this.context}::setHash: setting hash ${key}`);
+    const { ttl } = options;
+    if (ttl) {
+      await this.client.hset(key, hash);
+      await this.client.expire(key, ttl);
+    }
+
+    return this.client.hset(key, hash);
+  }
+
+  async getHash(key: string): Promise<Record<string, string | number> | null> {
+    log(`${this.context}::getHash: getting hash ${key}`);
+    const hash = await this.client.hgetall(key);
+    if (hash && Object.keys(hash).length) {
+      return hash;
+    }
+    return null;
+  }
+
+  async getHashField(key: string, field: string): Promise<string> {
+    log(`${this.context}::getHashField: getting hash ${key} field ${field}`);
+    return await this.client.hget(key, field);
+  }
+
+  async setHashField(key: string, field: string, value: string | number) {
+    log(`${this.context}::setHashField: setting hash ${key} field ${field}`);
+    return await this.client.hset(key, field, value);
+  }
+
+  async incrHashField(
+    key: string,
+    field: string,
+    value: number,
+  ): Promise<number> {
+    log(
+      `${this.context}::incrHashField: incrementing hash ${key} field ${field}`,
+    );
+
+    return new Promise((resolve) => {
+      this.client.hincrby(key, field, value, (err, res) => {
+        if (err) {
+          resolve(0);
+        } else {
+          resolve(+Promise.resolve(res));
+        }
+      });
+    });
+  }
+
+  async processPattern(
+    pattern: string,
+    callback: (key: string) => Promise<void>,
+    options: { count?: number; type?: string } = {},
+  ): Promise<void> {
+    log(`${this.context}::processPattern: processing pattern ${pattern}`);
+    const stream = this.client.scanStream({
+      match: pattern,
+      count: options.count || 10,
+      type: options.type,
+    });
+
+    return new Promise((resolve, reject) => {
+      stream.on('data', async (keys: string[]) => {
+        for (const key of keys) {
+          logger.log(`Processing key: ${key}`);
+          await callback(key.replace(`${this.prefix}:`, ''));
+        }
+      });
+
+      stream.on('end', () => {
+        resolve();
+      });
+
+      stream.on('error', (err) => {
+        logger.error(`Error processing pattern ${pattern}: ${err}`);
+        reject(err);
+      });
+    });
+  }
+
+  async keyExists(key: string): Promise<boolean> {
+    log(`${this.context}::keyExists: checking if key ${key} exists`);
+    return this.client.exists(key).then((r) => r === 1);
   }
 
   async destroy(): Promise<boolean> {

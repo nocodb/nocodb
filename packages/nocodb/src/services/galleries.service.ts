@@ -9,7 +9,7 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { GalleryView, Model, View } from '~/models';
+import { GalleryView, Model, User, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 
@@ -27,7 +27,7 @@ export class GalleriesService {
       tableId: string;
       gallery: ViewCreateReqType;
       user: UserType;
-
+      ownedBy?: string;
       req: NcRequest;
     },
   ) {
@@ -38,18 +38,20 @@ export class GalleriesService {
 
     const model = await Model.get(context, param.tableId);
 
-    const { id } = await View.insertMetaOnly(
-      context,
-      {
+    const { id } = await View.insertMetaOnly(context, {
+      view: {
         ...param.gallery,
         // todo: sanitize
         fk_model_id: param.tableId,
         type: ViewTypes.GALLERY,
         base_id: model.base_id,
         source_id: model.source_id,
+        created_by: param.user?.id,
+        owned_by: param.ownedBy || param.user?.id,
       },
       model,
-    );
+      req: param.req,
+    });
 
     // populate  cache and add to list since the list cache already exist
     const view = await View.get(context, id);
@@ -59,10 +61,20 @@ export class GalleriesService {
       `${CacheScope.VIEW}:${id}`,
     );
 
-    this.appHooksService.emit(AppEvents.VIEW_CREATE, {
-      view,
-      showAs: 'gallery',
+    let owner = param.req.user;
+
+    if (param.ownedBy) {
+      owner = await User.get(param.ownedBy);
+    }
+
+    this.appHooksService.emit(AppEvents.GALLERY_CREATE, {
+      view: {
+        ...param.gallery,
+        ...view,
+      },
       req: param.req,
+      owner,
+      context,
     });
     return view;
   }
@@ -86,16 +98,28 @@ export class GalleriesService {
       NcError.viewNotFound(param.galleryViewId);
     }
 
+    const oldGalleryView = await GalleryView.get(context, param.galleryViewId);
+
     const res = await GalleryView.update(
       context,
       param.galleryViewId,
       param.gallery,
     );
 
-    this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
+    let owner = param.req.user;
+
+    if (view.owned_by && view.owned_by !== param.req.user?.id) {
+      owner = await User.get(view.owned_by);
+    }
+
+    this.appHooksService.emit(AppEvents.GALLERY_UPDATE, {
       view,
-      showAs: 'gallery',
+      galleryView: param.gallery,
+      oldGalleryView,
+      oldView: view,
       req: param.req,
+      context,
+      owner,
     });
 
     return res;

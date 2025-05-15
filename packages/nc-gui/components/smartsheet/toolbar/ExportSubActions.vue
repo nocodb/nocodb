@@ -51,6 +51,7 @@ const exportFile = async (exportType: ExportTypes) => {
               offset,
               sortArrJson: JSON.stringify(sorts.value),
               filterArrJson: JSON.stringify(nestedFilters.value),
+              encoding: exportType === ExportTypes.EXCEL ? 'base64' : undefined,
             },
           } as RequestParams,
         )
@@ -82,32 +83,26 @@ const exportFile = async (exportType: ExportTypes) => {
 </script>
 
 <template>
-  <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('labels.downloadData') }}</div>
+  <NcMenuItemLabel>
+    {{ $t('labels.downloadData') }}
+  </NcMenuItemLabel>
 
-  <a-menu-item class="!mx-1 !py-2 !rounded-md">
-    <div
-      v-e="['a:download:csv']"
-      class="flex flex-row items-center nc-base-menu-item !py-0"
-      @click.stop="exportFile(ExportTypes.CSV)"
-    >
-      <GeneralLoader v-if="isExportingType === ExportTypes.CSV" class="!max-h-4.5 !-mt-1 !mr-0.7" />
-      <component :is="iconMap.csv" v-else />
+  <NcMenuItem v-e="['a:download:csv']" @click.stop="exportFile(ExportTypes.CSV)">
+    <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
+      <GeneralLoader v-if="isExportingType === ExportTypes.CSV" size="regular" />
+      <component :is="iconMap.ncFileTypeCsvSmall" v-else class="w-4" />
       <!-- Download as CSV -->
-      {{ $t('activity.downloadCSV') }}
+      CSV
     </div>
-  </a-menu-item>
+  </NcMenuItem>
 
-  <a-menu-item class="!mx-1 !py-2 !rounded-md">
-    <div
-      v-e="['a:download:excel']"
-      class="flex flex-row items-center nc-base-menu-item !py-0"
-      @click="exportFile(ExportTypes.EXCEL)"
-    >
-      <GeneralLoader v-if="isExportingType === ExportTypes.EXCEL" class="!max-h-4.5 !-mt-1 !mr-0.7" />
-      <component :is="iconMap.excel" v-else />
+  <NcMenuItem v-e="['a:download:excel']" @click.stop="exportFile(ExportTypes.EXCEL)">
+    <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
+      <GeneralLoader v-if="isExportingType === ExportTypes.EXCEL" size="regular" />
+      <component :is="iconMap.ncFileTypeExcel" v-else class="w-4" />
 
       <!-- Download as XLSX -->
-      {{ $t('activity.downloadExcel') }}
+      Excel
     </div>
-  </a-menu-item>
+  </NcMenuItem>
 </template>

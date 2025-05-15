@@ -49,6 +49,7 @@ const vModel = computed({
           id: user.id,
           email: user.email,
           display_name: user.display_name,
+          meta: user.meta,
           order: user.id && limitOptionsById[user.id] ? limitOptionsById[user.id]?.order ?? user.order : order++,
           show: user.id && limitOptionsById[user.id] ? limitOptionsById[user.id]?.show : !(props.modelValue || []).length,
         }))
@@ -184,6 +185,7 @@ const showOrHideAll = (showAll: boolean) => {
           size="xxsmall"
           class="!border-none !px-2 !text-xs !text-gray-500 !disabled:text-gray-300"
           :disabled="isRequired || vModel.filter((o) => !o.show).length === vModel.length"
+          :shadow="false"
           @click="showOrHideAll(false)"
         >
           {{ $t('general.hideAll') }}
@@ -196,6 +198,7 @@ const showOrHideAll = (showAll: boolean) => {
           size="xxsmall"
           class="!border-none !px-2 !text-xs !text-gray-500 !disabled:text-gray-300"
           :disabled="vModel.filter((o) => o.show).length === vModel.length"
+          :shadow="false"
           @click="showOrHideAll(true)"
         >
           {{ $t('general.showAll') }}
@@ -262,12 +265,7 @@ const showOrHideAll = (showAll: boolean) => {
               class="flex items-stretch gap-2"
             >
               <div>
-                <GeneralUserIcon
-                  size="auto"
-                  :name="element.display_name?.trim() ? element.display_name?.trim() : ''"
-                  :email="element.email"
-                  class="!text-[0.65rem]"
-                />
+                <GeneralUserIcon size="auto" :user="element" class="!text-[0.65rem] !h-[16.8px]" />
               </div>
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>

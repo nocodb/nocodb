@@ -38,6 +38,7 @@ const permissionScopes = {
     'pluginTest',
     'pluginRead',
     'pluginUpdate',
+    'webhookPluginList',
 
     // Misc
     'commandPalette',
@@ -61,6 +62,9 @@ const permissionScopes = {
     'integrationDelete',
     'integrationUpdate',
     'integrationList',
+
+    // AI
+    'aiSchema',
   ],
   base: [
     'formViewGet',
@@ -108,7 +112,6 @@ const permissionScopes = {
     'hideAllColumns',
     'showAllColumns',
     'auditListRow',
-    'auditRowUpdate',
     'dataUpdate',
     'dataDelete',
     'dataInsert',
@@ -163,6 +166,17 @@ const permissionScopes = {
     'hookTrigger',
 
     'userInvite',
+
+    // AI
+    'aiUtils',
+    'aiData',
+    'aiBaseSchema',
+
+    // MCP
+    'mcpList',
+    'mcpCreate',
+    'mcpUpdate',
+    'mcpDelete',
   ],
 };
 
@@ -235,6 +249,12 @@ const rolePermissions:
       auditListRow: true,
 
       userInvite: true,
+
+      // MCP CRUD
+      mcpList: true,
+      mcpCreate: true,
+      mcpUpdate: true,
+      mcpDelete: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -248,7 +268,6 @@ const rolePermissions:
     include: {
       hideAllColumns: true,
       showAllColumns: true,
-      auditRowUpdate: true,
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
@@ -283,6 +302,10 @@ const rolePermissions:
       // upload: true,
       // uploadViaURL: true,
       hookTrigger: true,
+
+      // AI
+      aiUtils: true,
+      aiData: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -320,6 +343,7 @@ const rolePermissions:
       userUpdate: true,
       userDelete: true,
       generateResetUrl: true,
+      webhookPluginList: true,
       userInviteResend: true,
       upload: true,
       uploadViaURL: true,
@@ -617,7 +641,6 @@ const permissionDescriptions: Record<string, string> = {
   hideAllColumns: 'hide all columns',
   showAllColumns: 'show all columns',
   auditListRow: 'view audit log for a row',
-  auditRowUpdate: 'update audit log for a row',
   dataUpdate: 'update data',
   dataDelete: 'delete data',
   dataInsert: 'insert new data',
@@ -679,6 +702,11 @@ const permissionDescriptions: Record<string, string> = {
   jobList: 'view list of jobs',
 
   hookTrigger: 'trigger a webhook',
+
+  mcpList: 'view list of MCP tokens',
+  mcpCreate: 'create a new MCP token',
+  mcpUpdate: 'update an MCP token',
+  mcpDelete: 'delete an MCP token',
 };
 
 // Human-readable descriptions for roles

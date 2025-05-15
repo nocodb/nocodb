@@ -45,7 +45,7 @@ function copy_gui_artifacts() {
 function package_nocodb() {
     # build nocodb ( pack nocodb-sdk and nc-gui )
     cd ${SCRIPT_DIR}/packages/nocodb
-    EE=true ${SCRIPT_DIR}/node_modules/.bin/webpack --config ${SCRIPT_DIR}/packages/nocodb/webpack.local.config.js || ERROR="package_nocodb failed"
+    pnpm run docker:build || ERROR="package_nocodb failed"
 }
 
 function build_image() {

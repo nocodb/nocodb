@@ -49,6 +49,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     return
   }
 
+  const config = useRuntimeConfig()
   const env = process.env.NODE_ENV === 'production' ? 'production' : 'development'
   let isSentryConfigured = false
   let isErrorReportingEnabled = false
@@ -73,7 +74,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   )
 
   function report(error: Error) {
-    if (process.env.CI || process.env.PLAYWRIGHT) {
+    if (config.public.env === 'CI') {
       return
     }
 

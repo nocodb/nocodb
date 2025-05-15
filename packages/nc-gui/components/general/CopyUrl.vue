@@ -27,10 +27,11 @@ const copyUrl = async () => {
   isCopied.value.link = false
 
   await copy(url.value)
+  isCopied.value.link = true
 
   setTimeout(() => {
-    isCopied.value.link = true
-  }, 100)
+    isCopied.value.link = false
+  }, 5000)
 }
 </script>
 

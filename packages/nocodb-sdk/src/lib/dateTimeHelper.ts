@@ -5,6 +5,9 @@ import duration from 'dayjs/plugin/duration.js';
 import utc from 'dayjs/plugin/utc.js';
 import weekday from 'dayjs/plugin/weekday.js';
 import timezone from 'dayjs/plugin/timezone.js';
+import { ColumnType } from './Api';
+import { parseProp } from './helperFunctions';
+import { ncIsNull, ncIsUndefined } from './is';
 
 dayjs.extend(utc);
 dayjs.extend(relativeTime);
@@ -47,7 +50,7 @@ export function validateDateWithUnknownFormat(v: string) {
 }
 
 export function getDateFormat(v: string) {
-  for (const format of dateFormats) {
+  for (const format of dateFormats.concat(dateMonthFormats)) {
     if (dayjs(v, format, true).isValid()) {
       return format;
     }
@@ -150,3 +153,97 @@ export const isValidTimeFormat = (value: string, format: string) => {
   }
   return false;
 };
+
+export function constructDateTimeFormat(column: ColumnType) {
+  const dateFormat = constructDateFormat(column);
+  const timeFormat = constructTimeFormat(column);
+  return `${dateFormat} ${timeFormat}`;
+}
+
+export function constructDateFormat(column: ColumnType) {
+  return parseProp(column?.meta)?.date_format ?? dateFormats[0];
+}
+
+export function constructTimeFormat(column: ColumnType) {
+  const columnMeta = parseProp(column?.meta);
+  return columnMeta?.is12hrFormat
+    ? 'hh:mm A'
+    : columnMeta.time_format ?? timeFormats[0];
+}
+
+export function workerWithTimezone(isEeUI: boolean, timezone?: string) {
+  // Check if the timezone is UTC or GMT (case insensitive)
+  const isUtcOrGmt = timezone && /^(utc|gmt)$/i.test(timezone);
+
+  return {
+    dayjsTz(value?: string | number | null | dayjs.Dayjs, format?: string) {
+      if (!isEeUI) {
+        return dayjs(value, format);
+      }
+
+      if (ncIsNull(value) || ncIsUndefined(value)) {
+        if (timezone) {
+          return dayjs.tz(undefined, timezone);
+        } else {
+          return dayjs();
+        }
+      } else if (typeof value === 'object' && value.isValid()) {
+        return value;
+      }
+
+      if (timezone) {
+        if (isUtcOrGmt) {
+          const strValue =
+            typeof value === 'object' &&
+            typeof value.isValid === 'function' &&
+            value.isValid()
+              ? value.toISOString()
+              : value;
+          return format
+            ? dayjs.tz(strValue, format, timezone)
+            : dayjs.tz(strValue, timezone);
+        } else {
+          if (!format) {
+            return dayjs.tz(value, timezone);
+          } else {
+            return dayjs.tz(value, format, timezone);
+          }
+        }
+      } else {
+        return dayjs(value, format);
+      }
+    },
+
+    timezonize(value?: string | number | null | dayjs.Dayjs) {
+      if (!value) {
+        return this.dayjsTz();
+      }
+
+      let dayjsObject: dayjs.Dayjs;
+
+      if (
+        typeof value === 'object' &&
+        typeof value.isValid === 'function' &&
+        value.isValid()
+      ) {
+        dayjsObject = value.isUTC() ? value : value.utc();
+      } else {
+        dayjsObject = dayjs.utc(value);
+      }
+
+      if (!isEeUI) {
+        return dayjsObject.local();
+      }
+
+      if (timezone) {
+        if (isUtcOrGmt) {
+          return dayjs(dayjsObject.toISOString()).tz(timezone);
+        } else {
+          return dayjsObject.tz(timezone);
+        }
+      }
+
+      return dayjsObject.local();
+    },
+  };
+}

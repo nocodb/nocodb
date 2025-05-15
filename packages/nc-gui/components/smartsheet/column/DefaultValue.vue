@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { UITypes } from 'nocodb-sdk'
+
 const props = defineProps<{
   value: any
   isVisibleDefaultValueInput: boolean
@@ -24,9 +25,13 @@ const rowRef = ref({
 
 useProvideSmartsheetRowStore(rowRef)
 
+const { isAiModeFieldModal } = usePredictFields()
+
 const cdfValue = ref<string | null>(null)
 
 const editEnabled = ref(false)
+
+const defaultValueWrapperRef = ref<HTMLDivElement>()
 
 const updateCdfValue = (cdf: string | null) => {
   vModel.value = { ...vModel.value, cdf }
@@ -58,6 +63,28 @@ const showCurrentDateOption = computed(() => {
 const isCurrentDate = computed(() => {
   return showCurrentDateOption.value && cdfValue.value?.toUpperCase?.() === sqlUi.value?.getCurrentDateDefault?.(vModel.value)
 })
+
+const { isSystem } = useColumnCreateStoreOrThrow()
+
+const validationError = computed(() => {
+  return getColumnValidationError(vModel.value)
+})
+
+const handleShowInput = () => {
+  isVisibleDefaultValueInput.value = true
+
+  // In playwright testing we first enable this default input and then start filling all fields
+  // So it's imp to not to focus input
+  if (ncIsPlaywright()) return
+
+  nextTick(() => {
+    ncDelay(300).then(() => {
+      if (defaultValueWrapperRef.value) {
+        focusInputEl('.nc-cell', defaultValueWrapperRef.value)
+      }
+    })
+  })
+}
 </script>
 
 <template>
@@ -67,7 +94,8 @@ const isCurrentDate = computed(() => {
       type="text"
       class="!text-gray-700"
       data-testid="nc-show-default-value-btn"
-      @click.stop="isVisibleDefaultValueInput = true"
+      :disabled="isSystem"
+      @click.stop="handleShowInput"
     >
       <div class="flex items-center gap-2">
         <GeneralIcon icon="plus" class="flex-none h-4 w-4" />
@@ -82,9 +110,12 @@ const isCurrentDate = computed(() => {
     </div>
     <div class="flex flex-row gap-2 relative">
       <div
-        class="nc-default-value-wrapper border-1 flex items-center w-full px-3 border-gray-300 rounded-lg sm:min-h-[32px] xs:min-h-13 flex items-center focus-within:(border-brand-500 shadow-selected ring-0) transition-all duration-0.3s"
+        class="nc-default-value-wrapper border-1 flex items-center w-full px-3 border-gray-300 rounded-lg sm:min-h-[32px] xs:min-h-13 focus-within:(border-brand-500 shadow-selected ring-0) transition-all duration-0.3s"
+        :class="{
+          'bg-white': isAiModeFieldModal,
+        }"
       >
-        <div class="relative flex-grow">
+        <div ref="defaultValueWrapperRef" class="relative flex-grow max-w-full">
           <div
             v-if="isCurrentDate"
             class="absolute pointer-events-none h-full w-full bg-white z-2 top-0 left-0 rounded-full items-center flex bg-white"
@@ -103,17 +134,20 @@ const isCurrentDate = computed(() => {
             @click="editEnabled = true"
           />
         </div>
-        <component
-          :is="iconMap.close"
-          v-if="
-            ![UITypes.Year, UITypes.Date, UITypes.Time, UITypes.DateTime, UITypes.SingleSelect, UITypes.MultiSelect].includes(
-              vModel.uidt,
-            ) || isCurrentDate
-          "
-          class="w-4 h-4 cursor-pointer rounded-full z-3 !text-black-500 text-gray-500 cursor-pointer hover:bg-gray-50"
-          @click="updateCdfValue(null)"
-        />
+        <NcTooltip :title="$t('general.clear')" class="flex">
+          <component
+            :is="iconMap.close"
+            v-if="
+              ![UITypes.Year, UITypes.Date, UITypes.Time, UITypes.DateTime, UITypes.SingleSelect, UITypes.MultiSelect].includes(
+                vModel.uidt,
+              ) || isCurrentDate
+            "
+            class="w-4 h-4 cursor-pointer rounded-full z-3 !text-black-500 text-gray-500 hover:bg-gray-50 default-value-clear"
+            @click.stop="updateCdfValue(null)"
+          />
+        </NcTooltip>
       </div>
     </div>
+    <div v-if="validationError" class="text-nc-content-red-medium text-small leading-[18px] mt-1">{{ $t(validationError) }}</div>
   </div>
 </template>

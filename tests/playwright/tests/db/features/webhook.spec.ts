@@ -144,7 +144,6 @@ test.describe.serial('Webhook', () => {
 
     // close 'Team & Auth' tab
     await clearServerData({ request });
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.createTable({ title: 'Test', baseTitle: context.base.title });
 
     // create
@@ -326,8 +325,6 @@ test.describe.serial('Webhook', () => {
     test.slow();
 
     await clearServerData({ request });
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.createTable({ title: 'Test', baseTitle: context.base.title });
 
     // after insert hook
@@ -486,9 +483,6 @@ test.describe.serial('Webhook', () => {
 
     // Waiting for the server to start
     await page.waitForTimeout(1000);
-
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
 
     const columns = [
       {
@@ -786,8 +780,6 @@ test.describe.serial('Webhook', () => {
     test.slow();
 
     await clearServerData({ request });
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.createTable({ title: 'Test', baseTitle: context.base.title });
 
     // after insert hook

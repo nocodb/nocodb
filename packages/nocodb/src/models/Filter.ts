@@ -1,6 +1,10 @@
 import { UITypes } from 'nocodb-sdk';
-import type { BoolType, FilterType } from 'nocodb-sdk';
-import type { COMPARISON_OPS, COMPARISON_SUB_OPS } from '~/utils/globals';
+import type {
+  BoolType,
+  COMPARISON_OPS,
+  COMPARISON_SUB_OPS,
+  FilterType,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
@@ -343,7 +347,7 @@ export default class Filter implements FilterType {
     const filter = await this.get(context, id, ncMeta);
 
     const deleteRecursively = async (filter: Filter) => {
-      if (!filter) return;
+      if (!filter || filter.id === filter.fk_parent_id) return;
       for (const f of (await filter?.getChildren(context, ncMeta)) || [])
         await deleteRecursively(f);
       await ncMeta.metaDelete(
@@ -386,6 +390,27 @@ export default class Filter implements FilterType {
     );
   }
 
+  public static async getFiltersByColumn(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Filter[]> {
+    if (!columnId) return null;
+
+    const filters = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.FILTER_EXP,
+      {
+        condition: {
+          fk_column_id: columnId,
+        },
+      },
+    );
+
+    return filters?.map((f) => this.castType(f));
+  }
+
   public async getGroup(
     context: NcContext,
     ncMeta = Noco.ncMeta,
@@ -417,7 +442,7 @@ export default class Filter implements FilterType {
     ncMeta = Noco.ncMeta,
   ): Promise<Filter[]> {
     if (this.children) return this.children;
-    if (!this.is_group) return null;
+    if (!this.is_group || !this.id) return null;
     const cachedList = await NocoCache.getList(
       CacheScope.FILTER_EXP,
       [this.id],
@@ -681,6 +706,30 @@ export default class Filter implements FilterType {
         },
       );
       await NocoCache.setList(CacheScope.FILTER_EXP, [viewId], filterObjs);
+    }
+
+    return filterObjs?.map((f) => this.castType(f)) || [];
+  }
+
+  static async allHookFilterList(
+    context: NcContext,
+    { hookId }: { hookId: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [hookId]);
+    let { list: filterObjs } = cachedList;
+    const { isNoneList } = cachedList;
+
+    if (!isNoneList && !filterObjs.length) {
+      filterObjs = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          condition: { fk_hook_id: hookId },
+        },
+      );
+      await NocoCache.setList(CacheScope.FILTER_EXP, [hookId], filterObjs);
     }
 
     return filterObjs?.map((f) => this.castType(f)) || [];
@@ -955,5 +1004,89 @@ export default class Filter implements FilterType {
     _ncMeta = Noco.ncMeta,
   ) {
     return [];
+  }
+
+  static async allLinkFilterList(
+    context: NcContext,
+    { linkColumnId }: { linkColumnId: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
+      linkColumnId,
+    ]);
+    let { list: filterObjs } = cachedList;
+    const { isNoneList } = cachedList;
+
+    if (!isNoneList && !filterObjs.length) {
+      filterObjs = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          condition: { fk_link_col_id: linkColumnId },
+        },
+      );
+      await NocoCache.setList(
+        CacheScope.FILTER_EXP,
+        [linkColumnId],
+        filterObjs,
+      );
+    }
+
+    return filterObjs?.map((f) => this.castType(f)) || [];
+  }
+
+  static async updateAllChildrenLogicalOp(
+    context: NcContext,
+    {
+      parentFilterId,
+      logicalOp,
+      viewId,
+    }: { viewId: string; parentFilterId: string; logicalOp: 'and' | 'or' },
+    ncMeta = Noco.ncMeta,
+  ) {
+    let filters;
+    if (parentFilterId === 'root') {
+      filters = await Filter.rootFilterList(context, { viewId }, ncMeta);
+    } else {
+      const filter = await this.get(context, parentFilterId);
+      if (!filter.is_group) {
+        return;
+      }
+      filters = await filter.getChildren(context, ncMeta);
+    }
+
+    for (const child of filters || []) {
+      await Filter.update(context, child.id, { logical_op: logicalOp }, ncMeta);
+    }
+  }
+
+  async extractRelatedParentMetas(context, ncMeta = Noco.ncMeta) {
+    let parentData:
+      | {
+          view: View;
+        }
+      | {
+          hook: Hook;
+        }
+      | {
+          linkColumn: Column;
+        };
+
+    if (this.fk_view_id) {
+      parentData = { view: await View.get(context, this.fk_view_id, ncMeta) };
+    } else if (this.fk_hook_id) {
+      parentData = { hook: await Hook.get(context, this.fk_hook_id, ncMeta) };
+    } else if (this.fk_link_col_id) {
+      parentData = {
+        linkColumn: await Column.get(
+          context,
+          { colId: this.fk_link_col_id },
+          ncMeta,
+        ),
+      };
+    }
+
+    return parentData;
   }
 }

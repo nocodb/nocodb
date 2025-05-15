@@ -1,7 +1,45 @@
-import type { ButtonType, ColumnType, FormulaType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import type { FunctionalComponent, SVGAttributes } from 'vue'
+import type { ButtonType, ColumnType, FormulaType, IntegrationType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import {
+  ButtonActionsType,
+  RelationTypes,
+  UITypes,
+  LongTextAiMetaProp as _LongTextAiMetaProp,
+  checkboxIconList,
+  isValidURL,
+  ratingIconList,
+  validateEmail,
+} from 'nocodb-sdk'
+import isMobilePhone from 'validator/lib/isMobilePhone'
 
-const uiTypes = [
+export interface UiTypesType {
+  name: UITypes | string
+  icon: FunctionalComponent<SVGAttributes, {}, any, {}> | VNode
+  virtual?: number | boolean
+  deprecated?: number | boolean
+  isNew?: number | boolean
+}
+
+export const AIButton = 'AIButton'
+
+export const AIPrompt = 'AIPrompt'
+
+export const LongTextAiMetaProp = _LongTextAiMetaProp
+
+const uiTypes: UiTypesType[] = [
+  {
+    name: AIButton,
+    icon: iconMap.cellAiButton,
+    virtual: 1,
+    isNew: 1,
+    deprecated: 0,
+  },
+  {
+    name: AIPrompt,
+    icon: iconMap.cellAi,
+    isNew: 1,
+    deprecated: 0,
+  },
   {
     name: UITypes.Links,
     icon: iconMap.cellLinks,
@@ -11,7 +49,7 @@ const uiTypes = [
     name: UITypes.LinkToAnotherRecord,
     icon: iconMap.cellLinks,
     virtual: 1,
-    deprecated: 1,
+    deprecated: 0,
   },
   {
     name: UITypes.Lookup,
@@ -224,6 +262,7 @@ const isTypableInputColumn = (colOrUidt: ColumnType | UITypes) => {
     UITypes.JSON,
     UITypes.URL,
     UITypes.SpecificDBType,
+    UITypes.Geometry,
   ].includes(uidt)
 }
 
@@ -238,79 +277,61 @@ const isColumnSupportsGroupBySettings = (colOrUidt: ColumnType) => {
   return [UITypes.SingleSelect, UITypes.User, UITypes.CreatedBy, UITypes.Checkbox, UITypes.Rating].includes(uidt)
 }
 
-const isColumnInvalid = (col: ColumnType) => {
+const isColumnInvalid = (
+  col: ColumnType,
+  aiIntegrations: Partial<IntegrationType>[] = [],
+  isReadOnly = false,
+): { isInvalid: boolean; tooltip: string; ignoreTooltip?: boolean } => {
+  const result = {
+    isInvalid: false,
+    tooltip: 'msg.invalidColumnConfiguration',
+    ignoreTooltip: false,
+  }
+
   switch (col.uidt) {
     case UITypes.Formula:
-      return !!(col.colOptions as FormulaType).error
+      result.isInvalid = !!(col.colOptions as FormulaType).error
+      break
     case UITypes.Button: {
       const colOptions = col.colOptions as ButtonType
-      if (colOptions.type === 'webhook') {
-        return !colOptions.fk_webhook_id
-      } else if (colOptions.type === 'url') {
-        return !!colOptions.error
+
+      if (isAiButton(col) && isReadOnly) {
+        result.isInvalid = true
+        result.ignoreTooltip = true
+      } else if (colOptions.type === ButtonActionsType.Webhook) {
+        result.isInvalid = !colOptions.fk_webhook_id
+      } else if (colOptions.type === ButtonActionsType.Url) {
+        result.isInvalid = !!colOptions.error
+      } else if (colOptions.type === ButtonActionsType.AI) {
+        result.isInvalid =
+          !colOptions.fk_integration_id ||
+          (isReadOnly
+            ? false
+            : !!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
+        result.tooltip = 'title.aiIntegrationMissing'
       }
+      break
+    }
+    case UITypes.LongText: {
+      if (parseProp(col.meta)[LongTextAiMetaProp]) {
+        const colOptions = col.colOptions as ButtonType
+
+        result.isInvalid =
+          !colOptions.fk_integration_id ||
+          (isReadOnly
+            ? false
+            : !!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
+
+        result.tooltip = 'title.aiIntegrationMissing'
+      }
+      break
     }
   }
 
-  if (col.uidt === UITypes.Formula) {
-    return !!(col.colOptions as FormulaType).error
-  }
+  return result
 }
 
 // cater existing v1 cases
-const checkboxIconList = [
-  {
-    checked: 'mdi-check-bold',
-    unchecked: 'mdi-crop-square',
-  },
-  {
-    checked: 'mdi-check-circle-outline',
-    unchecked: 'mdi-checkbox-blank-circle-outline',
-  },
-  {
-    checked: 'mdi-star',
-    unchecked: 'mdi-star-outline',
-  },
-  {
-    checked: 'mdi-heart',
-    unchecked: 'mdi-heart-outline',
-  },
-  {
-    checked: 'mdi-moon-full',
-    unchecked: 'mdi-moon-new',
-  },
-  {
-    checked: 'mdi-thumb-up',
-    unchecked: 'mdi-thumb-up-outline',
-  },
-  {
-    checked: 'mdi-flag',
-    unchecked: 'mdi-flag-outline',
-  },
-]
-
-const ratingIconList = [
-  {
-    full: 'mdi-star',
-    empty: 'mdi-star-outline',
-  },
-  {
-    full: 'mdi-heart',
-    empty: 'mdi-heart-outline',
-  },
-  {
-    full: 'mdi-moon-full',
-    empty: 'mdi-moon-new',
-  },
-  {
-    full: 'mdi-thumb-up',
-    empty: 'mdi-thumb-up-outline',
-  },
-  {
-    full: 'mdi-flag',
-    empty: 'mdi-flag-outline',
-  },
-]
 
 function extractCheckboxIcon(meta: string | Record<string, any> = null) {
   const parsedMeta = parseProp(meta)
@@ -348,6 +369,53 @@ function extractRatingIcon(meta: string | Record<string, any> = null) {
   return icon
 }
 
+const formViewHiddenColTypes = [
+  UITypes.Rollup,
+  UITypes.Lookup,
+  UITypes.Formula,
+  UITypes.QrCode,
+  UITypes.Barcode,
+  UITypes.Button,
+  UITypes.SpecificDBType,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+  AIButton,
+]
+
+const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
+
+const getColumnValidationError = (column: ColumnType, value?: any) => {
+  if (!columnToValidate.includes(column.uidt as UITypes) || !parseProp(column.meta)?.validate) return ''
+  let cdfValue: any = column.cdf
+  if (!ncIsUndefined(value)) {
+    cdfValue = value
+  }
+
+  switch (column.uidt) {
+    case UITypes.URL: {
+      if (!cdfValue?.trim() || isValidURL(cdfValue?.trim())) return ''
+
+      return 'msg.error.invalidURL'
+    }
+    case UITypes.Email: {
+      if (!cdfValue || validateEmail(cdfValue)) return ''
+
+      return 'msg.error.invalidEmail'
+    }
+    case UITypes.PhoneNumber: {
+      if (!cdfValue || isMobilePhone(cdfValue)) return ''
+
+      return 'msg.invalidPhoneNumber'
+    }
+
+    default: {
+      return ''
+    }
+  }
+}
+
 export {
   uiTypes,
   isTypableInputColumn,
@@ -362,4 +430,7 @@ export {
   ratingIconList,
   extractCheckboxIcon,
   extractRatingIcon,
+  formViewHiddenColTypes,
+  columnToValidate,
+  getColumnValidationError,
 }

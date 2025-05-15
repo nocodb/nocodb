@@ -14,6 +14,7 @@ import { WorkspaceMenuObject } from '../common/WorkspaceMenu';
 import { GroupPageObject } from './Group';
 import { ColumnHeaderPageObject } from './columnHeader';
 import { AggregaionBarPage } from './AggregationBar';
+import { ExpandTablePageObject } from './ExpandTable';
 
 export class GridPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -32,6 +33,7 @@ export class GridPage extends BasePage {
   readonly rowPage: RowPageObject;
   readonly groupPage: GroupPageObject;
   readonly aggregationBar: AggregaionBarPage;
+  readonly expandTableOverlay: ExpandTablePageObject;
 
   readonly btn_addNewRow: Locator;
 
@@ -52,6 +54,7 @@ export class GridPage extends BasePage {
     this.rowPage = new RowPageObject(this);
     this.groupPage = new GroupPageObject(this);
     this.aggregationBar = new AggregaionBarPage(this);
+    this.expandTableOverlay = new ExpandTablePageObject(this);
 
     this.btn_addNewRow = this.get().locator('.nc-grid-add-new-cell');
   }
@@ -72,6 +75,16 @@ export class GridPage extends BasePage {
     await this.toolbar.verifyCollaborativeMode();
     await this.footbar.verifyCollaborativeMode();
     await this.columnHeader.verifyCollaborativeMode();
+  }
+
+  async verifyPersonalMode() {
+    // add new row button
+    expect(await this.btn_addNewRow.count()).toBe(1);
+
+    // the behaviour is same as lock mode
+    await this.toolbar.verifyPersonalMode();
+    await this.footbar.verifyPersonalMode();
+    await this.columnHeader.verifyPersonalMode();
   }
 
   get() {
@@ -290,7 +303,20 @@ export class GridPage extends BasePage {
 
   async openExpandedRow({ index }: { index: number }) {
     await this.row(index).locator(`td[data-testid="cell-Id-${index}"]`).hover();
-    await this.row(index).locator(`div[data-testid="nc-expand-${index}"]`).click();
+
+    const expandLocator = this.row(index).locator(`div[data-testid="nc-expand-${index}"]`);
+
+    // If commentCount is shown
+    const commentSpan = expandLocator.locator('> span');
+
+    // Otherwise, the fallback icon container
+    const iconDiv = expandLocator.locator('> div');
+
+    if (await commentSpan.isVisible()) {
+      await commentSpan.click();
+    } else {
+      await iconDiv.click();
+    }
   }
 
   async selectRow(index: number) {
@@ -375,37 +401,13 @@ export class GridPage extends BasePage {
     await expect(this.get().locator(`.nc-pagination .total`)).toHaveText(count);
   }
 
-  async clickPagination({
-    type,
-    skipWait = false,
-  }: {
-    type: 'first-page' | 'last-page' | 'next-page' | 'prev-page';
-    skipWait?: boolean;
-  }) {
-    if (await this.get().locator('.nc-pagination').isHidden()) return;
-
-    if (!skipWait) {
-      await this.get().locator(`.nc-pagination .${type}`).click();
-      await this.waitLoading();
-    } else {
-      await this.waitForResponse({
-        uiAction: async () => (await this.get().locator(`.nc-pagination .${type}`)).click(),
-        httpMethodsToMatch: ['GET'],
-        requestUrlPathToMatch: '/views/',
-        responseJsonMatcher: resJson => resJson?.pageInfo,
-      });
-
-      await this.waitLoading();
-    }
+  async clickPagination(_params: { type: 'first-page' | 'last-page' | 'next-page' | 'prev-page'; skipWait?: boolean }) {
+    // No longer required due to implementation of InfiniteScroll
+    return;
   }
 
-  async verifyActivePage({ pageNumber }: { pageNumber: string }) {
-    if (await this.get().locator('.nc-pagination').isHidden()) {
-      expect(1).toBe(+pageNumber);
-      return;
-    }
-
-    await expect(this.get().locator(`.nc-pagination .nc-current-page`).first()).toHaveText(pageNumber);
+  async verifyActivePage(_params: { pageNumber: string }) {
+    return;
   }
 
   async waitLoading() {

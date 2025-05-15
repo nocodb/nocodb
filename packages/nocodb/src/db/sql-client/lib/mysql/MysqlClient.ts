@@ -15,6 +15,7 @@ import KnexClient from '../KnexClient';
 import queries from './mysql.queries';
 import fakerFunctionList from './fakerFunctionList';
 import * as findDataType from './findDataTypeMapping';
+import deepClone from '~/helpers/deepClone';
 
 const log = new Debug('MysqlClient');
 const evt = new Emit();
@@ -300,9 +301,9 @@ class MysqlClient extends KnexClient {
 
     try {
       // create a new knex client without database param
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
+      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+      connectionParamsWithoutDb.connection.password =
+        this.connectionConfig.connection.password;
 
       delete connectionParamsWithoutDb.connection.database;
 
@@ -2164,7 +2165,7 @@ class MysqlClient extends KnexClient {
 
       await this.sqlClient.raw(upQuery);
 
-      console.log(upQuery);
+      // console.log(upQuery);
 
       result.data.object = {
         upStatement: [{ sql: this.querySeparator() + upQuery }],

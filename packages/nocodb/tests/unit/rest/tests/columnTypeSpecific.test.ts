@@ -38,11 +38,6 @@ function columnTypeSpecificTests() {
       system: false,
     },
     {
-      title: 'DateField',
-      uidt: UITypes.Date,
-      system: false,
-    },
-    {
       title: 'CreatedAt',
       uidt: UITypes.CreatedTime,
       system: true,
@@ -61,6 +56,16 @@ function columnTypeSpecificTests() {
       title: 'nc_updated_by',
       uidt: UITypes.LastModifiedBy,
       system: true,
+    },
+    {
+      title: 'nc_order',
+      uidt: UITypes.Order,
+      system: true,
+    },
+    {
+      title: 'DateField',
+      uidt: UITypes.Date,
+      system: false,
     },
   ];
 
@@ -173,7 +178,7 @@ function columnTypeSpecificTests() {
       const rowAttributes: any = [];
       for (let i = 0; i < 100; i++) {
         const row = {
-          DateField: rowMixedValue(columns[1], i),
+          DateField: rowMixedValue(columns[6], i),
         };
         rowAttributes.push(row);
       }
@@ -413,6 +418,7 @@ function columnTypeSpecificTests() {
           id: context.user.id,
           email: context.user.email,
           display_name: context.user.display_name,
+          meta: context.user.meta,
         });
 
         expect(columns.columns[defaultTableColumns.length + 1].title).to.equal(
@@ -500,7 +506,7 @@ function columnTypeSpecificTests() {
         // get all columns
         let columns = await getColumnsByAPI(context, base, table);
         // delete the field
-        await deleteColumn(context, { table, column: columns.columns[6] });
+        await deleteColumn(context, { table, column: columns.columns[7] });
         // create column again
         await createColumn(context, table, {
           title: 'CreatedBy',

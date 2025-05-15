@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ProjectRoles, type RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
+import { NON_SEAT_ROLES, type PlanLimitExceededDetailsType, ProjectRoles, type RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
 
 import { extractEmail } from '../../helpers/parsers/parserHelpers'
 
@@ -22,11 +22,14 @@ const { createProjectUser } = basesStore
 
 const { inviteCollaborator: inviteWsCollaborator } = workspaceStore
 
+const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan } = useEeConfig()
+
 const dialogShow = useVModel(props, 'modelValue', emit)
 
 const orderedRoles = computed(() => {
   return props.type === 'base' ? ProjectRoles : WorkspaceUserRoles
 })
+
 const userRoles = computed(() => {
   return props.type === 'base' ? baseRoles?.value : workspaceRoles?.value
 })
@@ -81,6 +84,8 @@ const focusOnDiv = () => {
   isDivFocused.value = true
 }
 
+const { t } = useI18n()
+
 watch(dialogShow, async (newVal) => {
   if (newVal) {
     try {
@@ -124,7 +129,7 @@ const insertOrUpdateString = (str: string) => {
   emailBadges.value.push(str)
 }
 
-const emailInputValidation = (input: string, isBulkEmailCopyPaste: boolean = false): boolean => {
+const emailInputValidation = (input: string, isBulkEmailCopyPaste = false): boolean => {
   if (!input.length) {
     if (isBulkEmailCopyPaste) return false
 
@@ -151,6 +156,10 @@ const isInviteButtonDisabled = computed(() => {
   }
 })
 
+const showUserWillChargedWarning = computed(() => {
+  return isPaidPlan.value && !NON_SEAT_ROLES.includes(inviteData.roles) && !!emailBadges.value.length
+})
+
 watch(inviteData, (newVal) => {
   // when user only want to enter a single email
   // we don't convert that as badge
@@ -173,7 +182,7 @@ watch(inviteData, (newVal) => {
       return
     }
     /**
-     if email is already enterd we delete the already
+     if email is already entered we delete the already
      existing email and add new one
      **/
     if (emailBadges.value.includes(emailToAdd)) {
@@ -221,7 +230,7 @@ const onPaste = (e: ClipboardEvent) => {
 
   const inputArray = pastedText?.split(',') || pastedText?.split(' ')
 
-  // if data is pasted to a already existing text in input
+  // if data is pasted to an already existing text in input
   // we add existingInput + pasted data
   if (inputArray?.length === 1 && inviteData.email.length) {
     inputArray[0] = inviteData.email += inputArray[0]
@@ -235,7 +244,7 @@ const onPaste = (e: ClipboardEvent) => {
     if (!isEmailIsValid) return
 
     /**
-     if email is already enterd we delete the already
+     if email is already entered we delete the already
      existing email and add new one
      **/
     if (emailBadges.value.includes(el)) {
@@ -274,12 +283,38 @@ const inviteCollaborator = async () => {
       }
     }
 
-    message.success('Invitation sent successfully')
+    message.success(t('msg.info.inviteSent'))
     inviteData.email = ''
     emailBadges.value = []
     dialogShow.value = false
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+    if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+      let errorWsId
+      if (props.type === 'workspace' && props.workspaceId) {
+        errorWsId = props.workspaceId
+      } else if (props.type === 'organization') {
+        // We have to extract ws id from request url as we are making multple api calls
+        errorWsId = e?.config?.url?.split('/')?.[4]
+      }
+
+      const details = errorInfo.details as PlanLimitExceededDetailsType
+
+      showUserPlanLimitExceededModal({
+        details,
+        role: inviteData.roles,
+        callback(type) {
+          if (type === 'ok') {
+            dialogShow.value = false
+          }
+        },
+        workspaceId: errorWsId,
+        isAdminPanel: props.type === 'organization',
+      })
+    } else {
+      message.error(errorInfo.message)
+    }
   } finally {
     singleEmailValue.value = ''
     isLoading.value = false
@@ -323,9 +358,9 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
             ref="divRef"
             :class="{
               'border-primary/100': isDivFocused,
-              'p-1': emailBadges?.length > 1,
+              'p-1': emailBadges?.length > 0,
             }"
-            class="flex items-center border-1 gap-1 w-full overflow-x-scroll nc-scrollbar-x-md items-center h-10 rounded-lg !min-w-96"
+            class="flex items-center flex-wrap border-1 gap-1 w-full overflow-x-scroll nc-scrollbar-x-md min-h-10 rounded-lg !min-w-96"
             tabindex="0"
             @blur="isDivFocused = false"
             @click="focusOnDiv"
@@ -333,12 +368,12 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
             <span
               v-for="(email, index) in emailBadges"
               :key="email"
-              class="border-1 text-gray-800 first:ml-1 bg-gray-100 rounded-md flex items-center px-2 py-1"
+              class="border-1 text-nc-content-gray bg-nc-bg-gray-light rounded-md flex items-center px-1 whitespace-nowrap"
             >
               {{ email }}
               <component
                 :is="iconMap.close"
-                class="ml-0.5 hover:cursor-pointer mt-0.5 w-4 h-4"
+                class="ml-0.5 hover:(cursor-pointer text-nc-content-gray-subtle) mt-0.5 w-4 h-4 text-nc-content-gray-subtle2"
                 @click="emailBadges.splice(index, 1)"
               />
             </span>
@@ -348,22 +383,24 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
               v-model="inviteData.email"
               :disabled="isLoading"
               :placeholder="$t('activity.enterEmail')"
-              class="w-full min-w-36 outline-none px-2"
+              class="flex-1 min-w-36 outline-none px-2"
               data-testid="email-input"
               @blur="isDivFocused = false"
               @keyup.enter="handleEnter"
               @paste.prevent="onPaste"
             />
           </div>
-          <RolesSelector
-            :description="false"
-            :on-role-change="onRoleChange"
-            :role="inviteData.roles"
-            :disabled-roles="disabledRoles"
-            :roles="allowedRoles"
-            class="!min-w-[152px] nc-invite-role-selector"
-            size="lg"
-          />
+          <div class="flex items-center">
+            <RolesSelector
+              :description="false"
+              :on-role-change="onRoleChange"
+              :role="inviteData.roles"
+              :disabled-roles="disabledRoles"
+              :roles="allowedRoles"
+              class="!min-w-[152px] nc-invite-role-selector"
+              size="lg"
+            />
+          </div>
         </div>
 
         <span v-if="emailValidation.isError && emailValidation.message" class="ml-2 text-red-500 text-[10px] mt-1.5">{{
@@ -417,15 +454,15 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
                   </a-input>
                 </div>
 
-                <div class="flex flex-col max-h-64 overflow-y-auto nc-scrollbar-md mt-2">
+                <div class="flex flex-col max-h-64 overflow-y-auto nc-scrollbar-md mt-2 px-2">
                   <div
                     v-for="ws in workSpaceSelectList"
                     :key="ws.id"
-                    class="px-4 cursor-pointer hover:bg-gray-100 rounded-lg h-9.5 py-2 w-full flex gap-2"
+                    class="px-2 cursor-pointer hover:bg-gray-100 rounded-lg h-9.5 py-2 w-full flex gap-2"
                     @click="checked[ws.id!] = !checked[ws.id!]"
                   >
                     <div class="flex gap-2 capitalize items-center">
-                      <GeneralWorkspaceIcon :hide-label="true" :workspace="ws" size="small" />
+                      <GeneralWorkspaceIcon :workspace="ws" size="medium" />
                       {{ ws.title }}
                     </div>
                     <div class="flex-1" />
@@ -439,6 +476,15 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
         </template>
       </div>
     </div>
+
+    <NcAlert
+      :visible="showUserWillChargedWarning"
+      type="warning"
+      :message="$t('upgrade.newEditorWillBeChanged')"
+      :description="$t('upgrade.newEditorWillBeChangedSubtitle')"
+      class="mt-5"
+    />
+
     <div class="flex mt-8 justify-end">
       <div class="flex gap-2">
         <NcButton type="secondary" @click="dialogShow = false"> {{ $t('labels.cancel') }} </NcButton>

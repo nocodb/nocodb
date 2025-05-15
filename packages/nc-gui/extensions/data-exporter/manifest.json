@@ -23,7 +23,7 @@
     }
   ],
   "config": {
-    "modalSize": "sm",
-    "contentMinHeight": "310px"
-  }
+    "contentMinHeight": "110px"
+  },
+  "order": 2
 }

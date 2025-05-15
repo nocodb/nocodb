@@ -141,8 +141,18 @@ export const extractFieldValidator = (_validators: Validation[], element: Column
   return rules
 }
 
+/**
+ * @description:
+ * This function sanitizes field names to ensure they are valid for form validation and avoid issues with nested object notation.
+ * - Replaces dots ('.') with underscores ('_') because dot notation is used to access object properties in many form validation libraries (e.g., useForm),
+ *   and having dots can cause the field to be treated as a nested object rather than a simple property.
+ * - Replaces square brackets ('[]') with underscores ('_') to avoid the field being interpreted as an array or nested structure.
+ *
+ * This ensures the field names are flat, unique, and compatible with form validation libraries.
+ * If the sanitized name already exists, a counter is appended to make it unique.
+ */
 export const getValidFieldName = (title: string, uniqueFieldNames: Set<string>) => {
-  title = title.replace(/\./g, '_')
+  title = title.replace(/\./g, '_').replace(/\[|\]/g, '_')
   let counter = 1
 
   let newTitle = title

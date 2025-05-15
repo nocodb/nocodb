@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -38,8 +38,6 @@ const options = computed<ColumnType[]>(
           }
 
           return showSystemFields.value
-        } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID) {
-          return false
         } else {
           /** ignore hasmany and manytomany relations if it's using within group menu */
           return !(

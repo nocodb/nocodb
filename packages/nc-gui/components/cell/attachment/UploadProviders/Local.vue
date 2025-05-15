@@ -6,6 +6,8 @@ const emits = defineEmits<{
   'upload': [fileList: File[]]
 }>()
 
+const { isMobileMode } = useGlobal()
+
 const dropZoneRef = ref<HTMLDivElement>()
 
 const tempFiles = ref<File[]>([])
@@ -116,7 +118,7 @@ onBeforeUnmount(() => {
       <div v-if="!tempFiles.length" class="flex cursor-pointer items-center justify-center flex-col gap-4">
         <template v-if="!isOverDropZone">
           <component :is="iconMap.upload" class="w-8 h-8 text-gray-500" />
-          <h1>
+          <span class="p-4">
             {{ $t('labels.clickTo') }}
 
             <span class="font-semibold text-brand-500"> {{ $t('labels.browseFiles') }} </span>
@@ -124,7 +126,7 @@ onBeforeUnmount(() => {
             <span class="font-semibold"> {{ $t('labels.dragFilesHere') }} </span>
 
             {{ $t('labels.toUpload') }}
-          </h1>
+          </span>
         </template>
         <template v-if="isOverDropZone">
           <component :is="iconMap.upload" class="w-8 text-brand-500 h-8" />
@@ -135,13 +137,13 @@ onBeforeUnmount(() => {
         <div
           class="grid overflow-y-auto flex-grow-1 nc-scrollbar-md grid-cols-4 w-full h-full items-start py-2 justify-center gap-4"
         >
-          <div v-for="file in tempFiles" :key="file.name" class="flex gap-1.5 group min-w-34 max-w-28 pb-4 flex-col relative">
+          <div v-for="file in tempFiles" :key="file.name" class="flex gap-1.5 group max-w-34 pb-4 flex-col relative">
             <div
               v-if="!thumbnails.get(file)"
               style="height: 140px"
               class="flex items-center justify-center rounded-md bg-gray-300"
             >
-              <component :is="iconMap.file" class="w-16 h-16" />
+              <component :is="iconMap.file" :class="isMobileMode ? 'w-12 h-12' : 'w-16 h-16'" />
             </div>
             <img v-else :src="thumbnails.get(file)" style="height: 140px" alt="thumbnail" class="rounded-md object-cover" />
 

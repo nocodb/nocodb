@@ -44,7 +44,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
   const tables = computed(() => baseTables.value.get(param.baseId) || [])
   const base = computed(() => bases.value.get(param.baseId))
 
-  const openTable = async (table: SidebarTableNode, cmdOrCtrl: boolean = false, navigate: boolean = true) => {
+  const openTable = async (table: SidebarTableNode, cmdOrCtrl = false, navigate = true) => {
     if (!table.base_id) return
 
     let base = bases.value.get(table.base_id)
@@ -192,7 +192,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
   )
 
   const generateUniqueTitle = () => {
-    table.title = generateTitle('Table', tables.value, 'title')
+    table.title = generateTitle(t('objects.table'), tables.value, 'title')
   }
 
   const deleteTable = (table: TableType) => {

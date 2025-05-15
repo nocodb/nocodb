@@ -134,7 +134,7 @@ test.describe('Page history', () => {
     await openedPage.tiptap.addNewNode({
       index: 1,
       type: 'Image',
-      filePath: `${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`,
+      filePath: `${__dirname}/../../fixtures/sampleFiles/sampleImage.jpeg`,
     });
     await page.waitForTimeout(500);
     await openedPage.tiptap.fillContent({

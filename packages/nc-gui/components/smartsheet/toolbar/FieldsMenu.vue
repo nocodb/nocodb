@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { CalendarType, ColumnType, GalleryType, KanbanType, LookupType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { type CalendarType, type ColumnType, type GalleryType, type KanbanType, type LookupType, isLinksOrLTAR } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
@@ -15,9 +15,13 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
 
 const { isMobileMode } = useGlobal()
 
+const { isUIAllowed } = useRoles()
+
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
+
+const readOnly = inject(ReadonlyInj, ref(false))
 
 const isToolbarIconMode = inject(
   IsToolbarIconMode,
@@ -46,7 +50,9 @@ const {
   isLocalMode,
 } = useViewColumnsOrThrow()
 
-const { eventBus, isDefaultView } = useSmartsheetStoreOrThrow()
+const { eventBus, isDefaultView, isSqlView } = useSmartsheetStoreOrThrow()
+
+const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -115,7 +121,7 @@ const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } },
     )
 
     await loadViewColumns()
-
+    reloadViewDataHook.trigger()
     $e('a:fields:reorder')
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -304,9 +310,29 @@ const onHideAll = () => {
   hideAll()
 }
 
+const visibleFields = computed(
+  () =>
+    fields.value?.filter((field: Field) => {
+      if (!field.initialShow && isLocalMode.value) {
+        return false
+      }
+
+      if (metaColumnById?.value?.[field.fk_column_id!]?.pv) {
+        return false
+      }
+
+      // hide system columns if not enabled
+      if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
+        return false
+      }
+
+      return true
+    }) || [],
+)
+
 const showAllColumns = computed({
   get: () => {
-    return filteredFieldList.value?.every((field) => field.show)
+    return visibleFields.value?.every((field) => field?.show)
   },
   set: async (val) => {
     if (val) {
@@ -377,7 +403,7 @@ watch(
           }
         }) ?? []
 
-    coverOptions.value = [{ value: null, label: 'No Image' }, ...filterFields]
+    coverOptions.value = [{ value: null, label: t('labels.noImage') }, ...filterFields]
 
     const lookupColumns = newValue
       .filter((f) => f.fk_column_id && metaColumnById.value[f.fk_column_id].uidt === UITypes.Lookup)
@@ -426,7 +452,59 @@ watch(
   },
 )
 
-useMenuCloseOnEsc(open)
+const addColumnDropdown = ref(false)
+
+const openSubmenusCount = ref(0)
+const lookupDropdownsTickle = ref(0)
+
+function scrollToLatestField() {
+  setTimeout(() => {
+    document.querySelector('.nc-fields-menu-item:last-child')?.scrollIntoView({ behavior: 'smooth' })
+  }, 500)
+}
+
+const showAddLookupDropdown = (field: Field) => {
+  if (!field.fk_column_id) return false
+
+  return !!(isAddingColumnAllowed.value && !isLocalMode.value && isLinksOrLTAR(meta.value?.columnsById?.[field.fk_column_id]))
+}
+
+function conditionalToggleFieldVisibility(field: Field) {
+  if (showAddLookupDropdown(field) || isLocked.value) {
+    return
+  }
+
+  field.show = !field.show
+  toggleFieldVisibility(field.show, field)
+}
+
+function handleFieldVisibilityClick(field: Field) {
+  if (isLinksOrLTAR(meta.value?.columnsById?.[field.fk_column_id!])) {
+    field.show = !field.show
+    toggleFieldVisibility(field.show, field)
+  }
+}
+
+function onColumnSubmitted() {
+  addColumnDropdown.value = false
+  scrollToLatestField()
+}
+
+const editOrAddProviderRef = ref()
+
+const onFieldsMenuDropdownVisibilityChange = (value: boolean) => {
+  if (!value && addColumnDropdown.value) {
+    open.value = true
+  }
+}
+
+const onAddColumnDropdownVisibilityChange = () => {
+  addColumnDropdown.value = true
+
+  if (editOrAddProviderRef.value && !editOrAddProviderRef.value?.shouldKeepModalOpen()) {
+    addColumnDropdown.value = false
+  }
+}
 </script>
 
 <template>
@@ -434,7 +512,9 @@ useMenuCloseOnEsc(open)
     v-model:visible="open"
     :trigger="['click']"
     class="!xs:hidden"
-    overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown"
+    overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown overflow-hidden"
+    :auto-close="openSubmenusCount === 0"
+    @visible-change="onFieldsMenuDropdownVisibilityChange"
   >
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': numberOfHiddenFields }">
       <template #title>
@@ -447,10 +527,10 @@ useMenuCloseOnEsc(open)
 
       <NcButton
         v-e="['c:fields']"
-        :disabled="isLocked"
         class="nc-fields-menu-btn nc-toolbar-btn !h-7 !border-0"
         size="small"
         type="secondary"
+        :show-as-disabled="isLocked"
       >
         <div class="flex items-center gap-1">
           <div class="flex items-center gap-2 min-h-5">
@@ -462,7 +542,7 @@ useMenuCloseOnEsc(open)
             <component :is="iconMap.fields" v-else class="h-4 w-4" />
 
             <!-- Fields -->
-            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
+            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-small1 font-medium">
               <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
                 {{ $t('title.editCards') }}
               </template>
@@ -471,7 +551,7 @@ useMenuCloseOnEsc(open)
               </template>
             </span>
           </div>
-          <span v-if="numberOfHiddenFields" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">
+          <span v-if="numberOfHiddenFields" class="bg-brand-50 text-brand-500 nc-toolbar-btn-chip">
             {{ numberOfHiddenFields }}
           </span>
         </div>
@@ -479,25 +559,25 @@ useMenuCloseOnEsc(open)
     </NcTooltip>
 
     <template #overlay>
-      <div
-        class="pt-2 bg-white w-full min-w-72 max-w-80 rounded-lg nc-table-toolbar-menu"
-        data-testid="nc-fields-menu"
-        @click.stop
-      >
+      <div class="bg-white w-[320px] rounded-lg nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
         <div
           v-if="!isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
-          class="flex items-center gap-2 px-2 mb-4 w-80"
+          class="flex items-center gap-2 p-2 w-80 border-b-1 border-gray-100"
         >
           <div class="pl-2 flex text-sm select-none text-gray-600">{{ $t('labels.coverImageField') }}</div>
 
           <div
             class="flex-1 nc-dropdown-cover-image-wrapper flex items-stretch border-1 border-gray-200 rounded-lg transition-all duration-0.3s max-w-[206px]"
+            :class="{
+              'nc-disabled': isLocked,
+            }"
           >
             <a-select
               v-model:value="coverImageColumnId"
               class="flex-1 max-w-[calc(100%_-_33px)]"
               dropdown-class-name="nc-dropdown-cover-image !rounded-lg"
               :bordered="false"
+              :disabled="isLocked"
               @click.stop
             >
               <template #suffixIcon><GeneralIcon class="text-gray-700" icon="arrowDown" /></template>
@@ -533,8 +613,16 @@ useMenuCloseOnEsc(open)
                 </div>
               </a-select-option>
             </a-select>
-            <NcDropdown v-if="coverImageObjectFit" v-model:visible="coverImageObjectFitDropdown.isOpen" placement="bottomRight">
-              <button class="flex items-center px-2 border-l-1 border-gray-200 cursor-pointer">
+            <NcDropdown
+              v-if="coverImageObjectFit"
+              v-model:visible="coverImageObjectFitDropdown.isOpen"
+              :disabled="isLocked"
+              placement="bottomRight"
+            >
+              <button
+                class="flex items-center px-2 border-l-1 border-gray-200 disabled:(cursor-not-allowed opacity-80)"
+                :disabled="isLocked"
+              >
                 <GeneralIcon
                   icon="settings"
                   class="h-4 w-4"
@@ -573,18 +661,36 @@ useMenuCloseOnEsc(open)
           </div>
         </div>
 
-        <div class="px-2" @click.stop>
+        <div class="py-2" @click.stop>
           <a-input
             ref="fieldsMenuSearchRef"
             v-model:value="filterQuery"
             :placeholder="$t('placeholder.searchFields')"
-            class="nc-toolbar-dropdown-search-field-input"
+            class="nc-toolbar-dropdown-search-field-input !border-none !shadow-none !h-8"
           >
-            <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
-          ></a-input>
+            <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1 ml-2" /> </template>
+            <template #suffix>
+              <div class="pl-2 flex">
+                <NcSwitch
+                  v-model:checked="showAllColumns"
+                  :disabled="
+                    !searchCompare(
+                      fields?.map((f) => f.title),
+                      filterQuery,
+                    ) || isLocked
+                  "
+                  size="xsmall"
+                  class="!mr-1 nc-fields-toggle-show-all-fields"
+                />
+              </div>
+            </template>
+          </a-input>
         </div>
 
-        <div class="flex flex-col mt-2 pb-2 nc-scrollbar-thin max-h-[47vh] px-2">
+        <div
+          class="flex flex-col nc-scrollbar-thin max-h-[315px] min-h-[240px] p-2 overflow-y-auto border-t-1 border-nc-border-gray-medium"
+          style="scrollbar-gutter: stable !important"
+        >
           <div class="nc-fields-list">
             <div
               v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
@@ -602,6 +708,7 @@ useMenuCloseOnEsc(open)
               v-model="fields"
               item-key="id"
               ghost-class="nc-fields-menu-items-ghost"
+              :disabled="isLocked"
               @change="onMove($event)"
               @start="isDragging = true"
               @end="isDragging = false"
@@ -615,69 +722,126 @@ useMenuCloseOnEsc(open)
                   "
                   :key="field.id"
                   :data-testid="`nc-fields-menu-${field.title}`"
-                  class="pl-2 flex flex-row items-center rounded-md hover:bg-gray-100"
+                  class="nc-fields-menu-item pl-2 flex flex-row items-center rounded-md"
+                  :class="{
+                    'hover:bg-gray-100': !isLocked,
+                  }"
                   @click.stop
                 >
-                  <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
-                  <div
-                    v-e="['a:fields:show-hide']"
-                    class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[5px] pr-2"
-                    @click="
-                      () => {
-                        field.show = !field.show
-                        toggleFieldVisibility(field.show, field)
-                      }
-                    "
+                  <component
+                    :is="iconMap.drag"
+                    class="!h-3.75 text-gray-600 mr-1"
+                    :class="{
+                      'cursor-not-allowed': isLocked,
+                      'cursor-move': !isLocked,
+                    }"
+                  />
+                  <SmartsheetToolbarAddLookupsDropdown
+                    v-if="metas"
+                    :key="lookupDropdownsTickle"
+                    :column="meta?.columnsById?.[field.fk_column_id!]!"
+                    :disabled="!showAddLookupDropdown(field)"
+                    @created="lookupDropdownsTickle++"
+                    @update:is-opened="openSubmenusCount += $event === true ? 1 : -1"
                   >
-                    <component :is="getIcon(metaColumnById[field.fk_column_id])" class="!w-3.5 !h-3.5 !text-gray-500" />
-                    <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only :disabled="isDragging">
-                      <template #title>
-                        {{ field.title }}
-                      </template>
-                      <template #default>{{ field.title }}</template>
-                    </NcTooltip>
-                    <div v-if="activeView.type === ViewTypes.CALENDAR" class="flex mr-2">
-                      <NcButton
+                    <div
+                      v-e="['a:fields:show-hide']"
+                      class="flex flex-row items-center w-full truncate ml-1 py-[5px] pr-2"
+                      :class="{
+                        'cursor-pointer': !isLocked,
+                      }"
+                      @click="conditionalToggleFieldVisibility(field)"
+                    >
+                      <component
+                        :is="getIcon(metaColumnById[field.fk_column_id])"
+                        class="!w-3.5 !h-3.5 !text-gray-600"
+                        @click.stop
+                      />
+
+                      <NcTooltip
+                        class="pl-1 truncate"
                         :class="{
-                          '!bg-gray-800 !text-white': field.bold,
+                          'mr-3 flex-1': !showAddLookupDropdown(field),
                         }"
-                        class="!rounded-r-none !w-5 !h-5"
-                        size="xxsmall"
-                        type="secondary"
-                        @click.stop="toggleFieldStyles(field, 'bold', !field.bold)"
+                        show-on-truncate-only
+                        :disabled="isDragging"
                       >
-                        <component :is="iconMap.bold" class="!w-3 !h-3" />
-                      </NcButton>
-                      <NcButton
-                        :class="{
-                          '!bg-gray-800 !text-white': field.italic,
-                        }"
-                        class="!rounded-x-none !border-x-0 !w-5 !h-5"
-                        size="xxsmall"
-                        type="secondary"
-                        @click.stop="toggleFieldStyles(field, 'italic', !field.italic)"
-                      >
-                        <component :is="iconMap.italic" class="!w-3 !h-3" />
-                      </NcButton>
-                      <NcButton
-                        :class="{
-                          '!bg-gray-800 !text-white': field.underline,
-                        }"
-                        class="!rounded-l-none !w-5 !h-5"
-                        size="xxsmall"
-                        type="secondary"
-                        @click.stop="toggleFieldStyles(field, 'underline', !field.underline)"
-                      >
-                        <component :is="iconMap.underline" class="!w-3 !h-3" />
-                      </NcButton>
+                        <template #title>
+                          {{ field.title }}
+                        </template>
+                        <template #default>
+                          {{ field.title }}
+                        </template>
+                      </NcTooltip>
+                      <div v-if="showAddLookupDropdown(field)" class="flex-1 flex mr-3">
+                        <GeneralIcon icon="chevronRight" class="flex-none" />
+                      </div>
+
+                      <div v-if="activeView.type === ViewTypes.CALENDAR" class="flex mr-2">
+                        <NcButton
+                          :class="{
+                            '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.bold,
+                            '!rounded-r-none': field.italic,
+                          }"
+                          class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
+                          size="xsmall"
+                          type="text"
+                          :disabled="isLocked"
+                          @click.stop="toggleFieldStyles(field, 'bold', !field.bold)"
+                        >
+                          <component :is="iconMap.bold" class="!w-3.5 !h-3.5" />
+                          <div
+                            v-if="field.bold"
+                            class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white"
+                          />
+                        </NcButton>
+                        <NcButton
+                          :class="{
+                            '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.italic,
+                            '!rounded-l-none': field.bold,
+                            '!rounded-r-none': field.underline,
+                          }"
+                          class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
+                          size="xsmall"
+                          type="text"
+                          :disabled="isLocked"
+                          @click.stop="toggleFieldStyles(field, 'italic', !field.italic)"
+                        >
+                          <component :is="iconMap.italic" class="!w-3.5 !h-3.5" />
+                          <div
+                            v-if="field.italic"
+                            class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white"
+                          />
+                        </NcButton>
+                        <NcButton
+                          :class="{
+                            '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.underline,
+                            '!rounded-l-none': field.italic,
+                          }"
+                          class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
+                          size="xsmall"
+                          type="text"
+                          :disabled="isLocked"
+                          @click.stop="toggleFieldStyles(field, 'underline', !field.underline)"
+                        >
+                          <component :is="iconMap.underline" class="!w-3.5 !h-3.5" />
+                          <div
+                            v-if="field.underline"
+                            class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white"
+                          />
+                        </NcButton>
+                      </div>
+                      <span @click.stop="conditionalToggleFieldVisibility(field)">
+                        <NcSwitch
+                          :checked="field.show"
+                          :disabled="field.isViewEssentialField || isLocked"
+                          size="xxsmall"
+                          @change="$e('a:fields:show-hide')"
+                          @click="handleFieldVisibilityClick(field)"
+                        />
+                      </span>
                     </div>
-                    <NcSwitch
-                      :checked="field.show"
-                      :disabled="field.isViewEssentialField"
-                      size="xsmall"
-                      @change="$e('a:fields:show-hide')"
-                    />
-                  </div>
+                  </SmartsheetToolbarAddLookupsDropdown>
 
                   <div class="flex-1" />
                 </div>
@@ -685,26 +849,58 @@ useMenuCloseOnEsc(open)
             </Draggable>
           </div>
         </div>
-        <div v-if="!filterQuery" class="flex px-2 gap-2 py-2">
-          <NcButton class="nc-fields-show-all-fields" size="small" type="ghost" @click="showAllColumns = !showAllColumns">
-            {{ showAllColumns ? $t('general.hideAll') : $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}
-          </NcButton>
+
+        <div
+          v-if="!isLocalMode && !filterQuery"
+          class="flex px-2 gap-1 py-2 border-t-1 justify-between border-nc-border-gray-medium"
+        >
           <NcButton
-            v-if="!isLocalMode"
-            class="nc-fields-show-system-fields"
+            class="nc-fields-show-system-fields !px-2 !font-semibold"
             size="small"
-            type="ghost"
+            type="text"
+            :disabled="isLocked"
             @click="showSystemField = !showSystemField"
           >
-            {{ showSystemField ? $t('title.hideSystemFields') : $t('activity.showSystemFields') }}
+            <GeneralIcon :icon="showSystemField ? 'eyeSlash' : 'eye'" class="!w-4 !h-4 mr-2" />
+            <span> {{ $t('title.systemFields') }} </span>
           </NcButton>
+          <NcDropdown
+            v-if="isAddingColumnAllowed"
+            v-model:visible="addColumnDropdown"
+            :trigger="['click']"
+            overlay-class-name="nc-dropdown-add-column !bg-transparent !border-none !shadow-none"
+            placement="right"
+            @visible-change="onAddColumnDropdownVisibilityChange"
+          >
+            <NcButton class="nc-fields-add-new-field !font-semibold !px-2" size="small" type="text">
+              <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1" />
+              <span>{{ t('general.new') }} {{ t('objects.field') }}</span>
+            </NcButton>
+            <template #overlay>
+              <div class="nc-edit-or-add-provider-wrapper">
+                <LazySmartsheetColumnEditOrAddProvider
+                  v-if="addColumnDropdown"
+                  ref="editOrAddProviderRef"
+                  @submit="onColumnSubmitted()"
+                  @cancel="addColumnDropdown = false"
+                  @click.stop
+                  @keydown.stop
+                />
+              </div>
+            </template>
+          </NcDropdown>
         </div>
+
+        <GeneralLockedViewFooter v-if="isLocked" @on-open="open = false" />
       </div>
     </template>
   </NcDropdown>
 </template>
 
 <style lang="scss" scoped>
+:deep(.nc-toolbar-dropdown-search-field-input .ant-input::placeholder) {
+  @apply text-gray-500;
+}
 :deep(.xxsmall) {
   @apply !min-w-0;
 }
@@ -713,9 +909,10 @@ useMenuCloseOnEsc(open)
   @apply bg-gray-50;
 }
 
-.nc-fields-show-all-fields,
-.nc-fields-show-system-fields {
-  @apply !text-xs !w-1/2 !text-gray-500 !border-none bg-gray-100 hover:(!text-gray-600 bg-gray-200);
+.nc-fields-add-new-field {
+  &:not(:disabled) {
+    @apply text-primary hover:text-primary;
+  }
 }
 
 .nc-cover-image-object-fit-dropdown-menu {
@@ -725,10 +922,10 @@ useMenuCloseOnEsc(open)
 }
 .nc-dropdown-cover-image-wrapper {
   @apply h-8;
-  &:not(:focus-within) {
+  &:not(.nc-disabled):not(:focus-within) {
     @apply shadow-default hover:shadow-hover;
   }
-  &:focus-within {
+  &:not(.nc-disabled):focus-within {
     @apply shadow-selected border-brand-500;
   }
 }

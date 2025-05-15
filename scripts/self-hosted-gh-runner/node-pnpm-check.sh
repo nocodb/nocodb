@@ -6,7 +6,7 @@
 # docker image created from /Users/rajanishgj/Documents/GitHub/nocohub/tests/docker/Dockerfile
 #
 
-NC_REQ_NODE_V="18.17.1"
+NC_REQ_NODE_V="22.12.0"
 NC_REQ_PNPM_V="8.8.0"
 
 NODE_PATH="/home/docker/actions-runner/_work/_tool/node/${NC_REQ_NODE_V}/x64/bin/node"

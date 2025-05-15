@@ -4,13 +4,7 @@ definePageMeta({
   hasSidebar: true,
 })
 
-const dialogOpen = ref(false)
-
-const openDialogKey = ref<string>('')
-
-const dataSourcesState = ref<string>('')
-
-const baseId = ref<string>()
+const { isSharedBase, isSharedErd } = storeToRefs(useBase())
 
 const basesStore = useBases()
 
@@ -102,14 +96,15 @@ onMounted(() => {
   })
 })
 
-function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: string) {
-  dialogOpen.value = value ?? !dialogOpen.value
-  openDialogKey.value = key || ''
-  dataSourcesState.value = dsState || ''
-  baseId.value = pId || ''
-}
-
-provide(ToggleDialogInj, toggleDialog)
+watch(
+  [() => isSharedFormView.value, () => isSharedView.value, () => isSharedBase.value, () => isSharedErd.value],
+  (arr) => {
+    addConfirmPageLeavingRedirectToWindow(!arr.some(Boolean))
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -128,12 +123,6 @@ provide(ToggleDialogInj, toggleDialog)
         <NuxtPage />
       </template>
     </NuxtLayout>
-    <LazyDashboardSettingsModal
-      v-model:model-value="dialogOpen"
-      v-model:open-key="openDialogKey"
-      v-model:data-sources-state="dataSourcesState"
-      :base-id="baseId"
-    />
     <DlgSharedBaseDuplicate v-if="isUIAllowed('baseDuplicate')" v-model="isDuplicateDlgOpen" />
   </div>
 </template>

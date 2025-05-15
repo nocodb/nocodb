@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import { LoadingOutlined } from '@ant-design/icons-vue'
 
-const props = defineProps<{
+export interface GeneralLoaderProps {
   size?: 'small' | 'medium' | 'large' | 'xlarge' | 'regular' | number
   loaderClass?: string
-}>()
+}
+
+const props = defineProps<GeneralLoaderProps>()
 
 function getFontSize() {
   const { size = 'medium' } = props

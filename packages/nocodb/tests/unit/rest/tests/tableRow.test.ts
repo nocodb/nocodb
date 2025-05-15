@@ -80,6 +80,7 @@ function tableStaticTest() {
       throw new Error('Wrong number of rows');
     }
 
+    console.log('response.body.list[0]', response.body.list[0]);
     if (!isColumnsCorrectInResponse(response.body.list[0], customerColumns)) {
       throw new Error('Wrong columns');
     }
@@ -101,6 +102,7 @@ function tableStaticTest() {
       throw new Error('Wrong number of rows');
     }
 
+    console.log('response.body.list[0]', response.body.list[0]);
     if (!isColumnsCorrectInResponse(response.body.list[0], requiredColumns)) {
       throw new Error('Wrong columns');
     }

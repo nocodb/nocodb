@@ -3,7 +3,7 @@ import { UITypes, isSelectTypeCol } from 'nocodb-sdk'
 
 const { formState, activeField, updateColMeta, isRequired } = useFormViewStoreOrThrow()
 
-const { betaFeatureToggleState } = useBetaFeatureToggle()
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const updateSelectFieldLayout = (value: boolean) => {
   if (!activeField.value) return
@@ -13,7 +13,7 @@ const updateSelectFieldLayout = (value: boolean) => {
 }
 
 const columnSupportsScanning = (elementType: UITypes) =>
-  betaFeatureToggleState.show &&
+  isFeatureEnabled(FEATURE_FLAG.FORM_SUPPORT_COLUMN_SCANNING) &&
   [UITypes.SingleLineText, UITypes.Number, UITypes.Email, UITypes.URL, UITypes.LongText].includes(elementType)
 </script>
 

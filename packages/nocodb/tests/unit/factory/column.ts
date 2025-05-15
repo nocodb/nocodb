@@ -1,304 +1,889 @@
 import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
-import Model from '../../../src/models/Model';
-import { isPg, isSqlite } from '../init/db';
-import type Column from '../../../src/models/Column';
-import type FormViewColumn from '../../../src/models/FormViewColumn';
-import type GalleryViewColumn from '../../../src/models/GalleryViewColumn';
-import type GridViewColumn from '../../../src/models/GridViewColumn';
-import type Base from '~/models/Base';
-import type View from '../../../src/models/View';
 
-const defaultColumns = function (context) {
+import {
+  Base,
+  FormViewColumn,
+  GridViewColumn,
+  GalleryViewColumn,
+  Column,
+  View,
+  Model,
+} from '../../../src/models';
+import init from '../init';
+
+type Context = Awaited<ReturnType<typeof init>>;
+
+const defaultColumns = function (
+  context: Context,
+  isV3: boolean = false,
+  optionsOverride: Record<string, any> = {},
+) {
   return [
-    {
-      column_name: 'id',
-      title: 'Id',
-      uidt: 'ID',
-    },
-    {
-      column_name: 'title',
-      title: 'Title',
-      uidt: 'SingleLineText',
-    },
-    {
-      cdf: isPg(context) ? 'now()' : 'CURRENT_TIMESTAMP',
-      column_name: 'created_at',
-      title: 'CreatedAt',
-      dtxp: '',
-      dtxs: '',
-      uidt: 'CreatedTime',
-      system: true,
-      dt: isPg(context) ? 'timestamp without time zone' : undefined,
-    },
-    {
-      cdf: isSqlite(context)
-        ? 'CURRENT_TIMESTAMP'
-        : isPg(context)
-        ? 'now()'
-        : 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP',
-      column_name: 'updated_at',
-      title: 'UpdatedAt',
-      dtxp: '',
-      dtxs: '',
-      uidt: 'LastModifiedTime',
-      system: true,
-      dt: isPg(context) ? 'timestamp without time zone' : undefined,
-    },
+    isV3
+      ? {
+          title: 'Id',
+          type: UITypes.ID,
+          description: `Test ${UITypes.ID}`,
+          options: {
+            ...optionsOverride['Id'],
+          },
+        }
+      : {
+          column_name: 'id',
+          title: 'Id',
+          uidt: UITypes.ID,
+          description: `Test ${UITypes.ID}`,
+          ...optionsOverride['Id'],
+        },
+    isV3
+      ? {
+          title: 'Title',
+          type: UITypes.SingleLineText,
+          description: `Title ${UITypes.SingleLineText}`,
+          options: {
+            ...optionsOverride['Title'],
+          },
+        }
+      : {
+          column_name: 'title',
+          title: 'Title',
+          uidt: UITypes.SingleLineText,
+          description: `Title ${UITypes.SingleLineText}`,
+          ...optionsOverride['Title'],
+        },
+    // isV3
+    //   ? {
+    //       title: 'CreatedAt',
+    //       type: UITypes.CreatedTime,
+    //       description: `CreatedAt ${UITypes.CreatedTime}`,
+    //       options: {
+    //         ...optionsOverride['CreatedAt'],
+    //       },
+    //     }
+    //   : {
+    //       column_name: 'created_at',
+    //       title: 'CreatedAt',
+    //       uidt: UITypes.CreatedTime,
+    //       description: `CreatedAt ${UITypes.CreatedTime}`,
+    //       ...optionsOverride['CreatedAt'],
+    //     },
+    // isV3
+    //   ? {
+    //       title: 'UpdatedAt',
+    //       type: UITypes.LastModifiedTime,
+    //       description: `UpdatedAt ${UITypes.LastModifiedTime}`,
+    //       options: {
+    //         ...optionsOverride['UpdateAt'],
+    //       },
+    //     }
+    //   : {
+    //       column_name: 'updated_at',
+    //       title: 'UpdatedAt',
+    //       uidt: UITypes.LastModifiedTime,
+    //       description: `UpdatedAt ${UITypes.LastModifiedTime}`,
+    //       ...optionsOverride['UpdateAt'],
+    //     },
+    // isV3
+    //   ? {
+    //       title: 'CreatedBy',
+    //       type: UITypes.CreatedBy,
+    //       description: `CreatedBy ${UITypes.CreatedBy}`,
+    //       options: {
+    //         ...optionsOverride['CreatedBy'],
+    //       },
+    //     }
+    //   : {
+    //       column_name: 'created_by',
+    //       title: 'CreatedBy',
+    //       uidt: UITypes.CreatedBy,
+    //       description: `CreatedBy ${UITypes.CreatedBy}`,
+    //       ...optionsOverride['CreatedBy'],
+    //     },
+    // isV3
+    //   ? {
+    //       title: 'UpdatedBy',
+    //       type: UITypes.LastModifiedBy,
+    //       description: `UpdatedBy ${UITypes.LastModifiedBy}`,
+    //       options: {
+    //         ...optionsOverride['UpdatedBy'],
+    //       },
+    //     }
+    //   : {
+    //       column_name: 'updated_by',
+    //       title: 'UpdatedBy',
+    //       uidt: UITypes.LastModifiedBy,
+    //       description: `UpdatedBy ${UITypes.LastModifiedBy}`,
+    //       ...optionsOverride['UpdatedBy'],
+    //     },
   ];
 };
 
-const customColumns = function (type: string, options: any = {}) {
+const customColumns = function (
+  type: string,
+  options: any = {},
+  optionsOverride: any = {},
+  isV3: boolean = false,
+) {
   switch (type) {
     case 'textBased':
       return [
-        {
-          column_name: 'id',
-          title: 'Id',
-          uidt: UITypes.ID,
-        },
-        {
-          column_name: 'SingleLineText',
-          title: 'SingleLineText',
-          uidt: UITypes.SingleLineText,
-        },
-        {
-          column_name: 'MultiLineText',
-          title: 'MultiLineText',
-          uidt: UITypes.LongText,
-        },
-        {
-          column_name: 'Email',
-          title: 'Email',
-          uidt: UITypes.Email,
-        },
-        {
-          column_name: 'Phone',
-          title: 'Phone',
-          uidt: UITypes.PhoneNumber,
-        },
-        {
-          column_name: 'Url',
-          title: 'Url',
-          uidt: UITypes.URL,
-        },
+        isV3
+          ? {
+              title: 'id',
+              type: UITypes.ID,
+              description: `id ${UITypes.ID}`,
+              options: {
+                ...options['id'],
+              },
+            }
+          : {
+              column_name: 'id',
+              title: 'Id',
+              uidt: UITypes.ID,
+              description: `id ${UITypes.ID}`,
+              ...options['id'],
+            },
+        isV3
+          ? {
+              title: 'SingleLineText',
+              type: UITypes.SingleLineText,
+              description: `SingleLineText ${UITypes.SingleLineText}`,
+              options: {
+                ...optionsOverride['SingleLineText'],
+              },
+            }
+          : {
+              column_name: 'SingleLineText',
+              title: 'SingleLineText',
+              uidt: UITypes.SingleLineText,
+              description: `SingleLineText ${UITypes.SingleLineText}`,
+            },
+        isV3
+          ? {
+              title: 'MultiLineText',
+              type: UITypes.LongText,
+              description: `MultiLineText ${UITypes.LongText}`,
+              options: {
+                rich_text: true,
+                generate_text_using_ai: true,
+                ...optionsOverride['MultiLineText'],
+              },
+            }
+          : {
+              column_name: 'MultiLineText',
+              title: 'MultiLineText',
+              uidt: UITypes.LongText,
+              description: `MultiLineText ${UITypes.LongText}`,
+              meta: {
+                richText: true,
+                ...optionsOverride['MultiLineText'],
+              },
+            },
+        isV3
+          ? {
+              title: 'Email',
+              type: UITypes.Email,
+              description: `Email ${UITypes.Email}`,
+              options: {
+                validation: true,
+                ...optionsOverride['Email'],
+              },
+            }
+          : {
+              column_name: 'Email',
+              title: 'Email',
+              uidt: UITypes.Email,
+              meta: {
+                validation: true,
+                ...optionsOverride['Email'],
+              },
+            },
+        isV3
+          ? {
+              title: 'Phone',
+              type: UITypes.PhoneNumber,
+              description: `Phone ${UITypes.PhoneNumber}`,
+              options: {
+                validation: true,
+                ...optionsOverride['Phone'],
+              },
+            }
+          : {
+              column_name: 'Phone',
+              title: 'Phone',
+              uidt: UITypes.PhoneNumber,
+              meta: {
+                validation: true,
+                ...optionsOverride['Phone'],
+              },
+            },
+        isV3
+          ? {
+              title: 'Url',
+              type: UITypes.URL,
+              description: `Url ${UITypes.URL}`,
+              options: {
+                validation: true,
+                ...optionsOverride['Url'],
+              },
+            }
+          : {
+              column_name: 'Url',
+              title: 'Url',
+              uidt: UITypes.URL,
+              meta: {
+                validation: true,
+                ...optionsOverride['Url'],
+              },
+            },
       ];
     case 'numberBased':
       return [
-        {
-          column_name: 'id',
-          title: 'Id',
-          uidt: UITypes.ID,
-        },
-        {
-          column_name: 'Number',
-          title: 'Number',
-          uidt: UITypes.Number,
-        },
-        {
-          column_name: 'Decimal',
-          title: 'Decimal',
-          uidt: UITypes.Decimal,
-        },
-        {
-          column_name: 'Currency',
-          title: 'Currency',
-          uidt: UITypes.Currency,
-        },
-        {
-          column_name: 'Percent',
-          title: 'Percent',
-          uidt: UITypes.Percent,
-        },
-        {
-          column_name: 'Duration',
-          title: 'Duration',
-          uidt: UITypes.Duration,
-        },
-        {
-          column_name: 'Rating',
-          title: 'Rating',
-          uidt: UITypes.Rating,
-        },
+        isV3
+          ? {
+              title: 'id',
+              type: UITypes.ID,
+              description: `id ${UITypes.ID}`,
+              options: {
+                ...optionsOverride['id'],
+              },
+            }
+          : {
+              column_name: 'id',
+              title: 'Id',
+              uidt: UITypes.ID,
+              meta: {
+                ...optionsOverride['id'],
+              },
+            },
+        isV3
+          ? {
+              title: 'Number',
+              type: UITypes.Number,
+              description: `Number ${UITypes.Number}`,
+              options: {
+                precision: 4,
+                allow_negative: false,
+                ...optionsOverride['Number'],
+              },
+            }
+          : {
+              column_name: 'Number',
+              title: 'Number',
+              uidt: UITypes.Number,
+              meta: {
+                ...optionsOverride['Number'],
+              },
+            },
+        isV3
+          ? {
+              title: 'Decimal',
+              type: UITypes.Decimal,
+              description: `Decimal ${UITypes.Decimal}`,
+              options: {
+                precision: 4,
+                allow_negative: false,
+                ...optionsOverride['Decimal'],
+              },
+            }
+          : {
+              column_name: 'Decimal',
+              title: 'Decimal',
+              uidt: UITypes.Decimal,
+              meta: {
+                ...optionsOverride['Decimal'],
+              },
+            },
+        isV3
+          ? {
+              title: 'Currency',
+              type: UITypes.Currency,
+              description: `Currency ${UITypes.Currency}`,
+              options: {
+                locale: 'en-USD',
+                code: 'USD',
+                ...optionsOverride['Currency'],
+              },
+            }
+          : {
+              column_name: 'Currency',
+              title: 'Currency',
+              uidt: UITypes.Currency,
+              meta: {
+                currency_locale: 'en-USD',
+                currency_code: 'USD',
+                ...optionsOverride['Currency'],
+              },
+            },
+        isV3
+          ? {
+              title: 'Percent',
+              type: UITypes.Percent,
+              description: `Percent ${UITypes.Percent}`,
+              options: {
+                precision: 4,
+                show_as_progress: true,
+                ...optionsOverride['Percent'],
+              },
+            }
+          : {
+              column_name: 'Percent',
+              title: 'Percent',
+              uidt: UITypes.Percent,
+              meta: {
+                is_progress: true,
+                ...optionsOverride['Percent'],
+              },
+            },
+        isV3
+          ? {
+              title: 'Duration',
+              type: UITypes.Duration,
+              description: `Duration ${UITypes.Duration}`,
+              options: {
+                format: 'h:mm',
+                ...optionsOverride['Duration'],
+              },
+            }
+          : {
+              column_name: 'Duration',
+              title: 'Duration',
+              uidt: UITypes.Duration,
+              meta: {
+                duration: 0,
+                ...optionsOverride['Duration'],
+              },
+            },
+        isV3
+          ? {
+              title: 'Rating',
+              type: UITypes.Rating,
+              description: `Rating ${UITypes.Rating}`,
+              options: {
+                icon: 'Check',
+                max_value: 5,
+                color: '#232323',
+                ...optionsOverride['Rating'],
+              },
+            }
+          : {
+              column_name: 'Rating',
+              title: 'Rating',
+              uidt: UITypes.Rating,
+              meta: {
+                iconIdx: 'Check',
+                max: 5,
+                color: '#232323',
+                ...optionsOverride['Rating'],
+              },
+            },
       ];
     case 'dateBased':
       return [
-        {
-          column_name: 'id',
-          title: 'Id',
-          uidt: UITypes.ID,
-        },
-        {
-          column_name: 'Date',
-          title: 'Date',
-          uidt: UITypes.Date,
-        },
-        {
-          column_name: 'DateTime',
-          title: 'DateTime',
-          uidt: UITypes.DateTime,
-        },
+        isV3
+          ? {
+              title: 'id',
+              type: UITypes.ID,
+              description: `id ${UITypes.ID}`,
+              options: {
+                ...optionsOverride['id'],
+              },
+            }
+          : {
+              column_name: 'id',
+              title: 'Id',
+              uidt: UITypes.ID,
+            },
+        isV3
+          ? {
+              title: 'Date',
+              type: UITypes.Date,
+              description: `Date ${UITypes.Date}`,
+              options: {
+                date_format: 'YYYY/MM/DD',
+                time_format: undefined,
+                '12hr_format': undefined,
+                ...optionsOverride['Date'],
+              },
+            }
+          : {
+              column_name: 'Date',
+              title: 'Date',
+              uidt: UITypes.Date,
+              meta: {
+                date_format: 'YYYY/MM/DD',
+                ...optionsOverride['Date'],
+              },
+            },
+        isV3
+          ? {
+              title: 'DateTime',
+              type: UITypes.DateTime,
+              description: `DateTime ${UITypes.DateTime}`,
+              options: {
+                date_format: 'YYYY/MM/DD',
+                time_format: 'h:mm:ss',
+                '12hr_format': true,
+                ...optionsOverride['DateTime'],
+              },
+            }
+          : {
+              column_name: 'DateTime',
+              title: 'DateTime',
+              uidt: UITypes.DateTime,
+              meta: {
+                date_format: 'YYYY/MM/DD',
+                time_format: 'h:mm:ss',
+                '12hr_format': true,
+                ...optionsOverride['DateTime'],
+              },
+            },
       ];
     case 'selectBased':
       return [
-        {
-          column_name: 'id',
-          title: 'Id',
-          uidt: UITypes.ID,
-        },
-        {
-          column_name: 'SingleSelect',
-          title: 'SingleSelect',
-          uidt: UITypes.SingleSelect,
-          dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
-        },
-        {
-          column_name: 'MultiSelect',
-          title: 'MultiSelect',
-          uidt: UITypes.MultiSelect,
-          dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
-        },
+        isV3
+          ? {
+              title: 'id',
+              type: UITypes.ID,
+              description: `id ${UITypes.ID}`,
+              options: {
+                ...optionsOverride['id'],
+              },
+            }
+          : {
+              column_name: 'id',
+              title: 'Id',
+              uidt: UITypes.ID,
+            },
+        isV3
+          ? {
+              title: 'SingleSelect',
+              type: UITypes.SingleSelect,
+              description: `SingleSelect ${UITypes.SingleSelect}`,
+              options: {
+                choices: [
+                  { title: 'Morning', color: '#122334' },
+                  { title: 'Afternoon', color: '#1d2334' },
+                  { title: 'Evening', color: '#122f34' },
+                  ...(optionsOverride['SingleSelect-ColOptions'] || []),
+                ],
+                ...optionsOverride['SingleSelect'],
+              },
+            }
+          : {
+              column_name: 'SingleSelect',
+              title: 'SingleSelect',
+              uidt: UITypes.SingleSelect,
+              dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+            },
+        isV3
+          ? {
+              title: 'MultiSelect',
+              type: UITypes.MultiSelect,
+              description: `MultiSelect ${UITypes.MultiSelect}`,
+              options: {
+                choices: [
+                  { title: 'Morning', color: '#122334' },
+                  { title: 'Afternoon', color: '#1d2334' },
+                  { title: 'Evening', color: '#122f34' },
+                  ...(optionsOverride['MultiSelect-ColOptions'] || []),
+                ],
+                ...optionsOverride['MultiSelect'],
+              },
+            }
+          : {
+              column_name: 'MultiSelect',
+              title: 'MultiSelect',
+              uidt: UITypes.MultiSelect,
+              dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+          },
       ];
     case 'userBased':
       return [
-        {
-          column_name: 'id',
-          title: 'Id',
-          uidt: UITypes.ID,
-        },
-        {
-          column_name: 'userFieldSingle',
-          title: 'userFieldSingle',
-          uidt: UITypes.User,
-        },
-        {
-          column_name: 'userFieldMulti',
-          title: 'userFieldMulti',
-          uidt: UITypes.User,
-          meta: { is_multi: true },
-        },
+        isV3
+          ? {
+              title: 'id',
+              type: UITypes.ID,
+              description: `id ${UITypes.ID}`,
+              options: {
+                ...optionsOverride['id'],
+              },
+            }
+          : {
+              column_name: 'id',
+              title: 'Id',
+              uidt: UITypes.ID,
+            },
+        isV3
+          ? {
+              title: 'userFieldSingle',
+              type: UITypes.User,
+              description: `userFieldSingle ${UITypes.User}`,
+              options: {
+                allow_multiple_users: false,
+                notify_when_user_added: true,
+                ...optionsOverride['userFieldSingle'],
+              },
+            }
+          : {
+              column_name: 'userFieldSingle',
+              title: 'userFieldSingle',
+              uidt: UITypes.User,
+              meta: {
+                is_multi: false,
+                ...optionsOverride['userFieldSingle'],
+              },
+            },
+        isV3
+          ? {
+              title: 'userFieldMulti',
+              type: UITypes.User,
+              description: `userFieldMulti ${UITypes.User}`,
+              options: {
+                allow_multiple_users: true,
+                notify_when_user_added: true,
+                ...optionsOverride['userFieldMulti'],
+              },
+            }
+          : {
+              column_name: 'userFieldMulti',
+              title: 'userFieldMulti',
+              uidt: UITypes.User,
+              meta: {
+                is_multi: true,
+                ...optionsOverride['userFieldMulti']
+              },
+            },
       ];
     case 'aggregationBased':
       return [
-        {
-          column_name: 'Id',
-          title: 'Id',
-          uidt: UITypes.ID,
-          ai: 1,
-          pk: 1,
-        },
-        {
-          column_name: 'SingleLineText',
-          title: 'Title',
-          uidt: UITypes.SingleLineText,
-        },
-        {
-          column_name: 'Attachment',
-          title: 'Attachment',
-          uidt: UITypes.Attachment,
-        },
-        {
-          column_name: 'User',
-          title: 'User',
-          uidt: UITypes.User,
-        },
-        {
-          column_name: 'LongText',
-          title: 'LongText',
-          uidt: UITypes.LongText,
-        },
-        {
-          column_name: 'Number',
-          title: 'Number',
-          uidt: UITypes.Number,
-        },
-        {
-          column_name: 'Decimal',
-          title: 'Decimal',
-          uidt: UITypes.Decimal,
-        },
-        {
-          column_name: 'Checkbox',
-          title: 'Checkbox',
-          uidt: UITypes.Checkbox,
-        },
-        {
-          column_name: 'MultiSelect',
-          title: 'MultiSelect',
-          uidt: UITypes.MultiSelect,
-          dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
-        },
-        {
-          column_name: 'SingleSelect',
-          title: 'SingleSelect',
-          uidt: UITypes.SingleSelect,
-          dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
-        },
-        {
-          column_name: 'Date',
-          title: 'Date',
-          uidt: UITypes.Date,
-        },
-        {
-          column_name: 'DateTime',
-          title: 'DateTime',
-          uidt: UITypes.DateTime,
-        },
-        {
-          column_name: 'Year',
-          title: 'Year',
-          uidt: UITypes.Year,
-        },
-        {
-          column_name: 'Time',
-          title: 'Time',
-          uidt: UITypes.Time,
-        },
-        {
-          column_name: 'PhoneNumber',
-          title: 'PhoneNumber',
-          uidt: UITypes.PhoneNumber,
-        },
-        {
-          column_name: 'Email',
-          title: 'Email',
-          uidt: UITypes.Email,
-        },
-        {
-          column_name: 'Url',
-          title: 'Url',
-          uidt: UITypes.URL,
-        },
-        {
-          column_name: 'Currency',
-          title: 'Currency',
-          uidt: UITypes.Currency,
-        },
-        {
-          column_name: 'Percent',
-          title: 'Percent',
-          uidt: UITypes.Percent,
-        },
-        {
-          column_name: 'Duration',
-          title: 'Duration',
-          uidt: UITypes.Duration,
-        },
-        {
-          column_name: 'Rating',
-          title: 'Rating',
-          uidt: UITypes.Rating,
-        },
-        {
-          column_name: 'Geometry',
-          title: 'Geometry',
-          uidt: UITypes.Geometry,
-        },
-        {
-          column_name: 'JSON',
-          title: 'JSON',
-          uidt: UITypes.JSON,
-        },
+        isV3
+          ? {
+              title: 'Id',
+              type: UITypes.ID,
+              description: `Id ${UITypes.ID}`,
+              options: {
+                ...optionsOverride['Id'],
+              },
+            }
+          : {
+              column_name: 'Id',
+              title: 'Id',
+              uidt: UITypes.ID,
+              ai: 1,
+              pk: 1,
+            },
+        isV3
+          ? {
+              title: 'SingleLineText',
+              type: UITypes.SingleLineText,
+              description: `SingleLineText ${UITypes.SingleLineText}`,
+              options: {
+                ...optionsOverride['SingleLineText'],
+              },
+            }
+          : {
+              column_name: 'SingleLineText',
+              title: 'Title',
+              uidt: UITypes.SingleLineText,
+            },
+        isV3
+          ? {
+              title: 'Attachment',
+              type: UITypes.Attachment,
+              description: `Attachment ${UITypes.Attachment}`,
+              options: {
+                ...optionsOverride['Attachment'],
+              },
+            }
+          : {
+              column_name: 'Attachment',
+              title: 'Attachment',
+              uidt: UITypes.Attachment,
+            },
+        isV3
+          ? {
+              title: 'User',
+              type: UITypes.User,
+              description: `User ${UITypes.User}`,
+              options: {
+                ...optionsOverride['User'],
+              },
+            }
+          : {
+              column_name: 'User',
+              title: 'User',
+              uidt: UITypes.User,
+            },
+        isV3
+          ? {
+              title: 'LongText',
+              type: UITypes.LongText,
+              description: `LongText ${UITypes.LongText}`,
+              options: {
+                ...optionsOverride['LongText'],
+              },
+            }
+          : {
+              column_name: 'LongText',
+              title: 'LongText',
+              uidt: UITypes.LongText,
+            },
+        isV3
+          ? {
+              title: 'Number',
+              type: UITypes.Number,
+              description: `Number ${UITypes.Number}`,
+              options: {
+                ...optionsOverride['Number'],
+              },
+            }
+          : {
+              column_name: 'Number',
+              title: 'Number',
+              uidt: UITypes.Number,
+            },
+        isV3
+          ? {
+              title: 'Decimal',
+              type: UITypes.Decimal,
+              description: `Decimal ${UITypes.Decimal}`,
+              options: {
+                ...optionsOverride['Decimal'],
+              },
+            }
+          : {
+              column_name: 'Decimal',
+              title: 'Decimal',
+              uidt: UITypes.Decimal,
+            },
+        isV3
+          ? {
+              title: 'Checkbox',
+              type: UITypes.Checkbox,
+              description: `Checkbox ${UITypes.Checkbox}`,
+              options: {
+                ...optionsOverride['Checkbox'],
+              },
+            }
+          : {
+              column_name: 'Checkbox',
+              title: 'Checkbox',
+              uidt: UITypes.Checkbox,
+            },
+        isV3
+          ? {
+              title: 'MultiSelect',
+              type: UITypes.MultiSelect,
+              description: `MultiSelect ${UITypes.MultiSelect}`,
+              options: {
+                ...optionsOverride['MultiSelect'],
+              },
+            }
+          : {
+              column_name: 'MultiSelect',
+              title: 'MultiSelect',
+              uidt: UITypes.MultiSelect,
+              dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+            },
+        isV3
+          ? {
+              title: 'SingleSelect',
+              type: UITypes.SingleSelect,
+              description: `SingleSelect ${UITypes.SingleSelect}`,
+              options: {
+                ...optionsOverride['SingleSelect'],
+              },
+            }
+          : {
+              column_name: 'SingleSelect',
+              title: 'SingleSelect',
+              uidt: UITypes.SingleSelect,
+              dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+            },
+        isV3
+          ? {
+              title: 'Date',
+              type: UITypes.Date,
+              description: `Date ${UITypes.Date}`,
+              options: {
+                ...optionsOverride['Date'],
+              },
+            }
+          : {
+              column_name: 'Date',
+              title: 'Date',
+              uidt: UITypes.Date,
+            },
+        isV3
+          ? {
+              title: 'DateTime',
+              type: UITypes.DateTime,
+              description: `DateTime ${UITypes.DateTime}`,
+              options: {
+                ...optionsOverride['DateTime'],
+              },
+            }
+          : {
+              column_name: 'DateTime',
+              title: 'DateTime',
+              uidt: UITypes.DateTime,
+            },
+        isV3
+          ? {
+              title: 'Year',
+              type: UITypes.Year,
+              description: `Year ${UITypes.Year}`,
+              options: {
+                ...optionsOverride['Year'],
+              },
+            }
+          : {
+              column_name: 'Year',
+              title: 'Year',
+              uidt: UITypes.Year,
+            },
+        isV3
+          ? {
+              title: 'Time',
+              type: UITypes.Time,
+              description: `Time ${UITypes.Time}`,
+              options: {
+                ...optionsOverride['Time'],
+              },
+            }
+          : {
+              column_name: 'Time',
+              title: 'Time',
+              uidt: UITypes.Time,
+            },
+        isV3
+          ? {
+              title: 'PhoneNumber',
+              type: UITypes.PhoneNumber,
+              description: `PhoneNumber ${UITypes.PhoneNumber}`,
+              options: {
+                ...optionsOverride['PhoneNumber'],
+              },
+            }
+          : {
+              column_name: 'PhoneNumber',
+              title: 'PhoneNumber',
+              uidt: UITypes.PhoneNumber,
+            },
+        isV3
+          ? {
+              title: 'Email',
+              type: UITypes.Email,
+              description: `Email ${UITypes.Email}`,
+              options: {
+                ...optionsOverride['Email'],
+              },
+            }
+          : {
+              column_name: 'Email',
+              title: 'Email',
+              uidt: UITypes.Email,
+            },
+        isV3
+          ? {
+              title: 'Url',
+              type: UITypes.URL,
+              description: `Url ${UITypes.URL}`,
+              options: {
+                ...optionsOverride['Url'],
+              },
+            }
+          : {
+              column_name: 'Url',
+              title: 'Url',
+              uidt: UITypes.URL,
+            },
+        isV3
+          ? {
+              title: 'Currency',
+              type: UITypes.Currency,
+              description: `Currency ${UITypes.Currency}`,
+              options: {
+                ...optionsOverride['Currency'],
+              },
+            }
+          : {
+              column_name: 'Currency',
+              title: 'Currency',
+              uidt: UITypes.Currency,
+            },
+        isV3
+          ? {
+              title: 'Percent',
+              type: UITypes.Percent,
+              description: `Percent ${UITypes.Percent}`,
+              options: {
+                ...optionsOverride['Percent'],
+              },
+            }
+          : {
+              column_name: 'Percent',
+              title: 'Percent',
+              uidt: UITypes.Percent,
+            },
+        isV3
+          ? {
+              title: 'Duration',
+              type: UITypes.Duration,
+              description: `Duration ${UITypes.Duration}`,
+              options: {
+                ...optionsOverride['Duration'],
+              },
+            }
+          : {
+              column_name: 'Duration',
+              title: 'Duration',
+              uidt: UITypes.Duration,
+            },
+        isV3
+          ? {
+              title: 'Rating',
+              type: UITypes.Rating,
+              description: `Rating ${UITypes.Rating}`,
+              options: {
+                ...optionsOverride['Rating'],
+              },
+            }
+          : {
+              column_name: 'Rating',
+              title: 'Rating',
+              uidt: UITypes.Rating,
+            },
+        isV3
+          ? {
+              title: 'Geometry',
+              type: UITypes.Geometry,
+              description: `Geometry ${UITypes.Geometry}`,
+              options: {
+                ...optionsOverride['Geometry'],
+              },
+            }
+          : {
+              column_name: 'Geometry',
+              title: 'Geometry',
+              uidt: UITypes.Geometry,
+            },
+        isV3
+          ? {
+              title: 'JSON',
+              type: UITypes.JSON,
+              description: `JSON ${UITypes.JSON}`,
+              options: {
+                ...optionsOverride['JSON'],
+              },
+            }
+          : {
+              column_name: 'JSON',
+              title: 'JSON',
+              uidt: UITypes.JSON,
+            },
       ];
 
     case 'custom':
@@ -306,7 +891,11 @@ const customColumns = function (type: string, options: any = {}) {
   }
 };
 
-const createColumn = async (context, table, columnAttr) => {
+const createColumn = async (
+  context: Context,
+  table: Model,
+  columnAttr: Record<string, any>,
+) => {
   const ctx = {
     workspace_id: table.fk_workspace_id,
     base_id: table.base_id,
@@ -326,7 +915,7 @@ const createColumn = async (context, table, columnAttr) => {
 };
 
 const createRollupColumn = async (
-  context,
+  context: Context,
   {
     base,
     title,
@@ -583,7 +1172,7 @@ const updateViewColumn = async (
 
   const updatedColumn: FormViewColumn | GridViewColumn | GalleryViewColumn = (
     await view.getColumns(ctx)
-  ).find((column) => column.id === column.id)!;
+  ).find((col) => col.id === column.id)!;
 
   return updatedColumn;
 };
@@ -605,7 +1194,7 @@ const updateColumn = async (
     });
 
   const updatedColumn: Column = (await table.getColumns(ctx)).find(
-    (column) => column.id === column.id,
+    (col) => col.id === column.id,
   );
   return updatedColumn;
 };

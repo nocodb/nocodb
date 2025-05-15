@@ -1,3 +1,5 @@
+import { ViewLockType } from 'nocodb-sdk'
+
 export { ClientType, IntegrationCategoryType, SyncDataType } from 'nocodb-sdk'
 
 export enum Language {
@@ -12,7 +14,7 @@ export enum Language {
   fa = 'فارسی',
   fi = 'Suomalainen',
   fr = 'Français',
-  he = 'עִברִית',
+  he = 'עברית',
   hi = 'हिन्दी',
   hr = 'Hrvatski',
   hu = 'Magyar',
@@ -50,11 +52,7 @@ export enum NavigateDir {
   PREV,
 }
 
-export enum LockType {
-  Personal = 'personal',
-  Locked = 'locked',
-  Collaborative = 'collaborative',
-}
+export { ViewLockType as LockType }
 
 export enum TabType {
   TABLE = 'table',
@@ -79,6 +77,17 @@ export enum SmartsheetStoreEvents {
   GROUP_BY_ADD = 'group-by-add',
   GROUP_BY_REMOVE = 'group-by-remove',
   FILTER_ADD = 'filter-add',
+  CELL_SELECTED = 'cell-selected',
+  FIELD_UPDATE = 'field-update',
+}
+
+export enum SmartsheetScriptActions {
+  UPDATE_PROGRESS = 'update-progress',
+  RESET_PROGRESS = 'reset-progress',
+  ACTION = 'action',
+
+  RELOAD_VIEW = 'reload-view',
+  RELOAD_ROW = 'reload-row',
 }
 
 export enum DataSourcesSubTab {
@@ -180,4 +189,10 @@ export enum ExtensionsEvents {
 
 export enum IntegrationStoreEvents {
   INTEGRATION_ADD = 'integration-add',
+}
+
+export enum WorkspaceIconType {
+  IMAGE = 'IMAGE',
+  EMOJI = 'EMOJI',
+  ICON = 'ICON',
 }

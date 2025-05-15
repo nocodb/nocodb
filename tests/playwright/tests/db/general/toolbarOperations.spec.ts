@@ -286,8 +286,6 @@ test.describe('Toolbar operations (GRID)', () => {
       title: 'Description',
       isVisible: true,
     });
-
-    await dashboard.closeTab({ title: 'Film' });
   });
 
   test('Create Three GroupBy and Verify With Sort, Filter, Hide', async () => {
@@ -563,9 +561,6 @@ test.describe('Toolbar operations (GRID)', () => {
   });
 
   test('Hide, Sort, Filter', async () => {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
-
     await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.grid.column.verify({
@@ -611,8 +606,6 @@ test.describe('Toolbar operations (GRID)', () => {
     // Reset filter
     await toolbar.filter.reset();
     await validateFirstRow('Afghanistan');
-
-    await dashboard.closeTab({ title: 'Country' });
   });
 
   test('row height', async () => {
@@ -624,8 +617,6 @@ test.describe('Toolbar operations (GRID)', () => {
       { title: 'Extra', height: '120px' },
     ];
 
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
 
     // set row height & verify

@@ -38,10 +38,14 @@ export default class GenericS3 implements IStorageAdapterV2 {
   }
 
   public async init(): Promise<any> {
-    // Placeholder, should be initalized in child class
+    // Placeholder, should be initialized in child class
   }
 
   protected patchKey(key: string): string {
+    return key;
+  }
+
+  protected patchUploadReturnKey(key: string): string {
     return key;
   }
 
@@ -64,14 +68,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
   }
 
   public async fileRead(key: string): Promise<any> {
-    const command = new GetObjectCommand({
-      Key: this.patchKey(key),
-      Bucket: this.input.bucket,
-    });
-
-    const { Body } = await this.s3Client.send(command);
-
-    const fileStream = Body as Readable;
+    const fileStream = await this.fileReadByStream(key);
 
     return new Promise((resolve, reject) => {
       const chunks: any[] = [];
@@ -104,7 +101,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
     options?: {
       mimetype?: string;
     },
-  ): Promise<void> {
+  ): Promise<string | null> {
     try {
       const streamError = new Promise<void>((_, reject) => {
         stream.on('error', (err) => {
@@ -182,16 +179,24 @@ export default class GenericS3 implements IStorageAdapterV2 {
 
       const data = await upload.done();
 
-      return data.Location;
+      return this.patchUploadReturnKey(data.Location);
     } catch (error) {
       console.error('Error uploading file', error);
       throw error;
     }
   }
 
-  // TODO - implement
-  fileReadByStream(_key: string): Promise<Readable> {
-    return Promise.resolve(undefined);
+  async fileReadByStream(key: string): Promise<Readable> {
+    const command = new GetObjectCommand({
+      Key: this.patchKey(key),
+      Bucket: this.input.bucket,
+    });
+
+    const { Body } = await this.s3Client.send(command);
+
+    const fileStream = Body as Readable;
+
+    return fileStream;
   }
 
   public async getDirectoryList(prefix: string): Promise<string[]> {

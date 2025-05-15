@@ -26,6 +26,7 @@ const workspaceStore = useWorkspace()
 const { inviteCollaborator: _inviteCollaborator } = workspaceStore
 const { isInvitingCollaborators } = storeToRefs(workspaceStore)
 const { workspaceRoles } = useRoles()
+const { t } = useI18n()
 
 // all user input emails are stored here
 const emailBadges = ref<Array<string>>([])
@@ -43,7 +44,7 @@ const insertOrUpdateString = (str: string) => {
   emailBadges.value.push(str)
 }
 
-const emailInputValidation = (input: string, isBulkEmailCopyPaste: boolean = false): boolean => {
+const emailInputValidation = (input: string, isBulkEmailCopyPaste = false): boolean => {
   if (!input.length) {
     if (isBulkEmailCopyPaste) return false
 
@@ -82,7 +83,7 @@ watch(inviteData, (newVal) => {
   }
   singleEmailValue.value = ''
 
-  // when user enters multiple emails comma sepearted or space sepearted
+  // when user enters multiple emails comma separated or space separated
   const isNewEmail = newVal.email.charAt(newVal.email.length - 1) === ',' || newVal.email.charAt(newVal.email.length - 1) === ' '
   if (isNewEmail && newVal.email.trim().length) {
     const emailToAdd = newVal.email.split(',')[0].trim() || newVal.email.split(' ')[0].trim()
@@ -92,7 +93,7 @@ watch(inviteData, (newVal) => {
       return
     }
     /**
-     if email is already enterd we delete the already
+     if email is already entered we delete the already
      existing email and add new one
      **/
     if (emailBadges.value.includes(emailToAdd)) {
@@ -130,7 +131,7 @@ const inviteCollaborator = async () => {
     }
 
     await _inviteCollaborator(payloadData, inviteData.roles)
-    message.success('Invitation sent successfully')
+    message.success(t('msg.info.inviteSent'))
     inviteData.email = ''
     emailBadges.value = []
   } catch (e: any) {
@@ -175,7 +176,7 @@ const onPaste = (e: ClipboardEvent) => {
 
   const inputArray = pastedText?.split(',') || pastedText?.split(' ')
 
-  // if data is pasted to a already existing text in input
+  // if data is pasted to an already existing text in input
   // we add existingInput + pasted data
   if (inputArray?.length === 1 && inviteData.email.length) {
     inputArray[0] = inviteData.email += inputArray[0]
@@ -189,7 +190,7 @@ const onPaste = (e: ClipboardEvent) => {
     if (!isEmailIsValid) return
 
     /**
-     if email is already enterd we delete the already
+     if email is already entered we delete the already
      existing email and add new one
      **/
     if (emailBadges.value.includes(el)) {

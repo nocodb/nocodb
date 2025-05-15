@@ -98,7 +98,7 @@ export class FiltersController {
     '/api/v1/db/meta/filters/:filterParentId/children',
     '/api/v2/meta/filters/:filterParentId/children',
   ])
-  @Acl('filterChildrenList')
+  @Acl('filterChildrenRead')
   async filterChildrenRead(
     @TenantContext() context: NcContext,
     @Param('filterParentId') filterParentId: string,

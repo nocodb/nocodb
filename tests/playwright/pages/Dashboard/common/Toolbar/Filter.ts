@@ -65,7 +65,7 @@ export class ToolbarFilterPage extends BasePage {
     await this.get().getByTestId('add-filter-group').last().click();
     const filterDropdown = this.get().locator('.menu-filter-dropdown').nth(filterGroupIndex);
     await filterDropdown.waitFor({ state: 'visible' });
-    const ADD_BUTTON_SELECTOR = `span:has-text("add")`;
+    const ADD_BUTTON_SELECTOR = '[data-testid="filter-add-icon"]';
     const FILTER_GROUP_SUB_MENU_SELECTOR = `.nc-dropdown-filter-group-sub-menu`;
     const ADD_FILTER_SELECTOR = `[data-testid="add-filter-menu"].nc-menu-item`;
 
@@ -380,14 +380,15 @@ export class ToolbarFilterPage extends BasePage {
           if (!['is blank', 'is not blank'].includes(operation)) {
             await this.get().locator('.nc-filter-value-select').locator('.ant-select-arrow').click({ force: true });
 
+            await this.rootPage.locator(`.nc-dropdown-user-select-cell.active`).waitFor({ state: 'visible' });
+
             const v = value.split(',');
             for (let i = 0; i < v.length; i++) {
               const selectUser = () =>
                 this.rootPage
-                  .locator(`.nc-dropdown-user-select-cell`)
-                  .getByTestId('select-option-User-filter')
-                  .getByText(v[i])
-                  .click({ force: true });
+                  .locator(`.nc-dropdown-user-select-cell.active`)
+                  .locator(`[data-testid="select-option-User-filter"]:has-text("${v[i]}")`)
+                  .click();
               await this.waitForResponse({
                 uiAction: selectUser,
                 httpMethodsToMatch: ['GET'],

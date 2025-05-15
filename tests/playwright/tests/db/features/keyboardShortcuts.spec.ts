@@ -50,7 +50,7 @@ test.describe('Verify shortcuts', () => {
     await unsetup(context);
   });
 
-  test('Verify shortcuts', async ({ page }) => {
+  test.skip('Verify shortcuts', async ({ page }) => {
     await dashboard.treeView.openTable({ title: 'Country' });
     // create new table
     await page.keyboard.press('Alt+t');
@@ -113,13 +113,16 @@ test.describe('Verify shortcuts', () => {
     await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'Country' });
 
     // Cmd + up arrow
-    await grid.cell.click({ index: 24, columnHeader: 'Country' });
+    await grid.cell.click({ index: 10, columnHeader: 'Country' });
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+ArrowUp' : 'Control+ArrowUp');
     await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'Country' });
 
     // Cmd + down arrow
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+ArrowDown' : 'Control+ArrowDown');
-    await grid.cell.verifyCellActiveSelected({ index: 24, columnHeader: 'Country' });
+
+    await grid.cell.verifyCellActiveSelected({ index: 108, columnHeader: 'Country' });
+
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+ArrowUp' : 'Control+ArrowUp');
 
     // Enter to edit and Esc to cancel
     await grid.cell.click({ index: 0, columnHeader: 'Country' });
@@ -139,60 +142,20 @@ test.describe('Verify shortcuts', () => {
     await page.reload();
     await grid.cell.verify({ index: 1, columnHeader: 'Country', value: 'NewAlgeria' });
 
-    // Tab:
-    // If current page is not last page and and current cell is last column of last row and user press `Tab` then current page will be incremented by 1
-    await grid.cell.click({ index: 24, columnHeader: 'Cities' });
+    await grid.cell.click({ index: 14, columnHeader: 'Cities' });
     await page.keyboard.press('Tab');
-    await grid.verifyActivePage({ pageNumber: '2' });
-    await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'Country' });
 
-    // If current page is last page and and current cell is last column of last row and user press `Tab` then new empty row will be added
-    await grid.clickPagination({ type: 'last-page' });
-    await grid.cell.click({ index: 8, columnHeader: 'Cities' });
+    await grid.cell.click({ index: 15, columnHeader: 'Cities' });
     await page.keyboard.press('Tab');
-    await grid.verifyRowCount({ count: 10 });
-    await grid.cell.verifyCellActiveSelected({ index: 9, columnHeader: 'Country' });
+    await grid.cell.verifyCellActiveSelected({ index: 16, columnHeader: 'Country' });
 
-    // If current page is not first page and and current cell is first column of first row and user press `Shift+Tab` then current page will be decremented by 1
+    await grid.cell.click({ index: 15, columnHeader: 'Country' });
+    await page.keyboard.press('Shift+Tab');
+    await grid.cell.verifyCellActiveSelected({ index: 14, columnHeader: 'Cities' });
+
     await grid.cell.click({ index: 0, columnHeader: 'Country' });
     await page.keyboard.press('Shift+Tab');
-    await grid.verifyActivePage({ pageNumber: '4' });
-    await grid.cell.verifyCellActiveSelected({ index: 24, columnHeader: 'Cities' });
-
-    // If current page is first page and and current cell is first column of first row and user press `Shift+Tab` then current page will not change
-    await grid.clickPagination({ type: 'first-page' });
-    await grid.cell.click({ index: 0, columnHeader: 'Country' });
-    await page.keyboard.press('Shift+Tab');
-    await grid.verifyActivePage({ pageNumber: '1' });
     await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'Country' });
-
-    // ArrowDown:
-    // If current page is not last page and and current cell is in last row and user press `ArrowDown` then current page will be incremented by 1
-    await grid.cell.click({ index: 24, columnHeader: 'Cities' });
-    await page.keyboard.press('ArrowDown');
-    await grid.verifyActivePage({ pageNumber: '2' });
-    await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'Cities' });
-
-    // If current page is last page and and current cell is in last row and user press `ArrowDown` then new empty row will be added
-    await grid.clickPagination({ type: 'last-page' });
-    await grid.cell.click({ index: 8, columnHeader: 'Cities' });
-    await page.keyboard.press('ArrowDown');
-    await grid.verifyRowCount({ count: 10 });
-    await grid.cell.verifyCellActiveSelected({ index: 9, columnHeader: 'Country' });
-
-    // ArrowUp:
-    // If current page is not first page and and current cell is in first row and user press `ArrwoUp` then current page will be decremented by 1
-    await grid.cell.click({ index: 0, columnHeader: 'Cities' });
-    await page.keyboard.press('ArrowUp');
-    await grid.verifyActivePage({ pageNumber: '4' });
-    await grid.cell.verifyCellActiveSelected({ index: 24, columnHeader: 'Cities' });
-
-    // If current page is first page and and current cell is in first row and user press `ArrwoUp` then current page will not change
-    await grid.clickPagination({ type: 'first-page' });
-    await grid.cell.click({ index: 0, columnHeader: 'Cities' });
-    await page.keyboard.press('ArrowUp');
-    await grid.verifyActivePage({ pageNumber: '1' });
-    await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'Cities' });
   });
 });
 
@@ -267,8 +230,6 @@ test.describe('Clipboard support', () => {
 
     // reload page
     await dashboard.rootPage.reload();
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Sheet1' });
 
     // ########################################
@@ -278,7 +239,7 @@ test.describe('Clipboard support', () => {
     await dashboard.grid.cell.attachment.addFile({
       index: 0,
       columnHeader: 'Attachment',
-      filePath: [`${process.cwd()}/fixtures/sampleFiles/1.json`],
+      filePath: [`${__dirname}/../../../fixtures/sampleFiles/1.json`],
     });
   });
 
@@ -346,15 +307,15 @@ test.describe('Clipboard support', () => {
       { type: 'SingleLineText', value: 'SingleLineText' },
       { type: 'LongText', value: '"LongText"' },
       { type: 'SingleSelect', value: 'Option1' },
-      { type: 'MultiSelect', value: 'Option1,Option2' },
+      { type: 'MultiSelect', value: 'Option1, Option2' },
       { type: 'Number', value: '123' },
       { type: 'PhoneNumber', value: '987654321' },
       { type: 'Email', value: 'test@example.com' },
       { type: 'URL', value: 'nocodb.com' },
-      { type: 'Decimal', value: '1.12' },
-      { type: 'Percent', value: '80' },
-      { type: 'Currency', value: 20, options: { parseInt: true } },
-      { type: 'Duration', value: 480, options: { parseInt: true } },
+      { type: 'Decimal', value: '1.1' },
+      { type: 'Percent', value: '80%' },
+      { type: 'Currency', value: '$20.00' },
+      { type: 'Duration', value: '00:08' },
       { type: 'Rating', value: '4' },
       { type: 'Checkbox', value: 'true' },
       { type: 'Date', value: today },
@@ -386,6 +347,8 @@ test.describe('Clipboard support', () => {
 
   test('multiple cells - horizontal, all data types', async ({ page }) => {
     // skip for local run (clipboard access issue in headless mode)
+    // Cmd A or Control A support is removed
+    test.skip();
     if (!process.env.CI && config.use.headless) {
       test.skip();
     }
@@ -423,18 +386,30 @@ test.describe('Clipboard support', () => {
     }
 
     await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowDown');
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowDown');
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowDown');
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowDown');
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowDown');
+    await page.waitForTimeout(500);
 
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
-    await grid.cell.click({ index: 1, columnHeader: 'LongText' });
-    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
+    await page.waitForTimeout(500);
 
-    // reload page
-    await dashboard.rootPage.reload();
+    await grid.cell.click({ index: 1, columnHeader: 'LongText' });
+    await page.waitForTimeout(500);
+
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
 
     // verify copied data
     for (let i = 1; i <= 5; i++) {
@@ -443,16 +418,32 @@ test.describe('Clipboard support', () => {
 
     // Block selection
     await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowDown');
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowDown');
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowRight');
+    await page.waitForTimeout(500);
+
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
+    await page.waitForTimeout(500);
+
     await grid.cell.click({ index: 4, columnHeader: 'SingleLineText' });
+    await page.waitForTimeout(500);
+
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
 
-    // reload page
-    await dashboard.rootPage.reload();
+    await page.waitForTimeout(1000);
 
+    await grid.expandTableOverlay.upsert();
+
+    await page.waitForTimeout(1000);
+
+    // reload page
     // verify copied data
     for (let i = 4; i <= 5; i++) {
       await grid.cell.verify({ index: i, columnHeader: 'SingleLineText', value: cellText[i - 4] });

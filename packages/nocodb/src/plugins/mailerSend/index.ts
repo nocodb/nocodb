@@ -4,6 +4,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: MailerSendPlugin,
+  id: 'mailersend',
   title: 'MailerSend',
   version: '0.0.2',
   logo: 'plugins/mailersend.svg',

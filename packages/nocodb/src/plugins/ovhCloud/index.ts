@@ -4,7 +4,9 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: OvhCloud,
+  id: 'ovh',
   title: 'Ovh',
+  recoveryTitle: 'OvhCloud Object Storage',
   version: '0.0.4',
   logo: 'plugins/ovhCloud.png',
   tags: 'Storage',

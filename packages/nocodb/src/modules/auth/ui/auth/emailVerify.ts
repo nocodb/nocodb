@@ -42,7 +42,7 @@ export default `<!DOCTYPE html>
       valid: null,
       errMsg: null,
       validForm: false,
-      token: <%= token %>,
+      token: '<%= token %>',
       greeting: 'Password Reset',
       formdata: {
         password: '',

@@ -1,0 +1,12 @@
+#!/bin/execlineb -P
+
+importas -sCuD "n3 s2000000 T" DIRECTIVES DIRECTIVES
+
+ifelse { test -w /var/log } {
+	foreground { install -d -o s6log -g s6log /var/log/nginx }
+	s6-setuidgid s6log exec -c s6-log -d3 -b -- ${DIRECTIVES} /var/log/nginx
+}
+
+foreground { install -d -o s6log -g s6log /run/log/nginx }
+
+s6-setuidgid s6log exec -c s6-log -d3 -b -- ${DIRECTIVES} /run/log/nginx

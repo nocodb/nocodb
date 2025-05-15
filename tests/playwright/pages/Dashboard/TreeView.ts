@@ -118,7 +118,6 @@ export class TreeViewPage extends BasePage {
         requestUrlPathToMatch: `/api/v1/db/data/noco`,
         responseJsonMatcher: json => json.pageInfo,
       });
-      await this.dashboard.waitForTabRender({ title, mode });
     } else {
       await this.get().locator(`[data-testid="nc-tbl-title-${title}"]`).click({
         // x:10, y:10
@@ -135,7 +134,6 @@ export class TreeViewPage extends BasePage {
   async createTable({
     title,
     skipOpeningModal,
-    mode,
     baseTitle,
   }: {
     title: string;
@@ -159,9 +157,6 @@ export class TreeViewPage extends BasePage {
       requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
       responseJsonMatcher: json => json.title === title && json.type === 'table',
     });
-
-    // Tab render is slow for playwright
-    await this.dashboard.waitForTabRender({ title, mode });
   }
 
   async verifyTable({ title, index, exists = true }: { title: string; index?: number; exists?: boolean }) {
@@ -207,9 +202,10 @@ export class TreeViewPage extends BasePage {
     await this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator('.nc-tbl-context-menu').click();
     await this.rootPage.locator('.ant-dropdown').locator('.nc-table-rename.nc-menu-item:has-text("Rename")').click();
 
-    await this.dashboard.get().locator('[placeholder="Enter table name"]').fill(newTitle);
-    await this.dashboard.get().locator('button:has-text("Rename Table")').click();
-    await this.verifyToast({ message: 'Table renamed successfully' });
+    const tableNodeInput = this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator('input');
+    await tableNodeInput.clear();
+    await tableNodeInput.fill(newTitle);
+    await tableNodeInput.press('Enter');
   }
 
   async reorderTables({ sourceTable, destinationTable }: { sourceTable: string; destinationTable: string }) {
@@ -374,9 +370,11 @@ export class TreeViewPage extends BasePage {
     await contextMenu.waitFor();
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Duplicate")`).click();
 
-    await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Confirm")`).click();
+    await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Duplicate Base")`).click();
 
     await this.rootPage.waitForTimeout(10000);
+
+    await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Go to Base")`).click();
   }
 
   async openProjectSourceSettings(param: { title: string; context: NcContext }) {

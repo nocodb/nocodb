@@ -4,6 +4,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: TeamsPlugin,
+  id: 'ms-teams',
   title: 'Microsoft Teams',
   version: '0.0.1',
   logo: 'plugins/teams.ico',

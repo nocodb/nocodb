@@ -7,7 +7,7 @@ import { JobEvents } from '~/interface/Jobs';
 export class JobsLogService {
   constructor(private eventEmitter: EventEmitter2) {}
 
-  sendLog(job: Job, data: { message: string }) {
+  sendLog(job: Partial<Job>, data: { message: string }) {
     this.eventEmitter.emit(JobEvents.LOG, {
       id: job.id.toString(),
       data,

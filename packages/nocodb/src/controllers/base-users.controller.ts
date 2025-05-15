@@ -158,6 +158,7 @@ export class BaseUsersController {
       baseId,
       body,
       user: req.user,
+      req,
     });
   }
 }

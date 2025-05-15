@@ -74,4 +74,79 @@ describe('Formula parsing and type validation', () => {
 
     expect(result1.dataType).toEqual(FormulaDataTypes.NUMERIC);
   });
+
+  describe('Date and time interaction', () => {
+    it('Time - time equals numeric', async () => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: '{Time1} - {Time2}',
+        columns: [
+          {
+            id: 'TUrXeTf4JUHdnRvn',
+            title: 'Time1',
+            uidt: UITypes.Time,
+          },
+          {
+            id: 'J3aD/yLDT2GF6NEB',
+            title: 'Time2',
+            uidt: UITypes.Time,
+          },
+        ],
+        clientOrSqlUi: 'pg',
+        getMeta: async () => ({}),
+      });
+      expect(result.dataType).toEqual(FormulaDataTypes.NUMERIC);
+    });
+    it('Time - time equals numeric', async () => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: '{Time1} - {Time2}',
+        columns: [
+          {
+            id: 'TUrXeTf4JUHdnRvn',
+            title: 'Time1',
+            uidt: UITypes.Time,
+          },
+          {
+            id: 'J3aD/yLDT2GF6NEB',
+            title: 'Time2',
+            uidt: UITypes.Time,
+          },
+        ],
+        clientOrSqlUi: 'pg',
+        getMeta: async () => ({}),
+      });
+      expect(result.dataType).toEqual(FormulaDataTypes.NUMERIC);
+    });
+    it('Date + time equals date', async () => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: '{Date1} + {Time2}',
+        columns: [
+          {
+            id: 'TUrXeTf4JUHdnRvn',
+            title: 'Date1',
+            uidt: UITypes.Date,
+          },
+          {
+            id: 'J3aD/yLDT2GF6NEB',
+            title: 'Time2',
+            uidt: UITypes.Time,
+          },
+        ],
+        clientOrSqlUi: 'pg',
+        getMeta: async () => ({}),
+      });
+      expect(result.dataType).toEqual(FormulaDataTypes.DATE);
+    });
+  });
+
+  describe('binary expression', () => {
+    it(`& operator will return string`, async () => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: '"Hello" & "World"',
+        columns: [],
+        clientOrSqlUi: 'pg',
+        getMeta: async () => ({}),
+      });
+      expect(result.dataType).toBe(FormulaDataTypes.STRING);
+    });
+  });
 });

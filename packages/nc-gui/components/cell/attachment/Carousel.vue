@@ -3,16 +3,10 @@ import type { CarouselApi } from '../../nc/Carousel/interface'
 import { useAttachmentCell } from './utils'
 import { isOffice } from '~/utils/fileUtils'
 
-const { selectedFile, visibleItems, downloadAttachment, removeFile, renameFile, isPublic, isReadonly, isRenameModalOpen } =
+const { selectedFile, visibleItems, downloadAttachment, removeFile, renameFile, isPublic, isRenameModalOpen, isEditAllowed } =
   useAttachmentCell()!
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
-
-const { isSharedForm } = useSmartsheetStoreOrThrow()
-
-/*
-const openComments = ref(false)
-*/
 
 const { isUIAllowed } = useRoles()
 
@@ -21,25 +15,6 @@ const container = ref<HTMLElement | null>(null)
 const emblaMainApi: CarouselApi = ref()
 const emblaThumbnailApi: CarouselApi = ref()
 const selectedIndex = ref()
-
-const filetoDelete = reactive({
-  title: '',
-  i: 0,
-})
-const isModalOpen = ref(false)
-
-function onRemoveFileClick(title: any, i: number) {
-  isModalOpen.value = true
-  filetoDelete.title = title
-  filetoDelete.i = i
-}
-
-const handleFileDelete = (i: number) => {
-  removeFile(i)
-  isModalOpen.value = false
-  filetoDelete.i = 0
-  filetoDelete.title = ''
-}
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
@@ -107,6 +82,15 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
   })
 })
 
+const { loadRow } = useSmartsheetRowStoreOrThrow()
+
+const isUpdated = ref(1)
+
+const triggerReload = async () => {
+  await loadRow()
+  isUpdated.value = isUpdated.value + 1
+}
+
 onMounted(() => {
   document.addEventListener('keydown', onKeyDown)
 })
@@ -132,17 +116,25 @@ function onKeyDown(event: KeyboardEvent) {
   }
 }
 
-/* const toggleComment = () => {
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const openComments = ref(false)
+
+const toggleComment = () => {
   openComments.value = !openComments.value
 }
 
 onMounted(() => {
-  if (!isPublic.value && !isExpandedFormOpen.value && isUIAllowed('commentList')) {
+  if (
+    !isPublic.value &&
+    !isExpandedFormOpen.value &&
+    isUIAllowed('commentList') &&
+    isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS)
+  ) {
     const { loadComments } = useRowCommentsOrThrow()
     loadComments()
   }
 })
-*/
 
 const initEmblaApi = (val: any) => {
   emblaMainApi.value = val
@@ -181,31 +173,46 @@ const initEmblaApi = (val: any) => {
         <NcCarousel class="!absolute inset-y-16 inset-x-24 keep-open flex justify-center items-center" @init-api="initEmblaApi">
           <NcCarouselContent>
             <NcCarouselItem v-for="(item, index) in visibleItems" :key="index">
-              <div v-if="selectedIndex === index" class="justify-center w-full h-full flex items-center">
+              <div v-if="selectedIndex === index" :key="isUpdated" class="justify-center w-full h-full flex items-center">
                 <LazyCellAttachmentPreviewImage
-                  v-if="isImage(item.title, item.mimeType)"
+                  v-if="isImage(item.title, item.mimetype)"
                   class="nc-attachment-img-wrapper"
                   object-fit="contain"
+                  controls
                   :alt="item.title"
                   :srcs="getPossibleAttachmentSrc(item)"
+                  @error="triggerReload"
                 />
 
                 <LazyCellAttachmentPreviewVideo
-                  v-else-if="isVideo(item.title, item.mimeType)"
+                  v-else-if="isVideo(item.title, item.mimetype)"
                   class="flex items-center w-full"
-                  :mime-type="item.mimeType"
+                  :mime-type="item.mimetype"
                   :title="item.title"
                   :src="getPossibleAttachmentSrc(item)"
+                  @error="triggerReload"
                 />
+
+                <LazyCellAttachmentPreviewVideo
+                  v-else-if="isAudio(item.title, item.mimetype)"
+                  class="flex items-center w-full"
+                  :mime-type="item.mimetype"
+                  :title="item.title"
+                  :src="getPossibleAttachmentSrc(item)"
+                  @error="triggerReload"
+                />
+
                 <LazyCellAttachmentPreviewPdf
-                  v-else-if="isPdf(item.title, item.mimeType)"
+                  v-else-if="isPdf(item.title, item.mimetype)"
                   class="keep-open"
                   :src="getPossibleAttachmentSrc(item)"
+                  @error="triggerReload"
                 />
                 <LazyCellAttachmentPreviewMiscOffice
-                  v-else-if="isOffice(item.title, item.mimeType)"
+                  v-else-if="isOffice(item.title, item.mimetype)"
                   class="keep-open"
                   :src="getPossibleAttachmentSrc(item)"
+                  @error="triggerReload"
                 />
                 <div v-else class="bg-white h-full flex flex-col justify-center rounded-md gap-1 items-center w-full">
                   <component :is="iconMap.file" class="text-gray-600 w-20 h-20" />
@@ -233,14 +240,17 @@ const initEmblaApi = (val: any) => {
           <component :is="iconMap.arrowRight" class="text-7xl" />
         </div>
 
-        <!--        <div v-if="isUIAllowed('commentList') && !isExpandedFormOpen" class="absolute top-2 right-2">
+        <div
+          v-if="isUIAllowed('commentList') && !isExpandedFormOpen && isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS)"
+          class="absolute top-2 right-2"
+        >
           <NcButton class="!hover:bg-transparent" type="text" size="small" @click="toggleComment">
             <div class="flex gap-1 text-white justify-center items-center">
               Comments
               <GeneralIcon icon="messageCircle" />
             </div>
           </NcButton>
-        </div> -->
+        </div>
 
         <div class="text-white absolute right-2 top-2 cursor-pointer"></div>
 
@@ -261,21 +271,29 @@ const initEmblaApi = (val: any) => {
               >
                 <div class="flex items-center justify-center">
                   <LazyCellAttachmentPreviewImage
-                    v-if="isImage(item.title, item.mimeType)"
+                    v-if="isImage(item.title, item.mimetype)"
                     class="nc-attachment-img-wrapper h-12"
                     object-fit="contain"
                     :alt="item.title"
                     :srcs="getPossibleAttachmentSrc(item, 'tiny')"
+                    @error="triggerReload"
                   />
                   <div
-                    v-else-if="isVideo(item.title, item.mimeType)"
+                    v-else-if="isVideo(item.title, item.mimetype)"
                     class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
                   >
                     <GeneralIcon class="text-white" icon="play" />
                   </div>
 
                   <div
-                    v-else-if="isPdf(item.title, item.mimeType)"
+                    v-else-if="isAudio(item.title, item.mimetype)"
+                    class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
+                  >
+                    <GeneralIcon class="text-white" icon="ncVolume2" />
+                  </div>
+
+                  <div
+                    v-else-if="isPdf(item.title, item.mimetype)"
                     class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
                   >
                     <GeneralIcon class="text-white" icon="pdfFile" />
@@ -291,11 +309,7 @@ const initEmblaApi = (val: any) => {
         </div>
 
         <div class="absolute keep-open right-2 z-30 bottom-3 transition-all gap-3 transition-ease-in-out !h-6 flex items-center">
-          <NcTooltip
-            v-if="!isSharedForm || (!isReadonly && isUIAllowed('dataEdit') && !isPublic)"
-            color="light"
-            placement="bottom"
-          >
+          <NcTooltip v-if="isEditAllowed" color="light" placement="bottom">
             <template #title> {{ $t('title.renameFile') }} </template>
             <NcButton
               size="xsmall"
@@ -307,7 +321,7 @@ const initEmblaApi = (val: any) => {
             </NcButton>
           </NcTooltip>
 
-          <NcTooltip v-if="!isReadonly" color="light" placement="bottom">
+          <NcTooltip color="light" placement="bottom">
             <template #title> {{ $t('title.downloadFile') }} </template>
             <NcButton
               class="!hover:bg-transparent !text-white"
@@ -319,19 +333,10 @@ const initEmblaApi = (val: any) => {
             </NcButton>
           </NcTooltip>
 
-          <NcTooltip v-if="!isReadonly" color="light" placement="bottom">
+          <NcTooltip v-if="isEditAllowed" color="light" placement="bottomRight">
             <template #title> {{ $t('title.removeFile') }} </template>
-            <NcButton
-              class="!hover:bg-transparent !text-white"
-              size="xsmall"
-              type="text"
-              @click="onRemoveFileClick(selectedFile.title, selectedIndex)"
-            >
-              <component
-                :is="iconMap.delete"
-                v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)"
-                class="!hover:text-gray-400"
-              />
+            <NcButton class="!hover:bg-transparent !text-white" size="xsmall" type="text" @click="removeFile(selectedIndex)">
+              <component :is="iconMap.delete" class="!hover:text-gray-400" />
             </NcButton>
           </NcTooltip>
         </div>
@@ -351,9 +356,16 @@ const initEmblaApi = (val: any) => {
           </template>
         </GeneralDeleteModal>
       </div>
-      <!--      <div v-if="openComments && isUIAllowed('commentList') && !isExpandedFormOpen" class="bg-white w-88 min-w-88 max-w-88">
+      <div
+        v-if="isUIAllowed('commentList') && !isExpandedFormOpen && isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS)"
+        :class="{
+          'w-0': !openComments,
+          '!w-88': openComments,
+        }"
+        class="bg-white max-w-88 transition-all"
+      >
         <LazySmartsheetExpandedFormSidebarComments />
-      </div> -->
+      </div>
     </div>
   </GeneralOverlay>
 </template>

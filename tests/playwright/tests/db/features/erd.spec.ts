@@ -41,7 +41,6 @@ test.describe('Erd', () => {
   const toggleMM = async () => {
     await dashboard.treeView.baseSettings({ title: context.base.title });
     await dashboard.settings.miscellaneous.clickShowM2MTables();
-    await dashboard.settings.close();
   };
 
   const openProjectErd = async () => {

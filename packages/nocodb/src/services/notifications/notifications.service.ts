@@ -213,6 +213,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
                   id: invitedBy.id,
                   email: invitedBy.email,
                   displayName: invitedBy.display_name,
+                  meta: invitedBy.meta,
                 },
               },
             },

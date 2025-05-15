@@ -16,9 +16,6 @@ test.describe('Relational Columns', () => {
   });
 
   test('Relational columns: HM, BT, MM', async () => {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
-
     ///////////// Has many
     //
 

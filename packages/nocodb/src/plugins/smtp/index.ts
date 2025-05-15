@@ -6,6 +6,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: SMTPPlugin,
+  id: 'smtp',
   title: 'SMTP',
   version: '0.0.4',
   // icon: 'mdi-email-outline',

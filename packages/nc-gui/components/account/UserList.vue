@@ -208,6 +208,19 @@ const columns = [
     justify: 'justify-end',
   },
 ] as NcTableColumnProps[]
+
+const userRoleOptions = [
+  {
+    title: 'objects.roleType.orgLevelCreator',
+    subtitle: 'msg.info.roles.orgCreator',
+    value: OrgUserRoles.CREATOR,
+  },
+  {
+    title: 'objects.roleType.orgLevelViewer',
+    subtitle: 'msg.info.roles.orgViewer',
+    value: OrgUserRoles.VIEWER,
+  },
+]
 </script>
 
 <template>
@@ -275,6 +288,7 @@ const columns = [
                 </div>
                 <NcSelect
                   v-else-if="el.id !== loggedInUser?.id"
+                  v-show="!isEeUI"
                   v-model:value="el.roles"
                   class="w-55 nc-user-roles"
                   :dropdown-match-select-width="false"
@@ -282,44 +296,31 @@ const columns = [
                   @change="updateRole(el.id, el.roles as string)"
                 >
                   <a-select-option
+                    v-for="(option, idx) of userRoleOptions"
+                    :key="idx"
                     class="nc-users-list-role-option"
-                    :value="OrgUserRoles.CREATOR"
-                    :label="$t(`objects.roleType.orgLevelCreator`)"
+                    :value="option.value"
                   >
-                    <div class="w-full">
-                      <div class="flex items-center gap-1 justify-between">
-                        <div data-rec="true">{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
-                        <GeneralIcon
-                          v-if="el?.roles === OrgUserRoles.CREATOR"
-                          id="nc-selected-item-icon"
-                          icon="check"
-                          class="flex-none w-4 h-4 text-primary"
-                        />
-                      </div>
-                      <div class="text-gray-500 text-xs whitespace-normal" data-rec="true">
-                        {{ $t('msg.info.roles.orgCreator') }}
-                      </div>
-                    </div>
-                  </a-select-option>
+                    <div class="w-full flex items-start gap-1">
+                      <div class="flex-1">
+                        <NcTooltip show-on-truncate-only class="truncate" data-rec="true">
+                          <template #title>
+                            {{ $t(option.title) }}
+                          </template>
+                          {{ $t(option.title) }}
+                        </NcTooltip>
 
-                  <a-select-option
-                    class="nc-users-list-role-option"
-                    :value="OrgUserRoles.VIEWER"
-                    :label="$t(`objects.roleType.orgLevelViewer`)"
-                  >
-                    <div class="w-full">
-                      <div class="flex items-center gap-1 justify-between">
-                        <div data-rec="true">{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
-                        <GeneralIcon
-                          v-if="el.roles === OrgUserRoles.VIEWER"
-                          id="nc-selected-item-icon"
-                          icon="check"
-                          class="flex-none w-4 h-4 text-primary"
-                        />
+                        <div class="nc-select-hide-item text-gray-500 text-xs whitespace-normal" data-rec="true">
+                          {{ $t(option.subtitle) }}
+                        </div>
                       </div>
-                      <div class="text-gray-500 text-xs whitespace-normal" data-rec="true">
-                        {{ $t('msg.info.roles.orgViewer') }}
-                      </div>
+
+                      <GeneralIcon
+                        v-if="el.roles === option.value"
+                        id="nc-selected-item-icon"
+                        icon="check"
+                        class="w-4 h-4 text-primary"
+                      />
                     </div>
                   </a-select-option>
                 </NcSelect>
@@ -342,7 +343,7 @@ const columns = [
                   </NcButton>
 
                   <template #overlay>
-                    <NcMenu>
+                    <NcMenu variant="small">
                       <template v-if="!el.roles?.includes('super')">
                         <!-- Resend invite Email -->
                         <NcMenuItem @click="resendInvite(el)">

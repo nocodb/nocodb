@@ -11,10 +11,15 @@ import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Comment from '~/models/Comment';
+import { MailService } from '~/services/mail/mail.service';
+import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
 export class CommentsService {
-  constructor(protected readonly appHooksService: AppHooksService) {}
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly mailService: MailService,
+  ) {}
 
   async commentRow(
     context: NcContext,
@@ -36,13 +41,28 @@ export class CommentsService {
       id: param.body.fk_model_id,
     });
 
+    const base = await Base.getByTitleOrId(context, model.base_id);
+
+    await this.mailService.sendMail({
+      mailEvent: MailEvent.COMMENT_CREATE,
+      payload: {
+        base,
+        model,
+        user: param.user,
+        comment: res,
+        rowId: param.body.row_id,
+        req: param.req,
+      },
+    });
+
     this.appHooksService.emit(AppEvents.COMMENT_CREATE, {
-      base: await Base.getByTitleOrId(context, model.base_id),
-      model: model,
+      base,
+      model,
       user: param.user,
       comment: res,
       rowId: param.body.row_id,
       req: param.req,
+      context,
     });
 
     return res;
@@ -75,6 +95,7 @@ export class CommentsService {
       comment: comment,
       rowId: comment.row_id,
       req: param.req,
+      context,
     });
     return res;
   }
@@ -129,9 +150,23 @@ export class CommentsService {
       id: param.body.fk_model_id,
     });
 
+    const base = await Base.getByTitleOrId(context, model.base_id);
+
+    await this.mailService.sendMail({
+      mailEvent: MailEvent.COMMENT_CREATE,
+      payload: {
+        base,
+        model,
+        user: param.user,
+        comment: res,
+        rowId: res.row_id,
+        req: param.req,
+      },
+    });
+
     this.appHooksService.emit(AppEvents.COMMENT_UPDATE, {
-      base: await Base.getByTitleOrId(context, model.base_id),
-      model: model,
+      base,
+      model,
       user: param.user,
       comment: {
         ...comment,
@@ -139,6 +174,7 @@ export class CommentsService {
       },
       rowId: comment.row_id,
       req: param.req,
+      context,
     });
 
     return res;

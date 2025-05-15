@@ -1,25 +1,26 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
-import SingleSelect from '~/components/cell/SingleSelect.vue'
-import MultiSelect from '~/components/cell/MultiSelect.vue'
-import DatePicker from '~/components/cell/DatePicker.vue'
-import YearPicker from '~/components/cell/YearPicker.vue'
-import TimePicker from '~/components/cell/TimePicker.vue'
-import Rating from '~/components/cell/Rating.vue'
-import Duration from '~/components/cell/Duration.vue'
-import Percent from '~/components/cell/Percent.vue'
-import Currency from '~/components/cell/Currency.vue'
-import Decimal from '~/components/cell/Decimal.vue'
-import Integer from '~/components/cell/Integer.vue'
-import Float from '~/components/cell/Float.vue'
-import Text from '~/components/cell/Text.vue'
-import User from '~/components/cell/User.vue'
+import SingleSelect from '~/components/cell/SingleSelect/index.vue'
+import MultiSelect from '~/components/cell/MultiSelect/index.vue'
+import DatePicker from '~/components/cell/Date/index.vue'
+import YearPicker from '~/components/cell/Year/index.vue'
+import TimePicker from '~/components/cell/Time/index.vue'
+import Rating from '~/components/cell/Rating/index.vue'
+import Duration from '~/components/cell/Duration/index.vue'
+import Percent from '~/components/cell/Percent/index.vue'
+import Currency from '~/components/cell/Currency/index.vue'
+import Decimal from '~/components/cell/Decimal/index.vue'
+import Integer from '~/components/cell/Integer/index.vue'
+import Float from '~/components/cell/Float/index.vue'
+import Text from '~/components/cell/Text/index.vue'
+import User from '~/components/cell/User/index.vue'
 
 interface Props {
   // column could be possibly undefined when the filter is created
   column?: ColumnType
   filter: Filter
+  disabled?: boolean
 }
 
 interface Emits {
@@ -34,11 +35,13 @@ const column = toRef(props, 'column')
 
 const editEnabled = ref(true)
 
+const readOnly = ref(props.filter.readOnly || props.disabled)
+
 provide(ColumnInj, column)
 
 provide(EditModeInj, readonly(editEnabled))
 
-provide(ReadonlyInj, ref(false))
+provide(ReadonlyInj, readOnly)
 
 const checkTypeFunctions: Record<string, (column: ColumnType, abstractType?: string) => boolean> = {
   isSingleSelect,
@@ -143,39 +146,40 @@ const componentProps = computed(() => {
   switch (filterType.value) {
     case 'isSingleSelect':
     case 'isMultiSelect': {
-      return { disableOptionCreation: true }
+      return { disableOptionCreation: true, showReadonlyField: props.filter?.readOnly || props?.disabled }
     }
     case 'isPercent':
     case 'isDecimal':
     case 'isFloat':
     case 'isLinks':
     case 'isInt': {
-      return { class: 'h-32px' }
+      return { class: 'h-32px', showReadonlyField: props.filter?.readOnly || props?.disabled }
     }
     case 'isDuration': {
-      return { showValidationError: false }
+      return { showValidationError: false, showReadonlyField: props.filter?.readOnly || props?.disabled }
     }
     case 'isUser': {
-      return { forceMulti: true }
+      return { forceMulti: true, showReadonlyField: props.filter?.readOnly || props?.disabled }
     }
     case 'isReadonlyUser': {
       if (['anyof', 'nanyof'].includes(props.filter.comparison_op!)) {
-        return { forceMulti: true }
+        return { forceMulti: true, showReadonlyField: props.filter?.readOnly || props?.disabled }
       }
       return {}
     }
     case 'isCurrency': {
-      return { hidePrefix: true }
+      return { hidePrefix: true, showReadonlyField: props.filter?.readOnly || props?.disabled }
     }
     case 'isRating': {
       return {
         style: {
           minWidth: `${(column.value?.meta?.max || 5) * 19}px`,
         },
+        showReadonlyField: props.filter?.readOnly || props?.disabled,
       }
     }
     default: {
-      return {}
+      return { showReadonlyField: props.filter?.readOnly || props?.disabled }
     }
   }
 })
@@ -207,7 +211,7 @@ const isSingleOrMultiSelect = computed(() => {
   <a-select
     v-if="column && isBoolean(column, abstractType)"
     v-model:value="filterInput"
-    :disabled="filter.readOnly"
+    :disabled="filter.readOnly || props.disabled"
     :options="booleanOptions"
   />
   <div
@@ -219,10 +223,13 @@ const isSingleOrMultiSelect = computed(() => {
     <component
       :is="filterType ? componentMap[filterType] : Text"
       v-model="filterInput"
-      :disabled="filter.readOnly"
+      :disabled="filter.readOnly || props.disabled"
       placeholder="Enter a value"
       :column="column"
       class="flex !rounded-lg"
+      :class="{
+        'text-nc-content-gray-muted pointer-events-none': props.disabled,
+      }"
       v-bind="componentProps"
       location="filter"
       @focus="isInputBoxOnFocus = true"
@@ -238,5 +245,9 @@ const isSingleOrMultiSelect = computed(() => {
 
 :deep(.ant-picker) {
   @apply !py-0;
+}
+
+:deep(.nc-cell-field) {
+  @apply items-center;
 }
 </style>

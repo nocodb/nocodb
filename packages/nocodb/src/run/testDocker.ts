@@ -4,6 +4,8 @@ import cors from 'cors';
 import express from 'express';
 import Noco from '~/Noco';
 import { User } from '~/models';
+import { handleUncaughtErrors } from '~/utils';
+handleUncaughtErrors(process);
 
 process.env.NC_VERSION = '0009044';
 

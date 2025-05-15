@@ -68,7 +68,7 @@ export default `<!DOCTYPE html>
     data: {
       valid: null,
       validForm: false,
-      token: <%= token %>,
+      token: '<%= token %>',
       greeting: 'Password Reset',
       formdata: {
         password: '',

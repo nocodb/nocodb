@@ -1,18 +1,60 @@
 import Handlebars from 'handlebars';
+import handlebarHelpers from 'handlebars-helpers';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import { Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
-import { isDateMonthFormat, UITypes } from 'nocodb-sdk';
+import { ColumnHelper, isDateMonthFormat, UITypes } from 'nocodb-sdk';
 import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import NcPluginMgrv2 from './NcPluginMgrv2';
-import type { HookLogType } from 'nocodb-sdk';
-import type { Column, FormView, Hook, Model, View } from '~/models';
+import type { AxiosResponse } from 'axios';
+import type { HookType } from 'jsep';
+import type {
+  ColumnType,
+  FormColumnType,
+  HookLogType,
+  TableType,
+  UserType,
+  ViewType,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type { Column, FormView, Hook, Model, View } from '~/models';
 import { Filter, HookLog, Source } from '~/models';
+import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
+import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
+import { isEE, isOnPrem } from '~/utils';
+
+for (const moduleName of [
+  'array',
+  //'code',
+  'collection',
+  'comparison',
+  'date',
+  //'fs',
+  //'html',
+  //'i18n',
+  //'inflection',
+  //'logging',
+  //'markdown', // markdown is disabled because it can inject specified *.md file
+  //'match',
+  'math',
+  //'misc',
+  'number',
+  //'object', // can do deep merge
+  //'path', // access to server filesystem
+  //'regex', // should not needed
+  'string',
+  'url',
+]) {
+  if (handlebarHelpers[moduleName]) {
+    handlebarHelpers[moduleName]({
+      handlebars: Handlebars,
+    });
+  }
+}
 
 dayjs.extend(isBetween);
 dayjs.extend(isSameOrBefore);
@@ -63,14 +105,10 @@ export async function validateCondition(
     const filter = _filter instanceof Filter ? _filter : new Filter(_filter);
     let res;
     if (filter.is_group) {
-      res = await validateCondition(
-        context,
-        filter.children || (await filter.getChildren(context)),
-        data,
-        {
-          client,
-        },
-      );
+      filter.children = filter.children || (await filter.getChildren(context));
+      res = await validateCondition(context, filter.children, data, {
+        client,
+      });
     } else {
       const column = await filter.getColumn(context);
       const field = column.title;
@@ -238,8 +276,8 @@ export async function validateCondition(
             ? [data[field].id]
             : [];
 
-          const filterValues = filter.value.split(',').map((v) => v.trim());
-
+          const filterValues =
+            filter.value?.split(',').map((v) => v.trim()) ?? [];
           switch (filter.comparison_op) {
             case 'anyof':
               res = userIds.some((id) => filterValues.includes(id));
@@ -402,36 +440,55 @@ export function constructWebHookData(hook, model, view, prevData, newData) {
   return newData;
 }
 
-export async function handleHttpWebHook(
+function populateAxiosReq({
+  apiMeta: _apiMeta,
   hook,
   model,
   view,
-  apiMeta,
-  user,
   prevData,
   newData,
-): Promise<any> {
-  const contentType = apiMeta.headers?.find(
+}: {
+  apiMeta: any;
+  user: UserType;
+  hook: HookType | Hook;
+  model: TableType;
+  view?: ViewType;
+  prevData: Record<string, unknown>;
+  newData: Record<string, unknown>;
+}) {
+  if (!_apiMeta) {
+    _apiMeta = {};
+  }
+
+  const contentType = _apiMeta.headers?.find(
     (header) => header.name?.toLowerCase() === 'content-type' && header.enabled,
   );
 
   if (!contentType) {
-    apiMeta.headers.push({
+    if (!_apiMeta.headers) {
+      _apiMeta.headers = [];
+    }
+
+    _apiMeta.headers.push({
       name: 'Content-Type',
       enabled: true,
       value: 'application/json',
     });
   }
 
-  const req = axiosRequestMake(
-    apiMeta,
-    user,
-    constructWebHookData(hook, model, view, prevData, newData),
+  const webhookData = constructWebHookData(
+    hook,
+    model,
+    view,
+    prevData,
+    newData,
   );
-  return axios(req);
-}
+  // const reqPayload = axiosRequestMake(
+  //   _apiMeta,
+  //   user,
+  //   webhookData,
+  // );
 
-export function axiosRequestMake(_apiMeta, _user, data) {
   const apiMeta = { ..._apiMeta };
   // if it's a string try to parse and apply handlebar
   // or if object then convert into JSON string and parse it
@@ -442,12 +499,14 @@ export function axiosRequestMake(_apiMeta, _user, data) {
           ? apiMeta.body
           : JSON.stringify(apiMeta.body),
         (_key, value) => {
-          return typeof value === 'string' ? parseBody(value, data) : value;
+          return typeof value === 'string'
+            ? parseBody(value, webhookData)
+            : value;
         },
       );
     } catch (e) {
       // if string parsing failed then directly apply the handlebar
-      apiMeta.body = parseBody(apiMeta.body, data);
+      apiMeta.body = parseBody(apiMeta.body, webhookData);
     }
   }
   if (apiMeta.auth) {
@@ -457,21 +516,23 @@ export function axiosRequestMake(_apiMeta, _user, data) {
           ? apiMeta.auth
           : JSON.stringify(apiMeta.auth),
         (_key, value) => {
-          return typeof value === 'string' ? parseBody(value, data) : value;
+          return typeof value === 'string'
+            ? parseBody(value, webhookData)
+            : value;
         },
       );
     } catch (e) {
-      apiMeta.auth = parseBody(apiMeta.auth, data);
+      apiMeta.auth = parseBody(apiMeta.auth, webhookData);
     }
   }
   apiMeta.response = {};
-  const url = parseBody(apiMeta.path, data);
+  const url = parseBody(apiMeta.path, webhookData);
 
-  const req = {
+  const reqPayload = {
     params: apiMeta.parameters
       ? apiMeta.parameters.reduce((paramsObj, param) => {
           if (param.name && param.enabled) {
-            paramsObj[param.name] = parseBody(param.value, data);
+            paramsObj[param.name] = parseBody(param.value, webhookData);
           }
           return paramsObj;
         }, {})
@@ -482,7 +543,7 @@ export function axiosRequestMake(_apiMeta, _user, data) {
     headers: apiMeta.headers
       ? apiMeta.headers.reduce((headersObj, header) => {
           if (header.name && header.enabled) {
-            headersObj[header.name] = parseBody(header.value, data);
+            headersObj[header.name] = parseBody(header.value, webhookData);
           }
           return headersObj;
         }, {})
@@ -500,7 +561,71 @@ export function axiosRequestMake(_apiMeta, _user, data) {
       : {}),
     timeout: 30 * 1000,
   };
-  return req;
+
+  return reqPayload;
+}
+
+function extractReqPayloadForLog(reqPayload, response?: AxiosResponse<any>) {
+  return {
+    ...reqPayload,
+    headers: {
+      ...(response?.config?.headers || {}),
+      ...(reqPayload.headers || {}),
+    },
+    // exclude http/https agent filters
+    httpAgent: undefined,
+    httpsAgent: undefined,
+    timeout: undefined,
+    withCredentials: undefined,
+  };
+}
+
+function extractResPayloadForLog(response: AxiosResponse<any>) {
+  return {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+    data: response.data,
+  };
+}
+
+export async function handleHttpWebHook({
+  reqPayload,
+}: {
+  reqPayload: any;
+}): Promise<any> {
+  const response = await axios(reqPayload);
+  return {
+    response,
+    requestPayload: extractReqPayloadForLog(reqPayload, response),
+    responsePayload: extractResPayloadForLog(response),
+  };
+}
+
+// flatten filter tree and id dummy id if no id is present
+function flattenFilter(
+  filters: Filter[],
+  flattenedFilters = [],
+  parentId = null,
+) {
+  for (const filter of filters) {
+    // if parent id is present then set it as fk_parent_id
+    if (parentId && !filter.fk_parent_id) {
+      filter.fk_parent_id = parentId;
+    }
+
+    if (filter.is_group) {
+      flattenedFilters.push(filter);
+      // this is to group the filters
+      if (!filter.id) {
+        filter.id = uuidv4();
+      }
+      flattenFilter(filter.children, flattenedFilters, filter.id);
+    } else {
+      flattenedFilters.push(filter);
+    }
+  }
+  return flattenedFilters;
 }
 
 export async function invokeWebhook(
@@ -533,7 +658,8 @@ export async function invokeWebhook(
   let hookLog: HookLogType;
   const startTime = process.hrtime();
   const source = await Source.get(context, model.source_id);
-  let notification;
+  let notification, filters;
+  let reqPayload;
   try {
     notification =
       typeof hook.notification === 'string'
@@ -548,7 +674,7 @@ export async function invokeWebhook(
     }
 
     if (hook.condition && !testHook) {
-      const filters = testFilters || (await hook.getFilters(context));
+      filters = testFilters || (await hook.getFilters(context));
 
       if (isBulkOperation) {
         const filteredData = [];
@@ -611,56 +737,58 @@ export async function invokeWebhook(
     switch (notification?.type) {
       case 'Email':
         {
-          const res = await (
-            await NcPluginMgrv2.emailAdapter(false)
-          )?.mailSend({
+          const parsedPayload = {
             to: parseBody(notification?.payload?.to, newData),
             subject: parseBody(notification?.payload?.subject, newData),
             html: parseBody(notification?.payload?.body, newData),
-          });
-          if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL') {
+          };
+          const res = await (
+            await NcPluginMgrv2.emailAdapter(false)
+          )?.mailSend(parsedPayload);
+          if (
+            process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
+            (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
+          ) {
             hookLog = {
               ...hook,
               fk_hook_id: hook.id,
               type: notification.type,
-              payload: JSON.stringify(notification?.payload),
+              payload: JSON.stringify(parsedPayload),
               response: JSON.stringify(res),
               triggered_by: user?.email,
+              conditions: JSON.stringify(filters),
             };
           }
         }
         break;
       case 'URL':
         {
-          const res = await handleHttpWebHook(
+          reqPayload = populateAxiosReq({
+            apiMeta: notification?.payload,
+            user,
             hook,
             model,
             view,
-            notification?.payload,
-            user,
             prevData,
             newData,
-          );
+          });
 
-          if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL') {
+          const { requestPayload, responsePayload } = await handleHttpWebHook({
+            reqPayload,
+          });
+
+          if (
+            process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
+            (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
+          ) {
             hookLog = {
               ...hook,
               fk_hook_id: hook.id,
               type: notification.type,
-              payload: JSON.stringify(notification?.payload),
-              response: JSON.stringify({
-                status: res.status,
-                statusText: res.statusText,
-                headers: res.headers,
-                config: {
-                  url: res.config.url,
-                  method: res.config.method,
-                  data: res.config.data,
-                  headers: res.config.headers,
-                  params: res.config.params,
-                },
-              }),
+              payload: JSON.stringify(requestPayload),
+              response: JSON.stringify(responsePayload),
               triggered_by: user?.email,
+              conditions: JSON.stringify(filters),
             };
           }
         }
@@ -678,7 +806,10 @@ export async function invokeWebhook(
             }),
           );
 
-          if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL') {
+          if (
+            process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
+            (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
+          ) {
             hookLog = {
               ...hook,
               fk_hook_id: hook.id,
@@ -697,6 +828,7 @@ export async function invokeWebhook(
                 },
               }),
               triggered_by: user?.email,
+              conditions: JSON.stringify(filters),
             };
           }
         }
@@ -713,25 +845,63 @@ export async function invokeWebhook(
     } else {
       logger.error(e.message, e.stack);
     }
-    if (['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL)) {
+    if (
+      ['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL) ||
+      isEE
+    ) {
       hookLog = {
         ...hook,
         type: notification.type,
-        payload: JSON.stringify(notification?.payload),
+        payload: JSON.stringify(
+          reqPayload
+            ? extractReqPayloadForLog(reqPayload, e.response)
+            : notification?.payload,
+        ),
         fk_hook_id: hook.id,
         error_code: e.error_code,
         error_message: e.message,
         error: JSON.stringify(e),
         triggered_by: user?.email,
+        conditions: filters
+          ? JSON.stringify(
+              addDummyRootAndNest(
+                filterBuilder().build(flattenFilter(filters)) as Filter[],
+              ),
+            )
+          : null,
+        response: e.response
+          ? JSON.stringify(extractResPayloadForLog(e.response))
+          : null,
       };
     }
-    if (throwErrorOnFailure) throw e;
+    if (throwErrorOnFailure) {
+      if (e.isAxiosError) {
+        if (
+          e.message.includes('private IP address') ||
+          e.response?.data?.message?.includes('private IP address')
+        ) {
+          throw new Error(
+            `Connection to a private network IP is blocked for security reasons.` +
+              // shoe env var only if it's not EE or it's on-prem
+              (!isEE || isOnPrem
+                ? `If this is intentional, set NC_ALLOW_LOCAL_HOOKS=true to allow local network webhooks.`
+                : ''),
+          );
+        }
+      }
+
+      throw e;
+    }
   } finally {
     if (hookLog) {
       hookLog.execution_time = parseHrtimeToMilliSeconds(
         process.hrtime(startTime),
       );
-      HookLog.insert(context, { ...hookLog, test_call: testHook });
+      HookLog.insert(context, { ...hookLog, test_call: testHook }).catch(
+        (e) => {
+          logger.error(e.message, e.stack);
+        },
+      );
     }
   }
 }
@@ -762,6 +932,64 @@ export function _transformSubmittedFormDataForEmail(
       transformedData[col.title] = JSON.stringify(transformedData[col.title]);
     }
   }
+  return transformedData;
+}
+
+export function transformDataForMailRendering(
+  data: Record<string, any>,
+  columns: (ColumnType & FormColumnType)[],
+  source: Source,
+  model: Model,
+  models: Record<string, TableType>,
+) {
+  const transformedData: Array<{
+    parsedValue?: any;
+    columnTitle: string;
+    uidt: UITypes | string;
+  }> = [];
+
+  columns.map((col) => {
+    let serializedValue: string | undefined;
+
+    try {
+      serializedValue = ColumnHelper.serializeValue(data[col.title], {
+        col,
+        isMssql: () => source.type === 'mssql',
+        isMysql: () => source.type.startsWith('mysql'),
+        isPg: () => source.type === 'pg',
+        isXcdbBase: () => !!source.isMeta(),
+        meta: model,
+        metas: models,
+      });
+
+      if (col.uidt === 'Attachment') {
+        let attachments = data[col.title] || [];
+        if (typeof data[col.title] === 'string') {
+          try {
+            attachments = JSON.parse(data[col.title]);
+          } catch (e) {
+            attachments = [];
+          }
+        }
+        serializedValue = Array.isArray(attachments)
+          ? attachments
+              .map((attachment) => attachment?.title || '')
+              .filter(Boolean)
+              .join(', ')
+          : '';
+      }
+    } catch (error) {
+      logger.error(`Error processing column ${col.title}:`, error);
+      serializedValue = data[col.title]?.toString() || '';
+    }
+
+    transformedData.push({
+      parsedValue: serializedValue,
+      uidt: col.uidt,
+      columnTitle: col.title,
+    });
+  });
+
   return transformedData;
 }
 

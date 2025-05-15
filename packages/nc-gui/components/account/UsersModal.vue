@@ -92,6 +92,19 @@ const onPaste = (e: ClipboardEvent) => {
 
   usersData.value.emails = extractEmail(pastedText) || pastedText
 }
+
+const userRoleOptions = [
+  {
+    title: 'objects.roleType.orgLevelCreator',
+    subtitle: 'msg.info.roles.orgCreator',
+    value: OrgUserRoles.CREATOR,
+  },
+  {
+    title: 'objects.roleType.orgLevelViewer',
+    subtitle: 'msg.info.roles.orgViewer',
+    value: OrgUserRoles.VIEWER,
+  },
+]
 </script>
 
 <template>
@@ -188,7 +201,7 @@ const onPaste = (e: ClipboardEvent) => {
                   </a-form-item>
                 </div>
 
-                <div class="flex flex-col w-2/4">
+                <div v-show="!isEeUI" class="flex flex-col w-2/4">
                   <a-form-item name="role" :rules="[{ required: true, message: $t('msg.roleRequired') }]">
                     <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
 
@@ -199,41 +212,31 @@ const onPaste = (e: ClipboardEvent) => {
                       dropdown-class-name="nc-dropdown-user-role max-w-64"
                     >
                       <a-select-option
+                        v-for="(option, idx) of userRoleOptions"
+                        :key="idx"
                         class="nc-role-option"
-                        :value="OrgUserRoles.CREATOR"
-                        :label="$t(`objects.roleType.orgLevelCreator`)"
+                        :value="option.value"
                       >
-                        <div class="flex items-center gap-1 justify-between">
-                          <div data-rec="true">{{ $t(`objects.roleType.orgLevelCreator`) }}</div>
+                        <div class="w-full flex items-start gap-1">
+                          <div class="flex-1 max-w-[calc(100%_-_16px)]">
+                            <NcTooltip show-on-truncate-only class="truncate" data-rec="true">
+                              <template #title>
+                                {{ $t(option.title) }}
+                              </template>
+                              {{ $t(option.title) }}
+                            </NcTooltip>
+
+                            <div class="nc-select-hide-item text-gray-500 text-xs whitespace-normal" data-rec="true">
+                              {{ $t(option.subtitle) }}
+                            </div>
+                          </div>
+
                           <GeneralIcon
-                            v-if="usersData.role === OrgUserRoles.CREATOR"
+                            v-if="usersData.role === option.value"
                             id="nc-selected-item-icon"
                             icon="check"
                             class="w-4 h-4 text-primary"
                           />
-                        </div>
-
-                        <div class="text-gray-500 text-xs whitespace-normal" data-rec="true">
-                          {{ $t('msg.info.roles.orgCreator') }}
-                        </div>
-                      </a-select-option>
-
-                      <a-select-option
-                        class="nc-role-option"
-                        :value="OrgUserRoles.VIEWER"
-                        :label="$t(`objects.roleType.orgLevelViewer`)"
-                      >
-                        <div class="flex items-center gap-1 justify-between">
-                          <div data-rec="true">{{ $t(`objects.roleType.orgLevelViewer`) }}</div>
-                          <GeneralIcon
-                            v-if="usersData.role === OrgUserRoles.VIEWER"
-                            id="nc-selected-item-icon"
-                            icon="check"
-                            class="w-4 h-4 text-primary"
-                          />
-                        </div>
-                        <div class="text-gray-500 text-xs whitespace-normal" data-rec="true">
-                          {{ $t('msg.info.roles.orgViewer') }}
                         </div>
                       </a-select-option>
                     </NcSelect>

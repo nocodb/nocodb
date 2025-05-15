@@ -113,14 +113,14 @@ const clickInviteMore = () => {
 
 const emailField = ref<typeof Input>()
 
-useActiveKeyupListener(
+useActiveKeydownListener(
   computed(() => show),
   (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       close()
     }
   },
-  { immediate: true },
+  { immediate: true, isGridCell: false },
 )
 
 watch(

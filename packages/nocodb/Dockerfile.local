@@ -3,14 +3,14 @@
 ###########
 # Builder
 ###########
-FROM node:18.19.1-alpine as builder
+FROM node:22-alpine as builder
 WORKDIR /usr/src/app
 
 # install node-gyp dependencies
-RUN apk add --no-cache python3 make g++
+RUN apk add --no-cache python3 make g++ py3-setuptools
 
 # install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
 # Copy application dependency manifests to the container image.
 COPY --link ./package.json ./package.json
@@ -28,14 +28,14 @@ RUN echo "node-linker=hoisted" > .npmrc
 # and add execute permission to start.sh
 RUN pnpm uninstall nocodb-sdk
 RUN pnpm install --prod --shamefully-hoist --reporter=silent \
-    && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
+    && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \
     && chmod +x /usr/src/appEntry/start.sh
 
 ##########
 # Runner
 ##########
-FROM alpine:3.19
+FROM alpine:3.20
 WORKDIR /usr/src/app
 
 ENV NC_DOCKER=0.6 \

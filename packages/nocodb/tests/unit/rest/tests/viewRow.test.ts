@@ -569,6 +569,16 @@ function viewRowTests() {
       relatedTableColumnTitle: 'FirstName',
     });
 
+    // show column in gallery
+    await updateViewColumns(context, {
+      view,
+      viewColumns: {
+        [lookupColumn.id]: {
+          show: true,
+        },
+      },
+    });
+
     const nestedFilter = {
       is_group: true,
       status: 'create',
@@ -1602,11 +1612,12 @@ function viewRowTests() {
       .query({
         from_date: '2005-05-25',
         to_date: '2005-05-26',
+        next_date: '2005-05-27',
+        prev_date: '2005-05-24',
       })
       .set('xc-auth', context.token)
       .expect(200);
-
-    if (response.body.list.length !== 137) {
+    if (response.body.list.length !== 319) {
       throw new Error('Wrong calendar data');
     }
   };
@@ -1641,14 +1652,16 @@ function viewRowTests() {
       .query({
         from_date: '2005-05-25',
         to_date: '2005-05-26',
+        next_date: '2005-05-27',
+        prev_date: '2005-05-24',
       })
       .set('xc-auth', context.token)
       .expect(expectStatus);
 
     if (
       expectStatus === 200 &&
-      response.body.count !== 137 &&
-      response.body.dates.length !== 137
+      response.body.count !== 319 &&
+      response.body.dates.length !== 319
     ) {
       throw new Error('Wrong count');
     } else if (

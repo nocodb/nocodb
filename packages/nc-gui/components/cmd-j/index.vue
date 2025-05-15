@@ -34,4 +34,4 @@ onMounted(() => {
   <div id="searchbar" :ref="modalEl" class="hidden"></div>
 </template>
 
-<style></style>
+<style lang="scss"></style>

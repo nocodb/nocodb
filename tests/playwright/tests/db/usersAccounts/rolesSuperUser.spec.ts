@@ -17,8 +17,6 @@ test.describe.skip('Super user', () => {
 
   // fix me!
   test('AppStore access', async () => {
-    await dashboard.closeTab({ title: 'Team & Auth' });
-
     await dashboard.rootPage.goto('/#/account/apps');
     await dashboard.rootPage.waitForLoadState('load');
     const appPage = await dashboard.rootPage;

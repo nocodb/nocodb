@@ -3,6 +3,8 @@ import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { UseDetachedLongTextProvider } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
+import DetachedExpandedText from '../smartsheet/grid/canvas/components/DetachedExpandedText.vue'
 
 const props = defineProps<{
   activeTab: TabItem
@@ -71,6 +73,7 @@ provide(
   ),
 )
 useExpandedFormDetachedProvider()
+UseDetachedLongTextProvider()
 
 useProvideViewColumns(activeView, meta, () => reloadViewDataEventHook?.trigger())
 
@@ -181,10 +184,16 @@ const contentMaxSize = computed(() => {
   }
 })
 
-const onResize = (sizes: { min: number; max: number; size: number }[]) => {
+const onResize = () => {
+  if (isPanelExpanded.value && !extensionPaneRef.value?.isReady) {
+    extensionPaneRef.value?.onReady()
+  }
+}
+
+const onResized = (sizes: { min: number; max: number; size: number }[]) => {
   if (sizes.length === 2) {
     if (!sizes[1].size) return
-    extensionPanelSize.value = sizes[1].size
+    if (isPanelExpanded.value) extensionPanelSize.value = sizes[1].size
   }
 }
 
@@ -205,8 +214,12 @@ const onReady = () => {
       <Splitpanes
         v-if="openedViewsTab === 'view'"
         class="nc-extensions-content-resizable-wrapper"
+        :class="{
+          'nc-is-open-extensions': isPanelExpanded,
+        }"
         @ready="() => onReady()"
-        @resized="onResize"
+        @resize="onResize"
+        @resized="onResized"
       >
         <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
           <LazySmartsheetToolbar v-if="!isForm" />
@@ -235,11 +248,12 @@ const onReady = () => {
             </Transition>
           </div>
         </Pane>
-        <ExtensionsPane ref="extensionPaneRef" />
+        <ExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
       </Splitpanes>
       <SmartsheetDetails v-else />
     </div>
     <LazySmartsheetExpandedFormDetached />
+    <DetachedExpandedText />
   </div>
 </template>
 
@@ -248,29 +262,37 @@ const onReady = () => {
   @apply !w-0 !max-w-0 !min-w-0 overflow-x-hidden;
 }
 
-.nc-extensions-content-resizable-wrapper > {
-  .splitpanes__splitter {
-    @apply !w-0 relative overflow-visible z-40 -ml-1px;
-  }
-  .splitpanes__splitter:before {
-    @apply bg-gray-200 absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-40;
-    content: '';
+.nc-extensions-content-resizable-wrapper {
+  &:not(.nc-is-open-extensions) > {
+    .splitpanes__splitter {
+      @apply hidden;
+    }
   }
 
-  .splitpanes__splitter:hover:before {
-    @apply bg-scrollbar;
-    width: 3px !important;
-    left: 0px;
-  }
+  & > {
+    .splitpanes__splitter {
+      @apply !w-0 relative overflow-visible z-40 -ml-1px;
+    }
+    .splitpanes__splitter:before {
+      @apply bg-gray-200 absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-40;
+      content: '';
+    }
 
-  .splitpanes--dragging .splitpanes__splitter:before {
-    @apply bg-scrollbar;
-    width: 3px !important;
-    left: 0px;
-  }
+    .splitpanes__splitter:hover:before {
+      @apply bg-scrollbar;
+      width: 3px !important;
+      left: 0px;
+    }
 
-  .splitpanes--dragging .splitpanes__splitter {
-    @apply w-1 mr-0;
+    .splitpanes--dragging .splitpanes__splitter:before {
+      @apply bg-scrollbar;
+      width: 3px !important;
+      left: 0px;
+    }
+
+    .splitpanes--dragging .splitpanes__splitter {
+      @apply w-1 mr-0;
+    }
   }
 }
 

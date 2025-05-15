@@ -9,10 +9,12 @@ import {
   JobStatus,
   JobTypes,
   JobVersions,
+  SKIP_STORING_JOB_META,
 } from '~/interface/Jobs';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { Job } from '~/models';
-import { RootScopes } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
+import Noco from '~/Noco';
 
 @Injectable()
 export class JobsService implements OnModuleInit {
@@ -80,15 +82,38 @@ export class JobsService implements OnModuleInit {
             status: JobStatus.WAITING,
           });
         }
+      } else {
+        if (SKIP_STORING_JOB_META.includes(name as JobTypes)) {
+          jobData = {
+            id: options.jobId,
+          };
+        } else {
+          jobData = await Job.insert(context, {
+            id: `${options.jobId}`,
+            job: name,
+            status: JobStatus.WAITING,
+            fk_user_id: data?.user?.id,
+          });
+        }
       }
     }
 
     if (!jobData) {
-      jobData = await Job.insert(context, {
-        job: name,
-        status: JobStatus.WAITING,
-        fk_user_id: data?.user?.id,
-      });
+      if (SKIP_STORING_JOB_META.includes(name as JobTypes)) {
+        jobData = {
+          id: await Noco.ncMeta.genNanoid(MetaTable.JOBS),
+        };
+      } else {
+        jobData = await Job.insert(context, {
+          job: name,
+          status: JobStatus.WAITING,
+          fk_user_id: data?.user?.id,
+        });
+      }
+    }
+
+    if (!data) {
+      data = {};
     }
 
     data.jobName = name;
@@ -97,12 +122,12 @@ export class JobsService implements OnModuleInit {
       data._jobVersion = JobVersions[name];
     }
 
-    await this.jobsQueue.add(data, {
+    const job = await this.jobsQueue.add(data, {
       jobId: jobData.id,
       ...options,
     });
 
-    return jobData;
+    return job;
   }
 
   async jobStatus(jobId: string) {
@@ -119,6 +144,39 @@ export class JobsService implements OnModuleInit {
       JobStatus.DELAYED,
       JobStatus.PAUSED,
     ]);
+  }
+
+  async setJobResult(jobId: string, result: any) {
+    const job = await Job.get(
+      {
+        workspace_id: RootScopes.ROOT,
+        base_id: RootScopes.ROOT,
+      },
+      jobId,
+    );
+
+    if (!job) {
+      return;
+    }
+
+    try {
+      if (typeof result === 'object') {
+        result = JSON.stringify(result);
+      }
+
+      await Job.update(
+        {
+          workspace_id: RootScopes.ROOT,
+          base_id: RootScopes.ROOT,
+        },
+        jobId,
+        {
+          result,
+        },
+      );
+    } catch (e) {
+      // ignore
+    }
   }
 
   async resumeQueue() {

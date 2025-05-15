@@ -9,8 +9,9 @@ interface Props {
   type: 'date' | 'time' | 'year' | 'month'
   isOpen: boolean
   showCurrentDateOption?: boolean | 'disabled'
+  isMondayFirst?: boolean
+  timezone?: string
 }
-
 const props = withDefaults(defineProps<Props>(), {
   size: 'medium',
   selectedDate: null,
@@ -18,8 +19,26 @@ const props = withDefaults(defineProps<Props>(), {
   isCellInputField: false,
   type: 'date',
   isOpen: false,
+  isMondayFirst: true,
 })
+
 const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:selectedWeek', 'currentDate'])
+
+const dayjsTz = (value?: string | null | dayjs.Dayjs, format?: string) => {
+  if (typeof value === 'object') {
+    return value
+  }
+  if (props?.timezone) {
+    if (!format) {
+      return dayjs.tz(value, props.timezone)
+    } else {
+      return dayjs.tz(value, format, props.timezone)
+    }
+  } else {
+    return dayjs(value, format)
+  }
+}
+
 // Page date is the date we use to manage which month/date that is currently being displayed
 const pageDate = useVModel(props, 'pageDate', emit)
 
@@ -78,22 +97,22 @@ const localStateSelectedDate = computed({
     if (!value.isValid()) return
 
     if (pickerType.value === type.value) {
-      localPageDate.value = value
-      emit('update:selectedDate', value)
+      localPageDate.value = dayjsTz(value.format('YYYY-MM-DD'))
+      emit('update:selectedDate', dayjsTz(value.format('YYYY-MM-DD')))
       localSelectedDate.value = undefined
       return
     }
 
     if (['date', 'month'].includes(type.value)) {
       if (pickerType.value === 'year') {
-        localSelectedDate.value = dayjs(localPageDate.value ?? localSelectedDate.value ?? selectedDate.value ?? dayjs()).year(
+        localSelectedDate.value = dayjsTz(localPageDate.value ?? localSelectedDate.value ?? selectedDate.value ?? dayjsTz()).year(
           +value.format('YYYY'),
         )
       }
       if (type.value !== 'month' && pickerType.value === 'month') {
-        localSelectedDate.value = dayjs(localPageDate.value ?? localSelectedDate.value ?? selectedDate.value ?? dayjs()).month(
-          +value.format('MM') - 1,
-        )
+        localSelectedDate.value = dayjsTz(
+          localPageDate.value ?? localSelectedDate.value ?? selectedDate.value ?? dayjsTz(),
+        ).month(+value.format('MM') - 1)
       }
 
       localPageDate.value = localSelectedDate.value
@@ -131,7 +150,7 @@ onMounted(() => {
     v-model:page-date="localStatePageDate"
     v-model:selected-date="localStateSelectedDate"
     :picker-type="pickerType"
-    :is-monday-first="false"
+    :is-monday-first="props.isMondayFirst"
     is-cell-input-field
     size="medium"
     :show-current-date-option="showCurrentDateOption"

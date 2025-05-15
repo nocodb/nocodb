@@ -1,18 +1,20 @@
 <script lang="ts" setup>
-const { isGrid, isForm, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
-
 const router = useRouter()
 const route = router.currentRoute
 
-const isPublic = inject(IsPublicInj, ref(false))
-
 const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
+
+const { isAutomationActive, activeAutomationId } = storeToRefs(useAutomationStore())
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { appInfo } = useGlobal()
 
-const { toggleExtensionPanel, isPanelExpanded, extensionsEgg, onEggClick } = useExtensions()
+const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
@@ -32,29 +34,36 @@ const topbarBreadcrumbItemWidth = computed(() => {
     class="nc-table-topbar py-2 border-b-1 border-gray-200 flex gap-3 items-center justify-between overflow-hidden relative h-[var(--topbar-height)] max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(px-2) xs:(px-1)"
     style="z-index: 7"
   >
-    <template v-if="isViewsLoading">
+    <template v-if="isViewsLoading && !activeAutomationId">
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
     </template>
     <template v-else>
       <div
-        class="flex items-center gap-3 min-w-[300px]"
+        class="flex items-center gap-3 min-w-[calc(100%_-_62px)] md:min-w-[300px]"
         :style="{
           width: topbarBreadcrumbItemWidth,
         }"
       >
         <GeneralOpenLeftSidebarBtn />
-        <LazySmartsheetToolbarViewInfo v-if="!isPublic" />
+        <LazySmartsheetToolbarViewInfo v-if="!isPublic && !activeAutomationId" />
+        <LazySmartsheetTopbarAutomationInfo v-if="!isPublic && activeAutomationId" />
       </div>
 
-      <div v-if="!isSharedBase && !isMobileMode">
+      <div v-if="!isSharedBase && !isMobileMode && !activeAutomationId && !isAutomationActive">
         <SmartsheetTopbarSelectMode />
       </div>
 
       <div class="flex items-center justify-end gap-2 flex-1">
-        <GeneralApiLoader v-if="!isMobileMode" />
+        <GeneralApiLoader v-if="!isMobileMode && !activeAutomationId" />
 
         <NcButton
-          v-if="!isSharedBase && extensionsEgg && openedViewsTab === 'view'"
+          v-if="
+            !isSharedBase &&
+            !activeAutomationId &&
+            isFeatureEnabled(FEATURE_FLAG.EXTENSIONS) &&
+            openedViewsTab === 'view' &&
+            !isMobileMode
+          "
           v-e="['c:extension-toggle']"
           type="secondary"
           size="small"
@@ -77,16 +86,14 @@ const topbarBreadcrumbItemWidth = computed(() => {
             </span>
           </div>
         </NcButton>
-        <div v-else-if="!isSharedBase && !extensionsEgg" class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEggClick" />
 
-        <div v-if="!isSharedBase">
+        <div v-if="!isSharedBase" class="flex gap-2 items-center">
           <LazySmartsheetTopbarCmdK />
+          <LazySmartsheetTopbarScriptAction v-if="activeAutomationId && appInfo.ee" />
         </div>
-        <div v-if="(isForm || isGrid || isKanban || isGallery || isMap || isCalendar) && !isPublic && !isMobileMode">
-          <LazyGeneralShareProject is-view-toolbar />
-        </div>
+        <LazySmartsheetTopbarShareProject v-if="!activeAutomationId" />
 
-        <div v-if="isSharedBase && !appInfo.ee">
+        <div v-if="isSharedBase && (!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || appInfo.isOnPrem)">
           <LazyGeneralLanguage class="cursor-pointer text-lg hover:(text-black bg-gray-200) mr-0 p-1.5 rounded-md" />
         </div>
       </div>

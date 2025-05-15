@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, columnTypeName, isSupportedDisplayValueColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 interface Props {
-  column: ColumnType
   value?: boolean
+  useMetaFields?: boolean
 }
 
 const props = defineProps<Props>()
@@ -18,29 +18,66 @@ const { fields } = useViewColumnsOrThrow()
 
 const meta = inject(MetaInj, ref())
 
-const searchField = ref('')
-
-const column = toRef(props, 'column')
-
 const value = useVModel(props, 'value')
 
-const selectedField = ref()
+// keep localstate for modal visibility
+// if parent component unmouts changing value will not update
+const localValue = ref(value.value)
+const isVisible = computed({
+  get: () => value.value,
+  set: (v) => {
+    value.value = v
+    localValue.value = v
+  },
+})
+
+const { useMetaFields } = toRefs(props)
+
+const menuColumn = inject(ColumnInj)
+
+const canvasColumn = inject(CanvasColumnInj)
+
+const column = computed(() => menuColumn?.value || canvasColumn?.value)
+
+const selectedFieldId = ref()
 
 const isLoading = ref(false)
+
+const getFormatedColumn = (column: ColumnType) => ({
+  title: column.title,
+  id: column.id,
+  ncItemDisabled: !isSupportedDisplayValueColumn(column) && !column.pv,
+  ncItemTooltip:
+    !isSupportedDisplayValueColumn(column) && columnTypeName(column) && !column.pv
+      ? `${columnTypeName(column)} field cannot be used as display value field`
+      : '',
+  column,
+})
 
 const filteredColumns = computed(() => {
   const columns = meta.value?.columnsById ?? {}
 
+  if (useMetaFields.value) {
+    return (meta.value?.columns ?? [])
+      .filter((c) => c?.id && !isSystemColumn(c))
+      .map((column) => {
+        return getFormatedColumn(column)
+      })
+  }
+
   return (fields.value ?? [])
-    .filter((f) => !isVirtualCol(columns[f.fk_column_id]))
-    .filter((c) => c.title.toLowerCase().includes(searchField.value.toLowerCase()))
+    .filter((f) => columns[f?.fk_column_id] && !isSystemColumn(columns[f.fk_column_id]))
+    .map((f) => {
+      return getFormatedColumn(columns[f.fk_column_id] as ColumnType)
+    })
 })
 
 const changeDisplayField = async () => {
+  if (!selectedFieldId.value) return
   isLoading.value = true
 
   try {
-    await $api.dbTableColumn.primaryColumnSet(selectedField?.value?.fk_column_id as string)
+    await $api.dbTableColumn.primaryColumnSet(selectedFieldId.value)
 
     await getMeta(meta?.value?.id as string, true)
 
@@ -53,19 +90,20 @@ const changeDisplayField = async () => {
   }
 }
 
-const getIcon = (c: ColumnType) =>
+const cellIcon = (c: ColumnType) =>
   h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: c,
   })
 
 onMounted(() => {
-  searchField.value = ''
-  selectedField.value = fields.value?.find((f) => f.fk_column_id === column.value.id)
+  selectedFieldId.value = useMetaFields.value
+    ? meta.value?.columns?.find((c) => c.id === column.value.id)?.id
+    : fields.value?.find((f) => f.fk_column_id === column.value.id)?.fk_column_id
 })
 </script>
 
 <template>
-  <NcModal v-model:visible="value" size="small">
+  <NcModal v-model:visible="isVisible" size="small">
     <div class="flex flex-col gap-3">
       <div>
         <h1 class="text-base text-gray-800 font-semibold">{{ $t('labels.searchDisplayValue') }}</h1>
@@ -79,39 +117,22 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="flex w-full gap-2 justify-between items-center">
-        <a-input v-model:value="searchField" class="w-full h-8 flex-1" size="small" :placeholder="$t('placeholder.searchFields')">
-          <template #prefix>
-            <component :is="iconMap.search" class="w-4 text-gray-500 h-4" />
-          </template>
-        </a-input>
-      </div>
-
-      <div class="border-1 rounded-md h-[250px] nc-scrollbar-md border-gray-200">
-        <div
-          v-for="col in filteredColumns"
-          :key="col.fk_column_id"
-          :class="{
-            'bg-gray-100': selectedField === col,
-          }"
-          :data-testid="`nc-display-field-update-menu-${col.title}`"
-          class="px-3 py-1 flex flex-row items-center rounded-md hover:bg-gray-100"
-          @click.stop="selectedField = col"
+      <div class="border-1 rounded-lg border-nc-border-gray-medium h-[250px]">
+        <NcList
+          v-model:value="selectedFieldId"
+          v-model:open="value"
+          :list="filteredColumns"
+          option-label-key="title"
+          option-value-key="id"
+          :close-on-select="false"
+          class="!w-auto"
+          show-search-always
+          container-class-name="!max-h-[200px]"
         >
-          <div class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[5px] pr-2">
-            <component :is="getIcon(meta.columnsById[col.fk_column_id])" class="!w-3.5 !h-3.5 !text-gray-500" />
-            <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only>
-              <template #title>
-                {{ col.title }}
-              </template>
-              <template #default>{{ col.title }}</template>
-            </NcTooltip>
-          </div>
-
-          <div class="flex-1" />
-
-          <component :is="iconMap.check" v-if="selectedField === col" class="!w-4 !h-4 !text-brand-500" />
-        </div>
+          <template #listItemExtraLeft="{ option }">
+            <component :is="cellIcon(option.column)" class="!mx-0 opacity-70" />
+          </template>
+        </NcList>
       </div>
 
       <div class="flex w-full gap-2 justify-end">
@@ -120,7 +141,7 @@ onMounted(() => {
         </NcButton>
 
         <NcButton
-          :disabled="!selectedField || selectedField.fk_column_id === column.id"
+          :disabled="!selectedFieldId || selectedFieldId === column.id"
           :loading="isLoading"
           size="small"
           @click="changeDisplayField"

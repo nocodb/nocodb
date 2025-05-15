@@ -16,12 +16,17 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     },
   })
 
+  const meta = inject(MetaInj, ref())
+
+  const pk = computed(() => extractPkFromRow(currentRow.value.row, meta.value?.columns ?? []))
+
   // getters
   const isNew = computed(() => unref(row).rowMeta?.new ?? false)
 
   const { addLTARRef, removeLTARRef, syncLTARRefs, loadRow, clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
 
   return {
+    pk,
     row,
     state,
     isNew,

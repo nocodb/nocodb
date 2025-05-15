@@ -5,6 +5,7 @@ import { DATE_FORMATS, TIME_FORMATS } from '~/db/sql-client/lib/pg/constants';
  * Generate query to extract number from a string. The number is extracted by
  * removing all non-numeric characters from the string. Decimal point is allowed.
  * If there are more than one decimal points, only the first one is considered, the rest are ignored.
+ * Negatives are preserved. If statement starts with '-', number will be negated.
  *
  * @param {String} source - source column name
  * @returns {String} - query to extract number from a string
@@ -15,13 +16,22 @@ function extractNumberQuery(source: string) {
       NULLIF(
         REPLACE(
           REPLACE(
-            REGEXP_REPLACE(
-              REGEXP_REPLACE(${source}, '[^0-9.]', '', 'g'), 
-              '(\\d)\\.', '\\1-'
+            REPLACE(
+              REGEXP_REPLACE(
+                REPLACE(
+                  REGEXP_REPLACE(
+                    REGEXP_REPLACE(${source}, '[^0-9.-]', '', 'g'),
+                    '^-', '~'
+                  ),
+                  '-', ''
+                ),
+                '(\\d)\\.(\\d)', '\\1-\\2'
+              ), 
+              '.', ''
             ), 
-            '.', ''
-          ), 
-          '-', '.'
+            '-', '.'
+          ),
+          '~', '-'
         ), ''
       ) AS DECIMAL
     )

@@ -32,6 +32,7 @@ export default class Job {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(jobObj, [
+      'id',
       'job',
       'status',
       'result',

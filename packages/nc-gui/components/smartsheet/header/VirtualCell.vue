@@ -6,6 +6,7 @@ import {
   type LinkToAnotherRecordType,
   type LookupType,
   type RollupType,
+  type TableType,
   isLinksOrLTAR,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
@@ -39,8 +40,6 @@ const isDropDownOpen = ref(false)
 
 const enableDescription = ref(false)
 
-const isLocked = inject(IsLockedInj, ref(false))
-
 provide(ColumnInj, column)
 
 const { metas } = useMetas()
@@ -56,6 +55,8 @@ const isForm = inject(IsFormInj, ref(false))
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const isExpandedBulkUpdateForm = inject(IsExpandedBulkUpdateFormOpenInj, ref(false))
+
+const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
 
 const tableTile = computed(() => meta?.value?.title)
 
@@ -95,7 +96,7 @@ const tooltipMsg = computed(() => {
       )
       suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
     } else if (isBt(column.value)) {
-      const fkColumn = meta.value?.find((c) => c.id === column.value?.colOptions?.fk_child_column_id)
+      const fkColumn = meta.value?.columns?.find((c) => c.id === column.value?.colOptions?.fk_child_column_id)
       suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
     }
   }
@@ -126,11 +127,12 @@ const showTooltipAlways = computed(() => {
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
 const columnTypeName = computed(() => {
-  if (column.value.uidt === UITypes.LongText && parseProp(column?.value?.meta)?.richMode) {
-    return UITypesName.RichText
-  }
   if (column.value.uidt === UITypes.LinkToAnotherRecord && column.value.colOptions?.type === RelationTypes.ONE_TO_ONE) {
     return UITypesName[UITypes.Links]
+  }
+
+  if (isAiButton(column.value)) {
+    return UITypesName.AIButton
   }
 
   return column.value.uidt ? UITypesName[column.value.uidt] : ''
@@ -155,7 +157,9 @@ watch(editColumnDropdown, (val) => {
 })
 
 const openHeaderMenu = (e?: MouseEvent, description = false) => {
-  if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
+  if ((isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value || isSqlView.value) {
+    return
+  }
 
   if (
     !isForm.value &&
@@ -171,8 +175,6 @@ const openHeaderMenu = (e?: MouseEvent, description = false) => {
 }
 
 const openDropDown = (e: Event) => {
-  if (isLocked.value) return
-
   if (isForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
 
   e.preventDefault()
@@ -183,7 +185,7 @@ const openDropDown = (e: Event) => {
 
 const onVisibleChange = () => {
   editColumnDropdown.value = true
-  if (!editOrAddProviderRef.value?.isWebHookModalOpen()) {
+  if (!editOrAddProviderRef.value?.shouldKeepModalOpen()) {
     editColumnDropdown.value = false
     enableDescription.value = false
   }
@@ -222,7 +224,8 @@ const onClick = (e: Event) => {
     <div
       class="nc-virtual-cell-name-wrapper flex-1 flex items-center"
       :class="{
-        'max-w-[calc(100%_-_23px)]': !isExpandedForm,
+        'max-w-[calc(100%_-_23px)]': !isExpandedForm && !column.description?.length,
+        'max-w-[calc(100%_-_44px)]': !isExpandedForm && column.description?.length,
         'max-w-full': isExpandedForm && !isExpandedBulkUpdateForm,
       }"
     >
@@ -235,7 +238,7 @@ const onClick = (e: Event) => {
       </template>
       <NcTooltip placement="bottom" class="truncate name pl-1" :show-on-truncate-only="!showTooltipAlways">
         <template #title>
-          <template v-for="msg in tooltipMsg.split('\n')">
+          <template v-for="(msg, i) in tooltipMsg.split('\n')" :key="i">
             <div>{{ msg }}</div>
           </template>
         </template>
@@ -253,7 +256,7 @@ const onClick = (e: Event) => {
       <GeneralIcon
         v-if="isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm"
         icon="arrowDown"
-        class="flex-none cursor-pointer ml-1 group-hover:visible w-4 h-4"
+        class="nc-column-context-menu flex-none cursor-pointer ml-1 group-hover:visible w-4 h-4"
         :class="{
           visible: editColumnDropdown || isDropDownOpen,
           invisible: !(editColumnDropdown || isDropDownOpen),

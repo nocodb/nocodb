@@ -1,16 +1,19 @@
 // ref: https://localazy.com/blog/nuxt-3-tailwind-i18n-eslint-starter#add-sentry
 //      https://docs.sentry.io/platforms/javascript/guides/vue/
 import * as Sentry from '@sentry/vue'
+
 import { defineNuxtPlugin } from 'nuxt/app'
 
 export default defineNuxtPlugin((nuxtApp) => {
   if (isEeUI) return
 
+  const config = useRuntimeConfig()
+
   const { vueApp } = nuxtApp
 
   const env = process.env.NODE_ENV === 'production' ? 'production' : 'development'
 
-  if (process.env.CI || process.env.PLAYWRIGHT) {
+  if (config.public.env === 'CI') {
     return
   }
 
@@ -26,15 +29,10 @@ export default defineNuxtPlugin((nuxtApp) => {
     initialized = true
 
     Sentry.init({
-      app: [vueApp],
+      app: vueApp,
       dsn,
+      integrations: [Sentry.browserTracingIntegration({ router: nuxtApp.$router })],
       environment: env,
-      integrations: [
-        new Sentry.BrowserTracing({
-          tracingOrigins: ['*'],
-          routingInstrumentation: Sentry.vueRouterInstrumentation(nuxtApp.$router),
-        }),
-      ],
       beforeSend(event) {
         if (process.env.NODE_ENV === 'production') {
           event.extra = event.extra || {}
@@ -49,7 +47,6 @@ export default defineNuxtPlugin((nuxtApp) => {
         }
         return null
       },
-      autoSessionTracking: false,
       tracesSampleRate: 0.5,
     })
   }

@@ -2,8 +2,8 @@ import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
 import type { ProjectRoles } from 'nocodb-sdk'
+import type { AxiosInstance } from 'axios'
 import type { NcProjectType } from '#imports'
-
 export interface AppInfo {
   ncSiteUrl: string
   authType: 'jwt' | 'none'
@@ -41,6 +41,9 @@ export interface AppInfo {
   giftUrl: string
   feedEnabled: boolean
   sentryDSN: string
+  isOnPrem: boolean
+  stripePublishableKey?: string
+  marketingRootUrl?: string
 }
 
 export interface StoredState {
@@ -91,8 +94,12 @@ export interface SignOutParams {
 
 export interface Actions {
   signOut: (signOutParams?: SignOutParams) => Promise<void>
-  signIn: (token: string, keepProps?: boolean) => Promise<void>
-  refreshToken: () => void
+  signIn: (token: string, keepProps?: boolean) => void
+  refreshToken: (params: {
+    axiosInstance?: AxiosInstance
+    skipLogout?: boolean
+    cognitoOnly?: boolean
+  }) => Promise<string | null | void>
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
   navigateToProject: (params: { workspaceId?: string; baseId?: string; type?: NcProjectType; query?: any }) => void
@@ -103,6 +110,8 @@ export interface Actions {
     query?: any
     tableId?: string
     viewId?: string
+    automationId?: string
+    automation?: boolean
   }) => void
   getBaseUrl: (workspaceId: string) => string | undefined
   getMainUrl: (workspaceId: string) => string | undefined

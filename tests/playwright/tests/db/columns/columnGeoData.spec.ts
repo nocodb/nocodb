@@ -19,9 +19,6 @@ test.describe.skip('Geo Data column', () => {
   });
 
   test('creation, validation and deleting geo data column', async () => {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
-
     await dashboard.treeView.openTable({ title: 'City' });
 
     await dashboard.viewSidebar.changeBetaFeatureToggleValue();
@@ -71,7 +68,5 @@ test.describe.skip('Geo Data column', () => {
 
     await grid.column.delete({ title: 'GeoData1' });
     await grid.column.verify({ title: 'GeoData1', isVisible: false });
-
-    await dashboard.closeTab({ title: 'City' });
   });
 });

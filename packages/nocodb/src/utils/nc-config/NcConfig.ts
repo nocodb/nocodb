@@ -177,4 +177,8 @@ export class NcConfig {
       }
     }
   }
+
+  static get isAuditEnabled() {
+    return process.env.NC_ENABLE_AUDIT === 'true';
+  }
 }

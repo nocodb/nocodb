@@ -156,6 +156,8 @@ test.describe('Calendar View', () => {
       fromTitle: 'EndDate',
     });
 
+    await toolbar.clickCalendarViewSettings();
+
     // We close the menu on new range is set
     // await toolbar.clickCalendarViewSettings();
 
@@ -334,6 +336,8 @@ test.describe('Calendar View', () => {
       date: '1 - 7 Jan 24',
       action: 'prev',
     });
+
+    await calendar.dashboard.rootPage.waitForTimeout(1000);
 
     await calendar.calendarWeekDateTime.dragAndDrop({
       record: 'Team Catchup',

@@ -10,7 +10,7 @@ export default {
           client: 'mssql',
           connection: {
             host: DOCKER_DB_HOST || 'localhost',
-            port: DOCKER_DB_PORT ? parseInt(DOCKER_DB_PORT, 10) : null || 1433,
+            port: DOCKER_DB_PORT ? parseInt(DOCKER_DB_PORT, 10) : 1433,
             user: 'sa',
             password: 'Password123.',
             database: 'default_dev',
@@ -29,7 +29,7 @@ export default {
           client: 'mssql',
           connection: {
             host: DOCKER_DB_HOST || 'localhost',
-            port: DOCKER_DB_PORT ? parseInt(DOCKER_DB_PORT) : null || 1433,
+            port: DOCKER_DB_PORT ? parseInt(DOCKER_DB_PORT) : 1433,
             user: 'sa',
             password: 'Password123.',
             database: 'default_test',

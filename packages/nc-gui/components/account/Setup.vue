@@ -126,5 +126,3 @@ onMounted(async () => {
     <LazyAccountSetupListModal v-if="openedCategory" v-model="listModalDlg" :category="openedCategory" />
   </div>
 </template>
-
-<style scoped lang="scss"></style>

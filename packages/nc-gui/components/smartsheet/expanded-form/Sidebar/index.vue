@@ -1,36 +1,59 @@
 <script setup lang="ts">
-const { appInfo } = useGlobal()
+const props = defineProps<{
+  showFieldsTab?: boolean
+}>()
 
-const tab = ref<'comments' | 'audits'>('comments')
+const { isSqlView } = useSmartsheetStoreOrThrow()
+
+const expandedFormStore = useExpandedFormStoreOrThrow()
+const isAuditsEnabled = true
+
+const tab = ref<'fields' | 'comments' | 'audits'>(props.showFieldsTab ? 'fields' : 'comments')
+
+watch(tab, (newValue) => {
+  if (newValue === 'audits') {
+    expandedFormStore.loadAudits()
+  }
+})
 </script>
 
 <template>
   <div class="flex flex-col bg-white !h-full w-full rounded-br-2xl overflow-hidden">
     <NcTabs v-model:activeKey="tab" class="h-full">
-      <a-tab-pane key="comments" class="w-full h-full">
+      <a-tab-pane v-if="props.showFieldsTab" key="fields" class="w-full h-full">
+        <template #tab>
+          <div v-e="['c:row-expand:fields']" class="flex items-center gap-2">
+            <GeneralIcon icon="fields" class="w-4 h-4" />
+            <span class="<lg:hidden"> {{ $t('objects.fields') }} </span>
+          </div>
+        </template>
+        <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper />
+      </a-tab-pane>
+
+      <a-tab-pane v-if="!isSqlView" key="comments" class="w-full h-full">
         <template #tab>
           <div v-e="['c:row-expand:comment']" class="flex items-center gap-2">
             <GeneralIcon icon="messageCircle" class="w-4 h-4" />
-            <span class="<lg:hidden"> Comments </span>
+            <span class="<lg:hidden"> {{ $t('general.comments') }} </span>
           </div>
         </template>
         <SmartsheetExpandedFormSidebarComments />
       </a-tab-pane>
 
-      <a-tab-pane key="audits" class="w-full" :disabled="appInfo.ee">
+      <a-tab-pane v-if="!isSqlView" key="audits" :disabled="!isAuditsEnabled" class="w-full">
         <template #tab>
-          <NcTooltip v-if="appInfo.ee" class="tab flex-1">
+          <NcTooltip v-if="!isAuditsEnabled" class="tab flex-1">
             <template #title>{{ $t('title.comingSoon') }}</template>
 
             <div v-e="['c:row-expand:audit']" class="flex items-center gap-2 text-gray-400">
               <GeneralIcon icon="audit" class="w-4 h-4" />
-              <span class="<lg:hidden"> Audits </span>
+              <span class="<lg:hidden"> {{ $t('title.audits') }} </span>
             </div>
           </NcTooltip>
 
           <div v-else v-e="['c:row-expand:audit']" class="flex items-center gap-2">
             <GeneralIcon icon="audit" class="w-4 h-4" />
-            <span class="<lg:hidden"> Audits </span>
+            <span class="<lg:hidden"> {{ $t('title.audits') }} </span>
           </div>
         </template>
         <SmartsheetExpandedFormSidebarAudits />

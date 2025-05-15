@@ -15,6 +15,7 @@ const props = withDefaults(
     allowClear?: boolean
     loading?: boolean
     suffixIcon?: keyof typeof iconMap
+    maxTagCount?: number
   }>(),
   {
     suffixIcon: 'arrowDown',
@@ -55,8 +56,9 @@ const onChange = (value: string) => {
     :mode="mode"
     :placeholder="placeholder"
     :show-search="showSearch"
+    :max-tag-count="maxTagCount"
     class="nc-select"
-    @change="onChange"
+    @change="onChange as any"
   >
     <template #suffixIcon>
       <GeneralLoader v-if="loading" />
@@ -92,7 +94,7 @@ const onChange = (value: string) => {
   }
 
   .ant-select-selection-item {
-    @apply font-medium pr-3 rounded-md;
+    @apply font-medium pr-3 rounded-md flex items-center;
   }
 
   .ant-select-selection-placeholder {

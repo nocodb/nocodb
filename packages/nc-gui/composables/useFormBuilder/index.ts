@@ -1,9 +1,14 @@
 import { Form } from 'ant-design-vue'
 import { diff } from 'deep-object-diff'
+import type { FormDefinition } from 'nocodb-sdk'
 
 const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
-  (props: { formSchema: FormDefinition; onSubmit?: () => Promise<any>; initialState?: Ref<Record<string, any>> }) => {
-    const { formSchema, onSubmit, initialState } = props
+  (props: {
+    formSchema: MaybeRef<FormDefinition | undefined>
+    onSubmit?: () => Promise<any>
+    initialState?: Ref<Record<string, any>>
+  }) => {
+    const { formSchema, onSubmit, initialState = ref({}) } = props
 
     const useForm = Form.useForm
 
@@ -16,7 +21,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     const formElementsCategorized = computed(() => {
       const categorizedItems: Record<string, any> = {}
 
-      for (const item of formSchema) {
+      for (const item of unref(formSchema) || []) {
         item.category = item.category || FORM_BUILDER_NON_CATEGORIZED
 
         if (!categorizedItems[item.category]) {
@@ -48,7 +53,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     const defaultFormState = () => {
       const defaultState: Record<string, any> = {}
 
-      for (const field of formSchema) {
+      for (const field of unref(formSchema) || []) {
         if (!field.model) continue
 
         if (field.type === FormBuilderInputType.Switch) {
@@ -65,34 +70,46 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
     const formState = ref(defaultFormState())
 
+    const deepReference = (path: string): any => {
+      return path.split('.').reduce((acc, key) => (acc ? acc[key] : null), formState.value)
+    }
+
+    const checkCondition = (condition?: { model: string; value: string }) => {
+      if (!condition) return true
+
+      const value = deepReference(condition.model)
+      return value === condition.value
+    }
+
     const validators = computed(() => {
       const validatorsObject: Record<string, any> = {}
 
-      for (const field of formSchema) {
+      for (const field of unref(formSchema) || []) {
         if (!field.model) continue
 
-        if (field.required) {
-          validatorsObject[field.model] = [
-            {
-              required: true,
-              message: `${field.label} is required`,
-            },
-          ]
+        if (field.validators && checkCondition(field.condition)) {
+          // continue if field.model is not present in formState
+          if (!deepReference(field.model)) continue
+
+          validatorsObject[field.model] = field.validators
+            .map((validator: { type: 'required'; message?: string }) => {
+              if (validator.type === 'required') {
+                return {
+                  required: true,
+                  message: validator.message,
+                }
+              }
+
+              return null
+            })
+            .filter((v: any) => v !== null)
         }
       }
 
-      return {
-        title: [
-          {
-            required: true,
-            message: 'Integration title is required',
-          },
-        ],
-        ...validatorsObject,
-      }
+      return validatorsObject
     })
 
-    const { validate, validateInfos } = useForm(formState, validators)
+    const { validate, clearValidate, validateInfos } = useForm(formState, validators)
 
     const submit = async () => {
       try {
@@ -112,7 +129,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
         return {
           success: true,
-          ...({ result } || {}),
+          result,
         }
       } catch (e) {
         return {
@@ -151,27 +168,38 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       { deep: true },
     )
 
-    onMounted(async () => {
-      isLoading.value = true
+    watch(
+      () => unref(formSchema),
+      async () => {
+        isLoading.value = true
 
-      formState.value = {
-        ...defaultFormState(),
-        ...(initialState?.value ?? {}),
-      }
+        formState.value = {
+          ...formState.value,
+          ...defaultFormState(),
+          ...(initialState?.value ?? {}),
+        }
 
-      isLoading.value = false
-    })
+        nextTick(clearValidate)
+
+        isLoading.value = false
+      },
+      { immediate: true },
+    )
 
     return {
       form,
       formState,
       initialState,
+      formSchema,
       formElementsCategorized,
       isLoading,
       isChanged,
       validateInfos,
+      clearValidate,
       validate,
       submit,
+      checkCondition,
+      deepReference,
     }
   },
   'form-builder-helper',

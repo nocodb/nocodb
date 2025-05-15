@@ -1,21 +1,25 @@
 <script setup lang="ts">
 const { sharedViewMeta, sharedFormView } = useSharedFormStoreOrThrow()
 
-const isDark = useDark()
-
 const route = useRoute()
 
 const router = useRouter()
 
-onMounted(() => {
-  isDark.value = false
-})
-
 const shouldRedirect = (to: string) => {
   if (sharedViewMeta.value.surveyMode) {
-    if (!to.includes('survey')) navigateTo(`/nc/form/${route.params.viewId}/survey`)
+    if (!to.includes('survey')) {
+      navigateTo({
+        path: `/nc/form/${route.params.viewId}/survey`,
+        query: route.query,
+      })
+    }
   } else {
-    if (to.includes('survey')) navigateTo(`/nc/form/${route.params.viewId}`)
+    if (to.includes('survey')) {
+      navigateTo({
+        path: `/nc/form/${route.params.viewId}`,
+        query: route.query,
+      })
+    }
   }
 }
 
@@ -170,13 +174,20 @@ p {
         }
         &.nc-cell:not(.nc-cell-longtext) {
           @apply p-2;
+
+          &.nc-cell-phonenumber,
+          &.nc-cell-email,
+          &.nc-cell-url {
+            .nc-cell-field.nc-cell-link-preview {
+              @apply px-3;
+            }
+          }
         }
         &.nc-virtual-cell {
           @apply px-2 py-1;
         }
 
         &.nc-cell-json {
-          @apply h-auto;
           & > div {
             @apply w-full;
           }

@@ -1,5 +1,6 @@
-import { UITypes, getDateFormat } from 'nocodb-sdk'
-import TemplateGenerator from './TemplateGenerator'
+import { type ColumnType, UITypes, getDateFormat, parseProp } from 'nocodb-sdk'
+import { workerWithTimezone } from '../../utils/worker/datetimeUtils'
+import TemplateGenerator, { type ProgressMessageType } from './TemplateGenerator'
 import {
   extractMultiOrSingleSelectProps,
   getCheckboxValue,
@@ -31,7 +32,15 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
   xlsx: typeof import('xlsx')
 
-  constructor(data = {}, parserConfig = {}, xlsx: any = null, progressCallback?: (msg: string) => void) {
+  existingColumnMap: Record<string, ColumnType> = {}
+
+  constructor(
+    data = {},
+    parserConfig = {},
+    xlsx: any = null,
+    progressCallback?: (msg: ProgressMessageType) => void,
+    existingColumns?: ColumnType[],
+  ) {
     super(progressCallback)
     this.config = parserConfig
     this.excelData = data
@@ -39,6 +48,12 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       tables: [],
     }
     this.xlsx = xlsx
+    if (existingColumns && existingColumns.length) {
+      for (const col of existingColumns) {
+        this.existingColumnMap[col.title as string] = col
+        this.existingColumnMap[col.column_name as string] = col
+      }
+    }
   }
 
   async init() {
@@ -57,12 +72,12 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   async parse() {
-    this.progress('Parsing excel file')
+    this.progress('Reading excel file')
     const tableNamePrefixRef: Record<string, any> = {}
     await Promise.all(
       this.wb.SheetNames.map((sheetName: string) =>
         (async (sheet) => {
-          this.progress(`Parsing sheet ${sheetName}`)
+          this.progress(`Reading sheet ${sheetName}`)
 
           await new Promise((resolve) => {
             const columnNamePrefixRef: Record<string, any> = { id: 0, Id: 0 }
@@ -75,6 +90,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
 
             const table = { table_name: tn, ref_table_name: tn, columns: [] as any[] }
             const ws: any = this.wb.Sheets[sheet]
+            const colValueResolver: Record<number, (value: any) => any> = {}
 
             // if sheet is empty, skip it
             if (!ws || !ws['!ref']) {
@@ -104,39 +120,74 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
               return new Date(parsed.y, parsed.m, parsed.d, parsed.H, parsed.M, parsed.S)
             }
 
+            if (rows[0] && rows[0].length) {
+              for (let col = 0; col < rows[0].length; col++) {
+                const title = (
+                  (this.config.firstRowAsHeaders && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
+                  `Field ${col + 1}`
+                ).trim()
+                let cn: string = (
+                  (this.config.firstRowAsHeaders && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
+                  `field_${col + 1}`
+                )
+                  .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
+                  .trim()
+
+                while (cn in columnNamePrefixRef) {
+                  cn = `${cn}${++columnNamePrefixRef[cn]}`
+                }
+                columnNamePrefixRef[cn] = 0
+
+                const column: Record<string, any> = {
+                  title,
+                  column_name: cn,
+                  ref_column_name: cn,
+                  meta: {},
+                  uidt: UITypes.SingleLineText,
+                }
+
+                table.columns.push(column)
+
+                const existingColumn = this.existingColumnMap[column.title] ?? this.existingColumnMap[column.column_name]
+                if (existingColumn && (existingColumn.meta as any)?.date_format) {
+                  colValueResolver[col] = (value: any) => {
+                    if (value instanceof Date) {
+                      return value
+                    }
+                    const meta = parseProp(existingColumn.meta)
+                    const dateValue = workerWithTimezone(this.config.isEeUI, meta?.timezone).dayjsTz(
+                      value,
+                      meta.date_format && meta.time_format ? `${meta.date_format} ${meta.time_format}` : undefined,
+                    )
+                    return dateValue?.isValid() ? dateValue.format('YYYY-MM-DD HH:mm:ss Z') : value
+                  }
+                } else if (
+                  existingColumn &&
+                  [UITypes.Number, UITypes.Decimal, UITypes.Currency].includes(existingColumn.uidt as UITypes)
+                ) {
+                  colValueResolver[col] = (value: any) => {
+                    return Number(value)
+                  }
+                }
+              }
+            }
+
             // fix imported date
             rows = rows.map((r: any) =>
-              r.map((v: any) => {
-                return v instanceof Date ? fixImportedDate(v) : v
+              r.map((v: any, index: number) => {
+                if (v instanceof Date) {
+                  return fixImportedDate(v)
+                }
+                if (colValueResolver[index]) {
+                  return colValueResolver[index](v)
+                }
+                return v
               }),
             )
 
-            for (let col = 0; col < rows[0].length; col++) {
-              const title = (
-                (this.config.firstRowAsHeaders && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
-                `Field ${col + 1}`
-              ).trim()
-              let cn: string = (
-                (this.config.firstRowAsHeaders && rows[0] && rows[0][col] && rows[0][col].toString().trim()) ||
-                `field_${col + 1}`
-              )
-                .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
-                .trim()
-
-              while (cn in columnNamePrefixRef) {
-                cn = `${cn}${++columnNamePrefixRef[cn]}`
-              }
-              columnNamePrefixRef[cn] = 0
-
-              const column: Record<string, any> = {
-                title,
-                column_name: cn,
-                ref_column_name: cn,
-                meta: {},
-                uidt: UITypes.SingleLineText,
-              }
-
-              if (this.config.autoSelectFieldTypes) {
+            if (this.config.autoSelectFieldTypes) {
+              for (let col = 0; col < rows[0].length; col++) {
+                const column = table.columns[col]
                 const cellId = this.xlsx.utils.encode_cell({
                   c: range.s.c + col,
                   r: +this.config.firstRowAsHeaders,
@@ -160,7 +211,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                       .map((r: any) => r[col])
                       .filter((v: any) => v !== null && v !== undefined && v.toString().trim() !== '')
 
-                    if (isCheckboxType(vals, col)) {
+                    if (isCheckboxType(vals)) {
                       column.uidt = UITypes.Checkbox
                     } else {
                       // Single Select / Multi Select
@@ -229,13 +280,12 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                   }
                 }
               }
-              table.columns.push(column)
             }
             this.base.tables.push(table)
 
             this.data[tn] = []
             if (this.config.shouldImportData) {
-              this.progress(`Parsing data from ${tn}`)
+              this.progress(`Reading data from ${tn}`)
               let rowIndex = 0
               for (const row of rows.slice(1)) {
                 const rowData: Record<string, any> = {}
@@ -270,7 +320,13 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
                       const cellObj = ws[cellId]
                       rowData[table.columns[i].column_name] = (cellObj && cellObj.w) || row[i]
                     } else if (table.columns[i].uidt === UITypes.SingleLineText || table.columns[i].uidt === UITypes.LongText) {
-                      rowData[table.columns[i].column_name] = row[i] === null || row[i] === undefined ? null : `${row[i]}`
+                      const rowValue = row[i]
+                      rowData[table.columns[i].column_name] =
+                        rowValue === null || rowValue === undefined
+                          ? null
+                          : typeof rowValue === 'number'
+                          ? rowValue
+                          : `${rowValue}`
                     } else {
                       // TODO: do parsing if necessary based on type
                       rowData[table.columns[i].column_name] = row[i]

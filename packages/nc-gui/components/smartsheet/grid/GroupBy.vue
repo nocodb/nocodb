@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
-import { CommonAggregations, UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
+import { CommonAggregations } from 'nocodb-sdk'
+import { shouldRenderCell } from '../../../utils/groupbyUtils'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 import GroupByTable from './GroupByTable.vue'
@@ -9,7 +10,8 @@ import type { Group } from '~/lib/types'
 
 const props = defineProps<{
   group: Group
-
+  callAddEmptyRow?: (addAfter?: number) => Row | undefined
+  expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, groupKey?: string) => void
   loadGroups: (
     params?: any,
     group?: Group,
@@ -37,7 +39,6 @@ const props = defineProps<{
   maxDepth?: number
 
   rowHeight?: number
-  expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
 }>()
 
 const emits = defineEmits(['update:paginationData'])
@@ -47,8 +48,6 @@ const vGroup = useVModel(props, 'group', emits)
 const meta = inject(MetaInj, ref())
 
 const fields = inject(FieldsInj, ref())
-
-const { gridViewPageSize } = useGlobal()
 
 const scrollLeft = toRef(props, 'scrollLeft')
 
@@ -74,7 +73,7 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 reloadAggregate?.on(async (_fields) => {
   if (!fields.value?.length) return
-  if (!_fields || !_fields?.fields.length) {
+  if (!_fields || !_fields?.fields?.length) {
     await props.loadGroupAggregation(vGroup.value)
   }
   if (_fields?.fields) {
@@ -147,7 +146,7 @@ const findAndLoadSubGroup = async (key: any) => {
       const grp = vGroup.value.children.find((g) => `${g.key}` === k)
       if (grp) {
         if (grp.nested) {
-          if (!grp.children[0].children?.length) {
+          if (!grp.children?.[0]?.children?.length) {
             props.loadGroups({}, grp, {
               triggerChildOnly: true,
             })
@@ -192,12 +191,7 @@ watch([() => vGroup.value.key], async (n, o) => {
 
 onMounted(async () => {
   if (vGroup.value.root === true && !vGroup.value?.children?.length) {
-    await props.loadGroups(
-      {
-        limit: gridViewPageSize.value,
-      },
-      vGroup.value,
-    )
+    await props.loadGroups({}, vGroup.value)
   }
 })
 
@@ -224,66 +218,6 @@ const onScroll = (e: Event) => {
   _scrollLeft.value = (e.target as HTMLElement).scrollLeft
 }
 
-// a method to parse group key if grouped column type is LTAR or Lookup
-// in these 2 scenario it will return json array or `___` separated value
-const parseKey = (group: Group) => {
-  let key = group.key.toString()
-
-  // parse json array key if it's a lookup or link to another record
-  if ((key && group.column?.uidt === UITypes.Lookup) || group.column?.uidt === UITypes.LinkToAnotherRecord) {
-    try {
-      key = JSON.parse(key)
-    } catch {
-      // if parsing try to split it by `___` (for sqlite)
-      return key.split('___')
-    }
-  }
-
-  // show the groupBy dateTime field title format as like cell format
-  if (key && group.column?.uidt === UITypes.DateTime) {
-    return [
-      parseStringDateTime(
-        key,
-        `${parseProp(group.column?.meta)?.date_format ?? dateFormats[0]} ${
-          parseProp(group.column?.meta)?.time_format ?? timeFormats[0]
-        }`,
-      ),
-    ]
-  }
-
-  // show the groupBy time field title format as like cell format
-  if (key && group.column?.uidt === UITypes.Time) {
-    return [parseStringDateTime(key, timeFormats[0], false)]
-  }
-
-  if (key && [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(group.column?.uidt as UITypes)) {
-    try {
-      const parsedKey = JSON.parse(key)
-      return [parsedKey]
-    } catch {
-      return null
-    }
-  }
-
-  return [key]
-}
-
-const shouldRenderCell = (column) =>
-  [
-    UITypes.Lookup,
-    UITypes.Attachment,
-    UITypes.Barcode,
-    UITypes.QrCode,
-    UITypes.Links,
-    UITypes.User,
-    UITypes.DateTime,
-    UITypes.CreatedTime,
-    UITypes.LastModifiedTime,
-    UITypes.CreatedBy,
-    UITypes.LongText,
-    UITypes.LastModifiedBy,
-  ].includes(column?.uidt)
-
 const expandGroup = async (key: string) => {
   if (Array.isArray(_activeGroupKeys.value)) {
     _activeGroupKeys.value.push(`group-panel-${key}`)
@@ -301,11 +235,11 @@ const collapseGroup = (key: string) => {
   }
 }
 
-const collapseAllGroup = () => {
+const _collapseAllGroup = () => {
   _activeGroupKeys.value = []
 }
 
-const expandAllGroup = async () => {
+const _expandAllGroup = async () => {
   _activeGroupKeys.value = vGroup.value.children?.map((g) => `group-panel-${g.key}`) ?? []
 
   if (vGroup.value.children) {
@@ -395,6 +329,13 @@ const bgColor = computed(() => {
 
   return '#F9F9FA'
 })
+async function openNewRecordHandler() {
+  if (_depth !== 0) return
+  // Add an empty row
+  const newRow = await props.callAddEmptyRow()
+  // Expand the form
+  if (newRow) props.expandForm?.(newRow, undefined, true)
+}
 </script>
 
 <template>
@@ -422,7 +363,7 @@ const bgColor = computed(() => {
           @change="findAndLoadSubGroup"
         >
           <a-collapse-panel
-            v-for="[_, grp] of Object.entries(vGroup?.children ?? [])"
+            v-for="grp of vGroup?.children ?? []"
             :key="`group-panel-${grp.key}`"
             class="!border-1 border-gray-300 nc-group rounded-[8px] mb-2"
             :style="`background: ${bgColor};`"
@@ -533,7 +474,7 @@ const bgColor = computed(() => {
                       </NcButton>
 
                       <template #overlay>
-                        <NcMenu>
+                        <NcMenu variant="small">
                           <NcMenuItem v-if="activeGroups.includes(grp.key.toString())" @click="collapseGroup(grp.key)">
                             <GeneralIcon icon="minimize" />
                             Collapse group
@@ -542,6 +483,7 @@ const bgColor = computed(() => {
                             <GeneralIcon icon="maximize" />
                             Expand group
                           </NcMenuItem>
+                          <!--
                           <NcMenuItem @click="expandAllGroup">
                             <GeneralIcon icon="maximizeAll" />
                             Expand all
@@ -550,6 +492,7 @@ const bgColor = computed(() => {
                             <GeneralIcon icon="minimizeAll" />
                             Collapse all
                           </NcMenuItem>
+                          -->
                         </NcMenu>
                       </template>
                     </NcDropdown>
@@ -605,7 +548,7 @@ const bgColor = computed(() => {
   <LazySmartsheetGridPaginationV2
     v-if="vGroup.root"
     v-model:pagination-data="vGroup.paginationData"
-    :show-size-changer="true"
+    :show-size-changer="false"
     :scroll-left="_scrollLeft"
     custom-label="groups"
     :depth="maxDepth"
@@ -628,6 +571,22 @@ const bgColor = computed(() => {
     }`"
     :fixed-size="undefined"
   ></LazySmartsheetPagination>
+
+  <div v-if="depth !== 0" class="absolute bottom-12 z-5 left-2" @click.stop>
+    <NcButton
+      v-e="['c:row:add:grid']"
+      class="nc-group-grid-add-new-row"
+      size="small"
+      type="secondary"
+      :shadow="false"
+      @click.stop="openNewRecordHandler"
+    >
+      <div class="flex items-center gap-2">
+        <GeneralIcon icon="plus" />
+        New Record
+      </div>
+    </NcButton>
+  </div>
 </template>
 
 <style scoped lang="scss">

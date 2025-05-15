@@ -1,18 +1,22 @@
 <script setup lang="ts">
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { PlanLimitTypes, RelationTypes, UITypes, getEquivalentUIType, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, UITypesName } from 'nocodb-sdk'
+import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import rfdc from 'rfdc'
+import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
 const isPublic = inject(IsPublicInj, ref(false))
-
+const clone = rfdc()
 const { eventBus } = useSmartsheetStoreOrThrow()
 
 const { sorts, saveOrUpdate, loadSorts, addSort: _addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
 const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
+
+const { appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
 const showCreateSort = ref(false)
 
@@ -33,7 +37,18 @@ eventBus.on((event) => {
   }
 })
 
-const columns = computed(() => meta.value?.columns || [])
+const columns = computed(() =>
+  clone(meta.value?.columns || []).map((c) => {
+    const isDisabled = [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(c.uidt)
+
+    if (isDisabled) {
+      c.ncItemDisabled = true
+      c.ncItemTooltip = `Sorting is not supported for ${UITypesName[c.uidt]} field`
+    }
+
+    return c
+  }),
+)
 
 const columnByID = computed(() =>
   columns.value.reduce((obj, col) => {
@@ -69,20 +84,7 @@ const availableColumns = computed(() => {
 })
 
 const getColumnUidtByID = (key?: string) => {
-  if (!key || !columnByID.value[key]) return ''
-
-  const column = columnByID.value[key]
-
-  let uidt = column.uidt
-
-  if (column.uidt === UITypes.Formula) {
-    uidt =
-      getEquivalentUIType({
-        formulaColumn: column,
-      }) || uidt
-  }
-
-  return uidt || ''
+  return sortGetColumnUidtByID(key, columnByID.value)
 }
 
 const open = ref(false)
@@ -114,7 +116,7 @@ onMounted(() => {
     v-model:visible="open"
     :trigger="['click']"
     class="!xs:hidden"
-    overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown"
+    overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown overflow-hidden"
   >
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': sorts?.length }">
       <template #title>
@@ -125,130 +127,189 @@ onMounted(() => {
         :class="{
           '!border-1 !rounded-md': isCalendar,
           '!border-0': !isCalendar,
+          [filteredOrSortedAppearanceConfig.SORTED.toolbarBgClass]: sorts?.length,
         }"
-        :disabled="isLocked"
-        class="nc-sort-menu-btn nc-toolbar-btn !h-7"
+        class="nc-sort-menu-btn nc-toolbar-btn !h-7 group"
         size="small"
         type="secondary"
+        :show-as-disabled="isLocked"
       >
         <div class="flex items-center gap-1 min-h-5">
           <div class="flex items-center gap-2">
             <component :is="iconMap.sort" class="h-4 w-4 text-inherit" />
 
             <!-- Sort -->
-            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
-              $t('activity.sort')
-            }}</span>
+            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
+              {{ $t('activity.sort') }}
+            </span>
           </div>
-          <span v-if="sorts?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ sorts.length }}</span>
+          <span
+            v-if="sorts?.length"
+            class="nc-toolbar-btn-chip"
+            :class="{
+              [filteredOrSortedAppearanceConfig.SORTED.toolbarChipBgClass]: true,
+              [filteredOrSortedAppearanceConfig.SORTED.toolbarTextClass]: true,
+            }"
+            >{{ sorts.length }}</span
+          >
         </div>
       </NcButton>
     </NcTooltip>
 
     <template #overlay>
-      <SmartsheetToolbarCreateSort v-if="!sorts.length" :is-parent-open="open" @created="addSort" />
-      <div v-else class="pt-2 pb-2 pl-4 nc-filter-list max-h-[max(80vh,30rem)] min-w-102" data-testid="nc-sorts-menu">
-        <div class="sort-grid max-h-120 nc-scrollbar-thin pr-4 my-2 py-1" @click.stop>
-          <template v-for="(sort, i) of sorts" :key="i">
-            <SmartsheetToolbarFieldListAutoCompleteDropdown
-              v-model="sort.fk_column_id"
-              class="flex caption nc-sort-field-select w-44 flex-grow"
-              :columns="columns"
-              is-sort
-              :meta="meta"
-              @click.stop
-              @update:model-value="saveOrUpdate(sort, i)"
-            />
+      <div
+        :class="{
+          'nc-locked-view': isLocked,
+        }"
+      >
+        <SmartsheetToolbarCreateSort v-if="!sorts.length" :is-parent-open="open" :disabled="isLocked" @created="addSort" />
+        <div v-else class="pt-2 pb-2 pl-4 nc-filter-list max-h-[max(80vh,30rem)] min-w-102" data-testid="nc-sorts-menu">
+          <div class="sort-grid max-h-120 nc-scrollbar-thin pr-4 my-2 py-1" @click.stop>
+            <div v-for="(sort, i) of sorts" :key="i" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">
+              <SmartsheetToolbarFieldListAutoCompleteDropdown
+                v-model="sort.fk_column_id"
+                class="flex caption nc-sort-field-select !w-44 flex-grow"
+                :columns="columns"
+                is-sort
+                :meta="meta"
+                :disabled="isLocked"
+                @click.stop
+                @update:model-value="saveOrUpdate(sort, i)"
+              />
 
-            <NcSelect
-              v-model:value="sort.direction"
-              class="shrink grow-0 nc-sort-dir-select"
-              :label="$t('labels.operation')"
-              dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir !rounded-lg"
-              @click.stop
-              @select="saveOrUpdate(sort, i)"
-            >
-              <a-select-option
-                v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(sort.fk_column_id))"
-                :key="j"
-                v-e="['c:sort:operation:select']"
-                :value="option.value"
+              <NcSelect
+                v-model:value="sort.direction"
+                class="flex flex-grow-1 w-full nc-sort-dir-select"
+                :label="$t('labels.operation')"
+                dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir !rounded-lg"
+                :disabled="isLocked"
+                @click.stop
+                @select="saveOrUpdate(sort, i)"
               >
-                <div class="w-full flex items-center justify-between gap-2">
-                  <div class="truncate flex-1">{{ option.text }}</div>
-                  <component
-                    :is="iconMap.check"
-                    v-if="sort.direction === option.value"
-                    id="nc-selected-item-icon"
-                    class="text-primary w-4 h-4"
-                  />
+                <a-select-option
+                  v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(sort.fk_column_id))"
+                  :key="j"
+                  v-e="['c:sort:operation:select']"
+                  :value="option.value"
+                >
+                  <div class="w-full flex items-center justify-between gap-2">
+                    <div class="truncate flex-1">{{ option.text }}</div>
+                    <component
+                      :is="iconMap.check"
+                      v-if="sort.direction === option.value"
+                      id="nc-selected-item-icon"
+                      class="text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </NcSelect>
+
+              <NcTooltip placement="top" title="Remove" class="flex-none">
+                <NcButton
+                  v-e="['c:sort:delete']"
+                  size="small"
+                  type="secondary"
+                  :shadow="false"
+                  :disabled="isLocked"
+                  class="nc-sort-item-remove-btn !max-w-8 !border-l-transparent !rounded-l-none"
+                  @click.stop="deleteSort(sort, i)"
+                >
+                  <component :is="iconMap.deleteListItem" />
+                </NcButton>
+              </NcTooltip>
+            </div>
+          </div>
+
+          <NcDropdown
+            v-if="availableColumns.length"
+            v-model:visible="showCreateSort"
+            :trigger="['click']"
+            :disabled="isLocked"
+            overlay-class-name="nc-toolbar-dropdown"
+          >
+            <template v-if="isEeUI && !isPublic">
+              <NcButton
+                v-if="sorts.length < getPlanLimit(PlanLimitTypes.LIMIT_SORT_PER_VIEW)"
+                v-e="['c:sort:add']"
+                class="mt-1 mb-2"
+                :class="{
+                  '!text-brand-500': !isLocked,
+                }"
+                type="text"
+                size="small"
+                :disabled="isLocked"
+                @click.stop="showCreateSort = true"
+              >
+                <div class="flex gap-1 items-center">
+                  <component :is="iconMap.plus" />
+                  <!-- Add Sort Option -->
+                  {{ $t('activity.addSort') }}
                 </div>
-              </a-select-option>
-            </NcSelect>
-
-            <NcButton
-              v-e="['c:sort:delete']"
-              type="text"
-              size="small"
-              class="nc-sort-item-remove-btn !max-w-8"
-              @click.stop="deleteSort(sort, i)"
-            >
-              <component :is="iconMap.deleteListItem" />
-            </NcButton>
-          </template>
+              </NcButton>
+              <span v-else></span>
+            </template>
+            <template v-else>
+              <NcButton
+                v-e="['c:sort:add']"
+                class="mt-1 mb-2"
+                :class="{
+                  '!text-brand-500': !isLocked,
+                }"
+                type="text"
+                size="small"
+                :disabled="isLocked"
+                @click.stop="showCreateSort = true"
+              >
+                <div class="flex gap-1 items-center">
+                  <component :is="iconMap.plus" />
+                  <!-- Add Sort Option -->
+                  {{ $t('activity.addSort') }}
+                </div>
+              </NcButton>
+            </template>
+            <template #overlay>
+              <SmartsheetToolbarCreateSort :is-parent-open="showCreateSort" @created="addSort" />
+            </template>
+          </NcDropdown>
         </div>
-
-        <NcDropdown
-          v-if="availableColumns.length"
-          v-model:visible="showCreateSort"
-          :trigger="['click']"
-          overlay-class-name="nc-toolbar-dropdown"
-        >
-          <template v-if="isEeUI && !isPublic">
-            <NcButton
-              v-if="sorts.length < getPlanLimit(PlanLimitTypes.SORT_LIMIT)"
-              v-e="['c:sort:add']"
-              class="!text-brand-500 mt-1 mb-2"
-              type="text"
-              size="small"
-              @click.stop="showCreateSort = true"
-            >
-              <div class="flex gap-1 items-center">
-                <component :is="iconMap.plus" />
-                <!-- Add Sort Option -->
-                {{ $t('activity.addSort') }}
-              </div>
-            </NcButton>
-            <span v-else></span>
-          </template>
-          <template v-else>
-            <NcButton
-              v-e="['c:sort:add']"
-              class="!text-brand-500 mt-1 mb-2"
-              type="text"
-              size="small"
-              @click.stop="showCreateSort = true"
-            >
-              <div class="flex gap-1 items-center">
-                <component :is="iconMap.plus" />
-                <!-- Add Sort Option -->
-                {{ $t('activity.addSort') }}
-              </div>
-            </NcButton>
-          </template>
-          <template #overlay>
-            <SmartsheetToolbarCreateSort :is-parent-open="showCreateSort" @created="addSort" />
-          </template>
-        </NcDropdown>
+        <GeneralLockedViewFooter
+          v-if="isLocked"
+          :class="{
+            '-mt-2': sorts.length,
+          }"
+          @on-open="open = false"
+        />
       </div>
     </template>
   </NcDropdown>
 </template>
 
-<style scoped>
-.sort-grid {
-  display: grid;
-  grid-template-columns: auto 150px auto;
-  @apply gap-x-2 gap-y-3;
+<style scoped lang="scss">
+:deep(.nc-sort-field-select) {
+  @apply !w-44;
+  .ant-select-selector {
+    @apply !rounded-none !rounded-l-lg !border-r-0 !border-gray-200 !shadow-none !w-44;
+
+    &.ant-select-focused:not(.ant-select-disabled) {
+      @apply !border-r-transparent;
+    }
+
+    .field-selection-tooltip-wrapper {
+      @apply !max-w-30;
+    }
+  }
+}
+
+:deep(.nc-select:not(.ant-select-disabled):hover) {
+  &,
+  .ant-select-selector {
+    @apply bg-gray-50;
+  }
+}
+
+:deep(.nc-sort-dir-select) {
+  .ant-select-selector {
+    @apply !rounded-none !border-gray-200 !shadow-none;
+  }
 }
 </style>

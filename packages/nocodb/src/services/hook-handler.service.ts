@@ -1,17 +1,16 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
-import ejs from 'ejs';
 import type { NcContext } from '~/interface/config';
-import type { FormColumnType, HookType } from 'nocodb-sdk';
+import type { FormColumnType, FormType, HookType } from 'nocodb-sdk';
 import type { ColumnType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { _transformSubmittedFormDataForEmail } from '~/helpers/webhookHelpers';
+import { transformDataForMailRendering } from '~/helpers/webhookHelpers';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
-import formSubmissionEmailTemplate from '~/utils/common/formSubmissionEmailTemplate';
-import { FormView, Hook, Model, View } from '~/models';
+import { Base, FormView, Hook, Model, Source, View } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { MailService } from '~/services/mail/mail.service';
+import { MailEvent } from '~/interface/Mail';
 
 export const HANDLE_WEBHOOK = '__nc_handleHooks';
 
@@ -23,11 +22,12 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
   constructor(
     @Inject('IEventEmitter') private readonly eventEmitter: IEventEmitter,
     @Inject('JobsService') private readonly jobsService: IJobsService,
+    private readonly mailService: MailService,
   ) {}
 
   public async handleHooks(
     context: NcContext,
-    { hookName, prevData, newData, user, viewId, modelId, tnPath },
+    { hookName, prevData, newData, user, viewId, modelId },
   ): Promise<void> {
     const view = await View.get(context, viewId);
     const model = await Model.get(context, modelId);
@@ -77,7 +77,8 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
                 f.uidt !== UITypes.Formula &&
                 f.uidt !== UITypes.QrCode &&
                 f.uidt !== UITypes.Barcode &&
-                f.uidt !== UITypes.SpecificDBType,
+                f.uidt !== UITypes.SpecificDBType &&
+                f.uidt !== UITypes.Button,
             )
             .sort((a: ColumnType, b: ColumnType) => a.order - b.order)
             .map((c: ColumnType & FormColumnType) => {
@@ -85,19 +86,34 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
               return c;
             });
 
-          const transformedData = _transformSubmittedFormDataForEmail(
+          const source = await Source.get(context, model.source_id);
+
+          const models = await source.getModels(context);
+
+          const metas = models.reduce((o, m) => {
+            return Object.assign(o, { [m.id]: m });
+          }, {});
+
+          const formattedData = transformDataForMailRendering(
             newData,
-            formView,
             filteredColumns,
+            source,
+            model,
+            metas,
           );
-          (await NcPluginMgrv2.emailAdapter(false))?.mailSend({
-            to: emails.join(','),
-            subject: 'NocoDB Form',
-            html: ejs.render(formSubmissionEmailTemplate, {
-              data: transformedData,
-              tn: tnPath,
-              _tn: model.title,
-            }),
+
+          formView.title = view.title;
+          const base = await Base.get(context, model.base_id);
+
+          await this.mailService.sendMail({
+            mailEvent: MailEvent.FORM_SUBMISSION,
+            payload: {
+              formView: formView as FormType,
+              base,
+              emails,
+              model,
+              data: formattedData,
+            },
           });
         }
       } catch (e) {

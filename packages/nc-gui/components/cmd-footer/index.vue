@@ -19,11 +19,11 @@ const renderCmdOrCtrlKey = () => {
         :class="activeCmd === 'cmd-j' ? 'text-brand-500' : ''"
         @click.stop="activeCmd !== 'cmd-j' ? setActiveCmdView('cmd-j') : () => undefined"
       >
-        <MdiFileOutline class="h-4 w-4" />
-        Document
+        <GeneralIcon icon="ncFileSearch" class="h-4 w-4" />
+        {{ $t('objects.document') }}
         <span
-          class="text-sm px-1 rounded-md border-1"
-          :class="activeCmd === 'cmd-j' ? 'bg-brand-500 border-brand-500 text-white' : 'bg-gray-100 border-gray-300'"
+          class="text-small !leading-5 px-1 rounded-md border-1"
+          :class="activeCmd === 'cmd-j' ? 'bg-brand-500 border-brand-500 text-white' : 'bg-gray-200 border-gray-200'"
         >
           {{ renderCmdOrCtrlKey() }} + J
         </span>
@@ -33,11 +33,11 @@ const renderCmdOrCtrlKey = () => {
         :class="activeCmd === 'cmd-k' ? 'text-brand-500' : ''"
         @click.stop="activeCmd !== 'cmd-k' ? setActiveCmdView('cmd-k') : () => undefined"
       >
-        <MdiMapMarkerOutline class="h-4 w-4" />
-        Quick Navigation
+        <GeneralIcon icon="ncCornerUpRight" class="h-4 w-4" />
+        {{ $t('labels.quickNavigation') }}
         <span
-          class="text-sm px-1 rounded-md border-1"
-          :class="activeCmd === 'cmd-k' ? 'bg-brand-500 border-brand-500 text-white' : 'bg-gray-100 border-gray-300'"
+          class="text-small !leading-5 px-1 rounded-md border-1"
+          :class="activeCmd === 'cmd-k' ? 'bg-brand-500 border-brand-500 text-white' : 'bg-gray-200 border-gray-200'"
         >
           {{ renderCmdOrCtrlKey() }} + K
         </span>
@@ -48,10 +48,10 @@ const renderCmdOrCtrlKey = () => {
         @click.stop="activeCmd !== 'cmd-l' ? setActiveCmdView('cmd-l') : () => undefined"
       >
         <MdiClockOutline class="h-4 w-4" />
-        Recent
+        {{ $t('labels.recent') }}
         <span
-          class="text-sm px-1 rounded-md border-1"
-          :class="activeCmd === 'cmd-l' ? 'bg-brand-500 border-brand-500 text-white' : 'bg-gray-100 border-gray-300'"
+          class="text-small !leading-5 px-1 rounded-md border-1"
+          :class="activeCmd === 'cmd-l' ? 'bg-brand-500 border-brand-500 text-white' : 'bg-gray-200 border-gray-200'"
         >
           {{ renderCmdOrCtrlKey() }} + L
         </span>

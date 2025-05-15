@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { isLinksOrLTAR, RelationTypes, ViewTypes } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  ncIsNumber,
+  RelationTypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import { validatePayload } from 'src/helpers';
+import { NcApiVersion } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { nocoExecute } from '~/utils';
@@ -23,6 +29,8 @@ export class DataTableService {
       query: any;
       viewId?: string;
       ignorePagination?: boolean;
+      apiVersion?: NcApiVersion;
+      includeSortAndFilterColumns?: boolean;
     },
   ) {
     const { modelId, viewId, baseId, ...rest } = param;
@@ -31,7 +39,13 @@ export class DataTableService {
       viewId,
       baseId,
     });
-    return await this.datasService.dataList(context, { ...rest, model, view });
+    return await this.datasService.dataList(context, {
+      ...rest,
+      model,
+      view,
+      apiVersion: param.apiVersion,
+      includeSortAndFilterColumns: param?.includeSortAndFilterColumns,
+    });
   }
 
   async dataRead(
@@ -42,6 +56,7 @@ export class DataTableService {
       rowId: string;
       viewId?: string;
       query: any;
+      apiVersion?: NcApiVersion;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -57,6 +72,7 @@ export class DataTableService {
 
     const row = await baseModel.readByPk(param.rowId, false, param.query, {
       throwErrorIfInvalidParams: true,
+      apiVersion: param.apiVersion,
     });
 
     if (!row) {
@@ -113,6 +129,8 @@ export class DataTableService {
       modelId: string;
       body: any;
       cookie: any;
+      undo?: boolean;
+      apiVersion?: NcApiVersion;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -131,10 +149,42 @@ export class DataTableService {
         cookie: param.cookie,
         insertOneByOneAsFallback: true,
         isSingleRecordInsertion: !Array.isArray(param.body),
+        typecast: (param.cookie?.query?.typecast ?? '') === 'true',
+        undo: param.undo,
+        apiVersion: param.apiVersion,
       },
     );
 
     return Array.isArray(param.body) ? result : result[0];
+  }
+
+  async dataMove(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      rowId: string;
+      cookie: any;
+      beforeRowId?: string;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    await baseModel.moveRecord({
+      cookie: param.cookie,
+      rowId: param.rowId,
+      beforeRowId: param.beforeRowId,
+    });
+
+    return true;
   }
 
   async dataUpdate(
@@ -146,6 +196,7 @@ export class DataTableService {
       // rowId: string;
       body: any;
       cookie: any;
+      apiVersion?: NcApiVersion;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -166,6 +217,7 @@ export class DataTableService {
         cookie: param.cookie,
         throwExceptionIfNotExist: true,
         isSingleRecordUpdation: !Array.isArray(param.body),
+        apiVersion: param.apiVersion,
       },
     );
 
@@ -213,6 +265,7 @@ export class DataTableService {
       viewId?: string;
       modelId: string;
       query: any;
+      apiVersion?: NcApiVersion;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -244,9 +297,12 @@ export class DataTableService {
     },
   ) {
     const model = await Model.get(context, param.modelId);
-
     if (!model) {
-      NcError.tableNotFound(param.modelId);
+      if (context.api_version === NcApiVersion.V3) {
+        NcError.tableNotFoundV3(param.modelId);
+      } else {
+        NcError.tableNotFound(param.modelId);
+      }
     }
 
     if (param.baseId && model.base_id !== param.baseId) {
@@ -258,7 +314,11 @@ export class DataTableService {
     if (param.viewId) {
       view = await View.get(context, param.viewId);
       if (!view || (view.fk_model_id && view.fk_model_id !== param.modelId)) {
-        NcError.viewNotFound(param.viewId);
+        if (context.api_version === NcApiVersion.V3) {
+          NcError.viewNotFoundV3(param.viewId);
+        } else {
+          NcError.viewNotFound(param.viewId);
+        }
       }
     }
 
@@ -341,6 +401,7 @@ export class DataTableService {
       query: any;
       rowId: string | string[] | number | number[];
       columnId: string;
+      apiVersion?: NcApiVersion;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -377,7 +438,12 @@ export class DataTableService {
     try {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
-
+    if (
+      ncIsNumber(Number(param.query.limit)) &&
+      Number(param.query.limit) > 0
+    ) {
+      listArgs.nestedLimit = param.query.limit;
+    }
     let data: any[];
     let count: number;
     if (colOptions.type === RelationTypes.MANY_TO_MANY) {
@@ -385,6 +451,7 @@ export class DataTableService {
         {
           colId: column.id,
           parentId: param.rowId,
+          apiVersion: param.apiVersion,
         },
         listArgs as any,
       );
@@ -400,6 +467,7 @@ export class DataTableService {
         {
           colId: column.id,
           id: param.rowId,
+          apiVersion: param.apiVersion,
         },
         listArgs as any,
       );
@@ -415,6 +483,7 @@ export class DataTableService {
         {
           colId: column.id,
           id: param.rowId,
+          apiVersion: param.apiVersion,
         },
         param.query as any,
       );

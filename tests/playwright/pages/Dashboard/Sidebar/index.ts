@@ -76,6 +76,12 @@ export class SidebarPage extends BasePage {
     if (type === ProjectTypes.DOCUMENTATION) {
       await this.dashboard.get().locator('.nc-create-base-btn-docs').click();
     }
+    /*
+    TODO uncomment when AI Features are enabled by default
+
+    await this.rootPage.locator('.nc-create-base').waitFor();
+    await this.rootPage.locator('.nc-create-base').click();
+    */
     await this.dashboard.get().locator('.nc-metadb-base-name').clear();
     await this.dashboard.get().locator('.nc-metadb-base-name').fill(title);
 
@@ -98,6 +104,8 @@ export class SidebarPage extends BasePage {
     const createViewButtonOfActiveProject = this.dashboard
       .get()
       .locator('.nc-table-node-wrapper[data-active="true"] .nc-create-view-btn');
+
+    await createViewButtonOfActiveProject.waitFor({ state: 'visible' });
     await createViewButtonOfActiveProject.scrollIntoViewIfNeeded();
     await createViewButtonOfActiveProject.click();
 

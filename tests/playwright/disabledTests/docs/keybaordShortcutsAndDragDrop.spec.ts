@@ -61,7 +61,7 @@ test.describe('Tiptap:Keyboard shortcuts and drag and drop', () => {
     await openedPage.tiptap.addNewNode({
       index: 2,
       type: 'Image',
-      filePath: `${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`,
+      filePath: `${__dirname}/../../fixtures/sampleFiles/sampleImage.jpeg`,
     });
     await openedPage.tiptap.verifyNode({
       index: 2,

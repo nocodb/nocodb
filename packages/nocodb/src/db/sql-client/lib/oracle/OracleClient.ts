@@ -4,6 +4,7 @@ import find from 'lodash/find';
 import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
+import deepClone from '~/helpers/deepClone';
 
 const log = new Debug('OracleClient');
 
@@ -154,9 +155,9 @@ class OracleClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
+      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+      connectionParamsWithoutDb.connection.password =
+        this.connectionConfig.connection.password;
       connectionParamsWithoutDb.connection.database = 'xe';
       connectionParamsWithoutDb.connection.user = 'system';
       connectionParamsWithoutDb.connection.password = 'oracle';
@@ -202,9 +203,9 @@ class OracleClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
+      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+      connectionParamsWithoutDb.connection.password =
+        this.connectionConfig.connection.password;
       connectionParamsWithoutDb.connection.database = 'xe';
       connectionParamsWithoutDb.connection.user = 'system';
       connectionParamsWithoutDb.connection.password = 'oracle';
@@ -1681,7 +1682,7 @@ class OracleClient extends KnexClient {
 
       await this.sqlClient.raw(upQuery);
 
-      console.log(upQuery);
+      // console.log(upQuery);
 
       result.data.object = {
         upStatement: [{ sql: upQuery }],

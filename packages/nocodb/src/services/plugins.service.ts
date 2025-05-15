@@ -50,8 +50,8 @@ export class PluginsService {
 
     return plugin;
   }
-  async isPluginActive(param: { pluginTitle: string }) {
-    return await Plugin.isPluginActive(param.pluginTitle);
+  async isPluginActive(param: { pluginId: string }) {
+    return await Plugin.isPluginActive(param.pluginId);
   }
 
   async webhookPluginList() {

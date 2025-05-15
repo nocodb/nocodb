@@ -1,7 +1,10 @@
+import type { ColumnType } from 'nocodb-sdk'
+import { validateEmail } from 'nocodb-sdk'
+import validator from 'validator'
 import { getI18n } from '../plugins/a.i18n'
+import { TypeConversionError } from '../error/type-conversion.error'
 
-export const validateEmail = (v: string) =>
-  /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)
+export { validateEmail }
 
 export const validateTableName = {
   validator: (_: unknown, value: string) => {
@@ -13,8 +16,33 @@ export const validateTableName = {
         return reject(new Error(t('msg.error.tableNameRequired')))
       }
 
-      if (value.length > 52) {
-        return reject(new Error(t('msg.error.columnNameExceedsCharacters', { value: 52 })))
+      // exclude . / \
+      // rest all characters allowed
+      // https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/acreldb/n0rfg6x1shw0ppn1cwhco6yn09f7.htm#:~:text=By%20default%2C%20MySQL%20encloses%20column,not%20truncate%20a%20longer%20name.
+      const m = value.match(/[./\\]/g)
+      if (m) {
+        // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
+        return reject(
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+        )
+      }
+      return resolve(true)
+    })
+  },
+}
+
+export const validateScriptName = {
+  validator: (_: unknown, value: string) => {
+    return new Promise((resolve, reject) => {
+      const { t } = getI18n().global
+
+      if (!value) {
+        // return 'Table name required'
+        return reject(new Error(t('msg.error.scriptNameRequired')))
+      }
+
+      if (value.length > 256) {
+        return reject(new Error(t('msg.error.columnNameExceedsCharacters', { value: 256 })))
       }
 
       // exclude . / \
@@ -243,4 +271,23 @@ export const urlValidator = {
       reject(new Error(t('msg.error.invalidURL')))
     })
   },
+}
+
+export const validateColumnValue = (column: ColumnType, value: any) => {
+  if (value === undefined || value === null || value === '') return
+  const metaValidate = (column.meta as any)?.validate
+  const validate = (column as any).validate
+  if (validate && metaValidate) {
+    let validateObj: any
+    try {
+      validateObj = JSON.parse(validate)
+    } catch (ex) {}
+    if (validateObj.func?.[0] && validator[validateObj.func[0] as string]) {
+      const validatorFunc = validator[validateObj.func[0] as any]
+      const validationResult = validatorFunc(value)
+      if (!validationResult) {
+        throw new TypeConversionError(`Invalid value`)
+      }
+    }
+  }
 }

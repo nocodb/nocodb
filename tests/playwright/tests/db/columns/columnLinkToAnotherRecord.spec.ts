@@ -153,7 +153,6 @@ test.describe('LTAR create & update', () => {
       }
     }
 
-    await dashboard.closeTab({ title: 'Sheet2' });
     await dashboard.treeView.openTable({ title: 'Sheet1' });
 
     // Verify fields and toggle the visibility

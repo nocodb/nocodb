@@ -1,6 +1,8 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
 import { ColumnType } from '~/lib';
+import { SqlUi } from './SqlUI.types';
+import { numberize } from '../numberUtils';
 
 const dbTypes = [
   'bigint',
@@ -40,7 +42,8 @@ const dbTypes = [
   'varchar',
 ];
 
-export class MssqlUi {
+export class MssqlUi implements SqlUi {
+  //#region statics
   static getNewTableColumns() {
     return [
       {
@@ -178,6 +181,30 @@ export class MssqlUi {
         dtxs: '',
         altered: 1,
         uidt: UITypes.LastModifiedBy,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: 'nc_order',
+        title: 'nc_order',
+        dt: 'decimal',
+        dtx: 'specificType',
+        ct: 'decimal(38,19)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: null,
+        clen: null,
+        np: 38,
+        ns: 19,
+        dtxp: '38,19',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.Order,
         uip: '',
         uicn: '',
         system: true,
@@ -989,4 +1016,123 @@ export class MssqlUi {
 
     return false;
   }
+  //#endregion statics
+
+  //#region methods
+  getNewTableColumns(): readonly any[] {
+    return MssqlUi.getNewTableColumns();
+  }
+  getNewColumn(suffix: string): {
+    column_name: string;
+    dt: string;
+    dtx: string;
+    ct: string;
+    nrqd: boolean;
+    rqd: boolean;
+    ck: boolean;
+    pk: boolean;
+    un: boolean;
+    ai: boolean;
+    cdf: null;
+    clen: number;
+    np: number;
+    ns: number;
+    dtxp: string;
+    dtxs: string;
+    altered: number;
+    uidt: string;
+    uip: string;
+    uicn: string;
+  } {
+    return MssqlUi.getNewColumn(suffix);
+  }
+  getDefaultLengthForDatatype(type: string): number | string {
+    return MssqlUi.getDefaultLengthForDatatype(type);
+  }
+  getDefaultLengthIsDisabled(type: string) {
+    return MssqlUi.getDefaultLengthIsDisabled(type);
+  }
+  getDefaultValueForDatatype(type: string) {
+    return MssqlUi.getDefaultValueForDatatype(type);
+  }
+  getDefaultScaleForDatatype(type: any): string {
+    return MssqlUi.getDefaultScaleForDatatype(type);
+  }
+  colPropAIDisabled(col: ColumnType, columns: ColumnType[]): boolean {
+    return MssqlUi.colPropAIDisabled(col, columns);
+  }
+  colPropUNDisabled(col: ColumnType): boolean {
+    return MssqlUi.colPropUNDisabled(col);
+  }
+  onCheckboxChangeAI(col: ColumnType): void {
+    return MssqlUi.onCheckboxChangeAI(col);
+  }
+  showScale(columnObj: ColumnType): boolean {
+    return MssqlUi.showScale(columnObj);
+  }
+  removeUnsigned(columns: ColumnType[]): void {
+    return MssqlUi.removeUnsigned(columns);
+  }
+  columnEditable(colObj: ColumnType): boolean {
+    return MssqlUi.columnEditable(colObj);
+  }
+  onCheckboxChangeAU(col: ColumnType): void {
+    return MssqlUi.onCheckboxChangeAU(col);
+  }
+  colPropAuDisabled(col: ColumnType): boolean {
+    return MssqlUi.colPropAuDisabled(col);
+  }
+  getAbstractType(col: ColumnType): string {
+    return MssqlUi.getAbstractType(col);
+  }
+  getUIType(col: ColumnType): string {
+    return MssqlUi.getUIType(col);
+  }
+  getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+    return MssqlUi.getDataTypeForUiType(col, idType);
+  }
+  getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType): string[] {
+    return MssqlUi.getDataTypeListForUiType(col, idType);
+  }
+  getUnsupportedFnList(): string[] {
+    return MssqlUi.getUnsupportedFnList();
+  }
+  getCurrentDateDefault(_col: Partial<ColumnType>) {
+    return MssqlUi.getCurrentDateDefault(_col);
+  }
+  isEqual(dataType1: string, dataType2: string): boolean {
+    return MssqlUi.isEqual(dataType1, dataType2);
+  }
+  adjustLengthAndScale(newColumn: Partial<ColumnType>, oldColumn?: ColumnType) {
+    if (newColumn.dt === 'decimal') {
+      // get old column length and default length
+      const defaultDtxp: number = numberize(
+        this.getDefaultLengthForDatatype(newColumn.dt)
+      );
+      let lastDtxp = defaultDtxp;
+      if (oldColumn) {
+        lastDtxp = numberize(oldColumn.dtxp) ?? lastDtxp;
+      }
+      // get default and new column scale
+      const defaultDtxs = numberize(
+        this.getDefaultScaleForDatatype(newColumn.dt)
+      );
+      const newDtxs = numberize(newColumn.dtxs) ?? defaultDtxs;
+
+      // get new column length based on scale and old length
+      // get whichever is the highest, old column length,
+      // default column length or default + precision - default if precision > default
+      const newDtxp = Math.max(
+        defaultDtxp,
+        lastDtxp,
+        defaultDtxp + Math.max(newDtxs - defaultDtxs, 0)
+      );
+      newColumn.dtxp = newDtxp;
+      newColumn.dtxs = newDtxs;
+    }
+  }
+  isParsedJsonReturnType(_col: ColumnType): boolean {
+    return false;
+  }
+  //#endregion methods
 }

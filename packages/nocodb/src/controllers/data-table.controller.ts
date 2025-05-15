@@ -35,12 +35,15 @@ export class DataTableController {
     @Res() res: Response,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
+    @Query('includeSortAndFilterColumns')
+    includeSortAndFilterColumns: string,
   ) {
     const startTime = process.hrtime();
     const responseData = await this.dataTableService.dataList(context, {
       query: req.query,
       modelId: modelId,
       viewId: viewId,
+      includeSortAndFilterColumns: includeSortAndFilterColumns === 'true',
     });
     const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
@@ -74,12 +77,14 @@ export class DataTableController {
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Body() body: any,
+    @Query('undo') undo: any,
   ) {
     return await this.dataTableService.dataInsert(context, {
       modelId: modelId,
       body: body,
       viewId,
       cookie: req,
+      undo: undo === 'true',
     });
   }
 
@@ -178,6 +183,23 @@ export class DataTableController {
       rowId: rowId,
       query: req.query,
       viewId,
+    });
+  }
+
+  @Post(['/api/v2/tables/:modelId/records/:rowId/move'])
+  @Acl('dataUpdate')
+  async rowMove(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('modelId') modelId: string,
+    @Param('rowId') rowId: string,
+    @Query('before') before: string,
+  ) {
+    return await this.dataTableService.dataMove(context, {
+      modelId: modelId,
+      rowId: rowId,
+      beforeRowId: before,
+      cookie: req,
     });
   }
 

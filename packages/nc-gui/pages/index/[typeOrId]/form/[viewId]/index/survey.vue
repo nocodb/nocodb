@@ -266,6 +266,11 @@ onMounted(() => {
     })
   }
 })
+
+const { message: templatedMessage } = useTemplatedMessage(
+  computed(() => sharedFormView?.value?.success_msg),
+  computed(() => formState.value),
+)
 </script>
 
 <template>
@@ -293,8 +298,8 @@ onMounted(() => {
               >
                 <template #message>
                   <LazyCellRichText
-                    v-if="sharedFormView?.success_msg?.trim()"
-                    :value="sharedFormView?.success_msg"
+                    v-if="templatedMessage"
+                    :value="templatedMessage"
                     class="!h-auto -ml-1"
                     is-form-field
                     read-only
@@ -304,7 +309,7 @@ onMounted(() => {
                     {{ $t('msg.info.thankYou') }}
                   </span>
                 </template>
-                <template v-if="!sharedFormView?.success_msg?.trim()" #description>
+                <template v-if="!templatedMessage" #description>
                   {{ $t('msg.info.submittedFormData') }}
                 </template>
 
@@ -361,7 +366,7 @@ onMounted(() => {
                     data-testid="nc-survey-form__fill-form-btn"
                     @click="onStart()"
                   >
-                    Fill Form
+                    {{ $t('labels.fillForm') }}
                   </NcButton>
                 </div>
               </div>
@@ -469,7 +474,7 @@ onMounted(() => {
                         data-testid="nc-survey-form__btn-submit-confirm"
                         @click="showSubmitConfirmModal"
                       >
-                        {{ $t('general.submit') }} form
+                        {{ $t('general.submit') }} {{ $t('objects.viewType.form') }}
                       </NcButton>
                     </div>
 
@@ -502,7 +507,7 @@ onMounted(() => {
           </Transition>
         </template>
       </div>
-      <div class="lg:(absolute bottom-0 left-0 right-0 px-4 pb-4) lg:px-10 lg:pb-10 pointer-events-none">
+      <div class="lg:(absolute bottom-0 right-0 px-4 pb-4) lg:px-10 lg:pb-10">
         <div class="flex justify-end items-center gap-4 nc-survey-form-branding">
           <div class="flex justify-center">
             <GeneralFormBranding

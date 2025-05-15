@@ -32,7 +32,7 @@ export class CalendarMonthPage extends BasePage {
 
     await this.rootPage.waitForTimeout(500);
 
-    await this.rootPage.mouse.move(cord.x + cord.width / 2, cord.y + cord.height / 2, { steps: 10 });
+    await this.rootPage.mouse.move(cord.x + cord.width, cord.y + cord.height, { steps: 10 });
     await this.rootPage.mouse.up();
   }
 

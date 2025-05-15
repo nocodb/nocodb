@@ -1,6 +1,7 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
 import { ColumnType } from '~/lib';
+import { SqlUi } from './SqlUI.types';
 
 const dbTypes = [
   'BIGINT',
@@ -20,7 +21,8 @@ const dbTypes = [
   'TINYINT',
 ];
 
-export class DatabricksUi {
+export class DatabricksUi implements SqlUi {
+  //#region statics
   static getNewTableColumns() {
     return [
       {
@@ -157,6 +159,30 @@ export class DatabricksUi {
         dtxs: '',
         altered: 1,
         uidt: UITypes.LastModifiedBy,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: 'nc_order',
+        title: 'nc_order',
+        dt: 'decimal',
+        dtx: 'specificType',
+        ct: 'decimal(38,18)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: null,
+        clen: null,
+        np: 38,
+        ns: 18,
+        dtxp: '38,18',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.Order,
         uip: '',
         uicn: '',
         system: true,
@@ -661,6 +687,9 @@ export class DatabricksUi {
       case 'JSON':
         colProp.dt = 'string';
         break;
+      case 'Order':
+        colProp.dt = 'decimal';
+        break;
       default:
         colProp.dt = 'string';
         break;
@@ -814,4 +843,99 @@ export class DatabricksUi {
 
     return false;
   }
+  //#endregion statics
+
+  //#region methods
+  getNewTableColumns(): readonly any[] {
+    return DatabricksUi.getNewTableColumns();
+  }
+  getNewColumn(suffix: string): {
+    column_name: string;
+    dt: string;
+    dtx: string;
+    ct: string;
+    nrqd: boolean;
+    rqd: boolean;
+    ck: boolean;
+    pk: boolean;
+    un: boolean;
+    ai: boolean;
+    cdf: null;
+    clen: number;
+    np: number;
+    ns: number;
+    dtxp: string;
+    dtxs: string;
+    altered: number;
+    uidt: string;
+    uip: string;
+    uicn: string;
+  } {
+    return DatabricksUi.getNewColumn(suffix);
+  }
+  getDefaultLengthForDatatype(type: string): number | string {
+    return DatabricksUi.getDefaultLengthForDatatype(type);
+  }
+  getDefaultLengthIsDisabled(type: string) {
+    return DatabricksUi.getDefaultLengthIsDisabled(type);
+  }
+  getDefaultValueForDatatype(type: string) {
+    return DatabricksUi.getDefaultValueForDatatype(type);
+  }
+  getDefaultScaleForDatatype(type: any): string {
+    return DatabricksUi.getDefaultScaleForDatatype(type);
+  }
+  colPropAIDisabled(col: ColumnType, columns: ColumnType[]): boolean {
+    return DatabricksUi.colPropAIDisabled(col, columns);
+  }
+  colPropUNDisabled(col: ColumnType): boolean {
+    return DatabricksUi.colPropUNDisabled(col);
+  }
+  onCheckboxChangeAI(col: ColumnType): void {
+    return DatabricksUi.onCheckboxChangeAI(col);
+  }
+  showScale(columnObj: ColumnType): boolean {
+    return DatabricksUi.showScale(columnObj);
+  }
+  removeUnsigned(columns: ColumnType[]): void {
+    return DatabricksUi.removeUnsigned(columns);
+  }
+  columnEditable(colObj: ColumnType): boolean {
+    return DatabricksUi.columnEditable(colObj);
+  }
+  onCheckboxChangeAU(col: ColumnType): void {
+    return DatabricksUi.onCheckboxChangeAU(col);
+  }
+  colPropAuDisabled(col: ColumnType): boolean {
+    return DatabricksUi.colPropAuDisabled(col);
+  }
+  getAbstractType(col: ColumnType): string {
+    return DatabricksUi.getAbstractType(col);
+  }
+  getUIType(col: ColumnType): string {
+    return DatabricksUi.getUIType(col);
+  }
+  getDataTypeForUiType(col: { uidt: UITypes }, _idType?: IDType) {
+    return DatabricksUi.getDataTypeForUiType(col);
+  }
+  getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType): string[] {
+    return DatabricksUi.getDataTypeListForUiType(col, idType);
+  }
+  getUnsupportedFnList(): string[] {
+    return DatabricksUi.getUnsupportedFnList();
+  }
+  getCurrentDateDefault(_col: Partial<ColumnType>) {
+    return DatabricksUi.getCurrentDateDefault(_col);
+  }
+  isEqual(dataType1: string, dataType2: string): boolean {
+    return DatabricksUi.isEqual(dataType1, dataType2);
+  }
+  adjustLengthAndScale(
+    _newColumn: Partial<ColumnType>,
+    _oldColumn?: ColumnType
+  ) {}
+  isParsedJsonReturnType(_col: ColumnType): boolean {
+    return false;
+  }
+  //#endregion methods
 }

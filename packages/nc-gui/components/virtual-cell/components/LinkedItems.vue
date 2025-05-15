@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, isDateOrDateTimeCol } from 'nocodb-sdk'
+import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 interface Prop {
   modelValue?: boolean
@@ -11,11 +11,13 @@ interface Prop {
 
 const props = defineProps<Prop>()
 
-const emit = defineEmits(['update:modelValue', 'attachRecord'])
+const emit = defineEmits(['update:modelValue', 'attachRecord', 'escape'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
 const { isMobileMode } = useGlobal()
+
+const { isUIAllowed } = useRoles()
 
 const { t } = useI18n()
 
@@ -25,9 +27,15 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const isExpandedFormCloseAfterSave = ref(false)
 
+const isNewRecord = ref(false)
+
 const injectedColumn = inject(ColumnInj, ref())
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
+
+const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const filterQueryRef = ref<HTMLInputElement>()
 
@@ -52,15 +60,24 @@ const {
   link,
   meta,
   row,
+  loadRelatedTableMeta,
   resetChildrenListOffsetCount,
+  attachmentCol,
+  fields,
+  refreshCurrentRow,
+  rowId,
+  relatedTableDisplayValueColumn,
 } = useLTARStoreOrThrow()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
+
+const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 watch(
   [vModel, isForm],
   (nextVal) => {
     if ((nextVal[0] || nextVal[1]) && !isNew.value) {
+      refreshCurrentRow()
       loadChildrenList(true)
     }
 
@@ -87,19 +104,6 @@ const linkRow = async (row: Record<string, any>, id: number) => {
     await link(row, {}, false, id)
   }
 }
-
-const attachmentCol = computedInject(FieldsInj, (_fields) => {
-  return (relatedTableMeta.value.columns ?? []).filter((col) => isAttachment(col))[0]
-})
-
-const fields = computedInject(FieldsInj, (_fields) => {
-  return (relatedTableMeta.value.columns ?? [])
-    .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
-    .sort((a, b) => {
-      return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-    })
-    .slice(0, isMobileMode.value ? 1 : 3)
-})
 
 const expandedFormDlg = ref(false)
 
@@ -148,12 +152,43 @@ const onClick = (row: Row) => {
   expandedFormDlg.value = true
 }
 const addNewRecord = () => {
+  if (showRecordPlanLimitExceededModal()) return
+
   expandedFormRow.value = {}
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true
+  isNewRecord.value = true
 }
 
-const onCreatedRecord = (record: any) => {
+reloadViewDataTrigger.on((params) => {
+  if (params?.isFromLinkRecord) {
+    refreshCurrentRow()
+    loadChildrenList()
+  }
+})
+
+const onCreatedRecord = async (record: any) => {
+  reloadTrigger?.trigger({
+    shouldShowLoading: false,
+  })
+
+  reloadViewDataTrigger?.trigger({
+    shouldShowLoading: false,
+    isFromLinkRecord: true,
+    relatedTableMetaId: relatedTableMeta.value.id,
+    rowId: rowId.value!,
+  })
+
+  if (!isNewRecord.value) return
+
+  if (!isNew.value) {
+    vModel.value = false
+  } else {
+    await addLTARRef(record, injectedColumn?.value as ColumnType)
+
+    loadChildrenList(false, state.value)
+  }
+
   const msgVNode = h(
     'div',
     {
@@ -181,6 +216,8 @@ const onCreatedRecord = (record: any) => {
   )
 
   message.success(msgVNode)
+
+  isNewRecord.value = false
 }
 
 const relation = computed(() => {
@@ -190,7 +227,10 @@ const relation = computed(() => {
 watch(
   () => props.cellValue,
   () => {
-    if (isNew.value) loadChildrenList()
+    if (isNew.value) loadChildrenList(false, state.value)
+  },
+  {
+    immediate: true,
   },
 )
 
@@ -276,8 +316,8 @@ const linkedShortcuts = (e: KeyboardEvent) => {
 }
 
 onMounted(() => {
+  loadRelatedTableMeta()
   window.addEventListener('keydown', linkedShortcuts)
-
   setTimeout(() => {
     filterQueryRef.value?.focus()
   }, 100)
@@ -300,35 +340,60 @@ const onFilterChange = () => {
   // reset offset count when filter changes
   resetChildrenListOffsetCount()
 }
+
+const isSearchInputFocused = ref(false)
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    if (!childrenListPagination.query) emit('escape')
+    filterQueryRef.value?.blur()
+  } else if (e.key === 'Enter') {
+    const list = childrenList.value?.list ?? state.value?.[colTitle.value]
+
+    if (childrenListPagination.query && ncIsArray(list) && list.length) {
+      linkOrUnLink(list[0], '0')
+    }
+  }
+}
 </script>
 
 <template>
   <div class="nc-modal-child-list h-full w-full" :class="{ active: vModel }" @keydown.enter.stop>
     <div class="flex flex-col h-full">
       <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
-        <div v-if="!isForm" class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center py-0.5 rounded-md">
+        <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center rounded-md">
+          <!-- Utilize SmartsheetToolbarFilterInput component to filter the records for Date or DateTime column -->
+          <SmartsheetToolbarFilterInput
+            v-if="relatedTableDisplayValueColumn && isDateOrDateTimeCol(relatedTableDisplayValueColumn)"
+            class="nc-filter-value-select rounded-md min-w-34"
+            :column="relatedTableDisplayValueColumn"
+            :filter="{
+              comparison_op: 'eq',
+              comparison_sub_op: 'exactDate',
+              value: childrenListPagination.query,
+            }"
+            @update-filter-value="childrenListPagination.query = $event"
+            @click.stop
+          />
           <a-input
+            v-else
             ref="filterQueryRef"
             v-model:value="childrenListPagination.query"
             :bordered="false"
             placeholder="Search linked records..."
             class="w-full min-h-4 !pl-0"
             size="small"
+            autocomplete="off"
+            @focus="isSearchInputFocused = true"
+            @blur="isSearchInputFocused = false"
             @change="onFilterChange"
-            @keydown.capture.stop="
-              (e) => {
-                if (e.key === 'Escape') {
-                  filterQueryRef?.blur()
-                }
-              }
-            "
+            @keydown.capture.stop="handleKeyDown"
           >
             <template #prefix>
               <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-gray-500" />
             </template>
           </a-input>
         </div>
-        <div v-else>&nbsp;</div>
         <LazyVirtualCellComponentsHeader
           data-testid="nc-link-count-info"
           :linked-records="totalItemsToShow"
@@ -372,13 +437,14 @@ const onFilterChange = () => {
                 :fields="fields"
                 :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
                 :is-loading="isChildrenListLoading[Number.parseInt(id)]"
+                :is-selected="!!(isSearchInputFocused && childrenListPagination.query && Number.parseInt(id) === 0)"
                 :related-table-display-value-prop="relatedTableDisplayValueProp"
                 :row="refRow"
                 data-testid="nc-child-list-item"
                 @link-or-unlink="linkOrUnLink(refRow, id)"
                 @expand="onClick(refRow)"
-                @keydown.space.prevent.stop="linkOrUnLink(refRow, id)"
-                @keydown.enter.prevent.stop="() => onClick(refRow, id)"
+                @keydown.space.prevent.stop="() => linkOrUnLink(refRow, id)"
+                @keydown.enter.prevent.stop="() => linkOrUnLink(refRow, id)"
               />
             </template>
           </div>
@@ -409,7 +475,7 @@ const onFilterChange = () => {
       <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between gap-3 min-h-11">
         <div class="flex items-center gap-2">
           <NcButton
-            v-if="!isPublic && !isDataReadOnly"
+            v-if="!isPublic && !isDataReadOnly && isUIAllowed('dataEdit') && !isForm"
             v-e="['c:row-expand:open']"
             size="small"
             class="!hover:(bg-white text-brand-500) !h-7 !text-small"
@@ -465,18 +531,18 @@ const onFilterChange = () => {
         :row="{
           row: expandedFormRow,
           oldRow: expandedFormRow,
-          rowMeta:
-            Object.keys(expandedFormRow).length > 0
-              ? {}
-              : {
-                  new: true,
-                },
+          rowMeta: !isNewRecord
+            ? {}
+            : {
+                new: true,
+              },
         }"
         :state="newRowState"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         use-meta-fields
+        skip-reload
         maintain-default-view-order
-        new-record-submit-btn-text="Create & Link"
+        :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
         @created-record="onCreatedRecord"
       />
     </Suspense>
@@ -494,6 +560,10 @@ const onFilterChange = () => {
 
 :deep(.ant-skeleton-element .ant-skeleton-image-svg) {
   @apply !w-7;
+}
+
+:deep(.nc-filter-input-wrapper) {
+  height: 28px;
 }
 </style>
 

@@ -4,7 +4,7 @@ import {
   IntegrationsType,
   validateAndExtractSSLProp,
 } from 'nocodb-sdk';
-import type { BaseReqType } from 'nocodb-sdk';
+import type { BaseReqType, IntegrationType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { populateMeta, validatePayload } from '~/helpers';
@@ -41,6 +41,12 @@ export class SourcesService {
   ) {
     validatePayload('swagger.json#/components/schemas/BaseReq', param.source);
 
+    const oldSource = await Source.get(context, param.sourceId);
+
+    if (!oldSource) {
+      NcError.sourceNotFound(param.sourceId);
+    }
+
     const baseBody = param.source;
     const source = await Source.update(context, param.sourceId, {
       ...baseBody,
@@ -50,9 +56,17 @@ export class SourcesService {
 
     source.config = undefined;
 
-    this.appHooksService.emit(AppEvents.BASE_UPDATE, {
+    const integration = await Integration.get(
+      context,
+      source.fk_integration_id,
+    );
+
+    this.appHooksService.emit(AppEvents.SOURCE_UPDATE, {
       source,
+      oldSource,
       req: param.req,
+      integration,
+      context,
     });
 
     return source;
@@ -71,10 +85,22 @@ export class SourcesService {
   ) {
     try {
       const source = await Source.get(context, param.sourceId, true, ncMeta);
+      const integration = await Integration.get(
+        context,
+        source.fk_integration_id,
+      );
       await source.delete(context, ncMeta);
-      this.appHooksService.emit(AppEvents.BASE_DELETE, {
-        source,
+      this.appHooksService.emit(AppEvents.SOURCE_DELETE, {
+        source: {
+          ...source,
+          config: undefined,
+        },
         req: param.req,
+        integration: {
+          ...integration,
+          config: undefined,
+        },
+        context,
       });
     } catch (e) {
       NcError.badRequest(e);
@@ -82,10 +108,14 @@ export class SourcesService {
     return true;
   }
 
-  async baseSoftDelete(context: NcContext, param: { sourceId: string }) {
+  async baseSoftDelete(
+    context: NcContext,
+    param: { sourceId: string },
+    ncMeta = Noco.ncMeta,
+  ) {
     try {
-      const source = await Source.get(context, param.sourceId);
-      await source.softDelete(context);
+      const source = await Source.get(context, param.sourceId, false, ncMeta);
+      await source.softDelete(context, ncMeta);
     } catch (e) {
       NcError.badRequest(e);
     }
@@ -113,11 +143,12 @@ export class SourcesService {
     let error;
 
     param.logger?.('Creating the source');
+    let integration: IntegrationType;
 
     // if missing integration id, create a new private integration
     // and map the id to the source
     if (!(baseBody as any).fk_integration_id) {
-      const integration = await Integration.createIntegration({
+      integration = await Integration.createIntegration({
         title: baseBody.alias,
         type: IntegrationsType.Database,
         sub_type: baseBody.config?.client,
@@ -133,7 +164,7 @@ export class SourcesService {
       };
       baseBody.type = baseBody.config?.client as unknown as BaseReqType['type'];
     } else {
-      const integration = await Integration.get(
+      integration = await Integration.get(
         context,
         (baseBody as any).fk_integration_id,
       );
@@ -173,20 +204,28 @@ export class SourcesService {
 
       param.logger?.('Populating meta');
 
-      const info = await populateMeta(context, source, base, param.logger);
+      const info = await populateMeta(context, {
+        source,
+        base,
+        logger: param.logger,
+        user: param.req.user,
+      });
 
       await populateRollupColumnAndHideLTAR(context, source, base);
 
       this.appHooksService.emit(AppEvents.APIS_CREATED, {
         info,
         req: param.req,
+        context,
       });
 
       source.config = undefined;
 
-      this.appHooksService.emit(AppEvents.BASE_CREATE, {
+      this.appHooksService.emit(AppEvents.SOURCE_CREATE, {
         source,
         req: param.req,
+        integration,
+        context,
       });
     } catch (e) {
       error = e;

@@ -20,6 +20,30 @@ export default class Spaces extends GenericS3 implements IStorageAdapterV2 {
     super(input as SpacesObjectStorageInput);
   }
 
+  protected patchUploadReturnKey(key: string): string {
+    // Spaces for some reason, returns the Path Style URl, if the file size is more than 6MB
+    // So we need to convert it to Virtual Hosted Style URL
+    if (!key.startsWith(`https://${this.input.bucket}.${this.input.region}`)) {
+      key = `https://${this.input.bucket}.${
+        this.input.region
+      }.digitaloceanspaces.com/${key.replace(
+        `${this.input.region}.digitaloceanspaces.com/${this.input.bucket}/`,
+        '',
+      )}`;
+    }
+
+    return key;
+  }
+
+  protected patchKey(key: string): string {
+    // This is to fix the existing keys which are in Path Style URL
+    const pattern = `${this.input.region}.digitaloceanspaces.com/${this.input.bucket}/`;
+    if (key.startsWith(pattern)) {
+      key = key.replace(pattern, '');
+    }
+    return key;
+  }
+
   protected get defaultParams() {
     return {
       Bucket: this.input.bucket,

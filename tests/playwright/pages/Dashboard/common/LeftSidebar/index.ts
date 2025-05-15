@@ -35,6 +35,14 @@ export class LeftSidebarPage extends BasePage {
   async createProject({ title, context }: { title: string; context: NcContext }) {
     title = isEE() ? title : `nc-${context.workerId}-${title}`;
     await this.btn_newProject.click();
+
+    /*
+    TODO uncomment when AI Features are enabled by default
+
+    await this.rootPage.locator('.nc-create-base').waitFor();
+    await this.rootPage.locator('.nc-create-base').click();
+    */
+
     await this.rootPage.locator('.ant-modal-content:has-text(" Create Base")').waitFor();
     await this.rootPage.locator('.ant-modal-content:has-text(" Create Base")').locator('input').fill(title);
     await this.rootPage
@@ -102,7 +110,7 @@ export class LeftSidebarPage extends BasePage {
     await this.rootPage.waitForTimeout(2000);
 
     for (let i = 0; i < (await nodes.count()); i++) {
-      const text = await getTextExcludeIconText(nodes.nth(i));
+      const text = await getTextExcludeIconText(nodes.nth(i).getByTestId('nc-workspace-list-title'));
       if (text.toLowerCase() === param.title.toLowerCase()) {
         await nodes.nth(i).click({ force: true });
         break;

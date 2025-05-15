@@ -160,7 +160,7 @@ const isDuplicateAllowed = computed(() => {
 </script>
 
 <template>
-  <a-dropdown
+  <NcDropdown
     v-if="!isLocked"
     v-model:visible="isOpen"
     :trigger="['click']"
@@ -178,7 +178,7 @@ const isDuplicateAllowed = computed(() => {
       <component :is="iconMap.threeDotVertical" class="flex-none w-4 h-4" />
     </NcButton>
     <template #overlay>
-      <NcMenu class="flex flex-col gap-1 border-gray-200 nc-column-options">
+      <NcMenu class="nc-column-options" variant="small">
         <!-- Todo: Duplicate column with form column settings -->
         <!-- eslint-disable vue/no-constant-condition -->
         <NcMenuItem v-if="false" :disabled="!isDuplicateAllowed" @click="openDuplicateDlg">
@@ -198,10 +198,21 @@ const isDuplicateAllowed = computed(() => {
         </NcMenuItem>
 
         <template v-if="!column?.pv">
-          <a-divider class="!my-0" />
+          <NcDivider />
 
-          <NcMenuItem :disabled="!isDeleteAllowed" class="!hover:bg-red-50" @click="handleDelete">
-            <div class="nc-column-delete nc-form-header-menu-item text-red-600">
+          <NcMenuItem
+            :disabled="!isDeleteAllowed"
+            :class="{
+              '!hover:bg-red-50': isDeleteAllowed,
+            }"
+            @click="handleDelete"
+          >
+            <div
+              class="nc-column-delete nc-form-header-menu-item"
+              :class="{
+                'text-red-600': isDeleteAllowed,
+              }"
+            >
               <component :is="iconMap.delete" />
               <!-- Delete -->
               {{ $t('general.delete') }}
@@ -210,7 +221,7 @@ const isDuplicateAllowed = computed(() => {
         </template>
       </NcMenu>
     </template>
-  </a-dropdown>
+  </NcDropdown>
   <SmartsheetHeaderDeleteColumnModal
     v-model:visible="showDeleteColumnModal"
     class="nc-form-column-delete-dropdown"

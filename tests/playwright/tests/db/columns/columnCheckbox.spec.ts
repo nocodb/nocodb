@@ -95,9 +95,6 @@ test.describe('Checkbox - cell, filter, sort', () => {
   });
 
   test('Checkbox', async () => {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
-
     await dashboard.treeView.openTable({ title: 'Sheet-1' });
 
     // Create Checkbox column

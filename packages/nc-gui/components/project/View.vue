@@ -4,6 +4,7 @@ import NcLayout from '~icons/nc-icons/layout'
 
 const props = defineProps<{
   baseId?: string
+  tab?: string
 }>()
 
 const { integrations } = useProvideIntegrationViewStore()
@@ -14,12 +15,11 @@ const { openedProject, activeProjectId, basesUser, bases } = storeToRefs(basesSt
 const { activeTables, activeTable } = storeToRefs(useTablesStore())
 const { activeWorkspace } = storeToRefs(useWorkspace())
 
-const { navigateToProjectPage, isSharedBase } = useBase()
+const { isSharedBase } = useBase()
 
-const isAdminPanel = inject(IsAdminPanelInj, ref(false))
+const automationStore = useAutomationStore()
 
-const router = useRouter()
-const route = router.currentRoute
+const { automations, isAutomationActive } = storeToRefs(automationStore)
 
 const { $e, $api } = useNuxtApp()
 
@@ -35,6 +35,13 @@ const currentBase = computedAsync(async () => {
   return base
 })
 
+const scripts = computed(() => automations.value.get(currentBase.value?.id))
+
+const isAdminPanel = inject(IsAdminPanelInj, ref(false))
+
+const router = useRouter()
+const route = router.currentRoute
+
 const { isUIAllowed, baseRoles } = useRoles()
 
 const { base } = storeToRefs(useBase())
@@ -49,21 +56,29 @@ const userCount = computed(() =>
   activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0,
 )
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
+
 watch(
   () => route.value.query?.page,
   (newVal, oldVal) => {
+    if (!('baseId' in route.value.params)) return
     // if (route.value.name !== 'index-typeOrId-baseId-index-index') return
     if (newVal && newVal !== oldVal) {
       if (newVal === 'collaborator') {
         projectPageTab.value = 'collaborator'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
-      } else {
+      } else if (newVal === 'allTable') {
         projectPageTab.value = 'allTable'
+      } else if (newVal === 'allScripts' && isAutomationEnabled.value && isEeUI) {
+        projectPageTab.value = 'allScripts'
+      } else {
+        projectPageTab.value = 'base-settings'
       }
       return
     }
-
     if (isAdminPanel.value) {
       projectPageTab.value = 'collaborator'
     } else {
@@ -73,14 +88,16 @@ watch(
   { immediate: true },
 )
 
+const { navigateToProjectPage } = useBase()
+
 watch(projectPageTab, () => {
   $e(`a:project:view:tab-change:${projectPageTab.value}`)
 
-  if (projectPageTab.value) {
-    navigateToProjectPage({
-      page: projectPageTab.value as any,
-    })
-  }
+  if (isAutomationActive.value) return
+
+  navigateToProjectPage({
+    page: projectPageTab.value as any,
+  })
 })
 
 watch(
@@ -106,6 +123,12 @@ watch(
     integrations.value = []
   },
 )
+
+onMounted(async () => {
+  if (props.tab) {
+    projectPageTab.value = props.tab
+  }
+})
 </script>
 
 <template>
@@ -160,13 +183,34 @@ watch(
           </template>
           <ProjectAllTables />
         </a-tab-pane>
+        <a-tab-pane
+          v-if="!isAdminPanel && isAutomationEnabled && isEeUI && isUIAllowed('scriptList') && !isSharedBase"
+          key="allScripts"
+        >
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__all-tables">
+              <GeneralIcon icon="ncScript" />
+              <div>{{ $t('labels.allScripts') }}</div>
+              <div
+                class="tab-info"
+                :class="{
+                  'bg-primary-selected': projectPageTab === 'allScripts',
+                  'bg-gray-50': projectPageTab !== 'allScripts',
+                }"
+              >
+                {{ scripts?.length }}
+              </div>
+            </div>
+          </template>
+          <ProjectAllScripts />
+        </a-tab-pane>
         <!-- <a-tab-pane v-if="defaultBase" key="erd" tab="Base ERD" force-render class="pt-4 pb-12">
           <ErdView :source-id="defaultBase!.id" class="!h-full" />
         </a-tab-pane> -->
         <a-tab-pane v-if="isUIAllowed('newUser', { roles: baseRoles }) && !isSharedBase" key="collaborator">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__access-settings">
-              <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
+              <GeneralIcon icon="users" />
               <div>{{ $t('labels.members') }}</div>
               <div
                 v-if="userCount"
@@ -185,7 +229,7 @@ watch(
         <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id" key="data-source">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__data-sources">
-              <GeneralIcon icon="database" />
+              <GeneralIcon icon="ncDatabase" />
               <div>{{ $t('labels.dataSources') }}</div>
               <div
                 v-if="base.sources?.length"
@@ -200,6 +244,15 @@ watch(
             </div>
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
+        </a-tab-pane>
+        <a-tab-pane key="base-settings">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__base-settings">
+              <GeneralIcon icon="ncSettings" />
+              <div>{{ $t('activity.settings') }}</div>
+            </div>
+          </template>
+          <DashboardSettingsBase :base-id="base.id!" class="max-h-full" />
         </a-tab-pane>
       </a-tabs>
     </div>

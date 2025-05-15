@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 18.19.1
+          node-version: 22.12.0
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -171,32 +171,32 @@ jobs:
       #        working-directory: ./tests/playwright
       #        run: PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ inputs.db == 'sqlite' }}
         with:
-          name: quick-backend-log-${{ inputs.shard }}
+          name: quick-backend-log-${{ inputs.shard }}-test-backend
           path: ./packages/nocodb/quick_${{ inputs.shard }}_test_backend.log
           retention-days: 2
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ inputs.db == 'sqlite' }}
         with:
           name: playwright-report-quick-${{ inputs.shard }}
           path: ./tests/playwright/playwright-report-quick/
           retention-days: 2
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report-${{ inputs.db }}-${{ inputs.shard }}
           path: ./tests/playwright/playwright-report/
           retention-days: 2
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report-stress-${{ inputs.db }}-${{ inputs.shard }}
           path: ./tests/playwright/playwright-report-stress/
           retention-days: 2
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: backend-logs-${{ inputs.db }}-${{ inputs.shard }}

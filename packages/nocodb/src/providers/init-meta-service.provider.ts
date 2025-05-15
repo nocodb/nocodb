@@ -1,3 +1,4 @@
+import { NcDebug } from 'nc-gui/utils/debug';
 import type { FactoryProvider } from '@nestjs/common';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { T } from '~/utils';
@@ -15,6 +16,7 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import { updateMigrationJobsState } from '~/helpers/migrationJobs';
 import { initBaseBehavior } from '~/helpers/initBaseBehaviour';
 import initDataSourceEncryption from '~/helpers/initDataSourceEncryption';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 export const InitMetaServiceProvider: FactoryProvider = {
   // initialize app,
@@ -24,20 +26,25 @@ export const InitMetaServiceProvider: FactoryProvider = {
   // 4. init jwt
   // 5. init plugin manager
   // 6. run upgrader
-  useFactory: async (eventEmitter: IEventEmitter) => {
+  useFactory: async (
+    eventEmitter: IEventEmitter,
+    appHooksService: AppHooksService,
+  ) => {
     // NC_DATABASE_URL_FILE, DATABASE_URL_FILE, DATABASE_URL, NC_DATABASE_URL to NC_DB
     await prepareEnv();
 
     const config = await NcConfig.createByEnv();
+    NcDebug.log('Config prepared using environment variables');
 
     // set version
-    process.env.NC_VERSION = '0225002';
+    process.env.NC_VERSION = '0258003';
 
     // set migration jobs version
-    process.env.NC_MIGRATION_JOBS_VERSION = '2';
+    process.env.NC_MIGRATION_JOBS_VERSION = '8';
 
     // init cache
     await NocoCache.init();
+    NcDebug.log('Cache initialized');
 
     // init meta service
     const metaService = new MetaService(config);
@@ -80,35 +87,58 @@ export const InitMetaServiceProvider: FactoryProvider = {
 
     await metaService.init();
 
+    NcDebug.log('Meta service initialized');
+
     // provide meta and config to Noco
     Noco._ncMeta = metaService;
+    Noco.appHooksService = appHooksService;
     Noco.config = config;
     Noco.eventEmitter = eventEmitter;
 
     if (!instanceConfig) {
+      NcDebug.log('Inserting instance config');
       // bump to latest version for fresh install
       await updateMigrationJobsState({
         version: process.env.NC_MIGRATION_JOBS_VERSION,
       });
+      NcDebug.log('Migration jobs state updated');
     }
 
     // init jwt secret
     await Noco.initJwt();
+    NcDebug.log('JWT initialized');
 
     // load super admin user from env if env is set
     await initAdminFromEnv(metaService);
+    NcDebug.log('Admin user from environment initialized');
+    await Noco.loadEEState();
+
+    if (process.env.NC_LICENSE_KEY) {
+      try {
+        await populatePluginsForCloud({ ncMeta: Noco.ncMeta });
+        NcDebug.log('Cloud plugins initialized from env');
+      } catch (e) {
+        if (process.env.NC_CLOUD === 'true') throw e;
+        console.error('Plugin init failed', e?.message);
+      }
+    }
+
+    NcDebug.log('Upgrader starting');
+    // run upgrader
+    await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
+    NcDebug.log('Upgrader finished');
 
     // init plugin manager
     await NcPluginMgrv2.init(Noco.ncMeta);
-    await Noco.loadEEState();
+    NcDebug.log('Plugin manager initialized');
 
     if (process.env.NC_CLOUD === 'true') {
-      await populatePluginsForCloud({ ncMeta: Noco.ncMeta });
+      try {
+        await populatePluginsForCloud({ ncMeta: Noco.ncMeta });
+      } catch (e) {
+        if (process.env.NODE_ENV !== 'test') throw e;
+      }
     }
-
-    // run upgrader
-    await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
-
     T.init({
       instance: getInstance,
     });
@@ -116,12 +146,14 @@ export const InitMetaServiceProvider: FactoryProvider = {
 
     // decide base behavior based on env and database permissions
     await initBaseBehavior();
+    NcDebug.log('Base behavior initialized');
 
     // encrypt datasource if secret is set
     await initDataSourceEncryption(metaService);
+    NcDebug.log('Datasource encryption initialized');
 
     return metaService;
   },
   provide: MetaService,
-  inject: ['IEventEmitter'],
+  inject: ['IEventEmitter', AppHooksService],
 };

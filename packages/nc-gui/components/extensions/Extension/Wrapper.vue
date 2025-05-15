@@ -5,6 +5,9 @@
  * @slot headerPrefix - Slot for custom content to be displayed at the start of the header when in fullscreen mode.
  * @slot headerExtra - Slot for additional custom content to be displayed in the header when in fullscreen mode.
  */
+
+defineEmits(['headerClick'])
+
 const { fullscreen } = useExtensionHelperOrThrow()
 
 const headerRef = ref<HTMLDivElement>()
@@ -14,7 +17,7 @@ const { height } = useElementSize(headerRef)
 
 <template>
   <div class="h-full">
-    <div ref="headerRef" class="extension-header-wrapper">
+    <div ref="headerRef" class="extension-header-wrapper" @click="$emit('headerClick')">
       <ExtensionsExtensionHeader>
         <template #prefix>
           <slot name="headerPrefix"></slot>

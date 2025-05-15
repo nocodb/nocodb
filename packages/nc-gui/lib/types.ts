@@ -1,20 +1,28 @@
 import type { CSSProperties } from '@vue/runtime-dom'
 
-import type {
-  AuditOperationTypes,
-  BaseType,
-  ColumnType,
-  FilterType,
-  MetaType,
-  PaginatedType,
-  Roles,
-  RolesObj,
-  TableType,
-  ViewTypes,
+import {
+  type BaseType,
+  type ColumnType,
+  type FilterType,
+  type MetaType,
+  type PaginatedType,
+  type PublicAttachmentScope,
+  type Roles,
+  type RolesObj,
+  type TableType,
+  type UITypes,
+  type UserType,
+  type ViewType,
+  type ViewTypes,
 } from 'nocodb-sdk'
-import type { I18n } from 'vue-i18n'
+import type { Composer, I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
+import type { ImageWindowLoader } from '../components/smartsheet/grid/canvas/loaders/ImageLoader'
+import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/SpriteLoader'
+import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
+import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
+import type { UseDetachedLongTextProps } from '../components/smartsheet/grid/canvas/composables/useDetachedLongText'
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
 
@@ -30,6 +38,7 @@ interface User {
   base_id?: string
   display_name?: string | null
   featureFlags?: Record<string, boolean>
+  meta?: MetaType
 }
 
 interface ProjectMetaInfo {
@@ -74,6 +83,21 @@ interface Row {
   row: Record<string, any>
   oldRow: Record<string, any>
   rowMeta: {
+    // Used in InfiniteScroll Grid View
+    isLastRow?: number
+    rowIndex?: number
+    isLoading?: boolean
+    isValidationFailed?: boolean
+    isRowOrderUpdated?: boolean
+    isGroupChanged?: boolean
+    changedGroupIndex?: number
+    isDragging?: boolean
+    rowProgress?: {
+      message: string
+      progress: number
+    }
+    path?: Array<number> | null
+
     new?: boolean
     selected?: boolean
     commentCount?: number
@@ -93,11 +117,16 @@ interface Row {
     id?: string
     position?: string
     dayIndex?: number
-
     overLapIteration?: number
     numberOfOverlaps?: number
     minutes?: number
+    recordIndex?: number // For week spanning records in month view
+    maxSpanning?: number
   }
+}
+
+interface Attachment {
+  url: string
 }
 
 interface CalendarRangeType {
@@ -145,9 +174,9 @@ interface SharedView {
   meta: SharedViewMeta
 }
 
-type importFileList = (UploadFile & { data: string | ArrayBuffer })[]
+type importFileList = (UploadFile & { data: string | ArrayBuffer; encoding?: string })[]
 
-type streamImportFileList = UploadFile[]
+type streamImportFileList = (UploadFile & { encoding?: string })[]
 
 type Nullable<T> = { [K in keyof T]: T[K] | null }
 
@@ -181,6 +210,7 @@ interface ImportWorkerPayload {
   importSource: ImportSource
   value: any
   config: Record<string, any>
+  existingColumns?: ColumnType[]
 }
 
 interface Group {
@@ -203,6 +233,7 @@ interface GroupNestedIn {
   column_name: string
   key: string
   column_uidt: string
+  groupIndex?: number
 }
 
 interface Users {
@@ -236,14 +267,37 @@ interface FormFieldsLimitOptionsType {
 interface ImageCropperConfig {
   stencilProps?: {
     aspectRatio?: number
+    /**
+     * It can be used to force the cropper fills all visible area by default:
+     * @default true
+     */
+    fillDefault?: boolean
+    circlePreview?: boolean
   }
   minHeight?: number
   minWidth?: number
   imageRestriction?: 'fill-area' | 'fit-area' | 'stencil' | 'none'
 }
 
+interface ImageCropperProps {
+  imageConfig: {
+    src: string
+    type: string
+    name: string
+  }
+  cropperConfig: ImageCropperConfig
+  uploadConfig?: {
+    path?: string
+    scope?: PublicAttachmentScope
+    // filesize in bytes
+    maxFileSize?: number
+  }
+  showCropper: boolean
+}
+
 interface AuditLogsQuery {
-  type?: AuditOperationTypes
+  type?: string[]
+  workspaceId?: string
   baseId?: string
   sourceId?: string
   user?: string
@@ -257,7 +311,7 @@ interface AuditLogsQuery {
   }
 }
 
-interface NcTableColumnProps {
+interface NcTableColumnProps<T extends object = Record<string, any>> {
   key: 'name' | 'action' | string
   // title is column header cell value and we can also pass i18n value as this is just used to render in UI
   title: string
@@ -271,9 +325,10 @@ interface NcTableColumnProps {
   justify?: 'justify-center' | 'justify-start' | 'justify-end'
   showOrderBy?: boolean
   // dataIndex is used as key to extract data from row object
-  dataIndex?: string
+  dataIndex?: keyof T | (string & Record<never, never>)
   // name can be used as value, which will be used to display in header if title is absent and in data-test-id
   name?: string
+  format?: (value: any, record: T) => any
   [key: string]: any
 }
 
@@ -289,6 +344,333 @@ interface ProductFeedItem {
 }
 
 type SordDirectionType = 'asc' | 'desc' | undefined
+
+type NestedArray<T> = T | NestedArray<T>[]
+
+interface ViewActionState {
+  viewProgress: {
+    progress: number
+    message?: string
+  } | null
+  rowProgress: Map<
+    string,
+    {
+      progress: number
+      message?: string
+    }
+  >
+  cellProgress: Map<
+    string,
+    Map<
+      string,
+      {
+        progress: number
+        message?: string
+        icon?: keyof typeof iconMap
+      }
+    >
+  >
+}
+
+interface CellRendererOptions {
+  value: any
+  row: any
+  pk: any
+  column: ColumnType
+  relatedColObj?: ColumnType
+  relatedTableMeta?: TableType
+  meta?: TableType
+  metas?: { [idOrTitle: string]: TableType | any }
+  x: number
+  y: number
+  width: number
+  height: number
+  selected: boolean
+  pv?: boolean
+  readonly?: boolean
+  imageLoader: ImageWindowLoader
+  spriteLoader: SpriteLoader
+  actionManager: ActionManager
+  tableMetaLoader: TableMetaLoader
+  isMysql: (sourceId?: string) => boolean
+  isMssql: (sourceId?: string) => boolean
+  isXcdbBase: (sourceId?: string) => boolean
+  isPg: (sourceId?: string) => boolean
+  t: Composer['t']
+  padding: number
+  renderCell: (ctx: CanvasRenderingContext2D, column: any, options: CellRendererOptions) => void
+  isUnderLookup?: boolean
+  tag?: {
+    renderAsTag?: boolean
+    tagPaddingX?: number
+    tagPaddingY?: number
+    tagHeight?: number
+    tagRadius?: number
+    tagBgColor?: string
+    tagSpacing?: number
+    tagBorderColor?: string
+    tagBorderWidth?: number
+  }
+  disabled?: {
+    isInvalid: boolean
+    tooltip?: string
+  }
+  fontSize?: number
+  textAlign?: 'left' | 'right' | 'center' | 'start' | 'end'
+  textColor?: string
+  mousePosition: {
+    x: number
+    y: number
+  }
+  sqlUis?: Record<string, any>
+  skipRender?: boolean
+  setCursor: SetCursorType
+  cellRenderStore: CellRenderStore
+  baseUsers?: (Partial<UserType> | Partial<User>)[]
+  user?: Partial<UserType> | Partial<User>
+  formula?: boolean
+  isPublic?: boolean
+  path?: Array<number>
+  renderAsPlainCell?: boolean
+  fontFamily?: string
+  isRowHovered?: boolean
+  isRowChecked?: boolean
+  isCellInSelectionRange?: boolean
+  isGroupHeader?: boolean
+  rowMeta?: {
+    // Used in InfiniteScroll Grid View
+    isLastRow?: number
+    rowIndex?: number
+    isLoading?: boolean
+    isValidationFailed?: boolean
+    isRowOrderUpdated?: boolean
+    isDragging?: boolean
+    rowProgress?: {
+      message: string
+      progress: number
+    }
+
+    new?: boolean
+    selected?: boolean
+    commentCount?: number
+    changed?: boolean
+    saving?: boolean
+    ltarState?: Record<string, Record<string, any> | Record<string, any>[] | null>
+    fromExpandedForm?: boolean
+    // use in datetime picker component
+    isUpdatedFromCopyNPaste?: Record<string, boolean>
+    // Used in Calendar view
+    style?: Partial<CSSStyleDeclaration>
+    range?: {
+      fk_from_col: ColumnType
+      fk_to_col: ColumnType | null
+      is_readonly?: boolean
+    }
+    id?: string
+    position?: string
+    dayIndex?: number
+    overLapIteration?: number
+    numberOfOverlaps?: number
+    minutes?: number
+    recordIndex?: number // For week spanning records in month view
+    maxSpanning?: number
+  }
+  allowLocalUrl?: boolean
+}
+
+interface CellRenderStore {
+  x?: number
+  y?: number
+  width?: number
+  height?: number
+  links?: { x: number; y: number; width: number; height: number; url: string }[]
+  ratingChanged?: {
+    value: number
+    hoverValue: number
+  }
+  ltar?: { oldX?: number; oldY?: number; x?: number; y?: number; width?: number; height?: number; value?: any }[]
+}
+
+type CursorType = CSSProperties['cursor']
+
+type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
+
+interface CellRenderFn {
+  (ctx: CanvasRenderingContext2D, options: CellRendererOptions): void | { x?: number; y?: number }
+}
+
+interface CellRenderer {
+  render: CellRenderFn
+  renderEmpty?: CellRenderFn
+  handleClick?: (options: {
+    event: MouseEvent
+    mousePosition: { x: number; y: number }
+    value: any
+    column: CanvasGridColumn
+    row: Row
+    pk: any
+    path: Array<number>
+    readonly: boolean
+    isDoubleClick: boolean
+    getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number; x: number; y: number }
+    updateOrSaveRow: (
+      row: Row,
+      property?: string,
+      ltarState?: Record<string, any>,
+      args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+      beforeRow?: string,
+      path?: Array<number>,
+    ) => Promise<any>
+    actionManager: ActionManager
+    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+    selected: boolean
+    imageLoader: ImageWindowLoader
+    cellRenderStore: CellRenderStore
+    isPublic?: boolean
+    openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
+    openDetachedLongText: (props: UseDetachedLongTextProps) => void
+    formula?: boolean
+    allowLocalUrl?: boolean
+  }) => Promise<boolean>
+  handleKeyDown?: (options: {
+    e: KeyboardEvent
+    row: Row
+    column: CanvasGridColumn
+    value: any
+    pk: any
+    readonly: boolean
+    path: Array<number>
+    updateOrSaveRow: (
+      row: Row,
+      property?: string,
+      ltarState?: Record<string, any>,
+      args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+      beforeRow?: string,
+      path?: Array<number>,
+    ) => Promise<any>
+    actionManager: ActionManager
+    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+    cellRenderStore: CellRenderStore
+    openDetachedLongText: (props: UseDetachedLongTextProps) => void
+    allowLocalUrl?: boolean
+  }) => Promise<boolean | void>
+  handleHover?: (options: {
+    event: MouseEvent
+    mousePosition: { x: number; y: number }
+    value: any
+    column: CanvasGridColumn
+    row: Row
+    pk: any
+    getCellPosition: (column: CanvasGridColumn, rowIndex: number) => { width: number; height: number; x: number; y: number }
+    updateOrSaveRow?: (
+      row: Row,
+      property?: string,
+      ltarState?: Record<string, any>,
+      args?: { metaValue?: TableType; viewMetaValue?: ViewType },
+      beforeRow?: string,
+      path?: Array<number>,
+    ) => Promise<any>
+    actionManager: ActionManager
+    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+    selected: boolean
+    imageLoader: ImageWindowLoader
+    cellRenderStore: CellRenderStore
+    setCursor: SetCursorType
+    path: Array<number>
+    baseUsers?: (Partial<UserType> | Partial<User>)[]
+  }) => Promise<void>
+  [key: string]: any
+}
+
+interface FillHandlerPosition {
+  x: number
+  y: number
+  size: number
+  fixedCol: boolean
+}
+
+interface CanvasGridColumn {
+  id: string
+  grid_column_id: string
+  title: string
+  width: string
+  uidt: keyof typeof UITypes | null
+  fixed: boolean
+  virtual?: boolean
+  pv: boolean
+  columnObj: ColumnType & {
+    extra?: any | never
+  }
+  readonly: boolean
+  isCellEditable?: boolean
+  aggregation: string
+  agg_fn: string
+  agg_prefix: string
+  relatedColObj?: ColumnType
+  relatedTableMeta?: TableType
+  isInvalidColumn?: {
+    isInvalid: boolean
+    tooltip: string
+    ignoreTooltip?: boolean
+  }
+  abstractType: any
+}
+
+interface ParsePlainCellValueProps {
+  value: any
+  params: {
+    col: ColumnType
+    abstractType: unknown
+    meta: TableType
+    metas: { [idOrTitle: string]: TableType | any }
+    baseUsers?: Map<string, User[]>
+    isMysql: (sourceId?: string) => boolean
+    isMssql: (sourceId?: string) => boolean
+    isXcdbBase: (sourceId?: string) => boolean
+    t: Composer['t']
+    isUnderLookup?: boolean
+  }
+}
+
+type CanvasEditEnabledType = {
+  rowIndex: number
+  column: ColumnType
+  row: Row
+  x: number
+  y: number
+  width: number
+  minHeight: number
+  height: number | string
+  fixed: boolean
+  path: Array<number>
+} | null
+
+type CanvasCellEventDataInjType = ExtractInjectedReactive<typeof CanvasCellEventDataInj>
+
+interface CanvasGroup {
+  groupIndex?: number
+  column: ColumnType
+  groups: Map<number, CanvasGroup>
+  chunkStates: Array<'loading' | 'loaded' | undefined>
+  count: number
+  isExpanded: boolean
+  value: any
+  displayValueProp?: string
+  relatedTableMeta?: TableType
+  relatedColumn?: ColumnType
+  color: string
+  groupCount?: number
+  path?: Array<number>
+  nestedIn: GroupNestedIn[]
+  aggregations: Record<string, any>
+}
+
+interface CloudFeaturesType {
+  'Id'?: number
+  'Title'?: string
+  'Highlight'?: boolean
+  'Coming Soon'?: boolean
+}
 
 export type {
   User,
@@ -320,8 +702,25 @@ export type {
   CalendarRangeType,
   FormFieldsLimitOptionsType,
   ImageCropperConfig,
+  ImageCropperProps,
   AuditLogsQuery,
   NcTableColumnProps,
   SordDirectionType,
   ProductFeedItem,
+  Attachment,
+  NestedArray,
+  ViewActionState,
+  CellRenderFn,
+  CellRenderer,
+  CellRendererOptions,
+  CellRenderStore,
+  CanvasGridColumn,
+  FillHandlerPosition,
+  ParsePlainCellValueProps,
+  CanvasEditEnabledType,
+  SetCursorType,
+  CursorType,
+  CanvasCellEventDataInjType,
+  CanvasGroup,
+  CloudFeaturesType,
 }

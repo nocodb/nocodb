@@ -8,6 +8,8 @@ const emits = defineEmits<{
 
 const { isLoading, startCamera: _startCamera, stopCamera: _stopCamera, videoStream, permissionGranted } = useAttachmentCell()!
 
+const { isMobileMode } = useGlobal()
+
 const capturedImage = ref<null | File>(null)
 const videoRef = ref<HTMLVideoElement | undefined>()
 const canvasRef = ref<HTMLCanvasElement | undefined>()
@@ -106,8 +108,8 @@ onBeforeUnmount(() => {
         </NcButton>
       </div>
 
-      <div v-show="capturedImage" class="flex group flex-col gap-1">
-        <canvas ref="canvasRef" class="rounded-md" style="width: 400px; display: none"></canvas>
+      <div v-show="capturedImage" class="flex group flex-col">
+        <canvas ref="canvasRef" class="rounded-md mb-2" :class="isMobileMode ? 'w-[350px]' : 'w-[400px]'"></canvas>
 
         <div class="relative text-[12px] font-semibold text-gray-800 flex">
           <div class="flex-auto truncate line-height-4">

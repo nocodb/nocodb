@@ -42,12 +42,15 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const skipRowRemovalOnCancel = ref(false)
 
-const { eventBus } = useSmartsheetStoreOrThrow()
+const { eventBus, isExternalSource } = useSmartsheetStoreOrThrow()
+
+const { showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
 const route = router.currentRoute
 
 const routeQuery = computed(() => route.value.query as Record<string, string>)
 
+const expandedFormRef = ref()
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
@@ -232,11 +235,33 @@ const navigateToSiblingRow = async (dir: NavigateDir) => {
   }
 }
 
+const validateExternalSourceRecordVisibility = (page: number, callback?: () => void) => {
+  if (
+    (vGroup.value.paginationData?.pageSize ?? 10) * page > 100 &&
+    showUpgradeToSeeMoreRecordsModal({ isExternalSource: isExternalSource.value })
+  ) {
+    return true
+  }
+
+  callback?.()
+}
+
 const goToNextRow = async () => {
   const currentIndex = getExpandedRowIndex()
+
+  if (
+    !vGroup.value.paginationData?.isLastPage &&
+    currentIndex === (vGroup.value.paginationData?.pageSize ?? 10) - 1 &&
+    validateExternalSourceRecordVisibility(vGroup.value.paginationData?.page ? vGroup.value.paginationData?.page + 1 : 1)
+  ) {
+    expandedFormRef.value?.stopLoading?.()
+    return
+  }
+
   /* when last index of current page is reached we should move to next page */
   if (!vGroup.value.paginationData?.isLastPage && currentIndex === vGroup.value.paginationData?.pageSize) {
     const nextPage = vGroup.value.paginationData?.page ? vGroup.value.paginationData?.page + 1 : 1
+
     await props.loadGroupPage(vGroup.value, nextPage)
   }
 
@@ -273,9 +298,25 @@ async function deleteSelectedRowsWrapper() {
   // reload table data
   await reloadTableData({ shouldShowLoading: false })
 }
+
+const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
+onBeforeUnmount(async () => {
+  // reset hooks
+  reloadViewDataHook?.off(reloadTableData)
+})
+
+reloadViewDataHook?.on(reloadTableData)
+
+eventBus.on((event) => {
+  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
+    reloadViewDataHook?.trigger()
+  }
+})
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-restricted-v-bind -->
   <Table
     v-if="vGroup.rows"
     v-model:selected-all-records="selectedAllRecords"
@@ -284,10 +325,10 @@ async function deleteSelectedRowsWrapper() {
     :v-group="vGroup"
     :pagination-data="vGroup.paginationData"
     :load-data="async () => {}"
-    :change-page="(p: number) => props.loadGroupPage(vGroup, p)"
+    :change-page="(p: number) => validateExternalSourceRecordVisibility(p, ()=> props.loadGroupPage(vGroup, p))"
     :call-add-empty-row="(addAfter?: number) => addEmptyRow(vGroup, addAfter)"
     :expand-form="expandForm"
-    :row-height="rowHeight"
+    :row-height-enum="rowHeight"
     :delete-row="deleteRow"
     :delete-selected-rows="deleteSelectedRowsWrapper"
     :delete-range-of-rows="deleteRangeOfRows"
@@ -312,8 +353,11 @@ async function deleteSelectedRowsWrapper() {
       @update:model-value="addRowExpandOnClose(expandedFormRow)"
     />
   </Suspense>
+
+  <!-- eslint-disable vue/eqeqeq -->
   <SmartsheetExpandedForm
     v-if="expandedFormOnRowIdDlg && meta?.id && groupByKeyId === vGroup.key"
+    ref="expandedFormRef"
     v-model="expandedFormOnRowIdDlg"
     :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
     :meta="meta"
@@ -329,5 +373,3 @@ async function deleteSelectedRowsWrapper() {
     @prev="goToPreviousRow"
   />
 </template>
-
-<style scoped lang="scss"></style>

@@ -10,6 +10,1154 @@
  */
 
 /**
+ * Workspace roles for the user.
+ */
+export enum WorkspaceRolesV3Type {
+  WorkspaceLevelOwner = 'workspace-level-owner',
+  WorkspaceLevelCreator = 'workspace-level-creator',
+  WorkspaceLevelEditor = 'workspace-level-editor',
+  WorkspaceLevelViewer = 'workspace-level-viewer',
+  WorkspaceLevelCommenter = 'workspace-level-commenter',
+  WorkspaceLevelNoAccess = 'workspace-level-no-access',
+}
+
+/**
+ * Base roles for the user.
+ */
+export enum BaseRolesV3Type {
+  Owner = 'owner',
+  Creator = 'creator',
+  Editor = 'editor',
+  Viewer = 'viewer',
+  Commenter = 'commenter',
+  NoAccess = 'no-access',
+}
+
+/**
+ * Model for Paginated
+ */
+export interface PaginatedV3Type {
+  /** URL to access next page */
+  next?: string;
+  /** URL to access previous page */
+  prev?: string;
+  /** URL to access current page data with next set of nested fields data */
+  nestedNext?: string;
+  /** URL to access current page data with previous set of nested fields data */
+  nestedPrev?: string;
+}
+
+export interface SortListResponseV3Type {
+  list: SortV3Type[];
+}
+
+export type FilterUpdateV3Type = {
+  /** Unique identifier for the filter. */
+  id: string;
+} & (FilterV3Type | FilterGroupV3Type);
+
+export type FilterCreateV3Type = FilterV3Type | FilterGroupLevel1V3Type;
+
+export interface FilterGroupV3Type {
+  /** Unique identifier for the group. */
+  id: string;
+  /** Parent ID of this filter-group. */
+  parent_id?: string;
+  /** Logical operator for combining filters in the group. */
+  group_operator: 'AND' | 'OR';
+  /** Nested filters or filter groups. */
+  filters: (
+    | FilterV3Type
+    | FilterGroupV3Type
+    | (FilterV3Type & FilterGroupV3Type)
+  )[];
+}
+
+export interface FilterGroupLevel1V3Type {
+  /** Logical operator for the group. */
+  group_operator: 'AND' | 'OR';
+  /** List of filters or nested filter groups at level 2. */
+  filters: (FilterV3Type | FilterGroupLevel2V3Type)[];
+}
+
+export interface FilterGroupLevel2V3Type {
+  /** Logical operator for the group. */
+  group_operator: 'AND' | 'OR';
+  /** List of filters or nested filter groups at level 3. */
+  filters: (FilterV3Type | FilterGroupLevel3V3Type)[];
+}
+
+export interface FilterGroupLevel3V3Type {
+  /** Logical operator for the group. */
+  group_operator: 'AND' | 'OR';
+  /** List of filters in this group. */
+  filters: FilterV3Type[];
+}
+
+export interface FilterListResponseV3Type {
+  /** List of filter groups. Initial set of filters are mapped to a default group with group-id set to **root**. */
+  list: FilterGroupV3Type[];
+}
+
+export interface FilterV3Type {
+  /** Unique identifier for the filter. */
+  id: string;
+  /** Parent ID of the filter, specifying this filters group association. */
+  parent_id?: string;
+  /** Field ID to which this filter applies. Defaults to **root**. */
+  field_id: string;
+  /** Primary comparison operator (e.g., eq, gt, lt). */
+  operator: string;
+  /** Secondary comparison operator (if applicable). */
+  sub_operator?: string | null;
+  /** Value for comparison. */
+  value: string | number | boolean | null;
+}
+
+export type FieldUpdateV3Type = FieldBaseV3Type &
+  (
+    | {
+        type?: 'LongText';
+        options?: FieldOptionsLongTextV3Type;
+      }
+    | {
+        type?: 'PhoneNumber' | 'URL' | 'Email';
+        options?: FieldOptionsPhoneNumberV3Type;
+      }
+    | {
+        type?: 'Number' | 'Decimal';
+        options?: FieldOptionsNumberV3Type;
+      }
+    | {
+        type?: 'JSON';
+      }
+    | {
+        type?: 'Currency';
+        /** Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD` */
+        options?: FieldOptionsCurrencyV3Type;
+      }
+    | {
+        type?: 'Percent';
+        options?: FieldOptionsPercentV3Type;
+      }
+    | {
+        type?: 'Duration';
+        options?: FieldOptionsDurationV3Type;
+      }
+    | {
+        type?: 'Date' | 'DateTime' | 'Time';
+        options?: FieldOptionsDateTimeV3Type;
+      }
+    | {
+        type?: 'SingleSelect' | 'MultiSelect';
+        options?: FieldOptionsSelectV3Type;
+      }
+    | {
+        type?: 'Rating' | 'Checkbox';
+        options?: FieldOptionsRatingV3Type;
+      }
+    | {
+        type?: 'Barcode';
+        options?: FieldOptionsBarcodeV3Type;
+      }
+    | {
+        type?: 'Formula';
+        options?: FieldOptionsFormulaV3Type;
+      }
+    | {
+        type?: 'User';
+        options?: FieldOptionsUserV3Type;
+      }
+    | {
+        type?: 'Lookup';
+        options?: FieldOptionsLookupV3Type;
+      }
+    | {
+        type?: 'Links';
+        options?: FieldOptionsLinksV3Type;
+      }
+    | {
+        type?: 'LinkToAnotherRecord';
+        options?: FieldOptionsLinkToAnotherRecordV3Type;
+      }
+  );
+
+export type FilterCreateUpdateV3Type = FilterV3Type | FilterGroupV3Type;
+
+export type FieldV3Type = FieldBaseV3Type &
+  (
+    | {
+        type?: 'LongText';
+        options?: FieldOptionsLongTextV3Type;
+      }
+    | {
+        type?: 'PhoneNumber' | 'URL' | 'Email';
+        options?: FieldOptionsPhoneNumberV3Type;
+      }
+    | {
+        type?: 'Number' | 'Decimal';
+        options?: FieldOptionsNumberV3Type;
+      }
+    | {
+        type?: 'JSON';
+      }
+    | {
+        type?: 'Currency';
+        /** Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD` */
+        options?: FieldOptionsCurrencyV3Type;
+      }
+    | {
+        type?: 'Percent';
+        options?: FieldOptionsPercentV3Type;
+      }
+    | {
+        type?: 'Duration';
+        options?: FieldOptionsDurationV3Type;
+      }
+    | {
+        type?: 'Date' | 'DateTime' | 'Time';
+        options?: FieldOptionsDateTimeV3Type;
+      }
+    | {
+        type?: 'SingleSelect' | 'MultiSelect';
+        options?: FieldOptionsSelectV3Type;
+      }
+    | {
+        type?: 'Rating' | 'Checkbox';
+        options?: FieldOptionsRatingV3Type;
+      }
+    | {
+        type?: 'Barcode';
+        options?: FieldOptionsBarcodeV3Type;
+      }
+    | {
+        type?: 'Formula';
+        options?: FieldOptionsFormulaV3Type;
+      }
+    | {
+        type?: 'User';
+        options?: FieldOptionsUserV3Type;
+      }
+    | {
+        type?: 'Lookup';
+        options?: FieldOptionsLookupV3Type;
+      }
+    | {
+        type?: 'Links';
+        options?: FieldOptionsLinksV3Type;
+      }
+    | {
+        type?: 'LinkToAnotherRecord';
+        options?: FieldOptionsLinkToAnotherRecordV3Type;
+      }
+  );
+
+export interface FieldOptionsLinkToAnotherRecordV3Type {
+  /**
+   * Type of relationship.
+   *
+   * Supported options are listed below
+   * - `mm` many-to-many
+   * - `hm` has-many
+   * - `oo` one-to-one
+   */
+  relation_type: string;
+  /** Identifier of the linked table. */
+  linked_table_id: string;
+}
+
+export interface FieldOptionsLinksV3Type {
+  /**
+   * Type of relationship.
+   *
+   * Supported options are listed below
+   * - `mm` many-to-many
+   * - `hm` has-many
+   * - `oo` one-to-one
+   */
+  relation_type: string;
+  /** Identifier of the linked table. */
+  linked_table_id: string;
+}
+
+export type FieldOptionsButtonV3Type = any;
+
+export interface FieldOptionsRollupV3Type {
+  /** Linked field ID. */
+  link_field_id: string;
+  /** Rollup field ID in the linked table. */
+  linked_table_rollup_field_id: string;
+  /** Rollup function. */
+  rollup_function:
+    | 'count'
+    | 'min'
+    | 'max'
+    | 'avg'
+    | 'sum'
+    | 'countDistinct'
+    | 'sumDistinct'
+    | 'avgDistinct';
+}
+
+export interface FieldOptionsLookupV3Type {
+  /** Linked field ID. Can be of type Links or LinkToAnotherRecord */
+  link_field_id: string;
+  /** Lookup field ID in the linked table. */
+  linked_table_lookup_field_id: string;
+}
+
+export interface FieldOptionsUserV3Type {
+  /** Allow selecting multiple users. */
+  allow_multiple_users?: boolean;
+}
+
+export interface FieldOptionsFormulaV3Type {
+  /** Formula expression. */
+  formula?: string;
+}
+
+export interface FieldOptionsBarcodeV3Type {
+  /** Barcode format (e.g., CODE128). */
+  format?: string;
+  /** Field ID that contains the value. */
+  value_field_id?: string;
+}
+
+export interface FieldOptionsCheckboxV3Type {
+  /**
+   * Icon to display checkbox on the UI. Supported options are listed below
+   * - `square`
+   * - `circle-check`
+   * - `circle-filled`
+   * - `star`
+   * - `heart`
+   * - `thumbs-up`
+   * - `flag`
+   */
+  icon?:
+    | 'square'
+    | 'circle-check'
+    | 'circle-filled'
+    | 'star'
+    | 'heart'
+    | 'thumbs-up'
+    | 'flag';
+  /**
+   * Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`).
+   * @pattern ^#[0-9A-Fa-f]{6}$
+   */
+  color?: string;
+}
+
+export interface FieldOptionsRatingV3Type {
+  /**
+   * Icon to display rating on the UI. Supported options are listed below
+   * - `star`
+   * - `heart`
+   * - `circle-filled`
+   * - `thumbs-up`
+   * - `flag`
+   */
+  icon?: 'star' | 'heart' | 'circle-filled' | 'thumbs-up' | 'flag';
+  /**
+   * Maximum value for the rating. Allowed range: 1-10.
+   * @min 1
+   * @max 10
+   */
+  max_value?: number;
+  /**
+   * Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`).
+   * @pattern ^#[0-9A-Fa-f]{6}$
+   */
+  color?: string;
+}
+
+export interface FieldOptionsSelectV3Type {
+  choices?: {
+    /** Choice title. */
+    title: string;
+    /**
+     * Specifies the tile color for the choice using a hexadecimal color code (e.g., `#36BFFF`).
+     * @pattern ^#[0-9A-Fa-f]{6}$
+     */
+    color?: string;
+  }[];
+}
+
+export interface FieldOptionsTimeV3Type {
+  /**
+   * Time format. Supported options are listed below
+   * - `HH:mm`
+   * - `HH:mm:ss`
+   * - `HH:mm:ss.SSS`
+   */
+  time_format?: string;
+  /** Use 12-hour time format. */
+  '12hr_format'?: boolean;
+}
+
+export interface FieldOptionsDateV3Type {
+  /**
+   * Date format. Supported options are listed below
+   * - `YYYY/MM/DD`
+   * - `YYYY-MM-DD`
+   * - `YYYY MM DD`
+   * - `DD/MM/YYYY`
+   * - `DD-MM-YYYY`
+   * - `DD MM YYYY`
+   * - `MM/DD/YYYY`
+   * - `MM-DD-YYYY`
+   * - `MM DD YYYY`
+   * - `YYYY-MM`
+   * - `YYYY MM`
+   */
+  date_format?: string;
+}
+
+export interface FieldOptionsDateTimeV3Type {
+  /**
+   * Date format. Supported options are listed below
+   * - `YYYY/MM/DD`
+   * - `YYYY-MM-DD`
+   * - `YYYY MM DD`
+   * - `DD/MM/YYYY`
+   * - `DD-MM-YYYY`
+   * - `DD MM YYYY`
+   * - `MM/DD/YYYY`
+   * - `MM-DD-YYYY`
+   * - `MM DD YYYY`
+   * - `YYYY-MM`
+   * - `YYYY MM`
+   */
+  date_format?: string;
+  /**
+   * Time format. Supported options are listed below
+   * - `HH:mm`
+   * - `HH:mm:ss`
+   * - `HH:mm:ss.SSS`
+   */
+  time_format?: string;
+  /** Use 12-hour time format. */
+  '12hr_format'?: boolean;
+}
+
+export interface FieldOptionsDurationV3Type {
+  /**
+   * Duration format. Supported options are listed below
+   * - `h:mm`
+   * - `h:mm:ss`
+   * - `h:mm:ss.S`
+   * - `h:mm:ss.SS`
+   * - `h:mm:ss.SSS`
+   */
+  format?: string;
+}
+
+export interface FieldOptionsPercentV3Type {
+  /**
+   * Number of decimal places allowed.
+   * @min 0
+   * @max 5
+   */
+  precision?: number;
+  /** Display as a progress bar. */
+  show_as_progress?: boolean;
+}
+
+/**
+ * Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD`
+ */
+export interface FieldOptionsCurrencyV3Type {
+  /** Locale for currency formatting. Refer https://simplelocalize.io/data/locales/ */
+  locale?: string;
+  /** Currency code. Refer https://simplelocalize.io/data/locales/ */
+  code?:
+    | 'AED'
+    | 'AFN'
+    | 'ALL'
+    | 'AMD'
+    | 'ANG'
+    | 'AOA'
+    | 'ARS'
+    | 'AUD'
+    | 'AWG'
+    | 'AZN'
+    | 'BAM'
+    | 'BBD'
+    | 'BDT'
+    | 'BGN'
+    | 'BHD'
+    | 'BIF'
+    | 'BMD'
+    | 'BND'
+    | 'BOB'
+    | 'BOV'
+    | 'BRL'
+    | 'BSD'
+    | 'BTN'
+    | 'BWP'
+    | 'BYR'
+    | 'BZD'
+    | 'CAD'
+    | 'CDF'
+    | 'CHE'
+    | 'CHF'
+    | 'CHW'
+    | 'CLF'
+    | 'CLP'
+    | 'CNY'
+    | 'COP'
+    | 'COU'
+    | 'CRC'
+    | 'CUP'
+    | 'CVE'
+    | 'CYP'
+    | 'CZK'
+    | 'DJF'
+    | 'DKK'
+    | 'DOP'
+    | 'DZD'
+    | 'EEK'
+    | 'EGP'
+    | 'ERN'
+    | 'ETB'
+    | 'EUR'
+    | 'FJD'
+    | 'FKP'
+    | 'GBP'
+    | 'GEL'
+    | 'GHC'
+    | 'GIP'
+    | 'GMD'
+    | 'GNF'
+    | 'GTQ'
+    | 'GYD'
+    | 'HKD'
+    | 'HNL'
+    | 'HRK'
+    | 'HTG'
+    | 'HUF'
+    | 'IDR'
+    | 'ILS'
+    | 'INR'
+    | 'IQD'
+    | 'IRR'
+    | 'ISK'
+    | 'JMD'
+    | 'JOD'
+    | 'JPY'
+    | 'KES'
+    | 'KGS'
+    | 'KHR'
+    | 'KMF'
+    | 'KPW'
+    | 'KRW'
+    | 'KWD'
+    | 'KYD'
+    | 'KZT'
+    | 'LAK'
+    | 'LBP'
+    | 'LKR'
+    | 'LRD'
+    | 'LSL'
+    | 'LTL'
+    | 'LVL'
+    | 'LYD'
+    | 'MAD'
+    | 'MDL'
+    | 'MGA'
+    | 'MKD'
+    | 'MMK'
+    | 'MNT'
+    | 'MOP'
+    | 'MRO'
+    | 'MTL'
+    | 'MUR'
+    | 'MVR'
+    | 'MWK'
+    | 'MXN'
+    | 'MXV'
+    | 'MYR'
+    | 'MZN'
+    | 'NAD'
+    | 'NGN'
+    | 'NIO'
+    | 'NOK'
+    | 'NPR'
+    | 'NZD'
+    | 'OMR'
+    | 'PAB'
+    | 'PEN'
+    | 'PGK'
+    | 'PHP'
+    | 'PKR'
+    | 'PLN'
+    | 'PYG'
+    | 'QAR'
+    | 'ROL'
+    | 'RON'
+    | 'RSD'
+    | 'RUB'
+    | 'RWF'
+    | 'SAR'
+    | 'SBD'
+    | 'SCR'
+    | 'SDD'
+    | 'SEK'
+    | 'SGD'
+    | 'SHP'
+    | 'SIT'
+    | 'SKK'
+    | 'SLL'
+    | 'SOS'
+    | 'SRD'
+    | 'STD'
+    | 'SYP'
+    | 'SZL'
+    | 'THB'
+    | 'TJS'
+    | 'TMM'
+    | 'TND'
+    | 'TOP'
+    | 'TRY'
+    | 'TTD'
+    | 'TWD'
+    | 'TZS'
+    | 'UAH'
+    | 'UGX'
+    | 'USD'
+    | 'USN'
+    | 'USS'
+    | 'UYU'
+    | 'UZS'
+    | 'VEB'
+    | 'VND'
+    | 'VUV'
+    | 'WST'
+    | 'XAF'
+    | 'XAG'
+    | 'XAU'
+    | 'XBA'
+    | 'XBB'
+    | 'XBC'
+    | 'XBD'
+    | 'XCD'
+    | 'XDR'
+    | 'XFO'
+    | 'XFU'
+    | 'XOF'
+    | 'XPD'
+    | 'XPF'
+    | 'XPT'
+    | 'XTS'
+    | 'XXX'
+    | 'YER'
+    | 'ZAR'
+    | 'ZMK'
+    | 'ZWD';
+}
+
+export interface FieldOptionsDecimalV3Type {
+  /**
+   * Decimal field precision. Defaults to 0
+   * @min 0
+   * @max 5
+   */
+  precision?: number;
+}
+
+export interface FieldOptionsNumberV3Type {
+  /** Show thousand separator on the UI. */
+  locale_string?: boolean;
+}
+
+export interface FieldOptionsEmailV3Type {
+  /** Enable validation for Email. */
+  validation?: boolean;
+}
+
+export interface FieldOptionsURLV3Type {
+  /** Enable validation for URL. */
+  validation?: boolean;
+}
+
+export interface FieldOptionsPhoneNumberV3Type {
+  /** Enable validation for phone numbers. */
+  validation?: boolean;
+}
+
+export interface FieldOptionsLongTextV3Type {
+  /** Enable rich text formatting. */
+  rich_text?: boolean;
+  /** Enable text generation for this field using NocoAI. */
+  generate_text_using_ai?: boolean;
+}
+
+export interface FieldBaseV3Type {
+  /** Unique identifier for the field. */
+  id?: string;
+  /** Title of the field. */
+  title: string;
+  /** Field data type. */
+  type: string;
+  /** Description of the field. */
+  description?: string | null;
+  /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
+  default_value?: string;
+}
+
+/**
+ * GRID View
+ */
+export type ViewV3Type = (
+  | {
+      fields: {
+        /**
+         * Field ID for GRID view.
+         * @format uuid
+         */
+        field_id?: string;
+        /** Indicates if the field is hidden in GRID view. */
+        is_hidden?: boolean;
+      }[];
+      group?: {
+        /**
+         * Field ID for grouping in GRID view.
+         * @format uuid
+         */
+        field_id?: string;
+        /** Sorting order for the group. */
+        sort?: 'asc' | 'desc';
+      }[];
+    }
+  | {
+      fields: {
+        /**
+         * Field ID displayed in GALLERY view.
+         * @format uuid
+         */
+        field_id?: string;
+        /** Indicates if the field is the cover image. */
+        cover_image?: boolean;
+      }[];
+      /**
+       * Field ID for the cover image.
+       * @format uuid
+       */
+      cover_image_field_id?: string;
+    }
+  | {
+      fields: {
+        /**
+         * Field ID used in KANBAN view.
+         * @format uuid
+         */
+        field_id?: string;
+        /** Indicates if the field is used for stacking in KANBAN. */
+        is_stack_by?: boolean;
+      }[];
+      /**
+       * Field ID for the cover image.
+       * @format uuid
+       */
+      cover_image_field_id?: string;
+      /**
+       * Field ID used for stacking in KANBAN view.
+       * @format uuid
+       */
+      kanban_stack_by_field_id?: string;
+    }
+  | {
+      fields: {
+        /**
+         * Field ID displayed in CALENDAR view.
+         * @format uuid
+         */
+        field_id?: string;
+        /** Indicates if the field is used for date ranges. */
+        is_date_field?: boolean;
+      }[];
+      calendar_range?: {
+        /**
+         * Field ID for the start date.
+         * @format uuid
+         */
+        start_field_id?: string;
+        /**
+         * Field ID for the end date.
+         * @format uuid
+         */
+        end_field_id?: string;
+      }[];
+    }
+  | {
+      fields: {
+        /**
+         * Field ID used in FORM view.
+         * @format uuid
+         */
+        field_id?: string;
+        /** Indicates if the field is required in the form. */
+        is_required?: boolean;
+      }[];
+      /** Heading for the form. */
+      form_heading?: string;
+      /** Subheading for the form. */
+      form_sub_heading?: string;
+      /** Success message shown after form submission. */
+      form_success_message?: string;
+      /**
+       * URL to redirect to after form submission.
+       * @format uri
+       */
+      form_redirect_url?: string;
+      /** Seconds to wait before redirecting. */
+      form_redirect_after_secs?: number;
+      /** Whether to send a response email. */
+      form_send_response_email?: boolean;
+      /** Whether to show another form after submission. */
+      form_show_another?: boolean;
+      /** Whether to show a blank form after submission. */
+      form_show_blank?: boolean;
+      /** Whether to hide the banner on the form. */
+      form_hide_banner?: boolean;
+      /** Whether to hide branding on the form. */
+      form_hide_branding?: boolean;
+      /**
+       * URL of the banner image for the form.
+       * @format uri
+       */
+      form_banner_image_url?: string;
+      /**
+       * URL of the logo for the form.
+       * @format uri
+       */
+      form_logo_url?: string;
+      /**
+       * Background color for the form.
+       * @pattern ^#[0-9A-Fa-f]{6}$
+       */
+      form_background_color?: string;
+    }
+) & {
+  /**
+   * Unique identifier for the view.
+   * @format uuid
+   */
+  id?: string;
+  /** Name of the view. */
+  view_name?: string;
+  /** Type of the view. */
+  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
+  /** Lock type of the view. */
+  lock_type?: 'COLLABARATIVE' | 'LOCKED' | 'PERSONAL';
+  /** Description of the view. */
+  description?: string;
+  /** Indicates if this is the default view. */
+  is_default?: boolean;
+  meta?: {
+    /** Description for locked views. */
+    locked_view_description?: string;
+    /**
+     * User ID of the person who locked the view.
+     * @format uuid
+     */
+    locked_by_user_id?: string;
+  };
+  /**
+   * User ID of the creator.
+   * @format uuid
+   */
+  created_by?: string;
+  /**
+   * User ID of the owner.
+   * @format uuid
+   */
+  owned_by?: string;
+  /**
+   * Timestamp of creation.
+   * @format date-time
+   */
+  created_at?: string;
+  /**
+   * Timestamp of last update.
+   * @format date-time
+   */
+  updated_at?: string;
+  /** Filters applied to the view. */
+  filters?: FilterV3Type[];
+  /** Sort options for the view. */
+  sorts?: SortV3Type[];
+};
+
+export interface ViewSummaryV3Type {
+  /**
+   * Unique identifier for the view.
+   * @format uuid
+   */
+  id?: string;
+  /** Name of the view. */
+  title?: string;
+  /** Type of the view. */
+  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
+}
+
+export interface SortUpdateV3Type {
+  /** Unique identifier for the sort. */
+  id: string;
+  /**
+   * Identifier for the field being sorted.
+   * @format uuid
+   */
+  field_id?: string;
+  /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
+  direction?: 'asc' | 'desc';
+}
+
+export interface SortCreateV3Type {
+  /**
+   * Identifier for the field being sorted.
+   * @format uuid
+   */
+  field_id: string;
+  /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
+  direction: 'asc' | 'desc';
+}
+
+export interface SortV3Type {
+  /**
+   * Unique identifier for the sort.
+   * @format uuid
+   */
+  id: string;
+  /**
+   * Identifier for the field being sorted.
+   * @format uuid
+   */
+  field_id: string;
+  /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
+  direction: 'asc' | 'desc';
+}
+
+export type TableUpdateV3Type = {
+  /** New title of the table. */
+  title?: string;
+  /** Description of the table. */
+  description?: string;
+  /** Unique identifier for the display field of the table. The type of the field should be one of the allowed types for display field. */
+  display_field_id?: string;
+  /** Icon prefix to the table name that needs to be displayed in-lieu of the default table icon. */
+  meta?: TableMetaReqV3Type;
+};
+
+export interface TableMetaReqV3Type {
+  /** Icon prefix to the table name that needs to be displayed in-lieu of the default table icon. */
+  icon?: string;
+}
+
+export type BaseUserDeleteV3Type = {
+  /** Unique identifier for the user. */
+  id?: string;
+  /**
+   * Email address of the user.
+   * @format email
+   */
+  email?: string;
+}[];
+
+/**
+ * Array of user updates.
+ */
+export type BaseUserUpdateV3Type = {
+  /** Unique identifier for the user. Used as a primary identifier if provided. */
+  id?: string;
+  /**
+   * Email address of the user. Used as a primary identifier if 'id' is not provided.
+   * @format email
+   */
+  email?: string;
+  /** Base roles for the user. */
+  base_role: BaseRolesV3Type;
+}[];
+
+/**
+ * Array of users to be created.
+ */
+export type BaseUserCreateV3Type = {
+  /** Unique identifier for the user. Can be provided optionally during creation. */
+  id?: string;
+  /**
+   * Email address of the user. Used as a primary identifier if 'id' is not provided.
+   * @format email
+   */
+  email?: string;
+  /** Full name of the user. */
+  user_name?: string;
+  /** Base roles for the user. */
+  base_role: BaseRolesV3Type;
+}[];
+
+export interface BaseUserListV3Type {
+  list?: BaseUserV3Type[];
+}
+
+export type BaseUserDeleteRequestV3Type = any;
+
+export interface BaseUserV3Type {
+  /** Unique identifier for the user. */
+  id: string;
+  /**
+   * Email address of the user.
+   * @format email
+   */
+  email: string;
+  /** Display name of the user. */
+  user_name?: string;
+  /**
+   * Timestamp of when the user was created.
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp of when the user access was last updated.
+   * @format date-time
+   */
+  updated_at: string;
+  /** Base roles for the user. */
+  base_role: BaseRolesV3Type;
+  /** Workspace roles for the user. */
+  workspace_role: WorkspaceRolesV3Type;
+  /** Unique identifier for the workspace. */
+  workspace_id: string;
+}
+
+export interface TableV3Type {
+  /** Unique identifier for the table. */
+  id: string;
+  /** Unique identifier for the data source. This information will be included only if the table is associated with an external data source. */
+  source_id?: string;
+  /** Unique identifier for the base to which this table belongs to. */
+  base_id: string;
+  /** Title of the table. */
+  title: string;
+  /** Description of the table. */
+  description?: string;
+  /** Unique identifier for the display field of the table. First non system field is set as display field by default. */
+  display_field_id: string;
+  /** Unique identifier for the workspace to which this base belongs to. */
+  workspace_id: string;
+  /** List of fields associated with this table. */
+  fields: CreateFieldV3Type[];
+  /** List of views associated with this table. */
+  views: ViewSummaryV3Type[];
+}
+
+export type CreateFieldV3Type = FieldBaseV3Type;
+
+export type FieldOptionsV3Type = any;
+
+export interface TableCreateV3Type {
+  /** Title of the table. */
+  title: string;
+  /** Description of the table. */
+  description?: string | null;
+  meta?: TableMetaV3Type;
+  /** Unique identifier for the data source. Include this information only if the table being created is part of a data source. */
+  source_id?: string;
+  fields?: CreateFieldV3Type[];
+}
+
+export interface TableMetaV3Type {
+  /** Icon prefix to the table name that needs to be displayed in-lieu of the default table icon. */
+  icon?: string;
+}
+
+export interface TableListV3Type {
+  list: {
+    /** Unique identifier for the table. */
+    id: string;
+    /** Title of the table. */
+    title: string;
+    /** Description of the table. */
+    description?: string | null;
+    meta?: TableMetaV3Type;
+    /** Unique identifier for the base to which this table belongs to. */
+    base_id: string;
+    /** Unique identifier for the data source. This information will be included only if the table is associated with an external data source. */
+    source_id?: string;
+    /** Unique identifier for the workspace to which this base belongs to. */
+    workspace_id: string;
+  }[];
+}
+
+export interface BaseUpdateV3Type {
+  /** Title of the base. */
+  title?: string;
+  meta?: BaseMetaReqV3Type;
+}
+
+export interface BaseCreateV3Type {
+  /** Title of the base. */
+  title: string;
+  meta?: BaseMetaReqV3Type;
+}
+
+export interface BaseMetaReqV3Type {
+  /**
+   * Specifies the color of the base icon using a hexadecimal color code (e.g., `#36BFFF`).
+   *
+   * **Constraints**:
+   * - Must be a valid 6-character hexadecimal color code preceded by a `#`.
+   * - Optional field; defaults to a standard color if not provided.
+   * @pattern ^#[0-9A-Fa-f]{6}$
+   */
+  icon_color?: string;
+}
+
+export interface BaseMetaResV3Type {
+  /**
+   * Specifies the color of the base icon using a hexadecimal color code (e.g., `#36BFFF`)
+   * @pattern ^#[0-9A-Fa-f]{6}$
+   */
+  icon_color?: string;
+}
+
+export interface BaseV3Type {
+  /** Unique identifier for the base. */
+  id: string;
+  /** Title of the base. */
+  title: string;
+  meta: BaseMetaResV3Type;
+  /**
+   * Timestamp of when the base was created.
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp of when the base was last updated.
+   * @format date-time
+   */
+  updated_at: string;
+  /** Unique identifier for the workspace to which this base belongs to. */
+  workspace_id: string;
+  /** List of data sources associated with this base. This information will be included only if one or more external data sources are associated with the base. */
+  sources?: {
+    /** Unique identifier for the data source. */
+    id: string;
+    /** Title of the data source. */
+    title: string;
+    /** Type of the data source (e.g., pg, mysql). */
+    type: string;
+    /** Indicates if the schema in this data source is read-only. */
+    is_schema_readonly: boolean;
+    /** Indicates if the data (records) in this data source is read-only. */
+    is_data_readonly: boolean;
+    /** Integration ID for the data source. */
+    integration_id: string;
+  }[];
+}
+
+/**
  * Model for API Token
  */
 export interface ApiTokenType {
@@ -225,6 +1373,8 @@ export interface AuditType {
    * @example <span class="">Date</span>   : <span class="text-decoration-line-through red px-2 lighten-4 black--text">2023-03-12</span>   <span class="black--text green lighten-4 px-2"></span>
    */
   details?: string;
+  /** Version of the audit */
+  version?: number;
 }
 
 /**
@@ -331,6 +1481,8 @@ export interface IntegrationType {
   base_id?: string;
   /** Model for Bool */
   is_private?: BoolType;
+  /** Model for Bool */
+  is_default?: BoolType;
   /** Integration Type */
   type?: IntegrationsType;
   /**
@@ -402,6 +1554,20 @@ export interface BaseReqType {
  */
 export enum IntegrationsType {
   Database = 'database',
+  Ai = 'ai',
+  Auth = 'auth',
+  Sync = 'sync',
+  Communication = 'communication',
+  SpreadSheet = 'spread-sheet',
+  ProjectManagement = 'project-management',
+  Crm = 'crm',
+  Marketing = 'marketing',
+  Ats = 'ats',
+  Development = 'development',
+  Finance = 'finance',
+  Ticketing = 'ticketing',
+  Storage = 'storage',
+  Others = 'others',
 }
 
 /**
@@ -568,13 +1734,17 @@ export interface ColumnType {
     | 'Links'
     | 'User'
     | 'CreatedBy'
-    | 'LastModifiedBy';
+    | 'LastModifiedBy'
+    | 'AI'
+    | 'Order';
   /** Is Unsigned? */
   un?: BoolType;
   /** Is unique? */
   unique?: BoolType;
   /** Is Visible? */
   visible?: BoolType;
+  /** Is this column readonly? */
+  readonly?: BoolType;
 }
 
 /**
@@ -1110,6 +2280,8 @@ export interface FormulaType {
   formula_raw?: string;
   /** Unique ID */
   id?: IdType;
+  /** Parsed Formula Tree */
+  parsed_tree?: any;
 }
 
 /**
@@ -1119,7 +2291,7 @@ export interface ButtonType {
   /** Unique ID */
   id?: IdType;
   /** Whether button is webhook or url */
-  type?: 'webhook' | 'url';
+  type?: ButtonActionsType;
   /** Label of Button */
   label?: string;
   /** Button Theme */
@@ -1154,8 +2326,16 @@ export interface ButtonType {
   parsed_tree?: object;
   /** Webhook ID */
   fk_webhook_id?: IdType;
+  /** Script ID */
+  fk_script_id?: IdType;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
+  /** Comma separated column ids to be updated with the generated value */
+  output_column_ids?: string;
+  /** Foreign key to AI integration */
+  fk_integration_id?: string;
+  /** AI model */
+  model?: string;
 }
 
 /**
@@ -1167,7 +2347,7 @@ export interface ButtonColumnReqType {
   /** UI Data Type */
   uidt?: 'Formula';
   /** Whether button is webhook or url */
-  type?: 'webhook' | 'url';
+  type?: ButtonActionsType;
   /** Button Theme */
   theme?: 'solid' | 'text' | 'light';
   /** Button color */
@@ -1727,6 +2907,30 @@ export interface KanbanUpdateReqType {
 }
 
 /**
+ * Model for MCP Token
+ */
+export interface MCPTokenType {
+  /** Unique ID */
+  id?: string;
+  /** Title of the MCP Token */
+  title?: string;
+  /** Order of the Script */
+  order?: number;
+  /** MCP Token */
+  token?: string;
+  /** Workspace ID */
+  fk_workspace_id?: IdType;
+  /** Base ID */
+  base_id?: IdType;
+  /** User ID of the creator */
+  fk_user_id?: IdType;
+  /** Last updated time */
+  updated_at?: string;
+  /** Creation time */
+  created_at?: string;
+}
+
+/**
  * Model for Calendar
  */
 export interface CalendarType {
@@ -2095,11 +3299,15 @@ export interface NormalColumnRequestType {
     | 'Links'
     | 'User'
     | 'CreatedBy'
-    | 'LastModifiedBy';
+    | 'LastModifiedBy'
+    | 'AI'
+    | 'Order';
   /** Is this column unique? */
   un?: BoolType;
   /** Is this column unique? */
   unique?: BoolType;
+  /** Is this column readonly? */
+  readonly?: BoolType;
 }
 
 /**
@@ -2311,6 +3519,8 @@ export interface BaseType {
    * @example my-base
    */
   title?: string;
+  /** ID of custom url */
+  fk_custom_url_id?: StringOrNullType;
 }
 
 /**
@@ -2393,6 +3603,26 @@ export interface ProjectUpdateReqType {
 export interface ProjectUserReqType {
   /** Base User Email */
   email: string;
+  /** Base User Role */
+  roles:
+    | 'no-access'
+    | 'commenter'
+    | 'editor'
+    | 'guest'
+    | 'owner'
+    | 'viewer'
+    | 'creator';
+}
+
+/**
+ * Model for Base User Request
+ */
+export interface ProjectUserUpdateReqType {
+  /**
+   * Base User Email
+   * @format email
+   */
+  email?: string;
   /** Base User Role */
   roles:
     | 'no-access'
@@ -2671,7 +3901,9 @@ export interface TableType {
   /** The columns included in this table */
   columns?: ColumnType[];
   /** Column Models grouped by IDs */
-  columnsById?: object;
+  columnsById?: Record<string, any>;
+  /** Hash of columns */
+  columnsHash?: string;
   /** Model for Bool */
   deleted?: BoolType;
   /** Is this table enabled? */
@@ -2698,6 +3930,8 @@ export interface TableType {
   title: string;
   /** Table Type */
   type?: string;
+  /** Is this table synced? */
+  synced?: BoolType;
 }
 
 /**
@@ -2766,6 +4000,8 @@ export interface UserType {
   avatar?: string;
   /** Access token version */
   token_version?: string;
+  /** Meta data for user */
+  meta?: MetaType;
 }
 
 /**
@@ -2846,6 +4082,10 @@ export interface ViewType {
     | MapType
     | CalendarType
     | (FormType & GalleryType & GridType & KanbanType & MapType & CalendarType);
+  /** ID of view owner user */
+  owned_by?: IdType;
+  /** ID of custom url */
+  fk_custom_url_id?: StringOrNullType;
 }
 
 /**
@@ -2918,6 +4158,8 @@ export interface ViewUpdateReqType {
   order?: number;
   /** Should this view show system fields? */
   show_system_fields?: BoolType;
+  /** ID of view owner user */
+  owned_by?: IdType;
 }
 
 /**
@@ -3044,6 +4286,8 @@ export interface UserFieldRecordType {
   display_name?: string;
   email: string;
   deleted?: boolean;
+  /** Meta data for user */
+  meta?: MetaType;
 }
 
 export type NestedListCopyPasteOrDeleteAllReqType = {
@@ -3265,6 +4509,31 @@ export interface ExtensionType {
   order?: number;
 }
 
+/**
+ * Model for Snapshot
+ */
+export interface SnapshotType {
+  /** Unique ID */
+  id?: IdType;
+  /** Title of the Snapshot */
+  title?: string;
+  /** Foreign Key to Base */
+  base_id?: IdType;
+  /** Foreign Key to Snapshot Base */
+  snapshot_base_id?: IdType;
+  /** Foreign Key to Workspace */
+  fk_workspace_id?: IdType;
+  /**
+   * Date of creation
+   * @format date
+   */
+  created_at?: string;
+  /** User ID of the creator */
+  created_by?: IdType;
+  /** Status of the Snapshot */
+  status?: string;
+}
+
 export interface ExtensionReqType {
   /** Unique Base ID */
   base_id?: IdType;
@@ -3278,6 +4547,44 @@ export interface ExtensionReqType {
   meta?: MetaType;
   /** Order of the extension */
   order?: number;
+}
+
+export interface AIRecordType {
+  /** Value */
+  value?: string;
+  /** Last Modified By User ID */
+  lastModifiedBy?: IdType;
+  /** Last Modified Time */
+  lastModifiedTime?: string;
+  /** Is any referenced value updated? */
+  isStale?: boolean;
+}
+
+export enum ButtonActionsType {
+  Webhook = 'webhook',
+  Url = 'url',
+  Ai = 'ai',
+  Script = 'script',
+}
+
+/**
+ * Model for Custom Url
+ */
+export interface CustomUrlType {
+  /** Id associated to the Custom url */
+  id?: string;
+  /** Workspace ID */
+  fk_workspace_id?: string;
+  /** Base ID */
+  base_id?: string;
+  /** Model ID */
+  fk_model_id?: string;
+  /** View ID */
+  view_id?: string;
+  /** Original url used for redirection purpose */
+  original_path?: string;
+  /** Custom url path */
+  custom_path?: string;
 }
 
 import type {
@@ -5292,6 +6599,8 @@ export class Api<
   url?: string,
   \** @example viewer *\
   roles?: string,
+  \** ID of custom url *\
+  fk_custom_url_id?: StringOrNullType,
 
 }` OK
  * @response `400` `{
@@ -5312,6 +6621,8 @@ export class Api<
           url?: string;
           /** @example viewer */
           roles?: string;
+          /** ID of custom url */
+          fk_custom_url_id?: StringOrNullType;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
@@ -5414,6 +6725,8 @@ export class Api<
   url?: string,
   \** @example viewer *\
   roles?: string,
+  \** ID of custom url *\
+  fk_custom_url_id?: StringOrNullType,
 
 }` OK
  * @response `400` `{
@@ -5424,7 +6737,10 @@ export class Api<
  */
     sharedBaseUpdate: (
       baseId: IdType,
-      data: SharedBaseReqType,
+      data: SharedBaseReqType & {
+        /** Custom url path */
+        custom_url_path?: StringOrNullType;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -5438,6 +6754,8 @@ export class Api<
           url?: string;
           /** @example viewer */
           roles?: string;
+          /** ID of custom url */
+          fk_custom_url_id?: StringOrNullType;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
@@ -5476,6 +6794,54 @@ export class Api<
       >({
         path: `/api/v1/db/meta/projects/${baseId}/cost`,
         method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Duplicate a shared base
+ * 
+ * @tags Base
+ * @name DuplicateShared
+ * @summary Duplicate Shared Base
+ * @request POST:/api/v2/meta/duplicate/{workspaceId}/shared/{sharedBaseId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    duplicateShared: (
+      workspaceId: IdType,
+      sharedBaseId: any,
+      data: {
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+        };
+        base?: object;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/meta/duplicate/${workspaceId}/shared/${sharedBaseId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -5587,7 +6953,7 @@ export class Api<
  * @name HasEmptyOrNullFilters
  * @summary List Empty & Null Filter
  * @request GET:/api/v1/db/meta/projects/{baseId}/has-empty-or-null-filters
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -5596,7 +6962,7 @@ export class Api<
  */
     hasEmptyOrNullFilters: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -5767,7 +7133,7 @@ export class Api<
  * @name List
  * @summary List Sources
  * @request GET:/api/v1/db/meta/projects/{baseId}/bases/
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -5776,7 +7142,7 @@ export class Api<
  */
     list: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -7460,7 +8826,10 @@ export class Api<
  */
     update: (
       viewId: string,
-      data: SharedViewReqType,
+      data: SharedViewReqType & {
+        /** Custom url path */
+        custom_url_path?: StringOrNullType;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -8089,6 +9458,8 @@ export class Api<
         filterArrJson?: string;
         /** Comma separated list of pks */
         pks?: string;
+        /** Get hidden columns on List Api */
+        getHiddenColumns?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -8118,7 +9489,7 @@ export class Api<
  * @name Create
  * @summary Create Table Row
  * @request POST:/api/v1/db/data/{orgs}/{baseName}/{tableName}
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8130,10 +9501,14 @@ export class Api<
       baseName: string,
       tableName: string,
       data: object,
+      query?: {
+        before?: string;
+        undo?: boolean;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -8141,6 +9516,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}`,
         method: 'POST',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -8193,7 +9569,7 @@ export class Api<
      * @name GroupBy
      * @summary Group By Table Row
      * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/groupby
-     * @response `200` `any` OK
+     * @response `200` `FieldOptionsButtonV3Type` OK
      */
     groupBy: (
       orgs: string,
@@ -8211,8 +9587,39 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<FieldOptionsButtonV3Type, any>({
         path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/groupby`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get the number of groups by the given query
+     *
+     * @tags DB Table Row
+     * @name GroupByCount
+     * @summary Group By Table Row Count
+     * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/groupby/count
+     * @response `200` `FieldOptionsButtonV3Type` OK
+     */
+    groupByCount: (
+      orgs: string,
+      baseName: string,
+      tableName: string,
+      query?: {
+        /** Column name of the column you want to group by, eg. `column_name=column1` */
+        column_name?: string;
+        sort?: any[];
+        where?: string;
+        /** @min 0 */
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<FieldOptionsButtonV3Type, any>({
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/groupby/count`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -8416,6 +9823,42 @@ export class Api<
       }),
 
     /**
+ * @description Bulk upsert table rows in one go.
+ * 
+ * @tags DB Table Row
+ * @name BulkUpsert
+ * @summary Bulk Upsert Table Rows
+ * @request POST:/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/upsert
+ * @response `200` `(any)[]` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    bulkUpsert: (
+      orgs: string,
+      baseName: string,
+      tableName: string,
+      data: object[],
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        any[],
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}/upsert`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Bulk insert table rows in one go.
  * 
  * @tags DB Table Row
@@ -8437,6 +9880,9 @@ export class Api<
       baseName: string,
       tableName: string,
       data: object[],
+      query?: {
+        undo?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -8450,6 +9896,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}`,
         method: 'POST',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -8535,7 +9982,7 @@ export class Api<
  * @name BulkUpdateAll
  * @summary Bulk Update Table Rows with Conditions
  * @request PATCH:/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/all
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8554,7 +10001,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -8587,7 +10034,6 @@ export class Api<
       orgs: string,
       baseName: string,
       tableName: string,
-      data: object,
       query?: {
         where?: string;
         viewId?: string;
@@ -8604,8 +10050,6 @@ export class Api<
         path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}/all`,
         method: 'DELETE',
         query: query,
-        body: data,
-        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -8617,7 +10061,7 @@ export class Api<
  * @name CsvExport
  * @summary Export Table View Rows
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/export/{type}
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8632,7 +10076,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -8651,7 +10095,7 @@ export class Api<
  * @name NestedList
  * @summary List Nested Relations Rows
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8675,7 +10119,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -8806,7 +10250,7 @@ export class Api<
  * @name NestedChildrenExcludedList
  * @summary Referenced Table Rows Excluding Current Record's Children / Parent
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8830,7 +10274,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -8919,6 +10363,7 @@ export class Api<
         /** Query params for nested data */
         nested?: any;
         offset?: number;
+        getHiddenColumns?: boolean;
       },
       params: RequestParams = {}
     ) =>
@@ -8961,6 +10406,10 @@ export class Api<
       tableName: string,
       viewName: string,
       data: object,
+      query?: {
+        before?: string;
+        undo?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -8972,6 +10421,7 @@ export class Api<
       >({
         path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}`,
         method: 'POST',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -9027,7 +10477,7 @@ export class Api<
  * @name GroupBy
  * @summary Group By Table View Row
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9052,13 +10502,56 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
         }
       >({
         path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/groupby`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Get the table view rows grouped by count the given query
+ * 
+ * @tags DB View Row
+ * @name GroupByCount
+ * @summary Count of Group By Table View Row
+ * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby/count
+ * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    groupByCount: (
+      orgs: string,
+      baseName: string,
+      tableName: string,
+      viewName: string,
+      query?: {
+        /** Column name of the column you want to group by, eg. `column_name=column1` */
+        column_name?: string;
+        sort?: any[];
+        where?: string;
+        /** @min 0 */
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        FieldOptionsButtonV3Type,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/groupby/count`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -9252,7 +10745,7 @@ export class Api<
  * @name Export
  * @summary Export Table View Rows
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/export/{type}
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9268,7 +10761,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9296,6 +10789,8 @@ export class Api<
       viewName: string,
       query: {
         from_date: string;
+        prev_date: string;
+        next_date: string;
         to_date: string;
         fields?: any[];
         sort?: any[];
@@ -9326,6 +10821,8 @@ export class Api<
       query: {
         from_date: string;
         to_date: string;
+        prev_date: string;
+        next_date: string;
         fields?: any[];
         sort?: any[];
         where?: string;
@@ -9385,7 +10882,7 @@ export class Api<
  * @name DbCalendarViewRowCount
  * @summary Count of Records in Dates in Calendar View
  * @request GET:/api/v1/db/calendar-data/{orgs}/{baseName}/{tableName}/views/{viewName}/countByDate/
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9400,6 +10897,8 @@ export class Api<
       query: {
         from_date: string;
         to_date: string;
+        prev_date: string;
+        next_date: string;
         sort?: any[];
         where?: string;
         /** @min 1 */
@@ -9410,7 +10909,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9431,7 +10930,7 @@ export class Api<
  * @name DataCalendarRowCount
  * @summary Count of Records in Dates in Calendar View
  * @request GET:/api/v1/db/public/calendar-view/{sharedViewUuid}/countByDate
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9442,6 +10941,8 @@ export class Api<
       sharedViewUuid: string,
       query: {
         from_date: string;
+        prev_date: string;
+        next_date: string;
         to_date: string;
         sort?: any[];
         where?: string;
@@ -9453,13 +10954,47 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
         }
       >({
         path: `/api/v1/db/public/calendar-view/${sharedViewUuid}/countByDate`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Count how many rows in the given Table View
+ * 
+ * @tags Public
+ * @name DbViewRowCount
+ * @summary Count Table View Rows
+ * @request GET:/api/v2/public/shared-view/{sharedViewUuid}/count
+ * @response `200` `{
+  count?: number,
+
+}` OK
+ */
+    dbViewRowCount: (
+      sharedViewUuid: string,
+      query?: {
+        where?: string;
+        /** Query params for nested data */
+        nested?: any;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          count?: number;
+        },
+        any
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/count`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -9857,6 +11392,48 @@ export class Api<
       }),
 
     /**
+ * @description Get the number of groups by the given query
+ * 
+ * @tags Public
+ * @name DataGroupByCount
+ * @summary Group By Table Row Count
+ * @request GET:/api/v2/public/shared-view/{sharedViewUuid}/groupby/count
+ * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataGroupByCount: (
+      sharedViewUuid: string,
+      query?: {
+        /** The result will be sorted based on `sort` query */
+        sort?: string[] | string;
+        /** Extra filtering */
+        where?: string;
+        /** Used for multiple filter queries */
+        filterArrJson?: string;
+        /** Columns to group by */
+        column_name?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        FieldOptionsButtonV3Type,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/groupby/count`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description List all nested list data in a given shared view
  * 
  * @tags Public
@@ -9931,7 +11508,7 @@ export class Api<
  * @name CsvExport
  * @summary Export Rows in Share View
  * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type}
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9944,7 +11521,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9963,7 +11540,7 @@ export class Api<
  * @name DataRelationList
  * @summary List Nested Data Relation
  * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName}
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9998,7 +11575,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -10210,6 +11787,8 @@ export class Api<
  * @request GET:/api/v1/db/meta/audits
  * @response `200` `{
   list: (AuditType)[],
+  \** Pagination Info *\
+  pageInfo?: PaginatedType,
 
 }` OK
  * @response `400` `{
@@ -10220,6 +11799,10 @@ export class Api<
  */
     auditList: (
       query: {
+        /** @min 0 */
+        offset?: number;
+        /** @min 1 */
+        limit?: number;
         /**
          * Row ID
          * @example 10
@@ -10236,6 +11819,8 @@ export class Api<
       this.request<
         {
           list: AuditType[];
+          /** Pagination Info */
+          pageInfo?: PaginatedType;
         },
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
@@ -10937,6 +12522,45 @@ export class Api<
       }),
 
     /**
+ * No description
+ * 
+ * @tags Utils
+ * @name CloudFeatures
+ * @summary Get Cloud Features
+ * @request GET:/api/v2/cloud-features
+ * @response `200` `({
+  Id?: number,
+  Title?: string,
+  Highlight?: boolean,
+  "Coming Soon"?: boolean,
+
+})[]` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    cloudFeatures: (params: RequestParams = {}) =>
+      this.request<
+        {
+          Id?: number;
+          Title?: string;
+          Highlight?: boolean;
+          'Coming Soon'?: boolean;
+        }[],
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/cloud-features`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Get Aggregated Meta Info such as tableCount, dbViewCount, viewCount and etc.
  * 
  * @tags Utils
@@ -11131,10 +12755,10 @@ export class Api<
      * @name CommandPalette
      * @summary Get command palette suggestions
      * @request POST:/api/v1/command_palette
-     * @response `200` `any` OK
+     * @response `200` `FieldOptionsButtonV3Type` OK
      */
     commandPalette: (data: any, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<FieldOptionsButtonV3Type, any>({
         path: `/api/v1/command_palette`,
         method: 'POST',
         body: data,
@@ -11455,7 +13079,7 @@ export class Api<
  * @tags Plugin
  * @name Status
  * @summary Get Plugin Status
- * @request GET:/api/v1/db/meta/plugins/{pluginTitle}/status
+ * @request GET:/api/v1/db/meta/plugins/{pluginId}/status
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -11463,7 +13087,7 @@ export class Api<
 
 }`
  */
-    status: (pluginTitle: string, params: RequestParams = {}) =>
+    status: (pluginId: string, params: RequestParams = {}) =>
       this.request<
         boolean,
         {
@@ -11471,7 +13095,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/plugins/${pluginTitle}/status`,
+        path: `/api/v1/db/meta/plugins/${pluginId}/status`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -11484,7 +13108,7 @@ export class Api<
  * @name Test
  * @summary Test Plugin
  * @request POST:/api/v1/db/meta/plugins/test
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -11493,7 +13117,7 @@ export class Api<
  */
     test: (data: PluginTestReqType, params: RequestParams = {}) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -11514,7 +13138,7 @@ export class Api<
  * @name Update
  * @summary Update Plugin
  * @request PATCH:/api/v1/db/meta/plugins/{pluginId}
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -11527,7 +13151,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -11676,6 +13300,11 @@ export class Api<
          * @example download/noco/jango_fett/Table1/attachment/uVbjPVQxC_SSfs8Ctx.jpg
          */
         path: string;
+        /**
+         * The scope of the attachment
+         * @example workspacePics
+         */
+        scope?: 'workspacePics' | 'profilePics' | 'organizationPics';
       },
       data: {
         files: FileReqType[];
@@ -11706,6 +13335,11 @@ export class Api<
          * @example download/noco/jango_fett/Table1/attachment/c7z_UF8sZBgJUxMjpN.jpg
          */
         path: string;
+        /**
+         * The scope of the attachment
+         * @example workspacePics
+         */
+        scope?: 'workspacePics' | 'profilePics' | 'organizationPics';
       },
       data: AttachmentReqType[],
       params: RequestParams = {}
@@ -11936,7 +13570,7 @@ export class Api<
  * @name Create
  * @summary Create Table Rows
  * @request POST:/api/v2/tables/{tableId}/records
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -11949,11 +13583,13 @@ export class Api<
       query?: {
         /** View ID */
         viewId?: string;
+        before?: string;
+        undo?: string;
       },
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -11975,7 +13611,7 @@ export class Api<
  * @name Update
  * @summary Update Table Rows
  * @request PATCH:/api/v2/tables/{tableId}/records
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -11992,7 +13628,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -12014,7 +13650,7 @@ export class Api<
  * @name Delete
  * @summary Delete Table Rows
  * @request DELETE:/api/v2/tables/{tableId}/records
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -12031,7 +13667,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -12085,6 +13721,43 @@ export class Api<
       >({
         path: `/api/v2/tables/${tableId}/records/${rowId}`,
         method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Move the table row to new position
+ * 
+ * @tags DB Data Table Row
+ * @name Move
+ * @summary Move Table Row
+ * @request POST:/api/v2/tables/{tableId}/records/{rowId}/move
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    move: (
+      tableId: string,
+      rowId: string,
+      query?: {
+        /** The row ID before which the row should be moved */
+        before?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/tables/${tableId}/records/${rowId}/move`,
+        method: 'POST',
         query: query,
         format: 'json',
         ...params,
@@ -12213,7 +13886,7 @@ export class Api<
  * @name NestedLink
  * @summary Create Nested Relations Rows
  * @request POST:/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -12232,7 +13905,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -12254,7 +13927,7 @@ export class Api<
  * @name NestedUnlink
  * @summary Delete Nested Relations Rows
  * @request DELETE:/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -12273,7 +13946,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -12336,7 +14009,7 @@ export class Api<
  * @name NestedListCopyPasteOrDeleteAll
  * @summary Copy paste or deleteAll nested link
  * @request POST:/api/v2/tables/{tableId}/links/{columnId}/records
- * @response `200` `any` OK
+ * @response `200` `FieldOptionsButtonV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -12354,7 +14027,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        any,
+        FieldOptionsButtonV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -12402,10 +14075,10 @@ export class Api<
      * @name Create
      * @summary Create Extension
      * @request POST:/api/v2/extensions/{baseId}
-     * @response `200` `any` OK
+     * @response `200` `FieldOptionsButtonV3Type` OK
      */
     create: (baseId: IdType, data: object, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<FieldOptionsButtonV3Type, any>({
         path: `/api/v2/extensions/${baseId}`,
         method: 'POST',
         body: data,
@@ -12438,10 +14111,10 @@ export class Api<
      * @name Update
      * @summary Update Extension
      * @request PATCH:/api/v2/extensions/{extensionId}
-     * @response `200` `any` OK
+     * @response `200` `FieldOptionsButtonV3Type` OK
      */
     update: (extensionId: IdType, data: object, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<FieldOptionsButtonV3Type, any>({
         path: `/api/v2/extensions/${extensionId}`,
         method: 'PATCH',
         body: data,
@@ -12457,10 +14130,10 @@ export class Api<
      * @name Delete
      * @summary Delete Extension
      * @request DELETE:/api/v2/extensions/{extensionId}
-     * @response `200` `any` OK
+     * @response `200` `FieldOptionsButtonV3Type` OK
      */
     delete: (extensionId: IdType, params: RequestParams = {}) =>
-      this.request<any, any>({
+      this.request<FieldOptionsButtonV3Type, any>({
         path: `/api/v2/extensions/${extensionId}`,
         method: 'DELETE',
         format: 'json',
@@ -12532,6 +14205,173 @@ export class Api<
         ...params,
       }),
   };
+  ai = {
+    /**
+     * @description AI Utils
+     *
+     * @tags Ai
+     * @name Utils
+     * @summary AI Utils
+     * @request POST:/api/v2/ai/bases/{baseId}/utils
+     * @response `200` `FieldOptionsButtonV3Type` OK
+     */
+    utils: (
+      baseId: IdType,
+      data: {
+        operation?: string;
+        input: any;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<FieldOptionsButtonV3Type, any>({
+        path: `/api/v2/ai/bases/${baseId}/utils`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description AI Schema
+     *
+     * @tags Ai
+     * @name Schema
+     * @summary AI Schema
+     * @request POST:/api/v2/ai/bases/{baseId}/schema
+     * @response `200` `FieldOptionsButtonV3Type` OK
+     */
+    schema: (
+      baseId: IdType,
+      data: {
+        operation?: string;
+        input: any;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<FieldOptionsButtonV3Type, any>({
+        path: `/api/v2/ai/bases/${baseId}/schema`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description AI Schema
+     *
+     * @tags Ai
+     * @name SchemaCreate
+     * @summary AI Schema
+     * @request POST:/api/v2/ai/workspaces/{workspaceId}/bases
+     * @response `200` `FieldOptionsButtonV3Type` OK
+     */
+    schemaCreate: (
+      workspaceId: IdType,
+      data: {
+        operation?: string;
+        input: any;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<FieldOptionsButtonV3Type, any>({
+        path: `/api/v2/ai/workspaces/${workspaceId}/bases`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Generate AI data for specified rows
+     *
+     * @tags Ai
+     * @name DataGenerate
+     * @summary Generate AI Data
+     * @request POST:/api/v2/ai/tables/{modelId}/rows/generate
+     * @response `200` `(any)[]` OK
+     */
+    dataGenerate: (
+      modelId: string,
+      data: {
+        rowIds: string[];
+        column?:
+          | string
+          | {
+              title: string;
+              prompt_raw: string;
+              fk_integration_id: string;
+              uidt: string;
+              model?: string;
+              output_column_ids?: string;
+            };
+        preview?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<any[], any>({
+        path: `/api/v2/ai/tables/${modelId}/rows/generate`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Fill AI data for specified rows
+     *
+     * @tags Ai
+     * @name DataFill
+     * @summary Fill AI Data
+     * @request POST:/api/v2/ai/tables/{modelId}/rows/fill
+     * @response `200` `(any)[]` OK
+     */
+    dataFill: (
+      modelId: string,
+      data: {
+        rows?: any[];
+        numRows: number;
+        generateIds: string[];
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<any[], any>({
+        path: `/api/v2/ai/tables/${modelId}/rows/fill`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Extract AI data from the input
+     *
+     * @tags Ai
+     * @name DataExtract
+     * @summary Extract Data using AI
+     * @request POST:/api/v2/ai/tables/{modelId}/extract
+     * @response `200` `(any)[]` OK
+     */
+    dataExtract: (
+      modelId: string,
+      data: {
+        input: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<any[], any>({
+        path: `/api/v2/ai/tables/${modelId}/extract`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
   integration = {
     /**
      * @description List integrations
@@ -12540,7 +14380,7 @@ export class Api<
      * @name List
      * @summary List integrations
      * @request GET:/api/v2/meta/integrations
-     * @response `200` `any` OK
+     * @response `200` `FieldOptionsButtonV3Type` OK
      */
     list: (
       query?: {
@@ -12554,7 +14394,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<any, any>({
+      this.request<FieldOptionsButtonV3Type, any>({
         path: `/api/v2/meta/integrations`,
         method: 'GET',
         query: query,
@@ -12641,6 +14481,209 @@ export class Api<
       this.request<void, any>({
         path: `/api/v2/meta/integrations/${integrationId}`,
         method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * @description Set integration as category default
+     *
+     * @tags Integration
+     * @name SetDefault
+     * @summary Set integration as category default
+     * @request PATCH:/api/v2/meta/integrations/{integrationId}/default
+     * @response `200` `void` OK
+     */
+    setDefault: (integrationId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v2/meta/integrations/${integrationId}/default`,
+        method: 'PATCH',
+        ...params,
+      }),
+
+    /**
+     * @description Store integration
+     *
+     * @tags Integration
+     * @name Store
+     * @summary Store integration
+     * @request POST:/api/v2/integrations/:integrationId/store
+     * @response `200` `void` OK
+     */
+    store: (
+      integrationId: string,
+      data:
+        | {
+            op: 'list';
+            limit: number;
+            offset: number;
+          }
+        | {
+            op: 'get';
+          }
+        | {
+            op: 'sum';
+            fields: string[];
+          },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v2/integrations/${integrationId}/store`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
+  integrations = {
+    /**
+     * @description List available integrations
+     *
+     * @tags Integrations
+     * @name List
+     * @summary Integration List
+     * @request GET:/api/v2/integrations
+     * @response `200` `object` OK
+     */
+    list: (params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v2/integrations`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get info for integration
+     *
+     * @tags Integrations
+     * @name Info
+     * @summary Get Integration Info
+     * @request GET:/api/v2/integrations/:type/:subType
+     * @response `200` `object` OK
+     */
+    info: (type: string, subType: string, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v2/integrations/${type}/${subType}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Call exposed integration endpoint
+     *
+     * @tags Integrations
+     * @name Endpoint
+     * @summary Call exposed integration endpoint
+     * @request POST:/api/v2/integrations/:integrationId/:endpoint
+     * @response `200` `object` OK
+     */
+    endpoint: (
+      integrationId: string,
+      endpoint: string,
+      data: object,
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v2/integrations/${integrationId}/${endpoint}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
+  action = {
+    /**
+     * @description Trigger a button action
+     *
+     * @tags Action
+     * @name TriggerButton
+     * @summary Trigger a button action
+     * @request POST:/api/v2/tables/:tableId/button/:fieldId
+     * @response `200` `object` OK
+     */
+    triggerButton: (
+      tableId: string,
+      fieldId: string,
+      data: {
+        customRows?: any[];
+        rowIds?: string[];
+        customField?: object;
+      },
+      query?: {
+        /** Trigger AI action with custom record data provided in request body as rows */
+        passThrough?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v2/tables/${tableId}/button/${fieldId}`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
+  internal = {
+    /**
+     * @description Trigger an internal operation
+     *
+     * @tags Internal
+     * @name PostOperation
+     * @summary Trigger an internal operation
+     * @request POST:/api/v2/internal/:workspaceId/:baseId
+     * @response `200` `Record<string, any>` OK
+     */
+    postOperation: (
+      workspaceId: string,
+      baseId: string,
+      query: {
+        /** Operation to trigger */
+        operation: string;
+        /** Model ID */
+        fk_model_id?: string;
+      },
+      data: Record<string, any>,
+      params: RequestParams = {}
+    ) =>
+      this.request<Record<string, any>, any>({
+        path: `/api/v2/internal/${workspaceId}/${baseId}`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Trigger an internal operation
+     *
+     * @tags Internal
+     * @name GetOperation
+     * @summary Trigger an internal operation
+     * @request GET:/api/v2/internal/:workspaceId/:baseId
+     * @response `200` `Record<string, any>` OK
+     */
+    getOperation: (
+      workspaceId: string,
+      baseId: string,
+      query: {
+        /** Operation to trigger */
+        operation: string;
+        /** Model ID */
+        fk_model_id?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<Record<string, any>, any>({
+        path: `/api/v2/internal/${workspaceId}/${baseId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
         ...params,
       }),
   };

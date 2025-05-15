@@ -1,7 +1,12 @@
-import { NcErrorType } from 'nocodb-sdk';
+import { HigherPlan, NcErrorType, ncIsNumber } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import { generateReadablePermissionErr } from 'src/utils/acl';
-import type { BaseType, SourceType } from 'nocodb-sdk';
+import type {
+  BaseType,
+  PlanLimitExceededDetailsType,
+  SourceType,
+  UITypes,
+} from 'nocodb-sdk';
 import type { ErrorObject } from 'ajv';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 
@@ -24,18 +29,21 @@ export function extractDBError(error): {
   error: string;
   details?: any;
   code?: string;
+  httpStatus: number;
 } | void {
   if (!error.code) return;
 
   let message: string;
   let _extra: Record<string, any>;
   let _type: DBError;
+  let httpStatus = 422;
 
   // todo: handle not null constraint error for all databases
   switch (error.code) {
     // sqlite errors
     case 'SQLITE_BUSY':
       message = 'The database is locked by another process or transaction.';
+      httpStatus = 500;
       break;
     case 'SQLITE_CONSTRAINT':
       {
@@ -50,6 +58,7 @@ export function extractDBError(error): {
       break;
     case 'SQLITE_CORRUPT':
       message = 'The database file is corrupt.';
+      httpStatus = 500;
       break;
 
     case 'SQLITE_MISMATCH':
@@ -245,9 +254,11 @@ export function extractDBError(error): {
       break;
     case 'ER_ACCESS_DENIED_ERROR':
       message = 'You do not have permission to perform this action.';
+      httpStatus = 403;
       break;
     case 'ER_LOCK_WAIT_TIMEOUT':
       message = 'A timeout occurred while waiting for a table lock.';
+      httpStatus = 500;
       break;
     case 'ER_NO_REFERENCED_ROW':
       message = 'The referenced record does not exist.';
@@ -267,7 +278,8 @@ export function extractDBError(error): {
       message = 'A value is required for this field.';
       break;
     case '23503':
-      message = 'The referenced record does not exist.';
+      message =
+        'Cannot delete this record because other records depend on it. Please remove the dependent records first.';
       break;
     case '23514':
       message = 'A null value is not allowed for this field.';
@@ -275,11 +287,16 @@ export function extractDBError(error): {
     case '22001':
       message = 'The data entered is too long for this field.';
       break;
+    case '22007':
+      message = 'The date / time value is invalid';
+      break;
     case '28000':
       message = 'You do not have permission to perform this action.';
+      httpStatus = 401;
       break;
     case '40P01':
       message = 'A timeout occurred while waiting for a table lock.';
+      httpStatus = 500;
       break;
     case '23506':
       message = 'This record is being referenced by other records.';
@@ -305,22 +322,39 @@ export function extractDBError(error): {
     case '22P02': // PostgreSQL invalid_text_representation
     case '22003': // PostgreSQL numeric_value_out_of_range
       if (error.message) {
-        const pgTypeMismatchMatch = error.message.match(
+        const regexCandidates = [
           /invalid input syntax for (\w+): "(.+)"(?: in column "(\w+)")?/i,
-        );
-        if (pgTypeMismatchMatch) {
-          const dataType = pgTypeMismatchMatch[1];
-          const invalidValue = pgTypeMismatchMatch[2];
-          const columnName = pgTypeMismatchMatch[3] || 'unknown';
+          /invalid input syntax for type (\w+): "([^"]+)"?/i,
+        ];
 
-          message = `Invalid ${dataType} value '${invalidValue}' for column '${columnName}'`;
-          _type = DBError.DATA_TYPE_MISMATCH;
-          _extra = { dataType, column: columnName, value: invalidValue };
-        } else {
+        let matched = false;
+        for (const regExp of regexCandidates) {
+          const pgTypeMismatchMatch = error.message.match(regExp);
+          if (pgTypeMismatchMatch) {
+            const dataType = pgTypeMismatchMatch[1];
+            const invalidValue = pgTypeMismatchMatch[2];
+            const columnName = pgTypeMismatchMatch[3];
+
+            if (columnName) {
+              message = `Invalid ${dataType} value '${invalidValue}' for column '${columnName}'`;
+            } else {
+              message = `Invalid value '${invalidValue}' for type '${dataType}'`;
+            }
+            _type = DBError.DATA_TYPE_MISMATCH;
+            _extra = { dataType, column: columnName, value: invalidValue };
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
           const detailMatch = error.detail
             ? error.detail.match(/Column (\w+)/)
             : null;
-          const columnName = detailMatch ? detailMatch[1] : 'unknown';
+
+          const columnName =
+            detailMatch?.[1] ??
+            error.message.match(/ set\s+"([^"]+)"/)?.[1] ??
+            'unknown';
           message = `Invalid data type or value for column '${columnName}'.`;
           _type = DBError.DATA_TYPE_MISMATCH;
           _extra = { column: columnName };
@@ -418,21 +452,27 @@ export function extractDBError(error): {
       break;
     case 'ELOGIN':
       message = 'You do not have permission to perform this action.';
+      httpStatus = 403;
       break;
     case 'ETIMEOUT':
       message = 'A timeout occurred while waiting for a table lock.';
+      httpStatus = 500;
       break;
     case 'ECONNRESET':
       message = 'The connection was reset.';
+      httpStatus = 500;
       break;
     case 'ECONNREFUSED':
       message = 'The connection was refused.';
+      httpStatus = 500;
       break;
     case 'EHOSTUNREACH':
       message = 'The host is unreachable.';
+      httpStatus = 500;
       break;
     case 'EHOSTDOWN':
       message = 'The host is down.';
+      httpStatus = 500;
       break;
     default:
       // log error for unknown error code
@@ -450,6 +490,7 @@ export function extractDBError(error): {
       error: NcErrorType.DATABASE_ERROR,
       message,
       code: error.code,
+      httpStatus,
     };
   }
 }
@@ -490,6 +531,32 @@ export class ExternalTimeout extends ExternalError {}
 
 export class UnprocessableEntity extends NcBaseError {}
 
+export class OptionsNotExistsError extends BadRequest {
+  constructor({
+    columnTitle,
+    options,
+    validOptions,
+  }: {
+    columnTitle: string;
+    options: string[];
+    validOptions: string[];
+  }) {
+    super(
+      `Invalid option(s) "${options.join(
+        ', ',
+      )}" provided for column "${columnTitle}". Valid options are "${validOptions.join(
+        ', ',
+      )}"`,
+    );
+    this.columnTitle = columnTitle;
+    this.options = options;
+    this.validOptions = validOptions;
+  }
+  columnTitle: string;
+  options: string[];
+  validOptions: string[];
+}
+
 export class TestConnectionError extends NcBaseError {
   public sql_code?: string;
 
@@ -500,9 +567,15 @@ export class TestConnectionError extends NcBaseError {
 }
 
 export class AjvError extends NcBaseError {
-  constructor(param: { message: string; errors: ErrorObject[] }) {
+  humanReadableError: boolean;
+  constructor(param: {
+    message: string;
+    errors: ErrorObject[];
+    humanReadableError?: boolean;
+  }) {
     super(param.message);
     this.errors = param.errors;
+    this.humanReadableError = param.humanReadableError || false;
   }
 
   errors: ErrorObject[];
@@ -512,6 +585,7 @@ const errorHelpers: {
   [key in NcErrorType]: {
     message: string | ((...params: string[]) => string);
     code: number;
+    error_code?: NcErrorType;
   };
 } = {
   [NcErrorType.UNKNOWN_ERROR]: {
@@ -528,8 +602,16 @@ const errorHelpers: {
     code: 500,
   },
   [NcErrorType.AUTHENTICATION_REQUIRED]: {
-    message: 'Authentication required to access this resource',
+    message: (message: string) =>
+      message
+        ? `Authentication required - ${message}`
+        : 'Authentication required to access this resource',
     code: 401,
+  },
+  [NcErrorType.FORBIDDEN]: {
+    message: (message: string) =>
+      message ? `Forbidden - ${message}` : 'Forbidden to access this resource',
+    code: 403,
   },
   [NcErrorType.API_TOKEN_NOT_ALLOWED]: {
     message: 'This request is not allowed with API token',
@@ -542,6 +624,10 @@ const errorHelpers: {
   [NcErrorType.BASE_NOT_FOUND]: {
     message: (id: string) => `Base '${id}' not found`,
     code: 404,
+  },
+  [NcErrorType.BASE_NOT_FOUNDV3]: {
+    message: (id: string) => `Base '${id}' not found`,
+    code: 422,
   },
   [NcErrorType.SOURCE_NOT_FOUND]: {
     message: (id: string) => `Source '${id}' not found`,
@@ -559,13 +645,25 @@ const errorHelpers: {
     message: (id: string) => `Table '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.TABLE_NOT_FOUNDV3]: {
+    message: (id: string) => `Table '${id}' not found`,
+    code: 422,
+  },
   [NcErrorType.VIEW_NOT_FOUND]: {
     message: (id: string) => `View '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.VIEW_NOT_FOUNDV3]: {
+    message: (id: string) => `View '${id}' not found`,
+    code: 422,
+  },
   [NcErrorType.FIELD_NOT_FOUND]: {
     message: (id: string) => `Field '${id}' not found`,
     code: 404,
+  },
+  [NcErrorType.FIELD_NOT_FOUNDV3]: {
+    message: (id: string) => `Field '${id}' not found`,
+    code: 422,
   },
   [NcErrorType.HOOK_NOT_FOUND]: {
     message: (id: string) => `Hook '${id}' not found`,
@@ -605,7 +703,14 @@ const errorHelpers: {
     code: 404,
   },
   [NcErrorType.INVALID_OFFSET_VALUE]: {
-    message: (offset: string) => `Offset value '${offset}' is invalid`,
+    message: (offset: string) =>
+      ncIsNumber(Number(offset)) && Number(offset) > 0
+        ? `Offset value '${offset}' is invalid`
+        : `Offset must be a non-negative integer`,
+    code: 422,
+  },
+  [NcErrorType.INVALID_PAGE_VALUE]: {
+    message: (page: string) => `Page value '${page}' is invalid`,
     code: 422,
   },
   [NcErrorType.INVALID_PK_VALUE]: {
@@ -619,6 +724,10 @@ const errorHelpers: {
   },
   [NcErrorType.INVALID_FILTER]: {
     message: (filter: string) => `Filter '${filter}' is invalid`,
+    code: 422,
+  },
+  [NcErrorType.INVALID_FILTERV3]: {
+    message: (message: string) => `Invalid filter expression: ${message}`,
     code: 422,
   },
   [NcErrorType.INVALID_SHARED_VIEW_PASSWORD]: {
@@ -657,9 +766,46 @@ const errorHelpers: {
     },
     code: 400,
   },
+  [NcErrorType.FORMULA_CIRCULAR_REF_ERROR]: {
+    message: 'Circular reference detected in formula',
+    code: 400,
+  },
   [NcErrorType.PERMISSION_DENIED]: {
     message: 'Permission denied',
     code: 403,
+  },
+  [NcErrorType.INVALID_ATTACHMENT_UPLOAD_SCOPE]: {
+    message: 'Invalid attachment upload scope',
+    code: 400,
+  },
+  [NcErrorType.REORDER_FAILED]: {
+    message: 'Reorder failed',
+    code: 400,
+  },
+  [NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER]: {
+    message: 'Cannot calculate intermediate order',
+    code: 400,
+  },
+  [NcErrorType.PLAN_LIMIT_EXCEEDED]: {
+    message: (message: string) => message || 'Plan limit exceeded',
+    code: 403,
+  },
+  [NcErrorType.SSO_LOGIN_REQUIRED]: {
+    message: (_workspaceId: string) => 'SSO login required for workspace',
+    code: 403,
+  },
+  [NcErrorType.MAX_INSERT_LIMIT_EXCEEDED]: {
+    message: (limit: string) => `Maximum ${limit} records during insert`,
+    code: 422,
+  },
+  [NcErrorType.MAX_WORKSPACE_LIMIT_REACHED]: {
+    message: () =>
+      `The maximum workspace limit has been reached. Please contact your administrator to request access to a workspace.`,
+    code: 403,
+  },
+  [NcErrorType.INVALID_VALUE_FOR_FIELD]: {
+    message: (message: string) => message,
+    code: 422,
   },
 };
 
@@ -723,7 +869,7 @@ export class NcError {
     permissionName: string,
     roles: Record<string, boolean>,
     extendedScopeRoles: any,
-  ) {
+  ): never {
     throw new NcBaseErrorv2(NcErrorType.PERMISSION_DENIED, {
       customMessage: generateReadablePermissionErr(
         permissionName,
@@ -738,59 +884,79 @@ export class NcError {
     });
   }
 
-  static authenticationRequired(args?: NcErrorArgs) {
+  static authenticationRequired(args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.AUTHENTICATION_REQUIRED, args);
   }
 
-  static apiTokenNotAllowed(args?: NcErrorArgs) {
+  static apiTokenNotAllowed(args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.API_TOKEN_NOT_ALLOWED, args);
   }
 
-  static workspaceNotFound(id: string, args?: NcErrorArgs) {
+  static workspaceNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.WORKSPACE_NOT_FOUND, {
       params: id,
       ...args,
     });
   }
 
-  static columnAssociatedWithLink(_id: string, args: NcErrorArgs) {
+  static columnAssociatedWithLink(_id: string, args: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.COLUMN_ASSOCIATED_WITH_LINK, args);
   }
 
-  static tableAssociatedWithLink(_id: string, args: NcErrorArgs) {
+  static tableAssociatedWithLink(_id: string, args: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.TABLE_ASSOCIATED_WITH_LINK, args);
   }
 
-  static baseNotFound(id: string, args?: NcErrorArgs) {
+  static baseNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.BASE_NOT_FOUND, {
       params: id,
       ...args,
     });
   }
+  static baseNotFoundV3(id: string, args?: NcErrorArgs): never {
+    throw new NcBaseErrorv2(NcErrorType.BASE_NOT_FOUNDV3, {
+      params: id,
+      ...args,
+    });
+  }
 
-  static sourceNotFound(id: string, args?: NcErrorArgs) {
+  static sourceNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.SOURCE_NOT_FOUND, {
       params: id,
       ...args,
     });
   }
 
-  static tableNotFound(id: string, args?: NcErrorArgs) {
+  static tableNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.TABLE_NOT_FOUND, {
       params: id,
       ...args,
     });
   }
 
-  static userNotFound(id: string, args?: NcErrorArgs) {
+  static tableNotFoundV3(id: string, args?: NcErrorArgs): never {
+    throw new NcBaseErrorv2(NcErrorType.TABLE_NOT_FOUNDV3, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static userNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.USER_NOT_FOUND, {
       params: id,
       ...args,
     });
   }
 
-  static viewNotFound(id: string, args?: NcErrorArgs) {
+  static viewNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.VIEW_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static viewNotFoundV3(id: string, args?: NcErrorArgs): never {
+    throw new NcBaseErrorv2(NcErrorType.VIEW_NOT_FOUNDV3, {
       params: id,
       ...args,
     });
@@ -806,12 +972,14 @@ export class NcError {
   static recordNotFound(
     id: string | string[] | Record<string, string> | Record<string, string>[],
     args?: NcErrorArgs,
-  ) {
+  ): never {
     let formatedId: string | string[] = '';
     if (!id) {
       formatedId = 'unknown';
     } else if (typeof id === 'string') {
       formatedId = [id];
+    } else if (typeof id === 'number') {
+      formatedId = [(id as number).toString()];
     } else if (Array.isArray(id)) {
       if (id.every((i) => typeof i === 'string')) {
         formatedId = id as string[];
@@ -848,157 +1016,235 @@ export class NcError {
     });
   }
 
-  static genericNotFound(resource: string, id: string, args?: NcErrorArgs) {
+  static genericNotFound(
+    resource: string,
+    id: string,
+    args?: NcErrorArgs,
+  ): never {
     throw new NcBaseErrorv2(NcErrorType.GENERIC_NOT_FOUND, {
       params: [resource, id],
       ...args,
     });
   }
 
-  static requiredFieldMissing(field: string, args?: NcErrorArgs) {
+  static requiredFieldMissing(field: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.REQUIRED_FIELD_MISSING, {
       params: field,
       ...args,
     });
   }
 
-  static duplicateRecord(id: string | string[], args?: NcErrorArgs) {
+  static duplicateRecord(id: string | string[], args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.ERROR_DUPLICATE_RECORD, {
       params: id,
       ...args,
     });
   }
 
-  static fieldNotFound(id: string, args?: NcErrorArgs) {
+  static fieldNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.FIELD_NOT_FOUND, {
       params: id,
       ...args,
     });
   }
 
-  static invalidOffsetValue(offset: string | number, args?: NcErrorArgs) {
+  static fieldNotFoundV3(id: string, args?: NcErrorArgs): never {
+    throw new NcBaseErrorv2(NcErrorType.FIELD_NOT_FOUNDV3, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static invalidOffsetValue(
+    offset: string | number,
+    args?: NcErrorArgs,
+  ): never {
     throw new NcBaseErrorv2(NcErrorType.INVALID_OFFSET_VALUE, {
       params: `${offset}`,
       ...args,
     });
   }
+  static invalidPageValue(page: string | number, args?: NcErrorArgs): never {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_PAGE_VALUE, {
+      params: `${page}`,
+      ...args,
+    });
+  }
 
-  static invalidPrimaryKey(value: any, pkColumn: string, args?: NcErrorArgs) {
+  static invalidPrimaryKey(
+    value: any,
+    pkColumn: string,
+    args?: NcErrorArgs,
+  ): never {
     throw new NcBaseErrorv2(NcErrorType.INVALID_PK_VALUE, {
       params: [value, pkColumn],
       ...args,
     });
   }
 
-  static invalidLimitValue(args?: NcErrorArgs) {
+  static invalidLimitValue(args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.INVALID_LIMIT_VALUE, {
       ...args,
     });
   }
 
-  static invalidFilter(filter: string, args?: NcErrorArgs) {
+  static invalidFilter(filter: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.INVALID_FILTER, {
       params: filter,
       ...args,
     });
   }
 
-  static invalidSharedViewPassword(args?: NcErrorArgs) {
+  static invalidFilterV3(message: string, args?: NcErrorArgs): never {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_FILTERV3, {
+      params: message,
+      ...args,
+    });
+  }
+
+  static invalidValueForField(
+    payload: string | { value: string; column: string; type: UITypes },
+    args?: NcErrorArgs,
+  ): never {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_VALUE_FOR_FIELD, {
+      params:
+        typeof payload === 'string'
+          ? payload
+          : `Invalid value '${payload.value}' for type '${payload.type}' on column '${payload.column}'`,
+      ...args,
+    });
+  }
+
+  static invalidSharedViewPassword(args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.INVALID_SHARED_VIEW_PASSWORD, {
       ...args,
     });
   }
 
-  static invalidAttachmentJson(payload: string, args?: NcErrorArgs) {
+  static invalidAttachmentJson(payload: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.INVALID_ATTACHMENT_JSON, {
       params: payload,
       ...args,
     });
   }
 
-  static notImplemented(feature: string = 'Feature', args?: NcErrorArgs) {
+  static notImplemented(
+    feature: string = 'Feature',
+    args?: NcErrorArgs,
+  ): never {
     throw new NcBaseErrorv2(NcErrorType.NOT_IMPLEMENTED, {
       params: feature,
       ...args,
     });
   }
 
-  static internalServerError(message: string, args?: NcErrorArgs) {
+  static internalServerError(message: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.INTERNAL_SERVER_ERROR, {
       params: message,
       ...args,
     });
   }
 
-  static formulaError(message: string, args?: NcErrorArgs) {
+  static formulaError(message: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.FORMULA_ERROR, {
       params: message,
       ...args,
     });
   }
 
-  static notFound(message = 'Not found') {
+  static formulaCircularRefError(message: string, args?: NcErrorArgs): never {
+    throw new NcBaseErrorv2(NcErrorType.FORMULA_CIRCULAR_REF_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
+  static notFound(message = 'Not found'): never {
     throw new NotFound(message);
   }
 
-  static badRequest(message) {
+  static badRequest(message): never {
     throw new BadRequest(message);
   }
 
-  static unauthorized(message) {
-    throw new Unauthorized(message);
+  static unauthorized(message: string, args?: NcErrorArgs): never {
+    throw new NcBaseErrorv2(NcErrorType.AUTHENTICATION_REQUIRED, {
+      params: message,
+      ...args,
+    });
   }
 
-  static forbidden(message) {
-    throw new Forbidden(message);
+  static forbidden(message: string, args?: NcErrorArgs): never {
+    throw new NcBaseErrorv2(NcErrorType.FORBIDDEN, {
+      params: message,
+      ...args,
+    });
   }
 
-  static ajvValidationError(param: { message: string; errors: ErrorObject[] }) {
+  static ajvValidationError(param: {
+    message: string;
+    errors: ErrorObject[];
+    humanReadableError: boolean;
+  }): never {
     throw new AjvError(param);
   }
 
-  static unprocessableEntity(message = 'Unprocessable entity') {
+  static unprocessableEntity(message = 'Unprocessable entity'): never {
     throw new UnprocessableEntity(message);
   }
 
-  static testConnectionError(message = 'Unprocessable entity', code?: string) {
+  static testConnectionError(
+    message = 'Unprocessable entity',
+    code?: string,
+  ): never {
     throw new TestConnectionError(message, code);
   }
 
-  static notAllowed(message = 'Not allowed') {
+  static notAllowed(message = 'Not allowed'): never {
     throw new NotAllowed(message);
   }
 
-  static emailDomainNotAllowed(domain: string) {
+  static emailDomainNotAllowed(domain: string): never {
     throw new SsoError(
       `Email domain ${domain} is not allowed for this organization`,
     );
   }
 
-  static metaError(param: { message: string; sql: string }) {
+  static metaError(param: { message: string; sql: string }): never {
     throw new MetaError(param);
   }
 
-  static sourceDataReadOnly(name: string) {
+  static sourceDataReadOnly(name: string): never {
     NcError.forbidden(`Source '${name}' is read-only`);
   }
 
-  static sourceMetaReadOnly(name: string) {
+  static sourceMetaReadOnly(name: string): never {
     NcError.forbidden(`Source '${name}' schema is read-only`);
   }
 
-  static integrationNotFound(id: string, args?: NcErrorArgs) {
+  static integrationNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.INTEGRATION_NOT_FOUND, {
       params: id,
       ...(args || {}),
     });
   }
 
+  static cannotCalculateIntermediateOrderError(): never {
+    throw new NcBaseErrorv2(
+      NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER,
+      {},
+    );
+  }
+
+  static reorderFailed(): never {
+    throw new NcBaseErrorv2(NcErrorType.REORDER_FAILED, {});
+  }
+
   static integrationLinkedWithMultiple(
     bases: BaseType[],
     sources: SourceType[],
     args?: NcErrorArgs,
-  ) {
+  ): never {
     throw new NcBaseErrorv2(NcErrorType.INTEGRATION_LINKED_WITH_BASES, {
       params: bases.map((s) => s.title).join(', '),
       details: {
@@ -1017,6 +1263,51 @@ export class NcError {
         }),
       },
       ...(args || {}),
+    });
+  }
+
+  static invalidAttachmentUploadScope(args?: NcErrorArgs): never {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_ATTACHMENT_UPLOAD_SCOPE, args);
+  }
+
+  static optionsNotExists(props: {
+    columnTitle: string;
+    options: string[];
+    validOptions: string[];
+  }): never {
+    throw new OptionsNotExistsError(props);
+  }
+
+  static planLimitExceeded(
+    message: string,
+    details: Omit<PlanLimitExceededDetailsType, 'higherPlan'>,
+    args?: NcErrorArgs,
+  ): never {
+    throw new NcBaseErrorv2(NcErrorType.PLAN_LIMIT_EXCEEDED, {
+      params: message,
+      ...args,
+      details: {
+        ...details,
+        ...(details?.plan ? { higherPlan: HigherPlan[details.plan] } : {}),
+      },
+    });
+  }
+
+  static allowedOnlySSOAccess(ncWorkspaceId: string): never {
+    throw new NcBaseErrorv2(NcErrorType.SSO_LOGIN_REQUIRED, {
+      params: ncWorkspaceId,
+    });
+  }
+  static maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
+    throw new NcBaseErrorv2(NcErrorType.MAX_INSERT_LIMIT_EXCEEDED, {
+      params: limit.toString(),
+      ...args,
+    });
+  }
+
+  static maxWorkspaceLimitReached(args?: NcErrorArgs): never {
+    throw new NcBaseErrorv2(NcErrorType.MAX_WORKSPACE_LIMIT_REACHED, {
+      ...args,
     });
   }
 }

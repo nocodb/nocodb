@@ -24,12 +24,12 @@ const { loadCalendarMeta, loadCalendarData, loadSidebarData, fetchActiveDates, u
 
 const calendarRangeDropdown = ref(false)
 
-const hideWeekends = computed({
-  get: () => viewMetaProperties.value?.hide_weekend ?? false,
+const showWeekends = computed({
+  get: () => !viewMetaProperties.value?.hide_weekend,
   set: (newValue) => {
     updateCalendarMeta({
       meta: {
-        hide_weekend: newValue,
+        hide_weekend: !newValue,
       },
     })
   },
@@ -124,7 +124,7 @@ const saveCalendarRanges = async () => {
 
       await loadCalendarMeta()
       await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
-      calendarRangeDropdown.value = false
+      // calendarRangeDropdown.value = false
     } catch (e) {
       console.log(e)
       message.error('There was an error while updating view!')
@@ -134,20 +134,50 @@ const saveCalendarRanges = async () => {
   }
 }
 
+const filterEndDateOptions = (options, startColumnId) => {
+  if (!options || !startColumnId) return []
+
+  const startColumn = meta.value?.columns?.find((c) => c.id === startColumnId)
+  const startTimezone = startColumn?.meta?.timezone
+
+  return options.filter((option) => {
+    const firstRange = dateFieldOptions.value.find((f) => f.value === startColumnId)
+    const uidtMatches = firstRange?.uidt === option.uidt
+
+    const optionColumn = meta.value?.columns?.find((c) => c.id === option.value)
+    const timezoneMatches = optionColumn?.meta?.timezone === startTimezone
+    return uidtMatches && option.value !== startColumnId && timezoneMatches
+  })
+}
+
 /*
 const removeRange = async (id: number) => {
   _calendar_ranges.value = _calendar_ranges.value.filter((_, i) => i !== id)
   await saveCalendarRanges()
 }
+*/
 
-const saveCalendarRange = async (range: CalendarRangeType, value?) => {
-  range.fk_to_column_id = value
-  await saveCalendarRanges()
-} */
+const onValueChange = async () => {
+  _calendar_ranges.value = _calendar_ranges.value.map((range, i) => {
+    if (i === 0) {
+      return {
+        fk_from_column_id: range.fk_from_column_id,
+        fk_to_column_id: undefined,
+      }
+    }
+    return range
+  })
+}
 </script>
 
 <template>
-  <NcDropdown v-if="!IsPublic" v-model:visible="calendarRangeDropdown" :trigger="['click']" class="!xs:hidden">
+  <NcDropdown
+    v-if="!IsPublic"
+    v-model:visible="calendarRangeDropdown"
+    :trigger="['click']"
+    class="!xs:hidden"
+    overlay-class-name="overflow-hidden"
+  >
     <NcTooltip :disabled="!isToolbarIconMode" class="nc-calendar-btn">
       <template #title>
         {{ $t('activity.settings') }}
@@ -155,15 +185,15 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
 
       <NcButton
         v-e="['c:calendar:change-calendar-range']"
-        :disabled="isLocked"
-        class="nc-toolbar-btn !border-0 group !h-6"
+        class="nc-toolbar-btn !border-0 group !h-7"
         size="small"
         type="secondary"
         data-testid="nc-calendar-range-btn"
+        :show-as-disabled="isLocked"
       >
         <div class="flex items-center gap-2">
-          <component :is="iconMap.calendar" class="h-4 w-4 transition-all group-hover:text-brand-500" />
-          <span v-if="!isToolbarIconMode" class="text-capitalize !group-hover:text-brand-500 !text-[13px] font-medium">
+          <component :is="iconMap.calendar" class="h-4 w-4" />
+          <span v-if="!isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
             {{ $t('activity.settings') }}
           </span>
         </div>
@@ -171,22 +201,33 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
     </NcTooltip>
 
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="w-98 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
+      <div v-if="calendarRangeDropdown" class="w-108 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
         <div
           v-for="(range, id) in _calendar_ranges"
           :key="id"
-          class="flex w-full gap-2 mb-2 items-center"
+          class="flex flex-col w-full gap-2 mb-2"
           data-testid="nc-calendar-range-option"
         >
-          <span>
+          <span class="text-gray-800">
             {{ $t('labels.organiseBy') }}
           </span>
-          <NcSelect
+
+          <a-select
             v-model:value="range.fk_from_column_id"
+            class="nc-select-shadow w-full !rounded-lg"
+            dropdown-class-name="!rounded-lg"
             :placeholder="$t('placeholder.notSelected')"
             data-testid="nc-calendar-range-from-field-select"
-            @change="saveCalendarRanges"
+            :disabled="isLocked"
+            @change="
+              () => {
+                onValueChange()
+                saveCalendarRanges()
+              }
+            "
+            @click.stop
           >
+            <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
             <a-select-option
               v-for="(option, opId) in [...(dateFieldOptions ?? [])].filter((r) => {
                 if (id === 0) return true
@@ -194,77 +235,91 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
                 return firstRange?.uidt === r.uidt
               })"
               :key="opId"
-              class="w-40"
               :value="option.value"
             >
-              <div class="flex w-full gap-2 justify-between items-center">
-                <div class="flex items-center">
+              <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
                   <SmartsheetHeaderIcon :column="option" />
-                  <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
-                    <template #title>{{ option.label }}</template>
-                    {{ option.label }}
+
+                  <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                    <template #title>
+                      {{ option.label }}
+                    </template>
+                    <template #default>{{ option.label }}</template>
                   </NcTooltip>
                 </div>
-
-                <component
-                  :is="iconMap.check"
+                <GeneralIcon
                   v-if="option.value === range.fk_from_column_id"
                   id="nc-selected-item-icon"
-                  class="text-primary min-w-4 h-4"
+                  icon="check"
+                  class="flex-none text-primary w-4 h-4"
                 />
               </div>
             </a-select-option>
-          </NcSelect>
+          </a-select>
+          <div v-if="isEeUI" class="w-full space-y-2">
+            <NcButton
+              v-if="range.fk_to_column_id === null"
+              size="small"
+              data-testid="nc-calendar-range-add-end-date"
+              class="w-23"
+              type="text"
+              :shadow="false"
+              :disabled="isLocked"
+              @click="range.fk_to_column_id = undefined"
+            >
+              <div class="flex gap-1 items-center">
+                <component :is="iconMap.plus" class="h-4 w-4" />
+                {{ $t('activity.endDate') }}
+              </div>
+            </NcButton>
 
-          <!--          <div
-            v-if="range.fk_to_column_id === null && isEeUI"
-            class="flex cursor-pointer flex text-gray-800 items-center gap-1"
-            data-testid="nc-calendar-range-add-end-date"
-            @click="saveCalendarRange(range, undefined)"
-          >
-            <component :is="iconMap.plus" class="h-4 w-4" />
-            {{ $t('activity.addEndDate') }}
-          </div>
-          <template v-else-if="isEeUI">
-            <span>
-              {{ $t('activity.withEndDate') }}
-            </span>
-            <div class="flex">
-              <NcSelect
-                v-model:value="range.fk_to_column_id"
-                :disabled="!range.fk_from_column_id"
-                :placeholder="$t('placeholder.notSelected')"
-                class="!rounded-r-none nc-to-select"
-                data-testid="nc-calendar-range-to-field-select"
-                @change="saveCalendarRanges"
-              >
-                <a-select-option
-                  v-for="(option, opId) in [...dateFieldOptions].filter((f) => {
-                    const firstRange = dateFieldOptions.find((f) => f.value === calendarRange[0].fk_from_column_id)
-                    return firstRange?.uidt === f.uidt
-                  })"
-                  :key="opId"
-                  :value="option.value"
+            <template v-else-if="isEeUI">
+              <span>
+                {{ $t('activity.withEndDate') }}
+              </span>
+              <div class="flex">
+                <a-select
+                  v-model:value="range.fk_to_column_id"
+                  class="!rounded-r-none nc-select-shadow w-full flex-1"
+                  allow-clear
+                  :disabled="!range.fk_from_column_id || isLocked"
+                  :placeholder="$t('placeholder.notSelected')"
+                  data-testid="nc-calendar-range-to-field-select"
+                  dropdown-class-name="!rounded-lg"
+                  @change="saveCalendarRanges"
+                  @click.stop
                 >
-                  <div class="flex items-center">
-                    <SmartsheetHeaderIcon :column="option" />
-                    <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
-                      <template #title>{{ option.label }}</template>
-                      {{ option.label }}
-                    </NcTooltip>
-                  </div>
-                </a-select-option>
-              </NcSelect>
-              <NcButton class="!rounded-l-none !border-l-0" size="small" type="secondary" @click="saveCalendarRange(range, null)">
-                <component :is="iconMap.delete" class="h-4 w-4" />
-              </NcButton>
-            </div>
-          </template>
+                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
 
-          <NcButton v-if="id !== 0" size="small" type="secondary" @click="removeRange(id)">
-            <component :is="iconMap.close" />
-          </NcButton>
-            -->
+                  <a-select-option
+                    v-for="(option, opId) in filterEndDateOptions(dateFieldOptions, range.fk_from_column_id)"
+                    :key="opId"
+                    :value="option.value"
+                  >
+                    <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                      <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                        <SmartsheetHeaderIcon :column="option" />
+
+                        <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                          <template #title>
+                            {{ option.label }}
+                          </template>
+                          <template #default>{{ option.label }}</template>
+                        </NcTooltip>
+                      </div>
+                      <GeneralIcon
+                        v-if="option.value === range.fk_from_column_id"
+                        id="nc-selected-item-icon"
+                        icon="check"
+                        class="flex-none text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                </a-select>
+              </div>
+            </template>
+          </div>
         </div>
 
         <div v-if="!isSetup" class="flex items-center gap-2 !mt-2">
@@ -273,9 +328,9 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
         </div>
 
         <div>
-          <NcSwitch v-model:checked="hideWeekends">
-            <span class="text-gray-800">
-              {{ $t('activity.hideWeekends') }}
+          <NcSwitch v-model:checked="showWeekends" :disabled="isLocked">
+            <span class="text-gray-800 font-semibold">
+              {{ $t('activity.showSaturdaysAndSundays') }}
             </span>
           </NcSwitch>
         </div>
@@ -283,12 +338,13 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
         <!--
         <div class="text-[13px] text-gray-500 py-2">Records in this view will be based on the specified date field.</div>
 -->
+        <GeneralLockedViewFooter v-if="isLocked" class="!-mb-4 -mx-4" @on-open="calendarRangeDropdown = false" />
       </div>
     </template>
   </NcDropdown>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .nc-to-select .ant-select-selector {
   @apply !rounded-r-none;
 }

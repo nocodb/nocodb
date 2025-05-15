@@ -4,6 +4,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: S3Plugin,
+  id: 'aws-s3',
   title: 'S3',
   version: '0.0.6',
   logo: 'plugins/s3.png',

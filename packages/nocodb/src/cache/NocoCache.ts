@@ -1,7 +1,8 @@
 import RedisCacheMgr from './RedisCacheMgr';
 import RedisMockCacheMgr from './RedisMockCacheMgr';
 import type CacheMgr from './CacheMgr';
-import { CacheGetType } from '~/utils/globals';
+import { CACHE_PREFIX, CacheGetType } from '~/utils/globals';
+import { getRedisURL } from '~/helpers/redisHelpers';
 
 export default class NocoCache {
   private static client: CacheMgr;
@@ -13,15 +14,24 @@ export default class NocoCache {
     if (this.cacheDisabled) {
       return;
     }
-    if (process.env.NC_REDIS_URL) {
-      this.client = new RedisCacheMgr(process.env.NC_REDIS_URL);
+    if (getRedisURL()) {
+      this.client = new RedisCacheMgr(getRedisURL());
     } else {
       this.client = new RedisMockCacheMgr();
     }
 
     // TODO(cache): fetch orgs once it's implemented
     const orgs = 'noco';
-    this.prefix = `nc:${orgs}`;
+    this.prefix = `${CACHE_PREFIX}:${orgs}`;
+  }
+
+  public static disableCache() {
+    this.cacheDisabled = true;
+  }
+
+  public static enableCache() {
+    // return to default value
+    this.cacheDisabled = (process.env.NC_DISABLE_CACHE || false) === 'true';
   }
 
   public static async set(key, value): Promise<boolean> {
@@ -117,6 +127,71 @@ export default class NocoCache {
   ): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
     return this.client.update(`${this.prefix}:${key}`, updateObj);
+  }
+
+  public static async setHash(
+    key: string,
+    hash: Record<string, any>,
+    options: {
+      ttl?: number;
+    } = {},
+  ): Promise<boolean> {
+    if (this.cacheDisabled) return Promise.resolve(true);
+    if (Object.keys(hash).length === 0) {
+      return;
+    }
+    return !!this.client.setHash(`${this.prefix}:${key}`, hash, options);
+  }
+
+  public static async getHash(
+    key: string,
+  ): Promise<Record<string, string | number>> {
+    if (this.cacheDisabled) return Promise.resolve({});
+    return this.client.getHash(`${this.prefix}:${key}`);
+  }
+
+  public static async getHashField(
+    key: string,
+    field: string,
+  ): Promise<string> {
+    if (this.cacheDisabled) return Promise.resolve(null);
+    return this.client.getHashField(`${this.prefix}:${key}`, field);
+  }
+
+  public static async setHashField(
+    key: string,
+    field: string,
+    value: string | number,
+  ): Promise<boolean> {
+    if (this.cacheDisabled) return Promise.resolve(true);
+    return !!this.client.setHashField(`${this.prefix}:${key}`, field, value);
+  }
+
+  public static async incrHashField(
+    key: string,
+    field: string,
+    value: number,
+  ): Promise<number> {
+    if (this.cacheDisabled) return Promise.resolve(0);
+    return this.client.incrHashField(`${this.prefix}:${key}`, field, value);
+  }
+
+  public static async keyExists(key: string): Promise<boolean> {
+    if (this.cacheDisabled) return Promise.resolve(false);
+    return this.client.keyExists(`${this.prefix}:${key}`);
+  }
+
+  public static async processPattern(
+    pattern: string,
+    callback: (key: string) => Promise<void>,
+    options: { count?: number; type?: string } = {},
+  ): Promise<void> {
+    if (this.cacheDisabled) return Promise.resolve();
+    return this.client.processPattern(
+      `${this.prefix}:${pattern}`,
+      callback,
+      options,
+    );
   }
 
   public static async destroy(): Promise<boolean> {

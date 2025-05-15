@@ -9,6 +9,8 @@ const $route = useRoute()
 
 const { appInfo, signedIn, signOut } = useGlobal()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const selectedKeys = computed(() => [
   /^\/account\/users\/?$/.test($route.fullPath)
     ? isUIAllowed('superAdminUserManagement')
@@ -25,7 +27,7 @@ const logout = async () => {
   })
 }
 
-const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && !isEeUI)
+const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || appInfo.value.isOnPrem))
 
 const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
 
@@ -71,8 +73,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
               </div>
               <NcDivider class="!mt-0" />
 
-              <div class="text-sm text-gray-500 font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
-
+              <div class="text-sm text-nc-content-gray-muted font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
               <NcMenuItem
                 v-if="isSetupPageAllowed"
                 key="profile"
@@ -83,7 +84,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 @click="navigateTo('/account/setup')"
               >
                 <div class="flex items-center space-x-2 w-full">
-                  <GeneralIcon icon="ncSliders" class="!h-3.5 !w-3.5" />
+                  <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
 
                   <div class="select-none">
                     {{ $t('labels.setup') }}
@@ -109,7 +110,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 @click="navigateTo('/account/profile')"
               >
                 <div class="flex items-center space-x-2">
-                  <GeneralIcon icon="user" class="!h-3.5 !w-3.5" />
+                  <GeneralIcon icon="ncUser" class="!h-4 !w-4" />
 
                   <div class="select-none">{{ $t('labels.profile') }}</div>
                 </div>
@@ -126,20 +127,6 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                   <MdiShieldKeyOutline />
 
                   <div class="select-none">{{ $t('title.tokens') }}</div>
-                </div>
-              </NcMenuItem>
-              <NcMenuItem
-                key="audit"
-                class="item"
-                :class="{
-                  active: $route.params.page === 'audit',
-                }"
-                @click="navigateTo('/account/audit')"
-              >
-                <div class="flex items-center space-x-2">
-                  <component :is="iconMap.audit" class="opacity-80" />
-
-                  <div class="select-none">{{ $t('title.auditLogs') }}</div>
                 </div>
               </NcMenuItem>
               <NcMenuItem
@@ -169,9 +156,19 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
               </NcMenuItem>
               <a-sub-menu key="users" class="!bg-white !my-0">
                 <template #icon>
-                  <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
+                  <GeneralIcon icon="ncUsers" class="!h- !w-4" />
                 </template>
                 <template #title>{{ $t('objects.users') }}</template>
+
+                <template #expandIcon="{ isOpen }">
+                  <NcButton type="text" size="xxsmall" class="">
+                    <GeneralIcon
+                      icon="chevronRight"
+                      class="flex-none cursor-pointer transform transition-transform duration-200 text-[20px]"
+                      :class="{ '!rotate-90': isOpen }"
+                    />
+                  </NcButton>
+                </template>
 
                 <NcMenuItem
                   v-if="isUIAllowed('superAdminUserManagement') && !isEeUI"
@@ -219,10 +216,15 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 
               <LazyGeneralReleaseInfo />
 
-              <a-tooltip v-if="!appInfo.ee" placement="bottom" :mouse-enter-delay="1">
+              <a-tooltip
+                v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || appInfo.isOnPrem"
+                placement="bottom"
+                :mouse-enter-delay="1"
+                class="mr-4"
+              >
                 <template #title>{{ $t('title.switchLanguage') }}</template>
 
-                <div class="flex pr-4 items-center">
+                <div class="flex items-center">
                   <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-gray-800" />
                 </div>
               </a-tooltip>
@@ -239,17 +241,14 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                   </NcButton>
 
                   <template #overlay>
-                    <div class="!py-1 !rounded-md bg-white overflow-hidden">
-                      <div class="!rounded-b group" data-testid="nc-menu-accounts__sign-out">
-                        <div v-e="['a:navbar:user:sign-out']" class="nc-account-dropdown-item group" @click="logout">
-                          <component :is="iconMap.signout" class="group-hover:text-accent" />&nbsp;
-
-                          <span class="prose group-hover:text-primary">
-                            {{ $t('general.signOut') }}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                    <NcMenu variant="medium">
+                      <NcMenuItem data-testid="nc-menu-accounts__sign-out" class="group" @click="logout">
+                        <component :is="iconMap.signout" class="group-hover:text-accent" />
+                        <span class="group-hover:text-primary">
+                          {{ $t('general.signOut') }}
+                        </span>
+                      </NcMenuItem>
+                    </NcMenu>
                   </template>
                 </NcDropdown>
               </template>
@@ -290,18 +289,22 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 }
 .tabs-menu {
   :deep(.item) {
-    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-nc-content-gray-subtle !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) font-medium;
     width: calc(100% - 1rem);
   }
 
   :deep(.active) {
-    @apply !bg-brand-50 !text-brand-500;
+    @apply !bg-nc-bg-brand !text-nc-content-brand-disabled !hover:(bg-nc-bg-brand text-nc-content-brand-disabled ) font-semibold;
   }
 }
 
 :deep(.ant-menu-submenu-title) {
-  @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+  @apply select-none mx-2 !pl-3 !pr-1 !text-sm !rounded-md !mb-1 !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle);
   width: calc(100% - 1rem);
+
+  & + ul {
+    @apply !-mt-1;
+  }
 }
 
 :deep(.ant-menu) {

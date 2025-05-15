@@ -1,5 +1,7 @@
 import debug from 'debug';
+import { v4 as uuidv4 } from 'uuid';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { RecoverDisconnectedTableNames } from './nc_job_008_recover_disconnected_table_name';
 import type { Job } from 'bull';
 import { JobTypes, MigrationJobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -7,10 +9,15 @@ import { AttachmentMigration } from '~/modules/jobs/migration-jobs/nc_job_001_at
 import { ThumbnailMigration } from '~/modules/jobs/migration-jobs/nc_job_002_thumbnail';
 import {
   getMigrationJobsState,
-  instanceUuid,
   setMigrationJobsStallInterval,
   updateMigrationJobsState,
 } from '~/helpers/migrationJobs';
+import { RecoverLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_003_recover_links';
+import { CleanupDuplicateColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_004_cleanup_duplicate_column';
+import { OrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_005_order_column';
+import { RecoverOrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_007_recover_order_column';
+import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
+import { isEE } from '~/utils';
 
 @Injectable()
 export class InitMigrationJobs {
@@ -25,6 +32,36 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.Thumbnail,
       service: this.thumbnailMigration,
     },
+    {
+      version: '3',
+      job: MigrationJobTypes.RecoverLinks,
+      service: this.recoverLinksMigration,
+    },
+    {
+      version: '4',
+      job: MigrationJobTypes.CleanupDuplicateColumns,
+      service: this.cleanupDuplicateColumnMigration,
+    },
+    {
+      version: '5',
+      job: MigrationJobTypes.NoOpMigration,
+      service: isEE ? this.orderColumnMigration : this.noOpMigration,
+    },
+    {
+      version: '6',
+      job: MigrationJobTypes.OrderColumnCreation,
+      service: isEE ? this.noOpMigration : this.orderColumnMigration,
+    },
+    {
+      version: '7',
+      job: MigrationJobTypes.RecoverOrderColumnMigration,
+      service: isEE ? this.noOpMigration : this.recoverOrderColumnMigration,
+    },
+    {
+      version: '8',
+      job: MigrationJobTypes.RecoverDisconnectedTableNames,
+      service: this.recoverDisconnectedTableNames,
+    },
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');
@@ -34,6 +71,12 @@ export class InitMigrationJobs {
     private readonly jobsService: IJobsService,
     private readonly attachmentMigration: AttachmentMigration,
     private readonly thumbnailMigration: ThumbnailMigration,
+    private readonly recoverLinksMigration: RecoverLinksMigration,
+    private readonly cleanupDuplicateColumnMigration: CleanupDuplicateColumnMigration,
+    private readonly orderColumnMigration: OrderColumnMigration,
+    private readonly recoverOrderColumnMigration: RecoverOrderColumnMigration,
+    private readonly recoverDisconnectedTableNames: RecoverDisconnectedTableNames,
+    private readonly noOpMigration: NoOpMigration,
   ) {}
 
   log = (...msgs: string[]) => {
@@ -42,6 +85,9 @@ export class InitMigrationJobs {
 
   async job(job: Job) {
     this.debugLog(`job started for ${job.id}`);
+
+    // create a unique id for this run
+    const runUuid = uuidv4();
 
     const migrationJobsState = await getMigrationJobsState();
 
@@ -52,12 +98,14 @@ export class InitMigrationJobs {
         migrationJobsState.stall_check = Date.now();
 
         await updateMigrationJobsState(migrationJobsState);
+
+        return this.job(job);
       }
     }
 
     // check for lock
     if (migrationJobsState.locked) {
-      if (migrationJobsState.instance === instanceUuid) {
+      if (migrationJobsState.instance === runUuid) {
         // lock taken by this instance
         return;
       }
@@ -66,7 +114,7 @@ export class InitMigrationJobs {
       // stall check is updated every 5 mins
       setTimeout(() => {
         this.jobsService.add(JobTypes.InitMigrationJobs, {});
-      }, 10 * 60 * 1000);
+      }, 10 * 60 * 1000).unref();
       return;
     }
 
@@ -82,6 +130,7 @@ export class InitMigrationJobs {
     // lock the migration job
     migrationJobsState.locked = true;
     migrationJobsState.stall_check = Date.now();
+    migrationJobsState.instance = runUuid;
 
     // try to take lock
     await updateMigrationJobsState(migrationJobsState, migrationJobsState);
@@ -92,37 +141,41 @@ export class InitMigrationJobs {
     const confirmState = await getMigrationJobsState();
 
     // check if lock is taken by this instance
-    if (confirmState.locked && confirmState.instance === instanceUuid) {
+    if (confirmState.locked && confirmState.instance === runUuid) {
       // run first migration in the list
       const migration = migrations[0];
       try {
         // set stall interval
         const stallInterval = setMigrationJobsStallInterval();
 
-        // run migration (pass service as this context)
-        const migrated = await migration.service.job();
+        let migrated = false;
 
-        // prepare state
-        if (migrated) {
-          migrationJobsState.version = migration.version;
+        try {
+          // run migration (pass service as this context)
+          migrated = await migration.service.job();
+          // prepare state
+          if (migrated) {
+            migrationJobsState.version = migration.version;
+            migrationJobsState.locked = false;
+            migrationJobsState.stall_check = Date.now();
+          } else {
+            migrationJobsState.locked = false;
+            migrationJobsState.stall_check = Date.now();
+          }
+        } catch (e) {
+          this.log('Error running migration: ', e);
           migrationJobsState.locked = false;
           migrationJobsState.stall_check = Date.now();
-        } else {
-          migrationJobsState.locked = false;
-          migrationJobsState.stall_check = Date.now();
-        }
+        } finally {
+          clearInterval(stallInterval);
 
-        // update state
-        await updateMigrationJobsState(migrationJobsState);
+          // update state
+          await updateMigrationJobsState(migrationJobsState);
 
-        // clear stall interval
-        clearInterval(stallInterval);
-
-        // run the job again if successful
-        if (migrated) {
-          await this.jobsService.add(JobTypes.InitMigrationJobs, {});
-        } else {
-          this.log('A migration job failed!');
+          if (migrated) {
+            // run next job
+            this.jobsService.add(JobTypes.InitMigrationJobs, {});
+          }
         }
       } catch (e) {
         this.log('Error running migration: ', e);

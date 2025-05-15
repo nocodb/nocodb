@@ -9,25 +9,15 @@ const props = defineProps<{
 
 const emit = defineEmits(['expandRecord', 'newRecord'])
 
-interface Attachment {
-  url: string
-}
-
 const INFINITY_SCROLL_THRESHOLD = 100
 
 const { isUIAllowed } = useRoles()
-
-const { $e } = useNuxtApp()
 
 const { appInfo, isMobileMode } = useGlobal()
 
 const { height } = useWindowSize()
 
 const meta = inject(MetaInj, ref())
-
-const { fields } = useViewColumnsOrThrow()
-
-const { getPossibleAttachmentSrc } = useAttachment()
 
 const { t } = useI18n()
 
@@ -48,28 +38,12 @@ const {
   loadMoreSidebarData,
   searchQuery,
   sideBarFilterOption,
-  showSideMenu,
   updateFormat,
+  timezone,
+  timezoneDayjs,
 } = useCalendarViewStoreOrThrow()
 
 const sideBarListRef = ref<VNodeRef | null>(null)
-
-const coverImageColumns: any = computed(() => {
-  if (!fields.value || !meta.value?.columns) return
-  return meta.value.columns.find((c) => c.uidt === UITypes.Attachment && fields.value?.find((f) => f.fk_column_id === c.id).show)
-})
-
-const attachments = (record: any): Attachment[] => {
-  const col = coverImageColumns.value
-  try {
-    if (col?.title && record.row[col.title]) {
-      return typeof record.row[col.title] === 'string' ? JSON.parse(record.row[col.title]) : record.row[col.title]
-    }
-    return []
-  } catch (e) {
-    return []
-  }
-}
 
 const pushToArray = (arr: Array<Row>, record: Row, range) => {
   arr.push({
@@ -112,10 +86,10 @@ const renderData = computed<Array<Row>>(() => {
     const toCol = range.fk_to_col
     formattedSideBarData.value.forEach((record) => {
       if (fromCol && toCol) {
-        const from = dayjs(record.row[fromCol.title!])
-        const to = dayjs(record.row[toCol.title!])
+        const from = timezoneDayjs.timezonize(record.row[fromCol.title!])
+        const to = timezoneDayjs.timezonize(record.row[toCol.title!])
         if (sideBarFilterOption.value === 'withoutDates') {
-          if (!from.isValid() || !to.isValid()) {
+          if (!dayjs(record.row[fromCol.title!]).isValid() || !dayjs(record.row[toCol.title!]).isValid()) {
             pushToArray(rangedData, record, range)
           }
         } else if (sideBarFilterOption.value === 'allRecords') {
@@ -133,28 +107,28 @@ const renderData = computed<Array<Row>>(() => {
 
           switch (sideBarFilterOption.value) {
             case 'month':
-              fromDate = dayjs(selectedMonth.value).startOf('month')
-              toDate = dayjs(selectedMonth.value).endOf('month')
+              fromDate = timezoneDayjs.dayjsTz(selectedMonth.value).startOf('month')
+              toDate = timezoneDayjs.dayjsTz(selectedMonth.value).endOf('month')
               break
             case 'year':
-              fromDate = dayjs(selectedDate.value).startOf('year')
-              toDate = dayjs(selectedDate.value).endOf('year')
+              fromDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('year')
+              toDate = timezoneDayjs.dayjsTz(selectedDate.value).endOf('year')
               break
             case 'selectedDate':
-              fromDate = dayjs(selectedDate.value).startOf('day')
-              toDate = dayjs(selectedDate.value).endOf('day')
+              fromDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day')
+              toDate = timezoneDayjs.dayjsTz(selectedDate.value).endOf('day')
               break
             case 'week':
-              fromDate = dayjs(selectedDateRange.value.start).startOf('week')
-              toDate = dayjs(selectedDateRange.value.end).endOf('week')
+              fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week')
+              toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('week')
               break
             case 'day':
-              fromDate = dayjs(selectedDate.value).startOf('day')
-              toDate = dayjs(selectedDate.value).endOf('day')
+              fromDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day')
+              toDate = timezoneDayjs.dayjsTz(selectedDate.value).endOf('day')
               break
             case 'selectedHours':
-              fromDate = dayjs(selectedTime.value).startOf('hour')
-              toDate = dayjs(selectedTime.value).endOf('hour')
+              fromDate = timezoneDayjs.dayjsTz(selectedTime.value).startOf('hour')
+              toDate = timezoneDayjs.dayjsTz(selectedTime.value).endOf('hour')
               break
           }
 
@@ -170,9 +144,9 @@ const renderData = computed<Array<Row>>(() => {
           }
         }
       } else if (fromCol) {
-        const from = dayjs(record.row[fromCol.title!])
+        const from = timezoneDayjs.timezonize(record.row[fromCol.title!])
         if (sideBarFilterOption.value === 'withoutDates') {
-          if (!from.isValid()) {
+          if (!dayjs(record.row[fromCol.title!]).isValid()) {
             pushToArray(rangedData, record, range)
           }
         } else if (sideBarFilterOption.value === 'allRecords') {
@@ -195,16 +169,16 @@ const renderData = computed<Array<Row>>(() => {
 
           switch (sideBarFilterOption.value) {
             case 'week':
-              fromDate = dayjs(selectedDateRange.value.start).startOf('week')
-              toDate = dayjs(selectedDateRange.value.end).endOf('week')
+              fromDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week')
+              toDate = timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('week')
               break
             case 'month':
-              fromDate = dayjs(selectedMonth.value).startOf('month')
-              toDate = dayjs(selectedMonth.value).endOf('month')
+              fromDate = timezoneDayjs.dayjsTz(selectedMonth.value).startOf('month')
+              toDate = timezoneDayjs.dayjsTz(selectedMonth.value).endOf('month')
               break
             case 'year':
-              fromDate = dayjs(selectedDate.value).startOf('year')
-              toDate = dayjs(selectedDate.value).endOf('year')
+              fromDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('year')
+              toDate = timezoneDayjs.dayjsTz(selectedDate.value).endOf('year')
               break
           }
 
@@ -224,48 +198,48 @@ const options = computed(() => {
     case 'day' as const:
       if (calDataType.value === UITypes.Date) {
         return [
+          { label: 'All records', value: 'allRecords' },
           { label: 'In this day', value: 'day' },
           { label: 'Without dates', value: 'withoutDates' },
-          { label: 'All records', value: 'allRecords' },
         ]
       } else {
         return [
-          { label: 'In this day', value: 'day' },
-          { label: 'Without dates', value: 'withoutDates' },
           { label: 'All records', value: 'allRecords' },
+          { label: 'In this day', value: 'day' },
           { label: 'In selected hours', value: 'selectedHours' },
+          { label: 'Without dates', value: 'withoutDates' },
         ]
       }
     case 'week' as const:
       if (calDataType.value === UITypes.Date) {
         return [
+          { label: 'All records', value: 'allRecords' },
+          { label: 'In selected week', value: 'week' },
           { label: 'In selected date', value: 'selectedDate' },
           { label: 'Without dates', value: 'withoutDates' },
-          { label: 'In selected week', value: 'week' },
-          { label: 'All records', value: 'allRecords' },
         ]
       } else {
         return [
-          { label: 'Without dates', value: 'withoutDates' },
           { label: 'All records', value: 'allRecords' },
-          { label: 'In selected hours', value: 'selectedHours' },
           { label: 'In selected week', value: 'week' },
           { label: 'In selected date', value: 'selectedDate' },
+          { label: 'In selected hours', value: 'selectedHours' },
+          { label: 'Without dates', value: 'withoutDates' },
         ]
       }
     case 'month' as const:
       return [
-        { label: 'In this month', value: 'month' },
-        { label: 'Without dates', value: 'withoutDates' },
         { label: 'All records', value: 'allRecords' },
+        { label: 'In this month', value: 'month' },
         { label: 'In selected date', value: 'selectedDate' },
+        { label: 'Without dates', value: 'withoutDates' },
       ]
     case 'year' as const:
       return [
-        { label: 'In this year', value: 'year' },
-        { label: 'Without dates', value: 'withoutDates' },
         { label: 'All records', value: 'allRecords' },
+        { label: 'In this year', value: 'year' },
         { label: 'In selected date', value: 'selectedDate' },
+        { label: 'Without dates', value: 'withoutDates' },
       ]
   }
 })
@@ -300,22 +274,24 @@ const newRecord = () => {
   emit('newRecord', { row, oldRow: {}, rowMeta: { new: true } })
 }
 
-const toggleSideMenu = () => {
-  $e('c:calendar:toggle-sidebar', showSideMenu.value)
-  showSideMenu.value = !showSideMenu.value
-}
-
 const showSearch = ref(false)
 const searchRef = ref()
 
 const clickSearch = () => {
-  showSearch.value = true
-  nextTick(() => {
-    searchRef.value?.focus()
-  })
+  if (showSearch.value) {
+    searchQuery.value = ''
+    showSearch.value = false
+  } else {
+    showSearch.value = true
+    nextTick(() => {
+      searchRef.value?.focus()
+    })
+  }
 }
 
-const toggleSearch = () => {
+const toggleSearch = (e) => {
+  if (hasAncestorWithClass(e.target, 'nc-calendar-sidebar-search-btn')) return
+
   if (!searchQuery.value.length) {
     showSearch.value = false
   } else {
@@ -336,31 +312,22 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 })
 
 onClickOutside(searchRef, toggleSearch)
+
+const isDropdownOpen = ref(false)
+
+const selectOption = (option) => {
+  isDropdownOpen.value = false
+  sideBarFilterOption.value = option.value
+}
 </script>
 
 <template>
-  <NcTooltip
-    :class="{
-      '!right-26 top-[-36px]': showSideMenu && isMobileMode,
-
-      'right-2': !showSideMenu,
-      'right-74': showSideMenu,
-    }"
-    class="absolute transition-all ease-in-out z-9 top-2"
-    hide-on-click
-  >
-    <template #title> {{ $t('activity.toggleSidebar') }}</template>
-    <NcButton data-testid="nc-calendar-side-bar-btn" size="small" type="secondary" @click="toggleSideMenu">
-      <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-600 transition-all" />
-    </NcButton>
-  </NcTooltip>
   <div
     :class="{
       '!min-w-[100svw]': props.visible && isMobileMode,
-      '!w-0 hidden': !props.visible,
-      'nc-calendar-side-menu-open block !min-w-[288px]': props.visible,
+      'nc-calendar-side-menu-open': props.visible,
     }"
-    class="h-full relative border-l-1 border-gray-200 transition-all"
+    class="h-full relative border-l-1 min-w-[288px] border-gray-200 transition transition-all"
     data-testid="nc-calendar-side-menu"
   >
     <div class="flex min-w-[288px] flex-col">
@@ -369,7 +336,9 @@ onClickOutside(searchRef, toggleSearch)
         v-model:active-dates="activeDates"
         v-model:page-date="pageDate"
         v-model:selected-date="selectedDate"
+        :timezone="timezone"
         size="medium"
+        header="v2"
         :hide-calendar="height < 700"
       />
       <NcDateWeekSelector
@@ -380,12 +349,16 @@ onClickOutside(searchRef, toggleSearch)
         :hide-calendar="height < 700"
         is-week-picker
         size="medium"
+        header="v2"
+        :timezone="timezone"
       />
       <NcMonthYearSelector
         v-else-if="activeCalendarView === ('month' as const)"
         v-model:page-date="pageDate"
         v-model:selected-date="selectedMonth"
         :hide-calendar="height < 700"
+        header="v2"
+        :timezone="timezone"
         size="medium"
       />
       <NcMonthYearSelector
@@ -393,6 +366,7 @@ onClickOutside(searchRef, toggleSearch)
         v-model:page-date="pageDate"
         v-model:selected-date="selectedDate"
         :hide-calendar="height < 700"
+        header="v2"
         is-year-picker
         size="medium"
       />
@@ -403,34 +377,57 @@ onClickOutside(searchRef, toggleSearch)
         '!border-t-0 ': height < 700,
         'pt-6': height >= 700,
       }"
-      class="border-t-1 !pt-3 border-gray-200 relative flex flex-col gap-y-3"
+      class="border-t-1 !pt-3 border-nc-border-gray-medium relative flex flex-col gap-y-3"
     >
-      <div class="flex px-4 items-center gap-3">
-        <span class="capitalize font-medium text-gray-700">{{ $t('objects.records') }}</span>
-        <NcSelect
-          v-model:value="sideBarFilterOption"
-          size="small"
-          class="w-full !h-7 !text-gray-600"
-          data-testid="nc-calendar-sidebar-filter"
-        >
-          <a-select-option v-for="option in options" :key="option.value" :value="option.value" class="!text-gray-600">
-            <div class="flex items-center h-7 w-full justify-between gap-2">
-              <div class="truncate">
-                <NcTooltip :title="option.label" placement="top" show-on-truncate-only>
+      <div class="flex px-4 h-8 items-center gap-3">
+        <NcDropdown v-model:visible="isDropdownOpen">
+          <div
+            class="font-medium text-nc-content-gray cursor-pointer gap-2 flex items-center font-bold leading-6"
+            data-testid="nc-calendar-sidebar-filter"
+          >
+            <div>
+              <span class="capitalize">
+                {{ sideBarFilterOption !== 'allRecords' ? $t('objects.records') : '' }}
+              </span>
+              {{ options?.find((o) => o.value === sideBarFilterOption)?.label || '' }}
+            </div>
+
+            <GeneralIcon :icon="isDropdownOpen ? 'ncChevronUp' : 'ncChevronDown'" />
+          </div>
+          <template #overlay>
+            <NcMenu class="w-56" variant="small">
+              <NcMenuItem v-for="option in options" :key="option.value" @click="selectOption(option)">
+                <NcTooltip class="capitalize" :title="option.label" placement="left" show-on-truncate-only>
                   <template #title>{{ option.label }}</template>
                   {{ option.label }}
                 </NcTooltip>
-              </div>
+                <div class="flex-1" />
 
-              <component
-                :is="iconMap.check"
-                v-if="sideBarFilterOption === option.value"
-                id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
-              />
-            </div>
-          </a-select-option>
-        </NcSelect>
+                <GeneralIcon
+                  v-if="sideBarFilterOption === option.value"
+                  id="nc-selected-item-icon"
+                  class="text-primary w-4 h-4"
+                  icon="check"
+                />
+              </NcMenuItem>
+            </NcMenu>
+          </template>
+        </NcDropdown>
+
+        <div class="flex-1" />
+        <NcButton
+          data-testid="nc-calendar-sidebar-search-btn"
+          size="small"
+          :class="{
+            '!bg-brand-50 nc-calendar-sidebar-search-active !text-nc-content-brand': showSearch,
+          }"
+          :shadow="false"
+          class="!h-7 !rounded-md nc-calendar-sidebar-search-btn !border-0"
+          type="secondary"
+          @click="clickSearch"
+        >
+          <GeneralIcon icon="ncSearch" />
+        </NcButton>
       </div>
       <div
         :class="{
@@ -456,17 +453,6 @@ onClickOutside(searchRef, toggleSearch)
         </a-input>
       </div>
       <div class="mx-4 gap-2 flex items-center">
-        <NcButton
-          v-if="!showSearch"
-          data-testid="nc-calendar-sidebar-search-btn"
-          size="small"
-          class="!h-7 !rounded-md"
-          type="secondary"
-          @click="clickSearch"
-        >
-          <component :is="iconMap.search" />
-        </NcButton>
-
         <LazySmartsheetToolbarSortListMenu />
 
         <div class="flex-1" />
@@ -528,76 +514,34 @@ onClickOutside(searchRef, toggleSearch)
                 :from-date="
                 record.rowMeta.range?.fk_from_col
                   ? calDataType === UITypes.Date
-                    ? dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM')
-                    : dayjs(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm a')
+                    ? timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM')
+                    : timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')
                   : null
               "
                 :invalid="
                 record.rowMeta.range!.fk_to_col &&
-                dayjs(record.row[record.rowMeta.range!.fk_from_col.title!]).isAfter(
-                  dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]),
+                timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_from_col.title!]).isAfter(
+                  timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]),
                 )
               "
                 :row="record"
                 :to-date="
-                record.rowMeta.range!.fk_to_col
+                record.rowMeta.range!.fk_to_col && dayjs(record.row[record.rowMeta.range!.fk_to_col.title!])?.isValid()
                   ? calDataType === UITypes.Date
-                    ? dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM')
-                    : dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A')
+                    ? timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM')
+                    : timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A')
                   : null
               "
-                color="blue"
                 data-testid="nc-sidebar-record-card"
                 @click="emit('expandRecord', record)"
                 @dragstart="dragStart($event, record)"
                 @dragover.prevent
               >
-                <template v-if="coverImageColumns" #image>
-                  <a-carousel
-                    v-if="attachments(record).length"
-                    class="gallery-carousel rounded-md !border-1 !border-gray-200 w-10 h-10"
-                    arrows
-                  >
-                    <template #customPaging>
-                      <a>
-                        <div class="pt-[12px]">
-                          <div></div>
-                        </div>
-                      </a>
-                    </template>
-
-                    <template #prevArrow>
-                      <div class="z-10 arrow">
-                        <MdiChevronLeft
-                          class="text-gray-700 w-6 h-6 absolute left-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
-                        />
-                      </div>
-                    </template>
-
-                    <template #nextArrow>
-                      <div class="z-10 arrow">
-                        <MdiChevronRight
-                          class="text-gray-700 w-6 h-6 absolute right-1.5 bottom-[-90px] !opacity-0 !group-hover:opacity-100 !bg-white border-1 border-gray-200 rounded-md transition"
-                        />
-                      </div>
-                    </template>
-
-                    <template v-for="(attachment, index) in attachments(record)">
-                      <LazyCellAttachmentPreviewImage
-                        v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
-                        :key="`carousel-${record.row.id}-${index}`"
-                        class="h-10 !w-10 !object-contain"
-                        :srcs="getPossibleAttachmentSrc(attachment, 'tiny')"
-                      />
-                    </template>
-                  </a-carousel>
-                  <div v-else class="h-10 w-10 !flex flex-row !border-1 rounded-md !border-gray-200 items-center justify-center">
-                    <img class="object-contain w-[40px] h-[40px]" src="~assets/icons/FileIconImageBox.png" />
-                  </div>
-                </template>
-
                 <template v-if="!isRowEmpty(record, displayField)">
                   <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
+                </template>
+                <template v-else>
+                  <span class="text-gray-500"> - </span>
                 </template>
               </LazySmartsheetCalendarSideRecordCard>
             </LazySmartsheetRow>
@@ -672,5 +616,8 @@ onClickOutside(searchRef, toggleSearch)
 
 :deep(.nc-date-week-header) {
   @apply !border-b-0;
+}
+:deep(.nc-menu-item-inner) {
+  @apply !w-full;
 }
 </style>

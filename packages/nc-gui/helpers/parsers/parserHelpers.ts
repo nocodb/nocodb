@@ -1,4 +1,4 @@
-import { type ColumnType, FieldNameFromUITypes, UITypes } from 'nocodb-sdk'
+import { ButtonActionsType, type ColumnType, FieldNameFromUITypes, UITypes, UITypesName } from 'nocodb-sdk'
 import isURL from 'validator/lib/isURL'
 import { pluralize } from 'inflection'
 
@@ -213,7 +213,7 @@ export const filterNullOrUndefinedObjectProperties = <T extends Record<string, a
  *                        existing names like 'Token-1', 'Token-2', etc., will be considered.
  * @returns The next default name with an incremented number based on existing namesData.
  */
-export const extractNextDefaultName = (namesData: string[], defaultName: string, splitOperator: string = '-'): string => {
+export const extractNextDefaultName = (namesData: string[], defaultName: string, splitOperator = '-'): string => {
   // Extract and sort numbers associated with the provided defaultName
   const extractedSortedNumbers =
     (namesData
@@ -473,6 +473,20 @@ export const generateUniqueColumnName = ({
 
       // Replace placeholders
       defaultColumnName = defaultColumnName.replace('{TableName}', rollupTableTitle).replace('{FieldName}', rollupColumnTitle)
+      break
+    }
+
+    case UITypes.Button: {
+      if (formState?.type === ButtonActionsType.Ai) {
+        defaultColumnName = UITypesName.AIButton
+      }
+      break
+    }
+
+    case UITypes.LongText: {
+      if (formState?.meta?.[LongTextAiMetaProp] === true) {
+        defaultColumnName = UITypesName.AIPrompt
+      }
       break
     }
   }

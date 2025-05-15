@@ -1,8 +1,8 @@
 import { getActivePinia } from 'pinia'
-import type { Actions, AppInfo, State } from './types'
+import type { Actions, AppInfo, Getters, State } from './types'
 import type { NcProjectType } from '#imports'
 
-export function useGlobalActions(state: State): Actions {
+export function useGlobalActions(state: State, _getters: Getters): Actions {
   const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
 
   const setIsMobileMode = (isMobileMode: boolean) => {
@@ -45,7 +45,7 @@ export function useGlobalActions(state: State): Actions {
   /** Sign in by setting the token in localStorage
    * keepProps - is for keeping any existing role info if user id is same as previous user
    * */
-  const signIn: Actions['signIn'] = async (newToken, keepProps = false) => {
+  const signIn: Actions['signIn'] = (newToken, keepProps = false) => {
     isTokenUpdatedTab.value = true
     state.token.value = newToken
 
@@ -63,31 +63,44 @@ export function useGlobalActions(state: State): Actions {
   }
 
   /** manually try to refresh token */
-  const refreshToken = async () => {
+  const _refreshToken = async ({
+    axiosInstance,
+    skipSignOut = false,
+  }: {
+    axiosInstance?: any
+    skipSignOut?: boolean
+  } = {}) => {
     const nuxtApp = useNuxtApp()
     const t = nuxtApp.vueApp.i18n.global.t
 
-    return new Promise((resolve) => {
-      nuxtApp.$api.instance
-        .post('/auth/token/refresh', null, {
-          withCredentials: true,
+    if (!axiosInstance) {
+      axiosInstance = nuxtApp.$api?.instance
+    }
+
+    try {
+      const response = await axiosInstance.post('/auth/token/refresh', null, {
+        withCredentials: true,
+      })
+      if (response.data?.token) {
+        signIn(response.data.token, true)
+        return response.data.token
+      }
+      return null
+    } catch (e) {
+      if (state.token.value && state.user.value && !skipSignOut) {
+        await signOut({
+          skipApiCall: true,
         })
-        .then((response) => {
-          if (response.data?.token) {
-            signIn(response.data.token, true)
-          }
-        })
-        .catch(async () => {
-          if (state.token.value && state.user.value) {
-            await signOut({
-              skipApiCall: true,
-            })
-            message.error(t('msg.error.youHaveBeenSignedOut'))
-          }
-        })
-        .finally(() => resolve(true))
-    })
+        message.error(t('msg.error.youHaveBeenSignedOut'))
+      }
+      return null
+    }
   }
+
+  const refreshToken = useSharedExecutionFn('refreshToken', _refreshToken, {
+    timeout: 10000,
+    storageDelay: 1000,
+  })
 
   const loadAppInfo = async () => {
     try {
@@ -152,7 +165,7 @@ export function useGlobalActions(state: State): Actions {
       path = `/${workspaceId}${queryParams}`
     }
 
-    navigateTo({
+    return navigateTo({
       path,
     })
   }

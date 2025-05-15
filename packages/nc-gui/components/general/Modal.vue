@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { CSSProperties } from '@vue/runtime-dom'
+
 const props = withDefaults(
   defineProps<{
     visible: boolean
@@ -6,6 +8,7 @@ const props = withDefaults(
     size?: 'small' | 'medium' | 'large' | 'xl'
     destroyOnClose?: boolean
     maskClosable?: boolean
+    maskStyle?: CSSProperties
     closable?: boolean
     keyboard?: boolean
   }>(),
@@ -77,6 +80,7 @@ const visible = useVModel(props, 'visible', emits)
     :closable="closable"
     :keyboard="keyboard"
     wrap-class-name="nc-modal-wrapper"
+    :mask-style="maskStyle"
     :footer="null"
     :destroy-on-close="destroyOnClose"
     :mask-closable="maskClosable"

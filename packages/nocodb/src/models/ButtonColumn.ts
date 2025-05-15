@@ -1,12 +1,14 @@
+import { ButtonActionsType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import { isEE } from '~/utils';
 
 export default class ButtonColumn {
-  type: 'webhook' | 'url';
+  type: ButtonActionsType;
   label: string;
   theme: 'solid' | 'light' | 'text';
   icon?: string;
@@ -18,6 +20,12 @@ export default class ButtonColumn {
   base_id?: string;
   fk_column_id: string;
   error?: string;
+
+  fk_integration_id?: string;
+  fk_script_id?: string;
+  model?: string;
+  output_column_ids?: string;
+
   private parsed_tree?: any;
 
   constructor(data: Partial<ButtonColumn> & { parsed_tree?: any }) {
@@ -35,8 +43,27 @@ export default class ButtonColumn {
 
     const webhookProps = ['fk_webhook_id'];
 
+    const scriptProps = ['fk_script_id'];
+
+    const aiProps = [
+      'formula_raw',
+      'formula',
+      'error',
+      'fk_integration_id',
+      'model',
+      'output_column_ids',
+    ];
+
     const insertObj = extractProps(buttonColumn, [
-      ...(buttonColumn.type === 'url' ? urlProps : webhookProps),
+      ...(buttonColumn.type === ButtonActionsType.Url
+        ? urlProps
+        : buttonColumn.type === ButtonActionsType.Webhook
+        ? webhookProps
+        : buttonColumn.type === ButtonActionsType.Script && isEE
+        ? scriptProps
+        : buttonColumn.type === ButtonActionsType.Ai
+        ? aiProps
+        : []),
       'theme',
       'color',
       'label',
@@ -45,8 +72,8 @@ export default class ButtonColumn {
       'fk_column_id',
     ]);
 
-    if (buttonColumn.type === 'url') {
-      insertObj.parsed_tree = stringifyMetaProp(insertObj, 'parsed_tree');
+    if (buttonColumn.type === ButtonActionsType.Url) {
+      insertObj.parsed_tree = stringifyMetaProp(insertObj, 'parsed_tree', null);
     }
 
     await ncMeta.metaInsert2(
@@ -78,8 +105,8 @@ export default class ButtonColumn {
         { fk_column_id: columnId },
       );
       if (column) {
-        if (column.type === 'url') {
-          column.parsed_tree = parseMetaProp(column, 'parsed_tree');
+        if (column.type === ButtonActionsType.Url) {
+          column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
         }
         await NocoCache.set(`${CacheScope.COL_BUTTON}:${columnId}`, column);
       }
@@ -106,8 +133,27 @@ export default class ButtonColumn {
 
     const webhookProps = ['fk_webhook_id'];
 
+    const scriptProps = ['fk_script_id'];
+
+    const aiProps = [
+      'formula_raw',
+      'formula',
+      'error',
+      'fk_integration_id',
+      'model',
+      'output_column_ids',
+    ];
+
     const updateObj = extractProps(button, [
-      ...(button.type === 'url' ? urlProps : webhookProps),
+      ...(button.type === ButtonActionsType.Url
+        ? urlProps
+        : button.type === ButtonActionsType.Webhook
+        ? webhookProps
+        : button.type === ButtonActionsType.Script && isEE
+        ? scriptProps
+        : button.type === ButtonActionsType.Ai
+        ? aiProps
+        : []),
       'theme',
       'color',
       'type',
@@ -115,12 +161,12 @@ export default class ButtonColumn {
       'label',
     ]);
 
-    if (button.type === 'url') {
-      button.parsed_tree = stringifyMetaProp(button, 'parsed_tree');
+    if (button.type === ButtonActionsType.Url) {
+      button.parsed_tree = stringifyMetaProp(button, 'parsed_tree', null);
     }
 
     if ('parsed_tree' in updateObj)
-      updateObj.parsed_tree = stringifyMetaProp(updateObj, 'parsed_tree');
+      updateObj.parsed_tree = stringifyMetaProp(updateObj, 'parsed_tree', null);
     // set meta
     await ncMeta.metaUpdate(
       context.workspace_id,

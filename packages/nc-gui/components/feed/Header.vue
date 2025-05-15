@@ -1,13 +1,9 @@
-<script setup lang="ts"></script>
-
 <template>
-  <div class="w-full px-3 h-12 border-b-1 border-gray-200 py-2">
-    <div class="flex items-center gap-3">
-      <GeneralIcon icon="megaPhone" class="text-nc-content-brand" />
+  <div class="w-full p-2 h-12 border-b-1 border-gray-200">
+    <div class="h-full flex items-center gap-2 px-2">
+      <GeneralIcon icon="megaPhone" class="text-nc-content-brand h-4 w-4" />
 
-      <span class="text-gray-800 text-xl font-medium"> What’s New! </span>
+      <span class="font-bold text-sm text-gray-800"> What’s New! </span>
     </div>
   </div>
 </template>
-
-<style scoped lang="scss"></style>

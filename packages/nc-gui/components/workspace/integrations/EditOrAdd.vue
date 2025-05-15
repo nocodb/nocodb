@@ -1,9 +1,11 @@
 <script lang="ts" setup>
+import { IntegrationCategoryType, SyncDataType } from '#imports'
+
 const props = defineProps<{ loadDatasourceInfo?: boolean; baseId?: string }>()
 
 const { loadDatasourceInfo, baseId } = toRefs(props)
 
-const { pageMode, IntegrationsPageMode, integrationType, activeIntegration } = useIntegrationStore()
+const { pageMode, IntegrationsPageMode, integrationType, activeIntegrationItem, activeIntegration } = useIntegrationStore()
 
 const isEditOrAddIntegrationModalOpen = computed({
   get: () => {
@@ -16,20 +18,22 @@ const isEditOrAddIntegrationModalOpen = computed({
   },
 })
 
-const connectionType = computed(() => {
-  switch (
-    pageMode.value === IntegrationsPageMode.EDIT
-      ? activeIntegration.value?.sub_type || activeIntegration.value?.config?.client
-      : activeIntegration.value?.type
-  ) {
+const activeIntegrationSubType = computed(() => {
+  return pageMode.value === IntegrationsPageMode.EDIT
+    ? activeIntegration.value?.sub_type || activeIntegration.value?.config?.client
+    : activeIntegration.value?.type
+})
+
+const activeIntegrationType = computed(() => {
+  switch (activeIntegrationSubType.value) {
     case integrationType.PostgreSQL:
-      return ClientType.PG
+      return IntegrationCategoryType.DATABASE
     case integrationType.MySQL:
-      return ClientType.MYSQL
+      return IntegrationCategoryType.DATABASE
     case integrationType.SQLITE:
-      return ClientType.SQLITE
+      return IntegrationCategoryType.DATABASE
     default: {
-      return undefined
+      return activeIntegrationItem.value?.type
     }
   }
 })
@@ -42,10 +46,22 @@ const connectionType = computed(() => {
     wrap-class-name="nc-modal-edit-or-add-integration"
     @keydown.esc="isEditOrAddIntegrationModalOpen = false"
   >
-    <div v-if="connectionType" class="h-full">
+    <div
+      v-if="activeIntegrationType === IntegrationCategoryType.DATABASE && activeIntegration?.sub_type !== SyncDataType.NOCODB"
+      class="h-full"
+    >
       <WorkspaceIntegrationsFormsEditOrAddDatabase
         v-model:open="isEditOrAddIntegrationModalOpen"
-        :connection-type="connectionType"
+        :connection-type="activeIntegrationSubType"
+        :load-datasource-info="loadDatasourceInfo"
+        :base-id="baseId"
+      />
+    </div>
+    <div v-else class="h-full">
+      <WorkspaceIntegrationsFormsEditOrAddCommon
+        v-model:open="isEditOrAddIntegrationModalOpen"
+        :integration-type="activeIntegrationItem?.type"
+        :integration-sub-type="activeIntegrationItem?.sub_type"
         :load-datasource-info="loadDatasourceInfo"
         :base-id="baseId"
       />

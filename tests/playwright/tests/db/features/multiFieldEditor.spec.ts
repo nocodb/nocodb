@@ -177,12 +177,16 @@ test.describe('Multi Field Editor', () => {
     );
   };
 
-  test('Verify system fields are not listed, Add New field, update & Restore, reset', async () => {
+  test('Verify system fields listed, Add New field, update & Restore, reset', async () => {
     //Verify system fields are not listed
-    await toggleShowSystemFieldsFromDataTab();
     let fieldsText = await fields.getAllFieldText();
     expect(fieldsText.length).toBe(1);
+
+    //Verify system fields are listed
     await toggleShowSystemFieldsFromDataTab();
+    fieldsText = await fields.getAllFieldText();
+    await toggleShowSystemFieldsFromDataTab();
+    expect(fieldsText.length).toBe(4);
 
     // Add New Field
     await fields.createOrUpdate({ title: 'Name', saveChanges: false });

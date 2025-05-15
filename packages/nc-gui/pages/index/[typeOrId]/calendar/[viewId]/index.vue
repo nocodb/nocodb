@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { message } from 'ant-design-vue'
 import { ViewTypes } from 'nocodb-sdk'
 
 definePageMeta({
@@ -11,7 +10,7 @@ definePageMeta({
 
 const route = useRoute()
 
-const { loadSharedView } = useSharedView()
+const { loadSharedView, triggerNotFound } = useSharedView()
 
 const showPassword = ref(false)
 
@@ -20,6 +19,8 @@ try {
 } catch (e: any) {
   if (e?.response?.status === 403) {
     showPassword.value = true
+  } else if (e?.response?.status === 404) {
+    triggerNotFound()
   } else {
     message.error(await extractSdkResponseErrorMsg(e))
   }

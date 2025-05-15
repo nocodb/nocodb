@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
@@ -8,18 +9,24 @@ const props = defineProps<{
 const router = useRouter()
 const route = router.currentRoute
 
+const { t } = useI18n()
+
 const { isUIAllowed } = useRoles()
 
 const workspaceStore = useWorkspace()
 
 const { loadRoles } = useRoles()
-const { activeWorkspace: _activeWorkspace, workspaces } = storeToRefs(workspaceStore)
+const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(workspaceStore)
 const { loadCollaborators, loadWorkspace } = workspaceStore
+const { appInfo } = useGlobal()
 
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
+const { isWsAuditEnabled, handleUpgradePlan, isPaymentEnabled, getFeature } = useEeConfig()
+
 const currentWorkspace = computedAsync(async () => {
+  if (deletingWorkspace.value) return
   let ws
   if (props.workspaceId) {
     ws = workspaces.value.get(props.workspaceId)
@@ -39,9 +46,26 @@ const tab = computed({
     return route.value.query?.tab ?? 'collaborators'
   },
   set(tab: string) {
+    if (!isWsAuditEnabled.value && tab === 'audits') {
+      return handleUpgradePlan({
+        title: t('upgrade.upgradeToAccessWsAudit'),
+        content: t('upgrade.upgradeToAccessWsAuditSubtitle', {
+          plan: PlanTitles.ENTERPRISE,
+        }),
+        limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+      })
+    }
+
     if (tab === 'collaborators') loadCollaborators({} as any, props.workspaceId)
     router.push({ query: { ...route.value.query, tab } })
   },
+})
+
+const isWorkspaceSsoAvail = computed(() => {
+  if (isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)) {
+    return true
+  }
+  return false
 })
 
 watch(
@@ -65,14 +89,28 @@ onMounted(() => {
       await loadCollaborators({} as any, currentWorkspace.value!.id)
     })
 })
+
+watch(
+  () => route.value.query?.tab,
+  (newTab) => {
+    if (!isWsAuditEnabled.value && newTab === 'audits') {
+      tab.value = 'collaborators'
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
   <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-settings">
     <div
       v-if="!props.workspaceId"
-      class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-gray-200 flex items-center gap-3"
+      class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-gray-200 flex items-center gap-2"
     >
+      <GeneralOpenLeftSidebarBtn />
+
       <div class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1 nc-workspace-title">
         <div class="nc-breadcrumb-item capitalize">
           {{ currentWorkspace?.title }}
@@ -83,7 +121,7 @@ onMounted(() => {
           {{ $t('title.teamAndSettings') }}
         </h1>
       </div>
-      <SmartsheetTopbarCmdK />
+      <SmartsheetTopbarCmdK class="ml-1" />
     </div>
     <template v-else>
       <div class="nc-breadcrumb px-2">
@@ -109,7 +147,7 @@ onMounted(() => {
       <NcPageHeader>
         <template #icon>
           <div class="flex justify-center items-center h-6 w-6">
-            <GeneralWorkspaceIcon :workspace="currentWorkspace" hide-label size="small" />
+            <GeneralWorkspaceIcon :workspace="currentWorkspace" size="medium" />
           </div>
         </template>
         <template #title>
@@ -125,40 +163,66 @@ onMounted(() => {
         <div class="w-3"></div>
       </template>
       <template v-if="isUIAllowed('workspaceCollaborators')">
-        <a-tab-pane key="collaborators" class="w-full">
+        <a-tab-pane key="collaborators" class="w-full h-full">
           <template #tab>
             <div class="tab-title">
-              <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
-              Members
+              <GeneralIcon icon="users" class="h-4 w-4" />
+              {{ $t('labels.members') }}
             </div>
           </template>
+
           <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
+      </template>
+      <template v-if="isEeUI && !props.workspaceId && isPaymentEnabled && isUIAllowed('workspaceBilling')">
+        <a-tab-pane key="billing" class="w-full">
+          <template #tab>
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
+              <GeneralIcon icon="ncDollarSign" class="flex-none h-4 w-4" />
+              {{ $t('general.billing') }}
+            </div>
+          </template>
+
+          <PaymentBillingPage />
+        </a-tab-pane>
+      </template>
+
+      <template v-if="isEeUI && !props.workspaceId && isPaymentEnabled && isUIAllowed('workspaceAuditList')">
+        <a-tab-pane key="audits" class="w-full">
+          <template #tab>
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
+              <GeneralIcon icon="audit" class="h-4 w-4" />
+              {{ $t('title.audits') }}
+            </div>
+          </template>
+          <WorkspaceAudits v-if="isWsAuditEnabled" />
+          <div v-else>&nbsp;</div>
+        </a-tab-pane>
+
+        <template v-if="isWorkspaceSsoAvail">
+          <a-tab-pane key="sso" class="w-full">
+            <template #tab>
+              <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
+                <GeneralIcon icon="sso" class="flex-none h-4 w-4" />
+                {{ $t('title.sso') }}
+              </div>
+            </template>
+
+            <WorkspaceSso class="!h-[calc(100vh_-_92px)]" />
+          </a-tab-pane>
+        </template>
       </template>
 
       <template v-if="isUIAllowed('workspaceManage')">
         <a-tab-pane key="settings" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
-              <GeneralIcon icon="settings" />
-              Settings
+              <GeneralIcon icon="ncSettings" class="h-4 w-4" />
+              {{ $t('labels.settings') }}
             </div>
           </template>
-          <WorkspaceSettings :workspace-id="currentWorkspace.id" />
-        </a-tab-pane>
-      </template>
 
-      <template v-if="isUIAllowed('workspaceAuditList') && !props.workspaceId">
-        <a-tab-pane key="audit" class="w-full">
-          <template #tab>
-            <div class="tab-title">
-              <GeneralIcon icon="audit" class="!h-3.5 !w-3.5" />
-              Audit Logs
-            </div>
-          </template>
-          <div class="h-[calc(100vh-92px)] px-6">
-            <WorkspaceAuditLogs :workspace-id="currentWorkspace.id" />
-          </div>
+          <WorkspaceSettings :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>
     </NcTabs>
@@ -166,11 +230,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-.nc-workspace-avatar {
-  @apply min-w-5 h-5 w-5 rounded-[6px] flex items-center justify-center text-white font-weight-bold uppercase;
-  font-size: 0.7rem;
-}
-
 .tab {
   @apply flex flex-row items-center gap-x-2;
 }
@@ -178,18 +237,19 @@ onMounted(() => {
 :deep(.ant-tabs-nav) {
   @apply !pl-0;
 }
+
 :deep(.ant-tabs-tab) {
   @apply pt-2 pb-3;
 }
-:deep(.ant-tabs-content) {
-  @apply nc-content-max-w;
-}
+
 .ant-tabs-content-top {
   @apply !h-full;
 }
+
 .tab-info {
   @apply flex pl-1.25 px-1.5 py-0.75 rounded-md text-xs;
 }
+
 .tab-title {
   @apply flex flex-row items-center gap-x-2 py-[1px];
 }

@@ -61,9 +61,6 @@ test.describe('Virtual Columns', () => {
         },
       ];
 
-      // close 'Team & Auth' tab
-      await dashboard.closeTab({ title: 'Team & Auth' });
-
       await dashboard.treeView.openTable({ title: 'City' });
 
       await grid.column.create({
@@ -119,14 +116,9 @@ test.describe('Virtual Columns', () => {
             'data:image/png;base64,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',
         },
       ]);
-
-      await dashboard.closeTab({ title: 'City' });
     });
 
     test('deletion of the QR column: directly and indirectly when the reference value column is deleted', async () => {
-      // close 'Team & Auth' tab
-      await dashboard.closeTab({ title: 'Team & Auth' });
-
       await dashboard.treeView.openTable({ title: 'City' });
 
       await grid.column.create({ title: 'column_name_a' });
@@ -148,8 +140,6 @@ test.describe('Virtual Columns', () => {
       await grid.column.verify({ title: 'QrCode2', isVisible: true });
       await grid.column.delete({ title: 'column_name_a' });
       await grid.column.verify({ title: 'QrCode2', isVisible: false });
-
-      await dashboard.closeTab({ title: 'City' });
     });
   });
 });

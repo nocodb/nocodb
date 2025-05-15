@@ -42,7 +42,9 @@ const dropTablesAllNonExternalProjects = async () => {
 
   for (const tableName of userCreatedTableNames) {
     if (TestDbMngr.isPg()) {
-      await TestDbMngr.metaKnex.raw(`DROP TABLE "${tableName}" CASCADE`);
+      await TestDbMngr.metaKnex.raw(
+        `DROP TABLE IF EXISTS "${tableName}" CASCADE`,
+      );
     } else {
       await TestDbMngr.metaKnex.raw(`DROP TABLE ${tableName}`);
     }

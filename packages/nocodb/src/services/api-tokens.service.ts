@@ -24,17 +24,19 @@ export class ApiTokensService {
       'swagger.json#/components/schemas/ApiTokenReq',
       param.tokenBody,
     );
-
-    this.appHooksService.emit(AppEvents.API_TOKEN_CREATE, {
-      userId: param.userId,
-      tokenBody: param.tokenBody,
-      req: param.req,
-    });
-
-    return await ApiToken.insert({
+    const token = await ApiToken.insert({
       ...param.tokenBody,
       fk_user_id: param.userId,
     });
+
+    this.appHooksService.emit(AppEvents.API_TOKEN_CREATE, {
+      userId: param.userId,
+      tokenTitle: param.tokenBody.description,
+      tokenId: token.id,
+      req: param.req,
+    });
+
+    return token;
   }
 
   async apiTokenDelete(param: { tokenId: string; user: User; req: NcRequest }) {
@@ -48,7 +50,8 @@ export class ApiTokensService {
 
     this.appHooksService.emit(AppEvents.API_TOKEN_DELETE, {
       userId: param.user?.id,
-      tokenId: param.tokenId,
+      tokenId: apiToken.id,
+      tokenTitle: apiToken.description,
       req: param.req,
     });
 

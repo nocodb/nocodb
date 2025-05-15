@@ -90,7 +90,7 @@ test.describe('Tiptap:Divider and Image', () => {
 
     await openedPage.tiptap.addNewNode({
       type: 'Image',
-      filePath: `${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`,
+      filePath: `${__dirname}/../../fixtures/sampleFiles/sampleImage.jpeg`,
     });
 
     await openedPage.tiptap.verifyNode({
@@ -146,7 +146,7 @@ test.describe('Tiptap:Divider and Image', () => {
 
     await openedPage.dropFile({
       domSelector: '.ProseMirror-focused .draggable-block-wrapper:first-child p:first-child',
-      imageFilePath: `${process.cwd()}/fixtures/sampleFiles/sampleImage.jpeg`,
+      imageFilePath: `${__dirname}/fixtures/sampleFiles/sampleImage.jpeg`,
     });
 
     await openedPage.tiptap.verifyNode({

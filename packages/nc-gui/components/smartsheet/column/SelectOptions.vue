@@ -28,11 +28,19 @@ const vModel = useVModel(props, 'value', emit)
 
 const { isKanbanStack, optionId, isNewStack } = toRefs(props)
 
+const { $e } = useNuxtApp()
+
 const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
 
 // const { base } = storeToRefs(useBase())
 
-const { optionsMagic: _optionsMagic } = useNocoEe()
+const { aiIntegrationAvailable, predictSelectOptions } = useNocoAi()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const { isAiModeFieldModal } = usePredictFields()
+
+const meta = inject(MetaInj, ref())
 
 const optionsWrapperDomRef = ref<HTMLElement>()
 
@@ -58,6 +66,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const { t } = useI18n()
 
+const isLoadingPredictOptions = ref<boolean>(false)
+
 const validators = {
   colOptions: [
     {
@@ -75,7 +85,10 @@ const validators = {
                 if (vModel.value.uidt === UITypes.MultiSelect && opt.title.includes(',')) {
                   return reject(new Error(t('msg.selectOption.multiSelectCantHaveCommas')))
                 }
-                if (options.value.filter((el) => el.title === opt.title && (el as any).status !== 'remove').length > 1) {
+                if (
+                  options.value.filter((el) => el.title?.trim() === opt.title?.trim() && (el as any).status !== 'remove').length >
+                  1
+                ) {
                   return reject(new Error(t('msg.selectOption.cantHaveDuplicates')))
                 }
               }
@@ -151,11 +164,7 @@ const addNewOption = () => {
   })
 }
 
-// const optionsMagic = async () => {
-//   await _optionsMagic(base, formState, getNextColor, options.value, renderedOptions.value)
-// }
-
-const syncOptions = (saveChanges: boolean = false, submit: boolean = false, payload?: Option) => {
+const syncOptions = (saveChanges = false, submit = false, payload?: Option) => {
   // set initial colOptions if not set
   vModel.value.colOptions = vModel.value.colOptions || {}
   vModel.value.colOptions.options = options.value
@@ -205,7 +214,7 @@ const removeRenderedOption = (index: number) => {
   }
 }
 
-const optionChanged = (changedElement: Option, saveChanges: boolean = false) => {
+const optionChanged = (changedElement: Option, saveChanges = false) => {
   const changedDefaultOptionIndex = defaultOption.value.findIndex((o) => {
     if (o.id !== undefined && changedElement.id !== undefined) {
       return o.id === changedElement.id
@@ -330,6 +339,63 @@ const loadListData = async ($state: any) => {
   $state.loaded()
 }
 
+const predictOptions = async () => {
+  if (!vModel.value?.title || !meta.value?.id) return
+
+  $e('a:column:ai:select:predict-options')
+
+  isLoadingPredictOptions.value = true
+
+  const history = options.value.map((o) => o.title).filter((o) => !!o.trim())
+
+  const predictedOptions = await predictSelectOptions(vModel.value?.title, meta.value?.id, history, meta.value?.base_id)
+
+  isLoadingPredictOptions.value = false
+
+  if (predictedOptions) {
+    for (const option of predictedOptions) {
+      // skip if option already exists
+      if (!option?.trim() || options.value.find((el) => el.title === option)) continue
+
+      if (isKanbanStack.value) {
+        const oldOption = options.value.find((el) => el.status === 'new')
+        if (oldOption) {
+          oldOption.title = option
+        } else {
+          options.value.push({
+            title: option,
+            color: getNextColor(),
+            index: options.value.length,
+            ...(isKanbanStack.value ? { status: 'new' } : {}),
+          })
+        }
+        break
+      } else {
+        options.value.push({
+          title: option,
+          color: getNextColor(),
+          index: options.value.length,
+          ...(isKanbanStack.value ? { status: 'new' } : {}),
+        })
+      }
+    }
+
+    if (isKanbanStack.value) {
+      renderedOptions.value = options.value
+    } else {
+      isReverseLazyLoad.value = true
+
+      loadedOptionAnchor.value = options.value.length - OPTIONS_PAGE_COUNT
+      loadedOptionAnchor.value = Math.max(loadedOptionAnchor.value, 0)
+
+      renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
+      syncOptions()
+    }
+
+    optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+  }
+}
+
 onMounted(() => {
   if (!vModel.value.colOptions?.options) {
     vModel.value.colOptions = {
@@ -389,17 +455,37 @@ onMounted(() => {
 
 if (isKanbanStack.value) {
   onClickOutside(optionsWrapperDomRef, (e) => {
-    if (!kanbanStackOption.value || (e.target as HTMLElement)?.closest(`.nc-select-option-color-picker`)) return
-
     const option = (column.value?.colOptions as SelectOptionsType)?.options?.find(
       (o) => o?.id && o.id === kanbanStackOption.value?.id,
     )
 
-    if (option?.title !== kanbanStackOption.value?.title || option?.color !== kanbanStackOption.value?.color) {
+    if (
+      (e.target as HTMLElement)?.closest(
+        `.nc-select-option-color-picker, .nc-add-select-option-auto-suggest, .nc-kanban-stack-header-${
+          option?.id || 'new-stack'
+        }`,
+      )
+    ) {
+      return
+    }
+
+    if (
+      kanbanStackOption.value?.title &&
+      (option?.title !== kanbanStackOption.value?.title || option?.color !== kanbanStackOption.value?.color)
+    ) {
       syncOptions(true, true, kanbanStackOption.value)
     } else {
       emit('saveChanges', true, false)
     }
+  })
+}
+
+if (!isKanbanStack.value) {
+  watch(isLoadingPredictOptions, (newValue) => {
+    if (!newValue) return
+    nextTick(() => {
+      optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+    })
   })
 }
 </script>
@@ -412,6 +498,7 @@ if (isKanbanStack.value) {
       :class="{
         'overflow-x-auto scrollbar-thin-dull rounded-lg': !isKanbanStack,
         'border-1 border-gray-200': renderedOptions.length && !isKanbanStack,
+        'bg-white': isAiModeFieldModal,
       }"
       :style="{
         maxHeight: props.fromTableExplorer ? 'calc(100vh - (var(--topbar-height) * 3.6) - 320px)' : 'calc(min(30vh, 250px))',
@@ -424,10 +511,14 @@ if (isKanbanStack.value) {
               v-model:visible="colorMenus[kanbanStackOption.index!]"
               :auto-close="false"
               overlay-class-name="nc-select-option-color-picker"
+              :disabled="isLoadingPredictOptions"
             >
               <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
                 <div
                   class="h-6 w-6 rounded flex items-center"
+                  :class="{
+                    'justify-center': isLoadingPredictOptions,
+                  }"
                   :style="{
                     backgroundColor: kanbanStackOption.color,
                     color: tinycolor.isReadable(kanbanStackOption.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
@@ -435,7 +526,8 @@ if (isKanbanStack.value) {
                       : tinycolor.mostReadable(kanbanStackOption.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
                   }"
                 >
-                  <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-current" />
+                  <GeneralLoader v-if="isLoadingPredictOptions" size="regular" class="!text-current" />
+                  <GeneralIcon v-else icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-current" />
                 </div>
               </div>
 
@@ -458,6 +550,7 @@ if (isKanbanStack.value) {
               placeholder="Enter option name..."
               class="caption !rounded-lg nc-select-col-option-select-option nc-kanban-stack-input !bg-transparent"
               data-testid="nc-kanban-stack-title-input"
+              :disabled="isLoadingPredictOptions"
               @keydown.enter.prevent.stop="syncOptions(true, true, kanbanStackOption!)"
               @change="() => {
                   kanbanStackOption!.status = undefined
@@ -562,6 +655,30 @@ if (isKanbanStack.value) {
               </div>
             </div>
           </template>
+          <template v-if="isLoadingPredictOptions" #footer>
+            <div class="flex py-1 items-center nc-select-option hover:bg-gray-100 group">
+              <div class="flex items-center w-full">
+                <div class="p-2 flex !cursor-disabled">
+                  <component :is="iconMap.dragVertical" small class="handle opacity-75" />
+                </div>
+                <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
+                  <div
+                    class="h-6 w-6 rounded flex items-center justify-center"
+                    :style="{
+                      backgroundColor: getNextColor(),
+                      color: tinycolor.isReadable(getNextColor() || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                        ? '#fff'
+                        : tinycolor.mostReadable(getNextColor() || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                    }"
+                  >
+                    <GeneralLoader size="regular" class="!text-current" />
+                  </div>
+                </div>
+
+                <div class="caption px-3">...</div>
+              </div>
+            </div>
+          </template>
         </Draggable>
         <InfiniteLoading v-if="!isReverseLazyLoad" v-bind="$attrs" @infinite="loadListData">
           <template #spinner>
@@ -585,25 +702,79 @@ if (isKanbanStack.value) {
     >
       {{ validateInfos.colOptions.help[0][0] }}
     </div>
-    <NcButton
+    <div
       v-if="!isKanbanStack"
-      type="secondary"
-      class="w-full caption"
+      class="nc-add-select-option-btn-wrapper flex shadow-sm"
       :class="{
         'mt-2': renderedOptions.length,
+        'bg-white': isAiModeFieldModal,
       }"
-      size="small"
-      data-testid="nc-add-select-option-btn"
-      @click="addNewOption()"
     >
-      <div class="flex items-center">
-        <component :is="iconMap.plus" />
-        <span class="flex-auto">Add option</span>
-      </div>
-    </NcButton>
-    <!-- <div v-if="isEeUI" class="w-full cursor-pointer" @click="optionsMagic()">
-      <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
-    </div> -->
+      <NcButton
+        type="text"
+        class="nc-add-select-option-btn flex-1 caption"
+        size="small"
+        data-testid="nc-add-select-option-btn"
+        @click.stop="addNewOption()"
+      >
+        <template #icon>
+          <component :is="iconMap.plus" />
+        </template>
+
+        {{ $t('labels.addOption') }}
+      </NcButton>
+      <NcTooltip v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)" class="w-1/2">
+        <template #title>
+          {{
+            aiIntegrationAvailable
+              ? !vModel.title?.trim()
+                ? $t('tooltip.fieldNameIsRequriedToAutoSuggestOptions')
+                : $t('tooltip.autoSuggestSelectOptions')
+              : $t('title.noAiIntegrationAvailable')
+          }}
+        </template>
+
+        <NcButton
+          type="secondary"
+          theme="ai"
+          class="nc-add-select-option-auto-suggest w-full caption"
+          size="small"
+          :bordered="false"
+          :disabled="isLoadingPredictOptions || !vModel.title?.trim() || !aiIntegrationAvailable"
+          :loading="isLoadingPredictOptions"
+          @click.stop="predictOptions()"
+        >
+          <template #icon>
+            <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+          </template>
+          <template #loading> {{ $t('labels.suggesting') }} </template>
+          {{ $t('labels.autoSuggest') }}
+        </NcButton>
+      </NcTooltip>
+    </div>
+    <div v-else-if="!kanbanStackOption?.id" class="mt-2 pl-1">
+      <NcTooltip v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)" class="w-full" placement="bottom">
+        <template #title>
+          {{ aiIntegrationAvailable ? $t('tooltip.autoSuggestSelectOptions') : $t('title.noAiIntegrationAvailable') }}
+        </template>
+
+        <NcButton
+          type="secondary"
+          theme="ai"
+          class="nc-add-select-option-auto-suggest caption w-full"
+          size="small"
+          :disabled="isLoadingPredictOptions || !aiIntegrationAvailable"
+          :loading="isLoadingPredictOptions"
+          @click.stop="predictOptions()"
+        >
+          <template #icon>
+            <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+          </template>
+          <template #loading> {{ $t('labels.suggesting') }} </template>
+          {{ $t('labels.autoSuggest') }}
+        </NcButton>
+      </NcTooltip>
+    </div>
   </div>
 </template>
 
@@ -636,6 +807,17 @@ if (isKanbanStack.value) {
   &:focus,
   &:focus-visible {
     @apply !border-[var(--ant-primary-color-hover)];
+  }
+}
+
+.nc-add-select-option-btn-wrapper {
+  @apply border-1 border-nc-border-gray-medium rounded-lg overflow-hidden;
+
+  .nc-add-select-option-btn {
+    @apply rounded-none;
+  }
+  .nc-add-select-option-auto-suggest {
+    @apply -my-[1px] h-[34px] rounded-none !border-l-1 !border-l-nc-border-gray-medium;
   }
 }
 </style>

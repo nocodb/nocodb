@@ -1,0 +1,12 @@
+#!/bin/execlineb -P
+
+envfile /etc/s6-confs/minio.conf
+envfile /run/minio.dynamic.env
+importas -Sui IMPORTAS_MINIO_LISTEN_ADDRESS
+
+foreground { mkdir -p /var/lib/minio/data/aiominionocodb }
+foreground { chown -R minio:minio /var/lib/minio }
+
+fdmove -c 2 1
+
+s6-setuidgid minio minio server --address $IMPORTAS_MINIO_LISTEN_ADDRESS /var/lib/minio/data

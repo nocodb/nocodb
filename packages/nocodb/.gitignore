@@ -49,3 +49,6 @@ test_sakila_?.db
 /docker/public/
 
 /tests/unit/.env
+
+# ignore root .env
+/.env

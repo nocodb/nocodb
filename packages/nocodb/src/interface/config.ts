@@ -1,7 +1,7 @@
-import type { UserType } from 'nocodb-sdk';
-import type { Handler, Request } from 'express';
+import type { Handler } from 'express';
 import type * as e from 'express';
 import type { Knex } from 'knex';
+import type { NcContext, NcRequest } from 'nocodb-sdk';
 
 export interface Route {
   path: string;
@@ -298,14 +298,17 @@ export interface AppConfig {
     data?: {
       ttl: number;
       max_apis: number;
+      block_duration: number;
     };
     meta?: {
       ttl: number;
       max_apis: number;
+      block_duration: number;
     };
     public?: {
       ttl: number;
       max_apis: number;
+      block_duration: number;
     };
     calc_execution_time: boolean;
   };
@@ -321,23 +324,4 @@ export interface AppConfig {
   dashboardPath: string;
 }
 
-export interface NcContext {
-  org_id?: string;
-  workspace_id: string;
-  base_id: string;
-}
-
-export interface NcRequest extends Partial<Request> {
-  context: NcContext;
-  ncWorkspaceId?: string;
-  ncBaseId?: string;
-  user: UserType & {
-    base_roles?: Record<string, boolean>;
-    workspace_roles?: Record<string, boolean>;
-    provider?: string;
-  };
-  ncSiteUrl: string;
-  dashboardUrl: string;
-  clientIp?: string;
-  query?: Record<string, any>;
-}
+export { NcContext, NcRequest };

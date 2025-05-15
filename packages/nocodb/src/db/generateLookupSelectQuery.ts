@@ -1,6 +1,6 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type LookupColumn from '../models/LookupColumn';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type {
   BarcodeColumn,
   Column,
@@ -16,6 +16,7 @@ import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getAliasGenerator } from '~/utils';
 import { NcError } from '~/helpers/catchError';
+import { getAs } from '~/helpers/dbHelpers';
 
 const LOOKUP_VAL_SEPARATOR = '___';
 
@@ -44,7 +45,7 @@ export default async function generateLookupSelectQuery({
   isAggregation = false,
 }: {
   column: Column;
-  baseModelSqlv2: BaseModelSqlv2;
+  baseModelSqlv2: IBaseModelSqlV2;
   alias: string;
   model: Model;
   getAlias?: ReturnType<typeof getAliasGenerator>;
@@ -357,20 +358,21 @@ export default async function generateLookupSelectQuery({
         case UITypes.Formula:
           {
             const builder = (
-              await formulaQueryBuilderv2(
-                baseModelSqlv2,
-                (
+              await formulaQueryBuilderv2({
+                baseModel: baseModelSqlv2,
+                tree: (
                   await lookupColumn.getColOptions<FormulaColumn>(context)
                 ).formula,
-                lookupColumn.id,
                 model,
-                lookupColumn,
-                await model.getAliasColMapping(context),
-                prevAlias,
-              )
+                column: lookupColumn,
+                aliasToColumn: await model.getAliasColMapping(context),
+                tableAlias: prevAlias,
+              })
             ).builder;
 
-            selectQb.select(builder);
+            selectQb.select(
+              knex.raw(`?? as ??`, [builder, getAs(lookupColumn)]),
+            );
           }
           break;
         case UITypes.DateTime:

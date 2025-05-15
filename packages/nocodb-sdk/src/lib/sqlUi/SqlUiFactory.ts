@@ -8,13 +8,14 @@ import { PgUi } from './PgUi';
 import { SqliteUi } from './SqliteUi';
 import { SnowflakeUi } from './SnowflakeUi';
 import { DatabricksUi } from './DatabricksUi';
+import { SqlUi } from './SqlUI.types';
 
 // import {YugabyteUi} from "./YugabyteUi";
 // import {TidbUi} from "./TidbUi";
 // import {VitessUi} from "./VitessUi";
 
 export class SqlUiFactory {
-  static create(connectionConfig) {
+  static create(connectionConfig): SqlUi {
     // connectionConfig.meta = connectionConfig.meta || {};
     // connectionConfig.meta.dbtype = connectionConfig.meta.dbtype || "";
     if (
@@ -26,31 +27,31 @@ export class SqlUiFactory {
       // if (connectionConfig.meta.dbtype === "vitess")
       //   return Vitess;
 
-      return MysqlUi;
+      return new MysqlUi();
     }
 
     if (connectionConfig.client === 'sqlite3') {
-      return SqliteUi;
+      return new SqliteUi();
     }
     if (connectionConfig.client === 'mssql') {
-      return MssqlUi;
+      return new MssqlUi();
     }
     if (connectionConfig.client === 'oracledb') {
-      return OracleUi;
+      return new OracleUi();
     }
 
     if (connectionConfig.client === 'pg') {
       // if (connectionConfig.meta.dbtype === "yugabyte")
       //   return Yugabyte;
-      return PgUi;
+      return new PgUi();
     }
 
     if (connectionConfig.client === 'snowflake') {
-      return SnowflakeUi;
+      return new SnowflakeUi();
     }
 
     if (connectionConfig.client === 'databricks') {
-      return DatabricksUi;
+      return new DatabricksUi();
     }
 
     throw new Error('Database not supported');

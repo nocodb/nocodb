@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types,prefer-const */
 import groupBy from 'lodash/groupBy';
+import { customValidators } from 'src/db/util/customValidators';
 import type { Knex } from 'knex';
 import type Filter from '~/models/Filter';
 import type Sort from '~/models/Sort';
@@ -133,7 +134,12 @@ abstract class BaseModel {
         cn,
       } = this.columns[i];
       for (let j = 0; j < func.length; ++j) {
-        const fn = typeof func[j] === 'string' ? Validator[func[j]] : func[j];
+        let fn = func[j];
+
+        if (typeof func[j] === 'string') {
+          fn = customValidators[func[j]] ?? Validator[func[j]];
+        }
+
         const arg =
           typeof func[j] === 'string' ? columns[cn] + '' : columns[cn];
         if (
@@ -1522,6 +1528,8 @@ export interface XcFilter {
   pks?: string;
   aggregation?: XcAggregation[];
   column_name?: string;
+  page?: string | number;
+  nestedLimit?: string | number;
 }
 
 export interface XcFilterWithAlias extends XcFilter {
@@ -1533,6 +1541,7 @@ export interface XcFilterWithAlias extends XcFilter {
   o?: string | number;
   s?: string;
   f?: string;
+  p?: string | number;
 }
 
 export default BaseModel;

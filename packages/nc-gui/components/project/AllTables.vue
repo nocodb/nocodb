@@ -1,15 +1,24 @@
 <script lang="ts" setup>
-import type { SourceType, TableType } from 'nocodb-sdk'
-import dayjs from 'dayjs'
+import { ClientType, timeAgo } from 'nocodb-sdk'
+import type { SourceType, TableType, ViewType } from 'nocodb-sdk'
 import NcTooltip from '~/components/nc/Tooltip.vue'
 
 const { activeTables } = storeToRefs(useTablesStore())
+
+const viewStore = useViewsStore()
+const { viewsByTable } = storeToRefs(viewStore)
+
 const { openTable } = useTablesStore()
 const { openedProject, isDataSourceLimitReached } = storeToRefs(useBases())
 
-const { base } = storeToRefs(useBase())
+const baseStore = useBase()
+const { base } = storeToRefs(baseStore)
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isNewBaseModalOpen = ref(false)
+
+const isNewSyncModalOpen = ref(false)
 
 const { isUIAllowed } = useRoles()
 
@@ -17,22 +26,12 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
+const { showExternalSourcePlanLimitExceededModal } = useEeConfig()
+
 const isImportModalOpen = ref(false)
 
 const defaultBase = computed(() => {
   return openedProject.value?.sources?.[0]
-})
-
-const sources = computed(() => {
-  // Convert array of sources to map of sources
-
-  const baseMap = new Map<string, SourceType>()
-
-  openedProject.value?.sources?.forEach((source) => {
-    baseMap.set(source.id!, source)
-  })
-
-  return baseMap
 })
 
 function openTableCreateDialog(baseIndex?: number | undefined) {
@@ -73,41 +72,134 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
 const columns = [
   {
-    key: 'tableName',
-    title: t('objects.table'),
-    name: 'Table Name',
-    basis: '40%',
-    minWidth: 220,
+    key: 'accordion',
+    title: '',
+    width: 56,
     padding: '0px 12px',
+  },
+  {
+    key: 'name',
+    title: t('general.name'),
+    name: 'Name',
+    width: 320,
+    padding: '0px 12px 0 0',
+  },
+  {
+    key: 'description',
+    title: t('labels.description'),
+    name: 'Description',
+    padding: '0px 12px',
+    minWidth: 101,
   },
   {
     key: 'sourceName',
     title: t('general.source'),
     name: 'View Name',
-    basis: '25%',
-    minWidth: 220,
+    width: 96,
     padding: '0px 12px',
   },
   {
     key: 'created_at',
     title: t('labels.createdOn'),
     name: 'editor',
-    minWidth: 120,
+    width: 144,
     padding: '0px 12px',
   },
 ] as NcTableColumnProps[]
 
-const customRow = (record: Record<string, any>) => ({
-  onclick: () => {
-    openTable(record as TableType)
+const expandedTableIds = ref(new Set<string>())
+const loadingViewsOfTableIds = ref(new Set<string>())
+
+function isTableExpanded(tableId: string) {
+  return expandedTableIds.value.has(tableId)
+}
+
+async function toggleTable(tableId: string) {
+  if (loadingViewsOfTableIds.value.has(tableId)) return
+  if (isTableExpanded(tableId)) expandedTableIds.value.delete(tableId)
+  else {
+    if (!viewsByTable.value.get(tableId)?.length) {
+      loadingViewsOfTableIds.value.add(tableId)
+      await viewStore.loadViews({ tableId, ignoreLoading: true })
+      loadingViewsOfTableIds.value.delete(tableId)
+    }
+    expandedTableIds.value.add(tableId)
+  }
+}
+
+const borderlessIndexRange = ref<[start: number, end: number][]>([])
+
+const sortedActiveTables = computed(() => [...activeTables.value].sort((a, b) => a.source_id!.localeCompare(b.source_id!) * 20))
+
+const tableAndViewData = computed(() => {
+  const combined: Array<TableType | ViewType | { isEmptyView: true }> = []
+  const indexRange: [start: number, end: number][] = []
+  let i = 0
+  for (const table of sortedActiveTables.value) {
+    const tableId = table?.id ?? ''
+    combined.push(table)
+    if (isTableExpanded(tableId)) {
+      const views: typeof combined = (viewsByTable.value.get(tableId) ?? []).filter((view) => !view.is_default)
+      if (!views.length) {
+        views.push({ isEmptyView: true })
+      }
+      combined.push(...views)
+      indexRange.push([i, i + views.length])
+      i += views.length + 1
+    } else {
+      i++
+    }
+  }
+  borderlessIndexRange.value = indexRange
+  return combined
+})
+
+function isRecordAView(record: Record<string, any>) {
+  return !!record.fk_model_id
+}
+
+const customRow = (record: Record<string, any>, recordIndex: number) => ({
+  onclick: async () => {
+    if (isRecordAView(record)) {
+      const view = record as ViewType
+      await viewStore.navigateToView({
+        view,
+        tableId: view.fk_model_id,
+        baseId: base.value.id!,
+        doNotSwitchTab: true,
+      })
+    } else {
+      openTable(record as TableType)
+    }
   },
+  class: borderlessIndexRange.value.some(([start, end]) => recordIndex >= start && recordIndex < end) ? 'no-bottom-border' : '',
 })
 
 const onCreateBaseClick = () => {
-  if (isDataSourceLimitReached.value) return
+  if (showExternalSourcePlanLimitExceededModal() || isDataSourceLimitReached.value) return
 
   isNewBaseModalOpen.value = true
 }
+
+const onCreateSyncClick = () => {
+  isNewSyncModalOpen.value = true
+}
+
+function getSourceIcon(source: SourceType) {
+  if (source.is_meta || source.is_local) {
+    return iconMap.nocodb1
+  }
+  if (baseStore.isMysql(source.id)) return allIntegrationsMapBySubType[ClientType.MYSQL].icon
+  return allIntegrationsMapBySubType[source.type! as ClientType]?.icon ?? null
+}
+
+const sourceIdToIconMap = computed(() => {
+  const map: Record<string, ReturnType<typeof getSourceIcon>> = {}
+  for (const source of openedProject.value?.sources ?? []) {
+    map[source.id!] = getSourceIcon(source)
+  }
+  return map
+})
 </script>
 
 <template>
@@ -130,7 +222,7 @@ const onCreateBaseClick = () => {
         </div>
         <div class="flex flex-col gap-1">
           <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
-          <div class="subtext">Start from scratch.</div>
+          <div class="subtext">{{ $t('msg.subText.createNewTable') }}</div>
         </div>
       </div>
 
@@ -148,7 +240,7 @@ const onCreateBaseClick = () => {
         <div class="flex flex-col gap-1">
           <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
 
-          <div class="subtext">From files & external sources</div>
+          <div class="subtext">{{ $t('msg.subText.importData') }}</div>
         </div>
       </div>
       <NcTooltip
@@ -175,10 +267,26 @@ const onCreateBaseClick = () => {
           </div>
           <div class="flex flex-col gap-1">
             <div class="label">{{ $t('labels.connectDataSource') }}</div>
-            <div class="subtext">In realtime to external databases.</div>
+            <div class="subtext">{{ $t('msg.subText.connectExternalData') }}</div>
           </div>
         </div>
       </NcTooltip>
+      <div
+        v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+        v-e="['c:table:create-sync']"
+        role="button"
+        class="nc-base-view-all-table-btn"
+        data-testid="proj-view-btn__create-sync"
+        @click="onCreateSyncClick"
+      >
+        <div class="icon-wrapper">
+          <GeneralIcon icon="sync" class="!h-7 !w-7 !text-green-700" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <div class="label">Sync Data</div>
+          <div class="subtext">With internal or external sources</div>
+        </div>
+      </div>
     </div>
     <div
       v-if="base?.isLoading"
@@ -206,53 +314,91 @@ const onCreateBaseClick = () => {
         :is-data-loading="base?.isLoading"
         :columns="columns"
         sticky-first-column
-        :data="[...activeTables].sort(
-          (a, b) => a.source_id!.localeCompare(b.source_id!) * 20
-        )"
+        :data="tableAndViewData"
         :custom-row="customRow"
         :bordered="false"
+        row-height="44px"
+        header-row-height="44px"
         class="nc-base-view-all-table-list flex-1"
       >
         <template #bodyCell="{ column, record }">
-          <div
-            v-if="column.key === 'tableName'"
-            class="w-full flex items-center gap-3 max-w-full text-gray-800"
-            data-testid="proj-view-list__item-title"
-          >
-            <div class="min-w-6 flex items-center justify-center">
-              <GeneralTableIcon :meta="record" class="flex-none text-gray-600" />
+          <div v-if="record.isEmptyView">
+            <div v-if="column.key === 'name'" class="text-nc-content-gray-muted empty_views pl-[33px]">
+              {{ $t('labels.noTableViews') }}
             </div>
-            <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>
-              <template #title>
-                {{ record?.title }}
-              </template>
-              {{ record?.title }}
-            </NcTooltip>
           </div>
-          <div
-            v-if="column.key === 'sourceName'"
-            class="capitalize w-full flex items-center gap-3 max-w-full"
-            data-testid="proj-view-list__item-type"
-          >
-            <div v-if="record.source_id === defaultBase?.id" class="ml-0.75">-</div>
-            <template v-else>
-              <GeneralBaseLogo class="flex-none w-4" />
+          <template v-else>
+            <NcButton
+              v-if="column.key === 'accordion' && !isRecordAView(record)"
+              size="small"
+              type="text"
+              @click.stop="toggleTable(record.id)"
+            >
+              <div class="flex children:flex-none relative h-4 w-4">
+                <Transition name="icon-fade" :duration="200">
+                  <div v-if="loadingViewsOfTableIds.has(record.id)">
+                    <GeneralLoader />
+                  </div>
+                  <div v-else>
+                    <GeneralIcon
+                      icon="chevronRight"
+                      class="transform transition-transform duration-200"
+                      :class="{ '!rotate-90': isTableExpanded(record.id) }"
+                    />
+                  </div>
+                </Transition>
+              </div>
+            </NcButton>
+            <template v-if="column.key === 'name'">
+              <ProjectAllTablesViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
+              <div
+                v-else
+                class="w-full flex items-center gap-3 max-w-full text-gray-800"
+                data-testid="proj-view-list__item-title"
+              >
+                <GeneralTableIcon :meta="record" class="flex-none h-4 w-4 !text-nc-content-gray-subtle" />
 
+                <NcTooltip class="truncate font-weight-600 max-w-[calc(100%_-_28px)]" show-on-truncate-only>
+                  <template #title>
+                    {{ record?.title }}
+                  </template>
+                  {{ record?.title }}
+                </NcTooltip>
+              </div>
+            </template>
+            <div
+              v-if="column.key === 'description'"
+              class="w-full flex items-center gap-3 max-w-full text-gray-800 description"
+              data-testid="proj-view-list__item-description"
+            >
               <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>
                 <template #title>
-                  {{ sources.get(record.source_id!)?.alias }}
+                  {{ record?.description }}
                 </template>
-                {{ sources.get(record.source_id!)?.alias }}
+                {{ record?.description }}
               </NcTooltip>
+            </div>
+            <template v-if="column.key === 'sourceName'">
+              <ProjectAllTablesViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
+              <div v-else class="w-full flex justify-center items-center max-w-full" data-testid="proj-view-list__item-type">
+                <div class="w-8 h-8 flex justify-center items-center">
+                  <component
+                    :is="sourceIdToIconMap[record.source_id!]"
+                    v-if="sourceIdToIconMap[record.source_id!]"
+                    class="w-6 h-6"
+                  />
+                  <div v-else>-</div>
+                </div>
+              </div>
             </template>
-          </div>
-          <div
-            v-if="column.key === 'created_at'"
-            class="capitalize flex items-center gap-2 max-w-full"
-            data-testid="proj-view-list__item-created-at"
-          >
-            {{ dayjs(record?.created_at).fromNow() }}
-          </div>
+            <div
+              v-if="column.key === 'created_at'"
+              class="flex items-center gap-2 max-w-full created_at"
+              data-testid="proj-view-list__item-created-at"
+            >
+              {{ timeAgo(record?.created_at) }}
+            </div>
+          </template>
         </template>
       </NcTable>
     </div>
@@ -268,6 +414,7 @@ const onCreateBaseClick = () => {
 
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
     <LazyDashboardSettingsDataSourcesCreateBase v-if="isNewBaseModalOpen" v-model:open="isNewBaseModalOpen" is-modal />
+    <LazyDashboardSettingsSyncCreate v-if="isNewSyncModalOpen" v-model:open="isNewSyncModalOpen" />
   </div>
 </template>
 
@@ -301,5 +448,21 @@ const onCreateBaseClick = () => {
 
 .nc-text-icon {
   @apply flex-none w-5 h-5 rounded bg-white text-gray-800 text-[6px] leading-4 font-weight-800 flex items-center justify-center;
+}
+
+.description,
+.created_at,
+.empty_views {
+  @apply text-[13px] leading-[18px];
+}
+
+:deep(.no-bottom-border) {
+  @apply !border-transparent;
+}
+
+:deep(.nc-table-header-cell-3) {
+  > .gap-3 {
+    @apply ml-[7px];
+  }
 }
 </style>

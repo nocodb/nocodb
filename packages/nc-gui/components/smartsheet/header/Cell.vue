@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { type ColumnReqType, type ColumnType, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
-import { UITypes, UITypesName } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
+import { UITypes, UITypesName, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 
 interface Props {
   column: ColumnType
@@ -20,8 +20,6 @@ const isGrid = inject(IsGridInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
 
-const isLocked = inject(IsLockedInj, ref(false))
-
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
@@ -31,6 +29,8 @@ const isExpandedBulkUpdateForm = inject(IsExpandedBulkUpdateFormOpenInj, ref(fal
 const isDropDownOpen = ref(false)
 
 const isPublic = inject(IsPublicInj, ref(false))
+
+const meta = inject(MetaInj)!
 
 const column = toRef(props, 'column')
 
@@ -42,10 +42,19 @@ const editColumnDropdown = ref(false)
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
+const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
+
 const columnTypeName = computed(() => {
-  if (column.value.uidt === UITypes.LongText && parseProp(column?.value?.meta)?.richMode) {
-    return UITypesName.RichText
+  if (column.value.uidt === UITypes.LongText) {
+    if (parseProp(column.value?.meta)?.richMode) {
+      return UITypesName.RichText
+    }
+
+    if (parseProp(column.value?.meta)?.[LongTextAiMetaProp]) {
+      return UITypesName.AIPrompt
+    }
   }
+
   return column.value.uidt ? UITypesName[column.value.uidt] : ''
 })
 
@@ -53,6 +62,8 @@ const addField = async (payload: any) => {
   columnOrder.value = payload
   editColumnDropdown.value = true
 }
+
+const editOrAddProviderRef = ref()
 
 const enableDescription = ref(false)
 
@@ -78,7 +89,9 @@ const isColumnEditAllowed = computed(() => {
 })
 
 const openHeaderMenu = (e?: MouseEvent, description = false) => {
-  if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
+  if ((isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value || isSqlView.value) {
+    return
+  }
 
   if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value && (isColumnEditAllowed.value || description)) {
     if (description) {
@@ -89,14 +102,20 @@ const openHeaderMenu = (e?: MouseEvent, description = false) => {
 }
 
 const openDropDown = (e: Event) => {
-  if (isLocked.value) return
-
   if (isForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
 
   e.preventDefault()
   e.stopPropagation()
 
   isDropDownOpen.value = !isDropDownOpen.value
+}
+
+const onVisibleChange = () => {
+  editColumnDropdown.value = true
+  if (!editOrAddProviderRef.value?.shouldKeepModalOpen()) {
+    editColumnDropdown.value = false
+    enableDescription.value = false
+  }
 }
 
 const onClick = (e: Event) => {
@@ -133,7 +152,8 @@ const onClick = (e: Event) => {
     <div
       class="nc-cell-name-wrapper flex-1 flex items-center"
       :class="{
-        'max-w-[calc(100%_-_23px)]': !isExpandedForm,
+        'max-w-[calc(100%_-_23px)]': !isExpandedForm && !column.description?.length,
+        'max-w-[calc(100%_-_44px)]': !isExpandedForm && column.description?.length,
         'max-w-full': isExpandedForm && !isExpandedBulkUpdateForm,
       }"
     >
@@ -187,7 +207,7 @@ const onClick = (e: Event) => {
       <GeneralIcon
         v-if="isExpandedForm && !isExpandedBulkUpdateForm && !isMobileMode && isUIAllowed('fieldEdit')"
         icon="arrowDown"
-        class="flex-none cursor-pointer ml-1 group-hover:visible w-4 h-4"
+        class="nc-column-context-menu flex-none cursor-pointer ml-1 group-hover:visible w-4 h-4"
         :class="{
           visible: editColumnDropdown || isDropDownOpen,
           invisible: !(editColumnDropdown || isDropDownOpen),
@@ -201,10 +221,16 @@ const onClick = (e: Event) => {
       <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
     </NcTooltip>
 
-    <template v-if="!hideMenu">
+    <template v-if="!hideMenu || meta?.synced">
       <div v-if="!isExpandedForm" class="flex-1" />
+      <div v-if="!isExpandedForm && meta?.synced && column.readonly">
+        <NcTooltip class="flex items-center" placement="bottom">
+          <template #title> This field is synced </template>
+          <GeneralIcon icon="sync" class="flex-none !w-4 !h-4 !text-gray-500" />
+        </NcTooltip>
+      </div>
       <LazySmartsheetHeaderMenu
-        v-if="!isForm && isUIAllowed('fieldEdit')"
+        v-else-if="!isForm && isUIAllowed('fieldEdit')"
         v-model:is-open="isDropDownOpen"
         :is-hidden-col="isHiddenCol"
         @add-column="addField"
@@ -218,6 +244,7 @@ const onClick = (e: Event) => {
       :trigger="['click']"
       :placement="isExpandedForm && !isExpandedBulkUpdateForm ? 'bottomLeft' : 'bottomRight'"
       :overlay-class-name="`nc-dropdown-edit-column ${editColumnDropdown ? 'active' : ''}`"
+      @visible-change="onVisibleChange"
     >
       <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="h-[1px]" @dblclick.stop>&nbsp;</div>
       <div v-else />
@@ -226,6 +253,7 @@ const onClick = (e: Event) => {
         <div class="nc-edit-or-add-provider-wrapper">
           <LazySmartsheetColumnEditOrAddProvider
             v-if="editColumnDropdown"
+            ref="editOrAddProviderRef"
             :column="columnOrder ? null : column"
             :column-position="columnOrder"
             class="w-full"

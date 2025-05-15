@@ -61,69 +61,41 @@ export default {
         // destroy any previous toast message to avoid duplicate messages
         message.destroy(MESSAGE_KEY)
 
-        message.open({
-          key: MESSAGE_KEY,
-          content: h('div', [
-            h(
-              'div',
-              {
-                class: 'flex gap-3 py-1.5',
-              },
-              [
-                h(resolveComponent('GeneralIcon'), { icon: 'error', class: 'text-2xl text-red-500 -mt-1' }),
-                h('div', { class: 'text-left flex flex-col gap-1' }, [
-                  h('div', { class: 'font-weight-bold' }, 'Page Loading Error'),
-                  h('div', [h('span', { class: 'text-sm text-gray-500' }, 'Something went wrong while loading page!')]),
-                ]),
-                h(
-                  'div',
-                  {
-                    class: 'flex gap-1 justify-end',
-                  },
-                  [
-                    repeated[err.message] > 2
-                      ? h(
-                          resolveComponent('NcButton'),
-                          {
-                            onClick: navigateToHome,
-                            type: 'text',
-                            size: 'xsmall',
-                            class: '!text-sm !px-2 !text-primary',
-                          },
-                          'Home',
-                        )
-                      : h(
-                          resolveComponent('NcButton'),
-                          {
-                            onClick: reload,
-                            type: 'text',
-                            size: 'xsmall',
-                            class: '!text-sm !px-2 !text-primary',
-                          },
-                          'Reload',
-                        ),
-                    h(
-                      resolveComponent('NcButton'),
-                      {
-                        onClick: close,
-                        type: 'text',
-                        size: 'xsmall',
-                        class: 'flex items-center gap-1',
-                      },
-                      [h(resolveComponent('GeneralIcon'), { icon: 'close', class: '' })],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ]),
-          duration: 5,
-          style: {
-            position: 'fixed',
-            bottom: '20px',
-            right: '20px',
+        ncMessage.error(
+          {
+            key: MESSAGE_KEY,
+            title: 'Page Loading Error',
+            content: 'Something went wrong while loading page!',
+            action:
+              repeated[err.message] > 2
+                ? h(
+                    resolveComponent('NcButton'),
+                    {
+                      onClick: navigateToHome,
+                      type: 'text',
+                      size: 'xsmall',
+                      class: '!text-sm !px-2 !text-primary',
+                    },
+                    () => 'Home',
+                  )
+                : h(
+                    resolveComponent('NcButton'),
+                    {
+                      onClick: reload,
+                      type: 'text',
+                      size: 'xsmall',
+                      class: '!text-sm !px-2 !text-primary',
+                    },
+                    () => 'Reload',
+                  ),
+            onClose: close,
+            class: '!w-auto !max-w-[fit-content]',
+            showDuration: true,
+            showCopyBtn: false,
           },
-        })
+          5,
+        )
+
         return false
       }
     })

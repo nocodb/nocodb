@@ -1,13 +1,11 @@
 <script lang="ts" setup>
 import StarterKit from '@tiptap/starter-kit'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
-import TurndownService from 'turndown'
-import { marked } from 'marked'
-import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-import tippy from 'tippy.js'
-import { Link } from '~/helpers/dbTiptapExtensions/links'
+import { NcMarkdownParser } from '~/helpers/tiptap'
+import { Markdown } from '~/helpers/tiptap-markdown'
+import { HardBreak, Italic, Link, Strike } from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -16,6 +14,7 @@ const props = withDefaults(
     readOnly?: boolean
     syncValueChange?: boolean
     autofocus?: boolean
+    autofocusToEnd?: boolean
     placeholder?: string
     renderAsText?: boolean
   }>(),
@@ -32,66 +31,77 @@ const isFocused = ref(false)
 
 const keys = useMagicKeys()
 
-const turndownService = new TurndownService({})
-
-turndownService.addRule('lineBreak', {
-  filter: (node) => {
-    return node.nodeName === 'BR'
-  },
-  replacement: () => {
-    return '<br />'
-  },
-})
-
-turndownService.addRule('strikethrough', {
-  filter: ['s'],
-  replacement: (content) => {
-    return `~${content}~`
-  },
-})
-
-turndownService.keep(['u', 'del'])
-
 const editorDom = ref<HTMLElement | null>(null)
 
 const richTextLinkOptionRef = ref<HTMLElement | null>(null)
 
-const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
+const vModel = computed({
+  get: () => {
+    return NcMarkdownParser.preprocessMarkdown(props.value, true)
+  },
+  set: (v: any) => {
+    emits('update:value', v)
+  },
+})
 
 const tiptapExtensions = [
   StarterKit.configure({
     heading: false,
     codeBlock: false,
     code: false,
+    strike: false,
+    hardBreak: false,
+    italic: false,
   }),
+  Strike,
   Underline,
   Link,
+  Italic,
+
+  HardBreak,
   Placeholder.configure({
     emptyEditorClass: 'is-editor-empty',
     placeholder: props.placeholder,
   }),
+  Markdown.configure({ breaks: true, transformPastedText: false }),
 ]
 
+function isOnlyBrTagsAndSpaces(str?: string) {
+  if (!str || !str?.trim()) {
+    return true
+  }
+
+  // Match any number of <br> tags with optional spaces
+  const regex = /^\s*(<br\s*\/?>\s*)*$/i
+  return regex.test(str)
+}
+
 const editor = useEditor({
+  content: vModel.value,
   extensions: tiptapExtensions,
   onUpdate: ({ editor }) => {
-    let markdown = turndownService.turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
+    let markdown = editor.storage.markdown.getMarkdown()
 
     const isListsActive = editor?.isActive('bulletList') || editor?.isActive('orderedList') || editor?.isActive('blockquote')
     if (isListsActive) {
-      if (markdown.endsWith('<br />')) markdown = markdown.slice(0, -6)
+      if (markdown.endsWith('<br>')) markdown = markdown.slice(0, -4)
+      if (markdown.endsWith('<br> ')) markdown = markdown.slice(0, -5)
     }
 
-    markdown = markdown.replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
-
-    vModel.value = markdown === '<br />' ? '' : `${markdown}`
+    vModel.value = isOnlyBrTagsAndSpaces(markdown) ? '' : `${markdown}`
   },
   editable: !props.readOnly,
   autofocus: props.autofocus,
+  onCreate: () => {
+    if (props.autofocusToEnd) {
+      nextTick(() => {
+        editor.value?.commands.setContent(vModel.value)
+      })
+    }
+  },
   onFocus: () => {
     isFocused.value = true
     emits('focus')
-    onFocusWrapper()
   },
   onBlur: (e) => {
     const targetEl = e?.event.relatedTarget as HTMLElement
@@ -107,44 +117,40 @@ const editor = useEditor({
       emits('blur')
     }
   },
+  editorProps: {
+    handleKeyDown(this, view, event) {
+      if (event.key === 'Enter' && !event.ctrlKey && !event.shiftKey && !event.metaKey) {
+        const { state } = view
+        const { selection } = state
+
+        if (!selection.empty) {
+          return true
+        }
+      }
+    },
+  },
 })
 
 const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
   if (!editor.value) return
+  editor.value.commands.setContent(contentMd, false)
 
-  const selection = editor.value.view.state.selection
-
-  const contentHtml = contentMd ? marked.parse(contentMd) : '<p></p>'
-
-  const content = generateJSON(contentHtml, tiptapExtensions)
-
-  editor.value.chain().setContent(content).setTextSelection(selection.to).run()
-
-  setTimeout(() => {
-    if (focusEndOfDoc) {
-      const docSize = editor.value!.state.doc.nodeSize
-
-      editor.value
-        ?.chain()
-        .setTextSelection(docSize - 1)
-        .run()
-    }
-
-    ;(editor.value!.state as any).history$.prevRanges = null
-    ;(editor.value!.state as any).history$.done.eventCount = 0
-  }, 100)
+  if (focusEndOfDoc) {
+    focusEditor()
+  }
 }
 
 function onFocusWrapper() {
   if (!props.readOnly && !keys.shift.value) {
     editor.value?.chain().focus().run()
-    setEditorContent(vModel.value, true)
   }
 }
 
-if (props.syncValueChange) {
-  watch([vModel, editor], () => {
-    setEditorContent(vModel.value)
+function focusEditor() {
+  if (!editor.value) return
+
+  nextTick(() => {
+    editor.value?.chain().focus().run()
   })
 }
 
@@ -165,6 +171,7 @@ useEventListener(
   },
   true,
 )
+
 useEventListener(
   richTextLinkOptionRef,
   'focusout',
@@ -190,6 +197,7 @@ useEventListener(
   },
   true,
 )
+
 onClickOutside(editorDom, (e) => {
   if (!isFocused.value) return
 
@@ -222,17 +230,27 @@ const emitSave = (event: KeyboardEvent) => {
   }
 }
 
+let timerId: any
+
 const handleEnterDown = (event: KeyboardEvent) => {
+  if (!vModel.value?.length) {
+    setEditorContent('')
+    return
+  }
+
+  if (timerId) {
+    clearTimeout(timerId)
+  }
+
   const isListsActive =
     editor.value?.isActive('bulletList') || editor.value?.isActive('orderedList') || editor.value?.isActive('blockquote')
+
   if (isListsActive) {
     triggerSaveFromList.value = true
-    setTimeout(() => {
+    timerId = setTimeout(() => {
       triggerSaveFromList.value = false
     }, 1000)
-  } else {
-    emitSave(event)
-  }
+  } else emitSave(event)
 }
 
 const handleKeyPress = (event: KeyboardEvent) => {
@@ -245,6 +263,8 @@ const handleKeyPress = (event: KeyboardEvent) => {
   } else if (event.key === 'Escape') {
     isFocused.value = false
     emits('blur')
+
+    document.querySelector('.nc-drawer-expanded-form.active > div[tabindex="0"]')?.focus?.()
   }
 }
 
@@ -256,25 +276,7 @@ const saveComment = (e) => {
 
 defineExpose({
   setEditorContent,
-})
-
-onMounted(() => {
-  if (!props.readOnly) return
-
-  setTimeout(() => {
-    document.querySelectorAll('.nc-rich-link-tooltip').forEach((el) => {
-      const tooltip = Object.values(el.attributes).find((attr) => attr.name === 'data-tooltip')
-      if (!tooltip) return
-      tippy(el, {
-        content: `<span class="tooltip">${tooltip.value}</span>`,
-        placement: 'top',
-        allowHTML: true,
-        arrow: true,
-        animation: 'fade',
-        duration: 0,
-      })
-    })
-  }, 1000)
+  focusEditor,
 })
 </script>
 
@@ -308,7 +310,7 @@ onMounted(() => {
           'p-1': !props.readOnly,
           'px-[0.25rem]': props.readOnly,
         }"
-        class="flex flex-col nc-comment-rich-editor w-full scrollbar-thin scrollbar-thumb-gray-200 nc-truncate scrollbar-track-transparent"
+        class="nc-rich-text-content flex flex-col nc-comment-rich-editor w-full scrollbar-thin scrollbar-thumb-gray-200 nc-rich-truncate scrollbar-track-transparent"
         @keydown.stop="handleKeyPress"
       />
 
@@ -321,7 +323,7 @@ onMounted(() => {
           size="xsmall"
           @click="saveComment"
         >
-          <GeneralIcon icon="send" />
+          <GeneralIcon icon="ncSendAlt" />
         </NcButton>
       </div>
     </template>
@@ -329,10 +331,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-.tooltip {
-  @apply text-xs bg-gray-800 text-white px-2 py-1 rounded-lg;
-}
-
 .nc-rich-text-comment {
   .readonly {
     .nc-comment-rich-editor {
@@ -348,7 +346,7 @@ onMounted(() => {
   }
 
   .nc-comment-rich-editor {
-    &.nc-truncate {
+    &.nc-rich-truncate {
       .tiptap.ProseMirror {
         display: -webkit-box;
         max-width: 100%;
@@ -389,65 +387,6 @@ onMounted(() => {
     .ProseMirror-focused {
       // remove all border
       outline: none;
-    }
-
-    ul {
-      li {
-        @apply ml-4;
-        list-style-type: disc;
-      }
-    }
-
-    ol {
-      @apply !pl-4;
-      li {
-        list-style-type: decimal;
-      }
-    }
-
-    ul,
-    ol {
-      @apply !my-0;
-    }
-
-    // Pre tag is the parent wrapper for Code block
-    pre {
-      border-color: #d0d5dd;
-      border: 1px;
-      color: black;
-      font-family: 'JetBrainsMono', monospace;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      @apply overflow-auto mt-3 bg-gray-100;
-
-      code {
-        @apply !px-0;
-      }
-    }
-
-    code {
-      @apply rounded-md px-2 py-1 bg-gray-100;
-      color: inherit;
-      font-size: 0.8rem;
-    }
-
-    blockquote {
-      border-left: 3px solid #d0d5dd;
-      padding: 0 1em;
-      color: #666;
-      margin: 1em 0;
-      font-style: italic;
-    }
-
-    hr {
-      @apply !border-gray-300;
-      border: 0;
-      border-top: 1px solid #ccc;
-      margin: 1.5em 0;
-    }
-
-    pre {
-      height: fit-content;
     }
   }
 }

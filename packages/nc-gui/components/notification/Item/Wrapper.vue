@@ -53,13 +53,14 @@ const { toggleRead, deleteNotification } = notificationStore
           '!opacity-100': isMobileMode,
         }"
         class="transition-all duration-100 opacity-0 !group-hover:opacity-100"
+        placement="bottomRight"
       >
         <NcButton size="xsmall" type="secondary" @click.stop>
           <GeneralIcon icon="threeDotVertical" />
         </NcButton>
 
         <template #overlay>
-          <NcMenu>
+          <NcMenu variant="small">
             <NcMenuItem @click.stop="() => toggleRead(item)"> Mark as unread </NcMenuItem>
             <NcDivider />
             <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click.stop="deleteNotification(item)"> Delete </NcMenuItem>
@@ -69,5 +70,3 @@ const { toggleRead, deleteNotification } = notificationStore
     </div>
   </div>
 </template>
-
-<style scoped lang="scss"></style>

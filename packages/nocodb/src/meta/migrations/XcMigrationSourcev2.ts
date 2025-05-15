@@ -52,6 +52,19 @@ import * as nc_062_integration_store from '~/meta/migrations/v2/nc_062_integrati
 import * as nc_063_form_field_filter from '~/meta/migrations/v2/nc_063_form_field_filter';
 import * as nc_064_pg_minimal_dbs from '~/meta/migrations/v2/nc_064_pg_minimal_dbs';
 import * as nc_065_encrypt_flag from '~/meta/migrations/v2/nc_065_encrypt_flag';
+import * as nc_066_ai_button from '~/meta/migrations/v2/nc_066_ai_button';
+import * as nc_067_personal_view from '~/meta/migrations/v2/nc_067_personal_view';
+import * as nc_068_user_delete from '~/meta/migrations/v2/nc_068_user_delete';
+import * as nc_069_ai_prompt from '~/meta/migrations/v2/nc_069_ai_prompt';
+import * as nc_070_data_reflection from '~/meta/migrations/v2/nc_070_data_reflection';
+import * as nc_071_add_meta_in_users from '~/meta/migrations/v2/nc_071_add_meta_in_users';
+import * as nc_072_col_button_pk from '~/meta/migrations/v2/nc_072_col_button_pk';
+import * as nc_073_file_reference_indexes from '~/meta/migrations/v2/nc_073_file_reference_indexes';
+import * as nc_074_missing_context_indexes from '~/meta/migrations/v2/nc_074_missing_context_indexes';
+import * as nc_075_audit_refactor from '~/meta/migrations/v2/nc_075_audit_refactor';
+import * as nc_076_sync_configs from '~/meta/migrations/v2/nc_076_sync_configs';
+import * as nc_077_column_index_name from '~/meta/migrations/v2/nc_077_column_index_name';
+import * as nc_078_mcp_tokens from '~/meta/migrations/v2/nc_078_mcp_tokens';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -115,6 +128,19 @@ export default class XcMigrationSourcev2 {
       'nc_063_form_field_filter',
       'nc_064_pg_minimal_dbs',
       'nc_065_encrypt_flag',
+      'nc_066_ai_button',
+      'nc_067_personal_view',
+      'nc_068_user_delete',
+      'nc_069_ai_prompt',
+      'nc_070_data_reflection',
+      'nc_071_add_meta_in_users',
+      'nc_072_col_button_pk',
+      'nc_073_file_reference_indexes',
+      'nc_074_missing_context_indexes',
+      'nc_075_audit_refactor',
+      'nc_076_sync_configs',
+      'nc_077_column_index_name',
+      'nc_078_mcp_tokens',
     ]);
   }
 
@@ -232,6 +258,32 @@ export default class XcMigrationSourcev2 {
         return nc_064_pg_minimal_dbs;
       case 'nc_065_encrypt_flag':
         return nc_065_encrypt_flag;
+      case 'nc_066_ai_button':
+        return nc_066_ai_button;
+      case 'nc_067_personal_view':
+        return nc_067_personal_view;
+      case 'nc_068_user_delete':
+        return nc_068_user_delete;
+      case 'nc_069_ai_prompt':
+        return nc_069_ai_prompt;
+      case 'nc_070_data_reflection':
+        return nc_070_data_reflection;
+      case 'nc_071_add_meta_in_users':
+        return nc_071_add_meta_in_users;
+      case 'nc_072_col_button_pk':
+        return nc_072_col_button_pk;
+      case 'nc_073_file_reference_indexes':
+        return nc_073_file_reference_indexes;
+      case 'nc_074_missing_context_indexes':
+        return nc_074_missing_context_indexes;
+      case 'nc_075_audit_refactor':
+        return nc_075_audit_refactor;
+      case 'nc_076_sync_configs':
+        return nc_076_sync_configs;
+      case 'nc_077_column_index_name':
+        return nc_077_column_index_name;
+      case 'nc_078_mcp_tokens':
+        return nc_078_mcp_tokens;
     }
   }
 }

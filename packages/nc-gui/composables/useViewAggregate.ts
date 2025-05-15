@@ -2,18 +2,21 @@ import type { Ref } from 'vue'
 import {
   type ColumnType,
   CommonAggregations,
+  type FormulaType,
   type TableType,
   UITypes,
   type ViewType,
   ViewTypes,
   getAvailableAggregations,
 } from 'nocodb-sdk'
+import type { EventHook } from '@vueuse/core'
 
 const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
   (
     view: Ref<ViewType | undefined>,
     meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
     where?: ComputedRef<string | undefined>,
+    reloadVisibleDataHook?: EventHook<void>,
   ) => {
     const { $api: api } = useNuxtApp()
 
@@ -64,7 +67,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         value: aggregations.value[fields.value[0].title] ?? null,
         column: fields.value[0],
         field: gridViewCols.value[fields.value[0].id!],
-        width: `${Number((gridViewCols.value[fields.value[0]!.id!].width ?? '').replace('px', '')) + 64}px` || '244px',
+        width: `${Number((gridViewCols.value[fields.value[0]!.id!].width ?? '').replace('px', '')) + 80}px` || '260px',
       }
     })
 
@@ -104,6 +107,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
                 })
 
             Object.assign(aggregations.value, data)
+            reloadVisibleDataHook?.trigger()
           } catch (error) {
             console.log(error)
             message.error(await extractSdkResponseErrorMsgv2(error as any))
@@ -121,10 +125,37 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         ],
       })
       await updateGridViewColumn(fieldId, { aggregation: agg })
+      reloadVisibleDataHook?.trigger()
     }
 
+    const aggregateFormulaFields = computed(() => {
+      return fields.value
+        .filter((field) => {
+          if (!field?.id || !field?.title) return false
+
+          if (
+            !isFormula(field) ||
+            !gridViewCols.value[field.id] ||
+            !gridViewCols.value[field.id]?.aggregation ||
+            gridViewCols.value[field.id]?.aggregation === CommonAggregations.None ||
+            !(field.colOptions as FormulaType)?.formula_raw
+          ) {
+            return false
+          }
+
+          return true
+        })
+        .map((field) => {
+          return {
+            id: field.id,
+            aggregation: gridViewCols.value[field.id!]?.aggregation ?? CommonAggregations.None,
+            formula_raw: (field.colOptions as FormulaType)?.formula_raw ?? '',
+          }
+        })
+    })
+
     reloadAggregate?.on(async (_fields) => {
-      if (!_fields || !_fields?.fields.length) {
+      if (!_fields || !_fields?.fields?.length) {
         await loadViewAggregate()
       }
       if (_fields?.fields) {
@@ -134,6 +165,12 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
           if (!f?.id) return acc
 
           acc[f.id] = field.aggregation ?? gridViewCols.value[f.id].aggregation ?? CommonAggregations.None
+
+          for (const formulaField of aggregateFormulaFields.value) {
+            if (!acc[formulaField.id!] && formulaField.formula_raw.includes(field.title)) {
+              acc[formulaField.id!] = formulaField.aggregation
+            }
+          }
 
           return acc
         }, {} as Record<string, string>)
@@ -150,6 +187,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
     return {
       loadViewAggregate,
       isPublic,
+      aggregations,
       updateAggregate,
       getAggregations,
       displayFieldComputed,

@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type TableType, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
-  column: ColumnType
   value?: boolean
 }
 
@@ -12,23 +11,19 @@ const props = defineProps<Props>()
 
 const { $api } = useNuxtApp()
 
-const baseStore = useBase()
-
 const { getMeta, metas } = useMetas()
 
 const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { loadTables } = baseStore
+const menuColumn = inject(ColumnInj)
 
-const { tables } = toRefs(baseStore)
+const canvasColumn = inject(CanvasColumnInj)
 
-const column = toRef(props, 'column')
+const column = computed(() => menuColumn?.value || canvasColumn?.value)
 
 const value = useVModel(props, 'value')
-
-const columnsHash = ref()
 
 const isLoading = ref(false)
 
@@ -49,20 +44,11 @@ const getIcon = (c: ColumnType) =>
     columnMeta: c,
   })
 
-const relatedModel = computedAsync(async () => {
-  const fkRelatedModelId = (column.value.colOptions as any)?.fk_related_model_id
+const isLoadingModel = ref(false)
 
-  if (fkRelatedModelId) {
-    let table = tables.value.find((t) => t.id === fkRelatedModelId)
+const fkRelatedModelId = computed(() => (column.value.colOptions as any)?.fk_related_model_id)
 
-    if (!table) {
-      await loadTables()
-      table = tables.value.find((t) => t.id === fkRelatedModelId)
-    }
-    return table
-  }
-  return null
-})
+const relatedModel = ref<TableType | null>()
 
 const clearAll = () => {
   Object.keys(selectedFields.value).forEach((k) => (selectedFields.value[k] = false))
@@ -119,7 +105,7 @@ const createLookups = async () => {
     }
 
     await $api.dbTableColumn.bulk(meta.value?.id, {
-      hash: columnsHash.value,
+      hash: meta.value?.columnsHash,
       ops: bulkOpsCols,
     })
 
@@ -128,6 +114,7 @@ const createLookups = async () => {
     value.value = false
   } catch (e) {
     console.error(e)
+    message.error('Failed to create lookup columns')
   } finally {
     isLoading.value = false
   }
@@ -135,15 +122,15 @@ const createLookups = async () => {
 
 watch([relatedModel, searchField], async () => {
   if (relatedModel.value) {
-    const columns = metas.value[relatedModel.value.id].columns
-    filteredColumns.value = columns
-      .filter((c) => !isSystemColumn(c) && !isLinksOrLTAR(c))
-      .filter((c) => c?.title?.toLowerCase().startsWith(searchField.value?.toLowerCase()))
+    const columns = metas.value[relatedModel.value.id]?.columns || []
+    filteredColumns.value = columns.filter(
+      (c) => !isSystemColumn(c) && !isLinksOrLTAR(c) && searchCompare([c?.title], searchField.value),
+    )
   }
 })
 
 onMounted(async () => {
-  columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
+  relatedModel.value = await getMeta(fkRelatedModelId.value)
 })
 </script>
 
@@ -176,8 +163,13 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="border-1 rounded-md h-[300px] nc-scrollbar-md border-gray-200">
-        <Draggable v-model="filteredColumns" item-key="id" ghost-class="nc-lookup-menu-items-ghost">
+      <div
+        :class="{
+          'flex items-center justify-center': isLoadingModel,
+        }"
+        class="border-1 rounded-md h-[300px] nc-scrollbar-md border-gray-200"
+      >
+        <Draggable v-if="!isLoadingModel" v-model="filteredColumns" item-key="id" ghost-class="nc-lookup-menu-items-ghost">
           <template #item="{ element: field }">
             <div
               :key="field.id"
@@ -202,6 +194,10 @@ onMounted(async () => {
             </div>
           </template>
         </Draggable>
+
+        <div v-else>
+          <GeneralLoader size="xlarge" />
+        </div>
       </div>
 
       <div class="flex w-full gap-2 justify-end">

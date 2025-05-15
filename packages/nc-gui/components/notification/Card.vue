@@ -53,7 +53,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
               }"
               class="text-xs"
             >
-              Unread
+              {{ $t('general.unread') }}
             </span>
           </template>
           <div
@@ -86,7 +86,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
               }"
               class="text-xs"
             >
-              Read
+              {{ $t('general.read') }}
             </span>
           </template>
 

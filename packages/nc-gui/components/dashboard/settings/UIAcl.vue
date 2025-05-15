@@ -148,9 +148,9 @@ const columns = [
 <template>
   <div class="h-full flex flex-row w-full items-center justify-center">
     <div class="w-full h-full flex flex-col">
-      <NcTooltip class="mb-4 first-letter:capital font-bold max-w-100 truncate" show-on-truncate-only>
+      <NcTooltip class="mb-4 first-letter:capital" show-on-truncate-only>
         <template #title>{{ base.title }}</template>
-        <span> UI ACL : {{ base.title }} </span>
+        <span> Control view visibility for different roles to manage access efficiently. </span>
       </NcTooltip>
       <div class="flex flex-row items-center w-full mb-4 gap-2 justify-between">
         <a-input
@@ -262,5 +262,3 @@ const columns = [
     </div>
   </div>
 </template>
-
-<style scoped lang="scss"></style>

@@ -1,5 +1,7 @@
 import UITypes from '../UITypes';
 import { ColumnType, IDType } from '~/lib';
+import { SqlUi } from './SqlUI.types';
+import { numberize } from '../numberUtils';
 
 const dbTypes = [
   'int',
@@ -43,7 +45,8 @@ const dbTypes = [
   'json',
 ];
 
-export class MysqlUi {
+export class MysqlUi implements SqlUi {
+  //#region statics
   static getNewTableColumns(): readonly any[] {
     return [
       {
@@ -181,6 +184,30 @@ export class MysqlUi {
         dtxs: '',
         altered: 1,
         uidt: UITypes.LastModifiedBy,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: 'nc_order',
+        title: 'nc_order',
+        dt: 'decimal',
+        dtx: 'decimal',
+        ct: 'decimal(40,20)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: null,
+        clen: null,
+        np: 40,
+        ns: 20,
+        dtxp: '40,20',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.Order,
         uip: '',
         uicn: '',
         system: true,
@@ -1132,6 +1159,9 @@ export class MysqlUi {
       case 'JSON':
         colProp.dt = 'json';
         break;
+      case 'Order':
+        colProp.dt = 'decimal';
+        break;
       default:
         colProp.dt = 'varchar';
         break;
@@ -1368,4 +1398,123 @@ export class MysqlUi {
 
     return false;
   }
+  //#endregion statics
+
+  //#region methods
+  getNewTableColumns(): readonly any[] {
+    return MysqlUi.getNewTableColumns();
+  }
+  getNewColumn(suffix: string): {
+    column_name: string;
+    dt: string;
+    dtx: string;
+    ct: string;
+    nrqd: boolean;
+    rqd: boolean;
+    ck: boolean;
+    pk: boolean;
+    un: boolean;
+    ai: boolean;
+    cdf: null;
+    clen: number;
+    np: number;
+    ns: number;
+    dtxp: string;
+    dtxs: string;
+    altered: number;
+    uidt: string;
+    uip: string;
+    uicn: string;
+  } {
+    return MysqlUi.getNewColumn(suffix);
+  }
+  getDefaultLengthForDatatype(type: string): number | string {
+    return MysqlUi.getDefaultLengthForDatatype(type);
+  }
+  getDefaultLengthIsDisabled(type: string) {
+    return MysqlUi.getDefaultLengthIsDisabled(type);
+  }
+  getDefaultValueForDatatype(type: string) {
+    return MysqlUi.getDefaultValueForDatatype(type);
+  }
+  getDefaultScaleForDatatype(type: any): string {
+    return MysqlUi.getDefaultScaleForDatatype(type);
+  }
+  colPropAIDisabled(col: ColumnType, columns: ColumnType[]): boolean {
+    return MysqlUi.colPropAIDisabled(col, columns);
+  }
+  colPropUNDisabled(col: ColumnType): boolean {
+    return MysqlUi.colPropUNDisabled(col);
+  }
+  onCheckboxChangeAI(col: ColumnType): void {
+    return MysqlUi.onCheckboxChangeAI(col);
+  }
+  showScale(columnObj: ColumnType): boolean {
+    return MysqlUi.showScale(columnObj);
+  }
+  removeUnsigned(columns: ColumnType[]): void {
+    return MysqlUi.removeUnsigned(columns);
+  }
+  columnEditable(colObj: ColumnType): boolean {
+    return MysqlUi.columnEditable(colObj);
+  }
+  onCheckboxChangeAU(col: ColumnType): void {
+    return MysqlUi.onCheckboxChangeAU(col);
+  }
+  colPropAuDisabled(col: ColumnType): boolean {
+    return MysqlUi.colPropAuDisabled(col);
+  }
+  getAbstractType(col: ColumnType): string {
+    return MysqlUi.getAbstractType(col);
+  }
+  getUIType(col: ColumnType): string {
+    return MysqlUi.getUIType(col);
+  }
+  getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+    return MysqlUi.getDataTypeForUiType(col, idType);
+  }
+  getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType): string[] {
+    return MysqlUi.getDataTypeListForUiType(col, idType);
+  }
+  getUnsupportedFnList(): string[] {
+    return MysqlUi.getUnsupportedFnList();
+  }
+  getCurrentDateDefault(_col: Partial<ColumnType>) {
+    return MysqlUi.getCurrentDateDefault(_col);
+  }
+  isEqual(dataType1: string, dataType2: string): boolean {
+    return MysqlUi.isEqual(dataType1, dataType2);
+  }
+  adjustLengthAndScale(newColumn: Partial<ColumnType>, oldColumn?: ColumnType) {
+    if (newColumn.dt === 'decimal') {
+      // get old column length and default length
+      const defaultDtxp: number = numberize(
+        this.getDefaultLengthForDatatype(newColumn.dt)
+      );
+      let lastDtxp = defaultDtxp;
+      if (oldColumn) {
+        lastDtxp = numberize(oldColumn.dtxp) ?? lastDtxp;
+      }
+      // get default and new column scale
+      const defaultDtxs = numberize(
+        this.getDefaultScaleForDatatype(newColumn.dt)
+      );
+      const newDtxs = numberize(newColumn.dtxs) ?? defaultDtxs;
+
+      // get new column length based on scale and old length
+      // get whichever is the highest, old column length,
+      // default column length or default + precision - default if precision > default
+      const newDtxp = Math.max(
+        defaultDtxp,
+        lastDtxp,
+        defaultDtxp + Math.max(newDtxs - defaultDtxs, 0)
+      );
+      newColumn.dtxp = newDtxp;
+      newColumn.dtxs = newDtxs;
+    }
+  }
+  isParsedJsonReturnType(col: ColumnType): boolean {
+    return ['json'].includes(col.dt?.toLowerCase());
+  }
+  //#endregion methods
 }

@@ -1,23 +1,19 @@
-import { v4 as uuidv4 } from 'uuid';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 
 export const MIGRATION_JOBS_STORE_KEY = 'NC_MIGRATION_JOBS';
 
-export const instanceUuid = uuidv4();
-
 const initState = {
   version: '0',
   stall_check: Date.now(),
   locked: false,
-  instance: instanceUuid,
 };
 
 export const getMigrationJobsState = async (): Promise<{
   version: string;
   stall_check: number;
   locked: boolean;
-  instance: string;
+  instance?: string;
 }> => {
   const ncMeta = Noco.ncMeta;
 
@@ -64,11 +60,13 @@ export const updateMigrationJobsState = async (
     version: string;
     stall_check: number;
     locked: boolean;
+    instance: string;
   }>,
   oldState?: {
     version: string;
     stall_check: number;
     locked: boolean;
+    instance?: string;
   },
 ) => {
   const ncMeta = Noco.ncMeta;
@@ -79,7 +77,6 @@ export const updateMigrationJobsState = async (
     const updatedState = {
       ...initState,
       ...state,
-      instance: instanceUuid,
     };
 
     await ncMeta.metaInsert2(
@@ -96,7 +93,6 @@ export const updateMigrationJobsState = async (
     const updatedState = {
       ...migrationJobsState,
       ...state,
-      instance: instanceUuid,
     };
 
     await ncMeta.metaUpdate(
@@ -125,7 +121,7 @@ export const setMigrationJobsStallInterval = () => {
     } catch (e) {
       console.error('Error updating stall check for migration job', e);
     }
-  }, 5 * 60 * 1000);
+  }, 5 * 60 * 1000).unref();
 
   return interval;
 };

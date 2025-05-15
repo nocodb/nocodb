@@ -103,6 +103,11 @@ export class TopbarPage extends BasePage {
     await this.get().locator(`.nc-icon-reload`).waitFor({ state: 'visible' });
     await this.get().locator(`.nc-icon-reload`).click();
     await this.rootPage.waitForLoadState('networkidle');
+    await new Promise<void>(resolve => {
+      setTimeout(() => {
+        resolve();
+      }, 200);
+    });
   }
 
   async clickDownload(type: string, verificationFile = 'expectedData.txt') {

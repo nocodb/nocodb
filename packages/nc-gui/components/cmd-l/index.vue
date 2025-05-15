@@ -132,7 +132,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
     hide()
   } else if (e.key === 'Enter') {
-    if (newView.value) {
+    if (newView.value && vOpen.value) {
       changeView({ viewId: newView.value.viewId, tableId: newView.value.tableId, baseId: newView.value.baseId })
     }
   } else if (e.key === 'ArrowUp') {
@@ -182,7 +182,7 @@ onMounted(() => {
 <template>
   <div v-if="vOpen" class="cmdk-modal cmdl-modal" :class="{ 'cmdk-modal-active cmdl-modal-active': vOpen }">
     <div ref="modalEl" class="cmdk-modal-content cmdl-modal-content relative h-[25.25rem]">
-      <div class="cmdk-input-wrapper">
+      <div class="cmdk-input-wrapper border-b-1 border-gray-200">
         <GeneralIcon class="h-4 w-4 text-gray-500" icon="search" />
         <input ref="cmdInputEl" v-model="search" class="cmdk-input" placeholder="Search" type="text" />
       </div>
@@ -271,7 +271,7 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   background-color: rgba(255, 255, 255, 0.5);
-  z-index: 1000;
+  z-index: 1100;
 
   color: rgb(60, 65, 73);
   font-size: 16px;

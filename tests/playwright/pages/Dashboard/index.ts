@@ -21,7 +21,6 @@ import { FindRowByScanOverlay } from './FindRowByScanOverlay';
 import { SidebarPage } from './Sidebar';
 import { DocsPageGroup } from './Docs';
 import { ShareProjectButtonPage } from './ShareProjectButton';
-import { ProjectTypes } from 'nocodb-sdk';
 import { WorkspacePage } from '../WorkspacePage';
 import { DetailsPage } from './Details';
 import { WorkspaceSettingsObject } from './WorkspaceSettings';
@@ -29,6 +28,7 @@ import { CmdJ } from './Command/CmdJPage';
 import { CmdK } from './Command/CmdKPage';
 import { CmdL } from './Command/CmdLPage';
 import { CalendarPage } from './Calendar';
+import { Extensions } from './Extensions';
 
 export class DashboardPage extends BasePage {
   readonly base: any;
@@ -62,6 +62,7 @@ export class DashboardPage extends BasePage {
   readonly cmdJ: CmdJ;
   readonly cmdK: CmdK;
   readonly cmdL: CmdL;
+  readonly extensions: Extensions;
 
   constructor(rootPage: Page, base: any) {
     super(rootPage);
@@ -95,6 +96,7 @@ export class DashboardPage extends BasePage {
     this.cmdJ = new CmdJ(this);
     this.cmdK = new CmdK(this);
     this.cmdL = new CmdL(this);
+    this.extensions = new Extensions(this);
   }
 
   get() {
@@ -147,8 +149,6 @@ export class DashboardPage extends BasePage {
     await this.tabBar.textContent().then(text => expect(text).toContain(title));
   }
 
-  async closeTab({ title }: { title: string }) {}
-
   async clickHome() {
     await this.leftSidebar.clickHome();
     // wait for workspace page to render
@@ -156,7 +156,7 @@ export class DashboardPage extends BasePage {
     await workspacePage.waitFor({ state: 'visible' });
   }
 
-  async verifyOpenedTab({ title, mode = 'standard', emoji }: { title: string; mode?: string; emoji?: string }) {
+  async verifyOpenedTab({ title, emoji }: { title: string; emoji?: string }) {
     await this.tabBar.locator(`.ant-tabs-tab-active:has-text("${title}")`).isVisible();
 
     if (emoji) {
@@ -169,17 +169,6 @@ export class DashboardPage extends BasePage {
   async verifyTabIsNotOpened({ title }: { title: string }) {
     await expect(this.tabBar.locator(`.ant-tabs-tab:has-text("${title}")`)).not.toBeVisible();
   }
-
-  // Hence will wait till contents are visible
-  async waitForTabRender({
-    title,
-    mode = 'standard',
-    type = ProjectTypes.DATABASE,
-  }: {
-    title: string;
-    mode?: string;
-    type?: ProjectTypes;
-  }) {}
 
   // When a tab is opened, it is not always immediately visible.
 
@@ -304,18 +293,18 @@ export class DashboardPage extends BasePage {
     await this.grid.workspaceMenu.toggle();
   }
 
-  private async _waitForDocsTabRender({ title, mode }: { title: string; mode: string }) {
-    await this.tabBar.locator(`.ant-tabs-tab-active:has-text("${title}")`).waitFor();
+  // private async _waitForDocsTabRender({ title, mode }: { title: string; mode: string }) {
+  //   await this.tabBar.locator(`.ant-tabs-tab-active:has-text("${title}")`).waitFor();
 
-    // wait active tab animation to finish
-    await expect
-      .poll(async () => {
-        return await this.tabBar.getByTestId(`nc-root-tabs-${title}`).evaluate(el => {
-          return window.getComputedStyle(el).getPropertyValue('color');
-        });
-      })
-      .toBe('rgb(67, 81, 232)');
+  //   // wait active tab animation to finish
+  //   await expect
+  //     .poll(async () => {
+  //       return await this.tabBar.getByTestId(`nc-root-tabs-${title}`).evaluate(el => {
+  //         return window.getComputedStyle(el).getPropertyValue('color');
+  //       });
+  //     })
+  //     .toBe('rgb(67, 81, 232)');
 
-    await this.rootPage.waitForTimeout(500);
-  }
+  //   await this.rootPage.waitForTimeout(500);
+  // }
 }

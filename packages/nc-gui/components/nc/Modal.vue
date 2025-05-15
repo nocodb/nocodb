@@ -1,33 +1,42 @@
 <script lang="ts" setup>
-const props = withDefaults(
-  defineProps<{
-    visible: boolean
-    width?: string | number
-    height?: string | number
-    size?: 'small' | 'medium' | 'large' | keyof typeof modalSizes
-    destroyOnClose?: boolean
-    maskClosable?: boolean
-    showSeparator?: boolean
-    wrapClassName?: string
-    closable?: boolean
-  }>(),
-  {
-    size: 'medium',
-    destroyOnClose: true,
-    maskClosable: true,
-    showSeparator: true,
-    wrapClassName: '',
-    closable: false,
-  },
-)
+export interface NcModalProps {
+  visible: boolean
+  width?: string | number
+  height?: string | number
+  size?: 'small' | 'medium' | 'large' | keyof typeof modalSizes
+  destroyOnClose?: boolean
+  maskClosable?: boolean
+  keyboard?: boolean
+  showSeparator?: boolean
+  wrapClassName?: string
+  closable?: boolean
+  ncModalClassName?: string
+  stopEventPropogation?: boolean
+  class?: string
+}
+
+const props = withDefaults(defineProps<NcModalProps>(), {
+  size: 'medium',
+  destroyOnClose: true,
+  maskClosable: true,
+  keyboard: true,
+  showSeparator: true,
+  wrapClassName: '',
+  closable: false,
+  ncModalClassName: '',
+  stopEventPropogation: false,
+  class: '',
+})
 
 const emits = defineEmits(['update:visible'])
 
 const { width: propWidth, height: propHeight, destroyOnClose, wrapClassName: _wrapClassName, showSeparator } = props
 
-const { maskClosable } = toRefs(props)
+const { maskClosable, keyboard, ncModalClassName, stopEventPropogation } = toRefs(props)
 
 const { isMobileMode } = useGlobal()
+
+const ncModalRef = ref<HTMLDivElement | null>(null)
 
 const width = computed(() => {
   if (isMobileMode.value) {
@@ -96,23 +105,47 @@ const newWrapClassName = computed(() => {
 const visible = useVModel(props, 'visible', emits)
 
 const slots = useSlots()
+
+const stopPropagation = (event: MouseEvent) => {
+  event.stopPropagation()
+}
+
+if (stopEventPropogation.value) {
+  watch(ncModalRef, () => {
+    // stop event propogation in edit column
+    const modal = document.querySelector('.nc-modal-wrapper') as HTMLElement
+
+    if (visible.value && modal?.parentElement) {
+      // modal.parentElement.addEventListener('click', stopPropagation)
+      modal.parentElement.addEventListener('mousedown', stopPropagation)
+      // modal.parentElement.addEventListener('mouseup', stopPropagation)
+    } else if (modal?.parentElement) {
+      // modal.parentElement.removeEventListener('click', stopPropagation)
+      modal.parentElement.removeEventListener('mousedown', stopPropagation)
+      // modal.parentElement.removeEventListener('mouseup', stopPropagation)
+    }
+  })
+}
 </script>
 
 <template>
   <a-modal
     v-model:visible="visible"
-    :class="{ active: visible }"
+    :class="[{ active: visible }, props.class]"
     :width="width"
     :centered="true"
     :closable="closable"
     :wrap-class-name="newWrapClassName"
     :footer="null"
     :mask-closable="maskClosable"
+    :keyboard="keyboard"
     :destroy-on-close="destroyOnClose"
     @keydown.esc="visible = false"
   >
     <div
+      ref="ncModalRef"
       class="flex flex-col nc-modal p-6 h-full"
+      :class="[`${ncModalClassName}`]"
       :style="{
         maxHeight: height,
         ...(modalSizes[size] ? { height } : {}),
@@ -136,7 +169,7 @@ const slots = useSlots()
 <style lang="scss">
 .nc-modal-wrapper {
   .ant-modal-content {
-    @apply !p-0;
+    @apply !p-0 overflow-hidden;
   }
 }
 </style>

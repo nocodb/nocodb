@@ -4,12 +4,13 @@
 ###########
 # Litestream Builder
 ###########
-FROM --platform=$BUILDPLATFORM golang:alpine3.20 as lt-builder
+FROM --platform=$BUILDPLATFORM golang:bookworm as lt-builder
 
 WORKDIR /usr/src/
 
 # Use build platform-specific tools
-RUN apk --no-cache add git make musl-dev gcc
+RUN apt-get update && apt-get install -y --no-install-recommends git make gcc libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Build litestream for the target platform
 RUN git clone https://github.com/benbjohnson/litestream.git litestream \
@@ -19,16 +20,21 @@ RUN git clone https://github.com/benbjohnson/litestream.git litestream \
 ###########
 # Builder
 ###########
-FROM --platform=$BUILDPLATFORM node:18.19.1-alpine as builder
+FROM --platform=$BUILDPLATFORM node:22-slim as builder
 WORKDIR /usr/src/app
 
 # Install node-gyp dependencies
-RUN apk add --no-cache python3 make g++
+RUN apt-get update && apt-get install -y --no-install-recommends make g++ \
+    python3 \
+    python3-distutils \
+    python-is-python3 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
-# Copy application dependency manifests to the container image.
+# Copy application dependency manifests to the container image
 COPY --link ./package.json ./package.json
 COPY --link ./docker/main.js ./docker/main.js
 COPY --link ./docker/start-litestream.sh /usr/src/appEntry/start.sh
@@ -39,22 +45,27 @@ COPY --link ./docker/nc-gui/ ./docker/nc-gui/
 # So that modclean works as expected
 RUN echo "node-linker=hoisted" > .npmrc
 
-# Install production dependencies, reduce node_module size with modclean
+# Install production dependencies, reduce node_modules size with modclean
 # Removing sqlite deps and add execute permission to start.sh
 RUN pnpm install --prod --shamefully-hoist \
-    && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
+    && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \
     && chmod +x /usr/src/appEntry/start.sh
 
 ############
 ## Binary Dependencies Builder
 ############
-FROM --platform=$TARGETPLATFORM node:18.19.1-alpine as bin-builder
+FROM --platform=$TARGETPLATFORM node:22-slim as bin-builder
 WORKDIR /usr/src/app
 
-RUN apk add --no-cache jq
+# Install node-gyp dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends jq make g++ \
+    python3 \
+    python3-distutils \
+    python-is-python3 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# copy package.json to extract dependency versions
+# Copy package.json to extract dependency versions
 COPY --link ./package.json ./package-copy.json
 
 # Install sqlite3 for the target platform to copy to the final image
@@ -65,7 +76,7 @@ RUN SQLITE3_VERSION=$(jq -r '.dependencies["sqlite3"]' /usr/src/app/package-copy
 ###########
 # Runner
 ###########
-FROM --platform=$TARGETPLATFORM alpine:3.19
+FROM --platform=$TARGETPLATFORM node:22-slim
 WORKDIR /usr/src/app
 
 ENV LITESTREAM_S3_SKIP_VERIFY=false \
@@ -78,7 +89,12 @@ ENV LITESTREAM_S3_SKIP_VERIFY=false \
     NODE_ENV=production \
     PORT=8080
 
-RUN apk add --update --no-cache dasel dumb-init nodejs
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends dumb-init curl wget ca-certificates \
+    && update-ca-certificates \
+    && curl -L "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_$(dpkg --print-architecture)" -o /usr/local/bin/dasel \
+    && chmod +x /usr/local/bin/dasel \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy litestream binary and config file
 COPY --link --from=lt-builder /go/bin/litestream /usr/local/bin/litestream

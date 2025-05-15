@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { VisibilityRuleReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { UIAclEvent } from '~/services/app-hooks/interfaces';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -59,12 +60,18 @@ export class ModelVisibilitiesService {
             role,
           });
         }
+        if (!!d.disabled[role] !== !!dataInDb?.disabled) {
+          this.appHooksService.emit(AppEvents.UI_ACL, {
+            base,
+            req: param.req,
+            context,
+            view,
+            role,
+            disabled: !!d.disabled[role],
+          } as UIAclEvent);
+        }
       }
     }
-    this.appHooksService.emit(AppEvents.UI_ACL_UPDATE, {
-      base,
-      req: param.req,
-    });
 
     return true;
   }

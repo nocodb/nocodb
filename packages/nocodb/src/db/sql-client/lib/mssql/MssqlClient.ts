@@ -4,6 +4,7 @@ import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
 import type { ColumnType } from 'nocodb-sdk';
+import deepClone from '~/helpers/deepClone';
 
 const log = new Debug('MssqlClient');
 
@@ -276,9 +277,9 @@ class MssqlClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
+      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+      connectionParamsWithoutDb.connection.password =
+        this.connectionConfig.connection.password;
       delete connectionParamsWithoutDb.connection.database;
       const tempSqlClient = knex(connectionParamsWithoutDb);
 
@@ -322,9 +323,9 @@ class MssqlClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
+      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+      connectionParamsWithoutDb.connection.password =
+        this.connectionConfig.connection.password;
       delete connectionParamsWithoutDb.connection.database;
       const tempSqlClient = knex(connectionParamsWithoutDb);
       await this.sqlClient.destroy();
@@ -1314,9 +1315,9 @@ class MssqlClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
+      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+      connectionParamsWithoutDb.connection.password =
+        this.connectionConfig.connection.password;
 
       if (
         connectionParamsWithoutDb.connection.database === args.database_name
@@ -2034,7 +2035,7 @@ class MssqlClient extends KnexClient {
 
       await this.sqlClient.raw(upQuery);
 
-      console.log(upQuery);
+      // console.log(upQuery);
 
       const afterUpdate = await this.afterTableUpdate(args);
 

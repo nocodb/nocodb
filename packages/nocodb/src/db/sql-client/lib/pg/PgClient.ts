@@ -3,7 +3,7 @@ import knex from 'knex';
 import isEmpty from 'lodash/isEmpty';
 import mapKeys from 'lodash/mapKeys';
 import find from 'lodash/find';
-import { UITypes } from 'nocodb-sdk';
+import { ncIsNullOrUndefined, UITypes } from 'nocodb-sdk';
 import KnexClient from '~/db/sql-client/lib/KnexClient';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
@@ -13,6 +13,7 @@ import {
   generateCastQuery,
 } from '~/db/sql-client/lib/pg/typeCast';
 import pgQueries from '~/db/sql-client/lib/pg/pg.queries';
+import deepClone from '~/helpers/deepClone';
 
 const log = new Debug('PGClient');
 
@@ -254,9 +255,9 @@ class PGClient extends KnexClient {
     try {
       await this.raw('SELECT 1+1 as data');
     } catch (e1) {
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
+      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+      connectionParamsWithoutDb.connection.password =
+        this.connectionConfig.connection.password;
       connectionParamsWithoutDb.connection.database = 'postgres';
       const tempSqlClient = knex({
         ...connectionParamsWithoutDb,
@@ -459,9 +460,9 @@ class PGClient extends KnexClient {
     let tempSqlClient;
 
     try {
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
+      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+      connectionParamsWithoutDb.connection.password =
+        this.connectionConfig.connection.password;
       let rows = [];
       try {
         connectionParamsWithoutDb.connection.database = 'postgres';
@@ -534,9 +535,9 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      const connectionParamsWithoutDb = JSON.parse(
-        JSON.stringify(this.connectionConfig),
-      );
+      const connectionParamsWithoutDb = deepClone(this.connectionConfig);
+      connectionParamsWithoutDb.connection.password =
+        this.connectionConfig.connection.password;
       connectionParamsWithoutDb.connection.database = 'postgres';
       const tempSqlClient = knex({
         ...connectionParamsWithoutDb,
@@ -671,9 +672,18 @@ class PGClient extends KnexClient {
     try {
       const { rows } = await this.sqlClient.raw(
         `SELECT datname as database FROM pg_database WHERE datistemplate = false and datname = ?`,
-        [args.database],
+        [args.databaseName],
       );
+
       result.data.value = rows.length > 0;
+
+      if (result.data.value && args.schema) {
+        const { rows: rows2 } = await this.sqlClient.raw(
+          `SELECT schema_name FROM information_schema.schemata WHERE schema_name = ?`,
+          [args.schema],
+        );
+        result.data.value = rows2.length > 0;
+      }
     } catch (e) {
       log.ppe(e, _func);
       throw e;
@@ -1178,28 +1188,32 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
     try {
+      // The relationList & relationListAll queries is may look needlessly long, but it is a way
+      // to get relationships without the `information_schema.constraint_column_usage` table (view).
+      // As that view only returns fk relations if the pg user is the table owner.
+      // Resource: https://dba.stackexchange.com/a/218969
+      // Remove clause `WHERE clause: AND f_sch.nspname = sch.nspname` for x-schema relations.
       const { rows } = await this.sqlClient.raw(
-        `SELECT distinct
-                tc.table_schema as ts,
-                tc.constraint_name as cstn,
-                tc.table_name as tn,
-                kcu.column_name as cn,
-                ccu.table_schema AS foreign_table_schema,
-                ccu.table_name AS rtn,
-                ccu.column_name AS rcn,
-                pc.confupdtype as ur, pc.confdeltype as dr
-        FROM
-            information_schema.table_constraints AS tc
-            JOIN information_schema.key_column_usage AS kcu
-              ON tc.constraint_name = kcu.constraint_name
-              AND tc.table_schema = kcu.table_schema
-            JOIN information_schema.constraint_column_usage AS ccu
-              ON ccu.constraint_name = tc.constraint_name
-              AND ccu.table_schema = tc.table_schema
-            join (select conname,confupdtype,confdeltype from pg_catalog.pg_constraint) pc
-            on pc.conname = tc.constraint_name
-        WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema=:schema and tc.table_name=:table
-        order by tc.table_name;`,
+        `SELECT 
+          sch.nspname    AS ts,
+          pc.conname     AS cstn,
+          tbl.relname    AS tn,
+          col.attname    AS cn,
+          f_sch.nspname  AS foreign_table_schema,
+          f_tbl.relname  AS rtn,
+          f_col.attname  AS rcn,
+          pc.confupdtype AS ur,
+          pc.confdeltype AS dr
+        FROM pg_constraint pc
+          LEFT JOIN LATERAL UNNEST(pc.conkey)  WITH ORDINALITY AS u(attnum, attposition)   ON TRUE
+          LEFT JOIN LATERAL UNNEST(pc.confkey) WITH ORDINALITY AS f_u(attnum, attposition) ON f_u.attposition = u.attposition
+          JOIN pg_class tbl ON tbl.oid = pc.conrelid
+          JOIN pg_namespace sch ON sch.oid = tbl.relnamespace
+          LEFT JOIN pg_attribute col ON (col.attrelid = tbl.oid AND col.attnum = u.attnum)
+          LEFT JOIN pg_class f_tbl ON f_tbl.oid = pc.confrelid
+          LEFT JOIN pg_namespace f_sch ON f_sch.oid = f_tbl.relnamespace
+          LEFT JOIN pg_attribute f_col ON (f_col.attrelid = f_tbl.oid AND f_col.attnum = f_u.attnum)
+        WHERE pc.contype = 'f' AND sch.nspname = :schema AND f_sch.nspname = sch.nspname AND tbl.relname = :table ;`,
         { schema: this.getEffectiveSchema(args), table: args.tn },
       );
 
@@ -1317,28 +1331,27 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
     try {
       const { rows } = await this.sqlClient.raw(
-        `SELECT DISTINCT tc.table_schema as ts,
-                tc.constraint_name as cstn,
-                tc.table_name as tn,
-                kcu.column_name as cn,
-                ccu.table_schema AS foreign_table_schema,
-                ccu.table_name   AS rtn,
-                ccu.column_name  AS rcn,
-                pc.confupdtype   as ur,
-                pc.confdeltype   as dr
-         FROM information_schema.table_constraints AS tc
-                JOIN information_schema.key_column_usage AS kcu
-                     ON tc.constraint_name = kcu.constraint_name
-                       AND tc.table_schema = kcu.table_schema
-                JOIN information_schema.constraint_column_usage AS ccu
-                     ON ccu.constraint_name = tc.constraint_name
-                       AND ccu.table_schema = tc.table_schema
-                join (select conname, confupdtype, confdeltype
-                      from pg_catalog.pg_constraint) pc
-                     on pc.conname = tc.constraint_name
-         WHERE tc.constraint_type = 'FOREIGN KEY'
-           AND tc.table_schema = ?
-         order by tc.table_name;`,
+        `SELECT 
+          sch.nspname    AS ts,
+          pc.conname     AS cstn,
+          tbl.relname    AS tn,
+          col.attname    AS cn,
+          f_sch.nspname  AS foreign_table_schema,
+          f_tbl.relname  AS rtn,
+          f_col.attname  AS rcn,
+          pc.confupdtype AS ur,
+          pc.confdeltype AS dr
+        FROM pg_constraint pc
+          LEFT JOIN LATERAL UNNEST(pc.conkey)  WITH ORDINALITY AS u(attnum, attposition)   ON TRUE
+          LEFT JOIN LATERAL UNNEST(pc.confkey) WITH ORDINALITY AS f_u(attnum, attposition) ON f_u.attposition = u.attposition
+          JOIN pg_class tbl ON tbl.oid = pc.conrelid
+          JOIN pg_namespace sch ON sch.oid = tbl.relnamespace
+          LEFT JOIN pg_attribute col ON (col.attrelid = tbl.oid AND col.attnum = u.attnum)
+          LEFT JOIN pg_class f_tbl ON f_tbl.oid = pc.confrelid
+          LEFT JOIN pg_namespace f_sch ON f_sch.oid = f_tbl.relnamespace
+          LEFT JOIN pg_attribute f_col ON (f_col.attrelid = f_tbl.oid AND f_col.attnum = f_u.attnum)
+        WHERE pc.contype = 'f' AND sch.nspname = ?
+        ORDER BY tn;`,
         [this.getEffectiveSchema(args)],
       );
 
@@ -2856,51 +2869,77 @@ class PGClient extends KnexClient {
     return result;
   }
 
-  alterTablePK(t, n, o, _existingQuery, createTable = false) {
-    const numOfPksInOriginal = [];
-    const numOfPksInNew = [];
-    let pksChanged = 0;
+  /**
+   * Generates SQL query to modify primary key constraints for a table
+   * @param {string} tableName - Full table name (can include schema)
+   * @param {Array<ColumnType>} newColumns - New column definitions
+   * @param {Array<ColumnType>} originalColumns - Original column definitions
+   * @param {string} _existingQuery - Existing SQL query (unused parameter)
+   * @param {boolean} [createTable=false] - Whether this is part of a CREATE TABLE statement
+   * @returns {string} SQL query for primary key modifications
+   */
+  alterTablePK(
+    tableName,
+    newColumns,
+    originalColumns,
+    _existingQuery,
+    createTable = false,
+  ) {
+    const originalPrimaryKeys = [];
+    const newPrimaryKeys = [];
+    let primaryKeyChanges = 0;
 
-    for (let i = 0; i < n.length; ++i) {
-      if (n[i].pk) {
-        if (n[i].altered !== 4) numOfPksInNew.push(n[i].cn);
+    // Handle schema-qualified table names by extracting just the table name
+    const tableNameWithoutSchema = tableName.includes('.')
+      ? tableName.split('.')[1]
+      : tableName;
+
+    // Collect new primary key columns (excluding dropped columns)
+    for (let i = 0; i < newColumns.length; ++i) {
+      if (newColumns[i].pk) {
+        if (newColumns[i].altered !== 4) newPrimaryKeys.push(newColumns[i].cn);
       }
     }
 
-    for (let i = 0; i < o.length; ++i) {
-      if (o[i].pk) {
-        numOfPksInOriginal.push(o[i].cn);
+    // Collect original primary key columns
+    for (let i = 0; i < originalColumns.length; ++i) {
+      if (originalColumns[i].pk) {
+        originalPrimaryKeys.push(originalColumns[i].cn);
       }
     }
 
-    if (numOfPksInNew.length === numOfPksInOriginal.length) {
-      for (let i = 0; i < numOfPksInNew.length; ++i) {
-        if (numOfPksInOriginal[i] !== numOfPksInNew[i]) {
-          pksChanged = 1;
+    // Determine if primary keys have changed
+    if (newPrimaryKeys.length === originalPrimaryKeys.length) {
+      for (let i = 0; i < newPrimaryKeys.length; ++i) {
+        if (originalPrimaryKeys[i] !== newPrimaryKeys[i]) {
+          primaryKeyChanges = 1;
           break;
         }
       }
     } else {
-      pksChanged = numOfPksInNew.length - numOfPksInOriginal.length;
+      primaryKeyChanges = newPrimaryKeys.length - originalPrimaryKeys.length;
     }
 
     let query = '';
-    if (!numOfPksInNew.length && !numOfPksInOriginal.length) {
-      // do nothing
-    } else if (pksChanged) {
-      query += numOfPksInOriginal.length
+    if (!newPrimaryKeys.length && !originalPrimaryKeys.length) {
+      // No primary keys in either version, no changes needed
+    } else if (primaryKeyChanges) {
+      // Drop existing primary key if it exists
+      query += originalPrimaryKeys.length
         ? this.genQuery(`alter TABLE ?? drop constraint IF EXISTS ??;`, [
-            t,
-            `${t}_pkey`,
+            tableName,
+            `${tableNameWithoutSchema}_pkey`,
           ])
         : '';
-      if (numOfPksInNew.length) {
+
+      // Add new primary key if specified
+      if (newPrimaryKeys.length) {
         if (createTable) {
-          query += this.genQuery(`, PRIMARY KEY(??)`, [numOfPksInNew]);
+          query += this.genQuery(`, PRIMARY KEY(??)`, [newPrimaryKeys]);
         } else {
           query += this.genQuery(
             `alter TABLE ?? add constraint ?? PRIMARY KEY(??);`,
-            [t, `${t}_pkey`, numOfPksInNew],
+            [tableName, `${tableNameWithoutSchema}_pkey`, newPrimaryKeys],
           );
         }
       }
@@ -2944,14 +2983,24 @@ class PGClient extends KnexClient {
     query = this.genQuery(`CREATE TABLE ?? (${query});`, [
       args.schema ? `${args.schema}.${args.tn}` : args.tn,
     ]);
-
     return query;
   }
 
   alterTableColumn(t, n, o, existingQuery, change = 2) {
     let query = '';
 
-    const defaultValue = this.sanitiseDefaultValue(n.cdf);
+    let defaultValue = this.sanitiseDefaultValue(n.cdf);
+    if (
+      !ncIsNullOrUndefined(defaultValue) &&
+      defaultValue !== '' &&
+      (['json', 'jsonb'].includes(n.dt) || [UITypes.JSON].includes(n.uidt))
+    ) {
+      if (!defaultValue.startsWith("'")) {
+        defaultValue = `'${defaultValue}'`;
+      }
+      defaultValue = `${defaultValue}::json`;
+    }
+
     const shouldSanitize = true;
 
     if (change === 0) {
@@ -3029,7 +3078,7 @@ class PGClient extends KnexClient {
           n.dt,
           castedColumn,
           limit,
-          n.meta.date_format || 'YYYY-MM-DD',
+          n.meta?.date_format || 'YYYY-MM-DD',
         );
 
         query += this.genQuery(castQuery, [], shouldSanitize);
@@ -3050,9 +3099,7 @@ class PGClient extends KnexClient {
           [t, n.cn],
           shouldSanitize,
         );
-        query += n.cdf
-          ? ` SET DEFAULT ${this.sanitiseDefaultValue(n.cdf)};\n`
-          : ` DROP DEFAULT;\n`;
+        query += n.cdf ? ` SET DEFAULT ${defaultValue};\n` : ` DROP DEFAULT;\n`;
       }
     }
     return query;
@@ -3263,11 +3310,14 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
 
-    const indexName = args.indexName || null;
+    let indexName = args.indexName || null;
 
     try {
       args.table = args.schema ? `${args.schema}.${args.tn}` : args.tn;
 
+      if (indexName) {
+        indexName = args.schema ? `${args.schema}.${indexName}` : indexName;
+      }
       // s = await this.sqlClient.schema.index(Object.keys(args.columns));
       await this.sqlClient.raw(
         this.sqlClient.schema

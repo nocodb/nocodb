@@ -3,14 +3,15 @@ import {
   CommonAggregations,
   type LinkToAnotherRecordType,
   type LookupType,
-  type SelectOptionsType,
   type TableType,
+  UITypesName,
   type ViewType,
 } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { message } from 'ant-design-vue'
+import rfdc from 'rfdc'
 import type { Group } from '../lib/types'
+import { findKeyColor, valueToTitle } from '../utils/groupbyUtils'
 
 const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
@@ -21,15 +22,18 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     where?: ComputedRef<string | undefined>,
     isPublic = false,
   ) => {
-    const groupByLimit: number = 3
+    const groupByLimit = 3
+
+    const clone = rfdc()
 
     const { api } = useApi()
+    const { $api } = useNuxtApp()
 
     const { appInfo } = useGlobal()
 
     const { base } = storeToRefs(useBase())
 
-    const { sharedView, fetchSharedViewData, fetchBulkAggregatedData, fetchBulkListData, fetchBulkGroupData } = useSharedView()
+    const { sharedView, fetchSharedViewData, fetchBulkAggregatedData } = useSharedView()
 
     const { gridViewCols } = useViewColumnsOrThrow()
 
@@ -71,19 +75,24 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       return appInfo.value.defaultGroupByLimit?.limitRecord || 10
     })
 
-    const supportedLookups = ref<string[]>([])
+    const unsupportedLookups = ref<string[]>([])
 
-    const fieldsToGroupBy = computed(() =>
-      (meta?.value?.columns || []).filter((field) => {
-        if (excludedGroupingUidt.includes(field.uidt as UITypes)) return false
-
-        if (field.uidt === UITypes.Lookup) {
-          return field.id && supportedLookups.value.includes(field.id)
+    const fieldsToGroupBy = computed(() => {
+      return clone(meta?.value?.columns || []).map((field) => {
+        if (
+          (field.uidt === UITypes.Lookup && field.id && unsupportedLookups.value.includes(field.id)) ||
+          excludedGroupingUidt.includes(field.uidt as UITypes)
+        ) {
+          field.ncItemDisabled = true
+          field.ncItemTooltip = `This Field of type ${UITypesName[field.uidt]} not supported for grouping`
+        } else {
+          field.ncItemDisabled = false
+          field.ncItemTooltip = ''
         }
 
-        return true
-      }),
-    )
+        return field
+      })
+    })
 
     const rootGroup = ref<Group>({
       key: 'root',
@@ -119,29 +128,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         rowMeta: {},
       }))
 
-    const valueToTitle = (value: string, col: ColumnType, displayValueProp?: string) => {
-      if (col.uidt === UITypes.Checkbox) {
-        return value ? GROUP_BY_VARS.TRUE : GROUP_BY_VARS.FALSE
-      }
-
-      if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt as UITypes)) {
-        if (!value) {
-          return GROUP_BY_VARS.NULL
-        }
-      }
-
-      if (col.uidt === UITypes.LinkToAnotherRecord && displayValueProp && value && typeof value === 'object') {
-        return value[displayValueProp] ?? GROUP_BY_VARS.NULL
-      }
-
-      // convert to JSON string if non-string value
-      if (value && typeof value === 'object') {
-        value = JSON.stringify(value)
-      }
-
-      return value ?? GROUP_BY_VARS.NULL
-    }
-
     const colors = ref(enumColor.light)
 
     const nextGroupColor = ref(colors.value[0])
@@ -155,40 +141,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         nextGroupColor.value = colors.value[index + 1]
       }
       return tempColor
-    }
-
-    const findKeyColor = (key?: string, col?: ColumnType): string => {
-      if (col) {
-        switch (col.uidt) {
-          case UITypes.MultiSelect: {
-            const keys = key?.split(',') || []
-            const colors = []
-            for (const k of keys) {
-              const option = (col.colOptions as SelectOptionsType).options?.find((o) => o.title === k)
-              if (option) {
-                colors.push(option.color)
-              }
-            }
-            return colors.join(',')
-          }
-          case UITypes.SingleSelect: {
-            const option = (col.colOptions as SelectOptionsType).options?.find((o) => o.title === key)
-            if (option) {
-              return option.color || getNextColor()
-            }
-            return 'gray'
-          }
-          case UITypes.Checkbox: {
-            if (key) {
-              return themeColors.success
-            }
-            return themeColors.error
-          }
-          default:
-            return key ? getNextColor() : 'gray'
-        }
-      }
-      return key ? getNextColor() : 'gray'
     }
 
     const calculateNestedWhere = (nestedIn: GroupNestedIn[], existing = '') => {
@@ -254,7 +206,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             key: valueToTitle(curr[groupby.column.title!], groupby.column),
             column: groupby.column,
             count: +curr.count,
-            color: findKeyColor(curr[groupby.column.title!], groupby.column),
+            color: findKeyColor(curr[groupby.column.title!], groupby.column, getNextColor),
             nestedIn: [
               ...group!.nestedIn,
               {
@@ -289,8 +241,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             pageSize: keyExists.paginationData.pageSize || temp.paginationData.pageSize,
             totalRows: temp.count,
           }
-          temp.color = keyExists.color
-
           // update group
           Object.assign(keyExists, temp)
           continue
@@ -323,7 +273,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     async function loadGroups(
       params: any = {},
       group?: Group,
-      options?: {
+      _options?: {
         triggerChildOnly: boolean
       },
     ) {
@@ -338,7 +288,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         if (group.nestedIn.length > groupBy.value.length) return
 
-        if (group.nestedIn.length === 0) nextGroupColor.value = colors.value[0]
         const groupby = groupBy.value[group.nestedIn.length]
 
         const nestedWhere = calculateNestedWhere(group.nestedIn, where?.value)
@@ -356,42 +305,42 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           group.displayValueProp = (relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
         }
 
-        if (!options?.triggerChildOnly) {
-          const response = !isPublic
-            ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
-                offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
-                limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
+        // if (!options?.triggerChildOnly) {
+        const response = !isPublic
+          ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
+              offset: ((group.paginationData.page ?? 0) - 1) * groupByGroupLimit.value,
+              limit: groupByGroupLimit.value,
+              ...params,
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+              where: `${nestedWhere}`,
+              sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
+              column_name: groupby.column.title,
+            } as any)
+          : await api.public.dataGroupBy(
+              sharedView.value!.uuid!,
+              {
+                offset: ((group.paginationData.page ?? 0) - 1) * groupByGroupLimit.value,
+                limit: groupByGroupLimit.value,
                 ...params,
-                ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-                ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-                where: `${nestedWhere}`,
+                where: nestedWhere,
                 sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
                 column_name: groupby.column.title,
-              } as any)
-            : await api.public.dataGroupBy(
-                sharedView.value!.uuid!,
-                {
-                  offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
-                  limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
-                  ...params,
-                  where: nestedWhere,
-                  sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
-                  column_name: groupby.column.title,
-                  sortsArr: sorts.value,
-                  filtersArr: nestedFilters.value,
+                sortsArr: sorts.value,
+                filtersArr: nestedFilters.value,
+              },
+              {
+                headers: {
+                  'xc-password': sharedViewPassword.value,
                 },
-                {
-                  headers: {
-                    'xc-password': sharedViewPassword.value,
-                  },
-                },
-              )
+              },
+            )
 
-          group = await processGroupData(response, group)
-        }
+        group = await processGroupData(response, group)
+        // }
 
-        if (appInfo.value.ee) {
-          const aggregationMap = new Map<string, string>()
+        if (appInfo.value.ee && group?.children?.length) {
+          const aggregationAliasMapper = new AliasMapper()
 
           const aggregation = Object.values(gridViewCols.value)
             .map((f) => ({
@@ -401,179 +350,38 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             .filter((f) => f.type !== CommonAggregations.None)
 
           const aggregationParams = (group.children ?? []).map((child) => {
-            let key = child.key
-
-            if (!key?.length || key.startsWith(' ') || key.endsWith(' ')) {
-              key = Math.random().toString(36).substring(7)
-              aggregationMap.set(key, child.key)
-            }
-
-            try {
-              key = JSON.parse(key)
-              if (typeof key === 'object') {
-                key = Math.random().toString(36).substring(7)
-                aggregationMap.set(key, child.key)
-                return {
-                  where: calculateNestedWhere(child.nestedIn, where?.value),
-                  alias: key,
-                  ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-                }
-              }
-            } catch (e) {}
-
             return {
               where: calculateNestedWhere(child.nestedIn, where?.value),
-              alias: key,
+              alias: aggregationAliasMapper.generateAlias(child.key),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             }
           })
 
-          const aggResponse = !isPublic
-            ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
-                meta.value!.id,
-                {
-                  viewId: view.value!.id,
-                  aggregation,
-                },
-                aggregationParams,
-              )
-            : await fetchBulkAggregatedData(
-                {
-                  aggregation,
-                },
-                aggregationParams,
-              )
+          let aggResponse = {}
 
-          Object.entries(aggResponse).forEach(([key, value]) => {
-            const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
-            if (child) {
-              Object.assign(child.aggregations, value)
-            } else {
-              const originalKey = aggregationMap.get(key)
-              const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
+          if (aggregation.length) {
+            aggResponse = !isPublic
+              ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
+                  meta.value!.id,
+                  {
+                    viewId: view.value!.id,
+                    aggregation,
+                  },
+                  aggregationParams,
+                )
+              : await fetchBulkAggregatedData(
+                  {
+                    aggregation,
+                  },
+                  aggregationParams,
+                )
+
+            await aggregationAliasMapper.process(aggResponse, (originalKey, value) => {
+              const child = (group?.children ?? []).find((c) => c.key.toString() === (originalKey as any).toString())
               if (child) {
                 Object.assign(child.aggregations, value)
               }
-            }
-          })
-        }
-
-        if (group?.children && group.nestedIn.length === groupBy.value.length - 1) {
-          const aliasMap = new Map<string, string>()
-
-          const childViewFilters = group?.children?.map((childGroup) => {
-            let key = childGroup.key
-
-            if (!key?.length || key.startsWith(' ') || key.endsWith(' ')) {
-              key = Math.random().toString(36).substring(7)
-              aliasMap.set(key, childGroup.key)
-            }
-
-            try {
-              key = JSON.parse(key)
-
-              if (typeof key === 'object') {
-                key = Math.random().toString(36).substring(7)
-                aliasMap.set(key, childGroup.key)
-              }
-            } catch (e) {}
-
-            return {
-              alias: key,
-              where: calculateNestedWhere(childGroup.nestedIn, where?.value),
-              offset:
-                ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByRecordLimit.value),
-              limit: childGroup.paginationData.pageSize ?? groupByRecordLimit.value,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-            }
-          })
-
-          if (childViewFilters.length > 0) {
-            const bulkData = !isPublic
-              ? await api.dbDataTableBulkList.dbDataTableBulkList(
-                  meta.value.id,
-                  {
-                    viewId: view.value.id,
-                  },
-                  childViewFilters,
-                  {},
-                )
-              : await fetchBulkListData({}, childViewFilters)
-
-            Object.entries(bulkData).forEach(([key, value]: { key: string; value: any }) => {
-              const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
-              if (child) {
-                child.count = value.pageInfo.totalRows ?? 0
-                child.rows = formatData(value.list)
-                child.paginationData = value.pageInfo
-              } else {
-                const originalKey = aliasMap.get(key)
-                const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
-                if (child) {
-                  child.count = value.pageInfo.totalRows ?? 0
-                  child.rows = formatData(value.list)
-                  child.paginationData = value.pageInfo
-                }
-              }
             })
-          }
-        }
-
-        if (group?.children && group.nestedIn.length < groupBy.value.length - 1) {
-          const aliasMap = new Map<string, string>()
-
-          const childGroupFilters = group?.children?.map((childGroup) => {
-            const childGroupBy = groupBy.value[childGroup.nestedIn.length]
-            const childNestedWhere = calculateNestedWhere(childGroup.nestedIn, where?.value)
-
-            let key = childGroup.key
-
-            if (!key?.length || key.startsWith(' ') || key.endsWith(' ')) {
-              key = Math.random().toString(36).substring(7)
-              aliasMap.set(key, childGroup.key)
-            }
-
-            try {
-              key = JSON.parse(key)
-              if (typeof key === 'object') {
-                key = Math.random().toString(36).substring(7)
-                aliasMap.set(key, childGroup.key)
-              }
-            } catch (e) {}
-
-            return {
-              alias: key,
-              offset:
-                ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
-              limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-              where: `${childNestedWhere}`,
-              sort: `${getSortParams(childGroupBy.sort)}${childGroupBy.column.title}`,
-              column_name: childGroupBy.column.title,
-            }
-          })
-
-          if (childGroupFilters.length > 0) {
-            const bulkGroupData = !isPublic
-              ? await api.dbDataTableBulkGroupList.dbDataTableBulkGroupList(
-                  meta.value.id,
-                  {
-                    viewId: view.value.id,
-                  },
-                  childGroupFilters,
-                )
-              : await fetchBulkGroupData({}, childGroupFilters)
-
-            for (const [key, value] of Object.entries(bulkGroupData)) {
-              let child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
-              if (!child) {
-                const originalKey = aliasMap.get(key)
-                child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())!
-              }
-              Object.assign(child, await processGroupData(value, child))
-            }
           }
         }
       } catch (e) {
@@ -611,6 +419,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         group.count = response.pageInfo.totalRows ?? 0
         group.rows = formatData(response.list)
+        await loadAggCommentsCount(group.rows)
         group.paginationData = response.pageInfo
       } catch (e) {
         message.error(await extractSdkResponseErrorMsg(e))
@@ -637,29 +446,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         filteredFields = filteredFields?.filter((x) => x.type !== CommonAggregations.None)
 
-        if (filteredFields && !filteredFields?.length) return
+        if ((filteredFields && !filteredFields?.length) || !group.children?.length) return
 
-        const aggregationMap = new Map<string, string>()
+        const aliasMapper = new AliasMapper()
 
         const aggregationParams = (group.children ?? []).map((child) => {
-          let key = child.key
-
-          if (!key?.length || key.startsWith(' ') || key.endsWith(' ')) {
-            key = Math.random().toString(36).substring(7)
-            aggregationMap.set(key, child.key)
-          }
-
-          try {
-            key = JSON.parse(child.key)
-            if (typeof key === 'object') {
-              key = Math.random().toString(36).substring(7)
-              aggregationMap.set(key, child.key)
-            }
-          } catch (e) {}
-
           return {
             where: calculateNestedWhere(child.nestedIn, where?.value),
-            alias: key,
+            alias: aliasMapper.generateAlias(child.key),
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           }
         })
@@ -680,18 +474,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               aggregationParams,
             )
 
-        Object.entries(response).forEach(([key, value]) => {
-          const child = (group.children ?? []).find((c) => c.key.toString() === key.toString())
+        await aliasMapper.process(response, (originalKey, value) => {
+          const child = (group.children ?? []).find((c) => c.key.toString() === originalKey.toString())
           if (child) {
             Object.assign(child.aggregations, value)
-          } else {
-            const originalKey = aggregationMap.get(key)
-            if (originalKey) {
-              const child = (group.children ?? []).find((c) => c.key.toString() === originalKey.toString())
-              if (child) {
-                Object.assign(child.aggregations, value)
-              }
-            }
           }
         })
       } catch (e) {
@@ -830,14 +616,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }
     }
 
-    const loadAllowedLookups = async () => {
+    const loadDisallowedLookups = async () => {
       const filteredLookupCols = []
       try {
         for (const col of meta?.value?.columns || []) {
           if (col.uidt !== UITypes.Lookup) continue
 
           let nextCol: ColumnType = col
-          // check the lookup column is supported type or not
+          // Check if the lookup column is an unsupported type
           while (nextCol && nextCol.uidt === UITypes.Lookup) {
             const lookupRelation = (await getMeta(nextCol.fk_model_id as string))?.columns?.find(
               (c) => c.id === (nextCol?.colOptions as LookupType).fk_relation_column_id,
@@ -860,22 +646,44 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             }
           }
 
-          if (nextCol?.uidt !== UITypes.Attachment && col.id) filteredLookupCols.push(col.id)
+          // Collect column if the final resolved column is an Attachment or circular/invalid
+          if ((nextCol?.uidt === UITypes.Attachment || !nextCol) && col.id) {
+            filteredLookupCols.push(col.id)
+          }
         }
 
-        supportedLookups.value = filteredLookupCols
+        unsupportedLookups.value = filteredLookupCols
       } catch (e) {
         console.error(e)
       }
     }
 
-    watch([() => view?.value?.id, () => meta.value?.columns], async ([newViewId]) => {
-      // reload only if view belongs to current table
-      if (newViewId && view.value?.fk_model_id === meta.value?.id) {
-        await loadAllowedLookups()
-      }
-    })
+    async function loadAggCommentsCount(formattedData: Array<Row>) {
+      if (!isUIAllowed('commentCount') || isPublic.value) return
 
+      const ids = formattedData
+        .filter(({ rowMeta: { new: isNew } }) => !isNew)
+        .map(({ row }) => extractPkFromRow(row, meta?.value?.columns as ColumnType[]))
+        .filter(Boolean)
+
+      if (!ids.length) return
+
+      try {
+        const aggCommentCount = await $api.utils.commentCount({
+          ids,
+          fk_model_id: meta.value!.id as string,
+        })
+
+        formattedData.forEach((row) => {
+          const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+          const count = aggCommentCount?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
+          row.rowMeta = row.rowMeta ?? {}
+          row.rowMeta.commentCount = +count
+        })
+      } catch (e) {
+        console.error('Failed to load aggregate comment count:', e)
+      }
+    }
     return {
       rootGroup,
       groupBy,
@@ -888,6 +696,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       loadGroupAggregation,
       groupWrapperChangePage,
       redistributeRows,
+      loadDisallowedLookups,
     }
   },
   'useViewGroupBy',

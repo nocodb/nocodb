@@ -51,20 +51,21 @@ npm start
 
 ```bash
 # 如果使用 SQLite 的话
-docker run -d --name nocodb \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
-nocodb/nocodb:latest
-
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
 
 # 如果使用 PostgreSQL 的话
-docker run -d --name nocodb-postgres \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
-
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
+  ```
 
 > 你可以通过在 0.10.6 以上的版本中挂载 `/usr/app/data/` 来持久化数据，否则你的数据会在重新创建容器后完全丢失。
 
@@ -144,7 +145,7 @@ cd nocodb/docker-compose/2_pg
 
 ### 工作流程自动化的应用商店
 
-我们在三个主要类别中提供不同的集成。详见<a href="https://docs.nocodb.com/setup-and-usages/app-store" target="_blank">App Store</a>。
+我们在三个主要类别中提供不同的集成。详见<a href="https://docs.nocodb.com/account-settings/oss-specific-details/#app-store" target="_blank">App Store</a>。
 
 - ⚡ 聊天：Slack、Discord、Mattermost 等
 - ⚡ 电子邮件: AWS SES，SMTP，MailerSend 等

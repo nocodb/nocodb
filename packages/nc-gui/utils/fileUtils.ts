@@ -15,11 +15,12 @@ const imageExt = [
   'heic-sequence',
 ]
 
+const audioExt = ['mp3', 'flac', 'wav', 'm4a']
+
 const videoExt = [
   'webm',
   'mpg',
   'mp2',
-  'mp3',
   'mpeg',
   'ogg',
   'mp4',
@@ -34,10 +35,22 @@ const videoExt = [
   '3g2',
   'vob',
   'ts',
+  'mp4a',
 ]
 
+const wordExt = ['txt', 'doc', 'docx']
+
+const excelExt = ['xls', 'xlsx', 'csv']
+
+const presentationExt = ['ppt', 'pptx']
+
+const zipExt = ['zip', 'rar']
+
 const officeExt = [
-  'txt',
+  ...wordExt,
+  ...excelExt,
+  ...presentationExt,
+  ...zipExt,
   'css',
   'html',
   'php',
@@ -46,12 +59,6 @@ const officeExt = [
   'h',
   'hpp',
   'js',
-  'doc',
-  'docx',
-  'xls',
-  'xlsx',
-  'ppt',
-  'pptx',
   'pdf',
   'pages',
   'ai',
@@ -63,13 +70,10 @@ const officeExt = [
   'ps',
   'ttf',
   'xps',
-  'zip',
-  'rar',
-  'csv',
 ]
 
 const isAudio = (name: string, mimetype?: string) => {
-  return name?.toLowerCase().endsWith('.mp3') || mimetype?.startsWith('audio/')
+  return audioExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('audio/')
 }
 
 const isVideo = (name: string, mimetype?: string) => {
@@ -84,11 +88,31 @@ const isPdf = (name: string, mimetype?: string) => {
   return name?.toLowerCase().endsWith('.pdf') || mimetype?.startsWith('application/pdf')
 }
 
+const isWord = (name: string, _mimetype?: string) => {
+  return wordExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
+}
+
+const isExcel = (name: string, _mimetype?: string) => {
+  return excelExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
+}
+
+const isPresentation = (name: string, _mimetype?: string) => {
+  return presentationExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
+}
+
 const isOffice = (name: string, _mimetype?: string) => {
   return officeExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
 }
 
-export { isImage, imageExt, isVideo, isPdf, isOffice, isAudio }
+const isZip = (name: string, _mimetype?: string) => {
+  return zipExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
+}
+
+const isPreviewSupportedFile = (name: string, mimetype?: string) => {
+  return isImage(name, mimetype) || isVideo(name, mimetype) || isAudio(name, mimetype) || isPdf(name, mimetype)
+}
+
+export { isImage, imageExt, isVideo, isPdf, isOffice, isAudio, isZip, isWord, isExcel, isPresentation, isPreviewSupportedFile }
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome
@@ -145,4 +169,9 @@ export function extractImageSrcFromRawHtml(rawText: string) {
     // Extract the src attribute
     return imgElement.getAttribute('src')
   }
+}
+
+export const getReadableFileSize = (sizeInBytes: number) => {
+  const i = Math.min(Math.floor(Math.log(sizeInBytes) / Math.log(1024)), 4)
+  return `${(sizeInBytes / 1024 ** i).toFixed(2) * 1} ${['B', 'kB', 'MB', 'GB', 'TB'][i]}`
 }

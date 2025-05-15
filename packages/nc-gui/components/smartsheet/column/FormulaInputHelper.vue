@@ -27,9 +27,15 @@ const { error, suggestionHeight, editorHeight } = toRefs(props)
 
 const value = useVModel(props, 'value', emits)
 
+const { $e } = useNuxtApp()
+
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 const { sqlUi, column, fromTableExplorer, validateInfos } = useColumnCreateStoreOrThrow()
+
+const { isAiModeFieldModal } = usePredictFields()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const meta = inject(MetaInj, ref())
 
@@ -452,6 +458,14 @@ function handleInput() {
   const text = model.getValue()
   const offset = model.getOffsetAt(position)
 
+  if (text.length === 0) {
+    // clear error if formula is empty
+    if (validateInfos.formula_raw.validateStatus === 'error') {
+      validateInfos.formula_raw.validateStatus = 'success'
+      validateInfos.formula_raw.help = []
+    }
+  }
+
   // IF cursor is inside string, don't show any suggestions
   if (isCursorInsideString(text, offset)) {
     autocomplete.value = false
@@ -575,12 +589,66 @@ const handleKeydown = (e: KeyboardEvent) => {
     }
   }
 }
+
+const { aiIntegrationAvailable, aiLoading, predictFormula, repairFormula } = useNocoAi()
+
+enum AI_MODE {
+  NONE = 'none',
+  PROMPT = 'prompt',
+}
+
+const aiMode = ref<AI_MODE>(AI_MODE.NONE)
+
+const aiPrompt = ref('')
+
+const oldAiPrompt = ref('')
+
+const calledFun = ref<null | string>(null)
+
+const promptAI = async () => {
+  if (!aiPrompt.value?.trim()) return
+
+  calledFun.value = 'promptAI'
+
+  $e(`a:column:ai:formula:predict-from-prompt`, {
+    prompt: aiPrompt.value,
+  })
+
+  const formula = await predictFormula(aiPrompt.value, value.value)
+
+  if (formula) {
+    editor.setValue(formula)
+    oldAiPrompt.value = aiPrompt.value
+  }
+}
+
+const repairFormulaAI = async () => {
+  calledFun.value = 'repairFormulaAI'
+
+  $e(`a:column:ai:formula:repair`)
+
+  const formula = await repairFormula(value.value, validateInfos?.formula_raw?.help.join(' | '))
+
+  if (formula) {
+    editor.setValue(formula)
+  }
+}
+
+const enableAI = async () => {
+  $e(`c:column:ai:formula:enable`)
+
+  if (validateInfos?.formula_raw?.validateStatus === 'error') {
+    await repairFormulaAI()
+  } else {
+    aiMode.value = AI_MODE.PROMPT
+  }
+}
 </script>
 
 <template>
   <div
     v-if="suggestionPreviewed && !suggestionPreviewed.unsupported && suggestionPreviewed.type === 'function'"
-    class="w-84 fixed bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
+    class="w-84 fixed bg-white z-11 pl-3 pt-3 border-1 shadow-md rounded-xl"
     :style="{
       left: suggestionPreviewPostion.left,
       top: suggestionPreviewPostion.top,
@@ -635,17 +703,101 @@ const handleKeydown = (e: KeyboardEvent) => {
       }"
       :class="{
         '!border-red-500 formula-error': error,
-        '!focus-within:border-brand-500 formula-success': !error,
+        '!focus-within:border-brand-500 shadow-default hover:shadow-hover formula-success': !error,
+        'bg-white': isAiModeFieldModal,
       }"
-      class="formula-monaco"
+      class="formula-monaco transition-colors duration-300"
       @keydown.stop="handleKeydown"
     ></div>
   </a-form-item>
+  <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+    <div v-if="aiMode === AI_MODE.NONE" class="w-full flex justify-end mt-2">
+      <NcButton size="small" type="text" :loading="aiLoading" @click="enableAI">
+        <template #icon>
+          <GeneralIcon icon="ncAutoAwesome" class="text-nc-content-purple-medium h-4 w-4" />
+        </template>
+        <template #loadingIcon>
+          <GeneralLoader class="!text-nc-content-purple-medium" size="regular" />
+        </template>
+        <div class="flex gap-2 items-center">
+          <span v-if="validateInfos?.formula_raw?.validateStatus === 'error'" class="text-[13px] font-semibold">Fix Formula</span>
+          <span v-else class="text-[13px] font-semibold">Formula Helper</span>
+        </div>
+      </NcButton>
+    </div>
+    <template v-else-if="aiMode === AI_MODE.PROMPT">
+      <AiIntegrationNotFound v-if="!aiIntegrationAvailable" class="mt-4" />
+      <div v-else class="prompt-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="9" viewBox="0 0 18 9" fill="none" class="nc-polygon-2">
+          <path d="M1.51476 8.5L9 0.721111L16.4852 8.5H1.51476Z" fill="white" stroke="#e5d4f5" />
+        </svg>
+        <div class="prompt-input-wrapper w-full flex">
+          <div class="nc-triangle-bottom-bar"></div>
+
+          <div class="flex items-center gap-2 pl-3 pr-1 py-1">
+            <div class="flex-1 text-small leading-[18px] font-bold text-nc-content-gray-subtle2">Prompt</div>
+            <div class="flex items-center gap-2">
+              <NcButton
+                v-if="validateInfos?.formula_raw?.validateStatus === 'error'"
+                type="secondary"
+                size="xs"
+                theme="ai"
+                :bordered="false"
+                class="nc-formula-helper-ai-btn !px-2"
+                :disabled="aiLoading && calledFun === 'repairFormulaAI'"
+                :loading="aiLoading && calledFun === 'repairFormulaAI'"
+                @click="repairFormulaAI"
+              >
+                <template #icon>
+                  <GeneralIcon icon="ncAutoAwesome" class="!text-current h-4 w-4" />
+                </template>
+                <template #loadingIcon>
+                  <GeneralLoader class="!text-current" size="regular" />
+                </template>
+                <div class="flex items-center gap-1">
+                  <span class="text-[13px] font-semibold text-purple-400">Repair</span>
+                </div>
+              </NcButton>
+              <NcButton
+                type="secondary"
+                size="xs"
+                theme="ai"
+                :bordered="false"
+                class="nc-formula-helper-ai-btn !px-2"
+                :loading="aiLoading && calledFun === 'promptAI'"
+                :disabled="
+                  !aiPrompt?.trim() ||
+                  (!!aiPrompt.trim() && aiPrompt.trim() === oldAiPrompt.trim()) ||
+                  (aiLoading && calledFun === 'promptAI')
+                "
+                @click="promptAI"
+              >
+                <template #icon>
+                  <GeneralIcon icon="ncAutoAwesome" class="!text-current h-4 w-4" />
+                </template>
+                <template #loadingIcon>
+                  <GeneralLoader class="!text-current" size="regular" />
+                </template>
+                <div class="flex items-center gap-1">Generate</div>
+              </NcButton>
+            </div>
+          </div>
+          <a-textarea
+            v-model:value="aiPrompt"
+            class="nc-ai-formula-helper-input nc-input-shadow nc-ai-input nc-scrollbar-thin !min-h-[80px]"
+            :placeholder="`Enter prompt to ${value ? 'modify' : 'generate'} formula`"
+          ></a-textarea>
+        </div>
+      </div>
+    </template>
+  </template>
+
   <div
     :class="{
       'h-[250px]': suggestionHeight === 'large',
       'h-[150px]': suggestionHeight === 'medium',
       'h-[125px]': suggestionHeight === 'small',
+      'bg-white': isAiModeFieldModal,
     }"
     class="overflow-auto flex flex-col nc-suggestion-list nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4"
   >
@@ -782,11 +934,34 @@ const handleKeydown = (e: KeyboardEvent) => {
     width: auto !important;
   }
 }
+.prompt-wrapper {
+  @apply relative mt-2.5;
+
+  .nc-polygon-2 {
+    @apply absolute -top-[8px] left-[50%] transform -translate-x-1/2 z-0;
+  }
+
+  .nc-triangle-bottom-bar {
+    @apply absolute -top-[8px] left-[50%] transform -translate-x-1/2 w-3.5 h-2 bg-transparent border-2 border-transparent !border-b-nc-bg-gray-extralight;
+  }
+
+  .prompt-input-wrapper {
+    @apply relative inline-block transition-all duration-300 shadow-default border-1 rounded-lg bg-nc-bg-gray-extralight border-purple-100 z-10;
+
+    .nc-ai-formula-helper-input {
+      @apply rounded-b-lg !border-purple-100 !-m-[1px] !max-w-[calc(100%_+_2px)] !w-[calc(100%_+_2px)] !shadow-none;
+
+      &:focus {
+        @apply rounded-lg !border-nc-border-purple !shadow-selected-ai;
+      }
+    }
+  }
+}
 </style>
 
 <style lang="scss">
 .formula-placeholder {
   @apply !text-gray-500 !text-xs !font-medium;
-  font-family: 'Manrope';
+  font-family: 'Inter';
 }
 </style>

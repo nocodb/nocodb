@@ -37,17 +37,28 @@ Transformez n'importe quel MySQL, PostgreSQL, SQL Server, SQLite & Mariadb en un
 
 ### Utilisez Docker
 ```bash
-docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
-```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
+  ```
 
 - NocoDB a besoin d'une base de données en entrée : Voir [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
 - Si cette entrée est absente, nous utiliserons SQLite. Afin de conserver Sqlite, vous pouvez rentrer l'information `/usr/app/data/`. 
 
   Exemple:
 
-  ```
-  docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
-  ```
+```
+  docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
+```
+
 > Pour conserver les données, vous pouvez installer le volume dans `/usr/app/data/`.
 
 ### En utilisant git

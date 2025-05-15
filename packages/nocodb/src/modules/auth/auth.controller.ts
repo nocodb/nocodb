@@ -14,6 +14,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { extractRolesObj } from 'nocodb-sdk';
 import * as ejs from 'ejs';
+import { PresignedUrl } from 'src/models';
 import type { AppConfig } from '~/interface/config';
 
 import { UsersService } from '~/services/users/users.service';
@@ -135,6 +136,9 @@ export class AuthController {
       workspace_roles: extractRolesObj(req.user.workspace_roles),
       base_roles: extractRolesObj(req.user.base_roles),
     };
+
+    await PresignedUrl.signMetaIconImage(user);
+
     return user;
   }
 
@@ -257,7 +261,7 @@ export class AuthController {
           (await import('~/modules/auth/ui/auth/resetPassword')).default,
           {
             ncPublicUrl: process.env.NC_PUBLIC_URL || '',
-            token: JSON.stringify(tokenId),
+            token: tokenId,
             baseUrl: `/`,
           },
         ),

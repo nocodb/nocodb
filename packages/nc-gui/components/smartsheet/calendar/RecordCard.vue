@@ -9,15 +9,16 @@ interface Props {
   selected?: boolean
   size?: 'small' | 'medium' | 'large' | 'auto'
   position?: 'leftRounded' | 'rightRounded' | 'rounded' | 'none'
+  dragging?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
   resize: true,
-  selected: false,
   hover: false,
-  color: 'blue',
+  color: 'gray',
   size: 'small',
   position: 'rounded',
+  dragging: false,
 })
 
 const emit = defineEmits(['resize-start'])
@@ -26,23 +27,28 @@ const emit = defineEmits(['resize-start'])
 <template>
   <div
     :class="{
-      'h-6': size === 'small',
+      'h-7': size === 'small',
       'h-full': size === 'auto',
-      'rounded-l-md ml-1': position === 'leftRounded',
-      'rounded-r-md mr-1': position === 'rightRounded',
-      'rounded-md mx-1': position === 'rounded',
-      'rounded-none': position === 'none',
+      'rounded-l-[4px] !border-r-0 ml-1': position === 'leftRounded',
+      'rounded-r-[4px] !border-l-0 mr-1': position === 'rightRounded',
+      'rounded-[4px] ml-0.8 mr-1': position === 'rounded',
+      'rounded-none !border-x-0': position === 'none',
       'bg-maroon-50': color === 'maroon',
       'bg-blue-50': color === 'blue',
       'bg-green-50': color === 'green',
       'bg-yellow-50': color === 'yellow',
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
-      'group-hover:(border-brand-500 border-1)': resize,
-      '!border-blue-200 border-1': selected,
-      'shadow-md': hover,
+      'bg-white border-gray-300': color === 'gray',
+      '!bg-nc-bg-gray-light': hover || dragging,
     }"
-    class="relative transition-all flex items-center px-1 gap-2 group border-1 border-transparent"
+    :style="{
+      boxShadow:
+        hover || dragging
+          ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
+          : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)',
+    }"
+    class="relative transition-all border-1 flex items-center gap-2 group"
   >
     <div
       v-if="position === 'leftRounded' || position === 'rounded'"
@@ -53,61 +59,61 @@ const emit = defineEmits(['resize-start'])
         'bg-yellow-500': color === 'yellow',
         'bg-pink-500': color === 'pink',
         'bg-purple-500': color === 'purple',
+        'bg-gray-900': color === 'gray',
       }"
-      class="w-1 min-h-4 bg-blue-500 rounded-x rounded-y-sm"
+      class="w-1 min-h-6.5 rounded-l-[4px] bg-blue-500"
     ></div>
 
-    <div v-if="(position === 'leftRounded' || position === 'rounded') && resize" class="mt-0.7 h-7.1 absolute -left-4 resize">
-      <NcButton
-        :class="{
-          '!block z-2 !border-brand-500': selected || hover,
-          '!hidden': !selected && !hover,
-        }"
-        size="xsmall"
-        type="secondary"
-        @mousedown.stop="emit('resize-start', 'left', $event, record)"
-      >
-        <component :is="iconMap.drag" class="text-gray-400"></component>
-      </NcButton>
-    </div>
+    <div
+      v-if="(position === 'leftRounded' || position === 'rounded') && resize"
+      class="mt-0.7 w-2 h-7.1 -left-1 absolute resize"
+      @mousedown.stop="emit('resize-start', 'left', $event, record)"
+    ></div>
 
     <div class="overflow-hidden items-center justify-center gap-2 flex w-full">
-      <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2"> .... </span>
+      <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2 mb-0.6"> .... </span>
       <slot name="time" />
       <div
         :class="{
-          'pr-7': position === 'leftRounded',
+          'pr-8.5': position === 'leftRounded',
         }"
-        class="flex mb-0.5 overflow-x-hidden break-word whitespace-nowrap overflow-hidden text-ellipsis w-full truncate text-ellipsis flex-col gap-1"
+        class="flex mb-0.5 overflow-x-hidden w-full truncate flex-col gap-1"
       >
-        <NcTooltip :disabled="selected" class="inline-block" show-on-truncate-only wrap-child="span">
+        <NcTooltip
+          :disabled="selected || dragging"
+          :class="{
+            ' text-ellipsis': ['leftRounded', 'rightRounded', 'rounded'].includes(position),
+          }"
+          class="break-word whitespace-nowrap overflow-hidden pr-1"
+          show-on-truncate-only
+          wrap-child="span"
+        >
           <slot class="text-sm text-nowrap text-gray-800 leading-7" />
           <template #title>
             <slot />
           </template>
         </NcTooltip>
       </div>
-      <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>
+      <span v-if="position === 'leftRounded' || position === 'none'" class="absolute mb-0.6 z-10 right-5"> ... </span>
     </div>
 
-    <div v-if="(position === 'rightRounded' || position === 'rounded') && resize" class="absolute mt-0.3 -right-4 resize">
-      <NcButton
-        :class="{
-          '!block !border-brand-500 z-2': selected || hover,
-          '!hidden': !selected && !hover,
-        }"
-        size="xsmall"
-        type="secondary"
-        @mousedown.stop="emit('resize-start', 'right', $event, record)"
-      >
-        <component :is="iconMap.drag" class="text-gray-400"></component>
-      </NcButton>
-    </div>
+    <div
+      v-if="(position === 'rightRounded' || position === 'rounded') && resize"
+      class="absolute mt-0.3 h-7.1 w-2 right-0 resize"
+      @mousedown.stop="emit('resize-start', 'right', $event, record)"
+    ></div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .resize {
   cursor: ew-resize;
+}
+
+.plain-cell {
+  line-height: 18px;
+  .bold {
+    @apply !text-gray-800 font-bold;
+  }
 }
 </style>

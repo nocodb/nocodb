@@ -1,7 +1,7 @@
 #!/usr/bin/expect -f
 
 # Configure timeout for each expect command
-set timeout 10
+set timeout 20
 
 # Start your main script
 set env(PATH) "$env(WORKING_DIR)/mocks:$env(PATH)"

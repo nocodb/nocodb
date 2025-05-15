@@ -135,8 +135,6 @@ test.describe('Shared view', () => {
 
     if (enableQuickRun()) test.skip();
 
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Address' });
 
     // Unhide City column
@@ -258,7 +256,7 @@ test.describe('Shared view', () => {
 
     // verify download
     await sharedPage.grid.topbar.clickDownload(
-      'Download CSV',
+      'CSV',
       isSqlite(context) || isPg(context) ? 'expectedDataSqlite.txt' : 'expectedData.txt'
     );
   });
@@ -271,8 +269,6 @@ test.describe('Shared view', () => {
      * - Download disabled
      * - Add new record & column after shared view creation; verify
      **/
-
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
 
     sharedLink = await dashboard.grid.topbar.getSharedViewUrl(false, 'p@ssword', true);
@@ -280,11 +276,6 @@ test.describe('Shared view', () => {
     // add new column, record after share view creation
     await dashboard.grid.column.create({
       title: 'New Column',
-    });
-    await dashboard.grid.addNewRow({
-      index: 25,
-      columnHeader: 'Country',
-      value: 'New Country',
     });
 
     await dashboard.signOut();
@@ -313,7 +304,7 @@ test.describe('Shared view', () => {
     await sharedPage2.grid.toolbar.clickFilter();
     await sharedPage2.grid.toolbar.filter.add({
       title: 'Country',
-      value: 'New Country',
+      value: 'China',
       operation: 'is like',
       locallySaved: true,
     });
@@ -322,7 +313,7 @@ test.describe('Shared view', () => {
     await sharedPage2.grid.cell.verify({
       index: 0,
       columnHeader: 'Country',
-      value: 'New Country',
+      value: 'China',
     });
   });
 });

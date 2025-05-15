@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { marked } from 'marked'
+import { PlanFeatureTypes } from 'nocodb-sdk'
 
 interface Prop {
   modelValue: boolean
@@ -14,6 +15,8 @@ const emit = defineEmits(['update:modelValue'])
 const vModel = useVModel(props, 'modelValue', emit)
 
 const { availableExtensions, descriptionContent, addExtension, getExtensionAssetsUrl, isMarketVisible } = useExtensions()
+
+const { blockAddNewExtension, navigateToPricing, isWsOwner } = useEeConfig()
 
 const onBack = () => {
   vModel.value = false
@@ -82,11 +85,27 @@ const detailsBody = computed(() => {
           <div class="text-small leading-[18px] text-gray-500 truncate">{{ activeExtension.subTitle }}</div>
         </div>
         <div class="self-start flex items-center gap-2.5">
-          <NcButton size="small" class="w-full" @click="onAddExtension(activeExtension)">
+          <NcButton v-if="!blockAddNewExtension" size="small" class="w-full" @click="onAddExtension(activeExtension)">
             <div class="flex items-center justify-center gap-1 -ml-3px">
               <GeneralIcon icon="plus" /> {{ $t('general.add') }} {{ $t('general.extension') }}
             </div>
           </NcButton>
+          <NcTooltip v-else>
+            <template #title>
+              {{ $t('upgrade.upgradeToAddMoreExtensions') }}
+            </template>
+            <NcButton
+              size="small"
+              class="w-full nc-upgrade-plan-btn"
+              @click="navigateToPricing({ limitOrFeature: PlanFeatureTypes.FEATURE_EXTENSIONS })"
+            >
+              <div class="flex items-center justify-center gap-2">
+                <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4" />
+
+                {{ isWsOwner ? $t('upgrade.upgradeToAdd') : $t('upgrade.requestUpgradeToAdd') }}
+              </div>
+            </NcButton>
+          </NcTooltip>
           <NcButton size="small" type="text" @click="vModel = false">
             <GeneralIcon icon="close" class="text-gray-600" />
           </NcButton>

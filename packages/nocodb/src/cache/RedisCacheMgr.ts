@@ -1,6 +1,7 @@
 import debug from 'debug';
 import Redis from 'ioredis';
 import CacheMgr from './CacheMgr';
+import { CACHE_PREFIX } from '~/utils/globals';
 
 const _log = debug('nc:cache');
 
@@ -22,7 +23,7 @@ export default class RedisCacheMgr extends CacheMgr {
 
     // TODO(cache): fetch orgs once it's implemented
     const orgs = 'noco';
-    this.prefix = `nc:${orgs}`;
+    this.prefix = `${CACHE_PREFIX}:${orgs}`;
     this.context = 'RedisCacheMgr';
   }
 }

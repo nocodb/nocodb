@@ -1,11 +1,14 @@
 import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
+  isLinksOrLTAR,
+  isOrderCol,
   isSystemColumn,
   RelationTypes,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
+import { NcApiVersion } from 'nocodb-sdk';
 import type {
   Column,
   LinkToAnotherRecordColumn,
@@ -13,15 +16,20 @@ import type {
   Model,
 } from '~/models';
 import type { NcContext } from '~/interface/config';
-import { NcError } from '~/helpers/catchError';
 import {
   CalendarRange,
+  Filter,
   GalleryView,
   GridViewColumn,
   KanbanView,
   KanbanViewColumn,
   View,
 } from '~/models';
+import { NcError } from '~/helpers/catchError';
+
+type Ast = {
+  [key: string]: 1 | true | null | Ast;
+};
 
 const getAst = async (
   context: NcContext,
@@ -36,9 +44,12 @@ const getAst = async (
       nested: { ...(query?.nested || {}) },
       fieldsSet: new Set(),
     },
-    getHiddenColumn = query?.['getHiddenColumn'],
+    getHiddenColumn = query?.['getHiddenColumn'] === 'true',
     throwErrorIfInvalidParams = false,
     extractOnlyRangeFields = false,
+    apiVersion = NcApiVersion.V2,
+    extractOrderColumn = false,
+    includeSortAndFilterColumns = false,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
@@ -50,8 +61,15 @@ const getAst = async (
     throwErrorIfInvalidParams?: boolean;
     // Used for calendar view
     extractOnlyRangeFields?: boolean;
+    apiVersion?: NcApiVersion;
+    extractOrderColumn?: boolean;
+    includeSortAndFilterColumns?: boolean;
   },
-) => {
+): Promise<{
+  ast: Ast;
+  dependencyFields: DependantFields;
+  parsedQuery: DependantFields;
+}> => {
   // set default values of dependencyFields and nested
   dependencyFields.nested = dependencyFields.nested || {};
   dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();
@@ -59,6 +77,8 @@ const getAst = async (
   let coverImageId;
   let dependencyFieldsForCalenderView;
   let kanbanGroupColumnId;
+  let sortColumnIds: string[] = [];
+  let filterColumnIds: string[] = [];
   if (view && view.type === ViewTypes.GALLERY) {
     const gallery = await GalleryView.get(context, view.id);
     coverImageId = gallery.fk_cover_image_col_id;
@@ -79,11 +99,20 @@ const getAst = async (
     }
   }
 
+  if (view && includeSortAndFilterColumns) {
+    const sorts = await view.getSorts(context);
+    const filters = await Filter.allViewFilterList(context, {
+      viewId: view.id,
+    });
+    sortColumnIds = sorts.map((s) => s.fk_column_id);
+    filterColumnIds = filters.map((f) => f.fk_column_id);
+  }
+
   if (!model.columns?.length) await model.getColumns(context);
 
   // extract only pk and pv
   if (extractOnlyPrimaries) {
-    const ast = {
+    const ast: Ast = {
       ...(model.primaryKeys
         ? model.primaryKeys.reduce((o, pk) => ({ ...o, [pk.title]: 1 }), {})
         : {}),
@@ -101,7 +130,7 @@ const getAst = async (
   }
 
   if (extractOnlyRangeFields) {
-    const ast = {
+    const ast: Ast = {
       ...(dependencyFieldsForCalenderView || []).reduce((o, f) => {
         const col = model.columns.find((c) => c.id === f);
         return { ...o, [col.title]: 1 };
@@ -131,7 +160,11 @@ const getAst = async (
         (f) => !colAliasMap[f] && !aliasColMap[f],
       );
       if (invalidFields.length) {
-        NcError.fieldNotFound(invalidFields.join(', '));
+        if (apiVersion === NcApiVersion.V3) {
+          NcError.fieldNotFoundV3(invalidFields.join(', '));
+        } else {
+          NcError.fieldNotFound(invalidFields.join(', '));
+        }
       }
     }
   } else {
@@ -159,9 +192,15 @@ const getAst = async (
         allowedCols[id] = 1;
       });
     }
+    if (includeSortAndFilterColumns) {
+      sortColumnIds.forEach((id) => (allowedCols[id] = 1));
+      filterColumnIds.forEach((id) => (allowedCols[id] = 1));
+    }
   }
 
-  const ast = await model.columns.reduce(async (obj, col: Column) => {
+  const columns = model.columns;
+
+  const ast: Ast = await columns.reduce(async (obj, col: Column) => {
     let value: number | boolean | { [key: string]: any } = 1;
     const nestedFields =
       query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
@@ -213,12 +252,41 @@ const getAst = async (
     }
     let isRequested;
 
-    if (isCreatedOrLastModifiedByCol(col) && col.system) {
+    const isForeignKey = col.uidt === UITypes.ForeignKey;
+    const isInFields = fields?.length && fields.includes(col.title);
+    const isSortOrFilterColumn =
+      includeSortAndFilterColumns &&
+      (sortColumnIds.includes(col.id) || filterColumnIds.includes(col.id));
+
+    if (isSortOrFilterColumn) {
+      isRequested = true;
+    }
+    // exclude system column and foreign key from API response for v3
+    else if (
+      (col.system || isForeignKey) &&
+      ![UITypes.CreatedTime, UITypes.LastModifiedTime].includes(col.uidt) &&
+      apiVersion === NcApiVersion.V3
+    ) {
       isRequested = false;
+    } else if (isCreatedOrLastModifiedByCol(col) && col.system) {
+      isRequested = false;
+    } else if (isOrderCol(col) && col.system) {
+      isRequested = extractOrderColumn || getHiddenColumn;
     } else if (getHiddenColumn) {
       isRequested =
         !isSystemColumn(col) ||
         (isCreatedOrLastModifiedTimeCol(col) && col.system) ||
+        // include all non-has-many system links(self-link) columns since has-many is part of mm relation and which is not required
+        (isLinksOrLTAR(col) &&
+          col.system &&
+          [
+            RelationTypes.BELONGS_TO,
+            RelationTypes.MANY_TO_MANY,
+            RelationTypes.ONE_TO_ONE,
+          ].includes(
+            (col.colOptions as LinkToAnotherRecordColumn)
+              ?.type as RelationTypes,
+          )) ||
         col.pk;
     } else if (allowedCols && (!includePkByDefault || !col.pk)) {
       isRequested =
@@ -228,10 +296,10 @@ const getAst = async (
           view.show_system_fields ||
           (dependencyFieldsForCalenderView ?? []).includes(col.id) ||
           col.pv) &&
-        (!fields?.length || fields.includes(col.title)) &&
+        (!fields?.length || isInFields) &&
         value;
     } else if (fields?.length) {
-      isRequested = fields.includes(col.title) && value;
+      isRequested = isInFields && value;
     } else {
       isRequested = value;
     }
@@ -336,7 +404,7 @@ const extractRelationDependencies = async (
   }
 };
 
-type RequestQuery = {
+export type RequestQuery = {
   [fields in 'f' | 'fields']?: string | string[];
 } & {
   nested?: {
@@ -346,7 +414,7 @@ type RequestQuery = {
 
 export interface DependantFields {
   fieldsSet?: Set<string>;
-  nested?: DependantFields;
+  nested?: { [key: string]: DependantFields };
 }
 
 export default getAst;

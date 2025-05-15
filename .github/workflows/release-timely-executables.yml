@@ -19,7 +19,7 @@ on:
         required: true
 jobs:
   build-executables:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
         with:
@@ -64,7 +64,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 18.19.1
+          node-version: 22.12.0
 
       - name: Update nocodb-timely
         env:
@@ -106,39 +106,39 @@ jobs:
           # build darwin x64 executable
           npm uninstall sharp
           npm install --cpu=x64 --os=darwin sharp
-          npx --yes pkg@5.8.1 . --compress GZip -t node18-macos-x64 -o Noco-macos-x64
+          npx --yes pkg@5.8.1 . --compress GZip -t node22-macos-x64 -o Noco-macos-x64
           mv ./Noco-macos-x64 ./mac-dist/
           
           # build darwin arm64 executable
           npm uninstall sharp
           npm install --cpu=arm64 --os=darwin sharp
-          npx --yes pkg@5.8.1 . --compress GZip -t node18-macos-arm64 -o Noco-macos-arm64
+          npx --yes pkg@5.8.1 . --compress GZip -t node22-macos-arm64 -o Noco-macos-arm64
           mv ./Noco-macos-arm64 ./mac-dist/
           
           
           # build linux x64 executable
           npm uninstall sharp
           npm install --cpu=x64 --os=linux sharp
-          npx --yes pkg@5.8.1 . --compress GZip -t node18-linux-x64 -o Noco-linux-x64
+          npx --yes pkg@5.8.1 . --compress GZip -t node22-linux-x64 -o Noco-linux-x64
           mv ./Noco-linux-x64 ./dist/
 
           # build linux arm64 executable
           npm uninstall sharp
           npm install --cpu=arm64 --os=linux sharp
-          npx --yes pkg@5.8.1 . --compress GZip -t node18-linux-arm64 -o Noco-linux-arm64
+          npx --yes pkg@5.8.1 . --compress GZip -t node22-linux-arm64 -o Noco-linux-arm64
           mv ./Noco-linux-arm64 ./dist/
 
 
           # build windows x64 executable
           npm uninstall sharp
           npm install --cpu=x64 --os=win32 sharp
-          npx --yes pkg@5.8.1 . --compress GZip -t node18-win-x64 -o Noco-win-x64.exe
+          npx --yes pkg@5.8.1 . --compress GZip -t node22-win-x64 -o Noco-win-x64.exe
           mv ./Noco-win-x64.exe ./dist/
 
           # build windows arm64 executable
           npm uninstall sharp
           npm install --cpu=arm64 --os=win32 sharp
-          npx --yes pkg@5.8.1 . --compress GZip -t node18-win-arm64 -o Noco-win-arm64.exe
+          npx --yes pkg@5.8.1 . --compress GZip -t node22-win-arm64 -o Noco-win-arm64.exe
           mv ./Noco-win-arm64.exe ./dist/
 
       - name: Upload executables(except mac executables) to release
@@ -181,7 +181,7 @@ jobs:
 
   publish-mac-executables:
     needs: sign-mac-executables
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/download-artifact@master
         with:

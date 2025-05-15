@@ -1,5 +1,5 @@
-import type { AuditType, ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import type { AuditType, ColumnType, MetaType, PlanLimitExceededDetailsType, TableType } from 'nocodb-sdk'
+import { PlanLimitTypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 
@@ -10,7 +10,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const audits = ref<Array<AuditType>>([])
+  const audits = ref<
+    Array<
+      AuditType & {
+        created_display_name?: string
+        created_by_email?: string
+        created_by_meta?: MetaType
+      }
+    >
+  >([])
 
   const isAuditLoading = ref(false)
 
@@ -55,6 +63,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
   const { isUIAllowed } = useRoles()
 
+  const { handleUpgradePlan, isPaymentEnabled } = useEeConfig()
+
   // getters
   const displayValue = computed(() => {
     if (row?.value?.row) {
@@ -64,28 +74,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         return
       }
 
-      const value = row.value.row?.[col.title as string]
-
-      const uidt = col.uidt
-
-      if (uidt === UITypes.Date) {
-        return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD')
-      } else if (uidt === UITypes.DateTime) {
-        return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD HH:mm')
-      } else if (uidt === UITypes.Time) {
-        let dateTime = dayjs(value)
-        if (!dateTime.isValid()) {
-          dateTime = dayjs(value, 'HH:mm:ss')
-        }
-        if (!dateTime.isValid()) {
-          dateTime = dayjs(`1999-01-01 ${value}`)
-        }
-        if (!dateTime.isValid()) {
-          return value
-        }
-        return dateTime.format('HH:mm:ss')
-      }
-      return value
+      return row.value.row?.[col.title as string]
     }
   })
 
@@ -93,8 +82,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
   })
 
-  const loadAudits = async (_rowId?: string, showLoading: boolean = true) => {
-    if (!isUIAllowed('auditListRow') || isEeUI || (!row.value && !_rowId)) return
+  const auditsInAPage = 25
+  const currentAuditPages = ref(1)
+  const mightHaveMoreAudits = ref(false)
+
+  const loadAudits = async (_rowId?: string, showLoading = true) => {
+    if (!isUIAllowed('auditListRow') || (!row.value && !_rowId)) return
 
     const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
@@ -104,33 +97,81 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       if (showLoading) {
         isAuditLoading.value = true
       }
-      const res =
-        (
-          await $api.utils.auditList({
-            row_id: rowId,
-            fk_model_id: meta.value.id as string,
-          })
-        ).list?.reverse?.() || []
+
+      const response = await $api.utils.auditList({
+        row_id: rowId,
+        fk_model_id: meta.value.id as string,
+        offset: 0,
+        limit: currentAuditPages.value * auditsInAPage,
+      })
+
+      const res = response.list?.reverse?.() || []
 
       audits.value = res.map((audit) => {
-        const user = baseUsers.value.find((u) => u.email === audit.user)
+        const user = baseUsers.value.find((u) => u.id === audit.fk_user_id || u.email === audit.user)
         return {
           ...audit,
           created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
           created_by_email: user?.email,
+          created_by_meta: user?.meta,
         }
       })
+
+      mightHaveMoreAudits.value = audits.value.length < (response.pageInfo?.totalRows ?? +Infinity)
     } catch (e: any) {
-      message.error(
-        await extractSdkResponseErrorMsg(
-          e as Error & {
-            response: any
-          },
-        ),
-      )
+      const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+      if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+        const details = errorInfo.details as PlanLimitExceededDetailsType
+
+        handleUpgradePlan({
+          title: t('upgrade.updateToExtendRecordHistory'),
+          content: t('upgrade.updateToExtendRecordHistorySubtitle', {
+            activePlan: details.plan,
+            plan: details.higherPlan,
+            period: formatDurationFromDays(+(details.limit ?? 14)),
+          }),
+          limitOrFeature: PlanLimitTypes.LIMIT_AUDIT_RETENTION,
+        })
+      } else {
+        message.error(errorInfo.message)
+      }
     } finally {
       isAuditLoading.value = false
     }
+  }
+
+  function formatDurationFromDays(days: number): string {
+    if (days === Infinity) {
+      return '3+ years'
+    }
+
+    if (days < 14) {
+      return `${days} day${days === 1 ? '' : 's'}`
+    } else if (days < 30) {
+      const weeks = Math.floor(days / 7)
+      return `${weeks} week${weeks === 1 ? '' : 's'}`
+    } else if (days < 365) {
+      const months = Math.floor(days / 30)
+      return `${months} month${months === 1 ? '' : 's'}`
+    } else {
+      const years = Math.floor(days / 365)
+      return years > 3 ? `${years}+ years` : `${years} year${years === 1 ? '' : 's'}`
+    }
+  }
+
+  const loadMoreAudits = async () => {
+    if (!mightHaveMoreAudits.value) {
+      return
+    }
+
+    currentAuditPages.value++
+    await loadAudits()
+  }
+
+  const resetAuditPages = async () => {
+    currentAuditPages.value = 1
+    await loadAudits()
   }
 
   const isYou = (email: string) => {
@@ -232,7 +273,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         const id = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
         if (!id) {
-          return message.info("Update not allowed for table which doesn't have primary Key")
+          return message.info(t('msg.info.updateNotAllowedWithoutPK'))
         }
 
         await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), updateOrInsertObj)
@@ -294,6 +335,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     const recordId = rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
     if (!recordId) return
+
     let record: Record<string, any> = {}
     try {
       record = await $api.dbTableRow.read(
@@ -378,6 +420,211 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     }
   }
 
+  const processedAudits = computed(() => {
+    const result: typeof audits.value = []
+
+    try {
+      const allAudits = JSON.parse(JSON.stringify(audits.value))
+
+      for (const audit of allAudits) {
+        if (audit.op_type !== 'DATA_UPDATE') {
+          result.push(audit)
+          continue
+        }
+
+        const details = JSON.parse(audit.details)
+
+        for (const columnKey of Object.keys(details.data || {})) {
+          if (!details.column_meta?.[columnKey]) {
+            delete details.data[columnKey]
+            delete details.old_data[columnKey]
+            delete details.column_meta[columnKey]
+            continue
+          }
+
+          if (
+            ['CreatedTime', 'CreatedBy', 'LastModifiedTime', 'LastModifiedBy'].includes(details.column_meta?.[columnKey]?.type)
+          ) {
+            delete details.data[columnKey]
+            delete details.old_data[columnKey]
+            delete details.column_meta[columnKey]
+            continue
+          }
+        }
+
+        if (Object.values(details.column_meta || {}).length > 0) {
+          audit.details = JSON.stringify(details)
+          result.push(audit)
+        }
+      }
+    } catch (e) {
+      console.error(e)
+    }
+
+    return result
+  })
+
+  const consolidatedAudits = computed(() => {
+    const result: typeof audits.value = []
+
+    const applyLinkAuditValue = (detail: any, refRowId: string, value: string, type: 'link' | 'unlink') => {
+      if (!detail.consolidated_ref_display_values_links) detail.consolidated_ref_display_values_links = []
+      if (!detail.consolidated_ref_display_values_unlinks) detail.consolidated_ref_display_values_unlinks = []
+
+      if (type === 'link') {
+        if (!detail.consolidated_ref_display_values_unlinks.find((it: any) => it.refRowId === refRowId)) {
+          if (!detail.consolidated_ref_display_values_links.find((it: any) => it.refRowId === refRowId)) {
+            detail.consolidated_ref_display_values_links.push({ refRowId, value })
+          }
+        } else {
+          detail.consolidated_ref_display_values_unlinks.splice(
+            detail.consolidated_ref_display_values_unlinks.findIndex((it: any) => it.refRowId === refRowId),
+            1,
+          )
+        }
+      } else {
+        if (!detail.consolidated_ref_display_values_links.find((it: any) => it.refRowId === refRowId)) {
+          if (!detail.consolidated_ref_display_values_unlinks.find((it: any) => it.refRowId === refRowId)) {
+            detail.consolidated_ref_display_values_unlinks.push({ refRowId, value })
+          }
+        } else {
+          detail.consolidated_ref_display_values_links.splice(
+            detail.consolidated_ref_display_values_links.findIndex((it: any) => it.refRowId === refRowId),
+            1,
+          )
+        }
+      }
+    }
+
+    try {
+      const allAudits = JSON.parse(JSON.stringify(processedAudits.value))
+
+      while (allAudits.length > 0) {
+        const current = allAudits.shift()!
+        if (current.op_type === 'DATA_LINK' || current.op_type === 'DATA_UNLINK') {
+          const last = result.findLast((it) => it.op_type === 'DATA_LINK' || it.op_type === 'DATA_UNLINK')
+          const details = JSON.parse(current.details)
+          if (!last) {
+            applyLinkAuditValue(
+              details,
+              details.ref_row_id,
+              details.ref_display_value,
+              current.op_type === 'DATA_LINK' ? 'link' : 'unlink',
+            )
+            current.details = JSON.stringify(details)
+            result.push(current)
+          } else {
+            const lastDetails = JSON.parse(last.details)
+            if (
+              last.user === current.user &&
+              dayjs(current.created_at).diff(dayjs(last.created_at), 'second') <= 30 &&
+              lastDetails.link_field_id === details.link_field_id &&
+              lastDetails.ref_table_title === details.ref_table_title
+            ) {
+              applyLinkAuditValue(
+                lastDetails,
+                details.ref_row_id,
+                details.ref_display_value,
+                current.op_type === 'DATA_LINK' ? 'link' : 'unlink',
+              )
+              if (
+                lastDetails.consolidated_ref_display_values_links?.length > 0 ||
+                lastDetails.consolidated_ref_display_values_unlinks?.length
+              ) {
+                last.details = JSON.stringify(lastDetails)
+              } else {
+                result.pop()
+              }
+            } else {
+              applyLinkAuditValue(
+                details,
+                details.ref_row_id,
+                details.ref_display_value,
+                current.op_type === 'DATA_LINK' ? 'link' : 'unlink',
+              )
+              current.details = JSON.stringify(details)
+              result.push(current)
+            }
+          }
+        } else if (current.op_type === 'DATA_UPDATE') {
+          const last = result.findLast((it) => it.op_type === 'DATA_UPDATE')
+          if (!last || last.user !== current.user || dayjs(current.created_at).diff(dayjs(last.created_at), 'second') > 30) {
+            result.push(current)
+            continue
+          }
+          const details = JSON.parse(current.details)
+          const lastDetails = JSON.parse(last.details)
+          for (const field of Object.values(details.column_meta ?? {}) as any[]) {
+            if (['MultiSelect', 'SingleSelect'].includes(field.type) && lastDetails?.column_meta?.[field?.title]) {
+              lastDetails.data[field.title] = details.data[field.title]
+              for (const option of details.column_meta[field.title]?.options?.choices ?? []) {
+                if (!lastDetails.column_meta[field.title]?.options.choices.find((it: any) => it.id === option.id)) {
+                  lastDetails.column_meta[field.title].options.choices.push(option)
+                }
+              }
+              last.details = JSON.stringify(lastDetails)
+              delete details.old_data[field.title]
+              delete details.data[field.title]
+              delete details.column_meta[field.title]
+              current.details = JSON.stringify(details)
+            } else if (lastDetails?.column_meta?.[field?.title] && lastDetails.old_data[field.title]) {
+              lastDetails.data[field.title] = details.data[field.title]
+              last.details = JSON.stringify(lastDetails)
+              delete details.old_data[field.title]
+              delete details.data[field.title]
+              delete details.column_meta[field.title]
+              current.details = JSON.stringify(details)
+            } else if (details?.column_meta?.[field?.title] && !lastDetails?.column_meta?.[field?.title]) {
+              if (!lastDetails.column_meta) lastDetails.column_meta = {}
+              if (!lastDetails.old_data) lastDetails.old_data = {}
+              if (!lastDetails.data) lastDetails.data = {}
+              lastDetails.column_meta[field.title] = details.column_meta[field.title]
+              lastDetails.old_data[field.title] = details.old_data[field.title]
+              lastDetails.data[field.title] = details.data[field.title]
+              last.details = JSON.stringify(lastDetails)
+              delete details.old_data[field.title]
+              delete details.data[field.title]
+              delete details.column_meta[field.title]
+              current.details = JSON.stringify(details)
+            }
+          }
+          if (Object.values(details.column_meta).length > 0) {
+            result.push(current)
+          }
+        } else {
+          result.push(current)
+        }
+      }
+    } catch (e) {
+      console.error(e)
+    }
+
+    return result
+  })
+
+  const auditCommentGroups = computed(() => {
+    const adts = [...consolidatedAudits.value].map((it) => ({
+      user: it.user,
+      displayName: it.created_display_name,
+      created_at: it.created_at,
+      type: 'audit',
+      audit: it,
+    }))
+
+    const cmnts = [...comments.value].map((it) => ({
+      ...it,
+      user: it.created_by_email,
+      displayName: it.created_display_name,
+      type: 'comment',
+    }))
+
+    const groups = [...adts, ...cmnts]
+
+    return groups.sort((a, b) => {
+      return dayjs(a.created_at).isBefore(dayjs(b.created_at)) ? -1 : 1
+    })
+  })
+
   return {
     ...rowStore,
     loadComments,
@@ -386,6 +633,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     comments,
     audits,
     isAuditLoading,
+    clearColumns,
+    auditCommentGroups,
+    consolidatedAudits,
+    mightHaveMoreAudits,
+    loadMoreAudits,
+    resetAuditPages,
     resolveComment,
     isCommentsLoading,
     saveComment,
@@ -400,7 +653,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     primaryKey,
     saveRowAndStay,
     updateComment,
-    clearColumns,
   }
 }, 'expanded-form-store')
 

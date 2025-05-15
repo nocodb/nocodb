@@ -4,6 +4,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: GcsPlugin,
+  id: 'gcs',
   title: 'GCS',
   version: '0.0.4',
   logo: 'plugins/gcs.png',

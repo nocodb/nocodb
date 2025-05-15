@@ -16,7 +16,7 @@ const gotoFeed = () => navigateToFeed()
     type="text"
     full-width
     size="xsmall"
-    class="n!xs:hidden my-0.5 w-full !h-7 !rounded-md !font-normal !pl-4.5 !pr-5"
+    class="n!xs:hidden w-full !h-7 !rounded-md !pl-3 !pr-2"
     data-testid="nc-sidebar-product-feed"
     :centered="false"
     :class="{
@@ -31,11 +31,13 @@ const gotoFeed = () => navigateToFeed()
         'font-semibold': isFeedPageOpened,
       }"
     >
-      <div class="flex flex-1 w-full items-center gap-3">
+      <div class="flex flex-1 w-full items-center gap-2">
         <GeneralIcon icon="megaPhone" class="!h-4" />
-        <span class="">What’s New!</span>
+        <span class="">{{ $t('labels.whatsNew') }}</span>
       </div>
-      <div v-if="isNewFeedAvailable" class="w-3 h-3 pulsing-dot bg-nc-fill-red-medium border-2 border-white rounded-full"></div>
+      <div v-if="isNewFeedAvailable" class="flex justify-center items-center w-4">
+        <div class="w-3 h-3 pulsing-dot bg-nc-fill-red-medium border-2 border-white rounded-full"></div>
+      </div>
     </div>
   </NcButton>
 </template>

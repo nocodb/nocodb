@@ -1,5 +1,6 @@
 import { Readable } from 'stream';
 import path from 'path';
+import iconv from 'iconv-lite';
 import { Injectable, Logger } from '@nestjs/common';
 import moment from 'moment';
 import type { Job } from 'bull';
@@ -61,10 +62,19 @@ export class DataExportProcessor {
 
       dataStream.setEncoding('utf8');
 
+      const encodedStream =
+        options?.encoding &&
+        options.encoding !== 'utf-8' &&
+        iconv.encodingExists(options.encoding)
+          ? dataStream
+              .pipe(iconv.decodeStream('utf-8'))
+              .pipe(iconv.encodeStream(options?.encoding || 'utf-8'))
+          : dataStream;
+
       let error = null;
 
       const uploadFilePromise = (storageAdapter as any)
-        .fileCreateByStream(destPath, dataStream)
+        .fileCreateByStream(destPath, encodedStream)
         .catch((e) => {
           this.logger.error(e);
           error = e;
@@ -96,6 +106,7 @@ export class DataExportProcessor {
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
           mimetype: 'text/csv',
+          encoding: options?.encoding || 'utf-8',
         });
       } else {
         url = await PresignedUrl.getSignedUrl({
@@ -104,6 +115,7 @@ export class DataExportProcessor {
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
           mimetype: 'text/csv',
+          encoding: options?.encoding || 'utf-8',
         });
       }
 

@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -21,7 +22,7 @@ import { NcContext, NcRequest } from '~/interface/config';
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
 export class BulkDataAliasController {
-  constructor(private bulkDataAliasService: BulkDataAliasService) {}
+  constructor(protected bulkDataAliasService: BulkDataAliasService) {}
 
   @Post(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName'])
   @HttpCode(200)
@@ -33,15 +34,17 @@ export class BulkDataAliasController {
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Body() body: any,
+    @Query('undo') undo: string,
   ) {
     const exists = await this.bulkDataAliasService.bulkDataInsert(context, {
       body: body,
       cookie: req,
       baseName: baseName,
       tableName: tableName,
+      undo: undo === 'true',
     });
 
-    res.json(exists);
+    res.header('nc-operation-id', req.ncParentAuditId).json(exists);
   }
 
   @Patch(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName'])
@@ -112,6 +115,27 @@ export class BulkDataAliasController {
       baseName: baseName,
       tableName: tableName,
       query: req.query,
+      viewName: req.query.viewId,
+      req,
+    });
+  }
+
+  @Post(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName/upsert'])
+  @Acl('bulkDataUpsert')
+  async bulkDataUpsert(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('baseName') baseName: string,
+    @Param('tableName') tableName: string,
+    @Body() body: any,
+    @Query('undo') undo: string,
+  ) {
+    return await this.bulkDataAliasService.bulkDataUpsert(context, {
+      body: body,
+      cookie: req,
+      baseName: baseName,
+      tableName: tableName,
+      undo: undo === 'true',
     });
   }
 }

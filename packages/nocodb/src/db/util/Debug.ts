@@ -1,8 +1,11 @@
 import boxen from 'boxen';
 import debug from 'debug';
 
-import('colors');
+import colors from 'colors/safe';
 import DebugMgr from './DebugMgr';
+
+const yellowBold = (str: string) => colors.yellow(colors.bold(str));
+const redBold = (str: string) => colors.red(colors.bold(str));
 
 export default class Debug {
   public namespace: any;
@@ -25,25 +28,27 @@ export default class Debug {
 
   ppException(e, func = null) {
     let log = '';
-    log += `                                              EXCEPTION OCCURED!! in ${this.namespace.red.bold} @ ${func}`;
-    log +=
-      '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
-        .red.bold;
-    log += `MESSAGE:\n`.yellow.bold;
-    log += `${e.message}\n`.yellow.bold;
-    log +=
-      '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
-        .red.bold;
-    log += `CODE:\n`.yellow.bold;
-    log += `${e.code}\n`.yellow.bold;
-    log +=
-      '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
-        .red.bold;
-    log += `STACK:\n`.yellow.bold;
-    log += `${e.stack}\n`.yellow.bold;
-    log +=
-      '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
-        .red.bold;
+    log += `                                              EXCEPTION OCCURED!! in ${redBold(
+      this.namespace,
+    )} @ ${func}`;
+    log += redBold(
+      '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n',
+    );
+    log += yellowBold(`MESSAGE:\n`);
+    log += yellowBold(`${e.message}\n`);
+    log += redBold(
+      '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n',
+    );
+    log += yellowBold(`CODE:\n`);
+    log += yellowBold(`${e.code}\n`);
+    log += redBold(
+      '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n',
+    );
+    log += yellowBold(`STACK:\n`);
+    log += yellowBold(`${e.stack}\n`);
+    log += redBold(
+      '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n',
+    );
     console.log(boxen(log, { padding: 1, borderStyle: 'double' }));
     console.log(e);
     return log;

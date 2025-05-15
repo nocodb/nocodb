@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import { ColumnHelper, type ColumnType, UITypes } from 'nocodb-sdk'
 import { AllowedColumnTypesForQrAndBarcodes, isVirtualCol } from 'nocodb-sdk'
+import { supportedBarcodeFormats } from '~/helpers/columnDefaultMeta'
 
 const props = defineProps<{
   modelValue: any
@@ -32,7 +33,7 @@ const columnsAllowedAsBarcodeValue = computed<ColumnType[]>(() => {
 onMounted(() => {
   // set default value
   vModel.value.meta = {
-    ...columnDefaultMeta[UITypes.Barcode],
+    ...ColumnHelper.getColumnDefaultMeta(UITypes.Barcode),
     ...(vModel.value.meta || {}),
   }
   vModel.value.fk_barcode_value_column_id =

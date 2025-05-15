@@ -25,5 +25,20 @@ export default defineNuxtPlugin(() => {
   extend(advanced)
   dayjs.updateLocale('en', {
     weekStart: 1,
+    relativeTime: {
+      future: 'in %s',
+      past: '%s ago',
+      s: '%ds',
+      m: '1m',
+      mm: '%dm',
+      h: '1h',
+      hh: '%dh',
+      d: '1d',
+      dd: '%dd',
+      M: '1mo',
+      MM: '%dmo',
+      y: '1y',
+      yy: '%dy',
+    },
   })
 })

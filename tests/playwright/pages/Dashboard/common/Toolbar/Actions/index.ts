@@ -22,6 +22,10 @@ export class ToolbarActionsPage extends BasePage {
   }
 
   async clickDownloadSubmenu(label: string) {
-    await this.rootPage.locator(`div.nc-base-menu-item:has-text("${label}")`).first().click();
+    const locator = await this.rootPage
+      .locator(`.ant-dropdown-menu-item.ant-dropdown-menu-item-only-child:has-text("${label}")`)
+      .last();
+
+    await locator.click();
   }
 }

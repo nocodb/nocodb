@@ -50,8 +50,6 @@ test.describe('Expanded form URL', () => {
   }
 
   async function viewTestSakila(viewType: string) {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
 
     let viewObj: GridPage | GalleryPage = dashboard.grid;
@@ -67,9 +65,6 @@ test.describe('Expanded form URL', () => {
       await dashboard.viewSidebar.createGalleryView({
         title: 'CountryExpand',
       });
-      await viewObj.toolbar.clickFields();
-      await viewObj.toolbar.fields.click({ title: 'Cities' });
-      await viewObj.toolbar.clickFields();
     }
 
     // expand row & verify URL
@@ -100,6 +95,7 @@ test.describe('Expanded form URL', () => {
       column: 'Cities',
       title: 'Kabul',
     });
+
     await dashboard.rootPage.waitForTimeout(1000);
 
     await dashboard.expandedForm.verifyCount({ count: 2 });
@@ -137,7 +133,6 @@ test.describe('Expanded record duplicate & delete options', () => {
   });
 
   test('Grid', async () => {
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Actor' });
 
     // create filter to narrow down the number of records

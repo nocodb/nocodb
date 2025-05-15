@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
-
-interface Option {
-  label: string
-  value: string
-}
+import { ColumnHelper, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -60,13 +55,13 @@ const message = computed(() => {
   return ''
 })
 
-function filterOption(input: string, option: Option) {
-  return option.value.toUpperCase().includes(input.toUpperCase())
+function filterOption(input: string, option: { value: string; key: string }) {
+  return searchCompare([option.value, option.key], input)
 }
 
 // set default value
 vModel.value.meta = {
-  ...columnDefaultMeta[UITypes.Currency],
+  ...ColumnHelper.getColumnDefaultMeta(UITypes.Currency),
   ...(vModel.value.meta || {}),
 }
 
@@ -89,7 +84,7 @@ currencyLocales().then((locales) => {
         >
           <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
 
-          <a-select-option v-for="(currencyLocale, i) of currencyLocaleList" :key="i" :value="currencyLocale.value">
+          <a-select-option v-for="currencyLocale of currencyLocaleList" :key="currencyLocale.text" :value="currencyLocale.value">
             <div class="flex gap-2 w-full truncate items-center">
               <NcTooltip show-on-truncate-only class="flex-1 truncate">
                 <template #title>{{ currencyLocale.text }}</template>

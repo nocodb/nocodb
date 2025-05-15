@@ -53,6 +53,8 @@ export class DataExportController {
       ncSiteUrl: req.ncSiteUrl,
     });
 
-    return job;
+    return {
+      id: job.id,
+    };
   }
 }

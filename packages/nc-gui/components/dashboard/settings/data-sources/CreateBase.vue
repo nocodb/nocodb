@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Form, message } from 'ant-design-vue'
+import { Form } from 'ant-design-vue'
 import { type IntegrationType, validateAndExtractSSLProp } from 'nocodb-sdk'
 import {
   ClientType,
@@ -29,6 +29,8 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const _projectId = inject(ProjectIdInj, undefined)
 const baseId = computed(() => _projectId?.value ?? base.value?.id)
+
+const filteredIntegrations = computed(() => integrations.value.filter((i) => i.sub_type !== SyncDataType.NOCODB))
 
 const useForm = Form.useForm
 
@@ -419,6 +421,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
 }
 
 const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [IntegrationCategoryType.DATABASE].includes(c.value)
+const filterIntegration = (i: IntegrationItemType) => i.sub_type !== SyncDataType.NOCODB && i.isAvailable
 
 const isIntgrationDisabled = (integration: IntegrationType = {}) => {
   switch (integration.sub_type) {
@@ -533,7 +536,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                           @change="changeIntegration()"
                         >
                           <a-select-option
-                            v-for="integration in integrations"
+                            v-for="integration in filteredIntegrations"
                             :key="integration.id"
                             :value="integration.id"
                             :disabled="isIntgrationDisabled(integration).isDisabled"
@@ -746,7 +749,11 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
               </div>
             </a-form>
 
-            <WorkspaceIntegrationsTab is-modal :filter-category="filterIntegrationCategory" />
+            <WorkspaceIntegrationsTab
+              is-modal
+              :filter-category="filterIntegrationCategory"
+              :filter-integration="filterIntegration"
+            />
             <WorkspaceIntegrationsEditOrAdd load-datasource-info :base-id="baseId" />
           </div>
           <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">

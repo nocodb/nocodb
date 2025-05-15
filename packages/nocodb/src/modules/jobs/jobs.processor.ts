@@ -8,7 +8,7 @@ import { JobsMap } from '~/modules/jobs/jobs-map.service';
 import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobStatus } from '~/interface/Jobs';
 
-const NC_WORKER_CONCURRENCY = process.env.NC_WORKER_CONCURRENCY ?? 5;
+const NC_WORKER_CONCURRENCY = process.env.NC_WORKER_CONCURRENCY ?? 10;
 
 @Processor(JOBS_QUEUE)
 export class JobsProcessor {

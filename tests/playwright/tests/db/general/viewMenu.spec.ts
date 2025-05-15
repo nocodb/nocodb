@@ -40,8 +40,6 @@ test.describe('Grid view locked', () => {
   });
 
   test('Download CSV', async () => {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.grid.toolbar.clickFields();
@@ -52,7 +50,7 @@ test.describe('Grid view locked', () => {
 
     await dashboard.grid.toolbar.viewsMenu.click({
       menu: 'Download',
-      subMenu: 'Download CSV',
+      subMenu: 'CSV',
       verificationInfo: {
         verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.txt' : null,
       },
@@ -60,8 +58,6 @@ test.describe('Grid view locked', () => {
   });
 
   test('Download XLSX', async () => {
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
 
     await dashboard.grid.toolbar.clickFields();
@@ -72,7 +68,7 @@ test.describe('Grid view locked', () => {
 
     await dashboard.grid.toolbar.viewsMenu.click({
       menu: 'Download',
-      subMenu: 'Download Excel',
+      subMenu: 'Excel',
       verificationInfo: {
         verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.txt' : null,
       },

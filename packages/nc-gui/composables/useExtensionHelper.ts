@@ -4,6 +4,7 @@ import type { ExtensionManifest, ExtensionType } from '#imports'
 const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
   (extension: Ref<ExtensionType>, extensionManifest: ComputedRef<ExtensionManifest | undefined>, activeError: Ref<any>) => {
     const { $api } = useNuxtApp()
+    const route = useRoute()
 
     const basesStore = useBases()
 
@@ -26,6 +27,9 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     const showExpandBtn = ref(true)
 
     const fullscreenModalSize = ref<keyof typeof modalSizes>(extensionManifest.value?.config?.modalSize || 'lg')
+
+    const activeTableId = computed(() => route.params.viewId as string | undefined)
+    const activeViewId = computed(() => route.params.viewTitle as string | undefined)
 
     const collapsed = computed({
       get: () => extension.value?.meta?.collapsed ?? false,
@@ -81,7 +85,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       return getMeta(tableId)
     }
 
-    const insertData = async (params: { tableId: string; data: Record<string, any> }) => {
+    const insertData = async (params: { tableId: string; data: Record<string, any>[]; autoInsertOption?: boolean }) => {
       const { tableId, data } = params
 
       const chunks = []
@@ -95,7 +99,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
       for (const chunk of chunks) {
         inserted += chunk.length
-        await $api.dbDataTableRow.create(tableId, chunk)
+        await $api.dbDataTableRow.create(tableId, chunk, params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined)
       }
 
       return {
@@ -103,7 +107,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       }
     }
 
-    const updateData = async (params: { tableId: string; data: Record<string, any> }) => {
+    const updateData = async (params: { tableId: string; data: Record<string, any>[] }) => {
       const { tableId, data } = params
 
       const chunks = []
@@ -127,9 +131,10 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
     const upsertData = async (params: {
       tableId: string
-      data: Record<string, any>
+      data: Record<string, any>[]
       upsertField: ColumnType
       importType: 'insert' | 'update' | 'insertAndUpdate'
+      autoInsertOption?: boolean
     }) => {
       const { tableId, data, upsertField } = params
 
@@ -189,14 +194,22 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       if (insert.length) {
         insertCounter += insert.length
         while (insert.length) {
-          await $api.dbDataTableRow.create(tableId, insert.splice(0, chunkSize))
+          await $api.dbDataTableRow.create(
+            tableId,
+            insert.splice(0, chunkSize),
+            params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined,
+          )
         }
       }
 
       if (update.length) {
         updateCounter += update.length
         while (update.length) {
-          await $api.dbDataTableRow.update(tableId, update.splice(0, chunkSize))
+          await $api.dbDataTableRow.update(
+            tableId,
+            update.splice(0, chunkSize),
+            params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined,
+          )
         }
       }
 
@@ -221,6 +234,8 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       tables,
       showExpandBtn,
       fullscreenModalSize,
+      activeTableId,
+      activeViewId,
       getViewsForTable,
       getData,
       getTableMeta,
@@ -229,6 +244,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       upsertData,
       reloadData,
       reloadMeta,
+      eventBus,
     }
   },
   'extension-helper',

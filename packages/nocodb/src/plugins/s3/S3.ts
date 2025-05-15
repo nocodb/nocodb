@@ -3,6 +3,7 @@ import { Upload } from '@aws-sdk/lib-storage';
 import type { S3ClientConfig } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2 } from '~/types/nc-plugin';
 import GenericS3 from '~/plugins/GenericS3/GenericS3';
+import { S3_PATCH_KEYS } from '~/constants';
 
 interface S3Input {
   bucket: string;
@@ -36,8 +37,7 @@ export default class S3 extends GenericS3 implements IStorageAdapterV2 {
     }
 
     if (
-      key.startsWith(`${this.input.bucket}/nc/uploads`) ||
-      key.startsWith(`${this.input.bucket}/nc/thumbnails`)
+      S3_PATCH_KEYS.some((k) => key.startsWith(`${this.input.bucket}/nc/${k}`))
     ) {
       key = key.replace(`${this.input.bucket}/`, '');
     }

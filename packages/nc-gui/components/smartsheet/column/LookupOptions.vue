@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -38,7 +38,18 @@ const refTables = computed(() => {
   }
 
   const _refTables = meta.value.columns
-    .filter((column) => isLinksOrLTAR(column) && !column.system && column.source_id === meta.value?.source_id)
+    .filter(
+      (column) =>
+        isLinksOrLTAR(column) &&
+        // exclude system columns
+        (!column.system ||
+          // include system columns if it's self-referencing, mm, oo and bt are self-referencing
+          // hm is only used for LTAR with junction table
+          [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
+            (column.colOptions as LinkToAnotherRecordType).type as RelationTypes,
+          )) &&
+        column.source_id === meta.value?.source_id,
+    )
     .map((column) => ({
       col: column.colOptions,
       column,
@@ -54,13 +65,17 @@ const selectedTable = computed(() => {
   return refTables.value.find((t) => t.column.id === vModel.value.fk_relation_column_id)
 })
 
+// Todo: Add backend api level validation for unsupported fields
+const unsupportedUITypes = [UITypes.Button, UITypes.Links]
+
 const columns = computed<ColumnType[]>(() => {
   if (!selectedTable.value?.id) {
     return []
   }
   return metas.value[selectedTable.value.id]?.columns.filter(
     (c: ColumnType) =>
-      vModel.value.fk_lookup_column_id === c.id || (!isSystemColumn(c) && c.id !== vModel.value.id && c.uidt !== UITypes.Links),
+      vModel.value.fk_lookup_column_id === c.id ||
+      (!isSystemColumn(c) && c.id !== vModel.value.id && !unsupportedUITypes.includes(c.uidt)),
   )
 })
 
@@ -182,13 +197,15 @@ watch(
         name="fk_lookup_column_id"
         placeholder="-select-"
         :disabled="!vModel.fk_relation_column_id"
+        show-search
+        :filter-option="antSelectFilterOption"
         dropdown-class-name="nc-dropdown-relation-column !rounded-md"
         @change="onDataTypeChange"
       >
         <template #suffixIcon>
           <GeneralIcon icon="arrowDown" class="text-gray-700" />
         </template>
-        <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
+        <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
           <div class="w-full flex gap-2 truncate items-center justify-between">
             <div class="inline-flex items-center gap-2 flex-1 truncate">
               <component :is="cellIcon(column)" :column-meta="column" class="!mx-0" />

@@ -13,6 +13,7 @@ import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable, RootScopes, RootScopeTables } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -126,7 +127,7 @@ export class MetaService {
         });
       }
     } else {
-      if (!base_id && base_id !== RootScopes.WORKSPACE) {
+      if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -140,6 +141,7 @@ export class MetaService {
       created_at: this.now(),
       updated_at: this.now(),
     });
+
     return insertObj;
   }
 
@@ -185,7 +187,7 @@ export class MetaService {
         });
       }
     } else {
-      if (!base_id && base_id !== RootScopes.WORKSPACE) {
+      if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -329,6 +331,9 @@ export class MetaService {
       [MetaTable.INTEGRATIONS]: 'int',
       [MetaTable.FILE_REFERENCES]: 'at',
       [MetaTable.COL_BUTTON]: 'btn',
+      [MetaTable.SNAPSHOT]: 'snap',
+      [MetaTable.SCRIPTS]: 'scr',
+      [MetaTable.SYNC_CONFIGS]: 'sync',
     };
 
     const prefix = prefixMap[target] || 'nc';
@@ -375,7 +380,7 @@ export class MetaService {
         });
       }
     } else {
-      if (!base_id && base_id !== RootScopes.WORKSPACE) {
+      if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -448,7 +453,7 @@ export class MetaService {
         });
       }
     } else {
-      if (!base_id && base_id !== RootScopes.WORKSPACE) {
+      if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -531,7 +536,7 @@ export class MetaService {
         });
       }
     } else {
-      if (!base_id && base_id !== RootScopes.WORKSPACE) {
+      if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -605,7 +610,7 @@ export class MetaService {
         });
       }
     } else {
-      if (!base_id && base_id !== RootScopes.WORKSPACE) {
+      if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -648,6 +653,7 @@ export class MetaService {
     xcCondition?: Condition,
     skipUpdatedAt = false,
     force = false,
+    allowCreatedAt = false,
   ): Promise<any> {
     const query = this.knexConnection(target);
 
@@ -666,7 +672,7 @@ export class MetaService {
         });
       }
     } else {
-      if (!base_id && base_id !== RootScopes.WORKSPACE) {
+      if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -674,7 +680,9 @@ export class MetaService {
       }
     }
 
-    delete data.created_at;
+    if (!allowCreatedAt) {
+      delete data.created_at;
+    }
 
     if (!skipUpdatedAt) {
       data.updated_at = this.now();

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useMagicKeys, whenever } from '@vueuse/core'
 import { commandScore } from './command-score'
-import type { CommandPaletteType } from '~/lib/types'
+import type { CommandPaletteType } from '#imports'
 
 interface CmdAction {
   id: string
@@ -10,7 +10,8 @@ interface CmdAction {
   parent?: string
   handler?: Function
   scopePayload?: any
-  icon?: VNode | string
+  icon?: VNode | string | Record<string, any>
+  iconType?: string
   keywords?: string[]
   section?: string
   is_default?: number | null
@@ -85,6 +86,7 @@ const nestedScope = computed(() => {
       id: parent,
       label: parentEl?.title,
       icon: parentEl?.icon,
+      iconType: parentEl?.iconType,
       iconColor: parent.startsWith('ws-') ? parentEl?.iconColor : null,
     })
     parent = parentEl?.parent || 'root'
@@ -396,7 +398,7 @@ defineExpose({
 <template>
   <div v-show="vOpen" class="cmdk-modal" :class="{ 'cmdk-modal-active': vOpen }">
     <div ref="modalEl" class="cmdk-modal-content h-[25.25rem]">
-      <div class="cmdk-header">
+      <div class="cmdk-header border-b-1 border-gray-200">
         <div class="cmdk-input-wrapper">
           <GeneralIcon class="h-4 w-4 text-gray-500" icon="search" />
           <div
@@ -414,13 +416,15 @@ defineExpose({
                 <GeneralWorkspaceIcon
                   v-if="el.icon && el.id.startsWith('ws')"
                   :workspace="{
+                    title: el.label,
                     id: el.id.split('-')[1],
                     meta: {
                       color: el.iconColor,
+                      icon: el.icon,
+                      iconType: el.iconType,
                     },
                   }"
-                  hide-label
-                  size="small"
+                  size="medium"
                 />
 
                 <component
@@ -470,7 +474,7 @@ defineExpose({
             </div>
           </div>
           <template v-else>
-            <div class="cmdk-action-list border-t-1 border-gray-200">
+            <div class="cmdk-action-list">
               <div v-bind="containerProps" :style="`height: ${WRAPPER_HEIGHT}px`">
                 <div v-bind="wrapperProps">
                   <div v-for="item in list" :key="item.index" :style="`height: ${ACTION_HEIGHT}px`">
@@ -501,13 +505,16 @@ defineExpose({
                           <GeneralWorkspaceIcon
                             v-if="item.data.icon && item.data.id.startsWith('ws')"
                             :workspace="{
+                              title: item.data.title,
                               id: item.data.id.split('-')[2],
                               meta: {
                                 color: item.data?.iconColor,
+                                icon: item.data?.icon,
+                                iconType: item.data?.iconType,
                               },
                             }"
                             class="mr-2"
-                            size="small"
+                            size="medium"
                           />
                           <template v-else-if="item.data.section === 'Bases' || item.data.icon === 'project'">
                             <GeneralBaseIconColorPicker
@@ -588,7 +595,7 @@ defineExpose({
   width: 100%;
   height: 100%;
   background-color: rgba(255, 255, 255, 0.5);
-  z-index: 1000;
+  z-index: 1100;
 
   color: rgb(60, 65, 73);
   font-size: 16px;
@@ -736,7 +743,7 @@ defineExpose({
     border-top: 1px solid rgb(230, 230, 230);
     background: rgba(242, 242, 242, 0.4);
     font-size: 0.8em;
-    padding: 0.3em 0.6em;
+    padding: 0 0.6em;
     color: var(--cmdk-secondary-text-color);
     .cmdk-footer-left {
       display: flex;

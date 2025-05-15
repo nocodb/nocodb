@@ -1,4 +1,4 @@
-import { isSystemColumn, UITypes } from 'nocodb-sdk';
+import { convertMS2Duration, isSystemColumn, UITypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -82,8 +82,33 @@ export async function extractXlsxData(context: NcContext, view: View, req) {
   });
 
   const fields = req.query.fields as string[];
+  const columnFields = view.model.columns
+    .sort((c1, c2) =>
+      Array.isArray(fields)
+        ? fields.indexOf(c1.title as any) - fields.indexOf(c2.title as any)
+        : 0,
+    )
+    .filter(
+      (c) =>
+        !fields || !Array.isArray(fields) || fields.includes(c.title as any),
+    )
+    .map((c) => c.title);
 
-  const data = XLSX.utils.json_to_sheet(dbRows, { header: fields });
+  const dataToSerialize = dbRows
+    .filter((k) => k)
+    .map((k) =>
+      // remove all columns not defined in filter / columns
+      // because it's still getting added into xlsx even though undefined
+      Object.keys(k).reduce((obj, title) => {
+        if (columnFields.includes(title)) {
+          obj[title] = k[title];
+        }
+        return obj;
+      }, {}),
+    );
+  const data = XLSX.utils.json_to_sheet(dataToSerialize, {
+    header: columnFields,
+  });
 
   return { offset, dbRows, elapsed, data };
 }
@@ -237,6 +262,12 @@ export async function serializeCellValue(
         return Number(value).toFixed(column.meta?.precision ?? 1);
       }
       break;
+    case UITypes.Duration: {
+      if (column.meta?.duration === undefined) {
+        return value;
+      }
+      return convertMS2Duration(value, column.meta.duration);
+    }
     default:
       if (value && typeof value === 'object') {
         return JSON.stringify(value);

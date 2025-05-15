@@ -38,7 +38,7 @@ const props = withDefaults(defineProps<Props>(), {
   customRow: () => ({}),
 })
 
-const emit = defineEmits(['update:orderBy'])
+const emit = defineEmits(['update:orderBy', 'rowClick'])
 
 const tableWrapper = ref<HTMLDivElement>()
 
@@ -56,7 +56,7 @@ const { columns, data, isDataLoading, customHeaderRow, customRow } = toRefs(prop
 
 const headerRowClassName = computed(() => `nc-table-header-row ${props.headerRowClassName}`)
 
-const bodyRowClassName = computed(() => `nc-table-row ${props.headerRowClassName}`)
+const bodyRowClassName = computed(() => `nc-table-row ${props.bodyRowClassName}`)
 
 const slots = useSlots()
 
@@ -78,25 +78,33 @@ const updateOrderBy = (field: string) => {
  * We are using 2 different table tag to make header sticky,
  * so it's imp to keep header cell and body cell width same
  */
+const handleUpdateCellWidth = () => {
+  if (!tableHeader.value || !tableHeadWidth.value) return
+
+  nextTick(() => {
+    const headerCells = tableHeader.value?.querySelectorAll('th > div')
+
+    if (headerCells && headerCells.length) {
+      headerCells.forEach((el, i) => {
+        headerCellWidth.value[i] = el.getBoundingClientRect().width || undefined
+      })
+    }
+  })
+}
+
 watch(
-  tableHeadWidth,
+  [tableHeader, tableHeadWidth],
   () => {
-    if (!tableHeader.value || !tableHeadWidth.value) return
-
-    nextTick(() => {
-      const headerCells = tableHeader.value?.querySelectorAll('th > div')
-
-      if (headerCells && headerCells.length) {
-        headerCells.forEach((el, i) => {
-          headerCellWidth.value[i] = el.getBoundingClientRect().width || undefined
-        })
-      }
-    })
+    handleUpdateCellWidth()
   },
   {
     immediate: true,
   },
 )
+
+onMounted(() => {
+  handleUpdateCellWidth()
+})
 
 useEventListener(tableWrapper, 'scroll', () => {
   const stickyHeaderCell = tableWrapper.value?.querySelector('th:nth-of-type(1)')
@@ -117,6 +125,10 @@ useEventListener(tableWrapper, 'scroll', () => {
     tableWrapper.value?.classList.remove('sticky-border')
   }
 })
+
+const onRowClick = (record: Record<string, any>, recordIndex: number) => {
+  emit('rowClick', record, recordIndex)
+}
 </script>
 
 <template>
@@ -168,9 +180,9 @@ useEventListener(tableWrapper, 'scroll', () => {
                 },
               ]"
               :style="{
-                width: col.width,
+                width: col.width ? `${col.width}px` : undefined,
                 flexBasis: !col.width ? col.basis : undefined,
-                maxWidth: col.width ? col.width : undefined,
+                maxWidth: col.width ? `${col.width}px` : undefined,
               }"
               :data-test-id="`nc-table-header-cell-${col.name || col.key}`"
               @click="col.showOrderBy && col?.dataIndex ? updateOrderBy(col.dataIndex) : undefined"
@@ -212,6 +224,7 @@ useEventListener(tableWrapper, 'scroll', () => {
           }"
         >
           <tbody>
+            <slot name="body-prepend" />
             <tr
               v-for="(record, recordIndex) of data"
               :key="recordIndex"
@@ -220,6 +233,7 @@ useEventListener(tableWrapper, 'scroll', () => {
               }"
               :class="[`${bodyRowClassName}`, `nc-table-row-${recordIndex}`]"
               v-bind="customRow ? customRow(record, recordIndex) : {}"
+              @click="onRowClick(record, recordIndex)"
             >
               <td
                 v-for="(col, colIndex) of columns"
@@ -233,9 +247,9 @@ useEventListener(tableWrapper, 'scroll', () => {
                   },
                 ]"
                 :style="{
-                  width: col.width,
+                  width: col.width ? `${col.width}px` : undefined,
                   flexBasis: !col.width ? col.basis : undefined,
-                  maxWidth: col.width ? col.width : undefined,
+                  maxWidth: col.width ? `${col.width}px` : undefined,
                 }"
                 :data-test-id="`nc-table-cell-${col.name || col.key}`"
               >
@@ -363,6 +377,10 @@ useEventListener(tableWrapper, 'scroll', () => {
 
       &:not(.nc-table-extra-row) {
         @apply border-b-1 border-gray-200;
+      }
+
+      &.no-border-last:not(.nc-table-extra-row):last-child {
+        @apply border-b-0;
       }
 
       &.selected td {

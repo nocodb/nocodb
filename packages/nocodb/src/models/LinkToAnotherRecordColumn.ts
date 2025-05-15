@@ -155,9 +155,15 @@ export default class LinkToAnotherRecordColumn {
     return this.read(context, data.fk_column_id, ncMeta);
   }
 
-  async getChildView(context: NcContext, ncMeta = Noco.ncMeta) {
-    if (!this.fk_target_view_id) return;
-    return await View.get(context, this.fk_target_view_id, ncMeta);
+  async getChildView(
+    context: NcContext,
+    table: Model = undefined,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await table?.getViews(context);
+    const viewId = this.fk_target_view_id ?? table?.views?.[0]?.id ?? '';
+    if (!viewId) return;
+    return await View.get(context, viewId, ncMeta);
   }
 
   public static async read(

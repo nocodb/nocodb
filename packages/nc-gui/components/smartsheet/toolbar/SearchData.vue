@@ -4,21 +4,25 @@ import { UITypes, isSystemColumn } from 'nocodb-sdk'
 
 const reloadData = inject(ReloadViewDataHookInj)!
 
-const { meta } = useSmartsheetStoreOrThrow()
-
 const activeView = inject(ActiveViewInj, ref())
+
+const { meta, eventBus } = useSmartsheetStoreOrThrow()
+
+const router = useRouter()
+
+const route = router.currentRoute
 
 const { search, loadFieldQuery } = useFieldQuery()
 
+const { isMobileMode } = useGlobal()
+
 const isDropdownOpen = ref(false)
 
-const showSearchBox = ref(false)
+const showSearchBox = ref(!!isMobileMode.value)
 
 const globalSearchRef = ref<HTMLInputElement>()
 
 const globalSearchWrapperRef = ref<HTMLInputElement>()
-
-const { isMobileMode } = useGlobal()
 
 const columns = computed(
   () =>
@@ -67,6 +71,10 @@ watchDebounced(
 const onSelectOption = (column: ColumnType) => {
   search.value.field = column.id as string
   isDropdownOpen.value = false
+
+  if (search.value.query?.length) {
+    onPressEnter()
+  }
 }
 
 const handleShowSearchInput = () => {
@@ -77,18 +85,39 @@ const handleShowSearchInput = () => {
   })
 }
 
-onClickOutside(globalSearchWrapperRef, (e) => {
+const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
   const targetEl = e.target as HTMLElement
   if (search.value.query || targetEl.closest('.nc-dropdown-toolbar-search-field-option')) {
     return
   }
 
-  showSearchBox.value = false
-})
+  if (!isMobileMode.value) {
+    showSearchBox.value = false
+  }
+}
+
+onClickOutside(globalSearchWrapperRef, handleClickOutside)
 
 onMounted(() => {
-  if (search.value.query && !showSearchBox.value) {
+  if ((search.value.query || isMobileMode.value) && !showSearchBox.value) {
     showSearchBox.value = true
+  }
+})
+
+// on filter param changes reload the data
+watch(
+  () => route.value?.query?.where,
+  () => {
+    eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+  },
+)
+
+useEventListener('keydown', (e: KeyboardEvent) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    e.preventDefault()
+    handleShowSearchInput()
+  } else if (e.key === 'Escape') {
+    handleClickOutside(e)
   }
 })
 </script>
@@ -146,7 +175,7 @@ onMounted(() => {
           v-model:value="search.query"
           name="globalSearchQuery"
           size="small"
-          class="text-xs w-40 h-full"
+          class="text-xs w-40 h-full nc-view-search-data"
           :placeholder="`${$t('general.searchIn')} ${displayColumnLabel ?? ''}`"
           :bordered="false"
           data-testid="search-data-input"

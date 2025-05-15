@@ -2,6 +2,7 @@
 const props = defineProps<{
   modelValue?: string
   centered?: boolean
+  theme?: 'default' | 'ai'
 }>()
 </script>
 
@@ -9,7 +10,8 @@ const props = defineProps<{
   <a-tabs
     class="nc-tabs"
     :class="{
-      centered: props.centered,
+      'centered': props.centered,
+      'theme-ai': props.theme === 'ai',
     }"
   >
     <slot />
@@ -55,6 +57,18 @@ const props = defineProps<{
 
   .ant-tabs-ink-bar {
     @apply bg-brand-500 !rounded-t-xl;
+  }
+
+  &.theme-ai {
+    .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+      @apply text-purple-600;
+    }
+    .ant-tabs-tab.ant-tabs-tab-active:hover .ant-tabs-tab-btn {
+      @apply text-purple-700;
+    }
+    .ant-tabs-ink-bar {
+      @apply bg-purple-500;
+    }
   }
 }
 </style>

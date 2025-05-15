@@ -6,6 +6,7 @@ import { themeV3Colors } from '../../utils/colorsUtils'
 interface Props {
   modelValue?: string | any
   isOpen?: boolean
+  includeBlackAndWhiteAsDefaultColors?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -56,8 +57,10 @@ const localIsDefaultColorTab = ref<'true' | 'false'>('true')
 
 const isDefaultColorTab = computed({
   get: () => {
+    const colorGrps = [...defaultColors.value]
+    if (props.includeBlackAndWhiteAsDefaultColors) colorGrps.push(['#000000', '#ffffff'])
     if (showActiveColorTab.value && vModel.value) {
-      for (const colorGrp of defaultColors.value) {
+      for (const colorGrp of colorGrps) {
         if (colorGrp.includes(vModel.value)) {
           return 'true'
         }

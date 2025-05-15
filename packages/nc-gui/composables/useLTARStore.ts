@@ -1,26 +1,37 @@
-import type {
-  type ColumnType,
-  type LinkToAnotherRecordType,
-  type PaginatedType,
-  type RequestParams,
-  type TableType,
+import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
+import {
+  RelationTypes,
+  UITypes,
+  dateFormats,
+  isDateOrDateTimeCol,
+  isLinksOrLTAR,
+  isSystemColumn,
+  parseStringDateTime,
+  timeFormats,
 } from 'nocodb-sdk'
-import { RelationTypes, UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
 interface DataApiResponse {
-  list: Record<string, any>
+  list: Record<string, any>[]
   pageInfo: PaginatedType
 }
 
 /** Store for managing Link to another cells */
 const [useProvideLTARStore, useLTARStore] = useInjectionState(
   (
-    column: Ref<Required<ColumnType>>,
+    column: Ref<Required<ColumnType>> | ComputedRef<Required<ColumnType>>,
     row: Ref<Row>,
     isNewRow: ComputedRef<boolean> | Ref<boolean>,
     _reloadData = (_params: { shouldShowLoading?: boolean }) => {},
   ) => {
+    // when initialized by link popup dialog, keep current row
+    // to avoid being changed by sort or filter
+    const currentRow = ref(row.value)
+
+    const refreshCurrentRow = () => {
+      currentRow.value = row.value
+    }
+
     // state
     const { metas, getMeta } = useMetas()
 
@@ -28,8 +39,17 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { $api, $e } = useNuxtApp()
 
+    const { isMobileMode } = useGlobal()
+
     const activeView = inject(ActiveViewInj, ref())
     const isForm = inject(IsFormInj, ref(false))
+
+    const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
+    const path = inject(GroupPathInj, ref([]))
+
+    // In canvas _reloadData will not work as we unmount editable component so on undo/redo we have to manually trigger view reload
+    const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 
@@ -37,6 +57,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const childrenExcludedList = ref<DataApiResponse | undefined>()
     const childrenList = ref<DataApiResponse | undefined>()
+    const targetViewColumns = ref<ColumnType[]>([])
+
+    const targetViewColumnsById = computed(() => {
+      return targetViewColumns.value.reduce((map, col) => {
+        map[col.fk_column_id!] = col
+        return map
+      }, {} as Record<string, ColumnType>)
+    })
 
     const childrenExcludedListPagination = reactive({
       page: 1,
@@ -80,6 +108,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { sharedView } = useSharedView()
 
+    const { getViewColumns } = useSmartsheetStoreOrThrow()
+
     const baseId = base.value?.id || (sharedView.value?.view as any)?.base_id
 
     // getters
@@ -88,7 +118,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return metas.value?.[colOptions.value?.fk_related_model_id as string]
     })
 
-    const rowId = computed(() => extractPkFromRow(row.value.row, meta.value.columns))
+    const rowId = computed(() => extractPkFromRow(currentRow.value.row, meta.value.columns))
 
     const getRelatedTableRowId = (row: Record<string, any>) => {
       return extractPkFromRow(row, relatedTableMeta.value?.columns)
@@ -98,15 +128,25 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const loadRelatedTableMeta = async () => {
       await getMeta(colOptions.value.fk_related_model_id as string)
+
+      if (isPublic.value) return
+
+      const viewId = colOptions.value.fk_target_view_id ?? relatedTableMeta.value.views?.[0]?.id ?? ''
+      if (!viewId) return
+      targetViewColumns.value = (await getViewColumns(viewId)) ?? []
     }
 
+    const relatedTableDisplayValueColumn = computed(() => {
+      return relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0]
+    })
+
     const relatedTableDisplayValueProp = computed(() => {
-      return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title || ''
+      return relatedTableDisplayValueColumn.value?.title || ''
     })
 
     // todo: temp fix, handle in backend
     const relatedTableDisplayValuePropId = computed(() => {
-      return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.id || ''
+      return relatedTableDisplayValueColumn.value?.id || ''
     })
 
     const relatedTablePrimaryKeyProps = computed(() => {
@@ -114,7 +154,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     })
 
     const displayValueProp = computed(() => {
-      return (meta.value?.columns?.find((c: Required<ColumnType>) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
+      return (meta.value?.columns?.find((c: Required<ColumnType>) => c.pv) || meta?.value?.columns?.[0])?.title
     })
 
     const displayValueTypeAndFormatProp = computed(() => {
@@ -158,7 +198,123 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return row.value.row[displayValueProp.value]
     })
 
-    const loadChildrenExcludedList = async (activeState?: any, resetOffset: boolean = false) => {
+    const attachmentCol = computedInject(FieldsInj, (_fields) => {
+      return (relatedTableMeta.value.columns ?? []).filter((col) => isAttachment(col))[0]
+    })
+
+    const fields = computedInject(FieldsInj, (_fields) => {
+      return (relatedTableMeta.value.columns ?? [])
+        .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
+        .sort((a, b) => {
+          if (isPublic.value) {
+            return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+          }
+
+          return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
+        })
+        .slice(0, isMobileMode.value ? 1 : 3)
+    })
+
+    const requiredFieldsToLoad = computed(() => {
+      return Array.from(
+        new Set([
+          relatedTableDisplayValueProp.value,
+          ...relatedTablePrimaryKeyProps.value,
+          ...(attachmentCol.value ? [attachmentCol.value?.title] : []),
+          ...(fields.value || [])?.map((f) => f.title?.trim() as string),
+        ]),
+      )
+    })
+
+    /**
+     * Extract only primary key(pk) and primary value(pv) column data
+     */
+    const extractOnlyPrimaryValues = async (value: any, col: ColumnType) => {
+      const currColOptions = (col.colOptions || {}) as LinkToAnotherRecordType
+
+      await getMeta(currColOptions.fk_related_model_id as string)
+
+      const currColRelatedTableMeta = metas.value?.[currColOptions?.fk_related_model_id as string] as TableType
+
+      if (!currColRelatedTableMeta) return
+
+      const primaryCols = (currColRelatedTableMeta?.columns || []).filter((c) => c.pv || c.pk)
+
+      const extractValues = (value: any, primaryCols: ColumnType[]): any => {
+        if (ncIsArray(value)) {
+          return value.map((val) => extractValues(val, primaryCols)).filter(Boolean)
+        }
+
+        if (!ncIsObject(value)) return null
+
+        const extractedValues: Record<string, any> = {}
+
+        for (const c of primaryCols) {
+          const val = value[c.title]
+
+          if (ncIsUndefined(val) || ncIsNull(val)) continue
+
+          extractedValues[c.title] = val
+        }
+
+        return extractedValues
+      }
+
+      return extractValues(value, primaryCols)
+    }
+
+    /**
+     * Sanitization of row is requried because we will send this info in api query params
+     * And query param has limit to send data
+     * So it's better to send only requried row data which will be used for `Limit record selection to filters`
+     */
+    const sanitizeRowData = async (row: Record<string, any> = {}) => {
+      const sanitizedRow: Record<string, any> = {}
+
+      /**
+       * Note: No need to send row data if `Limit record selection to filters` is not enabled
+       */
+      if (!ncIsObject(row) || !parseProp(column.value?.meta).enableConditions) return {}
+
+      for (const col of meta.value.columns) {
+        const value = row[col.title]
+
+        if (ncIsUndefined(value) || ncIsNull(value)) continue
+
+        switch (col.uidt) {
+          case UITypes.Attachment: {
+            /**
+             * Attachment object is to big as this includes data base64/file object and for filter only required title.
+             * So extract only title
+             */
+            if (ncIsArray(value)) {
+              sanitizedRow[col.title] = value.map((item) => (item?.title ? { title: item?.title } : null)).filter(Boolean)
+            }
+            break
+          }
+          case UITypes.Links:
+          case UITypes.LinkToAnotherRecord: {
+            /**
+             * Links/LTAR object is also big as in new record it will include while linked record data(depends on how many columns related table has)
+             * So extract only primary column values (pk & pv)
+             */
+            const res = await extractOnlyPrimaryValues(value, col)
+            if (res) {
+              sanitizedRow[col.title] = res
+            }
+            break
+          }
+
+          default: {
+            sanitizedRow[col.title] = value
+          }
+        }
+      }
+
+      return sanitizedRow
+    }
+
+    const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
       if (activeState) newRowState.state = activeState
       try {
         let offset =
@@ -170,6 +326,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           childrenExcludedListPagination.page = 1
         }
         isChildrenExcludedLoading.value = true
+        const where = childrenExcludedListPagination.query
+          ? `(${relatedTableDisplayValueProp.value},${
+              isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq,exactDate' : 'like'
+            },${childrenExcludedListPagination.query})`
+          : undefined
+
         if (isPublic.value) {
           const router = useRouter()
 
@@ -178,8 +340,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           let row
           // if shared form extract the current form state
           if (isForm.value) {
-            const { formState } = useSharedFormStoreOrThrow()
-            row = formState?.value
+            const { formState, additionalState } = useSharedFormStoreOrThrow()
+
+            row = await sanitizeRowData({ ...(formState?.value || {}), ...(additionalState?.value || {}) })
           }
 
           childrenExcludedList.value = await $api.public.dataRelationList(
@@ -193,11 +356,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               query: {
                 limit: childrenExcludedListPagination.size,
                 offset,
-                where:
-                  childrenExcludedListPagination.query &&
-                  `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
-                fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
-
+                where,
+                fields: requiredFieldsToLoad.value,
                 // todo: include only required fields
                 rowData: JSON.stringify(row),
               } as RequestParams,
@@ -206,6 +366,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
           /** if new row load all records */
         } else if (isNewRow?.value) {
+          const linkRowData = await sanitizeRowData(row.value.row)
+
           childrenExcludedList.value = await $api.dbTableRow.list(
             NOCO,
             baseId,
@@ -213,16 +375,16 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             {
               limit: childrenExcludedListPagination.size,
               offset,
-              where:
-                childrenExcludedListPagination.query &&
-                `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
-              // fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
-
+              where,
               // todo: include only required fields
               linkColumnId: column.value.fk_column_id || column.value.id,
-              linkRowData: JSON.stringify(row.value.row),
+              linkRowData: JSON.stringify(linkRowData),
             } as any,
           )
+          const ids = new Set(childrenList.value?.list?.map((item) => item.Id) ?? [])
+          if (childrenExcludedList.value.list && ids.size) {
+            childrenExcludedList.value.list = childrenExcludedList.value.list.filter((item) => !ids.has(item.Id))
+          }
         } else {
           // extract changed data and include with the api call if any
           let changedRowData
@@ -232,6 +394,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 if (row.value.row[key] !== row.value.oldRow[key]) acc[key] = row.value.row[key]
                 return acc
               }, {})
+
+              changedRowData = await sanitizeRowData(changedRowData)
             }
           } catch {}
 
@@ -245,10 +409,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             {
               limit: String(childrenExcludedListPagination.size),
               offset: String(offset),
-              // todo: where clause is missing from type
-              where:
-                childrenExcludedListPagination.query &&
-                `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
+              where,
               linkRowData: changedRowData ? JSON.stringify(changedRowData) : undefined,
             } as any,
           )
@@ -298,11 +459,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }
     }
 
-    const loadChildrenList = async (resetOffset: boolean = false) => {
+    const loadChildrenList = async (resetOffset = false, activeState: any = undefined, limit: number | undefined = undefined) => {
+      if (activeState) newRowState.state = activeState
+
       try {
         isChildrenLoading.value = true
         if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(colOptions.value.type)) return
-        if (!rowId.value || !column.value) return
+        if (!column.value) return
         let offset = childrenListPagination.size * (childrenListPagination.page - 1) + childrenListOffsetCount.value
         if (offset < 0 || resetOffset) {
           offset = 0
@@ -312,39 +475,68 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           offset = 0
         }
 
-        if (isPublic.value) {
-          childrenList.value = await $api.public.dataNestedList(
-            sharedView.value?.uuid as string,
-            encodeURIComponent(rowId.value),
-            colOptions.value.type as RelationTypes,
-            column.value.id,
-            {
-              limit: String(childrenListPagination.size),
-              offset: String(offset),
-              where:
-                childrenListPagination.query && `(${relatedTableDisplayValueProp.value},like,${childrenListPagination.query})`,
-            } as any,
-            {
-              headers: {
-                'xc-password': sharedViewPassword.value,
-              },
+        if (isNewRow?.value || !rowId.value) {
+          const colTitle = column.value?.title || ''
+          const rawList = newRowState.state?.[colTitle] ?? []
+          const query = childrenListPagination.query.toLocaleLowerCase()
+          const list = query
+            ? rawList.filter((record: Record<string, any>) =>
+                `${record[relatedTableDisplayValueProp.value] ?? ''}`.toLocaleLowerCase().includes(query),
+              )
+            : rawList
+          childrenList.value = {
+            list,
+            pageInfo: {
+              isFirstPage: true,
+              isLastPage: list.length <= 10,
+              page: 1,
+              pageSize: 10,
+              totalRows: list.length,
             },
-          )
+          }
         } else {
-          childrenList.value = await $api.dbTableRow.nestedList(
-            NOCO,
-            (base?.value?.id || (sharedView.value?.view as any)?.base_id) as string,
-            meta.value.id,
-            encodeURIComponent(rowId.value),
-            colOptions.value.type as RelationTypes,
-            column?.value?.id,
-            {
-              limit: String(childrenListPagination.size),
-              offset: String(offset),
-              where:
-                childrenListPagination.query && `(${relatedTableDisplayValueProp.value},like,${childrenListPagination.query})`,
-            } as any,
-          )
+          let where: string | undefined
+
+          if (childrenListPagination.query) {
+            where = childrenListPagination.query
+              ? `(${relatedTableDisplayValueProp.value},${
+                  isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq,exactDate' : 'like'
+                },${childrenListPagination.query})`
+              : undefined
+          }
+
+          if (isPublic.value) {
+            childrenList.value = await $api.public.dataNestedList(
+              sharedView.value?.uuid as string,
+              encodeURIComponent(rowId.value),
+              colOptions.value.type as RelationTypes,
+              column.value.id,
+              {
+                limit: String(childrenListPagination.size),
+                offset: String(offset),
+                where,
+              } as any,
+              {
+                headers: {
+                  'xc-password': sharedViewPassword.value,
+                },
+              },
+            )
+          } else {
+            childrenList.value = await $api.dbTableRow.nestedList(
+              NOCO,
+              (base?.value?.id || (sharedView.value?.view as any)?.base_id) as string,
+              meta.value.id,
+              encodeURIComponent(rowId.value),
+              colOptions.value.type as RelationTypes,
+              column?.value?.id,
+              {
+                limit: String(limit ?? childrenListPagination.size),
+                offset: String(offset),
+                where,
+              } as any,
+            )
+          }
         }
         childrenList.value?.list.forEach((row: Record<string, any>, index: number) => {
           isChildrenListLinked.value[index] = true
@@ -359,6 +551,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } finally {
         isChildrenLoading.value = false
       }
+      return childrenList.value
     }
 
     const deleteRelatedRow = async (row: Record<string, any>, onSuccess?: (row: Record<string, any>) => void) => {
@@ -384,7 +577,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               return false
             }
 
-            _reloadData?.({ shouldShowLoading: false })
+            _reloadData?.({ shouldShowLoading: false, path: path.value })
 
             /** reload child list if not a new row */
             if (!isNewRow?.value) {
@@ -463,7 +656,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLoading.value[index] = false
       }
 
-      _reloadData?.({ shouldShowLoading: false })
+      _reloadData?.({ shouldShowLoading: false, path: path.value })
+
+      if (undo && isCanvasInjected) {
+        reloadViewDataTrigger.trigger({ shouldShowLoading: false })
+      }
+
       $e('a:links:unlink')
     }
 
@@ -505,14 +703,30 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         // await loadChildrenList()
 
         if (!undo) {
+          let oldValue = null
+
+          // If it is bt or oo relation then we have to restore old value on undo
+          if (isBt(column.value) || isOo(column.value)) {
+            oldValue = currentRow.value.row?.[column.value?.title]
+          }
+
           addUndo({
             redo: {
-              fn: (row: Record<string, any>) => link(row, {}, true, index),
+              fn: (row: Record<string, any>) => {
+                link(row, {}, true, index)
+              },
               args: [clone(row)],
             },
             undo: {
-              fn: (row: Record<string, any>) => unlink(row, {}, true, index),
-              args: [clone(row)],
+              fn: (row: Record<string, any>, oldValue: Record<string, any> | null) => {
+                // Restore old value if present
+                if (oldValue) {
+                  link(oldValue, {}, true, index)
+                } else {
+                  unlink(row, {}, true, index)
+                }
+              },
+              args: [clone(row), clone(oldValue)],
             },
             scope: defineViewScope({ view: activeView.value }),
           })
@@ -535,17 +749,26 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLoading.value[index] = false
       }
 
-      _reloadData?.({ shouldShowLoading: false })
+      _reloadData?.({ shouldShowLoading: false, path: path.value })
+
+      if (undo && isCanvasInjected) {
+        reloadViewDataTrigger.trigger({ shouldShowLoading: false })
+      }
+
       $e('a:links:link')
     }
 
+    const debounceLoadChildrenExcludedList = useDebounceFn(loadChildrenExcludedList, 500)
+
+    const debounceLoadChildrenList = useDebounceFn(loadChildrenList, 500)
+
     // watchers
     watch(childrenExcludedListPagination, async () => {
-      await loadChildrenExcludedList(newRowState.state)
+      await debounceLoadChildrenExcludedList(newRowState.state)
     })
 
     watch(childrenListPagination, async () => {
-      await loadChildrenList()
+      await debounceLoadChildrenList(false, newRowState.state)
     })
 
     watch(childrenList, async () => {
@@ -566,6 +789,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     return {
       relatedTableMeta,
       loadRelatedTableMeta,
+      targetViewColumns,
+      targetViewColumnsById,
       relatedTableDisplayValueProp,
       displayValueTypeAndFormatProp,
       childrenExcludedList,
@@ -592,9 +817,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       deleteRelatedRow,
       getRelatedTableRowId,
       headerDisplayValue,
+      relatedTableDisplayValueColumn,
       relatedTableDisplayValuePropId,
       resetChildrenExcludedOffsetCount,
       resetChildrenListOffsetCount,
+      attachmentCol,
+      fields,
+      refreshCurrentRow,
     }
   },
   'ltar-store',

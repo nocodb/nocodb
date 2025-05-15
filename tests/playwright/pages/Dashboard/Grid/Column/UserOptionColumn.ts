@@ -51,7 +51,7 @@ export class UserOptionColumnPageObject extends BasePage {
     const selector = this.column.get().locator('.nc-user-select >> .ant-select-selector');
     await selector.click();
 
-    await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'visible' });
+    await this.rootPage.locator('.nc-dropdown-user-select-cell.active').waitFor({ state: 'visible' });
 
     if (multiSelect) {
       const optionsToSelect = Array.isArray(option) ? option : [option];
@@ -66,7 +66,7 @@ export class UserOptionColumnPageObject extends BasePage {
       await this.selectOption({ option });
     }
 
-    await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'hidden' });
+    await this.rootPage.locator('.nc-dropdown-user-select-cell.active').waitFor({ state: 'hidden' });
 
     await this.column.save({ isUpdated: true });
   }
@@ -80,7 +80,7 @@ export class UserOptionColumnPageObject extends BasePage {
   }
 
   async clearDefaultValue(): Promise<void> {
-    await this.get().locator('.nc-default-value-wrapper > svg.nc-icon').click();
+    await this.get().locator('.nc-default-value-wrapper > div > svg.nc-icon').click();
   }
 
   async verifyDefaultValueOptionCount({
@@ -94,7 +94,7 @@ export class UserOptionColumnPageObject extends BasePage {
 
     await this.column.get().locator('.nc-default-value-wrapper > .relative > .nc-cell-user').click();
 
-    await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'visible' });
+    await this.rootPage.locator('.nc-dropdown-user-select-cell.active').waitFor({ state: 'visible' });
 
     expect(await this.rootPage.getByTestId(`select-option-${columnTitle}-undefined`).count()).toEqual(totalCount);
     await this.column.get().locator('.nc-cell-user').click();

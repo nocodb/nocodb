@@ -67,6 +67,7 @@ export class SharedBasesController {
         password: body?.password,
         siteUrl: req.ncSiteUrl,
         req,
+        custom_url_path: body.custom_url_path,
       },
     );
 

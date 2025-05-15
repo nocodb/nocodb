@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { InputPassword } from 'ant-design-vue'
+import { setI18nLanguage } from '~/plugins/a.i18n'
 
 definePageMeta({
   public: true,
@@ -10,8 +11,6 @@ definePageMeta({
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
-
-const { t } = useI18n()
 
 const { loadSharedView, sharedView, sharedViewMeta, meta, notFound, password, passwordDlg, passwordError } =
   useProvideSharedFormStore(route.params.viewId as string)
@@ -27,9 +26,10 @@ if (!notFound.value) {
   useProvideSmartsheetStore(sharedView, meta, true)
 
   applyLanguageDirection(sharedViewMeta.value.rtl ? 'rtl' : 'ltr')
-} else {
-  navigateTo('/error/404')
-  throw createError({ statusCode: 404, statusMessage: t('msg.pageNotFound') })
+
+  if (sharedViewMeta.value.language) {
+    setI18nLanguage(sharedViewMeta.value.language)
+  }
 }
 
 const form = reactive({
@@ -51,7 +51,9 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
 <template>
   <div>
     <NuxtLayout>
-      <NuxtPage v-if="!passwordDlg" />
+      <NuxtPage v-if="!passwordDlg && !notFound" />
+
+      <GeneralPageDoesNotExist v-if="notFound" />
 
       <a-modal
         v-model:visible="passwordDlg"

@@ -1,10 +1,23 @@
-import type { AttachmentResType, UserType } from 'nocodb-sdk';
+import type {
+  AttachmentResType,
+  PublicAttachmentScope,
+  SnapshotType,
+  SupportedExportCharset,
+  SyncTrigger,
+  UserType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 export const JOBS_QUEUE = 'jobs';
 
 export enum MigrationJobTypes {
   Attachment = 'attachment',
   Thumbnail = 'thumbnail',
+  RecoverLinks = 'recover-links',
+  CleanupDuplicateColumns = 'cleanup-duplicate-columns',
+  OrderColumnCreation = 'order-column-creation',
+  NoOpMigration = 'no-op-migration',
+  RecoverOrderColumnMigration = 'recover-order-column-migration',
+  RecoverDisconnectedTableNames = 'recover-disconnected-table-names',
 }
 
 export enum JobTypes {
@@ -25,7 +38,24 @@ export enum JobTypes {
   ThumbnailGenerator = 'thumbnail-generator',
   AttachmentCleanUp = 'attachment-clean-up',
   InitMigrationJobs = 'init-migration-jobs',
+  UseWorker = 'use-worker',
+  CreateSnapshot = 'create-snapshot',
+  RestoreSnapshot = 'restore-snapshot',
+  ListenImport = 'listen-import',
+  SyncModuleSyncData = 'sync-module-sync-data',
+  UpdateUsageStats = 'update-usage-stats',
 }
+
+export const SKIP_STORING_JOB_META = [
+  JobTypes.HealthCheck,
+  JobTypes.ThumbnailGenerator,
+  JobTypes.UseWorker,
+  JobTypes.HandleWebhook,
+  JobTypes.InitMigrationJobs,
+  JobTypes.UpdateModelStat,
+  JobTypes.UpdateWsStat,
+  JobTypes.UpdateSrcStat,
+];
 
 export enum JobStatus {
   COMPLETED = 'completed',
@@ -45,7 +75,9 @@ export enum JobEvents {
 
 export const JobVersions: {
   [key in JobTypes]?: number;
-} = {};
+} = {
+  [JobTypes.InitMigrationJobs]: 2,
+};
 
 export const JOB_REQUEUED = 'job.requeued';
 
@@ -101,6 +133,8 @@ export interface DuplicateBaseJobData extends JobData {
     excludeData?: boolean;
     excludeViews?: boolean;
     excludeHooks?: boolean;
+    excludeComments?: boolean;
+    excludeUsers?: boolean;
   };
 }
 
@@ -113,6 +147,7 @@ export interface DuplicateModelJobData extends JobData {
     excludeData?: boolean;
     excludeViews?: boolean;
     excludeHooks?: boolean;
+    excludeComments?: boolean;
   };
 }
 
@@ -138,6 +173,7 @@ export interface DataExportJobData extends JobData {
   options?: {
     delimiter?: string;
     extension_id?: string;
+    encoding?: SupportedExportCharset;
   };
   modelId: string;
   viewId: string;
@@ -147,4 +183,29 @@ export interface DataExportJobData extends JobData {
 
 export interface ThumbnailGeneratorJobData extends JobData {
   attachments: AttachmentResType[];
+  scope?: PublicAttachmentScope;
+}
+
+export interface CreateSnapshotJobData extends JobData {
+  sourceId: string;
+  snapshotBaseId: string;
+  req: NcRequest;
+  snapshot: SnapshotType;
+}
+
+export interface RestoreSnapshotJobData extends JobData {
+  sourceId: string;
+  targetBaseId: string;
+  targetContext: {
+    workspace_id: string;
+    base_id: string;
+  };
+  snapshot: SnapshotType;
+  req: NcRequest;
+}
+
+export interface SyncDataSyncModuleJobData extends JobData {
+  syncConfigId: string;
+  trigger: SyncTrigger;
+  req: NcRequest;
 }

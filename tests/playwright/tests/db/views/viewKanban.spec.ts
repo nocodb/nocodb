@@ -20,8 +20,6 @@ test.describe('View', () => {
     toolbar = toolbar = dashboard.kanban.toolbar;
     topbar = dashboard.kanban.topbar;
 
-    // close 'Team & Auth' tab
-    await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Film' });
 
     if (isSqlite(context)) {
@@ -88,8 +86,8 @@ test.describe('View', () => {
     });
 
     // hide fields
-    await toolbar.fields.toggleShowAllFields({ isLocallySaved: false });
-    await toolbar.fields.toggleShowAllFields({ isLocallySaved: false });
+    await toolbar.fields.toggleShowAllFields({ isLocallySaved: false, isKanban: true });
+    await toolbar.fields.toggleShowAllFields({ isLocallySaved: false, isKanban: true });
     await toolbar.fields.toggle({ title: 'Title' });
     await kanban.verifyCardCount({
       count: [0, 25, 25, 25, 25, 25],
@@ -223,8 +221,8 @@ test.describe('View', () => {
     });
     await toolbar.clickFilter();
 
-    await toolbar.fields.toggleShowAllFields();
-    await toolbar.fields.toggleShowAllFields();
+    await toolbar.fields.toggleShowAllFields({ isKanban: true });
+    await toolbar.fields.toggleShowAllFields({ isKanban: true });
     await toolbar.fields.toggle({ title: 'Title' });
 
     await dashboard.viewSidebar.copyView({ title: 'Film Kanban' });
@@ -281,10 +279,12 @@ test.describe('View', () => {
     await kanban.verifyCollapseStackCount({ count: 0 });
 
     // add record to stack & verify
-    await toolbar.fields.toggleShowAllFields();
-    await toolbar.fields.toggleShowAllFields();
+    await toolbar.fields.toggleShowAllFields({ isKanban: true });
+    await toolbar.fields.toggleShowAllFields({ isKanban: true });
     await toolbar.fields.toggleShowSystemFields();
     await toolbar.fields.toggle({ title: 'LanguageId' });
+    // LanguageId is ForeignKey column and will be hidden in new record so we have to use Language1 column
+    await toolbar.fields.toggle({ title: 'Language1' });
     await toolbar.fields.toggle({ title: 'Title' });
     await toolbar.sort.reset();
     await toolbar.filter.reset();
@@ -295,11 +295,13 @@ test.describe('View', () => {
       value: 'New record',
     });
     await dashboard.expandedForm.fillField({
-      columnTitle: 'LanguageId',
-      value: '1',
+      columnTitle: 'Language1',
+      value: ['English'],
+      type: 'belongsTo',
     });
     // todo: Check why kanban doesnt reload the rows data
     await dashboard.expandedForm.save({ waitForRowsData: false });
+    await toolbar.fields.toggle({ title: 'Language1' });
     // kludge: reload the page
     await dashboard.rootPage.reload();
 

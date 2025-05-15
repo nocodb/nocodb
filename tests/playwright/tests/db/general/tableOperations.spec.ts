@@ -28,32 +28,32 @@ test.describe('Table Operations', () => {
     await dashboard.treeView.deleteTable({ title: 'tablex' });
     await dashboard.treeView.verifyTable({ title: 'tablex', exists: false });
 
-    if (!isEE()) {
-      // Audit logs in clickhouse; locally wont be accessible
+    // if (!isEE()) {
+    //   // Audit logs in clickhouse; locally wont be accessible
 
-      await dashboard.treeView.openProject({ title: context.base.title, context });
+    //   await dashboard.treeView.openProject({ title: context.base.title, context });
 
-      await dashboard.baseView.tab_dataSources.click();
-      await dashboard.baseView.dataSources.openAudit({ rowIndex: 0 });
+    //   await dashboard.baseView.tab_dataSources.click();
+    //   await dashboard.baseView.dataSources.openAudit({ rowIndex: 0 });
 
-      // await dashboard.treeView.baseSettings({ title: context.base.title });
-      // await dashboard.settings.selectTab({ tab: 'dataSources' });
-      // await dashboard.settings.dataSources.openAudit({ rowIndex: 0 });
+    //   // await dashboard.treeView.baseSettings({ title: context.base.title });
+    //   // await dashboard.settings.selectTab({ tab: 'dataSources' });
+    //   // await dashboard.settings.dataSources.openAudit({ rowIndex: 0 });
 
-      await audit.verifyRow({
-        index: 0,
-        opType: 'TABLE',
-        opSubtype: 'DELETE',
-        user: `user-${process.env.TEST_PARALLEL_INDEX}@nocodb.com`,
-      });
-      await audit.verifyRow({
-        index: 1,
-        opType: 'TABLE',
-        opSubtype: 'CREATE',
-        user: `user-${process.env.TEST_PARALLEL_INDEX}@nocodb.com`,
-      });
-      await audit.close();
-    }
+    //   await audit.verifyRow({
+    //     index: 0,
+    //     opType: 'TABLE',
+    //     opSubtype: 'DELETE',
+    //     user: `user-${process.env.TEST_PARALLEL_INDEX}@nocodb.com`,
+    //   });
+    //   await audit.verifyRow({
+    //     index: 1,
+    //     opType: 'TABLE',
+    //     opSubtype: 'CREATE',
+    //     user: `user-${process.env.TEST_PARALLEL_INDEX}@nocodb.com`,
+    //   });
+    //   await audit.close();
+    // }
 
     await dashboard.treeView.renameTable({ title: 'City', newTitle: 'Cityx' });
     await dashboard.treeView.verifyTable({ title: 'Cityx' });

@@ -11,34 +11,42 @@ import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
+import { MailService } from '~/services/mail/mail.service';
 import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { BaseUser, Store, SyncSource, User } from '~/models';
+import { BaseUser, PresignedUrl, Store, SyncSource, User } from '~/models';
 
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
+import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
 export class OrgUsersService {
   constructor(
-    private readonly baseUsersService: BaseUsersService,
-    private readonly appHooksService: AppHooksService,
+    protected readonly baseUsersService: BaseUsersService,
+    protected readonly appHooksService: AppHooksService,
+    protected readonly mailService: MailService,
   ) {}
 
   async userList(param: {
     // todo: add better typing
     query: Record<string, any>;
   }) {
-    return await User.list(param.query);
+    const users = await User.list(param.query);
+
+    await PresignedUrl.signMetaIconImage(users);
+
+    return users;
   }
 
   async userUpdate(param: {
     // todo: better typing
     user: Partial<UserType>;
     userId: string;
+    req: NcRequest;
   }) {
     validatePayload('swagger.json#/components/schemas/OrgUserReq', param.user);
 
@@ -49,6 +57,16 @@ export class OrgUsersService {
     if (extractRolesObj(user.roles)[OrgUserRoles.SUPER_ADMIN]) {
       NcError.badRequest('Cannot update super admin roles');
     }
+
+    await this.mailService.sendMail({
+      mailEvent: MailEvent.ORGANIZATION_ROLE_UPDATE,
+      payload: {
+        req: param.req,
+        user,
+        newRole: param.user.roles as OrgUserRoles,
+        oldRole: user.roles as OrgUserRoles,
+      },
+    });
 
     return await User.update(param.userId, {
       ...updateBody,
@@ -152,30 +170,39 @@ export class OrgUsersService {
           const count = await User.count();
 
           this.appHooksService.emit(AppEvents.ORG_USER_INVITE, {
-            invitedBy: param.req.user,
             user,
             count,
-            ip: param.req.clientIp,
             req: param.req,
           });
 
           // in case of single user check for smtp failure
           // and send back token if failed
-          if (
-            emails.length === 1 &&
-            !(await this.baseUsersService.sendInviteEmail(
-              email,
-              invite_token,
-              param.req,
-            ))
-          ) {
-            return { invite_token, email };
+          if (emails.length === 1) {
+            try {
+              const res = await this.mailService.sendMail({
+                mailEvent: MailEvent.ORGANIZATION_INVITE,
+                payload: {
+                  user,
+                  req: param.req,
+                  token: invite_token,
+                },
+              });
+
+              if (!res) {
+                return { invite_token, email };
+              }
+            } catch (e) {
+              return { invite_token, email };
+            }
           } else {
-            this.baseUsersService.sendInviteEmail(
-              email,
-              invite_token,
-              param.req,
-            );
+            await this.mailService.sendMail({
+              mailEvent: MailEvent.ORGANIZATION_INVITE,
+              payload: {
+                user,
+                req: param.req,
+                token: invite_token,
+              },
+            });
           }
         } catch (e) {
           console.log(e);
@@ -234,16 +261,17 @@ export class OrgUsersService {
       );
     }
 
-    await this.baseUsersService.sendInviteEmail(
-      user.email,
-      invite_token,
-      param.req,
-    );
+    await this.mailService.sendMail({
+      mailEvent: MailEvent.ORGANIZATION_INVITE,
+      payload: {
+        user,
+        req: param.req,
+        token: invite_token,
+      },
+    });
 
     this.appHooksService.emit(AppEvents.ORG_USER_RESEND_INVITE, {
-      invitedBy: param.req.user,
-      user,
-      ip: param.req.clientIp,
+      user: user as UserType,
       req: param.req,
     });
 

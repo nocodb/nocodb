@@ -28,7 +28,9 @@ export class MetaSyncController {
     '/api/v2/meta/bases/:baseId/meta-diff',
   ])
   @HttpCode(200)
-  @Acl('metaDiffSync')
+  @Acl('metaDiffSync', {
+    blockApiTokenAccess: true,
+  })
   async metaDiffSync(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
@@ -63,7 +65,9 @@ export class MetaSyncController {
     '/api/v2/meta/bases/:baseId/meta-diff/:sourceId',
   ])
   @HttpCode(200)
-  @Acl('baseMetaDiffSync')
+  @Acl('baseMetaDiffSync', {
+    blockApiTokenAccess: true,
+  })
   async baseMetaDiffSync(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,

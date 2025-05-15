@@ -30,12 +30,16 @@ export class CalendarDatasController {
     @Param('viewName') viewId: string,
     @Query('from_date') fromDate: string,
     @Query('to_date') toDate: string,
+    @Query('prev_date') prevDate: string,
+    @Query('next_date') nextDate: string,
   ) {
     return await this.calendarDatasService.getCalendarDataList(context, {
       viewId: viewId,
       query: req.query,
       from_date: fromDate,
       to_date: toDate,
+      next_date: nextDate,
+      prev_date: prevDate,
     });
   }
 
@@ -52,6 +56,8 @@ export class CalendarDatasController {
     @Param('viewName') viewName: string,
     @Query('from_date') fromDate: string,
     @Query('to_date') toDate: string,
+    @Query('prev_date') prevDate: string,
+    @Query('next_date') nextDate: string,
   ) {
     const startTime = process.hrtime();
 
@@ -62,6 +68,8 @@ export class CalendarDatasController {
         viewId: viewName,
         from_date: fromDate,
         to_date: toDate,
+        next_date: nextDate,
+        prev_date: prevDate,
       },
     );
 
@@ -80,6 +88,8 @@ export class CalendarDatasController {
     @Param('sharedViewUuid') sharedViewUuid: string,
     @Query('from_date') fromDate: string,
     @Query('to_date') toDate: string,
+    @Query('prev_date') prevDate: string,
+    @Query('next_date') nextDate: string,
   ) {
     return await this.calendarDatasService.getPublicCalendarRecordCount(
       context,
@@ -89,6 +99,8 @@ export class CalendarDatasController {
         sharedViewUuid,
         from_date: fromDate,
         to_date: toDate,
+        next_date: nextDate,
+        prev_date: prevDate,
       },
     );
   }
@@ -103,6 +115,8 @@ export class CalendarDatasController {
     @Param('sharedViewUuid') sharedViewUuid: string,
     @Query('from_date') fromDate: string,
     @Query('to_date') toDate: string,
+    @Query('prev_date') prevDate: string,
+    @Query('next_date') nextDate: string,
   ) {
     return await this.calendarDatasService.getPublicCalendarDataList(context, {
       query: req.query,
@@ -110,6 +124,8 @@ export class CalendarDatasController {
       sharedViewUuid,
       from_date: fromDate,
       to_date: toDate,
+      next_date: nextDate,
+      prev_date: prevDate,
     });
   }
 }

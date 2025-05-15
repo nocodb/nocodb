@@ -1,11 +1,11 @@
 import { promisify } from 'util';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
-import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
 import type {
+  MetaType,
   PasswordChangeReqType,
   PasswordForgotReqType,
   PasswordResetReqType,
@@ -21,19 +21,23 @@ import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
-import { Store, User, UserRefreshToken } from '~/models';
+import { PresignedUrl, Store, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { BasesService } from '~/services/bases.service';
 import { extractProps } from '~/helpers/extractProps';
-
+import deepClone from '~/helpers/deepClone';
+import { MailService } from '~/services/mail/mail.service';
+import { MailEvent } from '~/interface/Mail';
 @Injectable()
 export class UsersService {
+  logger = new Logger(UsersService.name);
+
   constructor(
     protected metaService: MetaService,
     protected appHooksService: AppHooksService,
     protected basesService: BasesService,
+    protected mailService: MailService,
   ) {}
 
   // allow signup/signin only if email matches against pattern
@@ -58,20 +62,25 @@ export class UsersService {
       },
     );
 
+    await PresignedUrl.signMetaIconImage(user);
+
     return user;
   }
 
-  async insert(param: {
-    token_version: string;
-    firstname: any;
-    password: any;
-    salt: any;
-    email_verification_token: any;
-    roles: string;
-    email: string;
-    lastname: any;
-  }) {
-    return this.metaService.metaInsert2(
+  async insert(
+    param: {
+      token_version: string;
+      firstname: any;
+      password: any;
+      salt: any;
+      email_verification_token: any;
+      roles: string;
+      email: string;
+      lastname: any;
+    },
+    ncMeta = this.metaService || Noco.ncMeta,
+  ) {
+    return ncMeta.metaInsert2(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
@@ -85,36 +94,55 @@ export class UsersService {
   async profileUpdate({
     id,
     params,
+    req,
   }: {
-    id: number;
+    id: string;
     params: {
       display_name?: string;
       avatar?: string;
+      meta?: MetaType;
     };
-  }) {
-    const updateObj = extractProps(params, ['display_name', 'avatar']);
-
-    return await User.update(id, updateObj);
-  }
-
-  async registerNewUserIfAllowed({
-    email,
-    salt,
-    password,
-    email_verification_token,
-    req,
-  }: {
-    email: string;
-    salt: any;
-    password;
-    email_verification_token;
     req: NcRequest;
   }) {
+    const oldUser = await User.get(id);
+    const updateObj = extractProps(params, ['display_name', 'avatar', 'meta']);
+
+    const user = await User.update(id, updateObj);
+
+    this.appHooksService.emit(AppEvents.USER_PROFILE_UPDATE, {
+      user: deepClone(user),
+      oldUser,
+      req,
+    });
+
+    await PresignedUrl.signMetaIconImage(user);
+
+    return user;
+  }
+
+  async registerNewUserIfAllowed(
+    {
+      email,
+      salt,
+      password,
+      email_verification_token,
+      req,
+      is_invite = false,
+    }: {
+      email: string;
+      salt: any;
+      password;
+      email_verification_token;
+      req: NcRequest;
+      is_invite?: boolean;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
     this.validateEmailPattern(email);
 
     let roles: string = OrgUserRoles.CREATOR;
 
-    const isFirstUser = await User.isFirst();
+    const isFirstUser = await User.isFirst(ncMeta);
 
     if (isFirstUser && process.env.NC_CLOUD !== 'true') {
       roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
@@ -127,10 +155,12 @@ export class UsersService {
     } else {
       let settings: { invite_only_signup?: boolean } = {};
       try {
-        settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
+        settings = JSON.parse(
+          (await Store.get(NC_APP_SETTINGS, undefined, ncMeta))?.value,
+        );
       } catch {}
 
-      if (settings?.invite_only_signup) {
+      if (settings?.invite_only_signup && !is_invite) {
         NcError.badRequest('Not allowed to signup, contact super admin.');
       } else {
         roles = OrgUserRoles.VIEWER;
@@ -138,19 +168,26 @@ export class UsersService {
     }
 
     const token_version = randomTokenString();
-    const user = await User.insert({
-      email,
-      salt,
-      password,
-      email_verification_token,
-      roles,
-      token_version,
-    });
+    const user = await User.insert(
+      {
+        email,
+        salt,
+        password,
+        email_verification_token,
+        roles,
+        token_version,
+      },
+      ncMeta,
+    );
 
     // if first user and super admin, create a base
     if (isFirstUser && process.env.NC_CLOUD !== 'true') {
       // todo: update swagger type
-      (user as any).createdProject = await this.createDefaultProject(user, req);
+      (user as any).createdProject = await this.createDefaultProject(
+        user,
+        req,
+        ncMeta,
+      );
     }
 
     // todo: update swagger type
@@ -206,7 +243,6 @@ export class UsersService {
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
       user: user,
-      ip: param.req?.clientIp,
       req: param.req,
     });
 
@@ -234,28 +270,21 @@ export class UsersService {
 
     if (user) {
       const token = uuidv4();
-      await User.update(user.id, {
+      const updatedUser = await User.update(user.id, {
         email: user.email,
         reset_password_token: token,
         reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
         token_version: randomTokenString(),
       });
       try {
-        const template = (
-          await import('~/modules/auth/ui/emailTemplates/forgotPassword')
-        ).default;
-        await NcPluginMgrv2.emailAdapter().then((adapter) =>
-          adapter.mailSend({
-            to: user.email,
-            subject: 'Password Reset Link',
-            text: `Visit following link to update your password : ${param.siteUrl}/auth/password/reset/${token}.`,
-            html: ejs.render(template, {
-              resetLink: param.siteUrl + `/auth/password/reset/${token}`,
-            }),
-          }),
-        );
+        await this.mailService.sendMail({
+          mailEvent: MailEvent.RESET_PASSWORD,
+          payload: {
+            user: updatedUser,
+            req: param.req,
+          },
+        });
       } catch (e) {
-        console.log(e);
         return NcError.badRequest(
           'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
         );
@@ -263,7 +292,6 @@ export class UsersService {
 
       this.appHooksService.emit(AppEvents.USER_PASSWORD_FORGOT, {
         user: user,
-        ip: param.req?.clientIp,
         req: param.req,
       });
     } else {
@@ -346,7 +374,6 @@ export class UsersService {
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
       user: user,
-      ip: param.req?.clientIp,
       req: param.req,
     });
 
@@ -381,7 +408,6 @@ export class UsersService {
 
     this.appHooksService.emit(AppEvents.USER_EMAIL_VERIFICATION, {
       user: user,
-      ip: req?.clientIp,
       req,
     });
 
@@ -502,26 +528,24 @@ export class UsersService {
     }
     user = await User.getByEmail(email);
 
-    try {
-      const template = (await import('~/modules/auth/ui/emailTemplates/verify'))
-        .default;
-      await (
-        await NcPluginMgrv2.emailAdapter()
-      ).mailSend({
-        to: email,
-        subject: 'Verify email',
-        html: ejs.render(template, {
-          verifyLink:
-            (param.req as any).ncSiteUrl +
-            `/email/validate/${user.email_verification_token}`,
-        }),
+    // TODO: Right now we are not actively enforcing email verification @pranavxc
+    // so we are not sending email verification email
+    // but we should send email verification email
+    // once we start enforcing email
+    /* try {
+      await this.mailService.sendMail({
+        mailEvent: MailEvent.VERIFY_EMAIL,
+        payload: {
+          user,
+          req: param.req,
+        },
       });
     } catch (e) {
-      console.log(
+      this.logger.warn(
         'Warning : `mailSend` failed, Please configure emailClient configuration.',
       );
     }
-
+*/
     const refreshToken = randomTokenString();
 
     await UserRefreshToken.insert({
@@ -533,8 +557,15 @@ export class UsersService {
 
     this.appHooksService.emit(AppEvents.USER_SIGNUP, {
       user: user,
-      ip: param.req?.clientIp,
       req: param.req,
+    });
+
+    await this.mailService.sendMail({
+      mailEvent: MailEvent.WELCOME,
+      payload: {
+        user,
+        req: param.req,
+      },
     });
 
     this.appHooksService.emit(AppEvents.WELCOME, {
@@ -576,12 +607,19 @@ export class UsersService {
     param.res.clearCookie('refresh_token');
   }
 
-  private async createDefaultProject(user: User, req: any) {
+  private async createDefaultProject(
+    user: User,
+    req: any,
+    ncMeta = Noco.ncMeta,
+  ) {
     // create new base for user
-    const base = await this.basesService.createDefaultBase({
-      user,
-      req,
-    });
+    const base = await this.basesService.createDefaultBase(
+      {
+        user,
+        req,
+      },
+      ncMeta,
+    );
 
     return base;
   }
@@ -599,11 +637,11 @@ export class UsersService {
 
     if (!user['token_version']) {
       user['token_version'] = randomTokenString();
-    }
 
-    await User.update(user.id, {
-      token_version: user['token_version'],
-    });
+      await User.update(user.id, {
+        token_version: user['token_version'],
+      });
+    }
 
     await UserRefreshToken.insert({
       token: refreshToken,

@@ -31,5 +31,3 @@ const handleIframeLoad = () => {
     <NcLoader />
   </div>
 </template>
-
-<style scoped lang="scss"></style>

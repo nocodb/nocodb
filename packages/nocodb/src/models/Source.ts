@@ -54,6 +54,10 @@ export default class Source implements SourceType {
   integration_title?: string;
   is_encrypted?: boolean;
 
+  // Ephemeral properties
+  upgraderMode?: boolean;
+  upgraderQueries?: string[] = [];
+
   constructor(source: Partial<SourceType>) {
     Object.assign(this, source);
   }
@@ -229,7 +233,7 @@ export default class Source implements SourceType {
 
   static async list(
     context: NcContext,
-    args: { baseId: string },
+    args: { baseId: string; includeDeleted?: boolean },
     ncMeta = Noco.ncMeta,
   ): Promise<Source[]> {
     const cachedList = await NocoCache.getList(CacheScope.SOURCE, [
@@ -241,13 +245,17 @@ export default class Source implements SourceType {
       const qb = ncMeta
         .knex(MetaTable.SOURCES)
         .select(`${MetaTable.SOURCES}.*`)
-        .where(`${MetaTable.SOURCES}.base_id`, context.base_id)
-        .where((whereQb) => {
+        .where(`${MetaTable.SOURCES}.base_id`, context.base_id);
+
+      if (!args.includeDeleted) {
+        qb.where((whereQb) => {
           whereQb
             .where(`${MetaTable.SOURCES}.deleted`, false)
             .orWhereNull(`${MetaTable.SOURCES}.deleted`);
-        })
-        .orderBy(`${MetaTable.SOURCES}.order`, 'asc');
+        });
+      }
+
+      qb.orderBy(`${MetaTable.SOURCES}.order`, 'asc');
 
       this.extendQb(qb, context);
 
@@ -359,13 +367,24 @@ export default class Source implements SourceType {
     // merge integration config with source config
     // override integration config with source config if exists
     // only override database and searchPath
-    return deepMerge(
+    let mergedConfig = deepMerge(
       integrationConfig,
       partialExtract(config || {}, [
         ['connection', 'database'],
         ['searchPath'],
       ]),
     );
+
+    // if searchPath is not array/string or if an empty array, remove it
+    if (
+      (!Array.isArray(mergedConfig.searchPath) &&
+        typeof mergedConfig.searchPath !== 'string') ||
+      !mergedConfig.searchPath?.length
+    ) {
+      mergedConfig = { ...mergedConfig, searchPath: undefined };
+    }
+
+    return mergedConfig;
   }
 
   public getSourceConfig(): any {

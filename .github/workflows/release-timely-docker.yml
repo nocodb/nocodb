@@ -1,4 +1,4 @@
-name: "Release : Docker"
+name: "Release : Timely Docker"
 
 on:
   # Triggered manually
@@ -41,7 +41,7 @@ on:
 
 jobs:
   buildx:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       working-directory: ./packages/nocodb
     steps:
@@ -84,7 +84,7 @@ jobs:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
-          node-version: 18.19.1
+          node-version: 22.12.0
 
       - name: install dependencies
         run: pnpm bootstrap
@@ -104,7 +104,7 @@ jobs:
         run: |
           # build nocodb ( pack nocodb-sdk and nc-gui )
           cd packages/nocodb &&
-          EE=true pnpm exec webpack --config webpack.timely.config.js &&
+          EE=true pnpm exec rspack --config rspack.timely.config.js &&
           # remove bundled libraries (nocodb-sdk, knex-snowflake)
           pnpm uninstall --save-prod nocodb-sdk  
 

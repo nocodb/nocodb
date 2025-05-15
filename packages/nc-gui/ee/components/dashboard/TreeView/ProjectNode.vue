@@ -79,8 +79,6 @@ const { activeTable } = storeToRefs(useTablesStore())
 
 const { allRecentViews } = storeToRefs(useViewsStore())
 
-const { appInfo } = useGlobal()
-
 useTabs()
 
 const { meta: metaKey, control } = useMagicKeys()
@@ -816,8 +814,8 @@ defineExpose({
                   <template #overlay>
                     <DashboardTreeViewProjectActionMenu
                       :show-base-option="(source) => showBaseOption(source)"
-                      :dataReflectionState="dataReflectionState"
-                      :dataReflectionText="dataReflectionText"
+                      :data-reflection-state="dataReflectionState"
+                      :data-reflection-text="dataReflectionText"
                       @click-menu="onClickMenu($event)"
                       @rename="enableEditMode"
                       @toggle-starred="toggleStarred($event)"
@@ -1101,8 +1099,8 @@ defineExpose({
       <DashboardTreeViewProjectActionMenu
         v-if="isProjectHeader"
         :show-base-option="(source) => showBaseOption(source)"
-        :dataReflectionState="dataReflectionState"
-        :dataReflectionText="dataReflectionText"
+        :data-reflection-state="dataReflectionState"
+        :data-reflection-text="dataReflectionText"
         @click-menu="onClickMenu($event)"
         @rename="enableEditMode"
         @toggle-starred="toggleStarred($event)"

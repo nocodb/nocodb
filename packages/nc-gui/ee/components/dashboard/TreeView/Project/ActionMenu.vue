@@ -9,6 +9,8 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
+const emits = defineEmits<Emits>()
+
 interface Emits {
   (e: 'clickMenu', event: Event): void
   (e: 'rename'): void
@@ -19,8 +21,6 @@ interface Emits {
   (e: 'delete'): void
   (e: 'toggleStarred', id: string): void
 }
-
-const emits = defineEmits<Emits>()
 
 const { dataReflectionState, dataReflectionText } = toRefs(props)
 

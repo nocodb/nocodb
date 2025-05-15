@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
-import { ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles, stringifyRolesObj } from 'nocodb-sdk'
+import { ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import type { BaseType, SourceType, TableType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 
@@ -62,9 +62,7 @@ const { loadProjectTables } = useTablesStore()
 
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { appInfo } = useGlobal()
-
-const { orgRoles, isUIAllowed } = useRoles()
+const { isUIAllowed } = useRoles()
 
 useTabs()
 

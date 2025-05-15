@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { stringifyRolesObj, type SourceType } from 'nocodb-sdk'
+import { type SourceType, stringifyRolesObj } from 'nocodb-sdk'
 
 interface Props {
   showBaseOption: (source: SourceType) => boolean
@@ -8,6 +8,8 @@ interface Props {
 }
 
 defineProps<Props>()
+
+const emits = defineEmits<Emits>()
 
 interface Emits {
   (e: 'clickMenu'): void
@@ -18,8 +20,6 @@ interface Emits {
   (e: 'copyProjectInfo'): void
   (e: 'delete'): void
 }
-
-const emits = defineEmits<Emits>()
 
 const base = inject(ProjectInj)!
 

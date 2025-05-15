@@ -376,11 +376,11 @@ const showCreateNewAsDropdown = computed(() => {
 
             <template #overlay>
               <NcMenu variant="medium" @click="isVisibleCreateNew = false">
-                <NcMenuItem @click="addNewProjectChildEntity" data-testid="create-new-table">
+                <NcMenuItem data-testid="create-new-table" @click="addNewProjectChildEntity">
                   <GeneralIcon icon="table" />
                   New Table
                 </NcMenuItem>
-                <NcMenuItem v-if="isAutomationEnabled" @click="openNewScriptModal" data-testid="create-new-script">
+                <NcMenuItem v-if="isAutomationEnabled" data-testid="create-new-script" @click="openNewScriptModal">
                   <GeneralIcon icon="ncScript" />
                   New Script
                 </NcMenuItem>

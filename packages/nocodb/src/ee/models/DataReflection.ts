@@ -270,10 +270,7 @@ export default class DataReflection extends DataReflectionCE {
     });
   }
 
-  public static async create(
-    fk_workspace_id: string,
-    ncMeta = Noco.ncMeta,
-  ) {
+  public static async create(fk_workspace_id: string, ncMeta = Noco.ncMeta) {
     const workspace = await Workspace.get(fk_workspace_id, false, ncMeta);
 
     if (!workspace) {

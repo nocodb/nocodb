@@ -450,10 +450,14 @@ export default class User extends UserCE implements UserType {
     const [workspaceRoles, baseRoles, orgRoles] = await Promise.all([
       // extract workspace evel roles
       new Promise((resolve) => {
-        if (args.workspaceId) {
+        if (args.workspaceId ?? context.workspace_id) {
           // todo: cache
           // extract workspace role
-          WorkspaceUser.get(args.workspaceId, user.id, ncMeta)
+          WorkspaceUser.get(
+            args.workspaceId ?? context.workspace_id,
+            user.id,
+            ncMeta,
+          )
             .then((workspaceUser) => {
               if (workspaceUser?.roles) {
                 resolve(extractRolesObj(workspaceUser.roles));

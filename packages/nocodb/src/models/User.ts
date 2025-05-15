@@ -374,7 +374,7 @@ export default class User implements UserType {
       ...sanitiseUserObj(user),
       roles: user.roles ? extractRolesObj(user.roles) : null,
       base_roles: baseRoles ? baseRoles : null,
-    } as any;
+    };
   }
 
   protected static async clearCache(userId: string, ncMeta = Noco.ncMeta) {

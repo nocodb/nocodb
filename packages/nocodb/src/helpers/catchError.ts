@@ -807,6 +807,10 @@ const errorHelpers: {
     message: (message: string) => message,
     code: 422,
   },
+  [NcErrorType.BASE_USER_ERROR]: {
+    message: (message: string) => message || 'Something went wrong',
+    code: 422,
+  },
 };
 
 function generateError(
@@ -1301,6 +1305,12 @@ export class NcError {
   static maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.MAX_INSERT_LIMIT_EXCEEDED, {
       params: limit.toString(),
+      ...args,
+    });
+  }
+  static baseUserError(message: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.BASE_USER_ERROR, {
+      params: message,
       ...args,
     });
   }

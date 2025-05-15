@@ -159,7 +159,7 @@ export class WorkspaceUsersService {
       NcError.badRequest('Invalid role');
     }
 
-    // if old role is owner and there is only one owner then restrict to update
+    // if old role is owner and there is only one owner then restrict update
     if (workspaceUser.roles === WorkspaceUserRoles.OWNER) {
       const wsOwners = await WorkspaceUser.userList(
         {

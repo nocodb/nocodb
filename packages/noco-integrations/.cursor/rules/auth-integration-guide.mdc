@@ -1,128 +1,260 @@
 ---
-description: creating a auth type integration
+description: creating auth integration
 globs: 
 alwaysApply: false
 ---
-# Authentication Integration Guide
+# Auth Integration Guide
 
-This guide provides instructions for creating a new authentication integration package for NocoDB.
+This guide explains how to create a new authentication integration for NocoDB.
 
-## Required Files
+## Structure
 
-An auth integration package requires the following structure:
+Every auth integration should follow this structure:
 
 ```
-packages/name-auth/
+packages/provider-auth/
 ├── package.json          # Package dependencies and metadata
 ├── tsconfig.json         # TypeScript configuration
+├── README.md             # Documentation with OAuth setup steps
 └── src/
     ├── index.ts          # Exports the integration entry point
-    ├── integration.ts    # Implementation of the AuthIntegration class
+    ├── integration.ts    # Implementation of the auth integration class
     ├── form.ts           # Form definition for configuration UI
-    ├── config.ts         # Configuration constants and environment variables
-    └── manifest.ts       # Integration metadata (title, icon, version, etc.)
+    ├── manifest.ts       # Integration metadata (title, icon, version)
+    └── config.ts         # Configuration constants and environment variables
 ```
 
 ## Implementation Steps
 
-1. Create the basic package structure:
-```bash
-mkdir -p packages/your-provider-auth/src
+1. **Create the basic package structure**:
+   - Use [packages/github-auth](mdc:packages/github-auth) as a reference
+   - Update package.json with the correct name and dependencies
+
+2. **Implement the core files**:
+
+   a. **config.ts** - Define environment variables and OAuth configuration (if available):
+   ```typescript
+   // Environment variables (follow naming convention)
+   export const clientId = process.env.INTEGRATION_AUTH_PROVIDER_CLIENT_ID;
+   export const clientSecret = process.env.INTEGRATION_AUTH_PROVIDER_CLIENT_SECRET;
+   export const redirectUri = process.env.INTEGRATION_AUTH_PROVIDER_REDIRECT_URI;
+
+   // OAuth scopes needed for your provider
+   export const scopes = ['scope1', 'scope2'];
+
+   // OAuth URIs (customize for your provider)
+   export const authUri = 
+     clientId && redirectUri
+       ? `https://provider.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${encodeURIComponent(scopes.join(' '))}`
+       : '';
+
+   export const tokenUri = 'https://provider.com/oauth/token';
+   ```
+
+   b. **integration.ts** - Implement the auth integration class, try to use official SDK if available:
+   ```typescript
+   import { AuthIntegration, AuthType } from '@noco-integrations/core';
+   import { clientId, clientSecret, tokenUri } from './config';
+   import type { AuthResponse } from '@noco-integrations/core';
+
+   export class ProviderAuthIntegration extends AuthIntegration {
+     public async authenticate(): Promise<AuthResponse<any>> {
+       switch (this.config.type) {
+         case AuthType.ApiKey:
+           return {
+             custom: new ProviderClient({
+               token: this.config.token,
+             }),
+           };
+         case AuthType.OAuth:
+           return {
+             custom: new ProviderClient({
+               oauth_token: this.config.oauth_token,
+             }),
+           };
+         default:
+           throw new Error('Not implemented');
+       }
+     }
+
+     public async exchangeToken(payload: {
+       code: string;
+     }): Promise<{ oauth_token: string }> {
+       // Implement token exchange logic here
+       // This method exchanges the authorization code for an access token
+     }
+   }
+   ```
+
+   c. **manifest.ts** - Define integration metadata:
+   ```typescript
+   import type { IntegrationManifest } from '@noco-integrations/core';
+
+   export const manifest: IntegrationManifest = {
+     title: 'Provider Name',
+     icon: 'providerIcon',
+     description: 'Provider authentication integration for NocoDB',
+     version: '0.1.0',
+     author: 'NocoDB',
+     website: 'https://provider.com',
+     order: 3, // Adjust as needed
+   };
+   ```
+
+   d. **form.ts** - Create the configuration form:
+   ```typescript
+   import { FormBuilderInputType, AuthType } from '@noco-integrations/core';
+   import { authUri, clientId, redirectUri, scopes } from './config';
+   import type { FormDefinition } from '@noco-integrations/core';
+
+   export const form: FormDefinition = [
+     // Basic form fields
+     {
+       type: FormBuilderInputType.Input,
+       label: 'Integration name',
+       width: 100,
+       model: 'title',
+       placeholder: 'Integration name',
+       category: 'General',
+       validators: [
+         {
+           type: 'required',
+           message: 'Integration name is required',
+         },
+       ],
+     },
+     // Auth type selection field
+     {
+       type: FormBuilderInputType.Select,
+       label: 'Auth Type',
+       width: 48,
+       model: 'config.type',
+       category: 'Authentication',
+       placeholder: 'Select auth type',
+       defaultValue: AuthType.ApiKey,
+       options: [
+         {
+           label: 'API Key',
+           value: AuthType.ApiKey,
+         },
+         ...(redirectUri && clientId
+           ? [
+               {
+                 label: 'OAuth2',
+                 value: AuthType.OAuth,
+               },
+             ]
+           : []),
+       ],
+       validators: [
+         {
+           type: 'required',
+           message: 'Auth type is required',
+         },
+       ],
+     },
+     // API key input field
+     {
+       type: FormBuilderInputType.Input,
+       label: 'API Token',
+       width: 100,
+       model: 'config.token',
+       category: 'Authentication',
+       placeholder: 'Enter your API Token',
+       validators: [
+         {
+           type: 'required',
+           message: 'API Token is required',
+         },
+       ],
+       condition: {
+         model: 'config.type',
+         value: AuthType.ApiKey,
+       },
+     },
+     // OAuth configuration (only shown if OAuth environment variables are set)
+     ...(redirectUri && clientId
+       ? [
+           {
+             type: FormBuilderInputType.OAuth,
+             label: 'OAuth Configuration',
+             width: 100,
+             model: 'config.oauth.code',
+             category: 'Authentication',
+             validators: [
+               {
+                 type: 'required',
+                 message: 'OAuth Configuration is required',
+               },
+             ],
+             condition: {
+               model: 'config.type',
+               value: AuthType.OAuth,
+             },
+             oauthMeta: {
+               provider: 'Provider Name',
+               authUri,
+               redirectUri,
+               clientId,
+               scopes,
+             },
+           },
+         ]
+       : []),
+   ];
+   ```
+
+   e. **index.ts** - Export the integration entry point:
+   ```typescript
+   import { IntegrationType } from '@noco-integrations/core';
+   import { ProviderAuthIntegration } from './integration';
+   import { form } from './form';
+   import { manifest } from './manifest';
+   import type { IntegrationEntry } from '@noco-integrations/core';
+
+   export default {
+     type: IntegrationType.Auth,
+     sub_type: 'provider', // Change to your provider's identifier
+     wrapper: ProviderAuthIntegration,
+     form,
+     manifest,
+   } as IntegrationEntry;
+   ```
+
+3. **Create README.md** with OAuth setup instructions:
+   - Explain how to create an OAuth app with the provider
+   - List required environment variables
+   - Document required scopes
+   - Provide usage examples
+
+4. **Update package.json**:
+   ```json
+   {
+     "name": "@noco-integrations/provider-auth",
+     "version": "0.1.0",
+     "main": "dist/index.js",
+     "dependencies": {
+       "@noco-integrations/core": "workspace:*",
+       "axios": "^1.4.0",
+       "provider-client-library": "^1.0.0"
+     }
+   }
+   ```
+
+## OAuth Environment Variables
+
+For OAuth2 authentication to work, set these environment variables:
+
+```
+INTEGRATION_AUTH_PROVIDER_CLIENT_ID=your_provider_client_id
+INTEGRATION_AUTH_PROVIDER_CLIENT_SECRET=your_provider_client_secret
+INTEGRATION_AUTH_PROVIDER_REDIRECT_URI=your_redirect_uri
 ```
 
-2. Create the package.json file:
-See [packages/gitlab-auth/package.json](mdc:packages/gitlab-auth/package.json) for an example.
+The naming convention is `INTEGRATION_AUTH_PROVIDER_*` where `PROVIDER` is your integration name in uppercase.
 
-3. Create the tsconfig.json file:
-See [packages/gitlab-auth/tsconfig.json](mdc:packages/gitlab-auth/tsconfig.json) for an example.
+## References
 
-4. Implement the AuthIntegration class in `integration.ts`:
-```typescript
-import { AuthIntegration, AuthType } from '@noco-integrations/core';
-import type { AuthResponse } from '@noco-integrations/core';
-
-export class YourProviderAuthIntegration extends AuthIntegration {
-  public async authenticate(): Promise<AuthResponse<any>> {
-    switch (this.config.type) {
-      case AuthType.ApiKey:
-        // Implement API Key authentication
-        return {
-          custom: {
-            // Return your provider's client/SDK instance
-          },
-        };
-      case AuthType.OAuth:
-        // Implement OAuth authentication
-        return {
-          custom: {
-            // Return your provider's client/SDK instance
-          },
-        };
-      default:
-        throw new Error('Not implemented');
-    }
-  }
-
-  // Implement exchangeToken method for OAuth flow
-  public async exchangeToken(payload: {
-    code: string;
-  }): Promise<{ oauth_token: string }> {
-    // Exchange the authorization code for access token
-    // and return the token
-  }
-}
-```
-
-5. Define configuration in `config.ts`:
-See [packages/gitlab-auth/src/config.ts](mdc:packages/gitlab-auth/src/config.ts) for an example.
-
-6. Create the form definition in `form.ts`:
-See [packages/gitlab-auth/src/form.ts](mdc:packages/gitlab-auth/src/form.ts) for an example.
-
-7. Define the integration manifest in `manifest.ts`:
-See [packages/gitlab-auth/src/manifest.ts](mdc:packages/gitlab-auth/src/manifest.ts) for an example.
-
-8. Export the integration in `index.ts`:
-```typescript
-import {
-  type IntegrationEntry,
-  IntegrationType,
-} from '@noco-integrations/core';
-import { YourProviderAuthIntegration } from './integration';
-import { form } from './form';
-import { manifest } from './manifest';
-
-const integration: IntegrationEntry = {
-  type: IntegrationType.Auth,
-  sub_type: 'your-provider', // Unique identifier for your integration
-  wrapper: YourProviderAuthIntegration,
-  form,
-  manifest,
-};
-
-export default integration;
-```
-
-## Auth Integration Types
-
-The AuthIntegration class supports different authentication types:
-
-1. **API Key Authentication**: Uses a static API key or token for authentication
-2. **OAuth Authentication**: Implements OAuth 2.0 flow for authentication
-3. **Basic Authentication**: Uses username/password authentication
-4. **Bearer Authentication**: Uses bearer token authentication
-5. **Custom Authentication**: Uses a custom authentication method
-
-## Best Practices
-
-1. Use official provider SDKs when available
-2. Handle errors appropriately and provide meaningful error messages
-3. Store sensitive information like API keys securely
-4. Follow the naming convention: `provider-auth` (e.g., `gitlab-auth`, `github-auth`)
-5. Start with version 0.1.0 for new integrations
-
-## Examples
-
-For a complete example of an auth integration, see:
-- [packages/gitlab-auth](mdc:packages/gitlab-auth/src) for GitLab authentication
-- [packages/github-auth](mdc:packages/github-auth/src) for GitHub authentication
+- See [GitHub Auth](mdc:packages/github-auth) for a complete example
+- See [GitLab Auth](mdc:packages/gitlab-auth) for another example
+- Core types are defined in [core/src/types/auth.ts](mdc:core/src/types/auth.ts)

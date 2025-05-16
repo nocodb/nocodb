@@ -85,7 +85,7 @@ interface AsanaMembership {
 
 export default class AsanaSyncIntegration extends SyncIntegration<AsanaSyncPayload> {
   public getTitle() {
-    return `Asana Project: ${this.config.projectId}`;
+    return `${this.config.projectId}`;
   }
 
   public async getDestinationSchema(_auth: AuthResponse<asana.Client>) {

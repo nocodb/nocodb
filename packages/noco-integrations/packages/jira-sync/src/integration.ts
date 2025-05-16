@@ -23,7 +23,7 @@ export interface JiraSyncPayload {
 
 export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload> {
   public getTitle() {
-    return `Jira: ${this.config.projectKey}`;
+    return `${this.config.projectKey}`;
   }
 
   public async getDestinationSchema(_auth: AuthResponse<JiraClient>) {

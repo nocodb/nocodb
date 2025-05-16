@@ -44,7 +44,7 @@ interface ProcessedIssue {
 
 export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPayload> {
   public getTitle() {
-    return `Linear: ${this.config.teamKey}`;
+    return `${this.config.teamKey}`;
   }
 
   public async getDestinationSchema(_auth: AuthResponse<LinearClient>) {

@@ -8,7 +8,7 @@ const config: XcPluginConfig = {
   builder: SMTPPlugin,
   id: 'smtp',
   title: 'SMTP',
-  version: '0.0.4',
+  version: '0.0.5',
   // icon: 'mdi-email-outline',
   description: 'SMTP email client',
   price: 'Free',

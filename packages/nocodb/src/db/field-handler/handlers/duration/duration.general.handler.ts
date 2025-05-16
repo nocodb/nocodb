@@ -1,3 +1,4 @@
+import { NcError } from 'src/helpers/catchError';
 import { NumberGeneralHandler } from '../number/number.general.handler';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
@@ -12,6 +13,14 @@ export class DurationGeneralHandler extends NumberGeneralHandler {
     baseModel: IBaseModelSqlV2;
     options?: { context?: NcContext; metaService?: MetaService };
   }): Promise<{ value: any }> {
-    return super.parseValue(params);
+    const { value } = (await super.parseValue(params)) ?? {};
+    if (typeof value === 'number' && value < 0) {
+      NcError.invalidValueForField({
+        value: params.value,
+        column: params.column.title,
+        type: params.column.uidt,
+      });
+    }
+    return { value };
   }
 }

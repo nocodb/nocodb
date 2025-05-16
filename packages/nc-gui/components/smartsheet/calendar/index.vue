@@ -137,17 +137,8 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
         <template v-if="calendarRange?.length && !isCalendarMetaLoading">
           <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
           <template v-if="!isCalendarDataLoading">
-            <LazySmartsheetCalendarMonthViewDateField
-              v-if="activeCalendarView === 'month' && calDataType === UITypes.Date"
-              @expand-record="expandRecord"
-              @new-record="newRecord"
-            />
-
-            <LazySmartsheetCalendarMonthViewDateTimeField
-              v-else-if="
-                activeCalendarView === 'month' &&
-                [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
-              "
+            <LazySmartsheetCalendarMonthView
+              v-if="activeCalendarView === 'month'"
               @expand-record="expandRecord"
               @new-record="newRecord"
             />
@@ -199,17 +190,8 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
         </template>
       </div>
       <Transition>
-        <LazySmartsheetCalendarSideMenuDateField
-          v-if="calDataType === UITypes.Date && showSideMenu"
-          :visible="showSideMenu"
-          @expand-record="expandRecord"
-          @new-record="newRecord"
-        />
-        <LazySmartsheetCalendarSideMenuDateTimeField
-          v-else-if="
-            showSideMenu &&
-            [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
-          "
+        <LazySmartsheetCalendarSideMenu
+          v-show="showSideMenu"
           :visible="showSideMenu"
           @expand-record="expandRecord"
           @new-record="newRecord"

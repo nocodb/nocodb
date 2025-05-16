@@ -941,8 +941,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       await fetchActiveDates()
     })
 
-    watch(timezone, (newTimezone) => {
-      const temp = workerWithTimezone(true, newTimezone)
+    watch([timezone, calDataType], ([newTimezone, calDataType]) => {
+      const temp = workerWithTimezone(true, calDataType === UITypes.Date ? null : newTimezone)
       timezoneDayjs.dayjsTz = temp.dayjsTz
       timezoneDayjs.timezonize = temp.timezonize
       pageDate.value = timezoneDayjs.timezonize(pageDate.value)!

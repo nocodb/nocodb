@@ -49,6 +49,7 @@ export class CalendarDatasService {
 
     if (colId) {
       const column = await Column.get(context, { colId });
+      if (!column) NcError.badRequest('Invalid column for calendar view');
       isDate = column.uidt === UITypes.Date;
     }
 
@@ -184,6 +185,7 @@ export class CalendarDatasService {
 
     if (colId) {
       const column = await Column.get(context, { colId });
+      if (!column) NcError.badRequest('Invalid column for calendar view');
       isDate = column.uidt === UITypes.Date;
     }
 
@@ -265,8 +267,8 @@ export class CalendarDatasService {
 
     if (isDate) {
       const regex = /^\d{4}-\d{2}-\d{2}/;
-      next_date = next_date.match(regex)[0];
-      prev_date = prev_date.match(regex)[0];
+      next_date = next_date.match(regex)?.[0] || next_date;
+      prev_date = prev_date.match(regex)?.[0] || prev_date;
     }
 
     calendarRange?.ranges.forEach((range: CalendarRange) => {

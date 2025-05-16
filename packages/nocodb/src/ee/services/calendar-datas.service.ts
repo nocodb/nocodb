@@ -48,11 +48,12 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
 
     if (colId) {
       const column = await Column.get(context, { colId });
+      if (!column) NcError.badRequest('Invalid column for calendar view');
       timezone = column?.meta?.timezone || undefined;
       isDate = column.uidt === UITypes.Date;
     }
 
-    const dayjsTimezone = workerWithTimezone(true, timezone);
+    const dayjsTimezone = workerWithTimezone(true, isDate ? null : timezone);
 
     const filterArr = await this.buildFilterArr(context, {
       viewId,
@@ -141,10 +142,10 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
     if (isDate) {
       const regex = /^\d{4}-\d{2}-\d{2}/;
 
-      from_date = from_date.match(regex)[0];
-      to_date = to_date.match(regex)[0];
-      next_date = next_date.match(regex)[0];
-      prev_date = prev_date.match(regex)[0];
+      from_date = from_date.match(regex)?.[0] || from_date;
+      to_date = to_date.match(regex)?.[0] || to_date;
+      next_date = next_date.match(regex)?.[0] || next_date;
+      prev_date = prev_date.match(regex)?.[0] || prev_date;
     }
 
     calendarRange.ranges.forEach((range: CalendarRange) => {

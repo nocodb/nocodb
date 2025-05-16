@@ -176,7 +176,6 @@ export function useCanvasTable({
   const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
   const elementMap = new CanvasElement([])
-  const { appInfo } = useGlobal()
 
   // Row Reorder related states
   const isDragging = ref(false)

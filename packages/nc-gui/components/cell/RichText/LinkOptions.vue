@@ -53,10 +53,27 @@ const checkLinkMark = (editor: Editor) => {
     href.value = linkNodeMark.value?.attrs?.href
   }
 
+  // Check if text is selected
   const isTextSelected = editor?.state?.selection?.from !== editor?.state?.selection?.to
-
-  // check if active node is a text node
-  const showLinkOptions = isActiveNodeMarkActive && !isTextSelected
+  
+  // Only show link options when the entire link is selected
+  // This means we need to check if the selection exactly matches the link boundaries
+  let showLinkOptions = false
+  
+  if (isTextSelected && isActiveNodeMarkActive) {
+    // Get the link mark range
+    const selection = editor.state.selection
+    const markRange = getMarkRange(selection.$anchor, editor.schema.marks.link)
+    
+    if (markRange) {
+      // Check if the selection exactly matches the link boundaries
+      showLinkOptions = markRange.from === selection.from && markRange.to === selection.to
+    }
+  } else if (!isTextSelected && isActiveNodeMarkActive) {
+    // If no text is selected but cursor is on a link, don't show the popup
+    showLinkOptions = false
+  }
+  
   isLinkOptionsVisible.value = !!showLinkOptions
 
   return showLinkOptions

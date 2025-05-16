@@ -29,8 +29,6 @@ const { loadProject } = basesStore
 
 const { activeProjectId } = storeToRefs(basesStore)
 
-const { loadProjectTables } = useTablesStore()
-
 const { activeTable } = storeToRefs(useTablesStore())
 
 const { isUIAllowed } = useRoles()
@@ -40,10 +38,6 @@ useTabs()
 const { meta: metaKey, control } = useMagicKeys()
 
 const { refreshCommandPalette } = useCommandPalette()
-
-const editMode = ref(false)
-
-const tempTitle = ref('')
 
 const sourceRenameHelpers = ref<
   Record<
@@ -83,18 +77,6 @@ const baseViewOpen = computed(() => {
 
 const showBaseOption = (source: SourceType) => {
   return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
-}
-
-const enableEditMode = () => {
-  if (!isUIAllowed('baseRename')) return
-
-  editMode.value = true
-  tempTitle.value = base.value.title!
-  nextTick(() => {
-    input.value?.focus()
-    input.value?.select()
-    // input.value?.scrollIntoView()
-  })
 }
 
 const enableEditModeForSource = (sourceId: string) => {

@@ -43,10 +43,6 @@ useTabs()
 
 const { meta: metaKey, control } = useMagicKeys()
 
-const editMode = ref(false)
-
-const tempTitle = ref('')
-
 const sourceRenameHelpers = ref<
   Record<
     string,
@@ -89,18 +85,6 @@ const baseViewOpen = computed(() => {
 
 const showBaseOption = (source: SourceType) => {
   return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
-}
-
-const enableEditMode = () => {
-  if (!isUIAllowed('baseRename')) return
-
-  editMode.value = true
-  tempTitle.value = base.value.title!
-  nextTick(() => {
-    input.value?.focus()
-    input.value?.select()
-    // input.value?.scrollIntoView()
-  })
 }
 
 const enableEditModeForSource = (sourceId: string) => {

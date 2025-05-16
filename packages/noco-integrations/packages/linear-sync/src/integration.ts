@@ -4,24 +4,22 @@ import {
   SyncIntegration,
   TARGET_TABLES,
 } from '@noco-integrations/core';
-import {
-  Issue
-} from '@linear/sdk';
 import type {
   Comment,
   IssueLabel,
   LinearClient,
   Team,
-  User} from '@linear/sdk';
+  User,
+} from '@linear/sdk';
 import type {
   AuthResponse,
   SyncLinkValue,
   SyncRecord,
   TicketingCommentRecord,
   TicketingTeamRecord,
-
   TicketingTicketRecord,
-  TicketingUserRecord} from '@noco-integrations/core';
+  TicketingUserRecord,
+} from '@noco-integrations/core';
 
 export interface LinearSyncPayload {
   teamKey: string;

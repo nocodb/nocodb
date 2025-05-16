@@ -70,7 +70,7 @@ export class JiraAuthIntegration extends AuthIntegration {
     try {
       const parsedUrl = new URL(url);
       return parsedUrl.host;
-    } catch (error) {
+    } catch {
       // If URL parsing fails, assume it's just the hostname
       return url.replace(/^https?:\/\//, '');
     }

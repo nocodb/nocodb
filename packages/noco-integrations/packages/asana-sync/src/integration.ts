@@ -10,9 +10,9 @@ import type {
   SyncRecord,
   TicketingCommentRecord,
   TicketingTeamRecord,
-
   TicketingTicketRecord,
-  TicketingUserRecord} from '@noco-integrations/core';
+  TicketingUserRecord,
+} from '@noco-integrations/core';
 import type * as asana from 'asana';
 
 export interface AsanaSyncPayload {

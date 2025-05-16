@@ -6,13 +6,15 @@ import type { AuthResponse } from '@noco-integrations/core';
 
 export class AsanaAuthIntegration extends AuthIntegration {
   public async authenticate(): Promise<AuthResponse<asana.Client>> {
+    let client;
+
     switch (this.config.type) {
       case AuthType.ApiKey:
         if (!this.config.token) {
           throw new Error('Missing required Asana API token');
         }
 
-        const client = asana.Client.create();
+        client = asana.Client.create();
         client.useAccessToken(this.config.token);
 
         return {
@@ -23,11 +25,11 @@ export class AsanaAuthIntegration extends AuthIntegration {
           throw new Error('Missing required Asana OAuth token');
         }
 
-        const oauthClient = asana.Client.create();
-        oauthClient.useAccessToken(this.config.oauth_token);
+        client = asana.Client.create();
+        client.useAccessToken(this.config.oauth_token);
 
         return {
-          custom: oauthClient,
+          custom: client,
         };
       default:
         throw new Error('Not implemented');

@@ -45,6 +45,14 @@ const pagination = reactive({
 
 const isLoadingAllTokens = ref(true)
 
+const isModalOpen = ref(false)
+
+const tokenDesc = ref('')
+
+const tokenToCopy = ref('')
+
+const isValidTokenName = ref(false)
+
 const setDefaultTokenName = () => {
   selectedTokenData.value.description = extractNextDefaultName(
     [...allTokens.value.map((el) => el?.description || '')],
@@ -132,11 +140,6 @@ const loadTokens = async (page = currentPage.value, limit = currentLimit.value, 
 }
 
 loadTokens()
-
-const isModalOpen = ref(false)
-const tokenDesc = ref('')
-const tokenToCopy = ref('')
-const isValidTokenName = ref(false)
 
 const deleteToken = async (token: string): Promise<void> => {
   try {
@@ -244,7 +247,7 @@ const handleCancel = () => {
           <NcButton
             :disabled="showNewTokenModal"
             class="!rounded-md"
-            data-testid="nc-token-create"
+            data-testid="nc-token-create-top"
             size="middle"
             type="primary"
             tooltip="bottom"
@@ -292,7 +295,7 @@ const handleCancel = () => {
                       data-testid="nc-token-input"
                       :disabled="isLoading"
                       @press-enter="generateToken"
-                      @input="isValidTokenName = validateTokenName(selectedTokenData.value.description)"
+                      @input="isValidTokenName = validateTokenName(selectedTokenData.description)"
                     />
                     <span v-if="!isValidTokenName" class="text-red-500 text-xs font-light mt-1.5 ml-1" data-rec="true"
                       >{{ errorMessage }}

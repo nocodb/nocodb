@@ -32,7 +32,6 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import Validator from 'validator';
 import { addOrRemoveLinks } from './BaseModelSqlv2/add-remove-links';
 import { NestedLinkPreparator } from './BaseModelSqlv2/nested-link-preparator';
 import { relationDataFetcher } from './BaseModelSqlv2/relation-data-fetcher';
@@ -120,6 +119,7 @@ import {
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import {
+  batchUpdate,
   extractColsMetaForAudit,
   extractExcludedColumnNames,
   generateAuditV1Payload,
@@ -3366,8 +3366,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       transaction = await this.dbDriver.transaction();
 
-      for (const o of toBeUpdated) {
-        await transaction(this.tnPath).update(o.d).where(o.wherePk);
+      if (
+        this.model.primaryKeys.length === 1 &&
+        (this.isPg || this.isMySQL || this.isSqlite)
+      ) {
+        await batchUpdate(
+          transaction,
+          this.tnPath,
+          toBeUpdated.map((o) => o.d),
+          this.model.primaryKey.column_name,
+        );
+      } else {
+        for (const o of toBeUpdated) {
+          await transaction(this.tnPath).update(o.d).where(o.wherePk);
+        }
       }
 
       await transaction.commit();

@@ -19,8 +19,6 @@ const { isSharedBase } = useBase()
 
 const automationStore = useAutomationStore()
 
-const { loadAutomations } = automationStore
-
 const { automations, isAutomationActive } = storeToRefs(automationStore)
 
 const { $e, $api } = useNuxtApp()
@@ -130,10 +128,6 @@ onMounted(async () => {
   if (props.tab) {
     projectPageTab.value = props.tab
   }
-
-  await until(() => !!currentBase.value?.id).toBeTruthy()
-
-  await loadAutomations({ baseId: currentBase.value?.id })
 })
 </script>
 
@@ -195,7 +189,7 @@ onMounted(async () => {
         >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__all-tables">
-              <NcLayout />
+              <GeneralIcon icon="ncScript" />
               <div>{{ $t('labels.allScripts') }}</div>
               <div
                 class="tab-info"
@@ -251,7 +245,7 @@ onMounted(async () => {
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('baseMiscSettings')" key="base-settings">
+        <a-tab-pane key="base-settings">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__base-settings">
               <GeneralIcon icon="ncSettings" />

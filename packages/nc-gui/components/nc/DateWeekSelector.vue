@@ -17,6 +17,7 @@ interface Props {
   pickerType?: 'date' | 'time' | 'year' | 'month'
   showCurrentDateOption?: boolean | 'disabled'
   timezone?: string
+  header?: 'v1' | 'v2'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -30,6 +31,7 @@ const props = withDefaults(defineProps<Props>(), {
   hideCalendar: false,
   isCellInputField: false,
   pickerType: 'date',
+  header: 'v1',
 })
 const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:selectedWeek', 'update:pickerType', 'currentDate'])
 // Page date is the date we use to manage which month/date that is currently being displayed
@@ -164,35 +166,65 @@ const paginate = (action: 'next' | 'prev') => {
       class="flex justify-between border-b-1 nc-date-week-header items-center box-border"
       :class="{
         'px-2 py-1 h-10': isCellInputField,
-        'px-3 py-0.5': !isCellInputField,
+        'px-3 py-2': !isCellInputField,
       }"
     >
-      <NcTooltip hide-on-click>
-        <NcButton class="!border-0" size="small" type="text" @click="paginate('prev')">
-          <component :is="iconMap.arrowLeft" class="h-4 w-4" />
-        </NcButton>
-        <template #title>
-          <span>{{ $t('labels.previous') }}</span>
-        </template>
-      </NcTooltip>
+      <template v-if="header === 'v1'">
+        <NcTooltip hide-on-click>
+          <NcButton class="!border-0" size="small" type="text" @click="paginate('prev')">
+            <component :is="iconMap.arrowLeft" class="h-4 w-4" />
+          </NcButton>
+          <template #title>
+            <span>{{ $t('labels.previous') }}</span>
+          </template>
+        </NcTooltip>
 
-      <div v-if="isCellInputField" class="text-gray-700 text-sm font-semibold">
-        <span class="nc-month-picker-btn cursor-pointer hover:text-brand-500" @click="pickerType = 'month'">{{
-          currentMonth
-        }}</span>
-        {{ ' ' }}
-        <span class="nc-year-picker-btn cursor-pointer hover:text-brand-500" @click="pickerType = 'year'">{{ currentYear }}</span>
-      </div>
-      <span v-else class="text-gray-700 text-sm font-semibold">{{ currentMonthYear }}</span>
+        <div v-if="isCellInputField" class="text-gray-700 text-sm font-semibold">
+          <span class="nc-month-picker-btn cursor-pointer hover:text-brand-500" @click="pickerType = 'month'">{{
+            currentMonth
+          }}</span>
+          {{ ' ' }}
+          <span class="nc-year-picker-btn cursor-pointer hover:text-brand-500" @click="pickerType = 'year'">{{
+            currentYear
+          }}</span>
+        </div>
+        <span v-else class="text-gray-700 text-sm font-semibold">{{ currentMonthYear }}</span>
 
-      <NcTooltip hide-on-click>
-        <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="text" @click="paginate('next')">
-          <component :is="iconMap.arrowRight" class="h-4 w-4" />
-        </NcButton>
-        <template #title>
-          <span>{{ $t('labels.next') }}</span>
-        </template>
-      </NcTooltip>
+        <NcTooltip hide-on-click>
+          <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="text" @click="paginate('next')">
+            <component :is="iconMap.arrowRight" class="h-4 w-4" />
+          </NcButton>
+          <template #title>
+            <span>{{ $t('labels.next') }}</span>
+          </template>
+        </NcTooltip>
+      </template>
+      <template v-else>
+        <div class="text-gray-700 text-sm font-semibold">
+          <span class="px-1 font-bold leading-6 text-sm text-nc-content-gray-subtle py-2">
+            {{ currentMonthYear }}
+          </span>
+        </div>
+
+        <div class="flex items-center justify-center">
+          <NcTooltip hide-on-click>
+            <NcButton class="!border-0" size="small" type="text" @click="paginate('prev')">
+              <GeneralIcon icon="ncChevronLeft" class="h-4 w-4" />
+            </NcButton>
+            <template #title>
+              <span>{{ $t('labels.previous') }}</span>
+            </template>
+          </NcTooltip>
+          <NcTooltip hide-on-click>
+            <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="text" @click="paginate('next')">
+              <GeneralIcon icon="ncChevronRight" class="h-4 w-4" />
+            </NcButton>
+            <template #title>
+              <span>{{ $t('labels.next') }}</span>
+            </template>
+          </NcTooltip>
+        </div>
+      </template>
     </div>
     <div v-if="!hideCalendar" class="max-w-[320px] rounded-y-xl">
       <div class="py-1 px-2.5 h-10">
@@ -205,13 +237,13 @@ const paginate = (action: 'next' | 'prev') => {
           <span
             v-for="(day, index) in days"
             :key="index"
-            class="flex w-8 h-8 items-center uppercase font-medium justify-center text-gray-500"
-            >{{ day[0] }}</span
+            class="flex w-8 h-8 items-center font-[400] justify-center text-gray-500"
+            >{{ day }}</span
           >
         </div>
       </div>
       <div
-        class="grid gap-1 py-1 nc-date-week-grid-wrapper grid-cols-7"
+        class="grid gap-x-1 gap-y-0.25 py-1 nc-date-week-grid-wrapper grid-cols-7"
         :class="{
           'px-2': isCellInputField,
           'px-2.5': !isCellInputField,
@@ -239,7 +271,7 @@ const paginate = (action: 'next' | 'prev') => {
             'font-medium': !isCellInputField,
             'rounded': !isWeekPicker && isCellInputField,
           }"
-          class="px-1 h-8 w-8 py-1 relative transition border-1 flex text-gray-700 items-center cursor-pointer justify-center"
+          class="px-1 h-8 w-8 py-1 relative transition border-1 flex text-nc-content-gray-subtle leading-5 font-[400] items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
           :title="isCellInputField ? date.format('YYYY-MM-DD') : undefined"
           @click="handleSelectDate(date)"

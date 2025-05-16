@@ -249,6 +249,7 @@ const {
   loadGroupAggregation,
   groupBy,
   redistributeRows,
+  loadDisallowedLookups,
 } = useViewGroupByOrThrow()
 
 const baseColor = computed(() => {
@@ -348,6 +349,10 @@ const bulkUpdateTrigger = (path: Array<number>) => {
   groupPath.value = path
   bulkUpdateDlg.value = true
 }
+
+watch([() => view.value?.id, () => meta.value?.columns], async () => {
+  await loadDisallowedLookups()
+})
 </script>
 
 <template>

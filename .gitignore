@@ -101,3 +101,5 @@ httpbin
 
 # nix
 result
+
+.cursorignore

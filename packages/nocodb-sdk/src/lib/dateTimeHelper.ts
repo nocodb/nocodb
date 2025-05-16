@@ -215,6 +215,10 @@ export function workerWithTimezone(isEeUI: boolean, timezone?: string) {
     },
 
     timezonize(value?: string | number | null | dayjs.Dayjs) {
+      if (!timezone) {
+        return dayjs(value);
+      }
+
       if (!value) {
         return this.dayjsTz();
       }

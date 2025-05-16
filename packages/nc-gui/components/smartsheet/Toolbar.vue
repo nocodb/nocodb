@@ -8,10 +8,6 @@ const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isLocalMode } = useViewColumnsOrThrow()
 
-const isPublic = inject(IsPublicInj, ref(false))
-
-const { isSharedBase } = useBase()
-
 const containerRef = ref<HTMLElement>()
 
 const { width } = useElementSize(containerRef)
@@ -26,12 +22,6 @@ const isTab = computed(() => {
   if (!isCalendar.value) return false
   return width.value > 1200
 })
-
-const { isUIAllowed } = useRoles()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
 
 const isToolbarIconMode = computed(() => {
   if (width.value < 768) {
@@ -68,8 +58,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         <LazySmartsheetToolbarMappedBy v-if="isMap" />
         <LazySmartsheetToolbarCalendarHeader v-if="isCalendar" />
         <LazySmartsheetToolbarCalendarToday v-if="isCalendar" />
-
-        <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
+        <LazySmartsheetToolbarCalendarNextPrev v-if="isCalendar" />
 
         <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
@@ -80,10 +69,6 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
 
         <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
-        <LazySmartsheetToolbarBulkAction
-          v-if="(isGrid || isGallery) && !isPublic && isAutomationEnabled && !isSharedBase && isUIAllowed('scriptExecute')"
-        />
-
         <LazySmartsheetToolbarOpenedViewAction v-if="isCalendar" />
       </div>
 
@@ -111,8 +96,11 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
       <LazySmartsheetToolbarCalendarMode v-if="isCalendar && !isTab" :tab="isTab" />
 
+      <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
+
       <LazySmartsheetToolbarFieldsMenu v-if="isCalendar && !isMobileMode" :show-system-fields="false" />
       <LazySmartsheetToolbarColumnFilterMenu v-if="isCalendar && !isMobileMode" />
+      <LazySmartsheetToolbarCalendarToggleSideBar v-if="isCalendar && !isMobileMode" />
     </template>
   </div>
 </template>

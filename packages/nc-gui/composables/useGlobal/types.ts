@@ -110,6 +110,8 @@ export interface Actions {
     query?: any
     tableId?: string
     viewId?: string
+    automationId?: string
+    automation?: boolean
   }) => void
   getBaseUrl: (workspaceId: string) => string | undefined
   getMainUrl: (workspaceId: string) => string | undefined

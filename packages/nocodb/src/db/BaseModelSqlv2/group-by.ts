@@ -3,6 +3,7 @@ import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, QrCodeColumn, RollupColumn, View } from '~/models';
+import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
 import { sanitize } from '~/helpers/sqlSanitize';
 import conditionV2 from '~/db/conditionV2';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
@@ -16,6 +17,7 @@ import {
 } from '~/helpers/dbHelpers';
 import { BaseUser, Column, Filter, Sort } from '~/models';
 import { getAliasGenerator } from '~/utils';
+import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 
 export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
   const list = async (args: {
@@ -208,7 +210,6 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
     if (subGroupColumnName) {
       const subGroupQuery = await processColumn(subGroupColumnName, true);
-      const subGroupAlias = getAs(subGroupColumn);
       qb.select(
         baseModel.dbDriver.raw(
           `COUNT(DISTINCT COALESCE(${
@@ -302,15 +303,35 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           base_id: column.base_id,
         });
 
-        // create nested replace statement for each user
-        const finalStatement = baseUsers.reduce((acc, user) => {
-          const qb = baseModel.dbDriver.raw(`REPLACE(${acc}, ?, ?)`, [
-            user.id,
-            user.display_name || user.email,
-          ]);
-          return qb.toQuery();
-        }, baseModel.dbDriver.raw(`??`, [columnName]).toQuery());
-
+        let finalStatement = '';
+        if (baseModel.dbDriver.clientType() === 'pg') {
+          finalStatement = `(${replaceDelimitedWithKeyValuePg({
+            knex: baseModel.dbDriver,
+            needleColumn: columnName,
+            stack: baseUsers.map((user) => ({
+              key: user.id,
+              value: user.display_name || user.email,
+            })),
+          })})`;
+        } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
+          finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
+            knex: baseModel.dbDriver,
+            needleColumn: columnName,
+            stack: baseUsers.map((user) => ({
+              key: user.id,
+              value: user.display_name || user.email,
+            })),
+          })})`;
+        } else {
+          // use the original replace
+          finalStatement = baseUsers.reduce((acc, user) => {
+            const qb = baseModel.dbDriver.raw(`REPLACE(${acc}, ?, ?)`, [
+              user.id,
+              user.display_name || user.email,
+            ]);
+            return qb.toQuery();
+          }, baseModel.dbDriver.raw(`??`, [columnName]).toQuery());
+        }
         if (!['asc', 'desc'].includes(sort.direction)) {
           qb.orderBy(
             'count',
@@ -353,7 +374,6 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
     // group by using the column aliases
     qb.groupBy(...groupBySelectors);
-
     applyPaginate(qb, rest);
 
     return await baseModel.execAndParse(qb);

@@ -142,6 +142,7 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
               @expand-record="expandRecord"
               @new-record="newRecord"
             />
+
             <LazySmartsheetCalendarWeekViewDateField
               v-else-if="activeCalendarView === 'week' && calDataType === UITypes.Date"
               @expand-record="expandRecord"
@@ -188,7 +189,14 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
           </div>
         </template>
       </div>
-      <LazySmartsheetCalendarSideMenu :visible="showSideMenu" @expand-record="expandRecord" @new-record="newRecord" />
+      <Transition>
+        <LazySmartsheetCalendarSideMenu
+          v-show="showSideMenu"
+          :visible="showSideMenu"
+          @expand-record="expandRecord"
+          @new-record="newRecord"
+        />
+      </Transition>
     </div>
 
     <Suspense>
@@ -221,3 +229,15 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
     />
   </template>
 </template>
+
+<style scoped lang="scss">
+.v-enter-from,
+.v-leave-to {
+  transform: translateX(200%);
+}
+
+.v-enter-to,
+.v-leave-from {
+  transform: translateX(100%);
+}
+</style>

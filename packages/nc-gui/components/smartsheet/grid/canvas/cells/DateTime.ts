@@ -15,8 +15,8 @@ export const DateTimeCellRenderer: CellRenderer = {
     const columnMeta = parseProp(column?.meta)
     const dateFormat = columnMeta?.date_format ?? 'YYYY-MM-DD'
     const timeFormat = columnMeta?.time_format ?? 'HH:mm'
-    const timezone = column.extra.timezone as TimeZone
-    const isDisplayTimezone = column.extra.isDisplayTimezone as TimeZone
+    const timezone = column?.extra?.timezone as TimeZone
+    const isDisplayTimezone = column?.extra?.isDisplayTimezone as TimeZone
 
     const is12hrFormat = columnMeta?.is12hrFormat
     const isValueValid = value && dayjs(value).isValid()

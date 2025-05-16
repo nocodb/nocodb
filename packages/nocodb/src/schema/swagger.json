@@ -9985,6 +9985,22 @@
             "schema": {
               "type": "string"
             },
+            "name": "prev_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "next_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
             "name": "to_date",
             "in": "query",
             "required": true
@@ -10190,6 +10206,22 @@
           },
           {
             "schema": {
+              "type": "string"
+            },
+            "name": "prev_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "next_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
               "type": "array"
             },
             "in": "query",
@@ -10279,6 +10311,22 @@
               "type": "string"
             },
             "name": "to_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "prev_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "next_date",
             "in": "query",
             "required": true
           },
@@ -10449,6 +10497,22 @@
               "type": "string"
             },
             "name": "from_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "prev_date",
+            "in": "query",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "next_date",
             "in": "query",
             "required": true
           },
@@ -24423,6 +24487,58 @@
         },
         "x-stoplight": {
           "id": "9zirjgj9k1gqa"
+        }
+      },
+      "MCPToken": {
+        "description": "Model for MCP Token",
+        "title": "MCP Token Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the MCP Token"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order of the Script"
+          },
+          "token": {
+            "type": "string",
+            "description": "MCP Token"
+          },
+          "fk_workspace_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Workspace ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "fk_user_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID of the creator"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Last updated time"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Creation time"
+          }
+        },
+        "x-stoplight": {
+          "id": "4zvzrppfjxrqb"
         }
       },
       "Calendar": {

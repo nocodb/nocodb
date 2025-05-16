@@ -47,3 +47,10 @@ export function getProjectRole(user) {
 
   return role;
 }
+
+export function hasMinimumRole(user: any, minimumRole: ProjectRoles): boolean {
+  const power = getProjectRolePower(user);
+  const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
+  const minimumRoleIndex = reverseOrderedProjectRoles.indexOf(minimumRole);
+  return power >= minimumRoleIndex;
+}

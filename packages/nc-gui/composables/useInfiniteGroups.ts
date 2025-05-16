@@ -2,6 +2,7 @@ import {
   type ColumnType,
   CommonAggregations,
   type LinkToAnotherRecordType,
+  type LookupType,
   type TableType,
   UITypes,
   type ViewType,
@@ -155,6 +156,39 @@ export const useInfiniteGroups = (
           const col = relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0]
           group.relatedColumn = col
           group.displayValueProp = col?.title
+        }
+
+        if (groupCol.column.uidt === UITypes.Lookup) {
+          const relationColumn = meta.value?.columns?.find(
+            (c: ColumnType) => c.id === (groupCol.column?.colOptions as LookupType)?.fk_relation_column_id,
+          )
+          if (!relationColumn) continue
+
+          const relatedTableMeta = await getMeta(relationColumn.colOptions.fk_related_model_id as string)
+          if (!relatedTableMeta) continue
+
+          const lookupColumn = relatedTableMeta.columns?.find(
+            (c) => c.id === (groupCol.column.colOptions as LookupType)?.fk_lookup_column_id,
+          )
+          if (!lookupColumn) continue
+
+          let finalTableMeta = relatedTableMeta
+          let finalColumn = lookupColumn
+
+          // Check if the lookup column is a LinkToAnotherRecord
+          if (lookupColumn.uidt === UITypes.LinkToAnotherRecord) {
+            const targetTableMeta = await getMeta(
+              (lookupColumn.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
+            )
+            if (targetTableMeta) {
+              finalTableMeta = targetTableMeta
+              finalColumn = targetTableMeta.columns?.find((c) => c.pv) || targetTableMeta.columns?.[0]
+            }
+          }
+
+          group.relatedTableMeta = finalTableMeta
+          group.relatedColumn = finalColumn
+          group.displayValueProp = finalColumn?.title
         }
 
         const index: number = response.list.indexOf(item)

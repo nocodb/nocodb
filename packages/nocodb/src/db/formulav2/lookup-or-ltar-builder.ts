@@ -2,7 +2,10 @@ import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import type { NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
-import type { FormulaQueryBuilderBaseParams } from '~/db/formulav2/formula-query-builder.types';
+import type {
+  FormulaQueryBuilderBaseParams,
+  TAliasToColumnParam,
+} from '~/db/formulav2/formula-query-builder.types';
 import type {
   FormulaColumn,
   LinkToAnotherRecordColumn,
@@ -22,13 +25,13 @@ export const lookupOrLtarBuilder =
       ) => Promise<{ builder: any }>;
     },
   ) =>
-  async (parentColumns?: Set<string>): Promise<any> => {
+  async ({ tableAlias, parentColumns }: TAliasToColumnParam): Promise<any> => {
     const {
       baseModelSqlv2,
       column,
       knex = baseModelSqlv2.dbDriver,
       context = baseModelSqlv2.context,
-      tableAlias,
+      tableAlias: _tableAlias,
       model = baseModelSqlv2.model,
       _formulaQueryBuilder,
       getAliasCount,

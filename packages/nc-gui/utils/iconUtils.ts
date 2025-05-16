@@ -238,6 +238,7 @@ import NcGoogleSheet from '~icons/nc-icons/google_sheet'
 import NcGoogleDrive from '~icons/nc-icons/google-drive'
 import NcHubspot from '~icons/nc-icons/hubspot'
 import NcJira from '~icons/nc-icons/jira'
+import NcLinear from '~icons/nc-icons-v2/linear'
 import NcMailchimp from '~icons/nc-icons/mailchimp'
 import NcMicrosoftAccess from '~icons/nc-icons/microsoft_access'
 import NcMicrosoftExcel from '~icons/nc-icons/microsoft_excel'
@@ -264,6 +265,7 @@ import NcMattermost from '~icons/nc-icons/mattermost'
 import NcTwilio from '~icons/nc-icons/twilio'
 import NcWhatsapp from '~icons/nc-icons/whatsapp'
 import NcWhatsappSolid from '~icons/nc-icons/whatsapp-solid'
+import NcMCP from '~icons/nc-icons/mcp'
 
 // View icons
 import NcViewGantt from '~icons/nc-icons/view-gantt'
@@ -362,6 +364,7 @@ import NcMaximizeIcon from '~icons/nc-icons-v2/maximize.svg'
 import NcChevronUpIcon from '~icons/nc-icons-v2/chevron-up.svg'
 import NcArrowDownLeftIcon from '~icons/nc-icons-v2/arrow-down-left.svg'
 import NcFileTextIcon from '~icons/nc-icons-v2/file-text.svg'
+import NcFileTextSolidIcon from '~icons/nc-icons-v2/file-text-solid.svg'
 import NcDropletIcon from '~icons/nc-icons-v2/droplet.svg'
 import NcZapOffIcon from '~icons/nc-icons-v2/zap-off.svg'
 import NcXIcon from '~icons/nc-icons-v2/x.svg'
@@ -475,6 +478,8 @@ import NcDollarSignIcon from '~icons/nc-icons-v2/dollar-sign.svg'
 import NcStarIcon from '~icons/nc-icons-v2/star.svg'
 import NcCloudOffIcon from '~icons/nc-icons-v2/cloud-off.svg'
 import NcMessageSquareIcon from '~icons/nc-icons-v2/message-square.svg'
+import NcMessageSquare1OutlineIcon from '~icons/nc-icons-v2/message-square1-outline.svg'
+import NcMessageSquare1SolidIcon from '~icons/nc-icons-v2/message-square1-solid.svg'
 import NcEditIcon from '~icons/nc-icons-v2/edit.svg'
 import NcAlertCircleIcon from '~icons/nc-icons-v2/alert-circle.svg'
 import NcAlertCircleFilledIcon from '~icons/nc-icons-v2/alert-circle-filled.svg'
@@ -1205,6 +1210,7 @@ export const iconMap = {
   'asana': NcAsana,
   'box': NcBox,
   'githubSolid': NcGithubSolid,
+  'linear': NcLinear,
   'gitlab': NcGitlab,
   'googleCalendar': NcGoogleCalendar,
   'googleSheet': NcGoogleSheet,
@@ -1334,6 +1340,7 @@ export const iconMap = {
   'ncChevronUp': NcChevronUpIcon,
   'ncArrowDownLeft': NcArrowDownLeftIcon,
   'ncFileText': NcFileTextIcon,
+  'ncFileTextSolid': NcFileTextSolidIcon,
   'ncDroplet': NcDropletIcon,
   'ncZapOff': NcZapOffIcon,
   'ncX': NcXIcon,
@@ -1447,6 +1454,8 @@ export const iconMap = {
   'ncStar': NcStarIcon,
   'ncCloudOff': NcCloudOffIcon,
   'ncMessageSquare': NcMessageSquareIcon,
+  'ncMessageSquare1Outline': NcMessageSquare1OutlineIcon,
+  'ncMessageSquare1Solid': NcMessageSquare1SolidIcon,
   'ncEDit2': NcEditIcon,
   'ncAlertCircle': NcAlertCircleIcon,
   'ncAlertCircleFilled': NcAlertCircleFilledIcon,
@@ -1682,6 +1691,7 @@ export const iconMap = {
   'mdi-flag': MdiNcFlag,
   'mdi-flag-outline': MdiNcFlagOutline,
   'sso': MdiCloudKeyOutline,
+  'mcp': NcMCP,
 }
 
 export const getMdiIcon = (type: string): any => {

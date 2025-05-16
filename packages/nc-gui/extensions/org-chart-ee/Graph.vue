@@ -14,15 +14,18 @@ const props = defineProps<{
   selectedCoverImageField?: ColumnType
   hierarchyData: Map<string, string[]>
   nodeSelected: (nodeId: string) => void
+  displayValueCol?: ColumnType
 }>()
 
-const { fitView, zoomOut: _zoomOut } = useVueFlow()
+const { $destroy, fitView, zoomIn: internalZoomIn, zoomOut: internalZoomOut } = useVueFlow()
 
 const { nodes, edges } = toRefs(props)
 
 const vueFlowKey = computed(() => {
-  return `org_chart_${nodes.value.length}_${edges.value.length}_${Math.floor(Math.random() * 99999)}`
+  return `org_chart_${nodes.value.length}_${edges.value.length}_${props.elementWatch}${Math.floor(Math.random() * 99999)}`
 })
+
+const isFlowReady = ref(false)
 
 const zoomOut = async (useDelay = false) => {
   await nextTick()
@@ -32,15 +35,19 @@ const zoomOut = async (useDelay = false) => {
   }
 
   fitView()
-  _zoomOut()
+  internalZoomOut()
 }
 
 watch(
   () => props.elementWatch,
   () => {
+    if (!isFlowReady.value) return
+
     zoomOut(true)
   },
 )
+
+onScopeDispose($destroy)
 </script>
 
 <template>
@@ -49,9 +56,9 @@ watch(
     class="w-full h-full"
     :nodes="nodes"
     :edges="edges"
-    :nodes-draggable="false"
-    :nodes-connectable="false"
     @nodes-initialized="zoomOut()"
+    fit-view-on-init
+    @init="isFlowReady = true"
   >
     <Background />
     <template #node-default="{ data, sourcePosition, targetPosition }">
@@ -63,6 +70,7 @@ watch(
         :selected-cover-image-field="selectedCoverImageField"
         :hierarchy-data="hierarchyData"
         :node-selected="nodeSelected"
+        :display-value-col="displayValueCol"
       />
     </template>
   </VueFlow>

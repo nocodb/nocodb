@@ -10,10 +10,11 @@ interface Props {
   selectedCoverImageField?: ColumnType
   hierarchyData: Map<string, string[]>
   nodeSelected: (nodeId: string) => void
+  displayValueCol?: ColumnType
 }
-defineProps<Props>()
+const props = defineProps<Props>()
 
-const { getPossibleAttachmentSrc } = useAttachment()
+const { record, displayValueCol } = toRefs(props)
 
 const sourceConnections = useNodeConnections({
   handleType: 'target',
@@ -23,9 +24,46 @@ const targetConnections = useNodeConnections({
   handleType: 'source',
 })
 
+const meta = inject(MetaInj, ref())
+
 const isStartNode = computed(() => sourceConnections.value.length <= 0)
 
 const isEndNode = computed(() => targetConnections.value.length <= 0)
+
+const { getPossibleAttachmentSrc } = useAttachment()
+
+const { t } = useI18n()
+const { metas } = useMetas()
+const basesStore = useBases()
+
+const { basesUser } = storeToRefs(basesStore)
+
+const baseStore = useBase()
+const { isXcdbBase, isMssql, isMysql } = baseStore
+const { sqlUis } = storeToRefs(baseStore)
+
+const plainCellValue = computed(() => {
+  if (!meta.value || !displayValueCol.value) return ''
+
+  const sqlUi =
+    displayValueCol.value?.source_id && sqlUis.value[displayValueCol.value?.source_id]
+      ? sqlUis.value[displayValueCol.value?.source_id]
+      : Object.values(sqlUis.value)[0]
+
+  const abstractType = displayValueCol.value && sqlUi.getAbstractType(displayValueCol.value)
+
+  return parsePlainCellValue(record.value[displayValueCol.value.title!], {
+    col: displayValueCol.value,
+    abstractType,
+    meta: meta.value,
+    metas: metas.value,
+    baseUsers: basesUser.value,
+    isMssql,
+    isMysql,
+    isXcdbBase,
+    t,
+  })
+})
 </script>
 
 <template>
@@ -48,7 +86,7 @@ const isEndNode = computed(() => targetConnections.value.length <= 0)
       </div>
     </div>
     <div class="font-bold text-left w-full px-2 py-1 flex flex-col space-y-1">
-      <span class="overflow-hidden font-bold text-lg text-center">{{ record.Title }}</span>
+      <span class="overflow-hidden font-bold text-lg text-center">{{ plainCellValue }}</span>
       <div v-if="!isEndNode || !hierarchyData.has(record.Id)" class="flex w-full justify-center items-center">
         <NcButton
           size="small"

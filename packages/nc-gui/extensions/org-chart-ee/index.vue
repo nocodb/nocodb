@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type LinkToAnotherRecordType, RelationTypes, ViewTypes } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, RelationTypes, type TableType, ViewTypes } from 'nocodb-sdk'
 import Graph from './Graph.vue'
 import { type CoordPosition, type Edge, useLayoutHelper } from './useLayoutHelper'
 
@@ -11,8 +11,6 @@ const { fullscreen, tables, getViewsForTable, getTableMeta, activeTableId, activ
 const EXTENSION_ID = extension.value.extensionId
 
 const kvStore = extension.value.kvStore
-
-const mandatoryColumns = ['Id', 'Title'] as const
 
 const tableId = ref<string>(activeTableId.value!)
 const viewId = ref<string | undefined>(activeViewId.value || undefined)
@@ -84,6 +82,25 @@ const onTableSelect = () => {
 }
 
 const tableMeta = computedAsync(() => (tableId.value ? getTableMeta(tableId.value) : undefined))
+
+provide(MetaInj, tableMeta)
+
+const displayValueCol = computed(() => {
+  return (
+    (tableMeta.value?.columns || []).find((c) => {
+      return c.pv
+    }) || (tableMeta.value?.columns || [])[0]
+  )
+})
+
+const mandatoryColumns = computed(() => {
+  return (tableMeta.value?.columns || [])
+    .filter((c) => {
+      return c.pv || c.pk
+    })
+    .map((c) => c.title)
+})
+
 const relationFields = computed(() =>
   tableMeta.value?.columns?.filter(
     (c) =>
@@ -195,8 +212,8 @@ const loadChildren = async (rowIds: string[]) => {
               await $api.dbDataTableRow.list(tableId.value, {
                 viewId: viewId.value,
                 fields: coverImageFieldId.value
-                  ? [...mandatoryColumns, selectedCoverImageField.value?.title]
-                  : [...mandatoryColumns],
+                  ? [...mandatoryColumns.value, selectedCoverImageField.value?.title]
+                  : [...mandatoryColumns.value],
                 where: `where=${unfetchedChildRowIdsToFilterAndFetch.map((id) => `(Id,eq,${id})`).join('~or')}`,
               })
             ).list
@@ -334,6 +351,11 @@ onMounted(async () => {
       }
     }
   }
+})
+
+watch(displayValueCol, () => {
+  console.log('changed', displayValueCol.value?.title)
+  loadGraph()
 })
 </script>
 
@@ -512,6 +534,7 @@ onMounted(async () => {
       </div>
       <Graph
         v-if="isReady"
+        id="printOrgPage"
         :class="fullscreen ? '!w-4/5' : 'w-full'"
         :nodes="nodes"
         :edges="edges"
@@ -520,6 +543,7 @@ onMounted(async () => {
         :selected-cover-image-field="selectedCoverImageField"
         :hierarchy-data="hierarchyData"
         :node-selected="nodeSelected"
+        :display-value-col="displayValueCol"
       >
       </Graph>
       <div v-else-if="!fullscreen" class="h-full w-full flex items-center justify-center">
@@ -575,6 +599,22 @@ section {
       padding-left: 12px;
       font-weight: 500;
     }
+  }
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact; /* Chrome, Safari 6 – 15.3, Edge */
+    color-adjust: exact; /* Firefox 48 – 96 */
+    print-color-adjust: exact;
+  }
+
+  #printOrgPage {
+    @apply m-0 shadow-none visible absolute left-0 top-0;
+  }
+
+  body {
+    @apply invisible;
   }
 }
 </style>

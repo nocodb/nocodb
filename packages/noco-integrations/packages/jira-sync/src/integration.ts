@@ -271,12 +271,9 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
       case TARGET_TABLES.TICKETING_TEAM:
         return this.formatTeam(data);
       default: {
-        // Default case should return a valid SyncRecord
-        const now = new Date().toISOString();
         return {
           data: {
             RemoteRaw: JSON.stringify(data),
-            RemoteSyncedAt: now,
           },
         };
       }
@@ -287,8 +284,6 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
     data: TicketingTicketRecord;
     links?: Record<string, SyncLinkValue>;
   } {
-    const now = new Date().toISOString();
-
     const ticket: TicketingTicketRecord = {
       Name: issue.fields?.summary || null,
       Description:
@@ -307,7 +302,6 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
       RemoteCreatedAt: issue.fields?.created || null,
       RemoteUpdatedAt: issue.fields?.updated || null,
       RemoteRaw: JSON.stringify(issue),
-      RemoteSyncedAt: now,
     };
 
     const links: Record<string, string[]> = {};
@@ -329,8 +323,6 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
   private formatUser(user: any): {
     data: TicketingUserRecord;
   } {
-    const now = new Date().toISOString();
-
     const userData: TicketingUserRecord = {
       Name: user.displayName || null,
       Email: user.emailAddress || null,
@@ -338,7 +330,6 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
       RemoteCreatedAt: null, // Jira API doesn't provide this information
       RemoteUpdatedAt: null, // Jira API doesn't provide this information
       RemoteRaw: JSON.stringify(user),
-      RemoteSyncedAt: now,
     };
 
     return {
@@ -350,8 +341,6 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
     data: TicketingCommentRecord;
     links?: Record<string, SyncLinkValue>;
   } {
-    const now = new Date().toISOString();
-
     const commentData: TicketingCommentRecord = {
       Title: comment.author
         ? `${comment.author.displayName || 'User'} commented on issue ${comment.issueKey || (comment.issue ? comment.issue.key : '#' + comment.issueId)}`
@@ -361,7 +350,6 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
       RemoteCreatedAt: comment.created || null,
       RemoteUpdatedAt: comment.updated || null,
       RemoteRaw: JSON.stringify(comment),
-      RemoteSyncedAt: now,
     };
 
     const links: Record<string, string[]> = {};
@@ -383,15 +371,12 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
   private formatTeam(team: any): {
     data: TicketingTeamRecord;
   } {
-    const now = new Date().toISOString();
-
     const teamData: TicketingTeamRecord = {
       Name: team.name || null,
       Description: team.description || null,
       RemoteCreatedAt: null, // Jira API doesn't provide this information
       RemoteUpdatedAt: null, // Jira API doesn't provide this information
       RemoteRaw: JSON.stringify(team),
-      RemoteSyncedAt: now,
     };
 
     return {

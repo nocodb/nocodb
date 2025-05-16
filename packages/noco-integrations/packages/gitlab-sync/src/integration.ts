@@ -6,12 +6,21 @@ import {
 } from '@noco-integrations/core';
 import type {
   AuthResponse,
+  SyncLinkValue,
   TicketingCommentRecord,
   TicketingTeamRecord,
   TicketingTicketRecord,
   TicketingUserRecord,
 } from '@noco-integrations/core';
 import type { Gitlab } from '@gitbeaker/rest';
+import type { 
+  GroupSchema, 
+  IssueSchema, 
+  MemberSchema, 
+  MergeRequestSchema, 
+  NoteSchema, 
+  UserSchema
+} from '@gitbeaker/core';
 
 export interface GitlabSyncPayload {
   projectId: string;
@@ -101,7 +110,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                     stream.push({
                       recordId: `${group.id}`,
                       targetTable: TARGET_TABLES.TICKETING_TEAM,
-                      ...this.formatData(TARGET_TABLES.TICKETING_TEAM, group),
+                      ...this.formatData(TARGET_TABLES.TICKETING_TEAM, group as GroupSchema),
                     });
 
                     // Fetch group members
@@ -136,10 +145,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                             stream.push({
                               recordId: `${member.id}`,
                               targetTable: TARGET_TABLES.TICKETING_USER,
-                              ...this.formatData(
-                                TARGET_TABLES.TICKETING_USER,
-                                member,
-                              ),
+                              ...this.formatData(TARGET_TABLES.TICKETING_USER, member as MemberSchema),
                             });
                           }
 
@@ -236,7 +242,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
               stream.push({
                 recordId: `${issue.id}`,
                 targetTable: TARGET_TABLES.TICKETING_TICKET,
-                ...this.formatData(TARGET_TABLES.TICKETING_TICKET, issue),
+                ...this.formatData(TARGET_TABLES.TICKETING_TICKET, issue as IssueSchema),
               });
 
               // Extract and process users
@@ -264,7 +270,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                   stream.push({
                     recordId: `${user.id}`,
                     targetTable: TARGET_TABLES.TICKETING_USER,
-                    ...this.formatData(TARGET_TABLES.TICKETING_USER, user),
+                    ...this.formatData(TARGET_TABLES.TICKETING_USER, user as UserSchema),
                   });
                 }
               }
@@ -329,10 +335,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                 stream.push({
                   recordId: `${mr.id}`,
                   targetTable: TARGET_TABLES.TICKETING_TICKET,
-                  ...this.formatData(
-                    TARGET_TABLES.TICKETING_TICKET,
-                    ticketData,
-                  ),
+                  ...this.formatData(TARGET_TABLES.TICKETING_TICKET, ticketData as IssueSchema | MergeRequestSchema),
                 });
 
                 // Extract and process users
@@ -360,7 +363,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                     stream.push({
                       recordId: `${user.id}`,
                       targetTable: TARGET_TABLES.TICKETING_USER,
-                      ...this.formatData(TARGET_TABLES.TICKETING_USER, user),
+                      ...this.formatData(TARGET_TABLES.TICKETING_USER, user as UserSchema),
                     });
                   }
                 }
@@ -421,10 +424,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                   stream.push({
                     recordId: `${mr.id}`,
                     targetTable: TARGET_TABLES.TICKETING_TICKET,
-                    ...this.formatData(
-                      TARGET_TABLES.TICKETING_TICKET,
-                      ticketData,
-                    ),
+                    ...this.formatData(TARGET_TABLES.TICKETING_TICKET, ticketData as IssueSchema | MergeRequestSchema),
                   });
 
                   // Extract and process users
@@ -452,7 +452,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                       stream.push({
                         recordId: `${user.id}`,
                         targetTable: TARGET_TABLES.TICKETING_USER,
-                        ...this.formatData(TARGET_TABLES.TICKETING_USER, user),
+                        ...this.formatData(TARGET_TABLES.TICKETING_USER, user as UserSchema),
                       });
                     }
                   }
@@ -511,10 +511,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                   stream.push({
                     recordId: `${mr.id}`,
                     targetTable: TARGET_TABLES.TICKETING_TICKET,
-                    ...this.formatData(
-                      TARGET_TABLES.TICKETING_TICKET,
-                      ticketData,
-                    ),
+                    ...this.formatData(TARGET_TABLES.TICKETING_TICKET, ticketData as IssueSchema | MergeRequestSchema),
                   });
 
                   // Extract and process users
@@ -542,7 +539,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                       stream.push({
                         recordId: `${user.id}`,
                         targetTable: TARGET_TABLES.TICKETING_USER,
-                        ...this.formatData(TARGET_TABLES.TICKETING_USER, user),
+                        ...this.formatData(TARGET_TABLES.TICKETING_USER, user as UserSchema),
                       });
                     }
                   }
@@ -569,7 +566,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
 
             try {
               // Process issues and MRs sequentially to be more cautious with API rate limits
-              for (const [issueIid, issueData] of issueMap.entries()) {
+              for (const [issueIid, _issueData] of issueMap.entries()) {
                 try {
                   let page = 1;
                   let hasMoreComments = true;
@@ -615,20 +612,11 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                         continue;
                       }
 
-                      // Add issue/MR data to the comment
-                      const commentWithIssue = {
-                        ...comment,
-                        issue: issueData,
-                      };
-
                       // Add comment to stream
                       stream.push({
                         recordId: `${comment.id}`,
                         targetTable: TARGET_TABLES.TICKETING_COMMENT,
-                        ...this.formatData(
-                          TARGET_TABLES.TICKETING_COMMENT,
-                          commentWithIssue,
-                        ),
+                        ...this.formatData(TARGET_TABLES.TICKETING_COMMENT, comment as NoteSchema & { issue?: { id: number; iid: number } }),
                       });
 
                       // Add comment author to users if not already added
@@ -638,10 +626,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                         stream.push({
                           recordId: `${comment.author.id}`,
                           targetTable: TARGET_TABLES.TICKETING_USER,
-                          ...this.formatData(
-                            TARGET_TABLES.TICKETING_USER,
-                            comment.author,
-                          ),
+                          ...this.formatData(TARGET_TABLES.TICKETING_USER, comment.author as UserSchema),
                         });
                       }
                     }
@@ -685,135 +670,152 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
     return stream;
   }
 
-  public formatData(targetTable: TARGET_TABLES, data: any) {
+  public formatData(
+    targetTable: TARGET_TABLES, 
+    data: GroupSchema | IssueSchema | MergeRequestSchema | UserSchema | MemberSchema | NoteSchema
+  ): {
+    data: TicketingTicketRecord | TicketingUserRecord | TicketingCommentRecord | TicketingTeamRecord;
+    links?: Record<string, SyncLinkValue>;
+  } {
     switch (targetTable) {
       case TARGET_TABLES.TICKETING_TICKET:
-        return this.formatTicket(data);
+        return this.formatTicket(data as IssueSchema | MergeRequestSchema);
       case TARGET_TABLES.TICKETING_USER:
-        return this.formatUser(data);
+        return this.formatUser(data as UserSchema | MemberSchema);
       case TARGET_TABLES.TICKETING_COMMENT:
-        return this.formatComment(data);
+        return this.formatComment(data as NoteSchema & { issue?: { id: number; iid: number } });
       case TARGET_TABLES.TICKETING_TEAM:
-        return this.formatTeam(data);
+        return this.formatTeam(data as GroupSchema);
       default:
-        throw new Error(`Unsupported target table: ${targetTable}`);
+        throw new Error(`Unsupported table: ${targetTable}`);
     }
   }
 
-  private formatTicket(data: any) {
-    const ticketData: TicketingTicketRecord = {
-      Name: data.title,
-      Description: data.description || null,
-      Status: this.mapIssueState(data.state),
-      Priority: null, // GitLab doesn't have built-in priority
-      'Ticket Type': data.merge_request ? 'Merge Request' : 'Issue',
-      Url: data.web_url || null,
-      'Ticket Number': data.iid,
-      'Is Active': data.state !== 'closed',
-      'Completed At': data.state === 'closed' ? data.closed_at : null,
-      'Due Date': data.due_date || null,
-      Tags: data.labels ? data.labels.join(',') : null,
-      RemoteCreatedAt: data.created_at,
-      RemoteUpdatedAt: data.updated_at,
-      RemoteRaw: JSON.stringify(data),
-    };
-
-    const ticketLinks: Record<string, string[]> = {};
-
-    // Add assignees links if present
-    if (
-      data.assignees &&
-      Array.isArray(data.assignees) &&
-      data.assignees.length > 0
-    ) {
-      ticketLinks.Assignees = data.assignees.map(
-        (assignee: any) => `${assignee.id}`,
-      );
+  private formatTicket(
+    data: IssueSchema | MergeRequestSchema
+  ): {
+    data: TicketingTicketRecord;
+    links?: Record<string, SyncLinkValue>;
+  } {
+    // Determine if this is an issue or a merge request
+    const isMR = 'merge_status' in data;
+    
+    const links: Record<string, SyncLinkValue> = {};
+    
+    // Add assignee links if present
+    if (data.assignees && Array.isArray(data.assignees) && data.assignees.length > 0) {
+      links.Assignees = data.assignees.map(assignee => (assignee.id || '').toString());
+    } else if (data.assignee && typeof data.assignee === 'object' && 'id' in data.assignee && data.assignee.id) {
+      links.Assignees = [data.assignee.id.toString()];
     }
-
+    
     // Add author link if present
-    if (data.author) {
-      ticketLinks.Creator = [`${data.author.id}`];
+    if (data.author && data.author.id) {
+      links.Reporter = [data.author.id.toString()];
     }
-
+    
     return {
-      data: ticketData,
-      links: ticketLinks,
+      data: {
+        Name: data.title || null,
+        Description: data.description || null,
+        'Due Date': null, // GitLab issues can have due dates, but MRs don't
+        Priority: null, // GitLab doesn't have a direct priority field
+        Status: this.mapIssueState(data.state || ''),
+        Tags: data.labels ? data.labels.join(',') : null,
+        'Ticket Type': isMR ? 'Merge Request' : 'Issue',
+        Url: data.web_url || null,
+        'Is Active': data.state !== 'closed',
+        'Completed At': data.state === 'closed' ? data.closed_at || null : null,
+        'Ticket Number': data.iid?.toString() || null,
+        RemoteCreatedAt: data.created_at,
+        RemoteUpdatedAt: data.updated_at,
+        RemoteRaw: JSON.stringify(data),
+      },
+      links: Object.keys(links).length > 0 ? links : undefined,
     };
   }
 
-  private formatUser(data: any) {
-    const userData: TicketingUserRecord = {
-      Name: data.name || null,
-      Email: data.email || null,
-      Url: data.web_url || null,
-      RemoteCreatedAt: data.created_at || null,
-      RemoteUpdatedAt: data.updated_at || null,
-      RemoteRaw: JSON.stringify(data),
-    };
-
+  private formatUser(
+    data: UserSchema | MemberSchema
+  ): {
+    data: TicketingUserRecord;
+  } {
     return {
-      data: userData,
+      data: {
+        Name: data.name || null,
+        Email: 'email' in data && data.email ? data.email.toString() : null,
+        Url: data.avatar_url || null,
+        RemoteCreatedAt: null, // GitLab API doesn't expose this in user object
+        RemoteUpdatedAt: null, // GitLab API doesn't expose this in user object
+        RemoteRaw: JSON.stringify(data),
+      },
     };
   }
 
-  private formatComment(data: any) {
-    const commentData: TicketingCommentRecord = {
-      Title:
-        data.author && data.issue
-          ? `${data.author.name || 'User'} commented on ${data.issue.merge_request ? 'MR' : 'issue'} #${data.issue.iid}`
-          : `Comment on ${data.issue ? (data.issue.merge_request ? 'MR' : 'issue') + ' #' + data.issue.iid : 'item'}`,
-      Body: data.body || null,
-      Url: data.web_url || null,
-      RemoteCreatedAt: data.created_at,
-      RemoteUpdatedAt: data.updated_at,
-      RemoteRaw: JSON.stringify(data),
-    };
-
-    const commentLinks: Record<string, string[]> = {};
-
-    // Add author link if present
-    if (data.author) {
-      commentLinks['Created By'] = [`${data.author.id}`];
+  private formatComment(
+    data: NoteSchema & { issue?: { id: number; iid: number } }
+  ): {
+    data: TicketingCommentRecord;
+    links?: Record<string, SyncLinkValue>;
+  } {
+    const links: Record<string, SyncLinkValue> = {};
+    
+    // Link to ticket
+    if (data.issue && data.issue.id) {
+      links.Ticket = [data.issue.id.toString()];
     }
-
-    // Add issue link
-    if (data.issue) {
-      commentLinks.Ticket = [`${data.issue.id}`];
+    
+    // Link to author
+    if (data.author && data.author.id) {
+      links['Created By'] = [data.author.id.toString()];
     }
-
+    
     return {
-      data: commentData,
-      links: commentLinks,
+      data: {
+        Title: data.author 
+          ? `${data.author.name || 'User'} commented on ${data.issue ? `#${data.issue.iid}` : 'issue'}`
+          : `Comment on ${data.issue ? `#${data.issue.iid}` : 'issue'}`,
+        Body: data.body || null,
+        Url: data.web_url ? data.web_url.toString() : null,
+        RemoteCreatedAt: data.created_at,
+        RemoteUpdatedAt: data.updated_at,
+        RemoteRaw: JSON.stringify(data),
+      },
+      links: Object.keys(links).length > 0 ? links : undefined,
     };
   }
 
-  private formatTeam(data: any) {
-    const teamData: TicketingTeamRecord = {
-      Name: data.name || null,
-      Description: data.description || null,
-      RemoteCreatedAt: data.created_at || null,
-      RemoteUpdatedAt: data.updated_at || null,
-      RemoteRaw: JSON.stringify(data),
-    };
-
+  private formatTeam(
+    data: GroupSchema
+  ): {
+    data: TicketingTeamRecord;
+  } {
     return {
-      data: teamData,
+      data: {
+        Name: data.name || null,
+        Description: data.description || null,
+        RemoteCreatedAt: data.created_at || null,
+        RemoteUpdatedAt: null, // GitLab API doesn't expose this for groups
+        RemoteRaw: JSON.stringify(data),
+      },
     };
   }
 
   private mapIssueState(state: string): string {
-    switch (state) {
+    switch (state.toLowerCase()) {
       case 'opened':
+      case 'open':
         return 'Open';
       case 'closed':
         return 'Closed';
+      case 'merged':
+        return 'Merged';
       default:
         return state;
     }
   }
 
-  public getIncrementalKey(targetTable: TARGET_TABLES) {
+  public getIncrementalKey(targetTable: TARGET_TABLES): string {
     switch (targetTable) {
       case TARGET_TABLES.TICKETING_TICKET:
         return 'RemoteUpdatedAt';

@@ -65,10 +65,7 @@ Every sync record should include these metadata fields:
 interface SyncRecord {
   RemoteCreatedAt?: string | null;
   RemoteUpdatedAt?: string | null;
-  RemoteDeletedAt?: string | null;
-  RemoteDeleted?: boolean | null;
   RemoteRaw: string | null;
-  RemoteSyncedAt?: string | null;
 }
 ```
 

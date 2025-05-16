@@ -379,12 +379,9 @@ export default class AsanaSyncIntegration extends SyncIntegration<AsanaSyncPaylo
       case TARGET_TABLES.TICKETING_TEAM:
         return this.formatTeam(data);
       default: {
-        // Default case should return a valid SyncRecord
-        const now = new Date().toISOString();
         return {
           data: {
             RemoteRaw: JSON.stringify(data),
-            RemoteSyncedAt: now,
           },
         };
       }
@@ -395,8 +392,6 @@ export default class AsanaSyncIntegration extends SyncIntegration<AsanaSyncPaylo
     data: TicketingTicketRecord;
     links?: Record<string, SyncLinkValue>;
   } {
-    const now = new Date().toISOString();
-
     // Extract status from memberships if available
     let status = task.completed ? 'Completed' : 'Open';
     if (
@@ -431,7 +426,6 @@ export default class AsanaSyncIntegration extends SyncIntegration<AsanaSyncPaylo
       RemoteCreatedAt: task.created_at,
       RemoteUpdatedAt: task.modified_at,
       RemoteRaw: JSON.stringify(task),
-      RemoteSyncedAt: now,
     };
 
     const links: Record<string, string[]> = {};
@@ -454,8 +448,6 @@ export default class AsanaSyncIntegration extends SyncIntegration<AsanaSyncPaylo
   private formatUser(user: AsanaUser): {
     data: TicketingUserRecord;
   } {
-    const now = new Date().toISOString();
-
     const userData: TicketingUserRecord = {
       Name: user.name || null,
       Email: user.email || null,
@@ -463,7 +455,6 @@ export default class AsanaSyncIntegration extends SyncIntegration<AsanaSyncPaylo
       RemoteCreatedAt: null, // Asana API doesn't provide this
       RemoteUpdatedAt: null, // Asana API doesn't provide this
       RemoteRaw: JSON.stringify(user),
-      RemoteSyncedAt: now,
     };
 
     return {
@@ -478,8 +469,6 @@ export default class AsanaSyncIntegration extends SyncIntegration<AsanaSyncPaylo
     data: TicketingCommentRecord;
     links?: Record<string, SyncLinkValue>;
   } {
-    const now = new Date().toISOString();
-
     const commentData: TicketingCommentRecord = {
       Title: `${comment.created_by?.name || 'User'} commented on task #${taskId}`,
       Body: comment.html_text || comment.text || null,
@@ -487,7 +476,6 @@ export default class AsanaSyncIntegration extends SyncIntegration<AsanaSyncPaylo
       RemoteCreatedAt: comment.created_at,
       RemoteUpdatedAt: null, // Asana API doesn't provide this for comments
       RemoteRaw: JSON.stringify(comment),
-      RemoteSyncedAt: now,
     };
 
     const links: Record<string, string[]> = {};
@@ -509,15 +497,12 @@ export default class AsanaSyncIntegration extends SyncIntegration<AsanaSyncPaylo
   private formatTeam(team: AsanaTeam): {
     data: TicketingTeamRecord;
   } {
-    const now = new Date().toISOString();
-
     const teamData: TicketingTeamRecord = {
       Name: team.name || null,
       Description: null, // Asana API doesn't provide this for teams
       RemoteCreatedAt: null, // Asana API doesn't provide this for teams
       RemoteUpdatedAt: null, // Asana API doesn't provide this for teams
       RemoteRaw: JSON.stringify(team),
-      RemoteSyncedAt: now,
     };
 
     return {

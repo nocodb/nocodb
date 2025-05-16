@@ -332,32 +332,50 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
 
   public formatData(
     targetTable: TARGET_TABLES,
-    data: any,
+    data: ProcessedIssue | User | Comment | Team | { 
+      issue?: ProcessedIssue, 
+      comment: Comment, 
+      user?: User, 
+      issueIdentifier?: string 
+    }
   ): {
     data: SyncRecord;
     links?: Record<string, SyncLinkValue>;
   } {
     switch (targetTable) {
       case TARGET_TABLES.TICKETING_TICKET:
-        return this.formatTicket(data);
+        // Check if we have a ProcessedIssue with labels, assignee, creator
+        if ('issue' in data) {
+          return this.formatTicket(
+            data.issue as ProcessedIssue,
+            'labels' in data ? data.labels as IssueLabel[] : undefined,
+            'assignee' in data ? data.assignee as User : undefined,
+            'creator' in data ? data.creator as User : undefined
+          );
+        }
+        return this.formatTicket(data as ProcessedIssue);
+      
       case TARGET_TABLES.TICKETING_USER:
-        return this.formatUser(data);
+        return this.formatUser(data as User);
+      
       case TARGET_TABLES.TICKETING_COMMENT:
-        // If data is a Comment object, we need to infer the issueId from the context
-        // Since this is a fallback, we just pass the comment without the issue identifier
-        return this.formatComment(data, data.issueId);
+        // Handle the enhanced comment case
+        if ('comment' in data) {
+          return this.formatComment(
+            data.comment,
+            data.issue?.id,
+            data.user || null,
+            data.issueIdentifier
+          );
+        }
+        // Handle basic comment
+        return this.formatComment(data as Comment);
+      
       case TARGET_TABLES.TICKETING_TEAM:
-        return this.formatTeam(data);
-      default: {
-        // Default case should return a valid SyncRecord
-        const now = new Date().toISOString();
-        return {
-          data: {
-            RemoteRaw: JSON.stringify(data),
-            RemoteSyncedAt: now,
-          },
-        };
-      }
+        return this.formatTeam(data as Team);
+      
+      default:
+        throw new Error(`Unsupported table: ${targetTable}`);
     }
   }
 
@@ -370,8 +388,6 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
     data: TicketingTicketRecord;
     links?: Record<string, SyncLinkValue>;
   } {
-    const now = new Date().toISOString();
-
     // Format tags from labels
     let tags = null;
     if (labels && labels.length > 0) {
@@ -399,7 +415,6 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
         ? new Date(issue.updatedAt).toISOString()
         : null,
       RemoteRaw: JSON.stringify(issue),
-      RemoteSyncedAt: now,
     };
 
     const links: Record<string, string[]> = {};
@@ -421,8 +436,6 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
   private formatUser(user: User): {
     data: TicketingUserRecord;
   } {
-    const now = new Date().toISOString();
-
     const userData: TicketingUserRecord = {
       Name: user.name || user.displayName || null,
       Email: user.email || null,
@@ -434,7 +447,6 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
         ? new Date(user.updatedAt).toISOString()
         : null,
       RemoteRaw: JSON.stringify(user),
-      RemoteSyncedAt: now,
     };
 
     return {
@@ -451,8 +463,6 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
     data: TicketingCommentRecord;
     links?: Record<string, SyncLinkValue>;
   } {
-    const now = new Date().toISOString();
-
     const commentData: TicketingCommentRecord = {
       Title: user
         ? `${user.name || user.displayName || 'User'} commented on issue ${issueIdentifier || '#' + issueId}`
@@ -466,7 +476,6 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
         ? new Date(comment.updatedAt).toISOString()
         : null,
       RemoteRaw: JSON.stringify(comment),
-      RemoteSyncedAt: now,
     };
 
     const links: Record<string, string[]> = {};
@@ -488,8 +497,6 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
   private formatTeam(team: Team): {
     data: TicketingTeamRecord;
   } {
-    const now = new Date().toISOString();
-
     const teamData: TicketingTeamRecord = {
       Name: team.name || null,
       Description: team.description || null,
@@ -500,7 +507,6 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
         ? new Date(team.updatedAt).toISOString()
         : null,
       RemoteRaw: JSON.stringify(team),
-      RemoteSyncedAt: now,
     };
 
     return {

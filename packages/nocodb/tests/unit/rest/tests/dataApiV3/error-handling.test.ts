@@ -8,8 +8,10 @@ import { createUser } from '../../../factory/user';
 import { isPg } from '../../../init/db';
 import { customColumns } from '../../../factory/column';
 import {
+  beforeEachAttachment,
   beforeEachCheckbox,
   beforeEachDateBased,
+  beforeEachJSON,
   beforeEachNumberBased,
   beforeEachSelectBased,
   beforeEachTextBased,
@@ -786,6 +788,49 @@ describe('dataApiV3', () => {
       });
     });
 
+    describe('json', () => {
+      let table: Model;
+      let columns: Column[] = [];
+
+      beforeEach(async function () {
+        const initResult = await beforeEachJSON(testContext);
+        table = initResult.table;
+        columns = initResult.columns;
+        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      });
+
+      it(`will handle insert field format not valid`, async () => {
+        const insertCases = [
+          [
+            {
+              JSON: 'anythingelse',
+            },
+          ],
+          [
+            {
+              JSON: '{}',
+            },
+            {
+              JSON: 'anythingelse',
+            },
+          ],
+        ];
+        for (const insertCase of insertCases) {
+          const response = await ncAxiosPost({
+            url: `${urlPrefix}/${table.id}`,
+            body: insertCase,
+            status: 422,
+          });
+          expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+          expect(
+            response.body.message.startsWith(
+              `Invalid value 'anythingelse' for type `,
+            ),
+          ).to.eq(true);
+        }
+      });
+    });
+
     describe('user-based', () => {
       let table: Model;
       let columns: Column[] = [];
@@ -829,6 +874,16 @@ describe('dataApiV3', () => {
             `Invalid value '${userList[0].id},${userList[1].id}' for type `,
           ),
         ).to.equal(true);
+      });
+    });
+
+    describe.skip('attachment', () => {
+      let table: Model;
+      const columns: Column[] = [];
+
+      beforeEach(async function () {
+        const initResult = await beforeEachAttachment(testContext);
+        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
       });
     });
   });

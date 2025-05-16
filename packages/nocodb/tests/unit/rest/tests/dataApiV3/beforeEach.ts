@@ -1,3 +1,5 @@
+import path from 'path';
+import fs from 'fs';
 import { expect } from 'chai';
 import { NcApiVersion, UITypes } from 'nocodb-sdk';
 import { createProject, createSakilaProject } from '../../../factory/base';
@@ -392,6 +394,34 @@ export const beforeEachCheckbox = async (testContext: ITestContext) => {
   };
 };
 
+export const beforeEachJSON = async (testContext: ITestContext) => {
+  const createColumns = [
+    {
+      column_name: 'id',
+      title: 'Id',
+      uidt: UITypes.ID,
+      description: `id ${UITypes.ID}`,
+    },
+    {
+      uidt: UITypes.JSON,
+      column_name: 'JSON',
+      title: 'JSON',
+    },
+  ];
+  const table = await createTable(testContext.context, testContext.base, {
+    table_name: 'JSONBased',
+    title: 'JSONBased',
+    columns: createColumns,
+  });
+
+  const columns = await table.getColumns(testContext.ctx);
+
+  return {
+    table,
+    columns,
+  };
+};
+
 export const beforeEachUserBased = async (testContext: ITestContext) => {
   const table = await createTable(testContext.context, testContext.base, {
     table_name: 'userBased',
@@ -440,4 +470,11 @@ export const beforeEachUserBased = async (testContext: ITestContext) => {
     table,
     columns,
   };
+};
+
+const FILE_PATH = path.join(__dirname, 'test.txt');
+export const beforeEachAttachment = async (_testContext: ITestContext) => {
+  console.time('#### attachmentTests');
+  fs.writeFileSync(FILE_PATH, 'test', `utf-8`);
+  console.timeEnd('#### attachmentTests');
 };

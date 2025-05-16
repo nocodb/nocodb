@@ -2,6 +2,7 @@
 import { expect } from 'chai';
 import { type ColumnType } from 'nocodb-sdk';
 import {
+  beforeEachAttachment,
   beforeEachLinkBased,
   beforeEachTextBased,
   beforeEachUserBased,
@@ -433,6 +434,19 @@ describe('dataApiV3', () => {
         );
         expect(record.body.userFieldMulti[1].email).to.equal('a@nocodb.com');
       });
+    });
+
+    // v3 has no attachment atm
+    describe.skip('attachment', () => {
+      let table: Model;
+      const columns: Column[] = [];
+
+      beforeEach(async function () {
+        const initResult = await beforeEachAttachment(testContext);
+        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      });
+
+      it('Upload file - Super admin', async () => {});
     });
   });
 });

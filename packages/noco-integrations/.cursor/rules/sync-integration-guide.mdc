@@ -1,336 +1,157 @@
 ---
-description: creating an sync type integration
-globs: 
+description:
+globs:
 alwaysApply: false
 ---
-# Sync Integration Guide for Ticketing
+# Sync Integration Guide
 
-This guide explains how to create a sync integration for the ticketing system in NocoDB. Sync integrations allow users to synchronize data from external systems (like GitHub, GitLab, etc.) into NocoDB.
+This guide provides instructions for creating a sync integration for NocoDB, which allows syncing data from external services into NocoDB tables.
 
-## Required Files
+## Key Files and Structure
 
-A sync integration package requires the following file structure:
+A sync integration requires the following files:
 
-```
-packages/provider-sync/
-├── package.json          # Package dependencies and metadata
-├── tsconfig.json         # TypeScript configuration
-└── src/
-    ├── index.ts          # Main export
-    ├── integration.ts    # SyncIntegration implementation
-    ├── form.ts           # Form definition for UI
-    └── manifest.ts       # Integration metadata
-```
+- **index.ts**: Main entry point that exports the integration
+- **integration.ts**: Core implementation extending `SyncIntegration`
+- **form.ts**: Configuration form definition
+- **manifest.ts**: Integration metadata
 
-## Core Concepts
+## Core Components
 
-### Sync Integration Class
+The core interfaces and types for sync integrations are located in:
 
-Every sync integration must extend the `SyncIntegration` abstract class from `@noco-integrations/core` and implement these required methods:
-
-1. `getDestinationSchema`: Define the schema for synced data
-2. `fetchData`: Retrieve data from the external system
-3. `formatData`: Convert external data to NocoDB format
-4. `getIncrementalKey`: Specify field for incremental sync
-
-### Data Objects
-
-Data is processed using the following key interfaces:
-
-- `TicketingTicketRecord`: Represents a ticket/issue
-- `TicketingUserRecord`: Represents a user
-- `TicketingCommentRecord`: Represents a comment/note
-
-### TARGET_TABLES
-
-The system uses predefined table identifiers from `TARGET_TABLES` enum:
-- `TICKETING_TICKET`: For tickets/issues
-- `TICKETING_USER`: For users
-- `TICKETING_COMMENT`: For comments/notes
+- [core/src/sync/types.ts](mdc:core/src/sync/types.ts): Contains the `SyncIntegration` abstract class and related types
+- [core/src/sync/schema-ticketing.ts](mdc:core/src/sync/schema-ticketing.ts): Predefined schema for ticketing systems
 
 ## Implementation Steps
 
-1. Set up the basic package structure:
-```bash
-mkdir -p packages/your-provider-sync/src
-```
+### 1. Extend SyncIntegration
 
-2. Create the package.json file:
-```json
-{
-  "name": "@noco-integrations/your-provider-sync",
-  "version": "0.1.0",
-  "description": "Provider sync integration for NocoDB",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc -w"
-  },
-  "dependencies": {
-    "@noco-integrations/core": "workspace:*"
-    // Add provider-specific SDK if available
-  },
-  "devDependencies": {
-    "@types/node": "^20.17.46",
-    "typescript": "^5.8.3"
+Create a class that extends `SyncIntegration` and implements these required methods:
+
+```typescript
+export default class YourSyncIntegration extends SyncIntegration<YourConfigType> {
+  // Return a user-friendly name for the integration instance
+  public getTitle(): string
+
+  // Return schema definition
+  public async getDestinationSchema(auth: AuthResponse<any>): Promise<SyncSchema>
+
+  // Fetch data from external API and stream it
+  public async fetchData(
+    auth: AuthResponse<any>,
+    args: {
+      targetTables?: TARGET_TABLES[];
+      targetTableIncrementalValues?: Record<TARGET_TABLES, string | number>;
+    }
+  ): Promise<DataObjectStream<SyncRecord>>
+
+  // Format external data to match NocoDB schema
+  public formatData(
+    targetTable: TARGET_TABLES,
+    data: any
+  ): {
+    data: SyncRecord;
+    links?: Record<string, SyncLinkValue>;
   }
+
+  // Return the property used for incremental sync
+  public getIncrementalKey(targetTable: TARGET_TABLES): string
 }
 ```
 
-3. Create tsconfig.json:
-```json
-{
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src"
-  },
-  "include": ["src/**/*"]
-}
-```
+### 2. Create the Integration Entry Point
 
-4. Implement the manifest.ts file:
+The `index.ts` should export an `IntegrationEntry` object:
+
 ```typescript
-import { type IntegrationManifest, SyncCategory } from '@noco-integrations/core';
-
-const manifest: IntegrationManifest = {
-  title: 'Your Provider',
-  icon: 'provider-icon', // Icon identifier
-  version: '0.1.0',
-  description: 'Sync issues and comments from Your Provider',
-  sync_category: SyncCategory.TICKETING,
-};
-
-export default manifest;
-```
-
-5. Create the form.ts file:
-```typescript
-import {
-  FormBuilderInputType,
-  type FormDefinition,
-  IntegrationType,
-} from '@noco-integrations/core';
-
-const form: FormDefinition = [
-  {
-    type: FormBuilderInputType.SelectIntegration,
-    label: 'Provider Connection',
-    width: 100,
-    model: 'config.authIntegrationId',
-    category: 'Authentication',
-    integrationFilter: {
-      type: IntegrationType.Auth,
-      sub_type: 'your-provider', // Match your auth integration
-    },
-    validators: [
-      {
-        type: 'required' as const,
-        message: 'Provider connection is required',
-      },
-    ],
-  },
-  // Add provider-specific fields here
-];
-
-export default form;
-```
-
-6. Create the index.ts file:
-```typescript
-import {
-  type IntegrationEntry,
-  IntegrationType,
-} from '@noco-integrations/core';
-import YourProviderSyncIntegration from './integration';
-import manifest from './manifest';
-import form from './form';
-
 const integration: IntegrationEntry = {
   type: IntegrationType.Sync,
-  sub_type: 'your-provider',
-  wrapper: YourProviderSyncIntegration,
+  sub_type: 'your-integration-id',
+  wrapper: YourSyncIntegration,
   form,
   manifest,
 };
 
-export { manifest, form, YourProviderSyncIntegration };
 export default integration;
 ```
 
-7. Implement the integration.ts file (see detailed example below)
+### 3. Define the Form
 
-## Implementation Details for integration.ts
-
-The heart of your sync integration is the implementation of the `SyncIntegration` abstract class. Here's a breakdown of the key methods:
-
-### getTitle
-
-Return a human-readable title to recognize source in this provider (eg. owner/repo for github, project for gitlab):
+Create a configuration form in `form.ts`:
 
 ```typescript
-public getTitle() {
-  return `${this.config.owner}/${this.config.repo}`;
-}
-```
-
-### getDestinationSchema
-
-Define how external data maps to NocoDB tables:
-
-```typescript
-public async getDestinationSchema(_auth: AuthResponse<ProviderClient>) {
-  const schema = JSON.parse(JSON.stringify(SCHEMA_TICKETING)) as SyncSchema;
-  
-  // You can customize the schema if needed
-  for (const column of schema[TARGET_TABLES.TICKETING_USER].columns) {
-    if (column.pv) column.pv = false;
-    if (column.title === 'Name') column.pv = true;
-  }
-  
-  return schema;
-}
-```
-
-### fetchData
-
-Retrieve data from the external system, avoid N+1 queries whenever possible.
-Avoid parallel processing, use sequential patterns.
-
-```typescript
-public async fetchData(
-  auth: AuthResponse<ProviderClient>,
-  args: {
-    targetTables?: TARGET_TABLES[];
-    targetTableIncrementalValues?: Record<TARGET_TABLES, string>;
+const form: FormDefinition = [
+  // Form fields for your integration configuration
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Configuration Field',
+    width: 100,
+    model: 'config.yourField',
+    category: 'Settings',
+    validators: [
+      {
+        type: 'required',
+        message: 'This field is required',
+      },
+    ],
   },
-): Promise<DataObjectStream<TicketingTicketRecord | TicketingUserRecord | TicketingCommentRecord>> {
-  const client = auth.custom as ProviderClient;
-  const { targetTableIncrementalValues } = args;
-  
-  const stream = new DataObjectStream<TicketingTicketRecord | TicketingUserRecord | TicketingCommentRecord>();
-  
-  // Implement retrieval logic, handle pagination
-  // Push data to stream using stream.push({...})
-  
-  // When done, mark the end of the stream
-  stream.push(null);
-  
-  return stream;
-}
+  // More fields as needed
+];
 ```
 
-### formatData
+### 4. Create the Manifest
 
-Transform raw data to NocoDB format:
+Define metadata in `manifest.ts`:
 
 ```typescript
-public formatData(targetTable: TARGET_TABLES, data: any) {
-  switch (targetTable) {
-    case TARGET_TABLES.TICKETING_TICKET: {
-      // Format ticket data
-      return {
-        data: {
-          Name: data.title,
-          Description: data.description || null,
-          // Other fields...
-          RemoteCreatedAt: data.created_at,
-          RemoteUpdatedAt: data.updated_at,
-          RemoteRaw: JSON.stringify(data),
-        },
-        links: {
-          // Define relationships
-        },
-      };
-    }
-    
-    case TARGET_TABLES.TICKETING_USER: {
-      // Format user data
-      return {
-        data: {
-          Name: data.name || null,
-          Email: data.email || null,
-          // Other fields...
-          RemoteRaw: JSON.stringify(data),
-        },
-      };
-    }
-    
-    case TARGET_TABLES.TICKETING_COMMENT: {
-      // Format comment data
-      return {
-        data: {
-          Title: null,
-          Body: data.body || null,
-          // Other fields...
-          RemoteRaw: JSON.stringify(data),
-        },
-        links: {
-          // Define relationships
-        },
-      };
-    }
-    
-    default:
-      throw new Error(`Unsupported target table: ${targetTable}`);
-  }
-}
+const manifest: IntegrationManifest = {
+  title: 'Your Integration',
+  icon: 'yourIcon',
+  version: '0.1.0',
+  description: 'Sync data from Your Service to NocoDB',
+  sync_category: SyncCategory.TICKETING, // Or appropriate category
+};
 ```
 
-### getIncrementalKey
+## Working with DataObjectStream
 
-Specify which field to use for incremental synchronization:
+The `fetchData` method should:
+
+1. Create a stream: `const stream = new DataObjectStream<YourRecordType>();`
+2. Fetch and process data asynchronously
+3. Push records to the stream: `stream.push({ recordId, targetTable, data, links })`
+4. End the stream when done: `stream.end()`
+5. Handle errors: `stream.emit('error', error)`
+
+## Proper Stream Handling
+
+We MUST return stream without awaiting it.
 
 ```typescript
-public getIncrementalKey(targetTable: TARGET_TABLES) {
-  switch (targetTable) {
-    case TARGET_TABLES.TICKETING_TICKET:
-      return 'RemoteUpdatedAt';
-    case TARGET_TABLES.TICKETING_USER:
-      return 'RemoteUpdatedAt';
-    case TARGET_TABLES.TICKETING_COMMENT:
-      return 'RemoteCreatedAt';
-    default:
-      throw new Error(`Unsupported target table: ${targetTable}`);
+// Proper stream handling pattern
+(async () => {
+  try {
+    // Fetch and process data
+    for (const item of items) {
+      stream.push({
+        recordId: `${item.id}`,
+        targetTable: TARGET_TABLES.TICKETING_TICKET,
+        ...this.formatData(TARGET_TABLES.TICKETING_TICKET, item),
+      });
+    }
+    stream.end(); // Critical: must end the stream
+  } catch (error) {
+    stream.emit('error', error);
   }
-}
+})();
+
+return stream;
 ```
 
-## Best Practices
+## Examples
 
-1. **Efficient Pagination**: Implement proper pagination to handle large datasets
-2. **Conditional Processing**: Check `args.targetTables` to only fetch requested tables
-3. **Error Handling**: Implement robust error handling for API failures
-4. **Rate Limiting**: Respect API rate limits of the external system
-5. **Incremental Sync**: Support incremental sync to avoid refetching unchanged data
-6. **Link Records**: Properly define relationships between tables through links
+For complete implementation examples, see:
 
-## Real Examples
-
-For practical examples, see these implementations:
-- [GitHub Sync Integration](mdc:packages/github-sync/src/integration.ts)
-- [GitLab Sync Integration](mdc:packages/gitlab-sync/src/integration.ts)
-
-## Record Fields
-
-### TicketingTicketRecord
-- `Name`: Title of the ticket
-- `Description`: Detailed description
-- `Due Date`: When the ticket is due
-- `Priority`: Importance level
-- `Status`: Current state (Open, Closed, etc.)
-- `Tags`: Associated labels
-- `Ticket Type`: Type of ticket (Issue, PR, etc.)
-- `Ticket Url`: Link to the original ticket
-- `Is Active`: Whether the ticket is active
-- `Completed At`: When the ticket was completed
-- `Ticket Number`: Reference number
-
-### TicketingUserRecord
-- `Name`: User's name
-- `Email`: User's email address
-
-### TicketingCommentRecord
-- `Title`: Comment title (if applicable)
-- `Body`: Comment content
+- [packages/github-sync](mdc:packages/github-sync/src/integration.ts): GitHub sync integration
+- [packages/gitlab-sync](mdc:packages/gitlab-sync/src/integration.ts): GitLab sync integration

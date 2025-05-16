@@ -7,6 +7,7 @@ import {
 import type {
   AuthResponse,
   TicketingCommentRecord,
+  TicketingTeamRecord,
   TicketingTicketRecord,
   TicketingUserRecord,
 } from '@noco-integrations/core';
@@ -35,7 +36,10 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     },
   ): Promise<
     DataObjectStream<
-      TicketingTicketRecord | TicketingUserRecord | TicketingCommentRecord
+      | TicketingTicketRecord
+      | TicketingUserRecord
+      | TicketingCommentRecord
+      | TicketingTeamRecord
     >
   > {
     const octokit = auth.custom as Octokit;
@@ -43,11 +47,15 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     const { targetTableIncrementalValues } = args;
 
     const stream = new DataObjectStream<
-      TicketingTicketRecord | TicketingUserRecord | TicketingCommentRecord
+      | TicketingTicketRecord
+      | TicketingUserRecord
+      | TicketingCommentRecord
+      | TicketingTeamRecord
     >();
 
     const userMap = new Map<string, boolean>();
     const issueMap = new Map<number, { id: number; number: number }>();
+    const teamMap = new Map<number, boolean>();
 
     (async () => {
       try {
@@ -56,7 +64,90 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
 
         const fetchAfter = ticketIncrementalValue;
 
-        this.log(`Fetching issues for ${owner}/${repo}`);
+        // Fetch teams if they're in the target tables
+        if (args.targetTables?.includes(TARGET_TABLES.TICKETING_TEAM)) {
+          this.log(`[GitHub Sync] Fetching teams for organization ${owner}`);
+
+          try {
+            // Get all teams from the organization
+            const teamsIterator = octokit.paginate.iterator(
+              octokit.rest.teams.list,
+              {
+                org: owner,
+                per_page: 100,
+              },
+            );
+
+            for await (const { data: teams } of teamsIterator) {
+              this.log(`[GitHub Sync] Fetched ${teams.length} teams`);
+
+              for (const team of teams) {
+                if (!teamMap.has(team.id)) {
+                  teamMap.set(team.id, true);
+
+                  // Add team to stream
+                  stream.push({
+                    recordId: `${team.id}`,
+                    targetTable: TARGET_TABLES.TICKETING_TEAM,
+                    ...this.formatData(TARGET_TABLES.TICKETING_TEAM, team),
+                  });
+
+                  // Fetch team members and add them to users if not already added
+                  try {
+                    const membersIterator = octokit.paginate.iterator(
+                      octokit.rest.teams.listMembersInOrg,
+                      {
+                        org: owner,
+                        team_slug: team.slug,
+                        per_page: 100,
+                      },
+                    );
+
+                    for await (const { data: members } of membersIterator) {
+                      for (const member of members) {
+                        if (!userMap.has(member.login)) {
+                          userMap.set(member.login, true);
+
+                          stream.push({
+                            recordId: `${member.id}`,
+                            targetTable: TARGET_TABLES.TICKETING_USER,
+                            ...this.formatData(
+                              TARGET_TABLES.TICKETING_USER,
+                              member,
+                            ),
+                          });
+                        }
+
+                        // Add member to team relationships
+                        stream.push({
+                          recordId: `${team.id}`,
+                          targetTable: TARGET_TABLES.TICKETING_TEAM,
+                          links: {
+                            Members: [`${member.id}`],
+                          },
+                        });
+                      }
+                    }
+                  } catch (error) {
+                    console.error(
+                      `[GitHub Sync] Error fetching members for team ${team.name}:`,
+                      error,
+                    );
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            console.error(
+              '[GitHub Sync] Error fetching teams for organization:',
+              error,
+            );
+          }
+        }
+
+        this.log(
+          `[GitHub Sync] Fetching issues for repository ${owner}/${repo}`,
+        );
 
         const iterator = octokit.paginate.iterator(
           octokit.rest.issues.listForRepo,
@@ -70,7 +161,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
         );
 
         for await (const { data } of iterator) {
-          this.log(`Fetched ${data.length} issues`);
+          this.log(`[GitHub Sync] Fetched ${data.length} issues`);
 
           for (const issue of data) {
             // Store issue ID and number for later comment fetching
@@ -122,7 +213,9 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
 
         if (issueMap.size > 0) {
           if (args.targetTables?.includes(TARGET_TABLES.TICKETING_COMMENT)) {
-            this.log(`Fetching comments for ${owner}/${repo}`);
+            this.log(
+              `[GitHub Sync] Fetching comments for repository ${owner}/${repo}`,
+            );
 
             try {
               // Fetch issue comments for the repository
@@ -180,14 +273,17 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
                 }
               }
             } catch (error) {
-              console.error('Error fetching comments for repository:', error);
+              console.error(
+                '[GitHub Sync] Error fetching comments for repository:',
+                error,
+              );
             }
           }
         }
 
         stream.push(null);
       } catch (error) {
-        console.error('Error fetching GitHub:', error);
+        console.error('[GitHub Sync] Error fetching data:', error);
         stream.destroy(
           error instanceof Error ? error : new Error(String(error)),
         );
@@ -269,6 +365,19 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
           },
         };
       }
+      case TARGET_TABLES.TICKETING_TEAM: {
+        const team = data as Awaited<
+          ReturnType<Octokit['rest']['teams']['list']>
+        >['data'][0];
+        return {
+          data: {
+            Name: team.name,
+            Description: team.description || '',
+            // System Fields
+            RemoteRaw: JSON.stringify(team),
+          },
+        };
+      }
       default:
         return data;
     }
@@ -281,6 +390,8 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
       case TARGET_TABLES.TICKETING_USER:
         return 'RemoteUpdatedAt';
       case TARGET_TABLES.TICKETING_COMMENT:
+        return 'RemoteUpdatedAt';
+      case TARGET_TABLES.TICKETING_TEAM:
         return 'RemoteUpdatedAt';
       default:
         return 'RemoteUpdatedAt';

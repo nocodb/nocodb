@@ -412,6 +412,10 @@ export class SyncModuleService {
         }
       } catch (e) {
         for (const table of tablesToDelete) {
+          if (table.mm) {
+            await Model.markAsMmTable(context, table.id, false);
+          }
+
           await this.tablesService.tableDelete(context, {
             tableId: table.id,
             forceDeleteSyncs: true,

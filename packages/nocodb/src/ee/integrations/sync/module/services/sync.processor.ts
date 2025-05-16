@@ -496,18 +496,20 @@ export class SyncModuleSyncDataProcessor {
                 dataBuffers.set(model.id, []);
               }
 
-              Object.assign(data.data, {
-                RemoteId: data.recordId,
-                RemoteSyncedAt,
-                SyncConfigId: syncConfig.id,
-                SyncRunId: syncRunId,
-                RemoteDeleted: false,
-                SyncProvider: integration.getIntegrationMeta().title,
-              });
-
               const dataBuffer = dataBuffers.get(model.id);
 
-              dataBuffer.push(data.data);
+              if (data.data) {
+                Object.assign(data.data, {
+                  RemoteId: data.recordId,
+                  RemoteSyncedAt,
+                  SyncConfigId: syncConfig.id,
+                  SyncRunId: syncRunId,
+                  RemoteDeleted: false,
+                  SyncProvider: integration.getIntegrationMeta().title,
+                });
+
+                dataBuffer.push(data.data);
+              }
 
               if (data.links) {
                 const linkFields = Object.keys(data.links);

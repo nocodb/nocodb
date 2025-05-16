@@ -7,6 +7,7 @@ import {
 import type {
   AuthResponse,
   TicketingCommentRecord,
+  TicketingTeamRecord,
   TicketingTicketRecord,
   TicketingUserRecord,
 } from '@noco-integrations/core';
@@ -36,7 +37,10 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
     },
   ): Promise<
     DataObjectStream<
-      TicketingTicketRecord | TicketingUserRecord | TicketingCommentRecord
+      | TicketingTicketRecord
+      | TicketingUserRecord
+      | TicketingCommentRecord
+      | TicketingTeamRecord
     >
   > {
     const gitlab = auth.custom as InstanceType<typeof Gitlab>;
@@ -44,14 +48,143 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
     const { targetTableIncrementalValues } = args;
 
     const stream = new DataObjectStream<
-      TicketingTicketRecord | TicketingUserRecord | TicketingCommentRecord
+      | TicketingTicketRecord
+      | TicketingUserRecord
+      | TicketingCommentRecord
+      | TicketingTeamRecord
     >();
 
     const userMap = new Map<number, boolean>();
     const issueMap = new Map<number, { id: number; iid: number }>();
+    const teamMap = new Map<number, boolean>();
 
     (async () => {
       try {
+        // Fetch teams if they're in the target tables
+        if (args.targetTables?.includes(TARGET_TABLES.TICKETING_TEAM)) {
+          this.log(`[GitLab Sync] Fetching groups for project ${projectId}`);
+
+          try {
+            // Get project details to find the namespace
+            const project = await gitlab.Projects.show(projectId);
+
+            if (project && project.namespace) {
+              // Get all groups (teams) in the namespace
+              const perPage = 100;
+              let page = 1;
+              let hasMoreGroups = true;
+
+              while (hasMoreGroups) {
+                const groups = await gitlab.Groups.all({
+                  perPage,
+                  pagination: 'offset',
+                  page,
+                  // Search in the project's namespace path
+                  search: project.namespace.path,
+                });
+
+                if (groups.length === 0) {
+                  hasMoreGroups = false;
+                  break;
+                }
+
+                this.log(
+                  `[GitLab Sync] Fetched ${groups.length} groups on page ${page}`,
+                );
+
+                for (const group of groups) {
+                  if (!teamMap.has(group.id)) {
+                    teamMap.set(group.id, true);
+
+                    // Add group to stream as a team
+                    stream.push({
+                      recordId: `${group.id}`,
+                      targetTable: TARGET_TABLES.TICKETING_TEAM,
+                      ...this.formatData(TARGET_TABLES.TICKETING_TEAM, group),
+                    });
+
+                    // Fetch group members
+                    try {
+                      let memberPage = 1;
+                      let hasMoreMembers = true;
+
+                      while (hasMoreMembers) {
+                        const members = await gitlab.GroupMembers.all(
+                          group.id,
+                          {
+                            perPage,
+                            pagination: 'offset',
+                            page: memberPage,
+                          },
+                        );
+
+                        if (members.length === 0) {
+                          hasMoreMembers = false;
+                          break;
+                        }
+
+                        this.log(
+                          `[GitLab Sync] Fetched ${members.length} members for group ${group.name} on page ${memberPage}`,
+                        );
+
+                        for (const member of members) {
+                          if (!userMap.has(member.id)) {
+                            userMap.set(member.id, true);
+
+                            // Add user to stream
+                            stream.push({
+                              recordId: `${member.id}`,
+                              targetTable: TARGET_TABLES.TICKETING_USER,
+                              ...this.formatData(
+                                TARGET_TABLES.TICKETING_USER,
+                                member,
+                              ),
+                            });
+                          }
+
+                          // Add member to team relationships
+                          stream.push({
+                            recordId: `${group.id}`,
+                            targetTable: TARGET_TABLES.TICKETING_TEAM,
+                            links: {
+                              Members: [`${member.id}`],
+                            },
+                          });
+                        }
+
+                        memberPage++;
+
+                        // If we got fewer results than requested, we've reached the end
+                        if (members.length < perPage) {
+                          hasMoreMembers = false;
+                        }
+                      }
+                    } catch (error) {
+                      console.error(
+                        `[GitLab Sync] Error fetching members for group ${group.name}:`,
+                        error,
+                      );
+                    }
+                  }
+                }
+
+                // Increment page for next request
+                page++;
+
+                // If we got fewer results than requested, we've reached the end
+                if (groups.length < perPage) {
+                  hasMoreGroups = false;
+                }
+              }
+            }
+          } catch (error) {
+            console.error(
+              '[GitLab Sync] Error fetching groups for project:',
+              error,
+            );
+          }
+        }
+
         const ticketIncrementalValue =
           targetTableIncrementalValues?.[TARGET_TABLES.TICKETING_TICKET];
 
@@ -71,7 +204,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
 
         // Fetch all issues with pagination
         while (hasMoreIssues) {
-          this.log(`Fetching issues for ${projectId}`);
+          this.log(`[GitLab Sync] Fetching issues for project ${projectId}`);
 
           try {
             const issues = await gitlab.Issues.all({
@@ -82,6 +215,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
               page,
               orderBy: 'updated_at',
               sort: 'asc',
+              pagination: 'offset',
             });
 
             if (issues.length === 0) {
@@ -89,7 +223,9 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
               break;
             }
 
-            this.log(`Fetched ${issues.length} issues`);
+            this.log(
+              `[GitLab Sync] Fetched ${issues.length} issues on page ${page}`,
+            );
 
             // Process each issue
             for (const issue of issues) {
@@ -136,28 +272,30 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
             page++;
           } catch (error) {
             console.error(
-              `Error fetching GitLab issues for page ${page}:`,
+              `[GitLab Sync] Error fetching issues for project ${projectId} on page ${page}:`,
               error,
             );
             hasMoreIssues = false;
           }
         }
 
-        // Fetch comments (notes) for each issue
+        // Fetch comments for each issue
         if (issueMap.size > 0) {
           if (args.targetTables?.includes(TARGET_TABLES.TICKETING_COMMENT)) {
-            this.log(`Fetching comments for ${projectId}`);
+            this.log(
+              `[GitLab Sync] Fetching comments for project ${projectId}`,
+            );
 
             try {
               // Process issues sequentially to be more cautious with API rate limits
               for (const [issueIid, issueData] of issueMap.entries()) {
                 try {
                   let page = 1;
-                  let hasMoreNotes = true;
+                  let hasMoreComments = true;
 
-                  // Process all pages of notes for this issue
-                  while (hasMoreNotes) {
-                    const notes = await gitlab.IssueNotes.all(
+                  // Process all pages of comments for this issue
+                  while (hasMoreComments) {
+                    const comments = await gitlab.IssueNotes.all(
                       projectId,
                       issueIid,
                       {
@@ -165,66 +303,77 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                         page,
                         sort: 'asc',
                         orderBy: 'created_at',
+                        pagination: 'offset',
                       },
                     );
 
-                    // If we got no notes, we've reached the end of pagination
-                    if (notes.length === 0) {
-                      hasMoreNotes = false;
+                    if (comments.length === 0) {
+                      hasMoreComments = false;
                       break;
                     }
 
-                    // Process each note
-                    for (const note of notes) {
-                      // Skip system notes
-                      if (note.system) {
+                    this.log(
+                      `[GitLab Sync] Fetched ${comments.length} comments for issue #${issueIid} on page ${page}`,
+                    );
+
+                    // Process each comment
+                    for (const comment of comments) {
+                      // Skip system comments
+                      if (comment.system) {
                         continue;
                       }
 
-                      // Add issue data to the note
-                      const noteWithIssue = {
-                        ...note,
+                      // Add issue data to the comment
+                      const commentWithIssue = {
+                        ...comment,
                         issue: issueData,
                       };
 
                       // Add comment to stream
                       stream.push({
-                        recordId: `${note.id}`,
+                        recordId: `${comment.id}`,
                         targetTable: TARGET_TABLES.TICKETING_COMMENT,
                         ...this.formatData(
                           TARGET_TABLES.TICKETING_COMMENT,
-                          noteWithIssue,
+                          commentWithIssue,
                         ),
                       });
 
                       // Add comment author to users if not already added
-                      if (note.author && !userMap.has(note.author.id)) {
-                        userMap.set(note.author.id, true);
+                      if (comment.author && !userMap.has(comment.author.id)) {
+                        userMap.set(comment.author.id, true);
 
                         stream.push({
-                          recordId: `${note.author.id}`,
+                          recordId: `${comment.author.id}`,
                           targetTable: TARGET_TABLES.TICKETING_USER,
                           ...this.formatData(
                             TARGET_TABLES.TICKETING_USER,
-                            note.author,
+                            comment.author,
                           ),
                         });
                       }
                     }
 
-                    // Move to the next page
                     page++;
+
+                    // If we got fewer results than requested, we've reached the end
+                    if (comments.length < perPage) {
+                      hasMoreComments = false;
+                    }
                   }
-                } catch (noteError) {
+                } catch (commentError) {
                   console.error(
-                    `Error fetching notes for issue #${issueIid}:`,
-                    noteError,
+                    `[GitLab Sync] Error fetching comments for issue #${issueIid}:`,
+                    commentError,
                   );
                   // Continue with the next issue even if this one fails
                 }
               }
             } catch (error) {
-              console.error('Error in GitLab notes fetching process:', error);
+              console.error(
+                '[GitLab Sync] Error in comments fetching process:',
+                error,
+              );
             }
           }
         }
@@ -232,7 +381,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
         // All data has been processed
         stream.push(null);
       } catch (error) {
-        console.error('Error fetching GitLab data:', error);
+        console.error('[GitLab Sync] Error fetching data:', error);
         stream.destroy(
           error instanceof Error ? error : new Error(String(error)),
         );
@@ -302,7 +451,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
 
       case TARGET_TABLES.TICKETING_COMMENT: {
         const commentData: TicketingCommentRecord = {
-          Title: null, // GitLab notes don't have titles
+          Title: null, // GitLab comments don't have titles
           Body: data.body || null,
           RemoteCreatedAt: data.created_at,
           RemoteUpdatedAt: data.updated_at,
@@ -324,6 +473,20 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
         return {
           data: commentData,
           links: commentLinks,
+        };
+      }
+
+      case TARGET_TABLES.TICKETING_TEAM: {
+        const teamData: TicketingTeamRecord = {
+          Name: data.name || null,
+          Description: data.description || null,
+          RemoteCreatedAt: data.created_at || null,
+          RemoteUpdatedAt: data.updated_at || null,
+          RemoteRaw: JSON.stringify(data),
+        };
+
+        return {
+          data: teamData,
         };
       }
 
@@ -351,6 +514,8 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
         return 'RemoteUpdatedAt';
       case TARGET_TABLES.TICKETING_COMMENT:
         return 'RemoteCreatedAt';
+      case TARGET_TABLES.TICKETING_TEAM:
+        return 'RemoteUpdatedAt';
       default:
         throw new Error(`Unsupported target table: ${targetTable}`);
     }

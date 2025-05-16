@@ -1,4 +1,11 @@
-import { NcApiVersion, ncIsUndefined, UITypes } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  isLookup,
+  isRollup,
+  NcApiVersion,
+  ncIsUndefined,
+  UITypes,
+} from 'nocodb-sdk';
 import { ClientType } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import { JsonGeneralHandler } from './handlers/json/json.general.handler';
@@ -495,6 +502,22 @@ export class FieldHandler implements IFieldHandler {
                 options: params.options,
               })
             ).value;
+          } else if (
+            isLookup(column) ||
+            isLinksOrLTAR(column) ||
+            isRollup(column)
+          ) {
+            const value = (
+              await handler.parseDbValue({
+                value: row[column.title],
+                row,
+                baseModel: baseModel,
+                column,
+                options: params.options,
+              })
+            ).value;
+            row[column.title] = value;
+            row[column.id] = value;
           }
         }
       } else {

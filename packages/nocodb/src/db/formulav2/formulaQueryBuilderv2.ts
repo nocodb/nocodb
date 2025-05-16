@@ -9,7 +9,10 @@ import {
   UITypes,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
+import { getColumnName } from 'src/helpers/dbHelpers';
 import genRollupSelectv2 from '../genRollupSelectv2';
+import { replaceDelimitedWithKeyValuePg } from '../aggregations/pg';
+import { replaceDelimitedWithKeyValueSqlite3 } from '../aggregations/sqlite3';
 import { lookupOrLtarBuilder } from './lookup-or-ltar-builder';
 import {
   binaryExpressionBuilder,
@@ -243,14 +246,40 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                 base_id: model.base_id,
               }));
 
+            let finalStatement = '';
+
+            // CreatedBy and LastModifiedBy with system = false has no column_name
+            // need to get it from siblings
+            const columnName = await getColumnName(context, col, columns);
+
             // create nested replace statement for each user
-            const finalStatement = baseUsers.reduce((acc, user) => {
-              const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [
-                user.id,
-                user.email,
-              ]);
-              return qb.toQuery();
-            }, knex.raw(`??`, [col.column_name]).toQuery());
+            if (knex.clientType() === 'pg') {
+              finalStatement = `(${replaceDelimitedWithKeyValuePg({
+                knex,
+                needleColumn: columnName,
+                stack: baseUsers.map((user) => ({
+                  key: user.id,
+                  value: `${user.email}`,
+                })),
+              })})`;
+            } else if (knex.clientType() === 'sqlite3') {
+              finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
+                knex,
+                needleColumn: columnName,
+                stack: baseUsers.map((user) => ({
+                  key: user.id,
+                  value: `${user.email}`,
+                })),
+              })})`;
+            } else {
+              finalStatement = baseUsers.reduce((acc, user) => {
+                const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [
+                  user.id,
+                  user.email,
+                ]);
+                return qb.toQuery();
+              }, knex.raw(`??`, [columnName]).toQuery());
+            }
 
             return {
               builder: knex.raw(finalStatement).wrap('(', ')'),

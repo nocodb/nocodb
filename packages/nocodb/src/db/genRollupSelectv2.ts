@@ -10,7 +10,7 @@ import type {
 } from '~/models';
 import type { XKnex } from '~/db/CustomKnex';
 import { RelationManager } from '~/db/relation-manager';
-import { Model } from '~/models';
+import { Model, Filter } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 
 export default async function ({
@@ -155,6 +155,35 @@ export default async function ({
         '=',
         knex.ref(`${refTableAlias}.${childCol.column_name}`),
       );
+      
+      // Apply view filters if specified
+      if (columnOptions.fk_target_view_id) {
+        const view = await columnOptions.getTargetView(context);
+        if (view) {
+          const filters = await Filter.rootFilterList(context, { viewId: view.id });
+          if (filters?.length) {
+            await baseModelSqlv2.addFilterToQuery({
+              knex,
+              filters,
+              table: refTableAlias,
+              rootTable: refTableAlias,
+              parentTable: refTableAlias,
+            });
+          }
+        }
+      }
+      
+      // Apply custom filters if enabled
+      if (columnOptions.meta?.enableConditions && columnOptions.filters?.length) {
+        await baseModelSqlv2.addFilterToQuery({
+          knex,
+          filters: columnOptions.filters,
+          table: refTableAlias,
+          rootTable: refTableAlias,
+          parentTable: refTableAlias,
+        });
+      }
+      
       await applyFunction(queryBuilder);
 
       return {
@@ -177,6 +206,34 @@ export default async function ({
         '=',
         knex.ref(`${refTableAlias}.${childCol.column_name}`),
       );
+      
+      // Apply view filters if specified
+      if (columnOptions.fk_target_view_id) {
+        const view = await columnOptions.getTargetView(context);
+        if (view) {
+          const filters = await Filter.rootFilterList(context, { viewId: view.id });
+          if (filters?.length) {
+            await baseModelSqlv2.addFilterToQuery({
+              knex,
+              filters,
+              table: refTableAlias,
+              rootTable: refTableAlias,
+              parentTable: refTableAlias,
+            });
+          }
+        }
+      }
+      
+      // Apply custom filters if enabled
+      if (columnOptions.meta?.enableConditions && columnOptions.filters?.length) {
+        await baseModelSqlv2.addFilterToQuery({
+          knex,
+          filters: columnOptions.filters,
+          table: refTableAlias,
+          rootTable: refTableAlias,
+          parentTable: refTableAlias,
+        });
+      }
 
       await applyFunction(qb);
       return {
@@ -227,6 +284,34 @@ export default async function ({
             }`,
           ),
         );
+        
+      // Apply view filters if specified
+      if (columnOptions.fk_target_view_id) {
+        const view = await columnOptions.getTargetView(context);
+        if (view) {
+          const filters = await Filter.rootFilterList(context, { viewId: view.id });
+          if (filters?.length) {
+            await baseModelSqlv2.addFilterToQuery({
+              knex,
+              filters,
+              table: refTableAlias,
+              rootTable: refTableAlias,
+              parentTable: refTableAlias,
+            });
+          }
+        }
+      }
+      
+      // Apply custom filters if enabled
+      if (columnOptions.meta?.enableConditions && columnOptions.filters?.length) {
+        await baseModelSqlv2.addFilterToQuery({
+          knex,
+          filters: columnOptions.filters,
+          table: refTableAlias,
+          rootTable: refTableAlias,
+          parentTable: refTableAlias,
+        });
+      }
 
       await applyFunction(qb);
 

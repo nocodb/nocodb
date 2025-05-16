@@ -7,6 +7,7 @@ import type { NcProjectType } from '#imports'
 export interface AppInfo {
   ncSiteUrl: string
   authType: 'jwt' | 'none'
+  allowLocalUrl: boolean
   connectToExternalDB: boolean
   defaultLimit: number
   defaultGroupByLimit: {

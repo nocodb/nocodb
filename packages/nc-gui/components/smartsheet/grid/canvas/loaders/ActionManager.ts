@@ -113,7 +113,7 @@ export class ActionManager {
     }
   }
 
-  private handleUrl(colOptions: any, url: string) {
+  private handleUrl(colOptions: any, url: string, allowLocalUrl: boolean) {
     url = addMissingUrlSchma(url)
 
     try {
@@ -123,7 +123,7 @@ export class ActionManager {
     }
 
     if (url) {
-      confirmPageLeavingRedirect(url, '_blank')
+      confirmPageLeavingRedirect(url, '_blank', allowLocalUrl)
     }
   }
 
@@ -134,6 +134,7 @@ export class ActionManager {
       row?: Row[]
       isAiPromptCol?: boolean
       path: Array<number>
+      allowLocalUrl?: boolean
     },
   ) {
     const colOptions = column?.columnObj.colOptions as ButtonType
@@ -159,7 +160,7 @@ export class ActionManager {
       switch (colOptions.type) {
         case 'url': {
           const value = extra?.row?.[0]?.row?.[column.columnObj.title]
-          this.handleUrl(colOptions, value?.url?.toString() ?? '')
+          this.handleUrl(colOptions, value?.url?.toString() ?? '', extra.allowLocalUrl)
           break
         }
         case 'webhook': {

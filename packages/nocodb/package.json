@@ -133,7 +133,7 @@
     "mysql2": "^3.12.0",
     "nanoid": "^3.3.8",
     "nc-lib-gui": "0.263.2",
-    "nocodb-sdk": "0.263.2",
+    "nocodb-sdk": "workspace:^",
     "node-addon-api": "^8.3.0",
     "nodemailer": "^6.10.0",
     "object-hash": "^3.0.0",

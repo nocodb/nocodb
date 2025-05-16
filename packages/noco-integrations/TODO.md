@@ -2,29 +2,57 @@
 
 This file tracks the integration status for popular ticketing and project management systems.
 
-Before checking a box run `pnpm run install && pnpm run build` to ensure the integration is properly compiling and all `pnpm fix` issues are resolved.
+# Rules
+
+Before checking a box run `pnpm run install && pnpm run build` on root to ensure the integration is properly compiling and all `pnpm fix` issues are resolved.
+Avoid using `any` as much as possible. Try to use the derived types from libraries used in the integration.
 
 ## High Priority
 
 ### GitHub
 - [x] Auth Integration
 - [x] Sync Integration
+- [x] format<Entity> pattern
+  - [x] Implement formatTicket
+  - [x] Implement formatUser
+  - [x] Implement formatComment
+  - [x] Implement formatTeam
 
 ### GitLab
 - [x] Auth Integration
 - [x] Sync Integration
+- [ ] format<Entity> pattern
+  - [ ] Implement formatTicket
+  - [ ] Implement formatUser
+  - [ ] Implement formatComment
+  - [ ] Implement formatTeam
 
 ### Jira
 - [x] Auth Integration
 - [x] Sync Integration
+- [ ] format<Entity> pattern
+  - [ ] Implement formatTicket
+  - [ ] Implement formatUser
+  - [ ] Implement formatComment
+  - [ ] Implement formatTeam
 
 ### Linear
 - [x] Auth Integration
 - [x] Sync Integration
+- [ ] format<Entity> pattern
+  - [ ] Implement formatTicket
+  - [ ] Implement formatUser
+  - [ ] Implement formatComment
+  - [ ] Implement formatTeam
 
 ### Asana
 - [x] Auth Integration
 - [x] Sync Integration
+- [ ] format<Entity> pattern
+  - [ ] Implement formatTicket
+  - [ ] Implement formatUser
+  - [ ] Implement formatComment
+  - [ ] Implement formatTeam
 
 ## Medium Priority
 

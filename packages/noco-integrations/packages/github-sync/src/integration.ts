@@ -312,106 +312,121 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     links?: Record<string, SyncLinkValue>;
   } {
     switch (targetTable) {
-      case TARGET_TABLES.TICKETING_TICKET: {
-        const issue = data as Awaited<
-          ReturnType<Octokit['rest']['issues']['listForRepo']>
-        >['data'][0];
-
-        const ticketData: TicketingTicketRecord = {
-          Name: issue.title,
-          Description: issue.body || null,
-          'Due Date': null, // GitHub issues don't have due dates
-          Priority: '', // GitHub issues don't have priorities
-          Status: issue.state,
-          Tags:
-            issue.labels
-              ?.map((label) =>
-                typeof label === 'string' ? label : label.name || '',
-              )
-              .join(', ') || null,
-          'Ticket Type': issue.pull_request ? 'Pull Request' : 'Issue',
-          'Ticket Number': `${issue.number}`,
-          Url: issue.html_url,
-          'Is Active': issue.state === 'open',
-          'Completed At': issue.closed_at,
-          // System Fields
-          RemoteCreatedAt: issue.created_at,
-          RemoteUpdatedAt: issue.updated_at,
-          RemoteRaw: JSON.stringify(issue),
-        };
-
-        return {
-          data: ticketData,
-          // Link values
-          links: {
-            Assignees:
-              issue.assignees?.map((assignee) => `${assignee.id}`) || null,
-            Creator: issue.user?.id ? [`${issue.user.id}`] : null,
-          },
-        };
-      }
-      case TARGET_TABLES.TICKETING_USER: {
-        const user = data as Awaited<
-          ReturnType<Octokit['rest']['users']['getByUsername']>
-        >['data'];
-
-        const userData: TicketingUserRecord = {
-          Name: user.login,
-          Email: user.email || null,
-          Url: user.html_url,
-          // System Fields
-          RemoteCreatedAt: null, // GitHub API doesn't provide user creation date
-          RemoteUpdatedAt: null, // GitHub API doesn't provide user update date
-          RemoteRaw: JSON.stringify(user),
-        };
-
-        return {
-          data: userData,
-        };
-      }
-      case TARGET_TABLES.TICKETING_COMMENT: {
-        const comment = data as Awaited<
-          ReturnType<Octokit['rest']['issues']['listCommentsForRepo']>
-        >['data'][0] & { issue: { id: number; number: number } };
-
-        const commentData: TicketingCommentRecord = {
-          Title: `${comment.user?.login || 'User'} commented on issue #${comment.issue.number}`,
-          Body: comment.body || '',
-          Url: comment.html_url,
-          // System Fields
-          RemoteCreatedAt: comment.created_at,
-          RemoteUpdatedAt: comment.updated_at,
-          RemoteRaw: JSON.stringify(comment),
-        };
-
-        return {
-          data: commentData,
-          // Link values
-          links: {
-            Ticket: [`${comment.issue.id}`],
-            'Created By': comment.user?.id ? [`${comment.user.id}`] : null,
-          },
-        };
-      }
-      case TARGET_TABLES.TICKETING_TEAM: {
-        const team = data as Awaited<
-          ReturnType<Octokit['rest']['teams']['list']>
-        >['data'][0];
-
-        const teamData: TicketingTeamRecord = {
-          Name: team.name,
-          Description: team.description || null,
-          // System Fields
-          RemoteCreatedAt: null, // GitHub API doesn't provide team creation date
-          RemoteUpdatedAt: null, // GitHub API doesn't provide team update date
-          RemoteRaw: JSON.stringify(team),
-        };
-
-        return {
-          data: teamData,
-        };
-      }
+      case TARGET_TABLES.TICKETING_TICKET:
+        return this.formatTicket(data);
+      case TARGET_TABLES.TICKETING_USER:
+        return this.formatUser(data);
+      case TARGET_TABLES.TICKETING_COMMENT:
+        return this.formatComment(data);
+      case TARGET_TABLES.TICKETING_TEAM:
+        return this.formatTeam(data);
     }
+  }
+
+  private formatTicket(
+    issue: Awaited<ReturnType<Octokit['rest']['issues']['listForRepo']>>['data'][0]
+  ): {
+    data: TicketingTicketRecord;
+    links?: Record<string, SyncLinkValue>;
+  } {
+    const ticketData: TicketingTicketRecord = {
+      Name: issue.title,
+      Description: issue.body || null,
+      'Due Date': null, // GitHub issues don't have due dates
+      Priority: '', // GitHub issues don't have priorities
+      Status: issue.state,
+      Tags:
+        issue.labels
+          ?.map((label) =>
+            typeof label === 'string' ? label : label.name || '',
+          )
+          .join(', ') || null,
+      'Ticket Type': issue.pull_request ? 'Pull Request' : 'Issue',
+      'Ticket Number': `${issue.number}`,
+      Url: issue.html_url,
+      'Is Active': issue.state === 'open',
+      'Completed At': issue.closed_at,
+      // System Fields
+      RemoteCreatedAt: issue.created_at,
+      RemoteUpdatedAt: issue.updated_at,
+      RemoteRaw: JSON.stringify(issue),
+    };
+
+    return {
+      data: ticketData,
+      // Link values
+      links: {
+        Assignees:
+          issue.assignees?.map((assignee) => `${assignee.id}`) || null,
+        Creator: issue.user?.id ? [`${issue.user.id}`] : null,
+      },
+    };
+  }
+
+  private formatUser(
+    user: Awaited<ReturnType<Octokit['rest']['users']['getByUsername']>>['data']
+  ): {
+    data: TicketingUserRecord;
+  } {
+    const userData: TicketingUserRecord = {
+      Name: user.login,
+      Email: user.email || null,
+      Url: user.html_url,
+      // System Fields
+      RemoteCreatedAt: null, // GitHub API doesn't provide user creation date
+      RemoteUpdatedAt: null, // GitHub API doesn't provide user update date
+      RemoteRaw: JSON.stringify(user),
+    };
+
+    return {
+      data: userData,
+    };
+  }
+
+  private formatComment(
+    comment: Awaited<ReturnType<Octokit['rest']['issues']['listCommentsForRepo']>>['data'][0] & 
+      { issue: { id: number; number: number } }
+  ): {
+    data: TicketingCommentRecord;
+    links?: Record<string, SyncLinkValue>;
+  } {
+    const commentData: TicketingCommentRecord = {
+      Title: `${comment.user?.login || 'User'} commented on issue #${comment.issue.number}`,
+      Body: comment.body || '',
+      Url: comment.html_url,
+      // System Fields
+      RemoteCreatedAt: comment.created_at,
+      RemoteUpdatedAt: comment.updated_at,
+      RemoteRaw: JSON.stringify(comment),
+    };
+
+    return {
+      data: commentData,
+      // Link values
+      links: {
+        Ticket: [`${comment.issue.id}`],
+        'Created By': comment.user?.id ? [`${comment.user.id}`] : null,
+      },
+    };
+  }
+
+  private formatTeam(
+    team: Awaited<ReturnType<Octokit['rest']['teams']['list']>>['data'][0]
+  ): {
+    data: TicketingTeamRecord;
+  } {
+    const teamData: TicketingTeamRecord = {
+      Name: team.name,
+      Description: team.description || null,
+      // System Fields
+      RemoteCreatedAt: null, // GitHub API doesn't provide team creation date
+      RemoteUpdatedAt: null, // GitHub API doesn't provide team update date
+      RemoteRaw: JSON.stringify(team),
+    };
+
+    return {
+      data: teamData,
+    };
   }
 
   public getIncrementalKey(targetTable: TARGET_TABLES) {

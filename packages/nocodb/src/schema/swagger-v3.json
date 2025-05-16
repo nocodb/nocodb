@@ -875,7 +875,7 @@
         }
       }
     },
-    "/api/v3/meta/tables/{tableId}": {
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}": {
       "get": {
         "summary": "Get table schema",
         "description": "Retrieve the details of a specific table.",
@@ -891,6 +891,15 @@
               "type": "string"
             },
             "description": "Unique identifier for the table."
+          },
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
           }
         ],
         "responses": {
@@ -1170,6 +1179,15 @@
               "type": "string"
             },
             "description": "Unique identifier for the table."
+          },
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
           }
         ],
         "requestBody": {
@@ -1280,7 +1298,7 @@
         }
       }
     },
-    "/api/v3/meta/tables/{tableId}/fields": {
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}/fields": {
       "post": {
         "summary": "Create field",
         "description": "Create a new field within the specified table.",
@@ -1296,6 +1314,15 @@
               "type": "string"
             },
             "description": "Unique identifier for the table."
+          },
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
           }
         ],
         "requestBody": {
@@ -1371,7 +1398,7 @@
         }
       }
     },
-    "/api/v3/meta/fields/{fieldId}": {
+    "/api/v3/meta/bases/{baseId}/fields/{fieldId}": {
       "patch": {
         "summary": "Update field",
         "description": "Update the details of a specific field.",
@@ -1379,6 +1406,15 @@
           "Fields"
         ],
         "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
           {
             "name": "fieldId",
             "in": "path",
@@ -1394,7 +1430,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateField"
+                "$ref": "#/components/schemas/FieldUpdate"
               },
               "examples": {
                 "SingleLineText / LongText": {
@@ -1476,6 +1512,15 @@
               "type": "string"
             },
             "description": "Unique identifier for the field."
+          },
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
           }
         ],
         "responses": {
@@ -1491,7 +1536,7 @@
         }
       }
     },
-    "/api/v3/meta/views/{viewId}/filters": {
+    "/api/v3/meta/bases/{baseId}/views/{viewId}/filters": {
       "get": {
         "summary": "List view filters",
         "description": "Retrieve a list of all filters and groups for a specific view.",
@@ -1499,6 +1544,15 @@
           "View Filters"
         ],
         "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
           {
             "name": "viewId",
             "in": "path",
@@ -1574,6 +1628,15 @@
         ],
         "parameters": [
           {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
             "name": "viewId",
             "in": "path",
             "required": true,
@@ -1619,6 +1682,15 @@
           "View Filters"
         ],
         "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
           {
             "name": "filterId",
             "in": "path",
@@ -1668,6 +1740,15 @@
           "View Filters"
         ],
         "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
           {
             "name": "filterId",
             "in": "path",
@@ -1740,7 +1821,7 @@
         }
       }
     },
-    "/api/v3/meta/views/{viewId}/sorts": {
+    "/api/v3/meta/bases/{baseId}/views/{viewId}/sorts": {
       "get": {
         "summary": "List view sorts",
         "tags": [
@@ -1748,6 +1829,15 @@
         ],
         "description": "Retrieve a list of all sorts for a specific view.",
         "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
           {
             "name": "viewId",
             "in": "path",
@@ -1803,6 +1893,15 @@
         ],
         "parameters": [
           {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
             "name": "viewId",
             "in": "path",
             "required": true,
@@ -1857,6 +1956,15 @@
         ],
         "parameters": [
           {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
             "name": "sortId",
             "in": "path",
             "required": true,
@@ -1885,6 +1993,15 @@
           "View Sorts"
         ],
         "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
           {
             "name": "sortId",
             "in": "path",
@@ -2041,14 +2158,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "type": "array",
-                    "items": {
+                  "type": "array",
+                  "items": {
                       "$ref": "#/components/schemas/BaseUser"
-                    },
-                    "description": "List of successfully invited users."
-                  }
+                  },
+                  "description": "List of successfully invited users."
                 }
               }
             }
@@ -2097,14 +2211,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/BaseUser"
-                    },
-                    "description": "List of successfully updated users."
-                  }
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BaseUser"
+                  },
+                  "description": "List of successfully updated users."
                 }
               }
             }

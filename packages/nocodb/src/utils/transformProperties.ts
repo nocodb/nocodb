@@ -88,6 +88,9 @@ export function transformFieldConfig(field: Field): Field {
         date_format: metaObj.date_format || 'YYYY/MM/DD',
         time_format: metaObj.time_format || 'HH:mm:ss',
         ['12hr_format']: metaObj.is12hrFormat || false,
+        display_timezone: metaObj.isDisplayTimezone,
+        timezone: metaObj.timezone,
+        use_same_timezone_for_all: metaObj.useSameTimezoneForAll || false,
       };
       break;
 

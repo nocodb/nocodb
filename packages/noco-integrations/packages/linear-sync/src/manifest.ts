@@ -11,4 +11,4 @@ const manifest: IntegrationManifest = {
   sync_category: SyncCategory.TICKETING,
 };
 
-export default manifest; 
+export default manifest;

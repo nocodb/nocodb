@@ -15,4 +15,4 @@ const integration: IntegrationEntry = {
 };
 
 export { manifest, form, LinearSyncIntegration };
-export default integration; 
+export default integration;

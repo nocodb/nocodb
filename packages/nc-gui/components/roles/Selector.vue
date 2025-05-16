@@ -84,8 +84,9 @@ const closeOnClickOption = (optionValue: keyof typeof RoleLabels) => {
       </template>
       {{ $t('objects.workspace') }}
     </NcTooltip>
+
     <a-select
-      :value="inherit ? null : roleRef"
+      :value="roleRef"
       :open="isDropdownOpen"
       :dropdown-match-select-width="false"
       dropdown-class-name="!rounded-lg !h-fit max-w-[350px] nc-role-selector-dropdown"
@@ -130,18 +131,6 @@ const closeOnClickOption = (optionValue: keyof typeof RoleLabels) => {
             <GeneralIcon v-else-if="!newRole && rl === roleRef" icon="check" class="text-primary" />
           </div>
           <div v-if="descriptionRef" class="text-gray-500 text-xs">{{ RoleDescriptions[rl] }}</div>
-        </div>
-      </a-select-option>
-      <a-select-option v-e="['c:workspace:settings:user-role-change']" value="">
-        <div
-          :class="{
-            'w-full': descriptionRef,
-            'w-[200px]': !descriptionRef,
-          }"
-          class="flex flex-col nc-role-select-dropdown gap-1"
-        >
-          {{inheritRef}}
-          <div class="text-gray-500 text-xs">Inherit from workspace</div>
         </div>
       </a-select-option>
     </a-select>

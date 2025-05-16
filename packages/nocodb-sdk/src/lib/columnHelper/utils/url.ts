@@ -13,17 +13,6 @@ export const isValidURL = (str: string, extraProps?: IsURLOptions) => {
     require_host = false;
   }
 
-  // for non-tld check, but only for localhost for now
-  if (
-    str.startsWith('http://localhost') ||
-    str.startsWith('https://localhost')
-  ) {
-    if(!extraProps) {
-      extraProps = {};
-    }
-    extraProps.require_tld = false;
-  }
-
   return isURL(`${str}`, {
     ...(extraProps || {}),
     require_host,

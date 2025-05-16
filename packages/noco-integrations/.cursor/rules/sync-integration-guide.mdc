@@ -1,6 +1,6 @@
 ---
-description:
-globs:
+description: creating a sync type integration
+globs: 
 alwaysApply: false
 ---
 # Sync Integration Guide

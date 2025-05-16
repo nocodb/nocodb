@@ -1,6 +1,6 @@
 ---
-description:
-globs:
+description: sync data mapping
+globs: 
 alwaysApply: false
 ---
 # Sync Data Mapping Guide

@@ -1,8 +1,0 @@
----
-description: Lint errors
-globs: 
-alwaysApply: false
----
-## Lint Errors
-
-- Run `pnpm fix` to fix them

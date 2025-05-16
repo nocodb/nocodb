@@ -8,4 +8,4 @@ export const manifest: IntegrationManifest = {
   author: 'NocoDB',
   website: 'https://www.atlassian.com/software/jira',
   order: 3,
-}; 
+};

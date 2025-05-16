@@ -11,10 +11,10 @@ export class AsanaAuthIntegration extends AuthIntegration {
         if (!this.config.token) {
           throw new Error('Missing required Asana API token');
         }
-        
+
         const client = asana.Client.create();
         client.useAccessToken(this.config.token);
-        
+
         return {
           custom: client,
         };
@@ -22,10 +22,10 @@ export class AsanaAuthIntegration extends AuthIntegration {
         if (!this.config.oauth_token) {
           throw new Error('Missing required Asana OAuth token');
         }
-        
+
         const oauthClient = asana.Client.create();
         oauthClient.useAccessToken(this.config.oauth_token);
-        
+
         return {
           custom: oauthClient,
         };
@@ -58,4 +58,4 @@ export class AsanaAuthIntegration extends AuthIntegration {
       oauth_token: response.data.access_token,
     };
   }
-} 
+}

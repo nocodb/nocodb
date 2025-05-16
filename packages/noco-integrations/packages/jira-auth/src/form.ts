@@ -125,4 +125,4 @@ export const form: FormDefinition = [
         },
       ]
     : []),
-]; 
+];

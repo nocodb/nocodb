@@ -11,7 +11,7 @@ export class JiraAuthIntegration extends AuthIntegration {
         if (!this.config.jira_url || !this.config.email || !this.config.token) {
           throw new Error('Missing required Jira configuration');
         }
-        
+
         return {
           custom: new JiraClient({
             protocol: 'https',
@@ -26,7 +26,7 @@ export class JiraAuthIntegration extends AuthIntegration {
         if (!this.config.jira_url || !this.config.oauth_token) {
           throw new Error('Missing required Jira configuration');
         }
-        
+
         return {
           custom: new JiraClient({
             protocol: 'https',
@@ -75,4 +75,4 @@ export class JiraAuthIntegration extends AuthIntegration {
       return url.replace(/^https?:\/\//, '');
     }
   }
-} 
+}

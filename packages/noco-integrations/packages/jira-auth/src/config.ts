@@ -16,4 +16,4 @@ export const authUri =
     ? `https://auth.atlassian.com/authorize?audience=api.atlassian.com&client_id=${clientId}&scope=${encodeURIComponent(scopes.join(' '))}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&prompt=consent`
     : '';
 
-export const tokenUri = 'https://auth.atlassian.com/oauth/token'; 
+export const tokenUri = 'https://auth.atlassian.com/oauth/token';

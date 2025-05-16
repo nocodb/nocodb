@@ -16,4 +16,4 @@ export const authUri =
     ? `https://app.asana.com/-/oauth_authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`
     : '';
 
-export const tokenUri = 'https://app.asana.com/-/oauth_token'; 
+export const tokenUri = 'https://app.asana.com/-/oauth_token';

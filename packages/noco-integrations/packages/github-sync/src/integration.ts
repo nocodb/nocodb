@@ -169,7 +169,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
             if (!includePRs && issue.pull_request) {
               continue;
             }
-            
+
             // Store issue ID and number for later comment fetching
             issueMap.set(issue.number, { id: issue.id, number: issue.number });
 

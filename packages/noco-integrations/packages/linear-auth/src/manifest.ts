@@ -8,4 +8,4 @@ export const manifest: IntegrationManifest = {
   author: 'NocoDB',
   website: 'https://linear.app',
   order: 4,
-}; 
+};

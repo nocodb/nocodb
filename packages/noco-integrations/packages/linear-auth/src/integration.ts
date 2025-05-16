@@ -11,7 +11,7 @@ export class LinearAuthIntegration extends AuthIntegration {
         if (!this.config.token) {
           throw new Error('Missing required Linear API token');
         }
-        
+
         return {
           custom: new LinearClient({
             apiKey: this.config.token,
@@ -21,7 +21,7 @@ export class LinearAuthIntegration extends AuthIntegration {
         if (!this.config.oauth_token) {
           throw new Error('Missing required Linear OAuth token');
         }
-        
+
         return {
           custom: new LinearClient({
             accessToken: this.config.oauth_token,
@@ -56,4 +56,4 @@ export class LinearAuthIntegration extends AuthIntegration {
       oauth_token: response.data.access_token,
     };
   }
-} 
+}

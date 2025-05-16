@@ -14,4 +14,4 @@ const integration: IntegrationEntry = {
   manifest,
 };
 
-export default integration; 
+export default integration;

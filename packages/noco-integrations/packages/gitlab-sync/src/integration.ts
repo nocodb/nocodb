@@ -282,12 +282,14 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
 
         // Fetch merge requests if enabled
         if (includeMRs) {
-          this.log(`[GitLab Sync] Fetching merge requests for project ${projectId}`);
-          
+          this.log(
+            `[GitLab Sync] Fetching merge requests for project ${projectId}`,
+          );
+
           // Reset pagination for merge requests
           let page = 1;
           let hasMoreMRs = true;
-          
+
           // First fetch open merge requests
           while (hasMoreMRs) {
             try {
@@ -301,16 +303,16 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                 sort: 'asc',
                 pagination: 'offset',
               });
-              
+
               if (mergeRequests.length === 0) {
                 hasMoreMRs = false;
                 break;
               }
-              
+
               this.log(
                 `[GitLab Sync] Fetched ${mergeRequests.length} open merge requests on page ${page}`,
               );
-              
+
               // Process each merge request
               for (const mr of mergeRequests) {
                 // Format MR as a ticket
@@ -319,20 +321,23 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                   // Mark as MR for the formatter
                   merge_request: true,
                 };
-                
+
                 // Store MR ID and IID for later comment fetching
                 // Use negative IID to avoid conflicts with issues
                 issueMap.set(-mr.iid, { id: mr.id, iid: mr.iid });
-                
+
                 stream.push({
                   recordId: `${mr.id}`,
                   targetTable: TARGET_TABLES.TICKETING_TICKET,
-                  ...this.formatData(TARGET_TABLES.TICKETING_TICKET, ticketData),
+                  ...this.formatData(
+                    TARGET_TABLES.TICKETING_TICKET,
+                    ticketData,
+                  ),
                 });
-                
+
                 // Extract and process users
                 const users = [];
-                
+
                 // Add assignees if present
                 if (
                   mr.assignees &&
@@ -341,17 +346,17 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                 ) {
                   users.push(...mr.assignees);
                 }
-                
+
                 // Add author if present
                 if (mr.author) {
                   users.push(mr.author);
                 }
-                
+
                 // Process unique users
                 for (const user of users) {
                   if (!userMap.has(user.id)) {
                     userMap.set(user.id, true);
-                    
+
                     stream.push({
                       recordId: `${user.id}`,
                       targetTable: TARGET_TABLES.TICKETING_USER,
@@ -360,7 +365,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                   }
                 }
               }
-              
+
               page++;
             } catch (error) {
               console.error(
@@ -370,13 +375,13 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
               hasMoreMRs = false;
             }
           }
-          
+
           // Fetch closed/merged merge requests if includeClosed is true
           if (includeClosed) {
             // Reset pagination for closed/merged merge requests
             page = 1;
             hasMoreMRs = true;
-            
+
             // Fetch merged merge requests
             while (hasMoreMRs) {
               try {
@@ -390,16 +395,16 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                   sort: 'asc',
                   pagination: 'offset',
                 });
-                
+
                 if (mergeRequests.length === 0) {
                   hasMoreMRs = false;
                   break;
                 }
-                
+
                 this.log(
                   `[GitLab Sync] Fetched ${mergeRequests.length} merged merge requests on page ${page}`,
                 );
-                
+
                 // Process each merge request
                 for (const mr of mergeRequests) {
                   // Format MR as a ticket
@@ -408,20 +413,23 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                     // Mark as MR for the formatter
                     merge_request: true,
                   };
-                  
+
                   // Store MR ID and IID for later comment fetching
                   // Use negative IID to avoid conflicts with issues
                   issueMap.set(-mr.iid, { id: mr.id, iid: mr.iid });
-                  
+
                   stream.push({
                     recordId: `${mr.id}`,
                     targetTable: TARGET_TABLES.TICKETING_TICKET,
-                    ...this.formatData(TARGET_TABLES.TICKETING_TICKET, ticketData),
+                    ...this.formatData(
+                      TARGET_TABLES.TICKETING_TICKET,
+                      ticketData,
+                    ),
                   });
-                  
+
                   // Extract and process users
                   const users = [];
-                  
+
                   // Add assignees if present
                   if (
                     mr.assignees &&
@@ -430,17 +438,17 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                   ) {
                     users.push(...mr.assignees);
                   }
-                  
+
                   // Add author if present
                   if (mr.author) {
                     users.push(mr.author);
                   }
-                  
+
                   // Process unique users
                   for (const user of users) {
                     if (!userMap.has(user.id)) {
                       userMap.set(user.id, true);
-                      
+
                       stream.push({
                         recordId: `${user.id}`,
                         targetTable: TARGET_TABLES.TICKETING_USER,
@@ -449,7 +457,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                     }
                   }
                 }
-                
+
                 page++;
               } catch (error) {
                 console.error(
@@ -459,11 +467,11 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                 hasMoreMRs = false;
               }
             }
-            
+
             // Reset pagination for closed merge requests
             page = 1;
             hasMoreMRs = true;
-            
+
             // Fetch closed merge requests
             while (hasMoreMRs) {
               try {
@@ -477,16 +485,16 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                   sort: 'asc',
                   pagination: 'offset',
                 });
-                
+
                 if (mergeRequests.length === 0) {
                   hasMoreMRs = false;
                   break;
                 }
-                
+
                 this.log(
                   `[GitLab Sync] Fetched ${mergeRequests.length} closed merge requests on page ${page}`,
                 );
-                
+
                 // Process each merge request
                 for (const mr of mergeRequests) {
                   // Format MR as a ticket
@@ -495,20 +503,23 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                     // Mark as MR for the formatter
                     merge_request: true,
                   };
-                  
+
                   // Store MR ID and IID for later comment fetching
                   // Use negative IID to avoid conflicts with issues
                   issueMap.set(-mr.iid, { id: mr.id, iid: mr.iid });
-                  
+
                   stream.push({
                     recordId: `${mr.id}`,
                     targetTable: TARGET_TABLES.TICKETING_TICKET,
-                    ...this.formatData(TARGET_TABLES.TICKETING_TICKET, ticketData),
+                    ...this.formatData(
+                      TARGET_TABLES.TICKETING_TICKET,
+                      ticketData,
+                    ),
                   });
-                  
+
                   // Extract and process users
                   const users = [];
-                  
+
                   // Add assignees if present
                   if (
                     mr.assignees &&
@@ -517,17 +528,17 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                   ) {
                     users.push(...mr.assignees);
                   }
-                  
+
                   // Add author if present
                   if (mr.author) {
                     users.push(mr.author);
                   }
-                  
+
                   // Process unique users
                   for (const user of users) {
                     if (!userMap.has(user.id)) {
                       userMap.set(user.id, true);
-                      
+
                       stream.push({
                         recordId: `${user.id}`,
                         targetTable: TARGET_TABLES.TICKETING_USER,
@@ -536,7 +547,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                     }
                   }
                 }
-                
+
                 page++;
               } catch (error) {
                 console.error(
@@ -568,7 +579,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                   // Process all pages of comments for this issue or MR
                   while (hasMoreComments) {
                     // Use different API endpoints for issues vs merge requests
-                    const comments = isMergeRequest 
+                    const comments = isMergeRequest
                       ? await gitlab.MergeRequestNotes.all(
                           projectId,
                           actualIid,
@@ -580,17 +591,13 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                             pagination: 'offset',
                           },
                         )
-                      : await gitlab.IssueNotes.all(
-                          projectId,
-                          actualIid,
-                          {
-                            perPage,
-                            page,
-                            sort: 'asc',
-                            orderBy: 'created_at',
-                            pagination: 'offset',
-                          },
-                        );
+                      : await gitlab.IssueNotes.all(projectId, actualIid, {
+                          perPage,
+                          page,
+                          sort: 'asc',
+                          orderBy: 'created_at',
+                          pagination: 'offset',
+                        });
 
                     if (comments.length === 0) {
                       hasMoreComments = false;

@@ -1,6 +1,6 @@
-import type { InternalAPI } from './types';
-import type { Base, BaseCreate, BaseUpdate } from './lib/Api';
 import { NocoDBBase } from './base';
+import type { Base, BaseCreate, BaseUpdate } from './lib/Api';
+import type { InternalAPI } from './types';
 
 export class Workspace {
   readonly id: string;
@@ -14,7 +14,6 @@ export class Workspace {
   async getInfo(): Promise<Workspace> {
     return this.internalAPI.v3MetaBasesDetail(this.id);
   }
-
 
   async listBases(): Promise<Base[]> {
     return this.internalAPI.v3MetaWorkspacesBasesList(this.id);

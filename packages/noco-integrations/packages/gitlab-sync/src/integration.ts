@@ -687,111 +687,119 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
 
   public formatData(targetTable: TARGET_TABLES, data: any) {
     switch (targetTable) {
-      case TARGET_TABLES.TICKETING_TICKET: {
-        const ticketData: TicketingTicketRecord = {
-          Name: data.title,
-          Description: data.description || null,
-          Status: this.mapIssueState(data.state),
-          Priority: null, // GitLab doesn't have built-in priority
-          'Ticket Type': data.merge_request ? 'Merge Request' : 'Issue',
-          Url: data.web_url || null,
-          'Ticket Number': data.iid,
-          'Is Active': data.state !== 'closed',
-          'Completed At': data.state === 'closed' ? data.closed_at : null,
-          'Due Date': data.due_date || null,
-          Tags: data.labels ? data.labels.join(',') : null,
-          RemoteCreatedAt: data.created_at,
-          RemoteUpdatedAt: data.updated_at,
-          RemoteRaw: JSON.stringify(data),
-        };
-
-        const ticketLinks: Record<string, string[]> = {};
-
-        // Add assignees links if present
-        if (
-          data.assignees &&
-          Array.isArray(data.assignees) &&
-          data.assignees.length > 0
-        ) {
-          ticketLinks.Assignees = data.assignees.map(
-            (assignee: any) => `${assignee.id}`,
-          );
-        }
-
-        // Add author link if present
-        if (data.author) {
-          ticketLinks.Creator = [`${data.author.id}`];
-        }
-
-        return {
-          data: ticketData,
-          links: ticketLinks,
-        };
-      }
-
-      case TARGET_TABLES.TICKETING_USER: {
-        const userData: TicketingUserRecord = {
-          Name: data.name || null,
-          Email: data.email || null,
-          Url: data.web_url || null,
-          RemoteCreatedAt: data.created_at || null,
-          RemoteUpdatedAt: data.updated_at || null,
-          RemoteRaw: JSON.stringify(data),
-        };
-
-        return {
-          data: userData,
-        };
-      }
-
-      case TARGET_TABLES.TICKETING_COMMENT: {
-        const commentData: TicketingCommentRecord = {
-          Title:
-            data.author && data.issue
-              ? `${data.author.name || 'User'} commented on ${data.issue.merge_request ? 'MR' : 'issue'} #${data.issue.iid}`
-              : `Comment on ${data.issue ? (data.issue.merge_request ? 'MR' : 'issue') + ' #' + data.issue.iid : 'item'}`,
-          Body: data.body || null,
-          Url: data.web_url || null,
-          RemoteCreatedAt: data.created_at,
-          RemoteUpdatedAt: data.updated_at,
-          RemoteRaw: JSON.stringify(data),
-        };
-
-        const commentLinks: Record<string, string[]> = {};
-
-        // Add author link if present
-        if (data.author) {
-          commentLinks['Created By'] = [`${data.author.id}`];
-        }
-
-        // Add issue link
-        if (data.issue) {
-          commentLinks.Ticket = [`${data.issue.id}`];
-        }
-
-        return {
-          data: commentData,
-          links: commentLinks,
-        };
-      }
-
-      case TARGET_TABLES.TICKETING_TEAM: {
-        const teamData: TicketingTeamRecord = {
-          Name: data.name || null,
-          Description: data.description || null,
-          RemoteCreatedAt: data.created_at || null,
-          RemoteUpdatedAt: data.updated_at || null,
-          RemoteRaw: JSON.stringify(data),
-        };
-
-        return {
-          data: teamData,
-        };
-      }
-
+      case TARGET_TABLES.TICKETING_TICKET:
+        return this.formatTicket(data);
+      case TARGET_TABLES.TICKETING_USER:
+        return this.formatUser(data);
+      case TARGET_TABLES.TICKETING_COMMENT:
+        return this.formatComment(data);
+      case TARGET_TABLES.TICKETING_TEAM:
+        return this.formatTeam(data);
       default:
         throw new Error(`Unsupported target table: ${targetTable}`);
     }
+  }
+
+  private formatTicket(data: any) {
+    const ticketData: TicketingTicketRecord = {
+      Name: data.title,
+      Description: data.description || null,
+      Status: this.mapIssueState(data.state),
+      Priority: null, // GitLab doesn't have built-in priority
+      'Ticket Type': data.merge_request ? 'Merge Request' : 'Issue',
+      Url: data.web_url || null,
+      'Ticket Number': data.iid,
+      'Is Active': data.state !== 'closed',
+      'Completed At': data.state === 'closed' ? data.closed_at : null,
+      'Due Date': data.due_date || null,
+      Tags: data.labels ? data.labels.join(',') : null,
+      RemoteCreatedAt: data.created_at,
+      RemoteUpdatedAt: data.updated_at,
+      RemoteRaw: JSON.stringify(data),
+    };
+
+    const ticketLinks: Record<string, string[]> = {};
+
+    // Add assignees links if present
+    if (
+      data.assignees &&
+      Array.isArray(data.assignees) &&
+      data.assignees.length > 0
+    ) {
+      ticketLinks.Assignees = data.assignees.map(
+        (assignee: any) => `${assignee.id}`,
+      );
+    }
+
+    // Add author link if present
+    if (data.author) {
+      ticketLinks.Creator = [`${data.author.id}`];
+    }
+
+    return {
+      data: ticketData,
+      links: ticketLinks,
+    };
+  }
+
+  private formatUser(data: any) {
+    const userData: TicketingUserRecord = {
+      Name: data.name || null,
+      Email: data.email || null,
+      Url: data.web_url || null,
+      RemoteCreatedAt: data.created_at || null,
+      RemoteUpdatedAt: data.updated_at || null,
+      RemoteRaw: JSON.stringify(data),
+    };
+
+    return {
+      data: userData,
+    };
+  }
+
+  private formatComment(data: any) {
+    const commentData: TicketingCommentRecord = {
+      Title:
+        data.author && data.issue
+          ? `${data.author.name || 'User'} commented on ${data.issue.merge_request ? 'MR' : 'issue'} #${data.issue.iid}`
+          : `Comment on ${data.issue ? (data.issue.merge_request ? 'MR' : 'issue') + ' #' + data.issue.iid : 'item'}`,
+      Body: data.body || null,
+      Url: data.web_url || null,
+      RemoteCreatedAt: data.created_at,
+      RemoteUpdatedAt: data.updated_at,
+      RemoteRaw: JSON.stringify(data),
+    };
+
+    const commentLinks: Record<string, string[]> = {};
+
+    // Add author link if present
+    if (data.author) {
+      commentLinks['Created By'] = [`${data.author.id}`];
+    }
+
+    // Add issue link
+    if (data.issue) {
+      commentLinks.Ticket = [`${data.issue.id}`];
+    }
+
+    return {
+      data: commentData,
+      links: commentLinks,
+    };
+  }
+
+  private formatTeam(data: any) {
+    const teamData: TicketingTeamRecord = {
+      Name: data.name || null,
+      Description: data.description || null,
+      RemoteCreatedAt: data.created_at || null,
+      RemoteUpdatedAt: data.updated_at || null,
+      RemoteRaw: JSON.stringify(data),
+    };
+
+    return {
+      data: teamData,
+    };
   }
 
   private mapIssueState(state: string): string {

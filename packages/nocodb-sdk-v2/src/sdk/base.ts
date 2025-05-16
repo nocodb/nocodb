@@ -1,8 +1,8 @@
+import type { Base } from '../lib/Api';
 import type { InternalAPI } from './types';
 import type { Workspace } from './workspace';
-import { Base } from './lib/Api';
 
-export class NocoDBBase extends Base {
+export class NocoDBBase implements Base {
   readonly id: string;
   private workspace: Workspace;
   private readonly internalAPI: InternalAPI;
@@ -12,7 +12,4 @@ export class NocoDBBase extends Base {
     this.id = id;
     this.workspace = workspace;
   }
-
-
-
 }

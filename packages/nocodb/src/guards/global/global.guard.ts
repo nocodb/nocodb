@@ -20,6 +20,13 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
     if (req.headers?.['xc-auth']) {
       try {
         result = await this.extractBoolVal(super.canActivate(context));
+        if (result && req.context) {
+          req.context.user = {
+            id: req.user.id,
+            email: req.user.email,
+            email_verified: req.user.email_verified,
+          };
+        }
       } catch (e) {
         console.log(e);
       }
@@ -85,6 +92,14 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
   ): Promise<any> {
     const u = await this.jwtStrategy.validate(req, user);
     req.user = u;
+
+    if (req.context) {
+      req.context.user = {
+        id: req.user.id,
+        email: req.user.email,
+        email_verified: req.user.email_verified,
+      };
+    }
     return true;
   }
 

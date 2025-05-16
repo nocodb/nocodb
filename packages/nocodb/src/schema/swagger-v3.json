@@ -128,7 +128,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Base was created.",
             "content": {
               "application/json": {
@@ -613,7 +613,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Table created.",
             "content": {
               "application/json": {
@@ -1379,7 +1379,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Field was created.",
             "content": {
               "application/json": {

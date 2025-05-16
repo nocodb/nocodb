@@ -540,6 +540,7 @@ export class BaseUsersService {
       baseId: string;
       req: NcRequest;
     },
+    ncMeta = Noco.ncMeta,
   ) {
     // Check if at least one user (excluding ignored user) has an assigned OWNER role.
     const ownerUser = baseUsers.find(
@@ -565,7 +566,7 @@ export class BaseUsersService {
     }
 
     // Check if the baseUser already exists for the derived owner.
-    const baseUser = await BaseUser.get(context, baseId, derivedOwner.id);
+    const baseUser = await BaseUser.get(context, baseId, derivedOwner.id, ncMeta);
 
     if (baseUser) {
       // Update the role to OWNER if the baseUser already exists.
@@ -574,6 +575,7 @@ export class BaseUsersService {
         baseId,
         derivedOwner.id,
         ProjectRoles.OWNER,
+        ncMeta
       );
     } else {
       // Insert a new baseUser with OWNER role if it doesn't exist.
@@ -582,7 +584,7 @@ export class BaseUsersService {
         fk_user_id: derivedOwner.id,
         roles: ProjectRoles.OWNER,
         invited_by: req?.user?.id,
-      });
+      }, ncMeta);
     }
   }
 
@@ -594,7 +596,7 @@ export class BaseUsersService {
       // todo: refactor
       req: any;
     },
-    ncMeta = Noco.ncMeta,
+    ncMeta = Noco.ncMeta
   ): Promise<any> {
     const base_id = param.baseId;
 
@@ -621,7 +623,7 @@ export class BaseUsersService {
       baseId: base_id,
       workspaceId: base.fk_workspace_id,
       user,
-    });
+    }, ncMeta);
 
     // check if user have access to delete user based on role power
     if (
@@ -635,14 +637,14 @@ export class BaseUsersService {
     if (this.isOldRoleIsOwner(baseUser)) {
       const baseUsers = await BaseUser.getUsersList(context, {
         base_id: param.baseId,
-      });
+      }, ncMeta);
       this.checkMultipleOwnerExist(baseUsers);
       await this.ensureBaseOwner(context, {
         baseUsers,
         ignoreUserId: param.userId,
         baseId: param.baseId,
         req: param.req,
-      });
+      }, ncMeta);
     }
 
     // block self delete if user is owner or super

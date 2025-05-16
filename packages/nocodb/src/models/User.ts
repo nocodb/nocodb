@@ -2,6 +2,7 @@ import {
   extractRolesObj,
   IconType,
   ncIsObject,
+  ProjectRoles,
   type UserType,
 } from 'nocodb-sdk';
 import type { MetaType } from 'nocodb-sdk';
@@ -374,6 +375,9 @@ export default class User implements UserType {
       ...sanitiseUserObj(user),
       roles: user.roles ? extractRolesObj(user.roles) : null,
       base_roles: baseRoles ? baseRoles : null,
+    } as UserType & {
+      roles: Record<string, boolean>;
+      base_roles: Record<string, boolean>;
     };
   }
 

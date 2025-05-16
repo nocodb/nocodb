@@ -60,7 +60,7 @@ const openedBase = computed(() => {
 const isLoadingSidebar = computed(() => {
   const hasEmptyQueryParams = ncIsEmptyObject(route.value.params)
 
-  if (hasEmptyQueryParams) return false
+  if (hasEmptyQueryParams) return true
 
   return !isProjectsLoaded.value
 })

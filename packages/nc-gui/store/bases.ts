@@ -416,6 +416,10 @@ export const useBases = defineStore('basesStore', () => {
     },
   )
 
+  watch(activeProjectId, () => {
+    ncLastVisitedBase().set(activeProjectId.value)
+  })
+
   return {
     bases,
     basesList,

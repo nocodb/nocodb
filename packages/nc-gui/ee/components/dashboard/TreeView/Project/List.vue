@@ -73,7 +73,7 @@ const openedBase = computed(() => {
 const isLoadingSidebar = computed(() => {
   const hasEmptyQueryParams = ncIsEmptyObject(route.value.params)
 
-  if (hasEmptyQueryParams) return false
+  if (hasEmptyQueryParams) return true
 
   return !isProjectsLoaded.value
 })
@@ -393,7 +393,7 @@ watch(
     }
 
     // If workspace changed, skip animation
-    if (oldWsId && newWsId !== oldWsId) {
+    if (newWsId !== oldWsId) {
       transitionName.value = undefined // No animation
     } else {
       transitionName.value = newShowProjectList ? 'slide-left' : 'slide-right'

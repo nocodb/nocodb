@@ -507,17 +507,17 @@ export class FieldHandler implements IFieldHandler {
             isLinksOrLTAR(column) ||
             isRollup(column)
           ) {
-            const value = (
-              await handler.parseDbValue({
-                value: row[column.title],
-                row,
-                baseModel: baseModel,
-                column,
-                options: { ...params.options, fieldHandler: this },
-              })
-            ).value;
-            row[column.title] = value;
-            row[column.id] = value;
+            // const value = (
+            //   await handler.parseDbValue({
+            //     value: row[column.title],
+            //     row,
+            //     baseModel: baseModel,
+            //     column,
+            //     options: { ...params.options, fieldHandler: this },
+            //   })
+            // ).value;
+            // row[column.title] = value;
+            // row[column.id] = value;
           }
         }
       } else {

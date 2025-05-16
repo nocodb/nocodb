@@ -745,7 +745,9 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
 
       case TARGET_TABLES.TICKETING_COMMENT: {
         const commentData: TicketingCommentRecord = {
-          Title: null, // GitLab comments don't have titles
+          Title: data.author && data.issue ? 
+            `${data.author.name || 'User'} commented on ${data.issue.merge_request ? 'MR' : 'issue'} #${data.issue.iid}` :
+            `Comment on ${data.issue ? (data.issue.merge_request ? 'MR' : 'issue') + ' #' + data.issue.iid : 'item'}`,
           Body: data.body || null,
           RemoteCreatedAt: data.created_at,
           RemoteUpdatedAt: data.updated_at,

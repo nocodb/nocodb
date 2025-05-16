@@ -478,9 +478,9 @@ export default class AsanaSyncIntegration extends SyncIntegration<AsanaSyncPaylo
     links?: Record<string, SyncLinkValue>;
   } {
     const now = new Date().toISOString();
-
+    
     const commentData: TicketingCommentRecord = {
-      Title: null, // Asana comments don't have titles
+      Title: `${comment.created_by?.name || 'User'} commented on task #${taskId}`,
       Body: comment.html_text || comment.text || null,
       RemoteCreatedAt: comment.created_at,
       RemoteUpdatedAt: null, // Asana API doesn't provide this for comments

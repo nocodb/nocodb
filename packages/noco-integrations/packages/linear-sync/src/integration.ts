@@ -77,6 +77,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
     >();
 
     const userMap = new Map<string, boolean>();
+    const issueIdentifierMap = new Map<string, string>();
 
     (async () => {
       try {
@@ -176,6 +177,9 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
               createdAt: issue.createdAt.toString(),
               updatedAt: issue.updatedAt.toString(),
             };
+            
+            // Store the issue identifier for use with comments
+            issueIdentifierMap.set(issue.id, issue.identifier);
 
             // Process assignee and creator
             let assigneeUser = null;
@@ -260,6 +264,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
                     comment,
                     issue.id,
                     commentUser,
+                    issue.identifier
                   );
                   stream.push({
                     recordId: comment.id,
@@ -340,7 +345,9 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
       case TARGET_TABLES.TICKETING_USER:
         return this.formatUser(data);
       case TARGET_TABLES.TICKETING_COMMENT:
-        return this.formatComment(data);
+        // If data is a Comment object, we need to infer the issueId from the context
+        // Since this is a fallback, we just pass the comment without the issue identifier
+        return this.formatComment(data, data.issueId);
       case TARGET_TABLES.TICKETING_TEAM:
         return this.formatTeam(data);
       default: {
@@ -440,6 +447,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
     comment: Comment,
     issueId?: string,
     user: User | null = null,
+    issueIdentifier?: string
   ): {
     data: TicketingCommentRecord;
     links?: Record<string, SyncLinkValue>;
@@ -447,7 +455,9 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
     const now = new Date().toISOString();
 
     const commentData: TicketingCommentRecord = {
-      Title: null, // Linear comments don't have titles
+      Title: user ? 
+        `${user.name || user.displayName || 'User'} commented on issue ${issueIdentifier || '#' + issueId}` :
+        `Comment on issue ${issueIdentifier || '#' + issueId}`,
       Body: comment.body || null,
       RemoteCreatedAt: comment.createdAt
         ? new Date(comment.createdAt).toISOString()

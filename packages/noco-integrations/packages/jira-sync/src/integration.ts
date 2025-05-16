@@ -352,7 +352,9 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
     const now = new Date().toISOString();
 
     const commentData: TicketingCommentRecord = {
-      Title: null, // Jira comments don't have titles
+      Title: comment.author ? 
+        `${comment.author.displayName || 'User'} commented on issue ${comment.issueKey || (comment.issue ? comment.issue.key : '#' + comment.issueId)}` :
+        `Comment on issue ${comment.issueKey || (comment.issue ? comment.issue.key : '#' + comment.issueId)}`,
       Body: comment.renderedBody || comment.body || null,
       RemoteCreatedAt: comment.created || null,
       RemoteUpdatedAt: comment.updated || null,

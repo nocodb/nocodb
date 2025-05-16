@@ -13,9 +13,11 @@ import {
   beforeEachNumberBased,
   beforeEachSelectBased,
   beforeEachTextBased,
+  beforeEachUserBased,
   beforeEach as dataApiV3BeforeEach,
 } from './beforeEach';
 import { ncAxios } from './ncAxios';
+import { getUsers } from './helpers';
 import type { Column, Model } from '../../../../../src/models';
 import type { ITestContext } from './beforeEach';
 import type { INcAxios } from './ncAxios';
@@ -757,6 +759,48 @@ describe('dataApiV3', () => {
             ),
           ).to.eq(true);
         }
+      });
+    });
+
+    describe.only('user-based', () => {
+      let table: Model;
+      let columns: Column[] = [];
+
+      beforeEach(async () => {
+        const initResult = await beforeEachUserBased(testContext);
+
+        table = initResult.table;
+        columns = initResult.columns;
+      });
+
+      it('Create record : duplicate ID', async function () {
+        const userList = await getUsers(testContext);
+
+        const newRecord1 = {
+          userFieldSingle: userList[0].id,
+          userFieldMulti: `${userList[0].id},${userList[0].id}`,
+        };
+        const rsp = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: newRecord1,
+          status: 422,
+        });
+        expect(rsp.body.message).to.equal(
+          'Duplicate users not allowed for user field',
+        );
+
+        const newRecord2 = {
+          userFieldSingle: `${userList[0].id},${userList[1].id}`,
+          userFieldMulti: `${userList[0].id},${userList[1].id}`,
+        };
+        const rsp2 = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: newRecord2,
+          status: 422,
+        });
+        expect(rsp2.body.message).to.equal(
+          "Multiple users not allowed for 'userFieldSingle'",
+        );
       });
     });
   });

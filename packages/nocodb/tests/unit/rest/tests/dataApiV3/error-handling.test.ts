@@ -18,8 +18,8 @@ import {
 } from './beforeEach';
 import { ncAxios } from './ncAxios';
 import { getUsers } from './helpers';
+import type { ITestContext } from './helpers';
 import type { Column, Model } from '../../../../../src/models';
-import type { ITestContext } from './beforeEach';
 import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';

@@ -809,7 +809,7 @@ const errorHelpers: {
   },
   [NcErrorType.BASE_USER_ERROR]: {
     message: (message: string) => message || 'Something went wrong',
-    code: 422,
+    code: 400,
   },
 };
 
@@ -1309,7 +1309,7 @@ export class NcError {
     });
   }
   static baseUserError(message: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.BASE_USER_ERROR, {
+    throw new NcBaseErrorv2(NcErrorType.BASE_USER_ADD_ERROR, {
       params: message,
       ...args,
     });

@@ -75,7 +75,7 @@ export class BaseUsersService {
         base_roles: extractRolesObj(param.baseUser.roles),
       }) > getProjectRolePower(param.req.user)
     ) {
-      NcError.forbidden(`Insufficient privilege to invite with this role`);
+      NcError.baseUserError(`Insufficient privilege to invite with this role`);
     }
 
     if (
@@ -419,11 +419,11 @@ export class BaseUsersService {
 
     // Check if current user has sufficient privilege to assign this role
     if (newRolePower > getProjectRolePower(param.req.user)) {
-      NcError.forbidden(`Insufficient privilege to assign this role`);
+      NcError.baseUserError(`Insufficient privilege to assign this role`);
     }
 
     if (getProjectRolePower(targetUser) > getProjectRolePower(param.req.user)) {
-      NcError.forbidden(`Insufficient privilege to update user`);
+      NcError.baseUserError(`Insufficient privilege to update user`);
     }
 
     const oldBaseUser = await BaseUser.get(
@@ -518,7 +518,7 @@ export class BaseUsersService {
 
     // Throw error if no valid owner is found.
     if (ownersCount <= 1) {
-      NcError.badRequest('At least one owner is required');
+      NcError.baseUserError('At least one owner is required');
     }
   }
 
@@ -566,7 +566,12 @@ export class BaseUsersService {
     }
 
     // Check if the baseUser already exists for the derived owner.
-    const baseUser = await BaseUser.get(context, baseId, derivedOwner.id, ncMeta);
+    const baseUser = await BaseUser.get(
+      context,
+      baseId,
+      derivedOwner.id,
+      ncMeta,
+    );
 
     if (baseUser) {
       // Update the role to OWNER if the baseUser already exists.
@@ -575,16 +580,20 @@ export class BaseUsersService {
         baseId,
         derivedOwner.id,
         ProjectRoles.OWNER,
-        ncMeta
+        ncMeta,
       );
     } else {
       // Insert a new baseUser with OWNER role if it doesn't exist.
-      await BaseUser.insert(context, {
-        base_id: baseId,
-        fk_user_id: derivedOwner.id,
-        roles: ProjectRoles.OWNER,
-        invited_by: req?.user?.id,
-      }, ncMeta);
+      await BaseUser.insert(
+        context,
+        {
+          base_id: baseId,
+          fk_user_id: derivedOwner.id,
+          roles: ProjectRoles.OWNER,
+          invited_by: req?.user?.id,
+        },
+        ncMeta,
+      );
     }
   }
 
@@ -596,7 +605,7 @@ export class BaseUsersService {
       // todo: refactor
       req: any;
     },
-    ncMeta = Noco.ncMeta
+    ncMeta = Noco.ncMeta,
   ): Promise<any> {
     const base_id = param.baseId;
 
@@ -619,32 +628,45 @@ export class BaseUsersService {
         );
     }
 
-    const baseUser = await User.getWithRoles(context, param.userId, {
-      baseId: base_id,
-      workspaceId: base.fk_workspace_id,
-      user,
-    }, ncMeta);
+    const baseUser = await User.getWithRoles(
+      context,
+      param.userId,
+      {
+        baseId: base_id,
+        workspaceId: base.fk_workspace_id,
+        user,
+      },
+      ncMeta,
+    );
 
     // check if user have access to delete user based on role power
     if (
       getProjectRolePower(baseUser.base_roles) >
       getProjectRolePower(param.req.user)
     ) {
-      NcError.forbidden('Insufficient privilege to delete user');
+      NcError.baseUserError('Insufficient privilege to delete user');
     }
 
     // if old role is owner and there is only one owner then restrict to delete
     if (this.isOldRoleIsOwner(baseUser)) {
-      const baseUsers = await BaseUser.getUsersList(context, {
-        base_id: param.baseId,
-      }, ncMeta);
+      const baseUsers = await BaseUser.getUsersList(
+        context,
+        {
+          base_id: param.baseId,
+        },
+        ncMeta,
+      );
       this.checkMultipleOwnerExist(baseUsers);
-      await this.ensureBaseOwner(context, {
-        baseUsers,
-        ignoreUserId: param.userId,
-        baseId: param.baseId,
-        req: param.req,
-      }, ncMeta);
+      await this.ensureBaseOwner(
+        context,
+        {
+          baseUsers,
+          ignoreUserId: param.userId,
+          baseId: param.baseId,
+          req: param.req,
+        },
+        ncMeta,
+      );
     }
 
     // block self delete if user is owner or super
@@ -652,7 +674,7 @@ export class BaseUsersService {
       param.req.user.id === param.userId &&
       param.req.user.roles.includes('owner')
     ) {
-      NcError.badRequest("Admin can't delete themselves!");
+      NcError.baseUserError("Admin can't delete themselves!");
     }
 
     await BaseUser.delete(context, base_id, param.userId, ncMeta);

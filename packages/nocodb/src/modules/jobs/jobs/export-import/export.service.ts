@@ -642,6 +642,7 @@ export class ExportService {
           const col = model.columns.find((c) => c.title === k);
           if (col) {
             const colId = `${col.base_id}::${col.source_id}::${col.fk_model_id}::${col.id}`;
+            let skip = false;
             switch (col.uidt) {
               case UITypes.ForeignKey:
                 {
@@ -696,6 +697,7 @@ export class ExportService {
               case UITypes.Barcode:
               case UITypes.QrCode:
                 // skip these types
+                skip = true;
                 break;
               case UITypes.JSON:
                 try {
@@ -710,6 +712,13 @@ export class ExportService {
                 break;
             }
             delete row[k];
+
+            if (!skip) {
+              // if the value is explicitly empty string preserve it
+              if (v === '') {
+                row[colId] = '__nc_empty_string__';
+              }
+            }
           }
         }
       }

@@ -67,8 +67,6 @@ export function useGridCellHandler(params: {
   const canvasCellEvents = reactive<CanvasCellEventDataInjType>({})
   provide(CanvasCellEventDataInj, canvasCellEvents)
 
-  const { appInfo } = useGlobal()
-
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const baseStore = useBase()
   const { showNull, appInfo } = useGlobal()

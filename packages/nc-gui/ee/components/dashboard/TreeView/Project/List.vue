@@ -70,10 +70,12 @@ const openedBase = computed(() => {
   return basesList.value.find((b) => b.id === activeProjectId.value)
 })
 
+const isWsSwitching = ref(false)
+
 const isLoadingSidebar = computed(() => {
   const hasEmptyQueryParams = ncIsEmptyObject(route.value.params)
 
-  if (hasEmptyQueryParams) return true
+  if (hasEmptyQueryParams || isWsSwitching.value) return true
 
   return !isProjectsLoaded.value
 })
@@ -395,8 +397,10 @@ watch(
     // If workspace changed, skip animation
     if (newWsId !== oldWsId) {
       transitionName.value = undefined // No animation
+      isWsSwitching.value = true
     } else {
       transitionName.value = newShowProjectList ? 'slide-left' : 'slide-right'
+      isWsSwitching.value = false
     }
   },
   {

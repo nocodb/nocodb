@@ -12,6 +12,8 @@ import type { FilterType } from 'nocodb-sdk';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
+import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getRefColumnIfAlias } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -243,14 +245,36 @@ const parseConditionV2 = async (
             .includes(filterVal.toLowerCase());
         });
 
+        let finalStatement = '';
+
         // create nested replace statement for each user
-        const finalStatement = users.reduce((acc, user) => {
-          const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [
-            user.id,
-            user.display_name || user.email,
-          ]);
-          return qb.toQuery();
-        }, knex.raw(`??`, [column.column_name]).toQuery());
+        if (knex.clientType() === 'pg') {
+          finalStatement = `(${replaceDelimitedWithKeyValuePg({
+            knex,
+            needleColumn: column.column_name,
+            stack: baseUsers.map((user) => ({
+              key: user.id,
+              value: user.display_name || user.email,
+            })),
+          })})`;
+        } else if (knex.clientType() === 'sqlite3') {
+          finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
+            knex,
+            needleColumn: column.column_name,
+            stack: baseUsers.map((user) => ({
+              key: user.id,
+              value: user.display_name || user.email,
+            })),
+          })})`;
+        } else {
+          finalStatement = users.reduce((acc, user) => {
+            const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [
+              user.id,
+              user.display_name || user.email,
+            ]);
+            return qb.toQuery();
+          }, knex.raw(`??`, [column.column_name]).toQuery());
+        }
 
         let val = filter.value;
         if (filter.comparison_op === 'like') {

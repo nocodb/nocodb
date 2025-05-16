@@ -189,7 +189,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
           targetTableIncrementalValues?.[TARGET_TABLES.TICKETING_TICKET];
 
         // Configure issue state based on includeClosed settings
-        const state = includeClosed ? 'all' : 'opened';
+        const state = !includeClosed ? 'opened' : 'all';
 
         // GitLab API uses pagination with max_pages
         const perPage = 100;

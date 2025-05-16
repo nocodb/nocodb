@@ -42,7 +42,7 @@ const form: FormDefinition = [
     width: 100,
     model: 'config.includeClosed',
     category: 'Source',
-    defaultValue: false,
+    defaultValue: true,
   },
 ];
 

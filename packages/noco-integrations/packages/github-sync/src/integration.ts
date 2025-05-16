@@ -156,7 +156,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
             repo,
             per_page: 100,
             since: fetchAfter ? `${fetchAfter}` : undefined,
-            ...(includeClosed ? { state: 'all' } : {}),
+            ...(!includeClosed ? {} : { state: 'all' }),
           },
         );
 

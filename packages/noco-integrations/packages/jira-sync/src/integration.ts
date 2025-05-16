@@ -298,7 +298,7 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
       Status: issue.fields?.status?.name || null,
       Tags: issue.fields?.labels?.join(', ') || null,
       'Ticket Type': issue.fields?.issuetype?.name || null,
-      'Ticket Url': issue.self
+      Url: issue.self
         ? `${issue.self.split('/rest/')[0]}/browse/${issue.key}`
         : null,
       'Is Active': issue.fields?.status?.statusCategory?.key !== 'done',
@@ -334,6 +334,7 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
     const userData: TicketingUserRecord = {
       Name: user.displayName || null,
       Email: user.emailAddress || null,
+      Url: user.self || null,
       RemoteCreatedAt: null, // Jira API doesn't provide this information
       RemoteUpdatedAt: null, // Jira API doesn't provide this information
       RemoteRaw: JSON.stringify(user),
@@ -352,10 +353,11 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
     const now = new Date().toISOString();
 
     const commentData: TicketingCommentRecord = {
-      Title: comment.author ? 
-        `${comment.author.displayName || 'User'} commented on issue ${comment.issueKey || (comment.issue ? comment.issue.key : '#' + comment.issueId)}` :
-        `Comment on issue ${comment.issueKey || (comment.issue ? comment.issue.key : '#' + comment.issueId)}`,
+      Title: comment.author
+        ? `${comment.author.displayName || 'User'} commented on issue ${comment.issueKey || (comment.issue ? comment.issue.key : '#' + comment.issueId)}`
+        : `Comment on issue ${comment.issueKey || (comment.issue ? comment.issue.key : '#' + comment.issueId)}`,
       Body: comment.renderedBody || comment.body || null,
+      Url: comment.self || null,
       RemoteCreatedAt: comment.created || null,
       RemoteUpdatedAt: comment.updated || null,
       RemoteRaw: JSON.stringify(comment),

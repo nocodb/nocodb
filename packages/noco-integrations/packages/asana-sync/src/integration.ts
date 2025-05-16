@@ -424,7 +424,7 @@ export default class AsanaSyncIntegration extends SyncIntegration<AsanaSyncPaylo
       Status: status,
       Tags: tags,
       'Ticket Type': isSubtask ? 'Subtask' : 'Task',
-      'Ticket Url': `https://app.asana.com/0/${task.memberships?.[0]?.project.gid || this.config.projectId}/${task.gid}`,
+      Url: `https://app.asana.com/0/${task.memberships?.[0]?.project.gid || this.config.projectId}/${task.gid}`,
       'Is Active': !task.completed,
       'Completed At': task.completed_at || null,
       'Ticket Number': task.gid,
@@ -459,6 +459,7 @@ export default class AsanaSyncIntegration extends SyncIntegration<AsanaSyncPaylo
     const userData: TicketingUserRecord = {
       Name: user.name || null,
       Email: user.email || null,
+      Url: `https://app.asana.com/0/users/${user.gid}`,
       RemoteCreatedAt: null, // Asana API doesn't provide this
       RemoteUpdatedAt: null, // Asana API doesn't provide this
       RemoteRaw: JSON.stringify(user),
@@ -478,10 +479,11 @@ export default class AsanaSyncIntegration extends SyncIntegration<AsanaSyncPaylo
     links?: Record<string, SyncLinkValue>;
   } {
     const now = new Date().toISOString();
-    
+
     const commentData: TicketingCommentRecord = {
       Title: `${comment.created_by?.name || 'User'} commented on task #${taskId}`,
       Body: comment.html_text || comment.text || null,
+      Url: null, // Asana API doesn't provide direct comment URLs
       RemoteCreatedAt: comment.created_at,
       RemoteUpdatedAt: null, // Asana API doesn't provide this for comments
       RemoteRaw: JSON.stringify(comment),

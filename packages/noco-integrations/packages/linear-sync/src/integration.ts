@@ -118,22 +118,20 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
         if (!includeCanceled || !includeCompleted) {
           // Create a filter for the workflow state type
           const stateTypeFilter: { [key: string]: any } = {};
-          
+
           if (!includeCanceled) {
             stateTypeFilter.type = { neq: 'canceled' };
           }
-          
+
           if (!includeCompleted) {
             // If we're already filtering canceled states, use OR to also filter completed
             if (!includeCanceled) {
-              stateTypeFilter.or = [
-                { type: { neq: 'completed' } }
-              ];
+              stateTypeFilter.or = [{ type: { neq: 'completed' } }];
             } else {
               stateTypeFilter.type = { neq: 'completed' };
             }
           }
-          
+
           if (Object.keys(stateTypeFilter).length > 0) {
             issueFilter.state = stateTypeFilter;
           }
@@ -177,7 +175,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
               createdAt: issue.createdAt.toString(),
               updatedAt: issue.updatedAt.toString(),
             };
-            
+
             // Store the issue identifier for use with comments
             issueIdentifierMap.set(issue.id, issue.identifier);
 
@@ -264,7 +262,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
                     comment,
                     issue.id,
                     commentUser,
-                    issue.identifier
+                    issue.identifier,
                   );
                   stream.push({
                     recordId: comment.id,
@@ -388,7 +386,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
       Status: issue.stateName || null,
       Tags: tags,
       'Ticket Type': null, // Linear doesn't have ticket types
-      'Ticket Url': `https://linear.app/issue/${issue.identifier}`,
+      Url: `https://linear.app/issue/${issue.identifier}`,
       'Is Active': !issue.completedAt && !issue.canceledAt,
       'Completed At': issue.completedAt
         ? new Date(issue.completedAt).toISOString()
@@ -428,6 +426,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
     const userData: TicketingUserRecord = {
       Name: user.name || user.displayName || null,
       Email: user.email || null,
+      Url: null, // Linear API doesn't provide direct user URL
       RemoteCreatedAt: user.createdAt
         ? new Date(user.createdAt).toISOString()
         : null,
@@ -447,7 +446,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
     comment: Comment,
     issueId?: string,
     user: User | null = null,
-    issueIdentifier?: string
+    issueIdentifier?: string,
   ): {
     data: TicketingCommentRecord;
     links?: Record<string, SyncLinkValue>;
@@ -455,10 +454,11 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
     const now = new Date().toISOString();
 
     const commentData: TicketingCommentRecord = {
-      Title: user ? 
-        `${user.name || user.displayName || 'User'} commented on issue ${issueIdentifier || '#' + issueId}` :
-        `Comment on issue ${issueIdentifier || '#' + issueId}`,
+      Title: user
+        ? `${user.name || user.displayName || 'User'} commented on issue ${issueIdentifier || '#' + issueId}`
+        : `Comment on issue ${issueIdentifier || '#' + issueId}`,
       Body: comment.body || null,
+      Url: null, // Linear API doesn't provide direct comment URL
       RemoteCreatedAt: comment.createdAt
         ? new Date(comment.createdAt).toISOString()
         : null,

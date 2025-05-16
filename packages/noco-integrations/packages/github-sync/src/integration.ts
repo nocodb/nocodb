@@ -6,6 +6,7 @@ import {
 } from '@noco-integrations/core';
 import type {
   AuthResponse,
+  SyncLinkValue,
   TicketingCommentRecord,
   TicketingTeamRecord,
   TicketingTicketRecord,
@@ -299,40 +300,53 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     return stream;
   }
 
-  public formatData(targetTable: TARGET_TABLES, data: any) {
+  public formatData(
+    targetTable: TARGET_TABLES,
+    data: any,
+  ): {
+    data:
+      | TicketingTicketRecord
+      | TicketingUserRecord
+      | TicketingCommentRecord
+      | TicketingTeamRecord;
+    links?: Record<string, SyncLinkValue>;
+  } {
     switch (targetTable) {
       case TARGET_TABLES.TICKETING_TICKET: {
         const issue = data as Awaited<
           ReturnType<Octokit['rest']['issues']['listForRepo']>
         >['data'][0];
+
+        const ticketData: TicketingTicketRecord = {
+          Name: issue.title,
+          Description: issue.body || null,
+          'Due Date': null, // GitHub issues don't have due dates
+          Priority: '', // GitHub issues don't have priorities
+          Status: issue.state,
+          Tags:
+            issue.labels
+              ?.map((label) =>
+                typeof label === 'string' ? label : label.name || '',
+              )
+              .join(', ') || null,
+          'Ticket Type': issue.pull_request ? 'Pull Request' : 'Issue',
+          'Ticket Number': `${issue.number}`,
+          Url: issue.html_url,
+          'Is Active': issue.state === 'open',
+          'Completed At': issue.closed_at,
+          // System Fields
+          RemoteCreatedAt: issue.created_at,
+          RemoteUpdatedAt: issue.updated_at,
+          RemoteRaw: JSON.stringify(issue),
+        };
+
         return {
-          data: {
-            Name: issue.title,
-            Status: issue.state,
-            Description: issue.body || null,
-            'Ticket Type': issue.pull_request ? 'Pull Request' : 'Issue',
-            'Ticket Number': issue.number,
-            Tags:
-              issue.labels
-                ?.map((label) =>
-                  typeof label === 'string' ? label : label.name || '',
-                )
-                .join(', ') || '',
-            'Completed At': issue.closed_at,
-            'Ticket Url': issue.html_url,
-            'Due Date': null,
-            Priority: '',
-            'Is Active': issue.state === 'open',
-            // System Fields
-            RemoteCreatedAt: issue.created_at,
-            RemoteUpdatedAt: issue.updated_at,
-            RemoteRaw: JSON.stringify(issue),
-          },
+          data: ticketData,
           // Link values
           links: {
             Assignees:
-              issue.assignees?.map((assignee) => `${assignee.id}`) || [],
-            Creator: issue.user?.id ? [`${issue.user.id}`] : [],
+              issue.assignees?.map((assignee) => `${assignee.id}`) || null,
+            Creator: issue.user?.id ? [`${issue.user.id}`] : null,
           },
         };
       }
@@ -340,34 +354,42 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
         const user = data as Awaited<
           ReturnType<Octokit['rest']['users']['getByUsername']>
         >['data'];
+
+        const userData: TicketingUserRecord = {
+          Name: user.login,
+          Email: user.email || null,
+          Url: user.html_url,
+          // System Fields
+          RemoteCreatedAt: null, // GitHub API doesn't provide user creation date
+          RemoteUpdatedAt: null, // GitHub API doesn't provide user update date
+          RemoteRaw: JSON.stringify(user),
+        };
+
         return {
-          data: {
-            Name: user.login,
-            Email: user.email || null,
-            Url: user.html_url,
-            // System Fields
-            RemoteRaw: JSON.stringify(user),
-          },
+          data: userData,
         };
       }
       case TARGET_TABLES.TICKETING_COMMENT: {
         const comment = data as Awaited<
           ReturnType<Octokit['rest']['issues']['listCommentsForRepo']>
         >['data'][0] & { issue: { id: number; number: number } };
+
+        const commentData: TicketingCommentRecord = {
+          Title: `${comment.user?.login || 'User'} commented on issue #${comment.issue.number}`,
+          Body: comment.body || '',
+          Url: comment.html_url,
+          // System Fields
+          RemoteCreatedAt: comment.created_at,
+          RemoteUpdatedAt: comment.updated_at,
+          RemoteRaw: JSON.stringify(comment),
+        };
+
         return {
-          data: {
-            Title: `${comment.user?.login} commented on issue #${comment.issue.number}`,
-            Body: comment.body || '',
-            Url: comment.html_url,
-            // System Fields
-            RemoteCreatedAt: comment.created_at,
-            RemoteUpdatedAt: comment.updated_at,
-            RemoteRaw: JSON.stringify(comment),
-          },
+          data: commentData,
           // Link values
           links: {
             Ticket: [`${comment.issue.id}`],
-            'Created By': comment.user?.id ? [`${comment.user.id}`] : [],
+            'Created By': comment.user?.id ? [`${comment.user.id}`] : null,
           },
         };
       }
@@ -375,17 +397,20 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
         const team = data as Awaited<
           ReturnType<Octokit['rest']['teams']['list']>
         >['data'][0];
+
+        const teamData: TicketingTeamRecord = {
+          Name: team.name,
+          Description: team.description || null,
+          // System Fields
+          RemoteCreatedAt: null, // GitHub API doesn't provide team creation date
+          RemoteUpdatedAt: null, // GitHub API doesn't provide team update date
+          RemoteRaw: JSON.stringify(team),
+        };
+
         return {
-          data: {
-            Name: team.name,
-            Description: team.description || '',
-            // System Fields
-            RemoteRaw: JSON.stringify(team),
-          },
+          data: teamData,
         };
       }
-      default:
-        return data;
     }
   }
 

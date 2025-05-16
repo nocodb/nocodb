@@ -694,7 +694,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
           Status: this.mapIssueState(data.state),
           Priority: null, // GitLab doesn't have built-in priority
           'Ticket Type': data.merge_request ? 'Merge Request' : 'Issue',
-          'Ticket Url': data.web_url || null,
+          Url: data.web_url || null,
           'Ticket Number': data.iid,
           'Is Active': data.state !== 'closed',
           'Completed At': data.state === 'closed' ? data.closed_at : null,
@@ -733,6 +733,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
         const userData: TicketingUserRecord = {
           Name: data.name || null,
           Email: data.email || null,
+          Url: data.web_url || null,
           RemoteCreatedAt: data.created_at || null,
           RemoteUpdatedAt: data.updated_at || null,
           RemoteRaw: JSON.stringify(data),
@@ -745,10 +746,12 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
 
       case TARGET_TABLES.TICKETING_COMMENT: {
         const commentData: TicketingCommentRecord = {
-          Title: data.author && data.issue ? 
-            `${data.author.name || 'User'} commented on ${data.issue.merge_request ? 'MR' : 'issue'} #${data.issue.iid}` :
-            `Comment on ${data.issue ? (data.issue.merge_request ? 'MR' : 'issue') + ' #' + data.issue.iid : 'item'}`,
+          Title:
+            data.author && data.issue
+              ? `${data.author.name || 'User'} commented on ${data.issue.merge_request ? 'MR' : 'issue'} #${data.issue.iid}`
+              : `Comment on ${data.issue ? (data.issue.merge_request ? 'MR' : 'issue') + ' #' + data.issue.iid : 'item'}`,
           Body: data.body || null,
+          Url: data.web_url || null,
           RemoteCreatedAt: data.created_at,
           RemoteUpdatedAt: data.updated_at,
           RemoteRaw: JSON.stringify(data),

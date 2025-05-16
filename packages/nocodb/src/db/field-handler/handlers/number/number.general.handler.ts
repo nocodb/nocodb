@@ -12,15 +12,15 @@ export class NumberGeneralHandler extends DecimalGeneralHandler {
     column: Column;
     baseModel: IBaseModelSqlV2;
     options?: { context?: NcContext; metaService?: MetaService };
-  }): Promise<any> {
-    const value = await super.parseValue(params);
-    if (parseInt(value) !== value) {
+  }): Promise<{ value: any }> {
+    const value = (await super.parseValue(params))?.value;
+    if (typeof value === 'number' && Math.floor(value) !== Math.ceil(value)) {
       NcError.invalidValueForField({
         value: params.value,
         column: params.column.title,
         type: params.column.uidt,
       });
     }
-    return value;
+    return { value };
   }
 }

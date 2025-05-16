@@ -50,7 +50,10 @@ export interface FieldHandlerInterface {
       context?: NcContext;
       metaService?: MetaService;
     };
-  }): Promise<any>;
+    // for now the return value need to be {value: any}
+    // since it's possible for it to be knex query, which
+    // can be executed when awaited
+  }): Promise<{ value: any }>;
 }
 
 export interface IFieldHandler {
@@ -93,5 +96,5 @@ export interface IFieldHandler {
       context?: NcContext;
       metaService?: MetaService;
     };
-  }): Promise<any>;
+  }): Promise<{ value: any }>;
 }

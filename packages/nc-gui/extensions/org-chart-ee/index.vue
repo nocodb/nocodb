@@ -93,6 +93,16 @@ const displayValueCol = computed(() => {
   )
 })
 
+const pkValueCol = computed(() => {
+  return (tableMeta.value?.columns || []).find((c) => {
+    return c.pk
+  })
+})
+
+const pkValueColTitle = computed(() => {
+  return pkValueCol.value?.title ?? ''
+})
+
 const mandatoryColumns = computed(() => {
   return (tableMeta.value?.columns || [])
     .filter((c) => {
@@ -113,7 +123,7 @@ const relationFields = computed(() =>
 )
 watch(relationFields, (relationFields) => {
   if (relationFields && relationFields.length === 1) {
-    relationFieldId.value = relationFields[0].id
+    relationFieldId.value = relationFields[0]?.id
   }
 })
 const coverImageFields = computed(() => tableMeta.value?.columns?.filter((c) => c.uidt === 'Attachment' && !c.system))
@@ -191,7 +201,9 @@ const loadChildren = async (rowIds: string[]) => {
 
     childRowList.forEach((childRow: any, i: any) => {
       const parentRowId = rowIdsToFetch[i]
-      const childRowIds = (childRow.list ? childRow.list.map((l: any) => l.Id) : [childRow.Id]) as string[]
+      const childRowIds = (
+        childRow.list ? childRow.list.map((l: any) => l[pkValueColTitle.value]) : [childRow[pkValueColTitle.value]]
+      ) as string[]
 
       if (childRowIds) {
         parentToUnfilteredChildIds.set(parentRowId, [...childRowIds])
@@ -214,29 +226,31 @@ const loadChildren = async (rowIds: string[]) => {
                 fields: coverImageFieldId.value
                   ? [...mandatoryColumns.value, selectedCoverImageField.value?.title]
                   : [...mandatoryColumns.value],
-                where: `where=${unfetchedChildRowIdsToFilterAndFetch.map((id) => `(Id,eq,${id})`).join('~or')}`,
+                where: `where=${unfetchedChildRowIdsToFilterAndFetch
+                  .map((id) => `(${pkValueColTitle.value},eq,${id})`)
+                  .join('~or')}`,
               })
             ).list
           : ([] as any[])
 
         const existingParentFetchPromises = finalChildrenDataFilteredByViews.length
           ? finalChildrenDataFilteredByViews.map((children: any) =>
-              $api.dbDataTableRow.nestedList(selectedTable.value.id, relationFieldId.value!, children.Id),
+              $api.dbDataTableRow.nestedList(selectedTable.value.id, relationFieldId.value!, children[pkValueColTitle.value]),
             )
           : []
         const existingParents = await Promise.all(existingParentFetchPromises)
         existingParents.forEach((existingParent: any, i: any) => {
           const childRow = finalChildrenDataFilteredByViews[i]
           existingParent.list.forEach((parent: any) => {
-            if (hierarchyData.value.has(parent.Id)) {
-              hierarchyData.value.get(parent.Id)!.push(childRow.Id)
+            if (hierarchyData.value.has(parent[pkValueColTitle.value])) {
+              hierarchyData.value.get(parent[pkValueColTitle.value])!.push(childRow[pkValueColTitle.value])
             } else {
               // If parent is not fetched already, we can't just create new array as it will block actual fetching of the parent in future.
               // Instead, we trigger entire fetch of the parent and then push the childRowId. Lastly, we need to trigger the hierarchy ref again,
               // since Promise resolves after the original triggerRef is executed.
-              rowIdsToFetch.find((rid) => parent.Id === rid) ||
-                loadChildren([parent.Id]).then(() => {
-                  hierarchyData.value.get(parent.Id)!.push(childRow.Id)
+              rowIdsToFetch.find((rid) => parent[pkValueColTitle.value] === rid) ||
+                loadChildren([parent[pkValueColTitle.value]]).then(() => {
+                  hierarchyData.value.get(parent[pkValueColTitle.value])!.push(childRow[pkValueColTitle.value])
                   triggerRef(hierarchyData)
                 })
             }
@@ -244,12 +258,12 @@ const loadChildren = async (rowIds: string[]) => {
         })
 
         const finalChildrenMap = new Map<string, any>()
-        finalChildrenDataFilteredByViews.forEach((c: any) => finalChildrenMap.set(c.Id, c))
+        finalChildrenDataFilteredByViews.forEach((c: any) => finalChildrenMap.set(c[pkValueColTitle.value], c))
 
         parentToUnfilteredChildIds.entries().forEach(([parentRowId, childIds]) => {
           hierarchyData.value.set(
             parentRowId,
-            childIds.filter((cid) => finalChildrenMap.has(cid)).map((cid) => finalChildrenMap.get(cid).Id),
+            childIds.filter((cid) => finalChildrenMap.has(cid)).map((cid) => finalChildrenMap.get(cid)[pkValueColTitle.value]),
           )
           childIds.forEach((cid) => {
             finalChildrenMap.has(cid) && dataMap.value.set(cid, finalChildrenMap.get(cid))
@@ -302,9 +316,9 @@ const loadGraph = async () => {
     })
     // set rows data
     parentRows.list.forEach((parentRow: any) => {
-      dataMap.value.set(parentRow.Id, parentRow)
+      dataMap.value.set(parentRow[pkValueColTitle.value], parentRow)
     })
-    parentRowIds.value = parentRows.list.map((pr: any) => pr.Id as string)
+    parentRowIds.value = parentRows.list.map((pr: any) => pr[pkValueColTitle.value] as string)
     await loadChildren(parentRowIds.value)
 
     isReady.value = true
@@ -353,8 +367,7 @@ onMounted(async () => {
   }
 })
 
-watch(displayValueCol, () => {
-  console.log('changed', displayValueCol.value?.title)
+watch([displayValueCol, pkValueCol], () => {
   loadGraph()
 })
 </script>

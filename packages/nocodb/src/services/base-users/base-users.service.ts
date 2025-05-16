@@ -522,7 +522,7 @@ export class BaseUsersService {
    * If no direct owner is found, assigns ownership to the first user
    * whose role is derived from the workspace role.
    */
-  protected ensureBaseOwner(
+  protected async ensureBaseOwner(
     context,
     {
       baseUsers,

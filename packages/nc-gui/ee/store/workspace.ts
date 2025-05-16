@@ -579,6 +579,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     ssoLoginRequiredDlg.value = show
   }
 
+  watchEffect(() => {
+    console.log('isWorkspacesLoading', isWorkspacesLoading.value)
+  })
+
   return {
     loadWorkspaces,
     workspaces,

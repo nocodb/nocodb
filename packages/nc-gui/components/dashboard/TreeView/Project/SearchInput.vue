@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 interface Props {
   value: string
+  isLoading?: boolean
 }
 
 const props = defineProps<Props>()
@@ -28,8 +29,13 @@ const onKeydown = (e: KeyboardEvent) => {
     v-model:value="vModel"
     type="text"
     class="nc-base-search-input nc-input-border-on-value nc-input-shadow !h-8 !px-2.5 !py-1 !rounded-lg"
-    :placeholder="`${$t('activity.searchProject').charAt(0).toUpperCase()}${$t('activity.searchProject').slice(1).toLowerCase()}`"
+    :placeholder="
+      isLoading
+        ? 'Search...'
+        : `${$t('activity.searchProject').charAt(0).toUpperCase()}${$t('activity.searchProject').slice(1).toLowerCase()}`
+    "
     allow-clear
+    :readonly="isLoading"
     @keydown="onKeydown"
   >
     <template #prefix>

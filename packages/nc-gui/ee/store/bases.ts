@@ -25,6 +25,9 @@ export const useBases = defineStore('basesStore', () => {
   const router = useRouter()
   const route = router.currentRoute
 
+  const isProjectsLoading = ref(false)
+  const isProjectsLoaded = ref(false)
+
   const activeProjectId = computed(() => {
     if (route.value.params.typeOrId === 'base') {
       return basesList.value?.[0]?.id
@@ -59,8 +62,6 @@ export const useBases = defineStore('basesStore', () => {
   const { api } = useApi()
 
   const { getBaseUrl, navigateToProject: _navigateToProject } = useGlobal()
-
-  const isProjectsLoading = ref(false)
 
   async function getBaseUsers({ baseId, searchText, force = false }: { baseId: string; searchText?: string; force?: boolean }) {
     if (!baseId) return { users: [], totalRows: 0 }
@@ -206,6 +207,7 @@ export const useBases = defineStore('basesStore', () => {
       throw e
     } finally {
       isProjectsLoading.value = false
+      isProjectsLoaded.value = true
     }
   }
 
@@ -475,14 +477,19 @@ export const useBases = defineStore('basesStore', () => {
       () => route.value.params.automationId,
     ],
     ([newBaseId, newTableId, newViewId, newAutomationId], [oldBaseId, oldTableId, oldViewId, oldAutomationId]) => {
-      if (!showProjectList.value) return
-
-      showProjectList.value = !(
+      const shouldShowProjectList = !(
         (newBaseId && newBaseId !== oldBaseId) ||
         newTableId !== oldTableId ||
         newViewId !== oldViewId ||
         newAutomationId !== oldAutomationId
       )
+
+      if (!showProjectList.value && shouldShowProjectList) {
+        showProjectList.value = shouldShowProjectList
+        return
+      }
+
+      showProjectList.value = shouldShowProjectList
     },
   )
 
@@ -502,6 +509,7 @@ export const useBases = defineStore('basesStore', () => {
     isProjectEmpty,
     isProjectPopulated,
     isProjectsLoading,
+    isProjectsLoaded,
     activeProjectId,
     openedProject,
     openedProjectBasesMap,

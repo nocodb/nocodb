@@ -18,7 +18,7 @@ const basesStore = useBases()
 
 const { createProject: _createProject, updateProject } = basesStore
 
-const { bases, basesList, activeProjectId, showProjectList } = storeToRefs(basesStore)
+const { bases, basesList, activeProjectId, showProjectList, isProjectsLoaded } = storeToRefs(basesStore)
 
 const baseStore = useBase()
 
@@ -68,6 +68,14 @@ const filteredNonStarredProjectList = computed(() =>
 
 const openedBase = computed(() => {
   return basesList.value.find((b) => b.id === activeProjectId.value)
+})
+
+const isLoadingSidebar = computed(() => {
+  const hasEmptyQueryParams = ncIsEmptyObject(route.value.params)
+
+  if (hasEmptyQueryParams) return false
+
+  return !isProjectsLoaded.value
 })
 
 const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
@@ -379,6 +387,11 @@ const transitionName = ref<'slide-left' | 'slide-right' | undefined>(undefined)
 watch(
   [showProjectList, activeWorkspaceId],
   ([newShowProjectList, newWsId], [_oldShowProjectList, oldWsId]) => {
+    if (!isProjectsLoaded.value) {
+      transitionName.value = undefined // No animation
+      return
+    }
+
     // If workspace changed, skip animation
     if (oldWsId && newWsId !== oldWsId) {
       transitionName.value = undefined // No animation
@@ -391,10 +404,6 @@ watch(
   },
 )
 
-onMounted(() => {
-  transitionName.value = showProjectList.value ? 'slide-left' : 'slide-right'
-})
-
 watch([searchInputRef, showProjectList], () => {
   if (!searchInputRef.value || !showProjectList.value) return
 
@@ -404,6 +413,20 @@ watch([searchInputRef, showProjectList], () => {
     inputEl?.focus()
   })
 })
+
+watch(
+  isProjectsLoaded,
+  () => {
+    if (isProjectsLoaded.value) {
+      transitionName.value = showProjectList.value ? 'slide-left' : 'slide-right'
+    } else {
+      transitionName.value = undefined
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -411,115 +434,119 @@ watch([searchInputRef, showProjectList], () => {
     class="nc-treeview-container relative w-full h-full overflow-hidden flex items-stretch"
     :class="showProjectList ? 'nc-treeview-container-base-list' : 'nc-treeview-container-active-base'"
   >
-    <Transition :name="transitionName" appear>
-      <div v-if="showProjectList" key="project-list" class="nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10">
-        <div class="w-full">
-          <DashboardSidebarHeaderWrapper>
-            <NcTooltip show-on-truncate-only class="truncate capitalize">
-              <template #title>
+    <DashboardTreeViewProjectListSkeleton v-if="isLoadingSidebar" />
+
+    <template v-else>
+      <Transition :name="transitionName" appear>
+        <div v-if="showProjectList" key="project-list" class="nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10">
+          <div class="w-full">
+            <DashboardSidebarHeaderWrapper>
+              <NcTooltip show-on-truncate-only class="truncate capitalize">
+                <template #title>
+                  {{ activeWorkspace?.title }}
+                </template>
+
                 {{ activeWorkspace?.title }}
+              </NcTooltip>
+            </DashboardSidebarHeaderWrapper>
+            <div class="px-2 h-11 flex items-center">
+              <DashboardTreeViewProjectSearchInput ref="searchInputRef" v-model:value="searchQuery" />
+            </div>
+            <div class="nc-project-home-section pt-1 !pb-2">
+              <WorkspaceCreateProjectBtn
+                v-model:is-open="isCreateProjectOpen"
+                modal
+                type="text"
+                class="nc-sidebar-create-base-btn nc-project-home-section-item !text-brand-500 !hover:(text-brand-600 bg-none) !xs:hidden w-full"
+                data-testid="nc-sidebar-create-base-btn"
+              >
+              </WorkspaceCreateProjectBtn>
+            </div>
+          </div>
+
+          <div class="nc-treeview flex-1 relative overflow-auto nc-scrollbar-thin">
+            <div v-if="starredProjectList?.length" class="nc-project-home-section">
+              <div v-if="!isSharedBase" class="nc-project-home-section-header">Starred</div>
+              <div>
+                <Draggable
+                  :model-value="starredProjectList"
+                  :disabled="isMobileMode || !isUIAllowed('baseReorder') || starredProjectList?.length < 2"
+                  item-key="starred-project"
+                  handle=".base-title-node"
+                  ghost-class="ghost"
+                  :filter="isTouchEvent"
+                  @change="onMove($event, starredProjectList)"
+                >
+                  <template #item="{ element: baseItem }">
+                    <div v-if="searchCompare(baseItem.title, searchQuery)" :key="baseItem.id">
+                      <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
+                        <DashboardTreeViewProjectNode />
+                      </ProjectWrapper>
+                    </div>
+                  </template>
+                  <template v-if="!isWorkspaceLoading && !filteredStarredProjectList.length" #footer>
+                    <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
+                      No results found for your search.
+                    </div>
+                  </template>
+                </Draggable>
+              </div>
+            </div>
+            <div class="nc-project-home-section">
+              <div v-if="!isSharedBase" class="nc-project-home-section-header">
+                {{ $t('objects.projects') }}
+              </div>
+              <div v-if="nonStarredProjectList?.length">
+                <Draggable
+                  v-model="nonStarredProjectList"
+                  :disabled="isMobileMode || !isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
+                  item-key="non-starred-project"
+                  handle=".base-title-node"
+                  ghost-class="ghost"
+                  :filter="isTouchEvent"
+                  @change="onMove($event, nonStarredProjectList)"
+                >
+                  <template #item="{ element: baseItem }">
+                    <div v-if="searchCompare(baseItem.title, searchQuery)" :key="baseItem.id">
+                      <ProjectWrapper :base-role="baseItem.project_role || stringifyRolesObj(workspaceRoles)" :base="baseItem">
+                        <DashboardTreeViewProjectNode />
+                      </ProjectWrapper>
+                    </div>
+                  </template>
+                  <template v-if="!isWorkspaceLoading && !filteredNonStarredProjectList.length" #footer>
+                    <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
+                      No results found for your search.
+                    </div>
+                  </template>
+                </Draggable>
+              </div>
+              <div v-else class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No Bases</div>
+            </div>
+
+            <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
+            <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
+          </div>
+          <slot name="footer"> </slot>
+        </div>
+      </Transition>
+
+      <!-- Slide in Project Home -->
+      <Transition name="layout" mode="out-in" :duration="400" appear>
+        <div
+          v-if="!showProjectList && activeProjectId && openedBase?.id"
+          key="project-home"
+          class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
+        >
+          <ProjectWrapper :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)" :base="openedBase">
+            <DashboardTreeViewProjectHome>
+              <template #footer>
+                <slot name="footer"></slot>
               </template>
-
-              {{ activeWorkspace?.title }}
-            </NcTooltip>
-          </DashboardSidebarHeaderWrapper>
-          <div class="px-2 h-11 flex items-center">
-            <DashboardTreeViewProjectSearchInput ref="searchInputRef" v-model:value="searchQuery" />
-          </div>
-          <div class="nc-project-home-section pt-1 !pb-2">
-            <WorkspaceCreateProjectBtn
-              v-model:is-open="isCreateProjectOpen"
-              modal
-              type="text"
-              class="nc-sidebar-create-base-btn nc-project-home-section-item !text-brand-500 !hover:(text-brand-600 bg-none) !xs:hidden w-full"
-              data-testid="nc-sidebar-create-base-btn"
-            >
-            </WorkspaceCreateProjectBtn>
-          </div>
+            </DashboardTreeViewProjectHome>
+          </ProjectWrapper>
         </div>
-
-        <div class="nc-treeview flex-1 relative overflow-auto nc-scrollbar-thin">
-          <div v-if="starredProjectList?.length" class="nc-project-home-section">
-            <div v-if="!isSharedBase" class="nc-project-home-section-header">Starred</div>
-            <div>
-              <Draggable
-                :model-value="starredProjectList"
-                :disabled="isMobileMode || !isUIAllowed('baseReorder') || starredProjectList?.length < 2"
-                item-key="starred-project"
-                handle=".base-title-node"
-                ghost-class="ghost"
-                :filter="isTouchEvent"
-                @change="onMove($event, starredProjectList)"
-              >
-                <template #item="{ element: baseItem }">
-                  <div v-if="searchCompare(baseItem.title, searchQuery)" :key="baseItem.id">
-                    <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
-                      <DashboardTreeViewProjectNode />
-                    </ProjectWrapper>
-                  </div>
-                </template>
-                <template v-if="!isWorkspaceLoading && !filteredStarredProjectList.length" #footer>
-                  <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
-                    No results found for your search.
-                  </div>
-                </template>
-              </Draggable>
-            </div>
-          </div>
-          <div class="nc-project-home-section">
-            <div v-if="!isSharedBase" class="nc-project-home-section-header">
-              {{ $t('objects.projects') }}
-            </div>
-            <div v-if="nonStarredProjectList?.length">
-              <Draggable
-                v-model="nonStarredProjectList"
-                :disabled="isMobileMode || !isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
-                item-key="non-starred-project"
-                handle=".base-title-node"
-                ghost-class="ghost"
-                :filter="isTouchEvent"
-                @change="onMove($event, nonStarredProjectList)"
-              >
-                <template #item="{ element: baseItem }">
-                  <div v-if="searchCompare(baseItem.title, searchQuery)" :key="baseItem.id">
-                    <ProjectWrapper :base-role="baseItem.project_role || stringifyRolesObj(workspaceRoles)" :base="baseItem">
-                      <DashboardTreeViewProjectNode />
-                    </ProjectWrapper>
-                  </div>
-                </template>
-                <template v-if="!isWorkspaceLoading && !filteredNonStarredProjectList.length" #footer>
-                  <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
-                    No results found for your search.
-                  </div>
-                </template>
-              </Draggable>
-            </div>
-            <div v-else class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No Bases</div>
-          </div>
-
-          <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
-          <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
-        </div>
-        <slot name="footer"> </slot>
-      </div>
-    </Transition>
-
-    <!-- Slide in Project Home -->
-    <Transition name="layout" mode="out-in" :duration="400" appear>
-      <div
-        v-if="!showProjectList && activeProjectId && openedBase?.id"
-        key="project-home"
-        class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
-      >
-        <ProjectWrapper :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)" :base="openedBase">
-          <DashboardTreeViewProjectHome>
-            <template #footer>
-              <slot name="footer"></slot>
-            </template>
-          </DashboardTreeViewProjectHome>
-        </ProjectWrapper>
-      </div>
-    </Transition>
+      </Transition>
+    </template>
   </div>
 </template>
 

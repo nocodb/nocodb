@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { VueFlow, useVueFlow } from '@vue-flow/core'
-import { Background, Controls, PanelPosition } from '@vue-flow/additional-components'
+import { Background } from '@vue-flow/additional-components'
 import type { ColumnType } from 'nocodb-sdk'
 import { type Edge, type Node } from './useLayoutHelper'
 import ProcessNode from './ProcessNode.vue'
@@ -73,11 +73,11 @@ onScopeDispose($destroy)
           class="w-full h-full"
           :nodes="nodes"
           :edges="edges"
-          @nodes-initialized="zoomOut()"
           fit-view-on-init
-          @init="isFlowReady = true"
           :nodes-draggable="false"
           :nodes-connectable="false"
+          @nodes-initialized="zoomOut()"
+          @init="isFlowReady = true"
         >
           <Background />
           <template #node-default="{ data, sourcePosition, targetPosition }">
@@ -99,19 +99,6 @@ onScopeDispose($destroy)
             }"
             @toggle-full-screen="toggleFullScreen"
           />
-
-          <Controls
-            class="bg-transparent rounded-lg shadow-md border-1 border-gray-200 !right-13 flex items-center"
-            :position="PanelPosition.TopRight"
-            :show-fit-view="false"
-            :show-interactive="false"
-          >
-            <template>
-              <div class="nc-erd-zoom-btn rounded-l-lg h-9 !px-2 flex items-center">
-                <GeneralIcon icon="plus" />
-              </div>
-            </template>
-          </Controls>
         </VueFlow>
       </div>
     </div>

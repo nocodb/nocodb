@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type LinkToAnotherRecordType, RelationTypes, type TableType, ViewTypes } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, RelationTypes, ViewTypes } from 'nocodb-sdk'
 import Graph from './Graph.vue'
 import { type CoordPosition, type Edge, useLayoutHelper } from './useLayoutHelper'
 
@@ -611,22 +611,6 @@ section {
       padding-left: 12px;
       font-weight: 500;
     }
-  }
-}
-
-@media print {
-  * {
-    -webkit-print-color-adjust: exact; /* Chrome, Safari 6 – 15.3, Edge */
-    color-adjust: exact; /* Firefox 48 – 96 */
-    print-color-adjust: exact;
-  }
-
-  #printOrgPage {
-    @apply m-0 shadow-none visible absolute left-0 top-0;
-  }
-
-  body {
-    @apply invisible;
   }
 }
 </style>

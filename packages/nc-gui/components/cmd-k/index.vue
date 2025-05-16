@@ -262,9 +262,8 @@ const setScope = (scope: string) => {
 const show = () => {
   if (!user.value) return
   if (props.scope === 'disabled') return
-  if (!vOpen.value) {
-    loadScope()
-  }
+
+  loadScope()
 
   vOpen.value = true
   cmdInput.value = ''
@@ -309,14 +308,6 @@ watch(cmdInput, () => {
   } else {
     updateDebouncedInput()
   }
-})
-
-whenever(keys.ctrl_k, () => {
-  show()
-})
-
-whenever(keys.meta_k, () => {
-  show()
 })
 
 whenever(keys.Escape, () => {

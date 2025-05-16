@@ -8,7 +8,7 @@ import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { BaseUser, type Column } from '~/models';
 
 export class UserGeneralHandler extends GenericFieldHandler {
-  override async parseValue(params: {
+  override async parseUserInput(params: {
     value: any;
     row: any;
     column: Column;

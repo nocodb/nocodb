@@ -42,7 +42,7 @@ export interface FieldHandlerInterface {
     options?: HandlerOptions,
   ): Promise<FilterVerificationResult>;
 
-  parseValue(params: {
+  parseUserInput(params: {
     value: any;
     row: any;
     column: Column;
@@ -89,7 +89,7 @@ export interface IFieldHandler {
 
   verifyFilters(filters: Filter[], options?: HandlerOptions): Promise<boolean>;
 
-  parseValue(params: {
+  parseUserInput(params: {
     value: any;
     row: any;
     column: Column;

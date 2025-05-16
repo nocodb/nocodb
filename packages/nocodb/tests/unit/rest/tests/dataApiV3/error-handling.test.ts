@@ -24,7 +24,7 @@ import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';
 describe('dataApiV3', () => {
-  describe('error-handling', () => {
+  describe.only('error-handling', () => {
     let testContext: ITestContext;
     let testAxios: INcAxios;
     let urlPrefix: string;

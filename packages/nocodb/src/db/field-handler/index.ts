@@ -22,6 +22,9 @@ import { RatingGeneralHandler } from './handlers/rating/rating.general.handler';
 import { YearGeneralHandler } from './handlers/year/year.general.handler';
 import { UserGeneralHandler } from './handlers/user/user.general.handler';
 import { DurationGeneralHandler } from './handlers/duration/duration.general.handler';
+import { CheckboxSqliteHandler } from './handlers/checkbox/checkbox.sqlite.handler';
+import { LongTextGeneralHandler } from './handlers/long-text/long-text.general.handler';
+import { SingleLineTextGeneralHandler } from './handlers/single-line-text/single-line-text.general.handler';
 import type { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
@@ -60,14 +63,15 @@ const HANDLER_REGISTRY: Partial<
     [CLIENT_DEFAULT]: LookupGeneralHandler,
   },
   [UITypes.SingleLineText]: {
-    [CLIENT_DEFAULT]: GenericFieldHandler,
+    [CLIENT_DEFAULT]: SingleLineTextGeneralHandler,
   },
   [UITypes.LongText]: {
-    [CLIENT_DEFAULT]: GenericFieldHandler,
+    [CLIENT_DEFAULT]: LongTextGeneralHandler,
   },
   [UITypes.Attachment]: {},
   [UITypes.Checkbox]: {
     [CLIENT_DEFAULT]: CheckboxGeneralHandler,
+    [ClientType.SQLITE]: CheckboxSqliteHandler,
   },
   [UITypes.MultiSelect]: {
     [CLIENT_DEFAULT]: MultiSelectGeneralHandler,
@@ -392,6 +396,30 @@ export class FieldHandler implements IFieldHandler {
     const handler = this.getHandler(params.column.uidt, dbClientType);
     if (handler) {
       return handler.parseUserInput(params);
+    } else {
+      return { value: params.value };
+    }
+  }
+
+  async parseDbValue(params: {
+    value: any;
+    row: any;
+    column: Column;
+    baseModel: IBaseModelSqlV2;
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+      logger?: Logger;
+    };
+    // for now the return value need to be {value: any}
+    // since it's possible for it to be knex query, which
+    // can be executed when awaited
+  }): Promise<{ value: any }> {
+    const dbClientType = params.baseModel.dbDriver.client.config.client;
+
+    const handler = this.getHandler(params.column.uidt, dbClientType);
+    if (handler) {
+      return handler.parseDbValue(params);
     } else {
       return { value: params.value };
     }

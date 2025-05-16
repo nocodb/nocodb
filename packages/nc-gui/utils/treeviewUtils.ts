@@ -27,7 +27,7 @@ export const getSourceTooltip = (source: SourceType) => {
         h('br'),
         'Both data and schema editing are disabled.',
         h('br'),
-        'These settings are ideal for read-only use cases of your data.',
+        'This configuration is ideal for read-only use cases of the database.',
         h('br'),
         h(
           'a',
@@ -52,7 +52,7 @@ export const getSourceTooltip = (source: SourceType) => {
         h('br'),
         'Data editing is allowed, while schema editing is forbidden.',
         h('br'),
-        'This configuration is ideal for trusted users who need to change data directly in the database.',
+        'This configuration is ideal to enable trusted users to directly change the database content.',
         h('br'),
         h(
           'a',

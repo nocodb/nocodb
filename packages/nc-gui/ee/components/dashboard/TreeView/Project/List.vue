@@ -72,13 +72,41 @@ const openedBase = computed(() => {
 
 const isWsSwitching = ref(false)
 
-const isLoadingSidebar = computed(() => {
-  const hasEmptyQueryParams = ncIsEmptyObject(route.value.params)
+const stopLoading = ref(false)
 
-  if (hasEmptyQueryParams || isWsSwitching.value) return true
+const isLoadingSidebar = computed(() => {
+  if (!stopLoading.value || isWsSwitching.value) return true
 
   return !isProjectsLoaded.value
 })
+
+let stopTimerId: any
+watch(
+  () => ncIsEmptyObject(route.value.params),
+  () => {
+    clearTimeout(stopTimerId)
+
+    if (ncIsEmptyObject(route.value.params)) {
+      stopLoading.value = false
+    } else {
+      stopLoading.value = true
+      return
+    }
+
+    stopTimerId = setTimeout(() => {
+      stopLoading.value = true
+      clearTimeout(stopTimerId)
+
+      // If their is no active project then show base list
+      if (showProjectList.value && (!activeProjectId.value || !openedBase.value?.id)) {
+        showProjectList.value = false
+      }
+    }, 5000)
+  },
+  {
+    immediate: true,
+  },
+)
 
 const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
 
@@ -431,6 +459,22 @@ watch(
     immediate: true,
   },
 )
+
+let timerId: any
+
+watch(isWsSwitching, (newValue) => {
+  if (!newValue) return
+
+  timerId = setTimeout(() => {
+    isWsSwitching.value = false
+
+    clearTimeout(timerId)
+  }, 2000)
+})
+
+onBeforeUnmount(() => {
+  clearTimeout(timerId)
+})
 </script>
 
 <template>

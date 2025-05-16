@@ -57,13 +57,41 @@ const openedBase = computed(() => {
   return basesList.value.find((b) => b.id === activeProjectId.value)
 })
 
-const isLoadingSidebar = computed(() => {
-  const hasEmptyQueryParams = ncIsEmptyObject(route.value.params)
+const stopLoading = ref(false)
 
-  if (hasEmptyQueryParams) return true
+const isLoadingSidebar = computed(() => {
+  if (!stopLoading.value) return true
 
   return !isProjectsLoaded.value
 })
+
+let stopTimerId: any
+watch(
+  () => ncIsEmptyObject(route.value.params),
+  () => {
+    clearTimeout(stopTimerId)
+
+    if (ncIsEmptyObject(route.value.params)) {
+      stopLoading.value = false
+    } else {
+      stopLoading.value = true
+      return
+    }
+
+    stopTimerId = setTimeout(() => {
+      stopLoading.value = true
+      clearTimeout(stopTimerId)
+
+      // If their is no active project then show base list
+      if (showProjectList.value && (!activeProjectId.value || !openedBase.value?.id)) {
+        showProjectList.value = false
+      }
+    }, 5000)
+  },
+  {
+    immediate: true,
+  },
+)
 
 const contextMenuTarget = reactive<{ type?: 'base' | 'source' | 'table' | 'main' | 'layout'; value?: any }>({})
 

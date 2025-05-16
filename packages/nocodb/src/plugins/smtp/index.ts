@@ -8,7 +8,7 @@ const config: XcPluginConfig = {
   builder: SMTPPlugin,
   id: 'smtp',
   title: 'SMTP',
-  version: '0.0.4',
+  version: '0.0.5',
   // icon: 'mdi-email-outline',
   description: 'SMTP email client',
   price: 'Free',
@@ -20,18 +20,18 @@ const config: XcPluginConfig = {
       {
         key: 'from',
         label: 'From address',
-        placeholder: 'admin@run.com',
+        placeholder: 'admin@example.com',
         type: XcType.SingleLineText,
         required: true,
         help_text:
-          'Successfully configured! Email notifications are now set up using SMTP.',
+          "Enter the e-mail address to be used as the sender (appearing in the 'From' field of sent e-mails).",
       },
       {
         key: 'host',
         label: 'SMTP server',
-        placeholder: 'smtp.run.com',
+        placeholder: 'smtp.example.com',
         help_text:
-          'Enter outgoing mail server address (SMTP). If you do not have this information available, contact your email service provider',
+          'Enter the SMTP hostname. If you do not have this information available, contact your email service provider.',
         type: XcType.SingleLineText,
         required: true,
       },
@@ -42,7 +42,7 @@ const config: XcPluginConfig = {
         type: XcType.SingleLineText,
         required: true,
         help_text:
-          "Specify the domain name that will be used in the 'From' address (e.g., yourdomain.com). This should match the domain of the From Address.",
+          "Specify the domain name that will be used in the 'From' address (e.g., yourdomain.com). This should match the domain of the 'From' address.",
       },
       {
         key: 'port',
@@ -51,7 +51,7 @@ const config: XcPluginConfig = {
         type: XcType.SingleLineText,
         required: true,
         help_text:
-          'Enter the port number used by the SMTP server (e.g., 587 for TLS, 465 for SSL, or 25 for non-secure connections).',
+          'Enter the port number used by the SMTP server (e.g., 587 for TLS, 465 for SSL, or 25 for insecure connections).',
       },
       {
         key: 'username',
@@ -60,7 +60,7 @@ const config: XcPluginConfig = {
         type: XcType.SingleLineText,
         required: false,
         help_text:
-          'Enter the username required to authenticate with the SMTP server. This is usually your email address.',
+          'Enter the username to authenticate with the SMTP server. This is usually your email address.',
       },
       {
         key: 'password',
@@ -78,7 +78,7 @@ const config: XcPluginConfig = {
         type: XcType.Checkbox,
         required: false,
         help_text:
-          'Enable this on if your SMTP server requires a secure connection (SSL/TLS).',
+          'Enable this if your SMTP server requires a secure connection (SSL/TLS).',
       },
       {
         key: 'ignoreTLS',
@@ -87,7 +87,7 @@ const config: XcPluginConfig = {
         type: XcType.Checkbox,
         required: false,
         help_text:
-          'Enable this if you want to bypass any TLS errors that may occur during the connection. Only use this if necessary, as it may compromise security.',
+          'Enable this if you want to ignore any TLS errors that may occur during the connection. Enabling this disables STARTTLS even if SMTP servers support it, hence may compromise security.',
       },
       {
         key: 'rejectUnauthorized',
@@ -96,7 +96,7 @@ const config: XcPluginConfig = {
         type: XcType.Checkbox,
         required: false,
         help_text:
-          'Enable this on to reject emails that fail authentication checks, ensuring only authorized emails are sent.',
+          'Disable this to allow connecting to an SMTP server that uses a self‑signed or otherwise invalid TLS certificate.',
       },
     ],
     actions: [

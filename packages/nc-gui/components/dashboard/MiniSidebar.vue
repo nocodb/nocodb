@@ -46,7 +46,7 @@ const navigateToProjectPage = () => {
     return
   }
 
-  navigateToProject({ workspaceId: activeWorkspaceId.value, baseId: basesList.value?.[0]?.id })
+  navigateToProject({ workspaceId: isEeUI ? activeWorkspaceId.value : undefined, baseId: basesList.value?.[0]?.id })
 }
 
 const navigateToSettings = () => {

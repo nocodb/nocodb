@@ -18,6 +18,7 @@ export class MigrateService {
     source,
     secret,
     instanceUrl,
+    workspaceProgress,
   }: {
     context: NcContext;
     base: Base;
@@ -25,6 +26,10 @@ export class MigrateService {
     secret: string;
     instanceUrl: string;
     req: NcRequest;
+    workspaceProgress?: {
+      current: number;
+      total: number;
+    };
   }) {
     if (!base || !source) {
       throw new Error(`Base or source not found!`);
@@ -71,6 +76,13 @@ export class MigrateService {
       pushStream(null);
       return e;
     });
+
+    if (workspaceProgress) {
+      pushStream({
+        type: 'workspaceProgress',
+        data: workspaceProgress,
+      });
+    }
 
     pushStream({
       type: 'base',

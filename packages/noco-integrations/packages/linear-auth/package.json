@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
-    "@linear/sdk": "^2.11.0",
+    "@linear/sdk": "^40.0.0",
     "axios": "^1.9.0"
   },
   "devDependencies": {

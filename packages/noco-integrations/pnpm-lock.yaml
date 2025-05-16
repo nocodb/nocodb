@@ -115,6 +115,41 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
+  packages/gitlab-auth:
+    dependencies:
+      '@gitbeaker/rest':
+        specifier: ^39.31.1
+        version: 39.34.3
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+      axios:
+        specifier: ^1.9.0
+        version: 1.9.0
+    devDependencies:
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  packages/gitlab-sync:
+    dependencies:
+      '@gitbeaker/rest':
+        specifier: ^39.31.1
+        version: 39.34.3
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+    devDependencies:
+      '@types/node':
+        specifier: ^20.17.46
+        version: 20.17.46
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
   packages/nocodb-ai:
     dependencies:
       '@ai-sdk/openai':
@@ -422,6 +457,18 @@ packages:
   '@eslint/plugin-kit@0.2.8':
     resolution: {integrity: sha512-ZAoA40rNMPwSm+AeHpCq8STiNAwzWLJuP8Xv4CHIc9wv/PSuExjMrmjfYNj682vW0OOiZ1HKxzvjQr9XZIisQA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@gitbeaker/core@39.34.3':
+    resolution: {integrity: sha512-/3qBXme2MjO38QU2F/MYGon9a4wHKrgtwNzdHHdjpbYJ2/wOGNgbEWSZcibcFkiWVgAjbPXdYqC5sY8hcwGO1w==}
+    engines: {node: '>=18.0.0'}
+
+  '@gitbeaker/requester-utils@39.34.3':
+    resolution: {integrity: sha512-nMnTkTo4UixHPwPYsYIjp8UdKrmSw3TjvRESexliAeNNq4/LVeyVUyRqBUa1ZI8MXt1nPPnPX3wh8s7rqlm7uA==}
+    engines: {node: '>=18.0.0'}
+
+  '@gitbeaker/rest@39.34.3':
+    resolution: {integrity: sha512-SuceThS6WhJtqNNcKmW8j0yUU7aXA4k5a29OWcd6bn7peQ3MXlIpbfvLLRnmuUaYUuxHLnUzZhAfuxaNf4DVtQ==}
+    engines: {node: '>=18.0.0'}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -1914,6 +1961,10 @@ packages:
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
+  picomatch-browser@2.2.6:
+    resolution: {integrity: sha512-0ypsOQt9D4e3hziV8O4elD9uN0z/jtUEfxVRtNaAAtXIyUx9m/SzlO020i8YNL2aL/E6blOvvHQcin6HZlFy/w==}
+    engines: {node: '>=8.6'}
+
   picomatch@2.3.1:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}
     engines: {node: '>=8.6'}
@@ -1970,6 +2021,9 @@ packages:
   range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
     engines: {node: '>= 0.6'}
+
+  rate-limiter-flexible@4.0.1:
+    resolution: {integrity: sha512-2/dGHpDFpeA0+755oUkW+EKyklqLS9lu0go9pDsbhqQjZcxfRyJ6LA4JI0+HAdZ2bemD/oOjUeZQB2lCZqXQfQ==}
 
   raw-body@3.0.0:
     resolution: {integrity: sha512-RmkhL8CAyCRPXCE28MMH0z2PNWQBNk2Q09ZdxM9IOOXwxwZbN+qbWaatPkdkWIKL2ZVDImrN/pK5HTRz2PcS4g==}
@@ -2405,6 +2459,9 @@ packages:
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
+  xcase@2.0.1:
+    resolution: {integrity: sha512-UmFXIPU+9Eg3E9m/728Bii0lAIuoc+6nbrNUKaRPJOFp91ih44qqGlWtxMB6kXFrRD6po+86ksHM5XHCfk6iPw==}
+
   yaml@2.7.1:
     resolution: {integrity: sha512-10ULxpnOCQXxJvBgxsn9ptjq6uviG/htZKk9veJGhlqn3w/DxQ631zFF+nlQXLwmImeS5amR2dl2U8sg6U9jsQ==}
     engines: {node: '>= 14'}
@@ -2618,6 +2675,24 @@ snapshots:
     dependencies:
       '@eslint/core': 0.13.0
       levn: 0.4.1
+
+  '@gitbeaker/core@39.34.3':
+    dependencies:
+      '@gitbeaker/requester-utils': 39.34.3
+      qs: 6.14.0
+      xcase: 2.0.1
+
+  '@gitbeaker/requester-utils@39.34.3':
+    dependencies:
+      picomatch-browser: 2.2.6
+      qs: 6.14.0
+      rate-limiter-flexible: 4.0.1
+      xcase: 2.0.1
+
+  '@gitbeaker/rest@39.34.3':
+    dependencies:
+      '@gitbeaker/core': 39.34.3
+      '@gitbeaker/requester-utils': 39.34.3
 
   '@humanfs/core@0.19.1': {}
 
@@ -4316,6 +4391,8 @@ snapshots:
 
   picocolors@1.1.1: {}
 
+  picomatch-browser@2.2.6: {}
+
   picomatch@2.3.1: {}
 
   picomatch@4.0.2: {}
@@ -4356,6 +4433,8 @@ snapshots:
   queue-microtask@1.2.3: {}
 
   range-parser@1.2.1: {}
+
+  rate-limiter-flexible@4.0.1: {}
 
   raw-body@3.0.0:
     dependencies:
@@ -4908,6 +4987,8 @@ snapshots:
       strip-ansi: 7.1.0
 
   wrappy@1.0.2: {}
+
+  xcase@2.0.1: {}
 
   yaml@2.7.1: {}
 

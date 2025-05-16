@@ -6,19 +6,11 @@ import {
 } from '@noco-integrations/core';
 import type {
   AuthResponse,
-  SyncRecord,
-  SyncSchema,
-  SyncValue,
+  TicketingCommentRecord,
   TicketingTicketRecord,
   TicketingUserRecord,
 } from '@noco-integrations/core';
 import type { Octokit } from 'octokit';
-
-// Define the TicketingCommentRecord interface locally since it's not exported from core
-interface TicketingCommentRecord extends SyncRecord {
-  Title: SyncValue<string>;
-  Body: SyncValue<string>;
-}
 
 export interface GithubSyncPayload {
   owner: string;
@@ -32,14 +24,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
   }
 
   public async getDestinationSchema(_auth: AuthResponse<Octokit>) {
-    const schema = JSON.parse(JSON.stringify(SCHEMA_TICKETING)) as SyncSchema;
-
-    for (const column of schema[TARGET_TABLES.TICKETING_USER].columns) {
-      if (column.pv) column.pv = false;
-      if (column.title === 'Name') column.pv = true;
-    }
-
-    return schema;
+    return SCHEMA_TICKETING;
   }
 
   public async fetchData(
@@ -71,6 +56,8 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
 
         const fetchAfter = ticketIncrementalValue;
 
+        this.log(`Fetching issues for ${owner}/${repo}`);
+
         const iterator = octokit.paginate.iterator(
           octokit.rest.issues.listForRepo,
           {
@@ -83,6 +70,8 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
         );
 
         for await (const { data } of iterator) {
+          this.log(`Fetched ${data.length} issues`);
+
           for (const issue of data) {
             // Store issue ID and number for later comment fetching
             issueMap.set(issue.number, { id: issue.id, number: issue.number });
@@ -103,7 +92,6 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
             for (const user of users) {
               if (!userMap.has(user.login)) {
                 userMap.set(user.login, true);
-
 
                 /*
                 // TODO: enable for email sync
@@ -133,57 +121,67 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
         }
 
         if (issueMap.size > 0) {
-          try {
-            // Fetch issue comments for the repository
-            const commentsIterator = octokit.paginate.iterator(
-              octokit.rest.issues.listCommentsForRepo,
-              {
-                owner,
-                repo,
-                per_page: 100,
-                // TODO incremental comments
-              },
-            );
+          if (args.targetTables?.includes(TARGET_TABLES.TICKETING_COMMENT)) {
+            this.log(`Fetching comments for ${owner}/${repo}`);
 
-            for await (const { data: comments } of commentsIterator) {
-              for (const comment of comments) {
-                // Extract issue number from the issue_url
-                // Format: https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}
-                const issueUrlParts = comment.issue_url.split('/');
-                const issueNumber = parseInt(
-                  issueUrlParts[issueUrlParts.length - 1],
-                  10,
-                );
+            try {
+              // Fetch issue comments for the repository
+              const commentsIterator = octokit.paginate.iterator(
+                octokit.rest.issues.listCommentsForRepo,
+                {
+                  owner,
+                  repo,
+                  per_page: 100,
+                  // TODO incremental comments
+                },
+              );
 
-                const issue = issueMap.get(issueNumber);
+              for await (const { data: comments } of commentsIterator) {
+                for (const comment of comments) {
+                  // Extract issue number from the issue_url
+                  // Format: https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}
+                  const issueUrlParts = comment.issue_url.split('/');
+                  const issueNumber = parseInt(
+                    issueUrlParts[issueUrlParts.length - 1],
+                    10,
+                  );
 
-                if (issue) {
-                  Object.assign(comment, {
-                    issue,
-                  });
+                  const issue = issueMap.get(issueNumber);
 
-                  // Add comment to stream
-                  stream.push({
-                    recordId: `${comment.id}`,
-                    targetTable: TARGET_TABLES.TICKETING_COMMENT,
-                    ...this.formatData(TARGET_TABLES.TICKETING_COMMENT, comment),
-                  });
-
-                  // Add comment author to users if not already added
-                  if (comment.user && !userMap.has(comment.user.login)) {
-                    userMap.set(comment.user.login, true);
-
-                    stream.push({
-                      recordId: `${comment.user.id}`,
-                      targetTable: TARGET_TABLES.TICKETING_USER,
-                      ...this.formatData(TARGET_TABLES.TICKETING_USER, comment.user),
+                  if (issue) {
+                    Object.assign(comment, {
+                      issue,
                     });
+
+                    // Add comment to stream
+                    stream.push({
+                      recordId: `${comment.id}`,
+                      targetTable: TARGET_TABLES.TICKETING_COMMENT,
+                      ...this.formatData(
+                        TARGET_TABLES.TICKETING_COMMENT,
+                        comment,
+                      ),
+                    });
+
+                    // Add comment author to users if not already added
+                    if (comment.user && !userMap.has(comment.user.login)) {
+                      userMap.set(comment.user.login, true);
+
+                      stream.push({
+                        recordId: `${comment.user.id}`,
+                        targetTable: TARGET_TABLES.TICKETING_USER,
+                        ...this.formatData(
+                          TARGET_TABLES.TICKETING_USER,
+                          comment.user,
+                        ),
+                      });
+                    }
                   }
                 }
               }
+            } catch (error) {
+              console.error('Error fetching comments for repository:', error);
             }
-          } catch (error) {
-            console.error('Error fetching comments for repository:', error);
           }
         }
 
@@ -202,7 +200,9 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
   public formatData(targetTable: TARGET_TABLES, data: any) {
     switch (targetTable) {
       case TARGET_TABLES.TICKETING_TICKET: {
-        const issue = data as Awaited<ReturnType<Octokit['rest']['issues']['listForRepo']>>['data'][0];
+        const issue = data as Awaited<
+          ReturnType<Octokit['rest']['issues']['listForRepo']>
+        >['data'][0];
         return {
           data: {
             Name: issue.title,
@@ -234,41 +234,41 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
           },
         };
       }
-      case TARGET_TABLES.TICKETING_USER:
-        {
-          const user = data as Awaited<ReturnType<Octokit['rest']['users']['getByUsername']>>['data'];
-          return {
-            data: {
-              Name: user.login,
-              Email: user.email || null,
-              Url: user.html_url,
-              // System Fields
-              RemoteRaw: JSON.stringify(user),
-            }
-          }
-        }
-      case TARGET_TABLES.TICKETING_COMMENT:
-        {
-          const comment = data as Awaited<ReturnType<Octokit['rest']['issues']['listCommentsForRepo']>>['data'][0] & { issue: { id: number, number: number } };
-          return {
-            data: {
-              Title: `${comment.user?.login} commented on issue #${comment.issue.number}`,
-              Body: comment.body || '',
-              Url: comment.html_url,
-              // System Fields
-              RemoteCreatedAt: comment.created_at,
-              RemoteUpdatedAt: comment.updated_at,
-              RemoteRaw: JSON.stringify(comment),
-            },
-            // Link values
-            links: {
-              Ticket: [`${comment.issue.id}`],
-              'Created By': comment.user?.id
-                ? [`${comment.user.id}`]
-                : [],
-            }
-          }
-        }
+      case TARGET_TABLES.TICKETING_USER: {
+        const user = data as Awaited<
+          ReturnType<Octokit['rest']['users']['getByUsername']>
+        >['data'];
+        return {
+          data: {
+            Name: user.login,
+            Email: user.email || null,
+            Url: user.html_url,
+            // System Fields
+            RemoteRaw: JSON.stringify(user),
+          },
+        };
+      }
+      case TARGET_TABLES.TICKETING_COMMENT: {
+        const comment = data as Awaited<
+          ReturnType<Octokit['rest']['issues']['listCommentsForRepo']>
+        >['data'][0] & { issue: { id: number; number: number } };
+        return {
+          data: {
+            Title: `${comment.user?.login} commented on issue #${comment.issue.number}`,
+            Body: comment.body || '',
+            Url: comment.html_url,
+            // System Fields
+            RemoteCreatedAt: comment.created_at,
+            RemoteUpdatedAt: comment.updated_at,
+            RemoteRaw: JSON.stringify(comment),
+          },
+          // Link values
+          links: {
+            Ticket: [`${comment.issue.id}`],
+            'Created By': comment.user?.id ? [`${comment.user.id}`] : [],
+          },
+        };
+      }
       default:
         return data;
     }

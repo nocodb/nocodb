@@ -609,7 +609,7 @@ export default class Integration implements IntegrationType {
 
   public wrapper: IntegrationWrapper;
 
-  getIntegrationWrapper<T = any>() {
+  getIntegrationWrapper<T = any>(logger?: (message: string) => void) {
     if (!this.wrapper) {
       const integrationWrapper = Integration.availableIntegrations.find(
         (el) => el.type === this.type && el.sub_type === this.sub_type,
@@ -619,7 +619,7 @@ export default class Integration implements IntegrationType {
         throw new Error('Integration not found');
       }
 
-      this.wrapper = new integrationWrapper.wrapper(this.getConfig());
+      this.wrapper = new integrationWrapper.wrapper(this.getConfig(), logger);
     }
 
     return this.wrapper as T;

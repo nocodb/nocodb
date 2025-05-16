@@ -3,101 +3,126 @@ description: creating a auth type integration
 globs: 
 alwaysApply: false
 ---
-# Auth Integration Guide
+# Authentication Integration Guide
 
-This guide provides detailed information on implementing Auth integrations for NocoDB.
+This guide provides instructions for creating a new authentication integration package for NocoDB.
 
-## Monorepo guidelines
+## Required Files
 
-- We use pnpm
-- Every package inside packages/ will use same tsconfig.json
-- We use eslint.config.js & .prettierrc on the root directory for all packages
+An auth integration package requires the following structure:
 
-## Auth Integration Interface
+```
+packages/name-auth/
+├── package.json          # Package dependencies and metadata
+├── tsconfig.json         # TypeScript configuration
+└── src/
+    ├── index.ts          # Exports the integration entry point
+    ├── integration.ts    # Implementation of the AuthIntegration class
+    ├── form.ts           # Form definition for configuration UI
+    ├── config.ts         # Configuration constants and environment variables
+    └── manifest.ts       # Integration metadata (title, icon, version, etc.)
+```
 
-Auth integrations must extend the `AuthIntegration` abstract class ([packages/core/src/types/auth.ts](mdc:packages/core/src/types/auth.ts)), which includes:
+## Implementation Steps
 
+1. Create the basic package structure:
+```bash
+mkdir -p packages/your-provider-auth/src
+```
+
+2. Create the package.json file:
+See [packages/gitlab-auth/package.json](mdc:packages/gitlab-auth/package.json) for an example.
+
+3. Create the tsconfig.json file:
+See [packages/gitlab-auth/tsconfig.json](mdc:packages/gitlab-auth/tsconfig.json) for an example.
+
+4. Implement the AuthIntegration class in `integration.ts`:
 ```typescript
-export abstract class AuthIntegration extends IntegrationWrapper {
-  abstract authenticate(payload: AuthCredentials): Promise<AuthResponse<any>>;
-  exchangeToken?(payload: any): Promise<Record<string, any>>;
+import { AuthIntegration, AuthType } from '@noco-integrations/core';
+import type { AuthResponse } from '@noco-integrations/core';
+
+export class YourProviderAuthIntegration extends AuthIntegration {
+  public async authenticate(): Promise<AuthResponse<any>> {
+    switch (this.config.type) {
+      case AuthType.ApiKey:
+        // Implement API Key authentication
+        return {
+          custom: {
+            // Return your provider's client/SDK instance
+          },
+        };
+      case AuthType.OAuth:
+        // Implement OAuth authentication
+        return {
+          custom: {
+            // Return your provider's client/SDK instance
+          },
+        };
+      default:
+        throw new Error('Not implemented');
+    }
+  }
+
+  // Implement exchangeToken method for OAuth flow
+  public async exchangeToken(payload: {
+    code: string;
+  }): Promise<{ oauth_token: string }> {
+    // Exchange the authorization code for access token
+    // and return the token
+  }
 }
 ```
 
-## Authentication Types
+5. Define configuration in `config.ts`:
+See [packages/gitlab-auth/src/config.ts](mdc:packages/gitlab-auth/src/config.ts) for an example.
 
-NocoDB supports various authentication types through the `AuthType` enum:
+6. Create the form definition in `form.ts`:
+See [packages/gitlab-auth/src/form.ts](mdc:packages/gitlab-auth/src/form.ts) for an example.
 
+7. Define the integration manifest in `manifest.ts`:
+See [packages/gitlab-auth/src/manifest.ts](mdc:packages/gitlab-auth/src/manifest.ts) for an example.
+
+8. Export the integration in `index.ts`:
 ```typescript
-export enum AuthType {
-  OAuth = 'oauth',
-  ApiKey = 'api_key',
-  Basic = 'basic',
-  Bearer = 'bearer',
-  Custom = 'custom',
-}
+import {
+  type IntegrationEntry,
+  IntegrationType,
+} from '@noco-integrations/core';
+import { YourProviderAuthIntegration } from './integration';
+import { form } from './form';
+import { manifest } from './manifest';
+
+const integration: IntegrationEntry = {
+  type: IntegrationType.Auth,
+  sub_type: 'your-provider', // Unique identifier for your integration
+  wrapper: YourProviderAuthIntegration,
+  form,
+  manifest,
+};
+
+export default integration;
 ```
 
-## Required Methods
+## Auth Integration Types
 
-1. **authenticate**: Performs authentication using the provided credentials
-   - Input: Authentication credentials specific to the integration
-   - Output: Authentication response with tokens or session information
+The AuthIntegration class supports different authentication types:
 
-2. **exchangeToken** (optional): Exchanges temporary tokens for permanent ones (commonly used in OAuth flows)
-   - Input: Payload containing code or temporary token
-   - Output: Permanent access tokens or credentials
-
-## Creating Auth Integration Manifests
-
-To simplify creating auth integration manifests, use the `createManifest` utility function:
-
-```typescript
-import { createManifest, IntegrationType } from '@noco-integrations/core';
-
-export const manifest = createManifest(IntegrationType.Auth, {
-  title: 'Your Auth Integration',
-  icon: 'your-icon',
-  version: '0.1.0',
-  description: 'Your integration description',
-  author: 'Your Name'
-});
-```
-
-This utility ensures your manifest follows the correct structure for Auth integrations and can automatically add any required fields.
-
-## Interface Definitions
-
-### AuthCredentials
-
-```typescript
-export interface AuthCredentials<T = any> {
-  type: AuthType;
-  [key: string]: any;
-  custom?: T;
-}
-```
-
-### AuthResponse
-
-```typescript
-export interface AuthResponse<T = any> {
-  custom?: T;
-}
-```
-
-## Implementation Guide
-
-1. Determine which authentication type is appropriate for your integration (OAuth, API Key, etc.)
-2. Implement the `authenticate` method to handle the authentication flow
-3. If using OAuth, implement the optional `exchangeToken` method
-4. Design a form in `form.ts` that collects the necessary credentials
-5. Store sensitive information securely in the configuration
+1. **API Key Authentication**: Uses a static API key or token for authentication
+2. **OAuth Authentication**: Implements OAuth 2.0 flow for authentication
+3. **Basic Authentication**: Uses username/password authentication
+4. **Bearer Authentication**: Uses bearer token authentication
+5. **Custom Authentication**: Uses a custom authentication method
 
 ## Best Practices
 
-1. Always use HTTPS for credential transmission
-2. Implement proper error handling for authentication failures
-3. Support token refresh when applicable
-4. Validate credentials before returning success
-5. Provide clear error messages for authentication issues
+1. Use official provider SDKs when available
+2. Handle errors appropriately and provide meaningful error messages
+3. Store sensitive information like API keys securely
+4. Follow the naming convention: `provider-auth` (e.g., `gitlab-auth`, `github-auth`)
+5. Start with version 0.1.0 for new integrations
+
+## Examples
+
+For a complete example of an auth integration, see:
+- [packages/gitlab-auth](mdc:packages/gitlab-auth/src) for GitLab authentication
+- [packages/github-auth](mdc:packages/github-auth/src) for GitHub authentication

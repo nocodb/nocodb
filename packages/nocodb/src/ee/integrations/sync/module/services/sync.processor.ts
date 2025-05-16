@@ -147,6 +147,7 @@ export class SyncModuleSyncDataProcessor {
     model: Model,
     syncRunId: string,
     req: NcRequest,
+    mmColumn?: Column,
   ) {
     let preserveDeleted = true;
 
@@ -230,7 +231,7 @@ export class SyncModuleSyncDataProcessor {
     } else if (SyncType.Incremental) {
       // For incremental we need to still clear junction table records
       // We will delete the records that are not updated in this run for updated parent records
-      if (model.mm) {
+      if (model.mm && mmColumn) {
         // first get records that are updated in this run 500 at a time
         const deletedParentIds = new Map<string, boolean>();
 
@@ -258,7 +259,7 @@ export class SyncModuleSyncDataProcessor {
           });
 
           for (const record of updatedRecords.list) {
-            const parentId = record.RemoteIdParent;
+            const parentId = record[mmColumn.title];
 
             if (deletedParentIds.has(parentId)) {
               continue;
@@ -277,36 +278,36 @@ export class SyncModuleSyncDataProcessor {
           offset += 500;
         }
 
-        const deletedParentIdsArray = Array.from(deletedParentIds.keys());
+        if (deletedParentIds.size > 0) {
+          const deletedParentIdsArray = Array.from(deletedParentIds.keys());
 
-        while (deletedParentIdsArray.length > 0) {
-          const parentIds = deletedParentIdsArray.splice(0, 100);
+          while (deletedParentIdsArray.length > 0) {
+            const parentIds = deletedParentIdsArray.splice(0, 100);
 
-          await this.bulkDataAliasService.bulkDataDeleteAll(context, {
-            baseName: model.base_id,
-            tableName: model.id,
-            req,
-            query: {
-              filterArr: [
-                {
-                  comparison_op: 'in',
-                  value: parentIds,
-                  logical_op: 'and',
-                  fk_column_id: model.columns.find(
-                    (c) => c.title === 'RemoteIdParent',
-                  )?.id,
-                },
-                {
-                  comparison_op: 'neq',
-                  value: syncRunId,
-                  logical_op: 'and',
-                  fk_column_id: model.columns.find(
-                    (c) => c.title === 'SyncRunId',
-                  )?.id,
-                },
-              ],
-            },
-          });
+            await this.bulkDataAliasService.bulkDataDeleteAll(context, {
+              baseName: model.base_id,
+              tableName: model.id,
+              req,
+              query: {
+                filterArr: [
+                  {
+                    comparison_op: 'in',
+                    value: parentIds,
+                    logical_op: 'and',
+                    fk_column_id: mmColumn.id,
+                  },
+                  {
+                    comparison_op: 'neq',
+                    value: syncRunId,
+                    logical_op: 'and',
+                    fk_column_id: model.columns.find(
+                      (c) => c.title === 'SyncRunId',
+                    )?.id,
+                  },
+                ],
+              },
+            });
+          }
         }
       }
     }
@@ -370,8 +371,15 @@ export class SyncModuleSyncDataProcessor {
 
     let recordCounter = 0;
 
-    const modelSyncTargetMap = new Map<string, Model>();
+    // we specifically add mmChildColumn because child is this table for mm (kinda reverse)
+    const modelSyncTargetMap = new Map<
+      string,
+      Model & {
+        mmChildColumn?: Column;
+      }
+    >();
     const modelIdSyncTargetMap = new Map<string, string>();
+    const targetTableIncrementalValues: Record<string, string> = {};
 
     for (const syncMap of syncMappings) {
       const model = await Model.get(context, syncMap.fk_model_id);
@@ -415,9 +423,44 @@ export class SyncModuleSyncDataProcessor {
         const auth = await authWrapper.authenticate();
 
         const wrapper =
-          await integration.getIntegrationWrapper<SyncIntegration>();
+          await integration.getIntegrationWrapper<SyncIntegration>(logBasic);
 
-        const dataStream = await wrapper.fetchData(auth, {});
+        if (parentSyncConfig.sync_type === SyncType.Incremental) {
+          for (const syncMap of syncMappings) {
+            const model = modelSyncTargetMap.get(syncMap.target_table);
+
+            if (!model) {
+              NcError.genericNotFound('Model', syncMap.fk_model_id);
+            }
+
+            const lastRecord = await this.dataTableService.dataList(context, {
+              modelId: model.id,
+              query: {
+                limit: 1,
+                orderBy: wrapper.getIncrementalKey(
+                  syncMap.target_table as TARGET_TABLES,
+                ),
+                order: 'desc',
+              },
+            });
+
+            if (lastRecord.list.length > 0) {
+              targetTableIncrementalValues[syncMap.target_table] =
+                lastRecord.list[0][
+                  wrapper.getIncrementalKey(
+                    syncMap.target_table as TARGET_TABLES,
+                  )
+                ];
+            }
+          }
+        }
+
+        const dataStream = await wrapper.fetchData(auth, {
+          targetTables: syncMappings.map(
+            (m) => m.target_table as TARGET_TABLES,
+          ),
+          targetTableIncrementalValues,
+        });
 
         const RemoteSyncedAt = dayjs().utc().toISOString();
         // Generate a unique ID for this sync run
@@ -484,7 +527,9 @@ export class SyncModuleSyncDataProcessor {
                       continue;
                     }
 
-                    const mmTable = await Model.get(
+                    const mmTable: Model & {
+                      mmChildColumn?: Column;
+                    } = await Model.get(
                       context,
                       column.colOptions.fk_mm_model_id,
                     );
@@ -494,8 +539,6 @@ export class SyncModuleSyncDataProcessor {
                     }
 
                     await mmTable.getColumns(context);
-
-                    modelSyncTargetMap.set(mmTable.id, mmTable);
 
                     const mmParentColumn = mmTable.columns.find(
                       (c) => c.id === column.colOptions.fk_mm_parent_column_id,
@@ -512,6 +555,10 @@ export class SyncModuleSyncDataProcessor {
                     if (!mmChildColumn) {
                       continue;
                     }
+
+                    mmTable.mmChildColumn = mmChildColumn;
+
+                    modelSyncTargetMap.set(mmTable.id, mmTable);
 
                     linkFieldConfig = {
                       mmTable,
@@ -536,6 +583,7 @@ export class SyncModuleSyncDataProcessor {
                   for (const record of data.links[linkField]) {
                     linkArray.push({
                       [linkFieldConfig.mmParentColumn.title]: record,
+                      // mmChildColumn is the table we are adding from hence data.recordId
                       [linkFieldConfig.mmChildColumn.title]: data.recordId,
                       RemoteId: `${record}-${data.recordId}`,
                       SyncConfigId: syncConfig.id,
@@ -651,6 +699,7 @@ export class SyncModuleSyncDataProcessor {
                     model,
                     syncRunId,
                     req,
+                    model.mmChildColumn,
                   );
                 }
               }
@@ -665,7 +714,9 @@ export class SyncModuleSyncDataProcessor {
                 ),
               });
 
-              logBasic(`Sync Completed: ${recordCounter} records synced`);
+              logBasic(
+                `Sync Completed (${integration.title}): ${recordCounter} records synced`,
+              );
 
               resolve();
             } catch (error) {

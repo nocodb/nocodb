@@ -18,6 +18,7 @@ import { LookupGeneralHandler } from './handlers/lookup/lookup.general.handler';
 import { LinksGeneralHandler } from './handlers/links/links.general.handler';
 import { RollupGeneralHandler } from './handlers/rollup/rollup.general.handler';
 import { PercentGeneralHandler } from './handlers/percent/percent.general.handler';
+import { RatingGeneralHandler } from './handlers/rating/rating.general.handler';
 import type { MetaService } from 'src/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
 import type { NcContext } from 'nocodb-sdk';
@@ -98,7 +99,9 @@ const HANDLER_REGISTRY: Partial<
     [CLIENT_DEFAULT]: PercentGeneralHandler,
   },
   [UITypes.Duration]: {},
-  [UITypes.Rating]: {},
+  [UITypes.Rating]: {
+    [CLIENT_DEFAULT]: RatingGeneralHandler,
+  },
   [UITypes.Formula]: {
     [CLIENT_DEFAULT]: FormulaGeneralHandler,
   },

@@ -467,12 +467,12 @@ export class BaseUsersService {
    * Checks if the user's current role is OWNER.
    * This considers both base roles and workspace roles.
    */
-  protected isOldRoleIsOwner(targetUser) {
+  private isOldRoleIsOwner(targetUser) {
     // Check if a base role is defined and if it includes the OWNER role.
     if (targetUser.base_roles) {
       const baseRole = getProjectRole(targetUser);
-      if (baseRole) {
-        return baseRole === ProjectRoles.OWNER;
+      if (baseRole && Object.keys(baseRole).length) {
+        return baseRole?.[ProjectRoles.OWNER];
       }
     }
 
@@ -512,127 +512,9 @@ export class BaseUsersService {
     }).length;
 
     // Throw error if no valid owner is found.
-    if (ownersCount <= 1) {
-      NcError.baseUserError('At least one owner is required');
-    }
-  }
-
-  /**
-   * Ensures that a base has an assigned owner.
-   * If no direct owner is found, assigns ownership to the first user
-   * whose role is derived from the workspace role.
-   */
-  protected async ensureBaseOwner(
-    context,
-    {
-      baseUsers,
-      ignoreUserId,
-      baseId,
-      req,
-    }: {
-      baseUsers: (Partial<User> & BaseUser)[];
-      ignoreUserId: string;
-      baseId: string;
-      req: NcRequest;
-    },
-    ncMeta = Noco.ncMeta,
-  ) {
-    // Check if at least one user (excluding ignored user) has an assigned OWNER role.
-    const ownerUser = baseUsers.find(
-      (u) => u.id !== ignoreUserId && u.roles?.includes(ProjectRoles.OWNER),
-    );
-
-    // If an owner exists, no further action is required.
-    if (ownerUser) {
-      return;
-    }
-
-    // Find the first user (excluding ignored user) with an OWNER role derived from workspace roles.
-    const derivedOwner = baseUsers.find(
-      (u) =>
-        u.id !== ignoreUserId &&
-        (u as { workspace_roles?: string }).workspace_roles ===
-          WorkspaceUserRoles.OWNER,
-    );
-
-    // If no derived owner is found, return early.
-    if (!derivedOwner) {
-      return;
-    }
-
-    // Check if the baseUser already exists for the derived owner.
-    const baseUser = await BaseUser.get(
-      context,
-      baseId,
-      derivedOwner.id,
-      ncMeta,
-    );
-
-    if (baseUser) {
-      // Update the role to OWNER if the baseUser already exists.
-      await BaseUser.updateRoles(
-        context,
-        baseId,
-        derivedOwner.id,
-        ProjectRoles.OWNER,
-        ncMeta,
-      );
-    } else {
-      // Insert a new baseUser with OWNER role if it doesn't exist.
-      await BaseUser.insert(
-        context,
-        {
-          base_id: baseId,
-          fk_user_id: derivedOwner.id,
-          roles: ProjectRoles.OWNER,
-          invited_by: req?.user?.id,
-        },
-        ncMeta,
-      );
-    }
-  }
-
-  private isOldRoleIsOwner(targetUser) {
-    // if base role is defined then check for owner role
-    if (targetUser.base_roles) {
-      const baseRole = getProjectRole(targetUser);
-      if (baseRole && Object.keys(baseRole).length) {
-        return baseRole?.[ProjectRoles.OWNER];
-      }
-    }
-
-    // if workspace_roles is present then check for owner role
-    if ((targetUser as { workspace_roles?: string }).workspace_roles) {
-      return extractRolesObj(
-        (targetUser as { workspace_roles?: string }).workspace_roles,
-      )?.[WorkspaceUserRoles.OWNER];
-    }
-
-    return false;
-  }
-
-  protected checkMultipleOwnerExist(baseUsers: (Partial<User> & BaseUser)[]) {
-    if (
-      baseUsers.filter((u) => {
-        if (u.roles?.includes(ProjectRoles.OWNER)) return true;
-
-        // if workspace_roles is present then check for owner role
-        // only if base role is not present
-        if (!u.roles && (u as { workspace_roles?: string }).workspace_roles) {
-          return (
-            WorkspaceRolesToProjectRoles[
-              (
-                u as {
-                  workspace_roles?: string;
-                }
-              ).workspace_roles
-            ] === ProjectRoles.OWNER
-          );
-        }
-        return false;
-      }).length === 1
-    )
+    if (ownersCount < 1) {
       NcError.badRequest('At least one owner is required');
+    }
   }
 
   /**

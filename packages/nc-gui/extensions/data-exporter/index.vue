@@ -146,7 +146,7 @@ async function exportDataAsync() {
       delimiter: exportPayload.value.delimiter,
       encoding: exportPayload.value.encoding,
     })
-    jobList.value.unshift(jobData)
+    jobList.value.unshift({ ...jobData, name: 'data-export' })
 
     $poller.subscribe(
       { id: jobData.id },

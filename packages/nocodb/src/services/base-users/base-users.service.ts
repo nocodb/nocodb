@@ -152,7 +152,7 @@ export class BaseUsersService {
             ncMeta,
           ));
 
-        // if old role is owner and there is only one owner then restrict update
+        // if old role is owner and there is only one owner then restrict to update
         if (targetUser && this.isOldRoleIsOwner(targetUser)) {
           const baseUsers = await BaseUser.getUsersList(
             context,
@@ -169,6 +169,11 @@ export class BaseUsersService {
             req: param.req,
           });
         }
+
+        const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
+        const newRolePower = reverseOrderedProjectRoles.indexOf(
+          param.baseUser.roles as ProjectRoles,
+        );
 
         // if already exists and has a role then throw error
         if (baseUser?.is_mapped && baseUser?.roles) {
@@ -379,7 +384,7 @@ export class BaseUsersService {
       {
         user,
         baseId: param.baseId,
-        workspaceId: base.fk_workspace_id,
+        workspaceId: context.workspace_id,
       },
       ncMeta,
     );
@@ -472,7 +477,7 @@ export class BaseUsersService {
     if (targetUser.base_roles) {
       const baseRole = getProjectRole(targetUser);
       if (baseRole && Object.keys(baseRole).length) {
-        return baseRole?.[ProjectRoles.OWNER];
+        return baseRole === ProjectRoles.OWNER;
       }
     }
 
@@ -612,16 +617,10 @@ export class BaseUsersService {
         );
     }
 
-    const baseUser = await User.getWithRoles(
-      context,
-      param.userId,
-      {
-        baseId: base_id,
-        workspaceId: base.fk_workspace_id,
-        user,
-      },
-      ncMeta,
-    );
+    const baseUser = await User.getWithRoles(context, param.userId, {
+      baseId: base_id,
+      workspaceId: context.workspace_id,
+    });
 
     // check if user have access to delete user based on role power
     if (

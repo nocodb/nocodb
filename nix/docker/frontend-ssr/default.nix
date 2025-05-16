@@ -2,18 +2,15 @@
   lib,
   dockerTools,
   dumb-init,
-  nocodb,
+  frontend-ssr,
 }:
 let
   port = 80;
 in
 dockerTools.buildLayeredImage {
-  name = "nocodb";
-  contents = [ dockerTools.binSh ];
+  name = "nocodb-frontend-ssr";
 
   config = {
-    WorkingDir = "/var/lib/nocodb";
-
     Env = [
       "PORT=${builtins.toString port}"
     ];
@@ -24,7 +21,7 @@ dockerTools.buildLayeredImage {
     Entrypoint = [
       (lib.getExe dumb-init)
       "--"
-      (lib.getExe nocodb)
+      (lib.getExe frontend-ssr)
     ];
   };
 }

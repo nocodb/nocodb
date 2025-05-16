@@ -240,6 +240,7 @@ export class FieldHandler implements IFieldHandler {
     options: HandlerOptions = {},
   ): Promise<(qb: Knex.QueryBuilder) => void> {
     const knex = options.knex ?? this.info.knex;
+    // TODO: check for custom knex and use get client from there
     const dbClient = knex.client.config.client as ClientType;
     const handler = this.getHandler(column.uidt, dbClient);
     const useColumn =
@@ -315,6 +316,7 @@ export class FieldHandler implements IFieldHandler {
     options: HandlerOptions = {},
   ): Promise<void> {
     const knex = options.knex ?? this.info.knex;
+    // TODO: check for custom knex and use get client from there
     const dbClient = knex.client.config.client as ClientType;
     const handler = this.getHandler(column.uidt, dbClient);
     return handler.select(qb, column, {
@@ -423,6 +425,7 @@ export class FieldHandler implements IFieldHandler {
       logger?: Logger;
     };
   }): Promise<{ value: any }> {
+    // TODO: check for custom knex and use get client from there
     const dbClientType = params.baseModel.dbDriver.client.config.client;
 
     const handler = this.getHandler(params.column.uidt, dbClientType);
@@ -447,6 +450,7 @@ export class FieldHandler implements IFieldHandler {
     // since it's possible for it to be knex query, which
     // can be executed when awaited
   }): Promise<{ value: any }> {
+    // TODO: check for custom knex and use get client from there
     const dbClientType = params.baseModel.dbDriver.client.config.client;
 
     const handler = this.getHandler(params.column.uidt, dbClientType);
@@ -473,6 +477,7 @@ export class FieldHandler implements IFieldHandler {
     const baseModel = params.options?.baseModel ?? this.info.baseModel;
     const context =
       params.options?.context ?? this.info.context ?? baseModel.context;
+    // TODO: check for custom knex and use get client from there
     const dbClientType = baseModel.dbDriver.client.config.client;
     const data = Array.isArray(params.data) ? params.data : [params.data];
     for (const column of (await baseModel.model.getColumns(context)).concat(

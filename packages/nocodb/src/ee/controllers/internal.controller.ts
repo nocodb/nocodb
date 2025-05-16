@@ -12,6 +12,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { ScriptsService } from '~/services/scripts.service';
 import { getBaseSchema } from '~/helpers/scriptHelper';
+import { NcError } from '~/helpers/catchError';
 import {
   InternalGETResponseType,
   InternalPOSTResponseType,
@@ -53,6 +54,7 @@ export class InternalController extends InternalControllerCE {
       createSync: 'base',
       triggerSync: 'base',
       migrateSync: 'base',
+      addChildSync: 'base',
       listScripts: 'base',
       getScript: 'base',
       createScript: 'base',
@@ -77,6 +79,8 @@ export class InternalController extends InternalControllerCE {
         return await this.dataReflectionService.get(workspaceId);
       case 'listSync':
         return await this.syncService.listSync(context, req);
+      case 'readSync':
+        return await this.syncService.readSync(context, req.query.id);
       case 'listScripts':
         return await this.scriptsService.listScripts(context, baseId);
       case 'getScript':
@@ -133,6 +137,10 @@ export class InternalController extends InternalControllerCE {
       case 'createSync':
         return await this.syncService.createSync(context, payload, req);
       case 'triggerSync':
+        if (!payload.syncConfigId) {
+          NcError.genericNotFound('SyncConfig', payload.syncConfigId);
+        }
+
         return await this.syncService.triggerSync(
           context,
           payload.syncConfigId,
@@ -140,6 +148,10 @@ export class InternalController extends InternalControllerCE {
           req,
         );
       case 'updateSync':
+        if (!payload.syncConfigId) {
+          NcError.genericNotFound('SyncConfig', payload.syncConfigId);
+        }
+
         return await this.syncService.updateSync(
           context,
           payload.syncConfigId,
@@ -147,12 +159,20 @@ export class InternalController extends InternalControllerCE {
           req,
         );
       case 'deleteSync':
+        if (!payload.syncConfigId) {
+          NcError.genericNotFound('SyncConfig', payload.syncConfigId);
+        }
+
         return await this.syncService.deleteSync(
           context,
           payload.syncConfigId,
           req,
         );
       case 'migrateSync':
+        if (!payload.syncConfigId) {
+          NcError.genericNotFound('SyncConfig', payload.syncConfigId);
+        }
+
         return await this.syncService.migrateSync(
           context,
           payload.syncConfigId,

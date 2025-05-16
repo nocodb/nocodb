@@ -59,9 +59,7 @@ export default class SyncConfig {
         context.workspace_id,
         context.base_id,
         MetaTable.SYNC_CONFIGS,
-        {
-          id: id,
-        },
+        id,
       );
 
       if (!syncConfig) return null;
@@ -77,7 +75,7 @@ export default class SyncConfig {
       syncConfig.children = children;
     }
 
-    return syncConfig;
+    return new SyncConfig(syncConfig);
   }
 
   public static async insert(
@@ -139,7 +137,7 @@ export default class SyncConfig {
       prepareForResponse(updateObj, 'config'),
     );
 
-    return true;
+    return this.get(context, id, ncMeta);
   }
 
   public static async delete(

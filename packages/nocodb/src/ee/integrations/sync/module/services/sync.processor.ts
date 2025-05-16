@@ -344,18 +344,20 @@ export class SyncModuleSyncDataProcessor {
 
     const syncConfigs = [mainSyncConfig];
 
-    if (mainSyncConfig.parent_sync_config_id) {
+    if (mainSyncConfig.fk_parent_sync_config_id) {
       parentSyncConfig = await SyncConfig.get(
         context,
-        mainSyncConfig.parent_sync_config_id,
+        mainSyncConfig.fk_parent_sync_config_id,
       );
 
       if (!parentSyncConfig) {
         NcError.genericNotFound(
           'SyncConfig',
-          mainSyncConfig.parent_sync_config_id,
+          mainSyncConfig.fk_parent_sync_config_id,
         );
       }
+    } else {
+      parentSyncConfig = mainSyncConfig;
     }
 
     if (bulk) {
@@ -457,6 +459,7 @@ export class SyncModuleSyncDataProcessor {
                 SyncConfigId: syncConfig.id,
                 SyncRunId: syncRunId,
                 RemoteDeleted: false,
+                SyncProvider: integration.getIntegrationMeta().title,
               });
 
               const dataBuffer = dataBuffers.get(model.id);
@@ -527,6 +530,7 @@ export class SyncModuleSyncDataProcessor {
                     SyncConfigId: string;
                     RemoteSyncedAt: string;
                     SyncRunId: string;
+                    SyncProvider: string;
                   }[] = [];
 
                   for (const record of data.links[linkField]) {
@@ -535,6 +539,7 @@ export class SyncModuleSyncDataProcessor {
                       [linkFieldConfig.mmChildColumn.title]: data.recordId,
                       RemoteId: `${record}-${data.recordId}`,
                       SyncConfigId: syncConfig.id,
+                      SyncProvider: integration.getIntegrationMeta().title,
                       RemoteSyncedAt,
                       SyncRunId: syncRunId,
                     });
@@ -763,6 +768,7 @@ export class SyncModuleSyncDataProcessor {
         await this.columnsService.columnDelete(context, {
           columnId: column.id,
           user: req.user,
+          forceDeleteSystem: true,
           req,
         });
       }

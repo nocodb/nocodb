@@ -209,7 +209,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
             Status: issue.state,
             Description: issue.body || null,
             'Ticket Type': issue.pull_request ? 'Pull Request' : 'Issue',
-            'Issue Number': issue.number,
+            'Ticket Number': issue.number,
             Tags:
               issue.labels
                 ?.map((label) =>

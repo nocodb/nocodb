@@ -2,6 +2,8 @@
 import { type FormBuilderElement, type IntegrationType } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType, iconMap } from '#imports'
 
+const emit = defineEmits(['change'])
+
 const {
   form,
   formState,
@@ -80,9 +82,14 @@ const filterIntegration = computed(() => {
   }
 })
 
+const setFormStateWithEmit = (path: string, value: any) => {
+  setFormState(path, value)
+  emit('change', path, value)
+}
+
 eventBus.on((event, payload) => {
   if (event === IntegrationStoreEvents.INTEGRATION_ADD && payload?.id && activeModel.value) {
-    setFormState(activeModel.value, payload.id)
+    setFormStateWithEmit(activeModel.value, payload.id)
     activeModel.value = null
   }
 })
@@ -141,7 +148,7 @@ watch(
                         autocomplete="off"
                         class="!w-full"
                         :value="deepReference(field.model)"
-                        @update:value="setFormState(field.model, $event)"
+                        @update:value="setFormStateWithEmit(field.model, $event)"
                       />
                     </template>
                     <template v-else-if="field.type === FormBuilderInputType.Password">
@@ -151,7 +158,7 @@ watch(
                         onblur="this.setAttribute('readonly', true);"
                         autocomplete="off"
                         :value="deepReference(field.model)"
-                        @update:value="setFormState(field.model, $event)"
+                        @update:value="setFormStateWithEmit(field.model, $event)"
                       />
                     </template>
                     <template v-else-if="field.type === FormBuilderInputType.Select">
@@ -159,13 +166,13 @@ watch(
                         :value="deepReference(field.model)"
                         :options="field.options"
                         :mode="selectMode(field)"
-                        @update:value="setFormState(field.model, $event)"
+                        @update:value="setFormStateWithEmit(field.model, $event)"
                       />
                     </template>
                     <template v-else-if="field.type === FormBuilderInputType.Switch">
                       <div class="flex flex-col p-2" :class="field.border ? 'border-1 rounded-lg shadow' : ''">
                         <div class="flex items-center">
-                          <NcSwitch :checked="!!deepReference(field.model)" @update:checked="setFormState(field.model, $event)" />
+                          <NcSwitch :checked="!!deepReference(field.model)" @update:checked="setFormStateWithEmit(field.model, $event)" />
                           <span class="ml-[6px] font-bold">{{ field.label }}</span>
                           <NcTooltip v-if="field.helpText">
                             <template #title>
@@ -190,7 +197,7 @@ watch(
                         placeholder="Select Integration"
                         allow-clear
                         show-search
-                        @update:value="setFormState(field.model, $event)"
+                        @update:value="setFormStateWithEmit(field.model, $event)"
                       >
                         <a-select-option
                           v-for="integration in filteredIntegrations[field.model]"
@@ -233,7 +240,7 @@ watch(
                     <template v-else-if="field.type === FormBuilderInputType.SelectBase">
                       <NcFormBuilderInputSelectBase
                         :value="deepReference(field.model)"
-                        @update:value="setFormState(field.model, $event)"
+                        @update:value="setFormStateWithEmit(field.model, $event)"
                       />
                     </template>
                     <template v-else-if="field.type === FormBuilderInputType.OAuth">
@@ -241,7 +248,7 @@ watch(
                         :value="deepReference(field.model)"
                         :element="field"
                         :have-value="!!deepReference(field.model)"
-                        @update:value="setFormState(field.model, $event)"
+                        @update:value="setFormStateWithEmit(field.model, $event)"
                       />
                     </template>
                     <div

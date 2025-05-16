@@ -538,10 +538,27 @@ export class SyncModuleService {
     return syncConfigs;
   }
 
+  async readSync(context: NcContext, syncConfigId: string) {
+    const syncConfig = await SyncConfig.get(context, syncConfigId);
+
+    if (!syncConfig) {
+      NcError.genericNotFound('SyncConfig', syncConfigId);
+    }
+
+    return syncConfig;
+  }
+
   async updateSync(
     context: NcContext,
     syncConfigId: string,
-    payload: any,
+    payload: {
+      title: string;
+      sync_type: SyncType;
+      sync_trigger: SyncTrigger;
+      sync_trigger_cron: string;
+      on_delete_action: OnDeleteAction;
+      config: IntegrationReqType & { id?: string };
+    },
     req: NcRequest,
   ) {
     const syncConfig = await SyncConfig.get(context, syncConfigId);
@@ -550,30 +567,67 @@ export class SyncModuleService {
       NcError.genericNotFound('SyncConfig', syncConfigId);
     }
 
-    const { sync, ...config } = payload.config;
+    const integrationPayload = payload.config;
 
-    const integrationPayload = {
-      ...payload,
-      config,
+    let updatedIntegration: Integration | null = null;
+    let updatedSyncConfig: SyncConfig | null = null;
+
+    if (integrationPayload && integrationPayload.id) {
+      const tempIntegrationWrapper = Integration.tempIntegrationWrapper(
+        integrationPayload,
+      ) as SyncIntegration;
+
+      Object.assign(integrationPayload, {
+        title: tempIntegrationWrapper.getTitle(),
+      });
+
+      updatedIntegration = await this.integrationsService.integrationUpdate(
+        context,
+        {
+          integrationId: syncConfig.fk_integration_id,
+          integration: integrationPayload,
+          req,
+        },
+      );
+    } else if (
+      integrationPayload &&
+      integrationPayload.type === IntegrationsType.Sync
+    ) {
+      const tempIntegrationWrapper = Integration.tempIntegrationWrapper(
+        integrationPayload,
+      ) as SyncIntegration;
+
+      Object.assign(integrationPayload, {
+        title: tempIntegrationWrapper.getTitle(),
+      });
+
+      updatedIntegration = await this.integrationsService.integrationCreate(
+        context,
+        {
+          workspaceId: context.workspace_id,
+          integration: integrationPayload,
+          req,
+        },
+      );
+
+      updatedSyncConfig = await SyncConfig.insert(context, {
+        fk_integration_id: updatedIntegration.id,
+        fk_parent_sync_config_id: syncConfig.id,
+      });
+    } else if (!syncConfig.fk_parent_sync_config_id) {
+      updatedSyncConfig = await SyncConfig.update(context, syncConfigId, {
+        title: payload.title,
+        sync_type: payload.sync_type,
+        sync_trigger: payload.sync_trigger,
+        sync_trigger_cron: payload.sync_trigger_cron,
+        on_delete_action: payload.on_delete_action,
+      });
+    }
+
+    return {
+      syncConfig: updatedSyncConfig ?? syncConfig,
+      integration: updatedIntegration,
     };
-
-    const tempIntegrationWrapper = Integration.tempIntegrationWrapper(
-      integrationPayload,
-    ) as SyncIntegration;
-
-    Object.assign(integrationPayload, {
-      title: tempIntegrationWrapper.getTitle(),
-    });
-
-    await this.integrationsService.integrationUpdate(context, {
-      integrationId: syncConfig.fk_integration_id,
-      integration: integrationPayload,
-      req,
-    });
-
-    await SyncConfig.update(context, syncConfigId, sync);
-
-    return syncConfig;
   }
 
   async deleteSync(context: NcContext, syncConfigId: string, req: NcRequest) {

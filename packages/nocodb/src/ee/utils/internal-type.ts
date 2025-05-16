@@ -28,4 +28,8 @@ export type InternalPOSTResponseType = Promise<
       syncConfig: SyncConfig;
       job: { id: JobId; secret?: string };
     }
+  | {
+      syncConfig: SyncConfig;
+      integration: Integration;
+    }
 >;

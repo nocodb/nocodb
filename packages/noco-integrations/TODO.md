@@ -16,7 +16,7 @@ Before checking a box run `pnpm run install && pnpm run build` to ensure the int
 
 ### Jira
 - [x] Auth Integration
-- [ ] Sync Integration
+- [x] Sync Integration
 
 ### Linear
 - [x] Auth Integration

@@ -221,7 +221,7 @@ const sourceIdToIconMap = computed(() => {
           <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-brand-500" />
         </div>
         <div class="flex flex-col gap-1">
-          <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
+          <div class="label">{{ $t('dashboards.create_new_table') }}</div>
           <div class="subtext">{{ $t('msg.subText.createNewTable') }}</div>
         </div>
       </div>

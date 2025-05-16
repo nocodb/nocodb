@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Crează o nouă interfață",
+    "create_new_table": "Crează o nouă tabelă",
     "connect_data_sources": "Conectează sursele de date",
     "alert": "Alertă",
     "alert-message": "Nici o bază de date nu a fost conectată. Conectează bazele de date pentru a construi interfețe. Omite acest pas și adaugă bazele de date de pe pagina principală a bazei ulterior.",

@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Opret ny grænseflade",
+    "create_new_table": "Opret ny tabel",
     "connect_data_sources": "Forbind datakilder",
     "alert": "Alarm",
     "alert-message": "Ingen databaser er blevet forbundet. Forbind database baser for at bygge grænseflader. Spring dette trin over og tilføj databaser fra base-hovedsiden senere.",

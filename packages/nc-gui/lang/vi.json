@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Tạo giao diện mới",
+    "create_new_table": "Tạo bảng mới",
     "connect_data_sources": "Kết nối nguồn dữ liệu",
     "alert": "Thông báo",
     "alert-message": "Không có cơ sở dữ liệu được kết nối. Kết nối cơ sở dữ liệu để xây dựng giao diện. Bỏ qua bước này và thêm cơ sở dữ liệu từ trang chủ cơ sở sau.",

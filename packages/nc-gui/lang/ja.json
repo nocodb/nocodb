@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "インターフェースを作成",
+    "create_new_table": "新しいテーブルを作成",
     "connect_data_sources": "データソースに接続",
     "alert": "アラート",
     "alert-message": "データベースが接続されていません。DBベースを接続してインターフェースを構成してください。スキップして後でベースのホームページを追加することもできます。",

@@ -10,6 +10,7 @@ export enum ActionType {
   INPUT_RESOLVED = 'inputResolved',
   UPDATE_PROGRESS = 'updateProgress',
   RESET_PROGRESS = 'resetProgress',
+  REMOTE_FETCH = 'remoteFetch',
 
   ACTION = 'action',
   ACTION_COMPLETE = 'action_complete',
@@ -64,8 +65,7 @@ export interface CallApiAction
     ActionType.CALL_API,
     {
       id: string
-      level1: string
-      level2: string
+      method: string
       args: unknown[]
     }
   > {}

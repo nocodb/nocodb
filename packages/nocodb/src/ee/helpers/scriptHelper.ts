@@ -227,18 +227,20 @@ export async function getBaseSchema(baseId: string, ncMeta = Noco.ncMeta) {
         ncMeta.knex.raw(`
           COALESCE(
             json_agg(
-              DISTINCT jsonb_build_object(
+              jsonb_build_object(
                 'id', c.id,
                 'name', c.title,
                 'type', c.uidt,
-                'pk', c.pk,
-                'pv', c.pv,
+                'primary_key', c.pk,
+                'primary_value', c.pv,
                 'default_value', c.cdf,
                 'meta', c.meta,
-                'system', c.system,
+                'is_system_field', c.system,
                 'options', ${generateColOptionsCase(ncMeta.knex).toQuery()},
-                'description', c.description
+                'description', c.description,
+                'order', c.order
               )
+              ORDER BY c.order NULLS LAST
             ) FILTER (WHERE c.id IS NOT NULL),
             '[]'::json
           ) as fields

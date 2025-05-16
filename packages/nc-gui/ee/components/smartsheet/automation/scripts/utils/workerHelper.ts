@@ -227,6 +227,51 @@ function generalHelpers() {
 
 function generateBaseModels() {
   return `
+  const UITypes = {
+  ID: 'ID',
+  LinkToAnotherRecord: 'LinkToAnotherRecord',
+  ForeignKey: 'ForeignKey',
+  Lookup: 'Lookup',
+  SingleLineText: 'SingleLineText',
+  LongText: 'LongText',
+  Attachment: 'Attachment',
+  Checkbox: 'Checkbox',
+  MultiSelect: 'MultiSelect',
+  SingleSelect: 'SingleSelect',
+  Date: 'Date',
+  Year: 'Year',
+  Time: 'Time',
+  PhoneNumber: 'PhoneNumber',
+  GeoData: 'GeoData',
+  Email: 'Email',
+  URL: 'URL',
+  Number: 'Number',
+  Decimal: 'Decimal',
+  Currency: 'Currency',
+  Percent: 'Percent',
+  Duration: 'Duration',
+  Rating: 'Rating',
+  Formula: 'Formula',
+  Rollup: 'Rollup',
+  DateTime: 'DateTime',
+  CreatedTime: 'CreatedTime',
+  LastModifiedTime: 'LastModifiedTime',
+  Geometry: 'Geometry',
+  JSON: 'JSON',
+  SpecificDBType: 'SpecificDBType',
+  Barcode: 'Barcode',
+  QrCode: 'QrCode',
+  Button: 'Button',
+  Links: 'Links',
+  User: 'User',
+  CreatedBy: 'CreatedBy',
+  LastModifiedBy: 'LastModifiedBy',
+  Order: 'Order',
+};
+
+// To make it immutable (optional)
+Object.freeze(UITypes);
+  
   class Collaborator {
     constructor(data) {
       this.id = undefined;
@@ -254,10 +299,27 @@ function generateBaseModels() {
     }
   }
   
+  const extractObjFromPk = (id, fields) => {
+    const where = {};
+    const pkCols = fields.filter(f => f.primary_key)
+    
+    let ids;
+    if(pkCols.length > 1) {
+      ids = id.split('___').map((val) => val.replaceAll('\\\\_', '_'));
+    } else {
+      ids = [id];
+    }
+    
+    for (let i = 0; i < pkCols.length; i++) {
+      where[pkCols[i].name] = ids[i];
+    }
+    return where
+  }
+  
   const extractPk = (row, fields) => {
     if(!row || !fields?.length) return null
     
-    const pkCols = fields.filter(f => f.pk)
+    const pkCols = fields.filter(f => f.primary_key)
        
     if(pkCols.length > 1) {
       return pkCols.map(pk => row[pk.name]?.toString?.().replaceAll('_', '\\\\_') ?? null).join('___')
@@ -275,12 +337,20 @@ function generateBaseModels() {
     #view;
     #pageInfo;
     #rawData;
+    #nextUrl;
     
     constructor(data, table, view, options) {
       this.#table = table;
       this.#view = view;
       this.#options = options;
       this.#pageInfo = data.pageInfo;
+      this.#pageInfo = {
+        page: data.pageInfo?.next ? this.extractPageFromUrl(data.pageInfo.next) - 1 : 1,
+        pageSize: options.limit || 25,
+        isLastPage: !data.pageInfo?.next,
+      };
+      this.#nextUrl = data.pageInfo?.next || null;
+
       const records = []
       
       this.#rawData = data.list;
@@ -303,6 +373,19 @@ function generateBaseModels() {
       return this.#table;
     }
     
+    extractPageFromUrl(url) {
+      try {
+        const urlObj = new URL(url);
+        const pageParam = urlObj.searchParams.get('page');
+        return pageParam ? parseInt(pageParam, 10) : 1;
+      } catch (e) {
+        // If URL parsing fails, try regex
+        const pageMatch = url.match(/page=(\\d+)/);
+        return pageMatch ? parseInt(pageMatch[1], 10) : 1;
+      }
+    }
+
+    
     getRecord(recordId) {
       const record = this.#recordsById.get(recordId);
       if (!record) {
@@ -312,18 +395,20 @@ function generateBaseModels() {
     }
     
     async loadMoreRecords() {
-      if (this.#pageInfo.isLastPage) {
+      if (!this.#nextUrl) {
         return null;
       }
+      const nextPage = this.#pageInfo.page + 1;
       
-      const nextOffset = this.#pageInfo.page * this.#pageInfo.pageSize;
-
-   
-      const response = await api.dbDataTableRow.list(this.#table.id, {
-        ...this.#options,
-        offset: nextOffset,
-        ...(this.#view ? { viewId: this.#view.id } : {})
-      });
+      const response = await api.dbDataTableRowList(
+        this.#table.base.id,
+        this.#table.id,
+        {
+          ...this.#options,
+          offset: this.#pageInfo.page * this.#pageInfo.pageSize,
+          ...(this.#view ? { viewId: this.#view.id } : {})
+        }
+      );
       
       this.#rawData = [...this.#rawData, ...response.list];
       
@@ -337,17 +422,19 @@ function generateBaseModels() {
       })]);
       
       this.records = Object.freeze(records);
+      this.#nextUrl = response.pageInfo?.next || null;
       
-      this.#pageInfo = response.pageInfo;
+      this.#pageInfo = {
+        page: nextPage,
+        pageSize: this.#options.limit || 25,
+        isLastPage: !response.pageInfo?.next,
+        totalRows: response.pageInfo?.totalRows || (this.#pageInfo.totalRows + response.list.length)
+      };
       return this;
     }
     
     get hasMoreRecords() {
-      return !this.#pageInfo.isLastPage;
-    }
-
-    get totalRecords() {
-      return this.#pageInfo.totalRows;
+      return !!this.#nextUrl;
     }
 
     get currentPage() {
@@ -356,6 +443,9 @@ function generateBaseModels() {
 
     get pageSize() {
       return this.#pageInfo.pageSize;
+    }
+    get nextUrl() {
+      return this.#nextUrl;
     }
   }
   
@@ -367,7 +457,7 @@ function generateBaseModels() {
       this.#table = table;
       this.#data = data;
       this.id = extractPk(data, table.fields);
-      const displayField = this.#table.fields.find(f => f.pv)
+      const displayField = this.#table.fields.find(f => f.primary_value)
       this.name  = this.#data[displayField.name] ?? this.id
     }
     
@@ -391,14 +481,14 @@ function generateBaseModels() {
         
         switch(field.type) {
           case 'MultiSelect':
-            return data?.split(',').map(d => d.trim()) || [];
+            return data || [];
           case 'User':
           case 'CreatedBy':
           case 'LastModifiedBy': {
             if (!field.options?.allow_multiple_users) {
               const userData = data?.length ? data[0] : data;
-               return userData ? new Collaborator({ id: userData.id, email: userData.email, name: userData.display_name }) : null;
-            } else return (data?.map(d => new Collaborator({ id: d.id, email: d.email, name: d.display_name })) ?? []);
+               return userData ? new Collaborator({ id: userData.id, email: userData.email, name: userData.display_name ?? '' }) : null;
+            } else return (data?.map(d => new Collaborator({ id: d.id, email: d.email, name: d.display_name ?? '' })) ?? []);
           }
           case 'Links': {
             if (['hm', 'mm'].includes(field?.options?.relation_type)) return data
@@ -417,7 +507,7 @@ function generateBaseModels() {
             if (['bt', 'oo'].includes(field?.options?.relation_type)) {
               if(!data) return null;
               
-              return( new NocoDBRecord(data, relatedTable))
+              return (new NocoDBRecord(data, relatedTable))
             }
           }
           default:
@@ -565,9 +655,9 @@ function generateBaseModels() {
   
   class Field {
     #table;
-    #pk;
-    #pv;
-    #system
+    #primary_key;
+    #primary_value;
+    #is_system_field
     constructor(data, table) {
       this.id = data.id;
       this.name = data.name;
@@ -576,33 +666,38 @@ function generateBaseModels() {
       this.options = Object.keys(data.options ?? {}).length ? data.options : null;
       this.isComputed = ['LinkToAnotherRecord', 'Formula', 'QrCode', 'Barcode', 'Rollup', 'Links', 'CreatedTime', 'LastModifiedTime', 'CreatedBy', 'LastModifiedBy', 'Button'].includes(data.type);
       
-      this.#pk = data.pk
-      this.#system = data.system
-      this.#pv = data.pv
+      this.#primary_key = data.primary_key
+      this.#is_system_field = data.is_system_field
+      this.#primary_value = data.primary_value
       this.#table = table;
     }
     
-    get pk() {
-      return this.#pk;
+    get primary_key() {
+      return this.#primary_key;
     }
     
-    get pv() {
-      return this.#pv;
+    get primary_value() {
+      return this.#primary_value;
     }
     
-    get system() {
-      return this.#system;
+    get is_system_field() {
+      return this.#is_system_field;
+    }
+    
+    async updateOptionsAsync(options) {
+      output.warn("This is not Production Ready. The api may change")
+      await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, { id: this.id, type: this.type, title: this.name, options: options });
     }
     
     async updateDescriptionAsync(description) {
       this.description = description;
-      await api.dbTableColumn.update(this.id, { description, id: this.id, title: this.name });
+      await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, {  id: this.id, type: this.type, title: this.name, description });
       return this;
     }
     
     async updateNameAsync(name) {
       this.name = name;
-      await api.dbTableColumn.update(this.id, { description: this.description, id: this.id, title: name, column_name: name });
+      await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, {  id: this.id, type: this.type, title: this.name });
       return this
     }
   }
@@ -624,7 +719,7 @@ function generateBaseModels() {
     async selectRecordAsync(recordId, options = {}) {
       const { fields = [] } = options;
       
-      const pvAndPk = this.#table.fields.filter(f => f.pv || f.pk).map(f => f.name)
+      const pvAndPk = this.#table.fields.filter(f => f.primary_value || f.primary_key).map(f => f.name)
       
       const _fieldsToSelect = fields.map((field) => {
         if (typeof field === 'string') {
@@ -639,7 +734,7 @@ function generateBaseModels() {
       
       const fieldsToSelect = Array.from(new Set([..._fieldsToSelect, ...pvAndPk]))
       
-      const data = await api.dbDataTableRow.read(this.#table.id, recordId, {
+      const data = await api.dbDataTableRowRead(this.#table.base.id, this.#table.id, recordId, {
         viewId: this.id,
         ...(fields?.length && { fields: fieldsToSelect })
       })
@@ -652,7 +747,7 @@ function generateBaseModels() {
     async selectRecordsAsync(options = {}) {
       const { sorts = [], fields = [], recordIds = [], limit = 500, offset = 0 } = options
            
-      const pvAndPk = this.#table.fields.filter(f => f.pv || f.pk).map(f => f.name)
+      const pvAndPk = this.#table.fields.filter(f => f.primary_value || f.primary_key).map(f => f.name)
       
       const _fieldsToSelect = fields.map((field) => {
         if (typeof field === 'string') {
@@ -687,7 +782,7 @@ function generateBaseModels() {
         ...(fieldsToSelect && { fields: fieldsToSelect }),
         ...(sortStr && { sort: sortStr }),
       };
-      const data = await api.dbDataTableRow.list(this.#table.id, requestOptions)
+      const data = await api.dbDataTableRowList(this.#table.base.id, this.#table.id, requestOptions)
       
       return new RecordQueryResult(data, this.#table, this, requestOptions);
     }
@@ -700,25 +795,41 @@ function generateBaseModels() {
       this.id = data.id;
       this.name = data.name;
       this.description = data.description;
-      this.#all_fields = data.fields.map((f) => new Field({id: f.id, name: f.name, type: f.type, description: f.description, options: f.options, pk: f.pk, pv: f.pv, system: f.system}, this));
+      this.#all_fields = data.fields.map((f) => new Field({id: f.id, name: f.name, type: f.type, description: f.description, options: f.options, primary_key: f.primary_key, primary_value: f.primary_value, is_system_field: f.is_system_field}, this));
       this.views = data.views.map(v => new View({id: v.id, name: v.name, description: v.description, type: v.type}, this));
       this.#base = base;
       
-      this.fields = this.#all_fields.filter(f => !f.system);
+      this.fields = this.#all_fields.filter(f => !f.is_system_field);
     }
     
     getField(idOrName) {
-      return this.fields.find((field) => field.id === idOrName || field.name === idOrName)
+      return this.#all_fields.find((field) => field.id === idOrName || field.name === idOrName)
+    }
+    
+    get base () {
+      return this.#base;
     }
     
     getView(idOrName) {
       return this.views.find((view) => view.id === idOrName || view.name === idOrName)
     }
     
+    async createFieldAsync(field) {
+      if (this.getField(field.name)) throw new Error(\`Field \${field.name} already exists in table \${this.name}\`)
+      field.title = field.name
+      delete field.name
+      output.warn('This is not production ready. Some types may be incorrect')
+      const data = await api.v3MetaBasesTablesFieldsCreate(this.id, this.#base.id, field);
+      const newField = new Field({id: data.id, name: data.title, type: data.type, description: data.description, options: data.options, primary_key: false, primary_value: false, is_system_field: false}, this);
+      this.#all_fields.push(newField);
+      this.fields = this.#all_fields.filter(f => !f.is_system_field);
+      return newField;
+    }
+    
     async selectRecordAsync(recordId, options = {}) {
       const { fields = [] } = options;
       
-      const pvAndPk = this.fields.filter(f => f.pv || f.pk).map(f => f.name)
+      const pvAndPk = this.fields.filter(f => f.primary_value || f.primary_key).map(f => f.name)
            
       const _fieldsToSelect = fields.map((field) => {
         if (typeof field === 'string') {
@@ -733,7 +844,7 @@ function generateBaseModels() {
       
       const fieldsToSelect = Array.from(new Set([..._fieldsToSelect, ...pvAndPk]))
  
-      const data = await api.dbDataTableRow.read(this.id, recordId, {
+      const data = await api.dbDataTableRowCount(this.base.id, this.id, recordId, {
         ...(fields?.length && { fields: fieldsToSelect })
       })
                  
@@ -745,7 +856,7 @@ function generateBaseModels() {
     async selectRecordsAsync(options = {}) {
       const { sorts = [], fields = [], recordIds = [], limit = 500, offset = 0 } = options
            
-      const pvAndPk = this.fields.filter(f => f.pv || f.pk).map(f => f.name)
+      const pvAndPk = this.fields.filter(f => f.primary_value || f.primary_key).map(f => f.name)
       
       const _fieldsToSelect = fields.map((field) => {
         if (typeof field === 'string') {
@@ -780,7 +891,7 @@ function generateBaseModels() {
         ...(sortStr && { sort: sortStr }),
       };
       
-      const data = await api.dbDataTableRow.list(this.id, requestOptions)
+      const data = await api.dbDataTableRowList(this.#base.id, this.id, requestOptions)
      
       return new RecordQueryResult(data, this, null, requestOptions);
     }
@@ -795,7 +906,7 @@ function generateBaseModels() {
         }
       }
       
-      const response = await api.dbDataTableRow.create(this.id, recordData);
+      const response = await api.dbDataTableRowCreate(this.base.id, this.id, recordData);   
       return new NocoDBRecord(response, this).id;
     }
     
@@ -814,7 +925,7 @@ function generateBaseModels() {
         insertObjs.push(recordData)
       }
       
-      const response = await api.dbDataTableRow.create(this.id, insertObjs);
+      const response = await api.dbDataTableRowCreate(this.base.id, this.id, insertObjs);
       
       return response.map(r => new NocoDBRecord(r, this).id);
     }
@@ -829,36 +940,53 @@ function generateBaseModels() {
           recordData[field.name] = data[field.id];
         }
       }
+      const recordObj = extractObjFromPk(recordID, this.fields)
       
-      await api.dbTableRow.update('NOCO', this.#base.id, this.id, recordID, recordData);
+      Object.assign(recordData, recordObj)
+            
+      await api.dbDataTableRowUpdate(this.base.id, this.id, recordData);
     }
     
-    async updateRecordsAsync(data) {
+    async updateRecordsAsync(records) {
       const updateObjs = []
       
-      for(const record of data) {
+      for (const record of records) {
+        const recordID = (record.id instanceof NocoDBRecord) ? record.id.id : record.id;
         const recordData = {};
+        
         for (const field of this.fields) {
-          if (record[field.name]) {
-            recordData[field.name] = record[field.name];
-          } else if (record[field.id]) {
-            recordData[field.name] = record[field.id];
+          const fieldData = record.fields;
+          if (fieldData[field.name]) {
+            recordData[field.name] = fieldData[field.name];
+          } else if (fieldData[field.id]) {
+            recordData[field.name] = fieldData[field.id];
           }
         }
-        updateObjs.push(recordData)
+        const recordObj = extractObjFromPk(recordID, this.fields);
+        Object.assign(recordData, recordObj);    
+        updateObjs.push(recordData);
       }
-      
-      await api.dbDataTableRow.update(this.id, updateObjs);
+
+      await api.dbDataTableRowUpdate(this.base.id, this.id, updateObjs); 
     }
     
     async deleteRecordAsync(recordIdOrRecord) {
       const recordID = (recordIdOrRecord instanceof NocoDBRecord) ? recordIdOrRecord.id: recordIdOrRecord
-      
-      await api.dbTableRow.delete('NOCO', this.#base.id, this.id, recordID);
+      const recordObj = extractObjFromPk(recordID, this.fields);
+      await api.dbDataTableRowDelete(this.base.id, this.id, recordObj);
       
       return true
     }
     
+    async deleteRecordsAsync(recordIds) {
+      const deleteObjs = []
+      for (const recordId of recordIds) {
+        const recordObj = extractObjFromPk(recordId, this.fields);
+        deleteObjs.push(recordObj);
+      }
+      await api.dbDataTableRowDelete(this.base.id, this.id, deleteObjs);
+      return true
+    }
   }
   
   class Base {
@@ -882,6 +1010,20 @@ function generateBaseModels() {
     
     getTable(idOrName) {
       return this.tables.find((table) => table.id === idOrName || table.name === idOrName)
+    }
+    
+    async createTableAsync(name, fields) {
+      throw new Error("Not Production Ready")
+      fields = fields.map((f) => {
+         f.title = f.name
+         delete f.name
+         return f
+      })
+      
+      const res = await api.v3MetaBasesTablesCreate(this.id, {
+        title: name,
+        fields: fields
+      })
     }
   }
   `
@@ -917,59 +1059,58 @@ function generateSessionApi(): string {
 
 function generateApiProxy(): string {
   return `
-    const api = new Proxy({}, {
-      get(target, prop) {
-        if (!target[prop]) {
-          target[prop] = new Proxy({}, {
-            get(targetLevel2, propLevel2) {
-              if (!targetLevel2[propLevel2]) {
-                targetLevel2[propLevel2] = function(...args) {
-                  const id = Math.random().toString(36).substring(2);
-                  const message = {
-                    type: '${ActionType.CALL_API}',
-                    payload: { id, level1: prop.toString(), level2: propLevel2.toString(), args },
-                  };
-                  self.postMessage(message);
-                  return new Promise((resolve) => {
-                    function handleMessage(e) {
-                      const responseMessage = e.data;
-                      if (responseMessage.type === '${ActionType.RESPONSE}' && responseMessage.payload.id === id) {
-                        if (typeof responseMessage.payload.payload?.error === 'string') {
-                          try {
-                            responseMessage.payload.payload.error = JSON.parse(responseMessage.payload.payload.error);
-                          } catch (e) {
-                            // Do nothing
-                          }
-                        }
-                        resolve(responseMessage.payload.payload);
-                        self.removeEventListener('message', handleMessage);
-                      }
-                    }
-                    self.addEventListener('message', handleMessage);
-                  });
-                };
+const api = new Proxy({}, {
+  get(target, prop) {
+    if (!target[prop]) {
+      target[prop] = function(...args) {
+        const id = Math.random().toString(36).substring(2);
+        const message = {
+          type: '${ActionType.CALL_API}',
+          payload: { id, method: prop.toString(), args },
+        };
+        self.postMessage(message);
+        return new Promise((resolve) => {
+          function handleMessage(e) {
+            const responseMessage = e.data;
+            if (responseMessage.type === '${ActionType.RESPONSE}' && responseMessage.payload.id === id) {
+              if (typeof responseMessage.payload.payload?.error === 'string') {
+                try {
+                  responseMessage.payload.payload.error = JSON.parse(responseMessage.payload.payload.error);
+                } catch (e) {
+                  // Do nothing
+                }
               }
-              return targetLevel2[propLevel2];
+              resolve(responseMessage.payload.payload);
+              self.removeEventListener('message', handleMessage);
             }
-          });
-        }
-        return target[prop];
-      }
-    });
-  `
+          }
+          self.addEventListener('message', handleMessage);
+        });
+      };
+    }
+    return target[prop];
+  }
+});`
 }
 
 function generateRemoteFetch(): string {
-  const workspaceStore = useWorkspace()
-
   return `
-    const remoteFetch = async (url, options) => {
-      return api.workspace.remoteFetch('${workspaceStore.activeWorkspaceId}', {
-        method: options?.method || 'GET',
-        headers: options?.headers || {},
-        body: options?.body || null,
-        url,
-      });
+    const remoteFetchAsync = async (url, options) => {
+      return new Promise((resolve) => {
+        const id = Math.random().toString(36).substr(2, 9);
+        self.postMessage({ 
+          type: '${ActionType.REMOTE_FETCH}', 
+          payload: { url, options, id } 
+        });
+        
+        
+        self.addEventListener('message', function handler(event) {
+          if (event.data.type === '${ActionType.REMOTE_FETCH}' && event.data.payload.id === id) {
+            self.removeEventListener('message', handler);
+            resolve(event.data.payload.value);
+          }
+        });
+      })
     };
   `
 }
@@ -1207,7 +1348,7 @@ function generateInputMethods(): string {
           
           const table = base.getTable(tableId)
 
-          const pvAndPk = table.fields.filter(f => f.pv || f.pk).map(f => f.name)
+          const pvAndPk = table.fields.filter(f => f.primary_value || f.primary_key).map(f => f.name)
           
           for (const field of options.fields || []) {
             if (typeof field === 'string') {

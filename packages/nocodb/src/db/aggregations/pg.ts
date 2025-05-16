@@ -444,7 +444,7 @@ export function replaceDelimitedWithKeyValuePg(params: {
         `  left join (${mapUnion}) nc_t_stack`,
         `    on nc_t_needle.nc_p_needle = nc_t_stack.nc_p_key`,
         `  group by nc_t_needle.nc_raw_needle`,
-        `)`,
+        `) nc_subquery`,
       ].join(' '),
     )
     .toQuery();

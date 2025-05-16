@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.263.2",
+  "version": "0.263.3",
   "description": "NocoDB Backend",
   "main": "dist/bundle.js",
   "author": {
@@ -132,8 +132,8 @@
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.12.0",
     "nanoid": "^3.3.8",
-    "nc-lib-gui": "0.263.2",
-    "nocodb-sdk": "workspace:^",
+    "nc-lib-gui": "0.263.3",
+    "nocodb-sdk": "0.263.3",
     "node-addon-api": "^8.3.0",
     "nodemailer": "^6.10.0",
     "object-hash": "^3.0.0",

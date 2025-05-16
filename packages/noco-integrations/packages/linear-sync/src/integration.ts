@@ -114,16 +114,28 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
         }
 
         // Handle state filter
-        const stateFilter: { [key: string]: boolean } = {};
-        if (!includeCanceled) {
-          stateFilter.canceled = false;
-        }
-        if (!includeCompleted) {
-          stateFilter.completed = false;
-        }
-
-        if (Object.keys(stateFilter).length > 0) {
-          issueFilter.state = stateFilter;
+        if (!includeCanceled || !includeCompleted) {
+          // Create a filter for the workflow state type
+          const stateTypeFilter: { [key: string]: any } = {};
+          
+          if (!includeCanceled) {
+            stateTypeFilter.type = { neq: 'canceled' };
+          }
+          
+          if (!includeCompleted) {
+            // If we're already filtering canceled states, use OR to also filter completed
+            if (!includeCanceled) {
+              stateTypeFilter.or = [
+                { type: { neq: 'completed' } }
+              ];
+            } else {
+              stateTypeFilter.type = { neq: 'completed' };
+            }
+          }
+          
+          if (Object.keys(stateTypeFilter).length > 0) {
+            issueFilter.state = stateTypeFilter;
+          }
         }
 
         // Fetch issues

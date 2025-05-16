@@ -252,7 +252,7 @@ const parseConditionV2 = async (
           finalStatement = `(${replaceDelimitedWithKeyValuePg({
             knex,
             needleColumn: column.column_name,
-            stack: baseUsers.map((user) => ({
+            stack: users.map((user) => ({
               key: user.id,
               value: user.display_name || user.email,
             })),
@@ -261,7 +261,7 @@ const parseConditionV2 = async (
           finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
             knex,
             needleColumn: column.column_name,
-            stack: baseUsers.map((user) => ({
+            stack: users.map((user) => ({
               key: user.id,
               value: user.display_name || user.email,
             })),

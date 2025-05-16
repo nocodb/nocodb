@@ -472,7 +472,7 @@ export class BaseUsersService {
    * Checks if the user's current role is OWNER.
    * This considers both base roles and workspace roles.
    */
-  private isOldRoleIsOwner(targetUser) {
+  protected isOldRoleIsOwner(targetUser) {
     // Check if a base role is defined and if it includes the OWNER role.
     if (targetUser.base_roles) {
       const baseRole = getProjectRole(targetUser);

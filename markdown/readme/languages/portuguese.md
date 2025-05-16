@@ -114,7 +114,7 @@ Acesse o painel usando: [http://localhost:8080/dashboard](http://localhost:8080/
 - ⚡ Operação de campos: Sort, Filtro, Esconder / Mostrar Colunas
 - ⚡ Multíplos tipos de visualização: Grade (Por padrão), Galeria, Visualização por Formulário e Visualização por Kanban
 - ⚡ Visualização por tipos de permissão: Colabarativo e Bloqueados
-- ⚡ Bases de compartilhamento / Visualizaç~eos: Tantao pública, quanto privada (com proteção por senha)
+- ⚡ Bases de compartilhamento / Visualizações: Tanto pública, quanto privada (com proteção por senha)
 - ⚡ Variantes por tipos de células: D, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachment, Currency, Formula, etc
 - ⚡ Controle de Acesso por Funções: controle de acesso detalhado em diferentes níveis
 - ⚡ E mais...

@@ -175,6 +175,11 @@ export class BaseUsersService {
           param.baseUser.roles as ProjectRoles,
         );
 
+        // Check if current user has sufficient privilege to assign this role
+        if (newRolePower > getProjectRolePower(param.req.user)) {
+          NcError.baseUserError(`Insufficient privilege to assign this role`);
+        }
+
         // if already exists and has a role then throw error
         if (baseUser?.is_mapped && baseUser?.roles) {
           NcError.baseUserError(

@@ -414,7 +414,11 @@ const sourceIdToIconMap = computed(() => {
 
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
     <LazyDashboardSettingsDataSourcesCreateBase v-if="isNewBaseModalOpen" v-model:open="isNewBaseModalOpen" is-modal />
-    <LazyDashboardSettingsSyncCreate v-if="isNewSyncModalOpen" v-model:open="isNewSyncModalOpen" />
+    <LazyDashboardSettingsSyncCreate
+      v-if="isNewSyncModalOpen && base?.id"
+      v-model:open="isNewSyncModalOpen"
+      :base-id="base?.id"
+    />
   </div>
 </template>
 

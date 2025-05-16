@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ViewTypes } from 'nocodb-sdk';
+import { UITypes, ViewTypes } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import type { CalendarRangeType, FilterType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import { CalendarRange, Model, View } from '~/models';
+import { CalendarRange, Column, Model, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { DatasService } from '~/services/datas.service';
 
@@ -44,12 +44,22 @@ export class CalendarDatasService {
 
     if (!calendarRange?.ranges?.length) NcError.badRequest('No ranges found');
 
+    const colId = calendarRange.ranges[0].fk_from_column_id;
+    let isDate = false;
+
+    if (colId) {
+      const column = await Column.get(context, { colId });
+      if (!column) NcError.badRequest('Invalid column for calendar view');
+      isDate = column.uidt === UITypes.Date;
+    }
+
     const filterArr = await this.buildFilterArr(context, {
       viewId,
       from_date,
       to_date,
       next_date,
       prev_date,
+      isDate,
     });
 
     query.filterArrJson = JSON.stringify([
@@ -170,12 +180,22 @@ export class CalendarDatasService {
 
     if (!ranges?.ranges.length) NcError.badRequest('No ranges found');
 
+    const colId = ranges.ranges[0].fk_from_column_id;
+    let isDate = false;
+
+    if (colId) {
+      const column = await Column.get(context, { colId });
+      if (!column) NcError.badRequest('Invalid column for calendar view');
+      isDate = column.uidt === UITypes.Date;
+    }
+
     const filterArr = await this.buildFilterArr(context, {
       viewId,
       from_date,
       to_date,
       next_date,
       prev_date,
+      isDate,
     });
 
     query.filterArrJson = JSON.stringify([
@@ -226,12 +246,14 @@ export class CalendarDatasService {
       viewId,
       next_date,
       prev_date,
+      isDate,
     }: {
       viewId: string;
       from_date: string;
       to_date: string;
       next_date: string;
       prev_date: string;
+      isDate: boolean;
     },
   ): Promise<Array<FilterType>> {
     const calendarRange = await CalendarRange.read(context, viewId);
@@ -242,6 +264,12 @@ export class CalendarDatasService {
       logical_op: 'and',
       children: [],
     };
+
+    if (isDate) {
+      const regex = /^\d{4}-\d{2}-\d{2}/;
+      next_date = next_date.match(regex)?.[0] || next_date;
+      prev_date = prev_date.match(regex)?.[0] || prev_date;
+    }
 
     calendarRange?.ranges.forEach((range: CalendarRange) => {
       const fromColumn = range.fk_from_column_id;

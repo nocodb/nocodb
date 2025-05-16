@@ -39,10 +39,23 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Switch,
     label: 'Include closed issues',
-    width: 100,
+    width: 48,
     model: 'config.includeClosed',
     category: 'Source',
     defaultValue: true,
+  },
+  {
+    type: FormBuilderInputType.Space,
+    width: 4,
+    category: 'Source',
+  },
+  {
+    type: FormBuilderInputType.Switch,
+    label: 'Include Merge Requests',
+    width: 48,
+    model: 'config.includeMRs',
+    category: 'Source',
+    defaultValue: false,
   },
 ];
 

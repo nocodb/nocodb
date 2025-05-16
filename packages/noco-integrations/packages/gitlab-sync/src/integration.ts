@@ -16,6 +16,7 @@ import type { Gitlab } from '@gitbeaker/rest';
 export interface GitlabSyncPayload {
   projectId: string;
   includeClosed: boolean;
+  includeMRs: boolean;
 }
 
 export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPayload> {
@@ -44,7 +45,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
     >
   > {
     const gitlab = auth.custom as InstanceType<typeof Gitlab>;
-    const { projectId, includeClosed } = this.config;
+    const { projectId, includeClosed, includeMRs = false } = this.config;
     const { targetTableIncrementalValues } = args;
 
     const stream = new DataObjectStream<
@@ -279,7 +280,276 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
           }
         }
 
-        // Fetch comments for each issue
+        // Fetch merge requests if enabled
+        if (includeMRs) {
+          this.log(`[GitLab Sync] Fetching merge requests for project ${projectId}`);
+          
+          // Reset pagination for merge requests
+          let page = 1;
+          let hasMoreMRs = true;
+          
+          // First fetch open merge requests
+          while (hasMoreMRs) {
+            try {
+              const mergeRequests = await gitlab.MergeRequests.all({
+                projectId,
+                state: 'opened',
+                updatedAfter,
+                perPage,
+                page,
+                orderBy: 'updated_at',
+                sort: 'asc',
+                pagination: 'offset',
+              });
+              
+              if (mergeRequests.length === 0) {
+                hasMoreMRs = false;
+                break;
+              }
+              
+              this.log(
+                `[GitLab Sync] Fetched ${mergeRequests.length} open merge requests on page ${page}`,
+              );
+              
+              // Process each merge request
+              for (const mr of mergeRequests) {
+                // Format MR as a ticket
+                const ticketData = {
+                  ...mr,
+                  // Mark as MR for the formatter
+                  merge_request: true,
+                };
+                
+                // Store MR ID and IID for later comment fetching
+                // Use negative IID to avoid conflicts with issues
+                issueMap.set(-mr.iid, { id: mr.id, iid: mr.iid });
+                
+                stream.push({
+                  recordId: `${mr.id}`,
+                  targetTable: TARGET_TABLES.TICKETING_TICKET,
+                  ...this.formatData(TARGET_TABLES.TICKETING_TICKET, ticketData),
+                });
+                
+                // Extract and process users
+                const users = [];
+                
+                // Add assignees if present
+                if (
+                  mr.assignees &&
+                  Array.isArray(mr.assignees) &&
+                  mr.assignees.length > 0
+                ) {
+                  users.push(...mr.assignees);
+                }
+                
+                // Add author if present
+                if (mr.author) {
+                  users.push(mr.author);
+                }
+                
+                // Process unique users
+                for (const user of users) {
+                  if (!userMap.has(user.id)) {
+                    userMap.set(user.id, true);
+                    
+                    stream.push({
+                      recordId: `${user.id}`,
+                      targetTable: TARGET_TABLES.TICKETING_USER,
+                      ...this.formatData(TARGET_TABLES.TICKETING_USER, user),
+                    });
+                  }
+                }
+              }
+              
+              page++;
+            } catch (error) {
+              console.error(
+                `[GitLab Sync] Error fetching open merge requests for project ${projectId} on page ${page}:`,
+                error,
+              );
+              hasMoreMRs = false;
+            }
+          }
+          
+          // Fetch closed/merged merge requests if includeClosed is true
+          if (includeClosed) {
+            // Reset pagination for closed/merged merge requests
+            page = 1;
+            hasMoreMRs = true;
+            
+            // Fetch merged merge requests
+            while (hasMoreMRs) {
+              try {
+                const mergeRequests = await gitlab.MergeRequests.all({
+                  projectId,
+                  state: 'merged',
+                  updatedAfter,
+                  perPage,
+                  page,
+                  orderBy: 'updated_at',
+                  sort: 'asc',
+                  pagination: 'offset',
+                });
+                
+                if (mergeRequests.length === 0) {
+                  hasMoreMRs = false;
+                  break;
+                }
+                
+                this.log(
+                  `[GitLab Sync] Fetched ${mergeRequests.length} merged merge requests on page ${page}`,
+                );
+                
+                // Process each merge request
+                for (const mr of mergeRequests) {
+                  // Format MR as a ticket
+                  const ticketData = {
+                    ...mr,
+                    // Mark as MR for the formatter
+                    merge_request: true,
+                  };
+                  
+                  // Store MR ID and IID for later comment fetching
+                  // Use negative IID to avoid conflicts with issues
+                  issueMap.set(-mr.iid, { id: mr.id, iid: mr.iid });
+                  
+                  stream.push({
+                    recordId: `${mr.id}`,
+                    targetTable: TARGET_TABLES.TICKETING_TICKET,
+                    ...this.formatData(TARGET_TABLES.TICKETING_TICKET, ticketData),
+                  });
+                  
+                  // Extract and process users
+                  const users = [];
+                  
+                  // Add assignees if present
+                  if (
+                    mr.assignees &&
+                    Array.isArray(mr.assignees) &&
+                    mr.assignees.length > 0
+                  ) {
+                    users.push(...mr.assignees);
+                  }
+                  
+                  // Add author if present
+                  if (mr.author) {
+                    users.push(mr.author);
+                  }
+                  
+                  // Process unique users
+                  for (const user of users) {
+                    if (!userMap.has(user.id)) {
+                      userMap.set(user.id, true);
+                      
+                      stream.push({
+                        recordId: `${user.id}`,
+                        targetTable: TARGET_TABLES.TICKETING_USER,
+                        ...this.formatData(TARGET_TABLES.TICKETING_USER, user),
+                      });
+                    }
+                  }
+                }
+                
+                page++;
+              } catch (error) {
+                console.error(
+                  `[GitLab Sync] Error fetching merged merge requests for project ${projectId} on page ${page}:`,
+                  error,
+                );
+                hasMoreMRs = false;
+              }
+            }
+            
+            // Reset pagination for closed merge requests
+            page = 1;
+            hasMoreMRs = true;
+            
+            // Fetch closed merge requests
+            while (hasMoreMRs) {
+              try {
+                const mergeRequests = await gitlab.MergeRequests.all({
+                  projectId,
+                  state: 'closed',
+                  updatedAfter,
+                  perPage,
+                  page,
+                  orderBy: 'updated_at',
+                  sort: 'asc',
+                  pagination: 'offset',
+                });
+                
+                if (mergeRequests.length === 0) {
+                  hasMoreMRs = false;
+                  break;
+                }
+                
+                this.log(
+                  `[GitLab Sync] Fetched ${mergeRequests.length} closed merge requests on page ${page}`,
+                );
+                
+                // Process each merge request
+                for (const mr of mergeRequests) {
+                  // Format MR as a ticket
+                  const ticketData = {
+                    ...mr,
+                    // Mark as MR for the formatter
+                    merge_request: true,
+                  };
+                  
+                  // Store MR ID and IID for later comment fetching
+                  // Use negative IID to avoid conflicts with issues
+                  issueMap.set(-mr.iid, { id: mr.id, iid: mr.iid });
+                  
+                  stream.push({
+                    recordId: `${mr.id}`,
+                    targetTable: TARGET_TABLES.TICKETING_TICKET,
+                    ...this.formatData(TARGET_TABLES.TICKETING_TICKET, ticketData),
+                  });
+                  
+                  // Extract and process users
+                  const users = [];
+                  
+                  // Add assignees if present
+                  if (
+                    mr.assignees &&
+                    Array.isArray(mr.assignees) &&
+                    mr.assignees.length > 0
+                  ) {
+                    users.push(...mr.assignees);
+                  }
+                  
+                  // Add author if present
+                  if (mr.author) {
+                    users.push(mr.author);
+                  }
+                  
+                  // Process unique users
+                  for (const user of users) {
+                    if (!userMap.has(user.id)) {
+                      userMap.set(user.id, true);
+                      
+                      stream.push({
+                        recordId: `${user.id}`,
+                        targetTable: TARGET_TABLES.TICKETING_USER,
+                        ...this.formatData(TARGET_TABLES.TICKETING_USER, user),
+                      });
+                    }
+                  }
+                }
+                
+                page++;
+              } catch (error) {
+                console.error(
+                  `[GitLab Sync] Error fetching closed merge requests for project ${projectId} on page ${page}:`,
+                  error,
+                );
+                hasMoreMRs = false;
+              }
+            }
+          }
+        }
+
+        // Fetch comments for each issue and MR
         if (issueMap.size > 0) {
           if (args.targetTables?.includes(TARGET_TABLES.TICKETING_COMMENT)) {
             this.log(
@@ -287,25 +557,40 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
             );
 
             try {
-              // Process issues sequentially to be more cautious with API rate limits
+              // Process issues and MRs sequentially to be more cautious with API rate limits
               for (const [issueIid, issueData] of issueMap.entries()) {
                 try {
                   let page = 1;
                   let hasMoreComments = true;
+                  const isMergeRequest = issueIid < 0;
+                  const actualIid = isMergeRequest ? -issueIid : issueIid;
 
-                  // Process all pages of comments for this issue
+                  // Process all pages of comments for this issue or MR
                   while (hasMoreComments) {
-                    const comments = await gitlab.IssueNotes.all(
-                      projectId,
-                      issueIid,
-                      {
-                        perPage,
-                        page,
-                        sort: 'asc',
-                        orderBy: 'created_at',
-                        pagination: 'offset',
-                      },
-                    );
+                    // Use different API endpoints for issues vs merge requests
+                    const comments = isMergeRequest 
+                      ? await gitlab.MergeRequestNotes.all(
+                          projectId,
+                          actualIid,
+                          {
+                            perPage,
+                            page,
+                            sort: 'asc',
+                            orderBy: 'created_at',
+                            pagination: 'offset',
+                          },
+                        )
+                      : await gitlab.IssueNotes.all(
+                          projectId,
+                          actualIid,
+                          {
+                            perPage,
+                            page,
+                            sort: 'asc',
+                            orderBy: 'created_at',
+                            pagination: 'offset',
+                          },
+                        );
 
                     if (comments.length === 0) {
                       hasMoreComments = false;
@@ -313,7 +598,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                     }
 
                     this.log(
-                      `[GitLab Sync] Fetched ${comments.length} comments for issue #${issueIid} on page ${page}`,
+                      `[GitLab Sync] Fetched ${comments.length} comments for ${isMergeRequest ? 'MR' : 'issue'} #${actualIid} on page ${page}`,
                     );
 
                     // Process each comment
@@ -323,7 +608,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                         continue;
                       }
 
-                      // Add issue data to the comment
+                      // Add issue/MR data to the comment
                       const commentWithIssue = {
                         ...comment,
                         issue: issueData,
@@ -362,11 +647,13 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                     }
                   }
                 } catch (commentError) {
+                  const isMergeRequest = issueIid < 0;
+                  const actualIid = isMergeRequest ? -issueIid : issueIid;
                   console.error(
-                    `[GitLab Sync] Error fetching comments for issue #${issueIid}:`,
+                    `[GitLab Sync] Error fetching comments for ${isMergeRequest ? 'MR' : 'issue'} #${actualIid}:`,
                     commentError,
                   );
-                  // Continue with the next issue even if this one fails
+                  // Continue with the next issue/MR even if this one fails
                 }
               }
             } catch (error) {
@@ -399,7 +686,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
           Description: data.description || null,
           Status: this.mapIssueState(data.state),
           Priority: null, // GitLab doesn't have built-in priority
-          'Ticket Type': null, // GitLab doesn't have built-in issue types
+          'Ticket Type': data.merge_request ? 'Merge Request' : 'Issue',
           'Ticket Url': data.web_url || null,
           'Ticket Number': data.iid,
           'Is Active': data.state !== 'closed',

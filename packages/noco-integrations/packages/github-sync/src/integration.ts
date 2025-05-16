@@ -17,6 +17,7 @@ export interface GithubSyncPayload {
   owner: string;
   repo: string;
   includeClosed: boolean;
+  includePRs: boolean;
 }
 
 export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPayload> {
@@ -43,7 +44,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     >
   > {
     const octokit = auth.custom as Octokit;
-    const { owner, repo, includeClosed } = this.config;
+    const { owner, repo, includeClosed, includePRs = false } = this.config;
     const { targetTableIncrementalValues } = args;
 
     const stream = new DataObjectStream<
@@ -164,6 +165,11 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
           this.log(`[GitHub Sync] Fetched ${data.length} issues`);
 
           for (const issue of data) {
+            // Skip pull requests if includePRs is false
+            if (!includePRs && issue.pull_request) {
+              continue;
+            }
+            
             // Store issue ID and number for later comment fetching
             issueMap.set(issue.number, { id: issue.id, number: issue.number });
 

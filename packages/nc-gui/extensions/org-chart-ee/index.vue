@@ -535,10 +535,9 @@ watch(displayValueCol, () => {
       <Graph
         v-if="isReady"
         id="printOrgPage"
-        :class="fullscreen ? '!w-4/5' : 'w-full'"
         :nodes="nodes"
         :edges="edges"
-        :element-watch="fullscreen"
+        :fullscreen="fullscreen"
         :cover-image-field-id="coverImageFieldId"
         :selected-cover-image-field="selectedCoverImageField"
         :hierarchy-data="hierarchyData"

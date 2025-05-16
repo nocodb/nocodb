@@ -72,8 +72,11 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
-    options?: { context?: NcContext; metaService?: MetaService };
+    options?: {
+      baseModel?: IBaseModelSqlV2;
+      context?: NcContext;
+      metaService?: MetaService;
+    };
   }) {
     let dayjsUtcValue: dayjs.Dayjs;
     if (
@@ -117,8 +120,11 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
-    options?: { context?: NcContext; metaService?: MetaService };
+    options?: {
+      baseModel?: IBaseModelSqlV2;
+      context?: NcContext;
+      metaService?: MetaService;
+    };
   }): Promise<{ value: any }> {
     return {
       value: this.parseDateTime(params).value.format('YYYY-MM-DD HH:mm:ssZ'),

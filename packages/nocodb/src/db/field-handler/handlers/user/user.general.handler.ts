@@ -12,8 +12,8 @@ export class UserGeneralHandler extends GenericFieldHandler {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
     options?: {
+      baseModel?: IBaseModelSqlV2;
       context?: NcContext;
       metaService?: MetaService;
       logger?: Logger;
@@ -27,12 +27,15 @@ export class UserGeneralHandler extends GenericFieldHandler {
       } catch (e) {}
     }
 
-    const baseUsers = await BaseUser.getUsersList(params.baseModel.context, {
-      base_id: params.baseModel.model.base_id,
-      // deleted user may still exists on some fields
-      // it's still valid as a historical record
-      include_ws_deleted: true,
-    });
+    const baseUsers = await BaseUser.getUsersList(
+      params.options.context ?? params.options.baseModel.context,
+      {
+        base_id: params.options.baseModel.model.base_id,
+        // deleted user may still exists on some fields
+        // it's still valid as a historical record
+        include_ws_deleted: true,
+      },
+    );
 
     if (typeof evalValue === 'object') {
       const users: { id?: string; email?: string }[] = Array.isArray(evalValue)

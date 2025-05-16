@@ -187,6 +187,9 @@ export type FilterCreateUpdateV3Type = FilterV3Type | FilterGroupV3Type;
 export type FieldV3Type = FieldBaseV3Type &
   (
     | {
+        type?: 'SingleLineText';
+      }
+    | {
         type?: 'LongText';
         options?: FieldOptionsLongTextV3Type;
       }

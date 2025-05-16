@@ -3157,7 +3157,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           : !ncIsUndefined(d?.[col.title])
           ? d?.[col.title]
           : d?.[col.id];
-        if (val !== undefined) {
+        if (val !== undefined && this.context.api_version !== NcApiVersion.V3) {
           if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
             val = JSON.stringify(val);
           }
@@ -3172,6 +3172,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               }
             }
           }
+          insertObj[sanitize(col.column_name)] = val;
+        } else if (val !== undefined) {
           insertObj[sanitize(col.column_name)] = val;
         }
       }

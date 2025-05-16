@@ -1,4 +1,4 @@
-import { NcApiVersion, UITypes } from 'nocodb-sdk';
+import { NcApiVersion, ncIsUndefined, UITypes } from 'nocodb-sdk';
 import { ClientType } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import { JsonGeneralHandler } from './handlers/json/json.general.handler';
@@ -25,6 +25,7 @@ import { DurationGeneralHandler } from './handlers/duration/duration.general.han
 import { CheckboxSqliteHandler } from './handlers/checkbox/checkbox.sqlite.handler';
 import { LongTextGeneralHandler } from './handlers/long-text/long-text.general.handler';
 import { SingleLineTextGeneralHandler } from './handlers/single-line-text/single-line-text.general.handler';
+import { ComputedFieldHandler } from './handlers/computed';
 import type { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
@@ -123,8 +124,12 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.DateTime]: {
     [CLIENT_DEFAULT]: DateTimeGeneralHandler,
   },
-  [UITypes.CreatedTime]: {},
-  [UITypes.LastModifiedTime]: {},
+  [UITypes.CreatedTime]: {
+    [CLIENT_DEFAULT]: ComputedFieldHandler,
+  },
+  [UITypes.LastModifiedTime]: {
+    [CLIENT_DEFAULT]: ComputedFieldHandler,
+  },
   [UITypes.AutoNumber]: {},
   [UITypes.Geometry]: {},
   [UITypes.JSON]: {
@@ -133,17 +138,27 @@ const HANDLER_REGISTRY: Partial<
     [CLIENT_DEFAULT]: JsonGeneralHandler,
   },
   [UITypes.SpecificDBType]: {},
-  [UITypes.Barcode]: {},
-  [UITypes.QrCode]: {},
-  [UITypes.Button]: {},
+  [UITypes.Barcode]: {
+    [CLIENT_DEFAULT]: ComputedFieldHandler,
+  },
+  [UITypes.QrCode]: {
+    [CLIENT_DEFAULT]: ComputedFieldHandler,
+  },
+  [UITypes.Button]: {
+    [CLIENT_DEFAULT]: ComputedFieldHandler,
+  },
   [UITypes.Links]: {
     [CLIENT_DEFAULT]: LinksGeneralHandler,
   },
   [UITypes.User]: {
     [CLIENT_DEFAULT]: UserGeneralHandler,
   },
-  [UITypes.CreatedBy]: {},
-  [UITypes.LastModifiedBy]: {},
+  [UITypes.CreatedBy]: {
+    [CLIENT_DEFAULT]: ComputedFieldHandler,
+  },
+  [UITypes.LastModifiedBy]: {
+    [CLIENT_DEFAULT]: ComputedFieldHandler,
+  },
 };
 
 function getLogicalOpMethod(logical_op?: string) {
@@ -422,6 +437,59 @@ export class FieldHandler implements IFieldHandler {
       return handler.parseDbValue(params);
     } else {
       return { value: params.value };
+    }
+  }
+
+  async parseDataDbValue(params: {
+    data: any | any[];
+    options?: {
+      additionalColumns?: Column[];
+      baseModel?: IBaseModelSqlV2;
+      context?: NcContext;
+      metaService?: MetaService;
+      logger?: Logger;
+    };
+    // for now the return value need to be {value: any}
+    // since it's possible for it to be knex query, which
+    // can be executed when awaited
+  }): Promise<void> {
+    const baseModel = params.options?.baseModel ?? this.info.baseModel;
+    const context =
+      params.options?.context ?? this.info.context ?? baseModel.context;
+    const dbClientType = baseModel.dbDriver.client.config.client;
+    const data = Array.isArray(params.data) ? params.data : [params.data];
+    for (const column of (await baseModel.model.getColumns(context)).concat(
+      params.options?.additionalColumns || [],
+    )) {
+      const handler = this.getHandler(column.uidt, dbClientType);
+      if (handler) {
+        for (const row of data) {
+          if (!ncIsUndefined(row[column.id])) {
+            row[column.id] = (
+              await handler.parseDbValue({
+                value: row[column.id],
+                row,
+                baseModel: baseModel,
+                column,
+                options: params.options,
+              })
+            ).value;
+          }
+          if (!ncIsUndefined(row[column.title])) {
+            row[column.title] = (
+              await handler.parseDbValue({
+                value: row[column.title],
+                row,
+                baseModel: baseModel,
+                column,
+                options: params.options,
+              })
+            ).value;
+          }
+        }
+      } else {
+        continue;
+      }
     }
   }
 }

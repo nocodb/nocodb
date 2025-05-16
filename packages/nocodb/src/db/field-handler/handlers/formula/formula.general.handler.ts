@@ -1,18 +1,17 @@
-import { FormulaDataTypes, parseProp } from 'nocodb-sdk';
-import { UITypes } from 'nocodb-sdk';
-import type { ColumnType } from 'nocodb-sdk';
+import { FormulaDataTypes, parseProp, UITypes } from 'nocodb-sdk';
+import { ComputedFieldHandler } from '../computed';
 import type { Knex } from 'knex';
+import type { ColumnType } from 'nocodb-sdk';
+import type CustomKnex from 'src/db/CustomKnex';
 import type {
   FilterVerificationResult,
   HandlerOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { FormulaColumn } from '~/models';
-import type CustomKnex from 'src/db/CustomKnex';
-import { Column, Filter } from '~/models';
-import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import { Column, Filter } from '~/models';
 
-export class FormulaGeneralHandler extends GenericFieldHandler {
+export class FormulaGeneralHandler extends ComputedFieldHandler {
   override async filter(
     knex: CustomKnex,
     filter: Filter,

@@ -265,12 +265,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         nextDate = timezoneDayjs.dayjsTz(nextDate)!.format('YYYY-MM-DD HH:mm:ssZ')
         toDate = timezoneDayjs.dayjsTz(toDate)!.format('YYYY-MM-DD HH:mm:ssZ')
 
-        console.log({
-          fromDate,
-          toDate,
-          prevDate,
-          nextDate,
-        })
+        if (calDataType.value === UITypes.Date) {
+          const regex = /^\d{4}-\d{2}-\d{2}/
+          fromDate = fromDate.match(regex)[0]
+          toDate = toDate.match(regex)[0]
+          nextDate = nextDate.match(regex)[0]
+          prevDate = prevDate.match(regex)[0]
+        }
+
         calendarRange.value.forEach((range) => {
           const fromCol = range.fk_from_col
           const toCol = range.fk_to_col

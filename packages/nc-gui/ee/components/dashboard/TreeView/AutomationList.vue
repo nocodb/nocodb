@@ -307,7 +307,7 @@ const filteredScripts = computed(() => {
             }"
           >
             <GeneralIcon icon="plus" />
-            <div :class="!isNewSidebarEnabled ? 'pl-1.75' : ''">
+            <div :class="{ 'pl-1.75': !isNewSidebarEnabled }">
               {{
                 $t('general.createEntity', {
                   entity: $t('objects.script'),

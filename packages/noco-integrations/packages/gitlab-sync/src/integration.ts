@@ -154,7 +154,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                 try {
                   let page = 1;
                   let hasMoreNotes = true;
-                  
+
                   // Process all pages of notes for this issue
                   while (hasMoreNotes) {
                     const notes = await gitlab.IssueNotes.all(
@@ -165,28 +165,28 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                         page,
                         sort: 'asc',
                         orderBy: 'created_at',
-                      }
+                      },
                     );
-                    
+
                     // If we got no notes, we've reached the end of pagination
                     if (notes.length === 0) {
                       hasMoreNotes = false;
                       break;
                     }
-                    
+
                     // Process each note
                     for (const note of notes) {
                       // Skip system notes
                       if (note.system) {
                         continue;
                       }
-                      
+
                       // Add issue data to the note
                       const noteWithIssue = {
                         ...note,
                         issue: issueData,
                       };
-                      
+
                       // Add comment to stream
                       stream.push({
                         recordId: `${note.id}`,
@@ -196,11 +196,11 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                           noteWithIssue,
                         ),
                       });
-                      
+
                       // Add comment author to users if not already added
                       if (note.author && !userMap.has(note.author.id)) {
                         userMap.set(note.author.id, true);
-                        
+
                         stream.push({
                           recordId: `${note.author.id}`,
                           targetTable: TARGET_TABLES.TICKETING_USER,
@@ -211,12 +211,15 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                         });
                       }
                     }
-                    
+
                     // Move to the next page
                     page++;
                   }
                 } catch (noteError) {
-                  console.error(`Error fetching notes for issue #${issueIid}:`, noteError);
+                  console.error(
+                    `Error fetching notes for issue #${issueIid}:`,
+                    noteError,
+                  );
                   // Continue with the next issue even if this one fails
                 }
               }

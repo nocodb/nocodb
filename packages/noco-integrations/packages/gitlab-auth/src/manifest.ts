@@ -8,4 +8,4 @@ export const manifest: IntegrationManifest = {
   author: 'NocoDB',
   website: 'https://gitlab.com',
   order: 2,
-}; 
+};

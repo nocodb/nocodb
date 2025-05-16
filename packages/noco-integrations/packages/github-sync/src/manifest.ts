@@ -1,4 +1,7 @@
-import { type IntegrationManifest, SyncCategory } from '@noco-integrations/core';
+import {
+  type IntegrationManifest,
+  SyncCategory,
+} from '@noco-integrations/core';
 
 const manifest: IntegrationManifest = {
   title: 'GitHub',

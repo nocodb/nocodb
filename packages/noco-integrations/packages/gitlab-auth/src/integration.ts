@@ -5,7 +5,9 @@ import { clientId, clientSecret, tokenUri } from './config';
 import type { AuthResponse } from '@noco-integrations/core';
 
 export class GitlabAuthIntegration extends AuthIntegration {
-  public async authenticate(): Promise<AuthResponse<InstanceType<typeof Gitlab>>> {
+  public async authenticate(): Promise<
+    AuthResponse<InstanceType<typeof Gitlab>>
+  > {
     switch (this.config.type) {
       case AuthType.ApiKey:
         return {
@@ -47,4 +49,4 @@ export class GitlabAuthIntegration extends AuthIntegration {
       oauth_token: response.data.access_token,
     };
   }
-} 
+}

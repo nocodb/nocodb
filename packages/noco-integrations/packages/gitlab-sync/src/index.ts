@@ -15,4 +15,4 @@ const integration: IntegrationEntry = {
 };
 
 export { manifest, form, GitlabSyncIntegration };
-export default integration; 
+export default integration;

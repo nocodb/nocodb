@@ -8,9 +8,7 @@ import {
 export class OpenAIIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
 
-  public async generateObject<T = any>(
-    args: AiGenerateObjectArgs,
-  ) {
+  public async generateObject<T = any>(args: AiGenerateObjectArgs) {
     const { messages, schema } = args;
 
     if (!this.model || args.customModel) {

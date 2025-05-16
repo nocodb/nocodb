@@ -1,6 +1,6 @@
 import { type ClickHouseClient, createClient } from '@clickhouse/client';
 import { AuthIntegration, AuthType } from '@noco-integrations/core';
-import type { AuthCredentials, AuthResponse } from '@noco-integrations/core';
+import type { AuthResponse } from '@noco-integrations/core';
 
 export class ClickhouseAuthIntegration extends AuthIntegration {
   public async authenticate(): Promise<AuthResponse<ClickHouseClient>> {

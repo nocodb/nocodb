@@ -46,4 +46,4 @@ const form: FormDefinition = [
   },
 ];
 
-export default form; 
+export default form;

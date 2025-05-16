@@ -16,4 +16,4 @@ export const authUri =
     ? `https://gitlab.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`
     : '';
 
-export const tokenUri = 'https://gitlab.com/oauth/token'; 
+export const tokenUri = 'https://gitlab.com/oauth/token';

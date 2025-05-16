@@ -152,7 +152,7 @@ export class BaseUsersService {
             ncMeta,
           ));
 
-        // if old role is owner and there is only one owner then restrict to update
+        // if old role is owner and there is only one owner then restrict update
         if (targetUser && this.isOldRoleIsOwner(targetUser)) {
           const baseUsers = await BaseUser.getUsersList(
             context,
@@ -395,7 +395,7 @@ export class BaseUsersService {
       );
     }
 
-    // if old role is owner and there is only one owner then restrict to update
+    // if old role is owner and there is only one owner then restrict update
     if (this.isOldRoleIsOwner(targetUser)) {
       const baseUsers = await BaseUser.getUsersList(
         context,
@@ -517,7 +517,7 @@ export class BaseUsersService {
     }).length;
 
     // Throw error if no valid owner is found.
-    if (ownersCount < 1) {
+    if (ownersCount <= 1) {
       NcError.badRequest('At least one owner is required');
     }
   }

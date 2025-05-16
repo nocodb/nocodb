@@ -6,12 +6,15 @@ import {
   ncIsArray,
   ncIsBoolean,
   ncIsNaN,
+  ncIsNull,
   ncIsNumber,
   ncIsObject,
   ncIsString,
+  ncIsUndefined,
 } from '~/lib/is';
 import { SerializerOrParserFnProps } from '../column.interface';
 import { constructTimeFormat } from '~/lib/dateTimeHelper';
+import { checkboxTypeMap } from '~/lib/columnHelper/utils/common';
 
 export const parseDefault = (value: any) => {
   try {
@@ -86,8 +89,10 @@ export const parseCheckboxValue = (
 
   if (ncIsString(value)) {
     const strval = value.trim().toLowerCase();
-    if (strval === 'true' || strval === '1') return true;
-    if (strval === 'false' || strval === '0' || strval === '') return false;
+    const parsedValue = checkboxTypeMap[strval];
+    if (!ncIsNull(parsedValue) && !ncIsUndefined(parsedValue)) {
+      return parsedValue;
+    }
   }
 
   if (ncIsNumber(value)) {

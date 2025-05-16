@@ -6,12 +6,15 @@ import {
   ncIsBoolean,
   ncIsFunction,
   ncIsNaN,
+  ncIsNull,
   ncIsNumber,
   ncIsString,
+  ncIsUndefined,
 } from '~/lib/is';
 import UITypes from '~/lib/UITypes';
 import { SerializerOrParserFnProps } from '../column.interface';
 import { SelectTypeConversionError } from '~/lib/error';
+import { checkboxTypeMap } from '~/lib/columnHelper/utils/common';
 
 /**
  * Remove outer quotes & unescape
@@ -124,8 +127,10 @@ export const serializeCheckboxValue = (
 
   if (ncIsString(value)) {
     const strval = value.trim().toLowerCase();
-    if (strval === 'true' || strval === '1') return true;
-    if (strval === 'false' || strval === '0' || strval === '') return false;
+    const parsedValue = checkboxTypeMap[strval];
+    if (!ncIsNull(parsedValue) && !ncIsUndefined(parsedValue)) {
+      return parsedValue;
+    }
   }
 
   return null;

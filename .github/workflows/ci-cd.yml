@@ -55,6 +55,10 @@ jobs:
             echo "swaggerv2.json file is not valid JSON"
             exit 1
           fi
+          if ! jq empty packages/nocodb/src/schema/swagger-v3.json; then
+            echo "swagger-v3.json file is not valid JSON"
+            exit 1
+          fi
   unit-tests:
     runs-on: ubuntu-22.04
     timeout-minutes: 40

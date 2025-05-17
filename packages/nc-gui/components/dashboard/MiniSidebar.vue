@@ -77,7 +77,7 @@ const navigateToIntegrations = () => {
     <div class="flex flex-col gap-3 items-center">
       <WorkspaceMenu />
 
-      <NcTooltip :title="$t('objects.projects')" placement="right" hide-on-click>
+      <NcTooltip :title="$t('objects.projects')" placement="right" hide-on-click :arrow="false">
         <div
           class="nc-mini-sidebar-btn"
           data-testid="nc-sidebar-project-btn"
@@ -90,7 +90,7 @@ const navigateToIntegrations = () => {
         </div>
       </NcTooltip>
       <template v-if="!isMobileMode">
-        <NcTooltip placement="right" hide-on-click>
+        <NcTooltip placement="right" hide-on-click :arrow="false">
           <template #title>
             <div class="flex items-center gap-1">
               <GeneralIcon icon="ncCommand" class="h-3" />
@@ -112,6 +112,7 @@ const navigateToIntegrations = () => {
           :title="$t('title.teamAndSettings')"
           placement="right"
           hide-on-click
+          :arrow="false"
         >
           <div
             v-e="['c:team:settings']"
@@ -125,7 +126,13 @@ const navigateToIntegrations = () => {
             <GeneralIcon :icon="isWorkspaceSettingsPageOpened ? 'ncSettingsDuo' : 'ncSettings'" class="h-4 w-4" />
           </div>
         </NcTooltip>
-        <NcTooltip v-if="isUIAllowed('workspaceSettings')" :title="$t('general.integrations')" placement="right" hide-on-click>
+        <NcTooltip
+          v-if="isUIAllowed('workspaceSettings')"
+          :title="$t('general.integrations')"
+          placement="right"
+          hide-on-click
+          :arrow="false"
+        >
           <div
             v-e="['c:integrations']"
             class="nc-mini-sidebar-btn"
@@ -139,7 +146,7 @@ const navigateToIntegrations = () => {
           </div>
         </NcTooltip>
         <NcDivider class="!my-0 !border-nc-border-gray-dark" />
-        <NcTooltip v-if="appInfo.feedEnabled" :title="$t('title.whatsNew')" placement="right" hide-on-click>
+        <NcTooltip v-if="appInfo.feedEnabled" :title="$t('title.whatsNew')" placement="right" hide-on-click :arrow="false">
           <DashboardSidebarFeed />
         </NcTooltip>
       </template>

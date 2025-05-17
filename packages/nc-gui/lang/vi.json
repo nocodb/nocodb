@@ -805,7 +805,8 @@
     "upgradeToPlan": "Nâng cấp lên gói {plan}",
     "upgradeWorkspaceToPlan": "Nâng cấp {workspace} lên gói {plan}",
     "upgradeToPlanSubtitle": "Bạn sẽ được tính phí ngay cho gói này.",
-    "reactivateToPlan": "Kích hoạt lại gói {plan}?"
+    "reactivateToPlan": "Kích hoạt lại gói {plan}?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1320,7 +1321,8 @@
     "invoice": "Hóa đơn",
     "status": "Trạng thái",
     "invoiceTotal": "Tổng hóa đơn",
-    "pastInvoices": "Hóa đơn trước đây"
+    "pastInvoices": "Hóa đơn trước đây",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Nhấp để đánh dấu đã giải quyết",

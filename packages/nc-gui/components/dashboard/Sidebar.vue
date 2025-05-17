@@ -136,7 +136,6 @@ onUnmounted(() => {
   @apply w-full px-3 py-1.5 flex items-center gap-2 h-8 text-nc-content-gray-muted text-captionBold sticky top-0 bg-nc-bg-gray-extralight z-2;
 }
 
-.nc-treeview-container,
 .nc-treeview-base-list,
 .nc-treeview-active-base {
   @apply w-full h-full flex-1 flex flex-col;

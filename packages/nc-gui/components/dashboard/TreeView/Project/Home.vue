@@ -275,7 +275,7 @@ defineExpose({
 </script>
 
 <template>
-  <div v-if="base?.id && !base.isLoading" class="nc-treeview-container nc-treeview-active-base">
+  <div v-if="base?.id && !base.isLoading" class="nc-treeview-active-base">
     <div>
       <DashboardSidebarHeaderWrapper>
         <div v-if="isSharedBase" class="flex-1">

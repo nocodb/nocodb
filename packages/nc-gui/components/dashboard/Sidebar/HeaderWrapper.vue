@@ -31,7 +31,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
     :data-workspace-title="activeWorkspace?.title"
   >
     <template v-if="!isWorkspacesLoading && !isLoading">
-      <div class="text-subHeading1 flex-1 truncate">
+      <div class="text-subHeading2 flex-1 truncate">
         <slot> Bases </slot>
       </div>
 

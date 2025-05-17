@@ -3,6 +3,8 @@ import { stringifyRolesObj, type SourceType } from 'nocodb-sdk'
 
 interface Props {
   showBaseOption: (source: SourceType) => boolean
+  dataReflectionState?: number
+  dataReflectionText?: string
 }
 
 defineProps<Props>()

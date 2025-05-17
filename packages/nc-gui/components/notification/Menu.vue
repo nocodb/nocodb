@@ -33,7 +33,7 @@ const isDropdownOpen = ref(false)
       </NcButton>
 
       <template #overlay>
-        <NotificationCard />
+        <NotificationCard @close="isDropdownOpen = false" />
       </template>
     </NcDropdown>
   </div>

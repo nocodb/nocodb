@@ -805,7 +805,8 @@
     "upgradeToPlan": "Fă upgrade la planul {plan}",
     "upgradeWorkspaceToPlan": "Fă upgrade spațiului {workspace} la planul {plan}",
     "upgradeToPlanSubtitle": "Veți fi taxat imediat pentru acest plan.",
-    "reactivateToPlan": "Reactivați planul {plan}?"
+    "reactivateToPlan": "Reactivați planul {plan}?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1320,7 +1321,8 @@
     "invoice": "Factură",
     "status": "Stare",
     "invoiceTotal": "Total factură",
-    "pastInvoices": "Facturi anterioare"
+    "pastInvoices": "Facturi anterioare",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Fă clic pentru a rezolva",

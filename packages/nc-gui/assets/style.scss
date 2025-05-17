@@ -24,6 +24,37 @@
   }
 }
 
+.text-Heading1,
+.text-Heading2,
+.text-Heading3,
+.text-subHeading1,
+.text-subHeading2,
+.text-bodyLgBold,
+.text-bodyBold,
+.text-bodyDefaultSmBold,
+.text-bodySmBold,
+.text-captionBold,
+.text-captionSmBold,
+.text-captionXsBold {
+  @apply font-700;
+}
+
+.text-bodyLg,
+.text-body,
+.text-bodyDefaultSm,
+.text-bodySm,
+.text-caption,
+.text-captionSm,
+.text-captionXs {
+  @apply font-500;
+}
+
+.text-captionDropdownDefault,
+.text-sidebarDefault,
+.text-sidebarSelected {
+  @apply font-750; /* Original font weight 650 */
+}
+
 * {
   font-synthesis: none;
 }

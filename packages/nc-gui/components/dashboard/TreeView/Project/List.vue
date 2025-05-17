@@ -371,7 +371,7 @@ watch(
     }
 
     // If workspace changed, skip animation
-    if (oldWsId && newWsId !== oldWsId) {
+    if (newWsId !== oldWsId) {
       transitionName.value = undefined // No animation
     } else {
       transitionName.value = newShowProjectList ? 'slide-left' : 'slide-right'

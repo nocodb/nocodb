@@ -10,7 +10,7 @@ const { commandPalette } = useCommandPalette()
       <a-input
         v-model:value="baseHomeSearchQuery"
         type="text"
-        class="nc-input-border-on-value nc-input-shadow !h-8 !px-2.5 !py-1 !rounded-lg"
+        class="nc-input-border-on-value nc-input-shadow !h-8 !pl-2.5 !pr-2 !py-1 !rounded-lg"
         placeholder="Quick search..."
         allow-clear
         @keydown.stop

@@ -19,8 +19,8 @@ const props = withDefaults(
 
 const emit = defineEmits(['update:modelValue'])
 
-const { modelValue } = toRefs(props)
-const { size, readonly } = props
+const { modelValue, readonly } = toRefs(props)
+const { size } = props
 
 const isOpen = ref(false)
 
@@ -34,7 +34,7 @@ const updateIconColor = (color: string) => {
 }
 
 const onClick = (e: Event) => {
-  if (readonly) return
+  if (readonly.value) return
 
   e.stopPropagation()
 

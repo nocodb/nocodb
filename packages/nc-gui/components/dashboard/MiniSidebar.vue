@@ -21,6 +21,14 @@ const { basesList, showProjectList } = storeToRefs(useBases())
 
 const { isUIAllowed } = useRoles()
 
+const isProjectListOrHomePageOpen = computed(() => {
+  return (
+    route.value.name?.startsWith('index-typeOrId-baseId-') ||
+    route.value.name === 'index' ||
+    route.value.name === 'index-typeOrId'
+  )
+})
+
 const isProjectPageOpen = computed(() => {
   return (
     (route.value.name?.startsWith('index-typeOrId-baseId-') ||
@@ -78,7 +86,7 @@ const navigateToIntegrations = () => {
           }"
           @click="navigateToProjectPage"
         >
-          <GeneralIcon :icon="isProjectPageOpen ? 'ncBaseOutlineDuo' : 'ncBaseOutline'" class="h-4 w-4" />
+          <GeneralIcon :icon="isProjectListOrHomePageOpen ? 'ncBaseOutlineDuo' : 'ncBaseOutline'" class="h-4 w-4" />
         </div>
       </NcTooltip>
       <template v-if="!isMobileMode">

@@ -1307,6 +1307,15 @@
         "description": "Retrieve a list of all views for a specific table.",
         "parameters": [
           {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
             "name": "tableId",
             "in": "path",
             "required": true,
@@ -1455,6 +1464,15 @@
           "Fields"
         ],
         "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
           {
             "name": "fieldId",
             "in": "path",
@@ -2245,7 +2263,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                      "$ref": "#/components/schemas/BaseUser"
+                    "$ref": "#/components/schemas/BaseUser"
                   },
                   "description": "List of successfully invited users."
                 }

@@ -805,7 +805,8 @@
     "upgradeToPlan": "Frissítés a(z) {plan} csomagra",
     "upgradeWorkspaceToPlan": "{workspace} frissítése a(z) {plan} csomagra",
     "upgradeToPlanSubtitle": "Ezen csomag díja azonnal felszámításra kerül.",
-    "reactivateToPlan": "{plan} csomag újraaktiválása?"
+    "reactivateToPlan": "{plan} csomag újraaktiválása?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1320,7 +1321,8 @@
     "invoice": "Számla",
     "status": "Állapot",
     "invoiceTotal": "Számla végösszeg",
-    "pastInvoices": "Korábbi számlák"
+    "pastInvoices": "Korábbi számlák",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Kattintson a megoldáshoz",

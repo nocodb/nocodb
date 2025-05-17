@@ -5,37 +5,37 @@ export function useEsbuild() {
   const esbuildInitialized = ref(false)
   const isInitializing = ref(false)
   const initError = ref(null)
+  let initPromise: Promise<void> | null = null
 
   const initWasm = async () => {
     if (esbuildInitialized.value) {
       return
     }
 
-    if (isInitializing.value) {
-      return new Promise((resolve) => {
-        const checkInterval = setInterval(() => {
-          if (!isInitializing.value) {
-            clearInterval(checkInterval)
-            resolve()
-          }
-        }, 100)
-      })
+    // If initialization is already in progress, return the existing promise
+    if (initPromise) {
+      return initPromise
     }
 
     isInitializing.value = true
     initError.value = null
 
-    try {
-      await esbuild.initialize({
-        wasmURL: wasmUrl,
-      })
-      esbuildInitialized.value = true
-    } catch (error) {
-      console.error('Failed to initialize esbuild:', error)
-      initError.value = error
-    } finally {
-      isInitializing.value = false
-    }
+    initPromise = (async () => {
+      try {
+        await esbuild.initialize({
+          wasmURL: wasmUrl,
+        })
+        esbuildInitialized.value = true
+      } catch (error) {
+        console.error('Failed to initialize esbuild:', error)
+        initError.value = error
+      } finally {
+        isInitializing.value = false
+        initPromise = null
+      }
+    })()
+
+    return initPromise
   }
 
   const transform = async (code: string) => {

@@ -88,7 +88,7 @@ export class LeftSidebarPage extends BasePage {
 
   async clickWorkspace() {
     await this.miniSidebarActionClick({
-      type: 'teamAndSettings',
+      type: 'ws',
       fallback: async () => {
         await this.btn_workspace.click();
       },
@@ -180,6 +180,7 @@ export class LeftSidebarPage extends BasePage {
 
     switch (type) {
       case 'ws': {
+        await this.miniSidebar.getByTestId('nc-workspace-menu').click();
         break;
       }
       case 'base': {

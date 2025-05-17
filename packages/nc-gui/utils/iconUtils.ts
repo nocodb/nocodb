@@ -726,6 +726,15 @@ import NcLogoZendesk from '~icons/nc-icons-v2/zendesk.svg'
 import NcLogoZohoColored from '~icons/nc-icons-v2/zoho-colored.svg'
 import NcLogoZoho from '~icons/nc-icons-v2/zoho.svg'
 import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
+import NcBaseOutline from '~icons/nc-icons-v2/base-outline.svg'
+import NcBaseOutlineDuo from '~icons/nc-icons-v2/base-outline-duo.svg'
+import NcSearchDuo from '~icons/nc-icons-v2/search-duo.svg'
+import NcSettingsDuo from '~icons/nc-icons-v2/settings-duo.svg'
+import NcIntegrationDuo from '~icons/nc-icons-v2/integration-duo.svg'
+import NcMegaPhoneDuo from '~icons/nc-icons-v2/mega-phone-duo.svg'
+import NcNotificationDuo from '~icons/nc-icons-v2/notification-duo.svg'
+import NcLayout from '~icons/nc-icons-v2/layout.svg'
+import NcPlusCircleSolid from '~icons/nc-icons-v2/plus-circle-solid.svg'
 
 import MdiNcCheckBold from '~icons/nc-icons/mdi-check-bold'
 import MdiNcCropSquare from '~icons/nc-icons/mdi-crop-square'
@@ -964,7 +973,7 @@ export const iconMap = {
   'bt_solid': BelongsToSolidIcon,
   'oneToOneSolid': OnetoOneIcon,
   'workspaceDefault': MsGroup,
-  'project': Project,
+  'project': h(Project, { stroke: 'transparent' }),
   'search': NcSearch,
   // calendar: Calendar,
   'checkCircle': NcCheckCircle,
@@ -1692,6 +1701,15 @@ export const iconMap = {
   'mdi-flag-outline': MdiNcFlagOutline,
   'sso': MdiCloudKeyOutline,
   'mcp': NcMCP,
+  'ncBaseOutline': NcBaseOutline,
+  'ncBaseOutlineDuo': NcBaseOutlineDuo,
+  'ncSearchDuo': NcSearchDuo,
+  'ncSettingsDuo': NcSettingsDuo,
+  'ncIntegrationDuo': NcIntegrationDuo,
+  'ncMegaPhoneDuo': NcMegaPhoneDuo,
+  'ncNotificationDuo': NcNotificationDuo,
+  'ncLayout': NcLayout,
+  'ncPlusCircleSolid': h(NcPlusCircleSolid, { stroke: 'transparent' }),
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4244,6 +4262,38 @@ export const searchableMap = {
   ncLogoZoho: {
     icon: h(NcLogoZoho, { stroke: 'transparent' }),
     keywords: ['crm', 'business apps', 'collaboration', 'productivity', 'enterprise'],
+  },
+  ncBaseOutline: {
+    icon: NcBaseOutline,
+    keywords: ['base', 'database', 'storage', 'db'],
+  },
+  ncBaseOutlineDuo: {
+    icon: NcBaseOutlineDuo,
+    keywords: ['base', 'database', 'storage', 'db'],
+  },
+  ncSearchDuo: {
+    icon: NcSearchDuo,
+    keywords: ['search'],
+  },
+  ncSettingsDuo: {
+    icon: NcSettingsDuo,
+    keywords: ['settings'],
+  },
+  ncIntegrationDuo: {
+    icon: NcIntegrationDuo,
+    keywords: ['integration', 'settings'],
+  },
+  ncMegaPhoneDuo: {
+    icon: NcMegaPhoneDuo,
+    keywords: ['megaphone', 'horn'],
+  },
+  ncNotificationDuo: {
+    icon: NcNotificationDuo,
+    keywords: ['notification', 'bell'],
+  },
+  ncLayout: {
+    icon: NcLayout,
+    keywords: ['layout', 'table'],
   },
 }
 

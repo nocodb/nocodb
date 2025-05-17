@@ -1,12 +1,15 @@
 <script lang="ts" setup>
 const { activeSubscription } = useProvidePaymentStore()
 
-const { hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
+const { hideSidebar, showTopbar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const { appInfo } = useGlobal()
 
 onMounted(() => {
-  hideSidebar.value = true
+  if (isNewSidebarEnabled.value) {
+    hideSidebar.value = true
+  }
+
   showTopbar.value = true
 
   if (!appInfo.value.stripePublishableKey) {

@@ -5,6 +5,8 @@ const props = defineProps<{
 
 const baseId = toRef(props, 'baseId')
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const { ncNavigateTo } = useGlobal()
 
 const workspaceStore = useWorkspace()
@@ -35,7 +37,12 @@ const openAutomations = () => {
     loadAutomations({ baseId: baseId.value })
     isOptionsOpen.value = true
     isExpanded.value = true
+  } else if (isExpanded.value && isNewSidebarEnabled.value) {
+    isOptionsOpen.value = false
+    isExpanded.value = false
   }
+
+  if (isNewSidebarEnabled.value) return
 
   ncNavigateTo({
     workspaceId: activeWorkspaceId.value ?? 'nc',
@@ -91,8 +98,14 @@ watch(activeAutomationId, () => {
 </script>
 
 <template>
-  <div class="nc-tree-item nc-automation-node-wrapper text-sm select-none w-full nc-base-tree-automation">
-    <div class="flex items-center py-0.5">
+  <div
+    class="nc-tree-item nc-automation-node-wrapper text-sm select-none w-full nc-base-tree-automation"
+    :class="{
+      'nc-automation-node-wrapper': !isNewSidebarEnabled,
+      'nc-project-home-section': isNewSidebarEnabled,
+    }"
+  >
+    <div v-if="!isNewSidebarEnabled" class="flex items-center py-0.5">
       <div
         v-e="['a:automation:open']"
         class="flex-none flex-1 pl-7.5 xs:(pl-6) flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-gray-200"
@@ -145,6 +158,20 @@ watch(activeAutomationId, () => {
           </NcButton>
         </div>
       </div>
+    </div>
+    <div
+      v-else
+      v-e="['c:automation:toggle-expand']"
+      class="nc-project-home-section-header w-full cursor-pointer"
+      @click.stop="onExpand"
+    >
+      <div>Automations</div>
+      <div class="flex-1" />
+      <GeneralIcon
+        icon="chevronRight"
+        class="flex-none nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 text-[20px]"
+        :class="{ '!rotate-90': isExpanded, 'text-nc-content-gray-muted': isNewSidebarEnabled }"
+      />
     </div>
     <DashboardTreeViewAutomationList v-if="isExpanded" :base-id="baseId!" />
   </div>

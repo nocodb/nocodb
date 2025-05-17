@@ -141,7 +141,7 @@ const typeLabel = computed(() => {
     <template v-if="aiMode === false" #header>
       <!-- Create A New Table -->
       <div class="flex flex-row items-center text-base text-gray-800">
-        <GeneralProjectIcon :color="formState.meta.iconColor" :type="baseType" class="mr-2.5 !text-lg !h-4" />
+        <GeneralProjectIcon :color="formState.meta.iconColor" :type="baseType" class="mr-2.5" />
         {{ $t('general.create') }} {{ typeLabel }}
       </div>
     </template>

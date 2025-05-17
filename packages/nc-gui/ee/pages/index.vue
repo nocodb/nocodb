@@ -38,7 +38,12 @@ const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) 
 
   // open first base if base list is not empty
   if (basesStore.basesList?.length) {
-    const firstBase = basesStore.basesList[0]
+    const lastVisitedBase = ncLastVisitedBase().get()
+
+    const firstBase = lastVisitedBase
+      ? basesStore.basesList.find((b) => b.id === lastVisitedBase) ?? basesStore.basesList[0]
+      : basesStore.basesList[0]
+
     if (firstBase && firstBase.id) {
       if (initial) {
         await tableStore.loadProjectTables(firstBase.id)
@@ -48,7 +53,7 @@ const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) 
         if (firstTable) {
           ncNavigateTo({
             workspaceId: firstBase.fk_workspace_id!,
-            baseId: basesStore.basesList[0].id!,
+            baseId: firstBase.id!,
             tableId: firstTable.id,
             query,
           })
@@ -56,7 +61,7 @@ const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) 
       } else {
         await basesStore.navigateToProject({
           workspaceId: firstBase.fk_workspace_id!,
-          baseId: basesStore.basesList[0].id!,
+          baseId: firstBase.id!,
         })
       }
     }

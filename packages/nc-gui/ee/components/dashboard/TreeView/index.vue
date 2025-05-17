@@ -2,7 +2,6 @@
 import Draggable from 'vuedraggable'
 import { type ScriptType, type TableType, type ViewType, stringifyRolesObj } from 'nocodb-sdk'
 import ProjectWrapper from './ProjectWrapper.vue'
-import { useRouter } from '#app'
 
 const { isUIAllowed } = useRoles()
 

@@ -25,6 +25,9 @@ export const useBases = defineStore('basesStore', () => {
   const router = useRouter()
   const route = router.currentRoute
 
+  const isProjectsLoading = ref(false)
+  const isProjectsLoaded = ref(false)
+
   const activeProjectId = computed(() => {
     if (route.value.params.typeOrId === 'base') {
       return basesList.value?.[0]?.id
@@ -32,6 +35,10 @@ export const useBases = defineStore('basesStore', () => {
 
     return route.value.params.baseId as string | undefined
   })
+
+  const showProjectList = ref<boolean>(route.value.params.typeOrId === 'base' ? false : !route.value.params.baseId)
+
+  const baseHomeSearchQuery = ref<string>('')
 
   const openedProject = computed(() => (activeProjectId.value ? bases.value.get(activeProjectId.value) : undefined))
   const openedProjectBasesMap = computed(() => {
@@ -55,8 +62,6 @@ export const useBases = defineStore('basesStore', () => {
   const { api } = useApi()
 
   const { getBaseUrl, navigateToProject: _navigateToProject } = useGlobal()
-
-  const isProjectsLoading = ref(false)
 
   async function getBaseUsers({ baseId, searchText, force = false }: { baseId: string; searchText?: string; force?: boolean }) {
     if (!baseId) return { users: [], totalRows: 0 }
@@ -202,6 +207,7 @@ export const useBases = defineStore('basesStore', () => {
       throw e
     } finally {
       isProjectsLoading.value = false
+      isProjectsLoaded.value = true
     }
   }
 
@@ -453,6 +459,44 @@ export const useBases = defineStore('basesStore', () => {
     }
   }
 
+  watch(
+    () => route.value.params.baseId,
+    () => {
+      baseHomeSearchQuery.value = ''
+    },
+  )
+
+  /**
+   * Will have to show base home page sidebar if any base/table/view/script is active
+   */
+  watch(
+    [
+      () => route.value.params.baseId,
+      () => route.value.params.viewId,
+      () => route.value.params.viewTitle,
+      () => route.value.params.automationId,
+    ],
+    ([newBaseId, newTableId, newViewId, newAutomationId], [oldBaseId, oldTableId, oldViewId, oldAutomationId]) => {
+      const shouldShowProjectList = !(
+        (newBaseId && newBaseId !== oldBaseId) ||
+        newTableId !== oldTableId ||
+        newViewId !== oldViewId ||
+        newAutomationId !== oldAutomationId
+      )
+
+      if (!showProjectList.value && shouldShowProjectList) {
+        showProjectList.value = shouldShowProjectList
+        return
+      }
+
+      showProjectList.value = shouldShowProjectList
+    },
+  )
+
+  watch(activeProjectId, () => {
+    ncLastVisitedBase().set(activeProjectId.value)
+  })
+
   return {
     bases,
     basesList,
@@ -469,6 +513,7 @@ export const useBases = defineStore('basesStore', () => {
     isProjectEmpty,
     isProjectPopulated,
     isProjectsLoading,
+    isProjectsLoaded,
     activeProjectId,
     openedProject,
     openedProjectBasesMap,
@@ -482,6 +527,8 @@ export const useBases = defineStore('basesStore', () => {
     basesUser,
     clearBasesUser,
     isDataSourceLimitReached,
+    showProjectList,
+    baseHomeSearchQuery,
   }
 })
 

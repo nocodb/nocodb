@@ -11,7 +11,7 @@ const route = useRoute()
 const planTitle = route.query.plan as string
 const paymentMode = route.query.paymentMode as 'month' | 'year'
 
-const { hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
+const { hideSidebar, showTopbar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const { loadPlans, plansAvailable } = useProvidePaymentStore()
 
@@ -40,7 +40,10 @@ const goCheckout = async (workspaceId: string) => {
 }
 
 onMounted(() => {
-  hideSidebar.value = true
+  if (isNewSidebarEnabled.value) {
+    hideSidebar.value = true
+  }
+
   showTopbar.value = true
 
   loadingWorkspaces.value = true

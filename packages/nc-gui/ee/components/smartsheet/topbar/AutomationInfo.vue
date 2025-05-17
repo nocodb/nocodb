@@ -34,7 +34,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
                 </span>
               </template>
 
-              <GeneralProjectIcon :type="base?.type" :color="parseProp(base.meta).iconColor" class="!grayscale min-w-4" />
+              <GeneralProjectIcon :type="base?.type" :color="parseProp(base.meta).iconColor" class="!grayscale min-w-5" />
             </NcTooltip>
             <NcTooltip class="ml-1 truncate nc-active-base-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
               <template #title>

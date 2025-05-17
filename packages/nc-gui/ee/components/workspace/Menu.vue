@@ -2,6 +2,8 @@
 import { UseVirtualList } from '@vueuse/components'
 import { type WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk'
 
+const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
+
 const workspaceStore = useWorkspace()
 
 const { activeWorkspace, workspacesList, workspaceUserCount } = storeToRefs(workspaceStore)
@@ -112,25 +114,40 @@ const onWorkspaceCreateClick = () => {
   </div>
   <div
     v-else-if="activeWorkspace"
-    class="flex flex-row flex-grow w-full max-w-85/100 hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md"
+    :class="{
+      'flex flex-row flex-grow w-full max-w-85/100 hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md': !isMiniSidebar,
+    }"
     :style="{
-      maxWidth: `calc(100% - 2.5rem)`,
+      maxWidth: !isMiniSidebar ? `calc(100% - 2.5rem)` : undefined,
     }"
   >
     <NcDropdown
       v-model:visible="isWorkspaceDropdownOpen"
       class="h-full min-w-0 rounded-lg"
-      :trigger="['click']"
-      placement="bottom"
+      :trigger="[isMiniSidebar && !isMobileMode ? 'hover' : 'click']"
+      placement="bottomLeft"
       overlay-class-name="nc-dropdown-workspace-menu !overflow-hidden"
     >
       <div
         v-e="['c:workspace:menu']"
         data-testid="nc-workspace-menu"
-        class="group cursor-pointer flex flex-grow w-full gap-x-2 items-center nc-workspace-menu overflow-hidden py-1.25 xs:py-1.75 pr-0.25"
+        :class="{
+          'nc-mini-sidebar-ws-item': isMiniSidebar,
+          'group cursor-pointer flex flex-grow w-full gap-x-2 items-center overflow-hidden py-1.25 xs:py-1.75 pr-0.25':
+            !isMiniSidebar,
+          'nc-small-shadow': workspacesList.length === 2,
+          'nc-medium-shadow': workspacesList.length > 2,
+        }"
+        class="nc-workspace-menu"
       >
-        <GeneralWorkspaceIcon :workspace="activeWorkspace" icon-bg-color="#E7E7E9" show-nocodb-icon />
-        <div v-if="activeWorkspace" class="flex min-w-10 w-full items-center">
+        <GeneralWorkspaceIcon
+          :workspace="activeWorkspace"
+          icon-bg-color="#F4F4F5"
+          show-nocodb-icon
+          class="flex-none border-1 border-nc-border-gray-medium"
+          :size="isMiniSidebar ? 'mini-sidebar' : 'medium'"
+        />
+        <div v-if="activeWorkspace && !isMiniSidebar" class="flex min-w-10 w-full items-center">
           <div class="nc-workspace-title font-semibold text-base text-md truncate capitalize">
             {{ activeWorkspace.title }}
           </div>
@@ -180,11 +197,7 @@ const onWorkspaceCreateClick = () => {
                   </template>
                 </div>
               </div>
-              <NcTooltip
-                v-if="activeWorkspace.roles === WorkspaceUserRoles.OWNER"
-                class="!z-1 cursor-pointer"
-                placement="bottomRight"
-              >
+              <NcTooltip v-if="activeWorkspace.roles === WorkspaceUserRoles.OWNER" class="!z-1" placement="bottomRight">
                 <template #title>
                   {{ $t('objects.roleType.owner') }}
                 </template>
@@ -200,7 +213,7 @@ const onWorkspaceCreateClick = () => {
               :list="otherWorkspaces"
               height="auto"
               :options="{ itemHeight: 40 }"
-              class="mt-1 max-h-300px nc-scrollbar-md"
+              class="my-1 max-h-300px nc-scrollbar-md"
             >
               <template #default="{ data: workspace }">
                 <NcMenuItem :key="workspace.id!" class="!h-[40px]" @click="switchWorkspace(workspace.id!)">
@@ -269,5 +282,8 @@ const onWorkspaceCreateClick = () => {
 
 :deep(.ant-dropdown-menu-item-group-title) {
   @apply hidden;
+}
+
+:deep(.nc-workspace-avatar) {
 }
 </style>

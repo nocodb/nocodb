@@ -11,6 +11,8 @@ const route = router.currentRoute
 
 const { t } = useI18n()
 
+const { hideSidebar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const { isUIAllowed } = useRoles()
 
 const workspaceStore = useWorkspace()
@@ -101,6 +103,16 @@ watch(
     immediate: true,
   },
 )
+
+onMounted(() => {
+  if (!isNewSidebarEnabled.value) return
+
+  hideSidebar.value = true
+})
+
+onBeforeUnmount(() => {
+  hideSidebar.value = false
+})
 </script>
 
 <template>
@@ -109,7 +121,7 @@ watch(
       v-if="!props.workspaceId"
       class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-gray-200 flex items-center gap-2"
     >
-      <GeneralOpenLeftSidebarBtn />
+      <GeneralOpenLeftSidebarBtn v-if="!isNewSidebarEnabled" />
 
       <div class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1 nc-workspace-title">
         <div class="nc-breadcrumb-item capitalize">
@@ -121,7 +133,7 @@ watch(
           {{ $t('title.teamAndSettings') }}
         </h1>
       </div>
-      <SmartsheetTopbarCmdK class="ml-1" />
+      <SmartsheetTopbarCmdK v-if="!isNewSidebarEnabled" class="ml-1" />
     </div>
     <template v-else>
       <div class="nc-breadcrumb px-2">

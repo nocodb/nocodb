@@ -40,11 +40,43 @@ i {
   }
 }
 
+.text-Heading1,
+.text-Heading2,
+.text-Heading3,
+.text-subHeading1,
+.text-subHeading2,
+.text-bodyLgBold,
+.text-bodyBold,
+.text-bodyDefaultSmBold,
+.text-bodySmBold,
+.text-captionBold,
+.text-captionSmBold,
+.text-captionXsBold {
+  @apply font-700;
+}
+
+.text-bodyLg,
+.text-body,
+.text-bodyDefaultSm,
+.text-bodySm,
+.text-caption,
+.text-captionSm,
+.text-captionXs {
+  @apply font-500;
+}
+
+.text-captionDropdownDefault,
+.text-sidebarDefault,
+.text-sidebarSelected {
+  @apply font-750; /* Original font weight 650 */
+}
+
 body {
   line-height: 1.3125rem;
 }
 
 :root {
+  --mini-sidebar-width: 3rem; /* 48px */
   --sidebar-bottom-height: 4.75rem;
   --toolbar-height: 2.75rem;
   --topbar-height: 3rem;
@@ -141,7 +173,7 @@ main {
 // add border on input if it has value and it is not focused
 .ant-input-affix-wrapper.nc-input-border-on-value {
   &:not(:has(.ant-input-clear-icon-hidden)):has(.ant-input-clear-icon) {
-    @apply border-[var(--ant-primary-5)];
+    @apply !border-[var(--ant-primary-5)];
   }
 
   .ant-input::placeholder {

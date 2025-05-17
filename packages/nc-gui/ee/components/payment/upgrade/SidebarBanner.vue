@@ -3,6 +3,8 @@ import { LOYALTY_GRACE_PERIOD_END_DATE, PlanLimitTypes, PlanTitles } from 'nocod
 
 const route = useRoute()
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
@@ -117,10 +119,11 @@ watch(
 <template>
   <div
     v-if="showBanner"
-    class="-mx-1 pt-1.5 border-b border-nc-border-gray-medium pointer-events-none"
+    class="-mx-1 pt-1.5 pointer-events-none"
     :class="{
       'px-2 pb-2': isLimitReached,
       'px-1 pb-1': !isLimitReached,
+      'border-b border-nc-border-gray-medium': !isNewSidebarEnabled,
     }"
   >
     <div

@@ -5,6 +5,14 @@ import type { BaseType, SourceType, TableType, WorkspaceUserRoles } from 'nocodb
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import Automation from './Automation.vue'
 
+interface Props {
+  isProjectHeader?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {})
+
+const { isProjectHeader } = toRefs(props)
+
 const indicator = h(LoadingOutlined, {
   class: '!text-gray-400',
   style: {
@@ -15,6 +23,8 @@ const indicator = h(LoadingOutlined, {
 
 const router = useRouter()
 const route = router.currentRoute
+
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
@@ -43,7 +53,7 @@ const basesStore = useBases()
 
 const { createProject: _createProject, updateProject, toggleStarred, loadProject } = basesStore
 
-const { bases, activeProjectId, basesUser } = storeToRefs(basesStore)
+const { bases, activeProjectId, basesUser, showProjectList } = storeToRefs(basesStore)
 
 const collaborators = computed(() => {
   return (basesUser.value.get(base.value?.id) || []).map((user: any) => {
@@ -68,8 +78,6 @@ const { loadProjectTables } = useTablesStore()
 const { activeTable } = storeToRefs(useTablesStore())
 
 const { allRecentViews } = storeToRefs(useViewsStore())
-
-const { appInfo } = useGlobal()
 
 useTabs()
 
@@ -108,6 +116,7 @@ const { copy } = useCopy()
 const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility } = useEeConfig()
 
 const isOptionsOpen = ref(false)
+const isProjectNodeContextMenuOpen = ref(false)
 const isBasesOptionsOpen = ref<Record<string, boolean>>({})
 
 const activeKey = ref<string[]>([])
@@ -133,7 +142,7 @@ const showBaseOption = (source: SourceType) => {
 }
 
 const enableEditMode = () => {
-  if (!isUIAllowed('baseRename')) return
+  if (!isUIAllowed('baseRename') || isProjectNodeContextMenuOpen.value) return
 
   editMode.value = true
   tempTitle.value = base.value.title!
@@ -231,10 +240,6 @@ const updateProjectTitle = async () => {
     refreshCommandPalette()
   }
 }
-
-defineExpose({
-  enableEditMode,
-})
 
 const setColor = async (color: string, base: BaseType) => {
   try {
@@ -368,7 +373,7 @@ const addNewProjectChildEntity = async () => {
 // todo: temp
 
 const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggleIsExpanded?: boolean) => {
-  if (!base) {
+  if (!base || isProjectHeader.value) {
     return
   }
 
@@ -455,6 +460,8 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
     const updatedProject = bases.value.get(base.id!)!
     updatedProject.isLoading = false
   }
+
+  showProjectList.value = false
 }
 
 // TODO - implement
@@ -510,6 +517,10 @@ onKeyStroke('Escape', () => {
     isOptionsOpen.value = false
   }
 
+  if (isProjectNodeContextMenuOpen.value) {
+    isProjectNodeContextMenuOpen.value = false
+  }
+
   for (const key of Object.keys(isBasesOptionsOpen.value)) {
     isBasesOptionsOpen.value[key] = false
   }
@@ -534,8 +545,10 @@ watch(
   () => labelEl.value && activeProjectId.value === base.value?.id,
   async (isActive) => {
     if (!isActive) return
+
     await nextTick()
-    labelEl.value?.scrollIntoView({ behavior: 'smooth' })
+
+    labelEl.value?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   },
   {
     immediate: true,
@@ -613,15 +626,27 @@ const onClickMenu = (e: { key?: string }) => {
     return
   }
   isOptionsOpen.value = false
+  isProjectNodeContextMenuOpen.value = false
 }
+
+defineExpose({
+  enableEditMode,
+  addNewProjectChildEntity,
+  isAddNewProjectChildEntityLoading,
+})
 </script>
 
 <template>
-  <NcDropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
+  <NcDropdown
+    v-model:visible="isProjectNodeContextMenuOpen"
+    :trigger="[isProjectHeader ? 'click' : 'contextmenu']"
+    overlay-class-name="nc-dropdown-tree-view-context-menu"
+    :disabled="isProjectHeader ? editMode || isSharedBase || !!isMobileMode : undefined"
+  >
     <div
       ref="labelEl"
-      class="ml-1 mr-0.5 nc-base-sub-menu rounded-md"
-      :class="{ active: isExpanded }"
+      class="nc-base-sub-menu rounded-md box-content"
+      :class="{ 'active': isExpanded, 'ml-1 mr-0.5': !isProjectHeader && !isNewSidebarEnabled, 'self-start': isProjectHeader }"
       :data-testid="`nc-sidebar-base-${base.title}`"
       :data-base-id="base.id"
     >
@@ -629,8 +654,17 @@ const onClickMenu = (e: { key?: string }) => {
         :tooltip-style="{ width: '240px', zIndex: '1049' }"
         :overlay-inner-style="{ width: '240px' }"
         trigger="hover"
-        placement="right"
-        :disabled="editMode || isOptionsOpen || isAddNewProjectChildEntityLoading || !showNodeTooltip || !collaborators.length"
+        :placement="isProjectHeader ? 'rightTop' : 'right'"
+        hide-on-click
+        :disabled="
+          editMode ||
+          isOptionsOpen ||
+          isAddNewProjectChildEntityLoading ||
+          !showNodeTooltip ||
+          !collaborators.length ||
+          isProjectNodeContextMenuOpen ||
+          !!isMobileMode
+        "
       >
         <template #title>
           <div class="flex flex-col gap-3">
@@ -659,18 +693,32 @@ const onClickMenu = (e: { key?: string }) => {
             </div>
           </div>
         </template>
-        <div class="flex items-center gap-0.75 py-0.5 cursor-pointer" @contextmenu="setMenuContext('base', base)">
+        <div
+          class="flex items-center gap-0.75"
+          :class="{
+            'py-0.5 cursor-pointer': !isProjectHeader,
+          }"
+          @contextmenu="setMenuContext('base', base)"
+        >
           <div
+            class="nc-sidebar-node base-title-node rounded-md group flex items-center"
             :class="{
-              'bg-primary-selected active': activeProjectId === base.id && baseViewOpen && !isMobileMode,
-              'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen),
+              'text-subHeading2 gap-2 hover:bg-nc-bg-gray-medium h-8 cursor-pointer px-1 max-w-full': isProjectHeader,
+              'flex-grow w-full': isProjectHeader && editMode,
+              'bg-nc-bg-gray-medium': isProjectHeader && isProjectNodeContextMenuOpen,
+              'h-7 pr-1 pl-2.5 xs:(pl-0) flex-grow w-full': !isProjectHeader,
+              'bg-primary-selected active':
+                activeProjectId === base.id && (baseViewOpen || isNewSidebarEnabled) && !isMobileMode && !isProjectHeader,
+              'hover:bg-gray-200': !(activeProjectId === base.id && (baseViewOpen || isNewSidebarEnabled)) && !isProjectHeader,
             }"
             :data-id="base.id"
             :data-testid="`nc-sidebar-base-title-${base.title}`"
-            class="nc-sidebar-node base-title-node h-7 flex-grow rounded-md group flex items-center w-full pr-1 pl-1.5 xs:(pl-0)"
           >
             <div
-              class="flex items-center mr-1"
+              class="flex items-center"
+              :class="{
+                'mr-1': !isProjectHeader,
+              }"
               @click="onProjectClick(base)"
               @mouseenter="showNodeTooltip = false"
               @mouseleave="showNodeTooltip = true"
@@ -684,7 +732,10 @@ const onClickMenu = (e: { key?: string }) => {
                     :type="base?.type"
                     :model-value="parseProp(base.meta).iconColor"
                     size="small"
-                    :readonly="(base?.type && base?.type !== 'database') || !isUIAllowed('baseRename')"
+                    :icon-class="isProjectHeader ? 'h-6 w-6' : ''"
+                    :readonly="
+                      (base?.type && base?.type !== 'database') || !isUIAllowed('baseRename') || isProjectNodeContextMenuOpen
+                    "
                     @update:model-value="setColor($event, base)"
                   >
                   </GeneralBaseIconColorPicker>
@@ -697,7 +748,11 @@ const onClickMenu = (e: { key?: string }) => {
               ref="input"
               v-model:value="tempTitle"
               class="capitalize !bg-transparent !flex-1 mr-4 !rounded-md !pr-1.5 !h-6 animate-sidebar-node-input-padding"
-              :class="activeProjectId === base.id && baseViewOpen ? '!text-brand-600 !font-semibold' : '!text-gray-700'"
+              :class="
+                activeProjectId === base.id && (baseViewOpen || isNewSidebarEnabled) && !isProjectHeader
+                  ? '!text-brand-600 !font-semibold'
+                  : '!text-gray-700'
+              "
               :style="{
                 fontWeight: 'inherit',
               }"
@@ -710,11 +765,16 @@ const onClickMenu = (e: { key?: string }) => {
             <NcTooltip
               v-else
               :disabled="!!collaborators.length"
-              class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none flex-1"
+              class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none"
               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-              :class="
-                activeProjectId === base.id && baseViewOpen && !isMobileMode ? 'text-brand-600 font-semibold' : 'text-gray-700'
-              "
+              :class="[
+                activeProjectId === base.id && (baseViewOpen || isNewSidebarEnabled) && !isMobileMode && !isProjectHeader
+                  ? 'text-brand-600 font-semibold'
+                  : 'text-gray-700',
+                {
+                  'flex-1': !isProjectHeader,
+                },
+              ]"
               show-on-truncate-only
               @click="onProjectClick(base)"
             >
@@ -725,172 +785,96 @@ const onClickMenu = (e: { key?: string }) => {
             </NcTooltip>
 
             <template v-if="!editMode">
-              <NcDropdown v-if="!isSharedBase" v-model:visible="isOptionsOpen" :trigger="['click']">
+              <template v-if="isProjectHeader">
+                <GeneralIcon v-if="!isMobileMode" icon="chevronDown" class="flex-none text-nc-content-gray-muted" />
+              </template>
+              <template v-else>
+                <NcDropdown v-if="!isSharedBase" v-model:visible="isOptionsOpen" :trigger="['click']">
+                  <NcButton
+                    class="nc-sidebar-node-btn"
+                    :class="{
+                      '!text-black !opacity-100 !inline-block': isOptionsOpen,
+                    }"
+                    data-testid="nc-sidebar-context-menu"
+                    type="text"
+                    :size="isProjectHeader ? 'small' : 'xxsmall'"
+                    @click.stop
+                    @mouseenter="showNodeTooltip = false"
+                    @mouseleave="showNodeTooltip = true"
+                  >
+                    <GeneralIcon
+                      :icon="isProjectHeader ? 'threeDotVertical' : 'threeDotHorizontal'"
+                      class="text-xl w-4.75"
+                      :class="{
+                        'text-nc-content-gray-subtle': isProjectHeader,
+                      }"
+                    />
+                  </NcButton>
+
+                  <template #overlay>
+                    <DashboardTreeViewProjectActionMenu
+                      :show-base-option="(source) => showBaseOption(source)"
+                      :data-reflection-state="dataReflectionState"
+                      :data-reflection-text="dataReflectionText"
+                      @click-menu="onClickMenu($event)"
+                      @rename="enableEditMode"
+                      @toggle-starred="toggleStarred($event)"
+                      @duplicate-project="duplicateProject($event)"
+                      @open-erd-view="openErdView($event)"
+                      @on-data-reflection="onDataReflection"
+                      @open-base-settings="openBaseSettings($event)"
+                      @delete="isProjectDeleteDialogVisible = true"
+                    />
+                  </template>
+                </NcDropdown>
+
                 <NcButton
+                  v-if="
+                    isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] })
+                  "
+                  :disabled="!base?.sources?.[0]?.enabled"
                   class="nc-sidebar-node-btn"
-                  :class="{ '!text-black !opacity-100 !inline-block': isOptionsOpen }"
-                  data-testid="nc-sidebar-context-menu"
                   type="text"
+                  data-testid="nc-sidebar-add-base-entity"
                   size="xxsmall"
-                  @click.stop
+                  :class="{
+                    '!text-black !inline-block !opacity-100': isAddNewProjectChildEntityLoading,
+                    '!inline-block !opacity-100': isOptionsOpen,
+                  }"
+                  :loading="isAddNewProjectChildEntityLoading"
+                  @click.stop="addNewProjectChildEntity"
                   @mouseenter="showNodeTooltip = false"
                   @mouseleave="showNodeTooltip = true"
                 >
-                  <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
+                  <NcTooltip :title="$t('activity.createTable')" :disabled="!isNewSidebarEnabled" hide-on-click>
+                    <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
+                  </NcTooltip>
                 </NcButton>
 
-                <template #overlay>
-                  <NcMenu
-                    class="nc-scrollbar-md !min-w-50"
-                    :style="{
-                      maxHeight: '70vh',
-                      overflow: 'overlay',
-                    }"
-                    :data-testid="`nc-sidebar-base-${base.title}-options`"
-                    variant="small"
-                    @click="onClickMenu"
-                  >
-                    <NcMenuItem v-if="isUIAllowed('baseRename')" data-testid="nc-sidebar-base-rename" @click="enableEditMode">
-                      <GeneralIcon icon="rename" />
-                      {{ $t('general.rename') }} {{ $t('objects.project').toLowerCase() }}
-                    </NcMenuItem>
-                    <NcMenuItem data-testid="nc-sidebar-base-starred" @click="() => toggleStarred(base.id)">
-                      <GeneralIcon v-if="base.starred" icon="unStar" />
-                      <GeneralIcon v-else icon="star" />
-                      <div class="ml-0.25">
-                        {{ base.starred ? $t('activity.removeFromStarred') : $t('activity.addToStarred') }}
-                      </div>
-                    </NcMenuItem>
-
-                    <NcMenuItem
-                      v-if="
-                        base.type === NcProjectType.DB &&
-                        isUIAllowed('baseDuplicate', { roles: base.project_role || base.workspace_role })
-                      "
-                      data-testid="nc-sidebar-base-duplicate"
-                      @click="duplicateProject(base)"
-                    >
-                      <GeneralIcon icon="duplicate" />
-                      {{ $t('general.duplicate') }} {{ $t('objects.project').toLowerCase() }}
-                    </NcMenuItem>
-
-                    <NcDivider />
-
-                    <!-- ERD View -->
-                    <NcMenuItem
-                      v-if="base?.sources?.[0]?.enabled"
-                      key="erd"
-                      data-testid="nc-sidebar-base-relations"
-                      @click="openErdView(base?.sources?.[0])"
-                    >
-                      <GeneralIcon icon="ncErd" />
-                      {{ $t('title.relations') }}
-                    </NcMenuItem>
-
-                    <!-- Get Connection -->
-                    <NcMenuItem
-                      v-if="
-                        isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
-                        isUIAllowed('createConnectionDetails') &&
-                        base?.sources?.[0]?.enabled
-                      "
-                      m-key="connect"
-                      data-testid="nc-sidebar-base-connect"
-                      @click="onDataReflection"
-                    >
-                      <GeneralLoader v-if="dataReflectionState === 1" />
-                      <GeneralIcon v-else-if="dataReflectionState === 2" icon="circleCheckSolid" class="text-success" />
-                      <GeneralIcon v-else-if="dataReflectionState === 3" icon="ncXCircle" />
-                      <GeneralIntegrationIcon v-else type="nocodb" class="group-hover:text-black" />
-                      {{ dataReflectionText }}
-                    </NcMenuItem>
-
-                    <!-- Swagger: Rest APIs -->
-                    <NcMenuItem
-                      v-if="isUIAllowed('apiDocs')"
-                      key="api"
-                      v-e="['e:api-docs']"
-                      data-testid="nc-sidebar-base-rest-apis"
-                      @click.stop="openLink(`/api/v2/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)"
-                    >
-                      <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
-                      {{ $t('labels.restApis') }}
-                    </NcMenuItem>
-
-                    <DashboardTreeViewBaseOptions
-                      v-if="base?.sources?.[0]?.enabled && showBaseOption(base.sources[0])"
-                      v-model:base="base"
-                      :source="base.sources[0]"
-                    />
-
-                    <NcDivider v-if="['settings', 'baseDelete'].some((permission) => isUIAllowed(permission))" />
-
-                    <NcMenuItem
-                      v-if="isUIAllowed('baseMiscSettings')"
-                      key="teamAndSettings"
-                      v-e="['c:navdraw:base-settings']"
-                      data-testid="nc-sidebar-base-settings"
-                      class="nc-sidebar-base-base-settings"
-                      @click="openBaseSettings(base.id)"
-                    >
-                      <GeneralIcon icon="settings" />
-                      {{ $t('activity.settings') }}
-                    </NcMenuItem>
-                    <NcMenuItem
-                      v-if="isUIAllowed('baseDelete', { roles: base.project_role || base.workspace_role })"
-                      class="!text-red-500 !hover:bg-red-50"
-                      data-testid="nc-sidebar-base-delete"
-                      @click="isProjectDeleteDialogVisible = true"
-                    >
-                      <GeneralIcon icon="delete" class="w-4" />
-                      <div>{{ $t('general.delete') }} {{ $t('objects.project').toLowerCase() }}</div>
-                    </NcMenuItem>
-                  </NcMenu>
-                </template>
-              </NcDropdown>
-
-              <NcButton
-                v-if="isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] })"
-                :disabled="!base?.sources?.[0]?.enabled"
-                class="nc-sidebar-node-btn"
-                type="text"
-                data-testid="nc-sidebar-add-base-entity"
-                size="xxsmall"
-                :class="{
-                  '!text-black !inline-block !opacity-100': isAddNewProjectChildEntityLoading,
-                  '!inline-block !opacity-100': isOptionsOpen,
-                }"
-                :loading="isAddNewProjectChildEntityLoading"
-                @click.stop="addNewProjectChildEntity"
-                @mouseenter="showNodeTooltip = false"
-                @mouseleave="showNodeTooltip = true"
-              >
-                <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
-              </NcButton>
-
-              <NcButton
-                v-e="['c:base:expand']"
-                type="text"
-                size="xxsmall"
-                class="nc-sidebar-node-btn nc-sidebar-expand !xs:opacity-100"
-                :class="{ '!opacity-100': isOptionsOpen }"
-                @click.stop="onProjectClick(base, true, true)"
-                @mouseenter="showNodeTooltip = false"
-                @mouseleave="showNodeTooltip = true"
-              >
-                <GeneralIcon
-                  icon="chevronRight"
-                  class="flex-none nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 text-[20px]"
-                  :class="{ '!rotate-90': base.isExpanded }"
-                />
-              </NcButton>
+                <NcButton
+                  v-e="['c:base:expand']"
+                  type="text"
+                  size="xxsmall"
+                  class="nc-sidebar-node-btn nc-sidebar-expand !xs:opacity-100"
+                  :class="{ '!opacity-100': isOptionsOpen }"
+                  @click.stop="onProjectClick(base, true, true)"
+                  @mouseenter="showNodeTooltip = false"
+                  @mouseleave="showNodeTooltip = true"
+                >
+                  <GeneralIcon
+                    icon="chevronRight"
+                    class="flex-none nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 text-[20px]"
+                    :class="{ '!rotate-90': base.isExpanded && !isNewSidebarEnabled }"
+                  />
+                </NcButton>
+              </template>
             </template>
           </div>
         </div>
       </NcTooltip>
 
       <div
-        v-if="base.id && !base.isLoading"
+        v-if="base.id && !base.isLoading && !isNewSidebarEnabled"
         key="g1"
         class="overflow-x-hidden transition-max-height"
         :class="{ 'max-h-0': !isExpanded }"
@@ -1111,8 +1095,24 @@ const onClickMenu = (e: { key?: string }) => {
         <Automation v-if="isAutomationEnabled && !isSharedBase" :base-id="base.id" />
       </div>
     </div>
-    <template v-if="shouldOpenContextMenu" #overlay>
+    <template v-if="shouldOpenContextMenu || isProjectHeader" #overlay>
+      <DashboardTreeViewProjectActionMenu
+        v-if="isProjectHeader"
+        :show-base-option="(source) => showBaseOption(source)"
+        :data-reflection-state="dataReflectionState"
+        :data-reflection-text="dataReflectionText"
+        @click-menu="onClickMenu($event)"
+        @rename="enableEditMode"
+        @toggle-starred="toggleStarred($event)"
+        @duplicate-project="duplicateProject($event)"
+        @open-erd-view="openErdView($event)"
+        @on-data-reflection="onDataReflection"
+        @open-base-settings="openBaseSettings($event)"
+        @delete="isProjectDeleteDialogVisible = true"
+      />
+
       <NcMenu
+        v-else
         :class="{
           '!min-w-62.5': contextMenuTarget.type === 'table',
           '!min-w-50': contextMenuTarget.type !== 'table',

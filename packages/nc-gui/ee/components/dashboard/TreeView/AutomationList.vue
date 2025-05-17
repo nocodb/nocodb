@@ -18,13 +18,15 @@ const { addUndo, defineModelScope } = useUndoRedo()
 
 const { ncNavigateTo, isMobileMode } = useGlobal()
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const bases = useBases()
 
 const { isUIAllowed } = useRoles()
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const { openedProject } = storeToRefs(bases)
+const { openedProject, baseHomeSearchQuery } = storeToRefs(bases)
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -34,7 +36,7 @@ const { updateAutomation } = automationStore
 
 const { activeAutomationId, automations } = storeToRefs(automationStore)
 
-const scripts = computed(() => automations.value.get(baseId.value))
+const scripts = computed(() => automations.value.get(baseId.value) ?? [])
 
 let sortable: Sortable
 
@@ -260,6 +262,10 @@ onMounted(() => {
     initSortable(menuRef.value.$el)
   }
 })
+
+const filteredScripts = computed(() => {
+  return scripts.value.filter((script) => searchCompare(script.title, baseHomeSearchQuery.value))
+})
 </script>
 
 <template>
@@ -269,8 +275,23 @@ onMounted(() => {
     :selected-keys="selected"
     class="nc-scripts-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
-    <template v-if="!isSharedBase && isUIAllowed('scriptCreateOrEdit')">
-      <div class="!pl-13.3 !xs:(pl-13.5)" @click="openNewScriptModal">
+    <div
+      v-if="!scripts?.length || !filteredScripts.length"
+      class="nc-project-home-section-item text-gray-500 font-normal"
+      :class="{
+        'ml-11.5 xs:(ml-12.25) ': !isNewSidebarEnabled,
+      }"
+    >
+      {{ scripts?.length && !filteredScripts.length ? 'No results found for your search.' : 'No Automations' }}
+    </div>
+
+    <template v-if="(!isNewSidebarEnabled || !scripts?.length) && !isSharedBase && isUIAllowed('scriptCreateOrEdit')">
+      <div
+        :class="{
+          '!pl-13.3 !xs:(pl-13.5)': !isNewSidebarEnabled,
+        }"
+        @click="openNewScriptModal"
+      >
         <div
           :class="{
             'text-brand-500 hover:text-brand-600': openedProject?.id === baseId,
@@ -279,9 +300,14 @@ onMounted(() => {
           class="nc-create-script-btn flex flex-row items-center cursor-pointer rounded-md w-full"
           role="button"
         >
-          <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
+          <div
+            :class="{
+              'nc-project-home-section-item': isNewSidebarEnabled,
+              'flex flex-row items-center pl-1.25 !py-1.5 text-inherit': !isNewSidebarEnabled,
+            }"
+          >
             <GeneralIcon icon="plus" />
-            <div class="pl-1.75">
+            <div :class="{ 'pl-1.75': !isNewSidebarEnabled }">
               {{
                 $t('general.createEntity', {
                   entity: $t('objects.script'),
@@ -292,9 +318,9 @@ onMounted(() => {
         </div>
       </div>
     </template>
-    <template v-if="scripts?.length">
+    <template v-if="filteredScripts?.length">
       <DashboardTreeViewAutomationNode
-        v-for="script of scripts"
+        v-for="script of filteredScripts"
         :id="script.id"
         :key="script.id"
         class="nc-script-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"

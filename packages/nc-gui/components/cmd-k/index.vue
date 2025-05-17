@@ -262,9 +262,8 @@ const setScope = (scope: string) => {
 const show = () => {
   if (!user.value) return
   if (props.scope === 'disabled') return
-  if (!vOpen.value) {
-    loadScope()
-  }
+
+  loadScope()
 
   vOpen.value = true
   cmdInput.value = ''
@@ -309,14 +308,6 @@ watch(cmdInput, () => {
   } else {
     updateDebouncedInput()
   }
-})
-
-whenever(keys.ctrl_k, () => {
-  show()
-})
-
-whenever(keys.meta_k, () => {
-  show()
 })
 
 whenever(keys.Escape, () => {
@@ -446,7 +437,7 @@ defineExpose({
                   class="text-ellipsis truncate capitalize max-w-16"
                   style="word-break: keep-all; white-space: nowrap; display: inline"
                 >
-                  <NcTooltip show-on-truncate-only>
+                  <NcTooltip show-on-truncate-only class="truncate" :tooltip-style="{ zIndex: 1100 }">
                     <template #title>
                       {{ el.label }}
                     </template>
@@ -470,7 +461,7 @@ defineExpose({
           </div>
           <div v-else-if="searchedActionList.length === 0">
             <div class="cmdk-action">
-              <div class="cmdk-action-content">No action found.</div>
+              <div class="cmdk-action-content">No results found for your search.</div>
             </div>
           </div>
           <template v-else>
@@ -542,7 +533,7 @@ defineExpose({
                               <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="item.data.icon" readonly />
                             </div>
                           </template>
-                          <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+                          <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg" :tooltip-style="{ zIndex: 1100 }">
                             <template #title>
                               {{ item.data.title }}
                             </template>

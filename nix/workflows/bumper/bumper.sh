@@ -74,8 +74,7 @@ if [ "$cur_hash" != "$new_hash" ]; then
 	if [ "$1" = "--push" ]; then
 		git add "$package_path"
 		git commit \
-			-c "user.name=$commit_author" \
-			-c "user.email=$commit_email" \
+			--author="$commit_author <$commit_email>" \
 			-m "$commit_message"
 		git push
 	fi

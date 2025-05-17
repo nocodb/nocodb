@@ -29,10 +29,12 @@ const { isUIAllowed } = useRoles()
 
 const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
-const { openedProject } = storeToRefs(useBases())
+const { openedProject, baseHomeSearchQuery } = storeToRefs(useBases())
 
 const { baseTables } = storeToRefs(useTablesStore())
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
+
+const { viewsByTable } = storeToRefs(useViewsStore())
 
 const { $api } = useNuxtApp()
 
@@ -136,51 +138,59 @@ watchEffect(() => {
 const availableTables = computed(() => {
   return tables.value.filter((table) => table.source_id === base.value?.sources?.[sourceIndex.value].id)
 })
+
+const filteredAvailableTables = computed(() => {
+  return availableTables.value.filter(
+    (table) =>
+      searchCompare(table.title, baseHomeSearchQuery.value) ||
+      viewsByTable.value.get(table.id!)?.some((view) => searchCompare(view.title, baseHomeSearchQuery.value)),
+  )
+})
 </script>
 
 <template>
   <div class="border-none sortable-list">
     <template v-if="base">
-      <template v-if="availableTables.length === 0">
+      <div
+        v-if="!availableTables.length && isNewSidebarEnabled && showCreateTableBtn"
+        :class="{
+          'text-brand-500 hover:text-brand-600': openedProject?.id === base.id,
+          'text-gray-500 hover:text-brand-500': openedProject?.id !== base.id,
+        }"
+        class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full"
+        role="button"
+        @click="emits('createTable')"
+      >
         <div
-          v-if="isNewSidebarEnabled && showCreateTableBtn"
           :class="{
-            'text-brand-500 hover:text-brand-600': openedProject?.id === base.id,
-            'text-gray-500 hover:text-brand-500': openedProject?.id !== base.id,
+            'nc-project-home-section-item': isNewSidebarEnabled,
+            'flex flex-row items-center pl-1.25 !py-1.5 text-inherit': !isNewSidebarEnabled,
           }"
-          class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full"
-          role="button"
-          @click="emits('createTable')"
         >
-          <div
-            :class="{
-              'nc-project-home-section-item': isNewSidebarEnabled,
-              'flex flex-row items-center pl-1.25 !py-1.5 text-inherit': !isNewSidebarEnabled,
-            }"
-          >
-            <GeneralIcon icon="plus" />
-            <div>
-              {{
-                $t('general.createEntity', {
-                  entity: $t('objects.table'),
-                })
-              }}
-            </div>
+          <GeneralIcon icon="plus" />
+          <div>
+            {{
+              $t('general.createEntity', {
+                entity: $t('objects.table'),
+              })
+            }}
           </div>
         </div>
+      </div>
 
-        <div
-          class="py-0.5 text-gray-500 font-normal"
-          :class="{
-            'ml-8.5': sourceIndex === 0 && !isNewSidebarEnabled,
-            'ml-14.5 xs:(ml-15.25)': sourceIndex !== 0 && !isNewSidebarEnabled,
-            'nc-project-home-section-item': sourceIndex === 0 && isNewSidebarEnabled,
-            'ml-9 xs:(ml-9.75)': sourceIndex !== 0 && isNewSidebarEnabled,
-          }"
-        >
-          No tables
-        </div>
-      </template>
+      <div
+        v-if="!availableTables.length || !filteredAvailableTables.length"
+        class="py-0.5 text-gray-500 font-normal"
+        :class="{
+          'ml-8.5': sourceIndex === 0 && !isNewSidebarEnabled,
+          'ml-14.5 xs:(ml-15.25)': sourceIndex !== 0 && !isNewSidebarEnabled,
+          'nc-project-home-section-item': sourceIndex === 0 && isNewSidebarEnabled,
+          'ml-9 xs:(ml-9.75)': sourceIndex !== 0 && isNewSidebarEnabled,
+        }"
+      >
+        {{ availableTables.length && !filteredAvailableTables.length ? 'No results found for your search.' : 'No tables' }}
+      </div>
+
       <div
         v-if="base.sources?.[sourceIndex] && base!.sources[sourceIndex].enabled"
         ref="menuRefs"
@@ -188,7 +198,7 @@ const availableTables = computed(() => {
         :nc-source="source?.id"
       >
         <TableNode
-          v-for="table of availableTables"
+          v-for="table of filteredAvailableTables"
           :key="table.id"
           class="nc-tree-item text-sm"
           :data-order="table.order"

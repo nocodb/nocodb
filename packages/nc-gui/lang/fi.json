@@ -805,7 +805,8 @@
     "upgradeToPlan": "Päivitä {plan}-pakettiin",
     "upgradeWorkspaceToPlan": "Päivitä {workspace} {plan}-pakettiin",
     "upgradeToPlanSubtitle": "Sinulta veloitetaan tästä paketista heti.",
-    "reactivateToPlan": "Aktivoidaanko {plan}-paketti uudelleen?"
+    "reactivateToPlan": "Aktivoidaanko {plan}-paketti uudelleen?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1320,7 +1321,8 @@
     "invoice": "Lasku",
     "status": "Tila",
     "invoiceTotal": "Laskun kokonaissumma",
-    "pastInvoices": "Aiemmat laskut"
+    "pastInvoices": "Aiemmat laskut",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Klikkaa ratkaistaksesi",

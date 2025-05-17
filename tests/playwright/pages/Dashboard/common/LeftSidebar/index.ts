@@ -106,7 +106,11 @@ export class LeftSidebarPage extends BasePage {
   }
 
   async verifyWorkspaceName({ title }: { title: string }) {
-    expect(await this.getWorkspaceName()).toContain(title);
+    if (await this.isNewSidebar()) {
+      return expect(await this.getWorkspaceName()).toContain(title);
+    } else {
+      return await expect(this.btn_workspace.locator('.nc-workspace-title')).toHaveText(title);
+    }
   }
 
   async createWorkspace({ title }: { title: string }) {

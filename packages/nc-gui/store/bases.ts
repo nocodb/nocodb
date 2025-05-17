@@ -33,7 +33,7 @@ export const useBases = defineStore('basesStore', () => {
     return route.value.params.baseId as string | undefined
   })
 
-  const showProjectList = ref<boolean>(!activeProjectId.value)
+  const showProjectList = ref<boolean>(route.value.params.typeOrId === 'base' ? false : !route.value.params.baseId)
 
   const openedProject = computed(() => (activeProjectId.value ? bases.value.get(activeProjectId.value) : undefined))
   const openedProjectBasesMap = computed(() => {
@@ -128,7 +128,7 @@ export const useBases = defineStore('basesStore', () => {
           ...(bases.value.get(base.id!) || {}),
           ...base,
           sources: [...(base.sources ?? bases.value.get(base.id!)?.sources ?? [])],
-          isExpanded: route.value.params.baseId === base.id || bases.value.get(base.id!)?.isExpanded,
+          isExpanded: true,
           isLoading: false,
         })
 
@@ -383,6 +383,18 @@ export const useBases = defineStore('basesStore', () => {
   }
 
   const toggleStarred = async (..._args: any) => {}
+
+  /**
+   * Will have to show base home page sidebar if any base/table/view/script is active
+   */
+  watch(
+    [() => route.value.params.baseId, () => route.value.params.viewId, () => route.value.params.viewTitle],
+    ([newBaseId, newTableId, newViewId], [oldBaseId, oldTableId, oldViewId]) => {
+      if (!showProjectList.value) return
+
+      showProjectList.value = !(newBaseId !== oldBaseId || newTableId !== oldTableId || newViewId !== oldViewId)
+    },
+  )
 
   return {
     bases,

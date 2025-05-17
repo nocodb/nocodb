@@ -27,6 +27,8 @@ const searchInputRef = ref()
 
 const isCreateProjectOpen = ref(false)
 
+const filteredProjectList = computed(() => basesList.value.filter((base) => searchCompare(base.title, searchQuery.value)))
+
 const baseStore = useBase()
 
 const { loadTables } = baseStore
@@ -408,7 +410,7 @@ watch([searchInputRef, showProjectList], () => {
             </a-input>
           </div>
 
-          <div class="nc-project-home-section">
+          <div class="nc-project-home-section pt-1">
             <WorkspaceCreateProjectBtn
               v-model:is-open="isCreateProjectOpen"
               modal
@@ -424,8 +426,8 @@ watch([searchInputRef, showProjectList], () => {
             </WorkspaceCreateProjectBtn>
           </div>
         </div>
-        <div class="nc-treeview flex-1 relative overflow-auto nc-scrollbar-thin">
-          <div v-if="!isSharedBase" class="text-gray-500 font-medium pl-3.5 mb-1">{{ $t('objects.projects') }}</div>
+        <div class="nc-treeview flex-1 relative overflow-auto nc-scrollbar-thin nc-project-home-section">
+          <div v-if="!isSharedBase" class="nc-project-home-section-header">{{ $t('objects.projects') }}</div>
           <div mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
             <div v-if="basesList?.length">
               <Draggable
@@ -438,16 +440,20 @@ watch([searchInputRef, showProjectList], () => {
                 @change="onMove($event)"
               >
                 <template #item="{ element: baseItem }">
-                  <div :key="baseItem.id">
+                  <div v-if="searchCompare(baseItem.title, searchQuery)" :key="baseItem.id">
                     <ProjectWrapper :base-role="baseItem.project_role" :base="baseItem">
                       <DashboardTreeViewProjectNode />
                     </ProjectWrapper>
                   </div>
                 </template>
+                <template v-if="!isWorkspaceLoading && !filteredProjectList.length" #footer>
+                  <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
+                    No results found for your search.
+                  </div>
+                </template>
               </Draggable>
             </div>
-
-            <WorkspaceEmptyPlaceholder v-else-if="!isWorkspaceLoading" />
+            <div v-else class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No Bases</div>
           </div>
         </div>
         <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />

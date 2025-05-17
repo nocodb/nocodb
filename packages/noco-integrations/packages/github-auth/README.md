@@ -8,49 +8,37 @@ This package provides GitHub authentication integration for NocoDB, supporting b
 - OAuth2 authentication
 - Access to GitHub API via Octokit
 
-## Setup Environment Variables
+## Authentication Methods
 
-To enable OAuth2 authentication with GitHub, you need to set up the following environment variables:
+### API Key Authentication
 
-### Step 1: Create a GitHub OAuth App
+To authenticate using a GitHub API Key (Personal Access Token):
 
 1. Log in to your GitHub account
-2. Navigate to Settings > Developer settings > OAuth Apps
-3. Click on "New OAuth App"
-4. Fill out the form:
-   - **Application name**: Your application name (e.g., "NocoDB")
-   - **Homepage URL**: Your application's homepage URL
-   - **Application description**: (Optional) Brief description of your app
-   - **Authorization callback URL**: The URL where GitHub will redirect users after authorization (e.g., `https://your-nocodb-instance.com/api/v1/integrations/auth/github/callback`)
-5. Click "Register application"
+2. Navigate to Settings > Developer settings > Personal access tokens
+3. Click on "Generate new token"
+4. Give your token a descriptive name
+5. Select the required scopes:
+   - `repo`: Full control of repositories
+   - `read:user`: Read-only access to user profile data
+6. Click "Generate token"
+7. Copy the generated token and use it in the NocoDB GitHub Auth integration configuration
 
-### Step 2: Get Client ID and Client Secret
+### OAuth Authentication
 
-After registering your OAuth App, you'll be provided with:
-- Client ID
-- Client Secret (click "Generate a new client secret" to create one)
+To authenticate using GitHub OAuth:
 
-### Step 3: Set Environment Variables
+1. Click the "Connect to GitHub" button in the NocoDB GitHub Auth integration configuration
+2. You will be redirected to GitHub to authorize the application
+3. Grant the requested permissions
+4. You will be redirected back to NocoDB with the authentication completed
 
-Configure your NocoDB instance with the following environment variables:
+## Required Permissions
 
-```
-INTEGRATION_AUTH_GITHUB_CLIENT_ID=your_github_client_id
-INTEGRATION_AUTH_GITHUB_CLIENT_SECRET=your_github_client_secret
-INTEGRATION_AUTH_GITHUB_REDIRECT_URI=your_redirect_uri
-```
-
-Where:
-- `your_github_client_id`: The Client ID from your GitHub OAuth App
-- `your_github_client_secret`: The Client Secret from your GitHub OAuth App
-- `your_redirect_uri`: The callback URL you specified when creating the OAuth App (e.g., `https://your-nocodb-instance.com/api/v1/integrations/auth/github/callback`)
-
-## OAuth Scopes
-
-This integration requests the following GitHub scopes:
+This integration requires the following GitHub permissions:
 - `read:user`: Read-only access to user profile data
 - `repo`: Full control of repositories
 
-## Usage
+## Additional Setup
 
-Once configured, the GitHub Auth integration will appear in the NocoDB integrations list, allowing users to authenticate with GitHub either using their API token or through the OAuth flow.
+For administrators setting up the OAuth integration, please refer to the [SETUP.md](./SETUP.md) file for detailed environment configuration instructions.

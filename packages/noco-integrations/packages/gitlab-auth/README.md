@@ -8,49 +8,38 @@ This package provides GitLab authentication integration for NocoDB, supporting b
 - OAuth2 authentication
 - Access to GitLab API via Gitbeaker
 
-## Setup Environment Variables
+## Authentication Methods
 
-To enable OAuth2 authentication with GitLab, you need to set up the following environment variables:
+### API Key Authentication
 
-### Step 1: Create a GitLab OAuth Application
+To authenticate using a GitLab API Key (Personal Access Token):
 
 1. Log in to your GitLab account
-2. Navigate to User Settings > Applications (or for organization-wide application, go to your Group settings > Applications)
+2. Navigate to User Settings > Access Tokens (or for project-specific tokens, go to your Project settings > Access Tokens)
 3. Fill out the form:
-   - **Name**: Your application name (e.g., "NocoDB")
-   - **Redirect URI**: The URL where GitLab will redirect users after authorization (e.g., `https://your-nocodb-instance.com/api/v1/integrations/auth/gitlab/callback`)
+   - **Name**: Give your token a descriptive name
+   - **Expiration date**: (Optional) Set an expiration date for the token
    - **Scopes**: Select the following scopes:
      - `api` (API access)
      - `read_user` (Read user information)
-4. Click "Save application"
+4. Click "Create personal access token"
+5. Copy the generated token and use it in the NocoDB GitLab Auth integration configuration
 
-### Step 2: Get Application ID and Secret
+### OAuth Authentication
 
-After creating your OAuth App, you'll be provided with:
-- Application ID (Client ID)
-- Secret (Client Secret)
+To authenticate using GitLab OAuth:
 
-### Step 3: Set Environment Variables
+1. Click the "Connect to GitLab" button in the NocoDB GitLab Auth integration configuration
+2. You will be redirected to GitLab to authorize the application
+3. Grant the requested permissions
+4. You will be redirected back to NocoDB with the authentication completed
 
-Configure your NocoDB instance with the following environment variables:
+## Required Permissions
 
-```
-INTEGRATION_AUTH_GITLAB_CLIENT_ID=your_gitlab_client_id
-INTEGRATION_AUTH_GITLAB_CLIENT_SECRET=your_gitlab_client_secret
-INTEGRATION_AUTH_GITLAB_REDIRECT_URI=your_redirect_uri
-```
-
-Where:
-- `your_gitlab_client_id`: The Application ID from your GitLab OAuth App
-- `your_gitlab_client_secret`: The Secret from your GitLab OAuth App
-- `your_redirect_uri`: The callback URL you specified when creating the OAuth App (e.g., `https://your-nocodb-instance.com/api/v1/integrations/auth/gitlab/callback`)
-
-## OAuth Scopes
-
-This integration requests the following GitLab scopes:
+This integration requires the following GitLab permissions:
 - `api`: Access to the GitLab API
 - `read_user`: Read-only access to user profile data
 
-## Usage
+## Additional Setup
 
-Once configured, the GitLab Auth integration will appear in the NocoDB integrations list, allowing users to authenticate with GitLab either using their API token or through the OAuth flow. 
+For administrators setting up the OAuth integration, please refer to the [SETUP.md](./SETUP.md) file for detailed environment configuration instructions. 

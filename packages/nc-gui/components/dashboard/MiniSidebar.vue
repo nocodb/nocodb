@@ -145,15 +145,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             </div>
           </NcTooltip>
         </DashboardSidebarMiniSidebarItemWrapper>
-        <NcDivider class="!my-0 !border-nc-border-gray-dark" />
-        <DashboardSidebarMiniSidebarItemWrapper>
-          <NcTooltip
-            v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
-            :title="$t('title.teamAndSettings')"
-            placement="right"
-            hide-on-click
-            :arrow="false"
-          >
+        <NcDivider v-if="isUIAllowed('workspaceSettings')" class="!my-0 !border-nc-border-gray-dark" />
+        <DashboardSidebarMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')">
+          <NcTooltip :title="$t('title.teamAndSettings')" placement="right" hide-on-click :arrow="false">
             <div
               v-e="['c:team:settings']"
               class="nc-mini-sidebar-btn"
@@ -167,14 +161,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             </div>
           </NcTooltip>
         </DashboardSidebarMiniSidebarItemWrapper>
-        <DashboardSidebarMiniSidebarItemWrapper>
-          <NcTooltip
-            v-if="isUIAllowed('workspaceSettings')"
-            :title="$t('general.integrations')"
-            placement="right"
-            hide-on-click
-            :arrow="false"
-          >
+        <DashboardSidebarMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings')">
+          <NcTooltip :title="$t('general.integrations')" placement="right" hide-on-click :arrow="false">
             <div
               v-e="['c:integrations']"
               class="nc-mini-sidebar-btn"

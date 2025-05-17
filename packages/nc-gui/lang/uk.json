@@ -805,7 +805,8 @@
     "upgradeToPlan": "Оновіть тариф до {plan}",
     "upgradeWorkspaceToPlan": "Оновіть {workspace} до тарифу {plan}",
     "upgradeToPlanSubtitle": "Оплату за цей план буде стягнуто негайно.",
-    "reactivateToPlan": "Повторно активувати план {plan}?"
+    "reactivateToPlan": "Повторно активувати план {plan}?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1320,7 +1321,8 @@
     "invoice": "Рахунок",
     "status": "Статус",
     "invoiceTotal": "Сума рахунку",
-    "pastInvoices": "Минулі рахунки"
+    "pastInvoices": "Минулі рахунки",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Натисніть для вирішення",

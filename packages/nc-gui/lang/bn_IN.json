@@ -805,7 +805,8 @@
     "upgradeToPlan": "{plan} প্ল্যানে আপগ্রেড করুন",
     "upgradeWorkspaceToPlan": "{workspace} কে {plan} প্ল্যানে আপগ্রেড করুন",
     "upgradeToPlanSubtitle": "এই প্ল্যানের জন্য আপনাকে তাৎক্ষণিক চার্জ করা হবে।",
-    "reactivateToPlan": "{plan} প্ল্যান পুনরায় সক্রিয় করবেন?"
+    "reactivateToPlan": "{plan} প্ল্যান পুনরায় সক্রিয় করবেন?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1320,7 +1321,8 @@
     "invoice": "ইনভয়েস",
     "status": "স্থিতি",
     "invoiceTotal": "মোট ইনভয়েস",
-    "pastInvoices": "গত ইনভয়েসগুলো"
+    "pastInvoices": "গত ইনভয়েসগুলো",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "সমাধান করতে ক্লিক করুন",

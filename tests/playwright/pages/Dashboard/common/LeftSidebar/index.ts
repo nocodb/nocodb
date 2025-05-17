@@ -37,21 +37,21 @@ export class LeftSidebarPage extends BasePage {
   }
 
   async isNewSidebar() {
-    const classAttr = await this.dashboard.get().locator('.nc-treeview-container').getAttribute('class');
-
-    return (
-      classAttr?.includes('nc-treeview-container-base-list') || classAttr?.includes('nc-treeview-container-active-base')
-    );
+    return await this.miniSidebar.count();
   }
 
   async verifyBaseListOpen(open: boolean = false) {
     if (!(await this.isNewSidebar())) return true;
 
-    const classAttr = await this.get().getAttribute('class');
+    if (!(await this.get().isVisible())) {
+      await this.miniSidebarActionClick({ type: 'base' });
+    }
+
+    const classAttr = await this.get().locator('.nc-treeview-container').getAttribute('class');
 
     const isListOpen = classAttr?.includes('nc-treeview-container-base-list') ?? false;
 
-    if (open) {
+    if (!isListOpen && open) {
       await this.miniSidebarActionClick({ type: 'base' });
     }
 
@@ -211,5 +211,6 @@ export class LeftSidebarPage extends BasePage {
         break;
       }
     }
+    await this.rootPage.waitForTimeout(400);
   }
 }

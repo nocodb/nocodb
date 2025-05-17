@@ -48,6 +48,8 @@ onBeforeMount(() => {
 <template>
   <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-integrations">
     <div class="flex gap-2 items-center min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-gray-200">
+      <GeneralOpenLeftSidebarBtn />
+
       <div class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1">
         <div class="nc-breadcrumb-item capitalize">
           {{ currentWorkspace?.title }}

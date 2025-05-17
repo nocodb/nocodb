@@ -13,7 +13,20 @@ const gotoFeed = () => navigateToFeed()
 </script>
 
 <template>
+  <div
+    v-if="isMiniSidebar"
+    v-e="['c:nocodb:feed']"
+    class="nc-mini-sidebar-btn"
+    data-testid="nc-sidebar-product-feed"
+    :class="{
+      active: isFeedPageOpened,
+    }"
+    @click="gotoFeed"
+  >
+    <GeneralIcon icon="megaPhone" class="h-5 w-5" />
+  </div>
   <NcButton
+    v-else
     v-e="['c:nocodb:feed']"
     type="text"
     full-width
@@ -22,7 +35,7 @@ const gotoFeed = () => navigateToFeed()
     data-testid="nc-sidebar-product-feed"
     :centered="false"
     :class="{
-      '!text-brand-600 !bg-brand-50 !hover:bg-brand-50': isFeedPageOpened,
+      '!text-brand-600 !bg-brand-50 !hover:bg-brand-50 active': isFeedPageOpened,
       '!hover:(bg-gray-200 text-gray-700)': !isFeedPageOpened,
     }"
     @click="gotoFeed"

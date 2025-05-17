@@ -313,29 +313,29 @@ defineExpose({
         </a-input>
       </div>
 
-      <div
-        v-if="isUIAllowed('tableCreate', { roles: base.project_role, source: base?.sources?.[0] })"
-        class="flex items-center w-full p-1 xs:hidden"
-      >
-        <NcButton
-          type="text"
-          size="small"
-          full-width
-          class="nc-home-create-new-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden w-full !px-3"
-          @click="addNewProjectChildEntity"
+      <div class="nc-project-home-section pt-1 xs:hidden flex flex-col gap-2">
+        <div
+          v-if="isUIAllowed('tableCreate', { roles: base.project_role, source: base?.sources?.[0] })"
+          class="flex items-center w-full"
         >
-          <div class="flex items-center gap-2">
-            <GeneralIcon icon="ncPlusCircleSolid" />
+          <NcButton
+            type="text"
+            size="small"
+            full-width
+            class="nc-home-create-new-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden w-full !px-3"
+            @click="addNewProjectChildEntity"
+          >
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="ncPlusCircleSolid" />
 
-            {{
-              $t('general.createEntity', {
-                entity: $t('objects.table'),
-              })
-            }}
-          </div>
-        </NcButton>
-      </div>
-      <div class="nc-project-home-section pt-1 !xs:hidden">
+              {{
+                $t('general.createEntity', {
+                  entity: $t('objects.table'),
+                })
+              }}
+            </div>
+          </NcButton>
+        </div>
         <NcButton
           v-e="['c:base:home']"
           type="text"

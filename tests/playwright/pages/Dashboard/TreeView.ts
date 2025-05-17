@@ -9,6 +9,7 @@ export class TreeViewPage extends BasePage {
   readonly base: any;
   readonly quickImportButton: Locator;
   readonly createNewButton: Locator;
+  readonly miniSidebar: Locator;
 
   constructor(dashboard: DashboardPage, base: any) {
     super(dashboard.rootPage);
@@ -16,6 +17,7 @@ export class TreeViewPage extends BasePage {
     this.base = base;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
     this.createNewButton = this.get().locator('.nc-home-create-new-btn');
+    this.miniSidebar = this.dashboard.get().getByTestId('nc-mini-sidebar');
   }
 
   get() {
@@ -36,6 +38,50 @@ export class TreeViewPage extends BasePage {
     const classAttr = await this.get().getAttribute('class');
 
     return classAttr?.includes('nc-treeview-container-base-list') ?? false;
+  }
+
+  async miniSidebarActionClick({
+    type,
+  }: {
+    type: 'ws' | 'base' | 'cmd-k' | 'teamAndSettings' | 'integration' | 'feeds' | 'notification' | 'userInfo';
+  }): Promise<boolean | void> {
+    if (!(await this.isNewSidebar())) return false;
+
+    await this.miniSidebar.waitFor();
+
+    switch (type) {
+      case 'ws': {
+        break;
+      }
+      case 'base': {
+        await this.miniSidebar.getByTestId('nc-sidebar-project-btn').click();
+        break;
+      }
+      case 'cmd-k': {
+        await this.miniSidebar.getByTestId('nc-sidebar-cmd-k-btn').click();
+        break;
+      }
+      case 'teamAndSettings': {
+        await this.miniSidebar.getByTestId('nc-sidebar-team-settings-btn').click();
+        break;
+      }
+      case 'integration': {
+        await this.miniSidebar.getByTestId('nc-sidebar-integrations-btn').click();
+        break;
+      }
+      case 'feeds': {
+        await this.miniSidebar.getByTestId('nc-sidebar-product-feed').click();
+        break;
+      }
+      case 'notification': {
+        await this.miniSidebar.getByTestId('nc-sidebar-notification-btn').click();
+        break;
+      }
+      case 'userInfo': {
+        await this.miniSidebar.getByTestId('nc-sidebar-userinfo').click();
+        break;
+      }
+    }
   }
 
   getAddNewTableBtn({ baseTitle }: { baseTitle: string }) {
@@ -88,7 +134,12 @@ export class TreeViewPage extends BasePage {
   }
 
   async openBase({ title }: { title: string }) {
+    if (!(await this.isBaseListOpen())) {
+      await this.miniSidebarActionClick({ type: 'base' });
+    }
+
     const nodes = this.get().locator(`[data-testid="nc-sidebar-base-${title.toLowerCase()}"]`);
+    await nodes.waitFor();
     await nodes.click();
     return;
   }

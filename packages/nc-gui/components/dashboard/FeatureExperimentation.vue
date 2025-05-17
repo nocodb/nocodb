@@ -13,6 +13,45 @@ const value = useVModel(props, 'value')
 
 const selectedFeatures = ref<Record<string, boolean>>({})
 
+// Add search functionality
+const searchQuery = ref('')
+const isSearchOpen = ref(false)
+
+const filteredFeatures = computed(() => {
+  if (!searchQuery.value) return features.value
+  
+  const query = searchQuery.value.toLowerCase()
+  
+  // Helper function to calculate match score
+  const getMatchScore = (feature: BetaFeatureType) => {
+    const title = feature.title.toLowerCase()
+    const description = feature.description.toLowerCase()
+    
+    // Exact prefix match in title (highest priority)
+    if (title.startsWith(query)) return 4
+    // Contains exact match in title
+    if (title.includes(query)) return 3
+    // Exact prefix match in description
+    if (description.startsWith(query)) return 2
+    // Contains exact match in description
+    if (description.includes(query)) return 1
+    // No match
+    return 0
+  }
+
+  return features.value
+    .filter(feature => {
+      const title = feature.title.toLowerCase()
+      const description = feature.description.toLowerCase()
+      return title.includes(query) || description.includes(query)
+    })
+    .sort((a, b) => {
+      const scoreA = getMatchScore(a)
+      const scoreB = getMatchScore(b)
+      return scoreB - scoreA
+    })
+})
+
 const isFeatureVisible = (feature: BetaFeatureType) => {
   return (!feature?.isEE || isEeUI) && (!feature?.isEngineering || isEngineeringModeOn.value)
 }
@@ -121,24 +160,38 @@ onUnmounted(() => {
       </div>
 
       <div class="h-full overflow-y-auto nc-scrollbar-thin flex-grow m-4 !rounded-lg">
-        <div ref="contentRef" class="border-1 !border-gray-200 !rounded-lg">
-          <template v-for="feature in features" :key="feature.id">
-            <div
-              v-if="isFeatureVisible(feature)"
-              class="border-b-1 px-3 flex gap-2 flex-col py-2 !border-gray-200 last:border-b-0"
-            >
-              <div class="flex items-center justify-between">
-                <div class="text-sm text-gray-800 !font-weight-600">
-                  {{ feature.title }}
-                </div>
-                <NcSwitch v-model:checked="selectedFeatures[feature.id]" @change="saveExperimentalFeatures" />
-              </div>
+        <div ref="contentRef" class="!rounded-lg">
+          <div class="flex flex-col gap-2">
+            <div class="sticky top-0 bg-white z-10 mb-2">
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Search features..."
+                class="w-full px-3 py-2 rounded-lg text-sm !font-normal text-gray-600 bg-gray-50 hover:bg-gray-100 focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors duration-200"
+              />
+            </div>
+            <div class="border-1 !border-gray-200 !rounded-lg max-h-[calc(100vh-200px)] overflow-y-auto nc-scrollbar-thin">
+              <div class="flex flex-col">
+                <template v-for="feature in filteredFeatures" :key="feature.id">
+                  <div
+                    v-if="isFeatureVisible(feature)"
+                    class="border-b-1 px-3 flex gap-2 flex-col py-2 !border-gray-200 last:border-b-0"
+                  >
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm text-gray-800 !font-weight-600">
+                        {{ feature.title }}
+                      </div>
+                      <NcSwitch v-model:checked="selectedFeatures[feature.id]" @change="saveExperimentalFeatures" />
+                    </div>
 
-              <div class="text-gray-500 leading-4 text-[13px] font-weight-500">
-                {{ feature.description }}
+                    <div class="text-gray-500 leading-4 text-[13px] font-weight-500">
+                      {{ feature.description }}
+                    </div>
+                  </div>
+                </template>
               </div>
             </div>
-          </template>
+          </div>
         </div>
       </div>
     </div>
@@ -152,6 +205,20 @@ onUnmounted(() => {
     .ant-drawer-body {
       @apply p-0;
     }
+  }
+}
+
+:deep(.field-list-with-search) {
+  .nc-divider {
+    display: none !important;
+  }
+
+  .nc-toolbar-dropdown-search-field-input {
+    @apply rounded-lg;
+  }
+
+  .nc-list-item {
+    @apply h-8 hover:bg-nc-background-grey-light gap-x-1.5;
   }
 }
 </style>

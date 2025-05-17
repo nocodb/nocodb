@@ -33,7 +33,10 @@ watch(
 )
 
 onMounted(() => {
-  hideSidebar.value = true
+  if (isNewSidebarEnabled.value) {
+    hideSidebar.value = true
+  }
+
   isFromIntegrationPage.value = true
 
   until(() => currentWorkspace.value?.id)
@@ -45,6 +48,7 @@ onMounted(() => {
 
 onBeforeMount(() => {
   isFromIntegrationPage.value = false
+
   hideSidebar.value = false
 })
 </script>

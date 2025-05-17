@@ -15,7 +15,7 @@ const { activeWorkspaceId, isWorkspaceSettingsPageOpened, isIntegrationsPageOpen
 
 const { navigateToWorkspaceSettings, navigateToIntegrations: _navigateToIntegrations } = workspaceStore
 
-const { basesList } = storeToRefs(useBases())
+const { basesList, showProjectList } = storeToRefs(useBases())
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -29,7 +29,17 @@ const isProjectPageOpen = computed(() => {
   )
 })
 
+watchEffect(() => {
+  console.log('min', route.value)
+})
+
 const navigateToProjectPage = () => {
+  if (route.value.name?.startsWith('index-typeOrId-baseId-')) {
+    showProjectList.value = !showProjectList.value
+
+    return
+  }
+
   navigateToProject({ workspaceId: activeWorkspaceId.value, baseId: basesList.value?.[0]?.id })
 }
 

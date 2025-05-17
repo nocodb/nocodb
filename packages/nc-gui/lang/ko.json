@@ -870,7 +870,7 @@
     "newSnapshot": "새 스냅샷",
     "searchASnapshot": "스냅샷 검색",
     "continue": "계속",
-    "toggleExperimentalFeature": "실험적 기능을 활성화하거나 비활성화하여 향후 기능을 탐색합니다.",
+    "toggleExperimentalFeature": "Easily toggle all experimental feature on / off",
     "modifiedOn": "수정된 날짜",
     "configuration": "구성",
     "setup": "설정",

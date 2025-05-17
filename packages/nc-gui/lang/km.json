@@ -805,7 +805,8 @@
     "upgradeToPlan": "ធ្វើបច្ចុប្បន្នភាពទៅគម្រោង {plan}",
     "upgradeWorkspaceToPlan": "ធ្វើបច្ចុប្បន្នភាព {workspace} ទៅគម្រោង {plan}",
     "upgradeToPlanSubtitle": "អ្នកនឹងត្រូវបានគិតថ្លៃជាបន្ទាន់សម្រាប់ផែនការនេះ។",
-    "reactivateToPlan": "ដំណើរការឡើងវិញផែនការ {plan} ឬ?"
+    "reactivateToPlan": "ដំណើរការឡើងវិញផែនការ {plan} ឬ?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1320,7 +1321,8 @@
     "invoice": "វិក្កយបត្រ",
     "status": "ស្ថានភាព",
     "invoiceTotal": "សរុបវិក្កយបត្រ",
-    "pastInvoices": "វិក្កយបត្រកន្លងមក"
+    "pastInvoices": "វិក្កយបត្រកន្លងមក",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "ចុចដើម្បីដោះស្រាយ",

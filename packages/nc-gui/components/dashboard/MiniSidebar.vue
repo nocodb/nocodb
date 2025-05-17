@@ -1,19 +1,39 @@
 <script lang="ts" setup>
 provide(IsMiniSidebarInj, ref(true))
 
-const { isMobileMode, appInfo } = useGlobal()
+const router = useRouter()
+
+const route = router.currentRoute
+
+const { appInfo, navigateToProject } = useGlobal()
 
 const { meta: metaKey, control } = useMagicKeys()
 
 const workspaceStore = useWorkspace()
 
-const { isWorkspacesLoading, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened } = storeToRefs(workspaceStore)
+const { activeWorkspaceId, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened } = storeToRefs(workspaceStore)
 
 const { navigateToWorkspaceSettings, navigateToIntegrations: _navigateToIntegrations } = workspaceStore
 
 const { isSharedBase } = storeToRefs(useBase())
 
 const { isUIAllowed } = useRoles()
+
+const isProjectPageOpen = computed(() => {
+  return (
+    route.value.name?.startsWith('index-typeOrId-baseId-') ||
+    route.value.name === 'index' ||
+    route.value.name === 'index-typeOrId'
+  )
+})
+
+watchEffect(() => {
+  console.log('isProjectPageOpen', isProjectPageOpen.value, route.value.name, route.value.name === 'index')
+})
+
+const navigateToProjectPage = () => {
+  navigateToProject({ workspaceId: activeWorkspaceId.value })
+}
 
 const navigateToSettings = () => {
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
@@ -44,6 +64,16 @@ const navigateToIntegrations = () => {
     <div class="flex flex-col gap-3 items-center">
       <WorkspaceMenu />
 
+      <div
+        class="nc-mini-sidebar-btn"
+        data-testid="nc-sidebar-project-btn"
+        :class="{
+          active: isProjectPageOpen,
+        }"
+        @click="navigateToProjectPage"
+      >
+        <GeneralIcon icon="ncBaseOutline" class="h-5 w-5" />
+      </div>
       <div
         v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
         v-e="['c:team:settings']"

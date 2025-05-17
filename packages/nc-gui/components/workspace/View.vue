@@ -11,6 +11,8 @@ const route = router.currentRoute
 
 const { t } = useI18n()
 
+const { hideSidebar } = storeToRefs(useSidebarStore())
+
 const { isUIAllowed } = useRoles()
 
 const workspaceStore = useWorkspace()
@@ -101,6 +103,14 @@ watch(
     immediate: true,
   },
 )
+
+onMounted(() => {
+  hideSidebar.value = true
+})
+
+onBeforeUnmount(() => {
+  hideSidebar.value = false
+})
 </script>
 
 <template>

@@ -726,6 +726,7 @@ import NcLogoZendesk from '~icons/nc-icons-v2/zendesk.svg'
 import NcLogoZohoColored from '~icons/nc-icons-v2/zoho-colored.svg'
 import NcLogoZoho from '~icons/nc-icons-v2/zoho.svg'
 import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
+import NcBaseOutline from '~icons/nc-icons-v2/base-outline.svg'
 
 import MdiNcCheckBold from '~icons/nc-icons/mdi-check-bold'
 import MdiNcCropSquare from '~icons/nc-icons/mdi-crop-square'
@@ -1692,6 +1693,7 @@ export const iconMap = {
   'mdi-flag-outline': MdiNcFlagOutline,
   'sso': MdiCloudKeyOutline,
   'mcp': NcMCP,
+  'ncBaseOutline': NcBaseOutline,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4244,6 +4246,10 @@ export const searchableMap = {
   ncLogoZoho: {
     icon: h(NcLogoZoho, { stroke: 'transparent' }),
     keywords: ['crm', 'business apps', 'collaboration', 'productivity', 'enterprise'],
+  },
+  ncBaseOutline: {
+    icon: NcBaseOutline,
+    keywords: ['base', 'database', 'storage', 'db'],
   },
 }
 

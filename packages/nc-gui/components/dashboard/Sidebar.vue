@@ -45,7 +45,7 @@ onUnmounted(() => {
     <div class="flex flex-col">
       <DashboardSidebarHeader />
 
-      <DashboardSidebarTopSection v-if="!isSharedBase" />
+      <DashboardSidebarTopSection v-if="!isSharedBase && !isNewSidebarEnabled" />
     </div>
     <div
       ref="treeViewDom"

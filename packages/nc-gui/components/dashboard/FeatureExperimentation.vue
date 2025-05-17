@@ -168,24 +168,26 @@ onUnmounted(() => {
                 class="w-full p-2.5 rounded-lg text-sm !font-normal text-gray-600 bg-gray-50 hover:bg-gray-100 focus:bg-white focus:outline-none transition-colors duration-200"
               />
             </div>
-            <div class="border-1 !border-gray-200 !rounded-lg">
-              <template v-for="feature in filteredFeatures" :key="feature.id">
-                <div
-                  v-if="isFeatureVisible(feature)"
-                  class="border-b-1 px-3 flex gap-2 flex-col py-2 !border-gray-200 last:border-b-0"
-                >
-                  <div class="flex items-center justify-between">
-                    <div class="text-sm text-gray-800 !font-weight-600">
-                      {{ feature.title }}
+            <div class="border-1 !border-gray-200 !rounded-lg max-h-[calc(100vh-200px)] overflow-y-auto nc-scrollbar-thin">
+              <div class="flex flex-col">
+                <template v-for="feature in filteredFeatures" :key="feature.id">
+                  <div
+                    v-if="isFeatureVisible(feature)"
+                    class="border-b-1 px-3 flex gap-2 flex-col py-2 !border-gray-200 last:border-b-0"
+                  >
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm text-gray-800 !font-weight-600">
+                        {{ feature.title }}
+                      </div>
+                      <NcSwitch v-model:checked="selectedFeatures[feature.id]" @change="saveExperimentalFeatures" />
                     </div>
-                    <NcSwitch v-model:checked="selectedFeatures[feature.id]" @change="saveExperimentalFeatures" />
-                  </div>
 
-                  <div class="text-gray-500 leading-4 text-[13px] font-weight-500">
-                    {{ feature.description }}
+                    <div class="text-gray-500 leading-4 text-[13px] font-weight-500">
+                      {{ feature.description }}
+                    </div>
                   </div>
-                </div>
-              </template>
+                </template>
+              </div>
             </div>
           </div>
         </div>

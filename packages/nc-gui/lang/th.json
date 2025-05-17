@@ -805,7 +805,8 @@
     "upgradeToPlan": "อัปเกรดเป็นแผน {plan}",
     "upgradeWorkspaceToPlan": "อัปเกรด {workspace} เป็นแผน {plan}",
     "upgradeToPlanSubtitle": "คุณจะถูกเรียกเก็บเงินทันทีสำหรับแผนนี้",
-    "reactivateToPlan": "เปิดใช้งานแผน {plan} อีกครั้งหรือไม่?"
+    "reactivateToPlan": "เปิดใช้งานแผน {plan} อีกครั้งหรือไม่?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1320,7 +1321,8 @@
     "invoice": "ใบแจ้งหนี้",
     "status": "สถานะ",
     "invoiceTotal": "ยอดใบแจ้งหนี้",
-    "pastInvoices": "ใบแจ้งหนี้ที่ผ่านมา"
+    "pastInvoices": "ใบแจ้งหนี้ที่ผ่านมา",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "คลิกเพื่อแก้ไข",

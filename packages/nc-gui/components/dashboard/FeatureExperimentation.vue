@@ -160,12 +160,12 @@ onUnmounted(() => {
       <div class="h-full overflow-y-auto nc-scrollbar-thin flex-grow m-4 !rounded-lg">
         <div ref="contentRef" class="!rounded-lg">
           <div class="flex flex-col gap-2">
-            <div class="sticky top-0 bg-white z-10 pb-2">
+            <div class="sticky top-0 bg-white z-10 mb-2">
               <input
                 v-model="searchQuery"
                 type="text"
                 placeholder="Search features..."
-                class="w-full p-2.5 rounded-lg text-sm !font-normal text-gray-600 bg-gray-50 hover:bg-gray-100 focus:bg-white focus:outline-none transition-colors duration-200"
+                class="w-full px-3 py-2 rounded-lg text-sm !font-normal text-gray-600 bg-gray-50 hover:bg-gray-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-selected transition-colors duration-200"
               />
             </div>
             <div class="border-1 !border-gray-200 !rounded-lg max-h-[calc(100vh-200px)] overflow-y-auto nc-scrollbar-thin">

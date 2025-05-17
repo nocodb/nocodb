@@ -108,6 +108,7 @@
     "diff": "^7.0.0",
     "embla-carousel-vue": "^8.5.2",
     "emoji-mart-vue-fast": "^15.0.3",
+    "esbuild-wasm": "^0.25.4",
     "fflate": "^0.8.2",
     "file-saver": "^2.0.5",
     "fuse.js": "^6.6.2",

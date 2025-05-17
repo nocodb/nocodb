@@ -26,6 +26,8 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const isPublic = inject(IsPublicInj, ref(false))
 
+  const { transform } = useEsbuild()
+
   const eventBus = useEventBus<SmartsheetScriptActions>(Symbol('SmartSheetActions'))
 
   const libCode = ref<string>('')
@@ -325,9 +327,15 @@ export const useScriptExecutor = createSharedComposable(() => {
     `
         }
 
+        const workerCode = createWorkerCode(code ?? '', runCustomCode)
+        const minCode = await transform(workerCode)
+
+        if (minCode.error || !minCode.code) {
+          throw new Error(minCode.error)
+        }
+
         await new Promise<void>((resolve, reject) => {
-          const workerCode = createWorkerCode(code ?? '', runCustomCode)
-          const blob = new Blob([workerCode], { type: 'application/javascript' })
+          const blob = new Blob([minCode.code], { type: 'application/javascript' })
           const workerUrl = URL.createObjectURL(blob)
           const worker = new Worker(workerUrl, { type: 'module' })
 

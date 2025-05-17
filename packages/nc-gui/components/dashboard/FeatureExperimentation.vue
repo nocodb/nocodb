@@ -15,6 +15,8 @@ const selectedFeatures = ref<Record<string, boolean>>({})
 
 // Add search functionality
 const searchQuery = ref('')
+const isSearchOpen = ref(false)
+
 const filteredFeatures = computed(() => {
   if (!searchQuery.value) return features.value
   
@@ -165,7 +167,7 @@ onUnmounted(() => {
                 v-model="searchQuery"
                 type="text"
                 placeholder="Search features..."
-                class="w-full px-3 py-2 rounded-lg text-sm !font-normal text-gray-600 bg-gray-50 hover:bg-gray-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-selected transition-colors duration-200"
+                class="w-full px-3 py-2 rounded-lg text-sm !font-normal text-gray-600 bg-gray-50 hover:bg-gray-100 focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors duration-200"
               />
             </div>
             <div class="border-1 !border-gray-200 !rounded-lg max-h-[calc(100vh-200px)] overflow-y-auto nc-scrollbar-thin">
@@ -203,6 +205,20 @@ onUnmounted(() => {
     .ant-drawer-body {
       @apply p-0;
     }
+  }
+}
+
+:deep(.field-list-with-search) {
+  .nc-divider {
+    display: none !important;
+  }
+
+  .nc-toolbar-dropdown-search-field-input {
+    @apply rounded-lg;
+  }
+
+  .nc-list-item {
+    @apply h-8 hover:bg-nc-background-grey-light gap-x-1.5;
   }
 }
 </style>

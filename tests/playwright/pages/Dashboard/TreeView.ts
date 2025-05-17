@@ -3,9 +3,11 @@ import { DashboardPage } from '.';
 import BasePage from '../Base';
 import { NcContext } from '../../setup';
 import { isEE } from '../../setup/db';
+import { LeftSidebarPage } from './common/LeftSidebar';
 
 export class TreeViewPage extends BasePage {
   readonly dashboard: DashboardPage;
+  readonly leftSidebar: LeftSidebarPage;
   readonly base: any;
   readonly quickImportButton: Locator;
   readonly createNewButton: Locator;
@@ -14,6 +16,7 @@ export class TreeViewPage extends BasePage {
   constructor(dashboard: DashboardPage, base: any) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
+    this.leftSidebar = dashboard.leftSidebar;
     this.base = base;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
     this.createNewButton = this.get().locator('.nc-home-create-new-btn');
@@ -22,72 +25,6 @@ export class TreeViewPage extends BasePage {
 
   get() {
     return this.dashboard.get().locator('.nc-treeview-container');
-  }
-
-  async isNewSidebar() {
-    const classAttr = await this.get().getAttribute('class');
-
-    return (
-      classAttr?.includes('nc-treeview-container-base-list') || classAttr?.includes('nc-treeview-container-active-base')
-    );
-  }
-
-  async verifyBaseListOpen(open: boolean = false) {
-    if (!(await this.isNewSidebar())) return true;
-
-    const classAttr = await this.get().getAttribute('class');
-
-    const isListOpen = classAttr?.includes('nc-treeview-container-base-list') ?? false;
-
-    if (open) {
-      await this.miniSidebarActionClick({ type: 'base' });
-    }
-
-    return isListOpen;
-  }
-
-  async miniSidebarActionClick({
-    type,
-  }: {
-    type: 'ws' | 'base' | 'cmd-k' | 'teamAndSettings' | 'integration' | 'feeds' | 'notification' | 'userInfo';
-  }): Promise<boolean | void> {
-    if (!(await this.isNewSidebar())) return false;
-
-    await this.miniSidebar.waitFor();
-
-    switch (type) {
-      case 'ws': {
-        break;
-      }
-      case 'base': {
-        await this.miniSidebar.getByTestId('nc-sidebar-project-btn').click();
-        break;
-      }
-      case 'cmd-k': {
-        await this.miniSidebar.getByTestId('nc-sidebar-cmd-k-btn').click();
-        break;
-      }
-      case 'teamAndSettings': {
-        await this.miniSidebar.getByTestId('nc-sidebar-team-settings-btn').click();
-        break;
-      }
-      case 'integration': {
-        await this.miniSidebar.getByTestId('nc-sidebar-integrations-btn').click();
-        break;
-      }
-      case 'feeds': {
-        await this.miniSidebar.getByTestId('nc-sidebar-product-feed').click();
-        break;
-      }
-      case 'notification': {
-        await this.miniSidebar.getByTestId('nc-sidebar-notification-btn').click();
-        break;
-      }
-      case 'userInfo': {
-        await this.miniSidebar.getByTestId('nc-sidebar-userinfo').click();
-        break;
-      }
-    }
   }
 
   getAddNewTableBtn({ baseTitle }: { baseTitle: string }) {
@@ -140,7 +77,7 @@ export class TreeViewPage extends BasePage {
   }
 
   async openBase({ title }: { title: string }) {
-    await this.verifyBaseListOpen(true);
+    await this.leftSidebar.verifyBaseListOpen(true);
 
     const nodes = this.get().locator(`[data-testid="nc-sidebar-base-${title.toLowerCase()}"]`);
     await nodes.waitFor();
@@ -216,7 +153,7 @@ export class TreeViewPage extends BasePage {
   }) {
     if (skipOpeningModal) return;
 
-    const verifyBaseListOpen = await this.verifyBaseListOpen();
+    const verifyBaseListOpen = await this.leftSidebar.verifyBaseListOpen();
 
     switch (type) {
       case 'table': {
@@ -431,7 +368,7 @@ export class TreeViewPage extends BasePage {
   async openProject({ title, context }: { title: string; context: NcContext }) {
     title = this.scopedProjectTitle({ title, context });
 
-    await this.verifyBaseListOpen(true);
+    await this.leftSidebar.verifyBaseListOpen(true);
 
     await this.get().getByTestId(`nc-sidebar-base-title-${title}`).click();
     await this.rootPage.waitForTimeout(1000);
@@ -457,7 +394,7 @@ export class TreeViewPage extends BasePage {
     param.title = this.scopedProjectTitle({ title: param.title, context: param.context });
     param.newTitle = this.scopedProjectTitle({ title: param.newTitle, context: param.context });
 
-    await this.verifyBaseListOpen(true);
+    await this.leftSidebar.verifyBaseListOpen(true);
 
     await this.openProjectContextMenu({ baseTitle: param.title });
     const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible').last();

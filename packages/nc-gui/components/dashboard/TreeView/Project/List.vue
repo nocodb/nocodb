@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { type ScriptType, type TableType, type ViewType, stringifyRolesObj } from 'nocodb-sdk'
-import { useRouter } from '#app'
 import ProjectWrapper from '../ProjectWrapper.vue'
 
 const { isUIAllowed } = useRoles()

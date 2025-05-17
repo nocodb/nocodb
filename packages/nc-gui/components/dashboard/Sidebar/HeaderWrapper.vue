@@ -9,7 +9,7 @@ const { isLoading } = toRefs(props)
 
 const workspaceStore = useWorkspace()
 
-const { isLeftSidebarOpen, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { activeWorkspace, isWorkspacesLoading } = storeToRefs(workspaceStore)
 

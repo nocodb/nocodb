@@ -401,7 +401,7 @@ export const useBases = defineStore('basesStore', () => {
     ([newBaseId, newTableId, newViewId], [oldBaseId, oldTableId, oldViewId]) => {
       if (!showProjectList.value) return
 
-      showProjectList.value = !(newBaseId !== oldBaseId || newTableId !== oldTableId || newViewId !== oldViewId)
+      showProjectList.value = !((newBaseId && newBaseId !== oldBaseId) || newTableId !== oldTableId || newViewId !== oldViewId)
     },
   )
 

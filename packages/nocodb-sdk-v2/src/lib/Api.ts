@@ -475,6 +475,17 @@ export type View = (
   sorts?: Sort[];
 };
 
+export interface ViewCreate {
+  /** Name of the view. */
+  view_name?: string;
+  /** Type of the view. */
+  view_type?: "GRID" | "GALLERY" | "KANBAN" | "CALENDAR" | "FORM";
+  /** Lock type of the view. */
+  lock_type?: "COLLABARATIVE" | "LOCKED" | "PERSONAL";
+  /** Description of the view. */
+  description?: string;
+}
+
 export interface FieldBase {
   /** Unique identifier for the field. */
   id?: string;
@@ -1527,6 +1538,31 @@ export class InternalApi<
       }),
 
     /**
+     * @description Retrieve a list of all views for a specific table.
+     *
+     * @tags Views
+     * @name V3MetaBasesTablesViewsList
+     * @summary List views
+     * @request GET:/api/v3/meta/bases/{baseId}/tables/{tableId}/views
+     */
+    v3MetaBasesTablesViewsList: (
+      baseId: string,
+      tableId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          list: View[];
+        },
+        void
+      >({
+        path: `/api/v3/meta/bases/${baseId}/tables/${tableId}/views`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Create a new field within the specified table.
      *
      * @tags Fields
@@ -1545,6 +1581,26 @@ export class InternalApi<
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Retrieve the details of a specific field.
+     *
+     * @tags Fields
+     * @name V3MetaBasesFieldsDetail
+     * @summary Get field
+     * @request GET:/api/v3/meta/bases/{baseId}/fields/{fieldId}
+     */
+    v3MetaBasesFieldsDetail: (
+      baseId: string,
+      fieldId: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<Field, void>({
+        path: `/api/v3/meta/bases/${baseId}/fields/${fieldId}`,
+        method: "GET",
         format: "json",
         ...params,
       }),
@@ -1668,7 +1724,6 @@ export class InternalApi<
      */
     v3MetaBasesViewsFiltersDelete: (
       baseId: string,
-      filterId: string,
       viewId: string,
       params: RequestParams = {},
     ) =>
@@ -1879,7 +1934,7 @@ export class InternalApi<
       }),
 
     /**
-     * @description This API endpoint allows you to retrieve records from a specified table. You can customize the response by applying various query parameters for filtering, sorting, and formatting. **Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block: - **next**: Contains the URL to retrieve the next page of records. For example, `"https://staging.noco.to/api/v3/tables/medhonywr18cysz/records?page=2"` points to the next page of records. - If there are no more records available (you are on the last page), this attribute will be _null_. The `pageInfo` attribute is particularly valuable when working with large datasets divided into multiple pages. It provides the necessary URL to seamlessly fetch subsequent pages, enabling efficient navigation through the dataset.
+     * @description This API endpoint allows you to retrieve records from a specified table. You can customize the response by applying various query parameters for filtering, sorting, and formatting. **Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block: - **next**: Contains the URL to retrieve the next page of records. For example, `"https://staging.noco.ws/api/v3/tables/medhonywr18cysz/records?page=2"` points to the next page of records. - If there are no more records available (you are on the last page), this attribute will be _null_. The `pageInfo` attribute is particularly valuable when working with large datasets divided into multiple pages. It provides the necessary URL to seamlessly fetch subsequent pages, enabling efficient navigation through the dataset.
      *
      * @tags Table Records
      * @name DbDataTableRowList

@@ -128,7 +128,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Base was created.",
             "content": {
               "application/json": {
@@ -613,7 +613,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Table created.",
             "content": {
               "application/json": {
@@ -1298,6 +1298,64 @@
         }
       }
     },
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}/views": {
+      "get": {
+        "summary": "List views",
+        "tags": [
+          "Views"
+        ],
+        "description": "Retrieve a list of all views for a specific table.",
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the table."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of views retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/View"
+                      }
+                    }
+                  },
+                  "required": [
+                    "list"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Table not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
     "/api/v3/meta/bases/{baseId}/tables/{tableId}/fields": {
       "post": {
         "summary": "Create field",
@@ -1379,7 +1437,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Field was created.",
             "content": {
               "application/json": {
@@ -1399,6 +1457,51 @@
       }
     },
     "/api/v3/meta/bases/{baseId}/fields/{fieldId}": {
+      "get": {
+        "summary": "Get field",
+        "description": "Retrieve the details of a specific field.",
+        "tags": [
+          "Fields"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the field being updated."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Field details are retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Field"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Field not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
       "patch": {
         "summary": "Update field",
         "description": "Update the details of a specific field.",
@@ -1750,7 +1853,7 @@
             "description": "Unique identifier for the base."
           },
           {
-            "name": "filterId",
+            "name": "viewId",
             "in": "path",
             "required": true,
             "schema": {
@@ -1930,7 +2033,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Sort created successfully.",
             "content": {
               "application/json": {
@@ -2160,7 +2263,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                      "$ref": "#/components/schemas/BaseUser"
+                    "$ref": "#/components/schemas/BaseUser"
                   },
                   "description": "List of successfully invited users."
                 }
@@ -4822,6 +4925,42 @@
             "description": "FORM View"
           }
         ]
+      },
+      "ViewCreate": {
+        "type": "object",
+        "properties": {
+          "view_name": {
+            "type": "string",
+            "description": "Name of the view."
+          },
+          "view_type": {
+            "type": "string",
+            "enum": [
+              "GRID",
+              "GALLERY",
+              "KANBAN",
+              "CALENDAR",
+              "FORM"
+            ],
+            "description": "Type of the view."
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "COLLABARATIVE",
+              "LOCKED",
+              "PERSONAL"
+            ],
+            "description": "Lock type of the view."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the view."
+          }
+        },
+        "discriminator": {
+          "propertyName": "view_type"
+        }
       },
       "FieldBase": {
         "type": "object",

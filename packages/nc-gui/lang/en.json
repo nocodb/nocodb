@@ -1320,7 +1320,8 @@
     "invoice": "Invoice",
     "status": "Status",
     "invoiceTotal": "Invoice Total",
-    "pastInvoices": "Past Invoices"
+    "pastInvoices": "Past Invoices",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

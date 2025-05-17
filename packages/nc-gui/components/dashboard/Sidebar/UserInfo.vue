@@ -86,6 +86,7 @@ const accountUrl = computed(() => {
           :class="{
             'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg h-8 cursor-pointer':
               !isMiniSidebar,
+            'nc-mini-sidebar-ws-item': isMiniSidebar,
           }"
           data-testid="nc-sidebar-userinfo"
         >

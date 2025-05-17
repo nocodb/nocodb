@@ -76,6 +76,8 @@ const workspaceColor = computed(() => {
 })
 
 const size = computed(() => props.size || 'medium')
+
+const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
 </script>
 
 <template>
@@ -88,12 +90,12 @@ const size = computed(() => props.size || 'medium')
       'min-w-10 w-10 h-10 rounded-lg !text-base': size === 'large',
       'min-w-16 w-16 h-16 rounded-lg !text-4xl': size === 'xlarge',
       'w-5 h-5 min-w-5 rounded min-h-5': size === 'account-sidebar',
-      'w-7 h-7 min-w-7 min-h-7 rounded-md': size === 'mini-sidebar',
+      'w-7 h-7 min-w-7 min-h-7 rounded-md': isMiniSidebarSize,
       '!rounded-[50%]': props.isRounded,
     }"
     :style="{
       backgroundColor:
-        !props.hideLabel && workspaceIcon.icon && workspaceIcon.iconType === IconType.IMAGE && size !== 'mini-sidebar'
+        !props.hideLabel && workspaceIcon.icon && workspaceIcon.iconType === IconType.IMAGE && !isMiniSidebarSize
           ? undefined
           : workspaceColor,
     }"
@@ -110,7 +112,7 @@ const size = computed(() => props.size || 'medium')
         :class="{
           'text-white': isColorDark(workspaceColor),
           'text-black opacity-80': !isColorDark(workspaceColor),
-          'text-sm': size === 'small' || size === 'account-sidebar' || size === 'mini-sidebar',
+          'text-sm': size === 'small' || size === 'account-sidebar' || isMiniSidebarSize,
           'text-base': size === 'medium',
           'text-2xl': size === 'large',
           'text-4xl': size === 'xlarge',
@@ -125,7 +127,7 @@ const size = computed(() => props.size || 'medium')
             class="!text-inherit flex-none"
             :class="{
               'w-3 h-3': size === 'small',
-              'w-4 h-4': size === 'medium' || size === 'mini-sidebar',
+              'w-4 h-4': size === 'medium' || isMiniSidebarSize,
               'w-6 h-6': size === 'large',
               'w-10 h-10': size === 'xlarge',
             }"
@@ -141,7 +143,7 @@ const size = computed(() => props.size || 'medium')
           'text-white': isColorDark(workspaceColor),
           'text-black opacity-80': !isColorDark(workspaceColor),
           'w-3 h-3': size === 'small',
-          'w-4 h-4': size === 'medium' || size === 'mini-sidebar',
+          'w-4 h-4': size === 'medium' || isMiniSidebarSize,
           'w-6 h-6': size === 'large',
           'w-10 h-10': size === 'xlarge',
         }"
@@ -157,10 +159,10 @@ const size = computed(() => props.size || 'medium')
             'text-white': isColorDark(workspaceColor),
             'text-black': !isColorDark(workspaceColor),
             'text-[8px]': size === 'small',
-            'text-sm': size === 'account-sidebar' || size === 'mini-sidebar',
+            'text-sm': size === 'account-sidebar' || isMiniSidebarSize,
           }"
         >
-          {{ workspace?.title?.slice(0, size === 'account-sidebar' || size === 'mini-sidebar' ? 1 : 2) }}
+          {{ workspace?.title?.slice(0, size === 'account-sidebar' || isMiniSidebarSize ? 1 : 2) }}
         </div>
       </template>
     </template>

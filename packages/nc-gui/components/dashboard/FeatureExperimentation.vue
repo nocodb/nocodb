@@ -13,6 +13,18 @@ const value = useVModel(props, 'value')
 
 const selectedFeatures = ref<Record<string, boolean>>({})
 
+// Add search functionality
+const searchQuery = ref('')
+const filteredFeatures = computed(() => {
+  if (!searchQuery.value) return features.value
+  
+  const query = searchQuery.value.toLowerCase()
+  return features.value.filter(feature => 
+    feature.title.toLowerCase().includes(query) || 
+    feature.description.toLowerCase().includes(query)
+  )
+})
+
 const isFeatureVisible = (feature: BetaFeatureType) => {
   return (!feature?.isEE || isEeUI) && (!feature?.isEngineering || isEngineeringModeOn.value)
 }
@@ -122,23 +134,26 @@ onUnmounted(() => {
 
       <div class="h-full overflow-y-auto nc-scrollbar-thin flex-grow m-4 !rounded-lg">
         <div ref="contentRef" class="border-1 !border-gray-200 !rounded-lg">
-          <template v-for="feature in features" :key="feature.id">
-            <div
-              v-if="isFeatureVisible(feature)"
-              class="border-b-1 px-3 flex gap-2 flex-col py-2 !border-gray-200 last:border-b-0"
-            >
-              <div class="flex items-center justify-between">
-                <div class="text-sm text-gray-800 !font-weight-600">
-                  {{ feature.title }}
+          <div class="flex flex-col gap-2">
+            <input v-model="searchQuery" type="text" placeholder="Search features..." class="p-2 border border-gray-300 rounded-lg mb-2" />
+            <template v-for="feature in filteredFeatures" :key="feature.id">
+              <div
+                v-if="isFeatureVisible(feature)"
+                class="border-b-1 px-3 flex gap-2 flex-col py-2 !border-gray-200 last:border-b-0"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="text-sm text-gray-800 !font-weight-600">
+                    {{ feature.title }}
+                  </div>
+                  <NcSwitch v-model:checked="selectedFeatures[feature.id]" @change="saveExperimentalFeatures" />
                 </div>
-                <NcSwitch v-model:checked="selectedFeatures[feature.id]" @change="saveExperimentalFeatures" />
-              </div>
 
-              <div class="text-gray-500 leading-4 text-[13px] font-weight-500">
-                {{ feature.description }}
+                <div class="text-gray-500 leading-4 text-[13px] font-weight-500">
+                  {{ feature.description }}
+                </div>
               </div>
-            </div>
-          </template>
+            </template>
+          </div>
         </div>
       </div>
     </div>

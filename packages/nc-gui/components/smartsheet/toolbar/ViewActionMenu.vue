@@ -244,9 +244,8 @@ const isDefaultView = computed(() => view.value?.is_default)
         </NcTooltip>
         <NcMenuItem v-show="lockType !== LockType.Locked" @click="onDescriptionUpdateClick">
           <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
-          {{ $t('general.edit') }}
 
-          {{ $t('labels.description') }}
+          {{ $t('labels.editDescription') }}
         </NcMenuItem>
       </template>
       <NcMenuItem @click="onDuplicate">

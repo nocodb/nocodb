@@ -7,6 +7,8 @@ const { isSharedBase } = storeToRefs(useBase())
 
 const { isMobileMode, appInfo } = useGlobal()
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const treeViewDom = ref<HTMLElement>()
 
 const isTreeViewOnScrollTop = ref(false)
@@ -40,31 +42,53 @@ onUnmounted(() => {
       outlineWidth: '1px',
     }"
   >
-    <div class="flex flex-col">
-      <DashboardSidebarHeader />
+    <template v-if="isNewSidebarEnabled">
+      <DashboardTreeViewProjectList>
+        <template #footer>
+          <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
+            <PaymentUpgradeSidebarBanner v-if="isEeUI" />
 
-      <DashboardSidebarTopSection v-if="!isSharedBase" />
-    </div>
-    <div
-      ref="treeViewDom"
-      class="flex flex-col nc-scrollbar-dark-md flex-grow xs:(border-transparent pt-2 pr-2)"
-      :class="{
-        'border-t-1': !isSharedBase,
-        'border-transparent': !isTreeViewOnScrollTop,
-        'pt-0.25': isSharedBase,
-      }"
-    >
-      <DashboardTreeView v-if="!isWorkspaceLoading" />
-    </div>
-    <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
-      <PaymentUpgradeSidebarBanner v-if="isEeUI" />
+            <GeneralGift v-if="!isEeUI" />
 
-      <GeneralGift v-if="!isEeUI" />
-      <DashboardSidebarBeforeUserInfo />
-      <DashboardSidebarFeed v-if="appInfo.feedEnabled" />
-      <DashboardSidebarUserInfo />
-      <DashboardSidebarVersion v-if="appInfo.isOnPrem" />
-    </div>
+            <DashboardSidebarBeforeUserInfo />
+
+            <LazyGeneralMaintenanceAlert />
+
+            <div v-if="!isMobileMode && !appInfo.ee" class="flex flex-row w-full justify-between pt-0.5 truncate">
+              <GeneralJoinCloud />
+            </div>
+            <DashboardSidebarVersion v-if="appInfo.isOnPrem" />
+          </div>
+        </template>
+      </DashboardTreeViewProjectList>
+    </template>
+    <template v-else>
+      <div class="flex flex-col">
+        <DashboardSidebarHeader />
+
+        <DashboardSidebarTopSection v-if="!isSharedBase" />
+      </div>
+      <div
+        ref="treeViewDom"
+        class="flex flex-col nc-scrollbar-dark-md flex-grow xs:(border-transparent pt-2 pr-2)"
+        :class="{
+          'border-t-1': !isSharedBase,
+          'border-transparent': !isTreeViewOnScrollTop,
+          'pt-0.25': isSharedBase,
+        }"
+      >
+        <DashboardTreeView v-if="!isWorkspaceLoading" />
+      </div>
+      <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
+        <PaymentUpgradeSidebarBanner v-if="isEeUI" />
+
+        <GeneralGift v-if="!isEeUI" />
+        <DashboardSidebarBeforeUserInfo />
+        <DashboardSidebarFeed v-if="appInfo.feedEnabled" />
+        <DashboardSidebarUserInfo />
+        <DashboardSidebarVersion v-if="appInfo.isOnPrem" />
+      </div>
+    </template>
   </div>
 </template>
 
@@ -74,7 +98,7 @@ onUnmounted(() => {
 }
 
 .nc-sidebar-bottom-section {
-  @apply flex-none overflow-auto p-1;
+  @apply flex-none overflow-auto p-1 empty:hidden;
 
   &:not(:has(.nc-upgrade-sidebar-banner)) {
     @apply border-t-1;
@@ -92,6 +116,35 @@ onUnmounted(() => {
   }
   & > :last-child {
     @apply mb-0;
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-treeview-header {
+  @apply px-3 py-1.5 flex gap-2 h-[var(--topbar-height)];
+}
+
+.nc-project-home-section {
+  @apply px-1 pb-3;
+}
+
+.nc-project-home-section-item {
+  @apply w-full px-3 py-1.5 flex items-center gap-2 h-8;
+}
+
+.nc-project-home-section-header {
+  @apply w-full pl-3 pr-3 md:pr-1.5 py-1.5 flex items-center gap-2 h-8 text-nc-content-gray-muted text-captionBold sticky top-0 bg-nc-bg-gray-extralight z-2;
+}
+
+.nc-treeview-base-list,
+.nc-treeview-active-base {
+  @apply w-full h-full flex-1 flex flex-col;
+}
+
+.nc-treeview-loading {
+  .nc-sidebar-header-content {
+    @apply flex-1;
   }
 }
 </style>

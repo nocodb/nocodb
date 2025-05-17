@@ -8,11 +8,15 @@ const props = withDefaults(
   defineProps<{
     base: BaseType
     sourceIndex?: number
+    showCreateTableBtn?: boolean
   }>(),
   {
     sourceIndex: 0,
+    showCreateTableBtn: false,
   },
 )
+
+const emits = defineEmits(['createTable'])
 
 const base = toRef(props, 'base')
 const sourceIndex = toRef(props, 'sourceIndex')
@@ -23,8 +27,14 @@ const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
+const { openedProject, baseHomeSearchQuery } = storeToRefs(useBases())
+
 const { baseTables } = storeToRefs(useTablesStore())
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
+
+const { viewsByTable } = storeToRefs(useViewsStore())
 
 const { $api } = useNuxtApp()
 
@@ -128,21 +138,59 @@ watchEffect(() => {
 const availableTables = computed(() => {
   return tables.value.filter((table) => table.source_id === base.value?.sources?.[sourceIndex.value].id)
 })
+
+const filteredAvailableTables = computed(() => {
+  return availableTables.value.filter(
+    (table) =>
+      searchCompare(table.title, baseHomeSearchQuery.value) ||
+      viewsByTable.value.get(table.id!)?.some((view) => searchCompare(view.title, baseHomeSearchQuery.value)),
+  )
+})
 </script>
 
 <template>
   <div class="border-none sortable-list">
     <template v-if="base">
       <div
-        v-if="availableTables.length === 0"
-        class="py-0.5 text-gray-500"
+        v-if="!availableTables.length && isNewSidebarEnabled && showCreateTableBtn"
         :class="{
-          'ml-8.5': sourceIndex === 0,
-          'ml-14.5 xs:(ml-15.25)': sourceIndex !== 0,
+          'text-brand-500 hover:text-brand-600': openedProject?.id === base.id,
+          'text-gray-500 hover:text-brand-500': openedProject?.id !== base.id,
+        }"
+        class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full"
+        role="button"
+        @click="emits('createTable')"
+      >
+        <div
+          :class="{
+            'nc-project-home-section-item': isNewSidebarEnabled,
+            'flex flex-row items-center pl-1.25 !py-1.5 text-inherit': !isNewSidebarEnabled,
+          }"
+        >
+          <GeneralIcon icon="plus" />
+          <div>
+            {{
+              $t('general.createEntity', {
+                entity: $t('objects.table'),
+              })
+            }}
+          </div>
+        </div>
+      </div>
+
+      <div
+        v-if="!availableTables.length || !filteredAvailableTables.length"
+        class="py-0.5 text-gray-500 font-normal"
+        :class="{
+          'ml-8.5': sourceIndex === 0 && !isNewSidebarEnabled,
+          'ml-14.5 xs:(ml-15.25)': sourceIndex !== 0 && !isNewSidebarEnabled,
+          'nc-project-home-section-item': sourceIndex === 0 && isNewSidebarEnabled,
+          'ml-9 xs:(ml-9.75)': sourceIndex !== 0 && isNewSidebarEnabled,
         }"
       >
-        {{ $t('general.empty') }}
+        {{ availableTables.length && !filteredAvailableTables.length ? 'No results found for your search.' : 'No tables' }}
       </div>
+
       <div
         v-if="base.sources?.[sourceIndex] && base!.sources[sourceIndex].enabled"
         ref="menuRefs"
@@ -150,7 +198,7 @@ const availableTables = computed(() => {
         :nc-source="source?.id"
       >
         <TableNode
-          v-for="table of availableTables"
+          v-for="table of filteredAvailableTables"
           :key="table.id"
           class="nc-tree-item text-sm"
           :data-order="table.order"

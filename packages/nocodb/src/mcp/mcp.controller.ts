@@ -41,10 +41,10 @@ export class McpController {
       tokenId,
     );
 
-    req.user = await User.getWithRoles(context, mcpToken.fk_user_id, {
+    req.user = (await User.getWithRoles(context, mcpToken.fk_user_id, {
       baseId: mcpToken.base_id,
       workspaceId: mcpToken.fk_workspace_id,
-    });
+    })) as typeof req.user;
 
     // Check if user base_role is not no_access
     if (extractRolesObj(req.user.base_roles)[ProjectRoles.NO_ACCESS]) {

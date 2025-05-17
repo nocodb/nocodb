@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
+
 const workspaceStore = useWorkspace()
 
 const { navigateToFeed } = workspaceStore
@@ -11,7 +13,20 @@ const gotoFeed = () => navigateToFeed()
 </script>
 
 <template>
+  <div
+    v-if="isMiniSidebar"
+    v-e="['c:nocodb:feed']"
+    class="nc-mini-sidebar-btn"
+    data-testid="nc-sidebar-product-feed"
+    :class="{
+      active: isFeedPageOpened,
+    }"
+    @click="gotoFeed"
+  >
+    <GeneralIcon :icon="isFeedPageOpened ? 'ncMegaPhoneDuo' : 'megaPhone'" class="h-4 w-4" />
+  </div>
   <NcButton
+    v-else
     v-e="['c:nocodb:feed']"
     type="text"
     full-width
@@ -20,7 +35,7 @@ const gotoFeed = () => navigateToFeed()
     data-testid="nc-sidebar-product-feed"
     :centered="false"
     :class="{
-      '!text-brand-600 !bg-brand-50 !hover:bg-brand-50': isFeedPageOpened,
+      '!text-brand-600 !bg-brand-50 !hover:bg-brand-50 active': isFeedPageOpened,
       '!hover:(bg-gray-200 text-gray-700)': !isFeedPageOpened,
     }"
     @click="gotoFeed"
@@ -33,9 +48,9 @@ const gotoFeed = () => navigateToFeed()
     >
       <div class="flex flex-1 w-full items-center gap-2">
         <GeneralIcon icon="megaPhone" class="!h-4" />
-        <span class="">{{ $t('labels.whatsNew') }}</span>
+        <span v-if="!isMiniSidebar" class="">{{ $t('labels.whatsNew') }}</span>
       </div>
-      <div v-if="isNewFeedAvailable" class="flex justify-center items-center w-4">
+      <div v-if="isNewFeedAvailable && !isMiniSidebar" class="flex justify-center items-center w-4">
         <div class="w-3 h-3 pulsing-dot bg-nc-fill-red-medium border-2 border-white rounded-full"></div>
       </div>
     </div>

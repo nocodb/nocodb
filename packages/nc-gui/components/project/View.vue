@@ -7,6 +7,8 @@ const props = defineProps<{
   tab?: string
 }>()
 
+const { hideSidebar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const { integrations } = useProvideIntegrationViewStore()
 
 const basesStore = useBases()
@@ -129,6 +131,10 @@ onMounted(async () => {
     projectPageTab.value = props.tab
   }
 })
+
+onMounted(() => {
+  hideSidebar.value = false
+})
 </script>
 
 <template>
@@ -151,7 +157,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <SmartsheetTopbarCmdK v-if="!isSharedBase" />
+      <SmartsheetTopbarCmdK v-if="!isSharedBase && !isNewSidebarEnabled" />
 
       <LazyGeneralShareProject />
     </div>

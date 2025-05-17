@@ -153,7 +153,9 @@ const navigateToIntegrations = () => {
       </template>
     </div>
     <div class="flex flex-col gap-3 items-center">
-      <NotificationMenu />
+      <NcTooltip v-if="appInfo.feedEnabled" :title="$t('general.notification')" placement="right" hide-on-click :arrow="false">
+        <NotificationMenu />
+      </NcTooltip>
 
       <DashboardSidebarUserInfo />
     </div>

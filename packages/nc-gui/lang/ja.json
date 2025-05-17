@@ -870,7 +870,7 @@
     "newSnapshot": "新しいスナップショット",
     "searchASnapshot": "スナップショットを検索",
     "continue": "続ける",
-    "toggleExperimentalFeature": "実験的な機能を有効または無効にして、今後の機能を探索します。",
+    "toggleExperimentalFeature": "Easily toggle all experimental feature on / off",
     "modifiedOn": "変更日時:",
     "configuration": "設定",
     "setup": "設定",

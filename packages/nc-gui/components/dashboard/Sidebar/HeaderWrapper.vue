@@ -51,7 +51,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
           v-e="['c:leftSidebar:hideToggle']"
           :type="isMobileMode ? 'secondary' : 'text'"
           :size="isMobileMode ? 'medium' : 'small'"
-          class="nc-sidebar-left-toggle-icon !text-gray-700 !hover:text-gray-800 !xs:(h-10.5 max-h-10.5 max-w-10.5) !md:(hover:bg-gray-200)"
+          class="nc-sidebar-left-toggle-icon !text-gray-700 !hover:text-gray-800 !xs:(h-10.5 max-h-10.5 max-w-10.5) !md:(hover:bg-gray-200) !rounded-md"
           @click="isLeftSidebarOpen = !isLeftSidebarOpen"
         >
           <div class="flex items-center text-inherit">
@@ -77,10 +77,10 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
 
 <style lang="scss" scoped>
 .nc-sidebar-header {
-  @apply w-full px-3 py-1.5 flex items-center gap-2 h-[var(--topbar-height)];
+  @apply w-full pl-3 pr-2 py-1.5 flex items-center gap-2 h-[var(--topbar-height)];
+}
 
-  &.nc-project-list {
-    @apply !pr-2;
-  }
+:deep(.nc-sidebar-node-btn) {
+  @apply !hover:bg-nc-bg-gray-medium !rounded-md text-nc-content-gray-subtle;
 }
 </style>

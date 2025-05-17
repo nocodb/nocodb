@@ -133,7 +133,7 @@ onBeforeUnmount(() => {
           {{ $t('title.teamAndSettings') }}
         </h1>
       </div>
-      <SmartsheetTopbarCmdK class="ml-1" />
+      <SmartsheetTopbarCmdK v-if="!isNewSidebarEnabled" class="ml-1" />
     </div>
     <template v-else>
       <div class="nc-breadcrumb px-2">

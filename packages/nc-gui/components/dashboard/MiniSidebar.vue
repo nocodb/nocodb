@@ -5,7 +5,7 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { appInfo, navigateToProject } = useGlobal()
+const { appInfo, navigateToProject, isMobileMode } = useGlobal()
 
 const { meta: metaKey, control } = useMagicKeys()
 
@@ -71,51 +71,72 @@ const navigateToIntegrations = () => {
     <div class="flex flex-col gap-3 items-center">
       <WorkspaceMenu />
 
-      <div
-        class="nc-mini-sidebar-btn"
-        data-testid="nc-sidebar-project-btn"
-        :class="{
-          active: isProjectPageOpen,
-        }"
-        @click="navigateToProjectPage"
-      >
-        <GeneralIcon :icon="isProjectPageOpen ? 'ncBaseOutlineDuo' : 'ncBaseOutline'" class="h-4 w-4" />
-      </div>
-      <div
-        v-e="['c:quick-actions']"
-        class="nc-mini-sidebar-btn"
-        data-testid="nc-sidebar-cmd-k-btn"
-        @click="commandPalette?.open()"
-      >
-        <GeneralIcon icon="search" class="h-4 w-4" />
-      </div>
-      <NcDivider class="!my-0 !border-nc-border-gray-dark" />
-      <div
-        v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
-        v-e="['c:team:settings']"
-        class="nc-mini-sidebar-btn"
-        data-testid="nc-sidebar-team-settings-btn"
-        :class="{
-          active: isWorkspaceSettingsPageOpened,
-        }"
-        @click="navigateToSettings"
-      >
-        <GeneralIcon :icon="isWorkspaceSettingsPageOpened ? 'ncSettingsDuo' : 'ncSettings'" class="h-4 w-4" />
-      </div>
-      <div
-        v-if="isUIAllowed('workspaceSettings')"
-        v-e="['c:integrations']"
-        class="nc-mini-sidebar-btn"
-        data-testid="nc-sidebar-integrations-btn"
-        :class="{
-          active: isIntegrationsPageOpened,
-        }"
-        @click="navigateToIntegrations"
-      >
-        <GeneralIcon :icon="isIntegrationsPageOpened ? 'ncIntegrationDuo' : 'integration'" class="h-4 w-4" />
-      </div>
-      <NcDivider class="!my-0 !border-nc-border-gray-dark" />
-      <DashboardSidebarFeed v-if="appInfo.feedEnabled" />
+      <NcTooltip :title="$t('objects.projects')" placement="right" hide-on-click>
+        <div
+          class="nc-mini-sidebar-btn"
+          data-testid="nc-sidebar-project-btn"
+          :class="{
+            active: isProjectPageOpen,
+          }"
+          @click="navigateToProjectPage"
+        >
+          <GeneralIcon :icon="isProjectPageOpen ? 'ncBaseOutlineDuo' : 'ncBaseOutline'" class="h-4 w-4" />
+        </div>
+      </NcTooltip>
+      <template v-if="!isMobileMode">
+        <NcTooltip placement="right" hide-on-click>
+          <template #title>
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="ncCommand" class="h-3" />
+              K
+            </div>
+          </template>
+          <div
+            v-e="['c:quick-actions']"
+            class="nc-mini-sidebar-btn"
+            data-testid="nc-sidebar-cmd-k-btn"
+            @click="commandPalette?.open()"
+          >
+            <GeneralIcon icon="search" class="h-4 w-4" />
+          </div>
+        </NcTooltip>
+        <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+        <NcTooltip
+          v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
+          :title="$t('title.teamAndSettings')"
+          placement="right"
+          hide-on-click
+        >
+          <div
+            v-e="['c:team:settings']"
+            class="nc-mini-sidebar-btn"
+            data-testid="nc-sidebar-team-settings-btn"
+            :class="{
+              active: isWorkspaceSettingsPageOpened,
+            }"
+            @click="navigateToSettings"
+          >
+            <GeneralIcon :icon="isWorkspaceSettingsPageOpened ? 'ncSettingsDuo' : 'ncSettings'" class="h-4 w-4" />
+          </div>
+        </NcTooltip>
+        <NcTooltip v-if="isUIAllowed('workspaceSettings')" :title="$t('general.integrations')" placement="right" hide-on-click>
+          <div
+            v-e="['c:integrations']"
+            class="nc-mini-sidebar-btn"
+            data-testid="nc-sidebar-integrations-btn"
+            :class="{
+              active: isIntegrationsPageOpened,
+            }"
+            @click="navigateToIntegrations"
+          >
+            <GeneralIcon :icon="isIntegrationsPageOpened ? 'ncIntegrationDuo' : 'integration'" class="h-4 w-4" />
+          </div>
+        </NcTooltip>
+        <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+        <NcTooltip v-if="appInfo.feedEnabled" :title="$t('title.whatsNew')" placement="right" hide-on-click>
+          <DashboardSidebarFeed />
+        </NcTooltip>
+      </template>
     </div>
     <div class="flex flex-col gap-3 items-center">
       <NotificationMenu />

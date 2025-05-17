@@ -57,6 +57,7 @@ onUnmounted(() => {
             <div v-if="!isMobileMode && !appInfo.ee" class="flex flex-row w-full justify-between pt-0.5 truncate">
               <GeneralJoinCloud />
             </div>
+            <DashboardSidebarVersion v-if="appInfo.isOnPrem" />
           </div>
         </template>
       </DashboardTreeViewProjectList>
@@ -65,7 +66,7 @@ onUnmounted(() => {
       <div class="flex flex-col">
         <DashboardSidebarHeader />
 
-        <DashboardSidebarTopSection v-if="!isSharedBase && !isNewSidebarEnabled" />
+        <DashboardSidebarTopSection v-if="!isSharedBase" />
       </div>
       <div
         ref="treeViewDom"
@@ -83,8 +84,8 @@ onUnmounted(() => {
 
         <GeneralGift v-if="!isEeUI" />
         <DashboardSidebarBeforeUserInfo />
-        <DashboardSidebarFeed v-if="appInfo.feedEnabled && !isNewSidebarEnabled" />
-        <DashboardSidebarUserInfo v-if="!isNewSidebarEnabled" />
+        <DashboardSidebarFeed v-if="appInfo.feedEnabled" />
+        <DashboardSidebarUserInfo />
         <DashboardSidebarVersion v-if="appInfo.isOnPrem" />
       </div>
     </template>

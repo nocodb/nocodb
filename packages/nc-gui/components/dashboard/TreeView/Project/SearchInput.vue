@@ -26,11 +26,11 @@ const onKeydown = (e: KeyboardEvent) => {
   <a-input
     ref="inputRef"
     v-model:value="vModel"
-    @keydown="onKeydown"
     type="text"
     class="nc-base-search-input nc-input-border-on-value nc-input-shadow !h-8 !px-2.5 !py-1 !rounded-lg"
     :placeholder="`${$t('activity.searchProject').charAt(0).toUpperCase()}${$t('activity.searchProject').slice(1).toLowerCase()}`"
     allow-clear
+    @keydown="onKeydown"
   >
     <template #prefix>
       <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />

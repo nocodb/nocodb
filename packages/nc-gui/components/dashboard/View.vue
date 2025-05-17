@@ -72,7 +72,7 @@ const normalizedWidth = computed(() => {
   } else if (sidebarWidth.value < minSize) {
     return minSize - miniSidebarWidth.value
   } else {
-    return sidebarWidth.value - miniSidebarWidth.value
+    return sidebarWidth.value - (sidebarState.value === 'openEnd' ? miniSidebarWidth.value : 0)
   }
 })
 
@@ -100,13 +100,16 @@ function handleMouseMove(e: MouseEvent) {
   if (!wrapperRef.value) return
   if (sidebarState.value === 'openEnd') return
 
-  if (e.clientX < 4 + miniSidebarWidth.value && ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)) {
+  if (
+    e.clientX < 4 + miniSidebarWidth.value + miniSidebarWidth.value &&
+    ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)
+  ) {
     sidebarState.value = 'peekOpenStart'
 
     setTimeout(() => {
       sidebarState.value = 'peekOpenEnd'
     }, animationDuration)
-  } else if (e.clientX > sidebarWidth.value + 10 && sidebarState.value === 'peekOpenEnd') {
+  } else if (e.clientX > sidebarWidth.value + 10 + miniSidebarWidth.value && sidebarState.value === 'peekOpenEnd') {
     sidebarState.value = 'peekCloseOpen'
 
     setTimeout(() => {

@@ -414,7 +414,7 @@ function onOpenModal({
           '!pl-13.3 !xs:(pl-13.5)': isDefaultSource && !isNewSidebarEnabled,
           '!pl-18.6 !xs:(pl-20)': !isDefaultSource && !isNewSidebarEnabled,
           '!pl-7.5 !xs:(pl-7.5)': isDefaultSource && isNewSidebarEnabled,
-          '!pl-12 !xs:(pl-14)': !isDefaultSource && isNewSidebarEnabled,
+          '!pl-13.6 !xs:(pl-15)': !isDefaultSource && isNewSidebarEnabled,
         }"
         :source="source"
       >

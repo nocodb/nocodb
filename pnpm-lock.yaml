@@ -241,6 +241,9 @@ importers:
       emoji-mart-vue-fast:
         specifier: ^15.0.3
         version: 15.0.3(vue@3.5.14)
+      esbuild-wasm:
+        specifier: ^0.25.4
+        version: 0.25.4
       fflate:
         specifier: ^0.8.2
         version: 0.8.2
@@ -577,7 +580,7 @@ importers:
         version: 2.4.6
       '@vueuse/nuxt':
         specifier: ^12.5.0
-        version: 12.5.0(magicast@0.3.5)(nuxt@3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(db0@0.2.1(mysql2@3.12.0))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.12.0)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@5.4.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.38.1))(xml2js@0.6.2)(yaml@2.7.0))(rollup@4.28.0)
+        version: 12.5.0(magicast@0.3.5)(nuxt@3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.12.0)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@5.4.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.38.1))(xml2js@0.6.2)(yaml@2.7.0))(rollup@4.28.0)
       '@windicss/plugin-animations':
         specifier: ^1.0.9
         version: 1.0.9
@@ -601,7 +604,7 @@ importers:
         version: 6.0.4(encoding@0.1.13)
       nuxt:
         specifier: 3.15.4
-        version: 3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(db0@0.2.1(mysql2@3.12.0))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.12.0)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@5.4.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.38.1))(xml2js@0.6.2)(yaml@2.7.0)
+        version: 3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.12.0)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@5.4.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.38.1))(xml2js@0.6.2)(yaml@2.7.0)
       nuxt-windicss:
         specifier: ^3.0.1
         version: 3.0.1(magicast@0.3.5)(rollup@4.28.0)(vite@5.4.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.38.1))
@@ -1410,7 +1413,7 @@ importers:
         version: 4.21.2
       jest:
         specifier: ^29.7.0
-        version: 29.7.0(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3))
+        version: 29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3))
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
@@ -1422,7 +1425,7 @@ importers:
         version: 5.0.10
       ts-jest:
         specifier: ^29.2.5
-        version: 29.2.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.7))(jest@29.7.0(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3)))(typescript@5.8.3)
+        version: 29.2.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.7))(jest@29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3)))(typescript@5.8.3)
       tsc-alias:
         specifier: ^1.8.10
         version: 1.8.10
@@ -5788,10 +5791,6 @@ packages:
   '@one-ini/wasm@0.1.1':
     resolution: {integrity: sha512-XuySG1E38YScSJoMlqovLru4KTUNSjgVTIjyh7qMX6aNN5HY5Ct5LhRJdxO79JtTzKfzV/bnWpz+zquYrISsvw==}
 
-  '@opentelemetry/api@1.4.1':
-    resolution: {integrity: sha512-O2yRJce1GOc6PAy3QxFM4NzFiWzvScDC1/5ihYBL6BUEVdq0XMWN01sppE+H6bBXbaFYipjwFLEWLg5PaSOThA==}
-    engines: {node: '>=8.0.0'}
-
   '@opentelemetry/api@1.9.0':
     resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
     engines: {node: '>=8.0.0'}
@@ -9312,6 +9311,9 @@ packages:
   aws4@1.12.0:
     resolution: {integrity: sha512-NmWvPnx0F1SfrQbYwOi7OeaNGokp9XhzNioJ/CSBs8Qa4vxug81mhJEAVZwxXuBmYB5KDRfMq/F3RR0BIU7sWg==}
 
+  aws4fetch@1.0.20:
+    resolution: {integrity: sha512-/djoAN709iY65ETD6LKCtyyEI04XIBP5xVvfmNxsEP0uJB5tyaGBztSryRr4HqMStr9R06PisQE7m9zDTXKu6g==}
+
   axios-retry@3.6.1:
     resolution: {integrity: sha512-PQw30ntfNKdY+iAxtjYA2BXNnVc9CZiA0Z0O3nx0I+xy5AuBmEX1hBLTm5YioWIyiAW7UwrX41oHzd+9YxSndQ==}
 
@@ -11281,6 +11283,11 @@ packages:
 
   es6-promise@3.3.1:
     resolution: {integrity: sha512-SOp9Phqvqn7jtEUxPWdWfWoLmyt2VaJ6MpvP9Comy1MceMXqE6bxvaTu4iaxpYYPzhny28Lc+M87/c2cPK6lDg==}
+
+  esbuild-wasm@0.25.4:
+    resolution: {integrity: sha512-2HlCS6rNvKWaSKhWaG/YIyRsTsL3gUrMP2ToZMBIjw9LM7vVcIs+rz8kE2vExvTJgvM8OKPqNpcHawY/BQc/qQ==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   esbuild@0.21.5:
     resolution: {integrity: sha512-mg3OPMV4hXywwpoDxu3Qda5xCKQi+vCTZq8S9J/EpkhB2HzKXq4SNFZE3+NK93JYxc8VMSep+lOUSC/RVKaBqw==}
@@ -20798,13 +20805,13 @@ snapshots:
   '@aws-crypto/crc32@1.2.2':
     dependencies:
       '@aws-crypto/util': 1.2.2
-      '@aws-sdk/types': 3.6.1
+      '@aws-sdk/types': 3.734.0
       tslib: 1.14.1
 
   '@aws-crypto/crc32@2.0.0':
     dependencies:
       '@aws-crypto/util': 2.0.2
-      '@aws-sdk/types': 3.186.0
+      '@aws-sdk/types': 3.734.0
       tslib: 1.14.1
 
   '@aws-crypto/crc32@5.2.0':
@@ -20852,7 +20859,7 @@ snapshots:
       '@aws-crypto/sha256-js': 2.0.0
       '@aws-crypto/supports-web-crypto': 2.0.2
       '@aws-crypto/util': 2.0.2
-      '@aws-sdk/types': 3.186.0
+      '@aws-sdk/types': 3.734.0
       '@aws-sdk/util-locate-window': 3.723.0
       '@aws-sdk/util-utf8-browser': 3.186.0
       tslib: 1.14.1
@@ -20863,7 +20870,7 @@ snapshots:
       '@aws-crypto/supports-web-crypto': 5.2.0
       '@aws-crypto/util': 5.2.0
       '@aws-sdk/types': 3.734.0
-      '@aws-sdk/util-locate-window': 3.310.0
+      '@aws-sdk/util-locate-window': 3.723.0
       '@smithy/util-utf8': 2.3.0
       tslib: 2.8.1
 
@@ -20876,7 +20883,7 @@ snapshots:
   '@aws-crypto/sha256-js@2.0.0':
     dependencies:
       '@aws-crypto/util': 2.0.2
-      '@aws-sdk/types': 3.186.0
+      '@aws-sdk/types': 3.734.0
       tslib: 1.14.1
 
   '@aws-crypto/sha256-js@5.2.0':
@@ -20905,7 +20912,7 @@ snapshots:
 
   '@aws-crypto/util@2.0.2':
     dependencies:
-      '@aws-sdk/types': 3.186.0
+      '@aws-sdk/types': 3.734.0
       '@aws-sdk/util-utf8-browser': 3.186.0
       tslib: 1.14.1
 
@@ -23107,7 +23114,7 @@ snapshots:
 
   '@azure/core-tracing@1.0.0-preview.13':
     dependencies:
-      '@opentelemetry/api': 1.4.1
+      '@opentelemetry/api': 1.9.0
       tslib: 2.8.1
 
   '@azure/core-tracing@1.0.1':
@@ -25413,7 +25420,7 @@ snapshots:
 
   '@intlify/vue-i18n-extensions@8.0.0(@intlify/shared@11.1.3)(@vue/compiler-dom@3.5.14)(vue-i18n@9.14.2(vue@3.5.14))(vue@3.5.14)':
     dependencies:
-      '@babel/parser': 7.26.7
+      '@babel/parser': 7.27.2
     optionalDependencies:
       '@intlify/shared': 11.1.3
       '@vue/compiler-dom': 3.5.14
@@ -25500,7 +25507,7 @@ snapshots:
       - supports-color
       - ts-node
 
-  '@jest/core@29.7.0(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3))':
+  '@jest/core@29.7.0(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3))':
     dependencies:
       '@jest/console': 29.7.0
       '@jest/reporters': 29.7.0
@@ -25514,7 +25521,7 @@ snapshots:
       exit: 0.1.2
       graceful-fs: 4.2.11
       jest-changed-files: 29.7.0
-      jest-config: 29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3))
+      jest-config: 29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3))
       jest-haste-map: 29.7.0
       jest-message-util: 29.7.0
       jest-regex-util: 29.6.3
@@ -26885,8 +26892,6 @@ snapshots:
       aggregate-error: 3.1.0
 
   '@one-ini/wasm@0.1.1': {}
-
-  '@opentelemetry/api@1.4.1': {}
 
   '@opentelemetry/api@1.9.0': {}
 
@@ -30337,13 +30342,13 @@ snapshots:
       - rollup
       - supports-color
 
-  '@vueuse/nuxt@12.5.0(magicast@0.3.5)(nuxt@3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(db0@0.2.1(mysql2@3.12.0))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.12.0)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@5.4.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.38.1))(xml2js@0.6.2)(yaml@2.7.0))(rollup@4.28.0)':
+  '@vueuse/nuxt@12.5.0(magicast@0.3.5)(nuxt@3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.12.0)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@5.4.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.38.1))(xml2js@0.6.2)(yaml@2.7.0))(rollup@4.28.0)':
     dependencies:
       '@nuxt/kit': 3.15.4(magicast@0.3.5)(rollup@4.28.0)
       '@vueuse/core': 12.5.0
       '@vueuse/metadata': 12.5.0
       local-pkg: 1.0.0
-      nuxt: 3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(db0@0.2.1(mysql2@3.12.0))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.12.0)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@5.4.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.38.1))(xml2js@0.6.2)(yaml@2.7.0)
+      nuxt: 3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.12.0)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@5.4.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.38.1))(xml2js@0.6.2)(yaml@2.7.0)
       vue: 3.5.14
     transitivePeerDependencies:
       - magicast
@@ -31233,6 +31238,9 @@ snapshots:
   aws-ssl-profiles@1.1.2: {}
 
   aws4@1.12.0: {}
+
+  aws4fetch@1.0.20:
+    optional: true
 
   axios-retry@3.6.1:
     dependencies:
@@ -32632,13 +32640,13 @@ snapshots:
       - supports-color
       - ts-node
 
-  create-jest@29.7.0(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3)):
+  create-jest@29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3)):
     dependencies:
       '@jest/types': 29.6.3
       chalk: 4.1.2
       exit: 0.1.2
       graceful-fs: 4.2.11
-      jest-config: 29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3))
+      jest-config: 29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3))
       jest-util: 29.7.0
       prompts: 2.4.2
     transitivePeerDependencies:
@@ -33680,6 +33688,8 @@ snapshots:
   es6-object-assign@1.1.0: {}
 
   es6-promise@3.3.1: {}
+
+  esbuild-wasm@0.25.4: {}
 
   esbuild@0.21.5:
     optionalDependencies:
@@ -36726,16 +36736,16 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest-cli@29.7.0(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3)):
+  jest-cli@29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3)):
     dependencies:
-      '@jest/core': 29.7.0(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3))
+      '@jest/core': 29.7.0(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3))
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
       chalk: 4.1.2
-      create-jest: 29.7.0(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3))
+      create-jest: 29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3))
       exit: 0.1.2
       import-local: 3.1.0
-      jest-config: 29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3))
+      jest-config: 29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3))
       jest-util: 29.7.0
       jest-validate: 29.7.0
       yargs: 17.7.2
@@ -36776,7 +36786,7 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  jest-config@29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3)):
+  jest-config@29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3)):
     dependencies:
       '@babel/core': 7.26.7
       '@jest/test-sequencer': 29.7.0
@@ -37053,12 +37063,12 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest@29.7.0(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3)):
+  jest@29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3)):
     dependencies:
-      '@jest/core': 29.7.0(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3))
+      '@jest/core': 29.7.0(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3))
       '@jest/types': 29.6.3
       import-local: 3.1.0
-      jest-cli: 29.7.0(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3))
+      jest-cli: 29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3))
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -38961,7 +38971,7 @@ snapshots:
 
   nice-try@1.0.5: {}
 
-  nitropack@2.10.4(encoding@0.1.13)(mysql2@3.12.0)(xml2js@0.6.2):
+  nitropack@2.10.4(aws4fetch@1.0.20)(encoding@0.1.13)(mysql2@3.12.0)(xml2js@0.6.2):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.4
       '@netlify/functions': 2.8.2
@@ -39028,7 +39038,7 @@ snapshots:
       unctx: 2.4.1
       unenv: 1.10.0
       unimport: 3.14.5(rollup@4.28.0)
-      unstorage: 1.14.4(db0@0.2.1(mysql2@3.12.0))(ioredis@5.4.2)
+      unstorage: 1.14.4(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(ioredis@5.4.2)
       untyped: 1.5.2
       unwasm: 0.3.9
     optionalDependencies:
@@ -39357,7 +39367,7 @@ snapshots:
       - uWebSockets.js
       - vite
 
-  nuxt@3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(db0@0.2.1(mysql2@3.12.0))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.12.0)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@5.4.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.38.1))(xml2js@0.6.2)(yaml@2.7.0):
+  nuxt@3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.12.0)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@5.4.11(@types/node@22.13.1)(sass@1.84.0)(terser@5.38.1))(xml2js@0.6.2)(yaml@2.7.0):
     dependencies:
       '@nuxt/cli': 3.21.1(magicast@0.3.5)
       '@nuxt/devalue': 2.0.2
@@ -39395,7 +39405,7 @@ snapshots:
       magic-string: 0.30.17
       mlly: 1.7.4
       nanotar: 0.2.0
-      nitropack: 2.10.4(encoding@0.1.13)(mysql2@3.12.0)(xml2js@0.6.2)
+      nitropack: 2.10.4(aws4fetch@1.0.20)(encoding@0.1.13)(mysql2@3.12.0)(xml2js@0.6.2)
       nypm: 0.5.2
       ofetch: 1.4.1
       ohash: 1.1.4
@@ -39417,7 +39427,7 @@ snapshots:
       unimport: 4.0.0(rollup@4.28.0)
       unplugin: 2.1.2
       unplugin-vue-router: 0.11.2(rollup@4.28.0)(vue-router@4.5.0(vue@3.5.14))(vue@3.5.14)
-      unstorage: 1.14.4(db0@0.2.1(mysql2@3.12.0))(ioredis@5.4.2)
+      unstorage: 1.14.4(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(ioredis@5.4.2)
       untyped: 1.5.2
       vue: 3.5.14
       vue-bundle-renderer: 2.1.1
@@ -43544,12 +43554,12 @@ snapshots:
       '@jest/types': 29.6.3
       babel-jest: 29.7.0(@babel/core@7.24.5)
 
-  ts-jest@29.2.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.7))(jest@29.7.0(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3)))(typescript@5.8.3):
+  ts-jest@29.2.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.7))(jest@29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3)))(typescript@5.8.3):
     dependencies:
       bs-logger: 0.2.6
       ejs: 3.1.10
       fast-json-stable-stringify: 2.1.0
-      jest: 29.7.0(ts-node@10.9.2(@swc/core@1.10.0)(typescript@5.8.3))
+      jest: 29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.13.1)(typescript@5.8.3))
       jest-util: 29.7.0
       json5: 2.2.3
       lodash.memoize: 4.1.2
@@ -44185,7 +44195,7 @@ snapshots:
       - uWebSockets.js
     optional: true
 
-  unstorage@1.14.4(db0@0.2.1(mysql2@3.12.0))(ioredis@5.4.2):
+  unstorage@1.14.4(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(ioredis@5.4.2):
     dependencies:
       anymatch: 3.1.3
       chokidar: 3.6.0
@@ -44196,6 +44206,7 @@ snapshots:
       ofetch: 1.4.1
       ufo: 1.5.4
     optionalDependencies:
+      aws4fetch: 1.0.20
       db0: 0.2.1(mysql2@3.12.0)
       ioredis: 5.4.2
 

@@ -805,7 +805,8 @@
     "upgradeToPlan": "升级到 {plan} 套餐",
     "upgradeWorkspaceToPlan": "将 {workspace} 升级到 {plan} 套餐",
     "upgradeToPlanSubtitle": "您将立即为此方案付款。",
-    "reactivateToPlan": "重新激活 {plan} 方案？"
+    "reactivateToPlan": "重新激活 {plan} 方案？",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1320,7 +1321,8 @@
     "invoice": "发票",
     "status": "状态",
     "invoiceTotal": "发票总额",
-    "pastInvoices": "历史发票"
+    "pastInvoices": "历史发票",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "点击解决",

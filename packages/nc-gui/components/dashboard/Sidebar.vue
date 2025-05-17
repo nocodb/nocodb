@@ -43,7 +43,23 @@ onUnmounted(() => {
     }"
   >
     <template v-if="isNewSidebarEnabled">
-      <DashboardTreeViewProjectList />
+      <DashboardTreeViewProjectList>
+        <template #footer>
+          <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
+            <PaymentUpgradeSidebarBanner v-if="isEeUI" />
+
+            <GeneralGift v-if="!isEeUI" />
+
+            <DashboardSidebarBeforeUserInfo />
+
+            <LazyGeneralMaintenanceAlert />
+
+            <div v-if="!isMobileMode && !appInfo.ee" class="flex flex-row w-full justify-between pt-0.5 truncate">
+              <GeneralJoinCloud />
+            </div>
+          </div>
+        </template>
+      </DashboardTreeViewProjectList>
     </template>
     <template v-else>
       <div class="flex flex-col">
@@ -62,16 +78,16 @@ onUnmounted(() => {
       >
         <DashboardTreeView v-if="!isWorkspaceLoading" />
       </div>
-    </template>
-    <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
-      <PaymentUpgradeSidebarBanner v-if="isEeUI" />
+      <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
+        <PaymentUpgradeSidebarBanner v-if="isEeUI" />
 
-      <GeneralGift v-if="!isEeUI" />
-      <DashboardSidebarBeforeUserInfo />
-      <DashboardSidebarFeed v-if="appInfo.feedEnabled && !isNewSidebarEnabled" />
-      <DashboardSidebarUserInfo v-if="!isNewSidebarEnabled" />
-      <DashboardSidebarVersion v-if="appInfo.isOnPrem" />
-    </div>
+        <GeneralGift v-if="!isEeUI" />
+        <DashboardSidebarBeforeUserInfo />
+        <DashboardSidebarFeed v-if="appInfo.feedEnabled && !isNewSidebarEnabled" />
+        <DashboardSidebarUserInfo v-if="!isNewSidebarEnabled" />
+        <DashboardSidebarVersion v-if="appInfo.isOnPrem" />
+      </div>
+    </template>
   </div>
 </template>
 

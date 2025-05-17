@@ -474,7 +474,7 @@ async function onRename() {
             <div
               v-else
               v-e="['c:table:emoji-picker']"
-              class="flex items-center nc-table-icon"
+              class="flex items-center nc-table-icon min-w-6"
               :class="{
                 'pointer-events-none': !canUserEditEmote,
               }"

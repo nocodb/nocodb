@@ -25,6 +25,9 @@ export const useBases = defineStore('basesStore', () => {
   const router = useRouter()
   const route = router.currentRoute
 
+  const isProjectsLoading = ref(false)
+  const isProjectsLoaded = ref(false)
+
   const activeProjectId = computed(() => {
     if (route.value.params.typeOrId === 'base') {
       return basesList.value?.[0]?.id
@@ -59,8 +62,6 @@ export const useBases = defineStore('basesStore', () => {
   const { api } = useApi()
 
   const { getBaseUrl } = useGlobal()
-
-  const isProjectsLoading = ref(false)
 
   async function getBaseUsers({ baseId, searchText, force = false }: { baseId: string; searchText?: string; force?: boolean }) {
     if (!baseId) return { users: [], totalRows: 0 }
@@ -178,6 +179,7 @@ export const useBases = defineStore('basesStore', () => {
       message.error(e.message)
     } finally {
       isProjectsLoading.value = false
+      isProjectsLoaded.value = true
     }
   }
 
@@ -399,9 +401,18 @@ export const useBases = defineStore('basesStore', () => {
   watch(
     [() => route.value.params.baseId, () => route.value.params.viewId, () => route.value.params.viewTitle],
     ([newBaseId, newTableId, newViewId], [oldBaseId, oldTableId, oldViewId]) => {
-      if (!showProjectList.value) return
+      const shouldShowProjectList = !(
+        (newBaseId && newBaseId !== oldBaseId) ||
+        newTableId !== oldTableId ||
+        newViewId !== oldViewId
+      )
 
-      showProjectList.value = !((newBaseId && newBaseId !== oldBaseId) || newTableId !== oldTableId || newViewId !== oldViewId)
+      if (!showProjectList.value && shouldShowProjectList) {
+        showProjectList.value = shouldShowProjectList
+        return
+      }
+
+      showProjectList.value = shouldShowProjectList
     },
   )
 
@@ -421,6 +432,7 @@ export const useBases = defineStore('basesStore', () => {
     isProjectEmpty,
     isProjectPopulated,
     isProjectsLoading,
+    isProjectsLoaded,
     activeProjectId,
     openedProject,
     openedProjectBasesMap,

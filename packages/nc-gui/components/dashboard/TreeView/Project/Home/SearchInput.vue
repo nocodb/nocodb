@@ -1,14 +1,28 @@
 <script lang="ts" setup>
+interface Props {
+  isLoading?: boolean
+}
+
+const props = defineProps<Props>()
+
+const { isLoading } = toRefs(props)
+
 const { baseHomeSearchQuery } = storeToRefs(useBases())
 
 const { commandPalette } = useCommandPalette()
 
 const { isMobileMode } = useGlobal()
+
+const handleClick = () => {
+  if (isLoading.value) return
+
+  commandPalette.value?.open()
+}
 </script>
 
 <template>
   <div v-if="!isMobileMode" class="px-2 h-11 flex items-center">
-    <div class="w-full" @click="commandPalette?.open()">
+    <div class="w-full" @click="handleClick">
       <a-input
         v-model:value="baseHomeSearchQuery"
         type="text"

@@ -141,4 +141,10 @@ onUnmounted(() => {
 .nc-treeview-active-base {
   @apply w-full h-full flex-1 flex flex-col;
 }
+
+.nc-treeview-loading {
+  .nc-sidebar-header-content {
+    @apply flex-1;
+  }
+}
 </style>

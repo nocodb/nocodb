@@ -6,14 +6,14 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { GlobalGuard } from '~/guards/global/global.guard';
-import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { TenantContext } from '~/decorators/tenant-context.decorator';
-import { NcContext } from '~/interface/config';
-import { ViewsV3Service } from '~/services/v3/views-v3.service';
 import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { NcContext } from '~/interface/config';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { ViewsV3Service } from '~/services/v3/views-v3.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -49,8 +49,4 @@ export class ViewsV3Controller {
     });
     return view;
   }
-
-  // TODO: insert view
-  // TODO: update view
-  // TODO: delete view
 }

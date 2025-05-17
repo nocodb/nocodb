@@ -2,16 +2,14 @@ Done:
 * bases
 * tables
 * columns
+* views
+* base-users
+* filters
 
 WIP:
-* views
-  * implements missing controllers
-  * add missing update / get / delete endpoints to swagger
+* sorts
 
 To do:
-* base-users
 * comments
-* filters
 * hooks
-* sorts
 * data

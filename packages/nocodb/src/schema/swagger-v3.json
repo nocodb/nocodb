@@ -1835,7 +1835,7 @@
             "description": "Unique identifier for the base."
           },
           {
-            "name": "filterId",
+            "name": "viewId",
             "in": "path",
             "required": true,
             "schema": {
@@ -2015,7 +2015,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Sort created successfully.",
             "content": {
               "application/json": {

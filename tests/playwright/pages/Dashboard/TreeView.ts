@@ -3,11 +3,9 @@ import { DashboardPage } from '.';
 import BasePage from '../Base';
 import { NcContext } from '../../setup';
 import { isEE } from '../../setup/db';
-import { LeftSidebarPage } from './common/LeftSidebar';
 
 export class TreeViewPage extends BasePage {
   readonly dashboard: DashboardPage;
-  readonly leftSidebar: LeftSidebarPage;
   readonly base: any;
   readonly quickImportButton: Locator;
   readonly createNewButton: Locator;
@@ -16,7 +14,6 @@ export class TreeViewPage extends BasePage {
   constructor(dashboard: DashboardPage, base: any) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
-    this.leftSidebar = dashboard.leftSidebar;
     this.base = base;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
     this.createNewButton = this.get().locator('.nc-home-create-new-btn');
@@ -77,7 +74,7 @@ export class TreeViewPage extends BasePage {
   }
 
   async openBase({ title }: { title: string }) {
-    await this.leftSidebar.verifyBaseListOpen(true);
+    await this.dashboard.leftSidebar.verifyBaseListOpen(true);
 
     const nodes = this.get().locator(`[data-testid="nc-sidebar-base-${title.toLowerCase()}"]`);
     await nodes.waitFor();
@@ -153,7 +150,7 @@ export class TreeViewPage extends BasePage {
   }) {
     if (skipOpeningModal) return;
 
-    const verifyBaseListOpen = await this.leftSidebar.verifyBaseListOpen();
+    const verifyBaseListOpen = await this.dashboard.leftSidebar.verifyBaseListOpen();
 
     switch (type) {
       case 'table': {
@@ -368,7 +365,7 @@ export class TreeViewPage extends BasePage {
   async openProject({ title, context }: { title: string; context: NcContext }) {
     title = this.scopedProjectTitle({ title, context });
 
-    await this.leftSidebar.verifyBaseListOpen(true);
+    await this.dashboard.leftSidebar.verifyBaseListOpen(true);
 
     await this.get().getByTestId(`nc-sidebar-base-title-${title}`).click();
     await this.rootPage.waitForTimeout(1000);
@@ -394,7 +391,7 @@ export class TreeViewPage extends BasePage {
     param.title = this.scopedProjectTitle({ title: param.title, context: param.context });
     param.newTitle = this.scopedProjectTitle({ title: param.newTitle, context: param.context });
 
-    await this.leftSidebar.verifyBaseListOpen(true);
+    await this.dashboard.leftSidebar.verifyBaseListOpen(true);
 
     await this.openProjectContextMenu({ baseTitle: param.title });
     const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible').last();

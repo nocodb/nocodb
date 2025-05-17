@@ -733,6 +733,7 @@ import NcSettingsDuo from '~icons/nc-icons-v2/settings-duo.svg'
 import NcIntegrationDuo from '~icons/nc-icons-v2/integration-duo.svg'
 import NcMegaPhoneDuo from '~icons/nc-icons-v2/mega-phone-duo.svg'
 import NcNotificationDuo from '~icons/nc-icons-v2/notification-duo.svg'
+import NcLayout from '~icons/nc-icons-v2/layout.svg'
 
 import MdiNcCheckBold from '~icons/nc-icons/mdi-check-bold'
 import MdiNcCropSquare from '~icons/nc-icons/mdi-crop-square'
@@ -1706,6 +1707,7 @@ export const iconMap = {
   'ncIntegrationDuo': NcIntegrationDuo,
   'ncMegaPhoneDuo': NcMegaPhoneDuo,
   'ncNotificationDuo': NcNotificationDuo,
+  'ncLayout': NcLayout,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4286,6 +4288,10 @@ export const searchableMap = {
   ncNotificationDuo: {
     icon: NcNotificationDuo,
     keywords: ['notification', 'bell'],
+  },
+  ncLayout: {
+    icon: NcLayout,
+    keywords: ['layout', 'table'],
   },
 }
 

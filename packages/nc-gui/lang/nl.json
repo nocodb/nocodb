@@ -805,7 +805,8 @@
     "upgradeToPlan": "Upgrade naar het {plan}-abonnement",
     "upgradeWorkspaceToPlan": "Upgrade {workspace} naar het {plan}-abonnement",
     "upgradeToPlanSubtitle": "U wordt onmiddellijk gefactureerd voor dit abonnement.",
-    "reactivateToPlan": "Het {plan}-abonnement heractiveren?"
+    "reactivateToPlan": "Het {plan}-abonnement heractiveren?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1320,7 +1321,8 @@
     "invoice": "Factuur",
     "status": "Status",
     "invoiceTotal": "Totaal factuurbedrag",
-    "pastInvoices": "Vorige facturen"
+    "pastInvoices": "Vorige facturen",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Klik om op te lossen",

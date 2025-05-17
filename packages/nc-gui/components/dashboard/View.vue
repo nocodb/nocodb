@@ -7,7 +7,11 @@ const route = router.currentRoute
 
 const { setLeftSidebarSize } = useGlobal()
 
-const { isMobileMode } = storeToRefs(useConfigStore())
+const configStore = useConfigStore()
+
+const { handleSidebarOpenOnMobileForNonViews } = configStore
+
+const { isMobileMode } = storeToRefs(configStore)
 
 const {
   isLeftSidebarOpen,
@@ -17,6 +21,8 @@ const {
   mobileNormalizedSidebarSize,
   hideSidebar,
   showTopbar,
+  isNewSidebarEnabled,
+  miniSidebarWidth,
 } = storeToRefs(useSidebarStore())
 
 const workspaceId = computed(() => {
@@ -26,6 +32,7 @@ const workspaceId = computed(() => {
 const wrapperRef = ref<HTMLDivElement>()
 
 const animationDuration = 250
+
 const viewportWidth = ref(window.innerWidth)
 
 const currentSidebarSize = computed({
@@ -35,8 +42,6 @@ const currentSidebarSize = computed({
     sideBarSize.value.old = val
   },
 })
-
-const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
 
 const mobileNormalizedContentSize = computed(() => {
   if (isMobileMode.value) {
@@ -63,11 +68,11 @@ const normalizedWidth = computed(() => {
   const minSize = remToPx(16)
 
   if (sidebarWidth.value > maxSize) {
-    return maxSize
+    return maxSize - miniSidebarWidth.value
   } else if (sidebarWidth.value < minSize) {
-    return minSize
+    return minSize - miniSidebarWidth.value
   } else {
-    return sidebarWidth.value
+    return sidebarWidth.value - miniSidebarWidth.value
   }
 })
 
@@ -193,54 +198,67 @@ function onResize(widthPercent: any) {
 </script>
 
 <template>
-  <DashboardTopbar v-if="showTopbar" :workspace-id="workspaceId" />
-  <Splitpanes
-    class="nc-sidebar-content-resizable-wrapper !w-screen h-full"
-    :class="{
-      'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart',
-    }"
-    @ready="() => onWindowResize()"
-    @resize="(event: any) => onResize(event[0].size)"
-  >
-    <Pane
-      min-size="15%"
-      :size="mobileNormalizedSidebarSize"
-      max-size="60%"
-      class="nc-sidebar-splitpane !sm:max-w-140 relative !overflow-visible flex"
+  <div class="h-full flex items-stretch">
+    <DashboardMiniSidebar v-if="isNewSidebarEnabled && $slots.sidebar" />
+
+    <div
       :class="{
-        hidden: hideSidebar,
-      }"
-      :style="{
-        'width': `${mobileNormalizedSidebarSize}%`,
-        'min-width': `${mobileNormalizedSidebarSize}%`,
+        'w-[calc(100vw_-_var(--mini-sidebar-width))] flex-none': isNewSidebarEnabled,
+        'w-screen flex-none': !isNewSidebarEnabled,
       }"
     >
-      <div
-        ref="wrapperRef"
-        class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !sm:(max-w-140) absolute overflow-visible"
+      <DashboardTopbar v-if="showTopbar" :workspace-id="workspaceId" />
+      <Splitpanes
+        class="nc-sidebar-content-resizable-wrapper h-full"
         :class="{
-          'mobile': isMobileMode,
-          'minimized-height': !isLeftSidebarOpen,
-          'hide-sidebar': ['hiddenStart', 'hiddenEnd', 'peekCloseEnd'].includes(sidebarState),
+          'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart',
+          '!w-[calc(100vw_-_var(--mini-sidebar-width))]': isNewSidebarEnabled,
+          '!w-screen': !isNewSidebarEnabled,
         }"
-        :style="{
-          width: sidebarState === 'hiddenEnd' ? '0px' : `${sidebarWidth}px`,
-          minWidth: sidebarState === 'hiddenEnd' ? '0px' : `${normalizedWidth}px`,
-        }"
+        @ready="() => onWindowResize()"
+        @resize="(event: any) => onResize(event[0].size)"
       >
-        <slot name="sidebar" />
-      </div>
-    </Pane>
-    <Pane
-      :size="mobileNormalizedContentSize"
-      class="flex-grow !overflow-auto"
-      :style="{
-        'min-width': `${mobileNormalizedContentSize}%`,
-      }"
-    >
-      <slot name="content" />
-    </Pane>
-  </Splitpanes>
+        <Pane
+          min-size="15%"
+          :size="mobileNormalizedSidebarSize"
+          max-size="60%"
+          class="nc-sidebar-splitpane !sm:max-w-140 relative !overflow-visible flex"
+          :class="{
+            hidden: hideSidebar,
+          }"
+          :style="{
+            'width': `${mobileNormalizedSidebarSize}%`,
+            'min-width': `${mobileNormalizedSidebarSize}%`,
+          }"
+        >
+          <div
+            ref="wrapperRef"
+            class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !sm:(max-w-140) absolute overflow-visible"
+            :class="{
+              'mobile': isMobileMode,
+              'minimized-height': !isLeftSidebarOpen,
+              'hide-sidebar': ['hiddenStart', 'hiddenEnd', 'peekCloseEnd'].includes(sidebarState),
+            }"
+            :style="{
+              width: sidebarState === 'hiddenEnd' ? '0px' : `${sidebarWidth}px`,
+              minWidth: sidebarState === 'hiddenEnd' ? '0px' : `${normalizedWidth}px`,
+            }"
+          >
+            <slot name="sidebar" />
+          </div>
+        </Pane>
+        <Pane
+          :size="mobileNormalizedContentSize"
+          class="flex-grow !overflow-auto"
+          :style="{
+            'min-width': `${mobileNormalizedContentSize}%`,
+          }"
+        >
+          <slot name="content" />
+        </Pane>
+      </Splitpanes>
+    </div>
+  </div>
 </template>
 
 <style lang="scss">

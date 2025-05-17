@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
+
 const { user, signOut, appInfo } = useGlobal()
 // So watcher in users store is triggered
 useUsers()
@@ -70,7 +72,7 @@ const accountUrl = computed(() => {
 
 <template>
   <div class="flex w-full flex-col border-gray-200 gap-y-1">
-    <LazyGeneralMaintenanceAlert />
+    <LazyGeneralMaintenanceAlert v-if="!isMiniSidebar" />
     <div class="flex items-center justify-between">
       <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
         <div
@@ -78,15 +80,17 @@ const accountUrl = computed(() => {
           data-testid="nc-sidebar-userinfo"
         >
           <GeneralUserIcon :user="user" size="medium" />
-          <NcTooltip class="max-w-32 truncate" show-on-truncate-only>
-            <template #title>
+          <template v-if="!isMiniSidebar">
+            <NcTooltip class="max-w-32 truncate" show-on-truncate-only>
+              <template #title>
+                {{ name ? name : user?.email }}
+              </template>
+
               {{ name ? name : user?.email }}
-            </template>
+            </NcTooltip>
 
-            {{ name ? name : user?.email }}
-          </NcTooltip>
-
-          <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-gray-500" />
+            <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-gray-500" />
+          </template>
         </div>
         <template #overlay>
           <NcMenu data-testid="nc-sidebar-userinfo" variant="small">
@@ -207,13 +211,15 @@ const accountUrl = computed(() => {
         </template>
       </NcDropdown>
       <DashboardFeatureExperimentation v-model:value="isExperimentalFeatureModalOpen" />
-      <LazyNotificationMenu />
+      <LazyNotificationMenu v-if="!isMiniSidebar" />
     </div>
 
-    <template v-if="isMobileMode || appInfo.ee"></template>
-    <div v-else class="flex flex-row w-full justify-between pt-0.5 truncate">
-      <GeneralJoinCloud />
-    </div>
+    <template v-if="!isMiniSidebar">
+      <template v-if="isMobileMode || appInfo.ee"></template>
+      <div v-else class="flex flex-row w-full justify-between pt-0.5 truncate">
+        <GeneralJoinCloud />
+      </div>
+    </template>
   </div>
 </template>
 

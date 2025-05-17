@@ -529,7 +529,11 @@ defineExpose({
 </script>
 
 <template>
-  <NcDropdown :trigger="[isProjectHeader ? 'click' : 'contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
+  <NcDropdown
+    :trigger="[isProjectHeader ? 'click' : 'contextmenu']"
+    overlay-class-name="nc-dropdown-tree-view-context-menu"
+    :disabled="isProjectHeader ? editMode || isSharedBase || !!isMobileMode : undefined"
+  >
     <div
       ref="labelEl"
       class="nc-base-sub-menu rounded-md"
@@ -549,7 +553,8 @@ defineExpose({
           isAddNewProjectChildEntityLoading ||
           !showNodeTooltip ||
           !collaborators.length ||
-          isProjectNodeContextMenuOpen
+          isProjectNodeContextMenuOpen ||
+          !!isMobileMode
         "
       >
         <template #title>
@@ -668,7 +673,9 @@ defineExpose({
             </NcTooltip>
 
             <template v-if="!editMode">
-              <GeneralIcon v-if="isProjectHeader" icon="chevronDown" class="flex-none text-nc-content-gray-muted" />
+              <template v-if="isProjectHeader">
+                <GeneralIcon v-if="!isMobileMode" icon="chevronDown" class="flex-none text-nc-content-gray-muted" />
+              </template>
               <template v-else>
                 <NcDropdown v-if="!isSharedBase" v-model:visible="isOptionsOpen" :trigger="['click']">
                   <NcButton

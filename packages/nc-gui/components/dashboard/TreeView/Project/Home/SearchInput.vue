@@ -2,10 +2,12 @@
 const { baseHomeSearchQuery } = storeToRefs(useBases())
 
 const { commandPalette } = useCommandPalette()
+
+const { isMobileMode } = useGlobal()
 </script>
 
 <template>
-  <div class="px-2 h-11 flex items-center">
+  <div v-if="!isMobileMode" class="px-2 h-11 flex items-center">
     <div @click="commandPalette?.open()" class="w-full">
       <a-input
         v-model:value="baseHomeSearchQuery"

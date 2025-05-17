@@ -29,6 +29,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         break
       case 'k':
         e.preventDefault()
+        setActiveCmdView('cmd-k')
         break
       case 'l':
         e.preventDefault()

@@ -39,6 +39,3 @@ This integration requires the following GitHub permissions:
 - `read:user`: Read-only access to user profile data
 - `repo`: Full control of repositories
 
-## Additional Setup
-
-For administrators setting up the OAuth integration, please refer to the [SETUP.md](./SETUP.md) file for detailed environment configuration instructions.

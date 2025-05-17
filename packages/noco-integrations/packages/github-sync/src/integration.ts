@@ -324,7 +324,9 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
   }
 
   private formatTicket(
-    issue: Awaited<ReturnType<Octokit['rest']['issues']['listForRepo']>>['data'][0]
+    issue: Awaited<
+      ReturnType<Octokit['rest']['issues']['listForRepo']>
+    >['data'][0],
   ): {
     data: TicketingTicketRecord;
     links?: Record<string, SyncLinkValue>;
@@ -356,15 +358,16 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
       data: ticketData,
       // Link values
       links: {
-        Assignees:
-          issue.assignees?.map((assignee) => `${assignee.id}`) || null,
+        Assignees: issue.assignees?.map((assignee) => `${assignee.id}`) || null,
         Creator: issue.user?.id ? [`${issue.user.id}`] : null,
       },
     };
   }
 
   private formatUser(
-    user: Awaited<ReturnType<Octokit['rest']['users']['getByUsername']>>['data']
+    user: Awaited<
+      ReturnType<Octokit['rest']['users']['getByUsername']>
+    >['data'],
   ): {
     data: TicketingUserRecord;
   } {
@@ -384,8 +387,9 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
   }
 
   private formatComment(
-    comment: Awaited<ReturnType<Octokit['rest']['issues']['listCommentsForRepo']>>['data'][0] & 
-      { issue: { id: number; number: number } }
+    comment: Awaited<
+      ReturnType<Octokit['rest']['issues']['listCommentsForRepo']>
+    >['data'][0] & { issue: { id: number; number: number } },
   ): {
     data: TicketingCommentRecord;
     links?: Record<string, SyncLinkValue>;
@@ -411,7 +415,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
   }
 
   private formatTeam(
-    team: Awaited<ReturnType<Octokit['rest']['teams']['list']>>['data'][0]
+    team: Awaited<ReturnType<Octokit['rest']['teams']['list']>>['data'][0],
   ): {
     data: TicketingTeamRecord;
   } {

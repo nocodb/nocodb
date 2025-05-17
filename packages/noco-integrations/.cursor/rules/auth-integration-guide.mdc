@@ -15,7 +15,8 @@ Every auth integration should follow this structure:
 packages/provider-auth/
 ├── package.json          # Package dependencies and metadata
 ├── tsconfig.json         # TypeScript configuration
-├── README.md             # Documentation with OAuth setup steps
+├── SETUP.md              # Developer documentation for environment setup and configuration
+├── README.md             # User-facing documentation explaining how to use the integration
 └── src/
     ├── index.ts          # Exports the integration entry point
     ├── integration.ts    # Implementation of the auth integration class
@@ -221,13 +222,7 @@ packages/provider-auth/
    } as IntegrationEntry;
    ```
 
-3. **Create README.md** with OAuth setup instructions:
-   - Explain how to create an OAuth app with the provider
-   - List required environment variables
-   - Document required scopes
-   - Provide usage examples
-
-4. **Update package.json**:
+3. **Update package.json**:
    ```json
    {
      "name": "@noco-integrations/provider-auth",
@@ -252,6 +247,50 @@ INTEGRATION_AUTH_PROVIDER_REDIRECT_URI=your_redirect_uri
 ```
 
 The naming convention is `INTEGRATION_AUTH_PROVIDER_*` where `PROVIDER` is your integration name in uppercase.
+
+## Documentation Files
+
+Each auth integration should have two primary documentation files:
+
+1. **README.md** - User-facing documentation explaining how to use the integration
+2. **SETUP.md** - Developer documentation for environment setup and configuration
+
+## README.md Structure
+
+The README.md should focus on end-users and include:
+
+- Title and brief introduction to the integration
+- Features list
+- Authentication methods with step-by-step instructions:
+  - API Key Authentication process
+  - OAuth Authentication process (if supported)
+- Required permissions and scopes
+
+See [packages/github-auth/README.md](mdc:packages/github-auth/README.md) and [packages/gitlab-auth/README.md](mdc:packages/gitlab-auth/README.md) for reference implementations.
+
+## SETUP.md Structure
+
+The SETUP.md should focus on administrators and include:
+
+- Environment variables configuration
+- Step-by-step OAuth application creation process
+- Client ID and secret retrieval instructions
+- OAuth scopes and permissions details
+- Callback URL configuration
+
+See [packages/github-auth/SETUP.md](mdc:packages/github-auth/SETUP.md) and [packages/gitlab-auth/SETUP.md](mdc:packages/gitlab-auth/SETUP.md) for reference implementations.
+
+## Implementation Checklist
+
+When creating documentation for a new auth integration:
+
+1. Create SETUP.md with environment setup instructions
+2. Create or update README.md with user-facing instructions
+3. Ensure consistent formatting with existing documentation
+4. Include provider-specific screenshots where helpful
+5. Reference official provider documentation where appropriate
+6. Update TODO.md to mark documentation tasks as complete
+
 
 ## References
 

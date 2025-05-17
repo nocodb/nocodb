@@ -332,12 +332,17 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
 
   public formatData(
     targetTable: TARGET_TABLES,
-    data: ProcessedIssue | User | Comment | Team | { 
-      issue?: ProcessedIssue, 
-      comment: Comment, 
-      user?: User, 
-      issueIdentifier?: string 
-    }
+    data:
+      | ProcessedIssue
+      | User
+      | Comment
+      | Team
+      | {
+          issue?: ProcessedIssue;
+          comment: Comment;
+          user?: User;
+          issueIdentifier?: string;
+        },
   ): {
     data: SyncRecord;
     links?: Record<string, SyncLinkValue>;
@@ -348,16 +353,16 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
         if ('issue' in data) {
           return this.formatTicket(
             data.issue as ProcessedIssue,
-            'labels' in data ? data.labels as IssueLabel[] : undefined,
-            'assignee' in data ? data.assignee as User : undefined,
-            'creator' in data ? data.creator as User : undefined
+            'labels' in data ? (data.labels as IssueLabel[]) : undefined,
+            'assignee' in data ? (data.assignee as User) : undefined,
+            'creator' in data ? (data.creator as User) : undefined,
           );
         }
         return this.formatTicket(data as ProcessedIssue);
-      
+
       case TARGET_TABLES.TICKETING_USER:
         return this.formatUser(data as User);
-      
+
       case TARGET_TABLES.TICKETING_COMMENT:
         // Handle the enhanced comment case
         if ('comment' in data) {
@@ -365,15 +370,15 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
             data.comment,
             data.issue?.id,
             data.user || null,
-            data.issueIdentifier
+            data.issueIdentifier,
           );
         }
         // Handle basic comment
         return this.formatComment(data as Comment);
-      
+
       case TARGET_TABLES.TICKETING_TEAM:
         return this.formatTeam(data as Team);
-      
+
       default:
         throw new Error(`Unsupported table: ${targetTable}`);
     }

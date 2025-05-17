@@ -13,13 +13,13 @@ import type {
   TicketingUserRecord,
 } from '@noco-integrations/core';
 import type { Gitlab } from '@gitbeaker/rest';
-import type { 
-  GroupSchema, 
-  IssueSchema, 
-  MemberSchema, 
-  MergeRequestSchema, 
-  NoteSchema, 
-  UserSchema
+import type {
+  GroupSchema,
+  IssueSchema,
+  MemberSchema,
+  MergeRequestSchema,
+  NoteSchema,
+  UserSchema,
 } from '@gitbeaker/core';
 
 export interface GitlabSyncPayload {
@@ -110,7 +110,10 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                     stream.push({
                       recordId: `${group.id}`,
                       targetTable: TARGET_TABLES.TICKETING_TEAM,
-                      ...this.formatData(TARGET_TABLES.TICKETING_TEAM, group as GroupSchema),
+                      ...this.formatData(
+                        TARGET_TABLES.TICKETING_TEAM,
+                        group as GroupSchema,
+                      ),
                     });
 
                     // Fetch group members
@@ -145,7 +148,10 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                             stream.push({
                               recordId: `${member.id}`,
                               targetTable: TARGET_TABLES.TICKETING_USER,
-                              ...this.formatData(TARGET_TABLES.TICKETING_USER, member as MemberSchema),
+                              ...this.formatData(
+                                TARGET_TABLES.TICKETING_USER,
+                                member as MemberSchema,
+                              ),
                             });
                           }
 
@@ -242,7 +248,10 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
               stream.push({
                 recordId: `${issue.id}`,
                 targetTable: TARGET_TABLES.TICKETING_TICKET,
-                ...this.formatData(TARGET_TABLES.TICKETING_TICKET, issue as IssueSchema),
+                ...this.formatData(
+                  TARGET_TABLES.TICKETING_TICKET,
+                  issue as IssueSchema,
+                ),
               });
 
               // Extract and process users
@@ -270,7 +279,10 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                   stream.push({
                     recordId: `${user.id}`,
                     targetTable: TARGET_TABLES.TICKETING_USER,
-                    ...this.formatData(TARGET_TABLES.TICKETING_USER, user as UserSchema),
+                    ...this.formatData(
+                      TARGET_TABLES.TICKETING_USER,
+                      user as UserSchema,
+                    ),
                   });
                 }
               }
@@ -335,7 +347,10 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                 stream.push({
                   recordId: `${mr.id}`,
                   targetTable: TARGET_TABLES.TICKETING_TICKET,
-                  ...this.formatData(TARGET_TABLES.TICKETING_TICKET, ticketData as IssueSchema | MergeRequestSchema),
+                  ...this.formatData(
+                    TARGET_TABLES.TICKETING_TICKET,
+                    ticketData as IssueSchema | MergeRequestSchema,
+                  ),
                 });
 
                 // Extract and process users
@@ -363,7 +378,10 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                     stream.push({
                       recordId: `${user.id}`,
                       targetTable: TARGET_TABLES.TICKETING_USER,
-                      ...this.formatData(TARGET_TABLES.TICKETING_USER, user as UserSchema),
+                      ...this.formatData(
+                        TARGET_TABLES.TICKETING_USER,
+                        user as UserSchema,
+                      ),
                     });
                   }
                 }
@@ -424,7 +442,10 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                   stream.push({
                     recordId: `${mr.id}`,
                     targetTable: TARGET_TABLES.TICKETING_TICKET,
-                    ...this.formatData(TARGET_TABLES.TICKETING_TICKET, ticketData as IssueSchema | MergeRequestSchema),
+                    ...this.formatData(
+                      TARGET_TABLES.TICKETING_TICKET,
+                      ticketData as IssueSchema | MergeRequestSchema,
+                    ),
                   });
 
                   // Extract and process users
@@ -452,7 +473,10 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                       stream.push({
                         recordId: `${user.id}`,
                         targetTable: TARGET_TABLES.TICKETING_USER,
-                        ...this.formatData(TARGET_TABLES.TICKETING_USER, user as UserSchema),
+                        ...this.formatData(
+                          TARGET_TABLES.TICKETING_USER,
+                          user as UserSchema,
+                        ),
                       });
                     }
                   }
@@ -511,7 +535,10 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                   stream.push({
                     recordId: `${mr.id}`,
                     targetTable: TARGET_TABLES.TICKETING_TICKET,
-                    ...this.formatData(TARGET_TABLES.TICKETING_TICKET, ticketData as IssueSchema | MergeRequestSchema),
+                    ...this.formatData(
+                      TARGET_TABLES.TICKETING_TICKET,
+                      ticketData as IssueSchema | MergeRequestSchema,
+                    ),
                   });
 
                   // Extract and process users
@@ -539,7 +566,10 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                       stream.push({
                         recordId: `${user.id}`,
                         targetTable: TARGET_TABLES.TICKETING_USER,
-                        ...this.formatData(TARGET_TABLES.TICKETING_USER, user as UserSchema),
+                        ...this.formatData(
+                          TARGET_TABLES.TICKETING_USER,
+                          user as UserSchema,
+                        ),
                       });
                     }
                   }
@@ -616,7 +646,12 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                       stream.push({
                         recordId: `${comment.id}`,
                         targetTable: TARGET_TABLES.TICKETING_COMMENT,
-                        ...this.formatData(TARGET_TABLES.TICKETING_COMMENT, comment as NoteSchema & { issue?: { id: number; iid: number } }),
+                        ...this.formatData(
+                          TARGET_TABLES.TICKETING_COMMENT,
+                          comment as NoteSchema & {
+                            issue?: { id: number; iid: number };
+                          },
+                        ),
                       });
 
                       // Add comment author to users if not already added
@@ -626,7 +661,10 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                         stream.push({
                           recordId: `${comment.author.id}`,
                           targetTable: TARGET_TABLES.TICKETING_USER,
-                          ...this.formatData(TARGET_TABLES.TICKETING_USER, comment.author as UserSchema),
+                          ...this.formatData(
+                            TARGET_TABLES.TICKETING_USER,
+                            comment.author as UserSchema,
+                          ),
                         });
                       }
                     }
@@ -671,10 +709,20 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
   }
 
   public formatData(
-    targetTable: TARGET_TABLES, 
-    data: GroupSchema | IssueSchema | MergeRequestSchema | UserSchema | MemberSchema | NoteSchema
+    targetTable: TARGET_TABLES,
+    data:
+      | GroupSchema
+      | IssueSchema
+      | MergeRequestSchema
+      | UserSchema
+      | MemberSchema
+      | NoteSchema,
   ): {
-    data: TicketingTicketRecord | TicketingUserRecord | TicketingCommentRecord | TicketingTeamRecord;
+    data:
+      | TicketingTicketRecord
+      | TicketingUserRecord
+      | TicketingCommentRecord
+      | TicketingTeamRecord;
     links?: Record<string, SyncLinkValue>;
   } {
     switch (targetTable) {
@@ -683,7 +731,9 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
       case TARGET_TABLES.TICKETING_USER:
         return this.formatUser(data as UserSchema | MemberSchema);
       case TARGET_TABLES.TICKETING_COMMENT:
-        return this.formatComment(data as NoteSchema & { issue?: { id: number; iid: number } });
+        return this.formatComment(
+          data as NoteSchema & { issue?: { id: number; iid: number } },
+        );
       case TARGET_TABLES.TICKETING_TEAM:
         return this.formatTeam(data as GroupSchema);
       default:
@@ -691,29 +741,38 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
     }
   }
 
-  private formatTicket(
-    data: IssueSchema | MergeRequestSchema
-  ): {
+  private formatTicket(data: IssueSchema | MergeRequestSchema): {
     data: TicketingTicketRecord;
     links?: Record<string, SyncLinkValue>;
   } {
     // Determine if this is an issue or a merge request
     const isMR = 'merge_status' in data;
-    
+
     const links: Record<string, SyncLinkValue> = {};
-    
+
     // Add assignee links if present
-    if (data.assignees && Array.isArray(data.assignees) && data.assignees.length > 0) {
-      links.Assignees = data.assignees.map(assignee => (assignee.id || '').toString());
-    } else if (data.assignee && typeof data.assignee === 'object' && 'id' in data.assignee && data.assignee.id) {
+    if (
+      data.assignees &&
+      Array.isArray(data.assignees) &&
+      data.assignees.length > 0
+    ) {
+      links.Assignees = data.assignees.map((assignee) =>
+        (assignee.id || '').toString(),
+      );
+    } else if (
+      data.assignee &&
+      typeof data.assignee === 'object' &&
+      'id' in data.assignee &&
+      data.assignee.id
+    ) {
       links.Assignees = [data.assignee.id.toString()];
     }
-    
+
     // Add author link if present
     if (data.author && data.author.id) {
       links.Reporter = [data.author.id.toString()];
     }
-    
+
     return {
       data: {
         Name: data.title || null,
@@ -735,9 +794,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
     };
   }
 
-  private formatUser(
-    data: UserSchema | MemberSchema
-  ): {
+  private formatUser(data: UserSchema | MemberSchema): {
     data: TicketingUserRecord;
   } {
     return {
@@ -753,26 +810,26 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
   }
 
   private formatComment(
-    data: NoteSchema & { issue?: { id: number; iid: number } }
+    data: NoteSchema & { issue?: { id: number; iid: number } },
   ): {
     data: TicketingCommentRecord;
     links?: Record<string, SyncLinkValue>;
   } {
     const links: Record<string, SyncLinkValue> = {};
-    
+
     // Link to ticket
     if (data.issue && data.issue.id) {
       links.Ticket = [data.issue.id.toString()];
     }
-    
+
     // Link to author
     if (data.author && data.author.id) {
       links['Created By'] = [data.author.id.toString()];
     }
-    
+
     return {
       data: {
-        Title: data.author 
+        Title: data.author
           ? `${data.author.name || 'User'} commented on ${data.issue ? `#${data.issue.iid}` : 'issue'}`
           : `Comment on ${data.issue ? `#${data.issue.iid}` : 'issue'}`,
         Body: data.body || null,
@@ -785,9 +842,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
     };
   }
 
-  private formatTeam(
-    data: GroupSchema
-  ): {
+  private formatTeam(data: GroupSchema): {
     data: TicketingTeamRecord;
   } {
     return {

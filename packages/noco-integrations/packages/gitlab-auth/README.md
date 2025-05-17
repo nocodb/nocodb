@@ -39,7 +39,3 @@ To authenticate using GitLab OAuth:
 This integration requires the following GitLab permissions:
 - `api`: Access to the GitLab API
 - `read_user`: Read-only access to user profile data
-
-## Additional Setup
-
-For administrators setting up the OAuth integration, please refer to the [SETUP.md](./SETUP.md) file for detailed environment configuration instructions. 

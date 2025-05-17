@@ -805,7 +805,8 @@
     "upgradeToPlan": "{plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "upgradeWorkspaceToPlan": "{workspace} നെ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "upgradeToPlanSubtitle": "ഈ പ്ലാനിന് համար തുക ഉടൻ ചാർജ് ചെയ്യും.",
-    "reactivateToPlan": "{plan} പ്ലാൻ വീണ്ടും സജീവമാക്കണോ?"
+    "reactivateToPlan": "{plan} പ്ലാൻ വീണ്ടും സജീവമാക്കണോ?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1320,7 +1321,8 @@
     "invoice": "ഇൻവോയ്സ്",
     "status": "സ്ഥിതി",
     "invoiceTotal": "ഇൻവോയ്സ് മൊത്തം",
-    "pastInvoices": "മുൻ ഇൻവോയിസുകൾ"
+    "pastInvoices": "മുൻ ഇൻവോയിസുകൾ",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "പരിഹരിക്കാൻ ക്ലിക് ചെയ്യുക",

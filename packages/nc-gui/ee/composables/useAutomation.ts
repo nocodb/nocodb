@@ -1,6 +1,6 @@
 import type { ScriptType } from 'nocodb-sdk'
 import { ActionType } from '~/components/smartsheet/automation/scripts/types'
-import { parseScript } from '~/components/smartsheet/automation/scripts/utils/configParser'
+import { parseScript, validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
 
 const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: ScriptType) => {
   const automationStore = useAutomationStore()
@@ -11,7 +11,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   const currentScriptId = ref<string | null>(null)
 
   const config = computed(() => {
-    return parseScript(code.value)
+    return parseScript(code.value) ?? {}
   })
 
   const configValue = ref<Record<string, any>>({})
@@ -57,8 +57,12 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     }
   }
 
+  const isValidConfig = computed(() => {
+    return validateConfigValues(config.value ?? {}, configValue.value ?? {})?.length === 0
+  })
+
   const runScript = async () => {
-    if (isRunning.value) return
+    if (isRunning.value || !isValidConfig.value) return
 
     currentScriptId.value = await executeScript({
       ...activeAutomation.value,
@@ -89,6 +93,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     config,
     configValue,
     isSettingsOpen,
+    isValidConfig,
   }
 })
 

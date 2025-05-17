@@ -12,6 +12,7 @@ import {
   NcRequest,
   ProjectRoles,
 } from 'nocodb-sdk';
+import type { UserType } from 'nocodb-sdk';
 import { MCPToken, User } from '~/models';
 import { McpService } from '~/mcp/mcp.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';

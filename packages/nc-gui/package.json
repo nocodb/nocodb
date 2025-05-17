@@ -131,6 +131,7 @@
     "monaco-sql-languages": "^0.11.0",
     "nc-analytics": "^0.0.6",
     "nocodb-sdk": "workspace:^",
+    "nocodb-sdk-v2": "workspace:^",
     "papaparse": "^5.5.2",
     "parse-github-url": "^1.0.3",
     "pdfobject": "^2.3.0",

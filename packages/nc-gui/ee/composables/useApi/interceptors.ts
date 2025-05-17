@@ -1,10 +1,11 @@
 import type { Api } from 'nocodb-sdk'
+import type { InternalApi } from 'nocodb-sdk-v2'
 import { addAxiosInterceptors as addAxiosInterceptorsCE } from '../../../composables/useApi/interceptors'
 
 const dataApiRegex = /\/api\/v1\/data\/\w+\/\w+\/\w+\/views\/\w+/i
 const reqLatencyKey = Symbol('reqLatencyKey')
 
-export function addAxiosInterceptors(api: Api<any>) {
+export function addAxiosInterceptors(api: Api<any> | InternalApi<any>) {
   const { setTiming } = useApiTiming()
   const { getBaseUrl } = useGlobal()
   const router = useRouter()

@@ -105,7 +105,7 @@ const handleFileUpload = async (file: File) => {
       })
     } else {
       resolveInput({
-        file,
+        file: 'This file type is not supported',
         parsedContents,
       })
     }

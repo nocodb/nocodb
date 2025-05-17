@@ -6,13 +6,15 @@ import { generateLibCode } from '~/components/smartsheet/automation/scripts/util
 import { replaceConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
 
 export const useScriptExecutor = createSharedComposable(() => {
-  const { $api } = useNuxtApp()
+  const { internalApi, api } = useApi()
 
   const automationStore = useAutomationStore()
 
   const { loadAutomation } = automationStore
 
   const { activeProjectId } = storeToRefs(useBases())
+
+  const { activeWorkspace } = storeToRefs(useWorkspace())
 
   const { activeViewTitleOrId } = storeToRefs(useViewsStore())
 
@@ -118,13 +120,14 @@ export const useScriptExecutor = createSharedComposable(() => {
   }
 
   async function handleApiCall(worker: Worker, message: CallApiAction) {
-    const { id, level1, level2, args } = message.payload
+    const { id, method, args } = message.payload
     try {
-      const api = $api as any
-      if (!api[level1] || !api[level1][level2]) {
-        throw new Error(`API method not found: ${level1}.${level2}`)
+      const api = internalApi as any
+      if (!api[method]) {
+        throw new Error(`API method not found: ${method}}`)
       }
-      const response = await api[level1][level2](...args)
+      const response = await api[method](...args)
+
       worker.postMessage({
         type: ActionType.RESPONSE,
         payload: { id, payload: response },
@@ -214,6 +217,25 @@ export const useScriptExecutor = createSharedComposable(() => {
       }
       case ActionType.RESET_PROGRESS: {
         eventBus.emit(SmartsheetScriptActions.RESET_PROGRESS, message.payload)
+        break
+      }
+      case ActionType.REMOTE_FETCH: {
+        api.workspace
+          .remoteFetch(activeWorkspace.value?.id, {
+            method: message.payload?.options?.method || 'GET',
+            headers: message.payload?.options?.headers || {},
+            body: message.payload?.options?.body || null,
+            url: message.payload.url,
+          })
+          .then((c) => {
+            worker.postMessage({
+              type: ActionType.REMOTE_FETCH,
+              payload: {
+                id: message.payload.id,
+                value: c,
+              },
+            })
+          })
         break
       }
       case ActionType.DONE:

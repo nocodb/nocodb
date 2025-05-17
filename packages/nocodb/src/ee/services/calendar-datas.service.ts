@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type CalendarRangeType,
+  UITypes,
   ViewTypes,
   workerWithTimezone,
 } from 'nocodb-sdk';
@@ -43,13 +44,16 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
     let timezone;
 
     const colId = ranges.ranges[0].fk_from_column_id;
+    let isDate = false;
 
     if (colId) {
       const column = await Column.get(context, { colId });
+      if (!column) NcError.badRequest('Invalid column for calendar view');
       timezone = column?.meta?.timezone || undefined;
+      isDate = column.uidt === UITypes.Date;
     }
 
-    const dayjsTimezone = workerWithTimezone(true, timezone);
+    const dayjsTimezone = workerWithTimezone(true, isDate ? null : timezone);
 
     const filterArr = await this.buildFilterArr(context, {
       viewId,
@@ -57,6 +61,7 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
       to_date,
       next_date,
       prev_date,
+      isDate,
     });
 
     query.filterArrJson = JSON.stringify([
@@ -119,18 +124,29 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
       to_date,
       next_date,
       prev_date,
+      isDate,
     }: {
       viewId: string;
       from_date: string;
       to_date: string;
       next_date: string;
       prev_date: string;
+      isDate: boolean;
     },
   ) {
     const calendarRange = await CalendarRange.read(context, viewId);
     if (!calendarRange?.ranges?.length) NcError.badRequest('No ranges found');
 
     const filterArr: any = [];
+
+    if (isDate) {
+      const regex = /^\d{4}-\d{2}-\d{2}/;
+
+      from_date = from_date.match(regex)?.[0] || from_date;
+      to_date = to_date.match(regex)?.[0] || to_date;
+      next_date = next_date.match(regex)?.[0] || next_date;
+      prev_date = prev_date.match(regex)?.[0] || prev_date;
+    }
 
     calendarRange.ranges.forEach((range: CalendarRange) => {
       const fromColumn = range.fk_from_column_id;

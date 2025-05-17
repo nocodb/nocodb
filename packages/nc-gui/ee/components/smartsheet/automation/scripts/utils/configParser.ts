@@ -125,7 +125,7 @@ export const validateConfigValues = (config: ScriptConfig, values: Record<string
   const errors: string[] = []
   const tableValues = new Set<string>()
 
-  config.items.forEach((item) => {
+  config?.items?.forEach((item) => {
     // Track table selections
     if (item.type === 'table' && values[item.key]) {
       tableValues.add(item.key)

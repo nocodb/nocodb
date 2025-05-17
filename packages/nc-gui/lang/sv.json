@@ -805,7 +805,8 @@
     "upgradeToPlan": "Uppgradera till {plan}-planen",
     "upgradeWorkspaceToPlan": "Uppgradera {workspace} till {plan}-planen",
     "upgradeToPlanSubtitle": "Du debiteras omedelbart för denna plan.",
-    "reactivateToPlan": "Återaktivera {plan}-planen?"
+    "reactivateToPlan": "Återaktivera {plan}-planen?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1320,7 +1321,8 @@
     "invoice": "Faktura",
     "status": "Status",
     "invoiceTotal": "Totalt fakturabelopp",
-    "pastInvoices": "Tidigare fakturor"
+    "pastInvoices": "Tidigare fakturor",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Klicka för att lösa",

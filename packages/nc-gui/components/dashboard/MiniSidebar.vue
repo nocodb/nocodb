@@ -67,15 +67,18 @@ const navigateToIntegrations = () => {
 }
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  const isBaseSearchInput = e.target instanceof HTMLInputElement && e.target.closest('.nc-base-search-input')
+
   if (
     !e.altKey ||
-    isActiveInputElementExist(e) ||
-    cmdKActive() ||
-    isCmdJActive() ||
-    isNcDropdownOpen() ||
-    isActiveElementInsideExtension() ||
-    isDrawerOrModalExist() ||
-    isExpandedFormOpenExist()
+    (!isBaseSearchInput &&
+      (isActiveInputElementExist(e) ||
+        cmdKActive() ||
+        isCmdJActive() ||
+        isNcDropdownOpen() ||
+        isActiveElementInsideExtension() ||
+        isDrawerOrModalExist() ||
+        isExpandedFormOpenExist()))
   ) {
     return
   }

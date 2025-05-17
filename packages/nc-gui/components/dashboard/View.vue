@@ -211,7 +211,7 @@ function onResize(widthPercent: any) {
       <Splitpanes
         class="nc-sidebar-content-resizable-wrapper h-full"
         :class="{
-          'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart',
+          'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart' || hideSidebar,
           '!w-[calc(100vw_-_var(--mini-sidebar-width))]': isNewSidebarEnabled,
           '!w-screen': !isNewSidebarEnabled,
         }"

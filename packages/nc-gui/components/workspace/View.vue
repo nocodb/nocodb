@@ -11,7 +11,7 @@ const route = router.currentRoute
 
 const { t } = useI18n()
 
-const { hideSidebar } = storeToRefs(useSidebarStore())
+const { hideSidebar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const { isUIAllowed } = useRoles()
 
@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
       v-if="!props.workspaceId"
       class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-gray-200 flex items-center gap-2"
     >
-      <GeneralOpenLeftSidebarBtn />
+      <GeneralOpenLeftSidebarBtn v-if="!isNewSidebarEnabled" />
 
       <div class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1 nc-workspace-title">
         <div class="nc-breadcrumb-item capitalize">

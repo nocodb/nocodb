@@ -805,7 +805,8 @@
     "upgradeToPlan": "Nadogradite na plan {plan}",
     "upgradeWorkspaceToPlan": "Nadogradite radni prostor {workspace} na plan {plan}",
     "upgradeToPlanSubtitle": "Za ovaj plan bit ćete odmah terećeni.",
-    "reactivateToPlan": "Reaktivirati {plan} plan?"
+    "reactivateToPlan": "Reaktivirati {plan} plan?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1320,7 +1321,8 @@
     "invoice": "Račun",
     "status": "Status",
     "invoiceTotal": "Ukupno na računu",
-    "pastInvoices": "Prošli računi"
+    "pastInvoices": "Prošli računi",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Kliknite za rješavanje",

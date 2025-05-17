@@ -805,7 +805,8 @@
     "upgradeToPlan": "Igo {plan} planera",
     "upgradeWorkspaceToPlan": "Igo {workspace} {plan} planera",
     "upgradeToPlanSubtitle": "Plan honengatik berehala kobratuko zaizu.",
-    "reactivateToPlan": "Berreaktibatu {plan} plana?"
+    "reactivateToPlan": "Berreaktibatu {plan} plana?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1320,7 +1321,8 @@
     "invoice": "Faktura",
     "status": "Egoera",
     "invoiceTotal": "Faktura guztira",
-    "pastInvoices": "Aurreko fakturak"
+    "pastInvoices": "Aurreko fakturak",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Egin klik ebazteko",

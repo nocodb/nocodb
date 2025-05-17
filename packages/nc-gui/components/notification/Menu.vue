@@ -1,19 +1,35 @@
 <script lang="ts" setup>
+const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
+
 const notificationStore = useNotification()
 
 const { unreadCount } = toRefs(notificationStore)
+
+const isDropdownOpen = ref(false)
 </script>
 
 <template>
   <div class="cursor-pointer flex items-center">
-    <NcDropdown overlay-class-name="!shadow-none" placement="bottomRight" :trigger="['click']">
-      <NcButton size="small" class="!border-none" type="text">
+    <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!shadow-none" placement="bottomRight" :trigger="['click']">
+      <NcButton
+        size="small"
+        class="!border-none nc-mini-sidebar-btn"
+        :class="{
+          active: isDropdownOpen,
+        }"
+        type="text"
+      >
         <span
           v-if="unreadCount"
           :key="unreadCount"
           class="bg-red-500 w-2 h-2 border-1 border-white rounded-[6px] absolute top-[5px] left-[15px]"
         ></span>
-        <GeneralIcon icon="notification" />
+        <GeneralIcon
+          :icon="isDropdownOpen ? 'ncNotificationDuo' : 'notification'"
+          :class="{
+            'h-4 w-4': isMiniSidebar,
+          }"
+        />
       </NcButton>
 
       <template #overlay>

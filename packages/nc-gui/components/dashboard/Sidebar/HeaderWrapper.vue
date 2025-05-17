@@ -13,6 +13,8 @@ const { isLeftSidebarOpen, isNewSidebarEnabled } = storeToRefs(useSidebarStore()
 
 const { activeWorkspace, isWorkspacesLoading } = storeToRefs(workspaceStore)
 
+const { showProjectList } = storeToRefs(useBases())
+
 const { activeViewTitleOrId } = storeToRefs(useViewsStore())
 
 const { activeTableId } = storeToRefs(useTablesStore())
@@ -23,9 +25,13 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
 </script>
 
 <template>
-  <div class="nc-sidebar-header" :data-workspace-title="activeWorkspace?.title">
+  <div
+    class="nc-sidebar-header"
+    :class="showProjectList ? 'nc-project-list' : 'nc-active-project'"
+    :data-workspace-title="activeWorkspace?.title"
+  >
     <template v-if="!isWorkspacesLoading && !isLoading">
-      <div class="text-subHeading1 w-[calc(100%_-_44px)]">
+      <div class="text-subHeading1 flex-1 truncate">
         <slot> Bases </slot>
       </div>
 
@@ -72,5 +78,9 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
 <style lang="scss" scoped>
 .nc-sidebar-header {
   @apply w-full px-3 py-1.5 flex items-center gap-2 h-[var(--topbar-height)];
+
+  &.nc-project-list {
+    @apply !pr-2;
+  }
 }
 </style>

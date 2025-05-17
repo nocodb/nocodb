@@ -118,7 +118,7 @@
     "upgradeToAdd": "업그레이드하여 추가",
     "requestUpgradeToAdd": "추가하려면 업그레이드 요청",
     "upgradeToAddMoreExtensions": "현재 하나의 확장만 허용하는 무료 요금제를 사용 중입니다. 업그레이드하여 무제한 확장 기능을 잠금 해제하세요.",
-    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
+    "upgradeToAddMoreScripts": "현재 하나의 스크립트만 허용하는 무료 요금제를 사용하고 있습니다. 무제한 스크립트를 잠금 해제하려면 업그레이드하십시오.",
     "upgradeToAccessWsAudit": "Workspace Audit에 액세스하도록 업그레이드",
     "upgradeToAccessWsAuditSubtitle": "{plan} 플랜으로 업그레이드하여 워크스페이스 감사 로그를 활성화하고 주요 활동을 효율적으로 모니터링하세요.",
     "upgradeToAddMoreAttachments": "더 많은 첨부 파일을 추가하려면 업그레이드하십시오",
@@ -155,7 +155,7 @@
     "upgradeToUploadWsImageSubtitle": "현재 {activePlan} 요금제는 아이콘과 이모티콘만 허용합니다. {plan} 플랜으로 업그레이드하여 사용자 지정 이미지를 작업 영역 아바타로 업로드합니다."
   },
   "general": {
-    "script": "Script",
+    "script": "스크립트",
     "supported": "지원",
     "usage": "사용량",
     "snapshot": "스냅샷",
@@ -805,26 +805,27 @@
     "upgradeToPlan": "{plan} 플랜으로 업그레이드",
     "upgradeWorkspaceToPlan": "{workspace} {plan} 플랜으로 업그레이드",
     "upgradeToPlanSubtitle": "이 플랜에 대해 즉시 요금이 청구됩니다.",
-    "reactivateToPlan": "{plan} 요금제를 다시 활성화하시겠습니까?"
+    "reactivateToPlan": "{plan} 요금제를 다시 활성화하시겠습니까?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
-    "mcpSetup": "MCP Setup",
-    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
-    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
-    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
-    "regenerateToken": "Re-Generate Token",
-    "deleteToken": "Delete Token",
-    "creatingMCPToken": "Creating MCP Token",
-    "creatingTokenDescription": "Creating token for MCP server",
-    "mcpToken": "MCP Token",
-    "never": "Never",
-    "expiresAt": "Expires At",
-    "newMCPEndpoint": "New MCP Endpoint",
-    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
-    "modelContextProtocol": "Model Context Protocol",
+    "mcpSetup": "MCP 설정",
+    "mcpTokenVisibilityInfo": "MCP 클라이언트 구성 저장",
+    "mcpTokenVisibilityInfoDescription": "MCP 클라이언트 구성은 한 번만 볼 수 있으므로 안전하게 저장해야 합니다",
+    "mcpTokenVisibilityInfoDescription2": "토큰은 생성 또는 재생성 직후에만 볼 수 있습니다.",
+    "regenerateToken": "토큰 재생성",
+    "deleteToken": "토큰 삭제",
+    "creatingMCPToken": "MCP 토큰 생성",
+    "creatingTokenDescription": "MCP 서버용 토큰 생성",
+    "mcpToken": "MCP 토큰",
+    "never": "안함",
+    "expiresAt": "만료일",
+    "newMCPEndpoint": "새 MCP 엔드포인트",
+    "mcpSubText": "NocoDB MCP(모델 컨텍스트 프로토콜)는 MCP를 지원하는 모든 클라이언트에 추가할 수 있습니다. LLM이 사용자를 대신하여 기지 내에서 (역할에 따라) 작업을 직접 수행할 수 있도록 하는 고유한 엔드포인트입니다.",
+    "modelContextProtocol": "모델 컨텍스트 프로토콜",
     "mcp": "MCP",
-    "exampleScript": "Example Scripts",
-    "scriptsByNocoDB": "Scripts by NocoDB",
+    "exampleScript": "예제 스크립트",
+    "scriptsByNocoDB": "NocoDB의 스크립트",
     "restoringSnapshot": "스냅샷 복원",
     "note": "메모:",
     "snapshotRestoreMessage1": "이 스냅샷을 복원해도 기존 기반에는 영향을 주지 않습니다.",
@@ -1226,8 +1227,8 @@
     "agreeToTos": "NocoDB의 {tosLink}에 동의합니다",
     "welcomeToNc": "Welcome to NocoDB!",
     "inviteOnlySignup": "초대 URL을 사용한 가입만 허용",
-    "nextRow": "Next record",
-    "prevRow": "Prev record",
+    "nextRow": "다음 항목",
+    "prevRow": "이전 항목",
     "addRowGrid": "그리드 뷰에 수동으로 데이터 추가",
     "addRowForm": "양식을 통해 항목 데이터 입력",
     "noAccess": "접근 권한 없음",
@@ -1320,7 +1321,8 @@
     "invoice": "송장",
     "status": "상태",
     "invoiceTotal": "송장 합계",
-    "pastInvoices": "청구서"
+    "pastInvoices": "청구서",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",
@@ -2079,7 +2081,7 @@
       "copyToClipboardLocalFileUrl": "브라우저는 로컬 리소스를 직접로드 할 수 없습니다. 대신 URL이 클립보드에 복사되었습니다."
     },
     "error": {
-      "failedToDeleteMcpToken": "Failed to delete MCP token",
+      "failedToDeleteMcpToken": "MCP 토큰을 삭제하지 못했습니다.",
       "manualTriggerHook": "수동 후크는 비활성화할 수 없습니다",
       "errorLoadingRecord": "항목 데이터 로딩 오류",
       "fetchingCalendarData": "캘린더 데이터를 가져오는 중 오류가 발생했습니다",
@@ -2213,9 +2215,9 @@
       "nCellsCopied": "{n} 칸이 복사되었습니다"
     },
     "success": {
-      "mcpTokenDeleted": "MCP Token Deleted",
-      "mcpTokenUpdated": "MCP Token Updated",
-      "mcpTokenCreated": "MCP Token Created",
+      "mcpTokenDeleted": "MCP 토큰이 삭제되었습니다.",
+      "mcpTokenUpdated": "MCP 토큰 업데이트",
+      "mcpTokenCreated": "MCP 토큰이 생성됨",
       "licenseKeyUpdated": "라이센스 키 업데이트됨",
       "columnDuplicated": "필드가 성공적으로 복제되었습니다",
       "rowDuplicatedWithoutSavedYet": "항목 중복됨 (저장되지 않음)",
@@ -2261,15 +2263,15 @@
       "paymentSuccessfulSubtitle": "결제가 처리되었습니다. 이제 새 요금제를 사용할 수 있습니다.",
       "upgradeSuccessful": "업그레이드 성공",
       "upgradeSuccessfulSubtitle": "업그레이드에 대한 결제가 처리되었습니다. 이제 새 요금제를 사용할 수 있습니다.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL이 클립보드에 복사됨"
     },
     "subText": {
       "createNewTable": "처음부터 시작하십시오.",
       "importData": "파일 및 외부 소스에서.",
       "connectExternalData": "실시간으로 외부 데이터베이스로."
     },
-    "noAccess": "No Access",
-    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
-    "tryAgain": "Try Again"
+    "noAccess": "접근 금지",
+    "noAccessDescription": "작업 영역에 액세스할 수 없습니다. 액세스 권한을 요청하려면 관리자에게 문의하십시오.",
+    "tryAgain": "다시 시도"
   }
 }

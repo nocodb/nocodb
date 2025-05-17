@@ -23,11 +23,11 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
 </script>
 
 <template>
-  <div class="nc-sidebar-header" :data-workspace-title="activeWorkspace?.title" style="height: var(--topbar-height)">
-    <template v-if="!isWorkspacesLoading && !isLoading" class="flex flex-row items-center w-full">
-      <slot>
-        <div class="flex-1 text-subHeading1">Bases</div>
-      </slot>
+  <div class="nc-sidebar-header" :data-workspace-title="activeWorkspace?.title">
+    <template v-if="!isWorkspacesLoading && !isLoading">
+      <div class="text-subHeading1 w-[calc(100%_-_44px)]">
+        <slot> Bases </slot>
+      </div>
 
       <NcTooltip
         class="flex"
@@ -71,6 +71,6 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
 
 <style lang="scss" scoped>
 .nc-sidebar-header {
-  @apply px-3 py-1.5 flex items-center gap-2 h-[var(--topbar-height)];
+  @apply w-full px-3 py-1.5 flex items-center gap-2 h-[var(--topbar-height)];
 }
 </style>

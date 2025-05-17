@@ -5,8 +5,6 @@ Done:
 
 WIP:
 * views
-  * check list response body
-  * check post request and response body
   * implements missing controllers
   * add missing update / get / delete endpoints to swagger
 

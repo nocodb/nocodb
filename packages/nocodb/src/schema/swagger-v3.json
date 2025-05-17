@@ -4908,6 +4908,42 @@
           }
         ]
       },
+      "ViewCreate": {
+        "type": "object",
+        "properties": {
+          "view_name": {
+            "type": "string",
+            "description": "Name of the view."
+          },
+          "view_type": {
+            "type": "string",
+            "enum": [
+              "GRID",
+              "GALLERY",
+              "KANBAN",
+              "CALENDAR",
+              "FORM"
+            ],
+            "description": "Type of the view."
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "COLLABARATIVE",
+              "LOCKED",
+              "PERSONAL"
+            ],
+            "description": "Lock type of the view."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the view."
+          }
+        },
+        "discriminator": {
+          "propertyName": "view_type"
+        }
+      },
       "FieldBase": {
         "type": "object",
         "properties": {

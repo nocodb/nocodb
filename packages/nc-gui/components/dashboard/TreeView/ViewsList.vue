@@ -427,7 +427,7 @@ function onOpenModal({
           role="button"
         >
           <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
-            <GeneralIcon icon="plus" />
+            <GeneralIcon icon="plus" class="nc-create-view-btn-icon" />
             <div class="pl-1.75">
               {{
                 $t('general.createEntity', {
@@ -472,7 +472,7 @@ function onOpenModal({
   }
 
   &.dragging {
-    .nc-icon {
+    .nc-icon:not(.nc-create-view-btn-icon):not(.nc-view-icon) {
       @apply !hidden;
     }
 

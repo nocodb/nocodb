@@ -1728,7 +1728,10 @@
     "searchOptions": "Možnosti hledání",
     "lockViewDescription": "Vysvětlete, proč toto zobrazení zamykáte. Tato zpráva se zobrazí, když se někdo pokusí zobrazení odemknout (volitelné).",
     "noBaseUsersFound": "Nebyli nalezeni žádní uživatelé databáze",
-    "noInvoices": "Žádné faktury"
+    "noInvoices": "Žádné faktury",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "Filtry URL jsou použity z parametrů URL a kombinují se s filtry zobrazení nastavenými na panelu nástrojů.",

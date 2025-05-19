@@ -204,6 +204,20 @@ export class DuplicateProcessor {
         error: err.message,
       });
 
+      this.telemetryService.sendSystemEvent({
+        event_type: 'priority_error',
+        error_trigger: 'duplicateBase',
+        error_type: err?.name,
+        message: err?.message,
+        error_details: err?.stack,
+        affected_resources: [
+          req?.user?.email,
+          req?.user?.id,
+          context.base_id,
+          context.workspace_id,
+        ],
+      });
+
       throw err;
     }
   }
@@ -399,6 +413,7 @@ export class DuplicateProcessor {
 
       this.telemetryService.sendSystemEvent({
         event_type: 'priority_error',
+        error_trigger: 'duplicateModel',
         error_type: e?.name,
         message: e?.message,
         error_details: e?.stack,

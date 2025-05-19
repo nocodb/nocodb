@@ -51,6 +51,7 @@ import { IntegrationsService } from '~/services/integrations.service';
 import NocoCache from '~/cache/NocoCache';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
+import { TelemetryService } from '~/services/telemetry.service';
 
 async function listUserBases(
   fk_user_id: string,
@@ -137,6 +138,7 @@ export class UsersService extends UsersServiceCE {
     protected mailService: MailService,
     protected integrationsService: IntegrationsService,
     protected configService: ConfigService<AppConfig>,
+    protected telemetryService: TelemetryService,
   ) {
     super(metaService, appHooksService, baseService, mailService);
   }
@@ -755,6 +757,16 @@ export class UsersService extends UsersServiceCE {
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
+
+      this.telemetryService.sendSystemEvent({
+        event_type: 'priority_error',
+        error_trigger: 'userDelete',
+        error_type: e?.name,
+        message: e?.message,
+        error_details: e?.stack,
+        affected_resources: [param.id],
+      });
+
       throw e;
     }
   }

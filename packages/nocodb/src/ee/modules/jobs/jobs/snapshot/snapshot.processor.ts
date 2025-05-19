@@ -50,6 +50,7 @@ export class SnapshotProcessor {
 
       this.telemetryService.sendSystemEvent({
         event_type: 'priority_error',
+        error_trigger: 'createSnapshot',
         error_type: err?.name,
         message: err?.message,
         error_details: err?.stack,

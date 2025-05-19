@@ -13,6 +13,7 @@ import { NcError } from '~/helpers/catchError';
 import { IntegrationsService } from '~/services/integrations.service';
 import Noco from '~/Noco';
 import { MailService } from '~/services/mail/mail.service';
+import { TelemetryService } from '~/services/telemetry.service';
 
 @Injectable()
 export class UsersService extends UsersServiceEE {
@@ -24,6 +25,7 @@ export class UsersService extends UsersServiceEE {
     protected mailService: MailService,
     protected integrationsService: IntegrationsService,
     protected configService: ConfigService<AppConfig>,
+    protected telemetryService: TelemetryService,
     protected licenseService: LicenseService,
   ) {
     super(
@@ -34,6 +36,7 @@ export class UsersService extends UsersServiceEE {
       mailService,
       integrationsService,
       configService,
+      telemetryService,
     );
   }
 

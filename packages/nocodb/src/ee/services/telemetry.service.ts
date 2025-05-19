@@ -126,6 +126,7 @@ export class TelemetryService {
         base: Base
         workspace: Workspace
       - event_type: priority_error
+        error_trigger: string
         error_type: string
         message: string
         error_details?: any

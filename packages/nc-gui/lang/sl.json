@@ -1728,7 +1728,10 @@
     "searchOptions": "Išči možnosti",
     "lockViewDescription": "Razložite, zakaj zaklepate ta pogled. To sporočilo bo prikazano vsakomur, ki bo poskušal odkleniti ta pogled (neobvezno).",
     "noBaseUsersFound": "Ni uporabnikov baze",
-    "noInvoices": "Ni računov"
+    "noInvoices": "Ni računov",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL filtri se uporabijo iz parametrov URL in se združijo s filtri pogleda, nastavljenimi prek orodne vrstice.",

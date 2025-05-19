@@ -759,17 +759,28 @@ export function useInfiniteData(args: {
   }
 
   const applySorting = (rows: Row | Row[], path: Array<number> = []) => {
+    // If there aren't any active sorting criteria, stop
     if (!sorts.value.length) return
+
     const dataCache = getDataCache(path)
+
+    // Sorts the sort columns by the order property
     const orderedSorts = sorts.value.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+
     const inputRows = Array.isArray(rows) ? rows : [rows]
+
+    // TBC: sometimes the map of records can have skipped index, like 0,1,2,5,7,8
+    // this will group consecutive indexes
     const ranges = getContinuousRanges(dataCache.cachedRows.value)
 
     inputRows.forEach((inputRow) => {
       const originalIndex = inputRow.rowMeta.rowIndex!
+
+      // from the range, find where the records belongs to in batch
       const sourceRange = ranges.find((r) => originalIndex >= r.start && originalIndex <= r.end)
       if (!sourceRange) return
 
+      // get records belong in the group range
       const rangeEntries = Array.from(dataCache.cachedRows.value.entries())
         .filter(([index]) => index >= sourceRange.start && index <= sourceRange.end)
         .map(([index, row]) => ({
@@ -778,6 +789,7 @@ export function useInfiniteData(args: {
           pk: extractPkFromRow(row.row, meta.value?.columns ?? []),
         }))
 
+      // sort the record inside group
       const sortedRangeEntries = rangeEntries.sort((a, b) => {
         for (const sort of orderedSorts) {
           const column = columnsById.value[sort.fk_column_id!]?.title
@@ -796,17 +808,20 @@ export function useInfiniteData(args: {
         return a.currentIndex - b.currentIndex
       })
 
+      // find affected row's new position
       const entry = sortedRangeEntries.find((e) => e.pk === extractPkFromRow(inputRow.row, meta.value?.columns ?? []))
 
       if (!entry) return
 
       const targetIndex = sourceRange.start + sortedRangeEntries.indexOf(entry)
 
+      // Creates a copy of the current cached rows to modify
       const newCachedRows = new Map(dataCache.cachedRows.value)
 
+      // Check if the row needs to be moved
       if (targetIndex !== originalIndex) {
         if (targetIndex < originalIndex) {
-          // Move up
+          // Shift Rows (Move Up): Shifts rows down to make space.
           for (let i = originalIndex - 1; i >= targetIndex; i--) {
             const row = newCachedRows.get(i)
             if (row) {
@@ -816,7 +831,7 @@ export function useInfiniteData(args: {
             }
           }
         } else {
-          // Move down
+          //  Shift Rows (Move Down): Shifts rows up to make space.
           for (let i = originalIndex + 1; i <= targetIndex; i++) {
             const row = newCachedRows.get(i)
             if (row) {
@@ -827,13 +842,14 @@ export function useInfiniteData(args: {
           }
         }
 
-        // Place the input row at its new position
+        // Sets the input row at its new sorted position.
         inputRow.rowMeta.rowIndex = targetIndex
         inputRow.rowMeta.isRowOrderUpdated = false
         newCachedRows.set(targetIndex, inputRow)
 
         const targetChunkIndex = getChunkIndex(targetIndex)
 
+        // Invalidates chunk states if row moved to edge of range.
         if (targetIndex <= sourceRange.start || targetIndex >= sourceRange.end) {
           if (targetIndex <= sourceRange.start) {
             for (let i = 0; i <= targetChunkIndex; i++) {
@@ -846,9 +862,11 @@ export function useInfiniteData(args: {
           }
         }
       } else {
+        // Sets isRowOrderUpdated to false if position didn't change.
         inputRow.rowMeta.isRowOrderUpdated = false
       }
 
+      // Verifies that no duplicate row indices exist after shifting.
       const indices = new Set<number>()
       for (const [_, row] of newCachedRows) {
         if (indices.has(row.rowMeta.rowIndex)) {
@@ -858,9 +876,11 @@ export function useInfiniteData(args: {
         indices.add(row.rowMeta.rowIndex)
       }
 
+      // Replaces the old cache with the updated one.
       dataCache.cachedRows.value = newCachedRows
     })
 
+    // Notifies UI to update based on sorted data.
     callbacks?.syncVisibleData?.()
   }
 
@@ -1488,7 +1508,7 @@ export function useInfiniteData(args: {
         .map((c) => c.title!) || []),
     )
 
-    if (isSortRelevantChange(changedFields, sorts.value, columnsById.value)) {
+    if (isSortRelevantChange(changedFields, sorts.value, columnsById.value) || newRow) {
       const needsResorting = willSortOrderChange({
         row,
         newData: data,

@@ -47,7 +47,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
-    sourceId, // || sources.value[0].id,
+    sourceId,
     'baseId': openedProject.value.id,
     'onCreate': closeDialog,
     'onUpdate:modelValue': () => closeDialog(),

@@ -95,7 +95,6 @@ const enableEditModeForSource = (sourceId: string) => {
     if (!input) return
     input?.focus()
     input?.select()
-    // input?.scrollIntoView()
   })
 }
 
@@ -156,7 +155,7 @@ function openTableCreateDialog(sourceIndex?: number | undefined) {
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
-    sourceId, // || sources.value[0].id,
+    sourceId,
     'baseId': base.value!.id,
     'onCreate': closeDialog,
     'onUpdate:modelValue': () => closeDialog(),
@@ -345,7 +344,7 @@ const openBaseHomePage = async () => {
                 </div>
               </div>
 
-              <div v-if="base?.sources?.slice(1).filter((el) => el.enabled)?.length" class="transition-height duration-200">
+              <div v-if="base?.sources?.slice(1).some((el) => el.enabled)" class="transition-height duration-200">
                 <div class="border-none sortable-list">
                   <div v-for="(source, sourceIndex) of base.sources" :key="`source-${source.id}`">
                     <template v-if="sourceIndex === 0"></template>

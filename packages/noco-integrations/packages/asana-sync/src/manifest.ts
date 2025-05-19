@@ -5,7 +5,7 @@ import {
 
 const manifest: IntegrationManifest = {
   title: 'Asana',
-  icon: 'asanaSolid',
+  icon: 'asana',
   version: '0.1.0',
   description: 'Sync Asana tasks and projects',
   sync_category: SyncCategory.TICKETING,

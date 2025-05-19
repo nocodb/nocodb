@@ -5,7 +5,7 @@ import {
 
 const manifest: IntegrationManifest = {
   title: 'Jira',
-  icon: 'jiraSolid',
+  icon: 'jira',
   version: '0.1.0',
   description: 'Sync Jira issues and projects',
   sync_category: SyncCategory.TICKETING,

@@ -1728,7 +1728,10 @@
     "searchOptions": "אפשרויות חיפוש",
     "lockViewDescription": "הסבר מדוע אתה נועל תצוגה זו. הודעה זו תוצג כאשר מישהו ינסה לפתוח את תצוגה זו (אופציונלי).",
     "noBaseUsersFound": "לא נמצאו משתמשי בסיס",
-    "noInvoices": "אין חשבוניות"
+    "noInvoices": "אין חשבוניות",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "מסנני URL מוחלים מפרמטרי ה-URL ומשולבים עם מסנני התצוגה שהוגדרו באמצעות סרגל הכלים.",

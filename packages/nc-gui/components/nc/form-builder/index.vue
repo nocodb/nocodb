@@ -129,9 +129,9 @@ watch(
                     :required="false"
                     :data-testid="`nc-form-input-${field.model}`"
                   >
-                    <template v-if="![FormBuilderInputType.Switch].includes(field.type)" #label>
+                    <template #label>
                       <div class="flex items-center gap-1">
-                        <span>{{ field.label }}</span>
+                        <span v-if="![FormBuilderInputType.Switch].includes(field.type)">{{ field.label }}</span>
                         <span v-if="field.required" class="text-red-500">*</span>
                         <NcTooltip v-if="field.helpText && field.showHintAsTooltip">
                           <template #title>
@@ -170,9 +170,12 @@ watch(
                       />
                     </template>
                     <template v-else-if="field.type === FormBuilderInputType.Switch">
-                      <div class="flex flex-col p-2" :class="field.border ? 'border-1 rounded-lg shadow' : ''">
-                        <div class="flex items-center">
-                          <NcSwitch :checked="!!deepReference(field.model)" @update:checked="setFormStateWithEmit(field.model, $event)" />
+                      <div class="flex flex-col px-2" :class="field.border ? 'border-1 rounded-lg shadow' : ''">
+                        <div class="flex items-center aa">
+                          <NcSwitch
+                            :checked="!!deepReference(field.model)"
+                            @update:checked="setFormStateWithEmit(field.model, $event)"
+                          />
                           <span class="ml-[6px] font-bold">{{ field.label }}</span>
                           <NcTooltip v-if="field.helpText">
                             <template #title>

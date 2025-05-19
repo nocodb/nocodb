@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { SyncCategory } from 'nocodb-sdk'
 import { JobStatus } from '#imports'
 
 const props = defineProps<{ open: boolean; baseId: string; isModal?: boolean }>()
@@ -33,6 +34,7 @@ const creatingSync = ref(false)
 const {
   createSync,
   formState,
+  syncConfigForm,
   isLoading,
   deepReference,
   switchToIntegrationConfig,
@@ -97,10 +99,6 @@ const handleSubmit = async () => {
   }
 }
 
-const setFormState = (path: string, value: any) => {
-  setFormStateHelper(formState, path, value)
-}
-
 const nextStep = async () => {
   switch (step.value) {
     case Step.Category:
@@ -130,7 +128,7 @@ const previousStep = () => {
 }
 
 const onCategoryChange = (value: string) => {
-  setFormState('sync_category', value)
+  syncConfigForm.value.sync_category = value as SyncCategory
   step.value = Step.SyncSettings
 }
 

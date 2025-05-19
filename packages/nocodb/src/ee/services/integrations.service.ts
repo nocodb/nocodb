@@ -198,12 +198,14 @@ export class IntegrationsService extends IntegrationsServiceCE {
       }
 
       await integration.delete(ncMeta);
+
       this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
         integration,
         req: param.req,
         user: param.req?.user,
         context: {
           ...context,
+          fk_model_id: null,
           base_id: null,
         },
       });

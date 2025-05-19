@@ -104,7 +104,7 @@ export interface SyncTable {
   relations: SyncRelation[];
 }
 
-export type SyncSchema = Record<TARGET_TABLES, SyncTable>;
+export type SyncSchema = Partial<Record<TARGET_TABLES, SyncTable>>;
 
 export type SyncValue<T> = T | null;
 

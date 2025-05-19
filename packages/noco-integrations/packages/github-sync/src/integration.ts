@@ -7,6 +7,7 @@ import {
 import type {
   AuthResponse,
   SyncLinkValue,
+  SyncRecord,
   TicketingCommentRecord,
   TicketingTeamRecord,
   TicketingTicketRecord,
@@ -36,24 +37,12 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
       targetTables?: TARGET_TABLES[];
       targetTableIncrementalValues?: Record<TARGET_TABLES, string>;
     },
-  ): Promise<
-    DataObjectStream<
-      | TicketingTicketRecord
-      | TicketingUserRecord
-      | TicketingCommentRecord
-      | TicketingTeamRecord
-    >
-  > {
+  ): Promise<DataObjectStream<SyncRecord>> {
     const octokit = auth.custom as Octokit;
     const { owner, repo, includeClosed, includePRs = false } = this.config;
     const { targetTableIncrementalValues } = args;
 
-    const stream = new DataObjectStream<
-      | TicketingTicketRecord
-      | TicketingUserRecord
-      | TicketingCommentRecord
-      | TicketingTeamRecord
-    >();
+    const stream = new DataObjectStream<SyncRecord>();
 
     const userMap = new Map<string, boolean>();
     const issueMap = new Map<number, { id: number; number: number }>();
@@ -304,11 +293,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     targetTable: TARGET_TABLES,
     data: any,
   ): {
-    data:
-      | TicketingTicketRecord
-      | TicketingUserRecord
-      | TicketingCommentRecord
-      | TicketingTeamRecord;
+    data: SyncRecord;
     links?: Record<string, SyncLinkValue>;
   } {
     switch (targetTable) {
@@ -320,6 +305,13 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
         return this.formatComment(data);
       case TARGET_TABLES.TICKETING_TEAM:
         return this.formatTeam(data);
+      default: {
+        return {
+          data: {
+            RemoteRaw: JSON.stringify(data),
+          },
+        };
+      }
     }
   }
 

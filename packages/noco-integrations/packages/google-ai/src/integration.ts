@@ -1,11 +1,11 @@
 import { generateObject, type LanguageModel } from 'ai';
-import { createOpenAI } from '@ai-sdk/openai';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import {
   type AiGenerateObjectArgs,
   AiIntegration,
 } from '@noco-integrations/core';
 
-export class OpenAIIntegration extends AiIntegration {
+export class GeminiIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
 
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
@@ -24,16 +24,15 @@ export class OpenAIIntegration extends AiIntegration {
         throw new Error('Integration not configured properly');
       }
 
-      const customOpenAi = createOpenAI({
-        apiKey: apiKey,
-        compatibility: 'strict',
+      const google = createGoogleGenerativeAI({
+        apiKey,
       });
 
-      this.model = customOpenAi(model);
+      this.model = google(model);
     }
 
     const response = await generateObject({
-      model: this.model as LanguageModel,
+      model: this.model,
       schema,
       messages,
       temperature: 0.5,
@@ -52,20 +51,12 @@ export class OpenAIIntegration extends AiIntegration {
 
   public getModelAlias(model: string): string {
     const aliases: Record<string, string> = {
-      'gpt-4o': 'GPT-4o',
-      'gpt-4o-mini': 'GPT-4o Mini',
-      'gpt-4-turbo': 'GPT-4 Turbo',
-      'gpt-4': 'GPT-4',
-      'gpt-3.5-turbo': 'GPT-3.5 Turbo',
+      'gemini-1.5-pro': 'Gemini 1.5 Pro',
+      'gemini-1.5-flash': 'Gemini 1.5 Flash',
+      'gemini-1.0-pro': 'Gemini 1.0 Pro',
+      'gemini-1.0-ultra': 'Gemini 1.0 Ultra',
     };
 
     return aliases[model] || model;
   }
-
-  public availableModels(): { value: string; label: string }[] {
-    return this.config.models.map((model: string) => ({
-      value: model,
-      label: this.getModelAlias(model),
-    }));
-  }
-}
+} 

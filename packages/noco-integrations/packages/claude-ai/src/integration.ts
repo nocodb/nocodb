@@ -1,11 +1,11 @@
 import { generateObject, type LanguageModel } from 'ai';
-import { createOpenAI } from '@ai-sdk/openai';
+import { createAnthropic } from '@ai-sdk/anthropic';
 import {
   type AiGenerateObjectArgs,
   AiIntegration,
 } from '@noco-integrations/core';
 
-export class OpenAIIntegration extends AiIntegration {
+export class ClaudeIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
 
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
@@ -24,16 +24,15 @@ export class OpenAIIntegration extends AiIntegration {
         throw new Error('Integration not configured properly');
       }
 
-      const customOpenAi = createOpenAI({
-        apiKey: apiKey,
-        compatibility: 'strict',
+      const anthropic = createAnthropic({
+        apiKey,
       });
 
-      this.model = customOpenAi(model);
+      this.model = anthropic(model);
     }
 
     const response = await generateObject({
-      model: this.model as LanguageModel,
+      model: this.model,
       schema,
       messages,
       temperature: 0.5,
@@ -52,20 +51,15 @@ export class OpenAIIntegration extends AiIntegration {
 
   public getModelAlias(model: string): string {
     const aliases: Record<string, string> = {
-      'gpt-4o': 'GPT-4o',
-      'gpt-4o-mini': 'GPT-4o Mini',
-      'gpt-4-turbo': 'GPT-4 Turbo',
-      'gpt-4': 'GPT-4',
-      'gpt-3.5-turbo': 'GPT-3.5 Turbo',
+      'claude-3-5-sonnet-20240620': 'Claude 3.5 Sonnet',
+      'claude-3-opus-20240229': 'Claude 3 Opus',
+      'claude-3-sonnet-20240229': 'Claude 3 Sonnet',
+      'claude-3-haiku-20240307': 'Claude 3 Haiku',
+      'claude-2.1': 'Claude 2.1',
+      'claude-2.0': 'Claude 2.0',
+      'claude-instant-1.2': 'Claude Instant 1.2'
     };
 
     return aliases[model] || model;
   }
-
-  public availableModels(): { value: string; label: string }[] {
-    return this.config.models.map((model: string) => ({
-      value: model,
-      label: this.getModelAlias(model),
-    }));
-  }
-}
+} 

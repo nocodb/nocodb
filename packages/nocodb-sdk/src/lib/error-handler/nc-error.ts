@@ -1,0 +1,413 @@
+import { BaseType, SourceType } from '../Api';
+import { NcErrorArgs } from '../error/nc-base-error';
+import { NcErrorType, PlanLimitExceededDetailsType } from '../globals';
+import { HigherPlan } from '../payment';
+import UITypes from '../UITypes';
+import { NcErrorGenerator } from './nc-error-generator';
+
+export class NcError {
+  static _ = new NcError();
+
+  /*
+  permissionDenied(
+    permissionName: string,
+    roles: Record<string, boolean>,
+    extendedScopeRoles: any,
+  ): never {}
+  */
+
+  /*
+  recordNotFound(
+    id: string | string[] | Record<string, string> | Record<string, string>[],
+    args?: NcErrorArgs
+  ): never {}
+  */
+
+  /*
+  notFound(message = 'Not found'): never {}
+  badRequest(message): never {}
+  */
+
+  /*
+  ajvValidationError(param: {
+    message: string;
+    errors: ErrorObject[];
+    humanReadableError: boolean;
+  }): never {}
+  unprocessableEntity(message = 'Unprocessable entity'): never {}
+  testConnectionError(message = 'Unprocessable entity', code?: string): never {}
+  notAllowed(message = 'Not allowed'): never {}
+  emailDomainNotAllowed(domain: string): never {}
+  metaError(param: { message: string; sql: string }): never {}
+  */
+
+  /*
+  optionsNotExists(props: {
+    columnTitle: string;
+    options: string[];
+    validOptions: string[];
+  }): never {}
+  */
+
+  authenticationRequired(args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(
+      NcErrorType.AUTHENTICATION_REQUIRED,
+      args
+    );
+  }
+
+  apiTokenNotAllowed(args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(
+      NcErrorType.API_TOKEN_NOT_ALLOWED,
+      args
+    );
+  }
+
+  workspaceNotFound(id: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.WORKSPACE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  columnAssociatedWithLink(_id: string, args: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(
+      NcErrorType.COLUMN_ASSOCIATED_WITH_LINK,
+      args
+    );
+  }
+
+  tableAssociatedWithLink(_id: string, args: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(
+      NcErrorType.TABLE_ASSOCIATED_WITH_LINK,
+      args
+    );
+  }
+
+  baseNotFound(id: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.BASE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+  baseNotFoundV3(id: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.BASE_NOT_FOUNDV3, {
+      params: id,
+      ...args,
+    });
+  }
+
+  sourceNotFound(id: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.SOURCE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  tableNotFound(id: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.TABLE_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  tableNotFoundV3(id: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.TABLE_NOT_FOUNDV3, {
+      params: id,
+      ...args,
+    });
+  }
+
+  userNotFound(id: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.USER_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  viewNotFound(id: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.VIEW_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  viewNotFoundV3(id: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.VIEW_NOT_FOUNDV3, {
+      params: id,
+      ...args,
+    });
+  }
+
+  hookNotFound(id: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.HOOK_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  genericNotFound(resource: string, id: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.GENERIC_NOT_FOUND, {
+      params: [resource, id],
+      ...args,
+    });
+  }
+
+  requiredFieldMissing(field: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.REQUIRED_FIELD_MISSING, {
+      params: field,
+      ...args,
+    });
+  }
+
+  duplicateRecord(id: string | string[], args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.ERROR_DUPLICATE_RECORD, {
+      params: id,
+      ...args,
+    });
+  }
+
+  fieldNotFound(id: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.FIELD_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  fieldNotFoundV3(id: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.FIELD_NOT_FOUNDV3, {
+      params: id,
+      ...args,
+    });
+  }
+
+  invalidOffsetValue(offset: string | number, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.INVALID_OFFSET_VALUE, {
+      params: `${offset}`,
+      ...args,
+    });
+  }
+  invalidPageValue(page: string | number, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.INVALID_PAGE_VALUE, {
+      params: `${page}`,
+      ...args,
+    });
+  }
+
+  invalidPrimaryKey(value: any, pkColumn: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.INVALID_PK_VALUE, {
+      params: [value, pkColumn],
+      ...args,
+    });
+  }
+
+  invalidLimitValue(args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.INVALID_LIMIT_VALUE, {
+      ...args,
+    });
+  }
+
+  invalidFilter(filter: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.INVALID_FILTER, {
+      params: filter,
+      ...args,
+    });
+  }
+
+  invalidFilterV3(message: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.INVALID_FILTERV3, {
+      params: message,
+      ...args,
+    });
+  }
+
+  invalidValueForField(
+    payload: string | { value: string; column: string; type: UITypes },
+    args?: NcErrorArgs
+  ): never {
+    throw NcErrorGenerator._.generateError(
+      NcErrorType.INVALID_VALUE_FOR_FIELD,
+      {
+        params:
+          typeof payload === 'string'
+            ? payload
+            : `Invalid value '${payload.value}' for type '${payload.type}' on column '${payload.column}'`,
+        ...args,
+      }
+    );
+  }
+
+  invalidSharedViewPassword(args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(
+      NcErrorType.INVALID_SHARED_VIEW_PASSWORD,
+      {
+        ...args,
+      }
+    );
+  }
+
+  invalidAttachmentJson(payload: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(
+      NcErrorType.INVALID_ATTACHMENT_JSON,
+      {
+        params: payload,
+        ...args,
+      }
+    );
+  }
+
+  notImplemented(feature: string = 'Feature', args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.NOT_IMPLEMENTED, {
+      params: feature,
+      ...args,
+    });
+  }
+
+  internalServerError(message: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.INTERNAL_SERVER_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
+  formulaError(message: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.FORMULA_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
+  formulaCircularRefError(message: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(
+      NcErrorType.FORMULA_CIRCULAR_REF_ERROR,
+      {
+        params: message,
+        ...args,
+      }
+    );
+  }
+
+  unauthorized(message: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(
+      NcErrorType.AUTHENTICATION_REQUIRED,
+      {
+        params: message,
+        ...args,
+      }
+    );
+  }
+
+  forbidden(message: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.FORBIDDEN, {
+      params: message,
+      ...args,
+    });
+  }
+
+  sourceDataReadOnly(name: string) {
+    NcError._.forbidden(`Source '${name}' is read-only`);
+  }
+
+  sourceMetaReadOnly(name: string) {
+    NcError._.forbidden(`Source '${name}' schema is read-only`);
+  }
+
+  integrationNotFound(id: string, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.INTEGRATION_NOT_FOUND, {
+      params: id,
+      ...(args || {}),
+    });
+  }
+
+  cannotCalculateIntermediateOrderError(): never {
+    throw NcErrorGenerator._.generateError(
+      NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER,
+      {}
+    );
+  }
+
+  reorderFailed(): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.REORDER_FAILED, {});
+  }
+
+  integrationLinkedWithMultiple(
+    bases: BaseType[],
+    sources: SourceType[],
+    args?: NcErrorArgs
+  ): never {
+    throw NcErrorGenerator._.generateError(
+      NcErrorType.INTEGRATION_LINKED_WITH_BASES,
+      {
+        params: bases.map((s) => s.title).join(', '),
+        details: {
+          bases: bases.map((b) => {
+            return {
+              id: b.id,
+              title: b.title,
+            };
+          }),
+          sources: sources.map((s) => {
+            return {
+              id: s.id,
+              base_id: s.base_id,
+              title: s.alias,
+            };
+          }),
+        },
+        ...(args || {}),
+      }
+    );
+  }
+
+  invalidAttachmentUploadScope(args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(
+      NcErrorType.INVALID_ATTACHMENT_UPLOAD_SCOPE,
+      args
+    );
+  }
+
+  planLimitExceeded(
+    message: string,
+    details: Omit<PlanLimitExceededDetailsType, 'higherPlan'>,
+    args?: NcErrorArgs
+  ): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.PLAN_LIMIT_EXCEEDED, {
+      params: message,
+      ...args,
+      details: {
+        ...details,
+        ...(details?.plan ? { higherPlan: HigherPlan[details.plan] } : {}),
+      },
+    });
+  }
+
+  allowedOnlySSOAccess(ncWorkspaceId: string): never {
+    throw NcErrorGenerator._.generateError(NcErrorType.SSO_LOGIN_REQUIRED, {
+      params: ncWorkspaceId,
+    });
+  }
+  maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(
+      NcErrorType.MAX_INSERT_LIMIT_EXCEEDED,
+      {
+        params: limit.toString(),
+        ...args,
+      }
+    );
+  }
+  baseUserError(message: string, args?: NcErrorArgs) {
+    throw NcErrorGenerator._.generateError(NcErrorType.BASE_USER_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
+  maxWorkspaceLimitReached(args?: NcErrorArgs): never {
+    throw NcErrorGenerator._.generateError(
+      NcErrorType.MAX_WORKSPACE_LIMIT_REACHED,
+      {
+        ...args,
+      }
+    );
+  }
+}

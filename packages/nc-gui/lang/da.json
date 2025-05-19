@@ -1728,7 +1728,10 @@
     "searchOptions": "Søgemuligheder",
     "lockViewDescription": "Forklar, hvorfor du låser denne visning. Denne besked vises, når nogen forsøger at låse visningen op (valgfrit).",
     "noBaseUsersFound": "Ingen basebrugere fundet",
-    "noInvoices": "Ingen fakturaer"
+    "noInvoices": "Ingen fakturaer",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL-filtre anvendes ud fra URL-parametre og kombineres med visningsfiltre angivet via værktøjslinjen.",

@@ -1907,19 +1907,10 @@ export class ImportService {
       destProject: Base;
       destBase: Source;
       destModel: Model;
-      throwOnError?: boolean;
       req: any;
     },
   ): Promise<void> {
-    const {
-      idMap,
-      dataStream,
-      destBase,
-      destProject,
-      destModel,
-      req,
-      throwOnError,
-    } = param;
+    const { idMap, dataStream, destBase, destProject, destModel, req } = param;
 
     const headers: string[] = [];
     let chunk = [];
@@ -1996,14 +1987,10 @@ export class ImportService {
                     raw: true,
                   });
                 } catch (e) {
-                  if (throwOnError) {
-                    // stop the stream
-                    parser.abort();
-                    this.logger.error(e);
-                    reject(e);
-                    return;
-                  }
-                  this.logger.error(e);
+                  // stop the stream
+                  parser.abort();
+                  reject(e);
+                  return;
                 }
                 chunk = [];
                 parser.resume();
@@ -2024,13 +2011,9 @@ export class ImportService {
                 raw: true,
               });
             } catch (e) {
-              if (throwOnError) {
-                // stop the stream
-                this.logger.error(e);
-                reject(e);
-                return;
-              }
-              this.logger.error(e);
+              // stop the stream
+              reject(e);
+              return;
             }
             chunk = [];
           }
@@ -2049,21 +2032,13 @@ export class ImportService {
       destProject: Base;
       destBase: Source;
       handledLinks: string[];
-      throwOnError?: boolean;
     },
   ): Promise<string[]> {
-    const {
-      idMap,
-      linkStream,
-      destBase,
-      destProject,
-      handledLinks,
-      throwOnError,
-    } = param;
+    const { idMap, linkStream, destBase, destProject, handledLinks } = param;
 
     const lChunks: Record<string, any[]> = {}; // fk_mm_model_id: { rowId, childId }[]
 
-    const insertChunks = async (throwOnError?: boolean) => {
+    const insertChunks = async () => {
       for (const [k, v] of Object.entries(lChunks)) {
         try {
           if (v.length === 0) continue;
@@ -2078,11 +2053,8 @@ export class ImportService {
           });
           lChunks[k] = [];
         } catch (e) {
-          if (throwOnError) {
-            this.logger.error(e);
-            throw e;
-          }
           this.logger.error(e);
+          throw e;
         }
       }
     };
@@ -2131,14 +2103,11 @@ export class ImportService {
                   parser.pause();
 
                   try {
-                    await insertChunks(throwOnError);
+                    await insertChunks();
                   } catch (e) {
-                    if (throwOnError) {
-                      parser.abort();
-                      reject(e);
-                      return;
-                    }
-                    this.logger.error(e);
+                    parser.abort();
+                    reject(e);
+                    return;
                   }
 
                   const col = await Column.get(context, {
@@ -2191,12 +2160,10 @@ export class ImportService {
         },
         complete: async () => {
           try {
-            await insertChunks(throwOnError);
+            await insertChunks();
           } catch (e) {
-            if (throwOnError) {
-              reject(e);
-              return;
-            }
+            reject(e);
+            return;
           }
           resolve(handledLinks);
         },

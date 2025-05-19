@@ -125,6 +125,12 @@ export class TelemetryService {
         source: Source
         base: Base
         workspace: Workspace
+      - event_type: priority_error
+        error_trigger: string
+        error_type: string
+        message: string
+        error_details?: any
+        affected_resources?: string[]
   */
   public async sendSystemEvent({
     event_type,
@@ -133,46 +139,52 @@ export class TelemetryService {
     event_type: string;
     [key: string]: any;
   }) {
-    const snsConfig = this.configService.get('sns', {
-      infer: true,
-    });
-    const systemEventsSnsTopic = this.configService.get(
-      'systemEvents.sns.topicArn',
-      {
-        infer: true,
-      },
-    );
-
-    if (
-      !systemEventsSnsTopic ||
-      !snsConfig.credentials ||
-      !snsConfig.credentials.secretAccessKey ||
-      !snsConfig.credentials.accessKeyId
-    ) {
-      this.logger.error('SNS is not configured');
-      return;
-    }
-
-    const params = {
-      TopicArn: systemEventsSnsTopic,
-      Message: JSON.stringify({
-        event_type,
-        ...payload,
-      }),
-    };
-
-    const snsClient = new SNSClient({
-      region: snsConfig.region,
-      credentials: {
-        accessKeyId: snsConfig.credentials.accessKeyId,
-        secretAccessKey: snsConfig.credentials.secretAccessKey,
-      },
-    });
-
     try {
-      await snsClient.send(new PublishCommand(params));
+      const snsConfig = this.configService.get('sns', {
+        infer: true,
+      });
+      const systemEventsSnsTopic = this.configService.get(
+        'systemEvents.sns.topicArn',
+        {
+          infer: true,
+        },
+      );
+
+      if (
+        !systemEventsSnsTopic ||
+        !snsConfig.credentials ||
+        !snsConfig.credentials.secretAccessKey ||
+        !snsConfig.credentials.accessKeyId
+      ) {
+        this.logger.error('SNS is not configured');
+        return;
+      }
+
+      const params = {
+        TopicArn: systemEventsSnsTopic,
+        Message: JSON.stringify({
+          event_type,
+          ...payload,
+        }),
+      };
+
+      const snsClient = new SNSClient({
+        region: snsConfig.region,
+        credentials: {
+          accessKeyId: snsConfig.credentials.accessKeyId,
+          secretAccessKey: snsConfig.credentials.secretAccessKey,
+        },
+      });
+
+      try {
+        await snsClient.send(new PublishCommand(params));
+      } catch (err) {
+        this.logger.error('Error sending system event to SNS');
+        this.logger.error(err);
+      }
     } catch (err) {
-      this.logger.error(err, 'Error publishing to SNS');
+      this.logger.error('Error sending system event');
+      this.logger.error(err);
     }
   }
 }

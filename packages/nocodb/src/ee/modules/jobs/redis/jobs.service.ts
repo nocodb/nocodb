@@ -90,15 +90,11 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
 
         setInterval(() => {
           runningFor += 1;
-          this.telemetryService
-            .sendSystemEvent({
-              event_type: 'worker_alert',
-              alert_type: 'warning',
-              message: `Worker is running after pause and shutdown for ${runningFor} minutes`,
-            })
-            .catch((err) => {
-              this.logger.error(err);
-            });
+          this.telemetryService.sendSystemEvent({
+            event_type: 'worker_alert',
+            alert_type: 'warning',
+            message: `Worker is running after pause and shutdown for ${runningFor} minutes`,
+          });
         }, 60 * 1000).unref(); // every minute
 
         // fallback to shutdown after an hour
@@ -132,16 +128,12 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
           this.jobsQueue
             .getJobCounts()
             .then((stats) => {
-              this.telemetryService
-                .sendSystemEvent({
-                  event_type: 'worker_alert',
-                  alert_type: 'warning',
-                  message: 'Worker queue is full',
-                  stats,
-                })
-                .catch((err) => {
-                  this.logger.error(err);
-                });
+              this.telemetryService.sendSystemEvent({
+                event_type: 'worker_alert',
+                alert_type: 'warning',
+                message: 'Worker queue is full',
+                stats,
+              });
             })
             .catch((err) => {
               this.logger.error(err);

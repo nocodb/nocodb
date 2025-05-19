@@ -9,6 +9,8 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BasesService } from '~/services/bases.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { ColumnsService } from '~/services/columns.service';
+import { TablesService } from '~/services/tables.service';
+import { TelemetryService } from '~/services/telemetry.service';
 
 @Injectable()
 export class DuplicateProcessor extends DuplicateProcessorCE {
@@ -21,6 +23,8 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
     protected readonly bulkDataService: BulkDataAliasService,
     protected readonly columnsService: ColumnsService,
     protected readonly appHooksService: AppHooksService,
+    protected readonly tablesService: TablesService,
+    protected readonly telemetryService: TelemetryService,
   ) {
     super(
       exportService,
@@ -29,6 +33,8 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
       bulkDataService,
       columnsService,
       appHooksService,
+      tablesService,
+      telemetryService,
     );
   }
 

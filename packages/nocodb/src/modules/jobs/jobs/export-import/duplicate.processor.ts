@@ -29,6 +29,8 @@ import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
 import { ImportService } from '~/modules/jobs/jobs/export-import/import.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { TablesService } from '~/services/tables.service';
+import { TelemetryService } from '~/services/telemetry.service';
 
 @Injectable()
 export class DuplicateProcessor {
@@ -41,6 +43,8 @@ export class DuplicateProcessor {
     protected readonly bulkDataService: BulkDataAliasService,
     protected readonly columnsService: ColumnsService,
     protected readonly appHooksService: AppHooksService,
+    protected readonly tablesService: TablesService,
+    protected readonly telemetryService: TelemetryService,
   ) {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -93,22 +97,24 @@ export class DuplicateProcessor {
       base_id: targetBase.id,
     };
 
-    if (
-      [JobTypes.DuplicateBase, JobTypes.RestoreSnapshot].includes(operation) &&
-      targetContext.workspace_id !== sourceBase.fk_workspace_id
-    ) {
-      await this.handleDuplicateDifferentWs({
-        sourceBase,
-        targetBase,
-        dataSource,
-        req,
-        context,
-        targetContext,
-        options,
-      });
-    }
-
     try {
+      if (
+        [JobTypes.DuplicateBase, JobTypes.RestoreSnapshot].includes(
+          operation,
+        ) &&
+        targetContext.workspace_id !== sourceBase.fk_workspace_id
+      ) {
+        await this.handleDuplicateDifferentWs({
+          sourceBase,
+          targetBase,
+          dataSource,
+          req,
+          context,
+          targetContext,
+          options,
+        });
+      }
+
       if (!sourceBase || !targetBase || !dataSource) {
         throw new Error(`Base or source not found!`);
       }
@@ -268,6 +274,8 @@ export class DuplicateProcessor {
 
     const sourceModel = models.find((m) => m.id === modelId);
 
+    const createdModels: string[] = [];
+
     try {
       await sourceModel.getColumns(context);
 
@@ -317,6 +325,8 @@ export class DuplicateProcessor {
       if (!idMap) {
         throw new Error(`Import failed for model '${modelId}'`);
       }
+
+      createdModels.push(findWithIdentifier(idMap, sourceModel.id));
 
       if (!excludeData) {
         const fields: Record<string, string[]> = {};
@@ -374,6 +384,30 @@ export class DuplicateProcessor {
         req,
         context,
         error: e.message,
+      });
+
+      if (createdModels.length > 0) {
+        for (const modelId of createdModels) {
+          await this.tablesService.tableDelete(context, {
+            tableId: modelId,
+            user: req.user,
+            forceDeleteRelations: true,
+            req,
+          });
+        }
+      }
+
+      this.telemetryService.sendSystemEvent({
+        event_type: 'priority_error',
+        error_type: e?.name,
+        message: e?.message,
+        error_details: e?.stack,
+        affected_resources: [
+          req?.user?.email,
+          req?.user?.id,
+          context.base_id,
+          context.workspace_id,
+        ],
       });
 
       throw e;

@@ -54,7 +54,7 @@ export class SnapshotProcessor {
         message: err?.message,
         error_details: err?.stack,
         affected_resources: [
-          ...(req?.user?.email ? [req.user.email] : []),
+          req?.user?.email,
           req?.user?.id,
           context.workspace_id,
           context.base_id,

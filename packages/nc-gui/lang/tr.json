@@ -1728,7 +1728,10 @@
     "searchOptions": "Seçenekleri ara",
     "lockViewDescription": "Bu görünümü neden kilitlediğinizi açıklayın. Bu mesaj, biri görünümün kilidini açmaya çalıştığında gösterilecektir (isteğe bağlı).",
     "noBaseUsersFound": "Tabanda kullanıcı bulunamadı",
-    "noInvoices": "Fatura Yok"
+    "noInvoices": "Fatura Yok",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL filtreleri, URL parametrelerinden uygulanır ve araç çubuğunda ayarlanan görünüm filtreleriyle birleşir.",

@@ -83,7 +83,6 @@ export class DuplicateProcessor {
       excludeViews?: boolean;
       excludeComments?: boolean;
       excludeUsers?: boolean;
-      throwOnError?: boolean;
     };
     operation: JobTypes;
   }) {
@@ -589,7 +588,6 @@ export class DuplicateProcessor {
         excludeHooks?: boolean;
         excludeComments?: boolean;
         excludeUsers?: boolean;
-        throwOnError?: boolean;
       };
       req: any;
     },
@@ -649,7 +647,6 @@ export class DuplicateProcessor {
         destProject,
         destBase,
         destModel: model,
-        throwOnError: !!options?.throwOnError,
         req,
       });
 
@@ -661,7 +658,6 @@ export class DuplicateProcessor {
           destProject,
           destBase,
           handledLinks,
-          throwOnError: !!options?.throwOnError,
         },
       );
 

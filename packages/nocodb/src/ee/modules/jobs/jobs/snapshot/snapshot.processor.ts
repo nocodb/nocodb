@@ -34,9 +34,7 @@ export class SnapshotProcessor {
         dataSource: source,
         req,
         context,
-        options: {
-          throwOnError: true,
-        },
+        options: {},
         operation: JobTypes.CreateSnapshot,
       });
 

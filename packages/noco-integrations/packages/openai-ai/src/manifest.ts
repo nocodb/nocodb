@@ -6,4 +6,5 @@ export const manifest = createManifest(IntegrationType.Ai, {
   description: 'OpenAI integration for NocoDB',
   version: '0.1.0',
   author: 'NocoDB',
+  order: 1,
 });

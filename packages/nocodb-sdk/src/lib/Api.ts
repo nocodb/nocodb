@@ -709,6 +709,17 @@ export interface FieldBaseV3Type {
   default_value?: string;
 }
 
+export interface ViewCreateV3Type {
+  /** Name of the view. */
+  view_name?: string;
+  /** Type of the view. */
+  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
+  /** Lock type of the view. */
+  lock_type?: 'COLLABARATIVE' | 'LOCKED' | 'PERSONAL';
+  /** Description of the view. */
+  description?: string;
+}
+
 /**
  * GRID View
  */

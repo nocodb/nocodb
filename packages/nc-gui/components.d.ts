@@ -58,6 +58,7 @@ declare module 'vue' {
     ASelectOptGroup: typeof import('ant-design-vue/es')['SelectOptGroup']
     ASelectOption: typeof import('ant-design-vue/es')['SelectOption']
     ASkeleton: typeof import('ant-design-vue/es')['Skeleton']
+    ASkeletonAvatar: typeof import('ant-design-vue/es')['SkeletonAvatar']
     ASkeletonImage: typeof import('ant-design-vue/es')['SkeletonImage']
     ASkeletonInput: typeof import('ant-design-vue/es')['SkeletonInput']
     ASpin: typeof import('ant-design-vue/es')['Spin']

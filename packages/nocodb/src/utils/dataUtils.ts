@@ -1,3 +1,4 @@
+import { ncIsUndefined } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 
 export function getAliasGenerator(prefix = '__nc_') {
@@ -158,11 +159,14 @@ export function batchUpdate(
   const updateObj: Record<string, Knex.Raw> = {};
 
   columns.forEach((column) => {
+    const filteredData = data.filter((row) => !ncIsUndefined(row[column]));
     updateObj[column] = kn.raw(
-      `CASE ?? ${data.map(() => 'WHEN ? THEN ?').join(' ')} ELSE ?? END`,
+      `CASE ?? ${filteredData
+        .map(() => 'WHEN ? THEN ?')
+        .join(' ')} ELSE ?? END`,
       [
         pk,
-        ...data.flatMap((row) => [
+        ...filteredData.flatMap((row) => [
           row[pk],
           row[column] === undefined ? null : row[column],
         ]),

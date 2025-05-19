@@ -5621,7 +5621,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const idToAliasPromiseMap: Record<string, Promise<string>> = {};
     const ltarMap: Record<string, boolean> = {};
 
-    modelColumns.forEach((col) => {
+    for (let col of modelColumns) {
       if (aliasColumns && col.id in aliasColumns) {
         aliasColumns[col.id].id = col.id;
         aliasColumns[col.id].title = col.title;
@@ -5630,6 +5630,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       idToAliasMap[col.id] = col.title;
       if ([UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(col.uidt)) {
+        if (col.uidt === UITypes.Lookup) {
+          const nestedCol = await this.getNestedColumn(col);
+          if (nestedCol?.uidt !== UITypes.LinkToAnotherRecord) {
+            continue;
+          }
+        }
+
         ltarMap[col.id] = true;
         const linkData = Object.values(data).find(
           (d) =>
@@ -5678,8 +5685,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } else {
         ltarMap[col.id] = false;
       }
-    });
-
+    }
     for (const k of Object.keys(idToAliasPromiseMap)) {
       idToAliasMap[k] = await idToAliasPromiseMap[k];
       if ((idToAliasMap[k] as unknown) instanceof Error) {

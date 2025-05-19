@@ -21,11 +21,19 @@ const FEATURES = [
     enabled: !ncIsPlaywright(),
   },
   {
+    id: 'improved_sidebar',
+    title: 'Improved Sidebar',
+    description: 'New and Improved sidebar for better UI experience',
+    enabled: false,
+    isEngineering: true,
+  },
+  {
     id: 'link_to_another_record',
     title: 'Link To Another Record',
     description: 'Show linked record display value in Link fields.',
     enabled: false,
   },
+
   {
     id: 'model_context_protocol',
     title: 'Model Context Protocol',

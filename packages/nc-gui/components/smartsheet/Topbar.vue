@@ -2,6 +2,8 @@
 const router = useRouter()
 const route = router.currentRoute
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
 
 const { isAutomationActive, activeAutomationId } = storeToRefs(useAutomationStore())
@@ -88,7 +90,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         </NcButton>
 
         <div v-if="!isSharedBase" class="flex gap-2 items-center">
-          <LazySmartsheetTopbarCmdK />
+          <LazySmartsheetTopbarCmdK v-if="!isNewSidebarEnabled" />
           <LazySmartsheetTopbarScriptAction v-if="activeAutomationId && appInfo.ee" />
         </div>
         <LazySmartsheetTopbarShareProject v-if="!activeAutomationId" />

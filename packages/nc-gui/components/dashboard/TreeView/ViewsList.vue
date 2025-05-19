@@ -24,13 +24,15 @@ const emits = defineEmits<Emits>()
 const base = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const { activeTableId } = storeToRefs(useTablesStore())
 
 const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
+
+const { baseHomeSearchQuery } = storeToRefs(useBases())
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -397,6 +399,10 @@ function onOpenModal({
     close(1000)
   }
 }
+
+const filteredViews = computed(() => {
+  return views.value.filter((view) => searchCompare(view.title, baseHomeSearchQuery.value))
+})
 </script>
 
 <template>
@@ -411,8 +417,10 @@ function onOpenModal({
         v-if="isUIAllowed('viewCreateOrEdit')"
         :align-left-level="isDefaultSource ? 1 : 2"
         :class="{
-          '!pl-13.3 !xs:(pl-13.5)': isDefaultSource,
-          '!pl-18.6 !xs:(pl-20)': !isDefaultSource,
+          '!pl-13.3 !xs:(pl-13.5)': isDefaultSource && !isNewSidebarEnabled,
+          '!pl-18.6 !xs:(pl-20)': !isDefaultSource && !isNewSidebarEnabled,
+          '!pl-7.5 !xs:(pl-7.5)': isDefaultSource && isNewSidebarEnabled,
+          '!pl-13.6 !xs:(pl-15)': !isDefaultSource && isNewSidebarEnabled,
         }"
         :source="source"
       >
@@ -425,7 +433,7 @@ function onOpenModal({
           role="button"
         >
           <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
-            <GeneralIcon icon="plus" />
+            <GeneralIcon icon="plus" class="nc-create-view-btn-icon" />
             <div class="pl-1.75">
               {{
                 $t('general.createEntity', {
@@ -437,9 +445,9 @@ function onOpenModal({
         </div>
       </DashboardTreeViewCreateViewBtn>
     </template>
-    <template v-if="views.length">
+    <template v-if="filteredViews.length">
       <DashboardTreeViewViewsNode
-        v-for="view of views"
+        v-for="view of filteredViews"
         :id="view.id"
         :key="view.id"
         :class="{
@@ -470,7 +478,7 @@ function onOpenModal({
   }
 
   &.dragging {
-    .nc-icon {
+    .nc-icon:not(.nc-create-view-btn-icon):not(.nc-view-icon) {
       @apply !hidden;
     }
 

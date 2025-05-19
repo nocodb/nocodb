@@ -689,7 +689,7 @@ onKeyStroke('ArrowDown', onDown)
                     &nbsp;
                     <GeneralProjectIcon
                       type="database"
-                      class="!grayscale min-w-4 flex-none -ml-1"
+                      class="!grayscale min-w-5 flex-none -ml-1"
                       :style="{
                         filter: 'grayscale(100%) brightness(115%)',
                       }"

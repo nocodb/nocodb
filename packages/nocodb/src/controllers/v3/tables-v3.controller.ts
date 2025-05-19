@@ -30,7 +30,7 @@ import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 export class TablesV3Controller {
   constructor(private readonly tablesV3Service: TablesV3Service) {}
 
-  @Get(`${PREFIX_APIV3_METABASE}/bases/:baseId/tables`)
+  @Get(`${PREFIX_APIV3_METABASE}/tables`)
   @Acl('tableList')
   async tableList(
     @TenantContext() context: NcContext,
@@ -49,7 +49,7 @@ export class TablesV3Controller {
     );
   }
 
-  @Post(`${PREFIX_APIV3_METABASE}/bases/:baseId/tables`)
+  @Post(`${PREFIX_APIV3_METABASE}/tables`)
   @HttpCode(200)
   @Acl('tableCreate')
   async tableCreate(

@@ -2,6 +2,8 @@
 import { storeToRefs } from 'pinia'
 import InfiniteLoading from 'v3-infinite-loading'
 
+const emits = defineEmits(['close'])
+
 const notificationStore = useNotification()
 
 const { isMobileMode } = useGlobal()
@@ -30,7 +32,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
       <div class="flex px-6 justify-between items-center">
         <span class="text-md font-bold text-gray-800" @click.stop> {{ $t('general.notification') }}s </span>
 
-        <NcButton v-if="isMobileMode" size="small" type="secondary">
+        <NcButton v-if="isMobileMode" size="small" type="secondary" @click="emits('close')">
           <GeneralIcon icon="close" class="text-gray-700" />
         </NcButton>
       </div>

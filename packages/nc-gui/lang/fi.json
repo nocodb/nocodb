@@ -1728,7 +1728,10 @@
     "searchOptions": "Hae vaihtoehtoja",
     "lockViewDescription": "Selitä, miksi lukitset tämän näkymän. Tämä viesti näytetään, kun joku yrittää avata näkymän lukituksen (valinnainen).",
     "noBaseUsersFound": "Pohjan käyttäjiä ei löytynyt",
-    "noInvoices": "Ei laskuja"
+    "noInvoices": "Ei laskuja",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL-suodattimet haetaan URL-parametreista ja yhdistetään työkalupalkissa asetettuihin näkymäsuodattimiin.",

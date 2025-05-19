@@ -26,7 +26,7 @@ const placeholder = computed(() => {
 
 const onKeydown = (e: KeyboardEvent) => {
   if (e.altKey && e.code === 'KeyB') {
-    inputRef.value.input?.blur()
+    e.preventDefault()
   } else {
     e.stopPropagation()
   }

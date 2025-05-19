@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { nextTick } from 'vue'
 provide(IsMiniSidebarInj, ref(true))
 
 const router = useRouter()
@@ -80,7 +81,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
   switch (e.code) {
     case 'KeyB': {
-      navigateToProjectPage()
+      e.preventDefault()
+      showProjectList.value = true
+      await nextTick()
+      document
+        .querySelector<HTMLInputElement>('.nc-base-search-input input')
+        ?.focus()
       break
     }
   }

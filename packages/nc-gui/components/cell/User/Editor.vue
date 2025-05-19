@@ -20,6 +20,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMobileMode } = useGlobal()
 
+const { t } = useI18n()
+
 const meta = inject(MetaInj)!
 
 const isInFilter = inject(IsInFilterInj, ref(false))
@@ -75,7 +77,7 @@ const options = computed(() => {
   if (isInFilter.value) {
     currentUserField.push({
       id: CURRENT_USER_TOKEN,
-      display_name: 'Current User',
+      display_name: t('title.currentUser'),
       email: CURRENT_USER_TOKEN,
     })
   }
@@ -432,10 +434,10 @@ onMounted(() => {
               </div>
               <NcTooltip class="text-xs !leading-4 text-nc-content-gray-muted truncate" show-on-truncate-only placement="bottom">
                 <template #title>
-                  {{ op.email === CURRENT_USER_TOKEN ? 'Filtered by logged-in user' : op.email }}
+                  {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
                 </template>
 
-                {{ op.email === CURRENT_USER_TOKEN ? 'Filtered by logged-in user' : op.email }}
+                {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
               </NcTooltip>
             </div>
             <GeneralIcon

@@ -252,7 +252,6 @@ const getAst = async (
     }
     let isRequested;
 
-    const isForeignKey = col.uidt === UITypes.ForeignKey;
     const isInFields = fields?.length && fields.includes(col.title);
     const isSortOrFilterColumn =
       includeSortAndFilterColumns &&
@@ -263,7 +262,7 @@ const getAst = async (
     }
     // exclude system column and foreign key from API response for v3
     else if (
-      (col.system || isForeignKey) &&
+      col.system &&
       ![UITypes.CreatedTime, UITypes.LastModifiedTime].includes(col.uidt) &&
       apiVersion === NcApiVersion.V3
     ) {

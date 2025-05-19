@@ -282,7 +282,11 @@ const filteredScripts = computed(() => {
         'ml-11.5 xs:(ml-12.25) ': !isNewSidebarEnabled,
       }"
     >
-      {{ scripts?.length && !filteredScripts.length ? 'No results found for your search.' : 'No Automations' }}
+      {{
+        scripts?.length && !filteredScripts.length
+          ? $t('placeholder.noResultsFoundForYourSearch')
+          : $t('placeholder.noAutomations')
+      }}
     </div>
 
     <template v-if="(!isNewSidebarEnabled || !scripts?.length) && !isSharedBase && isUIAllowed('scriptCreateOrEdit')">

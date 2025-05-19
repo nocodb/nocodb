@@ -8,6 +8,7 @@ withDefaults(defineProps<Props>(), {
 })
 const { isWorkspacesLoading } = storeToRefs(useWorkspace())
 </script>
+
 <template>
   <div
     v-if="isWorkspacesLoading"

@@ -169,7 +169,6 @@ const enableEditModeForSource = (sourceId: string) => {
     if (!input) return
     input?.focus()
     input?.select()
-    // input?.scrollIntoView()
   })
 }
 
@@ -284,7 +283,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
-    sourceId, // || sources.value[0].id,
+    sourceId,
     'baseId': base.value!.id,
     'onCreate': closeDialog,
     'onUpdate:modelValue': () => closeDialog(),
@@ -893,7 +892,7 @@ defineExpose({
               </div>
             </div>
 
-            <div v-if="base?.sources?.slice(1).filter((el) => el.enabled)?.length" class="transition-height duration-200">
+            <div v-if="base?.sources?.slice(1).some((el) => el.enabled)" class="transition-height duration-200">
               <div class="border-none sortable-list">
                 <div v-for="(source, baseIndex) of base.sources" :key="`source-${source.id}`">
                   <template v-if="baseIndex === 0"></template>

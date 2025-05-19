@@ -242,7 +242,7 @@ function openTableCreateDialog(sourceId?: string, baseId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
-    'sourceId': sourceId, // || sources.value[0].id,
+    'sourceId': sourceId,
     'baseId': baseId || basesList.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })
@@ -534,7 +534,7 @@ onBeforeUnmount(() => {
                   </template>
                   <template v-if="!isWorkspaceLoading && !filteredStarredProjectList.length" #footer>
                     <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
-                      No results found for your search.
+                      {{ $t('placeholder.noResultsFoundForYourSearch') }}
                     </div>
                   </template>
                 </Draggable>
@@ -563,7 +563,7 @@ onBeforeUnmount(() => {
                   </template>
                   <template v-if="!isWorkspaceLoading && !filteredNonStarredProjectList.length" #footer>
                     <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
-                      No results found for your search.
+                      {{ $t('placeholder.noResultsFoundForYourSearch') }}
                     </div>
                   </template>
                 </Draggable>

@@ -1,5 +1,4 @@
 import { ActionType, InputType } from '../types'
-import { useWorkspace } from '#imports'
 
 export function generateIntegrationsCode(integrations: any[]): string {
   let code = 'const integrations = {'

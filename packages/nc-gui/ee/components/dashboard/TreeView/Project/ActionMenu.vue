@@ -31,6 +31,20 @@ const { appInfo } = useGlobal()
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { isUIAllowed } = useRoles()
+
+const isOptionVisible = computed(() => {
+  return {
+    baseDuplicate:
+      base.value.type === NcProjectType.DB &&
+      isUIAllowed('baseDuplicate', { roles: base.value.project_role || base.value.workspace_role }),
+    dataReflection:
+      isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
+      isUIAllowed('createConnectionDetails') &&
+      base.value?.sources?.[0]?.enabled,
+    baseOptions: base.value?.sources?.[0]?.enabled && props.showBaseOption(base.value.sources[0]),
+    baseDelete: isUIAllowed('baseDelete', { roles: base.value.project_role || base.value.workspace_role }),
+  }
+})
 </script>
 
 <template>
@@ -57,7 +71,7 @@ const { isUIAllowed } = useRoles()
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="base.type === NcProjectType.DB && isUIAllowed('baseDuplicate', { roles: base.project_role || base.workspace_role })"
+      v-if="isOptionVisible.baseDuplicate"
       data-testid="nc-sidebar-base-duplicate"
       @click="emits('duplicateProject', base)"
     >
@@ -80,9 +94,7 @@ const { isUIAllowed } = useRoles()
 
     <!-- Get Connection -->
     <NcMenuItem
-      v-if="
-        isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && isUIAllowed('createConnectionDetails') && base?.sources?.[0]?.enabled
-      "
+      v-if="isOptionVisible.dataReflection"
       m-key="connect"
       data-testid="nc-sidebar-base-connect"
       @click="emits('onDataReflection')"
@@ -106,11 +118,7 @@ const { isUIAllowed } = useRoles()
       {{ $t('labels.restApis') }}
     </NcMenuItem>
 
-    <DashboardTreeViewBaseOptions
-      v-if="base?.sources?.[0]?.enabled && showBaseOption(base.sources[0])"
-      v-model:base="base"
-      :source="base.sources[0]"
-    />
+    <DashboardTreeViewBaseOptions v-if="isOptionVisible.baseOptions" v-model:base="base" :source="base.sources[0]" />
 
     <NcDivider v-if="['settings', 'baseDelete'].some((permission) => isUIAllowed(permission))" />
 
@@ -126,7 +134,7 @@ const { isUIAllowed } = useRoles()
       {{ $t('activity.settings') }}
     </NcMenuItem>
     <NcMenuItem
-      v-if="isUIAllowed('baseDelete', { roles: base.project_role || base.workspace_role })"
+      v-if="isOptionVisible.baseDelete"
       class="!text-red-500 !hover:bg-red-50"
       data-testid="nc-sidebar-base-delete"
       @click="emits('delete')"

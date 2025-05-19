@@ -355,7 +355,7 @@ export const getUserValue = (modelValue: string | string[] | null | Array<any>, 
 }
 
 export const getDecimalValue = (modelValue: string | null | number, col: ColumnType) => {
-  if (!modelValue || isNaN(Number(modelValue))) {
+  if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
     return ''
   }
   const columnMeta = parseProp(col.meta)
@@ -364,10 +364,10 @@ export const getDecimalValue = (modelValue: string | null | number, col: ColumnT
 }
 
 export const getIntValue = (modelValue: string | null | number) => {
-  if (!modelValue || isNaN(Number(modelValue))) {
+  if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
     return ''
   }
-  return Number(modelValue) as unknown as string
+  return Number(modelValue).toString()
 }
 
 export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => {

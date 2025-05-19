@@ -20,7 +20,7 @@ const inputRef = ref()
 
 const placeholder = computed(() => {
   return isLoading.value
-    ? 'Search...'
+    ? `${t('general.search')}...`
     : `${t('activity.searchProject').charAt(0).toUpperCase()}${t('activity.searchProject').slice(1).toLowerCase()}`
 })
 

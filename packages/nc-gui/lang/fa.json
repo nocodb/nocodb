@@ -1728,7 +1728,10 @@
     "searchOptions": "گزینه‌های جستجو",
     "lockViewDescription": "دلیل قفل کردن این نما را توضیح دهید. این پیام هنگام تلاش برای باز کردن نما به افراد نمایش داده می‌شود (اختیاری).",
     "noBaseUsersFound": "هیچ کاربری برای این پایگاه یافت نشد",
-    "noInvoices": "هیچ فاکتوری وجود ندارد"
+    "noInvoices": "هیچ فاکتوری وجود ندارد",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "فیلترهای URL از پارامترهای URL اعمال شده و با فیلترهای نما که از نوار ابزار تنظیم شده‌اند ترکیب می‌شوند.",

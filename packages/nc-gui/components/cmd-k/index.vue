@@ -461,7 +461,7 @@ defineExpose({
           </div>
           <div v-else-if="searchedActionList.length === 0">
             <div class="cmdk-action">
-              <div class="cmdk-action-content">No results found for your search.</div>
+              <div class="cmdk-action-content">{{ $t('placeholder.noResultsFoundForYourSearch') }}</div>
             </div>
           </div>
           <template v-else>

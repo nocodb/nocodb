@@ -188,7 +188,11 @@ const filteredAvailableTables = computed(() => {
           'ml-9 xs:(ml-9.75)': sourceIndex !== 0 && isNewSidebarEnabled,
         }"
       >
-        {{ availableTables.length && !filteredAvailableTables.length ? 'No results found for your search.' : 'No tables' }}
+        {{
+          availableTables.length && !filteredAvailableTables.length
+            ? $t('placeholder.noResultsFoundForYourSearch')
+            : $t('placeholder.noTables')
+        }}
       </div>
 
       <div

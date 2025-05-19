@@ -52,13 +52,7 @@ const navigateToProjectPage = () => {
 const navigateToSettings = () => {
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
-  // TODO: Handle cloud case properly
   navigateToWorkspaceSettings('', cmdOrCtrl)
-
-  // if (appInfo.value.baseHostName) {
-  //   window.location.href = `https://app.${appInfo.value.baseHostName}/dashboard`
-  // } else {
-  // }
 }
 
 const navigateToIntegrations = () => {

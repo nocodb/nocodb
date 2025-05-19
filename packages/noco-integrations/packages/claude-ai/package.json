@@ -12,7 +12,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^1.1.20",
+    "@ai-sdk/anthropic": "^1.2.11",
     "@noco-integrations/core": "workspace:*",
     "ai": "^4.3.16",
     "zod": "^3.24.4"
@@ -23,4 +23,4 @@
     "typescript": "^5.8.3",
     "vitest": "^3.1.3"
   }
-} 
+}

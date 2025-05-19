@@ -367,7 +367,7 @@ export const getIntValue = (modelValue: string | null | number) => {
   if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
     return ''
   }
-  return Number(modelValue) as unknown as string
+  return Number(modelValue).toString()
 }
 
 export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => {

@@ -9,12 +9,16 @@ import { JobTypes } from '~/interface/Jobs';
 import { Base, Source } from '~/models';
 import Snapshot from '~/models/Snapshot';
 import { DuplicateProcessor } from '~/modules/jobs/jobs/export-import/duplicate.processor';
+import { TelemetryService } from '~/services/telemetry.service';
 
 @Injectable()
 export class SnapshotProcessor {
   private readonly debugLog = debug('nc:jobs:snapshot');
 
-  constructor(private readonly duplicateProcessorService: DuplicateProcessor) {}
+  constructor(
+    private readonly duplicateProcessorService: DuplicateProcessor,
+    private readonly telemetryService: TelemetryService,
+  ) {}
 
   async createSnapshot(job: Job<CreateSnapshotJobData>) {
     this.debugLog(`Job started for ${job.id} (${JobTypes.CreateSnapshot})`);
@@ -43,6 +47,20 @@ export class SnapshotProcessor {
       });
     } catch (err) {
       await Snapshot.delete(context, snapshot.id);
+
+      this.telemetryService.sendSystemEvent({
+        event_type: 'priority_error',
+        error_type: err?.name,
+        message: err?.message,
+        error_details: err?.stack,
+        affected_resources: [
+          ...(req?.user?.email ? [req.user.email] : []),
+          req?.user?.id,
+          context.workspace_id,
+          context.base_id,
+        ],
+      });
+
       throw err;
     }
 

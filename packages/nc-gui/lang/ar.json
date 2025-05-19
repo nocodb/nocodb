@@ -1728,7 +1728,10 @@
     "searchOptions": "بحث عن الخيارات",
     "lockViewDescription": "اشرح سبب قفل هذا العرض. سيظهر هذا الرسالة عندما يحاول أي شخص إلغاء قفل العرض (اختياري).",
     "noBaseUsersFound": "لم يتم العثور على مستخدمي قاعدة",
-    "noInvoices": "لا توجد فواتير"
+    "noInvoices": "لا توجد فواتير",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "يتم تطبيق فلاتر الرابط من معلمات URL وتُدمج مع فلاتر العرض المُعيّنة عبر شريط الأدوات.",

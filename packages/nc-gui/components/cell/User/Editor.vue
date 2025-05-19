@@ -381,9 +381,9 @@ onMounted(() => {
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
       :class="{ 'caret-transparent': !hasEditRoles }"
-      :dropdown-class-name="`nc-dropdown-user-select-cell ${isInFilter ? '!min-w-256px' : '!min-w-156px'}  ${
-        isOpen ? 'active' : ''
-      }`"
+      :dropdown-class-name="`nc-dropdown-user-select-cell ${
+        isInFilter ? '!min-w-256px nc-dropdown-user-select-cell-filter' : '!min-w-156px'
+      }  ${isOpen ? 'active' : ''}`"
       :filter-option="filterOption"
       @search="search"
       @focus="onFocus"
@@ -411,7 +411,8 @@ onMounted(() => {
             class="absolute -bottom-1 w-[calc(100%_+_16px)] border-b-1 border-nc-border-gray-medium -ml-4"
           ></div>
           <div v-if="location === 'filter'" class="w-full flex gap-3 items-center">
-            <GeneralUserIcon :user="op" size="base" class="flex-none" />
+            <GeneralUserIcon :user="op" size="base" class="flex-none" :show-placeholder-icon="op.email === CURRENT_USER_TOKEN" />
+
             <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
               <div class="w-full flex gap-3">
                 <NcTooltip
@@ -433,6 +434,12 @@ onMounted(() => {
                 {{ op.email === CURRENT_USER_TOKEN ? 'Filtered by logged-in user' : op.email }}
               </NcTooltip>
             </div>
+            <GeneralIcon
+              v-if="!!vModel.find((i) => i.email === op.email)"
+              id="nc-selected-item-icon"
+              icon="check"
+              class="flex-none text-primary w-4 h-4"
+            />
           </div>
           <a-tag
             v-else
@@ -599,5 +606,11 @@ onMounted(() => {
 
 :deep(.nc-select-option-current-user) {
   @apply relative;
+}
+</style>
+
+<style lang="scss">
+.ant-select-dropdown.nc-dropdown-user-select-cell-filter .ant-select-item-option-state {
+  @apply hidden;
 }
 </style>

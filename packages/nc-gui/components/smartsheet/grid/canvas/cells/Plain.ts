@@ -26,7 +26,7 @@ export const PlainCellRenderer: CellRenderer = {
 
     const abstractType = getAbstractType(column, sqlUis)
 
-    const text = parsePlainCellValue(value, {
+    let text = parsePlainCellValue(value, {
       col: column,
       abstractType,
       meta,
@@ -37,6 +37,9 @@ export const PlainCellRenderer: CellRenderer = {
       t,
       isUnderLookup,
     })
+
+    text = text.toString() ?? ''
+
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
     } else if (!text) {

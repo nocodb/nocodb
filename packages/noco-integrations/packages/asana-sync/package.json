@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
-    "asana": "^1.0.0"
+    "asana": "^1.0.1"
   },
   "devDependencies": {
     "typescript": "^5.2.2"
   }
-} 
+}

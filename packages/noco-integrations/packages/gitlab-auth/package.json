@@ -9,7 +9,7 @@
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
-    "@gitbeaker/rest": "^39.31.1",
+    "@gitbeaker/rest": "^42.5.0",
     "@noco-integrations/core": "workspace:*",
     "axios": "^1.9.0"
   },
@@ -17,4 +17,4 @@
     "rimraf": "^5.0.10",
     "typescript": "^5.8.3"
   }
-} 
+}

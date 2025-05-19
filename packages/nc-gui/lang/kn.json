@@ -1728,7 +1728,10 @@
     "searchOptions": "ಹುಡುಕಿ ಆಯ್ಕೆಗಳನ್ನು",
     "lockViewDescription": "ನೀವು ಈ ದೃಶ್ಯವನ್ನು ಏಕೆ ಲಾಕ್ ಮಾಡುತ್ತಿದ್ದೀರಿ ಎಂಬುದನ್ನು ವಿವರಿಸಿ. ಯಾರಾದರೂ ಅನ್‌ಲಾಕ್ ಮಾಡಲು ಪ್ರಯತ್ನಿಸಿದಾಗ ಈ ಸಂದೇಶವು ತೋರಲಾಗುತ್ತದೆ (ಐಚ್ಛಿಕ).",
     "noBaseUsersFound": "ಬೇಸ್ ಬಳಕೆದಾರರನ್ನು ಕಂಡುಹಿಡಿಯಲಿಲ್ಲ",
-    "noInvoices": "ಯಾವುದೇ ಇನ್\r\u000bವಾಯ್ಸ್\r\u000bಗಳಿಲ್ಲ"
+    "noInvoices": "ಯಾವುದೇ ಇನ್\r\u000bವಾಯ್ಸ್\r\u000bಗಳಿಲ್ಲ",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL ಪರಾಮೀಟರ್‌ಗಳಿಂದ URL ಫಿಲ್ಟರ್‌ಗಳನ್ನು ಅನ್ವಯಿಸಲಾಗಿದ್ದು, ಟೂಲ್ಬಾರ್‌ನಲ್ಲಿ ಹೊಂದಿರುವ ದೃಶ್ಯ ಫಿಲ್ಟರ್‌ಗಳೊಂದಿಗೆ ಸಂಯೋಜಿಸಲಾಗುತ್ತದೆ.",

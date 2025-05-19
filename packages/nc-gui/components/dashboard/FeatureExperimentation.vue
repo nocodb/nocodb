@@ -15,18 +15,17 @@ const selectedFeatures = ref<Record<string, boolean>>({})
 
 // Add search functionality
 const searchQuery = ref('')
-const isSearchOpen = ref(false)
 
 const filteredFeatures = computed(() => {
   if (!searchQuery.value) return features.value
-  
+
   const query = searchQuery.value.toLowerCase()
-  
+
   // Helper function to calculate match score
   const getMatchScore = (feature: BetaFeatureType) => {
     const title = feature.title.toLowerCase()
     const description = feature.description.toLowerCase()
-    
+
     // Exact prefix match in title (highest priority)
     if (title.startsWith(query)) return 4
     // Contains exact match in title
@@ -40,7 +39,7 @@ const filteredFeatures = computed(() => {
   }
 
   return features.value
-    .filter(feature => {
+    .filter((feature) => {
       const title = feature.title.toLowerCase()
       const description = feature.description.toLowerCase()
       return title.includes(query) || description.includes(query)

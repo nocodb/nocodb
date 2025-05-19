@@ -7,7 +7,7 @@ interface Props {
   dataReflectionText?: string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
@@ -28,6 +28,15 @@ const { appInfo } = useGlobal()
 const { orgRoles, isUIAllowed } = useRoles()
 
 const baseRole = computed(() => base.value.project_role || base.value.workspace_role)
+
+const isOptionVisible = computed(() => {
+  return {
+    rename: isUIAllowed('baseRename'),
+    baseDuplicate: isUIAllowed('baseDuplicate', { roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join() }),
+    baseOptions: base.value?.sources?.[0]?.enabled && props.showBaseOption(base.value.sources[0]),
+    baseDelete: isUIAllowed('baseDelete', { roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join() }),
+  }
+})
 </script>
 
 <template>
@@ -49,7 +58,7 @@ const baseRole = computed(() => base.value.project_role || base.value.workspace_
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isUIAllowed('baseDuplicate', { roles: [stringifyRolesObj(orgRoles), baseRole].join() })"
+      v-if="isOptionVisible.baseDuplicate"
       data-testid="nc-sidebar-base-duplicate"
       @click="emits('duplicateProject', base)"
     >
@@ -94,7 +103,7 @@ const baseRole = computed(() => base.value.project_role || base.value.workspace_
       {{ $t('activity.account.swagger') }}
     </NcMenuItem>
 
-    <template v-if="base?.sources?.[0]?.enabled && showBaseOption(base?.sources?.[0])">
+    <template v-if="isOptionVisible.baseOptions">
       <NcDivider />
       <DashboardTreeViewBaseOptions v-model:base="base" :source="base.sources[0]" />
     </template>
@@ -114,7 +123,7 @@ const baseRole = computed(() => base.value.project_role || base.value.workspace_
       </div>
     </NcMenuItem>
     <NcMenuItem
-      v-if="isUIAllowed('baseDelete', { roles: [stringifyRolesObj(orgRoles), baseRole].join() })"
+      v-if="isOptionVisible.baseDelete"
       data-testid="nc-sidebar-base-delete"
       class="!text-red-500 !hover:bg-red-50"
       @click="emits('delete')"

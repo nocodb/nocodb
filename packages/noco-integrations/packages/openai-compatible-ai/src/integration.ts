@@ -68,4 +68,4 @@ export class OpenAiCompatibleAiIntegration extends AiIntegration {
       label: this.getModelAlias(model),
     }));
   }
-} 
+}

@@ -2,7 +2,10 @@ import axios from 'axios';
 import * as asana from 'asana';
 import { AuthIntegration, AuthType } from '@noco-integrations/core';
 import { clientId, clientSecret, tokenUri } from './config';
-import type { AuthResponse } from '@noco-integrations/core';
+import type {
+  AuthResponse,
+  TestConnectionResponse,
+} from '@noco-integrations/core';
 
 export class AsanaAuthIntegration extends AuthIntegration {
   public async authenticate(): Promise<AuthResponse<asana.Client>> {
@@ -33,6 +36,30 @@ export class AsanaAuthIntegration extends AuthIntegration {
         };
       default:
         throw new Error('Not implemented');
+    }
+  }
+
+  public async testConnection(): Promise<TestConnectionResponse> {
+    try {
+      const client = (await this.authenticate()).custom;
+
+      if (!client) {
+        return {
+          success: false,
+          message: 'Missing Asana client',
+        };
+      }
+
+      // Test the connection by fetching the current user
+      await client.users.me();
+      return {
+        success: true,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 

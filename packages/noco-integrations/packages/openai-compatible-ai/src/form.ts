@@ -52,7 +52,10 @@ export const form: FormDefinition = [
       { value: 'llama-4-maverick', label: 'Llama 4 Maverick' },
       { value: 'llama-3-70b', label: 'Llama 3 70B' },
       { value: 'mixtral-8x22b', label: 'Mixtral 8x22B' },
-      { value: 'deepseek-r1-distill-llama-70b', label: 'DeepSeek R1 Distill Llama 70B' },
+      {
+        value: 'deepseek-r1-distill-llama-70b',
+        label: 'DeepSeek R1 Distill Llama 70B',
+      },
     ],
     defaultValue: ['llama-3-70b-8192'],
     validators: [
@@ -62,4 +65,4 @@ export const form: FormDefinition = [
       },
     ],
   },
-]; 
+];

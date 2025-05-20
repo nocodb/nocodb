@@ -57,4 +57,4 @@ export class GeminiIntegration extends AiIntegration {
     };
     return aliases[model] || model;
   }
-} 
+}

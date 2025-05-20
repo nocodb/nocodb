@@ -2,7 +2,10 @@ import { Octokit } from 'octokit';
 import axios from 'axios';
 import { AuthIntegration, AuthType } from '@noco-integrations/core';
 import { clientId, clientSecret, tokenUri } from './config';
-import type { AuthResponse } from '@noco-integrations/core';
+import type {
+  AuthResponse,
+  TestConnectionResponse,
+} from '@noco-integrations/core';
 
 export class GithubAuthIntegration extends AuthIntegration {
   public async authenticate(): Promise<AuthResponse<Octokit>> {
@@ -21,6 +24,30 @@ export class GithubAuthIntegration extends AuthIntegration {
         };
       default:
         throw new Error('Not implemented');
+    }
+  }
+
+  public async testConnection(): Promise<TestConnectionResponse> {
+    try {
+      const octokit = (await this.authenticate()).custom;
+
+      if (!octokit) {
+        return {
+          success: false,
+          message: 'Missing GitHub Octokit client',
+        };
+      }
+
+      // Test connection by fetching the authenticated user
+      await octokit.rest.users.getAuthenticated();
+      return {
+        success: true,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 

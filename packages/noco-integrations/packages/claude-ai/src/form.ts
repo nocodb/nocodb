@@ -47,7 +47,7 @@ export const form: FormDefinition = [
       { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' },
       { value: 'claude-2.1', label: 'Claude 2.1' },
       { value: 'claude-2.0', label: 'Claude 2.0' },
-      { value: 'claude-instant-1.2', label: 'Claude Instant 1.2' }
+      { value: 'claude-instant-1.2', label: 'Claude Instant 1.2' },
     ],
     defaultValue: ['claude-3-5-sonnet-20240620'],
     validators: [
@@ -57,4 +57,4 @@ export const form: FormDefinition = [
       },
     ],
   },
-]; 
+];

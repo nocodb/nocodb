@@ -77,10 +77,22 @@ export const form: FormDefinition = [
       { value: 'amazon.nova-micro-v1:0', label: 'Amazon Nova Micro' },
       { value: 'amazon.nova-lite-v1:0', label: 'Amazon Nova Lite' },
       { value: 'amazon.nova-pro-v1:0', label: 'Amazon Nova Pro' },
-      { value: 'amazon.titan-text-express-v1', label: 'Amazon Titan Text Express' },
-      { value: 'anthropic.claude-3-sonnet-20240229-v1:0', label: 'Claude 3 Sonnet' },
-      { value: 'anthropic.claude-3-haiku-20240307-v1:0', label: 'Claude 3 Haiku' },
-      { value: 'anthropic.claude-3-opus-20240229-v1:0', label: 'Claude 3 Opus' },
+      {
+        value: 'amazon.titan-text-express-v1',
+        label: 'Amazon Titan Text Express',
+      },
+      {
+        value: 'anthropic.claude-3-sonnet-20240229-v1:0',
+        label: 'Claude 3 Sonnet',
+      },
+      {
+        value: 'anthropic.claude-3-haiku-20240307-v1:0',
+        label: 'Claude 3 Haiku',
+      },
+      {
+        value: 'anthropic.claude-3-opus-20240229-v1:0',
+        label: 'Claude 3 Opus',
+      },
       { value: 'meta.llama3-70b-instruct-v1:0', label: 'Llama 3 70B' },
       { value: 'meta.llama3-8b-instruct-v1:0', label: 'Llama 3 8B' },
       { value: 'mistral.mistral-7b-instruct-v0:2', label: 'Mistral 7B' },
@@ -94,4 +106,4 @@ export const form: FormDefinition = [
       },
     ],
   },
-]; 
+];

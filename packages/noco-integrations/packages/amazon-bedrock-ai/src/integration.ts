@@ -77,4 +77,4 @@ export class AmazonBedrockAiIntegration extends AiIntegration {
       label: this.getModelAlias(model),
     }));
   }
-} 
+}

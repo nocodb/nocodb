@@ -64,4 +64,4 @@ export class GroqAiIntegration extends AiIntegration {
       label: this.getModelAlias(model),
     }));
   }
-} 
+}

@@ -2,7 +2,10 @@ import axios from 'axios';
 import { LinearClient } from '@linear/sdk';
 import { AuthIntegration, AuthType } from '@noco-integrations/core';
 import { clientId, clientSecret, tokenUri } from './config';
-import type { AuthResponse } from '@noco-integrations/core';
+import type {
+  AuthResponse,
+  TestConnectionResponse,
+} from '@noco-integrations/core';
 
 export class LinearAuthIntegration extends AuthIntegration {
   public async authenticate(): Promise<AuthResponse<LinearClient>> {
@@ -29,6 +32,30 @@ export class LinearAuthIntegration extends AuthIntegration {
         };
       default:
         throw new Error('Not implemented');
+    }
+  }
+
+  public async testConnection(): Promise<TestConnectionResponse> {
+    try {
+      const client = (await this.authenticate()).custom;
+
+      if (!client) {
+        return {
+          success: false,
+          message: 'Missing Linear client',
+        };
+      }
+
+      // Test connection by fetching current user information
+      await client.viewer;
+      return {
+        success: true,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 

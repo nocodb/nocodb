@@ -57,9 +57,9 @@ export class ClaudeIntegration extends AiIntegration {
       'claude-3-haiku-20240307': 'Claude 3 Haiku',
       'claude-2.1': 'Claude 2.1',
       'claude-2.0': 'Claude 2.0',
-      'claude-instant-1.2': 'Claude Instant 1.2'
+      'claude-instant-1.2': 'Claude Instant 1.2',
     };
 
     return aliases[model] || model;
   }
-} 
+}

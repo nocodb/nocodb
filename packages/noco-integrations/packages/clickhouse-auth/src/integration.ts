@@ -1,6 +1,9 @@
 import { type ClickHouseClient, createClient } from '@clickhouse/client';
 import { AuthIntegration, AuthType } from '@noco-integrations/core';
-import type { AuthResponse } from '@noco-integrations/core';
+import type {
+  AuthResponse,
+  TestConnectionResponse,
+} from '@noco-integrations/core';
 
 export class ClickhouseAuthIntegration extends AuthIntegration {
   public async authenticate(): Promise<AuthResponse<ClickHouseClient>> {
@@ -16,6 +19,33 @@ export class ClickhouseAuthIntegration extends AuthIntegration {
         };
       default:
         throw new Error('Not implemented');
+    }
+  }
+
+  public async testConnection(): Promise<TestConnectionResponse> {
+    try {
+      const client = (await this.authenticate()).custom;
+
+      if (!client) {
+        return {
+          success: false,
+          message: 'Missing ClickHouse client',
+        };
+      }
+
+      // Attempt to ping or execute a simple query
+      await client.query({
+        query: 'SELECT 1',
+      });
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 }

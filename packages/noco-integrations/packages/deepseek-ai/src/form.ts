@@ -52,4 +52,4 @@ export const form: FormDefinition = [
       },
     ],
   },
-]; 
+];

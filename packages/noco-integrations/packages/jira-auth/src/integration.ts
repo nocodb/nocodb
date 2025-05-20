@@ -2,7 +2,10 @@ import axios from 'axios';
 import JiraClient from 'jira-client';
 import { AuthIntegration, AuthType } from '@noco-integrations/core';
 import { clientId, clientSecret, tokenUri } from './config';
-import type { AuthResponse } from '@noco-integrations/core';
+import type {
+  AuthResponse,
+  TestConnectionResponse,
+} from '@noco-integrations/core';
 
 export class JiraAuthIntegration extends AuthIntegration {
   public async authenticate(): Promise<AuthResponse<JiraClient>> {
@@ -41,6 +44,30 @@ export class JiraAuthIntegration extends AuthIntegration {
     }
   }
 
+  public async testConnection(): Promise<TestConnectionResponse> {
+    try {
+      const jira = (await this.authenticate()).custom;
+
+      if (!jira) {
+        return {
+          success: false,
+          message: 'Missing Jira client',
+        };
+      }
+
+      // Test connection by fetching current user information
+      await jira.getCurrentUser();
+      return {
+        success: true,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
   public async exchangeToken(payload: {
     code: string;
   }): Promise<{ oauth_token: string }> {
@@ -68,11 +95,10 @@ export class JiraAuthIntegration extends AuthIntegration {
 
   private extractHostFromUrl(url: string): string {
     try {
-      const parsedUrl = new URL(url);
-      return parsedUrl.host;
+      const { hostname } = new URL(url);
+      return hostname;
     } catch {
-      // If URL parsing fails, assume it's just the hostname
-      return url.replace(/^https?:\/\//, '');
+      return url;
     }
   }
 }

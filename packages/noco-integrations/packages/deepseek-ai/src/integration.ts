@@ -63,4 +63,4 @@ export class DeepseekAiIntegration extends AiIntegration {
       label: this.getModelAlias(model),
     }));
   }
-} 
+}

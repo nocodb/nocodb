@@ -2,7 +2,10 @@ import axios from 'axios';
 import { Gitlab } from '@gitbeaker/rest';
 import { AuthIntegration, AuthType } from '@noco-integrations/core';
 import { clientId, clientSecret, tokenUri } from './config';
-import type { AuthResponse } from '@noco-integrations/core';
+import type {
+  AuthResponse,
+  TestConnectionResponse,
+} from '@noco-integrations/core';
 
 export class GitlabAuthIntegration extends AuthIntegration {
   public async authenticate(): Promise<
@@ -23,6 +26,30 @@ export class GitlabAuthIntegration extends AuthIntegration {
         };
       default:
         throw new Error('Not implemented');
+    }
+  }
+
+  public async testConnection(): Promise<TestConnectionResponse> {
+    try {
+      const gitlab = (await this.authenticate()).custom;
+
+      if (!gitlab) {
+        return {
+          success: false,
+          message: 'Missing GitLab client',
+        };
+      }
+
+      // Test connection by fetching the current user
+      await gitlab.Users.all({ perPage: 1 });
+      return {
+        success: true,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 

@@ -1,9 +1,10 @@
+import type { Api } from 'nocodb-sdk';
 import { apiPlugin } from '../../plugins/api'
 import { defineNuxtPlugin } from '#app'
 
 declare module '#app' {
   interface NuxtApp {
-    $api: ReturnType<typeof createApiInstance>
+    $api: Api<any>
   }
 }
 

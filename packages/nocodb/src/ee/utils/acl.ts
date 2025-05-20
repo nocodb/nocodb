@@ -121,6 +121,8 @@ const permissionScopes = {
     'integrationDelete',
     'integrationUpdate',
     'integrationList',
+    'integrationStore',
+    'integrationEndpointGet',
     'aiSchema',
     'createDataReflection',
     'deleteDataReflection',
@@ -789,6 +791,8 @@ const permissionDescriptions: Record<string, string> = {
   integrationDelete: 'delete an integration',
   integrationUpdate: 'update integration details',
   integrationList: 'view list of integrations',
+  integrationStore: "get data from an integration's store",
+  integrationEndpointGet: 'call get request to an exposed integration endpoint',
 
   // base permissions
   formViewGet: 'view forms',

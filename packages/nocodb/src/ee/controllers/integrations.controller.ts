@@ -200,6 +200,10 @@ export class IntegrationsController {
   }
 
   @Post(['/api/v2/integrations/:integrationId/store'])
+  @Acl('integrationStore', {
+    scope: 'workspace',
+    extendedScope: 'base',
+  })
   async storeIntegration(
     @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,
@@ -232,6 +236,10 @@ export class IntegrationsController {
   }
 
   @Post(['/api/v2/integrations/:integrationId/:endpoint'])
+  @Acl('integrationEndpointGet', {
+    scope: 'workspace',
+    extendedScope: 'base',
+  })
   async integrationEndpointGet(
     @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,

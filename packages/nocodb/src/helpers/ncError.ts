@@ -30,7 +30,7 @@ export class AjvError extends NcBaseError {
   errors: ErrorObject[];
 }
 
-export class NcError {
+export class NcError extends NcErrorBase {
   static _instance: NcError;
   static get _() {
     if (!this._instance) {
@@ -43,251 +43,7 @@ export class NcError {
     return this._instance;
   }
 
-  static authenticationRequired(args?: NcErrorArgs): never {
-    NcErrorBase._.authenticationRequired(args);
-  }
-
-  static apiTokenNotAllowed(args?: NcErrorArgs): never {
-    NcErrorBase._.apiTokenNotAllowed(args);
-  }
-
-  static workspaceNotFound(id: string, args?: NcErrorArgs): never {
-    NcErrorBase._.workspaceNotFound(id, args);
-  }
-
-  static columnAssociatedWithLink(_id: string, args: NcErrorArgs): never {
-    NcErrorBase._.columnAssociatedWithLink(_id, args);
-  }
-
-  static tableAssociatedWithLink(_id: string, args: NcErrorArgs): never {
-    NcErrorBase._.tableAssociatedWithLink(_id, args);
-  }
-
-  static baseNotFound(id: string, args?: NcErrorArgs): never {
-    NcErrorBase._.baseNotFound(id, args);
-  }
-  static baseNotFoundV3(id: string, args?: NcErrorArgs): never {
-    NcErrorBase._.baseNotFoundV3(id, args);
-  }
-
-  static sourceNotFound(id: string, args?: NcErrorArgs): never {
-    NcErrorBase._.sourceNotFound(id, args);
-  }
-
-  static tableNotFound(id: string, args?: NcErrorArgs): never {
-    NcErrorBase._.tableNotFound(id, args);
-  }
-
-  static tableNotFoundV3(id: string, args?: NcErrorArgs): never {
-    NcErrorBase._.tableNotFoundV3(id, args);
-  }
-
-  static userNotFound(id: string, args?: NcErrorArgs): never {
-    NcErrorBase._.userNotFound(id, args);
-  }
-
-  static viewNotFound(id: string, args?: NcErrorArgs): never {
-    NcErrorBase._.viewNotFound(id, args);
-  }
-
-  static viewNotFoundV3(id: string, args?: NcErrorArgs): never {
-    NcErrorBase._.viewNotFoundV3(id, args);
-  }
-
-  static hookNotFound(id: string, args?: NcErrorArgs): never {
-    NcErrorBase._.hookNotFound(id, args);
-  }
-
-  static genericNotFound(
-    resource: string,
-    id: string,
-    args?: NcErrorArgs,
-  ): never {
-    NcErrorBase._.genericNotFound(resource, id, args);
-  }
-
-  static requiredFieldMissing(field: string, args?: NcErrorArgs): never {
-    NcErrorBase._.requiredFieldMissing(field, args);
-  }
-
-  static duplicateRecord(id: string | string[], args?: NcErrorArgs): never {
-    NcErrorBase._.duplicateRecord(id, args);
-  }
-
-  static fieldNotFound(id: string, args?: NcErrorArgs): never {
-    NcErrorBase._.fieldNotFound(id, args);
-  }
-
-  static fieldNotFoundV3(id: string, args?: NcErrorArgs): never {
-    NcErrorBase._.fieldNotFoundV3(id, args);
-  }
-
-  static invalidOffsetValue(
-    offset: string | number,
-    args?: NcErrorArgs,
-  ): never {
-    NcErrorBase._.invalidOffsetValue(offset, args);
-  }
-  static invalidPageValue(page: string | number, args?: NcErrorArgs): never {
-    NcErrorBase._.invalidPageValue(page, args);
-  }
-
-  static invalidPrimaryKey(
-    value: any,
-    pkColumn: string,
-    args?: NcErrorArgs,
-  ): never {
-    NcErrorBase._.invalidPrimaryKey(value, pkColumn, args);
-  }
-
-  static invalidLimitValue(args?: NcErrorArgs): never {
-    NcErrorBase._.invalidLimitValue(args);
-  }
-
-  static invalidFilter(filter: string, args?: NcErrorArgs): never {
-    NcErrorBase._.invalidFilter(filter, args);
-  }
-
-  static invalidFilterV3(message: string, args?: NcErrorArgs): never {
-    NcErrorBase._.invalidFilterV3(message, args);
-  }
-
-  static invalidValueForField(
-    payload: string | { value: string; column: string; type: UITypes },
-    args?: NcErrorArgs,
-  ): never {
-    NcErrorBase._.invalidValueForField(payload, args);
-  }
-
-  static invalidSharedViewPassword(args?: NcErrorArgs): never {
-    NcErrorBase._.invalidSharedViewPassword(args);
-  }
-
-  static invalidAttachmentJson(payload: string, args?: NcErrorArgs): never {
-    NcErrorBase._.invalidAttachmentJson(payload, args);
-  }
-
-  static notImplemented(
-    feature: string = 'Feature',
-    args?: NcErrorArgs,
-  ): never {
-    NcErrorBase._.notImplemented(feature, args);
-  }
-
-  static internalServerError(message: string, args?: NcErrorArgs): never {
-    NcErrorBase._.internalServerError(message, args);
-  }
-
-  static formulaError(message: string, args?: NcErrorArgs): never {
-    NcErrorBase._.formulaError(message, args);
-  }
-
-  static formulaCircularRefError(message: string, args?: NcErrorArgs): never {
-    NcErrorBase._.formulaCircularRefError(message, args);
-  }
-
-  static unauthorized(message: string, args?: NcErrorArgs): never {
-    NcErrorBase._.unauthorized(message, args);
-  }
-
-  static forbidden(message: string, args?: NcErrorArgs): never {
-    NcErrorBase._.forbidden(message, args);
-  }
-
-  static sourceDataReadOnly(name: string): never {
-    NcError.forbidden(`Source '${name}' is read-only`);
-  }
-
-  static sourceMetaReadOnly(name: string): never {
-    NcError.forbidden(`Source '${name}' schema is read-only`);
-  }
-
-  static integrationNotFound(id: string, args?: NcErrorArgs): never {
-    NcErrorBase._.integrationNotFound(id, args);
-  }
-
-  static cannotCalculateIntermediateOrderError(): never {
-    NcErrorBase._.cannotCalculateIntermediateOrderError();
-  }
-
-  static reorderFailed(): never {
-    NcErrorBase._.reorderFailed();
-  }
-
-  static integrationLinkedWithMultiple(
-    bases: BaseType[],
-    sources: SourceType[],
-    args?: NcErrorArgs,
-  ): never {
-    NcErrorBase._.integrationLinkedWithMultiple(bases, sources, args);
-  }
-
-  static invalidAttachmentUploadScope(args?: NcErrorArgs): never {
-    NcErrorBase._.invalidAttachmentUploadScope(args);
-  }
-
-  static planLimitExceeded(
-    message: string,
-    details: Omit<PlanLimitExceededDetailsType, 'higherPlan'>,
-    args?: NcErrorArgs,
-  ): never {
-    NcErrorBase._.planLimitExceeded(message, details, args);
-  }
-
-  static allowedOnlySSOAccess(ncWorkspaceId: string): never {
-    NcErrorBase._.allowedOnlySSOAccess(ncWorkspaceId);
-  }
-  static maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
-    NcErrorBase._.maxInsertLimitExceeded(limit, args);
-  }
-  static baseUserError(message: string, args?: NcErrorArgs) {
-    NcErrorBase._.baseUserError(message, args);
-  }
-
-  static maxWorkspaceLimitReached(args?: NcErrorArgs): never {
-    NcErrorBase._.maxWorkspaceLimitReached(args);
-  }
-
-  static notFound(message = 'Not found'): never {
-    NcErrorBase._.notFound(message);
-  }
-
-  static badRequest(message): never {
-    NcErrorBase._.badRequest(message);
-  }
-
-  static unprocessableEntity(message = 'Unprocessable entity'): never {
-    NcErrorBase._.unprocessableEntity(message);
-  }
-
-  static optionsNotExists(props: {
-    columnTitle: string;
-    options: string[];
-    validOptions: string[];
-  }): never {
-    NcErrorBase._.optionsNotExists(props);
-  }
-
-  static testConnectionError(
-    message = 'Unprocessable entity',
-    code?: string,
-  ): never {
-    NcErrorBase._.testConnectionError(message, code);
-  }
-
-  static notAllowed(message = 'Not allowed'): never {
-    NcErrorBase._.notAllowed(message);
-  }
-
-  static emailDomainNotAllowed(domain: string): never {
-    NcErrorBase._.emailDomainNotAllowed(domain);
-  }
-
-  static metaError(param: { message: string; sql: string }): never {
-    NcErrorBase._.metaError(param);
-  }
-
-  static permissionDenied(
+  permissionDenied(
     permissionName: string,
     roles: Record<string, boolean>,
     extendedScopeRoles: any,
@@ -306,7 +62,7 @@ export class NcError {
     });
   }
 
-  static recordNotFound(
+  recordNotFound(
     id: string | string[] | Record<string, string> | Record<string, string>[],
     args?: NcErrorArgs,
   ): never {
@@ -353,11 +109,285 @@ export class NcError {
     });
   }
 
-  static ajvValidationError(param: {
+  ajvValidationError(param: {
     message: string;
     errors: ErrorObject[];
     humanReadableError: boolean;
   }): never {
     throw new AjvError(param);
   }
+
+  // backward compatibility
+  /* region statics */
+  static authenticationRequired(args?: NcErrorArgs): never {
+    return NcError._.authenticationRequired(args);
+  }
+
+  static apiTokenNotAllowed(args?: NcErrorArgs): never {
+    return NcError._.apiTokenNotAllowed(args);
+  }
+
+  static workspaceNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.workspaceNotFound(id, args);
+  }
+
+  static columnAssociatedWithLink(_id: string, args: NcErrorArgs): never {
+    return NcError._.columnAssociatedWithLink(_id, args);
+  }
+
+  static tableAssociatedWithLink(_id: string, args: NcErrorArgs): never {
+    return NcError._.tableAssociatedWithLink(_id, args);
+  }
+
+  static baseNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.baseNotFound(id, args);
+  }
+  static baseNotFoundV3(id: string, args?: NcErrorArgs): never {
+    return NcError._.baseNotFoundV3(id, args);
+  }
+
+  static sourceNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.sourceNotFound(id, args);
+  }
+
+  static tableNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.tableNotFound(id, args);
+  }
+
+  static tableNotFoundV3(id: string, args?: NcErrorArgs): never {
+    return NcError._.tableNotFoundV3(id, args);
+  }
+
+  static userNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.userNotFound(id, args);
+  }
+
+  static viewNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.viewNotFound(id, args);
+  }
+
+  static viewNotFoundV3(id: string, args?: NcErrorArgs): never {
+    return NcError._.viewNotFoundV3(id, args);
+  }
+
+  static hookNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.hookNotFound(id, args);
+  }
+
+  static genericNotFound(
+    resource: string,
+    id: string,
+    args?: NcErrorArgs,
+  ): never {
+    return NcError._.genericNotFound(resource, id, args);
+  }
+
+  static requiredFieldMissing(field: string, args?: NcErrorArgs): never {
+    return NcError._.requiredFieldMissing(field, args);
+  }
+
+  static duplicateRecord(id: string | string[], args?: NcErrorArgs): never {
+    return NcError._.duplicateRecord(id, args);
+  }
+
+  static fieldNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.fieldNotFound(id, args);
+  }
+
+  static fieldNotFoundV3(id: string, args?: NcErrorArgs): never {
+    return NcError._.fieldNotFoundV3(id, args);
+  }
+
+  static invalidOffsetValue(
+    offset: string | number,
+    args?: NcErrorArgs,
+  ): never {
+    return NcError._.invalidOffsetValue(offset, args);
+  }
+  static invalidPageValue(page: string | number, args?: NcErrorArgs): never {
+    return NcError._.invalidPageValue(page, args);
+  }
+
+  static invalidPrimaryKey(
+    value: any,
+    pkColumn: string,
+    args?: NcErrorArgs,
+  ): never {
+    return NcError._.invalidPrimaryKey(value, pkColumn, args);
+  }
+
+  static invalidLimitValue(args?: NcErrorArgs): never {
+    return NcError._.invalidLimitValue(args);
+  }
+
+  static invalidFilter(filter: string, args?: NcErrorArgs): never {
+    return NcError._.invalidFilter(filter, args);
+  }
+
+  static invalidFilterV3(message: string, args?: NcErrorArgs): never {
+    return NcError._.invalidFilterV3(message, args);
+  }
+
+  static invalidValueForField(
+    payload: string | { value: string; column: string; type: UITypes },
+    args?: NcErrorArgs,
+  ): never {
+    return NcError._.invalidValueForField(payload, args);
+  }
+
+  static invalidSharedViewPassword(args?: NcErrorArgs): never {
+    return NcError._.invalidSharedViewPassword(args);
+  }
+
+  static invalidAttachmentJson(payload: string, args?: NcErrorArgs): never {
+    return NcError._.invalidAttachmentJson(payload, args);
+  }
+
+  static notImplemented(
+    feature: string = 'Feature',
+    args?: NcErrorArgs,
+  ): never {
+    return NcError._.notImplemented(feature, args);
+  }
+
+  static internalServerError(message: string, args?: NcErrorArgs): never {
+    return NcError._.internalServerError(message, args);
+  }
+
+  static formulaError(message: string, args?: NcErrorArgs): never {
+    return NcError._.formulaError(message, args);
+  }
+
+  static formulaCircularRefError(message: string, args?: NcErrorArgs): never {
+    return NcError._.formulaCircularRefError(message, args);
+  }
+
+  static unauthorized(message: string, args?: NcErrorArgs): never {
+    return NcError._.unauthorized(message, args);
+  }
+
+  static forbidden(message: string, args?: NcErrorArgs): never {
+    return NcError._.forbidden(message, args);
+  }
+
+  static sourceDataReadOnly(name: string): never {
+    return NcError.forbidden(`Source '${name}' is read-only`);
+  }
+
+  static sourceMetaReadOnly(name: string): never {
+    return NcError.forbidden(`Source '${name}' schema is read-only`);
+  }
+
+  static integrationNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.integrationNotFound(id, args);
+  }
+
+  static cannotCalculateIntermediateOrderError(): never {
+    return NcError._.cannotCalculateIntermediateOrderError();
+  }
+
+  static reorderFailed(): never {
+    return NcError._.reorderFailed();
+  }
+
+  static integrationLinkedWithMultiple(
+    bases: BaseType[],
+    sources: SourceType[],
+    args?: NcErrorArgs,
+  ): never {
+    return NcError._.integrationLinkedWithMultiple(bases, sources, args);
+  }
+
+  static invalidAttachmentUploadScope(args?: NcErrorArgs): never {
+    return NcError._.invalidAttachmentUploadScope(args);
+  }
+
+  static planLimitExceeded(
+    message: string,
+    details: Omit<PlanLimitExceededDetailsType, 'higherPlan'>,
+    args?: NcErrorArgs,
+  ): never {
+    return NcError._.planLimitExceeded(message, details, args);
+  }
+
+  static allowedOnlySSOAccess(ncWorkspaceId: string): never {
+    return NcError._.allowedOnlySSOAccess(ncWorkspaceId);
+  }
+  static maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
+    return NcError._.maxInsertLimitExceeded(limit, args);
+  }
+  static baseUserError(message: string, args?: NcErrorArgs) {
+    return NcError._.baseUserError(message, args);
+  }
+
+  static maxWorkspaceLimitReached(args?: NcErrorArgs): never {
+    return NcError._.maxWorkspaceLimitReached(args);
+  }
+
+  static notFound(message = 'Not found'): never {
+    return NcError._.notFound(message);
+  }
+
+  static badRequest(message): never {
+    return NcError._.badRequest(message);
+  }
+
+  static unprocessableEntity(message = 'Unprocessable entity'): never {
+    return NcError._.unprocessableEntity(message);
+  }
+
+  static optionsNotExists(props: {
+    columnTitle: string;
+    options: string[];
+    validOptions: string[];
+  }): never {
+    return NcError._.optionsNotExists(props);
+  }
+
+  static testConnectionError(
+    message = 'Unprocessable entity',
+    code?: string,
+  ): never {
+    return NcError._.testConnectionError(message, code);
+  }
+
+  static notAllowed(message = 'Not allowed'): never {
+    return NcError._.notAllowed(message);
+  }
+
+  static emailDomainNotAllowed(domain: string): never {
+    return NcError._.emailDomainNotAllowed(domain);
+  }
+
+  static metaError(param: { message: string; sql: string }): never {
+    return NcError._.metaError(param);
+  }
+
+  static permissionDenied(
+    permissionName: string,
+    roles: Record<string, boolean>,
+    extendedScopeRoles: any,
+  ): never {
+    return NcError._.permissionDenied(
+      permissionName,
+      roles,
+      extendedScopeRoles,
+    );
+  }
+
+  static recordNotFound(
+    id: string | string[] | Record<string, string> | Record<string, string>[],
+    args?: NcErrorArgs,
+  ): never {
+    return NcError._.recordNotFound(id, args);
+  }
+
+  static ajvValidationError(param: {
+    message: string;
+    errors: ErrorObject[];
+    humanReadableError: boolean;
+  }): never {
+    return NcError._.ajvValidationError(param);
+  }
+  /* endregion statics */
 }

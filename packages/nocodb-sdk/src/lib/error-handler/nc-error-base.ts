@@ -1,12 +1,22 @@
 import { BaseType, SourceType } from '../Api';
-import { NcErrorArgs } from '../error/nc-base-error';
+import {
+  BadRequestV2,
+  MetaError,
+  NcErrorArgs,
+  NotAllowed,
+  NotFound,
+  OptionsNotExistsError,
+  SsoError,
+  TestConnectionError,
+  UnprocessableEntity,
+} from '../error/nc-base.error';
 import { NcErrorType, PlanLimitExceededDetailsType } from '../globals';
 import { HigherPlan } from '../payment';
 import UITypes from '../UITypes';
 import { NcErrorGenerator } from './nc-error-generator';
 
-export class NcError {
-  static _ = new NcError();
+export class NcErrorBase {
+  static _ = new NcErrorBase();
 
   /*
   permissionDenied(
@@ -24,28 +34,10 @@ export class NcError {
   */
 
   /*
-  notFound(message = 'Not found'): never {}
-  badRequest(message): never {}
-  */
-
-  /*
   ajvValidationError(param: {
     message: string;
     errors: ErrorObject[];
     humanReadableError: boolean;
-  }): never {}
-  unprocessableEntity(message = 'Unprocessable entity'): never {}
-  testConnectionError(message = 'Unprocessable entity', code?: string): never {}
-  notAllowed(message = 'Not allowed'): never {}
-  emailDomainNotAllowed(domain: string): never {}
-  metaError(param: { message: string; sql: string }): never {}
-  */
-
-  /*
-  optionsNotExists(props: {
-    columnTitle: string;
-    options: string[];
-    validOptions: string[];
   }): never {}
   */
 
@@ -305,11 +297,11 @@ export class NcError {
   }
 
   sourceDataReadOnly(name: string) {
-    NcError._.forbidden(`Source '${name}' is read-only`);
+    NcErrorBase._.forbidden(`Source '${name}' is read-only`);
   }
 
   sourceMetaReadOnly(name: string) {
-    NcError._.forbidden(`Source '${name}' schema is read-only`);
+    NcErrorBase._.forbidden(`Source '${name}' schema is read-only`);
   }
 
   integrationNotFound(id: string, args?: NcErrorArgs): never {
@@ -409,5 +401,43 @@ export class NcError {
         ...args,
       }
     );
+  }
+
+  unprocessableEntity(message = 'Unprocessable entity'): never {
+    throw new UnprocessableEntity(message);
+  }
+
+  testConnectionError(message = 'Unprocessable entity', code?: string): never {
+    throw new TestConnectionError(message, code);
+  }
+
+  notAllowed(message = 'Not allowed'): never {
+    throw new NotAllowed(message);
+  }
+
+  emailDomainNotAllowed(domain: string): never {
+    throw new SsoError(
+      `Email domain ${domain} is not allowed for this organization`
+    );
+  }
+
+  metaError(param: { message: string; sql: string }): never {
+    throw new MetaError(param);
+  }
+
+  notFound(message = 'Not found'): never {
+    throw new NotFound(message);
+  }
+
+  badRequest(message): never {
+    throw new BadRequestV2(message);
+  }
+
+  optionsNotExists(props: {
+    columnTitle: string;
+    options: string[];
+    validOptions: string[];
+  }): never {
+    throw new OptionsNotExistsError(props);
   }
 }

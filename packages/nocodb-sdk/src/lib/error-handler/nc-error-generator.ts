@@ -1,4 +1,4 @@
-import { NcBaseErrorv2, NcErrorArgs } from '~/lib/error/nc-base-error';
+import { NcBaseErrorv2, NcErrorArgs } from '~/lib/error/nc-base.error';
 import { NcErrorType } from '~/lib/globals';
 import { presetErrorCodexMap } from '~/lib/error-handler/preset-error-codex-map';
 
@@ -49,7 +49,7 @@ export class NcErrorGenerator {
     this.errorCodexMap = { ...this.errorCodexMap, ...handlers };
   }
 
-  generateError(error: NcErrorType, args: NcErrorArgs) {
+  generateError(error: NcErrorType, args?: NcErrorArgs) {
     const errorHelper = this.errorCodexMap[error];
     const { params, customMessage, details } = args || {};
 

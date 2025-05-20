@@ -4,6 +4,7 @@ import { ThrottlerException } from '@nestjs/throttler';
 import hash from 'object-hash';
 import {
   NcApiVersion,
+  NcErrorGenerator,
   NcErrorType,
   NcErrorTypeMap,
   NcSDKError,
@@ -52,7 +53,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception.message,
       )
     ) {
-      exception = new NcBaseErrorv2(NcErrorType.BAD_JSON);
+      exception = NcErrorGenerator._.generateError(NcErrorType.BAD_JSON);
     }
 
     // try to extract db error for unknown errors

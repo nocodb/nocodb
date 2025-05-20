@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Crea interfaccia",
+    "create_new_table": "Crea nuova tabella",
     "connect_data_sources": "Collega sorgenti dati",
     "alert": "Avviso",
     "alert-message": "Non è stato collegato alcun database. Collega database per costruire le interfacce. Salta questo passaggio e aggiungi i database dalla home in un secondo momento.",

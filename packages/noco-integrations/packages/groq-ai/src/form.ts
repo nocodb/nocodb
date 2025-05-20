@@ -41,12 +41,11 @@ export const form: FormDefinition = [
     category: 'Settings',
     selectMode: 'multipleWithInput',
     options: [
-      { value: 'llama3-8b-8192', label: 'Llama-3 8B' },
-      { value: 'llama3-70b-8192', label: 'Llama-3 70B' },
-      { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B' },
-      { value: 'gemma-7b-it', label: 'Gemma 7B' },
+      { value: 'llama-4-maverick', label: 'Llama-4 Maverick' },
+      { value: 'llama-4-scout', label: 'Llama-4 Scout' },
+      { value: 'deepseek-r1-distill-llama-70b', label: 'DeepSeek R1 Distill Llama 70B' },
     ],
-    defaultValue: ['llama3-70b-8192'],
+    defaultValue: ['llama-4-maverick'],
     validators: [
       {
         type: 'required' as const,

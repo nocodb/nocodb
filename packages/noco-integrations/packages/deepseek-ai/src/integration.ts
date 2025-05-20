@@ -51,10 +51,9 @@ export class DeepseekAiIntegration extends AiIntegration {
 
   public getModelAlias(model: string): string {
     const aliases: Record<string, string> = {
-      'deepseek-chat': 'DeepSeek Chat',
-      'deepseek-reasoner': 'DeepSeek Reasoner',
+      'deepseek-v3': 'DeepSeek v3',
+      'deepseek-r1': 'DeepSeek R1',
     };
-
     return aliases[model] || model;
   }
 

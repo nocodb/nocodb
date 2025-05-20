@@ -51,12 +51,10 @@ export class GeminiIntegration extends AiIntegration {
 
   public getModelAlias(model: string): string {
     const aliases: Record<string, string> = {
-      'gemini-1.5-pro': 'Gemini 1.5 Pro',
-      'gemini-1.5-flash': 'Gemini 1.5 Flash',
-      'gemini-1.0-pro': 'Gemini 1.0 Pro',
-      'gemini-1.0-ultra': 'Gemini 1.0 Ultra',
+      'gemini-2.5-pro-preview-05-06': 'Gemini 2.5 Pro Preview 05-06',
+      'gemini-2.5-flash-preview-04-17': 'Gemini 2.5 Flash Preview 04-17',
+      'gemini-2.0-flash': 'Gemini 2.0 Flash',
     };
-
     return aliases[model] || model;
   }
 } 

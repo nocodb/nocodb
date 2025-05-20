@@ -41,12 +41,11 @@ export const form: FormDefinition = [
     category: 'Settings',
     selectMode: 'multipleWithInput',
     options: [
-      { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
-      { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
-      { value: 'gemini-1.0-pro', label: 'Gemini 1.0 Pro' },
-      { value: 'gemini-1.0-ultra', label: 'Gemini 1.0 Ultra' },
+      { value: 'gemini-2.5-pro-preview-05-06', label: 'Gemini 2.5 Pro Preview 05-06' },
+      { value: 'gemini-2.5-flash-preview-04-17', label: 'Gemini 2.5 Flash Preview 04-17' },
+      { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
     ],
-    defaultValue: ['gemini-1.5-pro'],
+    defaultValue: ['gemini-2.0-flash'],
     validators: [
       {
         type: 'required' as const,

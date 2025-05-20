@@ -49,13 +49,12 @@ export const form: FormDefinition = [
     category: 'Settings',
     selectMode: 'multipleWithInput',
     options: [
-      { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
-      { value: 'gpt-4', label: 'GPT-4' },
-      { value: 'llama2', label: 'Llama 2' },
-      { value: 'mistral', label: 'Mistral' },
-      { value: 'gemma', label: 'Gemma' },
+      { value: 'llama-4-maverick', label: 'Llama 4 Maverick' },
+      { value: 'llama-3-70b', label: 'Llama 3 70B' },
+      { value: 'mixtral-8x22b', label: 'Mixtral 8x22B' },
+      { value: 'deepseek-r1-distill-llama-70b', label: 'DeepSeek R1 Distill Llama 70B' },
     ],
-    defaultValue: ['gpt-3.5-turbo'],
+    defaultValue: ['llama-3-70b-8192'],
     validators: [
       {
         type: 'required' as const,

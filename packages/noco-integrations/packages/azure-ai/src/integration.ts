@@ -55,14 +55,11 @@ export class AzureAiIntegration extends AiIntegration {
 
   public getModelAlias(model: string): string {
     const aliases: Record<string, string> = {
-      'gpt-4': 'GPT-4',
-      'gpt-4-turbo': 'GPT-4 Turbo',
-      'gpt-4-1106-preview': 'GPT-4 Turbo Preview',
-      'gpt-4-32k': 'GPT-4 32K',
-      'gpt-35-turbo': 'GPT-3.5 Turbo',
-      'gpt-35-turbo-16k': 'GPT-3.5 Turbo 16K',
+      'gpt-4o': 'GPT-4o',
+      'gpt-4.1': 'GPT-4.1',
+      'o3': 'o3',
+      'o4-mini': 'o4-mini',
     };
-
     return aliases[model] || model;
   }
 

@@ -53,12 +53,10 @@ export class OpenAIIntegration extends AiIntegration {
   public getModelAlias(model: string): string {
     const aliases: Record<string, string> = {
       'gpt-4o': 'GPT-4o',
-      'gpt-4o-mini': 'GPT-4o Mini',
-      'gpt-4-turbo': 'GPT-4 Turbo',
-      'gpt-4': 'GPT-4',
-      'gpt-3.5-turbo': 'GPT-3.5 Turbo',
+      'gpt-4.1': 'GPT-4.1',
+      'o3': 'o3',
+      'o4-mini': 'o4-mini',
     };
-
     return aliases[model] || model;
   }
 

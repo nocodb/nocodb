@@ -51,12 +51,10 @@ export class GroqAiIntegration extends AiIntegration {
 
   public getModelAlias(model: string): string {
     const aliases: Record<string, string> = {
-      'llama3-8b-8192': 'Llama-3 8B',
-      'llama3-70b-8192': 'Llama-3 70B',
-      'mixtral-8x7b-32768': 'Mixtral 8x7B',
-      'gemma-7b-it': 'Gemma 7B',
+      'llama-4-maverick': 'Llama-4 Maverick',
+      'llama-4-scout': 'Llama-4 Scout',
+      'deepseek-r1-distill-llama-70b': 'DeepSeek R1 Distill Llama 70B',
     };
-
     return aliases[model] || model;
   }
 

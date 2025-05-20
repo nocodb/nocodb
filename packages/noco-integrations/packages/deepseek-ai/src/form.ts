@@ -41,10 +41,10 @@ export const form: FormDefinition = [
     category: 'Settings',
     selectMode: 'multipleWithInput',
     options: [
-      { value: 'deepseek-chat', label: 'DeepSeek Chat' },
-      { value: 'deepseek-reasoner', label: 'DeepSeek Reasoner' },
+      { value: 'deepseek-v3', label: 'DeepSeek v3' },
+      { value: 'deepseek-r1', label: 'DeepSeek R1' },
     ],
-    defaultValue: ['deepseek-chat'],
+    defaultValue: ['deepseek-v3'],
     validators: [
       {
         type: 'required' as const,

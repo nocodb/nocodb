@@ -53,8 +53,13 @@ export class OpenAiCompatibleAiIntegration extends AiIntegration {
   }
 
   public getModelAlias(model: string): string {
-    // Return the model name as is, since it's coming from a custom service
-    return model;
+    const aliases: Record<string, string> = {
+      'llama-4-maverick': 'Llama 4 Maverick',
+      'llama-3-70b': 'Llama 3 70B',
+      'mixtral-8x22b': 'Mixtral 8x22B',
+      'deepseek-r1-distill-llama-70b': 'DeepSeek R1 Distill Llama 70B',
+    };
+    return aliases[model] || model;
   }
 
   public availableModels(): { value: string; label: string }[] {

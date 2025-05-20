@@ -6,9 +6,10 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
   (props: {
     formSchema: MaybeRef<FormDefinition | undefined>
     onSubmit?: () => Promise<any>
+    onChange?: () => void
     initialState?: Ref<Record<string, any>>
   }) => {
-    const { formSchema, onSubmit, initialState = ref({}) } = props
+    const { formSchema, onSubmit, onChange, initialState = ref({}) } = props
 
     const useForm = Form.useForm
 
@@ -159,6 +160,8 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     watch(
       formState,
       () => {
+        onChange?.()
+
         if (checkDifference()) {
           isChanged.value = true
         } else {

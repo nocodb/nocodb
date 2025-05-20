@@ -13,6 +13,7 @@ import { NcContext, NcRequest } from '~/interface/config';
 import { ScriptsService } from '~/services/scripts.service';
 import { getBaseSchema } from '~/helpers/scriptHelper';
 import { NcError } from '~/helpers/catchError';
+import { IntegrationsService } from '~/services/integrations.service';
 import {
   InternalGETResponseType,
   InternalPOSTResponseType,
@@ -29,6 +30,7 @@ export class InternalController extends InternalControllerCE {
     private readonly syncService: SyncModuleService,
     private readonly scriptsService: ScriptsService,
     private readonly columnsService: ColumnsService,
+    private readonly integrationsService: IntegrationsService,
   ) {
     super(mcpService, aclMiddleware);
   }
@@ -55,6 +57,7 @@ export class InternalController extends InternalControllerCE {
       triggerSync: 'base',
       migrateSync: 'base',
       addChildSync: 'base',
+      authIntegrationTestConnection: 'workspace',
       listScripts: 'base',
       getScript: 'base',
       createScript: 'base',
@@ -177,6 +180,10 @@ export class InternalController extends InternalControllerCE {
           context,
           payload.syncConfigId,
           req,
+        );
+      case 'authIntegrationTestConnection':
+        return await this.integrationsService.authIntegrationTestConnection(
+          payload,
         );
 
       case 'createScript':

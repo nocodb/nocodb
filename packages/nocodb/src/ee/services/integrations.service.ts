@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import { IntegrationsService as IntegrationsServiceCE } from 'src/services/integrations.service';
+import type {
+  AuthIntegration,
+  TestConnectionResponse,
+} from '@noco-local-integrations/core';
 import type { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { validatePayload } from '~/helpers';
@@ -359,5 +363,14 @@ export class IntegrationsService extends IntegrationsServiceCE {
         await JobsRedis.emitPrimaryCommand(InstanceCommands.RELEASE, source.id);
       }
     }
+  }
+
+  async authIntegrationTestConnection(
+    param: IntegrationReqType,
+  ): Promise<TestConnectionResponse> {
+    const tempIntegrationWrapper =
+      Integration.tempIntegrationWrapper<AuthIntegration>(param);
+
+    return await tempIntegrationWrapper.testConnection();
   }
 }

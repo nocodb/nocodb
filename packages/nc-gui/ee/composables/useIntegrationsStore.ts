@@ -545,6 +545,23 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
   }
 
+  const testConnection = async (integration: IntegrationType) => {
+    try {
+      const res = await $api.internal.postOperation(
+        activeWorkspaceId.value,
+        NO_SCOPE,
+        {
+          operation: 'authIntegrationTestConnection',
+        },
+        integration,
+      )
+
+      return res as { success: boolean; message?: string }
+    } catch (e) {
+      await message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   watch(
     () => basesList.value?.length,
     () => {
@@ -584,6 +601,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     listIntegrationByType,
     loadDynamicIntegrations,
     getIntegrationForm,
+    testConnection,
   }
 }, 'integrations-store')
 

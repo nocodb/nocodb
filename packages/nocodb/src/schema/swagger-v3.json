@@ -822,7 +822,7 @@
                           "type": "Links",
                           "options": {
                             "relation_type": "mm",
-                            "linked_table_id": "mnkgbmqwkls36fg"
+                            "related_table_id": "mnkgbmqwkls36fg"
                           }
                         },
                         {
@@ -1111,7 +1111,7 @@
                           "type": "Links",
                           "options": {
                             "relation_type": "mm",
-                            "linked_table_id": "mnkgbmqwkls36fg"
+                            "related_table_id": "mnkgbmqwkls36fg"
                           }
                         },
                         {
@@ -5448,28 +5448,28 @@
       "FieldOptions_Lookup": {
         "type": "object",
         "properties": {
-          "link_field_id": {
+          "related_field_id": {
             "type": "string",
             "description": "Linked field ID. Can be of type Links or LinkToAnotherRecord"
           },
-          "linked_table_lookup_field_id": {
+          "related_table_lookup_field_id": {
             "type": "string",
             "description": "Lookup field ID in the linked table."
           }
         },
         "required": [
-          "link_field_id",
-          "linked_table_lookup_field_id"
+          "related_field_id",
+          "related_table_lookup_field_id"
         ]
       },
       "FieldOptions_Rollup": {
         "type": "object",
         "properties": {
-          "link_field_id": {
+          "related_field_id": {
             "type": "string",
             "description": "Linked field ID."
           },
-          "linked_table_rollup_field_id": {
+          "related_table_rollup_field_id": {
             "type": "string",
             "description": "Rollup field ID in the linked table."
           },
@@ -5489,8 +5489,8 @@
           }
         },
         "required": [
-          "link_field_id",
-          "linked_table_rollup_field_id",
+          "related_field_id",
+          "related_table_rollup_field_id",
           "rollup_function"
         ]
       },
@@ -5502,14 +5502,14 @@
             "type": "string",
             "description": "Type of relationship.\n\nSupported options are listed below\n- `mm` many-to-many\n- `hm` has-many\n- `oo` one-to-one"
           },
-          "linked_table_id": {
+          "related_table_id": {
             "type": "string",
             "description": "Identifier of the linked table."
           }
         },
         "required": [
           "relation_type",
-          "linked_table_id"
+          "related_table_id"
         ]
       },
       "FieldOptions_LinkToAnotherRecord": {
@@ -5519,14 +5519,14 @@
             "type": "string",
             "description": "Type of relationship.\n\nSupported options are listed below\n- `mm` many-to-many\n- `hm` has-many\n- `oo` one-to-one"
           },
-          "linked_table_id": {
+          "related_table_id": {
             "type": "string",
             "description": "Identifier of the linked table."
           }
         },
         "required": [
           "relation_type",
-          "linked_table_id"
+          "related_table_id"
         ]
       },
       "Field": {

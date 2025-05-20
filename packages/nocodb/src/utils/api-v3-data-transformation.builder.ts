@@ -1,6 +1,7 @@
 import {
   checkboxIconList,
   durationOptions,
+  isLinksOrLTAR,
   LongTextAiMetaProp,
   ratingIconList,
   UITypes,
@@ -310,22 +311,24 @@ export const colOptionBuilder = builderGenerator({
     'fk_rollup_column_id',
     'fk_lookup_column_id',
     'rollup_function',
+    'fk_webhook_id',
   ],
   mappings: {
     formula_raw: 'formula',
-    fk_qr_value_column_id: 'qr_value_field_id',
+    fk_qr_value_column_id: 'qrcode_value_field_id',
     fk_barcode_value_column_id: 'barcode_value_field_id',
 
-    type: 'relation_type',
-    fk_related_model_id: 'linked_table_id',
+    fk_related_model_id: 'related_table_id',
 
-    fk_relation_column_id: 'link_field_id',
-    fk_rollup_column_id: 'linked_table_rollup_field_id',
-    fk_lookup_column_id: 'linked_table_lookup_field_id',
-    linked_table_rollup_field_id: 'fk_rollup_column_id',
+    fk_relation_column_id: 'related_field_id',
+    fk_rollup_column_id: 'related_table_rollup_field_id',
+    fk_lookup_column_id: 'related_table_lookup_field_id',
+    related_table_rollup_field_id: 'fk_rollup_column_id',
+
+    fk_webhook_id: 'button_hook_id',
 
     // todo: extract this
-    // inverse_link_field_id: 'inverse_link_field_id',
+    // inverse_related_field_id: 'inverse_related_field_id',
   },
 });
 
@@ -437,8 +440,13 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
         if (durationFormat !== undefined && durationFormat !== null) {
           options.duration_format = durationOptions[durationFormat]?.title;
         }
+      } else if (data.type === UITypes.Button) {
+        const { type, ...rest } = data.options as Record<string, any>;
+        options = { ...rest, button_type: type };
+      } else if (isLinksOrLTAR(data.type)) {
+        const { type, ...rest } = data.options as Record<string, any>;
+        options = { ...rest, relation_type: type };
       }
-
       options = options || data.options;
 
       // exclude rollup function if Links
@@ -461,25 +469,28 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
     'qr_value_field_id',
     'barcode_value_field_id',
     'relation_type',
-    'linked_table_id',
-    'link_field_id',
-    'linked_table_rollup_field_id',
-    'linked_table_lookup_field_id',
+    'related_table_id',
+    'related_field_id',
+    'related_table_rollup_field_id',
+    'related_table_lookup_field_id',
     'rollup_function',
+    'button_hook_id',
   ],
   mappings: {
     formula: 'formula_raw',
-    qr_value_field_id: 'fk_qr_value_column_id',
+    qrcode_value_field_id: 'fk_qr_value_column_id',
     barcode_value_field_id: 'fk_barcode_value_column_id',
 
     relation_type: 'type',
 
-    // parent id we need to extract from the url
-    linked_table_id: 'childId',
+    button_hook_id: 'fk_webhook_id',
 
-    link_field_id: 'fk_relation_column_id',
-    linked_table_rollup_field_id: 'fk_rollup_column_id',
-    linked_table_lookup_field_id: 'fk_lookup_column_id',
+    // parent id we need to extract from the url
+    related_table_id: 'childId',
+
+    related_field_id: 'fk_relation_column_id',
+    related_table_rollup_field_id: 'fk_rollup_column_id',
+    related_table_lookup_field_id: 'fk_lookup_column_id',
   },
 });
 
@@ -618,14 +629,14 @@ export const filterBuilder = builderGenerator<FilterType | Filter>({
     'comparison_sub_op',
     'value',
     'is_group',
-    'fk_link_col_id',
+    'fk_related_col_id',
     'fk_value_col_id',
   ],
   mappings: {
     fk_column_id: 'field_id',
     fk_parent_id: 'parent_id',
     // fk_hook_id: 'hook_id',
-    // fk_link_col_id: 'link_field_id',
+    // fk_related_col_id: 'related_field_id',
     fk_value_col_id: 'value_field_id',
     comparison_op: 'operator',
     comparison_sub_op: 'sub_operator',

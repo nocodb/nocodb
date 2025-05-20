@@ -13,12 +13,18 @@ const props = defineProps<{
 const modelValue = defineModel<string>()
 </script>
 
+<script lang="ts">
+export default {
+  inheritAttrs: false,
+}
+</script>
+
 <template>
   <NcTooltip :disabled="!props.tooltip">
     <template #title>
       {{ props.tooltip }}
     </template>
-    <NcDropdown :disabled="props.disabled" :class="{ 'pointer-events-none opacity-50': props.disabled }">
+    <NcDropdown :disabled="props.disabled" v-bind="$attrs" :class="{ 'pointer-events-none opacity-50': props.disabled }">
       <slot />
       <template #overlay>
         <div class="flex flex-col gap-1 p-1">
@@ -31,9 +37,15 @@ const modelValue = defineModel<string>()
             }"
             @click="modelValue = item.value"
           >
-            <span>
-              {{ item.label }}
-            </span>
+            <NcTooltip class="truncate" show-on-truncate-only>
+              <template #title>
+                {{ item.label }}
+              </template>
+              <span>
+                {{ item.label }}
+              </span>
+            </NcTooltip>
+
             <GeneralIcon v-if="modelValue === item.value" icon="check" class="text-primary" />
           </div>
         </div>

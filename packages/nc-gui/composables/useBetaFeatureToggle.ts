@@ -21,10 +21,25 @@ const FEATURES = [
     enabled: !ncIsPlaywright(),
   },
   {
+    id: 'improved_sidebar',
+    title: 'Improved Sidebar',
+    description: 'New and Improved sidebar for better UI experience',
+    enabled: false,
+    isEngineering: true,
+  },
+  {
     id: 'link_to_another_record',
     title: 'Link To Another Record',
     description: 'Show linked record display value in Link fields.',
     enabled: false,
+  },
+
+  {
+    id: 'model_context_protocol',
+    title: 'Model Context Protocol',
+    description: 'Connect NocoDB base to Claude AI, Windsurf AI, and more.',
+    enabled: false,
+    isEngineering: true,
   },
   {
     id: 'payment',
@@ -112,17 +127,15 @@ const FEATURES = [
     id: 'expanded_form_file_preview_mode',
     title: 'Expanded form file preview mode',
     description: 'Preview mode allows you to see attachments inline',
-    enabled: false,
+    enabled: true,
     isEE: true,
-    isEngineering: true,
   },
   {
     id: 'expanded_form_discussion_mode',
     title: 'Expanded form discussion mode',
     description: 'Discussion mode allows you to see the comments and records audits combined in one place',
-    enabled: false,
+    enabled: true,
     isEE: true,
-    isEngineering: true,
   },
   {
     id: 'language',

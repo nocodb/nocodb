@@ -1,7 +1,6 @@
 import {
   type ColumnType,
   CommonAggregations,
-  FieldNameFromUITypes,
   type LinkToAnotherRecordType,
   type LookupType,
   type TableType,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, UITypesName, type LinkToAnotherRecordType } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, UITypesName } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import rfdc from 'rfdc'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'

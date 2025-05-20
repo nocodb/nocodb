@@ -63,7 +63,7 @@ function openTableCreateDialog() {
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isCreateTableOpen,
-    sourceId, // || sources.value[0].id,
+    sourceId,
     'baseId': base.value!.id,
     'onCreate': closeDialog,
     'onUpdate:modelValue': () => closeDialog(),

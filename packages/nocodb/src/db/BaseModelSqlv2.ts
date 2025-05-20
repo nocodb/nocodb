@@ -10,7 +10,6 @@ import groupBy from 'lodash/groupBy';
 import {
   AuditOperationSubTypes,
   AuditV1OperationTypes,
-  ButtonActionsType,
   convertDurationToSeconds,
   enumColors,
   extractFilterFromXwhere,
@@ -33,9 +32,10 @@ import {
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { addOrRemoveLinks } from './BaseModelSqlv2/add-remove-links';
+import { baseModelInsert } from './BaseModelSqlv2/insert';
 import { NestedLinkPreparator } from './BaseModelSqlv2/nested-link-preparator';
 import { relationDataFetcher } from './BaseModelSqlv2/relation-data-fetcher';
-import { baseModelInsert } from './BaseModelSqlv2/insert';
+import { selectObject } from './BaseModelSqlv2/select-object';
 import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
@@ -60,12 +60,8 @@ import type {
 } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { NcContext } from '~/interface/config';
 import type {
-  BarcodeColumn,
-  ButtonColumn,
   FormulaColumn,
   LinkToAnotherRecordColumn,
-  QrCodeColumn,
-  RollupColumn,
   SelectOption,
   User,
 } from '~/models';
@@ -75,7 +71,6 @@ import applyAggregation from '~/db/aggregation';
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
 import conditionV2 from '~/db/conditionV2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
-import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { RelationManager } from '~/db/relation-manager';
 import sortV2 from '~/db/sortV2';
 import { customValidators } from '~/db/util/customValidators';
@@ -83,11 +78,8 @@ import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
 import {
   _wherePk,
   applyPaginate,
-  checkColumnRequired,
   extractSortsObject,
   formatDataForAudit,
-  getAs,
-  getColumnName,
   getCompositePkValue,
   getListArgs,
   haveFormulaColumn,
@@ -95,7 +87,6 @@ import {
   isPrimitiveType,
   nanoidv2,
   populatePk,
-  shouldSkipField,
   transformObject,
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
@@ -119,6 +110,7 @@ import {
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import {
+  batchUpdate,
   extractColsMetaForAudit,
   extractExcludedColumnNames,
   generateAuditV1Payload,
@@ -1820,16 +1812,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   // todo:
   //  pass view id as argument
   //  add option to get only pk and pv
-  public async selectObject({
-    qb,
-    columns: _columns,
-    fields: _fields,
-    extractPkAndPv,
-    viewId,
-    fieldsSet,
-    alias,
-    validateFormula,
-  }: {
+  public async selectObject(params: {
     fieldsSet?: Set<string>;
     qb: Knex.QueryBuilder & Knex.QueryInterface;
     columns?: Column[];
@@ -1839,392 +1822,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     alias?: string;
     validateFormula?: boolean;
   }): Promise<void> {
-    // keep a common object for all columns to share across all columns
-    const aliasToColumnBuilder = {};
-    let viewOrTableColumns: Column[] | { fk_column_id?: string }[];
-
-    const res = {};
-    let view: View;
-    let fields: string[];
-
-    if (fieldsSet?.size) {
-      viewOrTableColumns =
-        _columns || (await this.model.getColumns(this.context));
-    } else {
-      view = await View.get(this.context, viewId);
-      const viewColumns =
-        viewId && (await View.getColumns(this.context, viewId));
-      fields = Array.isArray(_fields) ? _fields : _fields?.split(',');
-
-      // const columns = _columns ?? (await this.model.getColumns(this.context));
-      // for (const column of columns) {
-      viewOrTableColumns =
-        viewColumns || _columns || (await this.model.getColumns(this.context));
-    }
-    for (const viewOrTableColumn of viewOrTableColumns) {
-      const column =
-        viewOrTableColumn instanceof Column
-          ? viewOrTableColumn
-          : await Column.get(this.context, {
-              colId: (viewOrTableColumn as GridViewColumn).fk_column_id,
-            });
-      // hide if column marked as hidden in view
-      // of if column is system field and system field is hidden
-      if (
-        shouldSkipField(
-          fieldsSet,
-          viewOrTableColumn,
-          view,
-          column,
-          extractPkAndPv,
-        )
-      ) {
-        continue;
-      }
-
-      if (!checkColumnRequired(column, fields, extractPkAndPv)) continue;
-
-      switch (column.uidt) {
-        case UITypes.CreatedTime:
-        case UITypes.LastModifiedTime:
-        case UITypes.DateTime:
-          {
-            const columnName = await getColumnName(
-              this.context,
-              column,
-              _columns || (await this.model.getColumns(this.context)),
-            );
-            if (this.isMySQL) {
-              // MySQL stores timestamp in UTC but display in timezone
-              // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
-              // If it's SYSTEM, then the timezone is read from the configuration file
-              // if a timezone is set in a DB, the retrieved value would be converted to the corresponding timezone
-              // for example, let's say the global timezone is +08:00 in DB
-              // the value 2023-01-01 10:00:00 (UTC) would display as 2023-01-01 18:00:00 (UTC+8)
-              // our existing logic is based on UTC, during the query, we need to take the UTC value
-              // hence, we use CONVERT_TZ to convert back to UTC value
-              res[sanitize(getAs(column) || columnName)] = this.dbDriver.raw(
-                `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
-                [`${sanitize(alias || this.tnPath)}.${columnName}`],
-              );
-              break;
-            } else if (this.isPg) {
-              // if there is no timezone info,
-              // convert to database timezone,
-              // then convert to UTC
-              if (
-                column.dt !== 'timestamp with time zone' &&
-                column.dt !== 'timestamptz'
-              ) {
-                res[sanitize(getAs(column) || columnName)] = this.dbDriver
-                  .raw(
-                    `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
-                    [`${sanitize(alias || this.tnPath)}.${columnName}`],
-                  )
-                  .wrap('(', ')');
-                break;
-              }
-            } else if (this.isMssql) {
-              // if there is no timezone info,
-              // convert to database timezone,
-              // then convert to UTC
-              if (column.dt !== 'datetimeoffset') {
-                res[sanitize(getAs(column) || columnName)] = this.dbDriver.raw(
-                  `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
-                  [`${sanitize(alias || this.tnPath)}.${columnName}`],
-                );
-                break;
-              }
-            }
-            res[sanitize(getAs(column) || columnName)] = sanitize(
-              `${alias || this.tnPath}.${columnName}`,
-            );
-          }
-          break;
-        case UITypes.LinkToAnotherRecord:
-        case UITypes.Lookup:
-          break;
-        case UITypes.QrCode: {
-          const qrCodeColumn = await column.getColOptions<QrCodeColumn>(
-            this.context,
-          );
-
-          if (!qrCodeColumn.fk_qr_value_column_id) {
-            qb.select(this.dbDriver.raw(`? as ??`, ['ERR!', getAs(column)]));
-            break;
-          }
-
-          const qrValueColumn = await Column.get(this.context, {
-            colId: qrCodeColumn.fk_qr_value_column_id,
-          });
-
-          // If the referenced value cannot be found: cancel current iteration
-          if (qrValueColumn == null) {
-            break;
-          }
-
-          switch (qrValueColumn.uidt) {
-            case UITypes.Formula:
-              try {
-                const selectQb = await this.getSelectQueryBuilderForFormula(
-                  qrValueColumn,
-                  alias,
-                  validateFormula,
-                  aliasToColumnBuilder,
-                );
-                qb.select({
-                  [column.column_name]: selectQb.builder,
-                });
-              } catch {
-                continue;
-              }
-              break;
-            default: {
-              qb.select({ [column.column_name]: qrValueColumn.column_name });
-              break;
-            }
-          }
-
-          break;
-        }
-        case UITypes.Barcode: {
-          const barcodeColumn = await column.getColOptions<BarcodeColumn>(
-            this.context,
-          );
-
-          if (!barcodeColumn.fk_barcode_value_column_id) {
-            qb.select(this.dbDriver.raw(`? as ??`, ['ERR!', getAs(column)]));
-            break;
-          }
-
-          const barcodeValueColumn = await Column.get(this.context, {
-            colId: barcodeColumn.fk_barcode_value_column_id,
-          });
-
-          // If the referenced value cannot be found: cancel current iteration
-          if (barcodeValueColumn == null) {
-            break;
-          }
-
-          switch (barcodeValueColumn.uidt) {
-            case UITypes.Formula:
-              try {
-                const selectQb = await this.getSelectQueryBuilderForFormula(
-                  barcodeValueColumn,
-                  alias,
-                  validateFormula,
-                  aliasToColumnBuilder,
-                );
-                qb.select({
-                  [getAs(column)]: selectQb.builder,
-                });
-              } catch {
-                continue;
-              }
-              break;
-            default: {
-              qb.select({
-                [getAs(column)]: barcodeValueColumn.column_name,
-              });
-              break;
-            }
-          }
-
-          break;
-        }
-        case UITypes.Formula:
-          {
-            try {
-              const selectQb = await this.getSelectQueryBuilderForFormula(
-                column,
-                alias,
-                validateFormula,
-                aliasToColumnBuilder,
-              );
-              qb.select(
-                this.dbDriver.raw(`?? as ??`, [
-                  selectQb.builder,
-                  getAs(column),
-                ]),
-              );
-            } catch (e) {
-              logger.log(e);
-              // return dummy select
-              qb.select(this.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
-            }
-          }
-          break;
-        case UITypes.Button: {
-          try {
-            const colOption = column.colOptions as ButtonColumn;
-            if (colOption.type === ButtonActionsType.Url) {
-              const selectQb = await this.getSelectQueryBuilderForFormula(
-                column,
-                alias,
-                validateFormula,
-                aliasToColumnBuilder,
-              );
-              switch (this.dbDriver.client.config.client) {
-                case 'mysql2':
-                  qb.select(
-                    this.dbDriver.raw(
-                      `JSON_OBJECT('type', ? , 'label', ?, 'url', ??) as ??`,
-                      [
-                        colOption.type,
-                        `${colOption.label}`,
-                        selectQb.builder,
-                        getAs(column),
-                      ],
-                    ),
-                  );
-                  break;
-                case 'pg':
-                  qb.select(
-                    this.dbDriver.raw(
-                      `json_build_object('type', ? ,'label', ?, 'url', ??) as ??`,
-                      [
-                        colOption.type,
-                        `${colOption.label}`,
-                        selectQb.builder,
-                        getAs(column),
-                      ],
-                    ),
-                  );
-                  break;
-                case 'sqlite3':
-                  qb.select(
-                    this.dbDriver.raw(
-                      `json_object('type', ?, 'label', ?, 'url', ??) as ??`,
-                      [
-                        colOption.type,
-                        `${colOption.label}`,
-                        selectQb.builder,
-                        getAs(column),
-                      ],
-                    ),
-                  );
-                  break;
-                default:
-                  qb.select(this.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
-              }
-            } else if (
-              [ButtonActionsType.Webhook, ButtonActionsType.Script].includes(
-                colOption.type,
-              )
-            ) {
-              const key =
-                colOption.type === ButtonActionsType.Webhook
-                  ? 'fk_webhook_id'
-                  : 'fk_script_id';
-              switch (this.dbDriver.client.config.client) {
-                case 'mysql2':
-                  qb.select(
-                    this.dbDriver.raw(
-                      `JSON_OBJECT('type', ?, 'label', ?, '${key}', ?) as ??`,
-                      [
-                        colOption.type,
-                        `${colOption.label}`,
-                        colOption[key],
-                        getAs(column),
-                      ],
-                    ),
-                  );
-                  break;
-                case 'pg':
-                  qb.select(
-                    this.dbDriver.raw(
-                      `json_build_object('type', ?, 'label', ?, '${key}', ?) as ??`,
-                      [
-                        colOption.type,
-                        `${colOption.label}`,
-                        colOption[key],
-                        getAs(column),
-                      ],
-                    ),
-                  );
-                  break;
-                case 'sqlite3':
-                  qb.select(
-                    this.dbDriver.raw(
-                      `json_object('type', ?, 'label', ?, '${key}', ?) as ??`,
-                      [
-                        colOption.type,
-                        `${colOption.label}`,
-                        colOption[key],
-                        getAs(column),
-                      ],
-                    ),
-                  );
-                  break;
-                default:
-                  qb.select(this.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
-              }
-            }
-          } catch (e) {
-            logger.log(e);
-            // return dummy select
-            qb.select(this.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
-          }
-          break;
-        }
-        case UITypes.Rollup:
-        case UITypes.Links:
-          qb.select(
-            (
-              await genRollupSelectv2({
-                baseModelSqlv2: this,
-                // tn: this.title,
-                knex: this.dbDriver,
-                // column,
-                alias,
-                columnOptions: (await column.getColOptions(
-                  this.context,
-                )) as RollupColumn,
-              })
-            ).builder.as(getAs(column)),
-          );
-          break;
-        case UITypes.CreatedBy:
-        case UITypes.LastModifiedBy: {
-          const columnName = await getColumnName(
-            this.context,
-            column,
-            _columns || (await this.model.getColumns(this.context)),
-          );
-
-          res[sanitize(getAs(column) || columnName)] = sanitize(
-            `${alias || this.tnPath}.${columnName}`,
-          );
-          break;
-        }
-        case UITypes.SingleSelect: {
-          res[sanitize(getAs(column) || column.column_name)] =
-            this.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [
-              sanitize(column.column_name),
-            ]);
-          break;
-        }
-        default:
-          if (this.isPg) {
-            if (column.dt === 'bytea') {
-              res[sanitize(getAs(column) || column.column_name)] =
-                this.dbDriver.raw(
-                  `encode(??.??, '${
-                    column.meta?.format === 'hex' ? 'hex' : 'escape'
-                  }')`,
-                  [alias || this.model.table_name, column.column_name],
-                );
-              break;
-            }
-          }
-
-          res[sanitize(getAs(column) || column.column_name)] = sanitize(
-            `${alias || this.tnPath}.${column.column_name}`,
-          );
-          break;
-      }
-    }
-    qb.select(res);
+    return await selectObject(this, logger)(params);
   }
 
   async insert(data, request: NcRequest, trx?, _disableOptimization = false) {
@@ -3365,8 +2963,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       transaction = await this.dbDriver.transaction();
 
-      for (const o of toBeUpdated) {
-        await transaction(this.tnPath).update(o.d).where(o.wherePk);
+      if (
+        this.model.primaryKeys.length === 1 &&
+        (this.isPg || this.isMySQL || this.isSqlite)
+      ) {
+        await batchUpdate(
+          transaction,
+          this.tnPath,
+          toBeUpdated.map((o) => o.d),
+          this.model.primaryKey.column_name,
+        );
+      } else {
+        for (const o of toBeUpdated) {
+          await transaction(this.tnPath).update(o.d).where(o.wherePk);
+        }
       }
 
       await transaction.commit();
@@ -5608,7 +5218,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const idToAliasPromiseMap: Record<string, Promise<string>> = {};
     const ltarMap: Record<string, boolean> = {};
 
-    modelColumns.forEach((col) => {
+    for (let col of modelColumns) {
       if (aliasColumns && col.id in aliasColumns) {
         aliasColumns[col.id].id = col.id;
         aliasColumns[col.id].title = col.title;
@@ -5617,6 +5227,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       idToAliasMap[col.id] = col.title;
       if ([UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(col.uidt)) {
+        if (col.uidt === UITypes.Lookup) {
+          const nestedCol = await this.getNestedColumn(col);
+          if (nestedCol?.uidt !== UITypes.LinkToAnotherRecord) {
+            continue;
+          }
+        }
+
         ltarMap[col.id] = true;
         const linkData = Object.values(data).find(
           (d) =>
@@ -5665,8 +5282,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } else {
         ltarMap[col.id] = false;
       }
-    });
-
+    }
     for (const k of Object.keys(idToAliasPromiseMap)) {
       idToAliasMap[k] = await idToAliasPromiseMap[k];
       if ((idToAliasMap[k] as unknown) instanceof Error) {

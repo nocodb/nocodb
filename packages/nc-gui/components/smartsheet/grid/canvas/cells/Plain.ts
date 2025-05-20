@@ -37,6 +37,7 @@ export const PlainCellRenderer: CellRenderer = {
       t,
       isUnderLookup,
     })
+
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
     } else if (!text) {

@@ -13,8 +13,6 @@ const INFINITY_SCROLL_THRESHOLD = 100
 
 const { isUIAllowed } = useRoles()
 
-const { $e } = useNuxtApp()
-
 const { appInfo, isMobileMode } = useGlobal()
 
 const { height } = useWindowSize()

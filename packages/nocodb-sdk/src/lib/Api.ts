@@ -187,6 +187,9 @@ export type FilterCreateUpdateV3Type = FilterV3Type | FilterGroupV3Type;
 export type FieldV3Type = FieldBaseV3Type &
   (
     | {
+        type?: 'SingleLineText';
+      }
+    | {
         type?: 'LongText';
         options?: FieldOptionsLongTextV3Type;
       }
@@ -704,6 +707,17 @@ export interface FieldBaseV3Type {
   description?: string | null;
   /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
   default_value?: string;
+}
+
+export interface ViewCreateV3Type {
+  /** Name of the view. */
+  view_name?: string;
+  /** Type of the view. */
+  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
+  /** Lock type of the view. */
+  lock_type?: 'COLLABARATIVE' | 'LOCKED' | 'PERSONAL';
+  /** Description of the view. */
+  description?: string;
 }
 
 /**
@@ -2904,6 +2918,30 @@ export interface KanbanUpdateReqType {
   fk_cover_image_col_id?: StringOrNullType;
   /** Meta Info */
   meta?: MetaType;
+}
+
+/**
+ * Model for MCP Token
+ */
+export interface MCPTokenType {
+  /** Unique ID */
+  id?: string;
+  /** Title of the MCP Token */
+  title?: string;
+  /** Order of the Script */
+  order?: number;
+  /** MCP Token */
+  token?: string;
+  /** Workspace ID */
+  fk_workspace_id?: IdType;
+  /** Base ID */
+  base_id?: IdType;
+  /** User ID of the creator */
+  fk_user_id?: IdType;
+  /** Last updated time */
+  updated_at?: string;
+  /** Creation time */
+  created_at?: string;
 }
 
 /**
@@ -10765,6 +10803,8 @@ export class Api<
       viewName: string,
       query: {
         from_date: string;
+        prev_date: string;
+        next_date: string;
         to_date: string;
         fields?: any[];
         sort?: any[];
@@ -10795,6 +10835,8 @@ export class Api<
       query: {
         from_date: string;
         to_date: string;
+        prev_date: string;
+        next_date: string;
         fields?: any[];
         sort?: any[];
         where?: string;
@@ -10869,6 +10911,8 @@ export class Api<
       query: {
         from_date: string;
         to_date: string;
+        prev_date: string;
+        next_date: string;
         sort?: any[];
         where?: string;
         /** @min 1 */
@@ -10911,6 +10955,8 @@ export class Api<
       sharedViewUuid: string,
       query: {
         from_date: string;
+        prev_date: string;
+        next_date: string;
         to_date: string;
         sort?: any[];
         where?: string;

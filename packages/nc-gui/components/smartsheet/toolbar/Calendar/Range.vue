@@ -22,8 +22,6 @@ const { loadViewColumns } = useViewColumnsOrThrow()
 const { loadCalendarMeta, loadCalendarData, loadSidebarData, fetchActiveDates, updateCalendarMeta, viewMetaProperties } =
   useCalendarViewStoreOrThrow()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const calendarRangeDropdown = ref(false)
 
 const showWeekends = computed({

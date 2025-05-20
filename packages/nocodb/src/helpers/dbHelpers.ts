@@ -330,6 +330,8 @@ export function transformObject(value, idToAliasMap) {
     const btAlias = idToAliasMap[k];
     if (btAlias) {
       result[btAlias] = v;
+    } else {
+      result[k] = v;
     }
   });
   return result;

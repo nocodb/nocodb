@@ -2,7 +2,6 @@
 const { showSideMenu } = useCalendarViewStoreOrThrow()
 
 const { $e } = useNuxtApp()
-const { isMobileMode } = useGlobal()
 
 const toggleSideMenu = () => {
   $e('c:calendar:toggle-sidebar', showSideMenu.value)

@@ -142,6 +142,7 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
               @expand-record="expandRecord"
               @new-record="newRecord"
             />
+
             <LazySmartsheetCalendarWeekViewDateField
               v-else-if="activeCalendarView === 'week' && calDataType === UITypes.Date"
               @expand-record="expandRecord"

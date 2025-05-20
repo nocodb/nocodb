@@ -129,142 +129,150 @@ async function copyComment(comment: CommentType) {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg border !border-gray-200 border-1 relative group my-4 nc-audit-comment-block">
-    <div
-      class="flex items-center gap-2 bg-gray-50 px-4 py-1.9 border-b border-gray-200 rounded-t-lg"
-      :class="{
-        '!bg-[#F0F3FF]': isCreatedByYou,
-      }"
-    >
+  <div class="relative my-4 nc-audit-comment-block">
+    <div class="absolute left-0">
       <GeneralUserIcon
         :user="{
           email: props.comment.user,
           display_name: props.comment.displayName,
           meta: props.comment.created_by_meta,
         }"
-        class="w-[24px] aspect-square"
+        size="base"
+        class="w-[36px] h-[36px] !aspect-square !text-small"
       />
+    </div>
+    <div class="flex-1 bg-white rounded-lg !border-gray-200 border-1 group ml-11.5">
+      <div
+        class="flex items-center gap-2 bg-nc-bg-gray-extralight px-4 py-1 border-b border-gray-200 rounded-t-lg text-nc-content-gray min-h-[37px]"
+        :class="{
+          '!bg-[#F0F3FF]': isCreatedByYou,
+        }"
+      >
+        <span class="font-medium text-sm" :class="{ 'text-brand-600': isCreatedByYou }">
+          {{ createdBy(props.comment) }}
+        </span>
+        <span class="text-xs text-gray-500">
+          <NcTooltip>
+            <template #title>{{ parseStringDateTime(props.comment.created_at) }}</template>
+            {{ timeAgo(props.comment.created_at) }}
+          </NcTooltip>
+        </span>
 
-      <span class="font-medium text-sm" :class="{ 'text-brand-600': isCreatedByYou }">
-        {{ createdBy(props.comment) }}
-      </span>
-      <span class="text-xs text-gray-500">
-        <NcTooltip>
-          <template #title>{{ parseStringDateTime(props.comment.created_at) }}</template>
-          {{ timeAgo(props.comment.created_at) }}
-        </NcTooltip>
-      </span>
+        <div class="flex-1" />
 
-      <div class="flex-1" />
-
-      <div v-if="!editCommentValue" class="flex items-center gap-2">
-        <NcTooltip
-          v-if="user && props.comment.created_by_email === user.email && hasEditPermission"
-          class="opacity-0 transition !duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
-        >
-          <NcButton
-            class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
-            size="xsmall"
-            type="text"
-            @click="editComment(props.comment)"
+        <div v-if="!editCommentValue" class="flex items-center gap-2">
+          <NcTooltip
+            v-if="user && props.comment.created_by_email === user.email && hasEditPermission"
+            class="opacity-0 transition !duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
           >
-            <GeneralIcon class="text-md" icon="pencil" />
-          </NcButton>
-          <template #title>Click to edit</template>
-        </NcTooltip>
+            <NcButton
+              class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
+              size="xsmall"
+              type="text"
+              @click="editComment(props.comment)"
+            >
+              <GeneralIcon class="text-md" icon="pencil" />
+            </NcButton>
+            <template #title>Click to edit</template>
+          </NcTooltip>
 
-        <NcTooltip
-          v-if="!props.comment.resolved_by && hasEditPermission"
-          class="opacity-0 transition !duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
-        >
-          <NcButton
-            class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
-            size="xsmall"
-            type="text"
-            @click="resolveComment(props.comment.id)"
+          <NcDropdown
+            v-if="!editCommentValue"
+            class="opacity-0 transition !duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
+            overlay-class-name="!min-w-[160px]"
+            placement="bottomRight"
           >
-            <GeneralIcon class="text-md" icon="checkCircle" />
-          </NcButton>
-          <template #title>Click to resolve</template>
-        </NcTooltip>
-        <NcTooltip v-else-if="props.comment.resolved_by">
-          <template #title>{{ `Resolved by ${props.comment.resolved_display_name}` }}</template>
-          <NcButton
-            class="!h-7 !w-7 !bg-transparent !hover:bg-gray-200 text-semibold"
-            size="xsmall"
-            type="text"
-            @click="resolveComment(props.comment.id!)"
-          >
-            <GeneralIcon class="text-md rounded-full bg-[#17803D] text-white" icon="checkFill" />
-          </NcButton>
-        </NcTooltip>
-
-        <NcDropdown
-          v-if="!editCommentValue"
-          class="opacity-0 transition !duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
-          overlay-class-name="!min-w-[160px]"
-          placement="bottomRight"
-        >
-          <NcButton class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200" size="xsmall" type="text">
-            <GeneralIcon class="text-md" icon="threeDotVertical" />
-          </NcButton>
-          <template #overlay>
-            <NcMenu variant="small">
-              <NcMenuItem v-e="['c:comment-expand:comment:copy']" @click="copyComment(props.comment)">
-                <div class="flex gap-2 items-center">
-                  <component :is="iconMap.copy" class="cursor-pointer" />
-                  {{ $t('general.copy') }} URL
-                </div>
-              </NcMenuItem>
-              <template v-if="user && props.comment.created_by_email === user.email && hasEditPermission">
-                <NcDivider />
-                <NcMenuItem
-                  v-e="['c:row-expand:comment:delete']"
-                  class="!text-red-500 !hover:bg-red-50"
-                  @click="deleteComment(props.comment.id!)"
-                >
+            <NcButton class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200" size="xsmall" type="text">
+              <GeneralIcon class="text-md" icon="threeDotVertical" />
+            </NcButton>
+            <template #overlay>
+              <NcMenu variant="small">
+                <NcMenuItem v-e="['c:comment-expand:comment:copy']" @click="copyComment(props.comment)">
                   <div class="flex gap-2 items-center">
-                    <component :is="iconMap.delete" class="cursor-pointer" />
-                    {{ $t('general.delete') }}
+                    <component :is="iconMap.copy" class="cursor-pointer" />
+                    {{ $t('general.copy') }} URL
                   </div>
                 </NcMenuItem>
-              </template>
-            </NcMenu>
-          </template>
-        </NcDropdown>
+                <template v-if="user && props.comment.created_by_email === user.email && hasEditPermission">
+                  <NcDivider />
+                  <NcMenuItem
+                    v-e="['c:row-expand:comment:delete']"
+                    class="!text-red-500 !hover:bg-red-50"
+                    @click="deleteComment(props.comment.id!)"
+                  >
+                    <div class="flex gap-2 items-center">
+                      <component :is="iconMap.delete" class="cursor-pointer" />
+                      {{ $t('general.delete') }}
+                    </div>
+                  </NcMenuItem>
+                </template>
+              </NcMenu>
+            </template>
+          </NcDropdown>
+
+          <NcTooltip
+            v-if="!props.comment.resolved_by && hasEditPermission"
+            class="opacity-0 transition !duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
+          >
+            <NcButton
+              class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
+              size="xsmall"
+              type="text"
+              @click="resolveComment(props.comment.id)"
+            >
+              <GeneralIcon class="text-md" icon="checkCircle" />
+            </NcButton>
+            <template #title>Click to resolve</template>
+          </NcTooltip>
+          <NcTooltip v-else-if="props.comment.resolved_by">
+            <template #title>{{ `Resolved by ${props.comment.resolved_display_name}` }}</template>
+            <NcButton
+              class="!h-7 !w-7 !bg-transparent !hover:bg-gray-200 text-semibold"
+              size="xsmall"
+              type="text"
+              @click="resolveComment(props.comment.id!)"
+            >
+              <GeneralIcon class="text-md rounded-full bg-[#17803D] text-white" icon="checkFill" />
+            </NcButton>
+          </NcTooltip>
+        </div>
       </div>
+      <SmartsheetExpandedFormRichComment
+        v-if="props.comment.id === editCommentValue?.id && hasEditPermission"
+        v-model:value="value"
+        autofocus
+        autofocus-to-end
+        :hide-options="false"
+        class="cursor-text expanded-form-comment-input !py-3 !px-4 !pr-3 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[240px]"
+        data-testid="expanded-form-comment-input"
+        sync-value-change
+        @save="onEditComment"
+        @keydown.esc="onCancel"
+        @blur="onCommentBlur"
+        @keydown.enter.exact.prevent="onEditComment"
+      />
+      <SmartsheetExpandedFormRichComment
+        v-else
+        :value="`${props.comment.comment}  ${editedAt(props.comment)}`"
+        class="!text-small !leading-18px !text-gray-800 px-4 py-3"
+        read-only
+        sync-value-change
+      />
     </div>
-    <SmartsheetExpandedFormRichComment
-      v-if="props.comment.id === editCommentValue?.id && hasEditPermission"
-      v-model:value="value"
-      autofocus
-      autofocus-to-end
-      :hide-options="false"
-      class="cursor-text expanded-form-comment-input !py-3 !px-4 !pr-3 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[240px]"
-      data-testid="expanded-form-comment-input"
-      sync-value-change
-      @save="onEditComment"
-      @keydown.esc="onCancel"
-      @blur="onCommentBlur"
-      @keydown.enter.exact.prevent="onEditComment"
-    />
-    <SmartsheetExpandedFormRichComment
-      v-else
-      :value="`${props.comment.comment}  ${editedAt(props.comment)}`"
-      class="!text-small !leading-18px !text-gray-800 px-4 py-3"
-      read-only
-      sync-value-change
-    />
   </div>
 </template>
 
 <style scoped lang="scss">
-.nc-audit-comment-block::before {
-  content: '';
-  @apply absolute -top-4.5 left-6.75 h-4.5 border-l-1 border-gray-300;
+.nc-audit-comment-block {
+  &::before {
+    content: '';
+    @apply absolute -top-4 left-15.8 h-4 border-l-1 border-gray-300;
+  }
 }
-.nc-audit-comment-block::after {
-  content: '';
-  @apply absolute -bottom-4.5 left-6.75 h-4.5 border-l-1 border-gray-300;
+.nc-audit-comment-block {
+  &::after {
+    content: '';
+    @apply absolute -bottom-4 left-15.8 h-4 border-l-1 border-gray-300;
+  }
 }
 </style>

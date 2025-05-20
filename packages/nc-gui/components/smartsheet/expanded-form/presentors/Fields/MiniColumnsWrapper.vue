@@ -65,7 +65,7 @@ const hiddenFields = computed(() => {
           @apply !text-xs font-weight-500 !leading-[14px];
         }
       }
-      svg.nc-icon:not(.invisible) {
+      svg.nc-icon:not(.invisible):not(.nc-column-context-menu) {
         @apply !w-4 !h-4 !mx-0;
       }
     }

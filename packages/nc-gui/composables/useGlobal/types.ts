@@ -7,6 +7,7 @@ import type { NcProjectType } from '#imports'
 export interface AppInfo {
   ncSiteUrl: string
   authType: 'jwt' | 'none'
+  allowLocalUrl: boolean
   connectToExternalDB: boolean
   defaultLimit: number
   defaultGroupByLimit: {
@@ -110,6 +111,8 @@ export interface Actions {
     query?: any
     tableId?: string
     viewId?: string
+    automationId?: string
+    automation?: boolean
   }) => void
   getBaseUrl: (workspaceId: string) => string | undefined
   getMainUrl: (workspaceId: string) => string | undefined

@@ -903,7 +903,8 @@ const addRecord = (date: dayjs.Dayjs) => {
               <template #overlay>
                 <div class="bg-nc-background-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
                   <LazySmartsheetCalendarSideRecordCard
-                    v-for="record in recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflowRecords"
+                    v-for="(record, idx) in recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflowRecords"
+                    :key="idx"
                     :draggable="false"
                     class="w-64"
                     :from-date="timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')"

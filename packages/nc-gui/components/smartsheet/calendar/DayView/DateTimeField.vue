@@ -1130,7 +1130,8 @@ const expandRecord = (record: Row) => {
             <template #overlay>
               <div class="bg-nc-background-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
                 <LazySmartsheetCalendarSideRecordCard
-                  v-for="record in getOverflowRecords(hour)"
+                  v-for="(record, idx) in getOverflowRecords(hour)"
+                  :key="idx"
                   :draggable="false"
                   class="w-64"
                   :from-date="timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')"

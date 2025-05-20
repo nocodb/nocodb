@@ -53,3 +53,4 @@ export { default as AIColumn } from './AIColumn';
 export { default as CustomUrl } from './CustomUrl';
 export { default as Script } from './Script';
 export { default as DataReflection } from './DataReflection';
+export { default as MCPToken } from './MCPToken';

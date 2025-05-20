@@ -1,6 +1,7 @@
 import {
   checkboxIconList,
   durationOptions,
+  LongTextAiMetaProp,
   ratingIconList,
   UITypes,
 } from 'nocodb-sdk';
@@ -352,6 +353,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
         is12hrFormat: '12hr_format',
         isLocaleString: 'locale_string',
         richMode: 'rich_text',
+        [LongTextAiMetaProp]: 'generate_text_using_ai',
         // duration: 'duration_format',
       },
       excluded: [
@@ -388,7 +390,6 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
             break;
           default:
             {
-              console.log(data.colOptions);
               const additionalOptions =
                 colOptionBuilder().build(data.colOptions) || {};
               Object.assign(options, additionalOptions);
@@ -496,6 +497,7 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       '12hr_format': 'is12hrFormat',
       locale_string: 'isLocaleString',
       rich_text: 'richMode',
+      generate_text_using_ai: LongTextAiMetaProp,
       // duration_format: 'duration',
     },
     skipfn: (data) => columnsWithOptions.includes(data.uidt || data.type),

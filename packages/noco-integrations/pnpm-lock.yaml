@@ -68,16 +68,16 @@ importers:
     dependencies:
       '@ai-sdk/amazon-bedrock':
         specifier: ^2.2.9
-        version: 2.2.9(zod@3.24.4)
+        version: 2.2.9(zod@3.25.7)
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
       ai:
         specifier: ^4.3.16
-        version: 4.3.16(react@18.3.1)(zod@3.24.4)
+        version: 4.3.16(react@18.3.1)(zod@3.25.7)
       zod:
-        specifier: ^3.24.4
-        version: 3.24.4
+        specifier: ^3.25.7
+        version: 3.25.7
     devDependencies:
       '@vitest/coverage-v8':
         specifier: ^3.1.3
@@ -131,16 +131,16 @@ importers:
     dependencies:
       '@ai-sdk/azure':
         specifier: ^1.3.23
-        version: 1.3.23(zod@3.24.4)
+        version: 1.3.23(zod@3.25.7)
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
       ai:
         specifier: ^4.3.16
-        version: 4.3.16(react@18.3.1)(zod@3.24.4)
+        version: 4.3.16(react@18.3.1)(zod@3.25.7)
       zod:
-        specifier: ^3.24.4
-        version: 3.24.4
+        specifier: ^3.25.7
+        version: 3.25.7
     devDependencies:
       '@vitest/coverage-v8':
         specifier: ^3.1.3
@@ -159,16 +159,16 @@ importers:
     dependencies:
       '@ai-sdk/anthropic':
         specifier: ^1.2.11
-        version: 1.2.11(zod@3.24.4)
+        version: 1.2.11(zod@3.25.7)
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
       ai:
         specifier: ^4.3.16
-        version: 4.3.16(react@18.3.1)(zod@3.24.4)
+        version: 4.3.16(react@18.3.1)(zod@3.25.7)
       zod:
-        specifier: ^3.24.4
-        version: 3.24.4
+        specifier: ^3.25.7
+        version: 3.25.7
     devDependencies:
       '@vitest/coverage-v8':
         specifier: ^3.1.3
@@ -203,16 +203,16 @@ importers:
     dependencies:
       '@ai-sdk/deepseek':
         specifier: ^0.2.14
-        version: 0.2.14(zod@3.24.4)
+        version: 0.2.14(zod@3.25.7)
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
       ai:
         specifier: ^4.3.16
-        version: 4.3.16(react@18.3.1)(zod@3.24.4)
+        version: 4.3.16(react@18.3.1)(zod@3.25.7)
       zod:
-        specifier: ^3.24.4
-        version: 3.24.4
+        specifier: ^3.25.7
+        version: 3.25.7
     devDependencies:
       '@vitest/coverage-v8':
         specifier: ^3.1.3
@@ -301,16 +301,16 @@ importers:
     dependencies:
       '@ai-sdk/google':
         specifier: ^1.2.18
-        version: 1.2.18(zod@3.24.4)
+        version: 1.2.18(zod@3.25.7)
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
       ai:
         specifier: ^4.3.16
-        version: 4.3.16(react@18.3.1)(zod@3.24.4)
+        version: 4.3.16(react@18.3.1)(zod@3.25.7)
       zod:
-        specifier: ^3.24.4
-        version: 3.24.4
+        specifier: ^3.25.7
+        version: 3.25.7
     devDependencies:
       '@vitest/coverage-v8':
         specifier: ^3.1.3
@@ -329,16 +329,16 @@ importers:
     dependencies:
       '@ai-sdk/groq':
         specifier: ^1.1.3
-        version: 1.2.9(zod@3.24.4)
+        version: 1.2.9(zod@3.25.7)
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
       ai:
         specifier: ^4.3.16
-        version: 4.3.16(react@18.3.1)(zod@3.24.4)
+        version: 4.3.16(react@18.3.1)(zod@3.25.7)
       zod:
-        specifier: ^3.24.4
-        version: 3.24.4
+        specifier: ^3.25.7
+        version: 3.25.7
     devDependencies:
       '@vitest/coverage-v8':
         specifier: ^3.1.3
@@ -424,16 +424,16 @@ importers:
     dependencies:
       '@ai-sdk/openai':
         specifier: ^1.3.22
-        version: 1.3.22(zod@3.24.4)
+        version: 1.3.22(zod@3.25.7)
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
       ai:
         specifier: ^4.3.16
-        version: 4.3.16(react@18.3.1)(zod@3.24.4)
+        version: 4.3.16(react@18.3.1)(zod@3.25.7)
       zod:
-        specifier: ^3.24.4
-        version: 3.24.4
+        specifier: ^3.25.7
+        version: 3.25.7
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -446,16 +446,16 @@ importers:
     dependencies:
       '@ai-sdk/openai':
         specifier: ^1.3.22
-        version: 1.3.22(zod@3.24.4)
+        version: 1.3.22(zod@3.25.7)
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
       ai:
         specifier: ^4.3.16
-        version: 4.3.16(react@18.3.1)(zod@3.24.4)
+        version: 4.3.16(react@18.3.1)(zod@3.25.7)
       zod:
-        specifier: ^3.24.4
-        version: 3.24.4
+        specifier: ^3.25.7
+        version: 3.25.7
     devDependencies:
       '@vitest/coverage-v8':
         specifier: ^3.1.3
@@ -474,16 +474,16 @@ importers:
     dependencies:
       '@ai-sdk/openai':
         specifier: ^1.3.22
-        version: 1.3.22(zod@3.24.4)
+        version: 1.3.22(zod@3.25.7)
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
       ai:
         specifier: ^4.3.16
-        version: 4.3.16(react@18.3.1)(zod@3.24.4)
+        version: 4.3.16(react@18.3.1)(zod@3.25.7)
       zod:
-        specifier: ^3.24.4
-        version: 3.24.4
+        specifier: ^3.25.7
+        version: 3.25.7
     devDependencies:
       '@vitest/coverage-v8':
         specifier: ^3.1.3
@@ -3124,60 +3124,63 @@ packages:
   zod@3.24.4:
     resolution: {integrity: sha512-OdqJE9UDRPwWsrHjLN2F8bPxvwJBK22EHLWtanu0LSYr5YqzsaaW3RMgmjwr8Rypg5k+meEJdSPXJZXE/yqOMg==}
 
+  zod@3.25.7:
+    resolution: {integrity: sha512-YGdT1cVRmKkOg6Sq7vY7IkxdphySKnXhaUmFI4r4FcuFVNgpCb9tZfNwXbT6BPjD5oz0nubFsoo9pIqKrDcCvg==}
+
 snapshots:
 
-  '@ai-sdk/amazon-bedrock@2.2.9(zod@3.24.4)':
+  '@ai-sdk/amazon-bedrock@2.2.9(zod@3.25.7)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
-      '@ai-sdk/provider-utils': 2.2.8(zod@3.24.4)
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.7)
       '@smithy/eventstream-codec': 4.0.3
       '@smithy/util-utf8': 4.0.0
       aws4fetch: 1.0.20
-      zod: 3.24.4
+      zod: 3.25.7
 
-  '@ai-sdk/anthropic@1.2.11(zod@3.24.4)':
+  '@ai-sdk/anthropic@1.2.11(zod@3.25.7)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
-      '@ai-sdk/provider-utils': 2.2.8(zod@3.24.4)
-      zod: 3.24.4
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.7)
+      zod: 3.25.7
 
-  '@ai-sdk/azure@1.3.23(zod@3.24.4)':
+  '@ai-sdk/azure@1.3.23(zod@3.25.7)':
     dependencies:
-      '@ai-sdk/openai': 1.3.22(zod@3.24.4)
+      '@ai-sdk/openai': 1.3.22(zod@3.25.7)
       '@ai-sdk/provider': 1.1.3
-      '@ai-sdk/provider-utils': 2.2.8(zod@3.24.4)
-      zod: 3.24.4
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.7)
+      zod: 3.25.7
 
-  '@ai-sdk/deepseek@0.2.14(zod@3.24.4)':
+  '@ai-sdk/deepseek@0.2.14(zod@3.25.7)':
     dependencies:
-      '@ai-sdk/openai-compatible': 0.2.14(zod@3.24.4)
+      '@ai-sdk/openai-compatible': 0.2.14(zod@3.25.7)
       '@ai-sdk/provider': 1.1.3
-      '@ai-sdk/provider-utils': 2.2.8(zod@3.24.4)
-      zod: 3.24.4
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.7)
+      zod: 3.25.7
 
-  '@ai-sdk/google@1.2.18(zod@3.24.4)':
-    dependencies:
-      '@ai-sdk/provider': 1.1.3
-      '@ai-sdk/provider-utils': 2.2.8(zod@3.24.4)
-      zod: 3.24.4
-
-  '@ai-sdk/groq@1.2.9(zod@3.24.4)':
+  '@ai-sdk/google@1.2.18(zod@3.25.7)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
-      '@ai-sdk/provider-utils': 2.2.8(zod@3.24.4)
-      zod: 3.24.4
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.7)
+      zod: 3.25.7
 
-  '@ai-sdk/openai-compatible@0.2.14(zod@3.24.4)':
+  '@ai-sdk/groq@1.2.9(zod@3.25.7)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
-      '@ai-sdk/provider-utils': 2.2.8(zod@3.24.4)
-      zod: 3.24.4
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.7)
+      zod: 3.25.7
 
-  '@ai-sdk/openai@1.3.22(zod@3.24.4)':
+  '@ai-sdk/openai-compatible@0.2.14(zod@3.25.7)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
-      '@ai-sdk/provider-utils': 2.2.8(zod@3.24.4)
-      zod: 3.24.4
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.7)
+      zod: 3.25.7
+
+  '@ai-sdk/openai@1.3.22(zod@3.25.7)':
+    dependencies:
+      '@ai-sdk/provider': 1.1.3
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.7)
+      zod: 3.25.7
 
   '@ai-sdk/provider-utils@2.2.8(zod@3.24.4)':
     dependencies:
@@ -3185,6 +3188,13 @@ snapshots:
       nanoid: 3.3.11
       secure-json-parse: 2.7.0
       zod: 3.24.4
+
+  '@ai-sdk/provider-utils@2.2.8(zod@3.25.7)':
+    dependencies:
+      '@ai-sdk/provider': 1.1.3
+      nanoid: 3.3.11
+      secure-json-parse: 2.7.0
+      zod: 3.25.7
 
   '@ai-sdk/provider@1.1.3':
     dependencies:
@@ -3200,12 +3210,29 @@ snapshots:
     optionalDependencies:
       zod: 3.24.4
 
+  '@ai-sdk/react@1.2.12(react@18.3.1)(zod@3.25.7)':
+    dependencies:
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.7)
+      '@ai-sdk/ui-utils': 1.2.11(zod@3.25.7)
+      react: 18.3.1
+      swr: 2.3.3(react@18.3.1)
+      throttleit: 2.1.0
+    optionalDependencies:
+      zod: 3.25.7
+
   '@ai-sdk/ui-utils@1.2.11(zod@3.24.4)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
       '@ai-sdk/provider-utils': 2.2.8(zod@3.24.4)
       zod: 3.24.4
       zod-to-json-schema: 3.24.5(zod@3.24.4)
+
+  '@ai-sdk/ui-utils@1.2.11(zod@3.25.7)':
+    dependencies:
+      '@ai-sdk/provider': 1.1.3
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.7)
+      zod: 3.25.7
+      zod-to-json-schema: 3.24.5(zod@3.25.7)
 
   '@ampproject/remapping@2.3.0':
     dependencies:
@@ -3468,8 +3495,8 @@ snapshots:
       express-rate-limit: 7.5.0(express@5.1.0)
       pkce-challenge: 5.0.0
       raw-body: 3.0.0
-      zod: 3.24.4
-      zod-to-json-schema: 3.24.5(zod@3.24.4)
+      zod: 3.25.7
+      zod-to-json-schema: 3.24.5(zod@3.25.7)
     transitivePeerDependencies:
       - supports-color
 
@@ -3991,15 +4018,15 @@ snapshots:
     optionalDependencies:
       react: 18.3.1
 
-  ai@4.3.16(react@18.3.1)(zod@3.24.4):
+  ai@4.3.16(react@18.3.1)(zod@3.25.7):
     dependencies:
       '@ai-sdk/provider': 1.1.3
-      '@ai-sdk/provider-utils': 2.2.8(zod@3.24.4)
-      '@ai-sdk/react': 1.2.12(react@18.3.1)(zod@3.24.4)
-      '@ai-sdk/ui-utils': 1.2.11(zod@3.24.4)
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.25.7)
+      '@ai-sdk/react': 1.2.12(react@18.3.1)(zod@3.25.7)
+      '@ai-sdk/ui-utils': 1.2.11(zod@3.25.7)
       '@opentelemetry/api': 1.9.0
       jsondiffpatch: 0.6.0
-      zod: 3.24.4
+      zod: 3.25.7
     optionalDependencies:
       react: 18.3.1
 
@@ -6059,4 +6086,10 @@ snapshots:
     dependencies:
       zod: 3.24.4
 
+  zod-to-json-schema@3.24.5(zod@3.25.7):
+    dependencies:
+      zod: 3.25.7
+
   zod@3.24.4: {}
+
+  zod@3.25.7: {}

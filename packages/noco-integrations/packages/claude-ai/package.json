@@ -15,7 +15,7 @@
     "@ai-sdk/anthropic": "^1.2.11",
     "@noco-integrations/core": "workspace:*",
     "ai": "^4.3.16",
-    "zod": "^3.24.4"
+    "zod": "^3.25.7"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^3.1.3",

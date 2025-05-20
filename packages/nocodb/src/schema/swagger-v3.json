@@ -497,7 +497,6 @@
                         "type": "Percent",
                         "default_value": "0.34",
                         "options": {
-                          "precision": 2,
                           "show_as_percent": true
                         }
                       },
@@ -713,7 +712,6 @@
                           "type": "Percent",
                           "default_value": "0.34",
                           "options": {
-                            "precision": 2,
                             "show_as_percent": true
                           }
                         },
@@ -1003,7 +1001,6 @@
                           "type": "Percent",
                           "default_value": "0.34",
                           "options": {
-                            "precision": 2,
                             "show_as_percent": true
                           }
                         },
@@ -5258,12 +5255,6 @@
       "FieldOptions_Percent": {
         "type": "object",
         "properties": {
-          "precision": {
-            "type": "integer",
-            "description": "Number of decimal places allowed.",
-            "minimum": 0,
-            "maximum": 5
-          },
           "show_as_progress": {
             "type": "boolean",
             "description": "Display as a progress bar."
@@ -5273,7 +5264,7 @@
       "FieldOptions_Duration": {
         "type": "object",
         "properties": {
-          "format": {
+          "duration_format": {
             "type": "string",
             "description": "Duration format. Supported options are listed below\n- `h:mm`\n- `h:mm:ss`\n- `h:mm:ss.S`\n- `h:mm:ss.SS`\n- `h:mm:ss.SSS`"
           }
@@ -5293,6 +5284,18 @@
           "12hr_format": {
             "type": "boolean",
             "description": "Use 12-hour time format."
+          },
+          "display_timezone": {
+            "type": "boolean",
+            "description": "Display timezone."
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Timezone. Refer to https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
+          },
+          "use_same_timezone_for_all": {
+            "type": "boolean",
+            "description": "Use same timezone for all records."
           }
         }
       },
@@ -5308,10 +5311,6 @@
       "FieldOptions_Time": {
         "type": "object",
         "properties": {
-          "time_format": {
-            "type": "string",
-            "description": "Time format. Supported options are listed below\n- `HH:mm`\n- `HH:mm:ss`\n- `HH:mm:ss.SSS`"
-          },
           "12hr_format": {
             "type": "boolean",
             "description": "Use 12-hour time format."

@@ -442,7 +442,41 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
         }
       } else if (data.type === UITypes.Button) {
         const { type, ...rest } = data.options as Record<string, any>;
-        options = { ...rest, button_type: type };
+
+        // Transform button properties based on type
+        if (type === 'formula') {
+          options = {
+            type,
+            formula: rest.formula,
+            label: rest.label,
+            color: rest.color,
+            theme: rest.theme,
+            icon: rest.icon,
+          };
+        } else if (type === 'webhook') {
+          options = {
+            type,
+            webhook_id: rest.button_hook_id,
+            label: rest.label,
+            color: rest.color,
+            theme: rest.theme,
+            icon: rest.icon,
+          };
+        } else if (type === 'ai') {
+          options = {
+            type,
+            prompt: rest.prompt,
+            integration_id: rest.integration_id,
+            output_column_ids: rest.output_column_ids,
+            label: rest.label,
+            color: rest.color,
+            theme: rest.theme,
+            icon: rest.icon,
+          };
+        } else {
+          // Fallback to original transformation
+          options = { ...rest, button_type: type };
+        }
       } else if (isLinksOrLTAR(data.type)) {
         const { type, ...rest } = data.options as Record<string, any>;
         options = { ...rest, relation_type: type };
@@ -475,6 +509,15 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
     'related_table_lookup_field_id',
     'rollup_function',
     'button_hook_id',
+    'webhook_id',
+    'type',
+    'prompt',
+    'integration_id',
+    'output_column_ids',
+    'label',
+    'color',
+    'theme',
+    'icon',
   ],
   mappings: {
     formula: 'formula_raw',
@@ -484,6 +527,7 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
     relation_type: 'type',
 
     button_hook_id: 'fk_webhook_id',
+    webhook_id: 'fk_webhook_id',
 
     // parent id we need to extract from the url
     related_table_id: 'childId',
@@ -491,6 +535,23 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
     related_field_id: 'fk_relation_column_id',
     related_table_rollup_field_id: 'fk_rollup_column_id',
     related_table_lookup_field_id: 'fk_lookup_column_id',
+  },
+  transformFn: (data) => {
+    // Handle button specific transformations
+    if (data.type) {
+      // For button columns, convert type-specific structure to the V2 format
+      if (
+        data.type === 'formula' ||
+        data.type === 'webhook' ||
+        data.type === 'ai'
+      ) {
+        return {
+          ...data,
+          type: data.type,
+        };
+      }
+    }
+    return data;
   },
 });
 
@@ -586,6 +647,32 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       );
       if (durationIdx > -1) {
         meta.duration = durationIdx;
+      }
+    } else if (data.uidt === UITypes.Button) {
+      // Convert the V3 oneOf schema format to the V2 format for buttons
+      const {
+        type,
+        formula,
+        webhook_id,
+        prompt,
+        integration_id,
+        output_column_ids,
+        ...commonProps
+      } = data.meta as Record<string, any>;
+
+      // Set base meta properties
+      Object.assign(meta, commonProps);
+      meta.type = type;
+
+      // Add type-specific properties
+      if (type === 'formula' && formula) {
+        meta.formula = formula;
+      } else if (type === 'webhook' && webhook_id) {
+        meta.fk_webhook_id = webhook_id;
+      } else if (type === 'ai') {
+        if (prompt) meta.prompt = prompt;
+        if (integration_id) meta.integration_id = integration_id;
+        if (output_column_ids) meta.output_column_ids = output_column_ids;
       }
     }
     // if multi select then accept array of default values

@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "יצירת פרויקט חדש",
+    "create_new_table": "יצירת טבלה חדשה",
     "connect_data_sources": "בחרו מקור מידע",
     "alert": "התראה",
     "alert-message": "לא חוברו מאגרי מידע. חבר מאגרי מידע לבניית ממשקים. דלג על שלב זה והוסף מאגרי מידע מדף הבית של הפרויקט מאוחר יותר.",

@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Utwórz nowy interfejs",
+    "create_new_table": "Utwórz nową tabelę",
     "connect_data_sources": "Połącz źródła danych",
     "alert": "Alarm",
     "alert-message": "Nie połączono żadnych baz danych. Połącz bazy danych, aby budować interfejsy. Pomiń ten krok i dodaj bazy danych później ze strony głównej bazy.",

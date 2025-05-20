@@ -23,6 +23,7 @@ import { SourceDeleteProcessor } from '~/modules/jobs/jobs/source-delete/source-
 import { WebhookHandlerProcessor } from '~/modules/jobs/jobs/webhook-handler/webhook-handler.processor';
 import { DataExportProcessor } from '~/modules/jobs/jobs/data-export/data-export.processor';
 import { DataExportController } from '~/modules/jobs/jobs/data-export/data-export.controller';
+import { DataExportCleanUpProcessor } from '~/modules/jobs/jobs/data-export-clean-up/data-export-clean-up.processor';
 import { PublicDataExportController } from '~/modules/jobs/jobs/data-export/public-data-export.controller';
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
@@ -112,6 +113,7 @@ export const JobsModuleMetadata = {
     SourceDeleteProcessor,
     WebhookHandlerProcessor,
     DataExportProcessor,
+    DataExportCleanUpProcessor,
     ThumbnailGeneratorProcessor,
     AttachmentCleanUpProcessor,
     UseWorkerProcessor,

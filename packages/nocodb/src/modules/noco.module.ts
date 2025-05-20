@@ -116,7 +116,6 @@ import { InternalController } from '~/controllers/internal.controller';
 /* Datas */
 import { BulkDataAliasController } from '~/controllers/bulk-data-alias.controller';
 import { CalendarDatasController } from '~/controllers/calendars-datas.controller';
-import { DataAliasExportController } from '~/controllers/data-alias-export.controller';
 import { DataAliasNestedController } from '~/controllers/data-alias-nested.controller';
 import { DataAliasController } from '~/controllers/data-alias.controller';
 import { DataTableController } from '~/controllers/data-table.controller';
@@ -124,7 +123,6 @@ import { DatasController } from '~/controllers/datas.controller';
 import { IntegrationsController } from '~/controllers/integrations.controller';
 import { OldDatasController } from '~/controllers/old-datas/old-datas.controller';
 import { OldDatasService } from '~/controllers/old-datas/old-datas.service';
-import { PublicDatasExportController } from '~/controllers/public-datas-export.controller';
 import { PublicDatasController } from '~/controllers/public-datas.controller';
 import { BaseUsersV3Controller } from '~/controllers/v3/base-users-v3.controller';
 import { BasesV3Controller } from '~/controllers/v3/bases-v3.controller';
@@ -241,10 +239,8 @@ export const nocoModuleMetadata = {
           BulkDataAliasController,
           DataAliasController,
           DataAliasNestedController,
-          DataAliasExportController,
           OldDatasController,
           PublicDatasController,
-          PublicDatasExportController,
           Datav3Controller,
         ]
       : []),

@@ -74,7 +74,7 @@ export class JsonGeneralHandler extends GenericFieldHandler {
           if (!val) {
             qb.whereNotNull(field);
           } else {
-            qb.where(knex.raw('?? ilike ?', [field, val]));
+            qb.where(knex.raw('?? like ?', [field, val]));
           }
           break;
 

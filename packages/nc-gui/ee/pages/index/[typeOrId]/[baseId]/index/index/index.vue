@@ -146,22 +146,6 @@ function onDropZoneClick(e: MouseEvent) {
   open()
 }
 */
-
-watch(
-  () => base.value?.id,
-  () => {
-    if (base.value?.id && base.value.type === 'database') {
-      const { addTab } = useTabs()
-
-      addTab({
-        id: base.value.id,
-        title: base.value.title!,
-        type: TabType.DB,
-        baseId: base.value.id,
-      })
-    }
-  },
-)
 </script>
 
 <template>

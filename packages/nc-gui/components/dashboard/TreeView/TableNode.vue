@@ -26,9 +26,6 @@ const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
-const tabStore = useTabs()
-const { updateTab } = tabStore
-
 const { $e, $api } = useNuxtApp()
 
 const { isMysql, isMssql, isPg } = useBase()
@@ -138,8 +135,6 @@ const setIcon = async (icon: string, table: TableType) => {
       icon,
     }
     tables.value.splice(tables.value.indexOf(table), 1, { ...table })
-
-    updateTab({ id: table.id }, { meta: table.meta })
 
     await $api.dbTable.update(table.id as string, {
       meta: table.meta,

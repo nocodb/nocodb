@@ -27,8 +27,6 @@ const { isSharedBase, base } = storeToRefs(baseStore)
 
 const { workspaceRoles } = useRoles()
 
-const { updateTab } = useTabs()
-
 const tablesStore = useTablesStore()
 
 const { loadProjectTables } = tablesStore
@@ -47,14 +45,13 @@ const { addUndo, defineProjectScope } = useUndoRedo()
 
 const baseType = ref(NcProjectType.DB)
 const baseCreateDlg = ref(false)
-const dashboardProjectCreateDlg = ref(false)
 
 const starredProjectList = computed(() => basesList.value.filter((base) => base.starred))
 const nonStarredProjectList = computed(() => basesList.value.filter((base) => !base.starred))
 
-const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
+const contextMenuTarget = reactive<{ type?: 'base' | 'table' | 'main'; value?: any }>({})
 
-const setMenuContext = (type: 'base' | 'base' | 'table' | 'main' | 'layout', value?: any) => {
+const setMenuContext = (type: 'base' | 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
 }
@@ -165,8 +162,6 @@ async function handleTableRename(
     // update metas
     const newMeta = await $api.dbTable.read(table.id as string)
     await setMeta(newMeta)
-
-    updateTab({ id: table.id }, { title: newMeta.title })
 
     refreshCommandPalette()
 
@@ -291,13 +286,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         baseCreateDlg.value = true
         break
       }
-      // // ALT + B
-      // case 66: {
-      //   e.stopPropagation()
-      //   baseType.value = NcProjectType.DOCS
-      //   baseCreateDlg.value = true
-      //   break
-      // }
     }
   }
 })
@@ -411,7 +399,6 @@ const onMove = async (
     </div>
 
     <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
-    <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
   </div>
 </template>
 

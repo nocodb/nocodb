@@ -15,8 +15,6 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, sourceI
 
   const { getMeta, removeMeta } = useMetas()
 
-  const { closeTab } = useTabs()
-
   const baseStore = useBase()
   const { loadTables, isXcdbBase } = baseStore
   const { sqlUis, base, tables } = storeToRefs(baseStore)
@@ -137,12 +135,6 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, sourceI
           }
 
           await $api.dbTable.delete(table?.id as string)
-
-          await closeTab({
-            type: TabType.TABLE,
-            id: table.id,
-            title: table.title,
-          })
 
           await loadTables()
 

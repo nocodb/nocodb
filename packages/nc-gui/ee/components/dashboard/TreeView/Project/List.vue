@@ -28,8 +28,6 @@ const { isSharedBase, base } = storeToRefs(baseStore)
 
 const { workspaceRoles } = useRoles()
 
-const { updateTab } = useTabs()
-
 const tablesStore = useTablesStore()
 
 const { loadProjectTables } = tablesStore
@@ -48,7 +46,6 @@ const { addUndo, defineProjectScope } = useUndoRedo()
 
 const baseType = ref(NcProjectType.DB)
 const baseCreateDlg = ref(false)
-const dashboardProjectCreateDlg = ref(false)
 
 const searchQuery = ref('')
 
@@ -108,9 +105,9 @@ watch(
   },
 )
 
-const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
+const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main'; value?: any }>({})
 
-const setMenuContext = (type: 'base' | 'base' | 'table' | 'main' | 'layout', value?: any) => {
+const setMenuContext = (type: 'base' | 'base' | 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
 }
@@ -221,8 +218,6 @@ async function handleTableRename(
     // update metas
     const newMeta = await $api.dbTable.read(table.id as string)
     await setMeta(newMeta)
-
-    updateTab({ id: table.id }, { title: newMeta.title })
 
     refreshCommandPalette()
 
@@ -572,7 +567,6 @@ onBeforeUnmount(() => {
             </div>
 
             <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
-            <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
           </div>
           <slot name="footer"> </slot>
         </div>

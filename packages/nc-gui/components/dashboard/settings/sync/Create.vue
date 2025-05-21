@@ -13,8 +13,6 @@ const baseStore = useBase()
 const { loadTables } = baseStore
 const { base, tables } = storeToRefs(baseStore)
 
-const { addTab } = useTabs()
-
 const { refreshCommandPalette } = useCommandPalette()
 
 const _projectId = inject(ProjectIdInj, undefined)
@@ -70,7 +68,6 @@ const { form, formState, isLoading, validateInfos, submit } = useProvideFormBuil
               await loadTables()
 
               const newTable = tables.value.find((el) => el.id === res.table?.id)
-              if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
 
               refreshCommandPalette()
               goToDashboard.value = true
@@ -80,8 +77,6 @@ const { form, formState, isLoading, validateInfos, submit } = useProvideFormBuil
               await loadTables()
 
               const newTable = tables.value.find((el) => el.id === res.table?.id)
-              if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
-
               refreshCommandPalette()
 
               goBack.value = true

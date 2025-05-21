@@ -13,8 +13,6 @@ const { api } = useApi()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { addTab } = useTabs()
-
 const { $e, $poller } = useNuxtApp()
 
 const basesStore = useBases()
@@ -91,7 +89,6 @@ const _duplicate = async () => {
             await loadTables()
             refreshCommandPalette()
             const newTable = tables.value.find((el) => el.id === data?.data?.result?.id)
-            if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
 
             openTable(newTable!)
             isLoading.value = false

@@ -20,14 +20,9 @@ const { activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const baseCreateDlg = ref(false)
 const baseType = ref(NcProjectType.DB)
-const dashboardProjectCreateDlg = ref(false)
 
 const size = computed(() => props.size || 'small')
 const centered = computed(() => props.centered ?? true)
-
-/* const openCreateDashboardProjectOverlay = () => {
-  dashboardProjectCreateDlg.value = true
-} */
 </script>
 
 <template>
@@ -52,38 +47,7 @@ const centered = computed(() => props.centered ?? true)
     </slot>
 
     <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
-    <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
   </NcButton>
-  <!-- <a-dropdown v-model:visible="isOpen" class="w-full">
-      <template #overlay>
-        <a-menu>
-          <a-menu-item @click="navigateToCreateProject(NcProjectType.DB)">
-            <div class="py-4 px-1 flex items-center gap-2 nc-create-base-btn-db">
-              <GeneralProjectIcon :type="NcProjectType.DB" class="text-[#2824FB] text-lg" />
-              Database
-              <span class="flex-grow" />
-              <GeneralShortcutLabel class="justify-center" :keys="['Alt', 'D']" />
-            </div>
-          </a-menu-item>
-          <a-menu-item @click="openCreateDashboardProjectOverlay()">
-            <div class="py-4 px-1 flex items-center gap-2">
-              <GeneralProjectIcon :type="NcProjectType.DASHBOARD" class="text-[#2824FB] text-lg" />
-              Dashboard
-              <span class="flex-grow" />
-              <GeneralShortcutLabel class="justify-center" :keys="['Alt', 'D']" />
-            </div>
-          </a-menu-item>
-          <a-menu-item @click="navigateToCreateProject(NcProjectType.DOCS)">
-            <div class="py-4 px-1 flex items-center gap-2 nc-create-base-btn-docs">
-              <GeneralProjectIcon :type="NcProjectType.DOCS" class="text-[#247727] text-lg" />
-              Documentation
-              <span class="flex-grow" />
-              <GeneralShortcutLabel class="justify-center" :keys="['Alt', 'B']" />
-            </div>
-          </a-menu-item>
-        </a-menu>
-      </template>
-    </a-dropdown> -->
 </template>
 
 <style scoped></style>

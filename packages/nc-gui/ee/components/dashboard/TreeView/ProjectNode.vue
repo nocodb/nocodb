@@ -79,8 +79,6 @@ const { activeTable } = storeToRefs(useTablesStore())
 
 const { allRecentViews } = storeToRefs(useViewsStore())
 
-useTabs()
-
 const { meta: metaKey, control } = useMagicKeys()
 
 const editMode = ref(false)
@@ -104,10 +102,6 @@ const input = ref<HTMLInputElement>()
 const { isUIAllowed } = useRoles()
 
 const { refreshCommandPalette } = useCommandPalette()
-
-const { addNewLayout, getDashboardProjectUrl: dashboardProjectUrl, populateLayouts } = useDashboardStore()
-
-const { addNewPage, populatedNestedPages, baseUrl: docsProjectUrl } = useDocStore()
 
 const { $e } = useNuxtApp()
 
@@ -348,14 +342,6 @@ const addNewProjectChildEntity = async () => {
 
   try {
     switch (base.value.type) {
-      case NcProjectType.DASHBOARD:
-        await populateLayouts({ baseId: base.value.id! })
-        await addNewLayout({ baseId: base.value!.id! })
-        break
-      case NcProjectType.DOCS:
-        await populatedNestedPages({ baseId: base.value.id! })
-        await addNewPage({ parentPageId: undefined, baseId: base.value!.id! })
-        break
       case NcProjectType.DB:
         openTableCreateDialog()
         break
@@ -412,28 +398,7 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
 
   if (!isProjectPopulated) base.isLoading = true
 
-  // if dashboard or document base, add a document tab and route to the respective page
   switch (base.type) {
-    case 'dashboard':
-      $e('c:dashboard:open', base.id)
-      await populateLayouts({ baseId: base.id! })
-      if (!ignoreNavigation) {
-        await navigateTo(dashboardProjectUrl(base.id!))
-      }
-      break
-    case 'documentation':
-      // addTab({
-      //   id: base.id,
-      //   title: base.title!,
-      //   type: TabType.DOCUMENT,
-      //   baseId: base.id,
-      // })
-      $e('c:document:open', base.id)
-      await populatedNestedPages({ baseId: base.id! })
-      if (!ignoreNavigation) {
-        await navigateTo(docsProjectUrl(base.id!))
-      }
-      break
     case 'database':
       if (!ignoreNavigation) {
         await navigateTo(
@@ -878,13 +843,7 @@ defineExpose({
         class="overflow-x-hidden transition-max-height"
         :class="{ 'max-h-0': !isExpanded }"
       >
-        <div v-if="base.type === 'documentation'">
-          <LazyDocsSideBar v-if="isExpanded" :base="base" />
-        </div>
-        <div v-else-if="base.type === 'dashboard'">
-          <LayoutsSideBar v-if="isExpanded" :base="base" />
-        </div>
-        <template v-else-if="base?.sources">
+        <template v-if="base?.sources">
           <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
             <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
               <div class="transition-height duration-200">

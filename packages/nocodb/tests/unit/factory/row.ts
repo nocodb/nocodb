@@ -10,7 +10,7 @@ import NcConnectionMgrv2 from '../../../src/utils/common/NcConnectionMgrv2';
 import type { ColumnType, NcApiVersion } from 'nocodb-sdk';
 import type Column from '../../../src/models/Column';
 import type Filter from '../../../src/models/Filter';
-import type { Base, Sort, View } from '../../../src/models';
+import type { Base, View, Sort } from '../../../src/models';
 
 const rowValue = (column: ColumnType, index: number) => {
   switch (column.uidt) {
@@ -292,6 +292,38 @@ const listRow = async ({
   return await baseModel.list(options, { ignorePagination });
 };
 
+const countRows = async ({
+  base,
+  table,
+  options,
+  view,
+}: {
+  base: Base;
+  table: Model;
+  view?: View;
+  options?: {
+    limit?: any;
+    offset?: any;
+    filterArr?: Filter[];
+    sortArr?: Sort[];
+    apiVersion?: NcApiVersion;
+  };
+}) => {
+  const ctx = {
+    workspace_id: base.fk_workspace_id,
+    base_id: base.id,
+  };
+
+  const sources = await base.getSources();
+  const baseModel = await Model.getBaseModelSQL(ctx, {
+    id: table.id,
+    dbDriver: await NcConnectionMgrv2.get(sources[0]!),
+    viewId: view?.id,
+  });
+
+  return await baseModel.count(options);
+};
+
 const getOneRow = async (
   context,
   { base, table }: { base: Base; table: Model },
@@ -466,4 +498,5 @@ export {
   createBulkRows,
   createBulkRowsV3,
   rowMixedValue,
+  countRows,
 };

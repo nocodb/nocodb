@@ -66,7 +66,7 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
     column: Column;
     baseModel: IBaseModelSqlV2;
     options?: { context?: NcContext; metaService?: MetaService };
-  }): Promise<any> {
+  }): Promise<{ value: any }> {
     if (!ncIsUndefined(params.value) && !ncIsNull(params.value)) {
       const numberValue = Number(params.value);
       if (!ncIsNumber(numberValue)) {

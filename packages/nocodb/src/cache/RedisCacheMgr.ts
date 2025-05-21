@@ -13,7 +13,7 @@ export default class RedisCacheMgr extends CacheMgr {
 
     // avoid flushing db in worker container
     if (
-      process.env.NC_WORKER_CONTAINER !== 'true' &&
+      serverConfig.workerType !== 'worker' &&
       (process.env.NC_FLUSH_CACHE === 'true' ||
         !serverConfig.nocoDbConfig.isCloud) &&
       process.env.NC_KEEP_CACHE !== 'true'

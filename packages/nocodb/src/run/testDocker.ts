@@ -29,7 +29,7 @@ process.env[`DEBUG`] = 'xc*';
 process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
 
 (async () => {
-  if (process.env.NC_WORKER_CONTAINER === 'true') {
+  if (serverConfig.workerType === 'worker') {
     const httpServer = server.listen(serverConfig.port, async () => {
       server.use(await Noco.init({}, httpServer, server));
     });

@@ -65,6 +65,7 @@ class NocoDbConfig {
 }
 
 const environments = ['testing', 'production', 'development', 'staging'] as const;
+const workerType = ['disabed', 'worker', 'main'] as const;
 export class ServerConfig {
     @IsIP()
     host: string;
@@ -90,6 +91,9 @@ export class ServerConfig {
     @IsIn(environments)
     environment: typeof environments[number];
 
+    @IsIn(workerType)
+    workerType: typeof workerType[number];
+
     dashboardUrl: string
 }
 
@@ -99,6 +103,7 @@ const serverConfigGet = (): ServerConfig => {
         port: 8000,
         publicUrl: null,
         dashboardUrl: null,
+        workerType: process.env.WORKER_TYPE,
 
         environment: process.env.NODE_ENV as typeof environments[number],
 

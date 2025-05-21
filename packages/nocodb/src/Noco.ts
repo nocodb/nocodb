@@ -127,7 +127,7 @@ export default class Noco {
       );
     }
 
-    if (process.env.NC_WORKER_CONTAINER === 'true') {
+    if (serverConfig.workerType === 'worker') {
       if (!getRedisURL()) {
         throw new Error('NC_REDIS_URL is required');
       }
@@ -162,7 +162,7 @@ export default class Noco {
     await Integration.init();
     NcDebug.log('Integration initialized');
 
-    if (process.env.NC_WORKER_CONTAINER !== 'true') {
+    if (serverConfig.workerType !== 'worker') {
       await DataReflection.init();
     }
 

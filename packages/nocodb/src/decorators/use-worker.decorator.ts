@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import { Inject, Logger } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
 import type { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -15,7 +16,7 @@ export function UseWorker(): MethodDecorator {
   return (target, key, descriptor: PropertyDescriptor) => {
     if (!PubSubRedis.available) return descriptor;
 
-    if (process.env.NC_WORKER_CONTAINER !== 'false') return descriptor;
+    if (serverConfig.workerType !== 'main') return descriptor;
 
     injectJobsService(target, 'jobsService');
 

@@ -5,7 +5,6 @@ import { serialize } from 'pg-protocol';
 import { Parser } from 'node-sql-parser';
 import { Logger } from '@nestjs/common';
 import DataReflectionCE from 'src/models/DataReflection';
-import { NcSDKError, NcSDKErrorV2 } from 'nocodb-sdk';
 import type { Socket } from 'net';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Base, Workspace } from '~/models';
@@ -19,7 +18,6 @@ import {
   NC_DATA_REFLECTION_SETTINGS,
   revokeAccessToSchema,
 } from '~/helpers/dataReflectionHelpers';
-import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 
 const logger = new Logger('DataReflection');
 

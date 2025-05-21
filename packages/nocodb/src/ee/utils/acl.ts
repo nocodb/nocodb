@@ -466,7 +466,6 @@ const rolePermissions:
       // upload: true,
       // uploadViaURL: true,
 
-
       // AI
       aiUtils: true,
       aiData: true,

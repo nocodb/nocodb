@@ -112,11 +112,6 @@ async function onOpenModal({
         force: true,
       })
 
-      table.value.meta = {
-        ...(table.value.meta as object),
-        hasNonDefaultViews: true,
-      }
-
       if (view) {
         navigateToView({
           view,

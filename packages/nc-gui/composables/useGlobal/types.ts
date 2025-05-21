@@ -51,7 +51,6 @@ export interface StoredState {
   lang: keyof typeof Language
   darkMode: boolean
   filterAutoSave: boolean
-  previewAs: ProjectRoles | null
   includeM2M: boolean
   showNull: boolean
   currentVersion: string | null

@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Yeni Arayüz Oluştur",
+    "create_new_table": "Yeni Tablo Oluştur",
     "connect_data_sources": "Yeni kaynağa bağlan",
     "alert": "Uyarı",
     "alert-message": "Hiçbir veritabanına bağlanmadı. Arayüz oluşturmak için veritabanlarına bağlanın. Bu adımı atlayın ve veritabanlarını daha sonra proje ana sayfasından ekleyin.",

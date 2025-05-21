@@ -2,13 +2,13 @@
   lib,
   dockerTools,
   dumb-init,
-  nocodb,
+  backend,
 }:
 let
   port = 80;
 in
 dockerTools.buildLayeredImage {
-  name = "nocodb";
+  name = "nocodb-backend";
   contents = [ dockerTools.binSh ];
 
   config = {
@@ -24,7 +24,7 @@ dockerTools.buildLayeredImage {
     Entrypoint = [
       (lib.getExe dumb-init)
       "--"
-      (lib.getExe nocodb)
+      (lib.getExe backend)
     ];
   };
 }

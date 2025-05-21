@@ -17,6 +17,14 @@
 
       forUnixSystems = f: lib.genAttrs lib.platforms.unix (forSystem f);
       forLinuxSystems = f: lib.genAttrs lib.platforms.linux (forSystem f);
+
+      version =
+        if self ? shortRev then
+          self.shortRev
+        else if self ? dirtyShortRev then
+          self.dirtyShortRev
+        else
+          "not-a-gitrepo";
     in
     {
       packages =
@@ -25,14 +33,18 @@
             { system, pkgs }:
             {
               workflows = pkgs.callPackage ./nix/workflows { inherit self; };
-              nocodb = pkgs.callPackage ./nix/package.nix {
-                version =
-                  if self ? shortRev then
-                    self.shortRev
-                  else if self ? dirtyShortRev then
-                    self.dirtyShortRev
-                  else
-                    "not-a-gitrepo";
+              nocodb = pkgs.callPackage ./nix/packages/nocodb.nix {
+                inherit version;
+              };
+
+              frontend-ssg = pkgs.callPackage ./nix/packages/frontend-ssg.nix {
+                inherit version;
+              };
+              frontend-ssr = pkgs.callPackage ./nix/packages/frontend-ssr.nix {
+                inherit version;
+              };
+              backend = pkgs.callPackage ./nix/packages/backend.nix {
+                inherit version;
               };
 
               pnpmDeps = self.packages.${system}.nocodb.pnpmDeps;
@@ -48,6 +60,15 @@
                 };
                 docker_aio = pkgs.callPackage ./nix/docker/all_in_one {
                   nocodb = self.packages.${system}.nocodb;
+                };
+                docker_frontend_ssg = pkgs.callPackage ./nix/docker/frontend-ssg {
+                  frontend-ssg = self.packages.${system}.frontend-ssg;
+                };
+                docker_frontend_ssr = pkgs.callPackage ./nix/docker/frontend-ssr {
+                  frontend-ssr = self.packages.${system}.frontend-ssr;
+                };
+                docker_backend = pkgs.callPackage ./nix/docker/backend {
+                  backend = self.packages.${system}.backend;
                 };
               }
             )

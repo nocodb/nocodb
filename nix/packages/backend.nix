@@ -16,12 +16,12 @@
   # macos
   xcbuild,
   cctools,
+  darwin,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
   inherit version;
-
-  pname = "nocodb";
+  pname = "nocodb-backend";
 
   src = lib.cleanSourceWith {
     filter =
@@ -32,17 +32,14 @@ stdenv.mkDerivation (finalAttrs: {
         "flake.nix"
       ]);
 
-    src = ../.;
+    src = ../../.;
   };
 
   buildPhase = ''
-    export NODE_OPTIONS="--max_old_space_size=16384"
-    export NUXT_TELEMETRY_DISABLED=1
     export npm_config_nodedir=${nodePackages.nodejs}
 
     pnpm --filter=nocodb-sdk run build
     pnpm run registerIntegrations
-    pnpm --filter=nc-gui run build:copy
     pnpm --filter=nocodb run docker:build
   '';
 
@@ -69,15 +66,14 @@ stdenv.mkDerivation (finalAttrs: {
     cp -r ./node_modules $out/share/nocodb/node_modules
     cp -r ./packages/nocodb/node_modules $out/share/nocodb/packages/nocodb/node_modules
 
-    makeWrapper "${lib.getExe nodePackages.nodejs}" "$out/bin/${finalAttrs.pname}" \
+    makeWrapper "${lib.getExe nodePackages.nodejs}" "$out/bin/nocodb" \
       --set NODE_ENV production \
+      --set NC_DASHBOARD_ENABLE false \
       --set PATH ${
         (lib.makeBinPath [
           coreutils
           nettools
         ])
-        # TODO: for ioreg
-        + lib.optionalString stdenv.hostPlatform.isDarwin ":/usr/bin"
       } \
       --add-flags "$out/share/nocodb/packages/nocodb/index.js"
   '';
@@ -104,21 +100,22 @@ stdenv.mkDerivation (finalAttrs: {
       nettools # hostname
     ]
     ++ lib.optionals stdenv.hostPlatform.isDarwin [
+      darwin.IOKitTools
       xcbuild
       cctools
     ];
 
   pnpmDeps = pnpm.fetchDeps {
     inherit (finalAttrs) pname version src;
-    hash = "sha256-A93Rk+GpkNVrdk8qVGcE+RnyVZqic/aviO+lrwvmz70=";
+    hash = "sha256-QcVnvXnPmhp3qJGxK8958CFxo+a0jwGRRyhtDuyK8sA=";
   };
 
   meta = {
-    description = "Open Source Airtable Alternative";
+    description = "Open Source Airtable Alternative Backend";
     homepage = "https://nocodb.com/";
     platforms = lib.platforms.linux ++ lib.platforms.darwin;
     license = lib.licenses.agpl3Plus;
-    mainProgram = finalAttrs.pname;
+    mainProgram = "nocodb";
     maintainers = with lib.maintainers; [ sinanmohd ];
   };
 })

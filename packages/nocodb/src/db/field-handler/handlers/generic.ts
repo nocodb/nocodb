@@ -126,7 +126,7 @@ export class GenericFieldHandler implements FieldHandlerInterface {
     };
   }
 
-  async parseValue(params: {
+  async parseUserInput(params: {
     value: any;
     row: any;
     column: Column;

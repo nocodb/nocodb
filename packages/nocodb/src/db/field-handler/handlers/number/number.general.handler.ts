@@ -6,14 +6,14 @@ import type { NcContext } from 'nocodb-sdk';
 import type { MetaService } from 'src/meta/meta.service';
 
 export class NumberGeneralHandler extends DecimalGeneralHandler {
-  override async parseValue(params: {
+  override async parseUserInput(params: {
     value: any;
     row: any;
     column: Column;
     baseModel: IBaseModelSqlV2;
     options?: { context?: NcContext; metaService?: MetaService };
   }): Promise<{ value: any }> {
-    const value = (await super.parseValue(params))?.value;
+    const value = (await super.parseUserInput(params))?.value;
     if (typeof value === 'number' && Math.floor(value) !== Math.ceil(value)) {
       NcError.invalidValueForField({
         value: params.value,

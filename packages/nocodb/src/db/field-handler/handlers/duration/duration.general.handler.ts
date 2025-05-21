@@ -6,14 +6,14 @@ import type { MetaService } from 'src/meta/meta.service';
 import type { Column } from 'src/models';
 
 export class DurationGeneralHandler extends NumberGeneralHandler {
-  override async parseValue(params: {
+  override async parseUserInput(params: {
     value: any;
     row: any;
     column: Column;
     baseModel: IBaseModelSqlV2;
     options?: { context?: NcContext; metaService?: MetaService };
   }): Promise<{ value: any }> {
-    const { value } = (await super.parseValue(params)) ?? {};
+    const { value } = (await super.parseUserInput(params)) ?? {};
     if (typeof value === 'number' && value < 0) {
       NcError.invalidValueForField({
         value: params.value,

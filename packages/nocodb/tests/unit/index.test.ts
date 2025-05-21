@@ -7,7 +7,7 @@ import { dataApiV3Test } from './rest/tests/dataApiV3/index.test';
 
 process.env.NODE_ENV = 'test';
 process.env.TEST = 'true';
-process.env.NC_DISABLE_CACHE = 'true';
+// process.env.NC_DISABLE_CACHE = 'true';
 process.env.NC_DISABLE_TELE = 'true';
 
 // Load environment variables from .env file

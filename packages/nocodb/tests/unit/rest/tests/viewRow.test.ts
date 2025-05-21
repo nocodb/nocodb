@@ -1,28 +1,28 @@
 import 'mocha';
 // @ts-ignore
-import assert from 'assert';
 import request from 'supertest';
 import { APIContext, UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/base';
-import { createTable, getAllTables, getTable } from '../../factory/table';
+import { createTable, getTable } from '../../factory/table';
 import { createView, getView } from '../../factory/view';
 import {
   createColumn,
   createLookupColumn,
   createLtarColumn,
   createRollupColumn,
-  defaultColumns,
   updateViewColumn,
 } from '../../factory/column';
 import {
+  countRows,
   createChildRow,
   createRow,
   getOneRow,
   getRow,
   listRow,
 } from '../../factory/row';
+import { listenForJob } from '../../factory/job';
 import Model from '../../../../src/models/Model';
 import { getViewColumns, updateViewColumns } from '../../factory/viewColumns';
 import type { ColumnType } from 'nocodb-sdk';
@@ -1697,45 +1697,56 @@ function viewRowTests() {
       table: customerTable,
       type: ViewTypes.GRID,
     });
-    const response = await request(context.app)
-      .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/views/${view.id}/export/csv`,
-      )
-      .set('xc-auth', context.token)
-      .expect(200);
 
-    if (
-      !response['header']['content-disposition'].includes('View-export.csv')
-    ) {
-      console.log(response['header']['content-disposition']);
-      throw new Error('Wrong file name');
-    }
-    if (!response.text) {
-      throw new Error('Wrong export');
-    }
-  });
-
-  it('Export excel GRID', async function () {
-    const view = await createView(context, {
-      title: 'View',
+    // get row count
+    const rowCount = await countRows({
+      base: sakilaProject,
       table: customerTable,
-      type: ViewTypes.GRID,
+      view: view,
     });
-    const response = await request(context.app)
-      .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/views/${view.id}/export/excel`,
-      )
+
+    // Start export job
+    const jobResponse = await request(context.app)
+      .post(`/api/v2/export/${view.id}/csv`)
       .set('xc-auth', context.token)
       .expect(200);
 
-    if (
-      !response['header']['content-disposition'].includes('View-export.xlsx')
-    ) {
-      console.log(response['header']['content-disposition']);
-      throw new Error('Wrong file name');
-    }
-    if (!response.text) {
-      throw new Error('Wrong export');
+    // Verify we got a job ID
+    const jobId = jobResponse.body.id;
+    expect(jobId).to.be.a('string');
+
+    // Wait for job completion using the helper function
+    const resultData = await listenForJob({
+      context,
+      base_id: sakilaProject.id,
+      job_id: jobId,
+    });
+
+    // Verify the exported file
+    expect(resultData).to.be.an('object');
+    expect(resultData.url).to.be.a('string');
+
+    try {
+      const fileUrl = resultData.url;
+
+      // Download the file using the download endpoint
+      const fileResponse = await request(context.app)
+        .get(`/${encodeURI(fileUrl)}`)
+        .set('xc-auth', context.token)
+        .expect(200);
+
+      // Check file content
+      expect(fileResponse.headers['content-disposition']).to.include(
+        `${customerTable.title} (${view.title}).csv`,
+      );
+      expect(fileResponse.headers['content-type']).to.include('text/csv');
+      expect(fileResponse.text).to.be.a('string').and.not.empty;
+      expect(fileResponse.text.split('\n').length).to.equal(rowCount + 1);
+    } catch (error) {
+      console.error('Error downloading file:', error.message);
+      console.error('URL used:', `/${resultData.url}`);
+      console.error('Result data:', JSON.stringify(resultData, null, 2));
+      throw error;
     }
   });
 

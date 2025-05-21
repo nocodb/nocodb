@@ -692,7 +692,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         direction: 'asc' | 'desc';
       };
       groupByColumnName?: string;
-      widgetFilterArr?: Filter[];
     },
   ) {
     const columns = await this.model.getColumns(this.context);
@@ -727,11 +726,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     await conditionV2(
       this,
       [
-        new Filter({
-          children: args.widgetFilterArr || [],
-          is_group: true,
-          logical_op: 'and',
-        }),
         new Filter({
           children: filterObj,
           is_group: true,

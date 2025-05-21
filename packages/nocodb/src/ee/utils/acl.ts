@@ -218,27 +218,6 @@ const permissionScopes = {
     'baseDelete',
     'sourceCreate',
 
-    'pageGet',
-    'pageList',
-    'pageSearch',
-    'pageParents',
-    'pageCreate',
-    'pageUpdate',
-    'pageDelete',
-    'pageGpt',
-    'docsMagicCreatePages',
-    'pagePaginate',
-    'pageDirectoryImport',
-    'layoutGet',
-    'layoutList',
-    'layoutCreate',
-    'widgetsList',
-    'widgetGet',
-    'widgetCreate',
-    'widgetUpdate',
-    'widgetDelete',
-    'widgetFilterList',
-    'widgetFilterCreate',
     'userInvite',
 
     'jobList',
@@ -431,20 +410,6 @@ const rolePermissions:
       dataAggregate: true,
       swaggerJson: true,
 
-      // Docs
-      pageGet: true,
-      pageList: true,
-      pageSearch: true,
-      pageParents: true,
-      pagePaginate: true,
-
-      // dashboards
-      layoutGet: true,
-      layoutList: true,
-      widgetsList: true,
-      widgetGet: true,
-      widgetFilterList: true,
-
       baseUserList: true,
 
       jobList: true,
@@ -501,21 +466,6 @@ const rolePermissions:
       // upload: true,
       // uploadViaURL: true,
 
-      // TODO remove these permissions
-      // Docs
-      pageCreate: true,
-      pageUpdate: true,
-      pageDelete: true,
-      pageGpt: true,
-      docsMagicCreatePages: true,
-      pageDirectoryImport: true,
-
-      // dashboards
-      layoutCreate: true,
-      widgetCreate: true,
-      widgetUpdate: true,
-      widgetDelete: true,
-      widgetFilterCreate: true,
 
       // AI
       aiUtils: true,
@@ -919,28 +869,6 @@ const permissionDescriptions: Record<string, string> = {
   createBase: 'create a new base',
   baseDelete: 'delete a base',
   sourceCreate: 'create a new source',
-
-  pageGet: 'view page details',
-  pageList: 'view list of pages',
-  pageSearch: 'search pages',
-  pageParents: 'view parent pages',
-  pageCreate: 'create a new page',
-  pageUpdate: 'update a page',
-  pageDelete: 'delete a page',
-  pageGpt: 'use GPT to assist with pages',
-  docsMagicCreatePages: 'use Docs Magic to create pages',
-  pagePaginate: 'paginate pages',
-  pageDirectoryImport: 'import a page directory',
-  layoutGet: 'view layout details',
-  layoutList: 'view list of layouts',
-  layoutCreate: 'create a new layout',
-  widgetsList: 'view list of widgets',
-  widgetGet: 'view widget details',
-  widgetCreate: 'create a new widget',
-  widgetUpdate: 'update a widget',
-  widgetDelete: 'delete a widget',
-  widgetFilterList: 'view list of widget filters',
-  widgetFilterCreate: 'create a new widget filter',
 
   userInvite: 'invite a user',
 

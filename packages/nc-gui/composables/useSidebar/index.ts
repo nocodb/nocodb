@@ -1,5 +1,4 @@
 import { useStorage } from '@vueuse/core'
-import { createSharedComposable, ref, syncRef, toRefs, watch } from '#imports'
 
 interface UseSidebarProps {
   hasSidebar?: boolean

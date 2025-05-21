@@ -19,7 +19,7 @@ on:
         required: true
 jobs:
   build-executables:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
         with:
@@ -64,7 +64,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 22.12.0
 
       - name: Update nocodb-timely
         env:
@@ -81,7 +81,7 @@ jobs:
 
       - name : Install dependencies and build executables
         run: |
-          # install npm dependendencies
+          # install npm dependencies
           npm i
 
           # Copy sqlite binaries
@@ -96,20 +96,50 @@ jobs:
           ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=arm64 --target_libc=glibc
           ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=x64 --target_libc=musl
           ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=arm64 --target_libc=musl
-
-          # ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=armv6 --target_libc=unknown
-          # ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=armv7 --target_libc=unknown
-
-
+          
           # clean up code to optimize size
           npx modclean --patterns="default:*" --ignore="nc-lib-gui-daily/**,nocodb-daily/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
+          
+          mkdir -p ./mac-dist
+          mkdir -p ./dist
+          
+          # build darwin x64 executable
+          npm uninstall sharp
+          npm install --cpu=x64 --os=darwin sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node22-macos-x64 -o Noco-macos-x64
+          mv ./Noco-macos-x64 ./mac-dist/
+          
+          # build darwin arm64 executable
+          npm uninstall sharp
+          npm install --cpu=arm64 --os=darwin sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node22-macos-arm64 -o Noco-macos-arm64
+          mv ./Noco-macos-arm64 ./mac-dist/
+          
+          
+          # build linux x64 executable
+          npm uninstall sharp
+          npm install --cpu=x64 --os=linux sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node22-linux-x64 -o Noco-linux-x64
+          mv ./Noco-linux-x64 ./dist/
 
-          # build executables
-          npm run build
+          # build linux arm64 executable
+          npm uninstall sharp
+          npm install --cpu=arm64 --os=linux sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node22-linux-arm64 -o Noco-linux-arm64
+          mv ./Noco-linux-arm64 ./dist/
 
-          mkdir ./mac-dist
-          mv ./dist/Noco-macos-arm64 ./mac-dist/
-          mv ./dist/Noco-macos-x64 ./mac-dist/
+
+          # build windows x64 executable
+          npm uninstall sharp
+          npm install --cpu=x64 --os=win32 sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node22-win-x64 -o Noco-win-x64.exe
+          mv ./Noco-win-x64.exe ./dist/
+
+          # build windows arm64 executable
+          npm uninstall sharp
+          npm install --cpu=arm64 --os=win32 sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node22-win-arm64 -o Noco-win-arm64.exe
+          mv ./Noco-win-arm64.exe ./dist/
 
       - name: Upload executables(except mac executables) to release
         uses: svenstaro/upload-release-action@v2
@@ -144,18 +174,18 @@ jobs:
 
       - uses: actions/upload-artifact@master
         with:
-          name: ${{ github.event.inputs.tag || inputs.tag }}
+          name: ${{ format('{0}-signed', github.event.inputs.tag || inputs.tag) }}
           path: mac-dist
           retention-days: 1
 
 
   publish-mac-executables:
     needs: sign-mac-executables
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/download-artifact@master
         with:
-          name: ${{ github.event.inputs.tag || inputs.tag }}
+          name: ${{ format('{0}-signed', github.event.inputs.tag || inputs.tag) }}
           path: mac-dist
 
       - name: Upload mac executables to release

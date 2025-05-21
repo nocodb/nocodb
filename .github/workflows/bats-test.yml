@@ -1,0 +1,50 @@
+name: Run BATS Tests
+
+on:
+  push:
+    paths:
+      - 'docker-compose/1_Auto_Upstall/noco.sh'
+      - '.github/workflows/bats-test.yml'
+  workflow_dispatch:
+
+jobs:
+  prepare:
+    runs-on: ubuntu-22.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Prepare matrix for test files
+        id: set-matrix
+        run: |
+          BATS_FILES=$(find docker-compose/1_Auto_Upstall/tests -name '*.bats')
+          MATRIX_JSON=$(echo $BATS_FILES | tr -d '\n' | jq -Rsc 'split(" ")' | tr '"' "'")
+          echo "matrix=$MATRIX_JSON" >> $GITHUB_OUTPUT
+  test:
+    needs: prepare
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        test: ${{fromJson(needs.prepare.outputs.matrix)}}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install BATS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats expect
+
+      - name: Get working directory
+        run: |
+          WORKING_DIR="$(pwd)/docker-compose/1_Auto_Upstall/tests"
+          echo "WORKING_DIR=$WORKING_DIR" >> $GITHUB_ENV
+
+      - name: Run BATS test
+        run: bats ${{ matrix.test }}
+        env:
+          WORKING_DIR: ${{ env.WORKING_DIR }}
+          SKIP_TARE_DOWN: true

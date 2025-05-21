@@ -13,7 +13,7 @@ export class ToolbarActionsPage extends BasePage {
   }
 
   get() {
-    return this.rootPage.locator(`[data-testid="toolbar-actions"]`);
+    return this.rootPage.locator(`[data-id="toolbar-actions"]`);
   }
 
   // todo: use enum
@@ -22,6 +22,10 @@ export class ToolbarActionsPage extends BasePage {
   }
 
   async clickDownloadSubmenu(label: string) {
-    await this.rootPage.locator(`div[class="nc-project-menu-item"]:has-text("${label}")`).first().click();
+    const locator = await this.rootPage
+      .locator(`.ant-dropdown-menu-item.ant-dropdown-menu-item-only-child:has-text("${label}")`)
+      .last();
+
+    await locator.click();
   }
 }

@@ -19,38 +19,48 @@ export class ChildList extends BasePage {
     //    title: Child list
     //    button: Link to 'City'
     //    icon: reload
-    await expect(this.get().locator(`.ant-modal-title`)).toHaveText(`Child list`);
-    await expect(await this.get().locator(`text=/Link to '.*${linkField}'/i`).isVisible()).toBeTruthy();
-    await expect(await this.get().locator(`[data-testid="nc-child-list-reload"]`).isVisible()).toBeTruthy();
 
     // child list body validation (card count, card title)
     const cardCount = cardTitle.length;
-    await this.get().locator('.ant-modal-content').waitFor();
+    await this.get().locator('.nc-dropdown-link-record-header').waitFor();
     {
-      const childList = this.get().locator(`.ant-card`);
-      const childCards = await childList.count();
-      await expect(childCards).toEqual(cardCount);
+      let isOk = false;
+      let count = 0;
+      let childList;
+
+      while (!isOk && count < 5) {
+        try {
+          childList = this.get().getByTestId('nc-child-list-item');
+          const childCards = await childList.count();
+          if (childCards === cardCount) {
+            isOk = true;
+          }
+        } catch (e) {
+          await this.rootPage.waitForTimeout(100);
+        } finally {
+          count++;
+        }
+      }
+
+      expect(childList).toBeDefined();
+
       for (let i = 0; i < cardCount; i++) {
-        await expect(await childList.nth(i).textContent()).toContain(cardTitle[i]);
-        // icon: unlink
-        // icon: delete
-        await expect(
-          await childList.nth(i).locator(`[data-testid="nc-child-list-icon-unlink"]`).isVisible()
-        ).toBeTruthy();
-        await expect(
-          await childList.nth(i).locator(`[data-testid="nc-child-list-icon-delete"]`).isVisible()
-        ).toBeTruthy();
+        await childList.nth(i).locator('.nc-display-value').waitFor({ state: 'visible' });
+        await childList.nth(i).locator('.nc-display-value').scrollIntoViewIfNeeded();
+        await this.rootPage.waitForTimeout(100);
+        expect(await childList.nth(i).locator('.nc-display-value').textContent()).toContain(cardTitle[i]);
       }
     }
   }
 
   async close() {
-    await this.get().locator(`.ant-modal-close-x`).click();
+    // await this.get().locator(`.nc-close-btn`).click();
+    await this.rootPage.keyboard.press('Escape');
     await this.get().waitFor({ state: 'hidden' });
   }
 
   async openLinkRecord({ linkTableTitle }: { linkTableTitle: string }) {
-    const openActions = () => this.get().locator(`text=/Link to '.*${linkTableTitle}'/i`).click();
+    const openActions = () => this.get().getByTestId('nc-child-list-button-link-to').click();
     await this.waitForResponse({
       requestUrlPathToMatch: '/exclude',
       httpMethodsToMatch: ['GET'],

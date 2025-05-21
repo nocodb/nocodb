@@ -1,0 +1,62 @@
+name: "NestJS Unit Test"
+on:
+  push:
+    branches: [develop]
+    paths:
+      - "packages/nocodb/**"
+      - ".github/workflows/jest-unit-test.yml"
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, labeled]
+    branches: [develop]
+    paths:
+      - "packages/nocodb/**"
+      - ".github/workflows/jest-unit-test.yml"
+  workflow_call:
+  # Triggered manually
+  workflow_dispatch:
+jobs:
+  jest-unit-test:
+    runs-on: [self-hosted, aws]
+    timeout-minutes: 20
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft || inputs.force == true }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22.12.0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Get pnpm store directory
+        shell: bash
+        timeout-minutes: 1
+        run: |
+          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: Set CI env
+        run: export CI=true
+      - name: Set NC Edition
+        run: export EE=true
+      - name: remove use-node-version line from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
+      - name: install dependencies
+        run: pnpm bootstrap
+      - name: build nocodb-sdk
+        working-directory: ./packages/nocodb-sdk
+        run: |
+          pnpm run generate:sdk
+          pnpm run build:main
+      - name: run unit tests
+        working-directory: ./packages/nocodb
+        run: pnpm run test

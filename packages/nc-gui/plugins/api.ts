@@ -1,6 +1,20 @@
-import { defineNuxtPlugin, useApi } from '#imports'
+import type { Api } from 'nocodb-sdk'
 
-export default defineNuxtPlugin((nuxtApp) => {
+const apiPlugin = (nuxtApp) => {
+  const { api } = useApi()
+
   /** injects a global api instance */
-  nuxtApp.provide('api', useApi().api)
+  nuxtApp.provide('api', api)
+}
+
+declare module '#app' {
+  interface NuxtApp {
+    $api: Api<any>
+  }
+}
+
+export { apiPlugin }
+
+export default defineNuxtPlugin(function (nuxtApp) {
+  if (!isEeUI) return apiPlugin(nuxtApp)
 })

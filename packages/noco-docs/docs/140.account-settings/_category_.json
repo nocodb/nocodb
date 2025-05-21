@@ -1,0 +1,8 @@
+{
+  "label": "Account settings",
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index"
+  }
+}

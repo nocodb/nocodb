@@ -1,52 +1,57 @@
+# syntax=docker/dockerfile:1
+
 ###########
 # Builder
 ###########
-FROM node:16.17.0-alpine3.15 as builder
+FROM node:22-alpine as builder
 WORKDIR /usr/src/app
 
 # install node-gyp dependencies
-RUN apk add --no-cache python3 make g++
+RUN apk add --no-cache python3 make g++ py3-setuptools
+
+# install pnpm
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
 # Copy application dependency manifests to the container image.
-# A wildcard is used to ensure both package.json AND package-lock.json are copied.
-# Copying this separately prevents re-running npm ci on every code change.
-COPY ./package*.json ./
-COPY ./docker/nc-gui/ ./docker/nc-gui/
-COPY ./docker/main.js ./docker/index.js
-COPY ./docker/start-local.sh /usr/src/appEntry/start.sh
-COPY ./src/lib/public/css/*.css ./docker/public/css/
-COPY ./src/lib/public/js/*.js ./docker/public/js/
-COPY ./src/lib/public/favicon.ico ./docker/public/
+COPY --link ./package.json ./package.json
+COPY --link ./docker/nc-gui/ ./docker/nc-gui/
+COPY --link ./docker/main.js ./docker/index.js
+COPY --link ./docker/start-local.sh /usr/src/appEntry/start.sh
+COPY --link src/public/ ./docker/public/
+
+# for pnpm to generate a flat node_modules without symlinks
+# so that modclean could work as expected
+RUN echo "node-linker=hoisted" > .npmrc
 
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,
-# package built code into app.tar.gz & add execute permission to start.sh
-RUN npm ci --omit=dev --quiet \
-    && npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
+# and add execute permission to start.sh
+RUN pnpm uninstall nocodb-sdk
+RUN pnpm install --prod --shamefully-hoist --reporter=silent \
+    && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \
-    && tar -czf ../appEntry/app.tar.gz ./* \
     && chmod +x /usr/src/appEntry/start.sh
 
 ##########
 # Runner
 ##########
-FROM alpine:3.15
+FROM alpine:3.20
 WORKDIR /usr/src/app
 
-ENV NC_DOCKER 0.6
-ENV NODE_ENV production
-ENV PORT 8080
-ENV NC_TOOL_DIR=/usr/app/data/
+ENV NC_DOCKER=0.6 \
+    NC_TOOL_DIR=/usr/app/data/ \
+    NODE_ENV=production \
+    PORT=8080
 
-RUN apk --update --no-cache add \
+RUN apk add --update --no-cache \
     nodejs \
-    tar \
     dumb-init \
     curl \
-    jq 
+    jq
 
-# Copy packaged production code & main entry file
-COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/
+# Copy production code & main entry file
+COPY --link --from=builder /usr/src/app/ /usr/src/app/
+COPY --link --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

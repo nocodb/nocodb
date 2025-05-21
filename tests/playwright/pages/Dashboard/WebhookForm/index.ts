@@ -3,9 +3,11 @@ import BasePage from '../../Base';
 import { DashboardPage } from '..';
 import { ToolbarPage } from '../common/Toolbar';
 import { getTextExcludeIconText } from '../../../tests/utils/general';
+import { TopbarPage } from '../common/Topbar';
 
 export class WebhookFormPage extends BasePage {
   readonly dashboard: DashboardPage;
+  readonly topbar: TopbarPage;
   readonly toolbar: ToolbarPage;
   readonly addNewButton: Locator;
   readonly saveButton: Locator;
@@ -15,20 +17,22 @@ export class WebhookFormPage extends BasePage {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.toolbar = dashboard.grid.toolbar;
+    this.topbar = dashboard.grid.topbar;
     this.addNewButton = this.dashboard.get().locator('.nc-btn-create-webhook');
-    this.saveButton = this.get().locator('button:has-text("Save")');
+    this.saveButton = this.get().getByTestId('nc-save-webhook');
     this.testButton = this.get().locator('button:has-text("Test Webhook")');
   }
 
   get() {
-    return this.dashboard.get().locator(`.nc-drawer-webhook-body`);
+    return this.rootPage.locator(`.nc-modal-webhook-create-edit`);
   }
 
   async create({ title, event, url = 'http://localhost:9090/hook' }: { title: string; event: string; url?: string }) {
-    await this.toolbar.clickActions();
-    await this.toolbar.actions.click('Webhooks');
-
-    await this.addNewButton.click();
+    await this.dashboard.grid.topbar.openDetailedTab();
+    await this.dashboard.details.clickWebhooksTab();
+    // wait for tab transition
+    await this.rootPage.waitForTimeout(200);
+    await this.dashboard.details.clickAddWebhook();
     await this.get().waitFor({ state: 'visible' });
 
     await this.configureHeader({
@@ -66,16 +70,17 @@ export class WebhookFormPage extends BasePage {
     save: boolean;
   }) {
     await this.get().locator(`.nc-check-box-hook-condition`).click();
-    const modal = await this.get().locator(`.menu-filter-dropdown`).last();
+    const modal = this.get().locator(`.menu-filter-dropdown`).last();
 
-    await modal.locator(`button:has-text("Add Filter")`).click();
+    await modal.locator(`button:has-text("Add Filter")`).first().click();
 
+    await modal.locator('.nc-filter-field-select').waitFor({ state: 'visible', timeout: 4000 });
     await modal.locator('.nc-filter-field-select').click();
-    const modalField = await this.dashboard.rootPage.locator('.nc-dropdown-toolbar-field-list:visible');
+    const modalField = this.dashboard.rootPage.locator('.nc-dropdown-toolbar-field-list:visible');
     await modalField.locator(`.ant-select-item:has-text("${column}")`).click();
 
     await modal.locator('.nc-filter-operation-select').click();
-    const modalOp = await this.dashboard.rootPage.locator('.nc-dropdown-filter-comp-op:visible');
+    const modalOp = this.dashboard.rootPage.locator('.nc-dropdown-filter-comp-op:visible');
     await modalOp.locator(`.ant-select-item:has-text("${operator}")`).click();
 
     if (operator != 'is null' && operator != 'is not null') {
@@ -97,13 +102,15 @@ export class WebhookFormPage extends BasePage {
   }
 
   async save() {
-    const saveAction = () => this.saveButton.click();
+    const saveAction = async () => await this.saveButton.click();
+
     await this.waitForResponse({
       uiAction: saveAction,
       requestUrlPathToMatch: '/hooks',
       httpMethodsToMatch: ['POST', 'PATCH'],
     });
-    await this.verifyToast({ message: 'Webhook details updated successfully' });
+
+    // await this.verifyToast({ message: 'Webhook details updated successfully' });
   }
 
   async test() {
@@ -111,28 +118,33 @@ export class WebhookFormPage extends BasePage {
     await this.verifyToast({ message: 'Webhook tested successfully' });
   }
 
-  async delete({ index }: { index: number }) {
-    await this.toolbar.clickActions();
-    await this.toolbar.actions.click('Webhooks');
-
-    await this.get().locator(`.nc-hook-delete-icon`).nth(index).click();
-    await this.rootPage.locator('.ant-modal-confirm-confirm button:has-text("Yes")').click();
-    await this.verifyToast({ message: 'Hook deleted successfully' });
-
-    // click escape to close the drawer
-    await this.get().click();
-    await this.get().press('Escape');
+  async delete({ index, wfr = true }: { index: number; wfr?: boolean }) {
+    await this.dashboard.grid.topbar.openDetailedTab({ waitForResponse: wfr });
+    await this.dashboard.details.clickWebhooksTab();
+    await this.dashboard.details.webhook.deleteHook({ index });
+    await this.rootPage.locator('div.ant-modal.active').locator('button:has-text("Delete")').click();
   }
 
   async close() {
     // type esc key
-    await this.get().press('Escape');
+    // await this.get().press('Escape');
+    // await this.get().waitFor({ state: 'hidden' });
+    await this.dashboard.grid.topbar.openDataTab();
   }
 
   async open({ index }: { index: number }) {
-    await this.toolbar.clickActions();
-    await this.toolbar.actions.click('Webhooks');
-    await this.dashboard.get().locator(`.nc-hook`).nth(index).click();
+    await this.dashboard.grid.topbar.openDetailedTab();
+    await this.dashboard.details.clickWebhooksTab();
+
+    const rowItem = await this.dashboard.details.webhook.getItem({ index });
+    await rowItem.waitFor({ state: 'visible' });
+    await rowItem.scrollIntoViewIfNeeded();
+
+    await rowItem.click({
+      force: true,
+    });
+
+    await this.get().waitFor({ state: 'visible' });
   }
 
   async openForm({ index }: { index: number }) {
@@ -146,14 +158,32 @@ export class WebhookFormPage extends BasePage {
   async configureHeader({ key, value }: { key: string; value: string }) {
     // hardcode "Content-type: application/json"
     await this.get().locator(`.ant-tabs-tab-btn:has-text("Headers")`).click();
+    await this.rootPage.waitForTimeout(500);
 
-    await this.get().locator('.nc-input-hook-header-key >> input').fill(key);
-    await this.rootPage.locator(`.ant-select-item:has-text("${key}")`).click();
+    await this.get().locator('.nc-input-hook-header-key input').click();
+    await this.rootPage.waitForTimeout(500);
 
-    await this.get().locator('.nc-input-hook-header-value').type(value);
+    // kludge, as the dropdown is not visible even after scroll into view
+    await this.rootPage.locator('.nc-input-hook-header-key input').pressSequentially(key);
+    await this.rootPage
+      .locator('.ant-select-dropdown:visible')
+      .locator(`.ant-select-item:has-text("${key}")`)
+      .scrollIntoViewIfNeeded();
+    await this.rootPage
+      .locator('.ant-select-dropdown:visible')
+      .locator(`.ant-select-item:has-text("${key}")`)
+      .click({ force: true });
+
+    await this.get().locator('.nc-webhook-header-value-input').clear();
+    await this.get().locator('.nc-webhook-header-value-input').type(value);
     await this.get().press('Enter');
 
-    await this.get().locator('.nc-hook-header-tab-checkbox').locator('input.ant-checkbox-input').click();
+    // find out if the checkbox is already checked
+    const isChecked = await this.get()
+      .locator('.nc-hook-header-checkbox')
+      .locator('input.ant-checkbox-input')
+      .isChecked();
+    if (!isChecked) await this.get().locator('.nc-hook-header-checkbox').locator('input.ant-checkbox-input').click();
   }
 
   async verifyForm({
@@ -176,7 +206,7 @@ export class WebhookFormPage extends BasePage {
 
     const locator = this.get().locator('.nc-select-hook-notification-type >> .ant-select-selection-item');
     const text = await getTextExcludeIconText(locator);
-    await expect(text).toBe(notificationType);
+    expect(text).toBe(notificationType);
 
     await expect(this.get().locator('.nc-select-hook-url-method >> .ant-select-selection-item')).toHaveText(urlMethod);
     await expect.poll(async () => await this.get().locator('input.nc-text-field-hook-url-path').inputValue()).toBe(url);

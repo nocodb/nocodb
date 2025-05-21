@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed, isDrawerOrModalExist, isMac, useNuxtApp, useSidebar } from '#imports'
-
 const rightSidebar = useSidebar('nc-right-sidebar')
 
 const leftSidebar = useSidebar('nc-left-sidebar')
@@ -21,7 +19,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     switch (e.keyCode) {
       case 70: {
         // ALT + F
-        if (!isDrawerOrModalExist()) {
+        if (!isDrawerOrModalExist() && !isActiveInputElementExist()) {
           $e('c:shortcut', { key: 'ALT + F' })
           isSidebarsOpen.value = !isSidebarsOpen.value
         }
@@ -34,9 +32,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <a-tooltip placement="left">
-    <!-- todo: i18n -->
     <template #title>
-      <span class="text-xs">{{ isSidebarsOpen ? 'Full width' : 'Exit full width' }}</span>
+      <span class="text-xs">{{ isSidebarsOpen ? $t('activity.fullWidth') : $t('activity.exitFullWidth') }}</span>
     </template>
     <div
       v-e="['c:toolbar:fullscreen']"

@@ -20,6 +20,28 @@ export class CellRange {
     return !this.isEmpty() && this._start?.col === this._end?.col && this._start?.row === this._end?.row
   }
 
+  isSingleRow() {
+    return !this.isEmpty() && this._start?.row === this._end?.row
+  }
+
+  isCellInRange(cell: Cell) {
+    return (
+      !this.isEmpty() &&
+      cell.row >= this.start.row &&
+      cell.row <= this.end.row &&
+      cell.col >= this.start.col &&
+      cell.col <= this.end.col
+    )
+  }
+
+  isRowInRange(row: number) {
+    return !this.isEmpty() && row >= this.start.row && row <= this.end.row
+  }
+
+  isColInRange(col: number) {
+    return !this.isEmpty() && col >= this.start.col && col <= this.end.col
+  }
+
   get start(): Cell {
     return {
       row: Math.min(this._start?.row ?? NaN, this._end?.row ?? NaN),

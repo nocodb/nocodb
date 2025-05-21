@@ -6,7 +6,7 @@
 
 </h1>
 <p align="center">
-MySQL、PostgreSQL、SQL Server、SQLite＆Mariadbをスマートスプレッドシートに変えます。 
+MySQL、PostgreSQL、SQL Server、SQLite＆Mariadbをスマートスプレッドシートに変換します。 
 </p>
 <div align="center">
  
@@ -37,36 +37,32 @@ MySQL、PostgreSQL、SQL Server、SQLite＆Mariadbをスマートスプレッド
 ### Docker を使う
 
 ```bash
-docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
-```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
+ ```
 
 - NocoDBは入力としてデータベースが必要です:[本番環境設定](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup)を参照してください。
-- この入力がない場合、SQLiteにフォールバックする。SQLiteを持続させるために、`/usr/app/data/`をマウントします。
+- この入力がない場合、SQLiteにフォールバックします。SQLiteでデータを保持するために、`/usr/app/data/`をマウントします。
 
   例:
 
+```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
   ```
-  docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
-  ```
 
-### NPM を使用して
-
-```
-npx create-nocodb-app
-```
-
-### git を使う
-
-```
-git clone https://github.com/nocodb/nocodb-seed
-cd nocodb-seed
-npm install
-npm start
-```
 
 ### GUI
 
-アクセスダッシュボードを使用して : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+アクセスダッシュボードを使用する : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 # 私たちのコミュニティに参加する
 
@@ -115,7 +111,7 @@ npm start
 
 ### リッチスプレッドシートインターフェース
 
-検索、並べ替え、フィルタリング、列を隠す
+検索、並べ替え、フィルタリング、列の非表示
 
 - ⚡ ビューを作成する：グリッド、ギャラリー、カンバン、ガント、フォーム
 - ⚡ シェアビュー：Public＆Password Protected.
@@ -145,14 +141,6 @@ NoCodb には、スプレッドシートビューと外部データベースの�
 
 ## Docker
 
-#### MySQLの例
-
-```
-docker run -d -p 8080:8080 \
-    -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
 
 #### Postgresの例
 
@@ -163,14 +151,6 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### SQL Serverの例
-
-```
-docker run -d -p 8080:8080 \
-    -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
 
 ## Docker Compose
 
@@ -178,13 +158,13 @@ docker run -d -p 8080:8080 \
 git clone https://github.com/nocodb/nocodb
 cd nocodb
 cd docker-compose
-cd mysql or pg or mssql
+cd pg 
 docker-compose up -d
 ```
 
 ## 環境変数
 
-[環境変数](https://docs.nocodb.com/getting-started/environment-variables)をご参照ください
+[環境変数](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)をご参照ください
 
 # 開発セットアップ
 
@@ -194,10 +174,10 @@ docker-compose up -d
 
 [コントリビューションガイド](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md)をご参照ください。
 
-# なぜこれを構築しているのですか？
+# 開発の目的
 
-ほとんどのインターネットビジネスは、ビジネスニーズを解決するためにスプレッドシートかデータベースのどちらかを装備しています。表計算ソフトは、毎日10億人以上の人が共同作業で使っています。しかし、コンピューティングに関しては、より強力なツールであるデータベースで同様のスピードで作業するのは、かなり遅れています。SaaSでこれを解決しようとすると、ひどいアクセスコントロール、ベンダーの囲い込み、データの囲い込み、突然の価格変更、そして最も重要なことは、将来的に何が可能かというガラスの天井を意味することになるのです。
+ほとんどのインターネットビジネスは、ビジネスニーズを解決するためにスプレッドシートかデータベースのどちらかを用いています。表計算ソフトは、毎日10億人以上の人が共同作業で使っています。しかし、コンピューティングに関しては、より強力なツールであるデータベースで同様のスピードで作業するのは、かなり遅れています。SaaSでこれを解決しようとすると、ひどいアクセスコントロール、ベンダーの囲い込み、データの囲い込み、突然の価格変更、そして最も重要なこととしては、将来における可能性に対する隠れた制限が存在することです
 
 # 私たちの使命
 
-私たちの使命は、データベース用の最も強力なノーコードインターフェイスを、世界中のすべてのインターネットビジネスにオープンソースで提供することです。これは、強力なコンピューティングツールへのアクセスを民主化するだけでなく、インターネット上で根本的な改造と構築の能力を持つ10億人以上の人々を生み出すでしょう。
+私たちの使命は、データベース用の最も強力なノーコードインターフェイスを、世界中のすべてのインターネットビジネスにオープンソースで提供することです。これは、強力なコンピューティングツールへのアクセスを民主化するだけでなく、インターネット上で根本的な改修と構築の能力を持つ10億人以上の人々を生み出すでしょう。

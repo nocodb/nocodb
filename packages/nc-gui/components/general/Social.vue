@@ -1,13 +1,11 @@
 <script lang="ts" setup>
-import { iconMap, useI18n } from '#imports'
-
 const { locale } = useI18n()
 
 const open = (url: string) => {
-  window.open(url, '_blank')
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
-const isZhLang = $computed(() => locale.value.startsWith('zh'))
+const isZhLang = computed(() => locale.value.startsWith('zh'))
 </script>
 
 <template>
@@ -52,7 +50,7 @@ const isZhLang = $computed(() => locale.value.startsWith('zh'))
       :is="iconMap.calendar"
       v-e="['e:community:book-demo']"
       class="icon text-green-500"
-      @click="open('https://calendly.com/nocodb-meeting')"
+      @click="open('https://cal.com/nocodb')"
     />
   </div>
 </template>

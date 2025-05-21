@@ -10,13 +10,17 @@ export class AccountSettingsPage extends BasePage {
     this.accountPage = accountPage;
   }
 
-  async goto() {
-    // await this.rootPage.goto('/#/account/users/settings', { waitUntil: 'networkidle' });
-    await this.waitForResponse({
-      uiAction: () => this.rootPage.goto('/#/account/users/settings', { waitUntil: 'networkidle' }),
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `api/v1/app-settings`,
-    });
+  async goto(p: { networkValidation: boolean }) {
+    if (p.networkValidation) {
+      return this.waitForResponse({
+        uiAction: async () => await this.rootPage.goto('/#/account/users/settings'),
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: `api/v1/app-settings`,
+      });
+    } else {
+      await this.rootPage.goto('/#/account/users/settings');
+      await this.rootPage.waitForTimeout(500);
+    }
   }
 
   get() {
@@ -28,7 +32,10 @@ export class AccountSettingsPage extends BasePage {
   }
 
   async getInviteOnlyCheckboxValue() {
-    return this.get().locator(`.nc-invite-only-signup-checkbox`).isChecked();
+    // allow time for the checkbox to be rendered
+    await this.rootPage.waitForTimeout(1000);
+
+    return this.get().locator(`.nc-invite-only-signup-checkbox`).isChecked({ timeout: 1000 });
   }
 
   async checkInviteOnlySignupCheckbox(value: boolean) {

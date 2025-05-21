@@ -2,15 +2,18 @@ import { expect } from '@playwright/test';
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { ToolbarPage } from '../common/Toolbar';
+import { TopbarPage } from '../common/Topbar';
 
 export class MapPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly toolbar: ToolbarPage;
+  readonly topbar: TopbarPage;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.toolbar = new ToolbarPage(this);
+    this.topbar = new TopbarPage(this);
   }
 
   get() {
@@ -19,7 +22,7 @@ export class MapPage extends BasePage {
 
   async marker(lat: string, long: string) {
     const latLongStr = `${lat}, ${long}`;
-    const marker = await this.get().locator(`.leaflet-marker-pane img[alt="${latLongStr}"]`);
+    const marker = this.get().locator(`.leaflet-marker-pane img[alt="${latLongStr}"]`);
     return marker;
   }
 
@@ -32,12 +35,12 @@ export class MapPage extends BasePage {
   }
 
   async verifyMarkerCount(count: number) {
-    const markers = await this.get().locator('.leaflet-marker-pane img');
+    const markers = this.get().locator('.leaflet-marker-pane img');
     await expect(markers).toHaveCount(count);
   }
 
   async zoomOut(times = 10) {
-    const zoomOutButton = await this.get().locator('.leaflet-control-zoom-out');
+    const zoomOutButton = this.get().locator('.leaflet-control-zoom-out');
     for (let i = 0; i < times; i++) {
       await zoomOutButton.click();
       await this.rootPage.waitForTimeout(400);

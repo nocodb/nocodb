@@ -1,28 +1,13 @@
-import type { TableType, ViewType } from 'nocodb-sdk'
+import type { TableReqType, TableType } from 'nocodb-sdk'
 import type { MaybeRef } from '@vueuse/core'
-import { ref, unref, useNuxtApp, watch } from '#imports'
 
-function useViews(meta: MaybeRef<TableType | undefined>) {
-  const views = ref<ViewType[]>([])
-  const isLoading = ref(false)
+// DEPRECATED: Use useViewsStore instead
+function useViews(_: MaybeRef<TableType | TableReqType | undefined>) {
+  const viewsStore = useViewsStore()
+  const { loadViews } = viewsStore
+  const { isViewsLoading, views } = storeToRefs(viewsStore)
 
-  const { $api } = useNuxtApp()
-
-  const loadViews = async () => {
-    isLoading.value = true
-    const _meta = unref(meta)
-
-    if (_meta && _meta.id) {
-      const response = (await $api.dbView.list(_meta.id)).list as ViewType[]
-      if (response) {
-        views.value = response.sort((a, b) => a.order! - b.order!)
-      }
-    }
-
-    isLoading.value = false
-  }
-
-  watch(() => unref(meta), loadViews, { immediate: true })
+  const isLoading = computed(() => isViewsLoading.value)
 
   return { views, isLoading, loadViews }
 }

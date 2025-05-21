@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { computed, extractSdkResponseErrorMsg, message, onMounted, useGlobal, useNuxtApp } from '#imports'
-
 const { $api } = useNuxtApp()
 
-const { currentVersion, latestRelease, hiddenRelease } = useGlobal()
+const { currentVersion, latestRelease, hiddenRelease, appInfo } = useGlobal()
 
 const releaseAlert = computed({
   get() {
@@ -41,14 +39,14 @@ onMounted(async () => await fetchReleaseInfo())
 </script>
 
 <template>
-  <div v-if="releaseAlert" class="flex items-center">
+  <div v-if="releaseAlert && !appInfo.ee" class="flex items-center">
     <a-dropdown :trigger="['click']" placement="bottom" overlay-class-name="nc-dropdown-upgrade-menu">
-      <a-button class="!bg-primary !border-none">
+      <NcButton class="!bg-primary !border-none !mr-3" size="small">
         <div class="flex gap-1 items-center text-white">
           <span class="text-sm font-weight-medium">{{ $t('activity.upgrade.available') }}</span>
           <mdi-menu-down />
         </div>
-      </a-button>
+      </NcButton>
 
       <template #overlay>
         <div class="mt-1 bg-white shadow-lg !border">
@@ -67,9 +65,9 @@ onMounted(async () => await fetchReleaseInfo())
 
           <nuxt-link
             no-prefetch
-            no-rel
+            rel="noopener"
             class="!text-primary !no-underline"
-            to="https://docs.nocodb.com/getting-started/upgrading"
+            to="https://docs.nocodb.com/getting-started/self-hosted/upgrading"
             target="_blank"
           >
             <div class="nc-menu-item">

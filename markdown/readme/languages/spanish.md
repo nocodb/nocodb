@@ -37,32 +37,28 @@ Convierte cualquier MySQL, PostgreSQL, SQL Server, SQLite y Mariadb en una hoja 
 ### Usando docker
 
 ```bash
-docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
-```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
+  ```
 
 - NocoDB necesita de una base de datos previamente creada: Leer [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
 - Para habilitar datos no efímeros se puede usar `/usr/app/data/`.
 
-  Ejemplo:
+Ejemplo:
 
+```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
   ```
-  docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
-  ```
 
-### Usando npm.
-
-```
-npx create-nocodb-app
-```
-
-### Usando git.
-
-```
-git clone https://github.com/nocodb/nocodb-seed
-cd nocodb-seed
-npm install
-npm start
-```
 
 ### GUI
 
@@ -143,14 +139,6 @@ Nocodb requiere una base de datos para almacenar metadatos de vistas a las hojas
 
 ## Docker
 
-#### Ejemplo MySQL
-
-```
-docker run -d -p 8080:8080 \
-    -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
 
 #### Ejemplo Postgres
 
@@ -161,14 +149,6 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Ejemplo SQL Server
-
-```
-docker run -d -p 8080:8080 \
-    -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
 
 ## Docker Compose
 
@@ -176,13 +156,13 @@ docker run -d -p 8080:8080 \
 git clone https://github.com/nocodb/nocodb
 cd nocodb
 cd docker-compose
-cd mysql or pg or mssql
+cd pg
 docker-compose up -d
 ```
 
 ## Variables de entorno
 
-Por favor diríjase a [Environment variables](https://docs.nocodb.com/getting-started/environment-variables)
+Por favor diríjase a [Environment variables](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
 
 # Configuración de desarollo
 
@@ -194,8 +174,8 @@ Por favor diríjase a [Contribution Guide](https://github.com/nocodb/nocodb/blob
 
 # Por qué estamos construyendo esto?
 
-La mayoría de las empresas de Internet emplean una hoja de cálculo o una base de datos para resolver sus necesidades comerciales. Las hojas de cálculo son utilizadas por billones de personas o más de manera colaborativa todos los días. Sin embargo, estamos lejos de trabajar a velocidades similares en bases de datos, ya que son herramientas computacionalmente más poderosas. Los intentos de resolver esto con soluciones SaaS han significado horribles controles de acceso, dependencia de un proveedor, dependencia de datos, cambios abruptos de precios y lo que es más importante, un techo de cristal sobre lo que es posible en el futuro."
+La mayoría de las empresas de Internet emplean una hoja de cálculo o una base de datos para resolver sus necesidades comerciales. Las hojas de cálculo son utilizadas por billones de personas o más de manera colaborativa todos los días. Sin embargo, estamos lejos de trabajar a velocidades similares en bases de datos, ya que son herramientas computacionalmente más poderosas. Los intentos de resolver esto con soluciones SaaS han significado horribles controles de acceso, dependencia de un proveedor, dependencia de datos, cambios abruptos de precios y lo que es más importante, un techo de cristal sobre lo que es posible en el futuro.
 
 # Nuestra misión
 
-Nuestra misión es proporcionar la interfaz sin-código más potente para bases de datos, la cual es open-source para negocios de Internet en el mundo. Esto no solo democratizaría el acceso a una poderosa herramienta de computación, sino que también producirá a billones de personas o más con habilidades radicales de perfección y construcción en Internet."
+Nuestra misión es proporcionar la interfaz sin-código más potente para bases de datos, la cual es open-source para negocios de Internet en el mundo. Esto no solo democratizaría el acceso a una poderosa herramienta de computación, sino que también producirá a miles de millones de personas o más con habilidades radicales de perfección y construcción en Internet.

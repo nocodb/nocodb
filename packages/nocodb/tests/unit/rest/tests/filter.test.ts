@@ -1,13 +1,12 @@
 import 'mocha';
-import init from '../../init';
-import { createProject } from '../../factory/project';
-import Project from '../../../../src/lib/models/Project';
-import { createTable } from '../../factory/table';
 import { UITypes } from 'nocodb-sdk';
-import { createBulkRows, rowMixedValue, listRow } from '../../factory/row';
-import Model from '../../../../src/lib/models/Model';
 import { expect } from 'chai';
 import request from 'supertest';
+import init from '../../init';
+import { createProject } from '../../factory/base';
+import { createTable } from '../../factory/table';
+import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
+import { type Model, Base } from '../../../../src/models';
 
 const debugMode = true;
 
@@ -21,13 +20,13 @@ async function retrieveRecordsAndValidate(
     status: string;
     logical_op: string;
   },
-  title: string
+  title: string,
 ) {
-  let expectedRecords = [];
+  let expectedRecords: any[] = [];
   let toFloat = false;
   if (
     ['Number', 'Decimal', 'Currency', 'Percent', 'Duration', 'Rating'].includes(
-      title
+      title,
     )
   ) {
     toFloat = true;
@@ -39,44 +38,44 @@ async function retrieveRecordsAndValidate(
       expectedRecords = unfilteredRecords.filter(
         (record) =>
           (toFloat ? parseFloat(record[title]) : record[title]) ===
-          (toFloat ? parseFloat(filter.value) : filter.value)
+          (toFloat ? parseFloat(filter.value) : filter.value),
       );
       break;
     case 'neq':
       expectedRecords = unfilteredRecords.filter(
         (record) =>
           (toFloat ? parseFloat(record[title]) : record[title]) !==
-          (toFloat ? parseFloat(filter.value) : filter.value)
+          (toFloat ? parseFloat(filter.value) : filter.value),
       );
       break;
     case 'null':
       expectedRecords = unfilteredRecords.filter(
-        (record) => record[title] === null
+        (record) => record[title] === null,
       );
       break;
     case 'notnull':
       expectedRecords = unfilteredRecords.filter(
-        (record) => record[title] !== null
+        (record) => record[title] !== null,
       );
       break;
     case 'empty':
       expectedRecords = unfilteredRecords.filter(
-        (record) => record[title] === ''
+        (record) => record[title] === '',
       );
       break;
     case 'notempty':
       expectedRecords = unfilteredRecords.filter(
-        (record) => record[title] !== ''
+        (record) => record[title] !== '',
       );
       break;
     case 'like':
       expectedRecords = unfilteredRecords.filter((record) =>
-        record[title]?.includes(filter.value)
+        record[title]?.includes(filter.value),
       );
       break;
     case 'nlike':
       expectedRecords = unfilteredRecords.filter(
-        (record) => !record[title]?.includes(filter.value)
+        (record) => !record[title]?.includes(filter.value),
       );
       break;
     case 'gt':
@@ -84,7 +83,7 @@ async function retrieveRecordsAndValidate(
         (record) =>
           (toFloat ? parseFloat(record[title]) : record[title]) >
             (toFloat ? parseFloat(filter.value) : filter.value) &&
-          record[title] !== null
+          record[title] !== null,
       );
       break;
     case 'gte':
@@ -92,7 +91,7 @@ async function retrieveRecordsAndValidate(
         (record) =>
           (toFloat ? parseFloat(record[title]) : record[title]) >=
             (toFloat ? parseFloat(filter.value) : filter.value) &&
-          record[title] !== null
+          record[title] !== null,
       );
       break;
     case 'lt':
@@ -103,7 +102,7 @@ async function retrieveRecordsAndValidate(
             record[title] === null
           : (toFloat ? parseFloat(record[title]) : record[title]) <
               (toFloat ? parseFloat(filter.value) : filter.value) &&
-            record[title] !== null
+            record[title] !== null,
       );
       break;
     case 'lte':
@@ -114,7 +113,7 @@ async function retrieveRecordsAndValidate(
             record[title] === null
           : (toFloat ? parseFloat(record[title]) : record[title]) <=
               (toFloat ? parseFloat(filter.value) : filter.value) &&
-            record[title] !== null
+            record[title] !== null,
       );
       break;
     case 'anyof':
@@ -147,7 +146,7 @@ async function retrieveRecordsAndValidate(
 
   // retrieve filtered records
   const response = await request(context.app)
-    .get(`/api/v1/db/data/noco/${project.id}/${table.id}`)
+    .get(`/api/v1/db/data/noco/${base.id}/${table.id}`)
     .set('xc-auth', context.token)
     .query({
       filterArrJson: JSON.stringify([filter]),
@@ -163,7 +162,7 @@ async function retrieveRecordsAndValidate(
       throw new Error('fix me!');
     }
     response.body.list.forEach((row, index) => {
-      if (row[title] !== expectedRecords[index][title]) {
+      if (row[title] != expectedRecords[index][title]) {
         console.log(`Failed for filter: ${JSON.stringify(filter)}`);
         console.log(`Expected: ${expectedRecords[index][title]}`);
         console.log(`Actual: ${row[title]}`);
@@ -179,7 +178,11 @@ async function retrieveRecordsAndValidate(
 }
 
 let context;
-let project: Project;
+let ctx: {
+  workspace_id?: string;
+  base_id: string;
+};
+let base: Base;
 let table: Model;
 let columns: any[];
 let unfilteredRecords: any[] = [];
@@ -203,9 +206,16 @@ async function verifyFilters(dataType, columnId, filterList) {
 function filterTextBased() {
   // prepare data for test cases
   beforeEach(async function () {
+    console.time('#### filterTextBased');
     context = await init();
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+
+    table = await createTable(context, base, {
       table_name: 'textBased',
       title: 'TextBased',
       columns: [
@@ -242,33 +252,34 @@ function filterTextBased() {
       ],
     });
 
-    columns = await table.getColumns();
+    columns = await table.getColumns(ctx);
 
-    let rowAttributes = [];
+    const rowAttributes: any[] = [];
     for (let i = 0; i < 400; i++) {
-      let row = {
-        SingleLineText: rowMixedValue(columns[1], i),
-        MultiLineText: rowMixedValue(columns[2], i),
-        Email: rowMixedValue(columns[3], i),
-        Phone: rowMixedValue(columns[4], i),
-        Url: rowMixedValue(columns[5], i),
+      const row = {
+        SingleLineText: rowMixedValue(columns[6], i),
+        MultiLineText: rowMixedValue(columns[7], i),
+        Email: rowMixedValue(columns[8], i),
+        Phone: rowMixedValue(columns[9], i),
+        Url: rowMixedValue(columns[10], i),
       };
       rowAttributes.push(row);
     }
 
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
-    unfilteredRecords = await listRow({ project, table });
+    unfilteredRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 400
     expect(unfilteredRecords.length).to.equal(400);
+    console.timeEnd('#### filterTextBased');
   });
 
   it('Type: Single Line Text', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'Afghanistan' },
       { comparison_op: 'neq', value: 'Afghanistan' },
       { comparison_op: 'null', value: '' },
@@ -278,11 +289,11 @@ function filterTextBased() {
       { comparison_op: 'like', value: 'Au' },
       { comparison_op: 'nlike', value: 'Au' },
     ];
-    await verifyFilters('SingleLineText', columns[1].id, filterList);
+    await verifyFilters('SingleLineText', columns[6].id, filterList);
   });
 
   it('Type: Multi Line Text', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'Aberdeen, United Kingdom' },
       { comparison_op: 'neq', value: 'Aberdeen, United Kingdom' },
       { comparison_op: 'null', value: '' },
@@ -292,11 +303,11 @@ function filterTextBased() {
       { comparison_op: 'like', value: 'abad' },
       { comparison_op: 'nlike', value: 'abad' },
     ];
-    await verifyFilters('MultiLineText', columns[2].id, filterList);
+    await verifyFilters('MultiLineText', columns[7].id, filterList);
   });
 
   it('Type: Email', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'leota@hotmail.com' },
       { comparison_op: 'neq', value: 'leota@hotmail.com' },
       { comparison_op: 'null', value: '' },
@@ -306,11 +317,11 @@ function filterTextBased() {
       { comparison_op: 'like', value: 'cox.net' },
       { comparison_op: 'nlike', value: 'cox.net' },
     ];
-    await verifyFilters('Email', columns[3].id, filterList);
+    await verifyFilters('Email', columns[8].id, filterList);
   });
 
   it('Type: Phone', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '504-621-8927' },
       { comparison_op: 'neq', value: '504-621-8927' },
       { comparison_op: 'null', value: '' },
@@ -320,11 +331,11 @@ function filterTextBased() {
       { comparison_op: 'like', value: '504' },
       { comparison_op: 'nlike', value: '504' },
     ];
-    await verifyFilters('Phone', columns[4].id, filterList);
+    await verifyFilters('Phone', columns[9].id, filterList);
   });
 
   it('Type: Url', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'https://www.youtube.com' },
       { comparison_op: 'neq', value: 'https://www.youtube.com' },
       { comparison_op: 'null', value: '' },
@@ -334,16 +345,23 @@ function filterTextBased() {
       { comparison_op: 'like', value: 'e.com' },
       { comparison_op: 'nlike', value: 'e.com' },
     ];
-    await verifyFilters('Url', columns[5].id, filterList);
+    await verifyFilters('Url', columns[10].id, filterList);
   });
 }
 
 function filterNumberBased() {
   // prepare data for test cases
   beforeEach(async function () {
+    console.time('#### filterNumberBased');
     context = await init();
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+
+    table = await createTable(context, base, {
       table_name: 'numberBased',
       title: 'numberBased',
       columns: [
@@ -376,6 +394,9 @@ function filterNumberBased() {
           column_name: 'Duration',
           title: 'Duration',
           uidt: UITypes.Duration,
+          meta: {
+            duration: 0,
+          },
         },
         {
           column_name: 'Rating',
@@ -385,34 +406,35 @@ function filterNumberBased() {
       ],
     });
 
-    columns = await table.getColumns();
+    columns = await table.getColumns(ctx);
 
-    let rowAttributes = [];
+    const rowAttributes: any[] = [];
     for (let i = 0; i < 400; i++) {
-      let row = {
-        Number: rowMixedValue(columns[1], i),
-        Decimal: rowMixedValue(columns[2], i),
-        Currency: rowMixedValue(columns[3], i),
-        Percent: rowMixedValue(columns[4], i),
-        Duration: rowMixedValue(columns[5], i),
-        Rating: rowMixedValue(columns[6], i),
+      const row = {
+        Number: rowMixedValue(columns[6], i),
+        Decimal: rowMixedValue(columns[7], i),
+        Currency: rowMixedValue(columns[8], i),
+        Percent: rowMixedValue(columns[9], i),
+        Duration: rowMixedValue(columns[10], i),
+        Rating: rowMixedValue(columns[11], i),
       };
       rowAttributes.push(row);
     }
 
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
-    unfilteredRecords = await listRow({ project, table });
+    unfilteredRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 400
     expect(unfilteredRecords.length).to.equal(400);
+    console.timeEnd('#### filterNumberBased');
   });
 
   it('Type: Number', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '33' },
       { comparison_op: 'neq', value: '33' },
       { comparison_op: 'null', value: '' },
@@ -422,11 +444,11 @@ function filterNumberBased() {
       { comparison_op: 'lt', value: '44' },
       { comparison_op: 'lte', value: '44' },
     ];
-    await verifyFilters('Number', columns[1].id, filterList);
+    await verifyFilters('Number', columns[6].id, filterList);
   });
 
   it('Type: Decimal', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '33.3' },
       { comparison_op: 'neq', value: '33.3' },
       { comparison_op: 'null', value: '' },
@@ -436,11 +458,11 @@ function filterNumberBased() {
       { comparison_op: 'lt', value: '44.26' },
       { comparison_op: 'lte', value: '44.26' },
     ];
-    await verifyFilters('Decimal', columns[2].id, filterList);
+    await verifyFilters('Decimal', columns[7].id, filterList);
   });
 
   it('Type: Currency', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '33.3' },
       { comparison_op: 'neq', value: '33.3' },
       { comparison_op: 'null', value: '' },
@@ -450,11 +472,11 @@ function filterNumberBased() {
       { comparison_op: 'lt', value: '44.26' },
       { comparison_op: 'lte', value: '44.26' },
     ];
-    await verifyFilters('Decimal', columns[3].id, filterList);
+    await verifyFilters('Decimal', columns[8].id, filterList);
   });
 
   it('Type: Percent', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '33' },
       { comparison_op: 'neq', value: '33' },
       { comparison_op: 'null', value: '' },
@@ -464,11 +486,11 @@ function filterNumberBased() {
       { comparison_op: 'lt', value: '44' },
       { comparison_op: 'lte', value: '44' },
     ];
-    await verifyFilters('Percent', columns[4].id, filterList);
+    await verifyFilters('Percent', columns[9].id, filterList);
   });
 
   it('Type: Duration', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '10' },
       { comparison_op: 'neq', value: '10' },
       { comparison_op: 'null', value: '' },
@@ -478,11 +500,11 @@ function filterNumberBased() {
       { comparison_op: 'lt', value: '50' },
       { comparison_op: 'lte', value: '50' },
     ];
-    await verifyFilters('Duration', columns[5].id, filterList);
+    await verifyFilters('Duration', columns[10].id, filterList);
   });
 
   it('Type: Rating', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: '3' },
       { comparison_op: 'neq', value: '3' },
       { comparison_op: 'null', value: '' },
@@ -492,16 +514,23 @@ function filterNumberBased() {
       { comparison_op: 'lt', value: '2' },
       { comparison_op: 'lte', value: '2' },
     ];
-    await verifyFilters('Rating', columns[6].id, filterList);
+    await verifyFilters('Rating', columns[11].id, filterList);
   });
 }
 
 function filterSelectBased() {
   // prepare data for test cases
   beforeEach(async function () {
+    console.time('#### filterSelectBased');
     context = await init();
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+
+    table = await createTable(context, base, {
       table_name: 'selectBased',
       title: 'selectBased',
       columns: [
@@ -514,41 +543,42 @@ function filterSelectBased() {
           column_name: 'SingleSelect',
           title: 'SingleSelect',
           uidt: UITypes.SingleSelect,
-          dtxp: "'jan','feb','mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'",
+          dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
         },
         {
           column_name: 'MultiSelect',
           title: 'MultiSelect',
           uidt: UITypes.MultiSelect,
-          dtxp: "'jan','feb','mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'",
+          dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
         },
       ],
     });
 
-    columns = await table.getColumns();
+    columns = await table.getColumns(ctx);
 
-    let rowAttributes = [];
+    const rowAttributes: any[] = [];
     for (let i = 0; i < 400; i++) {
-      let row = {
-        SingleSelect: rowMixedValue(columns[1], i),
-        MultiSelect: rowMixedValue(columns[2], i),
+      const row = {
+        SingleSelect: rowMixedValue(columns[6], i),
+        MultiSelect: rowMixedValue(columns[7], i),
       };
       rowAttributes.push(row);
     }
 
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
-    unfilteredRecords = await listRow({ project, table });
+    unfilteredRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 400
     expect(unfilteredRecords.length).to.equal(400);
+    console.time('#### filterSelectBased');
   });
 
   it('Type: Single select', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'jan' },
       { comparison_op: 'neq', value: 'jan' },
       { comparison_op: 'null', value: '' },
@@ -558,11 +588,11 @@ function filterSelectBased() {
       { comparison_op: 'anyof', value: 'jan,feb,mar' },
       { comparison_op: 'nanyof', value: 'jan,feb,mar' },
     ];
-    await verifyFilters('SingleSelect', columns[1].id, filterList);
+    await verifyFilters('SingleSelect', columns[6].id, filterList);
   });
 
   it('Type: Multi select', async () => {
-    let filterList = [
+    const filterList = [
       { comparison_op: 'eq', value: 'jan,feb,mar' },
       { comparison_op: 'neq', value: 'jan,feb,mar' },
       { comparison_op: 'null', value: '' },
@@ -574,13 +604,13 @@ function filterSelectBased() {
       { comparison_op: 'allof', value: 'jan,feb,mar' },
       { comparison_op: 'nallof', value: 'jan,feb,mar' },
     ];
-    await verifyFilters('MultiSelect', columns[2].id, filterList);
+    await verifyFilters('MultiSelect', columns[7].id, filterList);
   });
 }
 
 async function applyDateFilter(filterParams, expectedRecords) {
   const response = await request(context.app)
-    .get(`/api/v1/db/data/noco/${project.id}/${table.id}`)
+    .get(`/api/v1/db/data/noco/${base.id}/${table.id}`)
     .set('xc-auth', context.token)
     .query({
       filterArrJson: JSON.stringify([filterParams]),
@@ -591,7 +621,7 @@ async function applyDateFilter(filterParams, expectedRecords) {
     console.log('filterParams', filterParams);
     console.log(
       'response.body.pageInfo.totalRows',
-      response.body.pageInfo.totalRows
+      response.body.pageInfo.totalRows,
     );
     console.log('expectedRecords', expectedRecords);
   }
@@ -601,9 +631,16 @@ async function applyDateFilter(filterParams, expectedRecords) {
 function filterDateBased() {
   // prepare data for test cases
   beforeEach(async function () {
+    console.time('#### filterDateBased');
     context = await init();
-    project = await createProject(context);
-    table = await createTable(context, project, {
+    base = await createProject(context);
+
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+
+    table = await createTable(context, base, {
       table_name: 'dateBased',
       title: 'dateBased',
       columns: [
@@ -620,59 +657,60 @@ function filterDateBased() {
       ],
     });
 
-    columns = await table.getColumns();
+    columns = await table.getColumns(ctx);
 
-    let rowAttributes = [];
+    const rowAttributes: any[] = [];
     for (let i = 0; i < 800; i++) {
-      let row = {
-        Date: rowMixedValue(columns[1], i),
+      const row = {
+        Date: rowMixedValue(columns[6], i),
       };
       rowAttributes.push(row);
     }
 
     await createBulkRows(context, {
-      project,
+      base,
       table,
       values: rowAttributes,
     });
-    unfilteredRecords = await listRow({ project, table });
+    unfilteredRecords = await listRow({ base, table });
 
     // verify length of unfiltered records to be 800
     expect(unfilteredRecords.length).to.equal(800);
+    console.time('#### filterDateBased');
   });
 
   it('Type: Date ', async () => {
     const today = new Date().setHours(0, 0, 0, 0);
     const tomorrow = new Date(
-      new Date().setDate(new Date().getDate() + 1)
+      new Date().setDate(new Date().getDate() + 1),
     ).setHours(0, 0, 0, 0);
     const yesterday = new Date(
-      new Date().setDate(new Date().getDate() - 1)
+      new Date().setDate(new Date().getDate() - 1),
     ).setHours(0, 0, 0, 0);
     const oneWeekAgo = new Date(
-      new Date().setDate(new Date().getDate() - 7)
+      new Date().setDate(new Date().getDate() - 7),
     ).setHours(0, 0, 0, 0);
     const oneWeekFromNow = new Date(
-      new Date().setDate(new Date().getDate() + 7)
+      new Date().setDate(new Date().getDate() + 7),
     ).setHours(0, 0, 0, 0);
     const oneMonthAgo = new Date(
-      new Date().setMonth(new Date().getMonth() - 1)
+      new Date().setMonth(new Date().getMonth() - 1),
     ).setHours(0, 0, 0, 0);
     const oneMonthFromNow = new Date(
-      new Date().setMonth(new Date().getMonth() + 1)
+      new Date().setMonth(new Date().getMonth() + 1),
     ).setHours(0, 0, 0, 0);
     const daysAgo45 = new Date(
-      new Date().setDate(new Date().getDate() - 45)
+      new Date().setDate(new Date().getDate() - 45),
     ).setHours(0, 0, 0, 0);
     const daysFromNow45 = new Date(
-      new Date().setDate(new Date().getDate() + 45)
+      new Date().setDate(new Date().getDate() + 45),
     ).setHours(0, 0, 0, 0);
     const thisMonth15 = new Date(new Date().setDate(15)).setHours(0, 0, 0, 0);
     const oneYearAgo = new Date(
-      new Date().setFullYear(new Date().getFullYear() - 1)
+      new Date().setFullYear(new Date().getFullYear() - 1),
     ).setHours(0, 0, 0, 0);
     const oneYearFromNow = new Date(
-      new Date().setFullYear(new Date().getFullYear() + 1)
+      new Date().setFullYear(new Date().getFullYear() + 1),
     ).setHours(0, 0, 0, 0);
 
     // records array with time set to 00:00:00; store time in unix epoch
@@ -784,51 +822,51 @@ function filterDateBased() {
       {
         opSub: 'pastWeek',
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= oneWeekAgo && r <= today
+          (r) => r >= oneWeekAgo && r <= today,
         ).length,
       },
       {
         opSub: 'pastMonth',
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= oneMonthAgo && r <= today
+          (r) => r >= oneMonthAgo && r <= today,
         ).length,
       },
       {
         opSub: 'pastYear',
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= oneYearAgo && r <= today
+          (r) => r >= oneYearAgo && r <= today,
         ).length,
       },
       {
         opSub: 'nextWeek',
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= today && r <= oneWeekFromNow
+          (r) => r >= today && r <= oneWeekFromNow,
         ).length,
       },
       {
         opSub: 'nextMonth',
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= today && r <= oneMonthFromNow
+          (r) => r >= today && r <= oneMonthFromNow,
         ).length,
       },
       {
         opSub: 'nextYear',
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= today && r <= oneYearFromNow
+          (r) => r >= today && r <= oneYearFromNow,
         ).length,
       },
       {
         opSub: 'nextNumberOfDays',
         value: 45,
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= today && r <= daysFromNow45
+          (r) => r >= today && r <= daysFromNow45,
         ).length,
       },
       {
         opSub: 'pastNumberOfDays',
         value: 45,
         rowCount: recordsTimeSetToZero.filter(
-          (r) => r >= daysAgo45 && r <= today
+          (r) => r >= daysAgo45 && r <= today,
         ).length,
       },
     ];
@@ -838,13 +876,13 @@ function filterDateBased() {
       {
         opType: 'blank',
         rowCount: unfilteredRecords.filter(
-          (r) => r['Date'] === null || r['Date'] === ''
+          (r) => r['Date'] === null || r['Date'] === '',
         ).length,
       },
       {
         opType: 'notblank',
         rowCount: unfilteredRecords.filter(
-          (r) => r['Date'] !== null && r['Date'] !== ''
+          (r) => r['Date'] !== null && r['Date'] !== '',
         ).length,
       },
     ];
@@ -852,7 +890,7 @@ function filterDateBased() {
     // is
     for (let i = 0; i < isFilterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: 'eq',
@@ -865,7 +903,7 @@ function filterDateBased() {
     // is not
     for (let i = 0; i < isFilterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: 'neq',
@@ -878,7 +916,7 @@ function filterDateBased() {
     // is before
     for (let i = 0; i < isAfterFilterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: 'gt',
@@ -891,7 +929,7 @@ function filterDateBased() {
     // is before or on
     for (let i = 0; i < isAfterFilterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: 'gte',
@@ -904,7 +942,7 @@ function filterDateBased() {
     // is after
     for (let i = 0; i < isAfterFilterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: 'lt',
@@ -917,7 +955,7 @@ function filterDateBased() {
     // is after or on
     for (let i = 0; i < isAfterFilterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: 'lte',
@@ -930,7 +968,7 @@ function filterDateBased() {
     // is within
     for (let i = 0; i < isWithinFilterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: 'isWithin',
@@ -943,7 +981,7 @@ function filterDateBased() {
     // rest of the filters (without subop type)
     for (let i = 0; i < filterList.length; i++) {
       const filter = {
-        fk_column_id: columns[1].id,
+        fk_column_id: columns[6].id,
         status: 'create',
         logical_op: 'and',
         comparison_op: filterList[i].opType,

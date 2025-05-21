@@ -1,5 +1,5 @@
+import { ref } from 'vue'
 import type { Getters, State } from './types'
-import { computed } from '#imports'
 
 export function useGlobalGetters(state: State): Getters {
   /** Verify that a user is signed in by checking if token exists and is not expired */
@@ -15,10 +15,10 @@ export function useGlobalGetters(state: State): Getters {
   )
 
   /** global loading state */
-  let loading = $ref(false)
+  const loading = ref(false)
   const isLoading = computed({
-    get: () => state.runningRequests.count.value > 0 || loading,
-    set: (_loading) => (loading = _loading),
+    get: () => state.runningRequests.count.value > 0 || loading.value,
+    set: (_loading) => (loading.value = _loading),
   })
 
   return { signedIn, isLoading }

@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { onBeforeUnmount, onMounted, watch } from '#imports'
-
 type FlipTrigger = 'hover' | 'click' | { duration: number }
 
 interface Props {
@@ -13,11 +11,11 @@ const props = withDefaults(defineProps<Props>(), {
   duration: 800,
 })
 
-let flipped = $ref(false)
+const flipped = ref(false)
 
-let hovered = $ref(false)
+const hovered = ref(false)
 
-let flipTimer = $ref<NodeJS.Timer | null>(null)
+const flipTimer = ref<NodeJS.Timer | null>(null)
 
 onMounted(() => {
   const duration = props.triggers.reduce((dur, trigger) => {
@@ -29,41 +27,41 @@ onMounted(() => {
   }, 0)
 
   if (duration > 0) {
-    flipTimer = setInterval(() => {
-      if (!hovered) {
-        flipped = !flipped
+    flipTimer.value = setInterval(() => {
+      if (!hovered.value) {
+        flipped.value = !flipped.value
       }
     }, duration)
   }
 })
 
 onBeforeUnmount(() => {
-  if (flipTimer) {
-    clearInterval(flipTimer)
+  if (flipTimer.value) {
+    clearInterval(flipTimer.value)
   }
 })
 
 function onHover(isHovering: boolean) {
-  hovered = isHovering
+  hovered.value = isHovering
 
   if (props.triggers.find((trigger) => trigger === 'hover')) {
-    flipped = isHovering
+    flipped.value = isHovering
   }
 }
 
 function onClick() {
   if (props.triggers.find((trigger) => trigger === 'click')) {
-    flipped = !flipped
+    flipped.value = !flipped.value
   }
 }
 
-let isFlipping = $ref(false)
+const isFlipping = ref(false)
 
-watch($$(flipped), () => {
-  isFlipping = true
+watch(flipped, () => {
+  isFlipping.value = true
 
   setTimeout(() => {
-    isFlipping = false
+    isFlipping.value = false
   }, props.duration / 2)
 })
 </script>

@@ -1,76 +1,111 @@
-<script setup lang="ts">
-import { IsPublicInj, inject, ref, useSharedView, useSidebar, useSmartsheetStoreOrThrow, useUIPermission } from '#imports'
-
-const { isGrid, isForm, isGallery, isKanban, isMap, isSqlView } = useSmartsheetStoreOrThrow()
-
-const isPublic = inject(IsPublicInj, ref(false))
+<script lang="ts" setup>
+const { isGrid, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
 
 const { isMobileMode } = useGlobal()
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const { isUIAllowed } = useUIPermission()
+const { isViewsLoading } = storeToRefs(useViewsStore())
 
-const { isOpen } = useSidebar('nc-right-sidebar')
+const { isLocalMode } = useViewColumnsOrThrow()
 
-const { allowCSVDownload } = useSharedView()
+const containerRef = ref<HTMLElement>()
+
+const { width } = useElementSize(containerRef)
+
+const router = useRouter()
+
+const disableToolbar = computed(
+  () => router.currentRoute.value.query?.disableToolbar === 'true' || (isCalendar.value && isMobileMode.value),
+)
+
+const isTab = computed(() => {
+  if (!isCalendar.value) return false
+  return width.value > 1200
+})
+
+const isToolbarIconMode = computed(() => {
+  if (width.value < 768) {
+    return true
+  }
+  return false
+})
+
+provide(IsToolbarIconMode, isToolbarIconMode)
 </script>
 
 <template>
   <div
-    class="nc-table-toolbar w-full py-1 flex gap-2 items-center px-2 border-b overflow-x-hidden"
-    :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--toolbar-height)]': !isMobileMode }"
-    style="z-index: 7"
+    v-if="!disableToolbar"
+    ref="containerRef"
+    :class="{
+      'px-4': isMobileMode,
+    }"
+    class="nc-table-toolbar relative px-3 flex gap-2 items-center border-b border-gray-200 overflow-hidden xs:(min-h-14) min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] z-7"
   >
-    <LazySmartsheetToolbarViewActions
-      v-if="(isGrid || isGallery || isKanban || isMap) && !isPublic && isUIAllowed('dataInsert')"
-      :show-system-fields="false"
-      class="ml-1"
-    />
+    <template v-if="isViewsLoading">
+      <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
+    </template>
+    <template v-else>
+      <div
+        v-if="!isMobileMode"
+        :class="{
+          'min-w-34/100': !isMobileMode && isLeftSidebarOpen && isCalendar,
+          'min-w-39/100': !isMobileMode && !isLeftSidebarOpen && isCalendar,
+          'gap-1': isCalendar,
+        }"
+        class="flex items-center gap-3"
+      >
+        <LazySmartsheetToolbarMappedBy v-if="isMap" />
+        <LazySmartsheetToolbarCalendarHeader v-if="isCalendar" />
+        <LazySmartsheetToolbarCalendarToday v-if="isCalendar" />
+        <LazySmartsheetToolbarCalendarNextPrev v-if="isCalendar" />
 
-    <LazySmartsheetToolbarViewInfo v-if="!isUIAllowed('dataInsert') && !isPublic" />
+        <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
-    <LazySmartsheetToolbarStackedBy v-if="isKanban" />
+        <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
 
-    <LazySmartsheetToolbarKanbanStackEditOrAdd v-if="isKanban" />
+        <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
-    <LazySmartsheetToolbarMappedBy v-if="isMap" />
+        <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
 
-    <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
-
-    <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
-
-    <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
-
-    <LazySmartsheetToolbarRowHeight v-if="isGrid" />
-
-    <LazySmartsheetToolbarShareView v-if="(isForm || isGrid || isKanban || isGallery || isMap) && !isPublic" />
-
-    <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" />
-
-    <LazySmartsheetToolbarExport v-if="(!isPublic && !isUIAllowed('dataInsert')) || (isPublic && allowCSVDownload)" />
-    <div v-if="!isMobileMode" class="flex-1" />
-
-    <LazySmartsheetToolbarReload v-if="!isPublic && !isForm" />
-
-    <LazySmartsheetToolbarAddRow v-if="isUIAllowed('dataInsert') && !isPublic && !isForm && !isSqlView" />
-
-    <LazySmartsheetToolbarSearchData v-if="(isGrid || isGallery || isKanban) && !isPublic" class="shrink mx-2" />
-
-    <template v-if="!isOpen && !isPublic">
-      <div class="border-l-1 pl-3 nc-views-show-sidebar-button" :class="{ 'ml-auto': isMobileMode }">
-        <LazySmartsheetSidebarToolbarToggleDrawer class="mr-2" />
+        <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+        <LazySmartsheetToolbarOpenedViewAction v-if="isCalendar" />
       </div>
+
+      <LazySmartsheetToolbarCalendarMode v-if="isCalendar && isTab" :tab="isTab" />
+
+      <template v-if="!isMobileMode">
+        <LazySmartsheetToolbarRowHeight v-if="isGrid" />
+
+        <LazySmartsheetToolbarOpenedViewAction v-if="!isCalendar" />
+        <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
+
+        <div class="flex-1" />
+      </template>
+
+      <LazySmartsheetToolbarCalendarActiveView v-if="isCalendar" />
+
+      <LazySmartsheetToolbarSearchData
+        v-if="isGrid || isGallery || isKanban"
+        :class="{
+          'shrink': !isMobileMode,
+          'w-full': isMobileMode,
+        }"
+      />
+      <div v-if="isCalendar && isMobileMode" class="flex-1 pointer-events-none" />
+
+      <LazySmartsheetToolbarCalendarMode v-if="isCalendar && !isTab" :tab="isTab" />
+
+      <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
+
+      <LazySmartsheetToolbarFieldsMenu v-if="isCalendar && !isMobileMode" :show-system-fields="false" />
+      <LazySmartsheetToolbarColumnFilterMenu v-if="isCalendar && !isMobileMode" />
+      <LazySmartsheetToolbarCalendarToggleSideBar v-if="isCalendar && !isMobileMode" />
     </template>
   </div>
 </template>
 
 <style scoped>
-:deep(.nc-toolbar-btn) {
-  @apply border-0 !text-xs font-semibold px-2;
-}
-
-.nc-table-toolbar {
-  border-color: #f0f0f0 !important;
-}
 .nc-table-toolbar-mobile {
   @apply flex-wrap h-auto py-2;
 }

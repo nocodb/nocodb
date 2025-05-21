@@ -14,16 +14,16 @@ export class ProjectMenuObject extends BasePage {
   }
 
   async toggle() {
-    await this.rootPage.locator('[data-testid="nc-project-menu"]').click();
+    await this.rootPage.locator('[data-testid="nc-base-menu"]').click();
   }
 
   async click({ menu, subMenu }: { menu: string; subMenu: string }) {
-    const pMenu = await this.rootPage.locator(`.nc-dropdown-project-menu:visible`);
-    await pMenu.locator(`div.nc-project-menu-item:has-text("${menu}"):visible`).click();
+    const pMenu = this.rootPage.locator(`.nc-dropdown-base-menu:visible`);
+    await pMenu.locator(`div.nc-base-menu-item:has-text("${menu}"):visible`).click();
     await this.rootPage.waitForTimeout(2000);
 
     if (subMenu) {
-      await this.rootPage.locator(`div.nc-project-menu-item:has-text("${subMenu}"):visible`).click();
+      await this.rootPage.locator(`div.nc-base-menu-item:has-text("${subMenu}"):visible`).click();
       await this.rootPage.waitForTimeout(1000);
     }
   }

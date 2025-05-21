@@ -18,18 +18,14 @@
     "tsconfig.json",
     ".eslintrc.json"
   ],
-  "plugins": [
-    "import",
-    "eslint-comments",
-    "functional"
-  ],
+  "plugins": ["import", "eslint-comments", "functional"],
   "extends": [
     "eslint:recommended",
     "plugin:eslint-comments/recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:import/typescript",
     "plugin:prettier/recommended",
-    "plugin:json/recommended"
+    "plugin:json/recommended-legacy"
   ],
   "globals": {
     "BigInt": true,

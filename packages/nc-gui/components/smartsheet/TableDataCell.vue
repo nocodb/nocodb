@@ -1,17 +1,41 @@
 <script lang="ts" setup>
-import { CellClickHookInj, CurrentCellInj, createEventHook, ref } from '#imports'
+const props = defineProps<{
+  active?: boolean
+}>()
 
-const el = ref<HTMLTableDataCellElement>()
+const { active } = toRefs(props)
+
+const el = ref<HTMLElement>()
 
 const cellClickHook = createEventHook()
 
+const cellEventHook = createEventHook()
+
 provide(CellClickHookInj, cellClickHook)
 
+provide(CellEventHookInj, cellEventHook)
+
 provide(CurrentCellInj, el)
+
+const handleClick = (event: MouseEvent) => {
+  cellClickHook.trigger(event)
+  cellEventHook.trigger(event)
+}
+
+useActiveKeydownListener(
+  active,
+  (event) => {
+    cellEventHook.trigger(event)
+  },
+  {
+    isGridCell: true,
+    immediate: true,
+  },
+)
 </script>
 
 <template>
-  <td ref="el" class="select-none" @click="cellClickHook.trigger($event)">
+  <td ref="el" class="select-none" @click="handleClick">
     <slot />
   </td>
 </template>

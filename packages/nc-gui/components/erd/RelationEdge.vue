@@ -3,7 +3,6 @@ import type { EdgeProps, Position } from '@vue-flow/core'
 import { EdgeLabelRenderer, getBezierPath } from '@vue-flow/core'
 import type { CSSProperties } from '@vue/runtime-dom'
 import type { EdgeData } from './utils'
-import { computed, toRef } from '#imports'
 
 interface RelationEdgeProps extends EdgeProps<EdgeData> {
   id: string
@@ -71,8 +70,10 @@ export default {
   <Transition name="layout" :duration="50" mode="in-out">
     <path
       v-if="selected || isHovering"
-      style="stroke: url(#linear-gradient)"
-      :stroke-width="(showSkeleton ? baseStroke * 12 : baseStroke * 8) / (selected || isHovering ? 2 : 1)"
+      style="color: blue"
+      color="blue"
+      stroke="#3366FF"
+      :stroke-width="(showSkeleton ? baseStroke * 12 : baseStroke * 3) / (selected || isHovering ? 2 : 1)"
       fill="none"
       :d="edgePath[0]"
       :marker-end="showSkeleton ? markerEnd : ''"
@@ -81,7 +82,7 @@ export default {
     <path
       v-else
       :id="id"
-      class="stroke-slate-500"
+      stroke="#898E99"
       :style="style"
       :stroke-width="showSkeleton ? baseStroke * 4 : baseStroke"
       fill="none"
@@ -115,14 +116,26 @@ export default {
   </EdgeLabelRenderer>
 
   <template v-if="!showSkeleton">
+    <circle
+      v-if="data.isOneToOne"
+      class="nc-erd-edge-circle"
+      :cx="sourceX"
+      :cy="sourceY"
+      fill="#fff"
+      :r="5"
+      stroke="#898E99"
+      :stroke-width="2"
+    />
+
     <rect
+      v-else
       class="nc-erd-edge-rect"
       :x="sourceX"
       :y="sourceY - 4"
       :width="8"
       :height="8"
       fill="#fff"
-      :stroke="sourceNode.data.color"
+      stroke="#898E99"
       :stroke-width="2"
       :transform="`rotate(45,${sourceX + 2},${sourceY - 4})`"
     />
@@ -135,19 +148,10 @@ export default {
       :width="8"
       :height="8"
       fill="#fff"
-      :stroke="sourceNode.data.color"
+      stroke="#898E99"
       :stroke-width="2"
       :transform="`rotate(45,${targetX + 2},${targetY - 4})`"
     />
-    <circle
-      v-else
-      class="nc-erd-edge-circle"
-      :cx="targetX"
-      :cy="targetY"
-      fill="#fff"
-      :r="5"
-      :stroke="targetNode.data.color"
-      :stroke-width="2"
-    />
+    <circle v-else class="nc-erd-edge-circle" :cx="targetX" :cy="targetY" fill="#fff" :r="5" stroke="#898E99" :stroke-width="2" />
   </template>
 </template>

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { MetaInj, iconMap, inject, useSidebar, useTable } from '#imports'
-
 const meta = inject(MetaInj)!
 
 const { deleteTable } = useTable()

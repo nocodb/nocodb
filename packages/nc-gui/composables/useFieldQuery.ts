@@ -1,5 +1,3 @@
-import { useState } from '#imports'
-
 export function useFieldQuery() {
   // initial search object
   const emptyFieldQueryObj = {

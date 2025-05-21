@@ -33,36 +33,46 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       working-directory: ./packages/nocodb
     steps:
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
           ref: ${{ github.ref }}
-      - name: NPM Setup and Publish with 16.15.0
+      - name: pnpm Setup and Publish with 18.19.1
         # Setup .npmrc file to publish to npm
         uses: actions/setup-node@v3
         with:
-          node-version: 16.15.0
-          registry-url: 'https://registry.npmjs.org'
+          node-version: 22.12.0
+          registry-url: "https://registry.npmjs.org"
       - run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
+          NOCODB_SDK_PKG_NAME=nocodb-sdk
+          # If targetEnv is DEV, then use nocodb-sdk-daily package
+          if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
+            NOCODB_SDK_PKG_NAME=nocodb-sdk-daily
+          fi
+          echo $NOCODB_SDK_PKG_NAME
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
-          cd packages/nocodb-sdk &&
-          npm ci && npm run build && npm publish &&
-          cd ../.. &&
-          sleep 60 &&
+          pnpm --filter=${NOCODB_SDK_PKG_NAME} install --ignore-scripts --no-frozen-lockfile --ignore-workspace && pnpm --filter=${NOCODB_SDK_PKG_NAME} run build && pnpm --filter=${NOCODB_SDK_PKG_NAME} publish --no-git-checks &&
+          echo "$(date)" &&
+          sleep 300 &&
+          echo "$(date)" &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
-          cd packages/nc-gui &&
-          npm ci &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy:publish &&
-          cd ../.. &&
-          sleep 60 &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js && cd packages/nocodb && npm install && npm run obfuscate:build:publish
+          pnpm --filter=nc-gui install --ignore-scripts --no-frozen-lockfile &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} pnpm --filter=nc-gui run build:copy:publish --no-git-checks &&
+          echo "$(date)" &&
+          sleep 300 &&
+          echo "$(date)" &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js && cd packages/nocodb && pnpm run obfuscate:build:publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Create Pull Request
@@ -73,10 +83,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           signoff: true
-          branch: 'release/${{ github.event.inputs.tag || inputs.tag }}'
+          branch: "release/${{ github.event.inputs.tag || inputs.tag }}"
           delete-branch: true
-          title: 'Release ${{ github.event.inputs.tag || inputs.tag }}'
-          labels: 'Bot: Automerge'
+          title: "Release ${{ github.event.inputs.tag || inputs.tag }}"
+          labels: "Bot: Automerge"
       - name: Check outputs
         if: ${{ github.event.inputs.targetEnv == 'PROD' || inputs.targetEnv == 'PROD' }}
         run: |

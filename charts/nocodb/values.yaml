@@ -79,12 +79,17 @@ tolerations: []
 affinity: {}
 
 extraEnvs:
-  NC_PUBLIC_URL: https:/nocodb.local.org
+  NC_PUBLIC_URL: https://nocodb.local.org
 
 extraSecretEnvs:
   NC_AUTH_JWT_SECRET: secretString
+  NC_DB: "mysql2://mysql:3306?u=nocodb&p=secretPass&d=nocodb"
 
 storage:
+  # If disabled, another persistent storage should be configured for attachments to work.
+  # We recommend setting NC_S3_BUCKET_NAME and other NC_S3* environment variables.
+  # Refer documentation for more details.
+  enabled: true
   size: 3Gi
   storageClassName: ""
 
@@ -95,4 +100,14 @@ postgresql:
     username: nocodb
     password: secretPass
   persistence:
+    size: 8Gi
+
+mysql:
+  enabled: false
+  auth:
+    database: nocodb
+    username: nocodb
+    password: secretPass
+  persistence:
+    enabled: false
     size: 8Gi

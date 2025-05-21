@@ -1,16 +1,14 @@
 <script lang="ts" setup>
-import { iconMap, ref, storeToRefs, useGlobal, useProject, useRoute } from '#imports'
-
 const showDrawer = ref(false)
 
 const { appInfo } = useGlobal()
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const route = useRoute()
 
 const openSwaggerLink = () => {
-  openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.value.ncSiteUrl)
+  openLink(`./api/v1/db/meta/projects/${route.params.baseId}/swagger`, appInfo.value.ncSiteUrl)
 }
 </script>
 
@@ -40,7 +38,7 @@ const openSwaggerLink = () => {
 
       <LazyGeneralSocialCard class="!w-full nc-social-card">
         <template #before>
-          <a-list-item v-if="project">
+          <a-list-item v-if="base">
             <nuxt-link
               v-e="['a:navbar:user:swagger']"
               no-prefetch
@@ -52,7 +50,7 @@ const openSwaggerLink = () => {
               <div class="ml-3 flex items-center text-sm">
                 <LogosSwagger />
                 <!--            Swagger Documentation -->
-                <span class="ml-3">{{ project.title }} : {{ $t('title.swaggerDocumentation') }}</span>
+                <span class="ml-3">{{ base.title }} : {{ $t('title.swaggerDocumentation') }}</span>
               </div>
             </nuxt-link>
           </a-list-item>

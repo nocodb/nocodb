@@ -1,8 +1,8 @@
 import { Modal } from 'ant-design-vue'
-import { useClipboard, useI18n } from '#imports'
+import { getI18n } from '../plugins/a.i18n'
 
 export const useCopy = (showDialogIfFailed = false) => {
-  const { t } = useI18n()
+  const { t } = getI18n().global
 
   /** fallback for copy if clipboard api is not supported */
   const copyFallback = async (text: string, retryCount = 0): Promise<boolean> => {

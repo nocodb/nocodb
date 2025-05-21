@@ -1,4 +1,4 @@
-Address,District,PostalCode,Phone,Location,Customer List,Staff List,City,Staff List1
-1661 Abha Drive,Tamil Nadu,14400,270456873752,"{""x"":78.8214191,""y"":10.3812871}",1,,Pudukkottai,
-1993 Tabuk Lane,Tamil Nadu,64221,648482415405,"{""x"":80.1270701,""y"":12.9246028}",2,,Tambaram,
-381 Kabul Way,Taipei,87272,55477302294,"{""x"":0,""y"":0}",2,,Hsichuh,
+Address,District,PostalCode,Phone,Location,Customers,Staffs,City
+1661 Abha Drive,Tamil Nadu,14400,270456873752,"{""x"":78.8214191,""y"":10.3812871}",1,0,Pudukkottai
+1993 Tabuk Lane,Tamil Nadu,64221,648482415405,"{""x"":80.1270701,""y"":12.9246028}",1,0,Tambaram
+381 Kabul Way,Taipei,87272,55477302294,"{""x"":0,""y"":0}",1,0,Hsichuh

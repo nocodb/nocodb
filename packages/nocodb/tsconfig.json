@@ -1,70 +1,42 @@
 {
   "compilerOptions": {
-    "skipLibCheck": true,
-    "composite": true,
-    "target": "es2017",
-    "outDir": "build/main",
-    "rootDir": "src",
-    "moduleResolution": "node",
     "module": "commonjs",
     "declaration": true,
-    "inlineSourceMap": true,
-    "esModuleInterop": true
-    /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
-    "allowJs": false,
-    // "strict": true /* Enable all strict type-checking options. */,
-
-    /* Strict Type-Checking Options */
-    //     "noImplicitAny": true /* Raise error on expressions and declarations with an implied 'any' type. */,
-    //     "strictNullChecks": true /* Enable strict null checks. */,
-    //     "strictFunctionTypes": true /* Enable strict checking of function types. */,
-    //     "strictPropertyInitialization": true /* Enable strict checking of property initialization in classes. */,
-    //     "noImplicitThis": true /* Raise error on 'this' expressions with an implied 'any' type. */,
-    //     "alwaysStrict": true /* Parse in strict mode and emit "use strict" for each source file. */,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2017",
+    "lib": ["es2019"],
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
     "resolveJsonModule": true,
-    /* Additional Checks */
-    "noUnusedLocals": true
-    /* Report errors on unused locals. */,
-    "noUnusedParameters": true
-    /* Report errors on unused parameters. */,
-    "noImplicitReturns": true
-    /* Report error when not all code paths in function return a value. */,
-    "noFallthroughCasesInSwitch": true
-    /* Report errors for fallthrough cases in switch statement. */,
-    /* Debugging Options */
-    "traceResolution": false
-    /* Report module resolution log messages. */,
-    "listEmittedFiles": false
-    /* Print names of generated files part of the compilation. */,
-    "listFiles": false
-    /* Print names of files part of the compilation. */,
-    "pretty": true
-    /* Stylize errors and messages using color and context. */,
-    /* Experimental Options */
-    // "experimentalDecorators": true /* Enables experimental support for ES7 decorators. */,
-    // "emitDecoratorMetadata": true /* Enables experimental support for emitting type metadata for decorators. */,
-
-    "lib": [
-      "es2017"
-    ],
-    "types": [
-      "mocha", "node"
-    ],
+    "esModuleInterop": true,
+    "jsx": "react",
+    "paths": {
+      "src/*": [
+        "src/*"
+      ],
+      "~/*": [
+        "src/*"
+      ],
+      "@/*": [
+        "src/*"
+      ]
+    },
     "typeRoots": [
-      "node_modules/@types",
-      "src/types"
+      "src/types",
+      "node_modules/@types"
     ]
   },
-  "include": [
-    "src/**/*.ts",
-//    "src/lib/xgene/migrations/*.js",
-    "src/**/*.json"
-  ],
-  "exclude": [
-    "node_modules/**",
-    "node_modules",
-    "../../../xc-lib-private/**",
-    "../../../xc-lib-private"
-  ],
-  "compileOnSave": false
+  "include": ["src/**/*"],
+  "exclude": ["src/ee", "src/ee-on-prem", "src/ee-cloud", "**/*.spec.ts"]
 }

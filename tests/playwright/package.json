@@ -1,52 +1,71 @@
 {
   "name": "playwright",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "TRACE=true npx playwright test --workers=4",
-    "test:fast": "npx playwright test --workers=6",
-    "test:shard:1": "TRACE=true npx playwright test --workers=4 --shard=1/2",
-    "test:shard:2": "TRACE=true npx playwright test --workers=4 --shard=2/2",
-    "test:repeat": "TRACE=true npx playwright test --workers=4 --repeat-each=12",
-    "test:quick": "TRACE=true PW_QUICK_TEST=1 npx playwright  test --workers=4",
-    "test:debug": "./startPlayWrightServer.sh; PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:31000/ PWDEBUG=console npx playwright test -c playwright.config.ts --headed --project=chromium --retries 0 --timeout 0 --workers 1 --max-failures=1",
-    "test:debug:watch": "npx nodemon -e ts -w ./ -x \"npm run test:debug\"",
-    "test:debug:quick:sqlite": "./startPlayWrightServer.sh; PW_QUICK_TEST=1 PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:31000/ PWDEBUG=console npx playwright test -c playwright.config.ts --headed --project=chromium --retries 0 --timeout 5 --workers 1 --max-failures=1",
-    "ci:test": "npx playwright test --workers=2",
-    "ci:test:shard:1": "npx playwright test --workers=2 --shard=1/2",
-    "ci:test:shard:2": "npx playwright test --workers=2 --shard=2/2",
-    "ci:test:mysql": "E2E_DB_TYPE=mysql npx playwright test --workers=2",
-    "ci:test:pg": "E2E_DB_TYPE=pg npx playwright test --workers=2"
+  "description": "NocoDB playwright",
+  "private": true,
+  "author": {
+    "name": "NocoDB",
+    "url": "https://nocodb.com/"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@playwright/test": "1.27.1",
-    "@typescript-eslint/eslint-plugin": "^4.0.1",
-    "@typescript-eslint/parser": "^4.0.1",
-    "axios": "^0.24.0",
-    "dotenv": "^16.0.3",
-    "eslint": "^7.8.0",
-    "eslint-config-prettier": "^6.15.0",
-    "eslint-plugin-eslint-comments": "^3.2.0",
-    "eslint-plugin-functional": "^3.0.2",
-    "eslint-plugin-import": "^2.22.0",
-    "eslint-plugin-json": "^3.1.0",
-    "eslint-plugin-prettier": "^4.0.0",
-    "husky": "^8.0.1",
-    "lint-staged": "^13.0.3",
-    "mysql2": "^2.3.3",
-    "pg": "^8.8.0",
-    "prettier": "^2.7.1",
-    "promised-sqlite3": "^1.2.0"
+  "homepage": "https://github.com/nocodb/nocodb",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nocodb/nocodb.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nocodb/nocodb/issues"
+  },
+  "license": "AGPL-3.0-or-later",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "TRACE=true pnpm exec playwright test --workers=4",
+    "test:fast": "pnpm exec playwright test --workers=6",
+    "test:repeat": "TRACE=true pnpm exec playwright test --workers=4 --repeat-each=12",
+    "test:quick": "TRACE=true PW_QUICK_TEST=1 pnpm exec playwright test --workers=4",
+    "test:debug": "./startPlayWrightServer.sh; PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:31000/ PWDEBUG=console pnpm exec playwright test -c playwright.config.ts --headed --project=chromium --retries 0 --timeout 0 --workers 1 --max-failures=1",
+    "test:debug:intelliJ": "TRACE=true PWDEBUG=console pnpm exec playwright test --trace on -c playwright.config.ts --headed --project=chromium --retries 0 --workers 1 --max-failures=1",
+    "test:debug:watch": "pnpm dlx nodemon -e ts -w ./ -x \"pnpm run test:debug\"",
+    "test:debug:quick:sqlite": "./startPlayWrightServer.sh; PW_QUICK_TEST=1 PW_TEST_REUSE_CONTEXT=1 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:31000/ PWDEBUG=console pnpm exec playwright test -c playwright.config.ts --headed --project=chromium --retries 0 --timeout 5 --workers 1 --max-failures=1",
+    "ci:test": "pnpm exec playwright test --workers=2",
+    "ci:test:shard:1": "pnpm exec playwright test --shard=1/4",
+    "ci:test:shard:2": "pnpm exec playwright test --shard=2/4",
+    "ci:test:shard:3": "pnpm exec playwright test --shard=3/4",
+    "ci:test:shard:4": "pnpm exec playwright test --shard=4/4",
+    "ci:test:flaky:repeat": "pnpm exec playwright test --workers=4 --grep @flaky --repeat-each=3",
+    "ci:test:mysql": "E2E_DB_TYPE=mysql pnpm exec playwright test --workers=2",
+    "ci:test:pg": "E2E_DB_TYPE=pg pnpm exec playwright test --workers=2",
+    "preinstall": "npx only-allow pnpm"
   },
   "dependencies": {
+    "axios": "^1.6.1",
     "body-parser": "^1.20.1",
-    "dayjs": "^1.11.7",
-    "express": "^4.18.2",
-    "nocodb-sdk": "file:../../packages/nocodb-sdk",
+    "dayjs": "^1.11.9",
+    "express": "^4.18.1",
+    "knex": "^2.4.2",
+    "nocodb-sdk": "workspace:^",
+    "sqlite3": "^5.1.6",
     "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.1",
+    "@typescript-eslint/eslint-plugin": "^6.1.0",
+    "@typescript-eslint/parser": "^6.1.0",
+    "dotenv": "^16.0.3",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^8.10.0",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-functional": "^5.0.8",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-json": "^4.0.1",
+    "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
+    "mysql2": "^3.2.0",
+    "pg": "^8.8.0",
+    "prettier": "^2.7.1",
+    "promised-sqlite3": "^2.1.0"
   }
 }

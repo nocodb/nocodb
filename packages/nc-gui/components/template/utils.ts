@@ -1,46 +1,34 @@
-import type { ColumnGroupType } from 'ant-design-vue/es/table'
-
-export const tableColumns: (Omit<ColumnGroupType<any>, 'children'> & { dataIndex?: string; name: string })[] = [
+export const tableColumns: NcTableColumnProps[] = [
   {
+    title: 'Enabled',
+    key: 'enabled',
+    padding: '0px 0px 0px 12px',
+    minWidth: 0,
+    width: 33,
+  },
+  {
+    title: 'Column Name',
     name: 'Column Name',
     dataIndex: 'column_name',
     key: 'column_name',
-    width: 250,
-  },
-  {
-    name: 'Column Type',
-    dataIndex: 'column_type',
-    key: 'uidt',
-    width: 250,
-  },
-  {
-    name: 'Select Option',
-    key: 'dtxp',
-  },
-  {
-    name: 'Action',
-    key: 'action',
-    align: 'right',
+    minWidth: 200,
+    padding: '0px 12px 0 9px',
   },
 ]
 
-export const srcDestMappingColumns: (Omit<ColumnGroupType<any>, 'children'> & { dataIndex?: string; name: string })[] = [
+export const srcDestMappingColumns: NcTableColumnProps[] = [
   {
-    name: 'Source column',
+    title: 'Field',
     dataIndex: 'source_column',
     key: 'source_column',
-    width: 400,
+    minWidth: 200,
+    padding: '0px 0px 0px 12px',
   },
   {
-    name: 'Destination column',
+    title: 'NocoDB Field',
     dataIndex: 'destination_column',
     key: 'destination_column',
-    width: 400,
-  },
-  {
-    name: 'Action',
-    key: 'action',
-    align: 'center',
-    width: 50,
+    minWidth: 200,
+    padding: '0px 12px 0px 0px',
   },
 ]

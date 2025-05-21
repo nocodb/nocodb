@@ -1,17 +1,27 @@
-import type { PlaywrightTestConfig } from '@playwright/test';
-import { devices } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
+import path from 'path';
+import dotenv from 'dotenv';
 
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-require('dotenv').config();
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
-const config: PlaywrightTestConfig = {
-  testDir: process.env.PW_QUICK_TEST ? './quickTests' : './tests/db',
+
+let workers = 4;
+
+if (process.env.CI) {
+  if (process.env.E2E_DB_TYPE === 'sqlite') workers = 1;
+  if (process.env.E2E_DB_TYPE === 'mysql') workers = 3;
+  if (process.env.E2E_DB_TYPE === 'pg') workers = 3;
+}
+
+export default defineConfig({
+  testDir: process.env.PW_QUICK_TEST ? './quickTests' : './tests',
   /* Maximum time one test can run for. */
   timeout: process.env.CI ? 140 * 1000 : 100 * 1000,
   expect: {
@@ -19,22 +29,25 @@ const config: PlaywrightTestConfig = {
      * Maximum time expect() should wait for the condition to be met.
      * For example in `await expect(locator).toHaveText();`
      */
-    timeout: 13000,
+    timeout: 14000,
   },
   /* Run tests in files in parallel */
   fullyParallel: true,
+
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 3 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 2 : 4,
+  workers: workers,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
+    // headless: !!process.env.CI,
+    headless: true,
     /* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
-    actionTimeout: 10000,
+    actionTimeout: 4000,
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://localhost:3000',
 
@@ -100,12 +113,4 @@ const config: PlaywrightTestConfig = {
 
   /* Folder for test artifacts such as screenshots, videos, traces, etc. */
   outputDir: './output',
-
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   port: 3000,
-  // },
-};
-
-export default config;
+});

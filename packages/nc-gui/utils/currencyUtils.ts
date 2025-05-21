@@ -1,5 +1,3 @@
-import { all } from 'locale-codes'
-
 export const currencyCodes = [
   'AED',
   'AFN',
@@ -190,7 +188,8 @@ export function validateCurrencyCode(v: string) {
   return currencyCodes.includes(v)
 }
 
-export function currencyLocales() {
+export async function currencyLocales() {
+  const { all } = await import('./currencyCodes')
   return all
     .filter((l) => validateCurrencyLocale(l.tag))
     .map((l) => {

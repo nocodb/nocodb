@@ -33,13 +33,6 @@
 
 # 快速尝试
 
-## NPX
-
-如果你需要一个交互式的配置，你可以运行下面的命令。
-
-```
-npx create-nocodb-app
-```
 
 <img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
 
@@ -58,35 +51,21 @@ npm start
 
 ```bash
 # 如果使用 SQLite 的话
-docker run -d --name nocodb \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
-nocodb/nocodb:latest
-
-# 如果使用 MySQL 的话
-docker run -d --name nocodb-mysql \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
 
 # 如果使用 PostgreSQL 的话
-docker run -d --name nocodb-postgres \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
-
-# 如果使用 MSSQL 的话
-docker run -d --name nocodb-mssql \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="mssql://host.docker.internal:1433?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
-```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
+  ```
 
 > 你可以通过在 0.10.6 以上的版本中挂载 `/usr/app/data/` 来持久化数据，否则你的数据会在重新创建容器后完全丢失。
 
@@ -98,13 +77,8 @@ nocodb/nocodb:latest
 
 ```bash
 git clone https://github.com/nocodb/nocodb
-# 如果使用 MySQL 的话
-cd nocodb/docker-compose/mysql
 # 如果使用 PostgreSQL 的话
-cd nocodb/docker-compose/pg
-# 如果使用 MSSQL 的话
-cd nocodb/docker-compose/mssql
-docker-compose up -d
+cd nocodb/docker-compose/2_pg
 ```
 
 > 你可以通过在 0.10.6 以上的版本中挂载 `/usr/app/data/` 来持久化数据，否则你的数据会在重新创建容器后完全丢失。
@@ -119,9 +93,6 @@ docker-compose up -d
 
 <a href="https://discord.gg/5RgZmkW" target="_blank">
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
-</a>
-<a href="https://community.nocodb.com/" target="_blank">
-<img src="https://i2.wp.com/www.feverbee.com/wp-content/uploads/2018/07/logo-discourse.png" alt="">
 </a>
 
 # 截图
@@ -174,7 +145,7 @@ docker-compose up -d
 
 ### 工作流程自动化的应用商店
 
-我们在三个主要类别中提供不同的集成。详见<a href="https://docs.nocodb.com/setup-and-usages/app-store" target="_blank">App Store</a>。
+我们在三个主要类别中提供不同的集成。详见<a href="https://docs.nocodb.com/account-settings/oss-specific-details/#app-store" target="_blank">App Store</a>。
 
 - ⚡ 聊天：Slack、Discord、Mattermost 等
 - ⚡ 电子邮件: AWS SES，SMTP，MailerSend 等
@@ -189,11 +160,11 @@ docker-compose up -d
 
 ### 架构同步
 
-如果您在 NocoDB GUI 之外进行了更改，我们允许您同步架构更改。 但是，必须注意的是，您必须附有自己的迁移架构才能从一个环境迁移到其他环境。 有关详细信息，请参阅 <a href="https://docs.nocodb.com/setup-and-usages/sync-schema/" target="_blank">同步架构</a>。
+如果您在 NocoDB GUI 之外进行了更改，我们允许您同步架构更改。 但是，必须注意的是，您必须附有自己的迁移架构才能从一个环境迁移到其他环境。 有关详细信息，请参阅 <a href="https://docs.nocodb.com/data-sources/sync-with-data-source" target="_blank">同步架构</a>。
 
 ### 审计
 
-我们将所有用户操作日志保存在一起。 有关详细信息，请参阅 <a href="https://docs.nocodb.com/setup-and-usages/audit" target="_blank">审计</a>。
+我们将所有用户操作日志保存在一起。 有关详细信息，请参阅 <a href="https://docs.nocodb.com/data-sources/actions-on-data-sources/#audit-logs" target="_blank">审计</a>。
 
 # 生产部署
 
@@ -201,7 +172,7 @@ docker-compose up -d
 
 ## 环境变量
 
-参见[环境变量](https://docs.nocodb.com/getting-started/environment-variables)
+参见[环境变量](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
 
 # 开发
 
@@ -215,15 +186,15 @@ cd nocodb
 
 ```shell
 cd packages/nocodb-sdk
-npm install
-npm run build
+pnpm install
+pnpm run build
 ```
 ## 本地运行后端
 
 ```shell
 cd packages/nocodb
-npm install
-npm run watch:run
+pnpm install
+pnpm run watch:run
 # 在浏览器中打开 localhost:8080/dashboard
 ```
 
@@ -231,14 +202,14 @@ npm run watch:run
 
 ```shell
 cd packages/nc-gui
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 # 在浏览器中打开 localhost:3000/dashboard
 ```
 
 修改代码后会自动重新启动。
 
-> nocodb/packages/nocodb 包括 nc-lib-gui，它是 npm 源中托管的 nc-gui 的预构建版本。如果您只想修改后端，则可以在本地启动后端后在浏览器中访问 localhost:8000/dashboard
+> nocodb/packages/nocodb 包括 nc-lib-gui，它是 pnpm 源中托管的 nc-gui 的预构建版本。如果您只想修改后端，则可以在本地启动后端后在浏览器中访问 localhost:8000/dashboard
 
 # 贡献
 

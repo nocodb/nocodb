@@ -1,11 +1,16 @@
-import { ColumnType, UITypes } from 'nocodb-sdk';
+import {
+  convertMS2Duration,
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
+  UITypes,
+} from 'nocodb-sdk';
 import request from 'supertest';
-import Column from '../../../src/lib/models/Column';
-import Filter from '../../../src/lib/models/Filter';
-import Model from '../../../src/lib/models/Model';
-import Project from '../../../src/lib/models/Project';
-import Sort from '../../../src/lib/models/Sort';
-import NcConnectionMgrv2 from '../../../src/lib/utils/common/NcConnectionMgrv2';
+import Model from '../../../src/models/Model';
+import NcConnectionMgrv2 from '../../../src/utils/common/NcConnectionMgrv2';
+import type { ColumnType, NcApiVersion } from 'nocodb-sdk';
+import type Column from '../../../src/models/Column';
+import type Filter from '../../../src/models/Filter';
+import type { Base, View, Sort} from '../../../src/models';
 
 const rowValue = (column: ColumnType, index: number) => {
   switch (column.uidt) {
@@ -24,7 +29,7 @@ const rowValue = (column: ColumnType, index: number) => {
   }
 };
 
-const rowMixedValue = (column: ColumnType, index: number) => {
+const _rowMixedValue = (column: ColumnType, index: number) => {
   // Array of country names
   const countries = [
     'Afghanistan',
@@ -75,7 +80,19 @@ const rowMixedValue = (column: ColumnType, index: number) => {
     33.98,
     null,
   ];
-  const duration = [10, 20, 30, 40, 50, 60, null, 70, 80, 90, null];
+  const duration = [
+    10 * 60,
+    20 * 60,
+    30 * 60,
+    40 * 60,
+    50 * 60,
+    60 * 60,
+    null,
+    70 * 60,
+    80 * 60,
+    90 * 60,
+    null,
+  ];
   const rating = [0, 1, 2, 3, null, 0, 4, 5, 0, 1, null];
 
   // Array of random sample email strings (not more than 100 characters)
@@ -175,9 +192,17 @@ const rowMixedValue = (column: ColumnType, index: number) => {
     case UITypes.Date:
       // set startDate as 400 days before today
       // eslint-disable-next-line no-case-declarations
-      const result = new Date();
-      result.setDate(result.getDate() - 400 + index);
-      return result.toISOString().slice(0, 10);
+      const d1 = new Date();
+      d1.setDate(d1.getDate() - 400 + index);
+      return d1.toISOString().slice(0, 10);
+    case UITypes.DateTime:
+      // set startDate as 400 days before today
+      // eslint-disable-next-line no-case-declarations
+      const d2 = new Date();
+      d2.setDate(d2.getDate() - 400 + index);
+      // set time to 12:00:00
+      d2.setHours(12, 0, 0, 0);
+      return d2.toISOString();
     case UITypes.URL:
       return urls[index % urls.length];
     case UITypes.SingleSelect:
@@ -189,9 +214,22 @@ const rowMixedValue = (column: ColumnType, index: number) => {
   }
 };
 
-const getRow = async (context, { project, table, id }) => {
+const rowMixedValue = (column: ColumnType, index: number, isV3: boolean = false) => {
+  const val = _rowMixedValue(column, index)
+  if (isV3) {
+    if (column.uidt === UITypes.MultiSelect) {
+      return val ? (val as string).split(',') : val
+    }
+  }
+  if (column.uidt === UITypes.Duration) {
+    return val ? convertMS2Duration(val, 0) : val
+  }
+  return val
+}
+
+const getRow = async (context, { base, table, id }) => {
   const response = await request(context.app)
-    .get(`/api/v1/db/data/noco/${project.id}/${table.id}/${id}`)
+    .get(`/api/v1/db/data/noco/${base.id}/${table.id}/${id}`)
     .set('xc-auth', context.token);
 
   if (response.status !== 200) {
@@ -202,36 +240,45 @@ const getRow = async (context, { project, table, id }) => {
 };
 
 const listRow = async ({
-  project,
+  base,
   table,
   options,
+  view,
 }: {
-  project: Project;
+  base: Base;
   table: Model;
+  view?: View;
   options?: {
     limit?: any;
     offset?: any;
     filterArr?: Filter[];
     sortArr?: Sort[];
+    apiVersion?: NcApiVersion
   };
 }) => {
-  const bases = await project.getBases();
-  const baseModel = await Model.getBaseModelSQL({
+  const ctx = {
+    workspace_id: base.fk_workspace_id,
+    base_id: base.id,
+  };
+
+  const sources = await base.getSources();
+  const baseModel = await Model.getBaseModelSQL(ctx, {
     id: table.id,
-    dbDriver: await NcConnectionMgrv2.get(bases[0]!),
+    dbDriver: await NcConnectionMgrv2.get(sources[0]!),
+    viewId: view?.id,
   });
 
   const ignorePagination = !options;
 
-  return await baseModel.list(options, ignorePagination);
+  return await baseModel.list(options, { ignorePagination });
 };
 
 const getOneRow = async (
   context,
-  { project, table }: { project: Project; table: Model }
+  { base, table }: { base: Base; table: Model },
 ) => {
   const response = await request(context.app)
-    .get(`/api/v1/db/data/noco/${project.id}/${table.id}/find-one`)
+    .get(`/api/v1/db/data/noco/${base.id}/${table.id}/find-one`)
     .set('xc-auth', context.token);
 
   return response.body;
@@ -248,7 +295,10 @@ const generateDefaultRowAttributes = ({
     if (
       column.uidt === UITypes.LinkToAnotherRecord ||
       column.uidt === UITypes.ForeignKey ||
-      column.uidt === UITypes.ID
+      column.uidt === UITypes.ID ||
+      column.uidt === UITypes.Order ||
+      isCreatedOrLastModifiedTimeCol(column) ||
+      isCreatedOrLastModifiedByCol(column)
     ) {
       return acc;
     }
@@ -259,20 +309,25 @@ const generateDefaultRowAttributes = ({
 const createRow = async (
   context,
   {
-    project,
+    base,
     table,
     index = 0,
   }: {
-    project: Project;
+    base: Base;
     table: Model;
     index?: number;
-  }
+  },
 ) => {
-  const columns = await table.getColumns();
+  const ctx = {
+    workspace_id: base.fk_workspace_id,
+    base_id: base.id,
+  };
+
+  const columns = await table.getColumns(ctx);
   const rowData = generateDefaultRowAttributes({ columns, index });
 
   const response = await request(context.app)
-    .post(`/api/v1/db/data/noco/${project.id}/${table.id}`)
+    .post(`/api/v1/db/data/noco/${base.id}/${table.id}`)
     .set('xc-auth', context.token)
     .send(rowData);
 
@@ -282,17 +337,36 @@ const createRow = async (
 const createBulkRows = async (
   context,
   {
-    project,
+    base,
     table,
     values,
   }: {
-    project: Project;
+    base: Base;
     table: Model;
     values: any[];
-  }
+  },
 ) => {
-  await request(context.app)
-    .post(`/api/v1/db/data/bulk/noco/${project.id}/${table.id}`)
+  const res = await request(context.app)
+    .post(`/api/v1/db/data/bulk/noco/${base.id}/${table.id}`)
+    .set('xc-auth', context.token)
+    .send(values)
+    .expect(200);
+};
+
+const createBulkRowsV3 = async (
+  context,
+  {
+    base,
+    table,
+    values,
+  }: {
+    base: Base;
+    table: Model;
+    values: any[];
+  },
+) => {
+  const res = await request(context.app)
+    .post(`/api/v3/${base.id}/${table.id}`)
     .set('xc-auth', context.token)
     .send(values)
     .expect(200);
@@ -302,7 +376,7 @@ const createBulkRows = async (
 const createChildRow = async (
   context,
   {
-    project,
+    base,
     table,
     childTable,
     column,
@@ -310,32 +384,32 @@ const createChildRow = async (
     childRowId,
     type,
   }: {
-    project: Project;
+    base: Base;
     table: Model;
     childTable: Model;
     column: Column;
     rowId?: string;
     childRowId?: string;
     type: string;
-  }
+  },
 ) => {
   if (!rowId) {
-    const row = await createRow(context, { project, table });
+    const row = await createRow(context, { base, table });
     rowId = row['Id'];
   }
 
   if (!childRowId) {
-    const row = await createRow(context, { table: childTable, project });
+    const row = await createRow(context, { table: childTable, base });
     childRowId = row['Id'];
   }
 
   await request(context.app)
     .post(
-      `/api/v1/db/data/noco/${project.id}/${table.id}/${rowId}/${type}/${column.title}/${childRowId}`
+      `/api/v1/db/data/noco/${base.id}/${table.id}/${rowId}/${type}/${column.title}/${childRowId}`,
     )
     .set('xc-auth', context.token);
 
-  const row = await getRow(context, { project, table, id: rowId });
+  const row = await getRow(context, { base, table, id: rowId });
 
   return row;
 };
@@ -344,9 +418,11 @@ const createChildRow = async (
 const generateMixedRowAttributes = ({
   columns,
   index = 0,
+  isV3 = false,
 }: {
   columns: ColumnType[];
   index?: number;
+  isV3?: boolean;
 }) =>
   columns.reduce((acc, column) => {
     if (
@@ -369,5 +445,6 @@ export {
   generateDefaultRowAttributes,
   generateMixedRowAttributes,
   createBulkRows,
+  createBulkRowsV3,
   rowMixedValue,
 };

@@ -1,5 +1,6 @@
 import { CellPageObject } from '.';
 import BasePage from '../../../Base';
+import { expect } from '@playwright/test';
 
 export class DateCellPageObject extends BasePage {
   readonly cell: CellPageObject;
@@ -18,6 +19,12 @@ export class DateCellPageObject extends BasePage {
       index,
       columnHeader,
     });
+  }
+
+  async verify({ index, columnHeader, date }: { index: number; columnHeader: string; date: string }) {
+    const cell = this.get({ index, columnHeader });
+    await cell.scrollIntoViewIfNeeded();
+    await expect(cell.locator(`[title="${date}"]`)).toBeVisible();
   }
 
   async selectDate({

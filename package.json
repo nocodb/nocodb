@@ -16,42 +16,61 @@
   },
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
-    "fs": "0.0.1-security",
-    "lerna": "^6.4.1",
-    "husky": "^8.0.0",
-    "xlsx": "^0.17.4"
+    "husky": "^8.0.3",
+    "lerna": "^7.4.2",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npx lint-staged"
+      "pre-commit": "pnpm dlx lint-staged"
     }
   },
   "lint-staged": {
     "scripts/playwright/**/*.{ts,tsx,js,json}": [
-      "npm run lint:staged:playwright"
+      "pnpm run lint:staged:playwright"
     ]
   },
   "scripts": {
-    "lint:staged:playwright": "cd ./tests/playwright; npx lint-staged; cd -",
-    "build:common": "cd ./packages/nocodb-sdk; npm install; npm run build",
-    "install:common": "cd ./packages/nocodb; npm install ../nocodb-sdk; cd ../nc-gui; npm install ../nocodb-sdk",
-    "start:web": "npm run build:common ; cd ./packages/nc-gui; npm install ../nocodb-sdk; npm install; ANT_MESSAGE_DURATION=0.5 npm run dev",
-    "test:travis": "git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna run test:travis --since",
-    "lerna:install": "git log --pretty=format:'%h' -n 1 --skip 1 | xargs  lerna bootstrap --ignore nc-cli --since",
-    "updated:xc-migrator": "lerna run publish --scope xc-migrator && lerna run xc && lerna publish && npm install -f xc-cli",
-    "doc": "lerna run doc",
-    "install:local:dep": "cd packages/nc-lib-gui;npm uninstall -S xc-lib;rm package-lock.json; npm i ../../../xc-lib-private; cd ../xc-instant;npm uninstall -S xc-lib xc-lib-gui;npm i ../../../xc-lib-private;npm i ../xc-lib-gui",
-    "install:npm:dep": "cd packages/nc-lib-gui;npm uninstall -S xc-lib; npm i -S xc-lib@latest; cd ../xc-instant;npm uninstall -S xc-lib xc-lib-gui;npm i -S xc-lib@latest xc-lib-gui@latest;npm i ../xc-lib-gui",
-    "prepare": "husky install",
+    "bootstrap": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-mail-templates --filter=nc-gui --filter=playwright install && pnpm run registerIntegrations",
+    "start:frontend": "pnpm --filter=nc-gui run dev",
+    "start:backend": "pnpm --filter=nocodb run start",
+    "lint:staged:playwright": "cd ./tests/playwright; pnpm dlx lint-staged; cd -",
     "start:mysql": "docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml up -d",
     "stop:mysql": "docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml down",
     "start:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml up -d",
-    "stop:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml down"
+    "stop:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml down",
+    "prepare": "husky install",
+    "preinstall": "npx only-allow pnpm",
+    "registerIntegrations": "pnpm --filter=nocodb run registerIntegrations",
+    "install:local-sdk": "node scripts/installLocalSdk.js"
   },
-  "dependencies": {
-    "express": "^4.18.1",
-    "mysql2": "^2.3.3",
-    "pg": "^8.7.3",
-    "sqlite3": "^5.0.2"
+  "pnpm": {
+    "overrides": {
+      "vue": "latest",
+      "typescript": "latest",
+      "ajv@<6.12.3": ">=6.12.3",
+      "node.extend@<1.1.7": ">=1.1.7",
+      "tough-cookie@<4.1.3": ">=4.1.3",
+      "@babel/traverse@<7.23.2": ">=7.23.2",
+      "follow-redirects@<1.15.9": ">=1.15.9",
+      "ip@<1.1.9": ">=1.1.9",
+      "ip@=2.0.0": ">=2.0.1",
+      "xml2js@<0.5.0": ">=0.5.0",
+      "ufo": ">=1.5.3",
+      "ws@<8.17.1": ">=8.17.1",
+      "@azure/msal-node": "^2.16.2"
+    },
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@parcel/watcher",
+      "@swc/core",
+      "core-js",
+      "esbuild",
+      "msgpackr-extract",
+      "nx",
+      "sharp",
+      "sqlite3",
+      "vue-demi"
+    ]
   }
 }

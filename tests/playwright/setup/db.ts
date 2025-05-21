@@ -2,8 +2,7 @@ import { NcContext } from '.';
 const mysql = require('mysql2');
 const { Client } = require('pg');
 
-import { PromisedDatabase } from 'promised-sqlite3';
-const sqliteDb = new PromisedDatabase();
+import { AsyncDatabase } from 'promised-sqlite3';
 
 const isMysql = (context: NcContext) => context.dbType === 'mysql';
 
@@ -11,11 +10,17 @@ const isSqlite = (context: NcContext) => context.dbType === 'sqlite';
 
 const isPg = (context: NcContext) => context.dbType === 'pg';
 
+const isEE = () => process.env.EE === 'true';
+
+// run all the tests for PG; disable some tests for mysql, sqlite to reduce CI time
+//
+const enableQuickRun = () => (process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE) !== 'pg';
+
 const pg_credentials = (context: NcContext) => ({
   user: 'postgres',
   host: 'localhost',
   // todo: Hack to resolve issue with pg resetting
-  database: `sakila_${context.workerId}`,
+  database: `sakila${context.workerId}`,
   password: 'password',
   port: 5432,
 });
@@ -53,12 +58,15 @@ const mysqlExec = async query => {
 };
 
 async function sqliteExec(query) {
-  const parallelIndex = process.env.TEST_PARALLEL_INDEX;
-  const rootProjectDir = __dirname.replace('/tests/playwright/setup', '');
-  await sqliteDb.open(`${rootProjectDir}/packages/nocodb-nest/test_sakila_${parallelIndex}.db`);
-
-  await sqliteDb.run(query);
-  await sqliteDb.close();
+  try {
+    const parallelIndex = process.env.TEST_PARALLEL_INDEX;
+    const rootProjectDir = __dirname.replace('/tests/playwright/setup', '');
+    const sqliteDb = await AsyncDatabase.open(`${rootProjectDir}/packages/nocodb/test_sakila_${parallelIndex}.db`);
+    await sqliteDb.run(query);
+    await sqliteDb.close();
+  } catch (err) {
+    console.error(err);
+  }
 }
 
-export { sqliteExec, mysqlExec, isMysql, isSqlite, isPg, pgExec };
+export { sqliteExec, mysqlExec, isMysql, isSqlite, isPg, pgExec, isEE, enableQuickRun };

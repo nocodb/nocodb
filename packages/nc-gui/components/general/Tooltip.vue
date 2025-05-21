@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { onKeyStroke } from '@vueuse/core'
 import type { CSSProperties } from '@vue/runtime-dom'
-import { controlledRef, ref, useAttrs, useElementHover, watch } from '#imports'
 
 interface Props {
   // Key to be pressed on hover to trigger the tooltip
@@ -76,7 +75,7 @@ watch([isHovering, () => modifierKey, () => disabled], ([hovering, key, isDisabl
   }
 })
 
-const divStyles = $computed(() => ({
+const divStyles = computed(() => ({
   style: attrs.style as CSSProperties,
   class: attrs.class as string,
 }))

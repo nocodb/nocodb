@@ -1,5 +1,7 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
+import { ColumnType } from '~/lib';
+import { SqlUi } from './SqlUI.types';
 
 const dbTypes = [
   'int',
@@ -102,7 +104,8 @@ const dbTypes = [
   'xml',
 ];
 
-export class PgUi {
+export class PgUi implements SqlUi {
+  //#region statics
   static getNewTableColumns() {
     return [
       {
@@ -131,9 +134,9 @@ export class PgUi {
       {
         column_name: 'title',
         title: 'Title',
-        dt: 'character varying',
+        dt: 'TEXT',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: null,
         nrqd: true,
         rqd: false,
         ck: false,
@@ -141,10 +144,10 @@ export class PgUi {
         un: false,
         ai: false,
         cdf: null,
-        clen: 45,
+        clen: null,
         np: null,
         ns: null,
-        dtxp: '45',
+        dtxp: '',
         dtxs: '',
         altered: 1,
         uidt: 'SingleLineText',
@@ -156,28 +159,51 @@ export class PgUi {
         title: 'CreatedAt',
         dt: 'timestamp',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: 'timestamp',
         nrqd: true,
         rqd: false,
         ck: false,
         pk: false,
         un: false,
         ai: false,
-        cdf: 'now()',
         clen: 45,
         np: null,
         ns: null,
         dtxp: '',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.CreatedTime,
         uip: '',
         uicn: '',
+        system: true,
       },
       {
         column_name: 'updated_at',
         title: 'UpdatedAt',
         dt: 'timestamp',
+        dtx: 'specificType',
+        ct: 'timestamp',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        clen: 45,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.LastModifiedTime,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: 'created_by',
+        title: 'nc_created_by',
+        dt: 'varchar',
         dtx: 'specificType',
         ct: 'varchar(45)',
         nrqd: true,
@@ -186,17 +212,63 @@ export class PgUi {
         pk: false,
         un: false,
         ai: false,
-        au: true,
-        cdf: 'now()',
         clen: 45,
         np: null,
         ns: null,
-        dtxp: '',
+        dtxp: '45',
         dtxs: '',
         altered: 1,
-        uidt: UITypes.DateTime,
+        uidt: UITypes.CreatedBy,
         uip: '',
         uicn: '',
+        system: true,
+      },
+      {
+        column_name: 'updated_by',
+        title: 'nc_updated_by',
+        dt: 'varchar',
+        dtx: 'specificType',
+        ct: 'varchar(45)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        clen: 45,
+        np: null,
+        ns: null,
+        dtxp: '45',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.LastModifiedBy,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
+      {
+        column_name: 'nc_order',
+        title: 'nc_order',
+        dt: 'numeric',
+        dtx: 'specificType',
+        ct: 'numeric(40,20)',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: null,
+        clen: null,
+        np: 40,
+        ns: 20,
+        dtxp: '40,20',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.Order,
+        uip: '',
+        uicn: '',
+        system: true,
       },
     ];
   }
@@ -204,9 +276,9 @@ export class PgUi {
   static getNewColumn(suffix) {
     return {
       column_name: 'title' + suffix,
-      dt: 'character varying',
+      dt: 'TEXT',
       dtx: 'specificType',
-      ct: 'varchar(45)',
+      ct: null,
       nrqd: true,
       rqd: false,
       ck: false,
@@ -214,10 +286,10 @@ export class PgUi {
       un: false,
       ai: false,
       cdf: null,
-      clen: 45,
+      clen: null,
       np: null,
       ns: null,
-      dtxp: '45',
+      dtxp: '',
       dtxs: '',
       altered: 1,
       uidt: 'SingleLineText',
@@ -1159,6 +1231,7 @@ export class PgUi {
   static columnEditable(colObj) {
     return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions';
   }
+  /*
 
   static extractFunctionName(query) {
     const reg =
@@ -1197,18 +1270,18 @@ export class PgUi {
   }
 
   static splitQueries(query) {
-    /***
+    /!***
      * we are splitting based on semicolon
      * there are mechanism to escape semicolon within single/double quotes(string)
-     */
+     *!/
     return query.match(/\b("[^"]*;[^"]*"|'[^']*;[^']*'|[^;])*;/g);
   }
 
-  /**
+  /!**
    * if sql statement is SELECT - it limits to a number
    * @param args
    * @returns {string|*}
-   */
+   *!/
   sanitiseQuery(args) {
     let q = args.query.trim().split(';');
 
@@ -1336,6 +1409,7 @@ export class PgUi {
   static isValidDate(value) {
     return new Date(value).getTime() > 0;
   }
+*/
 
   static colPropAuDisabled(col) {
     if (col.altered !== 1) {
@@ -1358,7 +1432,7 @@ export class PgUi {
   }
 
   static getAbstractType(col): any {
-    switch ((col.dt || col.dt).toLowerCase()) {
+    switch (col.dt?.toLowerCase()) {
       case 'anyenum':
         return 'enum';
       case 'anynonarray':
@@ -1388,13 +1462,12 @@ export class PgUi {
         return 'date';
       case 'daterange':
         return 'string';
-      case 'double precision':
-        return 'string';
 
       case 'event_trigger':
       case 'fdw_handler':
         return 'string';
 
+      case 'double precision':
       case 'float4':
       case 'float8':
         return 'float';
@@ -1547,7 +1620,7 @@ export class PgUi {
       case 'date':
         return 'Date';
       case 'datetime':
-        return 'CreateTime';
+        return 'CreatedTime';
       case 'time':
         return 'Time';
       case 'year':
@@ -1586,7 +1659,7 @@ export class PgUi {
         colProp.dt = 'character varying';
         break;
       case 'SingleLineText':
-        colProp.dt = 'character varying';
+        colProp.dt = 'text';
         break;
       case 'LongText':
         colProp.dt = 'text';
@@ -1637,7 +1710,7 @@ export class PgUi {
         };
         break;
       case 'URL':
-        colProp.dt = 'character varying';
+        colProp.dt = 'text';
         colProp.validate = {
           func: ['isURL'],
           args: [''],
@@ -1683,7 +1756,7 @@ export class PgUi {
       case 'DateTime':
         colProp.dt = 'timestamp';
         break;
-      case 'CreateTime':
+      case 'CreatedTime':
         colProp.dt = 'timestamp';
         break;
       case 'LastModifiedTime':
@@ -1700,6 +1773,9 @@ export class PgUi {
         break;
       case 'JSON':
         colProp.dt = 'json';
+        break;
+      case 'Order':
+        colProp.dt = 'numeric';
         break;
       default:
         colProp.dt = 'character varying';
@@ -1738,10 +1814,10 @@ export class PgUi {
       case 'LongText':
       case 'Collaborator':
       case 'GeoData':
-        return ['char', 'character', 'character varying', 'text'];
+        return ['text', 'character varying', 'char', 'character'];
 
       case 'Attachment':
-        return ['json', 'char', 'character', 'character varying', 'text'];
+        return ['json', 'text', 'char', 'character', 'character varying'];
 
       case 'JSON':
         return ['json', 'jsonb', 'text'];
@@ -1792,7 +1868,7 @@ export class PgUi {
         return ['character varying'];
 
       case 'URL':
-        return ['character varying', 'text'];
+        return ['text', 'character varying'];
 
       case 'Number':
         return [
@@ -1897,6 +1973,7 @@ export class PgUi {
         ];
 
       case 'Formula':
+      case 'Button':
         return ['text', 'character varying'];
 
       case 'Rollup':
@@ -1931,7 +2008,7 @@ export class PgUi {
         ];
 
       case 'DateTime':
-      case 'CreateTime':
+      case 'CreatedTime':
       case 'LastModifiedTime':
         return [
           'timestamp',
@@ -1939,6 +2016,11 @@ export class PgUi {
           'timestamptz',
           'timestamp with time zone',
         ];
+
+      case 'User':
+      case 'CreatedBy':
+      case 'LastModifiedBy':
+        return ['character varying'];
 
       case 'AutoNumber':
         return [
@@ -1956,6 +2038,9 @@ export class PgUi {
           'smallserial',
         ];
 
+      case 'Order':
+        return ['numeric'];
+
       case 'Barcode':
         return ['character varying'];
 
@@ -1971,7 +2056,6 @@ export class PgUi {
           'circle',
         ];
 
-      case 'Button':
       default:
         return dbTypes;
     }
@@ -1980,6 +2064,124 @@ export class PgUi {
   static getUnsupportedFnList() {
     return [];
   }
+
+  static getCurrentDateDefault(col: Partial<ColumnType>) {
+    if (col.uidt === UITypes.DateTime || col.uidt === UITypes.Date) {
+      return 'NOW()';
+    }
+    return null;
+  }
+
+  static isEqual(dataType1: string, dataType2: string) {
+    if (dataType1?.toLowerCase() === dataType2?.toLowerCase()) return true;
+
+    const abstractType1 = this.getAbstractType({ dt: dataType1 });
+    const abstractType2 = this.getAbstractType({ dt: dataType2 });
+
+    if (
+      abstractType1 &&
+      abstractType1 === abstractType2 &&
+      ['integer', 'float'].includes(abstractType1)
+    )
+      return true;
+
+    return false;
+  }
+  //#endregion statics
+
+  //#region methods
+  getNewTableColumns(): readonly any[] {
+    return PgUi.getNewTableColumns();
+  }
+  getNewColumn(suffix: string): {
+    column_name: string;
+    dt: string;
+    dtx: string;
+    ct: string;
+    nrqd: boolean;
+    rqd: boolean;
+    ck: boolean;
+    pk: boolean;
+    un: boolean;
+    ai: boolean;
+    cdf: null;
+    clen: number;
+    np: number;
+    ns: number;
+    dtxp: string;
+    dtxs: string;
+    altered: number;
+    uidt: string;
+    uip: string;
+    uicn: string;
+  } {
+    return PgUi.getNewColumn(suffix);
+  }
+  getDefaultLengthForDatatype(type: string): number | string {
+    return PgUi.getDefaultLengthForDatatype(type);
+  }
+  getDefaultLengthIsDisabled(type: string) {
+    return PgUi.getDefaultLengthIsDisabled(type);
+  }
+  getDefaultValueForDatatype(type: string) {
+    return PgUi.getDefaultValueForDatatype(type);
+  }
+  getDefaultScaleForDatatype(type: any): string {
+    return PgUi.getDefaultScaleForDatatype(type);
+  }
+  colPropAIDisabled(col: ColumnType, columns: ColumnType[]): boolean {
+    return PgUi.colPropAIDisabled(col, columns);
+  }
+  colPropUNDisabled(col: ColumnType): boolean {
+    return PgUi.colPropUNDisabled(col);
+  }
+  onCheckboxChangeAI(col: ColumnType): void {
+    return PgUi.onCheckboxChangeAI(col);
+  }
+  showScale(columnObj: ColumnType): boolean {
+    return PgUi.showScale(columnObj);
+  }
+  removeUnsigned(columns: ColumnType[]): void {
+    return PgUi.removeUnsigned(columns);
+  }
+  columnEditable(colObj: ColumnType): boolean {
+    return PgUi.columnEditable(colObj);
+  }
+  onCheckboxChangeAU(col: ColumnType): void {
+    return PgUi.onCheckboxChangeAU(col);
+  }
+  colPropAuDisabled(col: ColumnType): boolean {
+    return PgUi.colPropAuDisabled(col);
+  }
+  getAbstractType(col: ColumnType): string {
+    return PgUi.getAbstractType(col);
+  }
+  getUIType(col: ColumnType): string {
+    return PgUi.getUIType(col);
+  }
+  getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
+    return PgUi.getDataTypeForUiType(col, idType);
+  }
+  getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType): string[] {
+    return PgUi.getDataTypeListForUiType(col, idType);
+  }
+  getUnsupportedFnList(): string[] {
+    return PgUi.getUnsupportedFnList();
+  }
+  getCurrentDateDefault(_col: Partial<ColumnType>) {
+    return PgUi.getCurrentDateDefault(_col);
+  }
+  isEqual(dataType1: string, dataType2: string): boolean {
+    return PgUi.isEqual(dataType1, dataType2);
+  }
+  adjustLengthAndScale(
+    _newColumn: Partial<ColumnType>,
+    _oldColumn?: ColumnType
+  ) {}
+  isParsedJsonReturnType(col: ColumnType): boolean {
+    return ['json', 'jsond'].includes(col.dt?.toLowerCase());
+  }
+  //#endregion methods
 }
 
 // module.exports = PgUiHelp;

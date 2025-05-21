@@ -1,6 +1,6 @@
-import Audit from '../../../src/lib/models/Audit';
-import Project from '../../../src/lib/models/Project';
+import { Audit, Base } from '../../../src/models';
 import TestDbMngr from '../TestDbMngr';
+import { RootScopes } from '../../../src/utils/globals';
 
 const dropTablesOfSakila = async () => {
   await TestDbMngr.disableForeignKeyChecks(TestDbMngr.sakilaKnex);
@@ -9,7 +9,7 @@ const dropTablesOfSakila = async () => {
     try {
       if (TestDbMngr.isPg()) {
         await TestDbMngr.sakilaKnex.raw(
-          `DROP TABLE IF EXISTS "${tableName}" CASCADE`
+          `DROP TABLE IF EXISTS "${tableName}" CASCADE`,
         );
       } else {
         await TestDbMngr.sakilaKnex.raw(`DROP TABLE ${tableName}`);
@@ -40,14 +40,20 @@ const resetAndSeedSakila = async () => {
   }
 };
 
-const cleanUpSakila = async () => {
+const cleanUpSakila = async (forceReset) => {
   try {
-    const sakilaProject = await Project.getByTitle('sakila');
+    const sakilaProject = await Base.getByTitle(
+      {
+        workspace_id: RootScopes.BASE,
+        base_id: RootScopes.BASE,
+      },
+      'sakila',
+    );
 
     const audits =
-      sakilaProject && (await Audit.projectAuditList(sakilaProject.id, {}));
+      sakilaProject && (await Audit.baseAuditList(sakilaProject.id, {}));
 
-    if (audits?.length > 0) {
+    if (audits?.length > 0 || forceReset) {
       // if PG, drop schema
       if (TestDbMngr.isPg()) {
         return await dropSchemaAndSeedSakila();
@@ -57,7 +63,7 @@ const cleanUpSakila = async () => {
     }
 
     const tablesInSakila = await TestDbMngr.showAllTables(
-      TestDbMngr.sakilaKnex
+      TestDbMngr.sakilaKnex,
     );
 
     await Promise.all(
@@ -67,7 +73,7 @@ const cleanUpSakila = async () => {
           try {
             if (TestDbMngr.isPg()) {
               await TestDbMngr.sakilaKnex.raw(
-                `DROP TABLE "${tableName}" CASCADE`
+                `DROP TABLE "${tableName}" CASCADE`,
               );
             } else {
               await TestDbMngr.sakilaKnex.raw(`DROP TABLE ${tableName}`);
@@ -75,7 +81,7 @@ const cleanUpSakila = async () => {
           } catch (e) {
             console.error(e);
           }
-        })
+        }),
     );
   } catch (e) {
     console.error('cleanUpSakila', e);

@@ -1,45 +1,40 @@
 <script lang="ts" setup>
-import type { BaseType } from 'nocodb-sdk'
-import { Form, Modal, message } from 'ant-design-vue'
-import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
-import type { ProjectCreateForm } from '#imports'
+import { IntegrationsType, type SourceType, validateAndExtractSSLProp } from 'nocodb-sdk'
+import { Form } from 'ant-design-vue'
 import {
-  CertTypes,
   ClientType,
-  DefaultConnection,
-  SQLiteConnection,
+  type DatabricksConnection,
+  type DefaultConnection,
+  type ProjectCreateForm,
   SSLUsage,
-  clientTypes,
-  computed,
-  extractSdkResponseErrorMsg,
-  fieldRequiredValidator,
-  getDefaultConnectionConfig,
-  getTestDatabaseName,
-  iconMap,
-  onMounted,
-  projectTitleValidator,
-  readFile,
-  ref,
-  storeToRefs,
-  useApi,
-  useI18n,
-  useNuxtApp,
-  watch,
+  type SnowflakeConnection,
+  clientTypes as _clientTypes,
 } from '#imports'
 
 const props = defineProps<{
-  baseId: string
+  sourceId: string
 }>()
 
-const emit = defineEmits(['baseUpdated'])
+const emit = defineEmits(['sourceUpdated', 'close'])
 
-const projectStore = useProject()
-const { loadProject } = projectStore
-const { project } = storeToRefs(projectStore)
+const baseStore = useBase()
+const basesStore = useBases()
+const { base } = storeToRefs(baseStore)
+
+const { integrations, loadIntegrations } = useIntegrationStore()
+
+const _projectId = inject(ProjectIdInj, undefined)
+const baseId = computed(() => _projectId?.value ?? base.value?.id)
+
+const { refreshCommandPalette } = useCommandPalette()
+
+const filteredIntegrations = computed(() => integrations.value.filter((i) => i.sub_type !== SyncDataType.NOCODB))
 
 const useForm = Form.useForm
 
 const testSuccess = ref(false)
+
+const testingConnection = ref(false)
 
 const form = ref<typeof Form>()
 
@@ -49,57 +44,79 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const toggleDialog = inject(ToggleDialogInj, () => {})
+const editingSource = ref(false)
 
-const formState = ref<ProjectCreateForm>({
-  title: '',
-  dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
-  inflection: {
-    inflectionColumn: 'camelize',
-    inflectionTable: 'camelize',
-  },
-  sslUse: SSLUsage.No,
-  extraParameters: [],
+const easterEgg = ref(false)
+
+const easterEggCount = ref(0)
+
+const advancedOptionsExpansionPanel = ref<string[]>([])
+
+const isLoading = ref<boolean>(false)
+
+const onEasterEgg = () => {
+  easterEggCount.value += 1
+  if (easterEggCount.value >= 2) {
+    easterEgg.value = true
+  }
+}
+
+const defaultFormState = (client = ClientType.MYSQL) => {
+  return {
+    title: '',
+    dataSource: { ...getDefaultConnectionConfig(client) },
+    inflection: {
+      inflectionColumn: 'none',
+      inflectionTable: 'none',
+    },
+    sslUse: SSLUsage.No,
+    extraParameters: [],
+    is_schema_readonly: true,
+    is_data_readonly: false,
+  }
+}
+
+const formState = ref<ProjectCreateForm>(defaultFormState())
+
+const selectedIntegration = computed(() => {
+  return formState.value.fk_integration_id && integrations.value.find((i) => i.id === formState.value.fk_integration_id)
+})
+const selectedIntegrationDb = computed(() => {
+  return selectedIntegration.value?.config?.connection?.database
+})
+const selectedIntegrationSchema = computed(() => {
+  return selectedIntegration.value?.config?.searchPath?.[0]
 })
 
-const customFormState = ref<ProjectCreateForm>({
-  title: '',
-  dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
-  inflection: {
-    inflectionColumn: 'camelize',
-    inflectionTable: 'camelize',
-  },
-  sslUse: SSLUsage.No,
-  extraParameters: [],
-})
+const getDataSourceValue = (field: 'database' | 'schema') => {
+  if (field === 'database') {
+    return selectedIntegrationDb.value
+  }
+  if (field === 'schema') {
+    return selectedIntegrationSchema.value
+  }
+}
 
 const validators = computed(() => {
   return {
-    'title': [projectTitleValidator],
+    'title': [baseTitleValidator()],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],
     ...(formState.value.dataSource.client === ClientType.SQLITE
-      ? {
-          'dataSource.connection.connection.filename': [fieldRequiredValidator()],
-        }
+      ? {}
       : formState.value.dataSource.client === ClientType.SNOWFLAKE
       ? {
-          'dataSource.connection.account': [fieldRequiredValidator()],
-          'dataSource.connection.username': [fieldRequiredValidator()],
-          'dataSource.connection.password': [fieldRequiredValidator()],
-          'dataSource.connection.warehouse': [fieldRequiredValidator()],
           'dataSource.connection.database': [fieldRequiredValidator()],
           'dataSource.connection.schema': [fieldRequiredValidator()],
         }
       : {
-          'dataSource.connection.host': [fieldRequiredValidator()],
-          'dataSource.connection.port': [fieldRequiredValidator()],
-          'dataSource.connection.user': [fieldRequiredValidator()],
-          'dataSource.connection.password': [fieldRequiredValidator()],
-          'dataSource.connection.database': [fieldRequiredValidator()],
-          ...([ClientType.PG, ClientType.MSSQL].includes(formState.value.dataSource.client)
+          'dataSource.connection.database':
+            selectedIntegration.value && getDataSourceValue('database') ? [] : [fieldRequiredValidator()],
+          ...([ClientType.PG, ClientType.MSSQL].includes(formState.value.dataSource.client) &&
+          formState.value.dataSource.searchPath
             ? {
-                'dataSource.searchPath.0': [fieldRequiredValidator()],
+                'dataSource.searchPath.0':
+                  selectedIntegration.value && getDataSourceValue('schema') ? [] : [fieldRequiredValidator()],
               }
             : {}),
         }),
@@ -107,31 +124,6 @@ const validators = computed(() => {
 })
 
 const { validate, validateInfos } = useForm(formState, validators)
-
-const onClientChange = () => {
-  formState.value.dataSource = { ...getDefaultConnectionConfig(formState.value.dataSource.client) }
-}
-
-const onSSLModeChange = ((mode: SSLUsage) => {
-  if (formState.value.dataSource.client !== ClientType.SQLITE) {
-    const connection = formState.value.dataSource.connection as DefaultConnection
-    switch (mode) {
-      case SSLUsage.No:
-        delete connection.ssl
-        break
-      case SSLUsage.Allowed:
-        connection.ssl = 'true'
-        break
-      default:
-        connection.ssl = {
-          ca: '',
-          cert: '',
-          key: '',
-        }
-        break
-    }
-  }
-}) as SelectHandler
 
 const updateSSLUse = () => {
   if (formState.value.dataSource.client !== ClientType.SQLITE) {
@@ -148,35 +140,7 @@ const updateSSLUse = () => {
   }
 }
 
-const addNewParam = () => {
-  formState.value.extraParameters.push({ key: '', value: '' })
-}
-
-const removeParam = (index: number) => {
-  formState.value.extraParameters.splice(index, 1)
-}
-
 const inflectionTypes = ['camelize', 'none']
-const importURL = ref('')
-const configEditDlg = ref(false)
-const importURLDlg = ref(false)
-
-const caFileInput = ref<HTMLInputElement>()
-const keyFileInput = ref<HTMLInputElement>()
-const certFileInput = ref<HTMLInputElement>()
-
-const onFileSelect = (key: CertTypes, el?: HTMLInputElement) => {
-  if (!el) return
-
-  readFile(el, (content) => {
-    if ('ssl' in formState.value.dataSource.connection && typeof formState.value.dataSource.connection.ssl === 'object')
-      formState.value.dataSource.connection.ssl[key] = content ?? ''
-  })
-}
-
-const sslFilesRequired = computed(
-  () => !!formState.value.sslUse && formState.value.sslUse !== SSLUsage.No && formState.value.sslUse !== SSLUsage.Allowed,
-)
 
 function getConnectionConfig() {
   const extraParameters = Object.fromEntries(new Map(formState.value.extraParameters.map((object) => [object.key, object.value])))
@@ -186,14 +150,8 @@ function getConnectionConfig() {
     ...extraParameters,
   }
 
-  if ('ssl' in connection && connection.ssl) {
-    if (
-      formState.value.sslUse === SSLUsage.No ||
-      (typeof connection.ssl === 'object' && Object.values(connection.ssl).every((v) => v === null || v === undefined))
-    ) {
-      delete connection.ssl
-    }
-  }
+  connection.ssl = validateAndExtractSSLProp(connection, formState.value.sslUse, formState.value.dataSource.client)
+
   return connection
 }
 
@@ -210,30 +168,50 @@ const editBase = async () => {
   }
 
   try {
-    if (!project.value?.id) return
+    if (!base.value?.id) return
 
     const connection = getConnectionConfig()
 
     const config = { ...formState.value.dataSource, connection }
 
-    await api.base.update(project.value?.id, props.baseId, {
+    // todo: refactor and remove this duplicate path in config
+    if (config.client === ClientType.SQLITE && config.connection?.connection?.filename) {
+      config.connection.filename = config.connection.connection.filename
+    }
+
+    // if integration is selected and database/schema is empty, set it to `undefined` to use default from integration
+    if (selectedIntegration.value) {
+      if (config.connection?.database === '') {
+        config.connection.database = undefined
+      }
+      if (config.searchPath?.[0] === '') {
+        config.searchPath = undefined
+      }
+    }
+
+    await api.source.update(base.value?.id, props.sourceId, {
       alias: formState.value.title,
       type: formState.value.dataSource.client,
       config,
       inflection_column: formState.value.inflection.inflectionColumn,
       inflection_table: formState.value.inflection.inflectionTable,
+      is_schema_readonly: formState.value.is_schema_readonly,
+      is_data_readonly: formState.value.is_data_readonly,
     })
 
-    $e('a:base:edit:extdb')
+    $e('a:source:edit:extdb')
 
-    await loadProject()
-    emit('baseUpdated')
-    message.success('Base updated!')
-    toggleDialog(true, 'dataSources', '')
+    await basesStore.loadProject(baseId.value!, true)
+    emit('sourceUpdated')
+    emit('close')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    refreshCommandPalette()
   }
 }
+
+const testConnectionError = ref()
 
 const testConnection = async () => {
   try {
@@ -243,9 +221,11 @@ const testConnection = async () => {
     return
   }
 
-  $e('a:base:edit:extdb:test-connection', [])
+  $e('a:source:edit:extdb:test-connection', [])
 
   try {
+    testingConnection.value = true
+
     if (formState.value.dataSource.client === ClientType.SQLITE) {
       testSuccess.value = true
     } else {
@@ -253,26 +233,28 @@ const testConnection = async () => {
 
       connection.database = getTestDatabaseName(formState.value.dataSource)!
 
+      let searchPath = formState.value.dataSource.searchPath
+
+      // if integration is selected and database/schema is empty, set it to `undefined` to use default from integration
+      if (selectedIntegration.value) {
+        if (connection?.database === '') {
+          connection.database = undefined
+        }
+        if (searchPath?.[0] === '') {
+          searchPath = undefined
+        }
+      }
       const testConnectionConfig = {
         ...formState.value.dataSource,
         connection,
+        searchPath,
+        fk_integration_id: formState.value.fk_integration_id,
       }
 
       const result = await api.utils.testConnection(testConnectionConfig)
 
       if (result.code === 0) {
         testSuccess.value = true
-
-        Modal.confirm({
-          title: t('msg.info.dbConnected'),
-          icon: null,
-          type: 'success',
-          okText: 'Ok & Edit Base',
-          okType: 'primary',
-          cancelText: t('general.cancel'),
-          onOk: editBase,
-          style: 'top: 30%!important',
-        })
       } else {
         testSuccess.value = false
 
@@ -281,355 +263,419 @@ const testConnection = async () => {
     }
   } catch (e: any) {
     testSuccess.value = false
-
-    message.error(await extractSdkResponseErrorMsg(e))
+    testConnectionError.value = await extractSdkResponseErrorMsg(e)
   }
-}
 
-const handleImportURL = async () => {
-  if (!importURL.value || importURL.value === '') return
-
-  const connectionConfig = await api.utils.urlToConfig({ url: importURL.value })
-
-  if (connectionConfig) {
-    formState.value.dataSource.client = connectionConfig.client
-    formState.value.dataSource.connection = { ...connectionConfig.connection }
-  } else {
-    message.error(t('msg.error.invalidURL'))
-  }
-  importURLDlg.value = false
-  updateSSLUse()
-}
-
-const handleEditJSON = () => {
-  customFormState.value = formState.value
-  configEditDlg.value = true
-}
-
-const handleOk = () => {
-  formState.value = customFormState.value
-  configEditDlg.value = false
-  updateSSLUse()
+  testingConnection.value = false
 }
 
 // reset test status on config change
 watch(
   () => formState.value.dataSource,
-  () => (testSuccess.value = false),
+  () => {
+    testSuccess.value = false
+    testConnectionError.value = null
+  },
   { deep: true },
 )
 
-// load base config
+// load source config
 onMounted(async () => {
-  if (project.value?.id) {
+  isLoading.value = true
+
+  if (!integrations.value.length) {
+    await loadIntegrations(IntegrationsType.Database, base.value?.id)
+  }
+
+  if (base.value?.id) {
     const definedParameters = ['host', 'port', 'user', 'password', 'database']
 
-    const activeBase = (await api.base.read(project.value?.id, props.baseId)) as BaseType
+    const activeBase = (await api.source.read(base.value?.id, props.sourceId)) as SourceType
 
-    const tempParameters = Object.entries(activeBase.config.connection)
+    const tempParameters = Object.entries(activeBase.config.connection || {})
       .filter(([key]) => !definedParameters.includes(key))
       .map(([key, value]) => ({ key: key as string, value: value as string }))
 
     formState.value = {
       title: activeBase.alias || '',
-      dataSource: activeBase.config,
+      dataSource: { connection: {}, ...(activeBase.config || {}), searchPath: activeBase.config?.searchPath || [] },
       inflection: {
         inflectionColumn: activeBase.inflection_column,
         inflectionTable: activeBase.inflection_table,
       },
       extraParameters: tempParameters,
       sslUse: SSLUsage.No,
+      is_schema_readonly: activeBase.is_schema_readonly,
+      is_data_readonly: activeBase.is_data_readonly,
+      fk_integration_id: activeBase.fk_integration_id,
     }
     updateSSLUse()
   }
+
+  isLoading.value = false
 })
+
+// if searchPath is null/undefined reset it to empty array when necessary
+watch(
+  () => formState.value.dataSource.searchPath,
+  (val) => {
+    if ([ClientType.PG, ClientType.MSSQL].includes(formState.value.dataSource.client) && !val) {
+      formState.value.dataSource.searchPath = []
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+const allowMetaWrite = computed({
+  get: () => !formState.value.is_schema_readonly,
+  set: (v) => {
+    formState.value.is_schema_readonly = !v
+    // if schema write is allowed, data write should be allowed too
+    if (v) {
+      formState.value.is_data_readonly = false
+    }
+    $e('c:source:schema-write-toggle', { allowed: !v, edit: true })
+  },
+})
+
+const allowDataWrite = computed({
+  get: () => !formState.value.is_data_readonly,
+  set: (v) => {
+    formState.value.is_data_readonly = !v
+    $e('c:source:data-write-toggle', { allowed: !v, edit: true })
+  },
+})
+
+const handleUpdateAdvancedOptionsExpansionPanel = (open: boolean) => {
+  if (open) {
+    advancedOptionsExpansionPanel.value = ['1']
+    handleAutoScroll(true, 'nc-source-advanced-options')
+  } else {
+    advancedOptionsExpansionPanel.value = []
+  }
+}
+
+let timer: any
+function handleAutoScroll(scroll: boolean, className: string) {
+  if (scroll) {
+    if (timer) {
+      clearTimeout(timer)
+    }
+
+    nextTick(() => {
+      const el = document.querySelector(`.edit-source .${className}`)
+      if (!el) return
+
+      // wait for transition complete
+      timer = setTimeout(() => {
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      }, 400)
+    })
+  }
+}
 </script>
 
 <template>
-  <div class="edit-base max-w-800px mx-auto bg-white relative flex flex-col justify-center gap-2 w-full p-8">
-    <h1 class="prose-2xl font-bold self-center my-4">Edit Base</h1>
-
-    <a-form
-      ref="form"
-      :model="formState"
-      name="external-project-create-form"
-      layout="horizontal"
-      no-style
-      :label-col="{ span: 8 }"
-    >
-      <a-form-item label="Base Name" v-bind="validateInfos.title">
-        <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />
-      </a-form-item>
-
-      <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
-        <a-select
-          v-model:value="formState.dataSource.client"
-          class="nc-extdb-db-type"
-          dropdown-class-name="nc-dropdown-ext-db-type"
-          @change="onClientChange"
-        >
-          <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
-            >{{ client.text }}
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-
-      <!-- SQLite File -->
-      <a-form-item
-        v-if="formState.dataSource.client === ClientType.SQLITE"
-        :label="$t('labels.sqliteFile')"
-        v-bind="validateInfos['dataSource.connection.connection.filename']"
-      >
-        <a-input v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename" />
-      </a-form-item>
-
-      <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
-        <!-- Account -->
-        <a-form-item label="Account" v-bind="validateInfos['dataSource.connection.account']">
-          <a-input v-model:value="formState.dataSource.connection.account" class="nc-extdb-account" />
-        </a-form-item>
-
-        <!-- Username -->
-        <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.username']">
-          <a-input v-model:value="formState.dataSource.connection.username" class="nc-extdb-host-user" />
-        </a-form-item>
-
-        <!-- Password -->
-        <a-form-item :label="$t('labels.password')" v-bind="validateInfos['dataSource.connection.password']">
-          <a-input-password v-model:value="formState.dataSource.connection.password" class="nc-extdb-host-password" />
-        </a-form-item>
-
-        <!-- Warehouse -->
-        <a-form-item label="Warehouse" v-bind="validateInfos['dataSource.connection.warehouse']">
-          <a-input v-model:value="formState.dataSource.connection.warehouse" />
-        </a-form-item>
-
-        <!-- Database -->
-        <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
-          <!-- Database : create if not exists -->
-          <a-input
-            v-model:value="formState.dataSource.connection.database"
-            :placeholder="$t('labels.dbCreateIfNotExists')"
-            class="nc-extdb-host-database"
-          />
-        </a-form-item>
-
-        <!-- Schema name -->
-        <a-form-item :label="$t('labels.schemaName')" v-bind="validateInfos['dataSource.connection.schema']">
-          <a-input v-model:value="formState.dataSource.connection.schema" />
-        </a-form-item>
-      </template>
-
-      <template v-else>
-        <!-- Host Address -->
-        <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.connection.host']">
-          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).host" class="nc-extdb-host-address" />
-        </a-form-item>
-
-        <!-- Port Number -->
-        <a-form-item :label="$t('labels.port')" v-bind="validateInfos['dataSource.connection.port']">
-          <a-input-number
-            v-model:value="(formState.dataSource.connection as DefaultConnection).port"
-            class="!w-full nc-extdb-host-port"
-          />
-        </a-form-item>
-
-        <!-- Username -->
-        <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
-          <a-input v-model:value="(formState.dataSource.connection as DefaultConnection).user" class="nc-extdb-host-user" />
-        </a-form-item>
-
-        <!-- Password -->
-        <a-form-item :label="$t('labels.password')">
-          <a-input-password
-            v-model:value="(formState.dataSource.connection as DefaultConnection).password"
-            class="nc-extdb-host-password"
-          />
-        </a-form-item>
-
-        <!-- Database -->
-        <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
-          <!-- Database : create if not exists -->
-          <a-input
-            v-model:value="formState.dataSource.connection.database"
-            :placeholder="$t('labels.dbCreateIfNotExists')"
-            class="nc-extdb-host-database"
-          />
-        </a-form-item>
-
-        <!-- Schema name -->
-        <a-form-item
-          v-if="[ClientType.MSSQL, ClientType.PG].includes(formState.dataSource.client) && formState.dataSource.searchPath"
-          :label="$t('labels.schemaName')"
-          v-bind="validateInfos['dataSource.searchPath.0']"
-        >
-          <a-input v-model:value="formState.dataSource.searchPath[0]" />
-        </a-form-item>
-
-        <a-collapse ghost expand-icon-position="right" class="!mt-6">
-          <a-collapse-panel key="1">
-            <template #header>
-              <div class="flex items-center gap-2">
-                <!--                Use Connection URL -->
-                <a-button type="default" class="nc-extdb-btn-import-url" @click.stop="importURLDlg = true">
-                  {{ $t('activity.useConnectionUrl') }}
-                </a-button>
-                <span>{{ $t('title.advancedParameters') }}</span>
+  <div class="edit-source bg-white relative h-full flex flex-col w-full">
+    <div class="h-full max-h-[calc(100%_-_65px)] flex">
+      <div class="nc-edit-source-left-panel nc-scrollbar-thin relative">
+        <div class="h-full max-w-[768px] mx-auto">
+          <a-form
+            ref="form"
+            :model="formState"
+            hide-required-mark
+            name="external-base-create-form"
+            layout="vertical"
+            no-style
+            class="flex flex-col gap-5.5"
+          >
+            <div class="nc-form-section">
+              <div class="nc-form-section-body">
+                <a-row :gutter="24">
+                  <a-col :span="12">
+                    <a-form-item label="Data Source Name" v-bind="validateInfos.title">
+                      <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />
+                    </a-form-item>
+                  </a-col>
+                </a-row>
+                <a-row :gutter="24">
+                  <a-col :span="12">
+                    <a-form-item label="Select connection">
+                      <NcSelect
+                        :value="formState.fk_integration_id"
+                        disabled
+                        class="nc-extdb-db-type nc-select-shadow"
+                        dropdown-class-name="nc-dropdown-ext-db-type"
+                        placeholder="Select connection"
+                        allow-clear
+                        show-search
+                        dropdown-match-select-width
+                      >
+                        <a-select-option
+                          v-for="integration in filteredIntegrations"
+                          :key="integration.id"
+                          :value="integration.id"
+                        >
+                          <div class="w-full flex gap-2 items-center" :data-testid="integration.title">
+                            <GeneralIntegrationIcon
+                              v-if="integration?.sub_type"
+                              :type="integration.sub_type"
+                              :style="{
+                                filter: 'grayscale(100%) brightness(115%)',
+                              }"
+                            />
+                            <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                              <template #title>
+                                {{ integration.title }}
+                              </template>
+                              {{ integration.title }}
+                            </NcTooltip>
+                            <component
+                              :is="iconMap.check"
+                              v-if="formState.fk_integration_id === integration.id"
+                              id="nc-selected-item-icon"
+                              class="text-primary w-4 h-4"
+                            />
+                          </div>
+                        </a-select-option>
+                      </NcSelect>
+                    </a-form-item>
+                  </a-col>
+                </a-row>
               </div>
-            </template>
-            <a-form-item label="SSL mode">
-              <a-select v-model:value="formState.sslUse" dropdown-class-name="nc-dropdown-ssl-mode" @select="onSSLModeChange">
-                <a-select-option v-for="opt in Object.values(SSLUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
-              </a-select>
-            </a-form-item>
-
-            <a-form-item label="SSL keys">
-              <div class="flex gap-2">
-                <a-tooltip placement="top">
-                  <!-- Select .cert file -->
-                  <template #title>
-                    <span>{{ $t('tooltip.clientCert') }}</span>
-                  </template>
-
-                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="certFileInput?.click()">
-                    {{ $t('labels.clientCert') }}
-                  </a-button>
-                </a-tooltip>
-
-                <a-tooltip placement="top">
-                  <!-- Select .key file -->
-                  <template #title>
-                    <span>{{ $t('tooltip.clientKey') }}</span>
-                  </template>
-                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="keyFileInput?.click()">
-                    {{ $t('labels.clientKey') }}
-                  </a-button>
-                </a-tooltip>
-
-                <a-tooltip placement="top">
-                  <!-- Select CA file -->
-                  <template #title>
-                    <span>{{ $t('tooltip.clientCA') }}</span>
-                  </template>
-
-                  <a-button :disabled="!sslFilesRequired" class="shadow" @click="caFileInput?.click()">
-                    {{ $t('labels.serverCA') }}
-                  </a-button>
-                </a-tooltip>
-              </div>
-            </a-form-item>
-
-            <input ref="caFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.ca, caFileInput)" />
-
-            <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.cert, certFileInput)" />
-
-            <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect(CertTypes.key, keyFileInput)" />
-
-            <a-divider />
-
-            <!--            Extra connection parameters -->
-            <a-form-item class="mb-2" :label="$t('labels.extraConnectionParameters')" v-bind="validateInfos.extraParameters">
-              <a-card>
-                <div v-for="(item, index) of formState.extraParameters" :key="index">
-                  <div class="flex py-1 items-center gap-1">
-                    <a-input v-model:value="item.key" />
-
-                    <span>:</span>
-
-                    <a-input v-model:value="item.value" />
-
-                    <component
-                      :is="iconMap.close"
-                      :style="{ 'font-size': '1.5em', 'color': 'red' }"
-                      @click="removeParam(index)"
-                    />
-                  </div>
-                </div>
-                <a-button type="dashed" class="w-full caption mt-2" @click="addNewParam">
-                  <div class="flex items-center justify-center"><component :is="iconMap.plus" /></div>
-                </a-button>
-              </a-card>
-            </a-form-item>
-
-            <a-divider />
-
-            <a-form-item :label="$t('labels.inflection.tableName')">
-              <a-select
-                v-model:value="formState.inflection.inflectionTable"
-                dropdown-class-name="nc-dropdown-inflection-table-name"
-              >
-                <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
-              </a-select>
-            </a-form-item>
-
-            <a-form-item :label="$t('labels.inflection.columnName')">
-              <a-select
-                v-model:value="formState.inflection.inflectionColumn"
-                dropdown-class-name="nc-dropdown-inflection-column-name"
-              >
-                <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
-              </a-select>
-            </a-form-item>
-
-            <div class="flex justify-end">
-              <a-button class="!shadow-md" @click="handleEditJSON()">
-                <!-- Edit connection JSON -->
-                {{ $t('activity.editConnJson') }}
-              </a-button>
             </div>
-          </a-collapse-panel>
-        </a-collapse>
-      </template>
 
-      <a-form-item class="flex justify-center !mt-5">
-        <div class="flex justify-center gap-2">
-          <a-button type="primary" ghost class="nc-extdb-btn-test-connection" @click="testConnection">
-            {{ $t('activity.testDbConn') }}
-          </a-button>
+            <div class="nc-form-section">
+              <div class="nc-form-section-body">
+                <!-- SQLite File -->
+                <template v-if="formState.dataSource.client === ClientType.SQLITE"> </template>
+                <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
+                  <a-row :gutter="24">
+                    <a-col :span="12">
+                      <!-- Database -->
+                      <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
+                        <a-input
+                          v-model:value="(formState.dataSource.connection as SnowflakeConnection).database"
+                          class="nc-extdb-host-database"
+                        />
+                      </a-form-item>
+                    </a-col>
+                    <a-col :span="12">
+                      <!-- Schema -->
+                      <a-form-item label="Schema" v-bind="validateInfos['dataSource.connection.schema']">
+                        <a-input
+                          v-model:value="(formState.dataSource.connection as SnowflakeConnection).schema"
+                          class="nc-extdb-host-database"
+                        />
+                      </a-form-item>
+                    </a-col>
+                  </a-row>
+                </template>
 
-          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit !shadow" @click="editBase">
-            {{ $t('general.submit') }}
-          </a-button>
+                <template v-else-if="formState.dataSource.client === ClientType.DATABRICKS">
+                  <a-row :gutter="24">
+                    <a-col :span="12">
+                      <a-form-item label="Database" v-bind="validateInfos['dataSource.connection.database']">
+                        <a-input
+                          v-model:value="(formState.dataSource.connection as DatabricksConnection).database"
+                          class="nc-extdb-host-database"
+                        />
+                      </a-form-item>
+                    </a-col>
+                    <a-col :span="12">
+                      <a-form-item label="Schema" v-bind="validateInfos['dataSource.connection.schema']">
+                        <a-input
+                          v-model:value="(formState.dataSource.connection as DatabricksConnection).schema"
+                          class="nc-extdb-host-schema"
+                        />
+                      </a-form-item>
+                    </a-col>
+                  </a-row>
+                </template>
+                <template v-else>
+                  <a-row :gutter="24">
+                    <a-col :span="12">
+                      <!-- Database -->
+                      <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
+                        <!-- Database : create if not exists -->
+                        <a-input
+                          v-model:value="formState.dataSource.connection.database"
+                          :placeholder="$t('labels.dbCreateIfNotExists')"
+                          class="nc-extdb-host-database"
+                        />
+                      </a-form-item>
+                    </a-col>
+                    <a-col :span="12">
+                      <!-- Schema name -->
+                      <a-form-item
+                        v-if="
+                          ([ClientType.MSSQL, ClientType.PG].includes(formState.dataSource.client) ||
+                            [ClientType.MSSQL, ClientType.PG].includes(selectedIntegration?.sub_type)) &&
+                          formState.dataSource.searchPath
+                        "
+                        :label="$t('labels.schemaName')"
+                        v-bind="validateInfos['dataSource.searchPath.0']"
+                      >
+                        <a-input
+                          v-model:value="formState.dataSource.searchPath[0]"
+                          :placeholder="selectedIntegrationSchema && `${selectedIntegrationSchema} (default)`"
+                        />
+                      </a-form-item>
+                    </a-col>
+                  </a-row>
+                </template>
+              </div>
+            </div>
+
+            <div class="nc-form-section">
+              <div class="nc-form-section-title">Permissions</div>
+              <div class="nc-form-section-body">
+                <DashboardSettingsDataSourcesSourceRestrictions
+                  v-model:allowMetaWrite="allowMetaWrite"
+                  v-model:allowDataWrite="allowDataWrite"
+                />
+              </div>
+            </div>
+            <template
+              v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
+            >
+              <a-collapse v-model:active-key="advancedOptionsExpansionPanel" ghost class="nc-source-advanced-options !mt-4">
+                <template #expandIcon="{ isActive }">
+                  <NcButton
+                    type="text"
+                    size="small"
+                    class="!-ml-1.5"
+                    @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
+                  >
+                    <div class="nc-form-section-title">Advanced options</div>
+
+                    <GeneralIcon
+                      icon="chevronDown"
+                      class="ml-2 flex-none cursor-pointer transform transition-transform duration-500"
+                      :class="{ '!rotate-180': isActive }"
+                    />
+                  </NcButton>
+                </template>
+                <a-collapse-panel key="1" collapsible="disabled">
+                  <template #header>
+                    <span></span>
+                  </template>
+
+                  <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-4">
+                      <a-row :gutter="24">
+                        <a-col :span="12">
+                          <a-form-item :label="$t('labels.inflection.tableName')">
+                            <NcSelect
+                              v-model:value="formState.inflection.inflectionTable"
+                              class="nc-select-shadow"
+                              dropdown-class-name="nc-dropdown-inflection-table-name"
+                            >
+                              <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }}</a-select-option>
+                            </NcSelect>
+                          </a-form-item>
+                        </a-col>
+                        <a-col :span="12">
+                          <a-form-item :label="$t('labels.inflection.columnName')">
+                            <NcSelect
+                              v-model:value="formState.inflection.inflectionColumn"
+                              class="nc-select-shadow"
+                              dropdown-class-name="nc-dropdown-inflection-column-name"
+                            >
+                              <a-select-option v-for="tp in inflectionTypes" :key="tp" :value="tp">{{ tp }}</a-select-option>
+                            </NcSelect>
+                          </a-form-item>
+                        </a-col>
+                      </a-row>
+                    </div>
+                  </div>
+                </a-collapse-panel>
+              </a-collapse>
+            </template>
+            <div>
+              <!-- For spacing -->
+            </div>
+          </a-form>
         </div>
-      </a-form-item>
-      <div class="w-full flex items-center mt-2 text-[#e65100]">
-        <component :is="iconMap.warning" class="mr-1" />
-        Please make sure database you are trying to connect is valid! This operation can cause schema loss!!
+        <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
+          <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
+            <a-spin size="large" />
+          </div>
+        </general-overlay>
       </div>
-    </a-form>
+      <div class="nc-edit-source-right-panel">
+        <DashboardSettingsDataSourcesSupportedDocs />
+        <NcDivider />
+      </div>
+    </div>
+    <div class="p-4 w-full flex items-center justify-between gap-3 border-t-1 border-gray-200">
+      <div class="flex-1 flex items-center gap-3">
+        <div class="flex-1 flex items-center gap-3 text-[#C86827]">
+          <GeneralIcon icon="alertTriangle" class="flex-none" />
+          <div>{{ $t('msg.warning.dbValid') }}</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
+        <NcTooltip :disabled="!testConnectionError">
+          <template #title>
+            {{ testConnectionError }}
+          </template>
 
-    <a-modal
-      v-model:visible="configEditDlg"
-      :title="$t('activity.editConnJson')"
-      width="600px"
-      wrap-class-name="nc-modal-edit-connection-json"
-      @ok="handleOk"
-    >
-      <MonacoEditor v-if="configEditDlg" v-model="customFormState" class="h-[400px] w-full" />
-    </a-modal>
+          <NcButton
+            type="secondary"
+            size="small"
+            class="nc-extdb-btn-test-connection"
+            :class="{ 'pointer-events-none': testSuccess }"
+            :loading="testingConnection"
+            :disabled="isLoading"
+            icon-position="right"
+            @click="testConnection()"
+          >
+            <template #icon>
+              <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4" />
+              <GeneralIcon v-else-if="testConnectionError" icon="alertTriangleSolid" class="!text-red-700 w-4 h-4" />
+            </template>
 
-    <!--    Use Connection URL -->
-    <a-modal
-      v-model:visible="importURLDlg"
-      :title="$t('activity.useConnectionUrl')"
-      width="600px"
-      :ok-text="$t('general.ok')"
-      :cancel-text="$t('general.cancel')"
-      wrap-class-name="nc-modal-connection-url"
-      @ok="handleImportURL"
-    >
-      <a-input v-model:value="importURL" />
-    </a-modal>
+            <span>
+              {{ testSuccess ? 'Test successful' : 'Test connection' }}
+            </span>
+          </NcButton>
+        </NcTooltip>
+
+        <NcButton
+          size="small"
+          type="primary"
+          :disabled="!testSuccess || isLoading"
+          :loading="editingSource"
+          class="nc-extdb-btn-submit"
+          @click="editBase"
+        >
+          {{ $t('general.submit') }}
+        </NcButton>
+      </div>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+.nc-edit-source-left-panel {
+  @apply p-6 flex-1 flex justify-center;
+}
+.nc-edit-source-right-panel {
+  @apply p-4 w-[320px] border-l-1 border-gray-200 flex flex-col gap-4 bg-gray-50 rounded-br-2xl;
+}
 :deep(.ant-collapse-header) {
-  @apply !pr-10 !-mt-4 text-right justify-end;
+  @apply !-mt-4 !p-0 flex items-center !cursor-default children:first:flex;
+}
+:deep(.ant-collapse-icon-position-right > .ant-collapse-item > .ant-collapse-header .ant-collapse-arrow) {
+  @apply !right-0;
 }
 
 :deep(.ant-collapse-content-box) {
-  @apply !px-0;
+  @apply !px-0 !pb-0 !pt-3;
 }
 
 :deep(.ant-form-item-explain-error) {
@@ -637,23 +683,126 @@ onMounted(async () => {
 }
 
 :deep(.ant-form-item) {
-  @apply mb-2;
+  @apply mb-0;
+}
+
+:deep(.ant-divider) {
+  @apply m-0;
 }
 
 :deep(.ant-form-item-with-help .ant-form-item-explain) {
   @apply !min-h-0;
 }
 
-.edit-base {
+:deep(.ant-select .ant-select-selector .ant-select-selection-item) {
+  @apply font-weight-400;
+}
+
+.edit-source {
   :deep(.ant-input-affix-wrapper),
   :deep(.ant-input),
   :deep(.ant-select) {
-    @apply !appearance-none border-1 border-solid rounded;
+    @apply !appearance-none border-solid rounded-md;
   }
 
   :deep(.ant-input-password) {
     input {
       @apply !border-none my-0;
+    }
+  }
+
+  .nc-form-section {
+    @apply flex flex-col gap-3;
+  }
+  .nc-form-section-title {
+    @apply text-sm font-bold text-gray-800;
+  }
+  .nc-form-section-body {
+    @apply flex flex-col gap-3;
+  }
+
+  .nc-connection-json-editor {
+    @apply min-h-[300px] max-h-[600px];
+    resize: vertical;
+    overflow-y: auto;
+  }
+
+  :deep(.ant-form-item-label > label.ant-form-item-required:after) {
+    @apply content-['*'] inline-block text-inherit text-red-500 ml-1;
+  }
+
+  .nc-form-extra-connectin-parameters {
+    :deep(.ant-input) {
+      &:not(:hover):not(:focus):not(:disabled) {
+        @apply !shadow-default !border-gray-200;
+      }
+      &:hover:not(:focus):not(:disabled) {
+        @apply !border-gray-200 !shadow-hover;
+      }
+      &:focus {
+        @apply !shadow-selected !ring-0;
+        border-color: var(--ant-primary-color-hover) !important;
+      }
+    }
+  }
+  :deep(.ant-form-item) {
+    &.ant-form-item-has-error {
+      &:not(:has(.ant-input-password)) .ant-input {
+        &:not(:hover):not(:focus):not(:disabled) {
+          @apply shadow-default;
+        }
+        &:hover:not(:focus):not(:disabled) {
+          @apply shadow-hover;
+        }
+        &:focus {
+          @apply shadow-error ring-0;
+        }
+      }
+
+      .ant-input-number,
+      .ant-input-affix-wrapper.ant-input-password {
+        &:not(:hover):not(:focus-within):not(:disabled) {
+          @apply shadow-default;
+        }
+        &:hover:not(:focus-within):not(:disabled) {
+          @apply shadow-hover;
+        }
+        &:focus-within {
+          @apply shadow-error ring-0;
+        }
+      }
+    }
+    &:not(.ant-form-item-has-error) {
+      &:not(:has(.ant-input-password)) .ant-input {
+        &:not(:hover):not(:focus):not(:disabled) {
+          @apply shadow-default border-gray-200;
+        }
+        &:hover:not(:focus):not(:disabled) {
+          @apply border-gray-200 shadow-hover;
+        }
+        &:focus {
+          @apply shadow-selected ring-0;
+        }
+      }
+      .ant-input-number,
+      .ant-input-affix-wrapper.ant-input-password {
+        &:not(:hover):not(:focus-within):not(:disabled) {
+          @apply shadow-default border-gray-200;
+        }
+        &:hover:not(:focus-within):not(:disabled) {
+          @apply border-gray-200 shadow-hover;
+        }
+        &:focus-within {
+          @apply shadow-selected ring-0;
+        }
+      }
+    }
+  }
+
+  :deep(.ant-row:not(.ant-form-item)) {
+    @apply !-mx-1.5;
+    & > .ant-col {
+      @apply !px-1.5;
     }
   }
 }

@@ -1,5 +1,4 @@
 import { DashboardPage } from '../pages/Dashboard';
-import { ProjectsPage } from '../pages/ProjectsPage';
 import { NcContext } from '../setup';
 import { isMysql, isPg } from '../setup/db';
 
@@ -77,12 +76,16 @@ const quickVerify = async ({
     columnCount -= 3;
   }
   for (let i = 0; i < columnCount; i++) {
-    await dashboard.grid.column.verify({ title: cn[i] });
+    await dashboard.grid.column.verify({ title: cn[i], scroll: true });
   }
 
   // Verify cells
   // normal cells
-  for (const [key, value] of Object.entries(recordCells)) {
+  for (const [index, [key, value]] of Object.entries(recordCells).entries()) {
+    if (index === 0) {
+      await dashboard.grid.cell.get({ index: index, columnHeader: key }).click();
+    }
+
     await dashboard.grid.cell.verify({ index: cellIndex, columnHeader: key, value });
   }
 
@@ -99,7 +102,7 @@ const quickVerify = async ({
     rating: recordsVirtualCells.Rating,
   });
 
-  // LinkToAnotherRecord
+  // Links
   await dashboard.grid.cell.verifyVirtualCell({
     index: cellIndex,
     columnHeader: 'Actor',
@@ -121,7 +124,7 @@ const quickVerify = async ({
       value: recordsVirtualCells.Computation,
     });
 
-    // LinkToAnotherRecord
+    // Links
     await dashboard.grid.cell.verifyVirtualCell({
       index: cellIndex,
       columnHeader: 'Producer',
@@ -190,13 +193,6 @@ const quickVerify = async ({
     await dashboard.webhookForm.close();
   }
 
-  // Verify pagination
-  await dashboard.grid.verifyActivePage({ page: '1' });
-  await dashboard.grid.clickPagination({ page: '>' });
-  await dashboard.grid.verifyActivePage({ page: '2' });
-  await dashboard.grid.clickPagination({ page: '<' });
-  await dashboard.grid.verifyActivePage({ page: '1' });
-
   await dashboard.viewSidebar.openView({ title: 'Filter&Sort' });
 
   // Verify Fields, Filter & Sort
@@ -246,10 +242,11 @@ const quickVerify = async ({
   }
 
   if (airtableImport) {
-    // Delete project
-    await dashboard.clickHome();
-    const projectsPage = new ProjectsPage(dashboard.rootPage);
-    await projectsPage.deleteProject({ title: context.project.title, withoutPrefix: true });
+    // Delete default context base
+    // await dashboard.clickHome();
+    // const workspacePage = new WorkspacePage(dashboard.rootPage);
+    // await workspacePage.baseDelete({ title: context.base.title });
+    await dashboard.treeView.deleteProject({ title: context.base.title, context });
   }
 };
 

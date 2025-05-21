@@ -4,10 +4,11 @@ process.env.NC_BINARY_BUILD = 'true';
     const app = require('express')();
     const { Noco } = require("nocodb");
     const cors = require('cors')
-    const httpServer = app.listen(process.env.PORT || 8080);
+    const port = process.env.PORT || 8080;
+    const httpServer = app.listen(port);
     app.use(cors())
     app.use(await Noco.init({}, httpServer, app));
-    console.log(`Visit : localhost:${process.env.PORT}/dashboard`)
+    console.log(`Visit : localhost:${port}/dashboard`)
   } catch(e) {
     console.log(e)
   }

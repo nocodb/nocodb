@@ -8,7 +8,7 @@ on:
 jobs:
   notify:
     name: 'Discord'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Discord notify
         uses: rjstone/discord-webhook-notify@v1

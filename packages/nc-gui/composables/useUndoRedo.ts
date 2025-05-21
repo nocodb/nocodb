@@ -1,20 +1,18 @@
 import type { Ref } from 'vue'
 import rfdc from 'rfdc'
-import type { ProjectType, TableType, ViewType } from 'nocodb-sdk'
-import { createSharedComposable, ref, useRouter } from '#imports'
-import type { UndoRedoAction } from '~/lib'
+import type { BaseType, TableType, ViewType } from 'nocodb-sdk'
 
 export const useUndoRedo = createSharedComposable(() => {
   const clone = rfdc()
 
   const router = useRouter()
 
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
-  // keys: projectType | projectId | type | title | viewTitle
+  // keys: baseType | baseId | type | title | viewTitle
   const scope = computed<{ key: string; param: string }[]>(() => {
     const tempScope: { key: string; param: string }[] = [{ key: 'root', param: 'root' }]
-    for (const [key, param] of Object.entries(route.params)) {
+    for (const [key, param] of Object.entries(route.value.params)) {
       if (Array.isArray(param)) {
         tempScope.push({ key, param: param.join(',') })
       } else {
@@ -25,12 +23,32 @@ export const useUndoRedo = createSharedComposable(() => {
     return tempScope
   })
 
-  const isSameScope = (sc: { key: string; param: string }[]) => {
+  const isSameScope = (sc: { key: string; param: string | string[] }[]) => {
+    // TODO - improve this logic
+    // for now we disable undo/redo for webhook, field, api, relation
+    const slugs = scope.value.find((s) => s.key === 'slugs')
+    if (slugs) {
+      const params = Array.isArray(slugs.param) ? slugs.param : slugs.param.split(',')
+      if (params.some((el) => ['webhook', 'field', 'api', 'relation'].includes(el))) {
+        return false
+      }
+    }
+
     return sc.every((s) => {
       return scope.value.some(
         // viewTitle is optional for default view
-        (s2) =>
-          (s.key === 'viewTitle' && s2.key === 'viewTitle' && s2.param === '') || (s.key === s2.key && s.param === s2.param),
+        (s2) => {
+          if (Array.isArray(s.param)) {
+            return (
+              (s.key === 'viewTitle' && s2.key === 'viewTitle' && s2.param === '') ||
+              (s.key === s2.key && s.param.includes(s2.param))
+            )
+          } else {
+            return (
+              (s.key === 'viewTitle' && s2.key === 'viewTitle' && s2.param === '') || (s.key === s2.key && s.param === s2.param)
+            )
+          }
+        },
       )
     })
   }
@@ -99,55 +117,60 @@ export const useUndoRedo = createSharedComposable(() => {
     return [{ key: 'root', param: 'root' }]
   }
 
-  const defineProjectScope = (param: { project?: ProjectType; model?: TableType; view?: ViewType; project_id?: string }) => {
-    if (param.project) {
-      return [{ key: 'projectId', param: param.project.id! }]
+  const defineProjectScope = (param: { base?: BaseType; model?: TableType; view?: ViewType; base_id?: string }) => {
+    if (param.base) {
+      return [{ key: 'baseId', param: param.base.id! }]
     } else if (param.model) {
-      return [{ key: 'projectId', param: param.model.project_id! }]
+      return [{ key: 'baseId', param: param.model.base_id! }]
     } else if (param.view) {
-      return [{ key: 'projectId', param: param.view.project_id! }]
+      return [{ key: 'baseId', param: param.view.base_id! }]
     } else {
-      return [{ key: 'projectId', param: param.project_id! }]
+      return [{ key: 'baseId', param: param.base_id! }]
     }
   }
 
-  const defineModelScope = (param: { model?: TableType; view?: ViewType; project_id?: string; model_id?: string }) => {
+  const defineModelScope = (param: { model?: TableType; view?: ViewType; base_id?: string; model_id?: string }) => {
     if (param.model) {
       return [
-        { key: 'projectId', param: param.model.project_id! },
-        { key: 'title', param: param.model.id! },
+        { key: 'baseId', param: param.model.base_id! },
+        { key: 'viewId', param: param.model.id! },
       ]
     } else if (param.view) {
       return [
-        { key: 'projectId', param: param.view.project_id! },
-        { key: 'title', param: param.view.fk_model_id! },
+        { key: 'baseId', param: param.view.base_id! },
+        { key: 'viewId', param: param.view.fk_model_id! },
       ]
     } else {
       return [
-        { key: 'projectId', param: param.project_id! },
-        { key: 'title', param: param.model_id! },
+        { key: 'baseId', param: param.base_id! },
+        { key: 'viewId', param: param.model_id! },
       ]
     }
   }
 
-  const defineViewScope = (param: { view?: ViewType; project_id?: string; model_id?: string; title?: string }) => {
+  const defineViewScope = (param: { view?: ViewType; base_id?: string; model_id?: string; title?: string; id?: string }) => {
     if (param.view) {
       return [
-        { key: 'projectId', param: param.view.project_id! },
-        { key: 'title', param: param.view.fk_model_id! },
-        { key: 'viewTitle', param: param.view.title! },
+        { key: 'baseId', param: param.view.base_id! },
+        { key: 'viewId', param: param.view.fk_model_id! },
+        { key: 'viewTitle', param: [param.view.title, param.view.id!] },
       ]
     } else {
       return [
-        { key: 'projectId', param: param.project_id! },
-        { key: 'title', param: param.model_id! },
-        { key: 'viewTitle', param: param.title! },
+        { key: 'baseId', param: param.base_id! },
+        { key: 'viewId', param: param.model_id! },
+        { key: 'viewTitle', param: [param.title!, param.id!] },
       ]
     }
   }
 
   useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+
+    if ((e && (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) || isExpandedFormOpenExist()) {
+      return
+    }
+
     if (cmdOrCtrl && !e.altKey) {
       switch (e.keyCode) {
         case 90: {

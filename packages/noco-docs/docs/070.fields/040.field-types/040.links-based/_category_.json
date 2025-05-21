@@ -1,0 +1,8 @@
+{
+  "label": "Links based",
+  "collapsible": true,
+  "collapsed": true,
+  "link": {
+    "type": "generated-index"
+  }
+}

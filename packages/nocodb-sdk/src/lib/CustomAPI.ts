@@ -1,9 +1,9 @@
 import {
   Api,
+  BaseType,
   ColumnType,
   FilterType,
   HookType,
-  ProjectType,
   SortType,
 } from './Api';
 
@@ -37,7 +37,7 @@ export type ProjectUserUpdatePayloadType = any;
 
 export interface ModelVisibilityListParamsType {
   includeM2M?: boolean;
-  projectId: string;
+  baseId: string;
 }
 
 export type ModelVisibilitySetPayloadType = any;
@@ -48,9 +48,9 @@ export interface ListParamsType {
   sort?: string;
 }
 
-export type CreatePayloadType = ProjectType & { external?: boolean };
+export type CreatePayloadType = BaseType & { external?: boolean };
 
-export interface SharedBaseCreatePayloadType {
+export interface SharedBasePayload {
   roles?: string;
   password?: string;
 }
@@ -70,7 +70,7 @@ export interface ListParams7Type {
   pageSize?: number;
   sort?: string;
   includeM2M?: boolean;
-  projectId: string;
+  baseId: string;
 }
 
 export interface UpdatePayloadType {
@@ -152,6 +152,17 @@ export interface DataListPayloadType {
   filters?: FilterType[];
 }
 
+export interface FileType {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  destination: string;
+  filename: string;
+  size: number;
+  path: string;
+}
+
 export interface DataListParamsType {
   limit?: string;
   offset?: string;
@@ -226,15 +237,7 @@ export interface CommentCountParamsType {
 export interface AuditListParamsType {
   offset?: string;
   limit?: string;
-  projectId: string;
-}
-
-export interface AuditRowUpdatePayloadType {
-  fk_model_id?: string;
-  column_name?: string;
-  row_id?: string;
-  value?: string;
-  prev_value?: string;
+  baseId: string;
 }
 
 export interface TestPayloadType {

@@ -1,24 +1,6 @@
 <script setup lang="ts">
-import { OrgUserRoles } from 'nocodb-sdk'
+import { OrgUserRoles, RoleColors } from 'nocodb-sdk'
 import type { ProjectUserReqType, RequestParams } from 'nocodb-sdk'
-import {
-  extractSdkResponseErrorMsg,
-  iconMap,
-  message,
-  onBeforeMount,
-  projectRoleTagColors,
-  ref,
-  storeToRefs,
-  useApi,
-  useCopy,
-  useDashboard,
-  useI18n,
-  useNuxtApp,
-  useProject,
-  useUIPermission,
-  watchDebounced,
-} from '#imports'
-import type { User } from '~/lib'
 
 const { t } = useI18n()
 
@@ -26,38 +8,40 @@ const { $e } = useNuxtApp()
 
 const { api } = useApi()
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const { copy } = useCopy()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
-const { dashboardUrl } = $(useDashboard())
+const { dashboardUrl } = useDashboard()
 
-let users = $ref<null | User[]>(null)
+const { clearBasesUser } = useBases()
 
-let selectedUser = $ref<null | User>(null)
+const users = ref<null | User[]>(null)
 
-let showUserModal = $ref(false)
+const selectedUser = ref<null | User>(null)
 
-let showUserDeleteModal = $ref(false)
+const showUserModal = ref(false)
 
-let isLoading = $ref(false)
+const showUserDeleteModal = ref(false)
 
-let totalRows = $ref(0)
+const isLoading = ref(false)
 
-let currentPage = $ref(1)
+const totalRows = ref(0)
 
-const currentLimit = $ref(10)
+const currentPage = ref(1)
+
+const currentLimit = ref(10)
 
 const searchText = ref<string>('')
 
-const loadUsers = async (page = currentPage, limit = currentLimit) => {
+const loadUsers = async (page = currentPage.value, limit = currentLimit.value) => {
   try {
-    if (!project.value?.id) return
+    if (!base.value?.id) return
 
     // TODO: Types of api is not correct
-    const response: any = await api.auth.projectUserList(project.value?.id, {
+    const response: any = await api.auth.baseUserList(base.value?.id, {
       query: {
         limit,
         offset: (page - 1) * limit,
@@ -66,9 +50,9 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
     } as RequestParams)
     if (!response.users) return
 
-    totalRows = response.users.pageInfo.totalRows ?? 0
+    totalRows.value = response.users.pageInfo.totalRows ?? 0
 
-    users = response.users.list as User[]
+    users.value = response.users.list as User[]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -76,16 +60,19 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
 
 const inviteUser = async (user: User) => {
   try {
-    if (!project.value?.id) return
+    if (!base.value?.id) return
 
     if (!user.roles) {
       // mark it as editor by default
       user.roles = 'editor'
     }
 
-    await api.auth.projectUserAdd(project.value.id, user as ProjectUserReqType)
+    await api.auth.baseUserAdd(base.value.id, user as ProjectUserReqType)
 
-    // Successfully added user to project
+    // clear bases user state
+    clearBasesUser()
+
+    // Successfully added user to base
     message.success(t('msg.success.userAddedToProject'))
     await loadUsers()
   } catch (e: any) {
@@ -97,45 +84,45 @@ const inviteUser = async (user: User) => {
 
 const deleteUser = async () => {
   try {
-    if (!project.value?.id || !selectedUser?.id) return
+    if (!base.value?.id || !selectedUser.value?.id) return
 
-    await api.auth.projectUserRemove(project.value.id, selectedUser.id)
+    await api.auth.baseUserRemove(base.value.id, selectedUser.value.id)
 
-    // Successfully deleted user from project
+    // Successfully deleted user from base
     message.success(t('msg.success.userDeletedFromProject'))
 
     await loadUsers()
 
-    showUserDeleteModal = false
+    showUserDeleteModal.value = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    showUserDeleteModal = false
+    showUserDeleteModal.value = false
   }
 
   $e('a:user:delete')
 }
 
 const onEdit = (user: User) => {
-  selectedUser = user
-  showUserModal = true
+  selectedUser.value = user
+  showUserModal.value = true
 }
 
 const onInvite = () => {
-  selectedUser = null
-  showUserModal = true
+  selectedUser.value = null
+  showUserModal.value = true
 }
 
 const onDelete = (user: User) => {
-  selectedUser = user
-  showUserDeleteModal = true
+  selectedUser.value = user
+  showUserDeleteModal.value = true
 }
 
 const resendInvite = async (user: User) => {
-  if (!project.value?.id) return
+  if (!base.value?.id) return
 
   try {
-    await api.auth.projectUserResendInvite(project.value.id, user.id)
+    await api.auth.baseUserResendInvite(base.value.id, user.id)
 
     // Invite email sent successfully
     message.success(t('msg.success.inviteEmailSent'))
@@ -150,7 +137,7 @@ const resendInvite = async (user: User) => {
 const copyInviteUrl = async (user: User) => {
   if (!user.invite_token) return
   try {
-    await copy(`${dashboardUrl}#/signup/${user.invite_token}`)
+    await copy(`${dashboardUrl.value}#/signup/${user.invite_token}`)
 
     // Invite URL copied to clipboard
     message.success(t('msg.success.inviteURLCopied'))
@@ -161,19 +148,19 @@ const copyInviteUrl = async (user: User) => {
 }
 
 onBeforeMount(async () => {
-  if (!users) {
-    isLoading = true
+  if (!users.value) {
+    isLoading.value = true
 
     await loadUsers()
 
-    isLoading = false
+    isLoading.value = false
   }
 })
 
 watchDebounced(
   searchText,
   () => {
-    currentPage = 1
+    currentPage.value = 1
     loadUsers()
   },
   { debounce: 300, maxWait: 600 },
@@ -204,16 +191,17 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
       :closable="false"
       width="28rem"
       centered
+      class="!rounded-md"
       :footer="null"
       wrap-class-name="nc-modal-delete-user"
     >
       <div class="flex flex-col h-full">
         <div class="flex flex-row justify-center mt-2 text-center w-full text-base">
-          This action will remove this user from this project
+          This action will remove this user from this base
         </div>
-        <div class="flex mt-6 justify-center space-x-2">
-          <a-button @click="showUserDeleteModal = false"> {{ $t('general.cancel') }}</a-button>
-          <a-button type="primary" danger @click="deleteUser"> {{ $t('general.confirm') }}</a-button>
+        <div class="flex mt-6 justify-end space-x-2">
+          <a-button class="!rounded-md" @click="showUserDeleteModal = false"> {{ $t('general.cancel') }}</a-button>
+          <a-button class="!rounded-md" type="primary" danger @click="deleteUser"> {{ $t('general.confirm') }}</a-button>
         </div>
       </div>
     </a-modal>
@@ -240,8 +228,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
           v-e="['c:user:invite']"
           size="middle"
           type="primary"
-          ghost
-          class="nc-invite-team"
+          class="nc-invite-team !rounded-md"
           @click="onInvite"
         >
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
@@ -254,12 +241,12 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
 
     <div class="px-5">
       <div class="flex flex-row border-b-1 pb-2 px-2">
-        <div class="flex flex-row w-4/6 space-x-1 items-center pl-1">
+        <div class="flex flex-row w-3/6 space-x-1 items-center pl-1">
           <component :is="iconMap.email" class="flex text-gray-500 -mt-0.5" />
 
           <div class="text-gray-600 text-xs space-x-1">{{ $t('labels.email') }}</div>
         </div>
-        <div class="flex flex-row justify-center w-1/6 space-x-1 items-center pl-1">
+        <div class="flex flex-row justify-start w-2/6 space-x-1 items-center pl-1">
           <component :is="iconMap.role" class="flex text-gray-500 -mt-0.5" />
 
           <div class="text-gray-600 text-xs">{{ $t('objects.role') }}</div>
@@ -270,29 +257,25 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
       </div>
 
       <div v-for="(user, index) of users" :key="index" class="flex flex-row items-center border-b-1 py-2 px-2 nc-user-row">
-        <div class="flex w-4/6 flex-wrap nc-user-email">
+        <div class="flex w-3/6 flex-wrap nc-user-email">
           {{ user.email }}
         </div>
 
-        <div class="flex w-1/6 justify-center flex-wrap ml-4">
+        <div class="flex w-2/6 justify-start gap-2 flex-wrap ml-4">
           <div
             v-if="isSuperAdmin(user)"
-            class="rounded-full px-2 py-1 nc-user-role"
-            :style="{ backgroundColor: projectRoleTagColors[OrgUserRoles.SUPER_ADMIN] }"
+            class="rounded-full px-3 py-1 nc-user-role"
+            :style="{ backgroundColor: RoleColors[OrgUserRoles.SUPER_ADMIN] }"
           >
             Super Admin
           </div>
-          <div
-            v-if="user.roles"
-            class="rounded-full px-2 py-1 nc-user-role"
-            :style="{ backgroundColor: projectRoleTagColors[user.roles] }"
-          >
+          <div v-if="user.roles" class="rounded-full px-3 py-1 nc-user-role" :style="{ backgroundColor: RoleColors[user.roles] }">
             {{ $t(`objects.roleType.${user.roles}`) }}
           </div>
         </div>
         <div class="flex w-1/6 flex-wrap justify-end">
           <template v-if="!isSuperAdmin(user)">
-            <a-tooltip v-if="user.project_id" placement="bottom">
+            <a-tooltip v-if="user.base_id" placement="bottom">
               <template #title>
                 <span>{{ $t('activity.editUser') }}</span>
               </template>
@@ -304,8 +287,8 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
               </a-button>
             </a-tooltip>
 
-            <!--          Add user to project -->
-            <a-tooltip v-if="!user.project_id" placement="bottom">
+            <!--          Add user to base -->
+            <a-tooltip v-if="!user.base_id" placement="bottom">
               <template #title>
                 <span>{{ $t('activity.addUserToProject') }}</span>
               </template>
@@ -317,7 +300,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
               </a-button>
             </a-tooltip>
 
-            <!--          Remove user from the project -->
+            <!--          Remove user from the base -->
             <a-tooltip v-else placement="bottom">
               <template #title>
                 <span>{{ $t('activity.deleteUser') }}</span>
@@ -372,7 +355,7 @@ const isSuperAdmin = (user: { main_roles?: string }) => {
         v-model:page-size="currentLimit"
         hide-on-single-page
         class="mt-4"
-        :total="totalRows"
+        :total="+totalRows"
         show-less-items
         @change="loadUsers"
       />

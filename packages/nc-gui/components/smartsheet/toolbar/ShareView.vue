@@ -1,26 +1,7 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { isString } from '@vueuse/core'
+import { isString } from '@vue/shared'
 import tinycolor from 'tinycolor2'
-import {
-  computed,
-  extractSdkResponseErrorMsg,
-  iconMap,
-  isRtlLang,
-  message,
-  projectThemeColors,
-  ref,
-  storeToRefs,
-  useCopy,
-  useDashboard,
-  useI18n,
-  useNuxtApp,
-  useProject,
-  useSmartsheetStoreOrThrow,
-  useUIPermission,
-  watch,
-} from '#imports'
-import type { SharedView } from '~/lib'
 
 const { t } = useI18n()
 
@@ -32,13 +13,13 @@ const { $e } = useNuxtApp()
 
 const { dashboardUrl } = useDashboard()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
-const { isSharedBase } = storeToRefs(useProject())
+const { isSharedBase } = storeToRefs(useBase())
 
 const { isMobileMode } = useGlobal()
 
-let showShareModel = $ref(false)
+const showShareModel = ref(false)
 
 const passwordProtected = ref(false)
 
@@ -93,6 +74,8 @@ const genShareLink = async () => {
 
   const meta = isString(response.meta) ? JSON.parse(response.meta) : response.meta
 
+  console.log('genShareLink', response, meta)
+
   shared.value = { ...response, meta }
 
   if (shared.value.type === ViewTypes.KANBAN) {
@@ -103,7 +86,7 @@ const genShareLink = async () => {
 
   passwordProtected.value = !!shared.value.password && shared.value.password !== ''
 
-  showShareModel = true
+  showShareModel.value = true
 }
 
 const sharedViewUrl = computed(() => {
@@ -243,7 +226,7 @@ const copyIframeCode = async () => {
 <template>
   <div>
     <a-button
-      v-if="isUIAllowed('share-view') && !isSharedBase"
+      v-if="isUIAllowed('viewShare') && !isSharedBase"
       v-e="['c:view:share']"
       outlined
       class="nc-btn-share-view nc-toolbar-btn"
@@ -269,7 +252,13 @@ const copyIframeCode = async () => {
       <div class="share-link-box !bg-primary !bg-opacity-5 ring-1 ring-accent ring-opacity-100">
         <div data-testid="nc-modal-share-view__link" class="flex-1 h-min text-xs text-gray-500">{{ sharedViewUrl }}</div>
 
-        <a v-e="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank" class="flex items-center !no-underline">
+        <a
+          v-e="['c:view:share:open-url']"
+          :href="sharedViewUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center !no-underline"
+        >
           <component :is="iconMap.share" class="text-sm text-gray-500" />
         </a>
 
@@ -286,23 +275,21 @@ const copyIframeCode = async () => {
         @click="copyIframeCode"
       >
         <component :is="iconMap.embed" class="text-gray-500" />
-        Embed this view in your site
+        {{ $t('labels.embedInSite') }}
       </div>
 
       <div class="px-1 mt-2 flex flex-col gap-3">
-        <!-- todo: i18n -->
-        <div class="text-gray-500 border-b-1">Options</div>
+        <div class="text-gray-500 border-b-1">{{ $t('general.options') }}</div>
 
         <div class="px-1 flex flex-col gap-2">
           <div>
-            <!-- Survey Mode; todo: i18n -->
             <a-checkbox
               v-if="shared.type === ViewTypes.FORM"
               v-model:checked="surveyMode"
               data-testid="nc-modal-share-view__survey-mode"
               class="!text-sm"
             >
-              Use Survey Mode
+              {{ $t('general.useSurveyMode') }}
             </a-checkbox>
 
             <!--            <Transition name="layout" mode="out-in">
@@ -373,9 +360,8 @@ const copyIframeCode = async () => {
           </div>
 
           <div v-if="shared.type === ViewTypes.FORM">
-            <!-- todo: i18n -->
             <a-checkbox v-model:checked="viewTheme" data-testid="nc-modal-share-view__with-theme" class="!text-sm">
-              Use Theme
+              {{ $t('activity.useTheme') }}
             </a-checkbox>
 
             <Transition name="layout" mode="out-in">
@@ -384,7 +370,7 @@ const copyIframeCode = async () => {
                   data-testid="nc-modal-share-view__theme-picker"
                   class="!p-0"
                   :model-value="shared.meta.theme?.primaryColor"
-                  :colors="projectThemeColors"
+                  :colors="baseThemeColors"
                   :row-size="9"
                   :advanced="false"
                   @input="onChangeTheme"
@@ -394,10 +380,8 @@ const copyIframeCode = async () => {
           </div>
 
           <div v-if="shared.type === ViewTypes.FORM && isRtl">
-            <!-- use RTL orientation in form - todo: i18n -->
             <a-checkbox v-model:checked="withRTL" data-testid="nc-modal-share-view__locale" class="!text-sm">
-              <!-- todo i18n -->
-              RTL Orientation
+              {{ $t('activity.rtlOrientation') }}
             </a-checkbox>
           </div>
         </div>

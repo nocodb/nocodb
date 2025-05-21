@@ -5,40 +5,38 @@ name: Backend Unit Tests
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: ["develop"]
     paths:
       - "packages/nocodb/**"
   pull_request:
-    branches: [ "develop" ]
+    branches: ["develop"]
     paths:
       - "packages/nocodb/**"
 
 jobs:
   unit-tests:
-
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: 22.12.0
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - name: install dependencies nocodb-sdk
-      working-directory: ./packages/nocodb-sdk
-      run: npm ci
-    - name: build nocodb-sdk
-      working-directory: ./packages/nocodb-sdk
-      run: npm run build:main
-    - name: install dependencies nocodb
-      working-directory: ./packages/nocodb
-      run: npm ci
-    - name: run unit tests
-      working-directory: ./packages/nocodb
-      run: npm run unit-test
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+      - name: remove use-node-version from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
+      - name: install dependencies
+        run: pnpm bootstrap
+      - name: run unit tests
+        working-directory: ./packages/nocodb
+        run: pnpm run unit-test

@@ -37,16 +37,26 @@ Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & MariaDB in eine Smart-T
 ### Verwenden von Docker
 
 ```bash
-docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
-```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
+  ```
 
 - NocoDB benötigt eine Datenbank zur Eingabe: Siehe [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
 - Fehlt diese Eingabe, wird auf SQLite zurückgegriffen. Um SQLite beständig zu machen, kann `/usr/app/data/` gemountet werden. 
 
   Beispiel:
 
-  ```
-  docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
+```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
   ```
 
 ### Verwenden von NPM 
@@ -55,20 +65,6 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 npm install create-nocodb-app
 ```
 
-### Verwenden von NPX 
-
-```
-npx create-nocodb-app
-```
-
-### Verwenden von Git
-
-```
-git clone https://github.com/nocodb/nocodb-seed
-cd nocodb-seed
-npm install
-npm start
-```
 
 ### GUI
 
@@ -151,14 +147,6 @@ NocoDB erfordert eine Datenbank, um Metadaten von Tabellenansichten und externen
 
 ## Docker
 
-#### Beispiel MySQL / MariaDB
-
-```
-docker run -d -p 8080:8080 \
-    -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
 
 #### Beispiel PostgreSQL
 
@@ -169,14 +157,6 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Beispiel MS SQL Server
-
-```
-docker run -d -p 8080:8080 \
-    -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
 
 ## Docker Compose
 
@@ -184,13 +164,13 @@ docker run -d -p 8080:8080 \
 git clone https://github.com/nocodb/nocodb
 cd nocodb
 cd docker-compose
-cd mysql or pg or mssql
+cd pg 
 docker-compose up -d
 ```
 
 ## Umgebungsvariablen
 
-Siehe [Environment variables](https://docs.nocodb.com/getting-started/environment-variables)
+Siehe [Environment variables](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
 
 # Entwicklungsaufbau
 
@@ -205,8 +185,8 @@ cd nocodb
 
 ```shell
 cd packages/nocodb
-npm install
-npm run watch:run
+pnpm install
+pnpm run watch:run
 # localhost:8080/dashboard im Browser aufrufen
 ```
 
@@ -214,8 +194,8 @@ npm run watch:run
 
 ```shell
 cd packages/nc-gui
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 # localhost:3000/dashboard iM Browser aufrufen
 ```
 

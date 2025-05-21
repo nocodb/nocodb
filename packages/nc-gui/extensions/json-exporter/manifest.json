@@ -1,0 +1,26 @@
+{
+  "id": "nc-json-exporter",
+  "title": "JSON Exporter",
+  "subTitle": "JSON Exporter",
+  "description": "json-exporter/description.md",
+  "entry": "json-exporter",
+  "version": "0.1",
+  "iconUrl": "json-exporter/assets/icon.png",
+  "publisher": {
+    "name": "NocoDB",
+    "email": "contact@nocodb.com",
+    "url": "https://www.nocodb.com",
+    "icon": {
+      "src": "json-exporter/assets/publisher-icon.svg",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "links": [],
+  "disabled": true,
+  "config": {
+    "modalSize": "sm",
+    "contentMinHeight": "198px"
+  },
+  "order": 3
+}

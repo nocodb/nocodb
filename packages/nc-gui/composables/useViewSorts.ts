@@ -1,39 +1,22 @@
-import type { SortType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, SortType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import {
-  IsPublicInj,
-  ReloadViewDataHookInj,
-  extractSdkResponseErrorMsg,
-  inject,
-  message,
-  ref,
-  storeToRefs,
-  useNuxtApp,
-  useProject,
-  useSharedView,
-  useSmartsheetStoreOrThrow,
-  useUIPermission,
-} from '#imports'
-import type { TabItem } from '~/lib'
+import type { EventHook } from '@vueuse/core'
+import type { UndoRedoAction } from '~/lib/types'
 
 export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {
-  const { sharedView } = useSharedView()
-
-  const { sorts } = useSmartsheetStoreOrThrow()
+  const { sorts, eventBus } = useSmartsheetStoreOrThrow()
 
   const { $api, $e } = useNuxtApp()
 
-  const { isUIAllowed } = useUIPermission()
+  const { isUIAllowed } = useRoles()
 
-  const { isSharedBase } = storeToRefs(useProject())
+  const { isSharedBase } = storeToRefs(useBase())
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
   const isPublic = inject(IsPublicInj, ref(false))
-
-  const tabMeta = inject(TabMetaInj, ref({ sortsState: new Map() } as TabItem))
 
   const lastSorts = ref<SortType[]>([])
 
@@ -43,19 +26,13 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const loadSorts = async () => {
     if (isPublic.value) {
-      // todo: sorts missing on `ViewType`
-      const sharedSorts = (sharedView.value as any)?.sorts || []
-      sorts.value = [...sharedSorts]
+      sorts.value = []
       return
     }
 
     try {
       if (!isUIAllowed('sortSync')) {
-        const sortsBackup = tabMeta.value.sortsState!.get(view.value!.id!)
-        if (sortsBackup) {
-          sorts.value = sortsBackup
-          return
-        }
+        return
       }
       if (!view?.value) return
       sorts.value = (await $api.dbTableSort.list(view.value!.id!)).list as SortType[]
@@ -109,7 +86,6 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       sorts.value[i] = sort
       sorts.value = [...sorts.value]
       reloadHook?.trigger()
-      tabMeta.value.sortsState!.set(view.value!.id!, sorts.value)
       return
     }
 
@@ -132,7 +108,68 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
     lastSorts.value = clone(sorts.value)
   }
 
-  const deleteSort = async (sort: SortType, i: number, undo = false) => {
+  const insertSort = async ({
+    direction,
+    column,
+    reloadDataHook,
+  }: {
+    direction: 'asc' | 'desc'
+    column: ColumnType
+    reloadDataHook?: EventHook<boolean | void> | undefined
+  }) => {
+    try {
+      $e('a:sort:add', { from: 'column-menu' })
+      const existingSortIndex = sorts.value.findIndex((s) => s.fk_column_id === column.id)
+      const existingSort = existingSortIndex > -1 ? sorts.value[existingSortIndex] : undefined
+
+      // Delete existing sort and not update the state as sort count in UI will change for a sec
+      if (existingSort) {
+        await $api.dbTableSort.delete(existingSort.id!)
+        $e('a:sort:delete')
+      }
+
+      const data: any = await $api.dbTableSort.create(view.value?.id as string, {
+        fk_column_id: column!.id,
+        direction,
+        push_to_top: true,
+      })
+
+      sorts.value = [...sorts.value.filter((_, index) => index !== existingSortIndex), data as SortType]
+
+      addUndo({
+        redo: {
+          fn: async function redo(this: UndoRedoAction) {
+            const data: any = await $api.dbTableSort.create(view.value?.id as string, {
+              fk_column_id: column!.id,
+              direction,
+              push_to_top: true,
+            })
+            this.undo.args = [data.id]
+            eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+            reloadDataHook?.trigger()
+          },
+          args: [],
+        },
+        undo: {
+          fn: async function undo(id: string) {
+            await $api.dbTableSort.delete(id)
+            eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+            reloadDataHook?.trigger()
+          },
+          args: [data.id],
+        },
+        scope: defineViewScope({ view: view.value }),
+      })
+
+      eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+      reloadDataHook?.trigger()
+    } catch (e: any) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  async function deleteSort(sort: SortType, i: number, undo = false) {
     try {
       if (isUIAllowed('sortSync') && sort.id && !isPublic.value && !isSharedBase.value) {
         await $api.dbTableSort.delete(sort.id)
@@ -161,8 +198,6 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
       lastSorts.value = clone(sorts.value)
 
-      tabMeta.value.sortsState!.set(view.value!.id!, sorts.value)
-
       reloadHook?.trigger()
       $e('a:sort:delete')
     } catch (e: any) {
@@ -171,10 +206,11 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
     }
   }
 
-  const addSort = (undo = false) => {
+  const addSort = (undo = false, column?: ColumnType) => {
     sorts.value = [
       ...sorts.value,
       {
+        fk_column_id: column?.id,
         direction: 'asc',
       },
     ]
@@ -200,9 +236,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
     }
 
     lastSorts.value = clone(sorts.value)
-
-    tabMeta.value.sortsState!.set(view.value!.id!, sorts.value)
   }
 
-  return { sorts, loadSorts, addSort, deleteSort, saveOrUpdate }
+  return { sorts, loadSorts, addSort, deleteSort, saveOrUpdate, insertSort }
 }

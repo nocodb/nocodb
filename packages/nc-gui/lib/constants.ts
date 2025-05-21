@@ -1,82 +1,34 @@
-import { ProjectRole, Role } from './enums'
+import { NO_SCOPE as SDK_NO_SCOPE } from 'nocodb-sdk'
 
 export const NOCO = 'noco'
 
 export const SYSTEM_COLUMNS = ['id', 'title', 'created_at', 'updated_at']
 
+export const EMPTY_TITLE_PLACEHOLDER_DOCS = 'Untitled'
+
+export const MAX_WIDTH_FOR_MOBILE_MODE = 480
+
 export const BASE_FALLBACK_URL = process.env.NODE_ENV === 'production' ? '..' : 'http://localhost:8080'
-/**
- * Each permission value means the following
- * `*` - which is wildcard, means all permissions are allowed
- *  `include` - which is an object, means only the permissions listed in the object are allowed
- *  `exclude` - which is an object, means all permissions are allowed except the ones listed in the object
- *  `undefined` or `{}` - which is the default value, means no permissions are allowed
- * */
-export const rolePermissions = {
-  // general role permissions
 
-  [Role.Super]: '*',
-  [Role.Admin]: {} as Record<string, boolean>,
-  [Role.Guest]: {} as Record<string, boolean>,
-  [Role.OrgLevelCreator]: {
-    include: {
-      projectCreate: true,
-      projectActions: true,
-      projectSettings: true,
-    },
-  },
+export const GROUP_BY_VARS = {
+  NULL: '__nc_null__',
+  TRUE: '__nc_true__',
+  FALSE: '__nc_false__',
+  VAR_TITLES: {
+    __nc_null__: '(Empty)',
+    __nc_true__: 'Checked',
+    __nc_false__: 'Unchecked',
+  } as Record<string, string>,
+}
 
-  // Project role permissions
-  [ProjectRole.Creator]: {
-    exclude: {
-      appStore: true,
-      superAdminUserManagement: true,
-      superAdminAppSettings: true,
-      appLicense: true,
-    },
-  },
-  [ProjectRole.Owner]: {
-    exclude: {
-      appStore: true,
-      superAdminUserManagement: true,
-      superAdminAppSettings: true,
-      appLicense: true,
-    },
-  },
-  [ProjectRole.Editor]: {
-    include: {
-      smartSheet: true,
-      xcDatatableEditable: true,
-      column: true,
-      tableAttachment: true,
-      tableRowUpdate: true,
-      dataInsert: true,
-      rowComments: true,
-      gridViewOptions: true,
-      sortSync: true,
-      fieldsSync: true,
-      gridColUpdate: true,
-      filterSync: true,
-      filterChildrenRead: true,
-      csvImport: true,
-      apiDocs: true,
-      projectSettings: true,
-      newUser: false,
-    },
-  },
-  [ProjectRole.Commenter]: {
-    include: {
-      smartSheet: true,
-      column: true,
-      rowComments: true,
-      projectSettings: true,
-    },
-  },
-  [ProjectRole.Viewer]: {
-    include: {
-      smartSheet: true,
-      column: true,
-      projectSettings: true,
-    },
-  },
-} as const
+export const INITIAL_LEFT_SIDEBAR_WIDTH = 288
+
+export const NO_SCOPE = SDK_NO_SCOPE
+
+export const ANT_MESSAGE_DURATION = +(process.env.ANT_MESSAGE_DURATION ?? (ncIsPlaywright() ? 1 : 6))
+
+export const EXTERNAL_SOURCE_TOTAL_ROWS = 200
+
+export const EXTERNAL_SOURCE_VISIBLE_ROWS = 100
+
+export const MINI_SIDEBAR_WIDTH = 48

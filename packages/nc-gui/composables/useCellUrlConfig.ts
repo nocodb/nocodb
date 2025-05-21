@@ -1,5 +1,4 @@
 import type { MaybeRef } from '@vueuse/core'
-import { computed, unref, useRouter } from '#imports'
 
 export interface CellUrlOptions {
   behavior?: string
@@ -23,19 +22,19 @@ const parseUrlRules = (serialized?: string): ParsedRules[] | undefined => {
 export function useCellUrlConfig(url?: MaybeRef<string>) {
   const router = useRouter()
 
-  const route = $(router.currentRoute)
+  const route = router.currentRoute
 
-  const config = $computed(() => ({
-    behavior: route.query.url_behavior as string | undefined,
-    overlay: route.query.url_overlay as string | undefined,
-    rules: parseUrlRules(route.query.url_rules as string),
+  const config = computed(() => ({
+    behavior: route.value.query.url_behavior as string | undefined,
+    overlay: route.value.query.url_overlay as string | undefined,
+    rules: parseUrlRules(route.value.query.url_rules as string),
   }))
 
   const options = computed(() => {
-    const options = { behavior: config.behavior, overlay: config.overlay }
+    const options = { behavior: config.value.behavior, overlay: config.value.overlay }
 
-    if (config.rules && (!config.behavior || !config.overlay)) {
-      for (const [regex, value] of config.rules) {
+    if (config.value.rules && (!config.value.behavior || !config.value.overlay)) {
+      for (const [regex, value] of config.value.rules) {
         if (unref(url)?.match(regex)) return Object.assign(options, value)
       }
     }
@@ -44,7 +43,7 @@ export function useCellUrlConfig(url?: MaybeRef<string>) {
   })
 
   return {
-    cellUrlConfig: config,
+    cellUrlConfig: config.value,
     cellUrlOptions: options,
   }
 }

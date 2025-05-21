@@ -29,7 +29,9 @@ function authTests() {
   let context;
 
   beforeEach(async function () {
+    console.time('#### authTests');
     context = await init();
+    console.timeEnd('#### authTests');
   });
 
   it('Signup with valid email', async () => {
@@ -68,12 +70,12 @@ function authTests() {
     expect(token).to.be.a('string');
   });
 
-  it('Signup without email and password', async () => {
+  it('Signin without email and password', async () => {
     await request(context.app)
       .post('/api/v1/auth/user/signin')
       // pass empty data in await request
       .send({})
-      .expect(400);
+      .expect(401);
   });
 
   it('Signin with invalid credentials', async () => {
@@ -132,7 +134,7 @@ function authTests() {
       .expect(200);
   });
 
-  it.only('Change password - after logout', async () => {
+  it('Change password - after logout', async () => {
     await request(context.app)
       .post('/api/v1/auth/password/change')
       .unset('xc-auth')

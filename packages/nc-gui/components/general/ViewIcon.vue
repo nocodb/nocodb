@@ -1,28 +1,35 @@
 <script lang="ts" setup>
-import { Icon as IcIcon } from '@iconify/vue'
-import type { TableType } from 'nocodb-sdk'
-import { toRef, viewIcons } from '#imports'
+import type { ViewType } from 'nocodb-sdk'
 
 const props = defineProps<{
-  meta: TableType
+  meta: ViewType
+  ignoreColor?: boolean
 }>()
 
 const viewMeta = toRef(props, 'meta')
 </script>
 
-<template v-if="viewMeta">
-  <IcIcon
+<template>
+  <LazyGeneralEmojiPicker
     v-if="viewMeta?.meta?.icon"
-    :data-testid="`nc-icon-${viewMeta?.meta?.icon}`"
-    class="text-[16px]"
-    :icon="viewMeta?.meta?.icon"
+    :data-testid="`nc-emoji-${viewMeta.meta?.icon}`"
+    size="xsmall"
+    :emoji="viewMeta.meta?.icon"
+    readonly
   />
   <component
     :is="viewIcons[viewMeta.type]?.icon"
     v-else-if="viewMeta?.type"
     class="nc-view-icon group-hover"
-    :style="{ color: viewIcons[viewMeta.type]?.color }"
+    :style="{
+      color: !props.ignoreColor ? viewIcons[viewMeta.type]?.color : undefined,
+      fontWeight: 500,
+    }"
   />
 </template>
 
-<style scoped></style>
+<style>
+.nc-view-icon {
+  font-size: 1.05rem;
+}
+</style>

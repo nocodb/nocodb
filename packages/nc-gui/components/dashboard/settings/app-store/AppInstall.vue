@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { PluginTestReqType, PluginType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, iconMap, message, onMounted, ref, useI18n, useNuxtApp } from '#imports'
 
 const { id } = defineProps<{
   id: string
@@ -24,51 +23,51 @@ const formRef = ref()
 
 const { t } = useI18n()
 
-let plugin = $ref<Plugin | null>(null)
+const plugin = ref<Plugin | null>(null)
 
-let pluginFormData = $ref<Record<string, any>>({})
+const pluginFormData = ref<Record<string, any>>({})
 
-let isLoading = $ref(true)
+const isLoading = ref(true)
 
-let loadingAction = $ref<null | Action>(null)
+const loadingAction = ref<null | Action>(null)
 
 const layout = {
   labelCol: { span: 14, pull: 4 },
   wrapperCol: { span: 20, pull: 4 },
 }
 
-const addSetting = () => pluginFormData.push({})
+const addSetting = () => pluginFormData.value.push({})
 
 const saveSettings = async () => {
-  loadingAction = Action.Save
+  loadingAction.value = Action.Save
 
   try {
     await formRef.value?.validateFields()
 
     await $api.plugin.update(id, {
-      input: JSON.stringify(pluginFormData),
+      input: JSON.stringify(pluginFormData.value),
       active: true,
     })
 
     emits('saved')
     // Plugin settings saved successfully
-    message.success(plugin?.formDetails.msgOnInstall || t('msg.success.pluginSettingsSaved'))
+    message.success(plugin.value?.formDetails.msgOnInstall || t('msg.success.pluginSettingsSaved'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    loadingAction = null
+    loadingAction.value = null
   }
 }
 
 const testSettings = async () => {
-  loadingAction = Action.Test
+  loadingAction.value = Action.Test
 
   try {
-    if (plugin) {
+    if (plugin.value) {
       const res = await $api.plugin.test({
-        input: JSON.stringify(pluginFormData),
-        title: plugin.title,
-        category: plugin.category,
+        input: JSON.stringify(pluginFormData.value),
+        title: plugin.value.title,
+        category: plugin.value.category,
       } as PluginTestReqType)
 
       if (res) {
@@ -82,7 +81,7 @@ const testSettings = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    loadingAction = null
+    loadingAction.value = null
   }
 }
 
@@ -102,7 +101,7 @@ const doAction = async (action: Action) => {
 
 const readPluginDetails = async () => {
   try {
-    isLoading = true
+    isLoading.value = true
 
     const res = await $api.plugin.read(id)
     const formDetails = JSON.parse(res.input_schema ?? '{}')
@@ -113,22 +112,22 @@ const readPluginDetails = async () => {
     // and it has been changed to XcType.Checkbox, since 0.0.2
     // hence, change the text value to boolean here
     if ('secure' in parsedInput && typeof parsedInput.secure === 'string') {
-      parsedInput.secure = !!parsedInput.secure
+      parsedInput.secure = parsedInput.secure === 'true'
     }
 
-    plugin = { ...res, formDetails, parsedInput }
-    pluginFormData = plugin.parsedInput
+    plugin.value = { ...res, formDetails, parsedInput }
+    pluginFormData.value = plugin.value.parsedInput
   } catch (e) {
     console.log(e)
   } finally {
-    isLoading = false
+    isLoading.value = false
   }
 }
 
-const deleteFormRow = (index: number) => pluginFormData.splice(index, 1)
+const deleteFormRow = (index: number) => pluginFormData.value.splice(index, 1)
 
 onMounted(async () => {
-  if (!plugin) {
+  if (!plugin.value) {
     await readPluginDetails()
   }
 })
@@ -148,7 +147,7 @@ onMounted(async () => {
             class="mr-1 flex items-center justify-center"
             :class="[plugin.title === 'SES' ? 'p-2 bg-[#242f3e]' : '']"
           >
-            <img :alt="plugin.title || 'plugin'" :src="`/${plugin.logo}`" class="h-6" />
+            <img :alt="plugin.title || 'plugin'" :src="plugin.logo" class="h-6" />
           </div>
 
           <span class="font-semibold text-lg">{{ plugin.formDetails.title }}</span>
@@ -220,15 +219,17 @@ onMounted(async () => {
               </tr>
             </tbody>
 
-            <tr>
-              <td :colspan="plugin.formDetails.items.length" class="text-center">
-                <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1" @click="addSetting">
-                  <template #icon>
-                    <component :is="iconMap.plus" class="flex mx-auto" />
-                  </template>
-                </a-button>
-              </td>
-            </tr>
+            <tfoot>
+              <tr>
+                <td :colspan="plugin.formDetails.items.length" class="text-center">
+                  <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1" @click="addSetting">
+                    <template #icon>
+                      <component :is="iconMap.plus" class="flex mx-auto" />
+                    </template>
+                  </a-button>
+                </td>
+              </tr>
+            </tfoot>
           </table>
         </div>
 
@@ -264,16 +265,17 @@ onMounted(async () => {
         </template>
 
         <div class="flex flex-row space-x-4 justify-center mt-4">
-          <a-button
+          <NcButton
             v-for="(action, i) in plugin.formDetails.actions"
             :key="i"
+            class="!px-5"
             :loading="loadingAction === action.key"
             :type="action.key === Action.Save ? 'primary' : 'default'"
             :disabled="!!loadingAction"
             @click="doAction(action.key)"
           >
             {{ action.label }}
-          </a-button>
+          </NcButton>
         </div>
       </a-form>
     </div>

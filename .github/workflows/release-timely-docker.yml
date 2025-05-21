@@ -1,0 +1,161 @@
+name: "Release : Timely Docker"
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Docker image tag"
+        required: true
+      targetEnv:
+        description: "Target Environment"
+        required: true
+        type: choice
+        options:
+          - DEV
+          - PROD
+  # Triggered by release-nocodb.yml / release-nightly-dev.yml / release-pr.yml
+  workflow_call:
+    inputs:
+      tag:
+        description: "Docker image tag"
+        required: true
+        type: string
+      targetEnv:
+        description: "Target Environment"
+        required: true
+        type: string
+      isDaily:
+        description: "Is it triggered by daily schedule"
+        required: false
+        type: string
+      currentVersion:
+        description: "The current NocoDB version"
+        required: false
+        type: string
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
+
+jobs:
+  buildx:
+    runs-on: ubuntu-22.04
+    env:
+      working-directory: ./packages/nocodb
+    steps:
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Get Docker Repository
+        id: get-docker-repository
+        run: |
+          DOCKER_REPOSITORY=nocodb-daily
+          DOCKER_BUILD_TAG=${{ github.event.inputs.tag || inputs.tag }}
+          DOCKER_BUILD_LATEST_TAG=latest
+          if [[ "$DOCKER_BUILD_TAG" =~ "-beta." ]]; then
+            DOCKER_BUILD_LATEST_TAG=$(echo $DOCKER_BUILD_TAG | awk -F '-beta.' '{print $1}')-beta.latest
+          fi
+          if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
+            if [[ ${{ github.event.inputs.currentVersion || inputs.currentVersion || 'N/A' }} != 'N/A' ]]; then
+              DOCKER_BUILD_TAG=${{ github.event.inputs.currentVersion || inputs.currentVersion }}-${{ github.event.inputs.tag || inputs.tag }}
+            fi
+            if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then
+              DOCKER_REPOSITORY=nocodb-daily
+            else
+              DOCKER_REPOSITORY=nocodb-timely
+            fi
+          fi
+          echo "DOCKER_REPOSITORY=${DOCKER_REPOSITORY}" >> $GITHUB_OUTPUT
+          echo "DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG}" >> $GITHUB_OUTPUT
+          echo "DOCKER_BUILD_LATEST_TAG=${DOCKER_BUILD_LATEST_TAG}" >> $GITHUB_OUTPUT
+          echo DOCKER_REPOSITORY: ${DOCKER_REPOSITORY}
+          echo DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
+          echo DOCKER_BUILD_LATEST_TAG: ${DOCKER_BUILD_LATEST_TAG}
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+          ref: ${{ github.ref }}
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22.12.0
+
+      - name: install dependencies
+        run: pnpm bootstrap
+
+      - name: Build gui and sdk
+        run: |
+
+          pnpm bootstrap &&
+          cd packages/nc-gui &&
+          pnpm run generate
+          
+          # copy build to nocodb
+          rsync -rvzh ./dist/ ../nocodb/docker/nc-gui/
+
+
+      - name: build nocodb
+        run: |
+          # build nocodb ( pack nocodb-sdk and nc-gui )
+          cd packages/nocodb &&
+          EE=true pnpm exec rspack --config rspack.timely.config.js &&
+          # remove bundled libraries (nocodb-sdk, knex-snowflake)
+          pnpm uninstall --save-prod nocodb-sdk  
+
+      - name: Update version in package.json
+        run: |
+          # update package.json
+          cd packages/nocodb &&
+          jq --arg VERSION "$VERSION" '.version = $VERSION' package.json > tmp.json &&
+          mv tmp.json package.json
+        env:
+          VERSION: ${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2.1.0
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2.2.1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2.1.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3.2.0
+        with:
+          context: ${{ env.working-directory }}
+          file: ${{ env.working-directory }}/Dockerfile.timely
+          build-args: NC_VERSION=${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          push: true
+          tags: |
+            nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
+            nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_LATEST_TAG }}
+
+        # Temp fix
+        # https://github.com/docker/build-push-action/issues/252
+        # https://github.com/moby/buildkit/issues/1896
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache

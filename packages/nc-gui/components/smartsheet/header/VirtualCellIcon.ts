@@ -1,69 +1,75 @@
 import type { PropType } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
+import { ButtonActionsType, RelationTypes, UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { RelationTypes, UITypes } from 'nocodb-sdk'
-import {
-  ColumnInj,
-  MetaInj,
-  defineComponent,
-  h,
-  iconMap,
-  inject,
-  isBt,
-  isHm,
-  isLookup,
-  isMm,
-  isRollup,
-  ref,
-  toRef,
-} from '#imports'
+
 import CountIcon from '~icons/mdi/counter'
 
-const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
+export const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
   switch (column.uidt) {
     case UITypes.LinkToAnotherRecord:
+    case UITypes.Links:
       switch ((column.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: iconMap.mm, color: 'text-accent' }
+          return { icon: iconMap.mm_solid }
         case RelationTypes.HAS_MANY:
-          return { icon: iconMap.hm, color: 'text-yellow-500' }
+          return { icon: iconMap.hm_solid }
         case RelationTypes.BELONGS_TO:
-          return { icon: iconMap.bt, color: 'text-sky-500' }
+          return { icon: iconMap.bt_solid }
+        case RelationTypes.ONE_TO_ONE:
+          return { icon: iconMap.oneToOneSolid, color: 'text-purple-500' }
       }
       break
     case UITypes.SpecificDBType:
-      return { icon: iconMap.specificDbType, color: 'text-grey' }
+      return { icon: iconMap.cellDb, color: 'text-grey' }
     case UITypes.Formula:
-      return { icon: iconMap.formula, color: 'text-grey' }
+      return { icon: iconMap.cellFormula, color: 'text-grey' }
+    case UITypes.Button:
+      switch ((column.colOptions as LinkToAnotherRecordType)?.type) {
+        case ButtonActionsType.Ai:
+          return { icon: iconMap.cellAiButton, color: 'text-grey' }
+        default:
+          return { icon: iconMap.cellButton, color: 'text-grey' }
+      }
     case UITypes.QrCode:
-      return { icon: iconMap.qrCode, color: 'text-grey' }
+      return { icon: iconMap.cellQrCode, color: 'text-grey' }
     case UITypes.Barcode:
-      return { icon: iconMap.qrCode, color: 'text-grey' }
+      return { icon: iconMap.cellBarcode, color: 'text-grey' }
     case UITypes.Lookup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: iconMap.lookup, color: 'text-accent' }
+          return { icon: iconMap.cellLookup, color: 'text-pink-500', hex: '#FC3AC6' }
         case RelationTypes.HAS_MANY:
-          return { icon: iconMap.lookup, color: 'text-yellow-500' }
+          return { icon: iconMap.cellLookup, color: 'text-orange-500', hex: '#FA8231' }
         case RelationTypes.BELONGS_TO:
-          return { icon: iconMap.lookup, color: 'text-sky-500' }
+          return { icon: iconMap.cellLookup, color: 'text-blue-500', hex: '#36BFFF' }
+        case RelationTypes.ONE_TO_ONE:
+          return { icon: iconMap.cellLookup, color: 'text-purple-500', hex: '#7D26CD' }
       }
-      return { icon: iconMap.lookup, color: 'text-grey' }
+      return { icon: iconMap.cellLookup, color: 'text-grey' }
     case UITypes.Rollup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return { icon: iconMap.rollup, color: 'text-accent' }
+          return { icon: iconMap.cellRollup, color: 'text-pink-500', hex: '#FC3AC6' }
         case RelationTypes.HAS_MANY:
-          return { icon: iconMap.rollup, color: 'text-yellow-500' }
+          return { icon: iconMap.cellRollup, color: 'text-orange-500', hex: '#FA8231' }
         case RelationTypes.BELONGS_TO:
-          return { icon: iconMap.rollup, color: 'text-sky-500' }
+          return { icon: iconMap.cellRollup, color: 'text-blue-500', hex: '#36BFFF' }
+        case RelationTypes.ONE_TO_ONE:
+          return { icon: iconMap.cellRollup, color: 'text-purple-500', hex: '#7D26CD' }
       }
-      return { icon: iconMap.rollup, color: 'text-grey' }
+      return { icon: iconMap.cellRollup, color: 'text-grey' }
     case UITypes.Count:
       return { icon: CountIcon, color: 'text-grey' }
+    case UITypes.CreatedTime:
+    case UITypes.LastModifiedTime:
+      return { icon: iconMap.cellSystemDate, color: 'text-grey' }
+    case UITypes.CreatedBy:
+    case UITypes.LastModifiedBy:
+      return { icon: iconMap.cellSystemUser, color: 'text-grey' }
   }
 
-  return { icon: iconMap.generic, color: 'text-grey' }
+  return { icon: iconMap.cellSystemText, color: 'text-grey' }
 }
 
 export default defineComponent({
@@ -77,7 +83,11 @@ export default defineComponent({
   setup(props) {
     const columnMeta = toRef(props, 'columnMeta')
 
-    const column = inject(ColumnInj, columnMeta) as Ref<ColumnType & { colOptions: LookupType | RollupType }>
+    const injectedColumn = inject(ColumnInj, columnMeta) as Ref<ColumnType & { colOptions: LookupType | RollupType }>
+
+    const column = computed(() => columnMeta.value ?? injectedColumn.value)
+
+    const { metas } = useMetas()
 
     let relationColumn: ColumnType
 
@@ -85,9 +95,8 @@ export default defineComponent({
       if (!column.value) return null
 
       if (column && column.value) {
-        if (isMm(column.value) || isHm(column.value) || isBt(column.value) || isLookup(column.value) || isRollup(column.value)) {
-          const meta = inject(MetaInj, ref())
-          relationColumn = meta.value?.columns?.find(
+        if (isLookup(column.value) || isRollup(column.value)) {
+          relationColumn = metas.value?.[column.value.fk_model_id]?.columns?.find(
             (c) => c.id === column.value?.colOptions?.fk_relation_column_id,
           ) as ColumnType
         }
@@ -95,7 +104,7 @@ export default defineComponent({
 
       const { icon: Icon, color } = renderIcon(column.value, relationColumn)
 
-      return h(Icon, { class: `${color} mx-1` })
+      return h(Icon, { class: `${color || 'text-grey'} mx-1 nc-virtual-cell-icon` })
     }
   },
 })

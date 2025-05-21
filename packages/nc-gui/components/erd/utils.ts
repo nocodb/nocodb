@@ -1,12 +1,11 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import dagre from 'dagre'
 import type { Edge, EdgeMarker, Elements, Node } from '@vue-flow/core'
-import type { MaybeRef } from '@vueuse/core'
 import { MarkerType, Position, isEdge, isNode } from '@vue-flow/core'
+import type { MaybeRef } from '@vueuse/core'
 import { scaleLinear as d3ScaleLinear } from 'd3-scale'
 import tinycolor from 'tinycolor2'
-import { computed, ref, unref, useMetas, useTheme } from '#imports'
 
 export interface ERDConfig {
   showPkAndFk: boolean
@@ -30,6 +29,7 @@ export interface NodeData {
 
 export interface EdgeData {
   isManyToMany: boolean
+  isOneToOne: boolean
   isSelfRelation: boolean
   label?: string
   simpleLabel?: string
@@ -42,7 +42,7 @@ interface Relation {
   childColId?: string
   parentColId?: string
   modelId?: string
-  type: 'mm' | 'hm'
+  type: RelationTypes
 }
 
 /**
@@ -65,18 +65,17 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
   const { metasWithIdAsKey } = useMetas()
 
   const erdTables = computed(() => unref(tables))
-  const config = $computed(() => unref(props))
+  const config = computed(() => unref(props))
 
   const nodeWidth = 300
-  const nodeHeight = $computed(() => (config.showViews && config.showAllColumns ? 50 : 40))
+  const nodeHeight = computed(() => (config.value.showViews && config.value.showAllColumns ? 50 : 40))
 
   const relations = computed(() =>
     erdTables.value.reduce((acc, table) => {
       const meta = metasWithIdAsKey.value[table.id!]
-      const columns =
-        meta.columns?.filter((column: ColumnType) => column.uidt === UITypes.LinkToAnotherRecord && column.system !== 1) || []
+      const columns = meta.columns?.filter((column: ColumnType) => isLinksOrLTAR(column) && column.system !== 1) || []
 
-      columns.forEach((column: ColumnType) => {
+      for (const column of columns) {
         const colOptions = column.colOptions as LinkToAnotherRecordType
         const source = column.fk_model_id
         const target = colOptions.fk_related_model_id
@@ -91,39 +90,54 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
             childColId: colOptions.fk_child_column_id,
             parentColId: colOptions.fk_parent_column_id,
             modelId: colOptions.fk_mm_model_id,
-            type: 'hm',
+            type: RelationTypes.HAS_MANY,
           }
 
-          if (colOptions.type === 'hm') {
-            relation.type = 'hm'
+          if (colOptions.type === RelationTypes.HAS_MANY) {
+            relation.type = RelationTypes.HAS_MANY
 
-            return acc.push(relation)
+            acc.push(relation)
+            continue
+          }
+          if (colOptions.type === RelationTypes.ONE_TO_ONE) {
+            relation.type = RelationTypes.ONE_TO_ONE
+
+            // skip adding relation link from both side
+            if (column.meta?.bt) continue
+
+            acc.push(relation)
+            continue
           }
 
-          if (colOptions.type === 'mm') {
+          if (colOptions.type === RelationTypes.MANY_TO_MANY) {
             // Avoid duplicate mm connections
             const correspondingColumn = acc.find(
               (relation) =>
-                relation.type === 'mm' &&
+                relation.type === RelationTypes.MANY_TO_MANY &&
                 relation.parentColId === colOptions.fk_child_column_id &&
                 relation.childColId === colOptions.fk_parent_column_id,
             )
 
             if (!correspondingColumn) {
-              relation.type = 'mm'
+              relation.type = RelationTypes.MANY_TO_MANY
 
-              return acc.push(relation)
+              acc.push(relation)
+              continue
             }
           }
         }
-      })
+      }
 
       return acc
     }, [] as Relation[]),
   )
 
   function edgeLabel({ type, source, target, modelId, childColId, parentColId }: Relation) {
-    const typeLabel = type === 'mm' ? 'many to many' : 'has many'
+    let typeLabel: string
+
+    if (type === RelationTypes.HAS_MANY) typeLabel = 'has many'
+    else if (type === RelationTypes.MANY_TO_MANY) typeLabel = 'many to many'
+    else if (type === 'oo') typeLabel = 'one to one'
 
     const parentCol = metasWithIdAsKey.value[source].columns?.find((col) => {
       const colOptions = col.colOptions as LinkToAnotherRecordType
@@ -140,13 +154,13 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
       const colOptions = col.colOptions as LinkToAnotherRecordType
       if (!colOptions) return false
 
-      return colOptions.fk_parent_column_id === (type === 'mm' ? childColId : parentColId)
+      return colOptions.fk_parent_column_id === (type === RelationTypes.MANY_TO_MANY ? childColId : parentColId)
     })
 
     if (!parentCol || !childCol) return ''
 
-    if (type === 'mm') {
-      if (config.showJunctionTableNames) {
+    if (type === RelationTypes.MANY_TO_MANY) {
+      if (config.value.showJunctionTableNames) {
         if (!modelId) return ''
 
         const mmModel = metasWithIdAsKey.value[modelId]
@@ -174,11 +188,14 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
       if (!table.id) return acc
 
       const columns =
-        metasWithIdAsKey.value[table.id].columns?.filter(
-          (col) => config.showAllColumns || (!config.showAllColumns && col.uidt === UITypes.LinkToAnotherRecord),
-        ) || []
+        metasWithIdAsKey.value[table.id].columns?.filter((col) => {
+          if ([UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt as UITypes) && col.system) return false
+          return config.value.showAllColumns || (!config.value.showAllColumns && isLinksOrLTAR(col))
+        }) || []
 
-      const pkAndFkColumns = columns.filter(() => config.showPkAndFk).filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
+      const pkAndFkColumns = columns
+        .filter(() => config.value.showPkAndFk)
+        .filter((col) => col.pk || col.uidt === UITypes.ForeignKey)
 
       const nonPkColumns = columns.filter((col) => !col.pk && col.uidt !== UITypes.ForeignKey)
 
@@ -188,8 +205,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
           table: metasWithIdAsKey.value[table.id],
           pkAndFkColumns,
           nonPkColumns,
-          showPkAndFk: config.showPkAndFk,
-          showAllColumns: config.showAllColumns,
+          showPkAndFk: config.value.showPkAndFk,
+          showAllColumns: config.value.showAllColumns,
           columnLength: columns.length,
           color: '',
         },
@@ -205,12 +222,12 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
     return relations.value.reduce<Edge<EdgeData>[]>((acc, { source, target, childColId, parentColId, type, modelId }) => {
       let sourceColumnId, targetColumnId
 
-      if (type === 'hm') {
+      if (type === RelationTypes.HAS_MANY || type === 'oo') {
         sourceColumnId = childColId
         targetColumnId = childColId
       }
 
-      if (type === 'mm') {
+      if (type === RelationTypes.MANY_TO_MANY) {
         sourceColumnId = parentColId
         targetColumnId = childColId
       }
@@ -236,7 +253,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
           type: MarkerType.ArrowClosed,
         },
         data: {
-          isManyToMany: type === 'mm',
+          isManyToMany: type === RelationTypes.MANY_TO_MANY,
+          isOneToOne: type === 'oo',
           isSelfRelation: source === target && sourceColumnId === targetColumnId,
           label,
           simpleLabel,
@@ -248,60 +266,61 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
     }, [])
   }
 
-  const boxShadow = (skeleton: boolean, color: string) => ({
-    border: 'none !important',
-    boxShadow: `0 0 0 ${skeleton ? '12' : '2'}px ${color}`,
-  })
+  const boxShadow = (_skeleton: boolean, _color: string) => ({})
 
-  const layout = (skeleton = false) => {
-    elements.value = [...createNodes(), ...createEdges()] as Elements<NodeData | EdgeData>
+  const layout = async (skeleton = false): Promise<void> => {
+    return new Promise((resolve) => {
+      elements.value = [...createNodes(), ...createEdges()] as Elements<NodeData | EdgeData>
 
-    elements.value.forEach((el) => {
-      if (isNode(el)) {
-        const node = el as Node<NodeData>
-        const colLength = node.data!.columnLength
+      for (const el of elements.value) {
+        if (isNode(el)) {
+          const node = el as Node<NodeData>
+          const colLength = node.data!.columnLength
 
-        const width = skeleton ? nodeWidth * 3 : nodeWidth
-        const height = nodeHeight + (skeleton ? 250 : colLength > 0 ? nodeHeight * colLength : nodeHeight)
-        dagreGraph.setNode(el.id, {
-          width,
-          height,
-        })
-      } else if (isEdge(el)) {
-        dagreGraph.setEdge(el.source, el.target)
-      }
-    })
-
-    dagre.layout(dagreGraph)
-
-    elements.value.forEach((el) => {
-      if (isNode(el)) {
-        const color = colorScale(dagreGraph.predecessors(el.id)!.length)
-
-        const nodeWithPosition = dagreGraph.node(el.id)
-
-        el.targetPosition = Position.Left
-        el.sourcePosition = Position.Right
-        el.position = { x: nodeWithPosition.x, y: nodeWithPosition.y }
-        el.class = ['rounded-lg'].join(' ')
-        el.data.color = color
-
-        el.style = (n) => {
-          if (n.selected) {
-            return boxShadow(skeleton, color)
-          }
-
-          return boxShadow(skeleton, '#64748B')
+          const width = skeleton ? nodeWidth * 3 : nodeWidth
+          const height = nodeHeight.value + (skeleton ? 250 : colLength > 0 ? nodeHeight.value * colLength : nodeHeight.value)
+          dagreGraph.setNode(el.id, {
+            width,
+            height,
+          })
+        } else if (isEdge(el)) {
+          dagreGraph.setEdge(el.source, el.target)
         }
-      } else if (isEdge(el)) {
-        const node = elements.value.find((nodes) => nodes.id === el.source)
-        if (node) {
-          const color = node.data!.color
+      }
 
+      dagre.layout(dagreGraph)
+
+      for (const el of elements.value) {
+        if (isNode(el)) {
+          const color = colorScale(dagreGraph.predecessors(el.id)!.length)
+
+          const nodeWithPosition = dagreGraph.node(el.id)
+
+          el.targetPosition = Position.Left
+          el.sourcePosition = Position.Right
+          el.position = { x: nodeWithPosition.x, y: nodeWithPosition.y }
+          el.class = ['rounded-lg border-1 border-gray-200 shadow-lg'].join(' ')
           el.data.color = color
-          ;(el.markerEnd as EdgeMarker).color = `#${tinycolor(color).toHex()}`
+
+          el.style = (n) => {
+            if (n.selected) {
+              return boxShadow(skeleton, color)
+            }
+
+            return boxShadow(skeleton, '#64748B')
+          }
+        } else if (isEdge(el)) {
+          const node = elements.value.find((nodes) => nodes.id === el.source)
+          if (node) {
+            const color = node.data!.color
+
+            el.data.color = color
+            ;(el.markerEnd as EdgeMarker).color = `#${tinycolor(color).toHex()}`
+          }
         }
       }
+
+      resolve()
     })
   }
 

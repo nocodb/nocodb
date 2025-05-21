@@ -1,11 +1,11 @@
-<script setup lang="ts">
-const { appInfo } = useGlobal()
-</script>
+<script setup lang="ts"></script>
 
 <template>
-  <AccountUserManagement v-if="$route.params.page === 'users'" />
-  <AccountToken v-else-if="$route.params.page === 'tokens'" />
-  <AccountAppStore v-else-if="$route.params.page === 'apps' && !appInfo.isCloud" />
-  <AccountLicense v-else-if="$route.params.page === 'license'" />
-  <span v-else></span>
+  <div>
+    <AccountToken v-if="$route.params.page === 'tokens'" />
+    <AccountSetup v-else-if="$route.params.page === 'setup'" />
+    <AccountProfile v-else-if="$route.params.page === 'profile'" />
+    <AccountAppStore v-else-if="$route.params.page === 'apps' && !isEeUI" />
+    <span v-else></span>
+  </div>
 </template>

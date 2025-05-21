@@ -1,4 +1,4 @@
-name: 'Sync changes back to develop branch from master'
+name: "Sync changes back to develop branch from master"
 
 on:
   # Triggered manually
@@ -7,17 +7,46 @@ on:
   workflow_call:
 jobs:
   sync-to-develop:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v1
-
-      - name: Merge from master to develop
-        uses: wingkwong/gh-action-nightly-merge@master
+      - name: Setup Node
+        uses: actions/setup-node@v3
         with:
-          stable_branch: 'master'
-          development_branch: 'develop'
-          allow_ff: true
-          allow_forks: true
+          node-version: 22.12.0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: nocodb
+      - name: Prepare GH Cli
+        id: gh
+        run: |
+          wget https://github.com/cli/cli/releases/download/v2.33.0/gh_2.33.0_linux_amd64.tar.gz
+          tar -xvf gh_2.33.0_linux_amd64.tar.gz
+          GH=gh_2.33.0_linux_amd64/bin/gh
+          echo "GH=${GH}" >> $GITHUB_OUTPUT
+      - name: Sync Master to Develop
+        id: sync
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd nocodb
+          git fetch --quiet --unshallow origin
+          git checkout master
+          # reset to origin/master
+          git reset --hard origin/master
+          : # Use the first 8 characters of the latest commit hash as the branch name
+          BRANCH_NAME=nc/$(git rev-list -n 1 HEAD | cut -c1-8)
+          git checkout -b $BRANCH_NAME
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          revertSDK=true node scripts/upgradeNocodbSdk.js
+          pnpm --filter=nocodb-sdk install --no-frozen-lockfile && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-gui --filter=playwright install --no-frozen-lockfile
+          git add .
+          git diff-index --quiet HEAD || git commit -m "chore: update sdk path"
+          git push origin $BRANCH_NAME
+          ../${{ steps.gh.outputs.GH }} pr create --title "chore: post-release sync" --body "$(echo -e "This is an automated pull request to sync the master branch to develop.\nPlease review and merge this pull request if it looks good.")" --base develop --head $BRANCH_NAME

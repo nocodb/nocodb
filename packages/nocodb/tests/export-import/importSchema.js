@@ -9,7 +9,7 @@ const jsonfile = require('jsonfile');
 let inputConfig = jsonfile.readFileSync(`config.json`)
 let ncConfig = {
   srcProject: inputConfig.srcProject,
-  projectName: inputConfig.dstProject,
+  baseName: inputConfig.dstProject,
   baseURL: inputConfig.baseURL,
   headers: {
     'xc-auth': `${inputConfig["xc-auth"]}`
@@ -428,7 +428,7 @@ async function restoreBaseData() {
         }
         await api.dbTableRow.create(
           'nc',
-          ncConfig.projectName,
+          ncConfig.baseName,
           tblSchema.title,
           record
         );
@@ -470,7 +470,7 @@ async function restoreLinks() {
         if (linkField.length) {
           await api.dbTableRow.nestedAdd(
             'nc',
-            ncConfig.projectName,
+            ncConfig.baseName,
             rootLinks[i].linkSrcTbl.title,
             record[pk],
             rootLinks[i].linkColumn.colOptions.type,
@@ -486,10 +486,10 @@ async function restoreLinks() {
 async function importSchema() {
   api = new Api(ncConfig);
 
-  const x = await api.project.list();
-  const p = x.list.find(a => a.title === ncConfig.projectName);
-  if (p) await api.project.delete(p.id);
-  ncProject = await api.project.create({ title: ncConfig.projectName });
+  const x = await api.base.list();
+  const p = x.list.find(a => a.title === ncConfig.baseName);
+  if (p) await api.base.delete(p.id);
+  ncProject = await api.base.create({ title: ncConfig.baseName });
 
   await createBaseTables();
   await createLinks();
@@ -502,7 +502,7 @@ async function importSchema() {
   await configureGallery();
   await configureForm();
 
-  // restore data only if source project exists
+  // restore data only if source base exists
   const p2 = x.list.find(a => a.title === ncConfig.srcProject);
   if (p2 !== undefined) {
     await restoreBaseData();

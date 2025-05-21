@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ReloadViewDataHookInj, iconMap, inject, ref, useNuxtApp, watch } from '#imports'
-
 const { $e, $state } = useNuxtApp()
 
+const { isPaginationLoading } = storeToRefs(useViewsStore())
 const reloadHook = inject(ReloadViewDataHookInj)!
 
 const isReloading = ref(false)
@@ -19,19 +18,25 @@ const onClick = () => {
     }
   })
 }
+
+watch(isReloading, () => {
+  isPaginationLoading.value = isReloading.value
+})
 </script>
 
 <template>
-  <a-tooltip placement="bottom">
+  <NcTooltip placement="bottom">
     <template #title> {{ $t('general.reload') }} </template>
 
-    <div class="nc-toolbar-btn flex min-w-32px w-32px h-32px items-center justify-center select-none">
+    <div
+      class="flex ml-1 items-center justify-center select-none cursor-pointer text-gray-500 w-5.5 h-5.5 hover:(bg-gray-100 text-black) rounded"
+    >
       <component
         :is="iconMap.reload"
-        class="cursor-pointer group-hover:(text-primary) nc-toolbar-reload-btn"
+        class="group-hover:(text-primary) h-4 nc-icon-reload text-gray-400"
         :class="isReloading ? 'animate-spin' : ''"
         @click="onClick"
       />
     </div>
-  </a-tooltip>
+  </NcTooltip>
 </template>

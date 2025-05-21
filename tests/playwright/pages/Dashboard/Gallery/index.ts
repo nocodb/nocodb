@@ -1,15 +1,18 @@
 import { DashboardPage } from '..';
 import BasePage from '../../Base';
 import { ToolbarPage } from '../common/Toolbar';
+import { TopbarPage } from '../common/Topbar';
 
 export class GalleryPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly toolbar: ToolbarPage;
+  readonly topbar: TopbarPage;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.toolbar = new ToolbarPage(this);
+    this.topbar = new TopbarPage(this);
   }
 
   get() {
@@ -21,8 +24,12 @@ export class GalleryPage extends BasePage {
   }
 
   async openExpandedRow({ index }: { index: number }) {
-    await this.card(index).click();
-    await (await this.rootPage.locator('.ant-drawer-body').elementHandle())?.waitForElementState('stable');
+    await this.card(index).click({
+      position: {
+        x: 5,
+        y: 5,
+      },
+    });
   }
 
   // todo: Wait for render to complete

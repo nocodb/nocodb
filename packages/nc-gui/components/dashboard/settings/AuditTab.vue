@@ -1,49 +1,52 @@
 <script setup lang="ts">
 import { Tooltip as ATooltip, Empty } from 'ant-design-vue'
 import type { AuditType } from 'nocodb-sdk'
-import { h, iconMap, onMounted, storeToRefs, timeAgo, useGlobal, useI18n, useNuxtApp, useProject } from '#imports'
+import { timeAgo } from 'nocodb-sdk'
 
 const { $api } = useNuxtApp()
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
+
+const _projectId = inject(ProjectIdInj, undefined)
+const baseId = computed(() => _projectId.value ?? base.value?.id)
 
 const { t } = useI18n()
 
-let isLoading = $ref(false)
+const isLoading = ref(false)
 
-let audits = $ref<null | Array<AuditType>>(null)
+const audits = ref<null | Array<AuditType>>(null)
 
-let totalRows = $ref(0)
+const totalRows = ref(0)
 
-const currentPage = $ref(1)
+const currentPage = ref(1)
 
-const currentLimit = $ref(25)
+const currentLimit = ref(25)
 
 const { appInfo } = useGlobal()
 
-async function loadAudits(page = currentPage, limit = currentLimit) {
+async function loadAudits(page = currentPage.value, limit = currentLimit.value) {
   try {
-    if (!project.value?.id) return
+    if (!base.value?.id) return
 
-    isLoading = true
+    isLoading.value = true
 
-    const { list, pageInfo } = await $api.project.auditList(project.value?.id, {
+    const { list, pageInfo } = await $api.base.auditList(baseId.value, {
       offset: limit * (page - 1),
       limit,
     })
 
-    audits = list
-    totalRows = pageInfo.totalRows ?? 0
+    audits.value = list
+    totalRows.value = pageInfo.totalRows ?? 0
   } catch (e) {
     console.error(e)
   } finally {
-    isLoading = false
+    isLoading.value = false
   }
 }
 
 onMounted(async () => {
-  if (audits === null) {
-    await loadAudits(currentPage, currentLimit)
+  if (audits.value === null) {
+    await loadAudits(currentPage.value, currentLimit.value)
   }
 })
 
@@ -92,8 +95,8 @@ const columns = [
 <template>
   <div class="flex flex-col gap-4 w-full">
     <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
-    <div class="flex flex-row justify-between items-center">
-      <a-button class="self-start" @click="loadAudits">
+    <div class="flex flex-row justify-end items-center">
+      <a-button class="self-start !rounded-md" @click="loadAudits">
         <!-- Reload -->
         <div class="flex items-center gap-2 text-gray-600 font-light">
           <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
@@ -101,14 +104,6 @@ const columns = [
           {{ $t('general.reload') }}
         </div>
       </a-button>
-
-      <a-pagination
-        v-model:current="currentPage"
-        v-model:page-size="currentLimit"
-        :total="totalRows"
-        show-less-items
-        @change="loadAudits"
-      />
     </div>
 
     <a-table
@@ -124,6 +119,15 @@ const columns = [
         <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
       </template>
     </a-table>
+    <div class="flex flex-row justify-center items-center">
+      <a-pagination
+        v-model:current="currentPage"
+        v-model:page-size="currentLimit"
+        :total="+totalRows"
+        show-less-items
+        @change="loadAudits"
+      />
+    </div>
   </div>
 </template>
 

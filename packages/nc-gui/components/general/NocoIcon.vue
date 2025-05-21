@@ -1,12 +1,15 @@
 <script lang="ts" setup>
-import { autoResetRef, useThrottleFn } from '#imports'
-
 interface Props {
   size?: number
   animate?: boolean
 }
 
-const { size = 90, animate = false } = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  size: 90,
+  animate: false,
+})
+
+const { size, animate } = toRefs(props)
 
 const ping = autoResetRef(false, 1000)
 
@@ -22,8 +25,8 @@ const onClick = useThrottleFn(() => {
     @click="onClick"
   >
     <div class="relative">
-      <img class="hidden dark:block" :width="size" :height="size" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
-      <img class="dark:hidden" :width="size" :height="size" alt="NocoDB" src="~/assets/img/icons/512x512.png" />
+      <img class="hidden dark:block" :width="size" :height="size" alt="NocoDB" src="~/assets/img/icons/256x256-trans.png" />
+      <img class="dark:hidden" :width="size" :height="size" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
 
       <TransitionGroup name="layout" :duration="500">
         <template v-if="animate || ping">

@@ -1,6 +1,7 @@
 const Api = require('nocodb-sdk').Api;
 const { UITypes } = require('nocodb-sdk');
 const jsonfile = require('jsonfile');
+const {fromEntries} = require("../../src/ee/utils");
 
 const GRID = 3, GALLERY = 2, FORM = 1;
 
@@ -11,7 +12,7 @@ let viewStore = { columns: {}, sort: {}, filter: {} };
 
 let inputConfig = jsonfile.readFileSync(`config.json`)
 let ncConfig = {
-  projectName: inputConfig.srcProject,
+  baseName: inputConfig.srcProject,
   baseURL: inputConfig.baseURL,
   headers: {
     'xc-auth': `${inputConfig["xc-auth"]}`
@@ -23,7 +24,7 @@ let ncConfig = {
 // remove objects containing 0/ false/ null
 // fixme: how to handle when cdf (default value) is configured as 0/ null/ false
 function removeEmpty(obj) {
-  return Object.fromEntries(
+  return fromEntries(
     Object.entries(obj)
       .filter(([_, v]) => v != null && v != 0 && v != false)
       .map(([k, v]) => [k, v === Object(v) ? removeEmpty(v) : v])
@@ -231,13 +232,13 @@ async function generateMapTbl(pId) {
 async function exportSchema() {
   api = new Api(ncConfig);
 
-  // fetch project details (id et.al)
-  const x = await api.project.list();
-  const p = x.list.find(a => a.title === ncConfig.projectName);
+  // fetch base details (id et.al)
+  const x = await api.base.list();
+  const p = x.list.find(a => a.title === ncConfig.baseName);
 
   await generateMapTbl(p.id);
 
-  // read project
+  // read base
   const tblList = await api.dbTable.list(p.id);
 
   // for each table
@@ -267,7 +268,7 @@ async function exportSchema() {
 (async () => {
   await exportSchema();
   jsonfile.writeFileSync(
-    `${ncConfig.projectName.replace(/ /g, '_')}.json`,
+    `${ncConfig.baseName.replace(/ /g, '_')}.json`,
     tblSchema,
     { spaces: 2 }
   );

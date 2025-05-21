@@ -3,11 +3,11 @@ import { Suspense, isVNode, render } from '@vue/runtime-dom'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import type { MaybeRef } from '@vueuse/core'
 import { isClient } from '@vueuse/core'
-import { createEventHook, h, ref, toReactive, tryOnScopeDispose, unref, useNuxtApp, watch } from '#imports'
 
 interface UseDialogOptions {
   target: MaybeRef<HTMLElement | ComponentPublicInstance>
   context: Partial<AppContext>
+  slots?: MaybeRef<Record<string, () => VNode[]>>
 }
 
 /**
@@ -19,7 +19,7 @@ interface UseDialogOptions {
  * @param options Additional options to use {@see UseDialogOptions}
  *
  * @example
- * import { useDialog } from '#imports'
+ *
  * import DlgQuickImport from '~/components/dlg/QuickImport.vue'
  *
  * function openQuickImportDialog(type: string) {
@@ -44,7 +44,7 @@ interface UseDialogOptions {
 export function useDialog(
   componentOrVNode: any,
   props: NonNullable<Parameters<typeof h>[1]> = {},
-  { target, context }: Partial<UseDialogOptions> = {},
+  { target, context, slots = {} }: Partial<UseDialogOptions> = {},
 ) {
   if (typeof document === 'undefined' || !isClient) {
     console.warn('[useDialog]: Cannot use outside of browser!')
@@ -53,7 +53,7 @@ export function useDialog(
   const closeHook = createEventHook<void>()
   const mountedHook = createEventHook<void>()
 
-  const isMounted = $ref(false)
+  const isMounted = ref(false)
 
   const domNode = document.createElement('div')
 
@@ -63,8 +63,8 @@ export function useDialog(
 
   /** When props change, we want to re-render the element with the new prop values */
   const stop = watch(
-    toReactive(props),
-    (reactiveProps) => {
+    [toReactive(props), toReactive(slots)],
+    ([reactiveProps, reactiveSlots]) => {
       const _mountTarget = unref(target)
 
       /**
@@ -81,7 +81,7 @@ export function useDialog(
       mountTarget.value.appendChild(domNode)
 
       // if it's a vnode, just render it, otherwise wrap in `h` to create a vnode
-      const vNode = isVNode(componentOrVNode) ? componentOrVNode : h(componentOrVNode, reactiveProps)
+      const vNode = isVNode(componentOrVNode) ? componentOrVNode : h(componentOrVNode, reactiveProps, reactiveSlots || undefined)
 
       vNode.appContext = { ...useNuxtApp().vueApp._context, ...context }
 
@@ -90,7 +90,7 @@ export function useDialog(
       // wrap in suspense to resolve potential promises
       render(h(Suspense, vNode), domNode)
 
-      if (!isMounted) mountedHook.trigger()
+      if (!isMounted.value) mountedHook.trigger()
     },
     { deep: true, immediate: true, flush: 'post' },
   )

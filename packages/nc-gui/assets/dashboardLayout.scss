@@ -1,0 +1,31 @@
+.nc-dashboard-layouts-propspanel-value-input {
+  @apply flex-grow py-1 px-3 border-grey-light border border-solid rounded-lg text-sm w-full my-2;
+}
+
+.nc-dashboard-layouts-propspanel-description-input {
+  @apply flex-grow py-1 px-3 !border-gray-200 border border-solid rounded-lg text-sm w-full my-2;
+}
+
+.nc-dashboard-layouts-propspanel-selectable-config-section {
+  @apply bg-gray-100 rouwded-lg p-2;
+  h3 {
+    @apply text-black;
+  }
+  h4 {
+    @apply text-gray-500
+  }
+}
+
+.nc-dashboard-layouts-propspanel-collapse {
+  background-color: transparent;
+  .nc-dashboard-layouts-propspanel-collapse-panel {
+    @apply border-1 border-grey-light rounded-lg my-2 min-w-full;
+    .ant-collapse-header {
+      @apply font-semibold;
+      @apply !text-sm !2xl:text-base;
+    }
+    h3 {
+      @apply text-gray-500;
+    }  
+  }
+}

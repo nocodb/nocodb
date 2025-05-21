@@ -1,3 +1,4 @@
+{{ if .Values.storage.enabled }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -12,3 +13,4 @@ spec:
   accessModes:
     {{- default (toYaml .Values.storage.accessModes) "- ReadWriteMany" | nindent 4 }}
   volumeMode: Filesystem
+{{ end }}

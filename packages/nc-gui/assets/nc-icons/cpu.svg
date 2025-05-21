@@ -1,0 +1,18 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_664_57284)">
+<path d="M13.3334 7.5V3.99984C13.3334 3.26346 12.7365 2.6665 12.0001 2.6665H4.00008C3.2637 2.6665 2.66675 3.26346 2.66675 3.99984V11.9998C2.66675 12.7362 3.2637 13.3332 4.00008 13.3332H7.5" stroke="currentColor" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M10 6H6V10" stroke="currentColor" stroke-width="1.33" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M6 0.666504V2.6665" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M10 0.666504V2.6665" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M6 13.3335V15.3335" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M13.3333 6H15.3333" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M0.666748 6H2.66675" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M0.666748 9.3335H2.66675" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15ZM12 12.5C11.7239 12.5 11.5 12.2761 11.5 12V10.5C11.5 10.2239 11.7239 10 12 10C12.2761 10 12.5 10.2239 12.5 10.5V11.5H13.5C13.7761 11.5 14 11.7239 14 12C14 12.2761 13.7761 12.5 13.5 12.5H12Z" stroke="transparent"  fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_664_57284">
+<rect width="16" height="16" fill="white"/>
+</clipPath>
+</defs>
+</svg>

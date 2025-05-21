@@ -15,20 +15,28 @@
       "node_modules/**/*"
     ],
     "targets": [
-      "node16-linux-arm64",
-      "node16-macos-arm64",
-      "node16-win-arm64",
-      "node16-linux-x64",
-      "node16-macos-x64",
-      "node16-win-x64"
+      "node18-linux-arm64",
+      "node18-macos-arm64",
+      "node18-win-arm64",
+      "node18-linux-x64",
+      "node18-macos-x64",
+      "node18-win-x64"
     ]
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@nestjs/common": "^10.3.8",
+    "@nestjs/core": "^10.3.8",
     "cors": "^2.8.5",
-    "express": "^4.17.1",
-    "nocodb": "0.97.0"
+    "express": "^4.18.3",
+    "nocodb": "0.204.9"
+  },
+  "overrides": {
+    "sqlite3": "5.1.6"
+  },
+  "devDependencies": {
+    "@mapbox/node-pre-gyp": "^1.0.11"
   }
 }

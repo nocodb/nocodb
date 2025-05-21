@@ -1,20 +1,8 @@
 <script lang="ts" setup>
-import { computed, ref } from '#imports'
+import type { TooltipPlacement } from 'ant-design-vue/es/tooltip'
 
 interface Props {
-  placement?:
-    | 'top'
-    | 'left'
-    | 'right'
-    | 'bottom'
-    | 'topLeft'
-    | 'topRight'
-    | 'bottomLeft'
-    | 'bottomRight'
-    | 'leftTop'
-    | 'leftBottom'
-    | 'rightTop'
-    | 'rightBottom'
+  placement?: TooltipPlacement
   length?: number
 }
 
@@ -32,12 +20,12 @@ const shortName = computed(() =>
 </script>
 
 <template>
-  <a-tooltip v-if="enableTooltip" :placement="placement">
+  <NcTooltip v-if="enableTooltip" :placement="placement">
     <template #title>
       <slot />
     </template>
     <div class="w-full">{{ shortName }}</div>
-  </a-tooltip>
+  </NcTooltip>
   <div v-else class="w-full" data-testid="truncate-label">
     <slot />
   </div>

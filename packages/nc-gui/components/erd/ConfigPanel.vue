@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { Panel, PanelPosition } from '@vue-flow/additional-components'
 import type { ERDConfig } from './utils'
-import { ref, useGlobal, useVModel } from '#imports'
 
 const props = defineProps<{
   config: ERDConfig
@@ -16,12 +15,15 @@ const showAdvancedOptions = ref(false)
 
 <template>
   <Panel
-    class="flex flex-col bg-white border-1 rounded border-gray-200 z-50 px-3 py-1 nc-erd-context-menu"
+    class="flex flex-col gap-y-1 bg-white border-1 rounded-lg border-gray-200 z-50 px-3 py-2 nc-erd-context-menu shadow-md"
     :position="PanelPosition.TopRight"
   >
     <div class="flex items-center gap-2">
       <a-checkbox v-model:checked="config.showAllColumns" v-e="['c:erd:showAllColumns']" class="nc-erd-showColumns-checkbox" />
-      <span class="select-none nc-erd-showColumns-label" style="font-size: 0.65rem" @dblclick="showAdvancedOptions = true">
+      <span
+        class="select-none nc-erd-config-option-label nc-erd-showColumns-label text-xs"
+        @dblclick="showAdvancedOptions = true"
+      >
         {{ $t('activity.erd.showColumns') }}
       </span>
     </div>
@@ -37,17 +39,17 @@ const showAdvancedOptions = ref(false)
         ]"
         :disabled="!config.showAllColumns"
       />
-      <span class="select-none text-[0.65rem]">{{ $t('activity.erd.showPkAndFk') }}</span>
+      <span class="select-none nc-erd-config-option-label">{{ $t('activity.erd.showPkAndFk') }}</span>
     </div>
 
     <div v-if="!config.singleTableMode" class="flex items-center gap-2">
       <a-checkbox v-model:checked="config.showViews" v-e="['c:erd:showViews']" class="nc-erd-showViews-checkbox" />
-      <span class="select-none text-[0.65rem]">{{ $t('activity.erd.showSqlViews') }}</span>
+      <span class="select-none nc-erd-config-option-label">{{ $t('activity.erd.showSqlViews') }}</span>
     </div>
 
     <div v-if="!config.singleTableMode && showAdvancedOptions && includeM2M" class="flex flex-row items-center">
       <a-checkbox v-model:checked="config.showMMTables" v-e="['c:erd:showMMTables']" class="nc-erd-showMMTables-checkbox" />
-      <span class="ml-2 select-none text-[0.65rem]">{{ $t('activity.erd.showMMTables') }}</span>
+      <span class="ml-2 select-none nc-erd-config-option-label">{{ $t('activity.erd.showMMTables') }}</span>
     </div>
 
     <div v-if="showAdvancedOptions && includeM2M" class="flex items-center gap-2">
@@ -56,7 +58,13 @@ const showAdvancedOptions = ref(false)
         v-e="['c:erd:showJunctionTableNames']"
         class="nc-erd-showJunctionTableNames-checkbox"
       />
-      <span class="select-none text-[0.65rem]">{{ $t('activity.erd.showJunctionTableNames') }}</span>
+      <span class="select-none nc-erd-config-option-label">{{ $t('activity.erd.showJunctionTableNames') }}</span>
     </div>
   </Panel>
 </template>
+
+<style lang="scss" scoped>
+.nc-erd-config-option-label {
+  @apply text-xs;
+}
+</style>

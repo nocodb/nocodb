@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ComputedRef } from 'vue'
-import { computed, useI18n, useUIPermission } from '#imports'
 
 interface Tab {
   title: string
@@ -10,7 +9,7 @@ interface Tab {
 
 const { t } = useI18n()
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const tabsInfo: Tab[] = [
   {
@@ -25,9 +24,9 @@ const tabsInfo: Tab[] = [
   },
 ]
 
-const selectedTabKey = $ref(0)
+const selectedTabKey = ref(0)
 
-const selectedTab = $computed(() => tabsInfo[selectedTabKey])
+const selectedTab = computed(() => tabsInfo[selectedTabKey.value])
 </script>
 
 <template>

@@ -1,27 +1,25 @@
 name: 🐛 Bug Report
-description: Create a bug report to help improve NocoDB
+description: Report a bug in NocoDB
 title: "🐛 Bug: "
 labels: [Type : Bug]
-assignees:
-- o1lab
 body:
 - type: markdown
   attributes:
     value: |
-      Thank you ❤️ for taking the time to fill out this feature request report!
+      Thank you for taking the time to fill out this bug report! ❤️
 
 - type: checkboxes
   attributes:
-    label: Please confirm if bug report does NOT exists already ?
-    description: We kindly ask that you [search](https://github.com/nocodb/nocodb/issues?q=is%3Aissue+sort%3Acreated-desc+) to see if an issue already exists for your bug
+    label: Please confirm that the bug report does ***not*** already exist
+    description: We kindly ask you [to search the open issues](https://github.com/nocodb/nocodb/issues?q=is%3Aissue+sort%3Acreated-desc+) and ensure the bug has not already been reported before.
     options:
-    - label: I confirm there is no existing issue for this
+    - label: I confirm there is no existing issue for this bug.
       required: true
 
 - type: textarea
   attributes:
-    label: Steps to reproduce ?
-    description: A clear and concise steps on how to reproduce the issue. More details the better.
+    label: Steps to reproduce
+    description: A clear and concise example on how to reproduce the issue. Please make sure to provide all relevant technical details.
   validations:
     required: true
 
@@ -35,9 +33,10 @@ body:
 - type: textarea
   attributes:
     label: Project Details
-    description: Click on top left icon and click `Copy Project Info`. (See [YouTube video](https://www.youtube.com/watch?v=AUSNN-RCwhE) or [Docs](https://docs.nocodb.com/FAQs#how-to-check-my-project-info-))
+    description: Click on <kbd>…</kbd> button next to a base in the NocoDB sidebar on the left and select <kbd>Copy Base Info</kbd> (see the [docs](https://docs.nocodb.com/FAQs#how-to-check-my-project-info-) for details) and paste the result below.
     placeholder: |
-      or provide the following info
+      Or manually fill in following info:
+
       ```
       NocoDB used as docker : true / false
       NocoDB version : 
@@ -54,8 +53,8 @@ body:
 - type: textarea
   attributes:
     label: Attachments
-    description: Add any relevant attachment here
+    description: Add relevant attachments here.
     placeholder: |
-      > Drag & drop relevant image or videos
+      Drag & drop relevant images or videos here.
   validations:
     required: false

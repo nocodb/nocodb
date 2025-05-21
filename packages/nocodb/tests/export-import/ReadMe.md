@@ -8,7 +8,7 @@
 - baseURL & xc-auth are common configurations for both import & export
 
 ## Export
-- `srcProject`: specify source project name to be exported.
+- `srcProject`: specify source base name to be exported.
 - Export JSON file will be created as `srcProject.json`
 - execute 
  `cd packages/nocodb/tests/export-import`
@@ -16,7 +16,7 @@
 
 ## Import
 - `srcProject`: specify JSON file name to be imported (sans .JSON suffix)
-- `dstProject`: new project name to be imported as
+- `dstProject`: new base name to be imported as
 - Data will also be imported if `srcProject` exists in NocoDB. Note that, data import isn't via exported JSON
 - execute
   `cd packages/nocodb/tests/export-import`

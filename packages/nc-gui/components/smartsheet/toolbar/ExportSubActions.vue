@@ -1,116 +1,110 @@
 <script setup lang="ts">
-import type { RequestParams } from 'nocodb-sdk'
 import { ExportTypes } from 'nocodb-sdk'
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsPublicInj,
-  MetaInj,
-  extractSdkResponseErrorMsg,
-  iconMap,
-  inject,
-  message,
-  ref,
-  storeToRefs,
-  useI18n,
-  useNuxtApp,
-  useProject,
-  useSmartsheetStoreOrThrow,
-} from '#imports'
 
-const { t } = useI18n()
+const { $api, $poller } = useNuxtApp()
+
+const { appInfo } = useGlobal()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
-const fields = inject(FieldsInj, ref([]))
+const selectedView = inject(ActiveViewInj)!
 
-const { project } = storeToRefs(useProject())
+const urlHelper = (url: string) => {
+  if (url.startsWith('http')) {
+    return url
+  } else {
+    return `${appInfo.value.ncSiteUrl || BASE_FALLBACK_URL}/${url}`
+  }
+}
 
-const { $api } = useNuxtApp()
+const handleDownload = async (url: string) => {
+  url = urlHelper(url)
 
-const meta = inject(MetaInj, ref())
+  const isExpired = await isLinkExpired(url)
 
-const selectedView = inject(ActiveViewInj)
+  if (isExpired) {
+    navigateTo(url, {
+      open: navigateToBlankTargetOpenOption,
+    })
+    return
+  }
 
-const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+  const link = document.createElement('a')
+  link.href = url
+  link.style.display = 'none' // Hide the link
+
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+const isExporting = ref(false)
 
 const exportFile = async (exportType: ExportTypes) => {
-  let offset = 0
-  let c = 1
-  const responseType = exportType === ExportTypes.EXCEL ? 'base64' : 'blob'
-
-  const XLSX = await import('xlsx')
-  const FileSaver = await import('file-saver')
-
   try {
-    while (!isNaN(offset) && offset > -1) {
-      let res
-      if (isPublicView.value) {
-        const { exportFile: sharedViewExportFile } = useSharedView()
-        res = await sharedViewExportFile(fields.value, offset, exportType, responseType, {
-          sortsArr: sorts.value,
-          filtersArr: nestedFilters.value,
-        })
-      } else {
-        res = await $api.dbViewRow.export(
-          'noco',
-          project.value?.title as string,
-          meta.value?.title as string,
-          selectedView?.value.title as string,
-          exportType,
-          {
-            responseType,
-            query: {
-              fields: fields.value.map((field) => field.title),
-              offset,
-              sortArrJson: JSON.stringify(sorts.value),
-              filterArrJson: JSON.stringify(nestedFilters.value),
-            },
-          } as RequestParams,
-        )
-      }
+    if (isExporting.value || !selectedView.value.id) return
 
-      const { data, headers } = res
+    isExporting.value = true
 
-      if (exportType === ExportTypes.EXCEL) {
-        const workbook = XLSX.read(data, { type: 'base64' })
+    let jobData: { id: string }
 
-        XLSX.writeFile(workbook, `${meta.value?.title}_exported_${c++}.xlsx`)
-      } else if (exportType === ExportTypes.CSV) {
-        const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
+    if (isPublicView.value) {
+      if (!selectedView.value.uuid) return
 
-        FileSaver.saveAs(blob, `${meta.value?.title}_exported_${c++}.csv`)
-      }
-
-      offset = +headers['nc-export-offset']
-      if (offset > -1) {
-        // Downloading more files
-        message.info(t('msg.info.downloadingMoreFiles'))
-      } else {
-        // Successfully exported all table data
-        message.success(t('msg.success.tableDataExported'))
-      }
+      jobData = await $api.public.exportData(selectedView.value.uuid, exportType, {})
+    } else {
+      jobData = await $api.export.data(selectedView.value.id, exportType, {})
     }
+
+    message.info('Preparing CSV for download...')
+
+    $poller.subscribe(
+      { id: jobData.id },
+      async (data: {
+        id: string
+        status?: string
+        data?: {
+          error?: {
+            message: string
+          }
+          message?: string
+          result?: any
+        }
+      }) => {
+        if (data.status !== 'close') {
+          if (data.status === JobStatus.COMPLETED) {
+            // Export completed successfully
+            message.info('Successfully exported data!')
+
+            handleDownload(data.data?.result?.url)
+
+            isExporting.value = false
+          } else if (data.status === JobStatus.FAILED) {
+            message.error('Failed to export data!')
+
+            isExporting.value = false
+          }
+        }
+      },
+    )
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+    isExporting.value = false
   }
 }
 </script>
 
 <template>
-  <a-menu-item>
-    <div v-e="['a:actions:download-csv']" class="nc-project-menu-item" @click="exportFile(ExportTypes.CSV)">
-      <component :is="iconMap.csv" class="text-gray-500" />
-      <!-- Download as CSV -->
-      {{ $t('activity.downloadCSV') }}
-    </div>
-  </a-menu-item>
+  <NcMenuItemLabel>
+    {{ $t('labels.downloadData') }}
+  </NcMenuItemLabel>
 
-  <a-menu-item>
-    <div v-e="['a:actions:download-excel']" class="nc-project-menu-item" @click="exportFile(ExportTypes.EXCEL)">
-      <component :is="iconMap.excel" class="text-gray-500" />
-      <!-- Download as XLSX -->
-      {{ $t('activity.downloadExcel') }}
+  <NcMenuItem v-e="['a:download:csv']" @click.stop="exportFile(ExportTypes.CSV)">
+    <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
+      <GeneralLoader v-if="isExporting" size="regular" />
+      <component :is="iconMap.ncFileTypeCsvSmall" v-else class="w-4" />
+      <!-- Download as CSV -->
+      CSV
     </div>
-  </a-menu-item>
+  </NcMenuItem>
 </template>

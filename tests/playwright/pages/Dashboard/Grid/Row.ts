@@ -13,13 +13,13 @@ export class RowPageObject extends BasePage {
     return this.rootPage.locator('tr.nc-grid-row');
   }
 
-  async getRecord(index: number) {
+  getRecord(index: number) {
     return this.get().nth(index);
   }
 
-  // style="height: 3rem;"
+  // style="height: 32px;"
   async getRecordHeight(index: number) {
-    const record = await this.getRecord(index);
+    const record = this.getRecord(index);
     const style = await record.getAttribute('style');
     return style.split(':')[1].split(';')[0].trim();
   }

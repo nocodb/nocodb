@@ -1,20 +1,19 @@
 <script lang="ts" setup>
-import type { ProjectType } from 'nocodb-sdk'
-import { iconMap, navigateTo } from '#imports'
+import type { BaseType } from 'nocodb-sdk'
 
 interface Props {
-  projects?: ProjectType[]
+  bases?: BaseType[]
 }
 
-const { projects = [] } = defineProps<Props>()
+const { bases = [] } = defineProps<Props>()
 
-const emit = defineEmits(['delete-project'])
+const emit = defineEmits(['delete-base'])
 
 const { $e } = useNuxtApp()
 
-const openProject = async (project: ProjectType) => {
-  await navigateTo(`/nc/${project.id}`)
-  $e('a:project:open', { count: projects.length })
+const openProject = async (base: BaseType) => {
+  await navigateTo(`/nc/${base.id}`)
+  $e('a:base:open', { count: bases.length })
 }
 </script>
 
@@ -28,23 +27,19 @@ const openProject = async (project: ProjectType) => {
 
     <div class="col-span-3 w-full h-[1px] bg-gray-500/50" />
 
-    <template v-for="project of projects" :key="project.id">
+    <template v-for="base of bases" :key="base.id">
       <div
-        class="cursor-pointer grid grid-cols-3 gap-2 prose-md hover:(bg-gray-300/30) p-2 transition-color ease-in duration-100"
-        @click="openProject(project)"
+        class="cursor-pointer grid grid-cols-3 gap-2 prose-md hover:(bg-gray-300/30) p-2 transition-colors ease-in duration-100"
+        @click="openProject(base)"
       >
-        <div class="font-semibold capitalize">{{ project.title || 'Untitled' }}</div>
-        <div>{{ project.updated_at }}</div>
+        <div class="font-semibold capitalize">{{ base.title || 'Untitled' }}</div>
+        <div>{{ base.updated_at }}</div>
         <div class="flex justify-center">
-          <component
-            :is="iconMap.delete"
-            class="text-gray-500 hover:text-red-500 mr-2"
-            @click.stop="emit('delete-project', project)"
-          />
+          <component :is="iconMap.delete" class="text-gray-500 hover:text-red-500 mr-2" @click.stop="emit('delete-base', base)" />
           <component
             :is="iconMap.edit"
             class="text-gray-500 hover:text-primary mr-2"
-            @click.stop="navigateTo(`/project/${project.id}`)"
+            @click.stop="navigateTo(`/base/${base.id}`)"
           />
         </div>
       </div>

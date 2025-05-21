@@ -2,7 +2,6 @@ import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 import type { MaybeRef } from '@vueuse/core'
 import { watchPostEffect } from '@vue/runtime-core'
-import { unref } from '#imports'
 
 export function useSortable(
   element: MaybeRef<HTMLElement | undefined>,
@@ -10,18 +9,18 @@ export function useSortable(
   updateModelValue: (data: string | Record<string, any>[]) => void,
   isReadonly: MaybeRef<boolean> = false,
 ) {
-  let dragging = $ref(false)
+  const dragging = ref(false)
 
   function onSortStart(evt: SortableEvent) {
     evt.stopImmediatePropagation()
     evt.preventDefault()
-    dragging = true
+    dragging.value = true
   }
 
   async function onSortEnd(evt: SortableEvent) {
     evt.stopImmediatePropagation()
     evt.preventDefault()
-    dragging = false
+    dragging.value = false
 
     const _items = unref(items)
 
@@ -43,8 +42,10 @@ export function useSortable(
     sortable = new Sortable(el, {
       handle: '.nc-attachment',
       ghostClass: 'ghost',
+      animation: 70,
       onStart: onSortStart,
       onEnd: onSortEnd,
+      revertOnSpill: true,
     })
   }
 
@@ -52,14 +53,16 @@ export function useSortable(
     const _element = unref(element)
 
     onCleanup(() => {
-      if (_element && sortable) sortable.destroy()
+      if (_element && sortable?.el) {
+        sortable.destroy()
+      }
     })
 
     if (_element && !unref(isReadonly)) initSortable(_element)
   })
 
   return {
-    dragging: $$(dragging),
+    dragging,
     initSortable,
   }
 }

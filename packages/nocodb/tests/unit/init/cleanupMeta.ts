@@ -1,36 +1,50 @@
-import Model from '../../../src/lib/models/Model';
-import Project from '../../../src/lib/models/Project';
-import NcConnectionMgrv2 from '../../../src/lib/utils/common/NcConnectionMgrv2';
-import { orderedMetaTables } from '../../../src/lib/utils/globals';
 import TestDbMngr from '../TestDbMngr';
-import { isPg } from './db';
+import { Base, Model } from '~/models';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { MetaTable, orderedMetaTables, RootScopes } from '~/utils/globals';
+import Noco from '~/Noco';
 
 const dropTablesAllNonExternalProjects = async () => {
-  const projects = await Project.list({});
+  const rawBases = await Noco.ncMeta.metaList2(
+    RootScopes.BASE,
+    RootScopes.BASE,
+    MetaTable.PROJECT,
+  );
+
+  const bases = rawBases.map((b) => Base.castType(b));
+
   const userCreatedTableNames: string[] = [];
   await Promise.all(
-    projects
-      .filter((project) => project.is_meta)
-      .map(async (project) => {
-        await project.getBases();
-        const base = project.bases && project.bases[0];
-        if (!base) return;
+    bases
+      .filter((base) => base.is_meta)
+      .map(async (base) => {
+        await base.getSources();
+        const source = base.sources && base.sources[0];
+        if (!source) return;
 
-        const models = await Model.list({
-          project_id: project.id,
-          base_id: base.id!,
-        });
+        const models = await Model.list(
+          {
+            workspace_id: base.fk_workspace_id,
+            base_id: base.id,
+          },
+          {
+            base_id: base.id,
+            source_id: source.id!,
+          },
+        );
         models.forEach((model) => {
           userCreatedTableNames.push(model.table_name);
         });
-      })
+      }),
   );
 
   await TestDbMngr.disableForeignKeyChecks(TestDbMngr.metaKnex);
 
   for (const tableName of userCreatedTableNames) {
     if (TestDbMngr.isPg()) {
-      await TestDbMngr.metaKnex.raw(`DROP TABLE "${tableName}" CASCADE`);
+      await TestDbMngr.metaKnex.raw(
+        `DROP TABLE IF EXISTS "${tableName}" CASCADE`,
+      );
     } else {
       await TestDbMngr.metaKnex.raw(`DROP TABLE ${tableName}`);
     }

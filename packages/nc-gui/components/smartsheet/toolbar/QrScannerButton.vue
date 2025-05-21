@@ -4,7 +4,6 @@ import { ref } from 'vue'
 import { StreamBarcodeReader } from 'vue-barcode-reader'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { NOCO, iconMap, storeToRefs } from '#imports'
 
 const meta = inject(MetaInj, ref())
 
@@ -16,7 +15,7 @@ const router = useRouter()
 
 const { $api } = useNuxtApp()
 
-const { project } = storeToRefs(useProject())
+const { base } = storeToRefs(useBase())
 
 const { isMobileMode } = useGlobal()
 
@@ -83,7 +82,7 @@ const onDecode = async (codeValue: string) => {
     const selectedColumnToScanFor = getColumnToSearchForByBarOrQrCodeColumnId(idOfSelectedColumnToScanFor.value)
     const whereClause = `(${selectedColumnToScanFor?.title},eq,${codeValue})`
     const foundRowsForCode = (
-      await $api.dbViewRow.list(NOCO, project.value.id!, meta.value!.id!, view.value!.title!, {
+      await $api.dbViewRow.list(NOCO, base.value.id!, meta.value!.id!, view.value!.title!, {
         where: whereClause,
       })
     ).list

@@ -17,11 +17,11 @@ test.describe('Quick tests', () => {
     await loginPage.submit();
 
     const projectsPage = new ProjectsPage(page);
-    const project = await projectsPage.openProject({ title: 'sample', withoutPrefix: true });
-    dashboard = new DashboardPage(page, project);
+    const base = await projectsPage.openProject({ title: 'sample', withoutPrefix: true });
+    dashboard = new DashboardPage(page, base);
 
     const context: NcContext = {
-      project,
+      base,
       token: '',
       dbType: (process.env.CI ? process.env.E2E_DB_TYPE : process.env.E2E_DEV_DB_TYPE) || 'mysql',
     };

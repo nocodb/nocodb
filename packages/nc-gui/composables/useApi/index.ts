@@ -1,18 +1,17 @@
 import type { AxiosError, AxiosResponse } from 'axios'
-import { Api } from 'nocodb-sdk'
+import { Api, type Api as BaseAPI } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { CreateApiOptions, UseApiProps, UseApiReturn } from './types'
 import { addAxiosInterceptors } from './interceptors'
-import { BASE_FALLBACK_URL, createEventHook, extractSdkResponseErrorMsg, ref, unref, useCounter, useNuxtApp } from '#imports'
 
 export function createApiInstance<SecurityDataType = any>({
-  baseURL = BASE_FALLBACK_URL,
+  baseURL: _baseUrl = BASE_FALLBACK_URL,
 }: CreateApiOptions = {}): Api<SecurityDataType> {
   const config = useRuntimeConfig()
-
+  const baseURL = config.public.ncBackendUrl || _baseUrl
   return addAxiosInterceptors(
     new Api<SecurityDataType>({
-      baseURL: config.public.ncBackendUrl || baseURL,
+      baseURL,
     }),
   )
 }
@@ -59,17 +58,21 @@ export function useApi<Data = any, RequestConfig = any>({
   const nuxtApp = useNuxtApp()
 
   /** api instance - with interceptors for token refresh already bound */
-  const api = useGlobalInstance && !!nuxtApp.$api ? nuxtApp.$api : createApiInstance(apiOptions)
+  const api: BaseAPI<any> = useGlobalInstance && !!nuxtApp.$api ? nuxtApp.$api : createApiInstance(apiOptions)
 
   /** set loading to true and increment local and global request counter */
-  function onRequestStart() {
-    isLoading.value = true
+  // Long Polling causes the loading spinner to never stop
+  // hence we are excluding the polling request from the loading spinner
+  function onRequestStart(config) {
+    if (config.url !== '/api/v1/notifications/poll') {
+      isLoading.value = true
 
-    /** local count */
-    inc()
+      /** local count */
+      inc()
 
-    /** global count */
-    nuxtApp.$state.runningRequests.inc()
+      /** global count */
+      nuxtApp.$state.runningRequests.inc()
+    }
   }
 
   /** decrement local and global request counter and check if we can stop loading */
@@ -100,7 +103,7 @@ export function useApi<Data = any, RequestConfig = any>({
     (config) => {
       reset()
 
-      onRequestStart()
+      onRequestStart(config)
 
       return {
         ...config,

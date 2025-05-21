@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import type { GeoLocationType } from 'nocodb-sdk'
-import { Modal as AModal, iconMap, latLongToJoinedString, useVModel } from '#imports'
+import { type GeoLocationType, TypeConversionError, convertGeoNumberToString, latLongToJoinedString } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: string | null
@@ -14,19 +13,35 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
+const column = inject(ColumnInj)
+
 const vModel = useVModel(props, 'modelValue', emits)
 
-let isExpanded = $ref(false)
+const activeCell = inject(ActiveCellInj, ref(false))
 
-let isLoading = $ref(false)
+const isPublic = inject(IsPublicInj, ref(false))
 
-let isLocationSet = $ref(false)
+const readonly = inject(ReadonlyInj, ref(false))
+
+const isExpanded = ref(false)
+
+const isLoading = ref(false)
+
+const identifier = computed(() => {
+  return {
+    latitude: Math.random().toString(36).substring(2, 15),
+    longitude: Math.random().toString(36).substring(2, 15),
+  }
+})
+
+const isLocationSet = computed(() => {
+  return !!vModel.value
+})
 
 const [latitude, longitude] = (vModel.value || '').split(';')
 
 const latLongStr = computed(() => {
   const [latitude, longitude] = (vModel.value || '').split(';')
-  if (latitude) isLocationSet = true
   return latitude && longitude ? `${latitude}; ${longitude}` : 'Set location'
 })
 
@@ -37,28 +52,28 @@ const formState = reactive({
 
 const handleFinish = () => {
   vModel.value = latLongToJoinedString(parseFloat(formState.latitude), parseFloat(formState.longitude))
-  isExpanded = false
+  isExpanded.value = false
 }
 
 const clear = () => {
-  isExpanded = false
+  isExpanded.value = false
 
   formState.latitude = latitude
   formState.longitude = longitude
 }
 
 const onClickSetCurrentLocation = () => {
-  isLoading = true
+  isLoading.value = true
   const onSuccess: PositionCallback = (position: GeolocationPosition) => {
     const crd = position.coords
-    formState.latitude = `${crd.latitude}`
-    formState.longitude = `${crd.longitude}`
-    isLoading = false
+    formState.latitude = `${convertGeoNumberToString(crd.latitude)}`
+    formState.longitude = `${convertGeoNumberToString(crd.longitude)}`
+    isLoading.value = false
   }
 
   const onError: PositionErrorCallback = (err: GeolocationPositionError) => {
     console.error(`ERROR(${err.code}): ${err.message}`)
-    isLoading = false
+    isLoading.value = false
   }
 
   const options = {
@@ -72,115 +87,248 @@ const onClickSetCurrentLocation = () => {
 const openInGoogleMaps = () => {
   const [latitude, longitude] = (vModel.value || '').split(';')
   const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
-  window.open(url, '_blank')
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 const openInOSM = () => {
   const [latitude, longitude] = (vModel.value || '').split(';')
   const url = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=15/${latitude}/${longitude}`
-  window.open(url, '_blank')
+  window.open(url, '_blank', "'noopener,noreferrer'")
+}
+
+const handleClose = (e: MouseEvent) => {
+  if (e.target instanceof HTMLElement && !e.target.closest('.nc-geodata-picker-overlay')) {
+    isExpanded.value = false
+  }
+}
+
+useEventListener(document, 'click', handleClose, true)
+
+const handlePaste = (e: ClipboardEvent) => {
+  if ([identifier.value.latitude, identifier.value.longitude].includes(e.target?.id)) {
+    return
+  }
+  const clipboardData = e.clipboardData?.getData('text/plain') || ''
+  if (isExpanded.value) {
+    try {
+      const value = convertCellData(
+        {
+          value: clipboardData,
+          to: column.value.uidt,
+          column: column.value,
+        },
+        false,
+      )
+      if (value) {
+        formState.latitude = value.split(';')[0]
+        formState.longitude = value.split(';')[1]
+      }
+    } catch (ex) {
+      if (ex instanceof TypeConversionError !== true) {
+        throw ex
+      }
+    }
+  }
+}
+
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+const isGrid = inject(IsGridInj, ref(false))
+
+const isForm = inject(IsFormInj, ref(false))
+
+const handleBlur = (e: Event) => {
+  const originalValue = (e.target as any).value as string
+  const value = convertGeoNumberToString(Number(originalValue))
+  if (value !== originalValue) {
+    if ((e.target as any)!.id === identifier.value.latitude) {
+      formState.latitude = value
+    } else if ((e.target as any)!.id === identifier.value.longitude) {
+      formState.longitude = value
+    }
+  }
+}
+
+onMounted(() => {
+  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
+    forcedNextTick(() => {
+      isExpanded.value = true
+    })
+  }
+})
+
+watch(
+  () => vModel,
+  (oldValue, newValue) => {
+    if (newValue.value) {
+      formState.latitude = newValue.value?.split(';')[0]
+      formState.longitude = newValue.value?.split(';')[1]
+    } else {
+      formState.latitude = ''
+      formState.longitude = ''
+    }
+  },
+)
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && isExpanded.value) {
+    e.preventDefault()
+    e.stopImmediatePropagation()
+    isExpanded.value = false
+  }
+
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    if (readonly.value) {
+      return
+    }
+    isExpanded.value = !isExpanded.value
+  }
 }
 </script>
 
 <template>
-  <a-dropdown :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" trigger="click">
-    <div
-      v-if="!isLocationSet"
-      class="group cursor-pointer flex gap-1 items-center mx-auto max-w-64 justify-center active:(ring ring-accent ring-opacity-100) rounded border-1 p-1 shadow-sm hover:(bg-primary bg-opacity-10) dark:(!bg-slate-500)"
-    >
-      <div class="flex items-center gap-2" data-testid="nc-geo-data-set-location-button">
-        <component
-          :is="iconMap.mapMarker"
-          class="transform dark:(!text-white) group-hover:(!text-accent scale-120) text-gray-500 text-[0.75rem]"
-        />
-        <div class="group-hover:text-primary text-gray-500 dark:text-gray-200 dark:group-hover:!text-white text-xs">
-          {{ latLongStr }}
-        </div>
+  <div tabindex="0" class="focus-visible:outline-none" @paste="handlePaste" @keydown="handleKeyDown">
+    <NcDropdown v-model:visible="isExpanded" :disabled="readonly" overlay-class-name="!min-w-[27.25rem]">
+      <div
+        v-if="!isLocationSet"
+        :class="{
+          '!justify-start !ml-0 ': isExpandedForm || isForm,
+          'mt-0.5': isForm && !isPublic,
+          '!-mt-0.25': isForm && isPublic,
+        }"
+        class="w-full flex justify-center max-w-64 mx-auto"
+      >
+        <NcButton
+          v-if="(activeCell && !readonly) || isForm"
+          size="xsmall"
+          type="secondary"
+          data-testid="nc-geo-data-set-location-button"
+        >
+          <div class="flex items-center px-2 gap-2">
+            <GeneralIcon class="text-gray-500 h-3.5 w-3.5" icon="ncMapPin" />
+            <span class="text-tiny">
+              {{ latLongStr }}
+            </span>
+          </div>
+        </NcButton>
       </div>
-    </div>
-    <div v-else data-testid="nc-geo-data-lat-long-set">{{ latLongStr }}</div>
-    <template #overlay>
-      <a-form :model="formState" class="flex flex-col w-max-64" @finish="handleFinish">
-        <a-form-item>
-          <div class="flex mt-4 items-center mx-2">
-            <div class="mr-2">{{ $t('labels.lat') }}:</div>
-            <a-input
-              v-model:value="formState.latitude"
-              data-testid="nc-geo-data-latitude"
-              type="number"
-              step="0.0000001"
-              :min="-90"
-              required
-              :max="90"
-              @keydown.stop
-              @selectstart.capture.stop
-              @mousedown.stop
-            />
-          </div>
-        </a-form-item>
 
-        <a-form-item>
-          <div class="flex items-center mx-2">
-            <div class="mr-2">{{ $t('labels.lng') }}:</div>
-            <a-input
-              v-model:value="formState.longitude"
-              data-testid="nc-geo-data-longitude"
-              type="number"
-              step="0.0000001"
-              required
-              :min="-180"
-              :max="180"
-              @keydown.stop
-              @selectstart.capture.stop
-              @mousedown.stop
-            />
-          </div>
-        </a-form-item>
-        <a-form-item>
-          <div class="mr-2 flex flex-col items-end gap-1 text-left">
-            <component
-              :is="iconMap.reload"
-              v-if="isLoading"
-              :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }"
-            />
-            <a-button class="ml-2" @click="onClickSetCurrentLocation"
-              ><component :is="iconMap.currentLocation" class="mr-2" />{{ $t('labels.currentLocation') }}</a-button
-            >
-          </div>
-        </a-form-item>
-        <a-form-item v-if="vModel">
-          <div class="mr-2 flex flex-row items-end gap-1 text-left">
-            <a-button @click="openInOSM"
-              ><component :is="iconMap.openInNew" class="mr-2" />{{ $t('activity.map.openInOpenStreetMap') }}</a-button
-            >
-            <a-button @click="openInGoogleMaps"
-              ><component :is="iconMap.openInNew" class="mr-2" />{{ $t('activity.map.openInGoogleMaps') }}</a-button
-            >
-          </div>
-        </a-form-item>
-        <a-form-item>
-          <div class="ml-auto mr-2 w-auto">
-            <a-button type="text" @click="clear">{{ $t('general.cancel') }}</a-button>
-            <a-button type="primary" html-type="submit" data-testid="nc-geo-data-save">{{ $t('general.submit') }}</a-button>
-          </div>
-        </a-form-item>
-      </a-form>
-    </template>
-  </a-dropdown>
+      <div
+        v-else
+        data-testid="nc-geo-data-lat-long-set"
+        tabindex="1"
+        :class="{
+          '!py-1': !isForm,
+          'pt-1': isForm && !isPublic,
+        }"
+        class="nc-cell-field h-full w-full flex items-center focus-visible:!outline-none focus:!outline-none"
+      >
+        {{ latLongStr }}
+      </div>
+      <template #overlay>
+        <div class="flex rounded-md nc-geodata-picker-overlay py-3" @click.stop @paste="handlePaste">
+          <a-form layout="vertical" :model="formState" class="flex flex-col" @finish="handleFinish">
+            <a-row class="flex gap-3 px-3">
+              <a-form-item :label="$t('labels.latitude')">
+                <a-input
+                  :id="identifier.latitude"
+                  v-model:value="formState.latitude"
+                  data-testid="nc-geo-data-latitude"
+                  type="number"
+                  step="0.0000000001"
+                  class="nc-input-shadow !w-50"
+                  :min="-90"
+                  :disabled="readonly"
+                  required
+                  :max="90"
+                  @blur="handleBlur"
+                  @keydown.stop
+                  @selectstart.capture.stop
+                  @mousedown.stop
+                />
+              </a-form-item>
+
+              <a-form-item :label="$t('labels.longitude')">
+                <a-input
+                  :id="identifier.longitude"
+                  v-model:value="formState.longitude"
+                  class="nc-input-shadow !w-50"
+                  data-testid="nc-geo-data-longitude"
+                  type="number"
+                  step="0.0000000001"
+                  required
+                  :min="-180"
+                  :disabled="readonly"
+                  :max="180"
+                  @blur="handleBlur"
+                  @keydown.stop
+                  @selectstart.capture.stop
+                  @mousedown.stop
+                />
+              </a-form-item>
+            </a-row>
+            <NcDivider />
+
+            <div class="flex px-3 mt-2 flex-col gap-2">
+              <div class="flex">
+                <div class="flex gap-2">
+                  <NcButton size="small" type="secondary" @click="onClickSetCurrentLocation">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="currentLocation" />
+                      {{ $t('labels.currentLocation') }}
+                    </div>
+                  </NcButton>
+                </div>
+                <div class="flex-1" />
+                <div v-if="vModel" class="flex gap-2">
+                  <NcButton type="secondary" size="small" @click="openInGoogleMaps">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="ncLogoGoogleMapColored" />
+                      {{ $t('activity.map.googleMaps') }}
+                    </div>
+                  </NcButton>
+
+                  <NcButton type="secondary" size="small" @click="openInOSM">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon class="w-4 h-4" icon="ncLogoOpenStreetMapColored" />
+                      {{ $t('activity.map.osm') }}
+                    </div>
+                  </NcButton>
+                </div>
+              </div>
+
+              <div class="flex gap-3 justify-end">
+                <NcButton type="secondary" size="small" @click="clear">
+                  {{ $t('general.cancel') }}
+                </NcButton>
+
+                <NcButton html-type="submit" size="small" data-testid="nc-geo-data-save">
+                  {{ $t('general.submit') }}
+                </NcButton>
+              </div>
+            </div>
+          </a-form>
+        </div>
+      </template>
+    </NcDropdown>
+  </div>
 </template>
 
 <style scoped lang="scss">
 input[type='number']:focus {
-  @apply ring-transparent;
+  @apply ring-transparent shadow-selected;
+}
+input[type='number'] {
+  @apply !border-1 !pr-1 rounded-lg;
 }
 
-input[type='number'] {
-  width: 180px;
-}
 .ant-form-item {
   margin-bottom: 1rem;
 }
-.ant-dropdown-menu {
-  align-items: flex-end;
+
+:deep(.ant-form-item-label > label) {
+  @apply !text-small !leading-[18px] mb-2 text-nc-content-gray flex;
 }
 </style>

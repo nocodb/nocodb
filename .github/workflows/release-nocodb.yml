@@ -13,7 +13,7 @@ on:
 jobs:
   # Validate Branch
   validate-branch:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - run: |
           if [[ ${{ github.ref }} != 'refs/heads/master' ]]; then
@@ -23,7 +23,7 @@ jobs:
 
   # Process Input
   process-input:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: validate-branch
     outputs:
       target_tag: ${{ steps.process-input.outputs.target_tag }}
@@ -69,6 +69,11 @@ jobs:
       targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
     secrets:
       NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
+
+  # Create a PR to sync changes back to develop branch from master
+  sync-to-develop:
+    needs: [release-npm, process-input]
+    uses: ./.github/workflows/sync-to-develop.yml
 
   # Draft Release Note
   release-draft-note:
@@ -117,7 +122,5 @@ jobs:
     secrets:
       GH_TOKEN: "${{ secrets.GH_TOKEN }}"
 
-  # Sync changes to develop
-  sync-to-develop:
-    needs: publish-docs
-    uses: ./.github/workflows/sync-to-develop.yml
+  aiopusher:
+    uses: ./.github/workflows/nix-aiopusher.yml

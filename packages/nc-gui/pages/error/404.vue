@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { definePageMeta, iconMap } from '#imports'
-
 definePageMeta({
   requiresAuth: false,
   public: true,

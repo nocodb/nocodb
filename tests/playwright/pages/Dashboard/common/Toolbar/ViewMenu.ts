@@ -1,6 +1,5 @@
 import { expect, Locator } from '@playwright/test';
 import BasePage from '../../../Base';
-import { GridPage } from '../../Grid';
 import { ToolbarPage } from './index';
 // @ts-ignore
 import fs from 'fs';
@@ -13,7 +12,7 @@ export class ToolbarViewMenuPage extends BasePage {
   constructor(toolbar: ToolbarPage) {
     super(toolbar.rootPage);
     this.toolbar = toolbar;
-    this.viewsMenuBtn = this.toolbar.get().locator(`.nc-actions-menu-btn`);
+    this.viewsMenuBtn = this.rootPage.locator('.nc-view-context-btn');
   }
 
   get() {
@@ -44,7 +43,7 @@ export class ToolbarViewMenuPage extends BasePage {
     // verify downloaded content against expected content
     const expectedData = fs.readFileSync(expectedDataFile, 'utf8').replace(/\r/g, '').split('\n');
     const file = fs.readFileSync('./output/test.txt', 'utf8').replace(/\r/g, '').split('\n');
-    await expect(file).toEqual(expectedData);
+    expect(file).toEqual(expectedData);
   }
 
   async verifyDownloadAsXLSX({
@@ -72,7 +71,7 @@ export class ToolbarViewMenuPage extends BasePage {
     const expectedData = fs.readFileSync(expectedDataFile, 'utf8');
     const file = fs.readFileSync('./output/test.txt', 'utf8');
     // XLSX writes file with UTF-8 BOM, adds '\ufeff' to cater it
-    await expect(file).toEqual('\ufeff' + expectedData);
+    expect(file).toEqual('\ufeff' + expectedData);
   }
 
   // menu items
@@ -87,34 +86,44 @@ export class ToolbarViewMenuPage extends BasePage {
   // todo: Move verification out of the click method
   async click({ menu, subMenu, verificationInfo }: { menu: string; subMenu?: string; verificationInfo?: any }) {
     await this.viewsMenuBtn.click();
+
+    await this.rootPage.waitForTimeout(1000);
+
     await this.get().locator(`.ant-dropdown-menu-title-content:has-text("${menu}")`).first().click();
     if (subMenu) {
       // for CSV download, pass locator instead of clicking it here
-      if (subMenu === 'Download as CSV') {
+      if (subMenu === 'CSV') {
         await this.verifyDownloadAsCSV({
-          downloadLocator: await this.rootPage
-            .locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`)
+          downloadLocator: this.rootPage
+            .locator(`.ant-dropdown-menu-item.ant-dropdown-menu-item-only-child:has-text("${subMenu}")`)
             .last(),
           expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
         });
-      } else if (subMenu === 'Download as XLSX') {
+      } else if (subMenu === 'Excel') {
         await this.verifyDownloadAsXLSX({
-          downloadLocator: await this.rootPage
-            .locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`)
+          downloadLocator: this.rootPage
+            .locator(`.ant-dropdown-menu-item.ant-dropdown-menu-item-only-child:has-text("${subMenu}")`)
             .last(),
           expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
         });
       } else {
-        await this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last().click();
+        const locator = this.rootPage.getByTestId(`nc-view-action-lock-subaction-${subMenu}`).last();
+
+        await locator.click();
+
+        if (['Collaborative', 'Locked'].includes(subMenu)) {
+          await this.rootPage.locator(`.nc-lock-view-modal-wrapper`).waitFor({ state: 'visible' });
+          await this.rootPage.locator(`.nc-lock-view-modal-wrapper`).getByTestId('nc-lock-or-unlock-btn').click();
+        }
       }
 
       switch (subMenu) {
-        case 'Download as CSV':
+        case 'CSV':
           await this.verifyToast({
             message: 'Successfully exported all table data',
           });
           break;
-        case 'Download as XLSX':
+        case 'Excel':
           await this.verifyToast({
             message: 'Successfully exported all table data',
           });
@@ -134,31 +143,5 @@ export class ToolbarViewMenuPage extends BasePage {
       }
     }
     await this.toolbar.parent.waitLoading();
-  }
-
-  async verifyLockMode() {
-    await expect(await this.toolbar.get().locator(`.nc-fields-menu-btn.nc-toolbar-btn`)).toBeDisabled();
-    await expect(await this.toolbar.get().locator(`.nc-filter-menu-btn.nc-toolbar-btn`)).toBeDisabled();
-    await expect(await this.toolbar.get().locator(`.nc-sort-menu-btn.nc-toolbar-btn`)).toBeDisabled();
-    await expect(
-      await this.toolbar.get().locator(`.nc-add-new-row-btn.nc-toolbar-btn > .material-symbols-outlined.disabled`)
-    ).toBeVisible();
-
-    await (this.toolbar.parent as GridPage).verifyEditDisabled({
-      columnHeader: 'Country',
-    });
-  }
-
-  async verifyCollaborativeMode() {
-    await expect(await this.toolbar.get().locator(`.nc-fields-menu-btn.nc-toolbar-btn`)).toBeEnabled();
-    await expect(await this.toolbar.get().locator(`.nc-filter-menu-btn.nc-toolbar-btn`)).toBeEnabled();
-    await expect(await this.toolbar.get().locator(`.nc-sort-menu-btn.nc-toolbar-btn`)).toBeEnabled();
-    await expect(
-      await this.toolbar.get().locator(`.nc-add-new-row-btn.nc-toolbar-btn > .material-symbols-outlined`)
-    ).toBeVisible();
-
-    await (this.toolbar.parent as GridPage).verifyEditEnabled({
-      columnHeader: 'Country',
-    });
   }
 }

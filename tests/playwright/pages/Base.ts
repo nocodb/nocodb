@@ -1,4 +1,5 @@
-import { Locator, Page } from '@playwright/test';
+import { expect, Locator, Page } from '@playwright/test';
+import { readFileSync } from 'fs';
 
 type ResponseSelector = (json: any) => boolean;
 
@@ -13,6 +14,13 @@ export default abstract class BasePage {
 
   async verifyToast({ message }: { message: string }) {
     await this.rootPage.locator('.ant-message .ant-message-notice-content', { hasText: message }).last().isVisible();
+
+    // ensure that the toast is removed from the DOM
+    // await this.rootPage.waitForSelector('.ant-message .ant-message-notice-content', { state: 'hidden' });
+  }
+
+  async verifyErrorMessage({ message }: { message: RegExp }) {
+    await expect(this.get().locator('.ant-form-item-explain-error', { hasText: message })).toBeVisible();
   }
 
   async waitForResponse({
@@ -22,32 +30,39 @@ export default abstract class BasePage {
     requestUrlPathToMatch,
     // A function that takes the response body and returns true if the response is the one we are looking for
     responseJsonMatcher,
+    timeout,
+    responseStatusCodeToMatch = 200,
   }: {
     uiAction: () => Promise<any>;
-    requestUrlPathToMatch: string;
+    requestUrlPathToMatch: string | RegExp;
     httpMethodsToMatch?: string[];
     responseJsonMatcher?: ResponseSelector;
+    timeout?: number;
+    responseStatusCodeToMatch?: number;
   }) {
-    const waitForResponsePromise = this.rootPage.waitForResponse(async res => {
-      let isResJsonMatched = true;
-      if (responseJsonMatcher) {
-        try {
-          isResJsonMatched = responseJsonMatcher(await res.json());
-        } catch (e) {
-          return false;
-        }
+    const [res] = await Promise.all([
+      this.rootPage.waitForResponse(
+        res =>
+          (requestUrlPathToMatch instanceof RegExp
+            ? requestUrlPathToMatch.test(res.url())
+            : res.url().includes(requestUrlPathToMatch)) &&
+          res.status() === responseStatusCodeToMatch &&
+          httpMethodsToMatch.includes(res.request().method()),
+        timeout ? { timeout } : undefined
+      ),
+      uiAction(),
+    ]);
+
+    // handle JSON matcher if provided
+    let isResJsonMatched = true;
+    if (responseJsonMatcher) {
+      try {
+        isResJsonMatched = responseJsonMatcher(await res.json());
+      } catch {
+        isResJsonMatched = false;
       }
-
-      return (
-        res.request().url().includes(requestUrlPathToMatch) &&
-        httpMethodsToMatch.includes(res.request().method()) &&
-        isResJsonMatched
-      );
-    });
-
-    const uiActionPromise = uiAction();
-
-    await Promise.all([waitForResponsePromise, uiActionPromise]);
+    }
+    return isResJsonMatched;
   }
 
   async attachFile({ filePickUIAction, filePath }: { filePickUIAction: Promise<any>; filePath: string[] }) {
@@ -86,6 +101,10 @@ export default abstract class BasePage {
     return await this.rootPage.evaluate(() => navigator.clipboard.readText());
   }
 
+  async copyToClipboard({ text }: { text: string }) {
+    await this.rootPage.evaluate(text => navigator.clipboard.writeText(text), text);
+  }
+
   async os() {
     return await this.rootPage.evaluate(() => navigator.platform);
   }
@@ -93,4 +112,49 @@ export default abstract class BasePage {
   async isMacOs() {
     return (await this.os()).includes('Mac');
   }
+
+  async dropFile({ imageFilePath, domSelector }: { imageFilePath?: string; domSelector: string }) {
+    const buffer = readFileSync(imageFilePath).toString('base64');
+
+    const dataTransfer = await this.rootPage.evaluateHandle(
+      async ({ bufferData, localFileName, localFileType }) => {
+        const dt = new DataTransfer();
+
+        const blobData = await fetch(bufferData).then(res => res.blob());
+
+        const file = new File([blobData], localFileName, { type: localFileType });
+        dt.items.add(file);
+        return dt;
+      },
+      {
+        bufferData: `data:application/octet-stream;base64,${buffer}`,
+        localFileName: 'test.png',
+        localFileType: 'image/png',
+      }
+    );
+
+    await this.rootPage.dispatchEvent(domSelector, 'drop', { dataTransfer });
+  }
+
+  // async copyImageToClipboard({ imageFilePath, domSelector }: { imageFilePath?: string; domSelector: string }) {
+  //   const pasteEvent = await this.rootPage.evaluate(async () => {
+  //     const base64 = `data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAUA
+  //     AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
+  //         9TXL0Y4OHwAAAABJRU5ErkJggg==`;
+
+  //     const response = await fetch(base64);
+  //     const blob = await response.blob();
+
+  //     const clipboardData = new DataTransfer();
+  //     clipboardData.items.add(new File([blob], 'foo.png', { type: blob.type }));
+  //     let pasteEvent = new Event('paste', { bubbles: true, cancelable: true });
+  //     pasteEvent = Object.assign(pasteEvent, {
+  //       clipboardData,
+  //     });
+
+  //     return pasteEvent;
+  //   });
+
+  //   await this.rootPage.dispatchEvent(domSelector, 'paste', { pasteEvent });
+  // }
 }

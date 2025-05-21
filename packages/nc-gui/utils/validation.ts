@@ -1,7 +1,10 @@
-import { getI18n } from '~/plugins/a.i18n'
+import type { ColumnType } from 'nocodb-sdk'
+import { validateEmail } from 'nocodb-sdk'
+import validator from 'validator'
+import { getI18n } from '../plugins/a.i18n'
+import { TypeConversionError } from '../error/type-conversion.error'
 
-export const validateEmail = (v: string) =>
-  /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)
+export { validateEmail }
 
 export const validateTableName = {
   validator: (_: unknown, value: string) => {
@@ -11,6 +14,35 @@ export const validateTableName = {
       if (!value) {
         // return 'Table name required'
         return reject(new Error(t('msg.error.tableNameRequired')))
+      }
+
+      // exclude . / \
+      // rest all characters allowed
+      // https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/acreldb/n0rfg6x1shw0ppn1cwhco6yn09f7.htm#:~:text=By%20default%2C%20MySQL%20encloses%20column,not%20truncate%20a%20longer%20name.
+      const m = value.match(/[./\\]/g)
+      if (m) {
+        // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
+        return reject(
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+        )
+      }
+      return resolve(true)
+    })
+  },
+}
+
+export const validateScriptName = {
+  validator: (_: unknown, value: string) => {
+    return new Promise((resolve, reject) => {
+      const { t } = getI18n().global
+
+      if (!value) {
+        // return 'Table name required'
+        return reject(new Error(t('msg.error.scriptNameRequired')))
+      }
+
+      if (value.length > 256) {
+        return reject(new Error(t('msg.error.columnNameExceedsCharacters', { value: 256 })))
       }
 
       // exclude . / \
@@ -53,22 +85,54 @@ export const validateColumnName = {
   },
 }
 
-export const projectTitleValidator = {
+export const layoutTitleValidator = {
   validator: (rule: any, value: any) => {
     const { t } = getI18n().global
 
     return new Promise((resolve, reject) => {
-      if (value?.length > 50) {
-        reject(new Error(t('msg.error.projectNameExceeds50Characters')))
+      if (value?.length > 250) {
+        reject(new Error(t('msg.error.layoutNameExceeds50Characters')))
       }
 
       if (value[0] === ' ') {
-        reject(new Error(t('msg.error.projectNameCannotStartWithSpace')))
+        reject(new Error(t('msg.error.layoutNameCannotStartWithSpace')))
       }
 
       resolve(true)
     })
   },
+}
+
+export const baseTitleValidator = (title: 'project' | 'connection' = 'project') => {
+  return {
+    validator: (rule: any, value: any) => {
+      const { t } = getI18n().global
+
+      return new Promise((resolve, reject) => {
+        if (value?.length > 50) {
+          reject(
+            new Error(
+              t('msg.error.projectNameExceeds50Characters', {
+                title: title === 'project' ? t('objects.project') : t('general.connection'),
+              }),
+            ),
+          )
+        }
+
+        if (value[0] === ' ') {
+          reject(
+            new Error(
+              t('msg.error.projectNameCannotStartWithSpace', {
+                title: title === 'project' ? t('objects.project') : t('general.connection'),
+              }),
+            ),
+          )
+        }
+
+        resolve(true)
+      })
+    },
+  }
 }
 
 export const fieldRequiredValidator = () => {
@@ -80,25 +144,35 @@ export const fieldRequiredValidator = () => {
   }
 }
 
-export const fieldLengthValidator = (sqlClientType: string) => {
+export const fieldLengthValidator = () => {
   return {
     validator: (rule: any, value: any) => {
       const { t } = getI18n().global
 
-      // no limit for sqlite but set as 255
-      let fieldLengthLimit = 255
-
-      if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
-        fieldLengthLimit = 64
-      } else if (sqlClientType === 'pg') {
-        fieldLengthLimit = 59
-      } else if (sqlClientType === 'mssql') {
-        fieldLengthLimit = 128
-      }
+      /// mysql allows 64 characters for column_name
+      // postgres allows 59 characters for column_name
+      // mssql allows 128 characters for column_name
+      // sqlite allows any number of characters for column_name
+      // We allow 255 for all databases, truncate will be handled by backend for column_name
+      const fieldLengthLimit = 255
 
       return new Promise((resolve, reject) => {
         if (value?.length > fieldLengthLimit) {
           reject(new Error(t('msg.error.columnNameExceedsCharacters', { value: fieldLengthLimit })))
+        }
+        resolve(true)
+      })
+    },
+  }
+}
+export const reservedFieldNameValidator = () => {
+  return {
+    validator: (rule: any, value: any) => {
+      const { t } = getI18n().global
+
+      return new Promise((resolve, reject) => {
+        if (value?.toLowerCase() === 'id') {
+          reject(new Error(t('msg.error.duplicateSystemColumnName')))
         }
         resolve(true)
       })
@@ -160,11 +234,7 @@ export const extraParameterValidator = {
     return new Promise((resolve, reject) => {
       const { t } = getI18n().global
       for (const param of value) {
-        if (param.key === '') {
-          // return reject(new Error('Parameter key cannot be empty'))
-          return reject(new Error(t('msg.error.parameterKeyCannotBeEmpty')))
-        }
-        if (value.filter((el: any) => el.key === param.key).length !== 1) {
+        if (!value.every((el) => el.key === '') && value.filter((el: any) => el.key === param.key).length !== 1) {
           // return reject(new Error('Duplicate parameter keys are not allowed'))
           return reject(new Error(t('msg.error.duplicateParameterKeysAreNotAllowed')))
         }
@@ -189,4 +259,35 @@ export const emailValidator = {
       return resolve(true)
     })
   },
+}
+
+export const urlValidator = {
+  validator: (_: unknown, v: string) => {
+    return new Promise((resolve, reject) => {
+      const { t } = getI18n().global
+
+      if (!v.length || isValidURL(v)) return resolve(true)
+
+      reject(new Error(t('msg.error.invalidURL')))
+    })
+  },
+}
+
+export const validateColumnValue = (column: ColumnType, value: any) => {
+  if (value === undefined || value === null || value === '') return
+  const metaValidate = (column.meta as any)?.validate
+  const validate = (column as any).validate
+  if (validate && metaValidate) {
+    let validateObj: any
+    try {
+      validateObj = JSON.parse(validate)
+    } catch (ex) {}
+    if (validateObj.func?.[0] && validator[validateObj.func[0] as string]) {
+      const validatorFunc = validator[validateObj.func[0] as any]
+      const validationResult = validatorFunc(value)
+      if (!validationResult) {
+        throw new TypeConversionError(`Invalid value`)
+      }
+    }
+  }
 }

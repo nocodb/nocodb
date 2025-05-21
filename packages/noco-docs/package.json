@@ -1,6 +1,6 @@
 {
   "name": "noco-docs",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "author": {
     "name": "NocoDB Inc",
@@ -16,13 +16,57 @@
     "url": "https://github.com/nocodb/nocodb/issues"
   },
   "scripts": {
-    "dev": "nuxt",
-    "build": "nuxt build",
-    "start": "nuxt start",
-    "generate": "nuxt generate"
+    "docusaurus": "docusaurus",
+    "start": "docusaurus start",
+    "build": "docusaurus build --out-dir dist",
+    "generate": "docusaurus build --out-dir dist",
+    "swizzle": "docusaurus swizzle",
+    "clear": "docusaurus clear",
+    "serve": "docusaurus serve --dir dist",
+    "write-translations": "docusaurus write-translations",
+    "write-heading-ids": "docusaurus write-heading-ids",
+    "typecheck": "tsc",
+    "remark": "remark",
+    "remark:once": "npm run remark -- --quiet --frail --use remark-validate-links docs/"
   },
   "dependencies": {
-    "@nuxt/content-theme-docs": "0.7.2",
-    "nuxt": "^2.15.2"
+    "@docusaurus/core": "3.1.1",
+    "@docusaurus/plugin-client-redirects": "3.1.1",
+    "@docusaurus/plugin-ideal-image": "3.1.1",
+    "@docusaurus/plugin-sitemap": "3.1.1",
+    "@docusaurus/preset-classic": "3.1.1",
+    "@mdx-js/react": "^3.0.1",
+    "clsx": "^1.2.1",
+    "dayjs": "^1.11.11",
+    "docusaurus-plugin-sass": "^0.2.5",
+    "docusaurus-theme-search-typesense": "^0.16.0",
+    "nc-analytics": "^0.0.9",
+    "plugin-image-zoom": "github:flexanalytics/plugin-image-zoom",
+    "prism-react-renderer": "^1.3.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "sass": "^1.71.1"
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "3.1.1",
+    "@tsconfig/docusaurus": "^1.0.7",
+    "remark-cli": "^12.0.1",
+    "remark-validate-links": "^13.0.1",
+    "typescript": "^4.9.5"
+  },
+  "browserslist": {
+    "production": [
+      ">0.5%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "engines": {
+    "node": ">=16.20.2"
   }
 }

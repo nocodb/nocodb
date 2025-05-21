@@ -22,7 +22,7 @@ const replacePackageName = (filePath) => {
 
 const bumbVersionAndSave = () => {
     // upgrade nc-lib-gui version in nocodb
-    execSync(`cd packages/nocodb && npm install --save --save-exact ${ncLibPackage.name}@${ncLibPackage.version}`, {});
+    execSync(`pnpm --filter=nocodb install --ignore-scripts ${ncLibPackage.name}@${ncLibPackage.version}`, {});
     const nocodbPackageFilePath = path.join(__dirname, '..', 'packages', 'nocodb', 'package.json')
     const nocoLibPackage = JSON.parse(fs.readFileSync(nocodbPackageFilePath))
     if (process.env.targetEnv === 'DEV') {
@@ -36,10 +36,10 @@ if (process.env.targetEnv === 'DEV') {
     // replace nc-lib-gui by nc-lib-gui-daily if it is nightly build / pr release
     const filePaths = [
         path.join(__dirname, '..', 'packages', 'nocodb', 'Dockerfile'),
-        path.join(__dirname, '..', 'packages', 'nocodb', 'litestream', 'Dockerfile'),
         path.join(__dirname, '..', 'packages', 'nocodb', 'package.json'),
-        path.join(__dirname, '..', 'packages', 'nocodb', 'README.md'),
-        path.join(__dirname, '..', 'packages', 'nocodb', 'src', 'lib', 'Noco.ts'),
+        path.join(__dirname, '..', 'packages', 'nocodb', 'src', 'Noco.ts'),
+        path.join(__dirname, '..', 'packages', 'nocodb', 'src', 'nocobuild.ts'),
+        path.join(__dirname, '..', 'packages', 'nocodb', 'src', 'middlewares', 'gui', 'gui.middleware.ts'),
     ]
     Promise.all(filePaths.map(filePath => { return replacePackageName(filePath) })).then(() => {
         bumbVersionAndSave();

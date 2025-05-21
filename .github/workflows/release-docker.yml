@@ -41,10 +41,14 @@ on:
 
 jobs:
   buildx:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       working-directory: ./packages/nocodb
     steps:
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - name: Get Docker Repository
         id: get-docker-repository
         run: |
@@ -58,7 +62,7 @@ jobs:
             if [[ ${{ github.event.inputs.currentVersion || inputs.currentVersion || 'N/A' }} != 'N/A' ]]; then
               DOCKER_BUILD_TAG=${{ github.event.inputs.currentVersion || inputs.currentVersion }}-${{ github.event.inputs.tag || inputs.tag }}
             fi
-            if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then 
+            if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then
               DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-daily
             else
               DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-timely
@@ -80,32 +84,25 @@ jobs:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
-          node-version: 16.15.0
+          node-version: 22.12.0
 
       - name: upgrade packages for nightly build or pr build
         if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js
-          cd packages/nocodb-sdk
-          npm install && npm run build
-          cd ../..
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js && 
+          NOCODB_SDK_PKG_NAME=nocodb-sdk-daily
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
+          pnpm --filter=${NOCODB_SDK_PKG_NAME} install --ignore-scripts --no-frozen-lockfile --ignore-workspace && pnpm --filter=${NOCODB_SDK_PKG_NAME} run build &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
-          cd packages/nc-gui
-          npm install
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy
-          cd ../..
+          pnpm --filter=nc-gui install --ignore-scripts --no-frozen-lockfile &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} pnpm --filter=nc-gui run build:copy &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js
-
-      - uses: bahmutov/npm-install@v1
-        with:
-          working-directory: ${{ env.working-directory }}
 
       - name: Build nocodb and docker files
         run: |
-          npm run build
-          npm run docker:build
+          pnpm install --ignore-scripts --no-frozen-lockfile
+          pnpm run docker:build
         working-directory: ${{ env.working-directory }}
 
       - name: Set up QEMU
@@ -138,6 +135,8 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           push: true
+          labels: |
+            "service=nocodb"
           tags: |
             nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
             nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_LATEST_TAG }}

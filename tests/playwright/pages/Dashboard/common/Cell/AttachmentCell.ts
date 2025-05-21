@@ -21,12 +21,64 @@ export class AttachmentCellPageObject extends BasePage {
   // filePath: to attach multiple files, pass an array of file paths
   // e.g. ['path/to/file1', 'path/to/file2']
   //
-  async addFile({ index, columnHeader, filePath }: { index?: number; columnHeader: string; filePath: string[] }) {
+  async addFile({
+    index,
+    columnHeader,
+    filePath,
+    skipElemClick,
+  }: {
+    index?: number;
+    columnHeader: string;
+    filePath: string[];
+    skipElemClick?: boolean;
+  }) {
     await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
-    const attachFileAction = this.get({ index, columnHeader })
-      .locator('[data-testid="attachment-cell-file-picker-button"]')
+
+    if (!skipElemClick) {
+      await this.get({ index, columnHeader }).click({ position: { x: 1, y: 1 } });
+    }
+
+    await this.get({ index, columnHeader }).locator('[data-testid="attachment-cell-file-picker-button"]').click();
+
+    await this.rootPage.locator('.nc-modal-attachment-create').waitFor({ state: 'visible' });
+
+    const attachFileAction = this.rootPage.getByTestId('attachment-drop-zone').click({ force: true });
+
+    await this.attachFile({ filePickUIAction: attachFileAction, filePath });
+
+    await this.rootPage.getByTestId('nc-upload-file').click();
+
+    // wait for file to be uploaded
+    await this.rootPage.waitForTimeout(750);
+  }
+
+  async removeFile({
+    attIndex,
+    index,
+    columnHeader,
+    skipElemClick,
+  }: {
+    attIndex: number;
+    index?: number;
+    columnHeader: string;
+    skipElemClick?: boolean;
+  }) {
+    await this.get({ index, columnHeader }).scrollIntoViewIfNeeded();
+
+    if (!skipElemClick) {
+      await this.get({ index, columnHeader }).click({ position: { x: 1, y: 1 } });
+    }
+
+    await this.get({ index, columnHeader }).locator('.nc-attachment-item').nth(attIndex).hover();
+    await this.get({ index, columnHeader })
+      .locator('.nc-attachment-item')
+      .nth(attIndex)
+      .locator('.nc-attachment-remove')
       .click();
-    return await this.attachFile({ filePickUIAction: attachFileAction, filePath });
+
+    await this.rootPage.locator('.ant-modal.active').waitFor({ state: 'visible' });
+    await this.rootPage.locator('.ant-modal.active').getByTestId('nc-delete-modal-delete-btn').click();
+    await this.rootPage.locator('.ant-modal.active').waitFor({ state: 'hidden' });
   }
 
   async expandModalAddFile({ filePath }: { filePath: string[] }) {
@@ -45,25 +97,13 @@ export class AttachmentCellPageObject extends BasePage {
   }
 
   async verifyFile({ index, columnHeader }: { index: number; columnHeader: string }) {
-    await expect(await this.get({ index, columnHeader }).locator('.nc-attachment')).toBeVisible();
+    await expect(this.get({ index, columnHeader }).locator('.nc-attachment')).toBeVisible();
   }
 
   async verifyFileCount({ index, columnHeader, count }: { index: number; columnHeader: string; count: number }) {
     // retry below logic for 5 times, with 1 second delay
-    let retryCount = 0;
-    while (retryCount < 5) {
-      const attachments = await this.get({ index, columnHeader }).locator('.nc-attachment');
-      // console.log(await attachments.count());
-      if ((await attachments.count()) === count) {
-        break;
-      }
-      retryCount++;
-      await this.rootPage.waitForTimeout(1000);
-
-      if (retryCount === 5) {
-        expect(await attachments.count()).toBe(count);
-      }
-    }
+    const attachments = this.get({ index, columnHeader }).locator('.nc-attachment');
+    await expect(attachments).toHaveCount(count);
   }
 
   async expandModalClose() {

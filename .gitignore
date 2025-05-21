@@ -2,8 +2,10 @@
 # ===========
 .DS_Store
 ehthumbs.db
-Icon?
 Thumbs.db
+Icon
+
+
 
 # Node and related ecosystem
 # ==========================
@@ -38,6 +40,7 @@ _site/
 *.pid
 *.gz
 *.tmp
+*.tmp.md
 *.bak
 *.swp
 logs/
@@ -91,3 +94,12 @@ test_noco.db
 
 # ngrok config
 httpbin
+.run/test-debug.run.xml
+
+/packages/nc-secret-mgr/dist/index.js
+/packages/nc-secret-mgr/dist/index.js.map
+
+# nix
+result
+
+.cursorignore

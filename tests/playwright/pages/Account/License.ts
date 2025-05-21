@@ -10,7 +10,11 @@ export class AccountLicensePage extends BasePage {
   }
 
   async goto() {
-    await this.rootPage.goto('/#/account/license', { waitUntil: 'networkidle' });
+    return this.waitForResponse({
+      uiAction: async () => await this.rootPage.goto('/#/account/license'),
+      httpMethodsToMatch: ['GET'],
+      requestUrlPathToMatch: `api/v1/license`,
+    });
   }
 
   async waitUntilContentLoads() {
@@ -28,6 +32,10 @@ export class AccountLicensePage extends BasePage {
   }
 
   async saveLicenseKey(licenseKey: string) {
+    // Kludge: fix me!
+    // await this.get().waitFor({ state: 'visible' });
+    await this.rootPage.waitForTimeout(1000);
+
     await this.get().fill(licenseKey);
     await this.getSaveButton().click();
     await this.verifyToast({ message: 'License key updated' });

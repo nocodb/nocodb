@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { useI18n, useRoute, useSidebar } from '#imports'
 
 const route = useRoute()
 
@@ -10,7 +9,9 @@ const { hasSidebar } = useSidebar('nc-left-sidebar')
 
 const refreshSidebar = ref(false)
 
-useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)} | NocoDB` : 'NocoDB')
+const sidebarReady = ref(false)
+
+useTitle(route.meta?.title && te(route.meta.title) ? `${t(route.meta.title)}` : 'NocoDB')
 
 watch(hasSidebar, (val) => {
   if (!val) {
@@ -19,6 +20,14 @@ watch(hasSidebar, (val) => {
       refreshSidebar.value = false
     })
   }
+})
+
+onMounted(() => {
+  until(() => document.querySelector('#nc-sidebar-left'))
+    .toBeTruthy()
+    .then(() => {
+      sidebarReady.value = true
+    })
 })
 </script>
 
@@ -30,7 +39,7 @@ export default {
 
 <template>
   <div class="w-full h-full">
-    <Teleport :to="hasSidebar ? '#nc-sidebar-left' : null" :disabled="!hasSidebar">
+    <Teleport v-if="sidebarReady" :to="hasSidebar ? '#nc-sidebar-left' : null" :disabled="!hasSidebar">
       <slot v-if="!refreshSidebar" name="sidebar" />
     </Teleport>
 

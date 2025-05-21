@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { iconMap, message, useApi, useI18n } from '#imports'
-
 const { t } = useI18n()
 
 const { api } = useApi()

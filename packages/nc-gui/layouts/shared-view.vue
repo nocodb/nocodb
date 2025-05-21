@@ -1,11 +1,17 @@
 <script lang="ts" setup>
-import { iconMap, navigateTo, useEventListener, useRouter } from '#imports'
+const { isLoading } = useGlobal()
 
-const { isLoading, appInfo } = useGlobal()
+const { isMobileMode } = storeToRefs(useConfigStore())
 
-const { sharedView } = useSharedView()
+const { sharedView, allowCSVDownload } = useSharedView()
 
 const router = useRouter()
+
+const route = router.currentRoute
+
+const disableTopbar = computed(() => route.value.query?.disableTopbar === 'true')
+
+const ncNotFound = computed(() => route.value.query?.ncNotFound === 'true')
 
 onMounted(() => {
   // check if we are inside an iframe
@@ -33,7 +39,7 @@ onMounted(() => {
 
   // handle meta title
   if (sharedView.value?.title) {
-    document.title = `${sharedView.value.title} | NocoDB`
+    document.title = `${sharedView.value.title}`
   } else {
     document.title = 'NocoDB'
   }
@@ -49,39 +55,88 @@ export default {
 <template>
   <a-layout id="nc-app">
     <a-layout class="!flex-col bg-white">
-      <a-layout-header class="flex !bg-primary items-center text-white pl-3 pr-4 shadow-lg">
-        <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105" @click="navigateTo('/')">
-          <a-tooltip placement="bottom">
-            <template #title>
-              {{ appInfo.version }}
-            </template>
-            <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
-          </a-tooltip>
-        </div>
+      <GeneralPageDoesNotExist v-if="ncNotFound" />
+      <template v-else>
+        <a-layout-header
+          v-if="!disableTopbar"
+          class="nc-table-topbar flex items-center justify-between !bg-transparent !px-3 !py-2 border-b-1 border-gray-200 !h-[46px]"
+        >
+          <div class="flex items-center gap-6 h-7 max-w-[calc(100%_-_280px)] xs:max-w-[calc(100%_-_90px)]">
+            <a
+              class="transition-all duration-200 cursor-pointer transform hover:scale-105"
+              href="https://github.com/nocodb/nocodb"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
+            </a>
 
-        <div>
-          <div class="flex justify-center items-center">
-            <div class="flex items-center gap-2 ml-3 text-white">
+            <div class="flex items-center gap-2 text-gray-900 text-sm truncate">
               <template v-if="isLoading">
-                <span class="text-white" data-testid="nc-loading">{{ $t('general.loading') }}</span>
+                <span data-testid="nc-loading">{{ $t('general.loading') }}</span>
 
                 <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin ': isLoading }" />
               </template>
 
-              <div v-else class="text-xl font-semibold truncate text-white nc-shared-view-title flex gap-2 items-center">
-                <GeneralViewIcon v-if="sharedView" class="!text-xl" :meta="sharedView" />
-                {{ sharedView?.title }}
+              <div v-else class="text-sm font-semibold truncate nc-shared-view-title flex gap-2 items-center">
+                <GeneralViewIcon v-if="sharedView" class="h-4 w-4 ml-0.5" :meta="sharedView" />
+
+                <span class="truncate">
+                  {{ sharedView?.title }}
+                </span>
+
+                <NcTooltip v-if="sharedView?.description?.length" placement="bottom">
+                  <template #title>
+                    {{ sharedView?.description }}
+                  </template>
+
+                  <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
+                    <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon text-gray-600" />
+                  </NcButton>
+                </NcTooltip>
               </div>
             </div>
           </div>
+
+          <div class="flex items-center gap-3">
+            <LazySmartsheetToolbarExport v-if="allowCSVDownload" />
+
+            <a href="https://app.nocodb.com/#/signin" target="_blank" class="!no-underline xs:hidden" rel="noopener">
+              <NcButton size="xs"> {{ $t('labels.signUpForFree') }} </NcButton>
+            </a>
+          </div>
+        </a-layout-header>
+        <div
+          class="nc-shared-view-container w-full overflow-hidden"
+          :class="{
+            'nc-shared-mobile-view': isMobileMode,
+          }"
+        >
+          <slot />
         </div>
-
-        <div class="flex-1" />
-      </a-layout-header>
-
-      <div class="w-full overflow-hidden" style="height: calc(100% - var(--header-height))">
-        <slot />
-      </div>
+      </template>
     </a-layout>
   </a-layout>
 </template>
+
+<style lang="scss" scoped>
+#nc-app {
+  .ant-layout-header {
+    @apply !h-[46px];
+
+    line-height: unset;
+  }
+
+  :deep(.nc-table-toolbar) {
+    @apply px-2;
+  }
+
+  .nc-shared-view-container {
+    height: calc(100vh - (var(--topbar-height) - 3.6px));
+
+    @supports (height: 100dvh) {
+      height: calc(100dvh - (var(--topbar-height) - 3.6px));
+    }
+  }
+}
+</style>

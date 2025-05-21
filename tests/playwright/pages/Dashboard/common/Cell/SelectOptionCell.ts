@@ -19,29 +19,63 @@ export class SelectOptionCellPageObject extends BasePage {
     columnHeader,
     option,
     multiSelect,
+    ignoreDblClick,
   }: {
     index: number;
     columnHeader: string;
     option: string;
     multiSelect?: boolean;
+    ignoreDblClick?: boolean;
   }) {
     const selectCell = this.get({ index, columnHeader });
 
     // check if cell active
-    if (!(await selectCell.getAttribute('class')).includes('active')) {
+    if (
+      !(await selectCell.getAttribute('class')).includes('active') &&
+      (await selectCell.locator('.nc-selected-option').count()) === 0
+    ) {
+      if (!ignoreDblClick) await selectCell.click();
+    }
+
+    if ((await selectCell.getAttribute('class')).includes('active')) {
+      await selectCell.locator('.ant-select').first().waitFor({ state: 'visible' });
+
+      await selectCell
+        .locator('.ant-select')
+        .first()
+        .click({
+          position: {
+            x: 2,
+            y: 1,
+          },
+        });
+    } else {
       await selectCell.click();
     }
 
-    await selectCell.click();
+    if (multiSelect) {
+      await this.rootPage.locator('.nc-dropdown-multi-select-cell').waitFor({ state: 'visible' });
+    } else {
+      await this.rootPage.locator('.nc-dropdown-single-select-cell').waitFor({ state: 'visible' });
+    }
 
-    await this.rootPage.getByTestId(`select-option-${columnHeader}-${index}`).getByText(option).click();
+    if (index === -1) {
+      const selectOption = this.rootPage.getByTestId(`select-option-${columnHeader}-undefined`).getByText(option);
+      await selectOption.scrollIntoViewIfNeeded();
+      await selectOption.click();
+    } else {
+      const selectOption = this.rootPage.getByTestId(`select-option-${columnHeader}-${index}`).getByText(option);
+      await selectOption.scrollIntoViewIfNeeded();
+      await selectOption.click();
+    }
 
-    if (multiSelect) await this.get({ index, columnHeader }).click();
-
-    await this.rootPage
-      .getByTestId(`select-option-${columnHeader}-${index}`)
-      .getByText(option)
-      .waitFor({ state: 'hidden' });
+    if (multiSelect) {
+      // Press `Escape` to close the dropdown
+      await this.rootPage.keyboard.press('Escape');
+      await this.rootPage.locator('.nc-dropdown-multi-select-cell').waitFor({ state: 'hidden' });
+    } else {
+      await this.rootPage.locator('.nc-dropdown-single-select-cell').waitFor({ state: 'hidden' });
+    }
   }
 
   async clear({ index, columnHeader, multiSelect }: { index: number; columnHeader: string; multiSelect?: boolean }) {
@@ -72,12 +106,12 @@ export class SelectOptionCellPageObject extends BasePage {
   }
 
   async verify({
-    index,
+    index = 0,
     columnHeader,
     option,
     multiSelect,
   }: {
-    index: number;
+    index?: number;
     columnHeader: string;
     option: string;
     multiSelect?: boolean;
@@ -85,7 +119,10 @@ export class SelectOptionCellPageObject extends BasePage {
     if (multiSelect) {
       return await expect(this.cell.get({ index, columnHeader })).toContainText(option, { useInnerText: true });
     }
-    const text = await (await this.cell.get({ index, columnHeader }).locator('.ant-tag')).allInnerTexts();
+
+    const locator = this.cell.get({ index, columnHeader }).locator('.ant-tag');
+    await locator.waitFor({ state: 'visible' });
+    const text = await locator.allInnerTexts();
     return expect(text).toContain(option);
   }
 
@@ -95,22 +132,47 @@ export class SelectOptionCellPageObject extends BasePage {
     ).toBeHidden();
   }
 
-  async verifyOptions({ index, columnHeader, options }: { index: number; columnHeader: string; options: string[] }) {
+  async verifyOptions({
+    index = 0,
+    columnHeader,
+    options,
+  }: {
+    index?: number;
+    columnHeader: string;
+    options: string[];
+  }) {
     const selectCell = this.get({ index, columnHeader });
 
     // check if cell active
-    if (!(await selectCell.getAttribute('class')).includes('active')) {
+    // drag based non-primary cell will have 'active' attribute
+    // primary cell with blue border will have 'active-cell' attribute
+    if (!(await selectCell.getAttribute('class')).includes('active-cell')) {
       await selectCell.click();
     }
 
-    await this.get({ index, columnHeader }).click();
+    if ((await selectCell.getAttribute('class')).includes('active-cell')) {
+      await selectCell.locator('.ant-select').first().waitFor({ state: 'visible' });
+
+      await selectCell
+        .locator('.ant-select')
+        .first()
+        .click({
+          position: {
+            x: 2,
+            y: 1,
+          },
+        });
+    } else {
+      await this.get({ index, columnHeader }).click();
+    }
+    await this.rootPage.waitForTimeout(500);
 
     let counter = 0;
     for (const option of options) {
       await expect(this.rootPage.locator(`div.ant-select-item-option`).nth(counter)).toHaveText(option);
       counter++;
     }
-    await this.get({ index, columnHeader }).click();
+    await this.rootPage.keyboard.press('Escape');
     await this.rootPage.locator(`.nc-dropdown-single-select-cell`).nth(index).waitFor({ state: 'hidden' });
   }
 
@@ -118,7 +180,7 @@ export class SelectOptionCellPageObject extends BasePage {
     index,
     columnHeader,
     option,
-    multiSelect,
+    multiSelect = false,
   }: {
     index: number;
     columnHeader: string;
@@ -134,10 +196,18 @@ export class SelectOptionCellPageObject extends BasePage {
 
     await selectCell.locator('.ant-select-selection-search-input').type(option);
 
-    await selectCell.locator('.ant-select-selection-search-input').press('Enter');
+    // await selectCell.locator('.ant-select-selection-search-input').press('Enter');
+
+    // Wait for update api call
+    const saveRowAction = () => selectCell.locator('.ant-select-selection-search-input').press('Enter');
+    await this.waitForResponse({
+      uiAction: saveRowAction,
+      requestUrlPathToMatch: '/api/v1/db/data/noco/',
+      httpMethodsToMatch: ['PATCH'],
+      responseJsonMatcher: resJson => String(resJson?.[columnHeader]).includes(String(option)),
+    });
 
     if (multiSelect) await selectCell.locator('.ant-select-selection-search-input').press('Escape');
-    // todo: wait for update api call
   }
 
   async verifySelectedOptions({
@@ -150,6 +220,7 @@ export class SelectOptionCellPageObject extends BasePage {
     index: number;
   }) {
     const selectCell = this.get({ index, columnHeader });
+    await selectCell.click();
 
     let counter = 0;
     for (const option of options) {

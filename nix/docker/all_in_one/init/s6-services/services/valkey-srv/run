@@ -1,0 +1,10 @@
+#!/bin/execlineb -P
+
+foreground { mkdir -p /var/lib/valkey }
+foreground { chown -R valkey:valkey /var/lib/valkey }
+foreground { mkdir -p /run/valkey }
+foreground { chown -R valkey:valkey /run/valkey }
+
+fdmove -c 2 1
+
+execline-cd  /var/lib/valkey s6-setuidgid valkey valkey-server /etc/valkey.conf

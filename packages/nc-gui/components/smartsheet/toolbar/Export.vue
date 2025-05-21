@@ -1,21 +1,47 @@
 <script lang="ts" setup>
-import { iconMap } from '#imports'
+const { sharedView, meta, nestedFilters } = useSharedView()
+
+const { isLocked, xWhere } = useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
+
+const reloadEventHook = createEventHook()
+
+provide(ReloadViewDataHookInj, reloadEventHook)
+
+provide(ReadonlyInj, ref(true))
+
+provide(MetaInj, meta)
+
+provide(ActiveViewInj, sharedView)
+
+provide(IsPublicInj, ref(true))
+
+provide(IsLockedInj, isLocked)
+
+useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
+
+useProvideViewGroupBy(sharedView, meta, xWhere, true)
+
+useProvideSmartsheetLtarHelpers(meta)
+
+useProvideKanbanViewStore(meta, sharedView)
+
+useProvideCalendarViewStore(meta, sharedView, true, nestedFilters)
 </script>
 
 <template>
-  <a-dropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
-    <a-button v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
-      <div class="flex gap-2 items-center">
-        <component :is="iconMap.download" class="group-hover:text-accent text-gray-500" />
-        <span class="text-capitalize !text-sm font-weight-normal">{{ $t('general.download') }}</span>
+  <NcDropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
+    <NcButton v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn" size="xs" type="secondary">
+      <div class="flex gap-2 items-center text-gray-700">
+        <component :is="iconMap.download" class="group-hover:text-accent" />
+        <span class="text-capitalize !text-sm font-medium xs:hidden">{{ $t('general.download') }}</span>
         <component :is="iconMap.arrowDown" class="text-grey" />
       </div>
-    </a-button>
+    </NcButton>
 
     <template #overlay>
-      <a-menu class="ml-6 !text-sm !px-0 !py-2 !rounded">
+      <NcMenu variant="small" class="ml-6 !text-sm !rounded-lg overflow-hidden">
         <LazySmartsheetToolbarExportSubActions />
-      </a-menu>
+      </NcMenu>
     </template>
-  </a-dropdown>
+  </NcDropdown>
 </template>

@@ -1,9 +1,11 @@
-import { DbConfig } from '../../src/interface/config';
-import { NcConfigFactory } from '../../src/lib';
-import SqlMgrv2 from '../../src/lib/db/sql-mgr/v2/SqlMgrv2';
 import fs from 'fs';
-import { Knex, knex } from 'knex';
 import process from 'process';
+import { knex } from 'knex';
+import SqlMgrv2 from '../../src/db/sql-mgr/v2/SqlMgrv2';
+import { jdbcToXcUrl, xcUrlToDbConfig } from '../../src/utils/nc-config';
+import deepClone from '../../src/helpers/deepClone';
+import type { Knex } from 'knex';
+import type { DbConfig } from '../../src/interface/config';
 
 export default class TestDbMngr {
   public static readonly dbName = 'test_meta';
@@ -74,8 +76,8 @@ export default class TestDbMngr {
 
   private static async isDbConfigured() {
     const { user, password, host, port, client } = TestDbMngr.connection;
-    const config = NcConfigFactory.urlToDbConfig(
-      `${client}://${user}:${password}@${host}:${port}`
+    const config = xcUrlToDbConfig(
+      `${client}://${user}:${password}@${host}:${port}`,
     );
     config.connection = {
       user,
@@ -83,7 +85,7 @@ export default class TestDbMngr {
       host,
       port,
     };
-    const result = await TestDbMngr.testConnection(config);
+    const result = await TestDbMngr.testConnection(config as any);
     return result.code !== -1;
   }
   static async connectDb() {
@@ -94,9 +96,9 @@ export default class TestDbMngr {
       ] = `${client}://${user}:${password}@${host}:${port}/${TestDbMngr.dbName}`;
     }
 
-    TestDbMngr.dbConfig = NcConfigFactory.urlToDbConfig(
-      NcConfigFactory.extractXcUrlFromJdbc(process.env[`DATABASE_URL`])
-    );
+    TestDbMngr.dbConfig = xcUrlToDbConfig(
+      jdbcToXcUrl(process.env[`DATABASE_URL`]),
+    ) as any;
     this.dbConfig.meta = {
       tn: 'nc_evolutions',
       dbAlias: 'db',
@@ -148,14 +150,14 @@ export default class TestDbMngr {
     TestDbMngr.sakilaKnex = knex(TestDbMngr.getDbConfigWithNoDb());
     await TestDbMngr.resetDatabase(
       TestDbMngr.sakilaKnex,
-      TestDbMngr.sakilaDbName
+      TestDbMngr.sakilaDbName,
     );
     await TestDbMngr.sakilaKnex.destroy();
 
     TestDbMngr.sakilaKnex = knex(TestDbMngr.getSakilaDbConfig());
     await TestDbMngr.useDatabase(
       TestDbMngr.sakilaKnex,
-      TestDbMngr.sakilaDbName
+      TestDbMngr.sakilaDbName,
     );
   }
 
@@ -221,7 +223,8 @@ export default class TestDbMngr {
   }
 
   static getDbConfigWithNoDb() {
-    const dbConfig = JSON.parse(JSON.stringify(TestDbMngr.dbConfig));
+    const dbConfig = deepClone(TestDbMngr.dbConfig);
+    dbConfig.connection.password = TestDbMngr.dbConfig.connection.password;
     delete dbConfig.connection.database;
     return dbConfig;
   }
@@ -239,6 +242,8 @@ export default class TestDbMngr {
   static getSakilaDbConfig() {
     const sakilaDbConfig = JSON.parse(JSON.stringify(TestDbMngr.dbConfig));
     sakilaDbConfig.connection.database = TestDbMngr.sakilaDbName;
+    sakilaDbConfig.connection.password =
+      TestDbMngr.dbConfig.connection.password;
     sakilaDbConfig.connection.multipleStatements = true;
     if (TestDbMngr.isSqlite()) {
       sakilaDbConfig.connection.filename = `${__dirname}/test_sakila.db`;
@@ -255,7 +260,7 @@ export default class TestDbMngr {
       }
       fs.copyFileSync(
         `${testsDir}/sqlite-sakila-db/sakila.db`,
-        `${__dirname}/test_sakila.db`
+        `${__dirname}/test_sakila.db`,
       );
     } else if (TestDbMngr.isPg()) {
       const schemaFile = fs
@@ -263,7 +268,7 @@ export default class TestDbMngr {
         .toString();
       const dataFile = fs
         .readFileSync(
-          `${testsDir}/pg-sakila-db/02-postgres-sakila-insert-data.sql`
+          `${testsDir}/pg-sakila-db/02-postgres-sakila-insert-data.sql`,
         )
         .toString();
       await TestDbMngr.sakilaKnex.raw(schemaFile);
@@ -303,14 +308,14 @@ export default class TestDbMngr {
   static async showAllTables(knexClient) {
     if (TestDbMngr.isSqlite()) {
       const tables = await knexClient.raw(
-        `SELECT name FROM sqlite_master WHERE type='table'`
+        `SELECT name FROM sqlite_master WHERE type='table'`,
       );
       return tables
         .filter((t) => t.name !== 'sqlite_sequence' && t.name !== '_evolutions')
         .map((t) => t.name);
     } else if (TestDbMngr.isPg()) {
       const tables = await knexClient.raw(
-        `SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';`
+        `SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';`,
       );
       return tables.rows.map((t) => t.tablename);
     } else {

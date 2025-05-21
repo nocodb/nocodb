@@ -1,5 +1,3 @@
-import { computed, ref } from '#imports'
-
 interface UseLoadingIndicatorProps {
   duration?: number
   throttle?: number
@@ -18,7 +16,7 @@ export function useLoadingIndicator({ duration = 2000, throttle = 200 }: UseLoad
     progress.value = 0
     isLoading.value = true
     if (throttle) {
-      if (process.client) {
+      if (import.meta.client) {
         _throttle = setTimeout(_startTimer, throttle)
       }
     } else {
@@ -44,7 +42,7 @@ export function useLoadingIndicator({ duration = 2000, throttle = 200 }: UseLoad
 
   function _hide() {
     clear()
-    if (process.client) {
+    if (import.meta.client) {
       setTimeout(() => {
         isLoading.value = false
         setTimeout(() => {
@@ -55,7 +53,7 @@ export function useLoadingIndicator({ duration = 2000, throttle = 200 }: UseLoad
   }
 
   function _startTimer() {
-    if (process.client) {
+    if (import.meta.client) {
       _timer = setInterval(() => {
         _increase(step.value)
       }, 100)

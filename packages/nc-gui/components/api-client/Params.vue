@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { iconMap, useVModel } from '#imports'
-
 const props = defineProps<{
   modelValue: any[]
 }>()
@@ -9,71 +7,85 @@ const emits = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const addParamRow = () => vModel.value.push({})
+const addParamRow = () =>
+  vModel.value.push({
+    enabled: false,
+    name: '',
+    value: '',
+  })
 
-const deleteParamRow = (i: number) => vModel.value.splice(i, 1)
+const deleteParamRow = (i: number) => {
+  if (vModel.value.length === 1) return
+
+  vModel.value.splice(i, 1)
+}
 </script>
 
 <template>
-  <div class="flex flex-row justify-center">
-    <table>
-      <thead>
-        <tr>
-          <th>
-            <!-- Intended to be empty - For checkbox -->
-          </th>
+  <div class="flex flex-col py-3 gap-1.5 w-full">
+    <div v-for="(paramRow, idx) in vModel" :key="idx" class="flex relative items-center w-full">
+      <a-form-item class="form-item w-8">
+        <NcCheckbox v-model:checked="paramRow.enabled" size="large" />
+      </a-form-item>
+      <a-form-item class="form-item w-3/6">
+        <a-input v-model:value="paramRow.name" :placeholder="$t('placeholder.key')" class="!rounded-l-lg !border-gray-200" />
+      </a-form-item>
+      <a-form-item class="form-item w-3/6">
+        <a-input
+          v-model:value="paramRow.value"
+          :placeholder="$t('placeholder.value')"
+          class="nc-webhook-parameters-value-input !border-x-0 !border-gray-200 !rounded-none"
+        />
+      </a-form-item>
 
-          <th>
-            <div class="text-center font-normal mb-2">Param Name</div>
-          </th>
+      <NcButton
+        class="!rounded-l-none delete-btn !border-gray-200 !shadow-none"
+        type="secondary"
+        size="small"
+        :disabled="vModel.length === 1"
+        @click="deleteParamRow(idx)"
+      >
+        <component :is="iconMap.deleteListItem" />
+      </NcButton>
+    </div>
 
-          <th>
-            <div class="text-center font-normal mb-2">Value</div>
-          </th>
-
-          <th>
-            <!-- Intended to be empty - For delete button -->
-          </th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr v-for="(paramRow, idx) in vModel" :key="idx">
-          <td class="px-2">
-            <a-form-item>
-              <a-checkbox v-model:checked="paramRow.enabled" />
-            </a-form-item>
-          </td>
-
-          <td class="px-2">
-            <a-form-item>
-              <a-input v-model:value="paramRow.name" size="large" placeholder="Key" />
-            </a-form-item>
-          </td>
-
-          <td class="px-2">
-            <a-form-item>
-              <a-input v-model:value="paramRow.value" size="large" placeholder="Value" />
-            </a-form-item>
-          </td>
-
-          <td class="relative">
-            <div v-if="idx !== 0" class="absolute flex flex-col justify-start mt-2 -right-6 top-0">
-              <component :is="iconMap.delete" class="cursor-pointer" @click="deleteParamRow(idx)" />
-            </div>
-          </td>
-        </tr>
-
-        <tr>
-          <td :colspan="12" class="text-center">
-            <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1 mb-3" @click="addParamRow">
-              <template #icon>
-                <component :is="iconMap.plus" class="flex mx-auto" />
-              </template>
-            </a-button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="mt-1.5">
+      <NcButton size="small" type="secondary" class="nc-btn-focus" @click="addParamRow">
+        <div class="flex flex-row items-center gap-x-2">
+          <component :is="iconMap.plus" class="flex-none" />
+          <div data-rec="true">{{ $t('general.add') }}</div>
+        </div>
+      </NcButton>
+    </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.ant-input {
+  box-shadow: none !important;
+
+  &:hover {
+    @apply !hover:bg-gray-50;
+  }
+}
+
+.delete-btn:not([disabled]) {
+  @apply !text-gray-500;
+}
+
+:deep(.ant-input) {
+  @apply !placeholder-gray-500;
+}
+
+:deep(.ant-input.nc-webhook-parameters-value-input) {
+  @apply !border-x-0;
+}
+
+.ant-input-affix-wrapper {
+  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-brand-500 border-gray-200 !ring-0;
+}
+
+.nc-btn-focus:focus {
+  @apply !text-brand-500 !shadow-none;
+}
+</style>

@@ -37,28 +37,29 @@ Transformez n'importe quel MySQL, PostgreSQL, SQL Server, SQLite & Mariadb en un
 
 ### Utilisez Docker
 ```bash
-docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
-```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
+  ```
 
 - NocoDB a besoin d'une base de données en entrée : Voir [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
 - Si cette entrée est absente, nous utiliserons SQLite. Afin de conserver Sqlite, vous pouvez rentrer l'information `/usr/app/data/`. 
 
   Exemple:
 
-  ```
-  docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
-  ```
+```
+  docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
+```
+
 > Pour conserver les données, vous pouvez installer le volume dans `/usr/app/data/`.
-
-### NPX
-
-Vous pouvez exécuter la commande ci-dessous pour passer par la configuration interactive.
-
-```
-npx create-nocodb-app
-```
-
-<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
 
 ### En utilisant git
 ```
@@ -118,9 +119,9 @@ Accès au tableau de bord en utilisant : [http://localhost:8080/dashboard](http:
 # Caractéristiques
 ### Interface de feuille de calcul riche
 
-- ⚡ Recherche, trier, filtrer, masquer les colonnes avec Uber Facile
+- ⚡ Recherche, trier, filtrer, masquer les colonnes avec facilité
 - ⚡ Créer des vues: grille, galerie, kanban, forme
-- ⚡ Partager des vues: Public & Mot de passe protégé
+- ⚡ Partager des vues: Publique ou Protégé par mot de passe 
 - ⚡ Vues personnelles et verrouillées 
 - ⚡ Télécharger des images sur les cellules (fonctionne avec S3, Minio, GCP, Azure, DigitalOcean, Linode, Ovh, Backblaze) !!
 - ⚡ Rôles: propriétaire, créateur, éditeur, commentateur, spectateur, commentateur, rôles personnalisés.
@@ -147,13 +148,6 @@ NocoDB nécessite une base de données pour stocker les métadonnées des vues d
 
 ## Docker 
 
-#### Exemple MySQL
-```
-docker run -d -p 8080:8080 \
-    -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
 
 #### Exemple Postgres
 ```
@@ -163,34 +157,27 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Exemple SQL Server
-```
-docker run -d -p 8080:8080 \
-    -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
 
 ## Docker Compose
 ```
 git clone https://github.com/nocodb/nocodb
 cd nocodb
 cd docker-compose
-cd mysql or pg or mssql
+cd pg 
 docker-compose up -d
 ```
 
 ## Variables d'environnement
 
-Please refer to [Environment variables](https://docs.nocodb.com/getting-started/environment-variables)
+Veuillez vous référer aux [Variables d'environnement](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
 
 # Paramétrage du développement
 
-Please refer to [Development Setup](https://docs.nocodb.com/engineering/development-setup)
+Veuillez vous référer au [Paramétrage du développement](https://docs.nocodb.com/engineering/development-setup)
 
-# Contribuant
+# Contribuer
 
-Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
+Veuillez vous référer au [Guide des contributions](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
 # Pourquoi construisons-nous cela?
 La plupart des entreprises Internet s'équipent d'un tableur ou d'une base de données pour répondre à leurs besoins commerciaux. Les feuilles de calcul sont utilisées par plus d'un milliard d'humains en collaboration chaque jour. Cependant, nous sommes loin de travailler à des vitesses similaires sur des bases de données qui sont des outils beaucoup plus puissants en matière de calcul. Les tentatives pour résoudre ce problème avec les offres SaaS ont entraîné des contrôles d'accès horribles, le verrouillage des fournisseurs, le verrouillage des données, des changements de prix brusques et, surtout, un plafond de verre sur ce qui est possible à l'avenir.

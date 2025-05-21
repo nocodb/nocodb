@@ -19,22 +19,21 @@ on:
         required: true
 jobs:
   build-executables:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - name: Cache node modules
-        id: cache-npm
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          sed -i '/^use-node-version/d' .npmrc
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
         with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+            ${{ runner.os }}-pnpm-store-
 
       - name: Cache pkg modules
         id: cache-pkg
@@ -64,14 +63,20 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          # pkg library doesn't have node 22 support
+          node-version: 18.19.1
 
       - name : Install nocodb, other dependencies and build executables
         run: |
           cd ./scripts/pkg-executable
+          
+          # downgrade sqlite3 to 5.1.6 until build related issues are resolved
+          # https://github.com/TryGhost/node-sqlite3/issues/1748        
+          node ../downgradeSqlite.js
 
           # Install nocodb version based on provided tag name
           npm i -E nocodb@${{ github.event.inputs.tag || inputs.tag }}
+          
 
           # install npm dependendencies
           npm i
@@ -88,16 +93,47 @@ jobs:
 
           # clean up code to optimize size
           npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,nocodb/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
-
-          # build executables
-          npm run build
-
-          ls ./dist
-
-          # Move macOS executables for signing
+          
           mkdir ./mac-dist
-          mv ./dist/Noco-macos-arm64 ./mac-dist/
-          mv ./dist/Noco-macos-x64 ./mac-dist/
+          mkdir ./dist
+                
+          # build darwin x64 executable
+          npm uninstall sharp
+          npm install --cpu=x64 --os=darwin sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node18-macos-x64 -o Noco-macos-x64
+          mv ./Noco-macos-x64 ./mac-dist/
+        
+          # build darwin arm64 executable
+          npm uninstall sharp
+          npm install --cpu=arm64 --os=darwin sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node18-macos-arm64 -o Noco-macos-arm64
+          mv ./Noco-macos-arm64 ./mac-dist/
+          
+        
+          # build linux x64 executable
+          npm uninstall sharp
+          npm install --cpu=x64 --os=linux sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node18-linux-x64 -o Noco-linux-x64
+          mv ./Noco-linux-x64 ./dist/
+
+          # build linux arm64 executable
+          npm uninstall sharp
+          npm install --cpu=arm64 --os=linux sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node18-linux-arm64 -o Noco-linux-arm64
+          mv ./Noco-linux-arm64 ./dist/
+
+
+          # build windows x64 executable
+          npm uninstall sharp
+          npm install --cpu=x64 --os=win32 sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node18-win-x64 -o Noco-win-x64.exe
+          mv ./Noco-win-x64.exe ./dist/
+
+          # build windows arm64 executable
+          npm uninstall sharp
+          npm install --cpu=arm64 --os=win32 sharp
+          npx --yes pkg@5.8.1 . --compress GZip -t node18-win-arm64 -o Noco-win-arm64.exe
+          mv ./Noco-win-arm64.exe ./dist/
 
       - name: Upload executables to asset
         id: upload-release-asset
@@ -135,18 +171,18 @@ jobs:
 
       - uses: actions/upload-artifact@master
         with:
-          name: ${{ github.event.inputs.tag || inputs.tag }}
+          name: ${{ format('{0}-signed', github.event.inputs.tag || inputs.tag) }}
           path: scripts/pkg-executable/mac-dist
           retention-days: 1
 
 
   publish-mac-executables-and-homebrew:
     needs: [sign-mac-executables,build-executables]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/download-artifact@master
         with:
-          name: ${{ github.event.inputs.tag || inputs.tag }}
+          name: ${{ format('{0}-signed', github.event.inputs.tag || inputs.tag) }}
           path: scripts/pkg-executable/mac-dist
 
 

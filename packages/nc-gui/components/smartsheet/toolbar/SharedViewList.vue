@@ -1,18 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import {
-  Empty,
-  extractSdkResponseErrorMsg,
-  iconMap,
-  message,
-  onMounted,
-  parseProp,
-  ref,
-  useCopy,
-  useDashboard,
-  useI18n,
-  useSmartsheetStoreOrThrow,
-} from '#imports'
+
 import MdiVisibilityOnIcon from '~icons/mdi/visibility'
 import MdiVisibilityOffIcon from '~icons/mdi/visibility-off'
 

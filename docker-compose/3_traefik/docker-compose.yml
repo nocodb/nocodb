@@ -1,0 +1,102 @@
+version: "3.7"
+networks: 
+  traefik_proxy: 
+    name: traefik_proxy
+services: 
+  nocodb: 
+    container_name: nocodb
+    depends_on: 
+      - nocodb-db
+    environment: 
+      - "NC_DB=pg://nocodb-db:5432?u=${DATABASE_USER}&p=${DATABASE_PW}&d=${DATABASE_NAME}"
+      - "NC_PUBLIC_URL=https://nocodb.${DOMAINNAME}"
+      - NC_DISABLE_TELE=true
+    image: "nocodb/nocodb:latest"
+    labels: 
+      - traefik.enable=true
+      - traefik.http.services.nocodb.loadbalancer.server.port=8080
+      - "traefik.http.routers.nocodb.rule=Host(`nocodb.${DOMAINNAME}`)"
+      - traefik.http.routers.nocodb.entrypoints=https
+      - com.centurylinklabs.watchtower.enable=true
+    networks: 
+      - traefik_proxy
+    restart: always
+    volumes: 
+      - "nocodb-data:/usr/app/data"
+  nocodb-db: 
+    container_name: nocodb-db
+    environment: 
+      POSTGRES_DB: "${DATABASE_NAME}"
+      POSTGRES_PASSWORD: "${DATABASE_PW}"
+      POSTGRES_USER: "${DATABASE_USER}"
+    healthcheck: 
+      interval: 10s
+      retries: 10
+      test: "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"
+      timeout: 2s
+    image: "postgres:12.17-alpine"
+    networks: 
+      - traefik_proxy
+    restart: always
+    volumes: 
+      - "nocodb-db:/var/lib/postgresql/data"
+  traefik: 
+    command: 
+      - "--providers.docker=true"
+      - "--ping=true"
+      - "--ping.entryPoint=ping"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=traefik_proxy"
+      - "--entryPoints.ping.address=:8081"
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.https.address=:443"
+      - "--entrypoints.https.http.tls.certresolver=letsencrypt"
+      - "--entrypoints.https.http.tls.domains[0].main=${DOMAINNAME}"
+      - "--entrypoints.https.http.tls.domains[0].sans=*.${DOMAINNAME}"
+      - "--entrypoints.http.http.redirections.entryPoint.to=https"
+      - "--entrypoints.http.http.redirections.entryPoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.dnsChallenge.delayBeforeCheck=15"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.letsencrypt.acme.email=info@${DOMAINNAME}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesResolvers.letsencrypt.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53"
+    container_name: traefik
+    environment: 
+      - "CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}"
+    healthcheck: 
+      retries: 3
+      test: 
+        - CMD
+        - wget
+        - "-c"
+        - "http://localhost:8081/ping"
+      timeout: 3s
+    image: "traefik:v2.11"
+    networks: 
+      - default
+      - traefik_proxy
+    ports: 
+      - "80:80"
+      - "443:443"
+    restart: always
+    volumes: 
+      - "letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  watchtower: 
+    command: "--schedule \"0 5 * * *\" --cleanup --label-enable"
+    container_name: watchtower
+    image: containrrr/watchtower
+    labels: 
+      - com.centurylinklabs.watchtower.enable=true
+    networks: 
+      - traefik_proxy
+    restart: always
+    volumes: 
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+volumes: 
+  letsencrypt: 
+    name: traefik-letsencrypt
+  nocodb-data: 
+    name: nocodb-data
+  nocodb-db: 
+    name: nocodb-db

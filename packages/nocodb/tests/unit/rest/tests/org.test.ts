@@ -18,12 +18,14 @@ function authTests() {
   let context;
 
   beforeEach(async function () {
+    console.time('#### orgTests');
     context = await init();
+    console.timeEnd('#### orgTests');
   });
 
   it('Get users list', async () => {
     const response = await request(context.app)
-      .get('/api/v1/users')
+      .get('/api/v1/db/users')
       .set('xc-auth', context.token)
       .expect(200);
 
@@ -33,7 +35,7 @@ function authTests() {
 
   it('Invite a new user', async () => {
     const response = await request(context.app)
-      .post('/api/v1/users')
+      .post('/api/v1/db/users')
       .set('xc-auth', context.token)
       .send({ email: 'a@nocodb.com' })
       .expect(200);
@@ -48,12 +50,12 @@ function authTests() {
     const email = 'a@nocodb.com';
     // invite a user
     await request(context.app)
-      .post('/api/v1/users')
+      .post('/api/v1/db/users')
       .set('xc-auth', context.token)
       .send({ email })
       .expect(200);
     const response = await request(context.app)
-      .get('/api/v1/users')
+      .get('/api/v1/db/users')
       .set('xc-auth', context.token)
       .expect(200);
     expect(response.body.list).to.have.length(2);
@@ -63,13 +65,13 @@ function authTests() {
     expect(user).to.have.property('roles').to.be.equal(OrgUserRoles.VIEWER);
 
     await request(context.app)
-      .patch('/api/v1/users/' + user.id)
+      .patch('/api/v1/db/users/' + user.id)
       .set('xc-auth', context.token)
       .send({ roles: OrgUserRoles.CREATOR })
       .expect(200);
 
     const response2 = await request(context.app)
-      .get('/api/v1/users')
+      .get('/api/v1/db/users')
       .set('xc-auth', context.token)
       .expect(200);
     expect(response2.body.list).to.have.length(2);
@@ -83,13 +85,13 @@ function authTests() {
     const email = 'a@nocodb.com';
     // invite a user
     await request(context.app)
-      .post('/api/v1/users')
+      .post('/api/v1/db/users')
       .set('xc-auth', context.token)
       .send({ email })
       .expect(200);
 
     const response = await request(context.app)
-      .get('/api/v1/users')
+      .get('/api/v1/db/users')
       .set('xc-auth', context.token)
       .expect(200);
     expect(response.body.list).to.have.length(2);
@@ -99,12 +101,12 @@ function authTests() {
     expect(user).to.have.property('roles').to.be.equal(OrgUserRoles.VIEWER);
 
     await request(context.app)
-      .delete('/api/v1/users/' + user.id)
+      .delete('/api/v1/db/users/' + user.id)
       .set('xc-auth', context.token)
       .expect(200);
 
     const response2 = await request(context.app)
-      .get('/api/v1/users')
+      .get('/api/v1/db/users')
       .set('xc-auth', context.token)
       .expect(200);
     expect(response2.body.list).to.have.length(1);
@@ -112,7 +114,7 @@ function authTests() {
 
   it('Get token list', async () => {
     const response = await request(context.app)
-      .get('/api/v1/tokens')
+      .get('/api/v1/db/tokens')
       .set('xc-auth', context.token)
       .expect(200);
 
@@ -122,13 +124,13 @@ function authTests() {
 
   it('Generate token', async () => {
     const r = await request(context.app)
-      .post('/api/v1/tokens')
+      .post('/api/v1/db/tokens')
       .set('xc-auth', context.token)
       .send({ description: 'test' })
       .expect(200);
 
     const response = await request(context.app)
-      .get('/api/v1/tokens')
+      .get('/api/v1/db/tokens')
       .set('xc-auth', context.token)
       .expect(200);
 
@@ -143,13 +145,13 @@ function authTests() {
 
   it('Delete token', async () => {
     const r = await request(context.app)
-      .post('/api/v1/tokens')
+      .post('/api/v1/db/tokens')
       .set('xc-auth', context.token)
       .send({ description: 'test' })
       .expect(200);
 
     let response = await request(context.app)
-      .get('/api/v1/tokens')
+      .get('/api/v1/db/tokens')
       .set('xc-auth', context.token)
       .expect(200);
 
@@ -157,12 +159,12 @@ function authTests() {
     expect(response.body.list).to.have.length(1);
 
     await request(context.app)
-      .delete('/api/v1/tokens/' + r.body.token)
+      .delete('/api/v1/db/tokens/' + r.body.token)
       .set('xc-auth', context.token)
       .expect(200);
 
     response = await request(context.app)
-      .get('/api/v1/tokens')
+      .get('/api/v1/db/tokens')
       .set('xc-auth', context.token)
       .expect(200);
 
@@ -170,7 +172,7 @@ function authTests() {
     expect(response.body.list).to.have.length(0);
   });
 
-  it.only('Disable/Enable signup', async () => {
+  it('Disable/Enable signup', async () => {
     const args = {
       email: 'dummyuser@example.com',
       password: 'A1234abh2@dsad',

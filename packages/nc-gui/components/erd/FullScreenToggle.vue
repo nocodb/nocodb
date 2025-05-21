@@ -19,8 +19,12 @@ const toggleFullScreen = () => {
 
 <template>
   <Panel
-    class="text-xs bg-white border-1 rounded-md p-0.5 border-gray-50 z-50 nc-erd-histogram cursor-pointer hover:bg-gray-100"
-    :position="PanelPosition.TopLeft"
+    class="text-xs rounded-md p-2 z-50 nc-erd-histogram cursor-pointer shadow-md transition-colors"
+    :class="{
+      'text-white bg-brand-500 md:(hover:bg-brand-600)': config.isFullScreen,
+      'border-1 border-gray-200 bg-white hover:bg-gray-100': !config.isFullScreen,
+    }"
+    :position="PanelPosition.BottomRight"
   >
     <div class="flex">
       <MiFullscreenExit v-if="config.isFullScreen" class="h-5 w-5" @click="toggleFullScreen" />

@@ -18,10 +18,10 @@ export class QrCodeOverlay extends BasePage {
     const foundQrValueLabelText = await this.get()
       .locator('[data-testid="nc-qr-code-large-value-label"]')
       .textContent();
-    await expect(foundQrValueLabelText).toContain(expectedValue);
+    expect(foundQrValueLabelText).toContain(expectedValue);
   }
 
   async clickCloseButton() {
-    await this.get().locator('.ant-modal-close-x').click();
+    await this.get().locator('.nc-qrcode-close').click();
   }
 }

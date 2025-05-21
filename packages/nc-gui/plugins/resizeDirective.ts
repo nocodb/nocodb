@@ -1,5 +1,3 @@
-import { defineNuxtPlugin, getCurrentInstance } from '#imports'
-
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.directive('xc-ver-resize', {
     created: (el: Element) => {
@@ -31,11 +29,16 @@ export default defineNuxtPlugin((nuxtApp) => {
 
       // bind event handlers
       function initDrag(e: MouseEvent) {
+        if (el.classList.contains('no-resize')) {
+          return
+        }
+
         document.body.style.cursor = 'col-resize'
         startX = e.clientX
         startWidth = parseInt(document.defaultView?.getComputedStyle(el)?.width || '0', 10)
         document.documentElement.addEventListener('mousemove', doDrag, false)
         document.documentElement.addEventListener('mouseup', stopDrag, false)
+        emit('xcstartresizing', startWidth)
       }
 
       ;(el as any).initDrag = initDrag

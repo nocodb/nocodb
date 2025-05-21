@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { isMac } from '#imports'
-
 const { modelValue } = defineProps<{
   modelValue: boolean
 }>()
@@ -11,13 +9,6 @@ const dialogShow = computed({
   get: () => modelValue,
   set: (v) => emit('update:modelValue', v),
 })
-
-const renderCmdOrCtrlKey = () => {
-  return isMac() ? '⌘' : 'CTRL'
-}
-const renderAltOrOptlKey = () => {
-  return isMac() ? '⌥' : 'ALT'
-}
 
 const shortcutList = [
   {
@@ -52,6 +43,22 @@ const shortcutList = [
   {
     title: 'Grid View',
     shortcuts: [
+      {
+        keys: [renderAltOrOptlKey(), '←'],
+        behaviour: 'Jump to previous page in this view',
+      },
+      {
+        keys: [renderAltOrOptlKey(), '→'],
+        behaviour: 'Jump to next page in this view',
+      },
+      {
+        keys: [renderAltOrOptlKey(), '↑'],
+        behaviour: 'Jump to last page in this view',
+      },
+      {
+        keys: [renderAltOrOptlKey(), '↓'],
+        behaviour: 'Jump to first page in this view',
+      },
       {
         keys: [renderCmdOrCtrlKey(), '←'],
         behaviour: 'Jump to leftmost column in this row',

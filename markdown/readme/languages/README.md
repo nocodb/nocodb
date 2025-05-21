@@ -8,6 +8,7 @@ Supported Translations:
     <li><a href="chinese.md">Chinese</a></li>
     <li><a href="french.md">French</a></li>
     <li><a href="german.md">German</a></li>
+    <li><a href="hindi.md">Hindi</a></li>
     <li><a href="spanish.md">Spanish</a></li>
     <li><a href="portuguese.md">Portugese</a></li>
     <li><a href="italian.md">Italian</a></li>
@@ -16,4 +17,6 @@ Supported Translations:
     <li><a href="russian.md">Russian</a></li>
     <li><a href="dutch.md">Dutch</a></li>
     <li><a href="indonesian.md">Indonesian</a></li>
+    <li><a href="ukrainian.md">Ukrainian</a></li>
+    <li><a href="vietnamese.md">Vietnamese</a></li>
 </ul>

@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { iconMap, isDrawerOrModalExist, isMac, useNuxtApp, useRoute, useUIPermission } from '#imports'
-
 const route = useRoute()
 
 const showUserModal = ref(false)
 
-const { isUIAllowed } = useUIPermission()
+const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
 
@@ -39,17 +37,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 <template>
   <div class="flex items-center h-full" @click="showUserModal = true">
     <div v-if="isShareBaseAllowed">
-      <a-tooltip placement="left">
-        <template #title>
-          <span class="text-xs">{{ $t('activity.inviteTeam') }}</span>
-        </template>
-        <a-button type="primary" class="!rounded-md mr-1" size="medium">
-          <div class="flex items-center space-x-1 cursor-pointer text-xs font-weight-bold">
-            <component :is="iconMap.accountPlus" class="mr-1 nc-share-base hover:text-accent text-sm" />
-            {{ $t('activity.share') }}
-          </div>
-        </a-button>
-      </a-tooltip>
+      <a-button type="primary" class="!rounded-lg !px-2">
+        <div class="flex items-center space-x-1 cursor-pointer font-medium">
+          <img src="~/assets/nc-icons/share.svg" class="mr-1.75 h-3.75 w-3.75" />
+          {{ $t('activity.share') }}
+        </div>
+      </a-button>
     </div>
 
     <LazyTabsAuthUserManagementUsersModal :show="showUserModal" @closed="showUserModal = false" />

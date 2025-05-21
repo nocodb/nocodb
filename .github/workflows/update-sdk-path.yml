@@ -7,23 +7,23 @@ on:
   workflow_call:
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-            node-version: 16.15.0
+          node-version: 22.12.0
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-        
       - run: |
-          cd packages/nocodb
-          npm install --save --save-exact nocodb-sdk@file:../nocodb-sdk
-          cd ../..
-          cd packages/nc-gui
-          npm install --save --save-exact nocodb-sdk@file:../nocodb-sdk
+          sed -i '/^use-node-version/d' .npmrc      
+          pnpm bootstrap
 
       - name: Create Pull Request
         id: cpr
@@ -32,10 +32,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           signoff: true
-          branch: 'bot/update-nocodb-sdk-path'
+          branch: "bot/update-nocodb-sdk-path"
           delete-branch: true
-          title: 'Update nocodb-sdk to local path'
-          labels: 'Bot: Automerge'
+          title: "Update nocodb-sdk to local path"
+          labels: "Bot: Automerge"
       - name: Check outputs
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"

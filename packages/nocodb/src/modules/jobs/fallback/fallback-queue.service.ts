@@ -1,6 +1,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import PQueue from 'p-queue';
 import Emittery from 'emittery';
+import { CronExpressionParser } from 'cron-parser';
 import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobStatus } from '~/interface/Jobs';
 import { JobsMap } from '~/modules/jobs/jobs-map.service';
@@ -10,6 +11,8 @@ export interface Job {
   name: string;
   status: string;
   data: any;
+  repeat?: { cron: string };
+  delay?: number;
 }
 
 @Injectable()
@@ -102,7 +105,11 @@ export class QueueService {
     QueueService.queueIdCounter = index;
   }
 
-  add(name: string, data: any, opts?: { jobId?: string; delay?: number }) {
+  add(
+    name: string,
+    data: any,
+    opts?: { jobId?: string; delay?: number; repeat?: { cron: string } },
+  ) {
     const id = opts?.jobId || `${this.queueIndex++}`;
     const existingJob = this.queueMemory.find((q) => q.id === id);
 
@@ -131,6 +138,11 @@ export class QueueService {
     };
 
     if (existingJob) {
+      // if job is already in memory and has a repeat, return the job
+      if (existingJob.repeat) {
+        return existingJob;
+      }
+
       if (existingJob.status !== JobStatus.WAITING) {
         existingJob.status = JobStatus.WAITING;
       }
@@ -141,11 +153,51 @@ export class QueueService {
         name,
         status: JobStatus.WAITING,
         data,
+        repeat: opts?.repeat,
+        delay: opts?.delay,
         ...helperFns(),
       };
     }
 
-    if (opts?.delay) {
+    if (opts?.repeat) {
+      // Initialize recurring job execution based on cron pattern
+      const scheduleNextExecution = () => {
+        try {
+          const cron = CronExpressionParser.parse(opts.repeat.cron);
+          const nextExecutionTime = cron.next().toDate();
+          const delayMs = Math.max(0, nextExecutionTime.getTime() - Date.now());
+
+          const recurringJobId = `${id}-${Date.now()}`;
+          const childJob = { ...job, id: recurringJobId };
+
+          setTimeout(() => {
+            this.queueMemory.push(childJob);
+            // Execute the current job
+            this.queue
+              .add(() => this.jobWrapper(childJob))
+              .then(() => {
+                // Schedule the next execution only after current job completes
+                this.queue.add(() => scheduleNextExecution());
+              })
+              .catch((error) => {
+                console.error(
+                  `Failed to schedule recurring job ${name}:`,
+                  error,
+                );
+                // Try to reschedule despite the error
+                this.queue.add(() => scheduleNextExecution());
+              });
+          }, delayMs);
+        } catch (error) {
+          console.error(`Invalid cron expression for job ${name}:`, error);
+        }
+      };
+
+      this.queueMemory.push(job);
+
+      // Start the recurring job process
+      scheduleNextExecution();
+    } else if (opts?.delay) {
       if (!existingJob) {
         this.queueMemory.push(job);
       }

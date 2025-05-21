@@ -9104,64 +9104,6 @@
         "description": "List all nested list data in a given shared view"
       }
     },
-    "/api/v2/public/shared-view/{sharedViewUuid}/rows/export/{type}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string",
-            "example": "76d44b86-bc65-4500-8956-ab512c80ab25"
-          },
-          "name": "sharedViewUuid",
-          "in": "path",
-          "required": true,
-          "description": "Shared View UUID"
-        },
-        {
-          "schema": {
-            "type": "string",
-            "enum": [
-              "csv",
-              "excel"
-            ],
-            "example": "csv"
-          },
-          "name": "type",
-          "in": "path",
-          "required": true,
-          "description": "Export Type"
-        }
-      ],
-      "get": {
-        "summary": "Export Rows in Share View",
-        "operationId": "public-csv-export",
-        "description": "Export all rows in Share View in a CSV / Excel Format",
-        "wrapped": true,
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/octet-stream": {
-                "schema": {}
-              }
-            },
-            "headers": {
-              "nc-export-offset": {
-                "schema": {
-                  "type": "integer"
-                },
-                "description": "The starting offset of the next set of rows"
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Public", "Internal"
-        ]
-      }
-    },
     "/api/v2/public/shared-view/{sharedViewUuid}/nested/{columnName}": {
       "parameters": [
         {
@@ -12924,6 +12866,50 @@
         },
         {
           "$ref": "#/components/parameters/xc-token"
+        }
+      ]
+    },
+    "/api/v2/public/export/{publicDataUuid}/{exportAs}": {
+      "post": {
+        "summary": "Trigger export as job",
+        "operationId": "public-export-data",
+        "description": "Trigger export as job",
+        "tags": [
+          "Public"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "vw124dflkcvasewh",
+            "type": "string"
+          },
+          "name": "publicDataUuid",
+          "in": "path",
+          "required": true,
+          "description": "Unique View ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "csv"
+            ]
+          },
+          "name": "exportAs",
+          "in": "path",
+          "required": true,
+          "description": "Export as format"
         }
       ]
     }

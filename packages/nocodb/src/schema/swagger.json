@@ -12411,170 +12411,6 @@
         ]
       }
     },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/export/{type}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string",
-            "enum": [
-              "csv",
-              "excel"
-            ]
-          },
-          "name": "type",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Export Table View Rows",
-        "operationId": "db-view-row-export",
-        "description": "Export Table View Rows by CSV or Excel",
-        "tags": [
-          "DB View Row"
-        ],
-        "wrapped": true,
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/octet-stream": {
-                "schema": {}
-              }
-            },
-            "headers": {
-              "nc-export-offset": {
-                "schema": {
-                  "type": "integer"
-                },
-                "description": "The starting offset of the next set of rows"
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v1/db/data/{orgs}/{baseName}/{tableName}/export/{type}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true,
-          "description": "Organisation Name. Currently `noco` will be used."
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseName",
-          "in": "path",
-          "required": true,
-          "description": "Base Name"
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true,
-          "description": "Table Name"
-        },
-        {
-          "schema": {
-            "type": "string",
-            "enum": [
-              "csv",
-              "excel"
-            ]
-          },
-          "name": "type",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Export Table View Rows",
-        "operationId": "db-table-row-csv-export",
-        "description": "Export Table View Rows by CSV or Excel",
-        "tags": [
-          "DB Table Row"
-        ],
-        "wrapped": true,
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/octet-stream": {
-                "schema": {}
-              }
-            },
-            "headers": {
-              "nc-export-offset": {
-                "schema": {
-                  "type": "integer"
-                },
-                "description": "The starting offset of the next set of rows"
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
     "/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}": {
       "parameters": [
         {
@@ -14299,64 +14135,6 @@
           }
         ],
         "description": "List all nested list data in a given shared view"
-      }
-    },
-    "/api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string",
-            "example": "76d44b86-bc65-4500-8956-ab512c80ab25"
-          },
-          "name": "sharedViewUuid",
-          "in": "path",
-          "required": true,
-          "description": "Shared View UUID"
-        },
-        {
-          "schema": {
-            "type": "string",
-            "enum": [
-              "csv",
-              "excel"
-            ],
-            "example": "csv"
-          },
-          "name": "type",
-          "in": "path",
-          "required": true,
-          "description": "Export Type"
-        }
-      ],
-      "get": {
-        "summary": "Export Rows in Share View",
-        "operationId": "public-csv-export",
-        "description": "Export all rows in Share View in a CSV / Excel Format",
-        "wrapped": true,
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/octet-stream": {
-                "schema": {}
-              }
-            },
-            "headers": {
-              "nc-export-offset": {
-                "schema": {
-                  "type": "integer"
-                },
-                "description": "The starting offset of the next set of rows"
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Public"
-        ]
       }
     },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName}": {
@@ -19416,6 +19194,50 @@
         },
         {
           "$ref": "#/components/parameters/xc-auth"
+        }
+      ]
+    },
+    "/api/v2/public/export/{publicDataUuid}/{exportAs}": {
+      "post": {
+        "summary": "Trigger export as job",
+        "operationId": "public-export-data",
+        "description": "Trigger export as job",
+        "tags": [
+          "Public"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "vw124dflkcvasewh",
+            "type": "string"
+          },
+          "name": "publicDataUuid",
+          "in": "path",
+          "required": true,
+          "description": "Unique View ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "csv"
+            ]
+          },
+          "name": "exportAs",
+          "in": "path",
+          "required": true,
+          "description": "Export as format"
         }
       ]
     },

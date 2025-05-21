@@ -19,6 +19,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 import { SyncModuleSyncDataProcessor } from '~/integrations/sync/module/services/sync.processor';
 import { UpdateUsageStatsProcessor } from '~/modules/jobs/jobs/update-usage-stats.processor';
+import { DataExportCleanUpProcessor } from '~/modules/jobs/jobs/data-export-clean-up/data-export-clean-up.processor';
 
 @Injectable()
 export class JobsMap extends JobsMapCE {
@@ -34,6 +35,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly attachmentCleanUpProcessor: AttachmentCleanUpProcessor,
     protected readonly initMigrationJobs: InitMigrationJobs,
     protected readonly useWorkerProcessor: UseWorkerProcessor,
+    protected readonly dataExportCleanUpProcessor: DataExportCleanUpProcessor,
     // EE
     protected readonly healthCheckProcessor: HealthCheckProcessor,
     protected readonly updateStatsProcessor: UpdateStatsProcessor,
@@ -55,6 +57,7 @@ export class JobsMap extends JobsMapCE {
       attachmentCleanUpProcessor,
       initMigrationJobs,
       useWorkerProcessor,
+      dataExportCleanUpProcessor,
     );
   }
 

@@ -1,11 +1,11 @@
 import { NcError } from 'src/helpers/catchError';
-import { DecimalGeneralHandler } from '../decimal/decimal.general.handler';
-import type { Column } from 'src/models';
-import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
+import { NumberGeneralHandler } from '../number/number.general.handler';
 import type { NcContext } from 'nocodb-sdk';
+import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
+import type { Column } from 'src/models';
 
-export class NumberGeneralHandler extends DecimalGeneralHandler {
+export class DurationGeneralHandler extends NumberGeneralHandler {
   override async parseUserInput(params: {
     value: any;
     row: any;
@@ -16,8 +16,8 @@ export class NumberGeneralHandler extends DecimalGeneralHandler {
       metaService?: MetaService;
     };
   }): Promise<{ value: any }> {
-    const value = (await super.parseUserInput(params))?.value;
-    if (typeof value === 'number' && Math.floor(value) !== Math.ceil(value)) {
+    const { value } = (await super.parseUserInput(params)) ?? {};
+    if (typeof value === 'number' && value < 0) {
       NcError.invalidValueForField({
         value: params.value,
         column: params.column.title,

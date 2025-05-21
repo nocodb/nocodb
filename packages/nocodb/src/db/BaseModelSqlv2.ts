@@ -36,6 +36,7 @@ import { baseModelInsert } from './BaseModelSqlv2/insert';
 import { NestedLinkPreparator } from './BaseModelSqlv2/nested-link-preparator';
 import { relationDataFetcher } from './BaseModelSqlv2/relation-data-fetcher';
 import { selectObject } from './BaseModelSqlv2/select-object';
+import { FieldHandler } from './field-handler';
 import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
@@ -2753,7 +2754,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           : !ncIsUndefined(d?.[col.title])
           ? d?.[col.title]
           : d?.[col.id];
-        if (val !== undefined) {
+        if (val !== undefined && this.context.api_version !== NcApiVersion.V3) {
           if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
             val = JSON.stringify(val);
           }
@@ -2768,6 +2769,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               }
             }
           }
+          insertObj[sanitize(col.column_name)] = val;
+        } else if (val !== undefined) {
           insertObj[sanitize(col.column_name)] = val;
         }
       }
@@ -4169,9 +4172,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (this.model.primaryKeys.length > 1) {
       const pkValues = {};
       for (const pk of this.model.primaryKeys) {
-        pkValues[pk.title] = data[pk.title] ?? data[pk.column_name];
+        pkValues[pk.title] =
+          data[pk.title] ?? data[pk.column_name] ?? data[pk.id];
       }
-
       return asString
         ? Object.values(pkValues)
             .map((val) => val?.toString?.().replaceAll('_', '\\_'))
@@ -4182,7 +4185,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (typeof data === 'object') {
         pkValue =
           data[this.model.primaryKey.title] ??
-          data[this.model.primaryKey.column_name];
+          data[this.model.primaryKey.column_name] ??
+          data[this.model.primaryKey.id];
       } else {
         pkValue = data;
       }
@@ -5169,6 +5173,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
     if (options.apiVersion === NcApiVersion.V3) {
       data = await this.convertMultiSelectTypes(data, dependencyColumns);
+      await FieldHandler.fromBaseModel(this).parseDataDbValue({
+        data,
+        options: {
+          additionalColumns: dependencyColumns,
+        },
+      });
     }
 
     if (!options.skipSubstitutingColumnIds) {
@@ -6259,6 +6269,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ): Promise<void> {
     for (const column of this.model.columns) {
       if (
+        this.context.api_version === NcApiVersion.V3 &&
+        !ncIsUndefined(data[column.column_name]) &&
+        !ncIsNull(data[column.column_name])
+      ) {
+        data[column.column_name] = (
+          await FieldHandler.fromBaseModel(this).parseUserInput({
+            value: data[column.column_name],
+            column,
+            row: data,
+            options: {
+              context: this.context,
+              logger: logger,
+            },
+          })
+        ).value;
+      }
+      if (
         ![
           UITypes.Attachment,
           UITypes.JSON,
@@ -6303,40 +6330,44 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (column.uidt === UITypes.Attachment) {
         if (column.column_name in data) {
           if (data && data[column.column_name]) {
-            try {
-              if (typeof data[column.column_name] === 'string') {
-                data[column.column_name] = JSON.parse(data[column.column_name]);
-              }
-
-              if (
-                data[column.column_name] &&
-                !Array.isArray(data[column.column_name])
-              ) {
-                NcError.invalidAttachmentJson(data[column.column_name]);
-              }
-            } catch (e) {
-              NcError.invalidAttachmentJson(data[column.column_name]);
-            }
-
-            // Confirm that all urls are valid urls
-            for (const attachment of data[column.column_name] || []) {
-              if (!('url' in attachment) && !('path' in attachment)) {
-                NcError.unprocessableEntity(
-                  'Attachment object must contain either url or path',
-                );
-              }
-
-              if (attachment.url) {
-                if (attachment.url.startsWith('data:')) {
-                  NcError.unprocessableEntity(
-                    `Attachment urls do not support data urls`,
+            if (this.context.api_version !== NcApiVersion.V3) {
+              try {
+                if (typeof data[column.column_name] === 'string') {
+                  data[column.column_name] = JSON.parse(
+                    data[column.column_name],
                   );
                 }
 
-                if (attachment.url.length > 8 * 1024) {
+                if (
+                  data[column.column_name] &&
+                  !Array.isArray(data[column.column_name])
+                ) {
+                  NcError.invalidAttachmentJson(data[column.column_name]);
+                }
+              } catch (e) {
+                NcError.invalidAttachmentJson(data[column.column_name]);
+              }
+
+              // Confirm that all urls are valid urls
+              for (const attachment of data[column.column_name] || []) {
+                if (!('url' in attachment) && !('path' in attachment)) {
                   NcError.unprocessableEntity(
-                    `Attachment url '${attachment.url}' is too long`,
+                    'Attachment object must contain either url or path',
                   );
+                }
+
+                if (attachment.url) {
+                  if (attachment.url.startsWith('data:')) {
+                    NcError.unprocessableEntity(
+                      `Attachment urls do not support data urls`,
+                    );
+                  }
+
+                  if (attachment.url.length > 8 * 1024) {
+                    NcError.unprocessableEntity(
+                      `Attachment url '${attachment.url}' is too long`,
+                    );
+                  }
                 }
               }
             }

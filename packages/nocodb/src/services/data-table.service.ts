@@ -341,7 +341,7 @@ export class DataTableService {
 
     const result = (Array.isArray(body) ? body : [body]).map((row) => {
       return pkColumns.reduce((acc, col) => {
-        acc[col.title] = row[col.title] ?? row[col.column_name];
+        acc[col.title] = row[col.title] ?? row[col.column_name] ?? row[col.id];
         return acc;
       }, {});
     });
@@ -369,14 +369,19 @@ export class DataTableService {
 
     for (const row of rows) {
       let pk;
+      // TODO: refactor to extractPkValues of baseModelSqlV2
+
       // if only one primary key then extract the value
       if (model.primaryKeys.length === 1)
-        pk = row[model.primaryKey.title] ?? row[model.primaryKey.column_name];
+        pk =
+          row[model.primaryKey.title] ??
+          row[model.primaryKey.column_name] ??
+          row[model.primaryKey.id];
       // if composite primary key then join the values with ___
       else
         pk = model.primaryKeys
           .map((pk) =>
-            (row[pk.title] ?? row[pk.column_name])
+            (row[pk.title] ?? row[pk.column_name] ?? row[pk.id])
               ?.toString?.()
               ?.replaceAll('_', '\\_'),
           )

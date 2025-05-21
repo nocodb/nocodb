@@ -1,16 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { expect } from 'chai';
-import { type ColumnType, UITypes } from 'nocodb-sdk';
-import { createTable } from '../../../factory/table';
-import { createLtarColumn, customColumns } from '../../../factory/column';
+import { checkboxTypeMap, type ColumnType } from 'nocodb-sdk';
 import {
+  beforeEachAttachment,
+  beforeEachCheckbox,
   beforeEachLinkBased,
   beforeEachTextBased,
+  beforeEachUserBased,
   beforeEach as dataApiV3BeforeEach,
 } from './beforeEach';
 import { ncAxios } from './ncAxios';
+import { getUsers } from './helpers';
+import type { ITestContext } from './helpers';
 import type { Column, Model } from '../../../../../src/models';
-import type { ITestContext } from './beforeEach';
 import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';
@@ -372,6 +374,118 @@ describe('dataApiV3', () => {
           { Id: undefined },
         ]);
       });
+    });
+
+    describe('user-based', () => {
+      let table: Model;
+      let columns: Column[] = [];
+
+      beforeEach(async () => {
+        const initResult = await beforeEachUserBased(testContext);
+
+        table = initResult.table;
+        columns = initResult.columns;
+        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      });
+
+      it('Create record : using email', async function () {
+        const newRecord = {
+          userFieldSingle: 'a@nocodb.com',
+          userFieldMulti: 'a@nocodb.com,b@nocodb.com',
+        };
+        const rsp = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: newRecord,
+        });
+        expect(rsp.body).to.deep.equal({ Id: 401 });
+
+        const record = await ncAxiosGet({
+          url: `${urlPrefix}/${table.id}/401`,
+        });
+        expect(record.body.Id).to.equal(401);
+        expect(record.body.userFieldSingle[0].email).to.equal('a@nocodb.com');
+        expect(record.body.userFieldMulti[0].email).to.equal('a@nocodb.com');
+        expect(record.body.userFieldMulti[1].email).to.equal('b@nocodb.com');
+      });
+
+      it('Create record : using ID', async function () {
+        const userList = await getUsers(testContext);
+
+        const id0 = userList.find((u) => u.email === 'test@example.com').id;
+        const id1 = userList.find((u) => u.email === 'a@nocodb.com').id;
+
+        const newRecord = {
+          userFieldSingle: id0,
+          userFieldMulti: `${id0},${id1}`,
+        };
+        const rsp = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}`,
+          body: newRecord,
+        });
+        expect(rsp.body).to.deep.equal({ Id: 401 });
+        const record = await ncAxiosGet({
+          url: `${urlPrefix}/${table.id}/401`,
+        });
+        expect(record.body.Id).to.equal(401);
+        expect(record.body.userFieldSingle[0].email).to.equal(
+          'test@example.com',
+        );
+        expect(record.body.userFieldMulti[0].email).to.equal(
+          'test@example.com',
+        );
+        expect(record.body.userFieldMulti[1].email).to.equal('a@nocodb.com');
+      });
+    });
+
+    describe('checkbox', () => {
+      let table: Model;
+      let columns: Column[] = [];
+
+      beforeEach(async function () {
+        const initResult = await beforeEachCheckbox(testContext);
+        table = initResult.table;
+        columns = initResult.columns;
+        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      });
+
+      it(`will handle insert field format valid`, async () => {
+        const insertCases = Object.keys(checkboxTypeMap);
+        const body: any[] = [];
+        for (const insertCase of insertCases) {
+          body.push({ Checkbox: insertCase });
+        }
+        for (let batch = 0; batch < body.length; batch += 5) {
+          const response = await ncAxiosPost({
+            url: `${urlPrefix}/${table.id}`,
+            body: body.slice(batch, batch + 5),
+          });
+
+          const list = await ncAxiosGet({
+            url: `${urlPrefix}/${table.id}`,
+            query: {
+              where: `(Id,gte,${response.body[0].Id})`,
+            },
+          });
+          for (let index = 0; index < list.body.list.length; index++) {
+            const actual = list.body.list[index];
+            const expected = checkboxTypeMap[insertCases[batch + index]];
+            expect(actual.Checkbox).to.equal(expected);
+          }
+        }
+      });
+    });
+
+    // v3 has no attachment atm
+    describe.skip('attachment', () => {
+      let table: Model;
+      const columns: Column[] = [];
+
+      beforeEach(async function () {
+        const initResult = await beforeEachAttachment(testContext);
+        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      });
+
+      it('Upload file - Super admin', async () => {});
     });
   });
 });

@@ -56,7 +56,7 @@ const HANDLER_REGISTRY: Partial<
   >
 > = {
   [UITypes.ID]: {
-    [CLIENT_DEFAULT]: ComputedFieldHandler,
+    [CLIENT_DEFAULT]: GenericFieldHandler,
   },
   [UITypes.LinkToAnotherRecord]: {
     [CLIENT_DEFAULT]: LtarGeneralHandler,

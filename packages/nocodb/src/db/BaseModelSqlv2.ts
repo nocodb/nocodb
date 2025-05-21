@@ -3963,10 +3963,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 const formattedOldData = formatDataForAudit(
                   prevData?.[i]
                     ? formatDataForAudit(
-                        removeBlankPropsAndMask(prevData?.[i], [
-                          'CreatedAt',
-                          'UpdatedAt',
-                        ]),
+                        removeBlankPropsAndMask(
+                          prevData?.[i],
+                          ['CreatedAt', 'UpdatedAt'],
+                          true,
+                        ),
                         this.model.columns,
                       )
                     : null,
@@ -3975,7 +3976,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 const formattedData = formatDataForAudit(
                   d
                     ? formatDataForAudit(
-                        removeBlankPropsAndMask(d, ['CreatedAt', 'UpdatedAt']),
+                        removeBlankPropsAndMask(
+                          d,
+                          ['CreatedAt', 'UpdatedAt'],
+                          true,
+                        ),
                         this.model.columns,
                       )
                     : null,

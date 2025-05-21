@@ -1,7 +1,6 @@
 import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
-import type { ProjectRoles } from 'nocodb-sdk'
 import type { AxiosInstance } from 'axios'
 export interface AppInfo {
   ncSiteUrl: string

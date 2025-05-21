@@ -334,7 +334,7 @@ export const useBases = defineStore('basesStore', () => {
     bases.value.clear()
   }
 
-  const navigateToProject = async ({ baseId }: { baseId: string;}) => {
+  const navigateToProject = async ({ baseId }: { baseId: string }) => {
     if (!baseId) return
 
     const base = bases.value.get(baseId)

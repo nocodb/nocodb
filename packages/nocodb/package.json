@@ -85,6 +85,8 @@
     "boxen": "^5.1.2",
     "bull": "^4.16.5",
     "bullmq": "^1.91.1",
+    "class-transformer": "0.3.1",
+    "class-validator": "^0.14.1",
     "clear": "^0.1.0",
     "clickhouse": "^2.6.0",
     "clickhouse-migrations": "^0.1.14",

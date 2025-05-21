@@ -17,6 +17,7 @@ import { updateMigrationJobsState } from '~/helpers/migrationJobs';
 import { initBaseBehavior } from '~/helpers/initBaseBehaviour';
 import initDataSourceEncryption from '~/helpers/initDataSourceEncryption';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { serverConfig } from 'config';
 
 export const InitMetaServiceProvider: FactoryProvider = {
   // initialize app,
@@ -35,12 +36,6 @@ export const InitMetaServiceProvider: FactoryProvider = {
 
     const config = await NcConfig.createByEnv();
     NcDebug.log('Config prepared using environment variables');
-
-    // set version
-    process.env.NC_VERSION = '0258003';
-
-    // set migration jobs version
-    process.env.NC_MIGRATION_JOBS_VERSION = '8';
 
     // init cache
     await NocoCache.init();
@@ -99,7 +94,7 @@ export const InitMetaServiceProvider: FactoryProvider = {
       NcDebug.log('Inserting instance config');
       // bump to latest version for fresh install
       await updateMigrationJobsState({
-        version: process.env.NC_MIGRATION_JOBS_VERSION,
+        version: serverConfig.nocoDbConfig.migrationJobsVersion,
       });
       NcDebug.log('Migration jobs state updated');
     }
@@ -113,12 +108,12 @@ export const InitMetaServiceProvider: FactoryProvider = {
     NcDebug.log('Admin user from environment initialized');
     await Noco.loadEEState();
 
-    if (process.env.NC_LICENSE_KEY) {
+    if (serverConfig.nocoDbConfig.licenseKey) {
       try {
         await populatePluginsForCloud({ ncMeta: Noco.ncMeta });
         NcDebug.log('Cloud plugins initialized from env');
       } catch (e) {
-        if (process.env.NC_CLOUD === 'true') throw e;
+        if (serverConfig.nocoDbConfig.isCloud) throw e;
         console.error('Plugin init failed', e?.message);
       }
     }
@@ -132,11 +127,11 @@ export const InitMetaServiceProvider: FactoryProvider = {
     await NcPluginMgrv2.init(Noco.ncMeta);
     NcDebug.log('Plugin manager initialized');
 
-    if (process.env.NC_CLOUD === 'true') {
+    if (serverConfig.nocoDbConfig.isCloud) {
       try {
         await populatePluginsForCloud({ ncMeta: Noco.ncMeta });
       } catch (e) {
-        if (process.env.NODE_ENV !== 'test') throw e;
+        if (serverConfig.environment === 'testing') throw e;
       }
     }
     T.init({

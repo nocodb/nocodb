@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import path from 'path';
 import cors from 'cors';
 import express from 'express';
@@ -33,7 +34,7 @@ if (!/^\/?dashboard\/?$/.test(serverConfig.dashboardUrl)) {
 server.set('view engine', 'ejs');
 
 (async () => {
-  const httpServer = server.listen(process.env.PORT || 8080, async () => {
+  const httpServer = server.listen(serverConfig.port, async () => {
     console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
     server.use(await Noco.init({}, httpServer, server));
   });

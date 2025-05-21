@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import dns from 'node:dns';
 import express from 'express';
 import cors from 'cors';
@@ -15,7 +16,7 @@ server.use(cors());
 server.set('view engine', 'ejs');
 
 (async () => {
-  const httpServer = server.listen(process.env.PORT || 8080, async () => {
+  const httpServer = server.listen(serverConfig.port, async () => {
     server.use(await Noco.init({}, httpServer, server));
   });
 })().catch((e) => console.log(e));

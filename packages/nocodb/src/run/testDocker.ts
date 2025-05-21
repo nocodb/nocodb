@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import dns from 'node:dns';
 import axios from 'axios';
 import cors from 'cors';
@@ -29,18 +30,18 @@ process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
 
 (async () => {
   if (process.env.NC_WORKER_CONTAINER === 'true') {
-    const httpServer = server.listen(process.env.PORT || 8080, async () => {
+    const httpServer = server.listen(serverConfig.port, async () => {
       server.use(await Noco.init({}, httpServer, server));
     });
   } else {
-    const httpServer = server.listen(process.env.PORT || 8080, async () => {
+    const httpServer = server.listen(serverConfig.port, async () => {
       server.use(await Noco.init({}, httpServer, server));
 
       let admin_response;
       if (!(await User.getByEmail('user@nocodb.com'))) {
         admin_response = await axios.post(
           `http://localhost:${
-            process.env.PORT || 8080
+            serverConfig.port
           }/api/v1/auth/user/signup`,
           {
             email: 'user@nocodb.com',
@@ -51,7 +52,7 @@ process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
       } else {
         admin_response = await axios.post(
           `http://localhost:${
-            process.env.PORT || 8080
+            serverConfig.port
           }/api/v1/auth/user/signin`,
           {
             email: 'user@nocodb.com',
@@ -64,7 +65,7 @@ process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
         if (!(await User.getByEmail(`user-${i}@nocodb.com`))) {
           const response = await axios.post(
             `http://localhost:${
-              process.env.PORT || 8080
+              serverConfig.port
             }/api/v1/auth/user/signup`,
             {
               email: `user-${i}@nocodb.com`,
@@ -74,7 +75,7 @@ process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
           console.log(response.data);
 
           const user = await axios.get(
-            `http://localhost:${process.env.PORT || 8080}/api/v1/auth/user/me`,
+            `http://localhost:${serverConfig.port}/api/v1/auth/user/me`,
             {
               headers: {
                 'xc-auth': response.data.token,
@@ -83,7 +84,7 @@ process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
           );
 
           const response2 = await axios.patch(
-            `http://localhost:${process.env.PORT || 8080}/api/v1/users/${
+            `http://localhost:${serverConfig.port}/api/v1/users/${
               user.data.id
             }`,
             { roles: 'org-level-creator' },

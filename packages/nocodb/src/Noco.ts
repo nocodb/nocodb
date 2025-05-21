@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import path from 'path';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
@@ -56,7 +57,6 @@ export default class Noco {
   public static sharp: typeof Sharp;
 
   constructor() {
-    process.env.PORT = process.env.PORT || '8080';
     // todo: move
     // if env variable NC_MINIMAL_DBS is set, then disable base creation with external sources
     if (process.env.NC_MINIMAL_DBS === 'true') {

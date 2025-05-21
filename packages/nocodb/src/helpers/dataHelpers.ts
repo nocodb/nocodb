@@ -1,18 +1,11 @@
-import { convertMS2Duration, isSystemColumn, UITypes } from 'nocodb-sdk';
-import * as XLSX from 'xlsx';
-import papaparse from 'papaparse';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { convertMS2Duration, UITypes } from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import type { NcContext } from '~/interface/config';
-import { nocoExecute } from '~/utils';
+import type Column from '~/models/Column';
 import { NcError } from '~/helpers/catchError';
-import getAst from '~/helpers/getAst';
 import { Model, View } from '~/models';
-import Source from '~/models/Source';
-import Column from '~/models/Column';
 import Base from '~/models/Base';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 export interface PathParams {
   baseName: string;
@@ -52,118 +45,6 @@ export async function getViewAndModelByAliasOrId(
   if (param.viewName && !view) NcError.viewNotFound(param.viewName);
 
   return { model, view };
-}
-
-export async function extractXlsxData(context: NcContext, view: View, req) {
-  const source = await Source.get(context, view.source_id);
-
-  await view.getModelWithInfo(context);
-  await view.getColumns(context);
-
-  view.model.columns = view.columns
-    .filter((c) => c.show)
-    .map(
-      (c) =>
-        new Column({ ...c, ...view.model.columnsById[c.fk_column_id] } as any),
-    )
-    .filter((column) => !isSystemColumn(column) || view.show_system_fields);
-
-  const baseModel = await Model.getBaseModelSQL(context, {
-    id: view.model.id,
-    viewId: view?.id,
-    dbDriver: await NcConnectionMgrv2.get(source),
-  });
-
-  const { offset, dbRows, elapsed } = await getDbRows(context, {
-    baseModel,
-    view,
-    siteUrl: (req as any).ncSiteUrl,
-    query: req.query,
-  });
-
-  const fields = req.query.fields as string[];
-  const columnFields = view.model.columns
-    .sort((c1, c2) =>
-      Array.isArray(fields)
-        ? fields.indexOf(c1.title as any) - fields.indexOf(c2.title as any)
-        : 0,
-    )
-    .filter(
-      (c) =>
-        !fields || !Array.isArray(fields) || fields.includes(c.title as any),
-    )
-    .map((c) => c.title);
-
-  const dataToSerialize = dbRows
-    .filter((k) => k)
-    .map((k) =>
-      // remove all columns not defined in filter / columns
-      // because it's still getting added into xlsx even though undefined
-      Object.keys(k).reduce((obj, title) => {
-        if (columnFields.includes(title)) {
-          obj[title] = k[title];
-        }
-        return obj;
-      }, {}),
-    );
-  const data = XLSX.utils.json_to_sheet(dataToSerialize, {
-    header: columnFields,
-  });
-
-  return { offset, dbRows, elapsed, data };
-}
-
-export async function extractCsvData(context: NcContext, view: View, req) {
-  const source = await Source.get(context, view.source_id);
-  const fields = req.query.fields;
-
-  await view.getModelWithInfo(context);
-  await view.getColumns(context);
-
-  view.model.columns = view.columns
-    .filter((c) => c.show)
-    .map(
-      (c) =>
-        new Column({ ...c, ...view.model.columnsById[c.fk_column_id] } as any),
-    )
-    .filter((column) => !isSystemColumn(column) || view.show_system_fields);
-
-  const baseModel = await Model.getBaseModelSQL(context, {
-    id: view.model.id,
-    viewId: view?.id,
-    dbDriver: await NcConnectionMgrv2.get(source),
-  });
-
-  const { offset, dbRows, elapsed } = await getDbRows(context, {
-    baseModel,
-    view,
-    query: req.query,
-    siteUrl: (req as any).ncSiteUrl,
-  });
-
-  const data = papaparse.unparse(
-    {
-      fields: view.model.columns
-        .sort((c1, c2) =>
-          Array.isArray(fields)
-            ? fields.indexOf(c1.title as any) - fields.indexOf(c2.title as any)
-            : 0,
-        )
-        .filter(
-          (c) =>
-            !fields ||
-            !Array.isArray(fields) ||
-            fields.includes(c.title as any),
-        )
-        .map((c) => c.title),
-      data: dbRows,
-    },
-    {
-      escapeFormulae: true,
-    },
-  );
-
-  return { offset, dbRows, elapsed, data };
 }
 
 export async function serializeCellValue(
@@ -291,72 +172,4 @@ export async function getColumnByIdOrName(
   if (!column) NcError.fieldNotFound(columnNameOrId);
 
   return column;
-}
-
-export async function getDbRows(
-  context: NcContext,
-  param: {
-    baseModel: BaseModelSqlv2;
-    view: View;
-    query: any;
-    siteUrl: string;
-  },
-) {
-  const { baseModel, view, query = {}, siteUrl } = param;
-  let offset = +query.offset || 0;
-  const limit = 100;
-  // const size = +process.env.NC_EXPORT_MAX_SIZE || 1024;
-  const timeout = +process.env.NC_EXPORT_MAX_TIMEOUT || 5000;
-  const dbRows = [];
-  const startTime = process.hrtime();
-  let elapsed, temp;
-
-  const listArgs: any = { ...query };
-  try {
-    listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-  } catch (e) {}
-  try {
-    listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-  } catch (e) {}
-
-  for (
-    elapsed = 0;
-    elapsed < timeout;
-    offset += limit,
-      temp = process.hrtime(startTime),
-      elapsed = temp[0] * 1000 + temp[1] / 1000000
-  ) {
-    const { ast, dependencyFields } = await getAst(context, {
-      query: query,
-      includePkByDefault: false,
-      model: view.model,
-      view,
-    });
-    const rows = await nocoExecute(
-      ast,
-      await baseModel.list({ ...listArgs, ...dependencyFields, offset, limit }),
-      {},
-      dependencyFields,
-    );
-
-    if (!rows?.length) {
-      offset = -1;
-      break;
-    }
-
-    for (const row of rows) {
-      const dbRow = { ...row };
-
-      for (const column of view.model.columns) {
-        if (isSystemColumn(column) && !view.show_system_fields) continue;
-        dbRow[column.title] = await serializeCellValue(context, {
-          value: row[column.title],
-          column,
-          siteUrl,
-        });
-      }
-      dbRows.push(dbRow);
-    }
-  }
-  return { offset, dbRows, elapsed };
 }

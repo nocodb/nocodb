@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
@@ -326,7 +327,7 @@ export class BasesService {
 
     // populate metadata if existing table
     for (const source of await base.getSources(undefined, ncMeta)) {
-      if (process.env.NC_CLOUD !== 'true' && !base.is_meta) {
+      if (!serverConfig.nocoDbConfig.isCloud && !base.is_meta) {
         const info = await populateMeta(context, {
           source,
           base,

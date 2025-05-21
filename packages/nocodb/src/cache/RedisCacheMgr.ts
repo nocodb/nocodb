@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import debug from 'debug';
 import Redis from 'ioredis';
 import CacheMgr from './CacheMgr';
@@ -14,7 +15,7 @@ export default class RedisCacheMgr extends CacheMgr {
     if (
       process.env.NC_WORKER_CONTAINER !== 'true' &&
       (process.env.NC_FLUSH_CACHE === 'true' ||
-        process.env.NC_CLOUD !== 'true') &&
+        !serverConfig.nocoDbConfig.isCloud) &&
       process.env.NC_KEEP_CACHE !== 'true'
     ) {
       // flush the existing db with selected key (Default: 0)

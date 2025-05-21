@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import fs from 'fs';
 import { promisify } from 'util';
 import {
@@ -42,7 +43,7 @@ export class UtilsController {
   @UseGuards(PublicApiLimiterGuard)
   @Get('/api/v1/version')
   async getVersion() {
-    if (process.env.NC_CLOUD !== 'true') {
+    if (!serverConfig.nocoDbConfig.isCloud) {
       return this.utilsService.versionInfo();
     }
 

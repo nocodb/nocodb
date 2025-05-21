@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import S3PluginConfig from '~/plugins/s3';
 import SESPluginConfig from '~/plugins/ses';
 import Noco from '~/Noco';

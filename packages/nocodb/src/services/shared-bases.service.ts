@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
@@ -101,7 +102,7 @@ export class SharedBasesService {
       NcError.baseNotFound(param.baseId);
     }
 
-    if (roles === 'editor' && process.env.NC_CLOUD === 'true') {
+    if (roles === 'editor' && serverConfig.nocoDbConfig.isCloud) {
       NcError.badRequest('Only viewer role is supported');
     }
 

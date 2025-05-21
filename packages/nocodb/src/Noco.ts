@@ -95,7 +95,7 @@ export default class Noco {
   }
 
   public static isEE(): boolean {
-    return this.ee || process.env.NC_CLOUD === 'true';
+    return this.ee || serverConfig.nocoDbConfig.isCloud;
   }
 
   public static async loadEEState(): Promise<boolean> {

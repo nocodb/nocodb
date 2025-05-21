@@ -202,8 +202,7 @@ const commentRow = (rowId: number, path: Array<number>) => {
   }
 }
 
-const generateAIBulk = async (path: Array<number>) => {
-  if (!isSelectionOnlyAI.value.enabled) return
+const execBulkAction = async (path: Array<number>) => {
   const column = columns.value[selection.value.start.col]
 
   const field = column?.columnObj
@@ -326,7 +325,7 @@ const generateAIBulk = async (path: Array<number>) => {
         class="nc-base-menu-item"
         data-testid="context-menu-item-bulk"
         :disabled="isSelectionOnlyAI.disabled"
-        @click="generateAIBulk(contextMenuPath)"
+        @click="execBulkAction(contextMenuPath)"
       >
         <div class="flex gap-2 items-center">
           <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
@@ -342,6 +341,7 @@ const generateAIBulk = async (path: Array<number>) => {
       class="nc-base-menu-item"
       data-testid="context-menu-item-bulk-script"
       :disabled="isSelectionOnlyScript.disabled"
+      @click="execBulkAction(contextMenuPath)"
     >
       <div class="flex gap-2 items-center">
         <GeneralIcon icon="ncScript" class="h-4 w-4" />

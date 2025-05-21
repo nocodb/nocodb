@@ -1,9 +1,9 @@
-import { NcError } from 'src/helpers/catchError';
-import { extractProps } from 'src/helpers/extractProps';
 import type { Logger } from '@nestjs/common';
 import type { NcContext } from 'nocodb-sdk';
-import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
-import type { MetaService } from 'src/meta/meta.service';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { MetaService } from '~/meta/meta.service';
+import { extractProps } from '~/helpers/extractProps';
+import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { BaseUser, type Column } from '~/models';
 
@@ -118,6 +118,9 @@ export class UserGeneralHandler extends GenericFieldHandler {
             userIds.push(u.id);
           }
         } catch (e) {
+          if (e instanceof NcBaseErrorv2) {
+            throw e;
+          }
           NcError.invalidValueForField({
             value: params.value,
             column: params.column.title,

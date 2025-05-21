@@ -881,6 +881,21 @@ describe('dataApiV3', () => {
           ),
         ).to.equal(true);
       });
+
+      it('Create record : ID not exists', async function () {
+        const newRecord1 = {
+          userFieldSingle: 'afcdef',
+        };
+        const rsp = await ncAxiosPost({
+          url: `${userBasedUrlPrefix}/${table.id}`,
+          body: newRecord1,
+          status: 422,
+        });
+        console.log(rsp.body.message);
+        expect(
+          rsp.body.message.startsWith(`Invalid value 'afcdef' for type `),
+        ).to.equal(true);
+      });
     });
 
     describe.skip('attachment', () => {

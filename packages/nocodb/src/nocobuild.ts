@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { serverConfig } from 'config';
 import express from 'express';
 import { AppModule } from '~/app.module';
 
@@ -7,7 +8,7 @@ export default async function (app) {
   const nestApp = await NestFactory.create(AppModule);
   await nestApp.init();
 
-  const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
+  const dashboardPath = serverConfig.dashboardUrl;
   app.get('/', (_req, res) => res.redirect(dashboardPath));
   app.use(nestApp.getHttpAdapter().getInstance());
 

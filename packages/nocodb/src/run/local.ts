@@ -4,6 +4,7 @@ import cors from 'cors';
 import express from 'express';
 import Noco from '~/Noco';
 import { handleUncaughtErrors } from '~/utils';
+import { serverConfig } from 'config';
 handleUncaughtErrors(process);
 
 // ref: https://github.com/nodejs/node/issues/40702#issuecomment-1103623246
@@ -13,7 +14,7 @@ const server = express();
 server.enable('trust proxy');
 server.use(cors());
 server.use(
-  process.env.NC_DASHBOARD_URL ?? '/dashboard',
+  serverConfig.dashboardUrl,
   express.static(path.join(__dirname, 'nc-gui')),
 );
 server.set('view engine', 'ejs');

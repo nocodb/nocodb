@@ -5,6 +5,7 @@ import { getToolDir, metaUrlToDbConfig } from './helpers';
 import { DriverClient } from './interfaces';
 import type { DbConfig } from './interfaces';
 import { SqlClientFactory } from '~/db/sql-client/lib/SqlClientFactory';
+import { serverConfig } from 'config';
 
 export class NcConfig {
   version: string;
@@ -146,7 +147,7 @@ export class NcConfig {
       port: process.env.NC_PORT,
       tryMode: !!process.env.NC_TRY,
       worker: !!process.env.NC_WORKER,
-      dashboardPath: process.env.NC_DASHBOARD_URL ?? '/dashboard',
+      dashboardPath: serverConfig.dashboardUrl,
       publicUrl: process.env.NC_PUBLIC_URL,
     });
   }

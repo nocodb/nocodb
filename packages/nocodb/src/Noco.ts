@@ -21,6 +21,7 @@ import { isEE, T } from '~/utils';
 import { getAppUrl } from '~/utils/appUrl';
 import { DataReflection, Integration } from '~/models';
 import { getRedisURL } from '~/helpers/redisHelpers';
+import { serverConfig } from 'config';
 dotenv.config();
 declare const module: any;
 
@@ -151,7 +152,7 @@ export default class Noco {
     await nestApp.enableShutdownHooks();
     NcDebug.log('Shutdown hooks enabled');
 
-    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
+    const dashboardPath = serverConfig.dashboardUrl;
     server.use(express.static(path.join(__dirname, 'public')));
 
     if (dashboardPath !== '/' && dashboardPath !== '') {

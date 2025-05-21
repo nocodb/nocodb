@@ -20,6 +20,7 @@ import { JsonBodyMiddleware } from '~/middlewares/json-body.middleware';
 
 import { packageInfo } from '~/utils/packageVersion';
 import { UrlEncodeMiddleware } from '~/middlewares/url-encode.middleware';
+import { serverConfig } from 'config';
 
 export const ceModuleConfig = {
   imports: [
@@ -60,7 +61,6 @@ export const ceModuleConfig = {
 export class AppModule {
   // Global Middleware
   configure(consumer: MiddlewareConsumer) {
-    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
     consumer
       .apply(RawBodyMiddleware)
       .forRoutes({
@@ -72,7 +72,7 @@ export class AppModule {
       .apply(UrlEncodeMiddleware)
       .forRoutes('*')
       .apply(GuiMiddleware)
-      .forRoutes({ path: `${dashboardPath}*`, method: RequestMethod.GET })
+      .forRoutes({ path: `${serverConfig.dashboardUrl}*`, method: RequestMethod.GET })
       .apply(GlobalMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }

@@ -19,6 +19,7 @@ import {
     ValidateNested,
     validateSync,
 } from "class-validator";
+import { isEE } from '~/utils';
 
 class GoogleOidcConfig {
     @Length(8, 64)
@@ -69,15 +70,8 @@ export class ServerConfig {
     host: string;
     @IsPort()
     port: number;
-    @IsBoolean()
-    seed: Boolean;
-    @Min(0) // error
-    @Max(4) // info
-    logLevel: number;
     @IsUrl()
     publicUrl: string;
-    // @Length(32)
-    // secretMasterKey: string;
 
     @IsDefined()
     @IsNotEmptyObject()
@@ -95,16 +89,16 @@ export class ServerConfig {
 
     @IsIn(environments)
     environment: typeof environments[number];
+
+    dashboardUrl: string
 }
 
 const serverConfigGet = (): ServerConfig => {
     let serverConfigRaw: ServerConfig = {
         host: process.env.HOST ?? "127.0.0.1",
         port: 8000,
-        seed: process.env.SEED === "true" ? true : false,
         publicUrl: null,
-        logLevel: Number("3"),
-        // secretMasterKey: process.env.SECRET_MASTER_KEY,
+        dashboardUrl: null,
 
         environment: process.env.NODE_ENV as typeof environments[number],
 
@@ -131,7 +125,8 @@ const serverConfigGet = (): ServerConfig => {
     };
 
     // derived config
-    serverConfigRaw.publicUrl = process.env.NC_PUBLIC_URL ?? `http:${serverConfigRaw.host}:${serverConfigRaw.port}/`
+    serverConfigRaw.publicUrl = process.env.NC_PUBLIC_URL ?? `http:${serverConfigRaw.host}:${serverConfigRaw.port}/`;
+    serverConfigRaw.dashboardUrl = process.env.NC_DASHBOARD_URL ??  (isEE || serverConfigRaw.nocoDbConfig.isCloud ? '/' : '/dashboard');
 
     const serverConfig = plainToClass(ServerConfig, serverConfigRaw);
     const error = validateSync(serverConfig);

@@ -35,6 +35,7 @@ export enum JobTypes {
   HandleWebhook = 'handle-webhook',
   CleanUp = 'clean-up',
   DataExport = 'data-export',
+  DataExportCleanUp = 'data-export-clean-up',
   ThumbnailGenerator = 'thumbnail-generator',
   AttachmentCleanUp = 'attachment-clean-up',
   InitMigrationJobs = 'init-migration-jobs',

@@ -10,6 +10,7 @@ import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-gener
 import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
 import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-jobs';
 import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.processor';
+import { DataExportCleanUpProcessor } from '~/modules/jobs/jobs/data-export-clean-up/data-export-clean-up.processor';
 import { JobTypes } from '~/interface/Jobs';
 
 @Injectable()
@@ -26,6 +27,7 @@ export class JobsMap {
     protected readonly attachmentCleanUpProcessor: AttachmentCleanUpProcessor,
     protected readonly initMigrationJobs: InitMigrationJobs,
     protected readonly useWorkerProcessor: UseWorkerProcessor,
+    protected readonly dataExportCleanUpProcessor: DataExportCleanUpProcessor,
   ) {}
 
   protected get _jobMap(): {
@@ -64,6 +66,9 @@ export class JobsMap {
       },
       [JobTypes.DataExport]: {
         this: this.dataExportProcessor,
+      },
+      [JobTypes.DataExportCleanUp]: {
+        this: this.dataExportCleanUpProcessor,
       },
       [JobTypes.ThumbnailGenerator]: {
         this: this.thumbnailGeneratorProcessor,

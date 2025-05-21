@@ -1,6 +1,7 @@
 import { Readable } from 'stream';
 import {
   isLinksOrLTAR,
+  isSystemColumn,
   LongTextAiMetaProp,
   RelationTypes,
   UITypes,
@@ -616,11 +617,15 @@ export class ExportService {
       : model.columns.filter((c) => !isLinksOrLTAR(c)).map((c) => c.title);
 
     if (dataExportMode) {
+      const hideSystemFields = view.show_system_fields
+        ? []
+        : model.columns.filter((c) => isSystemColumn(c)).map((c) => c.id);
+
       const viewCols = await view.getColumns(context);
 
       fields = viewCols
         .sort((a, b) => a.order - b.order)
-        .filter((c) => c.show)
+        .filter((c) => c.show && !hideSystemFields.includes(c.fk_column_id))
         .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id).title);
     }
 

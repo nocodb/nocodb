@@ -143,13 +143,6 @@ function openDeleteDialog() {
         tableId: activeTable.value!.id!,
         force: true,
       })
-
-      const activeNonDefaultViews = viewsByTable.value.get(activeTable!.value!.id!)?.filter((v) => !v.is_default) ?? []
-
-      activeTable!.value!.meta = {
-        ...(activeTable!.value!.meta as object),
-        hasNonDefaultViews: activeNonDefaultViews.length > 1,
-      }
     },
   })
 

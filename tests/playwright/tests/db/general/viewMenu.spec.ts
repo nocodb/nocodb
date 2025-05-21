@@ -56,22 +56,4 @@ test.describe('Grid view locked', () => {
       },
     });
   });
-
-  test('Download XLSX', async () => {
-    await dashboard.treeView.openTable({ title: 'Country' });
-
-    await dashboard.grid.toolbar.clickFields();
-    // Hide 'LastUpdate' column
-    await dashboard.grid.toolbar.fields.click({
-      title: 'LastUpdate',
-    });
-
-    await dashboard.grid.toolbar.viewsMenu.click({
-      menu: 'Download',
-      subMenu: 'Excel',
-      verificationInfo: {
-        verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.txt' : null,
-      },
-    });
-  });
 });

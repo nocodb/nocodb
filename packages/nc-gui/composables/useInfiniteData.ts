@@ -234,7 +234,18 @@ export function useInfiniteData(args: {
 
   const getChunkIndex = (rowIndex: number) => Math.floor(rowIndex / CHUNK_SIZE)
 
-  const dataLoadQueue = new Queue(8)
+  const dataLoadQueue = new Queue({
+    maxConcurrent: 10,
+    rateLimit: {
+      maxRequestsPerWindow: 10,
+      windowSizeMs: 1000,
+      enabled: true,
+    },
+    retryOptions: {
+      maxRetries: 2,
+      retryDelay: (attempt) => 1000 * attempt,
+    },
+  })
 
   // Track in-flight chunk requests with a Map of promises
   const chunkPromises: Map<string, Promise<void>> = new Map()

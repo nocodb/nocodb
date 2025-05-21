@@ -234,28 +234,66 @@ export function useInfiniteData(args: {
 
   const getChunkIndex = (rowIndex: number) => Math.floor(rowIndex / CHUNK_SIZE)
 
+  const dataLoadQueue = new Queue(8)
+
+  // Track in-flight chunk requests with a Map of promises
+  const chunkPromises: Map<string, Promise<void>> = new Map()
+
+  // Generate a unique key for each chunk request based on path and chunkId
+  const getChunkKey = (chunkId: number, path: Array<number> = []): string => {
+    return `${path.join('-')}-${chunkId}`
+  }
+
   const fetchChunk = async (chunkId: number, path: Array<number> = [], forceFetch = false) => {
     const dataCache = getDataCache(path)
+    const chunkKey = getChunkKey(chunkId, path)
 
-    if (dataCache.chunkStates.value[chunkId] && !forceFetch) return
+    // If chunk is already loaded and we're not forcing a fetch, return immediately
+    if (dataCache.chunkStates.value[chunkId] === 'loaded' && !forceFetch) return
 
-    dataCache.chunkStates.value[chunkId] = 'loading'
-    const offset = chunkId * CHUNK_SIZE
-
-    try {
-      const newItems = await loadData({ offset, limit: CHUNK_SIZE }, false, path)
-      if (!newItems) {
-        dataCache.chunkStates.value[chunkId] = undefined
-        return
-      }
-      newItems.forEach((item) => {
-        dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
-      })
-      dataCache.chunkStates.value[chunkId] = 'loaded'
-    } catch (error) {
-      console.error('Error fetching chunk:', error)
-      dataCache.chunkStates.value[chunkId] = undefined
+    // If there's an in-flight request for this chunk and we're not forcing a fetch,
+    // just wait for that to complete instead of starting a new one
+    if (chunkPromises.has(chunkKey) && !forceFetch) {
+      return chunkPromises.get(chunkKey)
     }
+
+    // Create the actual data loading task
+    const loadDataTask = async () => {
+      const offset = chunkId * CHUNK_SIZE
+      return await loadData({ offset, limit: CHUNK_SIZE }, false, path)
+    }
+
+    // Create a new promise for this chunk fetch that goes through the queue
+    const fetchPromise = (async () => {
+      dataCache.chunkStates.value[chunkId] = 'loading'
+
+      try {
+        // Add the task to the queue - this will be executed when a slot is available
+        const newItems = await dataLoadQueue.add(loadDataTask)
+
+        if (!newItems) {
+          dataCache.chunkStates.value[chunkId] = undefined
+          return
+        }
+
+        newItems.forEach((item) => {
+          dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
+        })
+
+        dataCache.chunkStates.value[chunkId] = 'loaded'
+      } catch (error) {
+        console.error('Error fetching chunk:', error)
+        dataCache.chunkStates.value[chunkId] = undefined
+      } finally {
+        // Clean up the promise reference when done
+        chunkPromises.delete(chunkKey)
+      }
+    })()
+
+    // Store the promise in our map
+    chunkPromises.set(chunkKey, fetchPromise)
+
+    return fetchPromise
   }
 
   const clearCache = (visibleStartIndex: number, visibleEndIndex: number, path: Array<number> = []) => {
@@ -1682,15 +1720,22 @@ export function useInfiniteData(args: {
     const startChunkId = getChunkIndex(startIndex)
     const endChunkId = getChunkIndex(endIndex)
 
-    const chunksToFetch = new Set<number>()
+    const fetchPromises: Promise<void>[] = []
+
+    // Initiate all needed chunk fetches
     for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
-      chunksToFetch.add(chunkId)
+      const promise = fetchChunk(chunkId, path)
+      if (promise) fetchPromises.push(promise)
     }
 
-    await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId, path)))
+    // Wait for all chunk fetches to complete
+    if (fetchPromises.length > 0) {
+      await Promise.all(fetchPromises)
+    }
 
     const dataCache = getDataCache(path)
 
+    // Collect all needed rows from cache
     const rows = []
     for (let rowId = startIndex; rowId <= endIndex; rowId++) {
       if (dataCache.cachedRows.value.has(rowId)) {

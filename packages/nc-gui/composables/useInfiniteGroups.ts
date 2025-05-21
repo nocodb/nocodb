@@ -207,7 +207,7 @@ export const useInfiniteGroups = (
           chunkStates: [],
           count: +item.count,
           groupCount: +item.__sub_group_count__,
-          isExpanded: false,
+          isExpanded: true,
           color: findKeyColor(value, groupCol.column, getNextColor),
           expandedGroups: 0,
           value,
@@ -242,11 +242,6 @@ export const useInfiniteGroups = (
           ...routePath.slice(0, group.nestedIn.length),
           ...Array(Math.max(0, group.nestedIn.length - routePath.length)).fill(''),
         ]
-
-        const isExpanded = groupPath.join('-') === routePath.join('-')
-
-        const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
-        group.isExpanded = activeGroupKeys.value.includes(nestedKey) || isExpanded
 
         // Create useInfiniteData for leaf groups
         if (level === groupByColumns.value.length - 1) {

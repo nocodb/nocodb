@@ -1,3 +1,4 @@
+import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
 import type { FilterType, NcContext } from 'nocodb-sdk';
@@ -49,6 +50,7 @@ export interface FieldHandlerInterface {
     options?: {
       context?: NcContext;
       metaService?: MetaService;
+      logger?: Logger;
     };
     // for now the return value need to be {value: any}
     // since it's possible for it to be knex query, which
@@ -95,6 +97,7 @@ export interface IFieldHandler {
     options?: {
       context?: NcContext;
       metaService?: MetaService;
+      logger?: Logger;
     };
   }): Promise<{ value: any }>;
 }

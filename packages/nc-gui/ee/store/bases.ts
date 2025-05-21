@@ -280,17 +280,12 @@ export const useBases = defineStore('basesStore', () => {
     await loadProject(baseId, true)
   }
 
-  const createProject = async (basePayload: {
-    title: string
-    workspaceId: string
-    type: string
-    meta?: Record<string, unknown>
-  }) => {
+  const createProject = async (basePayload: { title: string; workspaceId: string; meta?: Record<string, unknown> }) => {
     const result = await api.base.create(
       {
         title: basePayload.title,
         fk_workspace_id: basePayload.workspaceId,
-        type: basePayload.type ?? NcProjectType.DB,
+        type: NcProjectType.DB,
         // color,
         meta: JSON.stringify({
           ...(basePayload.meta || {}),
@@ -339,7 +334,7 @@ export const useBases = defineStore('basesStore', () => {
     bases.value.clear()
   }
 
-  const navigateToProject = async ({ baseId, page }: { baseId: string; page?: 'collaborators' }) => {
+  const navigateToProject = async ({ baseId }: { baseId: string;}) => {
     if (!baseId) return
 
     const base = bases.value.get(baseId)

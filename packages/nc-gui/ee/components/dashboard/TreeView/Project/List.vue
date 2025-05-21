@@ -44,7 +44,6 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
 
-const baseType = ref(NcProjectType.DB)
 const baseCreateDlg = ref(false)
 
 const searchQuery = ref('')
@@ -338,17 +337,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       // ALT + D
       case 68: {
         e.stopPropagation()
-        baseType.value = NcProjectType.DB
         baseCreateDlg.value = true
         break
       }
-      // // ALT + B
-      // case 66: {
-      //   e.stopPropagation()
-      //   baseType.value = NcProjectType.DOCS
-      //   baseCreateDlg.value = true
-      //   break
-      // }
     }
   }
 })
@@ -566,7 +557,7 @@ onBeforeUnmount(() => {
               <div v-else class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No Bases</div>
             </div>
 
-            <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
+            <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
           </div>
           <slot name="footer"> </slot>
         </div>

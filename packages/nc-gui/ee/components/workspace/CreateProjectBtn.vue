@@ -19,7 +19,6 @@ const workspaceStore = useWorkspace()
 const { activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const baseCreateDlg = ref(false)
-const baseType = ref(NcProjectType.DB)
 
 const size = computed(() => props.size || 'small')
 const centered = computed(() => props.centered ?? true)
@@ -46,7 +45,7 @@ const centered = computed(() => props.centered ?? true)
       </div>
     </slot>
 
-    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
+    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
   </NcButton>
 </template>
 

@@ -27,7 +27,6 @@ const toBeDeletedBaseId = ref<string | undefined>()
 const openBase = async (base: BaseType) => {
   navigateToProject({
     baseId: base.id!,
-    type: base.type as NcProjectType,
   })
 }
 
@@ -328,10 +327,7 @@ const setColor = async (color: string, base: BaseType) => {
                   </div>
                 </a-menu-item>
                 <a-menu-item
-                  v-if="
-                    record.type === NcProjectType.DB &&
-                    isUIAllowed('baseDuplicate', { roles: [record.workspace_role, record.project_role].join() })
-                  "
+                  v-if="isUIAllowed('baseDuplicate', { roles: [record.workspace_role, record.project_role].join() })"
                   @click="duplicateProject(record)"
                 >
                   <div class="nc-menu-item-wrapper">

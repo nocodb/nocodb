@@ -66,17 +66,12 @@ const { form, formState, isLoading, validateInfos, submit } = useProvideFormBuil
               progressRef.value?.pushProgress('Done!', data.status)
 
               await loadTables()
-
-              const newTable = tables.value.find((el) => el.id === res.table?.id)
-
               refreshCommandPalette()
               goToDashboard.value = true
             } else if (data.status === JobStatus.FAILED) {
               progressRef.value?.pushProgress(data.data?.error?.message ?? 'Sync failed', data.status)
 
               await loadTables()
-
-              const newTable = tables.value.find((el) => el.id === res.table?.id)
               refreshCommandPalette()
 
               goBack.value = true

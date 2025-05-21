@@ -43,7 +43,6 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
 
-const baseType = ref(NcProjectType.DB)
 const baseCreateDlg = ref(false)
 
 const starredProjectList = computed(() => basesList.value.filter((base) => base.starred))
@@ -282,7 +281,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       // ALT + D
       case 68: {
         e.stopPropagation()
-        baseType.value = NcProjectType.DB
         baseCreateDlg.value = true
         break
       }
@@ -398,7 +396,7 @@ const onMove = async (
       <WorkspaceEmptyPlaceholder v-else-if="!basesList.length && !isWorkspaceLoading" />
     </div>
 
-    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
+    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
   </div>
 </template>
 

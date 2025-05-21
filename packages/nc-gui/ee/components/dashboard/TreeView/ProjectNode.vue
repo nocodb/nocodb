@@ -333,7 +333,7 @@ const addNewProjectChildEntity = async () => {
   isAddNewProjectChildEntityLoading.value = true
 
   const isProjectPopulated = basesStore.isProjectPopulated(base.value.id!)
-  if (!isProjectPopulated && base.value.type === NcProjectType.DB) {
+  if (!isProjectPopulated) {
     // We do not wait for tables api, so that add new table is seamless.
     // Only con would be while saving table duplicate table name FE validation might not work
     // If the table list api takes time to load before the table name validation
@@ -341,15 +341,7 @@ const addNewProjectChildEntity = async () => {
   }
 
   try {
-    switch (base.value.type) {
-      case NcProjectType.DB:
-        openTableCreateDialog()
-        break
-    }
-
-    if (!isExpanded.value && base.value.type !== NcProjectType.DB) {
-      isExpanded.value = true
-    }
+    openTableCreateDialog()
   } finally {
     isAddNewProjectChildEntityLoading.value = false
   }

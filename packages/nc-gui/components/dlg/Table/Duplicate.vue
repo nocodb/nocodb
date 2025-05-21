@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { type LinkToAnotherRecordType, type TableType, UITypes } from 'nocodb-sdk'
-import type { TabType } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean

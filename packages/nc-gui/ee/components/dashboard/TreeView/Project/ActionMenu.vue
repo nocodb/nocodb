@@ -34,9 +34,7 @@ const { isUIAllowed } = useRoles()
 
 const isOptionVisible = computed(() => {
   return {
-    baseDuplicate:
-      base.value.type === NcProjectType.DB &&
-      isUIAllowed('baseDuplicate', { roles: base.value.project_role || base.value.workspace_role }),
+    baseDuplicate: isUIAllowed('baseDuplicate', { roles: base.value.project_role || base.value.workspace_role }),
     dataReflection:
       isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
       isUIAllowed('createConnectionDetails') &&

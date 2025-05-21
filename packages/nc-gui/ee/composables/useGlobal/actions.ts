@@ -2,7 +2,6 @@ import { getActivePinia } from 'pinia'
 import { Auth } from 'aws-amplify'
 import type { AxiosInstance } from 'axios'
 import type { Actions, AppInfo, Getters, SignOutParams, State } from '../../../composables/useGlobal/types'
-import { NcProjectType } from '#imports'
 
 export interface ActionsEE {
   getMainUrl: () => string | undefined
@@ -192,27 +191,18 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
   // todo: remove and use navigateToProject
   const navigateToProject = ({
     workspaceId: _workspaceId,
-    type,
     baseId,
     query,
   }: {
     workspaceId?: string
     baseId?: string
-    type?: NcProjectType
     query?: any
   }) => {
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
     const workspaceId = _workspaceId || 'app'
     let path: string
     if (baseId) {
-      switch (type) {
-        case NcProjectType.DOCS:
-          path = `/${workspaceId}/${baseId}/doc${queryParams}`
-          break
-        default:
-          path = `/${workspaceId}/${baseId}${queryParams}`
-          break
-      }
+      path = `/${workspaceId}/${baseId}${queryParams}`
     } else {
       path = _workspaceId ? `/${workspaceId}${queryParams}` : `/${queryParams}`
     }
@@ -226,7 +216,6 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
 
   const ncNavigateTo = ({
     workspaceId: _workspaceId,
-    type,
     baseId,
     tableId,
     viewId,
@@ -236,7 +225,6 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
   }: {
     workspaceId?: string
     baseId?: string
-    type?: NcProjectType
     tableId?: string
     viewId?: string
     automationId?: string
@@ -249,20 +237,13 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     const workspaceId = _workspaceId || 'app'
 
     let path: string
-    if (baseId)
-      switch (type) {
-        case NcProjectType.DOCS:
-          path = `/${workspaceId}/${baseId}/doc${queryParams}`
-          break
-        default:
-          if (automation) {
-            path = `/${workspaceId}/${baseId}${automationPath}${queryParams}`
-            break
-          }
-          path = `/${workspaceId}/${baseId}${tablePath}${queryParams}`
-          break
+    if (baseId) {
+      if (automation) {
+        path = `/${workspaceId}/${baseId}${automationPath}${queryParams}`
+      } else {
+        path = `/${workspaceId}/${baseId}${tablePath}${queryParams}`
       }
-    else {
+    } else {
       path = _workspaceId ? `/${workspaceId}${queryParams}` : `/${queryParams}`
     }
 
@@ -275,7 +256,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
 
   const getBaseUrl = (workspaceId: string) => {
     if (
-      !['base', 'nc', 'view', 'erd', 'doc', 'api', 'app'].includes(workspaceId) &&
+      !['base', 'nc', 'view'].includes(workspaceId) &&
       state.appInfo.value.baseHostName &&
       location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`
     ) {

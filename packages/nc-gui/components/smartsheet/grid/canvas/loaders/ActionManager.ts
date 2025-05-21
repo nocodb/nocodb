@@ -177,7 +177,7 @@ export class ActionManager {
         case 'script': {
           const script = await this.loadAutomation(colOptions.fk_script_id)
           for (let i = 0; i < rowIds.length; i++) {
-              this.executeAction(rowIds[i]!, column.id, [], async () => {
+            this.executeAction(rowIds[i]!, column.id, [], async () => {
               await runScript(script, extra?.row?.[i], {
                 pk: rowIds[i]!,
                 fieldId: column.columnObj.id!,

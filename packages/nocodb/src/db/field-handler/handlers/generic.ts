@@ -1,4 +1,5 @@
 import { type NcContext } from 'nocodb-sdk';
+import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
@@ -134,6 +135,19 @@ export class GenericFieldHandler implements FieldHandlerInterface {
     options?: {
       context?: NcContext;
       metaService?: MetaService;
+    };
+  }): Promise<{ value: any }> {
+    return { value: params.value };
+  }
+  async parseDbValue(params: {
+    value: any;
+    row: any;
+    column: Column;
+    baseModel: IBaseModelSqlV2;
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+      logger?: Logger;
     };
   }): Promise<{ value: any }> {
     return { value: params.value };

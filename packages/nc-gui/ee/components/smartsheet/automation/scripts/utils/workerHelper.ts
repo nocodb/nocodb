@@ -71,6 +71,11 @@ function generalHelpers() {
     const padZero2 = (num) => num.toString().padStart(2, "0");
     const padMilliseconds = (num) => num.toString().padStart(3, "0");
     
+    const getMonthName = (monthIndex) => {
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return monthNames[monthIndex];
+    };
+    
     const timeFormats = ['HH:mm', 'HH:mm:ss', 'HH:mm:ss.SSS'];
     
     const dateFormats = [
@@ -83,11 +88,15 @@ function generalHelpers() {
       'DD MM YYYY',
       'MM DD YYYY',
       'YYYY MM DD',
+      'DD MMM YYYY',
+      'DD MMM YY',
     ];
     
     const parseDateString = (dateStr, format) => {
       const patterns = {
         YYYY: "(\\\\d{4})",
+        YY: "(\\\\d{2})",
+        MMM: "(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)",
         MM: "(\\\\d{2})",
         DD: "(\\\\d{2})",
         HH: "(\\\\d{2})",
@@ -119,12 +128,19 @@ function generalHelpers() {
       };
 
       let matchIndex = 1;
-      const formatParts = format.match(/(YYYY|MM|DD|HH|mm|ss|SSS)/g);
+      const formatParts = format.match(/(YYYY|YY|MMM|MM|DD|HH|mm|ss|SSS)/g);
       formatParts?.forEach((part) => {
         const value = parseInt(match[matchIndex++]);
         switch (part) {
           case "YYYY":
-            parts.year = value;
+            parts.year = value
+            break;
+          case "YY":
+            parts.year = 2000 + value
+            break;
+          case "MMM":
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            parts.month = monthNames.indexOf(value);
             break;
           case "MM":
             parts.month = value - 1; // JS months are 0-based
@@ -163,6 +179,7 @@ function generalHelpers() {
     const formatDate = (date, format) => {
       const year = date.getFullYear();
       const month = padZero(date.getMonth() + 1);
+      const monthName = getMonthName(date.getMonth());
       const day = padZero(date.getDate());
       const hours24 = date.getHours();
       const hours12 = hours24 % 12 || 12;
@@ -172,18 +189,22 @@ function generalHelpers() {
       const ampm = hours24 >= 12 ? 'PM' : 'AM';
       
       const is12Hr = format.includes('a') || format.includes('A');
+      let result = format;
+      
+      result = result.replace(/A/g, ampm);
+      result = result.replace(/a/g, ampm.toLowerCase());
+      result = result.replace(/YYYY/g, year.toString());
+      result = result.replace(/YY/g, year.toString().slice(-2));
+      result = result.replace(/MMM/g, monthName);
+      result = result.replace(/MM/g, month);
+      result = result.replace(/DD/g, day);
+      result = result.replace(/HH/g, padZero(is12Hr ? hours12 : hours24));
+      result = result.replace(/hh/g, padZero(is12Hr ? hours12 : hours24));
+      result = result.replace(/mm/g, minutes);
+      result = result.replace(/ss/g, seconds);
+      result = result.replace(/SSS/g, milliseconds);
 
-      return format
-        .replace('YYYY', year.toString())
-        .replace('MM', month)
-        .replace('DD', day)
-        .replace('HH', padZero(is12Hr ? hours12 : hours24))
-        .replace('hh', padZero(is12Hr ?  hours12 : hours24))
-        .replace('mm', minutes)
-        .replace('ss', seconds)
-        .replace('SSS', milliseconds)
-        .replace('A', ampm)
-        .replace('a', ampm.toLowerCase());
+      return result;
     };
     
     const isValidDate = (date) => {
@@ -843,7 +864,7 @@ Object.freeze(UITypes);
       
       const fieldsToSelect = Array.from(new Set([..._fieldsToSelect, ...pvAndPk]))
  
-      const data = await api.dbDataTableRowCount(this.base.id, this.id, recordId, {
+      const data = await api.dbDataTableRowRead(this.base.id, this.id, recordId, {
         ...(fields?.length && { fields: fieldsToSelect })
       })
                  

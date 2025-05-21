@@ -10069,40 +10069,6 @@ export class Api<
       }),
 
     /**
- * @description Export Table View Rows by CSV or Excel
- * 
- * @tags DB Table Row
- * @name CsvExport
- * @summary Export Table View Rows
- * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/export/{type}
- * @response `200` `FieldOptionsButtonV3Type` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    csvExport: (
-      orgs: string,
-      baseName: string,
-      tableName: string,
-      type: 'csv' | 'excel',
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        FieldOptionsButtonV3Type,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/export/${type}`,
-        method: 'GET',
-        wrapped: true,
-        ...params,
-      }),
-
-    /**
  * @description List all nested relations rows
  * 
  * @tags DB Table Row
@@ -10749,41 +10715,6 @@ export class Api<
         path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/${rowId}/exist`,
         method: 'GET',
         format: 'json',
-        ...params,
-      }),
-
-    /**
- * @description Export Table View Rows by CSV or Excel
- * 
- * @tags DB View Row
- * @name Export
- * @summary Export Table View Rows
- * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/export/{type}
- * @response `200` `FieldOptionsButtonV3Type` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    export: (
-      orgs: string,
-      baseName: string,
-      tableName: string,
-      viewName: string,
-      type: 'csv' | 'excel',
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        FieldOptionsButtonV3Type,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/export/${type}`,
-        method: 'GET',
-        wrapped: true,
         ...params,
       }),
   };
@@ -11516,38 +11447,6 @@ export class Api<
       }),
 
     /**
- * @description Export all rows in Share View in a CSV / Excel Format
- * 
- * @tags Public
- * @name CsvExport
- * @summary Export Rows in Share View
- * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type}
- * @response `200` `FieldOptionsButtonV3Type` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    csvExport: (
-      sharedViewUuid: string,
-      type: 'csv' | 'excel',
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        FieldOptionsButtonV3Type,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/export/${type}`,
-        method: 'GET',
-        wrapped: true,
-        ...params,
-      }),
-
-    /**
  * @description List Nested Data Relation
  * 
  * @tags Public
@@ -11706,6 +11605,28 @@ export class Api<
       this.request<any, any>({
         path: `/api/v1/db/public/shared-erd/${sharedErdUuid}/meta`,
         method: 'GET',
+        ...params,
+      }),
+
+    /**
+     * @description Trigger export as job
+     *
+     * @tags Public
+     * @name ExportData
+     * @summary Trigger export as job
+     * @request POST:/api/v2/public/export/{publicDataUuid}/{exportAs}
+     */
+    exportData: (
+      publicDataUuid: IdType,
+      exportAs: 'csv',
+      data: object,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v2/public/export/${publicDataUuid}/${exportAs}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
   };

@@ -94,6 +94,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "cron": "^1.8.2",
+    "cron-parser": "^5.2.0",
     "crypto-js": "^4.2.0",
     "dataloader": "^2.2.3",
     "dayjs": "^1.11.13",

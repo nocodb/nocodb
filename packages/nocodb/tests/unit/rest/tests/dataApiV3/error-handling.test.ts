@@ -341,27 +341,31 @@ describe('dataApiV3', () => {
       });
 
       it('primary key not in correct data type (Id)', async () => {
-        const table = await createTable(testContext.context, testContext.base, {
-          table_name: 'testTable',
-          title: 'TestTable',
-          columns: [
-            {
-              column_name: 'id',
-              title: 'Id',
-              uidt: UITypes.ID,
-              pk: true,
-            },
-            {
-              column_name: 'text',
-              title: 'Text',
-              uidt: UITypes.SingleLineText,
-              pk: false,
-              pv: true,
-            },
-          ],
-        });
+        const table = await createTable(
+          testContext.context,
+          testContext.sakilaProject,
+          {
+            table_name: 'testTable',
+            title: 'TestTable',
+            columns: [
+              {
+                column_name: 'id',
+                title: 'Id',
+                uidt: UITypes.ID,
+                pk: true,
+              },
+              {
+                column_name: 'text',
+                title: 'Text',
+                uidt: UITypes.SingleLineText,
+                pk: false,
+                pv: true,
+              },
+            ],
+          },
+        );
         await createBulkRows(testContext.context, {
-          base: testContext.base,
+          base: testContext.sakilaProject,
           table,
           values: [
             {
@@ -537,7 +541,7 @@ describe('dataApiV3', () => {
         const values = ['HELLOW', -1, 9999];
         for (const value of values) {
           const response = await ncAxiosPost({
-            url: `${urlPrefix}/${table.id}`,
+            url: `${numberBasedUrlPrefix}/${table.id}`,
             body: {
               Rating: value,
             },
@@ -556,7 +560,7 @@ describe('dataApiV3', () => {
           return;
         }
         const response = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}`,
           body: [
             {
               Rating: 99,
@@ -575,7 +579,7 @@ describe('dataApiV3', () => {
         }
         for (const year of [99, 19999, 'HELLOW', 19.778, -123]) {
           const response = await ncAxiosPost({
-            url: `${urlPrefix}/${table.id}`,
+            url: `${numberBasedUrlPrefix}/${table.id}`,
             body: [
               {
                 Year: year,
@@ -596,7 +600,7 @@ describe('dataApiV3', () => {
         const values = ['HELLOW', -1, 1.365];
         for (const value of values) {
           const response = await ncAxiosPost({
-            url: `${urlPrefix}/${table.id}`,
+            url: `${numberBasedUrlPrefix}/${table.id}`,
             body: {
               Duration: value,
             },
@@ -834,10 +838,12 @@ describe('dataApiV3', () => {
     describe('user-based', () => {
       let table: Model;
       let columns: Column[] = [];
+      let userBasedUrlPrefix: string = '';
 
       beforeEach(async () => {
         const initResult = await beforeEachUserBased(testContext);
 
+        userBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
         table = initResult.table;
         columns = initResult.columns;
       });
@@ -850,7 +856,7 @@ describe('dataApiV3', () => {
           userFieldMulti: `${userList[0].id},${userList[0].id}`,
         };
         const rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${userBasedUrlPrefix}/${table.id}`,
           body: newRecord1,
           status: 422,
         });
@@ -865,7 +871,7 @@ describe('dataApiV3', () => {
           userFieldMulti: `${userList[0].id},${userList[1].id}`,
         };
         const rsp2 = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${userBasedUrlPrefix}/${table.id}`,
           body: newRecord2,
           status: 422,
         });

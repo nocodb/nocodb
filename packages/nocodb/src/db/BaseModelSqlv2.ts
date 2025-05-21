@@ -6263,17 +6263,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         !ncIsUndefined(data[column.column_name]) &&
         !ncIsNull(data[column.column_name])
       ) {
-        data[column.column_name] = await FieldHandler.fromBaseModel(
-          this,
-        ).parseValue({
-          value: data[column.column_name],
-          baseModel: this,
-          column,
-          row: data,
-          options: {
-            context: this.context,
-          },
-        });
+        data[column.column_name] = (
+          await FieldHandler.fromBaseModel(this).parseValue({
+            value: data[column.column_name],
+            baseModel: this,
+            column,
+            row: data,
+            options: {
+              context: this.context,
+            },
+          })
+        ).value;
       }
       if (
         ![

@@ -140,18 +140,24 @@ export class GenericFieldHandler implements FieldHandlerInterface {
       context?: NcContext;
       metaService?: MetaService;
     };
-  }): Promise<any> {
+  }): Promise<{ value: any }> {
     const dbClientType = params.baseModel.dbDriver.client.config.client;
 
-    return ColumnHelper.parseValue(params.value, {
-      col: params.column,
-      abstractType: SqlUiFactory.create({
-        client: dbClientType,
-      }).getAbstractType(params.column),
-      rowId: params.baseModel.extractPksValues(params.row, true),
-      isMssql: (_sourceid) => dbClientType === ClientType.MSSQL,
-      isMysql: (_sourceid) => dbClientType === ClientType.MYSQL,
-      isPg: (_sourceid) => dbClientType === ClientType.PG,
-    });
+    if (typeof params.value === 'string') {
+      return {
+        value: ColumnHelper.parseValue(params.value, {
+          col: params.column,
+          abstractType: SqlUiFactory.create({
+            client: dbClientType,
+          }).getAbstractType(params.column),
+          rowId: params.baseModel.extractPksValues(params.row, true),
+          isMssql: (_sourceid) => dbClientType === ClientType.MSSQL,
+          isMysql: (_sourceid) => dbClientType === ClientType.MYSQL,
+          isPg: (_sourceid) => dbClientType === ClientType.PG,
+        }),
+      };
+    } else {
+      return { value: params.value };
+    }
   }
 }

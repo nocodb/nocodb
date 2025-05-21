@@ -76,8 +76,8 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
           type: params.column.uidt,
         });
       }
-      return numberValue;
+      return { value: numberValue };
     }
-    return params.value;
+    return { value: params.value };
   }
 }

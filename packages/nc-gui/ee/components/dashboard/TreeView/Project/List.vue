@@ -400,6 +400,8 @@ const onMove = async (
 
 const transitionName = ref<'slide-left' | 'slide-right' | undefined>(undefined)
 
+const avoidTransition = ref(false)
+
 watch(
   [showProjectList, activeWorkspaceId],
   ([newShowProjectList, newWsId], [_oldShowProjectList, oldWsId]) => {
@@ -412,13 +414,36 @@ watch(
     if (newWsId !== oldWsId) {
       transitionName.value = undefined // No animation
       isWsSwitching.value = true
+      avoidTransition.value = true
     } else {
-      transitionName.value = newShowProjectList ? 'slide-left' : 'slide-right'
-      isWsSwitching.value = false
+      if (isWsSwitching.value) {
+        if (!showProjectList.value) {
+          showProjectList.value = true
+        }
+
+        isWsSwitching.value = false
+        transitionName.value = undefined
+      } else if (!avoidTransition.value) {
+        transitionName.value = newShowProjectList ? 'slide-left' : 'slide-right'
+      }
     }
   },
   {
     flush: 'pre',
+  },
+)
+
+watch(
+  showProjectList,
+  () => {
+    if (avoidTransition.value) {
+      nextTick(() => {
+        avoidTransition.value = false
+      })
+    }
+  },
+  {
+    flush: 'post',
   },
 )
 
@@ -435,10 +460,11 @@ watch([searchInputRef, showProjectList], () => {
 watch(
   isProjectsLoaded,
   () => {
-    if (isProjectsLoaded.value) {
-      transitionName.value = showProjectList.value ? 'slide-left' : 'slide-right'
+    if (isProjectsLoaded.value && !avoidTransition.value) {
+      transitionName.value = 'slide-right'
     } else {
       transitionName.value = undefined
+      avoidTransition.value = false
     }
   },
   {
@@ -449,9 +475,13 @@ watch(
 let timerId: any
 
 watch(isWsSwitching, (newValue) => {
-  if (!newValue) return
+  if (!newValue) {
+    clearTimeout(timerId)
+    return
+  }
 
   timerId = setTimeout(() => {
+    showProjectList.value = true
     isWsSwitching.value = false
 
     clearTimeout(timerId)

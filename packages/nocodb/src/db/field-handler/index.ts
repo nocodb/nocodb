@@ -1,4 +1,11 @@
-import { NcApiVersion, UITypes } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  isLookup,
+  isRollup,
+  NcApiVersion,
+  ncIsUndefined,
+  UITypes,
+} from 'nocodb-sdk';
 import { ClientType } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import { JsonGeneralHandler } from './handlers/json/json.general.handler';
@@ -17,6 +24,21 @@ import { LtarGeneralHandler } from './handlers/ltar/ltar.general.handler';
 import { LookupGeneralHandler } from './handlers/lookup/lookup.general.handler';
 import { LinksGeneralHandler } from './handlers/links/links.general.handler';
 import { RollupGeneralHandler } from './handlers/rollup/rollup.general.handler';
+import { PercentGeneralHandler } from './handlers/percent/percent.general.handler';
+import { RatingGeneralHandler } from './handlers/rating/rating.general.handler';
+import { YearGeneralHandler } from './handlers/year/year.general.handler';
+import { UserGeneralHandler } from './handlers/user/user.general.handler';
+import { DurationGeneralHandler } from './handlers/duration/duration.general.handler';
+import { CheckboxSqliteHandler } from './handlers/checkbox/checkbox.sqlite.handler';
+import { LongTextGeneralHandler } from './handlers/long-text/long-text.general.handler';
+import { SingleLineTextGeneralHandler } from './handlers/single-line-text/single-line-text.general.handler';
+import { ComputedFieldHandler } from './handlers/computed';
+import { DateTimeMsSQLHandler } from './handlers/date-time/date-time.mssql.handler';
+import { DateTimeSQLiteHandler } from './handlers/date-time/date-time.sqlite.handler';
+import { DateTimeMySQLHandler } from './handlers/date-time/date-time.mysql.handler';
+import { DateTimePGHandler } from './handlers/date-time/date-time.pg.handler';
+import type { Logger } from '@nestjs/common';
+import type { MetaService } from 'src/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
@@ -44,7 +66,9 @@ const HANDLER_REGISTRY: Partial<
     >
   >
 > = {
-  [UITypes.ID]: {},
+  [UITypes.ID]: {
+    [CLIENT_DEFAULT]: GenericFieldHandler,
+  },
   [UITypes.LinkToAnotherRecord]: {
     [CLIENT_DEFAULT]: LtarGeneralHandler,
   },
@@ -53,14 +77,15 @@ const HANDLER_REGISTRY: Partial<
     [CLIENT_DEFAULT]: LookupGeneralHandler,
   },
   [UITypes.SingleLineText]: {
-    [CLIENT_DEFAULT]: GenericFieldHandler,
+    [CLIENT_DEFAULT]: SingleLineTextGeneralHandler,
   },
   [UITypes.LongText]: {
-    [CLIENT_DEFAULT]: GenericFieldHandler,
+    [CLIENT_DEFAULT]: LongTextGeneralHandler,
   },
   [UITypes.Attachment]: {},
   [UITypes.Checkbox]: {
     [CLIENT_DEFAULT]: CheckboxGeneralHandler,
+    [ClientType.SQLITE]: CheckboxSqliteHandler,
   },
   [UITypes.MultiSelect]: {
     [CLIENT_DEFAULT]: MultiSelectGeneralHandler,
@@ -71,7 +96,9 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.Date]: {
     [CLIENT_DEFAULT]: DateGeneralHandler,
   },
-  [UITypes.Year]: {},
+  [UITypes.Year]: {
+    [CLIENT_DEFAULT]: YearGeneralHandler,
+  },
   [UITypes.Time]: {},
   [UITypes.PhoneNumber]: {
     [CLIENT_DEFAULT]: GenericFieldHandler,
@@ -93,10 +120,14 @@ const HANDLER_REGISTRY: Partial<
     [CLIENT_DEFAULT]: DecimalGeneralHandler,
   },
   [UITypes.Percent]: {
-    [CLIENT_DEFAULT]: DecimalGeneralHandler,
+    [CLIENT_DEFAULT]: PercentGeneralHandler,
   },
-  [UITypes.Duration]: {},
-  [UITypes.Rating]: {},
+  [UITypes.Duration]: {
+    [CLIENT_DEFAULT]: DurationGeneralHandler,
+  },
+  [UITypes.Rating]: {
+    [CLIENT_DEFAULT]: RatingGeneralHandler,
+  },
   [UITypes.Formula]: {
     [CLIENT_DEFAULT]: FormulaGeneralHandler,
   },
@@ -105,9 +136,17 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.DateTime]: {
     [CLIENT_DEFAULT]: DateTimeGeneralHandler,
+    [ClientType.PG]: DateTimePGHandler,
+    [ClientType.MYSQL]: DateTimeMySQLHandler,
+    [ClientType.SQLITE]: DateTimeSQLiteHandler,
+    [ClientType.MSSQL]: DateTimeMsSQLHandler,
   },
-  [UITypes.CreatedTime]: {},
-  [UITypes.LastModifiedTime]: {},
+  [UITypes.CreatedTime]: {
+    [CLIENT_DEFAULT]: ComputedFieldHandler,
+  },
+  [UITypes.LastModifiedTime]: {
+    [CLIENT_DEFAULT]: ComputedFieldHandler,
+  },
   [UITypes.AutoNumber]: {},
   [UITypes.Geometry]: {},
   [UITypes.JSON]: {
@@ -116,15 +155,27 @@ const HANDLER_REGISTRY: Partial<
     [CLIENT_DEFAULT]: JsonGeneralHandler,
   },
   [UITypes.SpecificDBType]: {},
-  [UITypes.Barcode]: {},
-  [UITypes.QrCode]: {},
-  [UITypes.Button]: {},
+  [UITypes.Barcode]: {
+    [CLIENT_DEFAULT]: ComputedFieldHandler,
+  },
+  [UITypes.QrCode]: {
+    [CLIENT_DEFAULT]: ComputedFieldHandler,
+  },
+  [UITypes.Button]: {
+    [CLIENT_DEFAULT]: ComputedFieldHandler,
+  },
   [UITypes.Links]: {
     [CLIENT_DEFAULT]: LinksGeneralHandler,
   },
-  [UITypes.User]: {},
-  [UITypes.CreatedBy]: {},
-  [UITypes.LastModifiedBy]: {},
+  [UITypes.User]: {
+    [CLIENT_DEFAULT]: UserGeneralHandler,
+  },
+  [UITypes.CreatedBy]: {
+    [CLIENT_DEFAULT]: ComputedFieldHandler,
+  },
+  [UITypes.LastModifiedBy]: {
+    [CLIENT_DEFAULT]: ComputedFieldHandler,
+  },
 };
 
 function getLogicalOpMethod(logical_op?: string) {
@@ -189,7 +240,8 @@ export class FieldHandler implements IFieldHandler {
     options: HandlerOptions = {},
   ): Promise<(qb: Knex.QueryBuilder) => void> {
     const knex = options.knex ?? this.info.knex;
-    const dbClient = knex.client.config.client as ClientType;
+    const dbClient = (knex.clientType?.() ??
+      knex.client.config.client) as ClientType;
     const handler = this.getHandler(column.uidt, dbClient);
     const useColumn =
       column ??
@@ -264,7 +316,8 @@ export class FieldHandler implements IFieldHandler {
     options: HandlerOptions = {},
   ): Promise<void> {
     const knex = options.knex ?? this.info.knex;
-    const dbClient = knex.client as ClientType;
+    const dbClient = (knex.clientType?.() ??
+      knex.client.config.client) as ClientType;
     const handler = this.getHandler(column.uidt, dbClient);
     return handler.select(qb, column, {
       knex,
@@ -359,5 +412,145 @@ export class FieldHandler implements IFieldHandler {
     // possibly to be enhanced into getting the model and basemodel too
     const column = await Column.get(context, { colId });
     return column;
+  }
+
+  async parseUserInput(params: {
+    value: any;
+    row: any;
+    column: Column;
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+      logger?: Logger;
+      baseModel?: IBaseModelSqlV2;
+    };
+  }): Promise<{ value: any }> {
+    const baseModel = params.options?.baseModel ?? this.info.baseModel;
+    const knex = baseModel.dbDriver;
+    const dbClientType = (knex.clientType?.() ??
+      knex.client.config.client) as ClientType;
+
+    const handler = this.getHandler(params.column.uidt, dbClientType);
+    if (handler) {
+      return handler.parseUserInput({
+        ...params,
+        options: {
+          baseModel: this.info.baseModel,
+          ...params.options,
+        },
+      });
+    } else {
+      return { value: params.value };
+    }
+  }
+
+  async parseDbValue(params: {
+    value: any;
+    row: any;
+    column: Column;
+    options?: {
+      baseModel?: IBaseModelSqlV2;
+      context?: NcContext;
+      metaService?: MetaService;
+      logger?: Logger;
+    };
+    // for now the return value need to be {value: any}
+    // since it's possible for it to be knex query, which
+    // can be executed when awaited
+  }): Promise<{ value: any }> {
+    const baseModel = params.options?.baseModel ?? this.info.baseModel;
+    const knex = baseModel.dbDriver;
+    const dbClientType = (knex.clientType?.() ??
+      knex.client.config.client) as ClientType;
+
+    const handler = this.getHandler(params.column.uidt, dbClientType);
+    if (handler) {
+      return handler.parseDbValue({
+        ...params,
+        options: {
+          baseModel: this.info.baseModel,
+          ...params.options,
+        },
+      });
+    } else {
+      return { value: params.value };
+    }
+  }
+
+  async parseDataDbValue(params: {
+    data: any | any[];
+    options?: {
+      additionalColumns?: Column[];
+      baseModel?: IBaseModelSqlV2;
+      context?: NcContext;
+      metaService?: MetaService;
+      logger?: Logger;
+    };
+    // for now the return value need to be {value: any}
+    // since it's possible for it to be knex query, which
+    // can be executed when awaited
+  }): Promise<void> {
+    const baseModel = params.options?.baseModel ?? this.info.baseModel;
+    const context =
+      params.options?.context ?? this.info.context ?? baseModel.context;
+    const knex = baseModel.dbDriver;
+    const dbClientType = (knex.clientType?.() ??
+      knex.client.config.client) as ClientType;
+    const data = Array.isArray(params.data) ? params.data : [params.data];
+    for (const column of (await baseModel.model.getColumns(context)).concat(
+      params.options?.additionalColumns || [],
+    )) {
+      const handler = this.getHandler(column.uidt, dbClientType);
+      if (handler) {
+        for (const row of data) {
+          if (!ncIsUndefined(row[column.id])) {
+            row[column.id] = (
+              await handler.parseDbValue({
+                value: row[column.id],
+                row,
+                column,
+                options: {
+                  baseModel: this.info.baseModel,
+                  ...params.options,
+                  fieldHandler: this,
+                },
+              })
+            ).value;
+          }
+          if (!ncIsUndefined(row[column.title])) {
+            row[column.title] = (
+              await handler.parseDbValue({
+                value: row[column.title],
+                row,
+                column,
+                options: {
+                  baseModel: this.info.baseModel,
+                  ...params.options,
+                  fieldHandler: this,
+                },
+              })
+            ).value;
+          } else if (
+            isLookup(column) ||
+            isLinksOrLTAR(column) ||
+            isRollup(column)
+          ) {
+            // const value = (
+            //   await handler.parseDbValue({
+            //     value: row[column.title],
+            //     row,
+            //     baseModel: baseModel,
+            //     column,
+            //     options: { ...params.options, fieldHandler: this },
+            //   })
+            // ).value;
+            // row[column.title] = value;
+            // row[column.id] = value;
+          }
+        }
+      } else {
+        continue;
+      }
+    }
   }
 }

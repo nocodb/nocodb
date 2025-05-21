@@ -10,10 +10,13 @@ export class DateTimePGHandler extends DateTimeGeneralHandler {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
-    options?: { context?: NcContext; metaService?: MetaService };
+    options?: {
+      baseModel?: IBaseModelSqlV2;
+      context?: NcContext;
+      metaService?: MetaService;
+    };
   }): Promise<{ value: any }> {
-    const knex = params.baseModel.dbDriver;
+    const knex = params.options.baseModel.dbDriver;
     const dayjsUtcValue: dayjs.Dayjs = super.parseDateTime(params).value;
 
     // convert to UTC

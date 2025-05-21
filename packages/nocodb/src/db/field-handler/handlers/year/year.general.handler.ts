@@ -10,8 +10,11 @@ export class YearGeneralHandler extends NumberGeneralHandler {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
-    options?: { context?: NcContext; metaService?: MetaService };
+    options?: {
+      baseModel?: IBaseModelSqlV2;
+      context?: NcContext;
+      metaService?: MetaService;
+    };
   }): Promise<{ value: any }> {
     const value = (await super.parseUserInput(params))?.value;
     if (typeof value === 'number') {

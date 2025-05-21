@@ -131,8 +131,8 @@ export class GenericFieldHandler implements FieldHandlerInterface {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
     options?: {
+      baseModel?: IBaseModelSqlV2;
       context?: NcContext;
       metaService?: MetaService;
     };
@@ -143,8 +143,8 @@ export class GenericFieldHandler implements FieldHandlerInterface {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
     options?: {
+      baseModel?: IBaseModelSqlV2;
       context?: NcContext;
       metaService?: MetaService;
       logger?: Logger;

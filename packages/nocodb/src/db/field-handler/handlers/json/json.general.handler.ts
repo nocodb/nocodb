@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { ncIsNull, ncIsUndefined } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import type { NcContext } from 'nocodb-sdk';
@@ -175,8 +174,11 @@ export class JsonGeneralHandler extends GenericFieldHandler {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
-    options?: { context?: NcContext; metaService?: MetaService };
+    options?: {
+      baseModel?: IBaseModelSqlV2;
+      context?: NcContext;
+      metaService?: MetaService;
+    };
   }): Promise<{ value: any }> {
     if (ncIsUndefined(params.value) || ncIsNull(params.value)) {
       return { value: params.value };

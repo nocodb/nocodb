@@ -46,11 +46,11 @@ export interface FieldHandlerInterface {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
     options?: {
       context?: NcContext;
       metaService?: MetaService;
       logger?: Logger;
+      baseModel?: IBaseModelSqlV2;
     };
     // for now the return value need to be {value: any}
     // since it's possible for it to be knex query, which
@@ -61,11 +61,11 @@ export interface FieldHandlerInterface {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
     options?: {
       context?: NcContext;
       metaService?: MetaService;
       logger?: Logger;
+      baseModel?: IBaseModelSqlV2;
       fieldHandler?: IFieldHandler;
     };
     // for now the return value need to be {value: any}
@@ -109,10 +109,10 @@ export interface IFieldHandler {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
     options?: {
       context?: NcContext;
       metaService?: MetaService;
+      baseModel?: IBaseModelSqlV2;
       logger?: Logger;
     };
   }): Promise<{ value: any }>;
@@ -121,8 +121,22 @@ export interface IFieldHandler {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
     options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+      baseModel?: IBaseModelSqlV2;
+      logger?: Logger;
+    };
+    // for now the return value need to be {value: any}
+    // since it's possible for it to be knex query, which
+    // can be executed when awaited
+  }): Promise<{ value: any }>;
+
+  parseDataDbValue(params: {
+    data: any | any[];
+    options?: {
+      additionalColumns?: Column[];
+      baseModel?: IBaseModelSqlV2;
       context?: NcContext;
       metaService?: MetaService;
       logger?: Logger;
@@ -130,5 +144,5 @@ export interface IFieldHandler {
     // for now the return value need to be {value: any}
     // since it's possible for it to be knex query, which
     // can be executed when awaited
-  }): Promise<{ value: any }>;
+  }): Promise<void>;
 }

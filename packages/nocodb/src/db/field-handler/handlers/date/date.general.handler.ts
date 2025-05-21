@@ -11,8 +11,11 @@ export class DateGeneralHandler extends DateTimeGeneralHandler {
     value: any;
     row: any;
     column: Column;
-    baseModel: IBaseModelSqlV2;
-    options?: { context?: NcContext; metaService?: MetaService };
+    options?: {
+      baseModel?: IBaseModelSqlV2;
+      context?: NcContext;
+      metaService?: MetaService;
+    };
   }): Promise<{ value: any }> {
     let dayjsUtcValue: dayjs.Dayjs;
     if (

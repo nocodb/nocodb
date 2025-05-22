@@ -9,13 +9,9 @@ import {
     IsObject,
     IsOptional,
     IsPort,
-    isPositive,
-    IsPositive,
     IsUrl,
     IsUUID,
     Length,
-    Max,
-    Min,
     ValidateNested,
     validateSync,
 } from "class-validator";
@@ -41,6 +37,17 @@ class S3CloudConfig {
     acl: string
     bucketName: string;
     region: string;
+}
+
+class SmtpConfig {
+    ignoreTLS: boolean;
+    passowrd: string;
+    rejectUnauthorized: boolean;
+    secure: boolean;
+    username: string;
+    from: string;
+    host: string;
+    port: string;
 }
 
 class S3Config extends S3CloudConfig {
@@ -137,6 +144,13 @@ export class ServerConfig {
     @ValidateNested()
     @Type(() => S3Config)
     s3CloudConfig: S3CloudConfig;
+
+    @IsDefined()
+    @IsNotEmptyObject()
+    @IsObject()
+    @ValidateNested()
+    @Type(() => SmtpConfig)
+    smtpConfig: SmtpConfig;
 }
 
 const serverConfigGet = (): ServerConfig => {
@@ -189,6 +203,17 @@ const serverConfigGet = (): ServerConfig => {
             forcePathStyle: process.env.NC_S3_FORCE_PATH_STYL === 'true',
             endPoint: process.env.NC_S3_ENDPOINT,
         },
+
+        smtpConfig: {
+            ignoreTLS: process.env.NC_SMTP_IGNORE_TLS === 'true',
+            passowrd: process.env.NC_SMTP_PASSWORD,
+            rejectUnauthorized: process.env.NC_SMTP_REJECT_UNAUTHORIZED === 'false',
+            secure: process.env.NC_SMTP_SECURE === 'false',
+            username: process.env.NC_SMTP_USERNAME,
+            from: process.env.NC_SMTP_FROM,
+            host: process.env.NC_SMTP_HOST,
+            port: process.env.NC_SMTP_PORT,
+        }
     };
 
     // derived config

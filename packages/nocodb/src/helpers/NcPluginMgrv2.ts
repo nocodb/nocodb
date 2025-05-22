@@ -154,23 +154,22 @@ class NcPluginMgrv2 {
     }
 
     if (
-      process.env.NC_SMTP_FROM &&
-      process.env.NC_SMTP_HOST &&
-      process.env.NC_SMTP_PORT
+      serverConfig.smtpConfig.from &&
+      serverConfig.smtpConfig.host &&
+      serverConfig.smtpConfig.port
     ) {
       const smtpPlugin = await Plugin.getPlugin(SMTPPluginConfig.id);
       await Plugin.update(smtpPlugin.id, {
         active: true,
         input: JSON.stringify({
-          from: process.env.NC_SMTP_FROM,
-          host: process.env.NC_SMTP_HOST,
-          port: process.env.NC_SMTP_PORT,
-          username: process.env.NC_SMTP_USERNAME,
-          password: process.env.NC_SMTP_PASSWORD,
-          secure: process.env.NC_SMTP_SECURE === 'true',
-          ignoreTLS: process.env.NC_SMTP_IGNORE_TLS === 'true',
-          rejectUnauthorized:
-            process.env.NC_SMTP_REJECT_UNAUTHORIZED === 'true',
+        from: serverConfig.smtpConfig.from,
+        host: serverConfig.smtpConfig.host,
+        port: serverConfig.smtpConfig.port,
+        username: serverConfig.smtpConfig.username,
+        password: serverConfig.smtpConfig.passowrd,
+        secure: serverConfig.smtpConfig.secure,
+        ignoreTLS: serverConfig.smtpConfig.ignoreTLS,
+        rejectUnauthorized: serverConfig.smtpConfig.rejectUnauthorized,
         }),
       });
     }

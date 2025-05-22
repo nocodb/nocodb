@@ -341,7 +341,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       record = await $api.dbTableRow.read(
         NOCO,
         // todo: base_id missing on view type
-        ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
+        ((meta.value?.base_id ?? base?.value?.id) || (sharedView.value?.view as any)?.base_id) as string,
         meta.value.id as string,
         encodeURIComponent(recordId),
         {

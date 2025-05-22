@@ -4204,7 +4204,7 @@ export class ColumnsService implements IColumnsService {
         column: savedColumn,
         columnId: savedColumn.id,
         req: param.req,
-        context,
+        context: refContext,
         columns: await refTable.getCachedColumns(context),
       });
 

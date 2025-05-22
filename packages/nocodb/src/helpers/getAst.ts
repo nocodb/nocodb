@@ -354,9 +354,14 @@ const extractLookupDependencies = async (
 ) => {
   const lookupColumnOpts = await lookUpColumn.getColOptions(context);
   const relationColumn = await lookupColumnOpts.getRelationColumn(context);
-  const relationColumnOpts = await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
-  const {refContext} = relationColumnOpts.getRelContext(context);
-  await extractRelationDependencies(refContext, relationColumn, dependencyFields);
+  const relationColumnOpts =
+    await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
+  const { refContext } = relationColumnOpts.getRelContext(context);
+  await extractRelationDependencies(
+    refContext,
+    relationColumn,
+    dependencyFields,
+  );
   await extractDependencies(
     context,
     await lookupColumnOpts.getLookupColumn(refContext),

@@ -13,7 +13,6 @@ RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 # Copy application dependency manifests to the container image.
 COPY ./package.json ./package.json
 COPY ./docker/nc-gui/ ./docker/nc-gui/
-COPY ./src/ee/services/clickhouse/migrations/ ./docker/migrations/
 COPY ./docker/main.js ./docker/index.js
 COPY ./docker/configure.sh /usr/src/appEntry/configure.sh
 # COPY ./docker/start.sh /usr/src/appEntry/start.sh

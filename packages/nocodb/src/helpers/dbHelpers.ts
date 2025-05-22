@@ -399,12 +399,14 @@ export function shouldSkipField(
   view,
   column,
   extractPkAndPv,
+  pkAndPvOnly = false,
 ) {
-  if (fieldsSet) {
+  if (fieldsSet && !pkAndPvOnly) {
     return !fieldsSet.has(column.title);
   } else {
-    if (column.system && isCreatedOrLastModifiedByCol(column)) return true;
-    if (column.system && isOrderCol(column)) return true;
+    if (!pkAndPvOnly && column.system && isCreatedOrLastModifiedByCol(column))
+      return true;
+    if (!pkAndPvOnly && column.system && isOrderCol(column)) return true;
     if (!extractPkAndPv) {
       if (!(viewOrTableColumn instanceof Column)) {
         if (

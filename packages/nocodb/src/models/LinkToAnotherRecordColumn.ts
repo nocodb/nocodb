@@ -315,4 +315,11 @@ export default class LinkToAnotherRecordColumn {
       refContext,
     });
   }
+
+  isExternalLink() {
+    return !!(
+      (this.fk_related_base_id && this.fk_related_base_id !== this.base_id) ||
+      (this.fk_mm_base_id && this.fk_mm_base_id !== this.base_id)
+    );
+  }
 }

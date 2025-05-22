@@ -886,7 +886,7 @@ eventBus.on(async (event) => {
                   />
 
                   <SmartsheetToolbarFilterInput
-                    v-if="showFilterInput(filter)"
+                    v-if="showFilterInput(filter) && (isViewFilter ? isOpen : true)"
                     class="nc-filter-value-select rounded-md min-w-34"
                     :class="{
                       '!w-full': webHook,

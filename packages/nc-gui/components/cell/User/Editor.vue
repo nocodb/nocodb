@@ -495,7 +495,7 @@ onMounted(() => {
             '!my-0': !rowHeight || rowHeight === 1,
           }"
           :style="{ display: 'flex', alignItems: 'center' }"
-          color="'#ccc'"
+          :color="val === CURRENT_USER_TOKEN ? themeV4Colors.brand[50] : location === 'filter' ? themeV4Colors.gray[200] : '#ccc'"
           :closable="editAllowed && ((vModel?.length ?? 0) > 1 || !column?.rqd)"
           :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
           @click="onTagClick($event, onClose)"
@@ -522,12 +522,18 @@ onMounted(() => {
                   meta: options.find((el) => el.id === val)?.meta,
                 }"
                 class="!text-[0.5rem] !h-[16.8px]"
+                :class="{
+                  '!bg-white': val === CURRENT_USER_TOKEN,
+                }"
                 :disabled="!isCollaborator(val)"
+                :show-placeholder-icon="val === CURRENT_USER_TOKEN"
               />
             </div>
             <span
               :class="{
-                'text-gray-600': !isCollaborator(val),
+                'text-gray-600': !isCollaborator(val) && val !== CURRENT_USER_TOKEN,
+                'text-nc-content-brand': val === CURRENT_USER_TOKEN,
+                'font-600': location === 'filter',
               }"
             >
               {{ label }}

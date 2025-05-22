@@ -4055,6 +4055,35 @@ export class ColumnsService implements IColumnsService {
         param.colExtra,
       );
 
+      let refCrossBaseLinkProps: {
+        fk_related_base_id?: string;
+        fk_mm_base_id?: string;
+        fk_related_source_id?: string;
+        fk_mm_source_id?: string;
+      } = {};
+      let crossBaseLinkProps: {
+        fk_related_base_id?: string;
+        fk_mm_base_id?: string;
+        fk_related_source_id?: string;
+        fk_mm_source_id?: string;
+      } = {};
+
+      // if cross base link set cross base link props
+      if (refContext.base_id !== context.base_id) {
+        refCrossBaseLinkProps = {
+          fk_related_base_id: refContext.base_id,
+          fk_mm_base_id: assocModel.base_id,
+          fk_related_source_id: refTable.source_id,
+          fk_mm_source_id: assocModel.source_id,
+        };
+        crossBaseLinkProps = {
+          fk_related_base_id: context.base_id,
+          fk_mm_base_id: assocModel.base_id,
+          fk_related_source_id: table.source_id,
+          fk_mm_source_id: assocModel.source_id,
+        };
+      }
+
       savedColumn = await Column.insert(refContext, {
         title: getUniqueColumnAliasName(
           await refTable.getColumns(refContext),
@@ -4082,7 +4111,10 @@ export class ColumnsService implements IColumnsService {
         },
         // if self referencing treat it as system field to hide from ui
         system: table.id === refTable.id,
+        // include cross base link props
+        ...refCrossBaseLinkProps,
       });
+
       const parentRelCol = await Column.insert(context, {
         title: getUniqueColumnAliasName(
           await table.getColumns(context),
@@ -4112,6 +4144,8 @@ export class ColumnsService implements IColumnsService {
 
         // column_order and view_id if provided
         ...param.colExtra,
+        // include cross base link props
+        ...crossBaseLinkProps,
       });
 
       this.appHooksService.emit(AppEvents.COLUMN_CREATE, {

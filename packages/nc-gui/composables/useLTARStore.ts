@@ -35,7 +35,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // state
     const { metas, getMeta } = useMetas()
 
-    const { base } = storeToRefs(useBase())
+    const { base, baseId } = storeToRefs(useBase())
+
+    const { getBaseRoles } = useBases()
 
     const { $api, $e } = useNuxtApp()
 
@@ -224,6 +226,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           ...(fields.value || [])?.map((f) => f.title?.trim() as string),
         ]),
       )
+    })
+
+    // extract external base roles if cross base link
+    const externalBaseUserRoles = computedAsync(async () => {
+      if (baseId.value === relatedTableMeta.value?.base_id) return
+
+      return await getBaseRoles(relatedTableMeta.value?.base_id)
     })
 
     /**
@@ -824,6 +833,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       attachmentCol,
       fields,
       refreshCurrentRow,
+      externalBaseUserRoles,
     }
   },
   'ltar-store',

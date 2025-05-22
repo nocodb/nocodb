@@ -421,6 +421,10 @@ export const useBases = defineStore('basesStore', () => {
     ncLastVisitedBase().set(activeProjectId.value)
   })
 
+  const getBaseRoles = async (_baseId: string) => {
+    // this is a placeholder function
+  }
+
   return {
     bases,
     basesList,
@@ -453,6 +457,7 @@ export const useBases = defineStore('basesStore', () => {
     isDataSourceLimitReached,
     showProjectList,
     baseHomeSearchQuery,
+    getBaseRoles,
   }
 })
 

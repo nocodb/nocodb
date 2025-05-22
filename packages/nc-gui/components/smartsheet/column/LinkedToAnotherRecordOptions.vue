@@ -282,7 +282,7 @@ const onCustomSwitchLabelClick = () => {
 }
 
 const onViewLabelClick = () => {
-  if(isEdit.value) return
+  if (isEdit.value) return
 
   if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
 
@@ -297,9 +297,9 @@ const onFilterLabelClick = () => {
 
 const onCrossBaseToggle = () => {
   // reset current model id value if cross base disabled and selected table is not in current base
-  if(!crossBase.value){
+  if (!crossBase.value) {
     referenceBaseId.value = null
-    if(refTables.every(t => t.id !== referenceTableChildId)) {
+    if (refTables.every((t) => t.id !== referenceTableChildId)) {
       referenceTableChildId.value = null
     }
   }
@@ -348,8 +348,14 @@ const onCrossBaseToggle = () => {
     </div>
     <template v-else>
       <div>
-        <a-switch v-model:checked="crossBase"
-                  @change="onCrossBaseToggle" :disabled="isEdit" :is-edit="isEdit" size="small" name="crossBase" />
+        <a-switch
+          v-model:checked="crossBase"
+          :disabled="isEdit"
+          :is-edit="isEdit"
+          size="small"
+          name="crossBase"
+          @change="onCrossBaseToggle"
+        />
 
         <a-tooltip>
           <template #title>{{ $t('tooltip.crossBase') }}</template>

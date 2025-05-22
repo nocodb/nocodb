@@ -34,4 +34,8 @@ export type InternalPOSTResponseType = Promise<
       integration: Integration;
     }
   | TestConnectionResponse
+  | {
+      value: string;
+      label: string;
+    }[]
 >;

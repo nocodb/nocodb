@@ -62,6 +62,8 @@ export interface FormBuilderElement {
   showHintAsTooltip?: boolean;
   // validators for the element
   validators?: { type: 'required'; message?: string }[];
+  // fetch options for the element using key
+  fetchOptionsKey?: string;
 }
 
 export type FormDefinition = FormBuilderElement[];

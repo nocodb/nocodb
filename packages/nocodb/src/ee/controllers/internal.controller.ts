@@ -58,6 +58,7 @@ export class InternalController extends InternalControllerCE {
       migrateSync: 'base',
       addChildSync: 'base',
       authIntegrationTestConnection: 'workspace',
+      syncIntegrationFetchOptions: 'workspace',
       listScripts: 'base',
       getScript: 'base',
       createScript: 'base',
@@ -181,6 +182,11 @@ export class InternalController extends InternalControllerCE {
           payload.syncConfigId,
           req,
         );
+      case 'syncIntegrationFetchOptions':
+        return await this.syncService.integrationFetchOptions(context, {
+          integration: payload.integration,
+          key: payload.key,
+        });
       case 'authIntegrationTestConnection':
         return await this.integrationsService.authIntegrationTestConnection(
           payload,

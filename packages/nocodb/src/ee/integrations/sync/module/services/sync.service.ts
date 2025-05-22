@@ -675,4 +675,36 @@ export class SyncModuleService {
 
     return syncConfig;
   }
+
+  async integrationFetchOptions(
+    context: NcContext,
+    param: {
+      integration: IntegrationReqType;
+      key: string;
+    },
+  ) {
+    const { integration, key } = param;
+
+    const tempIntegrationWrapper =
+      Integration.tempIntegrationWrapper<SyncIntegration>(integration);
+
+    const authIntegration = await Integration.get(
+      context,
+      integration.config.authIntegrationId,
+    );
+
+    if (!authIntegration) {
+      NcError.genericNotFound(
+        'AuthIntegration',
+        integration.config.authIntegrationId,
+      );
+    }
+
+    const authWrapper =
+      await authIntegration.getIntegrationWrapper<AuthIntegration>();
+
+    const auth = await authWrapper.authenticate();
+
+    return await tempIntegrationWrapper.fetchOptions(auth, key);
+  }
 }

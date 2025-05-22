@@ -5,7 +5,7 @@ import type { FilterType, NcContext } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { Column, Filter } from '~/models';
 
-export interface HandlerOptions {
+export interface FilterOptions {
   alias?: string;
   throwErrorIfInvalid?: boolean; // required by formula and lookup
   context?: NcContext;
@@ -15,6 +15,7 @@ export interface HandlerOptions {
   tnPath?: string;
   fieldHandler?: IFieldHandler;
   depth?: { count: number }; // required by formula and lookup for alias
+  customWhereClause?: Knex.QueryBuilder | string; // used by rollup and formula since their source is computed
   conditionParser?: (
     baseModelSqlv2: IBaseModelSqlV2,
     _filter: Filter | FilterType | FilterType[] | Filter[],
@@ -29,17 +30,17 @@ export interface FilterVerificationResult {
   errors?: string[];
 }
 export interface FieldHandlerInterface {
-  select(qb: Knex.QueryBuilder, column: Column, options: HandlerOptions): void;
+  select(qb: Knex.QueryBuilder, column: Column, options: FilterOptions): void;
   filter(
     knex: Knex,
     filter: Filter,
     column: Column,
-    options?: HandlerOptions,
+    options?: FilterOptions,
   ): Promise<(qb: Knex.QueryBuilder) => void>;
   verifyFilter(
     filter: Filter,
     column: Column,
-    options?: HandlerOptions,
+    options?: FilterOptions,
   ): Promise<FilterVerificationResult>;
 
   parseUserInput(params: {
@@ -78,32 +79,32 @@ export interface IFieldHandler {
   applyFilter(
     filter: Filter,
     column?: Column,
-    options?: HandlerOptions,
+    options?: FilterOptions,
   ): Promise<(qb: Knex.QueryBuilder) => void>;
 
   applyFilters(
     filters: Filter[],
-    options?: HandlerOptions,
+    options?: FilterOptions,
   ): Promise<(qb: Knex.QueryBuilder) => void>;
 
   applySelect(
     qb: Knex.QueryBuilder,
     column: Column,
-    options?: HandlerOptions,
+    options?: FilterOptions,
   ): Promise<void>;
 
   verifyFilter(
     filter: Filter,
     column: Column,
-    options?: HandlerOptions,
+    options?: FilterOptions,
   ): Promise<FilterVerificationResult>;
 
   verifyFiltersSafe(
     filters: Filter[],
-    options?: HandlerOptions,
+    options?: FilterOptions,
   ): Promise<FilterVerificationResult>;
 
-  verifyFilters(filters: Filter[], options?: HandlerOptions): Promise<boolean>;
+  verifyFilters(filters: Filter[], options?: FilterOptions): Promise<boolean>;
 
   parseUserInput(params: {
     value: any;

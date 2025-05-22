@@ -44,7 +44,7 @@ import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 import type {
   FilterVerificationResult,
-  HandlerOptions,
+  FilterOptions,
   IFieldHandler,
 } from './field-handler.interface';
 import type { Knex } from 'knex';
@@ -237,7 +237,7 @@ export class FieldHandler implements IFieldHandler {
   async applyFilter(
     filter: Filter,
     column?: Column,
-    options: HandlerOptions = {},
+    options: FilterOptions = {},
   ): Promise<(qb: Knex.QueryBuilder) => void> {
     const knex = options.knex ?? this.info.knex;
     const dbClient = (knex.clientType?.() ??
@@ -254,13 +254,13 @@ export class FieldHandler implements IFieldHandler {
     });
   }
 
-  async applyFilterGroup(filter: Filter, options: HandlerOptions = {}) {
+  async applyFilterGroup(filter: Filter, options: FilterOptions = {}) {
     return this.applyFilters(filter.children, options);
   }
 
   async applyFilters(
     filters: Filter[],
-    options: HandlerOptions = {},
+    options: FilterOptions = {},
   ): Promise<(qb: Knex.QueryBuilder) => void> {
     const model = options.baseModel?.model ?? this.info.baseModel.model;
     if (!model.columns) {
@@ -313,7 +313,7 @@ export class FieldHandler implements IFieldHandler {
   async applySelect(
     qb: Knex.QueryBuilder,
     column: Column,
-    options: HandlerOptions = {},
+    options: FilterOptions = {},
   ): Promise<void> {
     const knex = options.knex ?? this.info.knex;
     const dbClient = (knex.clientType?.() ??
@@ -330,7 +330,7 @@ export class FieldHandler implements IFieldHandler {
   async verifyFilter(
     filter: Filter,
     column: Column,
-    options: HandlerOptions = {},
+    options: FilterOptions = {},
   ) {
     const knex = options.knex ?? this.info.knex;
     return (
@@ -342,7 +342,7 @@ export class FieldHandler implements IFieldHandler {
     });
   }
 
-  async verifyFiltersSafe(filters: Filter[], options: HandlerOptions = {}) {
+  async verifyFiltersSafe(filters: Filter[], options: FilterOptions = {}) {
     const baseModel = options.baseModel ?? this.info.baseModel;
     const context = options.context ?? this.info.context;
     const model = baseModel.model;
@@ -378,7 +378,7 @@ export class FieldHandler implements IFieldHandler {
     }
   }
 
-  async verifyFilters(filters: Filter[], options: HandlerOptions = {}) {
+  async verifyFilters(filters: Filter[], options: FilterOptions = {}) {
     const verificationResult = await this.verifyFiltersSafe(filters, options);
     if (!verificationResult.isValid) {
       if (this.info.context.api_version === NcApiVersion.V3) {

@@ -62,6 +62,12 @@ class NocoDbConfig {
 
     @IsUUID()
     uuid: string;
+
+    @IsBoolean()
+    minimalDb: boolean;
+
+    @IsBoolean()
+    externalDb: boolean;
 }
 
 const environments = ['testing', 'production', 'development', 'staging'] as const;
@@ -112,7 +118,9 @@ const serverConfigGet = (): ServerConfig => {
             licenseKey: process.env.NC_LICENSE_KEY,
             migrationJobsVersion: process.env.NC_MIGRATION_JOBS_VERSION ?? "8",
             version: process.env.NC_VERSION ?? '0258003',
-            uuid: process.env.NC_SERVER_UUID
+            uuid: process.env.NC_SERVER_UUID,
+            minimalDb: process.env.NC_MINIMAL_DBS === 'true',
+            externalDb: null,
         },
 
         auth: {
@@ -132,6 +140,11 @@ const serverConfigGet = (): ServerConfig => {
     // derived config
     serverConfigRaw.publicUrl = process.env.NC_PUBLIC_URL ?? `http:${serverConfigRaw.host}:${serverConfigRaw.port}/`;
     serverConfigRaw.dashboardUrl = process.env.NC_DASHBOARD_URL ??  (isEE || serverConfigRaw.nocoDbConfig.isCloud ? '/' : '/dashboard');
+    if (process.env.NC_CONNECT_TO_EXTERNAL_DB == undefined) {
+        serverConfigRaw.nocoDbConfig.externalDb = !serverConfigRaw.nocoDbConfig.minimalDb;
+    } else {
+        serverConfigRaw.nocoDbConfig.externalDb = process.env.NC_CONNECT_TO_EXTERNAL_DB !== 'false';
+    }
 
     const serverConfig = plainToClass(ServerConfig, serverConfigRaw);
     const error = validateSync(serverConfig);

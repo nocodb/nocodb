@@ -57,12 +57,6 @@ export default class Noco {
   public static sharp: typeof Sharp;
 
   constructor() {
-    // todo: move
-    // if env variable NC_MINIMAL_DBS is set, then disable base creation with external sources
-    if (process.env.NC_MINIMAL_DBS === 'true') {
-      process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED = 'true';
-    }
-
     this.router = express.Router();
     this.baseRouter = express.Router();
 

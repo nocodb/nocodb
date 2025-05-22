@@ -451,7 +451,7 @@ export class UtilsService {
       oidcAuthEnabled,
       oidcProviderName,
       oneClick: !!process.env.NC_ONE_CLICK,
-      connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
+      connectToExternalDB: serverConfig.nocoDbConfig.externalDb,
       version: packageVersion,
       defaultLimit: Math.max(
         Math.min(defaultLimitConfig.limitDefault, defaultLimitConfig.limitMax),

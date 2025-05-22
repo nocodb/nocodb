@@ -221,7 +221,7 @@ export class BasesService {
         ];
       } else if (
         dataConfig?.client === 'sqlite3' &&
-        process.env.NC_MINIMAL_DBS === 'true'
+        serverConfig.nocoDbConfig.minimalDb
       ) {
         // if env variable NC_MINIMAL_DBS is set, then create a SQLite file/connection for each base
         // each file will be named as nc_<random_id>.db
@@ -269,7 +269,7 @@ export class BasesService {
         ];
       }
     } else {
-      if (process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED) {
+      if (!serverConfig.nocoDbConfig.externalDb) {
         NcError.badRequest('Connecting to external db is disabled');
       }
 

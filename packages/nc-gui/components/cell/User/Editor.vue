@@ -14,7 +14,7 @@ interface Props {
   options?: UserFieldRecordType[]
 }
 
-const { modelValue, forceMulti, options: userOptions } = defineProps<Props>()
+const { modelValue, forceMulti, options: userOptions, location } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -22,7 +22,7 @@ const { isMobileMode } = useGlobal()
 
 const meta = inject(MetaInj)!
 
-const isInFilter = inject(IsInFilterInj)!
+const isInFilter = inject(IsInFilterInj, ref(false))
 
 const column = inject(ColumnInj)!
 
@@ -72,10 +72,10 @@ const { isUIAllowed } = useRoles()
 
 const options = computed(() => {
   const currentUserField: any[] = []
-  if (isInFilter?.value) {
+  if (isInFilter.value) {
     currentUserField.push({
       id: CURRENT_USER_TOKEN,
-      display_name: CURRENT_USER_TOKEN,
+      display_name: 'Current User',
       email: CURRENT_USER_TOKEN,
     })
   }
@@ -381,7 +381,9 @@ onMounted(() => {
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
       :class="{ 'caret-transparent': !hasEditRoles }"
-      :dropdown-class-name="`nc-dropdown-user-select-cell !min-w-156px ${isOpen ? 'active' : ''}`"
+      :dropdown-class-name="`nc-dropdown-user-select-cell ${isInFilter ? '!min-w-256px' : '!min-w-156px'}  ${
+        isOpen ? 'active' : ''
+      }`"
       :filter-option="filterOption"
       @search="search"
       @focus="onFocus"
@@ -396,10 +398,44 @@ onMounted(() => {
           v-if="!op.deleted"
           :value="op.id"
           :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
-          :class="`nc-select-option-${column.title}-${op.email}`"
+          :class="[
+            `nc-select-option-${column.title}-${op.email}`,
+            {
+              'nc-select-option-current-user mb-2': op.email === CURRENT_USER_TOKEN,
+            },
+          ]"
           @click.stop
         >
+          <div
+            v-if="op.email === CURRENT_USER_TOKEN"
+            class="absolute -bottom-1 w-[calc(100%_+_16px)] border-b-1 border-nc-border-gray-medium -ml-4"
+          ></div>
+          <div v-if="location === 'filter'" class="w-full flex gap-3 items-center">
+            <GeneralUserIcon :user="op" size="base" class="flex-none" />
+            <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
+              <div class="w-full flex gap-3">
+                <NcTooltip
+                  class="text-body-default-sm-bold !leading-5 text-gray-800 capitalize truncate"
+                  show-on-truncate-only
+                  placement="bottom"
+                >
+                  <template #title>
+                    {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                  </template>
+                  {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                </NcTooltip>
+              </div>
+              <NcTooltip class="text-xs !leading-4 text-nc-content-gray-muted truncate" show-on-truncate-only placement="bottom">
+                <template #title>
+                  {{ op.email === CURRENT_USER_TOKEN ? 'Filtered by logged-in user' : op.email }}
+                </template>
+
+                {{ op.email === CURRENT_USER_TOKEN ? 'Filtered by logged-in user' : op.email }}
+              </NcTooltip>
+            </div>
+          </div>
           <a-tag
+            v-else
             class="rounded-tag max-w-full !pl-0"
             :class="{
               '!my-0': !rowHeight || rowHeight === 1,
@@ -559,5 +595,9 @@ onMounted(() => {
 
 :deep(.nc-user-avatar) {
   @apply min-h-4.2;
+}
+
+:deep(.nc-select-option-current-user) {
+  @apply relative;
 }
 </style>

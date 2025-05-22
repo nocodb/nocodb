@@ -55,6 +55,8 @@ const modelValue = useVModel(props, 'modelValue', emit)
 
 const isOpen = useVModel(props, 'isOpen', emit)
 
+provide(IsInFilterInj, ref(true))
+
 const {
   nestedLevel,
   parentId,

@@ -229,6 +229,8 @@ export const DURATION_TYPE_MAP = {
   'h:mm:ss.sss': 4,
 }
 
+export const CURRENT_USER_TOKEN = '@me'
+
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
 
 type RolesObj = Partial<Record<Roles, boolean>>;

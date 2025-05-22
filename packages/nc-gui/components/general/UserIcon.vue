@@ -10,6 +10,7 @@ const props = withDefaults(
     user?: Partial<UserType> | Partial<User> | null
     disabled?: boolean
     iconBgColor?: string
+    showPlaceholderIcon?: boolean
   }>(),
   {
     user: () => ({}),
@@ -18,6 +19,7 @@ const props = withDefaults(
     email: '',
     disabled: false,
     iconBgColor: '#F4F4F5',
+    showPlaceholderIcon: false,
   },
 )
 
@@ -118,11 +120,15 @@ const usernameInitials = computed(() => {
       'w-26 h-26': size === 'xlarge',
     }"
     :style="{
-      backgroundColor: userIcon.icon && userIcon.iconType === IconType.IMAGE ? undefined : backgroundColor,
+      backgroundColor:
+        showPlaceholderIcon || (userIcon.icon && userIcon.iconType === IconType.IMAGE) ? undefined : backgroundColor,
     }"
   >
+    <div v-if="showPlaceholderIcon" class="border-1 border-nc-border-gray-medium rounded-full overflow-hidden">
+      <img src="~assets/img/placeholder/avatar.png" class="!w-full h-full flex-none" />
+    </div>
     <CellAttachmentPreviewImage
-      v-if="userIcon.icon && userIcon.iconType === IconType.IMAGE"
+      v-else-if="userIcon.icon && userIcon.iconType === IconType.IMAGE"
       :srcs="userIcon.icon"
       class="flex-none !object-contain max-h-full max-w-full !m-0"
     />

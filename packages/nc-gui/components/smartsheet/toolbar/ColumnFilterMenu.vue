@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, type ColumnType, type FilterType } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -11,13 +11,21 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
+const reloadViewDataEventHook = inject(ReloadViewDataHookInj, createEventHook())
+
 const { isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
 
-const { nestedFilters, eventBus, filtersFromUrlParams, whereQueryFromUrl } = useSmartsheetStoreOrThrow()
+const {
+  allFilters: smatsheetAllFilters,
+  nestedFilters,
+  eventBus,
+  filtersFromUrlParams,
+  whereQueryFromUrl,
+} = useSmartsheetStoreOrThrow()
 
-const { appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
+const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds, combinedFilters } = useColumnFilteredOrSorted()
 
 // todo: avoid duplicate api call by keeping a filter store
 const { nonDeletedFilters, loadFilters } = useViewFilters(
@@ -69,6 +77,54 @@ eventBus.on(async (event, column: ColumnType) => {
 const combinedFilterLength = computed(() => {
   return filtersLength.value + (filtersFromUrlParams.value?.filters?.length || 0)
 })
+
+const isCurrentUserFilterPresent = ref(false)
+
+const checkForCurrentUserFilter = (currentFilters: FilterType[] = []) => {
+  let hasCurrentUserFilter = false
+
+  const extractFilterArray = (filters: FilterType[]) => {
+    if (hasCurrentUserFilter) return
+
+    for (const eachFilter of filters) {
+      if (eachFilter.is_group && eachFilter.children?.length) {
+        extractFilterArray(eachFilter.children)
+      } else if (
+        eachFilter.fk_column_id &&
+        userColumnIds.value.includes(eachFilter.fk_column_id) &&
+        eachFilter.value?.includes(CURRENT_USER_TOKEN)
+      ) {
+        hasCurrentUserFilter = true
+      }
+    }
+  }
+
+  extractFilterArray([
+    ...currentFilters,
+    ...(filtersFromUrlParams.value?.errors?.length ? [] : filtersFromUrlParams.value?.filters || []),
+  ])
+  return hasCurrentUserFilter
+}
+
+reloadViewDataEventHook.on(async (params) => {
+  if (params?.isFormFieldFilters) return
+  isCurrentUserFilterPresent.value = checkForCurrentUserFilter(Object.values(allFilters.value).flat(Infinity) as FilterType[])
+})
+
+watch(
+  [smatsheetAllFilters, nestedFilters, allFilters, filtersFromUrlParams],
+  () => {
+    isCurrentUserFilterPresent.value = checkForCurrentUserFilter(
+      !ncIsEmptyObject(allFilters.value)
+        ? (Object.values(allFilters.value).flat(Infinity) as FilterType[])
+        : [...smatsheetAllFilters.value, ...nestedFilters.value],
+    )
+  },
+  {
+    deep: true,
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -102,15 +158,20 @@ const combinedFilterLength = computed(() => {
             }}</span>
           </div>
 
-          <span
-            v-if="combinedFilterLength"
-            class="nc-toolbar-btn-chip"
-            :class="{
-              [filteredOrSortedAppearanceConfig.FILTERED.toolbarChipBgClass]: true,
-              [filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass]: true,
-            }"
-            >{{ combinedFilterLength }}</span
-          >
+          <NcTooltip v-if="combinedFilterLength" :disabled="!isCurrentUserFilterPresent" class="flex">
+            <template #title>
+              {{ $t('tooltip.filteredByCurrentUser') }}
+            </template>
+            <span
+              class="nc-toolbar-btn-chip"
+              :class="{
+                [filteredOrSortedAppearanceConfig.FILTERED.toolbarChipBgClass]: true,
+                [filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass]: true,
+              }"
+            >
+              {{ combinedFilterLength }} {{ isCurrentUserFilterPresent ? '@' : '' }}
+            </span>
+          </NcTooltip>
 
           <!--    show a warning icon with tooltip if query filter error is there -->
           <template v-if="filtersFromUrlParams?.errors?.length">

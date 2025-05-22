@@ -248,28 +248,24 @@ export const useScriptExecutor = createSharedComposable(() => {
     }
   }
 
-  const MAX_CONCURRENT_EXECUTIONS = 10
-  const executionQueue: (() => Promise<void>)[] = []
-  let runningExecutions = 0
-
-  const processQueue = async () => {
-    if (runningExecutions >= MAX_CONCURRENT_EXECUTIONS || executionQueue.length === 0) {
-      return
-    }
-
-    while (runningExecutions < MAX_CONCURRENT_EXECUTIONS && executionQueue.length > 0) {
-      const nextExecution = executionQueue.shift()
-      if (nextExecution) {
-        runningExecutions++
-        try {
-          await nextExecution()
-        } finally {
-          runningExecutions--
-          processQueue()
-        }
-      }
-    }
-  }
+  const scriptQueue = new Queue({
+    maxConcurrent: 10,
+    autoStart: true,
+    priorityLevels: 3,
+    retryOptions: {
+      maxRetries: 2,
+      retryDelay: 1000,
+      retryCondition: (error: any) => {
+        return error && (error.message?.includes('network') || error.message?.includes('timeout'))
+      },
+    },
+    timeout: 60000,
+    rateLimit: {
+      enabled: true,
+      maxRequestsPerWindow: 20,
+      windowSizeMs: 10000,
+    },
+  })
 
   const runScript = async (
     script: ScriptType | string,
@@ -277,6 +273,7 @@ export const useScriptExecutor = createSharedComposable(() => {
     extra?: {
       pk: string
       fieldId: string
+      priority?: number
     },
   ) => {
     if (typeof script === 'string') {
@@ -284,7 +281,6 @@ export const useScriptExecutor = createSharedComposable(() => {
     }
 
     const code = replaceConfigValues(script.script ?? '', script.config ?? {})
-
     const scriptId = `${script.id}-${Date.now()}-${generateRandomNumber()}`
 
     activeExecutions.value.set(scriptId, {
@@ -404,19 +400,28 @@ export const useScriptExecutor = createSharedComposable(() => {
       }
     }
 
-    // eslint-disable-next-line no-new
-    new Promise((resolve, reject) => {
-      executionQueue.push(async () => {
-        try {
-          await executeScript()
-          resolve(scriptId)
-        } catch (error) {
-          reject(error)
-        }
+    try {
+      await scriptQueue.add(executeScript, {
+        id: scriptId,
+        priority: extra?.priority || 1,
+        timeout: 120000, // 2 minutes timeout per script execution
       })
-      processQueue()
-    })
-    return scriptId
+      return scriptId
+    } catch (error) {
+      console.error('Failed to queue script execution:', error)
+
+      const execution = activeExecutions.value.get(scriptId)
+      if (execution) {
+        activeExecutions.value.set(scriptId, {
+          ...execution,
+          status: 'error',
+          error,
+          worker: null,
+        })
+      }
+
+      throw error
+    }
   }
 
   const stopExecution = (scriptId?: string) => {
@@ -425,6 +430,7 @@ export const useScriptExecutor = createSharedComposable(() => {
       if (execution) {
         execution.worker?.terminate()
         activeExecutions.value.delete(scriptId)
+        scriptQueue.remove(scriptId)
       }
     } else {
       // If no scriptId provided, stop all executions
@@ -432,6 +438,7 @@ export const useScriptExecutor = createSharedComposable(() => {
         execution.worker?.terminate()
       })
       activeExecutions.value.clear()
+      scriptQueue.clear()
     }
 
     isRunning.value = false

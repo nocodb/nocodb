@@ -216,6 +216,19 @@ export const NON_SEAT_ROLES = [
   ProjectRoles.COMMENTER,
 ];
 
+export const DURATION_TYPE_MAP = {
+  0: 'h:mm',
+  1: 'h:mm:ss',
+  2: 'h:mm:ss.s',
+  3: 'h:mm:ss.ss',
+  4: 'h:mm:ss.sss',
+  'h:mm': 0,
+  'h:mm:ss': 1,
+  'h:mm:ss.s': 2,
+  'h:mm:ss.ss': 3,
+  'h:mm:ss.sss': 4,
+}
+
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
 
 type RolesObj = Partial<Record<Roles, boolean>>;

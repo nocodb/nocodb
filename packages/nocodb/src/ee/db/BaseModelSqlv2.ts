@@ -1554,7 +1554,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 ) {
                   val = JSON.stringify(val);
                 }
-                if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
+                if (
+                  this.context.api_version !== NcApiVersion.V3 &&
+                  col.uidt === UITypes.DateTime &&
+                  dayjs(val).isValid()
+                ) {
                   const { isMySQL, isSqlite, isMssql, isPg } = this.clientMeta;
                   if (
                     val.indexOf('-') < 0 &&
@@ -1607,11 +1611,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                     val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
                   }
                 }
-                if (this.isPg && col.uidt === UITypes.Checkbox) {
+                if (
+                  this.context.api_version !== NcApiVersion.V3 &&
+                  this.isPg &&
+                  col.uidt === UITypes.Checkbox
+                ) {
                   val = val ? true : false;
                 }
 
-                if (col.uidt === UITypes.Duration) {
+                if (
+                  this.context.api_version !== NcApiVersion.V3 &&
+                  col.uidt === UITypes.Duration
+                ) {
                   if (col.meta?.duration !== undefined) {
                     const duration = convertDurationToSeconds(
                       val,

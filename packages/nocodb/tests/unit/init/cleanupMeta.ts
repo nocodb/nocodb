@@ -1,6 +1,7 @@
 import TestDbMngr from '../TestDbMngr';
 import { Base, Model } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import NocoCache from '~/cache/NocoCache';
 import { MetaTable, orderedMetaTables, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 
@@ -61,6 +62,7 @@ const cleanupMetaTables = async () => {
     } catch (e) {}
   }
   await TestDbMngr.enableForeignKeyChecks(TestDbMngr.metaKnex);
+  await NocoCache.destroy();
 };
 
 export default async function () {

@@ -1,3 +1,4 @@
+import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
 import type { FilterType, NcContext } from 'nocodb-sdk';
@@ -40,6 +41,37 @@ export interface FieldHandlerInterface {
     column: Column,
     options?: HandlerOptions,
   ): Promise<FilterVerificationResult>;
+
+  parseUserInput(params: {
+    value: any;
+    row: any;
+    column: Column;
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+      logger?: Logger;
+      baseModel?: IBaseModelSqlV2;
+    };
+    // for now the return value need to be {value: any}
+    // since it's possible for it to be knex query, which
+    // can be executed when awaited
+  }): Promise<{ value: any }>;
+
+  parseDbValue(params: {
+    value: any;
+    row: any;
+    column: Column;
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+      logger?: Logger;
+      baseModel?: IBaseModelSqlV2;
+      fieldHandler?: IFieldHandler;
+    };
+    // for now the return value need to be {value: any}
+    // since it's possible for it to be knex query, which
+    // can be executed when awaited
+  }): Promise<{ value: any }>;
 }
 
 export interface IFieldHandler {
@@ -72,4 +104,45 @@ export interface IFieldHandler {
   ): Promise<FilterVerificationResult>;
 
   verifyFilters(filters: Filter[], options?: HandlerOptions): Promise<boolean>;
+
+  parseUserInput(params: {
+    value: any;
+    row: any;
+    column: Column;
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+      baseModel?: IBaseModelSqlV2;
+      logger?: Logger;
+    };
+  }): Promise<{ value: any }>;
+
+  parseDbValue(params: {
+    value: any;
+    row: any;
+    column: Column;
+    options?: {
+      context?: NcContext;
+      metaService?: MetaService;
+      baseModel?: IBaseModelSqlV2;
+      logger?: Logger;
+    };
+    // for now the return value need to be {value: any}
+    // since it's possible for it to be knex query, which
+    // can be executed when awaited
+  }): Promise<{ value: any }>;
+
+  parseDataDbValue(params: {
+    data: any | any[];
+    options?: {
+      additionalColumns?: Column[];
+      baseModel?: IBaseModelSqlV2;
+      context?: NcContext;
+      metaService?: MetaService;
+      logger?: Logger;
+    };
+    // for now the return value need to be {value: any}
+    // since it's possible for it to be knex query, which
+    // can be executed when awaited
+  }): Promise<void>;
 }

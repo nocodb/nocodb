@@ -78,7 +78,7 @@ class Tele {
           node_version: process.version,
           docker: isDocker(),
           xc_version: xc_version,
-          env: process.env.NODE_ENV || 'production',
+          env: serverConfig.environment,
           oneClick: !!process.env.NC_ONE_CLICK,
         };
         teleData.machine_id = `${machineIdSync()},,`;
@@ -254,8 +254,8 @@ class Tele {
 
   static async payload() {
     if (
-      process.env.NODE_ENV === 'test' ||
-      process.env.NODE_ENV === 'development' ||
+      serverConfig.environment == 'testing' ||
+      serverConfig.environment == 'development' ||
       isEE
     )
       return null;
@@ -264,7 +264,7 @@ class Tele {
       package_id: packageVersion,
       node_version: process.version,
       xc_version: process.env.NC_SERVER_UUID,
-      env: process.env.NODE_ENV || 'production',
+      env: serverConfig.environment,
       oneClick: !!process.env.NC_ONE_CLICK,
       disabled: isDisabled,
     };

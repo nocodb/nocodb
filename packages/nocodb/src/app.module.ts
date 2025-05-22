@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import { Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 // @ts-ignore
@@ -38,7 +39,7 @@ export const ceModuleConfig = {
           SentryModule.forRoot({
             dsn: process.env.NC_SENTRY_DSN,
             debug: false,
-            environment: process.env.NODE_ENV,
+            environment: serverConfig.environment,
             release: packageInfo.version, // must create a release in sentry.io dashboard
             logLevels: ['debug'], //based on sentry.io loglevel //
           }),

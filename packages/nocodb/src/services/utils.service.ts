@@ -441,7 +441,7 @@ export class UtilsService {
       baseHasAdmin,
       firstUser: !baseHasAdmin,
       type: 'rest',
-      env: process.env.NODE_ENV,
+      env: serverConfig.environment,
       googleAuthEnabled: !!(
         process.env.NC_GOOGLE_CLIENT_ID && process.env.NC_GOOGLE_CLIENT_SECRET
       ),

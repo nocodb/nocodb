@@ -110,8 +110,7 @@ const serverConfigGet = (): ServerConfig => {
         publicUrl: null,
         dashboardUrl: null,
         workerType: process.env.WORKER_TYPE,
-
-        environment: process.env.NODE_ENV as typeof environments[number],
+        environment: process.env.NODE_ENV as typeof environments[number] ?? "production",
 
         nocoDbConfig: {
             isCloud: process.env.NC_CLOUD === 'true',

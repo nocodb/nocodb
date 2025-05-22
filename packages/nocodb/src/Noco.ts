@@ -22,11 +22,10 @@ import { isEE, T } from '~/utils';
 import { getAppUrl } from '~/utils/appUrl';
 import { DataReflection, Integration } from '~/models';
 import { getRedisURL } from '~/helpers/redisHelpers';
-import { serverConfig } from 'config';
 dotenv.config();
 declare const module: any;
 
-if (['development', 'test'].includes(process.env.NODE_ENV)) {
+if (['development', 'testing'].includes(serverConfig.environment)) {
   require('source-map-support').install();
 }
 

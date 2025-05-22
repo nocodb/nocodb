@@ -1612,6 +1612,7 @@
     "changePlan": "ChangePlan"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for the data source or the data type",
     "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",

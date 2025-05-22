@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { nextTick } from 'vue'
 provide(IsMiniSidebarInj, ref(true))
 
 const router = useRouter()

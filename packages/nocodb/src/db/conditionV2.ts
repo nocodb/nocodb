@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import {
+  CURRENT_USER_TOKEN,
   FormulaDataTypes,
   getEquivalentUIType,
   isAIPromptCol,
@@ -17,7 +18,7 @@ import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getRefColumnIfAlias } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { getColumnName } from '~/helpers/dbHelpers';
+import { getColumnName, isFilterValueConsistOf } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
 import Filter from '~/models/Filter';
@@ -330,7 +331,23 @@ const parseConditionV2 = async (
           ? `${alias}.${column.column_name}`
           : column.column_name,
       );
-      const _val = customWhereClause ? customWhereClause : filter.value;
+      let _val = customWhereClause ? customWhereClause : filter.value;
+      if (
+        [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+          column.uidt,
+        )
+      ) {
+        const filterValueCurrentUserTokenResult = isFilterValueConsistOf(
+          filter.value,
+          CURRENT_USER_TOKEN,
+          {
+            replace: context.user?.id ?? '___false',
+          },
+        );
+        if (filterValueCurrentUserTokenResult?.exists) {
+          _val = filterValueCurrentUserTokenResult.value;
+        }
+      }
 
       // get column name for CreateTime, LastModifiedTime
       column.column_name = await getColumnName(context, column);

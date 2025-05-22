@@ -68,6 +68,9 @@ class NocoDbConfig {
 
     @IsBoolean()
     externalDb: boolean;
+
+    @IsBoolean()
+    dataReflection: boolean
 }
 
 const environments = ['testing', 'production', 'development', 'staging'] as const;
@@ -120,6 +123,7 @@ const serverConfigGet = (): ServerConfig => {
             uuid: process.env.NC_SERVER_UUID,
             minimalDb: process.env.NC_MINIMAL_DBS === 'true',
             externalDb: null,
+            dataReflection: process.env.NC_PG_DATA_REFLECTION !== 'false'
         },
 
         auth: {

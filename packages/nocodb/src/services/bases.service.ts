@@ -204,7 +204,7 @@ export class BasesService {
 
       if (
         dataConfig?.client === 'pg' &&
-        process.env.NC_DISABLE_PG_DATA_REFLECTION !== 'true'
+        serverConfig.nocoDbConfig.dataReflection
       ) {
         baseBody.prefix = '';
         baseBody.sources = [

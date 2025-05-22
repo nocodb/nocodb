@@ -1297,6 +1297,7 @@ export function useCanvasTable({
     // Action Manager
     actionManager,
     imageLoader,
+    baseRoleLoader,
     handleCellClick,
     handleCellHover,
     renderCell,

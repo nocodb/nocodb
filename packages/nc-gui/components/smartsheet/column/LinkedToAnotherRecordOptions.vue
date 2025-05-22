@@ -278,7 +278,7 @@ const onCustomSwitchToggle = () => {
 }
 
 const handleShowAdvanceOptions = () => {
-  if(isEdit.value) return
+  if (isEdit.value) return
 
   isAdvancedOptionsShownEasterEgg.value = !isAdvancedOptionsShownEasterEgg.value
 

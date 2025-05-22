@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ScriptType, SourceType } from 'nocodb-sdk'
 import Automation from '../Automation.vue'
-import { DashboardTreeViewProjectHomeSearchInput } from '#components'
 
 const router = useRouter()
 const route = router.currentRoute

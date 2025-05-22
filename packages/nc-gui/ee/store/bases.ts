@@ -147,6 +147,8 @@ export const useBases = defineStore('basesStore', () => {
           return router.push('/error/404')
         }
         throw e
+      } finally {
+        isProjectsLoaded.value = true
       }
     }
 

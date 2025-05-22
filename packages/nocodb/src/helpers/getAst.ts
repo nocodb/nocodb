@@ -206,11 +206,14 @@ const getAst = async (
       query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
     if (nestedFields && nestedFields !== '*') {
       if (col.uidt === UITypes.LinkToAnotherRecord) {
-        const model = await col
-          .getColOptions<LinkToAnotherRecordColumn>(context)
-          .then((colOpt) => colOpt.getRelatedTable(context));
+        const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
+          context,
+        );
+        const model = await colOpt.getRelatedTable(context);
 
-        const { ast } = await getAst(context, {
+        const refTableContext = colOpt.getRelatedTableContext(context);
+
+        const { ast } = await getAst(refTableContext, {
           model,
           query: query?.nested?.[col.title],
           dependencyFields: (dependencyFields.nested[col.title] =
@@ -232,12 +235,15 @@ const getAst = async (
         ).reduce((o, f) => ({ ...o, [f]: 1 }), {});
       }
     } else if (col.uidt === UITypes.LinkToAnotherRecord) {
-      const model = await col
-        .getColOptions<LinkToAnotherRecordColumn>(context)
-        .then((colOpt) => colOpt.getRelatedTable(context));
+      const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
+        context,
+      );
+      const model = await colOpt.getRelatedTable(context);
+
+      const refTableContext = colOpt.getRelatedTableContext(context);
 
       value = (
-        await getAst(context, {
+        await getAst(refTableContext, {
           model,
           query: query?.nested?.[col.title],
           extractOnlyPrimaries: nestedFields !== '*',

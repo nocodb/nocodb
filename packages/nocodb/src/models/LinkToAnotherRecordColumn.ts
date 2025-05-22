@@ -254,7 +254,7 @@ export default class LinkToAnotherRecordColumn {
     ) {
       refContext = {
         ...context,
-        base_id: this.fk_related_source_id,
+        base_id: this.fk_related_base_id,
       };
     }
 
@@ -270,5 +270,27 @@ export default class LinkToAnotherRecordColumn {
       refContext,
       mmContext,
     };
+  }
+
+  getRelatedTableContext(context: NcContext) {
+    if (!this.fk_related_base_id) {
+      return context;
+    }
+
+    return {
+      ...context,
+      base_id: this.fk_related_base_id,
+    } as NcContext;
+  }
+
+  getMmTableContext(context: NcContext) {
+    if (!this.fk_mm_source_id && !this.fk_mm_base_id) {
+      return context;
+    }
+
+    return {
+      ...context,
+      base_id: this.fk_mm_base_id,
+    } as NcContext;
   }
 }

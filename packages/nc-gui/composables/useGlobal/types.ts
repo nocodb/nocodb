@@ -3,7 +3,6 @@ import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
 import type { ProjectRoles } from 'nocodb-sdk'
 import type { AxiosInstance } from 'axios'
-import type { NcProjectType } from '#imports'
 export interface AppInfo {
   ncSiteUrl: string
   authType: 'jwt' | 'none'
@@ -103,11 +102,10 @@ export interface Actions {
   }) => Promise<string | null | void>
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
-  navigateToProject: (params: { workspaceId?: string; baseId?: string; type?: NcProjectType; query?: any }) => void
+  navigateToProject: (params: { workspaceId?: string; baseId?: string; query?: any }) => void
   ncNavigateTo: (params: {
     workspaceId?: string
     baseId?: string
-    type?: NcProjectType
     query?: any
     tableId?: string
     viewId?: string

@@ -329,6 +329,13 @@ const selectFilterField = (filter: Filter, index: number) => {
   // reset filter value as well
   filter.value = null
 
+  // Check if dynamic filter is still allowed for the new column
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  if (filter.dynamic && !isDynamicFilterAllowed(filter)) {
+    filter.dynamic = false
+    filter.fk_value_col_id = null // Also reset the dynamic value column if it was set
+  }
+
   // Do not save the filter on field change if its a draft/placeholder filter
   if (!isFilterDraft(filter, col)) {
     saveOrUpdate(filter, index)

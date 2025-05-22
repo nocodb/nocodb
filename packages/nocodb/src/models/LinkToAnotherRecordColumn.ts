@@ -263,7 +263,11 @@ export default class LinkToAnotherRecordColumn {
     });
   }
 
-  async getParentChildContext(context: NcContext) {
+  async getParentChildContext(
+    context: NcContext,
+    column?: Column,
+    ncMeta = Noco.ncMeta,
+  ) {
     if (this._parentChildContext) {
       return this._parentChildContext;
     }
@@ -279,7 +283,10 @@ export default class LinkToAnotherRecordColumn {
       this.fk_related_base_id &&
       (this.type === RelationTypes.HAS_MANY ||
         (this.type === RelationTypes.ONE_TO_ONE &&
-          !(await Column.get(context, { colId: this.fk_column_id }))?.meta?.bt))
+          !(
+            column ||
+            (await Column.get(context, { colId: this.fk_column_id }, ncMeta))
+          )?.meta?.bt))
     ) {
       childContext = refContext;
     }
@@ -293,7 +300,10 @@ export default class LinkToAnotherRecordColumn {
       (this.type === RelationTypes.MANY_TO_MANY ||
         this.type === RelationTypes.BELONGS_TO ||
         (this.type === RelationTypes.ONE_TO_ONE &&
-          (await Column.get(context, { colId: this.fk_column_id }))?.meta?.bt))
+          (
+            column ||
+            (await Column.get(context, { colId: this.fk_column_id }, ncMeta))
+          )?.meta?.bt))
     ) {
       parentContext = refContext;
     }

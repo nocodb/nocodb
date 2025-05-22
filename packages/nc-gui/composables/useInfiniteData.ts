@@ -1616,6 +1616,7 @@ export function useInfiniteData(args: {
           })
         : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
             where: whereFilter,
+            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           })
 
       if (!path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {

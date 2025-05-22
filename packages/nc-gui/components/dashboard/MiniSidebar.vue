@@ -80,6 +80,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
   switch (e.code) {
     case 'KeyB': {
+      e.preventDefault()
       navigateToProjectPage()
       break
     }

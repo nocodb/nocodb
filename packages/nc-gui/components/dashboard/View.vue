@@ -19,6 +19,7 @@ const {
   leftSideBarSize: sideBarSize,
   leftSidebarState: sidebarState,
   mobileNormalizedSidebarSize,
+  hideMiniSidebar,
   hideSidebar,
   showTopbar,
   isNewSidebarEnabled,
@@ -209,12 +210,14 @@ function onResize(widthPercent: any) {
 
 <template>
   <div class="h-full flex items-stretch">
-    <DashboardMiniSidebar v-if="isNewSidebarEnabled && $slots.sidebar && !isSharedBase && (!isMobileMode || isLeftSidebarOpen)" />
+    <DashboardMiniSidebar
+      v-if="isNewSidebarEnabled && !hideMiniSidebar && $slots.sidebar && !isSharedBase && (!isMobileMode || isLeftSidebarOpen)"
+    />
 
     <div
       :class="{
-        'w-[calc(100vw_-_var(--mini-sidebar-width))] flex-none': isNewSidebarEnabled,
-        'w-screen flex-none': !isNewSidebarEnabled,
+        'w-[calc(100vw_-_var(--mini-sidebar-width))] flex-none': isNewSidebarEnabled && !hideMiniSidebar,
+        'w-screen flex-none': !isNewSidebarEnabled || hideMiniSidebar,
       }"
     >
       <DashboardTopbar v-if="showTopbar" :workspace-id="workspaceId" />

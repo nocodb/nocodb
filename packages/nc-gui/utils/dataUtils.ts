@@ -573,7 +573,7 @@ export const parsePlainCellValue = (
 
       return parsePlainCellValue(value, { ...params, col: childColumn })
     } else {
-      let url = replaceUrlsWithLink(value, true)
+      const url = replaceUrlsWithLink(value, true)
 
       if (url && ncIsString(url)) {
         return url

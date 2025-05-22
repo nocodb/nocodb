@@ -6,11 +6,11 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 
 export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
   if (
-    !process.env.NC_CLOUD_S3_ACCESS_KEY ||
-    !process.env.NC_CLOUD_S3_ACCESS_SECRET ||
-    !process.env.NC_CLOUD_S3_BUCKET_NAME ||
-    !process.env.NC_CLOUD_S3_REGION ||
-    !process.env.NC_CLOUD_S3_ACL
+    !serverConfig.s3CloudConfig.accessKey ||
+    !serverConfig.s3CloudConfig.secretKey ||
+    !serverConfig.s3CloudConfig.bucketName ||
+    !serverConfig.s3CloudConfig.region ||
+    !serverConfig.s3CloudConfig.acl
   ) {
     throw new Error('S3 env variables not found');
   }
@@ -33,11 +33,11 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
       : {};
 
     const s3PluginFromEnv = {
-      access_key: process.env.NC_CLOUD_S3_ACCESS_KEY,
-      access_secret: process.env.NC_CLOUD_S3_ACCESS_SECRET,
-      bucket: process.env.NC_CLOUD_S3_BUCKET_NAME,
-      region: process.env.NC_CLOUD_S3_REGION,
-      acl: process.env.NC_CLOUD_S3_ACL,
+      access_key: serverConfig.s3CloudConfig.accessKey,
+      access_secret: serverConfig.s3CloudConfig.secretKey,
+      bucket: serverConfig.s3CloudConfig.bucketName,
+      region: serverConfig.s3CloudConfig.region,
+      acl: serverConfig.s3CloudConfig.acl,
     };
 
     const isS3PluginUpdateNeeded = Object.keys(s3PluginFromEnv).some(

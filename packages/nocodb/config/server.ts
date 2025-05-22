@@ -35,6 +35,19 @@ class JwtConfig {
     time: string;
 }
 
+class S3CloudConfig {
+    accessKey: string;
+    secretKey: string;
+    acl: string
+    bucketName: string;
+    region: string;
+}
+
+class S3Config extends S3CloudConfig {
+    forcePathStyle: boolean;
+    endPoint: string;
+}
+
 class AuthConfig {
     @IsNotEmptyObject()
     @IsObject()
@@ -110,6 +123,20 @@ export class ServerConfig {
     workerType: typeof workerType[number];
 
     dashboardUrl: string
+
+    @IsDefined()
+    @IsNotEmptyObject()
+    @IsObject()
+    @ValidateNested()
+    @Type(() => S3Config)
+    s3Config: S3Config;
+
+    @IsDefined()
+    @IsNotEmptyObject()
+    @IsObject()
+    @ValidateNested()
+    @Type(() => S3Config)
+    s3CloudConfig: S3CloudConfig;
 }
 
 const serverConfigGet = (): ServerConfig => {
@@ -145,6 +172,22 @@ const serverConfigGet = (): ServerConfig => {
                 secret: process.env.NC_AUTH_JWT_SECRET,
                 time: process.env.NC_JWT_EXPIRES_IN ?? '10h',
             }
+        },
+        s3CloudConfig: {
+            accessKey: process.env.NC_CLOUD_S3_ACCESS_SECRET,
+            secretKey: process.env.NC_CLOUD_S3_ACCESS_SECRET,
+            acl: process.env.NC_CLOUD_S3_ACL,
+            bucketName: process.env.NC_CLOUD_S3_ACL,
+            region: process.env.NC_CLOUD_S3_REGION,
+        },
+        s3Config: {
+            accessKey: process.env.NC_S3_ACCESS_SECRET,
+            secretKey: process.env.NC_S3_ACCESS_SECRET,
+            acl: process.env.NC_S3_ACL,
+            bucketName: process.env.NC_S3_ACL,
+            region: process.env.NC_S3_REGION,
+            forcePathStyle: process.env.NC_S3_FORCE_PATH_STYL === 'true',
+            endPoint: process.env.NC_S3_ENDPOINT,
         },
     };
 

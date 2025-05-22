@@ -33,6 +33,7 @@ import Noco from '~/Noco';
 import Local from '~/plugins/storage/Local';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Plugin from '~/models/Plugin';
+import { serverConfig } from 'config';
 
 const defaultPlugins = [
   SlackPluginConfig,
@@ -127,31 +128,23 @@ class NcPluginMgrv2 {
   }
 
   private static async initPluginsFromEnv() {
-    /*
-     * NC_S3_BUCKET_NAME
-     * NC_S3_REGION
-     * NC_S3_ENDPOINT
-     * NC_S3_ACCESS_KEY
-     * NC_S3_ACCESS_SECRET
-     * */
-
     if (
-      process.env.NC_S3_BUCKET_NAME &&
-      (process.env.NC_S3_REGION || process.env.NC_S3_ENDPOINT)
+      serverConfig.s3Config.bucketName &&
+      (serverConfig.s3Config.region || serverConfig.s3Config.endPoint)
     ) {
       const s3Plugin = await Plugin.getPlugin(S3PluginConfig.id);
 
       const s3CfgData: Record<string, any> = {
-        bucket: process.env.NC_S3_BUCKET_NAME,
-        region: process.env.NC_S3_REGION,
-        endpoint: process.env.NC_S3_ENDPOINT,
-        force_path_style: process.env.NC_S3_FORCE_PATH_STYLE === 'true',
-        acl: process.env.NC_S3_ACL,
+        bucket: serverConfig.s3Config.bucketName,
+        region: serverConfig.s3Config.region,
+        endpoint: serverConfig.s3Config.endPoint,
+        force_path_style: serverConfig.s3Config.forcePathStyle,
+        acl: serverConfig.s3Config.acl,
       };
 
-      if (process.env.NC_S3_ACCESS_KEY && process.env.NC_S3_ACCESS_SECRET) {
-        s3CfgData.access_key = process.env.NC_S3_ACCESS_KEY;
-        s3CfgData.access_secret = process.env.NC_S3_ACCESS_SECRET;
+      if (serverConfig.s3Config.accessKey && serverConfig.s3Config.secretKey) {
+        s3CfgData.access_key = serverConfig.s3Config.accessKey;
+        s3CfgData.access_secret = serverConfig.s3Config.secretKey;
       }
 
       await Plugin.update(s3Plugin.id, {

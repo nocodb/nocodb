@@ -810,6 +810,7 @@
     "whatsNew": "What’s New!"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -827,7 +828,6 @@
     "mcp": "MCP",
     "exampleScript": "Example Scripts",
     "scriptsByNocoDB": "Scripts by NocoDB",
-    "crossBase": "Link from external base",
     "restoringSnapshot": "Restoring Snapshot",
     "note": "Note:",
     "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",

@@ -3995,6 +3995,9 @@
               "enum": [
                 "Barcode"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Barcode"
             }
           }
         },
@@ -4005,6 +4008,9 @@
               "enum": [
                 "QRCode"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_QRCode"
             }
           }
         },
@@ -5400,7 +5406,16 @@
             "type": "string",
             "description": "Barcode format (e.g., CODE128)."
           },
-          "value_field_id": {
+          "barcode_value_field_id": {
+            "type": "string",
+            "description": "Field ID that contains the value."
+          }
+        }
+      },
+      "FieldOptions_QRCode": {
+        "type": "object",
+        "properties": {
+          "qrcode_value_field_id": {
             "type": "string",
             "description": "Field ID that contains the value."
           }

@@ -569,7 +569,14 @@ export const parsePlainCellValue = (
       uidt: col?.meta?.display_type,
       ...col?.meta?.display_column_meta,
     }
-    return parsePlainCellValue(value, { ...params, col: childColumn })
+
+    let url = !childColumn.uidt ? replaceUrlsWithLink(value, true) : false
+
+    if (url && ncIsString(url)) {
+      return url
+    }
+
+    if (!childColumn.uidt) return parsePlainCellValue(value, { ...params, col: childColumn })
   }
 
   if (isButton(col)) {

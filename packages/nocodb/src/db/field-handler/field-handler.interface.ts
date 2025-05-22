@@ -1,3 +1,4 @@
+import type CustomKnex from '../CustomKnex';
 import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
@@ -25,6 +26,41 @@ export interface FilterOptions {
     throwErrorIfInvalid?: boolean,
   ) => Promise<(qbP: Knex.QueryBuilder) => void>; // backward compatibility aimed to conditionV2.parseConditionV2
 }
+
+export interface FilterOperation {
+  (
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+      qb: Knex.QueryBuilder;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    options: FilterOptions,
+  ): void;
+}
+
+export interface FilterOperationHandlers {
+  filterEq: FilterOperation;
+  filterNeq: FilterOperation;
+  filterNot: FilterOperation;
+  filterLike: FilterOperation;
+  filterNlike: FilterOperation;
+  filterBlank: FilterOperation;
+  filterNotblank: FilterOperation;
+  filterIs: FilterOperation;
+  filterIsnot: FilterOperation;
+  filterGt: FilterOperation;
+  filterGte: FilterOperation;
+  filterLt: FilterOperation;
+  filterLte: FilterOperation;
+  filterChecked: FilterOperation;
+  filterNotchecked: FilterOperation;
+}
+
 export interface FilterVerificationResult {
   isValid: boolean;
   errors?: string[];

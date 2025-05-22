@@ -5494,7 +5494,88 @@
           "rollup_function"
         ]
       },
-      "FieldOptions_Button": {},
+      "FieldOptions_Button": {
+        "type": "object",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["formula"],
+                "description": "Button type: formula"
+              },
+              "formula": {
+                "type": "string",
+                "description": "Formula to execute"
+              }
+            },
+            "required": ["type", "formula"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["webhook"],
+                "description": "Button type: webhook"
+              },
+              "button_hook_id": {
+                "type": "string",
+                "description": "ID of the webhook to trigger"
+              }
+            },
+            "required": ["type", "button_hook_id"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["ai"],
+                "description": "Button type: AI"
+              },
+              "prompt": {
+                "type": "string",
+                "description": "AI prompt to execute"
+              },
+              "integration_id": {
+                "type": "string",
+                "description": "Integration ID for AI service"
+              },
+              "theme": {
+                "type": "string",
+                "description": "Theme of the button"
+              },
+              "output_column_ids": {
+                "type": "string",
+                "description": "IDs of columns where AI output should be stored"
+              },
+              "label": {
+                "type": "string",
+                "description": "Label of the button"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon of the button"
+              },
+              "color": {
+                "type": "string",
+                "description": "Color of the button"
+              }
+            },
+            "required": ["type", "prompt", "integration_id"]
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "formula": "#/components/schemas/FieldOptions_Button/oneOf/0",
+            "webhook": "#/components/schemas/FieldOptions_Button/oneOf/1",
+            "ai": "#/components/schemas/FieldOptions_Button/oneOf/2"
+          }
+        }
+      },
       "FieldOptions_Links": {
         "type": "object",
         "properties": {

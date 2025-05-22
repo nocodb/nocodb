@@ -316,7 +316,6 @@ const onCrossBaseToggle = () => {
 
 // check user have creator or above role to create cross base link to the base
 const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: string }) => {
-  console.log(base)
   if (base.project_role) {
     if ([ProjectRoles.CREATOR, ProjectRoles.OWNER].includes(base.project_role)) {
       return true
@@ -384,7 +383,7 @@ const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: strin
 
         <a-tooltip>
           <template #title>{{ $t('tooltip.crossBase') }}</template>
-          <span class="ml-3 cursor-pointer" @click="crossBase = !crossBase" @dblclick="onCustomSwitchLabelClick">{{
+          <span class="ml-3 cursor-pointer" @click="crossBase = !isEdit && !crossBase" @dblclick="onCustomSwitchLabelClick">{{
             $t('labels.crossBase')
           }}</span>
         </a-tooltip>

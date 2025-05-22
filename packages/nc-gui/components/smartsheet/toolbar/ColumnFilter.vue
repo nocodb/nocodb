@@ -665,6 +665,7 @@ eventBus.on(async (event) => {
                   :key="i"
                   ref="localNestedFilters"
                   v-model="filter.children"
+                  v-model:is-open="isOpen"
                   :nested-level="nestedLevel + 1"
                   :parent-id="filter.id"
                   :auto-save="autoSave"

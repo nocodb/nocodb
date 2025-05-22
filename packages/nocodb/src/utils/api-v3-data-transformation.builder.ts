@@ -354,7 +354,8 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
         isLocaleString: 'locale_string',
         richMode: 'rich_text',
         [LongTextAiMetaProp]: 'generate_text_using_ai',
-        // duration: 'duration_format',
+        // isLocaleString : 'thousand_separator',
+        isDisplayTimezone: 'display_timezone',
       },
       excluded: [
         'defaultViewColOrder',
@@ -497,7 +498,12 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       '12hr_format': 'is12hrFormat',
       locale_string: 'isLocaleString',
       rich_text: 'richMode',
+
+      display_timezone: 'is_display_timezone',
+
+      // LingText
       generate_text_using_ai: LongTextAiMetaProp,
+
       // duration_format: 'duration',
     },
     skipfn: (data) => columnsWithOptions.includes(data.uidt || data.type),

@@ -82,11 +82,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   switch (e.code) {
     case 'KeyB': {
       e.preventDefault()
-      showProjectList.value = true
-      await nextTick()
-      document
-        .querySelector<HTMLInputElement>('.nc-base-search-input input')
-        ?.focus()
+      navigateToProjectPage()
       break
     }
   }

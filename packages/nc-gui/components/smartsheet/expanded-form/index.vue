@@ -801,34 +801,7 @@ export default {
             </div>
           </div>
         </div>
-        <div class="ml-auto">
-         <!--
-         <NcSelectTab
-            v-if="
-              isEeUI &&
-              (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) ||
-                isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE))
-            "
-            v-model="activeViewMode"
-            class="nc-expanded-form-mode-switch"
-            :disabled="!isUIAllowed('viewCreateOrEdit', baseRoles)"
-            :tooltip="!isUIAllowed('viewCreateOrEdit', baseRoles) ? 'You do not have permission to change view mode.' : undefined"
-            :items="[
-              { icon: 'fields', value: 'field', tooltip: 'Fields' },
-              {
-                icon: 'file',
-                value: 'attachment',
-                tooltip: 'File Preview',
-                hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE),
-              },
-              {
-                icon: 'ncMessageSquare',
-                value: 'discussion',
-                tooltip: 'Discussion',
-                hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE) || isSqlView,
-              },
-            ]"
-          />-->
+        <div class="ml-auto" v-if="!isUIAllowed('viewCreateOrEdit', baseRoles)">
           <SmartsheetExpandedFormViewModeSelector v-model="activeViewMode" view="view" class="nc-expanded-form-mode-switch" />
         </div>
         <div class="flex gap-2">

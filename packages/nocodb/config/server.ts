@@ -50,6 +50,13 @@ class SmtpConfig {
     port: string;
 }
 
+class SesConfig {
+    accessKey: string;
+    secretKey: string;
+    region: string;
+    from: string;
+}
+
 class S3Config extends S3CloudConfig {
     forcePathStyle: boolean;
     endPoint: string;
@@ -151,6 +158,13 @@ export class ServerConfig {
     @ValidateNested()
     @Type(() => SmtpConfig)
     smtpConfig: SmtpConfig;
+
+    @IsDefined()
+    @IsNotEmptyObject()
+    @IsObject()
+    @ValidateNested()
+    @Type(() => SesConfig)
+    sesConfig: SesConfig;
 }
 
 const serverConfigGet = (): ServerConfig => {
@@ -213,7 +227,13 @@ const serverConfigGet = (): ServerConfig => {
             from: process.env.NC_SMTP_FROM,
             host: process.env.NC_SMTP_HOST,
             port: process.env.NC_SMTP_PORT,
-        }
+        },
+        sesConfig: {
+            accessKey: process.env.NC_CLOUD_SES_ACCESS_KEY,
+            secretKey: process.env.NC_CLOUD_SES_ACCESS_SECRET,
+            region: process.env.NC_CLOUD_SES_REGION,
+            from: process.env.NC_CLOUD_SES_FROM,
+        },
     };
 
     // derived config

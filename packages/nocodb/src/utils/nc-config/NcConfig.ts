@@ -6,7 +6,6 @@ import { getToolDir, metaUrlToDbConfig } from './helpers';
 import { DriverClient } from './interfaces';
 import type { DbConfig } from './interfaces';
 import { SqlClientFactory } from '~/db/sql-client/lib/SqlClientFactory';
-import { serverConfig } from 'config';
 
 export class NcConfig {
   version: string;

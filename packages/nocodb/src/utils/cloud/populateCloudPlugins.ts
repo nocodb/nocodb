@@ -57,15 +57,6 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
       );
     }
   }
-  // // SES
-  // if (
-  //   !process.env.NC_CLOUD_SES_ACCESS_KEY ||
-  //   !process.env.NC_CLOUD_SES_ACCESS_SECRET ||
-  //   !process.env.NC_CLOUD_SES_REGION ||
-  //   !process.env.NC_CLOUD_SES_FROM
-  // ) {
-  //   throw new Error('SES env variables not found');
-  // }
 
   const sesPluginData = await ncMeta.metaGet2(
     RootScopes.ROOT,
@@ -86,10 +77,10 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
       : {};
 
     const sesPluginFromEnv = {
-      access_key: process.env.NC_CLOUD_SES_ACCESS_KEY,
-      access_secret: process.env.NC_CLOUD_SES_ACCESS_SECRET,
-      region: process.env.NC_CLOUD_SES_REGION,
-      from: process.env.NC_CLOUD_SES_FROM,
+      access_key: serverConfig.sesConfig.accessKey,
+      access_secret: serverConfig.sesConfig.secretKey,
+      region: serverConfig.sesConfig.region,
+      from: serverConfig.sesConfig.from,
     };
 
     const isSESPluginUpdateNeeded = Object.keys(sesPluginFromEnv).some(

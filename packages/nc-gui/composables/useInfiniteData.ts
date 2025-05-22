@@ -999,7 +999,7 @@ export function useInfiniteData(args: {
 
         const fullRecord = await $api.dbTableRow.read(
           NOCO,
-          metaValue?.base_id ?? (base?.value.id as string),
+          meta.value?.base_id ?? (base?.value.id as string),
           meta.value?.id as string,
           encodeURIComponent(id as string),
           {
@@ -1562,7 +1562,7 @@ export function useInfiniteData(args: {
     try {
       const res: any = await $api.dbViewRow.delete(
         'noco',
-        base.value.id as string,
+        metaValue?.base_id ?? (base.value.id as string),
         metaValue?.id as string,
         viewMetaValue?.id as string,
         encodeURIComponent(id),

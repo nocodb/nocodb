@@ -528,7 +528,7 @@ export function useData(args: {
 
     const res: any = await $api.dbViewRow.delete(
       'noco',
-      base.value.id as string,
+      metaValue?.base_id ?? (base.value.id as string),
       metaValue?.id as string,
       viewMetaValue?.id as string,
       encodeURIComponent(id),

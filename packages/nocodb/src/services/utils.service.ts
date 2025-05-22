@@ -443,10 +443,10 @@ export class UtilsService {
       type: 'rest',
       env: serverConfig.environment,
       googleAuthEnabled: !!(
-        process.env.NC_GOOGLE_CLIENT_ID && process.env.NC_GOOGLE_CLIENT_SECRET
+        serverConfig.auth.googleOidc.clientId && serverConfig.auth.googleOidc.clientSecret
       ),
       githubAuthEnabled: !!(
-        process.env.NC_GITHUB_CLIENT_ID && process.env.NC_GITHUB_CLIENT_SECRET
+        serverConfig.auth.githubOidc.clientId && serverConfig.auth.githubOidc.clientSecret
       ),
       oidcAuthEnabled,
       oidcProviderName,

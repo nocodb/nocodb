@@ -21,7 +21,7 @@ import {
 } from "class-validator";
 import { isEE } from '~/utils';
 
-class GoogleOidcConfig {
+class OidcConfig {
     @Length(8, 64)
     clientSecret: string;
     @Length(8, 64)
@@ -39,15 +39,21 @@ class AuthConfig {
     @IsNotEmptyObject()
     @IsObject()
     @ValidateNested()
-    @Type(() => GoogleOidcConfig)
-    googleOidc: GoogleOidcConfig;
+    @Type(() => OidcConfig)
+    googleOidc: OidcConfig;
 
-    // @IsDefined()
-    // @IsNotEmptyObject()
-    // @IsObject()
-    // @ValidateNested()
-    // @Type(() => JwtConfig)
-    // jwt: JwtConfig;
+    @IsNotEmptyObject()
+    @IsObject()
+    @ValidateNested()
+    @Type(() => OidcConfig)
+    githubOidc: OidcConfig;
+
+    @IsDefined()
+    @IsNotEmptyObject()
+    @IsObject()
+    @ValidateNested()
+    @Type(() => JwtConfig)
+    jwt: JwtConfig;
 }
 
 class NocoDbConfig {
@@ -131,12 +137,14 @@ const serverConfigGet = (): ServerConfig => {
                 clientId: process.env.NC_GOOGLE_CLIENT_ID,
                 clientSecret: process.env.NC_GOOGLE_CLIENT_SECRET,
             },
-
-            // jwt: {
-            //     secret: process.env.JWT_SECRET,
-            //     time:
-            //         process.env.NODE_ENV === "development" ? "86400s" : "1200s",
-            // },
+            githubOidc: {
+                clientId: process.env.NC_GITHUB_CLIENT_ID,
+                clientSecret: process.env.NC_GITHUB_CLIENT_SECRET,
+            },
+            jwt: {
+                secret: process.env.NC_AUTH_JWT_SECRET,
+                time: process.env.NC_JWT_EXPIRES_IN ?? '10h',
+            }
         },
     };
 

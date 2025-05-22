@@ -144,7 +144,7 @@ export class NcConfig {
         metaJson: process.env.NC_DB_JSON,
         metaJsonFile: process.env.NC_DB_JSON_FILE,
       },
-      secret: process.env.NC_AUTH_JWT_SECRET,
+      secret: serverConfig.auth.jwt.secret,
       port: process.env.NC_PORT,
       tryMode: !!process.env.NC_TRY,
       worker: !!process.env.NC_WORKER,

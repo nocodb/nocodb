@@ -18,6 +18,8 @@ export default class LinkToAnotherRecordColumn {
   protected _parentChildContext: {
     parentContext: NcContext;
     childContext: NcContext;
+    refContext: NcContext;
+    mmContext: NcContext;
   };
 
   id: string;
@@ -299,8 +301,8 @@ export default class LinkToAnotherRecordColumn {
     return (this._parentChildContext = {
       childContext,
       parentContext,
-        mmContext,
-        refContext,
+      mmContext,
+      refContext,
     });
   }
 }

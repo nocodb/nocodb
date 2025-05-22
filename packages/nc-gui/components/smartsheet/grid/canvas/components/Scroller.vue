@@ -65,6 +65,7 @@ const scrollState = ref<ScrollState>({
 })
 const isScrollbarVisible = ref(true)
 const scrollbarTimer = ref(null)
+const scrollbarsAlwaysVisible = ref(false)
 
 const showScrollbars = () => {
   isScrollbarVisible.value = true
@@ -73,9 +74,12 @@ const showScrollbars = () => {
     clearTimeout(scrollbarTimer.value)
   }
 
-  scrollbarTimer.value = setTimeout(() => {
-    isScrollbarVisible.value = false
-  }, 2000)
+  // Only set timer to hide scrollbars if they aren't configured to always be visible
+  if (!scrollbarsAlwaysVisible.value) {
+    scrollbarTimer.value = setTimeout(() => {
+      isScrollbarVisible.value = false
+    }, 2000)
+  }
 }
 
 const showVerticalScrollbar = computed(() => {
@@ -382,6 +386,7 @@ const scrollTo = ({ left, top }: { left?: number; top?: number }) => {
 onMounted(() => {
   showScrollbars()
   isWindows.value = navigator.userAgent.toLowerCase().includes('windows')
+  scrollbarsAlwaysVisible.value = isScrollbarAlwaysVisible()
 })
 
 onUnmounted(() => {

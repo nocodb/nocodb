@@ -145,6 +145,15 @@ async function registerIntegrations(EE = false) {
 ${exportEntries.map((entry) => `  ${entry},`).join('\n')}
 ] as IntegrationEntry[];\n`;
 
+  if (EE) {
+    // check if src/ee/integrations/index.ts exists
+    const eeIndexPath = path.join(__dirname, '..', 'src/ee/integrations');
+    const exists = await fs.stat(eeIndexPath).catch(() => false);
+    if (!exists) {
+      return;
+    }
+  }
+
   // Write the generated content to index.ts
   await fs.writeFile(indexPath, indexContent);
 

@@ -17,6 +17,7 @@ import {
   negatedMapping,
   nestedConditionJoin,
 } from '~/db/field-handler/utils/handlerUtils';
+import { Model } from '~/models';
 
 export class LookupGeneralHandler extends ComputedFieldHandler {
   override async filter(
@@ -39,16 +40,32 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
     const relationColumnOptions =
       await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
     // const relationModel = await relationColumn.getModel();
-    const lookupColumn = await colOptions.getLookupColumn(context);
+    const { refContext, parentContext, childContext, mmContext } =
+      await relationColumnOptions.getParentChildContext(context);
+    const lookupColumn = await colOptions.getLookupColumn(refContext);
     const alias = getAlias(aliasCount);
     let qb;
     {
-      const childColumn = await relationColumnOptions.getChildColumn(context);
-      const parentColumn = await relationColumnOptions.getParentColumn(context);
-      const childModel = await childColumn.getModel(context);
-      await childModel.getColumns(context);
-      const parentModel = await parentColumn.getModel(context);
-      await parentModel.getColumns(context);
+      const childColumn = await relationColumnOptions.getChildColumn(
+        childContext,
+      );
+      const parentColumn = await relationColumnOptions.getParentColumn(
+        parentContext,
+      );
+      const childModel = await childColumn.getModel(childContext);
+      await childModel.getColumns(childContext);
+      const parentModel = await parentColumn.getModel(parentContext);
+      await parentModel.getColumns(parentContext);
+
+      const childBaseModel = await Model.getBaseModelSQL(childContext, {
+        model: childModel,
+        dbDriver: baseModelSqlv2.dbDriver,
+      });
+
+      const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
+        model: parentModel,
+        dbDriver: baseModelSqlv2.dbDriver,
+      });
 
       let relationType = relationColumnOptions.type;
 
@@ -61,7 +78,7 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
       if (relationType === RelationTypes.HAS_MANY) {
         qb = knex(
           knex.raw(`?? as ??`, [
-            baseModelSqlv2.getTnPath(childModel.table_name),
+            childBaseModel.getTnPath(childModel.table_name),
             alias,
           ]),
         );
@@ -69,7 +86,7 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         qb.select(`${alias}.${childColumn.column_name}`);
 
         await nestedConditionJoin({
-          baseModelSqlv2,
+          baseModelSqlv2: childBaseModel,
           filter: {
             ...filter,
             ...(filter.comparison_op in negatedMapping
@@ -93,14 +110,14 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
       } else if (relationType === RelationTypes.BELONGS_TO) {
         qb = knex(
           knex.raw(`?? as ??`, [
-            baseModelSqlv2.getTnPath(parentModel.table_name),
+            parentBaseModel.getTnPath(parentModel.table_name),
             alias,
           ]),
         );
         qb.select(`${alias}.${parentColumn.column_name}`);
 
         await nestedConditionJoin({
-          baseModelSqlv2,
+          baseModelSqlv2: parentBaseModel,
           filter: {
             ...filter,
             ...(filter.comparison_op in negatedMapping
@@ -126,26 +143,31 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           else qbP.whereIn(childColumn.column_name, qb);
         };
       } else if (relationType === RelationTypes.MANY_TO_MANY) {
-        const mmModel = await relationColumnOptions.getMMModel(context);
+        const mmModel = await relationColumnOptions.getMMModel(mmContext);
         const mmParentColumn = await relationColumnOptions.getMMParentColumn(
-          context,
+          mmContext,
         );
         const mmChildColumn = await relationColumnOptions.getMMChildColumn(
-          context,
+          mmContext,
         );
+
+        const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+          model: mmModel,
+          dbDriver: baseModelSqlv2.dbDriver,
+        });
 
         const childAlias = `__nc${aliasCount.count++}`;
 
         qb = knex(
           knex.raw(`?? as ??`, [
-            baseModelSqlv2.getTnPath(mmModel.table_name),
+            mmBaseModel.getTnPath(mmModel.table_name),
             alias,
           ]),
         )
           .select(`${alias}.${mmChildColumn.column_name}`)
           .join(
             knex.raw(`?? as ??`, [
-              baseModelSqlv2.getTnPath(parentModel.table_name),
+              parentBaseModel.getTnPath(parentModel.table_name),
               childAlias,
             ]),
             `${alias}.${mmParentColumn.column_name}`,
@@ -153,7 +175,7 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           );
 
         await nestedConditionJoin({
-          baseModelSqlv2,
+          baseModelSqlv2: parentBaseModel,
           filter: {
             ...filter,
             ...(filter.comparison_op in negatedMapping

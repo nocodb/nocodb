@@ -6091,9 +6091,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return column;
     }
     const colOptions = await column.getColOptions<LookupColumn>(this.context);
-    return this.getNestedColumn(
-      await colOptions?.getLookupColumn(this.context),
-    );
+    const relationColOpt = await colOptions
+      .getRelationColumn(this.context)
+      .then((col) =>
+        col?.getColOptions<LinkToAnotherRecordColumn>(this.context),
+      );
+
+    const { refContext } = relationColOpt.getRelContext(this.context);
+
+    return this.getNestedColumn(await colOptions?.getLookupColumn(refContext));
   }
 
   public async convertJsonTypes(

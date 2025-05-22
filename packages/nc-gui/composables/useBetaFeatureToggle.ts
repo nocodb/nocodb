@@ -145,6 +145,20 @@ const FEATURES = [
     isEngineering: true,
     isEE: true,
   },
+  {
+    id: 'cross_base_link',
+    title: 'Cross Base Link',
+    description: 'Enables link creation between tables in different bases.',
+    enabled: false,
+    isEE: true,
+  },
+  {
+    id: 'custom_link',
+    title: 'Custom Link',
+    description: 'Allows user to create custom links using existing fields.',
+    enabled: false,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

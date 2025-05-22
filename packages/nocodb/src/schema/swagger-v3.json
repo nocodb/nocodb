@@ -4021,6 +4021,9 @@
               "enum": [
                 "CreatedTime"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_DateTime"
             }
           }
         },
@@ -4031,6 +4034,9 @@
               "enum": [
                 "LastModifiedTime"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_DateTime"
             }
           }
         },

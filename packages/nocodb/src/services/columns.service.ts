@@ -3656,9 +3656,18 @@ export class ColumnsService implements IColumnsService {
     const table = await Model.getWithInfo(context, {
       id: (param.column as LinkToAnotherColumnReqType).parentId,
     });
-    const refTable = await Model.getWithInfo(context, {
-      id: (param.column as LinkToAnotherColumnReqType).childId,
-    });
+
+    const refContext = {
+      ...context,
+    base_id:(param.column as any)?.ref_base_id ?? context.base_id
+    }
+
+    const refTable = await Model.getWithInfo(
+      refContext,
+      {
+        id: (param.column as LinkToAnotherColumnReqType).childId,
+      },
+    );
     let refColumn: Column;
     const childView: View | null = (param.column as LinkToAnotherColumnReqType)
       ?.childViewId
@@ -3677,11 +3686,8 @@ export class ColumnsService implements IColumnsService {
     const refSource =
       param.source.id === refTable.source_id
         ? param.source
-        : await Source.get(context, refTable.source_id);
-    const refContext = {
-      ...context,
-      base_id: refSource.base_id,
-    };
+        : await Source.get(refContext, refTable.source_id);
+
     // support cross base relations only if the bases are meta bases
     if (
       param.source.id !== refTable.source_id &&
@@ -3787,13 +3793,13 @@ export class ColumnsService implements IColumnsService {
           (param.column as LinkToAnotherColumnReqType).virtual
         ) {
           const indexName = generateFkName(table, refTable);
-          await this.createColumnIndex(context, {
+          await this.createColumnIndex(refContext, {
             column: new Column({
               ...newColumn,
               fk_model_id: refTable.id,
             }),
             indexName,
-            source: param.source,
+            source: refSource,
             sqlMgr,
           });
         }
@@ -3890,13 +3896,13 @@ export class ColumnsService implements IColumnsService {
           (param.column as LinkToAnotherColumnReqType).virtual
         ) {
           const indexName = generateFkName(table, refTable);
-          await this.createColumnIndex(context, {
+          await this.createColumnIndex(refContext, {
             column: new Column({
               ...newColumn,
               fk_model_id: refTable.id,
             }),
             indexName,
-            source: param.source,
+            source: refSource,
             sqlMgr,
           });
         }

@@ -3659,15 +3659,12 @@ export class ColumnsService implements IColumnsService {
 
     const refContext = {
       ...context,
-    base_id:(param.column as any)?.ref_base_id ?? context.base_id
-    }
+      base_id: (param.column as any)?.ref_base_id ?? context.base_id,
+    };
 
-    const refTable = await Model.getWithInfo(
-      refContext,
-      {
-        id: (param.column as LinkToAnotherColumnReqType).childId,
-      },
-    );
+    const refTable = await Model.getWithInfo(refContext, {
+      id: (param.column as LinkToAnotherColumnReqType).childId,
+    });
     let refColumn: Column;
     const childView: View | null = (param.column as LinkToAnotherColumnReqType)
       ?.childViewId

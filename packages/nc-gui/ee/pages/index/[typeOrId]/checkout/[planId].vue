@@ -1,13 +1,14 @@
 <script lang="ts" setup>
 const { activeSubscription } = useProvidePaymentStore()
 
-const { hideSidebar, showTopbar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+const { hideSidebar, hideMiniSidebar, showTopbar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const { appInfo } = useGlobal()
 
 onMounted(() => {
   if (isNewSidebarEnabled.value) {
     hideSidebar.value = true
+    hideMiniSidebar.value = true
   }
 
   showTopbar.value = true
@@ -19,6 +20,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   hideSidebar.value = false
+  hideMiniSidebar.value = false
   showTopbar.value = false
 })
 </script>

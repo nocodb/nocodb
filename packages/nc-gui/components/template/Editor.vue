@@ -62,8 +62,6 @@ const useForm = Form.useForm
 
 const { $api, $state } = useNuxtApp()
 
-const { addTab } = useTabs()
-
 const basesStore = useBases()
 
 const { bases } = storeToRefs(basesStore)
@@ -741,11 +739,6 @@ async function importTemplate() {
 
       // reload table list
       await loadProjectTables(base.value.id, true)
-
-      addTab({
-        ...tab,
-        type: TabType.TABLE,
-      })
     } catch (e: any) {
       console.log(e)
       throw e

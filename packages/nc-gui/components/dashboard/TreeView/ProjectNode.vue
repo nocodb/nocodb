@@ -64,8 +64,6 @@ const { activeTable } = storeToRefs(useTablesStore())
 
 const { isUIAllowed } = useRoles()
 
-useTabs()
-
 const { meta: metaKey, control } = useMagicKeys()
 
 const { refreshCommandPalette } = useCommandPalette()

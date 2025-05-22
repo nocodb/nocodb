@@ -7,6 +7,11 @@ export interface NcContext {
   workspace_id: string;
   base_id: string;
   api_version?: NcApiVersion;
+  user?: UserType & {
+    base_roles?: Record<string, boolean>;
+    workspace_roles?: Record<string, boolean>;
+    provider?: string;
+  };
 }
 
 export interface NcRequest extends Partial<Request> {

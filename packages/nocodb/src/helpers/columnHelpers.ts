@@ -525,3 +525,25 @@ export const getRefColumnIfAlias = async (
     ).find((c) => c.system && c.uidt === column.uidt) || column
   );
 };
+
+export const travelLookupColumn = async ({
+  context,
+  column,
+}: {
+  context: NcContext;
+  column: Column;
+}) => {
+  const lookupColOptions = await column.getColOptions<LookupColumn>(context);
+  const targetColumn = await Column.get(context, {
+    colId: lookupColOptions.fk_lookup_column_id,
+  });
+
+  if (targetColumn.uidt === UITypes.Lookup) {
+    return travelLookupColumn({
+      context,
+      column: targetColumn,
+    });
+  } else {
+    return targetColumn;
+  }
+};

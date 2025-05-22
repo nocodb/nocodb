@@ -4,7 +4,6 @@ import { ProjectRoles } from 'nocodb-sdk'
 export const useShare = defineStore('share', () => {
   const visibility = ref<'public' | 'private' | 'none' | 'hidden'>('none')
   const { base } = toRefs(useBase())
-  const { openedPage, isEditAllowed } = toRefs(useDocStore())
   const viewsStore = useViewsStore()
 
   const isProjectPublic = computed(() => {
@@ -45,15 +44,9 @@ export const useShare = defineStore('share', () => {
   )
 
   watch(
-    [openedPage, isEditAllowed, isProjectPublic],
+    [isProjectPublic],
     () => {
-      // TODO: Below logic is for docs
-      // if (!isEditAllowed.value) {
-      //   visibility.value = 'hidden'
-      //   return
-      // }
-
-      visibility.value = openedPage.value?.is_published || isProjectPublic.value ? 'public' : 'private'
+      visibility.value = isProjectPublic.value ? 'public' : 'private'
     },
     { immediate: true, deep: true },
   )

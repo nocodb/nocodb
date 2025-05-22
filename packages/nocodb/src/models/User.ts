@@ -2,7 +2,6 @@ import {
   extractRolesObj,
   IconType,
   ncIsObject,
-  ProjectRoles,
   type UserType,
 } from 'nocodb-sdk';
 import type { MetaType } from 'nocodb-sdk';

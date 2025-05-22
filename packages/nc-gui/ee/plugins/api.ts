@@ -1,4 +1,4 @@
-import type { Api } from 'nocodb-sdk';
+import type { Api } from 'nocodb-sdk'
 import { apiPlugin } from '../../plugins/api'
 import { defineNuxtPlugin } from '#app'
 

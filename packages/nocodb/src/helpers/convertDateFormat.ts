@@ -22,7 +22,7 @@ export function convertDateFormat(date_format: string, type: string) {
   } else if (date_format === 'DD MMM YY') {
     if (type === 'mysql2' || type === 'sqlite3') return '%d %b %y';
   }
-   
+
   // pg / mssql
   return date_format;
 }

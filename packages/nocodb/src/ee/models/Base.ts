@@ -1,5 +1,5 @@
 import BaseCE from 'src/models/Base';
-import { ProjectRoles, ProjectTypes, WorkspaceUserRoles } from 'nocodb-sdk';
+import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { BaseType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
@@ -11,7 +11,6 @@ import {
   MetaTable,
   RootScopes,
 } from '~/utils/globals';
-import DashboardProjectDBProject from '~/models/DashboardProjectDBProject';
 import Noco from '~/Noco';
 
 import {
@@ -31,7 +30,7 @@ import { NcError } from '~/helpers/catchError';
 const logger = new Logger('Base');
 
 export default class Base extends BaseCE {
-  public type?: 'database' | 'documentation' | 'dashboard';
+  public type?: 'database';
 
   public static castType(base: Base): Base {
     return base && new Base(base);
@@ -269,9 +268,8 @@ export default class Base extends BaseCE {
       ncMeta,
     );
 
-    if (base && base.type === ProjectTypes.DASHBOARD) {
+    if (base) {
       base = this.castType(base);
-      await base.getLinkedDbProjects(ncMeta);
     }
 
     return base as BaseCE;
@@ -611,15 +609,4 @@ export default class Base extends BaseCE {
 
     return count;
   }
-
-  getLinkedDbProjects? = async (ncMeta = Noco.ncMeta) => {
-    const dbProjects = DashboardProjectDBProject.getDbProjectsList(
-      {
-        dashboard_project_id: this.id,
-      },
-      ncMeta,
-    );
-
-    return dbProjects;
-  };
 }

@@ -3,8 +3,6 @@ import { useTitle } from '@vueuse/core'
 
 const route = useRoute()
 
-useShare()
-
 const { te, t } = useI18n()
 
 // todo: fix this

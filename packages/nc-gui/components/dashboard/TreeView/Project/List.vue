@@ -35,8 +35,6 @@ const { loadTables } = baseStore
 
 const { isSharedBase, base } = storeToRefs(baseStore)
 
-const { updateTab } = useTabs()
-
 const tablesStore = useTablesStore()
 
 const { loadProjectTables } = tablesStore
@@ -206,9 +204,6 @@ async function handleTableRename(
     // update metas
     const newMeta = await $api.dbTable.read(table.id as string)
     await setMeta(newMeta)
-
-    updateTab({ id: table.id }, { title: newMeta.title })
-
     refreshCommandPalette()
 
     $e('a:table:rename')

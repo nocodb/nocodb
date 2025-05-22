@@ -214,39 +214,16 @@ export const useBases = defineStore('basesStore', () => {
   function isProjectEmpty(baseId: string) {
     if (!isProjectPopulated(baseId)) return true
 
-    const dashboardStore = useDashboardStore()
-    const docsStore = useDocStore()
-
     const base = bases.value.get(baseId)
     if (!base) return false
 
-    switch (base.type) {
-      case NcProjectType.DB:
-        return tableStore.baseTables.get(baseId)!.length === 0
-      case NcProjectType.DOCS:
-        return docsStore.nestedPagesOfProjects[baseId]!.length === 0
-      case NcProjectType.DASHBOARD:
-        return dashboardStore.layoutsOfProjects[baseId]!.length === 0
-    }
-
-    return false
+    return tableStore.baseTables.get(baseId)!.length === 0
   }
 
   function isProjectPopulated(baseId: string) {
-    const dashboardStore = useDashboardStore()
-    const docsStore = useDocStore()
-
     const base = bases.value.get(baseId)
     if (!base) return false
-
-    switch (base.type) {
-      case NcProjectType.DB:
-        return !!(base.sources?.length && tableStore.baseTables.get(baseId))
-      case NcProjectType.DOCS:
-        return !!docsStore.nestedPagesOfProjects[baseId]
-      case NcProjectType.DASHBOARD:
-        return !!dashboardStore.layoutsOfProjects[baseId]
-    }
+    return !!(base.sources?.length && tableStore.baseTables.get(baseId))
   }
 
   // actions
@@ -303,20 +280,12 @@ export const useBases = defineStore('basesStore', () => {
     await loadProject(baseId, true)
   }
 
-  const createProject = async (basePayload: {
-    title: string
-    workspaceId: string
-    type: string
-    linkedDbProjectIds?: string[]
-    meta?: Record<string, unknown>
-  }) => {
+  const createProject = async (basePayload: { title: string; workspaceId: string; meta?: Record<string, unknown> }) => {
     const result = await api.base.create(
       {
         title: basePayload.title,
-        // @ts-expect-error todo: include in swagger
         fk_workspace_id: basePayload.workspaceId,
-        type: basePayload.type ?? NcProjectType.DB,
-        linked_db_project_ids: basePayload.linkedDbProjectIds,
+        type: NcProjectType.DB,
         // color,
         meta: JSON.stringify({
           ...(basePayload.meta || {}),
@@ -365,17 +334,13 @@ export const useBases = defineStore('basesStore', () => {
     bases.value.clear()
   }
 
-  const navigateToProject = async ({ baseId, page }: { baseId: string; page?: 'collaborators' }) => {
+  const navigateToProject = async ({ baseId }: { baseId: string }) => {
     if (!baseId) return
 
     const base = bases.value.get(baseId)
     if (!base) return
 
-    if (page) {
-      return await _navigateToProject({ workspaceId: base.fk_workspace_id, baseId, query: { page } })
-    }
-
-    return await _navigateToProject({ workspaceId: base.fk_workspace_id, baseId })
+    return _navigateToProject({ workspaceId: base.fk_workspace_id, baseId })
   }
 
   const toggleStarred = async (baseId: string) => {

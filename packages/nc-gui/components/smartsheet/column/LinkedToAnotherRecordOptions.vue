@@ -43,6 +43,8 @@ const { t } = useI18n()
 
 const { getPlanTitle } = useEeConfig()
 
+const { metas, getMeta } = useMetas()
+
 if (!isEdit.value) {
   setAdditionalValidations({
     childId: [{ required: true, message: t('general.required') }],
@@ -105,8 +107,10 @@ const { baseTables } = storeToRefs(tablesStore)
 
 const refTables = computed(() => {
   if (isEdit.value) {
-    if (!metas.value[referenceTableChildId.value]) getMeta(referenceTableChildId.value)
-    return [metas.value[referenceTableChildId.value]]
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    const refTableId = referenceTableChildId.value
+    if (!metas.value[refTableId]) getMeta(refTableId)
+    return [metas.value[refTableId]]
   }
 
   if (!crossBase.value) {
@@ -136,8 +140,6 @@ const refViews = computed(() => {
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
 
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
-
-const { metas, getMeta } = useMetas()
 
 watch(
   () => (vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId),

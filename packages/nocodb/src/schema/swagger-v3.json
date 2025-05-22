@@ -497,7 +497,6 @@
                         "type": "Percent",
                         "default_value": "0.34",
                         "options": {
-                          "precision": 2,
                           "show_as_percent": true
                         }
                       },
@@ -713,7 +712,6 @@
                           "type": "Percent",
                           "default_value": "0.34",
                           "options": {
-                            "precision": 2,
                             "show_as_percent": true
                           }
                         },
@@ -824,7 +822,7 @@
                           "type": "Links",
                           "options": {
                             "relation_type": "mm",
-                            "linked_table_id": "mnkgbmqwkls36fg"
+                            "related_table_id": "mnkgbmqwkls36fg"
                           }
                         },
                         {
@@ -1003,7 +1001,6 @@
                           "type": "Percent",
                           "default_value": "0.34",
                           "options": {
-                            "precision": 2,
                             "show_as_percent": true
                           }
                         },
@@ -1114,7 +1111,7 @@
                           "type": "Links",
                           "options": {
                             "relation_type": "mm",
-                            "linked_table_id": "mnkgbmqwkls36fg"
+                            "related_table_id": "mnkgbmqwkls36fg"
                           }
                         },
                         {
@@ -3998,6 +3995,9 @@
               "enum": [
                 "Barcode"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Barcode"
             }
           }
         },
@@ -4008,6 +4008,9 @@
               "enum": [
                 "QRCode"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_QRCode"
             }
           }
         },
@@ -4018,6 +4021,9 @@
               "enum": [
                 "CreatedTime"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_DateTime"
             }
           }
         },
@@ -4028,6 +4034,9 @@
               "enum": [
                 "LastModifiedTime"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_DateTime"
             }
           }
         },
@@ -5258,12 +5267,6 @@
       "FieldOptions_Percent": {
         "type": "object",
         "properties": {
-          "precision": {
-            "type": "integer",
-            "description": "Number of decimal places allowed.",
-            "minimum": 0,
-            "maximum": 5
-          },
           "show_as_progress": {
             "type": "boolean",
             "description": "Display as a progress bar."
@@ -5273,7 +5276,7 @@
       "FieldOptions_Duration": {
         "type": "object",
         "properties": {
-          "format": {
+          "duration_format": {
             "type": "string",
             "description": "Duration format. Supported options are listed below\n- `h:mm`\n- `h:mm:ss`\n- `h:mm:ss.S`\n- `h:mm:ss.SS`\n- `h:mm:ss.SSS`"
           }
@@ -5293,6 +5296,18 @@
           "12hr_format": {
             "type": "boolean",
             "description": "Use 12-hour time format."
+          },
+          "display_timezone": {
+            "type": "boolean",
+            "description": "Display timezone."
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Timezone. Refer to https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
+          },
+          "use_same_timezone_for_all": {
+            "type": "boolean",
+            "description": "Use same timezone for all records."
           }
         }
       },
@@ -5308,10 +5323,6 @@
       "FieldOptions_Time": {
         "type": "object",
         "properties": {
-          "time_format": {
-            "type": "string",
-            "description": "Time format. Supported options are listed below\n- `HH:mm`\n- `HH:mm:ss`\n- `HH:mm:ss.SSS`"
-          },
           "12hr_format": {
             "type": "boolean",
             "description": "Use 12-hour time format."
@@ -5401,7 +5412,16 @@
             "type": "string",
             "description": "Barcode format (e.g., CODE128)."
           },
-          "value_field_id": {
+          "barcode_value_field_id": {
+            "type": "string",
+            "description": "Field ID that contains the value."
+          }
+        }
+      },
+      "FieldOptions_QRCode": {
+        "type": "object",
+        "properties": {
+          "qrcode_value_field_id": {
             "type": "string",
             "description": "Field ID that contains the value."
           }
@@ -5428,28 +5448,28 @@
       "FieldOptions_Lookup": {
         "type": "object",
         "properties": {
-          "link_field_id": {
+          "related_field_id": {
             "type": "string",
             "description": "Linked field ID. Can be of type Links or LinkToAnotherRecord"
           },
-          "linked_table_lookup_field_id": {
+          "related_table_lookup_field_id": {
             "type": "string",
             "description": "Lookup field ID in the linked table."
           }
         },
         "required": [
-          "link_field_id",
-          "linked_table_lookup_field_id"
+          "related_field_id",
+          "related_table_lookup_field_id"
         ]
       },
       "FieldOptions_Rollup": {
         "type": "object",
         "properties": {
-          "link_field_id": {
+          "related_field_id": {
             "type": "string",
             "description": "Linked field ID."
           },
-          "linked_table_rollup_field_id": {
+          "related_table_rollup_field_id": {
             "type": "string",
             "description": "Rollup field ID in the linked table."
           },
@@ -5469,12 +5489,93 @@
           }
         },
         "required": [
-          "link_field_id",
-          "linked_table_rollup_field_id",
+          "related_field_id",
+          "related_table_rollup_field_id",
           "rollup_function"
         ]
       },
-      "FieldOptions_Button": {},
+      "FieldOptions_Button": {
+        "type": "object",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["formula"],
+                "description": "Button type: formula"
+              },
+              "formula": {
+                "type": "string",
+                "description": "Formula to execute"
+              }
+            },
+            "required": ["type", "formula"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["webhook"],
+                "description": "Button type: webhook"
+              },
+              "button_hook_id": {
+                "type": "string",
+                "description": "ID of the webhook to trigger"
+              }
+            },
+            "required": ["type", "button_hook_id"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["ai"],
+                "description": "Button type: AI"
+              },
+              "prompt": {
+                "type": "string",
+                "description": "AI prompt to execute"
+              },
+              "integration_id": {
+                "type": "string",
+                "description": "Integration ID for AI service"
+              },
+              "theme": {
+                "type": "string",
+                "description": "Theme of the button"
+              },
+              "output_column_ids": {
+                "type": "string",
+                "description": "IDs of columns where AI output should be stored"
+              },
+              "label": {
+                "type": "string",
+                "description": "Label of the button"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon of the button"
+              },
+              "color": {
+                "type": "string",
+                "description": "Color of the button"
+              }
+            },
+            "required": ["type", "prompt", "integration_id"]
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "formula": "#/components/schemas/FieldOptions_Button/oneOf/0",
+            "webhook": "#/components/schemas/FieldOptions_Button/oneOf/1",
+            "ai": "#/components/schemas/FieldOptions_Button/oneOf/2"
+          }
+        }
+      },
       "FieldOptions_Links": {
         "type": "object",
         "properties": {
@@ -5482,14 +5583,14 @@
             "type": "string",
             "description": "Type of relationship.\n\nSupported options are listed below\n- `mm` many-to-many\n- `hm` has-many\n- `oo` one-to-one"
           },
-          "linked_table_id": {
+          "related_table_id": {
             "type": "string",
             "description": "Identifier of the linked table."
           }
         },
         "required": [
           "relation_type",
-          "linked_table_id"
+          "related_table_id"
         ]
       },
       "FieldOptions_LinkToAnotherRecord": {
@@ -5499,14 +5600,14 @@
             "type": "string",
             "description": "Type of relationship.\n\nSupported options are listed below\n- `mm` many-to-many\n- `hm` has-many\n- `oo` one-to-one"
           },
-          "linked_table_id": {
+          "related_table_id": {
             "type": "string",
             "description": "Identifier of the linked table."
           }
         },
         "required": [
           "relation_type",
-          "linked_table_id"
+          "related_table_id"
         ]
       },
       "Field": {

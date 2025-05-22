@@ -274,6 +274,7 @@ export default defineNuxtConfig({
         'diff',
         'embla-carousel-vue',
         'emoji-mart-vue-fast/src',
+        'esbuild-wasm',
         'fflate',
         'file-saver',
         'fuse.js',

@@ -3,6 +3,8 @@ packages/nocodb/src/ee-on-prem
 packages/nocodb/src/ee-cloud
 packages/nocodb-sdk/src/ee
 packages/nc-gui/ee
+packages/noco-integrations/packages/*
+packages/noco-integrations/templates/*
 scripts/sync
 scripts/ee
 */node_modules

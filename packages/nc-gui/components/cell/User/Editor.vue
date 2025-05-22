@@ -410,13 +410,17 @@ onMounted(() => {
             v-if="op.email === CURRENT_USER_TOKEN"
             class="absolute -bottom-1 w-[calc(100%_+_16px)] border-b-1 border-nc-border-gray-medium -ml-4"
           ></div>
-          <div v-if="location === 'filter'" class="w-full flex gap-3 items-center">
+          <div v-if="location === 'filter'" class="w-full flex gap-2 items-center">
             <GeneralUserIcon :user="op" size="base" class="flex-none" :show-placeholder-icon="op.email === CURRENT_USER_TOKEN" />
 
             <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
               <div class="w-full flex gap-3">
                 <NcTooltip
-                  class="text-body-default-sm-bold !leading-5 text-gray-800 capitalize truncate"
+                  class="text-bodyDefaultSmBold !leading-5 capitalize truncate"
+                  :class="{
+                    'text-nc-content-brand': op.email === CURRENT_USER_TOKEN,
+                    'text-gray-800': op.email !== CURRENT_USER_TOKEN,
+                  }"
                   show-on-truncate-only
                   placement="bottom"
                 >

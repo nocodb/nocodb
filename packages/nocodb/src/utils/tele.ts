@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import os from 'os';
 import Emittery from 'emittery';
 import { machineIdSync } from 'node-machine-id';
@@ -296,16 +297,14 @@ async function waitForMachineId(teleData) {
 }
 
 // this is to keep the server alive
-if (process.env.NC_PUBLIC_URL) {
-  setInterval(() => {
-    axios({
-      method: 'get',
-      url: process.env.NC_PUBLIC_URL,
-    })
-      .then(() => {})
-      .catch(() => {});
-  }, 2 * 60 * 60 * 1000).unref();
-}
+setInterval(() => {
+  axios({
+    method: 'get',
+    url: serverConfig.publicUrl,
+  })
+    .then(() => {})
+    .catch(() => {});
+}, 2 * 60 * 60 * 1000).unref();
 
 if (process.env.NC_ONE_CLICK) {
   try {

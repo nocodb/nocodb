@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import {
   Body,
   Controller,
@@ -260,7 +261,7 @@ export class AuthController {
         ejs.render(
           (await import('~/modules/auth/ui/auth/resetPassword')).default,
           {
-            ncPublicUrl: process.env.NC_PUBLIC_URL || '',
+            ncPublicUrl: serverConfig.publicUrl,
             token: tokenId,
             baseUrl: `/`,
           },

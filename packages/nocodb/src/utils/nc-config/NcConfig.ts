@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import * as path from 'path';
 import fs from 'fs';
 import { promisify } from 'util';
@@ -148,7 +149,7 @@ export class NcConfig {
       tryMode: !!process.env.NC_TRY,
       worker: !!process.env.NC_WORKER,
       dashboardPath: serverConfig.dashboardUrl,
-      publicUrl: process.env.NC_PUBLIC_URL,
+      publicUrl: serverConfig.publicUrl,
     });
   }
 

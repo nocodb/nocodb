@@ -17,7 +17,13 @@ const { isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
 
-const { nestedFilters, eventBus, filtersFromUrlParams, whereQueryFromUrl } = useSmartsheetStoreOrThrow()
+const {
+  allFilters: smatsheetAllFilters,
+  nestedFilters,
+  eventBus,
+  filtersFromUrlParams,
+  whereQueryFromUrl,
+} = useSmartsheetStoreOrThrow()
 
 const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds, combinedFilters } = useColumnFilteredOrSorted()
 
@@ -105,9 +111,20 @@ reloadViewDataEventHook.on(async (params) => {
   isCurrentUserFilterPresent.value = checkForCurrentUserFilter(Object.values(allFilters.value).flat(Infinity) as FilterType[])
 })
 
-onMounted(() => {
-  isCurrentUserFilterPresent.value = checkForCurrentUserFilter(combinedFilters.value)
-})
+watch(
+  [smatsheetAllFilters, nestedFilters, allFilters, filtersFromUrlParams],
+  () => {
+    isCurrentUserFilterPresent.value = checkForCurrentUserFilter(
+      !ncIsEmptyObject(allFilters.value)
+        ? (Object.values(allFilters.value).flat(Infinity) as FilterType[])
+        : [...smatsheetAllFilters.value, ...nestedFilters.value],
+    )
+  },
+  {
+    deep: true,
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -141,15 +158,20 @@ onMounted(() => {
             }}</span>
           </div>
 
-          <span
-            v-if="combinedFilterLength"
-            class="nc-toolbar-btn-chip"
-            :class="{
-              [filteredOrSortedAppearanceConfig.FILTERED.toolbarChipBgClass]: true,
-              [filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass]: true,
-            }"
-            >{{ combinedFilterLength }} {{ isCurrentUserFilterPresent ? '@' : '' }}</span
-          >
+          <NcTooltip v-if="combinedFilterLength" :disabled="!isCurrentUserFilterPresent" class="flex">
+            <template #title>
+              {{ $t('tooltip.filteredByCurrentUser') }}
+            </template>
+            <span
+              class="nc-toolbar-btn-chip"
+              :class="{
+                [filteredOrSortedAppearanceConfig.FILTERED.toolbarChipBgClass]: true,
+                [filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass]: true,
+              }"
+            >
+              {{ combinedFilterLength }} {{ isCurrentUserFilterPresent ? '@' : '' }}
+            </span>
+          </NcTooltip>
 
           <!--    show a warning icon with tooltip if query filter error is there -->
           <template v-if="filtersFromUrlParams?.errors?.length">

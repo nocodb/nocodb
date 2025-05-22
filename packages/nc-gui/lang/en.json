@@ -1670,7 +1670,8 @@
     "copyErrorCode": "Copy error code",
     "paidUserBadgeTooltip": "User has an editor or higher role in at least one base.",
     "approachingLimit": "Approaching limit",
-    "exceedingLimit": "Exceeding limit"
+    "exceedingLimit": "Exceeding limit",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Search icons",

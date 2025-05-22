@@ -381,7 +381,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
           childrenExcludedList.value = await $api.dbTableRow.list(
             NOCO,
-            baseId,
+            relatedTableMeta?.value?.base_id ?? baseId,
             relatedTableMeta?.value?.id as string,
             {
               limit: childrenExcludedListPagination.size,
@@ -412,7 +412,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
           childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
             NOCO,
-            baseId,
+            meta.value.base_id ?? baseId,
             meta.value.id,
             encodeURIComponent(rowId.value),
             colOptions.value.type as RelationTypes,

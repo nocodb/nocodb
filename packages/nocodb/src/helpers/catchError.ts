@@ -389,6 +389,18 @@ export function extractDBError(error): {
             table: extractTableNameMatch[1],
           };
         }
+
+        const extractColumnNameMatch = error.message.match(
+          / column "(\w+)" does not exist/i,
+        );
+
+        if (extractColumnNameMatch && extractColumnNameMatch[1]) {
+          message = `The column '${extractColumnNameMatch[1]}' does not exist.`;
+          _type = DBError.COLUMN_NOT_EXIST;
+          _extra = {
+            table: extractColumnNameMatch[1],
+          };
+        }
       }
       break;
     case '42703':

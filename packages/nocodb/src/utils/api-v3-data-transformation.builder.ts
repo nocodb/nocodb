@@ -571,7 +571,7 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       locale_string: 'isLocaleString',
       rich_text: 'richMode',
 
-      display_timezone: 'is_display_timezone',
+      display_timezone: 'display_timezone',
 
       // LingText
       generate_text_using_ai: LongTextAiMetaProp,

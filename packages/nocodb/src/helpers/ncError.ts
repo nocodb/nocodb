@@ -229,7 +229,9 @@ export class NcError extends NcErrorBase {
   }
 
   static invalidValueForField(
-    payload: string | { value: string; column: string; type: UITypes },
+    payload:
+      | string
+      | { value: string; column: string; type: UITypes; reason?: string },
     args?: NcErrorArgs,
   ): never {
     return NcError._.invalidValueForField(payload, args);

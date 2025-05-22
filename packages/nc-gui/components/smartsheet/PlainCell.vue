@@ -7,6 +7,7 @@ interface Props {
   bold?: BoolType
   italic?: BoolType
   underline?: BoolType
+  showTooltip?: boolean
 }
 
 const props = defineProps<Props>()
@@ -53,7 +54,25 @@ const parsedValue = computed(() => {
 </script>
 
 <template>
+  <NcTooltip v-if="showTooltip" class="truncate" show-on-truncate-only>
+    <template #title>
+      {{ parsedValue }}
+    </template>
+
+    <span
+      class="plain-cell before:px-1"
+      :class="{
+        '!font-bold': bold,
+        '!italic': italic,
+        'underline': underline,
+      }"
+      data-testid="nc-plain-cell"
+    >
+      {{ parsedValue }}
+    </span>
+  </NcTooltip>
   <span
+    v-else
     class="plain-cell before:px-1"
     :class="{
       '!font-bold': bold,

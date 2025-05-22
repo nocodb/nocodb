@@ -2,11 +2,9 @@
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import { computed } from '@vue/reactivity'
-import { NcProjectType } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
-  type?: NcProjectType
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -18,8 +16,6 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 const { createProject: _createProject } = basesStore
-
-const baseType = computed(() => props.type ?? NcProjectType.DB)
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -54,7 +50,6 @@ const createProject = async () => {
   creating.value = true
   try {
     const base = await _createProject({
-      type: baseType.value,
       title: formState.value.title,
       workspaceId: activeWorkspace.value!.id!,
       meta: formState.value.meta,
@@ -63,7 +58,6 @@ const createProject = async () => {
     navigateToProject({
       baseId: base.id!,
       workspaceId: activeWorkspace.value!.id!,
-      type: baseType.value,
     })
 
     refreshCommandPalette()
@@ -114,17 +108,6 @@ watch(aiMode, () => {
 
   onInit()
 })
-
-const typeLabel = computed(() => {
-  switch (baseType.value) {
-    case NcProjectType.DOCS:
-      return 'Book'
-    case NcProjectType.DB:
-      return t('objects.project')
-    default:
-      return ''
-  }
-})
 </script>
 
 <template>
@@ -141,8 +124,8 @@ const typeLabel = computed(() => {
     <template v-if="aiMode === false" #header>
       <!-- Create A New Table -->
       <div class="flex flex-row items-center text-base text-gray-800">
-        <GeneralProjectIcon :color="formState.meta.iconColor" :type="baseType" class="mr-2.5" />
-        {{ $t('general.create') }} {{ typeLabel }}
+        <GeneralProjectIcon :color="formState.meta.iconColor" class="mr-2.5" />
+        {{ $t('general.create') }} {{ $t('objects.project') }}
       </div>
     </template>
     <template v-if="aiMode === null">
@@ -182,13 +165,13 @@ const typeLabel = computed(() => {
             type="primary"
             size="small"
             :disabled="creating"
-            :label="`Create ${typeLabel}`"
-            :loading-label="`Creating ${typeLabel}`"
+            :label="`Create ${t('objects.project')}`"
+            :loading-label="`Creating ${t('objects.project')}`"
             @click="createProject"
           >
-            {{ $t('general.createEntity', { entity: typeLabel }) }}
+            {{ $t('general.createEntity', { entity: t('objects.project') }) }}
             <template #loading>
-              {{ $t('general.creatingEntity', { entity: typeLabel }) }}
+              {{ $t('general.creatingEntity', { entity: t('objects.project') }) }}
             </template>
           </NcButton>
         </div>
@@ -198,7 +181,6 @@ const typeLabel = computed(() => {
       <WorkspaceProjectAiCreateProject
         v-model:ai-mode="aiMode"
         v-model:dialog-show="dialogShow"
-        :base-type="baseType"
         :workspace-id="activeWorkspace.id"
       />
     </template>

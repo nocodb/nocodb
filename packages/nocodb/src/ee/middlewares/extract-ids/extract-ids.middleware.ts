@@ -37,13 +37,11 @@ import {
   GridViewColumn,
   Hook,
   Integration,
-  // Layout,
   Model,
   Sort,
   Source,
   SyncSource,
   View,
-  // Widget,
   Workspace,
 } from '~/models';
 import rolePermissions, {
@@ -168,8 +166,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncWorkspaceId = mcpToken.fk_workspace_id;
     } else if (params.baseId && !isInternalWorkspaceScope) {
       req.ncBaseId = params.baseId;
-    } else if (params.dashboardId) {
-      req.ncBaseId = params.dashboardId;
     } else if (params.integrationId) {
       const integration = await Integration.get(context, params.integrationId);
       if (!integration) {
@@ -382,13 +378,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = sort.base_id;
       req.ncSourceId = sort.source_id;
-    } else if (params.layoutId) {
-      // const layout = await Layout.get(context, params.layoutId);
-      // req.ncBaseId = layout?.base_id;
-    } else if (params.widgetId) {
-      // const widget = await Widget.get(params.widgetId);
-      // const layout = await Layout.get(widget.layout_id);
-      // req.ncBaseId = layout?.base_id;
     } else if (params.syncId) {
       const syncSource = await SyncSource.get(context, req.params.syncId);
 

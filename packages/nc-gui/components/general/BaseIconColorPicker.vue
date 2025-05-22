@@ -1,17 +1,14 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
-import { NcProjectType } from '#imports'
 
 const props = withDefaults(
   defineProps<{
-    type?: typeof NcProjectType | string
     modelValue?: string
     size?: 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge'
     readonly?: boolean
     iconClass?: string
   }>(),
   {
-    type: NcProjectType.DB,
     size: 'small',
     iconClass: '',
   },
@@ -74,7 +71,7 @@ watch(
           <template #title> {{ $t('tooltip.changeIconColour') }} </template>
 
           <div>
-            <GeneralProjectIcon :color="colorRef" :type="type" :class="iconClass" />
+            <GeneralProjectIcon :color="colorRef" :class="iconClass" />
           </div>
         </NcTooltip>
       </div>

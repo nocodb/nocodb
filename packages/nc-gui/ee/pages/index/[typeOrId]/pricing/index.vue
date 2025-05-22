@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { PlanTitles } from 'nocodb-sdk'
 
-const { hideSidebar, showTopbar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+const { hideMiniSidebar, hideSidebar, showTopbar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const { appInfo } = useGlobal()
 
@@ -27,6 +27,7 @@ const frameLoaded = ref(false)
 onMounted(() => {
   if (isNewSidebarEnabled.value) {
     hideSidebar.value = true
+    hideMiniSidebar.value = true
   }
 
   showTopbar.value = true
@@ -36,6 +37,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   hideSidebar.value = false
+  hideMiniSidebar.value = false
   showTopbar.value = false
 })
 

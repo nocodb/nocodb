@@ -28,8 +28,6 @@ const inputEl = ref<HTMLInputElement>()
 
 const aiPromptInputRef = ref<HTMLElement>()
 
-const { addTab } = useTabs()
-
 const workspaceStore = useWorkspace()
 
 const { isMysql, isMssql, isPg, isSnowflake } = useBase()
@@ -42,14 +40,6 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const onTableCreate = async (table: TableType) => {
   // await loadProject(props.baseId)
-
-  await addTab({
-    id: table.id as string,
-    title: table.title,
-    type: TabType.TABLE,
-    baseId: props.baseId,
-    // sourceId: props.sourceId,
-  })
 
   addTable(props.baseId, table)
   await loadProjectTables(props.baseId, true)

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ScriptType, SourceType } from 'nocodb-sdk'
 import Automation from '../Automation.vue'
-import { DashboardTreeViewProjectHomeSearchInput } from '#components'
 
 const router = useRouter()
 const route = router.currentRoute
@@ -38,8 +37,6 @@ const { loadProject } = basesStore
 const { activeProjectId } = storeToRefs(basesStore)
 
 const { activeTable } = storeToRefs(useTablesStore())
-
-useTabs()
 
 const { meta: metaKey, control } = useMagicKeys()
 
@@ -422,13 +419,7 @@ const showCreateNewAsDropdown = computed(() => {
           />
         </div>
         <div key="g1" class="overflow-x-hidden transition-max-height" :class="{ 'max-h-0': !isExpanded }">
-          <div v-if="base.type === 'documentation'">
-            <LazyDocsSideBar v-if="isExpanded" :base="base" />
-          </div>
-          <div v-else-if="base.type === 'dashboard'">
-            <LayoutsSideBar v-if="isExpanded" :base="base" />
-          </div>
-          <template v-else-if="base?.sources">
+          <template v-if="base?.sources">
             <div class="flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
               <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
                 <div class="transition-height duration-200">

@@ -74,8 +74,8 @@ const colOptionsHandlers = {
         .select(
           knex.raw(`
           to_json(jsonb_build_object(
-            'relation_field_id', fk_relation_column_id,
-            'lookup_field_id', fk_lookup_column_id
+            'related_field_id', fk_relation_column_id,
+            'related_table_lookup_field_id', fk_lookup_column_id
           ))
         `),
         )
@@ -90,8 +90,8 @@ const colOptionsHandlers = {
         .select(
           knex.raw(`
           to_json(jsonb_build_object(
-            'relation_field_id', fk_relation_column_id,
-            'rollup_field_id', fk_rollup_column_id,
+            'related_field_id', fk_relation_column_id,
+            'related_table_rollup_field_id', fk_rollup_column_id,
             'rollup_function', rollup_function
           ))
         `),
@@ -159,7 +159,7 @@ const colOptionsHandlers = {
               'color', color,
               'icon', icon,
               'formula', formula_raw,
-              'webhook_id', fk_webhook_id,
+              'button_hook_id', fk_webhook_id,
               'script_id', fk_script_id,
               'integration_id', fk_integration_id,
               'model', model,

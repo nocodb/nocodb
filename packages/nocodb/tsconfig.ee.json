@@ -28,10 +28,6 @@
     "./src/ee-on-prem",
     "./src/ee-cloud",
     "./src/**/*.spec.ts",
-    "./src/ee/controllers/dashboards/**",
-    "./src/ee/controllers/docs/**",
-    "./src/ee/services/dashboards/**",
-    "./src/ee/services/docs/**",
     "./src/ee/daos/**"
   ]
 }

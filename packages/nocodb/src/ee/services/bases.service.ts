@@ -9,14 +9,7 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import syncMigration from '~/helpers/syncMigration';
-import {
-  Base,
-  BaseUser,
-  DashboardProjectDBProject,
-  Integration,
-  Workspace,
-  WorkspaceUser,
-} from '~/models';
+import { Base, BaseUser, Integration, Workspace } from '~/models';
 import Noco from '~/Noco';
 import { getToolDir } from '~/utils/nc-config';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -31,47 +24,6 @@ import { ColumnsService } from '~/services/columns.service';
 import { isEE } from '~/utils';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
-
-const validateUserHasReadPermissionsForLinkedDbProjects = async (
-  context: NcContext,
-  dbProjectIds: string[],
-  user: {
-    id: string;
-    roles: string[];
-  },
-) => {
-  await Promise.all(
-    dbProjectIds?.map(async (dbProjectId: string) => {
-      const dbProject = await Base.get(context, dbProjectId);
-      if (!dbProject) {
-        NcError.baseNotFound(dbProjectId);
-      }
-
-      // Find the workspace-user association for the current user and the workspace of the linked db base
-      const workspaceUser = await WorkspaceUser.get(
-        (dbProject as Base).fk_workspace_id,
-        user.id,
-      );
-
-      if (!workspaceUser) {
-        NcError.forbidden(
-          'User does not have read permissions for workspace of the linked db base',
-        );
-      }
-
-      // TODO: double check with team whether checking the BaseUser table is meaningful or sufficient
-      // Background: checked if I still can access DB bases via NocoDB UI after I removed all entries from BaseUser table
-      // and restarted server. I could still access the DB bases via NocoDB UI.
-      // After removing the workspace-user association though, I coudln't access it anymore.
-      const dbProjectUser = await BaseUser.get(context, dbProjectId, user.id);
-      if (!dbProjectUser) {
-        NcError.forbidden(
-          'User does not have read permissions for linked db base',
-        );
-      }
-    }),
-  );
-};
 
 @Injectable()
 export class BasesService extends BasesServiceCE {
@@ -241,18 +193,6 @@ export class BasesService extends BasesServiceCE {
       NcError.badRequest('Base title exceeds 50 characters');
     }
 
-    // TODO: check that the current user has at leas reading permissions for all linked_db_projects
-    if (
-      param.base.type === 'dashboard' &&
-      baseBody.linked_db_project_ids?.length > 0
-    ) {
-      await validateUserHasReadPermissionsForLinkedDbProjects(
-        { workspace_id: baseBody.fk_workspace_id, base_id: baseBody.id },
-        baseBody.linked_db_project_ids,
-        param.user,
-      );
-    }
-
     baseBody.title = DOMPurify.sanitize(baseBody.title);
     baseBody.slug = baseBody.title;
 
@@ -262,19 +202,6 @@ export class BasesService extends BasesServiceCE {
       workspace_id: base.fk_workspace_id,
       base_id: base.id,
     };
-
-    // TODO: consider to also include check if the base is of type Dashboard
-    // (because probably also in the future no other base types will be tied to db bases)
-    if (baseBody.linked_db_project_ids?.length > 0) {
-      await Promise.all(
-        baseBody.linked_db_project_ids?.map(async (dbProjectId: string) => {
-          await DashboardProjectDBProject.insert({
-            dashboard_project_id: base.id,
-            db_project_id: dbProjectId,
-          });
-        }),
-      );
-    }
 
     // TODO: create n:m instances here
     await BaseUser.insert(context, {

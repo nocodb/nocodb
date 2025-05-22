@@ -28,8 +28,6 @@ const { isSharedBase, base } = storeToRefs(baseStore)
 
 const { workspaceRoles } = useRoles()
 
-const { updateTab } = useTabs()
-
 const tablesStore = useTablesStore()
 
 const { loadProjectTables } = tablesStore
@@ -46,9 +44,7 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
 
-const baseType = ref(NcProjectType.DB)
 const baseCreateDlg = ref(false)
-const dashboardProjectCreateDlg = ref(false)
 
 const searchQuery = ref('')
 
@@ -108,9 +104,9 @@ watch(
   },
 )
 
-const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }>({})
+const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main'; value?: any }>({})
 
-const setMenuContext = (type: 'base' | 'base' | 'table' | 'main' | 'layout', value?: any) => {
+const setMenuContext = (type: 'base' | 'base' | 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
 }
@@ -221,8 +217,6 @@ async function handleTableRename(
     // update metas
     const newMeta = await $api.dbTable.read(table.id as string)
     await setMeta(newMeta)
-
-    updateTab({ id: table.id }, { title: newMeta.title })
 
     refreshCommandPalette()
 
@@ -343,17 +337,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       // ALT + D
       case 68: {
         e.stopPropagation()
-        baseType.value = NcProjectType.DB
         baseCreateDlg.value = true
         break
       }
-      // // ALT + B
-      // case 66: {
-      //   e.stopPropagation()
-      //   baseType.value = NcProjectType.DOCS
-      //   baseCreateDlg.value = true
-      //   break
-      // }
     }
   }
 })
@@ -414,6 +400,8 @@ const onMove = async (
 
 const transitionName = ref<'slide-left' | 'slide-right' | undefined>(undefined)
 
+const avoidTransition = ref(false)
+
 watch(
   [showProjectList, activeWorkspaceId],
   ([newShowProjectList, newWsId], [_oldShowProjectList, oldWsId]) => {
@@ -426,13 +414,36 @@ watch(
     if (newWsId !== oldWsId) {
       transitionName.value = undefined // No animation
       isWsSwitching.value = true
+      avoidTransition.value = true
     } else {
-      transitionName.value = newShowProjectList ? 'slide-left' : 'slide-right'
-      isWsSwitching.value = false
+      if (isWsSwitching.value) {
+        if (!showProjectList.value) {
+          showProjectList.value = true
+        }
+
+        isWsSwitching.value = false
+        transitionName.value = undefined
+      } else if (!avoidTransition.value) {
+        transitionName.value = newShowProjectList ? 'slide-left' : 'slide-right'
+      }
     }
   },
   {
     flush: 'pre',
+  },
+)
+
+watch(
+  showProjectList,
+  () => {
+    if (avoidTransition.value) {
+      nextTick(() => {
+        avoidTransition.value = false
+      })
+    }
+  },
+  {
+    flush: 'post',
   },
 )
 
@@ -449,10 +460,11 @@ watch([searchInputRef, showProjectList], () => {
 watch(
   isProjectsLoaded,
   () => {
-    if (isProjectsLoaded.value) {
-      transitionName.value = showProjectList.value ? 'slide-left' : 'slide-right'
+    if (isProjectsLoaded.value && !avoidTransition.value) {
+      transitionName.value = 'slide-right'
     } else {
       transitionName.value = undefined
+      avoidTransition.value = false
     }
   },
   {
@@ -463,9 +475,13 @@ watch(
 let timerId: any
 
 watch(isWsSwitching, (newValue) => {
-  if (!newValue) return
+  if (!newValue) {
+    clearTimeout(timerId)
+    return
+  }
 
   timerId = setTimeout(() => {
+    showProjectList.value = true
     isWsSwitching.value = false
 
     clearTimeout(timerId)
@@ -571,8 +587,7 @@ onBeforeUnmount(() => {
               <div v-else class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No Bases</div>
             </div>
 
-            <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
-            <WorkspaceCreateDashboardProjectDlg v-model="dashboardProjectCreateDlg" />
+            <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
           </div>
           <slot name="footer"> </slot>
         </div>

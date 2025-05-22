@@ -256,14 +256,14 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
       /**
        * Whether to enable AI text generation
        */
-      generate_text_using_ai: boolean
+      ai: boolean
     }
   : FieldTypeT extends UITypes.Number | UITypes.Decimal
   ? {
       /**
        * Whether to show thousands separator
        */
-      thousands_separator: boolean
+      locale_string: boolean
     }
   : FieldTypeT extends UITypes.Currency
   ? {
@@ -518,10 +518,6 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
   : FieldTypeT extends UITypes.Time
   ? {
       /**
-       * Time format string
-       */
-      time_format: string
-      /**
        * Whether to use 12-hour format
        */
       ['12hr_format']: boolean
@@ -621,18 +617,18 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
       /**
        * Field to lookup in related table
        */
-      lookup_field_id: string
+      related_table_lookup_field_id: string
       /**
        * Relation field to use
        */
-      relation_field_id: string
+      related_field_id: string
     }
   : FieldTypeT extends UITypes.Rollup
   ? {
       /**
        * Field to rollup from linked table
        */
-      rollup_field_id: string
+      related_table_rollup_field_id: string
       /**
        * Rollup function to apply
        */
@@ -640,7 +636,7 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
       /**
        * Relation field to use
        */
-      relation_field_id: string
+      related_field_id: string
     }
   : FieldTypeT extends UITypes.Links
   ? {
@@ -717,7 +713,7 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
           formula: string
           model?: never
           script_id?: never
-          webhook_id?: never
+          button_hook_id?: never
           integration_id?: never
         }
       | {
@@ -731,7 +727,7 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
           script_id: string
           formula?: never
           model?: never
-          webhook_id?: never
+          button_hook_id?: never
           integration_id?: never
         }
       | {
@@ -742,7 +738,7 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
           /**
            * ID of the webhook to call
            */
-          webhook_id: string
+          button_hook_id: string
           formula?: never
           model?: never
           script_id?: never
@@ -767,10 +763,16 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
            * The Fields can be referenced in the prompt using the format {field_name}
            * Example: "Generate a description for the product {product_name}"
            */
-          formula: string
+          prompt: string
+          
+          /**
+           * Output column IDs
+           * IDs of columns where AI output should be stored
+           */
+          output_column_ids?: string
 
           script_id?: never
-          webhook_id?: never
+          button_hook_id?: never
         }
     )
   : FieldTypeT extends UITypes.User
@@ -967,7 +969,7 @@ declare interface LongTextField extends BaseField {
     /**
      * Whether AI text generation is enabled for this field.
      */
-    generate_text_using_ai: boolean
+    ai: boolean
   }
 
   updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.LongText>): Promise<void>
@@ -1223,11 +1225,11 @@ declare interface LookupField extends BaseField {
     /**
      * Field to lookup in related table
      */
-    lookup_field_id: string
+    related_table_lookup_field_id: string
     /**
      * Relation field to use
      */
-    relation_field_id: string
+    related_field_id: string
   }
   updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Lookup>): Promise<void>
 }
@@ -1238,7 +1240,7 @@ declare interface RollupField extends BaseField {
     /**
      * Field to rollup from linked table
      */
-    rollup_field_id: string
+    related_table_rollup_field_id: string
     /**
      * Rollup function to apply
      */
@@ -1246,12 +1248,12 @@ declare interface RollupField extends BaseField {
     /**
      * Relation field to use
      */
-    relation_field_id: string
+    related_field_id: string
     
     /**
      * Whether to show thousands separator
      */
-    thousands_separator: boolean
+    locale_string: boolean
     
     /**
      * Number of decimal places to display
@@ -1306,7 +1308,7 @@ declare interface NumberField extends BaseField {
     /**
      * Whether to show thousands separator
      */
-    thousands_separator: boolean
+    locale_string: boolean
   }
 
   updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Number>): Promise<void>
@@ -1318,7 +1320,7 @@ declare interface DecimalField extends BaseField {
     /**
      * Whether to show thousands separator
      */
-    thousands_separator: boolean
+    locale_string: boolean
     
     /**
      * Number of decimal places to display
@@ -1718,7 +1720,7 @@ declare interface ButtonField extends BaseField {
         formula: string
         model?: never
         script_id?: never
-        webhook_id?: never
+        button_hook_id?: never
         integration_id?: never
       }
     | {
@@ -1732,7 +1734,7 @@ declare interface ButtonField extends BaseField {
         script_id: string
         formula?: never
         model?: never
-        webhook_id?: never
+        button_hook_id?: never
         integration_id?: never
       }
     | {
@@ -1743,7 +1745,7 @@ declare interface ButtonField extends BaseField {
         /**
          * ID of the webhook to call
          */
-        webhook_id: string
+        button_hook_id: string
         formula?: never
         model?: never
         script_id?: never
@@ -1771,7 +1773,7 @@ declare interface ButtonField extends BaseField {
         formula: string
 
         script_id?: never
-        webhook_id?: never
+        button_hook_id?: never
       }
   )
 
@@ -2483,7 +2485,7 @@ declare interface ConfigItem {}
         }
         | {
           type: 'webhook'
-          fk_webhook_id: string
+          button_hook_id: string
         }
       )`
 
@@ -2518,7 +2520,7 @@ declare interface ConfigItem {}
       case UITypes.LongText:
         return `{
         rich_text: ${Boolean(field.options?.rich_text)},
-        generate_text_using_ai: ${Boolean(field.options?.generate_text_using_ai)}
+        ai: ${Boolean(field.options?.ai)}
       }`
 
       case UITypes.SingleSelect:
@@ -2568,7 +2570,6 @@ declare interface ConfigItem {}
 
       case UITypes.Time:
         return `{
-        time_format: '${field.options?.time_format || ''}',
         ['12hr_format']: ${Boolean(field.options?.['12hr_format'])}
       }`
 
@@ -2614,15 +2615,15 @@ declare interface ConfigItem {}
 
       case UITypes.Lookup:
         return `{
-        lookup_field_id: '${field.options?.lookup_field_id || ''}',
-        relation_field_id: '${field.options?.relation_field_id || ''}'
+        related_table_lookup_field_id: '${field.options?.related_table_lookup_field_id || ''}',
+        related_field_id: '${field.options?.related_field_id || ''}'
       }`
 
       case UITypes.Rollup:
         return `{
-        rollup_field_id: '${field.options?.rollup_field_id || ''}',
+        related_table_rollup_field_id: '${field.options?.related_table_rollup_field_id || ''}',
         rollup_function: '${field.options?.rollup_function || 'count'}',
-        relation_field_id: '${field.options?.relation_field_id || ''}'
+        related_field_id: '${field.options?.related_field_id || ''}'
       }`
 
       case UITypes.Links:
@@ -2638,7 +2639,7 @@ declare interface ConfigItem {}
       case UITypes.Number:
       case UITypes.Decimal:
         return `{
-        thousands_separator: ${Boolean(field.options?.thousands_separator)}
+        locale_string: ${Boolean(field.options?.locale_string)}
       }`
 
       case UITypes.Currency:
@@ -2680,7 +2681,7 @@ declare interface ConfigItem {}
             formula: '${field.options?.formula || ''}',
             model?: never,
             script_id?: never,
-            webhook_id?: never,
+            button_hook_id?: never,
             integration_id?: never
           }`
 
@@ -2690,14 +2691,14 @@ declare interface ConfigItem {}
             script_id: '${field.options?.script_id || ''}',
             formula?: never,
             model?: never,
-            webhook_id?: never,
+            button_hook_id?: never,
             integration_id?: never
           }`
 
           case 'webhook':
             return `${baseOptions} & {
             type: 'webhook',
-            webhook_id: '${field.options?.webhook_id || ''}',
+            button_hook_id: '${field.options?.button_hook_id || ''}',
             formula?: never,
             model?: never,
             script_id?: never,
@@ -2711,7 +2712,7 @@ declare interface ConfigItem {}
             integration_id: '${field.options?.integration_id || ''}',
             formula: '${field.options?.formula || ''}',
             script_id?: never,
-            webhook_id?: never
+            button_hook_id?: never
           }`
 
           default:

@@ -588,7 +588,7 @@ Object.freeze(UITypes);
         case 'Number':
         case 'Rollup':
         case 'Decimal': {
-          if (field?.options?.thousands_separator) {
+          if (field?.options?.locale_string) {
             return Number(roundUpToPrecision(Number(value), field?.options?.precision ?? 1)).toLocaleString(undefined, {
               minimumFractionDigits: field?.options?.precision ?? 1,
               maximumFractionDigits: field?.options?.precision ?? 1,
@@ -655,10 +655,10 @@ Object.freeze(UITypes);
           return this.getCellValueAsString(field, { customField: field?.options?.result });
         }
         case 'Lookup': {
-          const relationField = this.#table.getField(field?.options?.relation_field_id)
+          const relationField = this.#table.getField(field?.options?.related_field_id)
           const relatedTable = base.getTable(relationField?.options?.related_table_id)
           
-          const relatedField = relatedTable.getField(field?.options?.lookup_field_id)
+          const relatedField = relatedTable.getField(field?.options?.related_table_lookup_field_id)
           
           if ([ 'hm', 'mm'].includes(relationField?.options?.relation_type)) {
             return value?.map((v) => this.getCellValueAsString(field, { customField: relatedField, customValue: v })).join(', ')

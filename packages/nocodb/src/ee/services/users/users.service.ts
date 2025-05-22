@@ -215,7 +215,7 @@ export class UsersService extends UsersServiceCE {
       ncMeta,
     );
 
-    if (req.user) {
+    if (req?.user) {
       this.appHooksService.emit(AppEvents.USER_INVITE, {
         user: user,
         req: req,

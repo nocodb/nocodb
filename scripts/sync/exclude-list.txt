@@ -5,6 +5,7 @@ packages/nocodb-sdk/src/ee
 packages/nc-gui/ee
 packages/noco-integrations/packages/*
 packages/noco-integrations/templates/*
+packages/noco-integrations/.cursor/*
 scripts/sync
 scripts/ee
 */node_modules

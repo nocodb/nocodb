@@ -564,18 +564,20 @@ export const parsePlainCellValue = (
     return getAttachmentValue(value)
   }
 
-  if (isFormula(col) && col?.meta?.display_type) {
-    const childColumn = {
-      uidt: col?.meta?.display_type,
-      ...col?.meta?.display_column_meta,
-    }
+  if (isFormula(col)) {
+    if (col?.meta?.display_type) {
+      const childColumn = {
+        uidt: col?.meta?.display_type,
+        ...col?.meta?.display_column_meta,
+      }
 
-    return parsePlainCellValue(value, { ...params, col: childColumn })
-  } else if (isFormula(col)) {
-    let url = replaceUrlsWithLink(value, true)
+      return parsePlainCellValue(value, { ...params, col: childColumn })
+    } else {
+      let url = replaceUrlsWithLink(value, true)
 
-    if (url && ncIsString(url)) {
-      return url
+      if (url && ncIsString(url)) {
+        return url
+      }
     }
   }
 

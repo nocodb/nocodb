@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 import { ViewLockType, type ViewType } from 'nocodb-sdk'
-import { LoadingOutlined } from '@ant-design/icons-vue'
-import ManageUsers from './ManageUsers.vue'
 import { useViewsStore } from '~/store/views'
 
 const { isViewToolbar } = defineProps<{
@@ -10,8 +8,6 @@ const { isViewToolbar } = defineProps<{
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const { copy } = useCopy()
-const { dashboardUrl } = useDashboard()
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 const { navigateToProjectPage } = baseStore
@@ -27,40 +23,10 @@ if (isViewToolbar) {
   }
 }
 
-const { formStatus, showShareModal, invitationUsersData, isInvitationLinkCopied } = storeToRefs(useShare())
+const { formStatus, showShareModal } = storeToRefs(useShare())
 const { resetData } = useShare()
-// const { inviteUser } = useManageUsers()
 
-// const expandedSharedType = ref<'none' | 'base' | 'view'>('view')
 const isOpeningManageAccess = ref(false)
-
-const inviteUrl = computed(() =>
-  invitationUsersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${invitationUsersData.value.invitationToken}` : null,
-)
-
-const indicator = h(LoadingOutlined, {
-  style: {
-    fontSize: '24px',
-  },
-  spin: true,
-})
-
-/*
-const onShare = async () => {
-  if (!invitationValid) return
-
-  await inviteUser({
-    email: invitationUsersData.value.emails!,
-    roles: invitationUsersData.value.role!,
-  })
-}
-*/
-
-const copyInvitationLink = async () => {
-  await copy(inviteUrl.value!)
-
-  isInvitationLinkCopied.value = true
-}
 
 const openManageAccess = async () => {
   isOpeningManageAccess.value = true
@@ -91,49 +57,13 @@ watch(showShareModal, (val) => {
     :class="{ active: showShareModal }"
     wrap-class-name="nc-modal-share-collaborate"
     :closable="false"
-    :mask-closable="formStatus === 'base-collaborateSaving' ? false : true"
+    :mask-closable="formStatus !== 'base-collaborateSaving'"
     :ok-button-props="{ hidden: true } as any"
     :cancel-button-props="{ hidden: true } as any"
     :footer="null"
     :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
   >
-    <div v-if="formStatus === 'base-collaborateSaving'" class="flex flex-row w-full px-5 justify-between items-center py-1">
-      <div class="flex text-base font-bold">Adding Members</div>
-      <a-spin :indicator="indicator" />
-    </div>
-    <template v-else-if="formStatus === 'base-collaborateSaved'">
-      <div class="flex flex-col py-1.5">
-        <div class="flex flex-row w-full px-5 justify-between items-center py-0.5">
-          <div class="flex text-base font-medium">Members added</div>
-          <div class="flex">
-            <MdiCheck />
-          </div>
-        </div>
-        <div class="flex flex-row mx-3 mt-2.5 pt-3.5 border-t-1 border-gray-100 justify-end gap-x-2">
-          <a-button type="text" class="!border-1 !border-gray-200 !rounded-md" @click="showShareModal = false">Close </a-button>
-          <a-button
-            type="text"
-            class="!border-1 !border-gray-200 !rounded-md"
-            data-testid="docs-share-invitation-copy"
-            :data-invite-link="inviteUrl"
-            @click="copyInvitationLink"
-          >
-            <div v-if="isInvitationLinkCopied" class="flex flex-row items-center gap-x-1">
-              <MdiTick class="h-3.5" />
-              {{ $t('activity.copiedInviteLink') }}
-            </div>
-            <div v-else class="flex flex-row items-center gap-x-1">
-              <MdiContentCopy class="h-3.3" />
-              {{ $t('activity.copyInviteLink') }}
-            </div>
-          </a-button>
-        </div>
-      </div>
-    </template>
-    <div v-else-if="formStatus === 'manageCollaborators'">
-      <ManageUsers v-if="formStatus === 'manageCollaborators'" @close="formStatus = 'collaborate'" />
-    </div>
-    <div v-else class="flex flex-col px-1">
+    <div class="flex flex-col px-1">
       <div class="flex flex-row justify-between items-center pb-1 mx-4 mt-3">
         <div class="flex text-base font-medium">{{ $t('activity.share') }}</div>
       </div>
@@ -200,19 +130,8 @@ watch(showShareModal, (val) => {
           type="secondary"
           :loading="isOpeningManageAccess"
           @click="openManageAccess"
-          >{{ $t('activity.manageProjectAccess') }}</NcButton
-        >
-
-        <!-- <a-button
-          v-if="formStatus === 'base-collaborate'"
-          data-testid="docs-share-btn"
-          class="!border-0 !rounded-md"
-          type="primary"
-          :disabled="!invitationValid"
-          @click="onShare"
-        >
-          Share
-        </a-button> -->
+          >{{ $t('activity.manageProjectAccess') }}
+        </NcButton>
       </div>
     </div>
   </a-modal>

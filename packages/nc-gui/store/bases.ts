@@ -265,7 +265,6 @@ export const useBases = defineStore('basesStore', () => {
   const createProject = async (basePayload: {
     title: string
     workspaceId?: string
-    type: string
     linkedDbProjectIds?: string[]
     meta?: Record<string, unknown>
   }) => {

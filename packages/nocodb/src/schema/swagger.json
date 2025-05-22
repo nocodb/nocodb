@@ -24793,6 +24793,9 @@
           "fk_mm_base_id": {
             "type": "string"
           },
+          "base_id": {
+            "type": "string"
+          },
           "fk_related_source_id": {
             "type": "string"
           },

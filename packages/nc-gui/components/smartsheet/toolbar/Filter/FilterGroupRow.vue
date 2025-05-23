@@ -144,6 +144,7 @@ const onDelete = () => {
         :filters-count="filtersCount"
         :query-filter="queryFilter"
         :fk-parent-id="vModel.id"
+        :tmp-fk-parent-id="vModel.tmp_id"
         :is-full-width="isFullWidth"
         :handler="handler"
         @change="onFilterChange"

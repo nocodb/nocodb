@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Nâng cấp {workspace} lên gói {plan}",
     "upgradeToPlanSubtitle": "Bạn sẽ được tính phí ngay cho gói này.",
     "reactivateToPlan": "Kích hoạt lại gói {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Bạn chỉ có thể nhân bản cơ sở vào những không gian làm việc mà bạn có quyền tạo trở lên.",
     "snapshotBaseRestoreMessage": "Bạn chỉ có thể khôi phục vào những không gian làm việc mà bạn có quyền tạo trở lên.",
     "currentWorkspace": "Không gian làm việc hiện tại",
+    "currentBase": "Current base",
     "latitude": "Vĩ độ",
     "longitude": "Kinh độ",
     "failed": "Thất bại",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "Đoạn mã API",
     "includeData": "Bao gồm Dữ liệu",
     "includeRecords": "Bao gồm bản ghi",
-    "baseDuplicateMessage": "Lưu ý: Nhật ký kiểm toán & tích hợp sẽ không được sao chép.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Bao gồm chế độ xem",
     "includeWebhook": "Bao gồm webhook",
     "includeComments": "Bao gồm bình luận",
@@ -1611,6 +1616,7 @@
     "changePlan": "Thay đổi gói"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Mỗi không gian làm việc phải có ít nhất một chủ sở hữu. Vui lòng gán người dùng khác làm Chủ sở hữu trước khi rời. Nếu bạn là thành viên cuối cùng, hãy cân nhắc xóa không gian làm việc.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Bật để làm cho kết nối này riêng tư và ẩn khỏi các nhà sáng tạo khác trong không gian làm việc này.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Sao chép mã lỗi",
     "paidUserBadgeTooltip": "Người dùng có vai trò Biên tập viên hoặc cao hơn ở ít nhất một cơ sở dữ liệu.",
     "approachingLimit": "Sắp đạt giới hạn",
-    "exceedingLimit": "Vượt quá giới hạn"
+    "exceedingLimit": "Vượt quá giới hạn",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Tìm kiếm biểu tượng",

@@ -735,6 +735,8 @@ import NcMegaPhoneDuo from '~icons/nc-icons-v2/mega-phone-duo.svg'
 import NcNotificationDuo from '~icons/nc-icons-v2/notification-duo.svg'
 import NcLayout from '~icons/nc-icons-v2/layout.svg'
 import NcPlusCircleSolid from '~icons/nc-icons-v2/plus-circle-solid.svg'
+import NcPaintRoller from '~icons/nc-icons-v2/paint-roller.svg'
+import NcConditions from '~icons/nc-icons-v2/conditions.svg'
 
 import MdiNcCheckBold from '~icons/nc-icons/mdi-check-bold'
 import MdiNcCropSquare from '~icons/nc-icons/mdi-crop-square'
@@ -1685,6 +1687,8 @@ export const iconMap = {
   'ncLogoZoho': h(NcLogoZoho, { stroke: 'transparent' }),
   'ncSendAlt': h(NcSendAlt, { stroke: 'transparent' }),
   'ncAiPlay': AiPlayIcon,
+  'ncPaintRoller': NcPaintRoller,
+  'ncConditions': NcConditions,
   'mdi-check-bold': MdiNcCropSquare,
   'mdi-crop-square': MdiNcCheckBold,
   'mdi-check-circle-outline': MdiNcCheckCircleOutline,

@@ -28,7 +28,7 @@ RUN echo "node-linker=hoisted" > .npmrc
 # and add execute permission to start.sh
 RUN pnpm uninstall nocodb-sdk
 RUN pnpm install --prod --shamefully-hoist --reporter=silent \
-    && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**" --run  \
+    && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**,@linear/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \
     && chmod +x /usr/src/appEntry/start.sh
 

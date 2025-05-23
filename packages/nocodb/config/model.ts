@@ -6,8 +6,8 @@ import {
   IsNotEmptyObject,
   IsOptional,
   IsPort,
+  IsString,
   IsUrl,
-  IsUUID,
   Length,
   ValidateNested,
 } from 'class-validator';
@@ -45,11 +45,6 @@ class NocoDbConfig {
   isCloud: boolean;
   @IsOptional()
   licenseKey?: string;
-  migrationJobsVersion: string;
-  version: string;
-  @IsOptional()
-  @IsUUID() // TODO: drop
-  uuid: string;
   @IsBoolean()
   minimalDb: boolean;
   @IsBoolean()
@@ -59,33 +54,54 @@ class NocoDbConfig {
 }
 
 class SmtpConfig {
+  @IsBoolean()
   ignoreTLS: boolean;
+  @IsString()
   passowrd: string;
+  @IsBoolean()
   rejectUnauthorized: boolean;
+  @IsBoolean()
   secure: boolean;
+  @IsString()
   username: string;
+  @IsString()
   from: string;
+  @IsString()
   host: string;
+  @IsString()
   port: string;
 }
 
 class SesConfig {
+  @IsString()
   accessKey: string;
+  @IsString()
   secretKey: string;
+  @IsString()
   region: string;
+  @IsString()
   from: string;
 }
 
 class S3CloudConfig {
-  accessKey: string;
-  secretKey: string;
+  @IsOptional()
+  @IsString()
+  accessKey?: string;
+  @IsOptional()
+  @IsString()
+  secretKey?: string;
+  @IsString()
   acl: string;
+  @IsString()
   bucketName: string;
+  @IsString()
   region: string;
 }
 
 class S3Config extends S3CloudConfig {
+  @IsBoolean()
   forcePathStyle: boolean;
+  @IsUrl()
   endPoint: string;
 }
 
@@ -100,7 +116,7 @@ const workerType = ['disabled', 'worker', 'main'] as const;
 export class ServerConfig {
   host: string;
   @IsPort()
-  port: number;
+  port: string;
   @IsUrl({ require_tld: false })
   publicUrl: string;
   @IsIn(workerType)
@@ -120,10 +136,9 @@ export class ServerConfig {
   @Type(() => AuthConfig)
   auth: AuthConfig;
 
-  @IsNotEmptyObject()
   @ValidateNested()
   @Type(() => S3Config)
-  s3Config: S3Config;
+  s3Config?: S3Config;
 
   @ValidateNested()
   @Type(() => S3Config)

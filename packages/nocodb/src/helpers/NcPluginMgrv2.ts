@@ -128,10 +128,7 @@ class NcPluginMgrv2 {
   }
 
   private static async initPluginsFromEnv() {
-    if (
-      serverConfig.s3Config.bucketName &&
-      (serverConfig.s3Config.region || serverConfig.s3Config.endPoint)
-    ) {
+    if (serverConfig.s3Config) {
       const s3Plugin = await Plugin.getPlugin(S3PluginConfig.id);
 
       const s3CfgData: Record<string, any> = {
@@ -153,11 +150,7 @@ class NcPluginMgrv2 {
       });
     }
 
-    if (
-      serverConfig.smtpConfig.from &&
-      serverConfig.smtpConfig.host &&
-      serverConfig.smtpConfig.port
-    ) {
+    if (serverConfig.smtpConfig) {
       const smtpPlugin = await Plugin.getPlugin(SMTPPluginConfig.id);
       await Plugin.update(smtpPlugin.id, {
         active: true,

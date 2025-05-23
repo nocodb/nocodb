@@ -7,37 +7,41 @@ import lodash from 'lodash';
 import { ServerConfig } from './model';
 import { rmUndefined, stringToBoolTry } from './util';
 
-const defaultCfg = {
-  host: 'localhost',
-  port: '8080',
-  workerType: 'disabled',
-  environment: 'production',
+const fromDefault = (s3: boolean, smtp: boolean) => {
+  return {
+    host: 'localhost',
+    port: '8080',
+    workerType: 'disabled',
+    environment: 'production',
 
-  nocoDbConfig: {
-    isCloud: false,
-    migrationJobsVersion: '8',
-    version: '0258003',
-    minimalDb: false,
-    dataReflection: true,
-    externalDb: true,
-  },
-
-  auth: {
-    jwt: {
-      secret: 'change-me-not-safe-for-production',
-      time: '10h',
+    nocoDbConfig: {
+      isCloud: false,
+      minimalDb: false,
+      dataReflection: true,
+      externalDb: true,
     },
-  },
 
-  s3Config: {
-    forcePathStyle: false,
-  },
+    auth: {
+      jwt: {
+        secret: 'change-me-not-safe-for-production',
+        time: '10h',
+      },
+    },
 
-  smtpConfig: {
-    ignoreTLS: false,
-    rejectUnauthorized: false,
-    secure: false,
-  },
+    ...(s3 && {
+      s3Config: {
+        forcePathStyle: false,
+      },
+    }),
+
+    ...(smtp && {
+      smtpConfig: {
+        ignoreTLS: false,
+        rejectUnauthorized: false,
+        secure: false,
+      },
+    }),
+  };
 };
 
 const fromEnv = (): object => {
@@ -50,9 +54,6 @@ const fromEnv = (): object => {
     nocoDbConfig: {
       isCloud: stringToBoolTry(process.env.NC_CLOUD),
       licenseKey: process.env.NC_LICENSE_KEY,
-      migrationJobsVersion: process.env.NC_MIGRATION_JOBS_VERSION,
-      version: process.env.NC_VERSION,
-      uuid: process.env.NC_SERVER_UUID,
       minimalDb: stringToBoolTry(process.env.NC_MINIMAL_DBS),
       dataReflection: stringToBoolTry(process.env.NC_PG_DATA_REFLECTION),
       externalDb: stringToBoolTry(process.env.NC_CONNECT_TO_EXTERNAL_DB),
@@ -155,11 +156,12 @@ const getCfg = () => {
   const envCfg = fromEnv();
 
   delete cliCfg['config'];
+  const mergedCfgWithoutDefault = lodash.merge(tomlCfg, envCfg, cliCfg);
   const mergedCfg = lodash.merge(
-    defaultCfg,
-    tomlCfg,
-    envCfg,
-    cliCfg,
+    fromDefault(
+      !!mergedCfgWithoutDefault['s3Config'],
+      !!mergedCfgWithoutDefault['smtpConfig'],
+    ),
   ) as unknown as ServerConfig;
 
   // derived config

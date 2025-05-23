@@ -5,13 +5,7 @@ import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 
 export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
-  if (
-    !serverConfig.s3CloudConfig.accessKey ||
-    !serverConfig.s3CloudConfig.secretKey ||
-    !serverConfig.s3CloudConfig.bucketName ||
-    !serverConfig.s3CloudConfig.region ||
-    !serverConfig.s3CloudConfig.acl
-  ) {
+  if (!serverConfig.s3CloudConfig) {
     throw new Error('S3 env variables not found');
   }
 

@@ -59,7 +59,7 @@ export class SocketGateway implements OnModuleInit {
       .on('connection', (socket) => {
         this.clients[socket.id] = socket;
         const id = getHash(
-          (serverConfig.nocoDbConfig.uuid || T.id) +
+          (process.env.NC_SERVER_UUID || T.id) +
             (socket?.handshake as any)?.user?.id,
         );
 

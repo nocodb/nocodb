@@ -21,7 +21,6 @@ import { JsonBodyMiddleware } from '~/middlewares/json-body.middleware';
 
 import { packageInfo } from '~/utils/packageVersion';
 import { UrlEncodeMiddleware } from '~/middlewares/url-encode.middleware';
-import { serverConfig } from 'config';
 
 export const ceModuleConfig = {
   imports: [

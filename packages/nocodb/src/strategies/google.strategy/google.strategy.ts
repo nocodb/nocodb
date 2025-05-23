@@ -78,8 +78,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   async authenticate(req: Request, options?: any): Promise<void> {
     const googlePlugin = await Plugin.getPluginByTitle('Google');
 
-    let client_id = serverConfig.auth.googleOidc.clientId;
-    let client_secret = serverConfig.auth.googleOidc.clientSecret;
+    let client_id = serverConfig.auth?.googleOidc?.clientId;
+    let client_secret = serverConfig.auth?.googleOidc?.clientSecret;
     if (googlePlugin && googlePlugin.input) {
       const pluginSettings = JSON.parse(googlePlugin.input);
       client_id = pluginSettings.client_id;
@@ -113,8 +113,8 @@ export const GoogleStrategyProvider: FactoryProvider = {
     // if not found provide dummy values to avoid error
     // it will be handled in authenticate method ( reading from plugin )
     const clientConfig = {
-      clientID: serverConfig.auth.googleOidc.clientId ?? 'dummy-id',
-      clientSecret: serverConfig.auth.googleOidc.clientSecret ?? 'dummy-secret',
+      clientID: serverConfig.auth?.googleOidc?.clientId ?? 'dummy-id',
+      clientSecret: serverConfig.auth?.googleOidc?.clientSecret ?? 'dummy-secret',
       // todo: update url
       callbackURL: 'http://localhost:8080/dahsboard',
       passReqToCallback: true,

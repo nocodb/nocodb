@@ -4,7 +4,6 @@ import cors from 'cors';
 import express from 'express';
 
 import Noco from '~/Noco';
-import { serverConfig } from 'config';
 
 const server = express();
 server.enable('trust proxy');

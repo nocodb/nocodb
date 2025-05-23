@@ -223,17 +223,20 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     query,
     automationId,
     replace,
+    dashboardId,
   }: {
     workspaceId?: string
     baseId?: string
     tableId?: string
     viewId?: string
     automationId?: string
+    dashboardId?: string
     query?: string
     replace?: boolean
   }) => {
     const tablePath = tableId ? `/${tableId}${viewId ? `/${viewId}` : ''}` : ''
     const automationPath = automationId ? `/automations/${automationId}` : ''
+    const dashboardPath = dashboardId ? `/dashboards/${dashboardId}` : ''
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
     const workspaceId = _workspaceId || 'app'
 
@@ -241,6 +244,8 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     if (baseId) {
       if (automationId) {
         path = `/${workspaceId}/${baseId}${automationPath}${queryParams}`
+      } else if (dashboardId) {
+        path = `/${workspaceId}/${baseId}${dashboardPath}${queryParams}`
       } else {
         path = `/${workspaceId}/${baseId}${tablePath}${queryParams}`
       }

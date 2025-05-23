@@ -36,8 +36,9 @@ export class InternalController extends InternalControllerCE {
     private readonly columnsService: ColumnsService,
     private readonly integrationsService: IntegrationsService,
     private readonly permissionsService: PermissionsService,
+    protected readonly dashboardsService: DashboardsService,
   ) {
-    super(mcpService, aclMiddleware, auditsService);
+    super(mcpService, dashboardsService, aclMiddleware, auditsService);
   }
 
   protected async checkAcl(operation: string, req, scope?: string) {

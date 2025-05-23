@@ -89,6 +89,8 @@ export enum MetaTable {
   DB_SERVERS = 'nc_db_servers',
   PERMISSIONS = 'nc_permissions',
   PERMISSION_SUBJECTS = 'nc_permission_subjects',
+  DASHBOARDS = 'nc_dashboards_v2',
+  WIDGETS = 'nc_widgets_v2',
 }
 
 export const orderedMetaTables = [
@@ -226,6 +228,8 @@ export enum CacheScope {
   BASE_SCHEMA = 'baseSchema',
   PERMISSION = 'permission',
   PERMISSION_USER = 'permissionUser',
+  DASHBOARD = 'dashboard',
+  WIDGET = 'widget',
 }
 
 export const RootScopeTables = {

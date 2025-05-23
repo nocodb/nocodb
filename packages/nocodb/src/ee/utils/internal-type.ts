@@ -7,6 +7,8 @@ import type {
   Script,
   SyncConfig,
 } from '~/models';
+import type Dashboard from '~/models/Dashboard';
+import type Widget from '~/models/Widget';
 import type { JobId } from 'bull';
 
 export type InternalGETResponseType = Promise<
@@ -18,6 +20,10 @@ export type InternalGETResponseType = Promise<
   | Script[]
   | Script
   | PagedResponseImpl<any>
+  | Dashboard
+  | Dashboard[]
+  | Widget
+  | Widget[]
 >;
 
 export type InternalPOSTResponseType = Promise<
@@ -25,6 +31,8 @@ export type InternalPOSTResponseType = Promise<
   | boolean
   | MCPToken
   | DataReflection
+  | Dashboard
+  | Widget
   | { id: JobId; secret?: string }
   | {
       integration: Integration;

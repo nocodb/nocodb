@@ -2,6 +2,7 @@
 import type { SourceType, TableType } from 'nocodb-sdk'
 import { PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
 import Automation from '../Automation.vue'
+import Dashboard from '../Dashboard.vue'
 
 const router = useRouter()
 const route = router.currentRoute
@@ -623,6 +624,7 @@ const showCreateNewAsDropdown = computed(() => {
         </div>
       </div>
       <Automation v-if="isAutomationEnabled && !isSharedBase && isUIAllowed('scriptList')" :base-id="base.id" />
+      <Dashboard v-if="!isSharedBase" :base-id="base.id" />
     </div>
 
     <slot name="footer"> </slot>

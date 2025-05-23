@@ -258,6 +258,20 @@ const permissionScopes = {
     'mcpDelete',
 
     'viewRowColorInfo',
+
+    // Dashboard
+    'dashboardList',
+    'dashboardGet',
+    'dashboardCreate',
+    'dashboardUpdate',
+    'dashboardDelete',
+
+    // Widget
+    'widgetList',
+    'widgetGet',
+    'widgetCreate',
+    'widgetUpdate',
+    'widgetDelete',
   ],
 };
 
@@ -429,6 +443,14 @@ const rolePermissions:
       mcpDelete: true,
 
       viewRowColorInfo: true,
+
+      // Dashboard
+      dashboardList: true,
+      dashboardGet: true,
+
+      // Widget
+      widgetList: true,
+      widgetGet: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -488,6 +510,16 @@ const rolePermissions:
 
       // Sync
       triggerSync: true,
+
+      // Dashboard
+      dashboardCreate: true,
+      dashboardUpdate: true,
+      dashboardDelete: true,
+
+      // Widget
+      widgetCreate: true,
+      widgetUpdate: true,
+      widgetDelete: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -888,6 +920,18 @@ const permissionDescriptions: Record<string, string> = {
   mcpCreate: 'create a new MCP token',
   mcpUpdate: 'update an MCP token',
   mcpDelete: 'delete an MCP token',
+
+  dashboardList: 'view list of dashboards',
+  dashboardGet: 'view dashboard details',
+  dashboardCreate: 'create a new dashboard',
+  dashboardUpdate: 'update dashboard details',
+  dashboardDelete: 'delete a dashboard',
+
+  widgetList: 'view list of widgets',
+  widgetGet: 'view widget details',
+  widgetCreate: 'create a new widget',
+  widgetUpdate: 'update widget details',
+  widgetDelete: 'delete a widget',
 
   globalAuditList: 'view list of audits',
 

@@ -109,6 +109,11 @@ const rolePermissions = {
       csvTableImport: true,
       excelTableImport: true,
       hookTrigger: true,
+
+      dashboardCreate: true,
+      dashboardEdit: true,
+      dashboardDelete: true,
+      dashboardRename: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -128,6 +133,8 @@ const rolePermissions = {
       commentCount: true,
       recordAuditList: true,
       newUser: true,
+
+      dashboardList: true,
     },
   },
   [ProjectRoles.NO_ACCESS]: {

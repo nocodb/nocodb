@@ -13,6 +13,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { McpTokenService } from '~/services/mcp.service';
 import { AuditsService } from '~/services/audits.service';
+import { DashboardsService } from '~/services/dashboards.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcError } from '~/helpers/catchError';
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -26,6 +27,7 @@ import {
 export class InternalController {
   constructor(
     protected readonly mcpService: McpTokenService,
+    protected readonly dashboardsService: DashboardsService,
     protected readonly aclMiddleware: AclMiddleware,
     protected readonly auditsService: AuditsService,
   ) {}
@@ -37,6 +39,16 @@ export class InternalController {
       mcpUpdate: 'base',
       mcpDelete: 'base',
       recordAuditList: 'base',
+      dashboardList: 'base',
+      dashboardGet: 'base',
+      dashboardCreate: 'base',
+      dashboardUpdate: 'base',
+      dashboardDelete: 'base',
+      widgetList: 'base',
+      widgetGet: 'base',
+      widgetCreate: 'base',
+      widgetUpdate: 'base',
+      widgetDelete: 'base',
     };
   }
 
@@ -72,6 +84,23 @@ export class InternalController {
           fk_model_id: req.query.fk_model_id as string,
           cursor: req.query.cursor as string,
         });
+      case 'dashboardList':
+        return await this.dashboardsService.dashboardList(context, baseId);
+      case 'dashboardGet':
+        return await this.dashboardsService.dashboardGet(
+          context,
+          req.query.dashboardId as string,
+        );
+      case 'widgetList':
+        return await this.dashboardsService.widgetList(
+          context,
+          req.query.dashboardId as string,
+        );
+      case 'widgetGet':
+        return await this.dashboardsService.widgetGet(
+          context,
+          req.query.widgetId as string,
+        );
       default:
         return NcError.notFound('Operation');
     }
@@ -99,6 +128,36 @@ export class InternalController {
         );
       case 'mcpDelete':
         return await this.mcpService.delete(context, payload.tokenId);
+      case 'dashboardCreate':
+        return await this.dashboardsService.dashboardCreate(
+          context,
+          payload,
+          req,
+        );
+      case 'dashboardUpdate':
+        return await this.dashboardsService.dashboardUpdate(
+          context,
+          payload.dashboardId,
+          payload,
+        );
+      case 'dashboardDelete':
+        return await this.dashboardsService.dashboardDelete(
+          context,
+          payload.dashboardId,
+        );
+      case 'widgetCreate':
+        return await this.dashboardsService.widgetCreate(context, payload);
+      case 'widgetUpdate':
+        return await this.dashboardsService.widgetUpdate(
+          context,
+          payload.widgetId,
+          payload,
+        );
+      case 'widgetDelete':
+        return await this.dashboardsService.widgetDelete(
+          context,
+          payload.widgetId,
+        );
       default:
         NcError.notFound('Operation');
     }

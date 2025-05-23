@@ -17,6 +17,12 @@ const FEATURES = [
     version: 1,
   },
   {
+    id: 'dashboard',
+    title: 'Dashboard',
+    description: 'Create and manage dashboards for quick access to your data.',
+    enabled: false,
+  },
+  {
     id: 'canvas_group_grid_view',
     title: 'Improved Group By',
     description: 'New and Improved groupby in grid view with enhanced scrolling and rendering capabilities.',

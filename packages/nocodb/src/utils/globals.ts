@@ -71,6 +71,8 @@ export enum MetaTable {
   DB_SERVERS = 'nc_db_servers',
   PERMISSIONS = 'nc_permissions',
   PERMISSION_SUBJECTS = 'nc_permission_subjects',
+  DASHBOARDS = 'nc_dashboards_v2',
+  WIDGETS = 'nc_widgets_v2',
 }
 
 export enum MetaTableOldV2 {
@@ -219,6 +221,8 @@ export enum CacheScope {
   DB_SERVERS = 'dbServers',
   PERMISSION = 'permission',
   PERMISSION_USER = 'permissionUser',
+  DASHBOARD = 'dashboard',
+  WIDGET = 'widget',
 }
 
 export enum CacheGetType {

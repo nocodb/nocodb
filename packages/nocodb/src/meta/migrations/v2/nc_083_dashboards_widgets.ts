@@ -1,0 +1,54 @@
+import type { Knex } from 'knex';
+import { MetaTable } from '~/utils/globals';
+
+const up = async (knex: Knex) => {
+  await knex.schema.createTable(MetaTable.DASHBOARDS, (table) => {
+    table.string('id', 20).primary().notNullable();
+
+    table.string('fk_workspace_id', 20);
+    table.string('base_id', 20);
+
+    table.string('title', 255).notNullable();
+    table.text('description');
+    table.text('meta');
+    table.integer('order').unsigned();
+
+    table.string('created_by', 20);
+    table.string('owned_by', 20);
+
+    table.timestamps(true, true);
+
+    table.index(['base_id', 'fk_workspace_id'], 'nc_dashboards_context');
+    table.index('created_by', 'nc_dashboards_created_by_idx');
+    table.index('owned_by', 'nc_dashboards_owned_by_idx');
+  });
+
+  await knex.schema.createTable(MetaTable.WIDGETS, (table) => {
+    table.string('id', 20).primary().notNullable();
+
+    table.string('fk_workspace_id', 20);
+    table.string('base_id', 20);
+    table.string('fk_dashboard_id', 20).notNullable();
+
+    table.string('title', 255).notNullable();
+    table.text('description');
+    table.string('type', 50).notNullable();
+    table.text('config');
+    table.text('meta');
+    table.integer('order').unsigned();
+    table.text('position');
+
+    table.timestamps(true, true);
+
+    table.index(['base_id', 'fk_workspace_id'], 'nc_widgets_context');
+    table.index('fk_dashboard_id', 'nc_widgets_dashboard_idx');
+    table.index('type', 'nc_widgets_type_idx');
+  });
+};
+
+const down = async (knex: Knex) => {
+  await knex.schema.dropTable(MetaTable.WIDGETS);
+  await knex.schema.dropTable(MetaTable.DASHBOARDS);
+};
+
+export { up, down };

@@ -2,8 +2,6 @@
 import { type FormBuilderElement, type IntegrationType } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType, iconMap } from '#imports'
 
-const emit = defineEmits(['change'])
-
 const {
   form,
   formState,

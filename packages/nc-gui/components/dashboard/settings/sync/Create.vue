@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import type { FormDefinition } from 'nocodb-sdk'
-import { IntegrationsType, SyncTrigger, SyncType } from 'nocodb-sdk'
 import { JobStatus } from '#imports'
 
 const props = defineProps<{ open: boolean; baseId: string; isModal?: boolean }>()
@@ -9,10 +7,9 @@ const vOpen = useVModel(props, 'open', emit)
 
 const { loadDynamicIntegrations } = useIntegrationStore()
 
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
-
 const baseStore = useBase()
 const { loadTables } = baseStore
+const { tables } = storeToRefs(baseStore)
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -35,24 +32,17 @@ const creatingSync = ref(false)
 const {
   createSync,
   formState,
-  syncConfigForm,
   isLoading,
   deepReference,
   switchToIntegrationConfig,
   resetStore,
   saveCurrentFormState,
   validateSyncConfig,
-} = useProvideSyncStore(activeWorkspaceId, props.baseId!)
+} = useProvideSyncStore()
 
-    try {
-      const res = await $api.internal.postOperation(
-        base.value.fk_workspace_id!,
-        baseId.value!,
-        {
-          operation: 'createSync',
-        },
-        formState.value,
-      )
+const handleSubmit = async () => {
+  isLoading.value = true
+  creatingSync.value = true
 
   try {
     const syncData = await createSync()
@@ -61,8 +51,101 @@ const {
       return
     }
 
-const selectedSyncType = computed(() => {
-  return formState.value.sub_type
+    $poller.subscribe(
+      { id: syncData.job.id },
+      async (data: {
+        id: string
+        status?: string
+        data?: {
+          error?: {
+            message: string
+          }
+          message?: string
+          result?: any
+        }
+      }) => {
+        if (data.status !== 'close') {
+          if (data.status === JobStatus.COMPLETED) {
+            progressRef.value?.pushProgress('Done!', data.status)
+
+            await loadTables()
+
+            const newTable = tables.value.find((el) => el.id === syncData.table?.id)
+            if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
+
+            refreshCommandPalette()
+            goToDashboard.value = true
+          } else if (data.status === JobStatus.FAILED) {
+            progressRef.value?.pushProgress(data.data?.error?.message ?? 'Sync failed', data.status)
+
+            await loadTables()
+
+            const newTable = tables.value.find((el) => el.id === syncData.table?.id)
+            if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
+
+            refreshCommandPalette()
+
+            goBack.value = true
+          } else {
+            progressRef.value?.pushProgress(data.data?.message ?? 'Syncing...', 'progress')
+          }
+        }
+      },
+    )
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+    creatingSync.value = false
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const setFormState = (path: string, value: any) => {
+  setFormStateHelper(formState, path, value)
+}
+
+const nextStep = async () => {
+  switch (step.value) {
+    case Step.Category:
+      step.value++
+      break
+    case Step.Integration:
+      if (await saveCurrentFormState()) {
+        step.value++
+      }
+      break
+    case Step.SyncSettings:
+      try {
+        await validateSyncConfig()
+        step.value++
+      } catch {}
+      break
+    case Step.Create:
+      handleSubmit()
+      break
+  }
+}
+
+const previousStep = () => {
+  if (step.value > 0) {
+    step.value--
+  }
+}
+
+const onCategoryChange = (value: string) => {
+  setFormState('sync_category', value)
+  step.value = Step.SyncSettings
+}
+
+const continueEnabled = computed(() => {
+  switch (step.value) {
+    case Step.Category:
+      return !!formState.value.sync_category
+    case Step.Integration:
+      return formState.value.sub_type
+    default:
+      return true
+  }
 })
 
 // select and focus title field on load
@@ -70,86 +153,20 @@ onMounted(async () => {
   isLoading.value = true
   await loadDynamicIntegrations()
 
-  formState.value.title = 'Sync Source'
-  formState.value.type = IntegrationsType.Sync
-
   nextTick(() => {
-    // todo: replace setTimeout and follow better approach
-    setTimeout(() => {
-      const input = form.value?.$el?.querySelector('input[type=text]')
-      input?.setSelectionRange(0, formState.value.title.length)
-      input?.focus()
-    }, 500)
+    switchToIntegrationConfig(0)
   })
 
   isLoading.value = false
 })
 
-const changeIntegration = async () => {
-  const integrationForm = (await getIntegrationForm(IntegrationsType.Sync, formState.value.sub_type)).filter(
-    (el: any) => el.model !== 'title',
-  )
-
-  activeIntegrationItemForm.value = [
-    ...integrationForm,
-    {
-      type: FormBuilderInputType.Select,
-      label: 'Sync Type',
-      width: 48,
-      model: 'config.sync.sync_type',
-      category: 'Sync Options',
-      placeholder: 'Select sync type',
-      defaultValue: SyncType.Full,
-      options: [
-        {
-          label: 'Full',
-          value: SyncType.Full,
-        },
-        {
-          label: 'Incremental',
-          value: SyncType.Incremental,
-        },
-      ],
-      validators: [
-        {
-          type: 'required',
-          message: 'Sync type is required',
-        },
-      ],
-    },
-    {
-      type: FormBuilderInputType.Space,
-      width: 4,
-      category: 'Sync Options',
-    },
-    {
-      type: FormBuilderInputType.Select,
-      label: 'Sync Trigger',
-      width: 48,
-      model: 'config.sync.sync_trigger',
-      category: 'Sync Options',
-      placeholder: 'Select trigger type',
-      defaultValue: SyncTrigger.Manual,
-      options: [
-        {
-          label: 'Manual',
-          value: SyncTrigger.Manual,
-        },
-      ],
-      validators: [
-        {
-          type: 'required',
-          message: 'Sync trigger is required',
-        },
-      ],
-    },
-  ]
-}
-
-const refreshState = async (keepForm = false) => {
-  if (!keepForm) {
-    formState.value = {
-      type: IntegrationsType.Sync,
+// Watch for modal visibility changes
+watch(
+  () => vOpen.value,
+  (newVal) => {
+    if (newVal) {
+      step.value = Step.Category
+      resetStore()
     }
   },
 )
@@ -193,66 +210,68 @@ const isModalClosable = computed(() => {
         <div class="flex-1 text-base font-weight-700">Create Sync</div>
 
         <div class="flex items-center gap-3">
-          <NcButton
-            v-if="!creatingSync"
-            size="small"
-            type="primary"
-            :disabled="!selectedSyncType || isLoading"
-            class="nc-extdb-btn-submit"
-            @click="submit"
-          >
-            Create Sync
-          </NcButton>
-          <NcButton :disabled="creatingSync" size="small" type="text" @click="vOpen = false">
+          <NcButton :disabled="creatingSync" size="small" type="text" @click="onClose">
             <GeneralIcon icon="close" class="text-gray-600" />
           </NcButton>
         </div>
       </div>
-      <div class="h-[calc(100%_-_58px)] flex">
-        <div class="nc-add-source-left-panel nc-scrollbar-thin relative">
-          <div class="create-source bg-white relative flex flex-col gap-2 w-full max-w-[768px]">
-            <template v-if="!creatingSync">
-              <a-form name="external-base-create-form" layout="vertical" no-style class="flex flex-col gap-5.5">
-                <div class="nc-form-section">
-                  <div class="nc-form-section-body">
+      <div class="h-[calc(100%_-_58px)] flex justify-center p-5">
+        <div class="flex flex-col gap-10 w-full items-center overflow-y-auto">
+          <div class="w-5xl">
+            <DashboardSettingsSyncSteps :current="step" />
+          </div>
+          <div class="w-xl flex rounded-lg p-6 w-full border-1 border-nc-border-gray-medium">
+            <a-form name="external-base-create-form" layout="vertical" no-style hide-required-mark class="flex flex-col w-full">
+              <div class="nc-form-section">
+                <div class="flex flex-col gap-5">
+                  <template v-if="step === Step.Category">
                     <a-row :gutter="24">
-                      <a-col :span="12">
-                        <a-form-item label="Sync Title" v-bind="validateInfos.title">
-                          <a-input v-model:value="formState.title" />
+                      <a-col :span="24">
+                        <a-form-item label="Sync Category">
+                          <DashboardSettingsSyncCategorySelect
+                            :model-value="deepReference('sync_category')"
+                            @change="onCategoryChange($event)"
+                          />
                         </a-form-item>
                       </a-col>
                     </a-row>
-                    <a-row :gutter="24">
-                      <a-col :span="12">
-                        <a-form-item label="Integration" v-bind="validateInfos.type">
-                          <DashboardSettingsSyncSelect v-model:value="formState.sub_type" @change="changeIntegration" />
-                        </a-form-item>
-                      </a-col>
-                    </a-row>
-                  </div>
+                  </template>
+                  <template v-if="step === Step.Integration">
+                    <div>
+                      <!-- Integration tabs and configuration -->
+                      <DashboardSettingsSyncIntegrationTabs />
+                      <DashboardSettingsSyncIntegrationConfig />
+                    </div>
+                  </template>
+                  <template v-if="step === Step.SyncSettings">
+                    <DashboardSettingsSyncSettings />
+                  </template>
+                  <template v-if="step === Step.Create">
+                    <template v-if="creatingSync">
+                      <div class="mb-4 prose-xl font-bold">Creating sync schema and syncing initial data</div>
+
+                      <GeneralProgressPanel ref="progressRef" class="w-full" />
+
+                      <div v-if="goToDashboard" class="flex justify-center items-center">
+                        <NcButton class="mt-6 mb-8" size="medium" @click="onDashboard"> 🚀 Go To Dashboard 🚀</NcButton>
+                      </div>
+                      <div v-else-if="goBack" class="flex justify-center items-center">
+                        <NcButton class="mt-6 mb-8" type="ghost" size="medium" @click="onDashboard">Go Dashboard</NcButton>
+                      </div>
+                    </template>
+                    <template v-else>
+                      <DashboardSettingsSyncReview />
+                    </template>
+                  </template>
                 </div>
-              </a-form>
-              <NcFormBuilder :key="formState.sub_type" class="py-2" />
-
-              <WorkspaceIntegrationsTab
-                is-modal
-                :filter-category="filterIntegrationCategory"
-                :filter-integration="filterIntegration"
-              />
-              <WorkspaceIntegrationsEditOrAdd load-datasource-info :base-id="baseId" />
-            </template>
-            <template v-else>
-              <div class="mb-4 prose-xl font-bold">Creating sync schema and syncing initial data</div>
-
-              <GeneralProgressPanel ref="progressRef" class="w-full" />
-
-              <div v-if="goToDashboard" class="flex justify-center items-center">
-                <NcButton class="mt-6 mb-8" size="medium" @click="onDashboard"> 🚀 Go To Dashboard 🚀</NcButton>
               </div>
-              <div v-else-if="goBack" class="flex justify-center items-center">
-                <NcButton class="mt-6 mb-8" type="ghost" size="medium" @click="onDashboard">Go Dashboard</NcButton>
-              </div>
-            </template>
+            </a-form>
+          </div>
+          <div v-if="!creatingSync" class="w-xl flex justify-between">
+            <NcButton type="ghost" :disabled="step === Step.Category" @click="previousStep"> Back </NcButton>
+            <NcButton type="primary" :loading="creatingSync" :disabled="!continueEnabled" @click="nextStep">
+              {{ step === Step.Create ? 'Create' : 'Continue' }}
+            </NcButton>
           </div>
         </div>
       </div>

@@ -6,8 +6,6 @@ const {
   addIntegrationConfig,
   removeIntegrationConfig,
   switchToIntegrationConfig,
-  editModeModified,
-  editMode,
 } = useSyncStoreOrThrow()
 
 const configs = computed(() => {
@@ -38,10 +36,10 @@ const configs = computed(() => {
         {{ index + 1 }}
       </span>
       <span>
-        {{ config?.title || config?.sub_type || 'New Source' }}
+        {{ config?.sub_type || 'New Source' }}
       </span>
       <a-button
-        v-if="integrationConfigs.length > 1 && !editMode"
+        v-if="integrationConfigs.length > 1"
         type="text"
         size="small"
         class="!p-0 !min-w-0 !h-auto text-gray-400 hover:text-red-500"
@@ -50,7 +48,7 @@ const configs = computed(() => {
         <GeneralIcon icon="close" class="h-3 w-3" />
       </a-button>
     </div>
-    <a-button v-if="!editMode || !editModeModified" type="text" class="ml-2 flex items-center" @click="addIntegrationConfig">
+    <a-button type="text" class="ml-2 flex items-center" @click="addIntegrationConfig">
       <GeneralIcon icon="plus" class="h-3 w-3 mr-1" />
       Add Source
     </a-button>

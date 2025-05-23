@@ -3,6 +3,7 @@ import {
   FormBuilderInputType,
   FormDefinition,
   IntegrationsType as IntegrationType,
+  SyncCategory,
 } from 'nocodb-sdk';
 import type { IntegrationWrapper } from './integration';
 
@@ -16,6 +17,7 @@ export interface IntegrationManifest {
   expose?: string[];
   hidden?: boolean;
   order?: number;
+  sync_category?: SyncCategory;
 }
 
 export interface IntegrationEntry {

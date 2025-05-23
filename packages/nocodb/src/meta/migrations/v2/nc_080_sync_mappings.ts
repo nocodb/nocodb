@@ -21,7 +21,12 @@ const up = async (knex: Knex) => {
   });
 
   await knex.schema.alterTable(MetaTable.SYNC_CONFIGS, (table) => {
+    table.string('title', 255);
+    table.string('sync_category', 255);
+    table.string('fk_parent_sync_config_id', 20);
     table.string('on_delete_action', 255).defaultTo(OnDeleteAction.MarkDeleted); // delete, mark_deleted
+
+    table.index('fk_parent_sync_config_id', 'nc_sync_configs_parent_idx');
   });
 };
 
@@ -29,7 +34,11 @@ const down = async (knex: Knex) => {
   await knex.schema.dropTable(MetaTable.SYNC_MAPPINGS);
 
   await knex.schema.alterTable(MetaTable.SYNC_CONFIGS, (table) => {
+    table.dropColumn('sync_category');
+    table.dropColumn('fk_parent_sync_config_id');
     table.dropColumn('on_delete_action');
+
+    table.dropIndex('fk_parent_sync_config_id', 'nc_sync_configs_parent_idx');
   });
 };
 

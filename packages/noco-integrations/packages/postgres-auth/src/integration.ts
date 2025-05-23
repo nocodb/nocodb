@@ -1,5 +1,5 @@
 import { knex } from 'knex';
-import { AuthIntegration, AuthType } from '@noco-integrations/core';
+import { AuthIntegration } from '@noco-integrations/core';
 import type { Knex } from 'knex';
 import type {
   AuthResponse,
@@ -7,41 +7,47 @@ import type {
 } from '@noco-integrations/core';
 
 export class PostgresAuthIntegration extends AuthIntegration {
+  public client: Knex | null = null;
+
   public async authenticate(): Promise<AuthResponse<Knex>> {
-    switch (this.config.type) {
-      case AuthType.Custom: {
-        const knexConfig: Knex.Config = {
-          client: 'pg',
-          connection: {
-            host: this.config.host,
-            port: this.config.port || 5432,
-            user: this.config.username,
-            password: this.config.password,
-            database: this.config.database,
-          },
-          pool: {
-            min: 1,
-            max: 1,
-          },
-        };
+    const knexConfig: Knex.Config = {
+      client: 'pg',
+      connection: {
+        host: this.config.host,
+        port: this.config.port || 5432,
+        user: this.config.username,
+        password: this.config.password,
+        database: this.config.database,
+      },
+      pool: {
+        min: 1,
+        max: 1,
+      },
+    };
 
-        if (this.config.ssl) {
-          (knexConfig.connection as any).ssl =
-            this.config.ssl === 'true' ? true : { rejectUnauthorized: false };
-        }
+    if (this.config.ssl) {
+      (knexConfig.connection as any).ssl =
+        this.config.ssl === 'true' ? true : { rejectUnauthorized: false };
+    }
 
-        return {
-          custom: knex(knexConfig),
-        };
+    this.client = knex(knexConfig);
+
+    return this.client;
+  }
+
+  public async destroy(): Promise<void> {
+    if (this.client) {
+      try {
+        await this.client.destroy();
+      } catch {
+        // Ignore errors when closing connection
       }
-      default:
-        throw new Error('Unsupported authentication type');
     }
   }
 
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
-      const client = (await this.authenticate()).custom;
+      const client = await this.authenticate();
 
       if (!client) {
         return {
@@ -64,7 +70,7 @@ export class PostgresAuthIntegration extends AuthIntegration {
     } finally {
       // Close the connection
       try {
-        const client = (await this.authenticate()).custom;
+        const client = await this.authenticate();
         if (client) {
           await client.destroy();
         }

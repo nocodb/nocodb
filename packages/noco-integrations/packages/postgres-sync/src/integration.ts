@@ -15,7 +15,7 @@ import type {
 
 class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
   public async getDestinationSchema(
-    auth: AuthResponse<any>,
+    auth: AuthResponse<Knex>,
   ): Promise<CustomSyncSchema> {
     if (
       this.config.custom_schema &&
@@ -29,7 +29,7 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
       return this.config.custom_schema;
     }
 
-    const knex = auth.custom as Knex;
+    const knex = auth;
 
     const schema: CustomSyncSchema = {};
 
@@ -84,7 +84,7 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
   }
 
   public async fetchData(
-    auth: AuthResponse<any>,
+    auth: AuthResponse<Knex>,
     args: {
       targetTables?: (TARGET_TABLES | string)[];
       targetTableIncrementalValues?: Record<
@@ -93,7 +93,7 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
       >;
     },
   ): Promise<DataObjectStream<CustomSyncRecord>> {
-    const knex = auth.custom as Knex;
+    const knex = auth;
     const stream = new DataObjectStream<CustomSyncRecord>();
 
     try {
@@ -237,8 +237,8 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     return null;
   }
 
-  public async fetchOptions(auth: AuthResponse<any>, key: string) {
-    const knex = auth.custom as Knex;
+  public async fetchOptions(auth: AuthResponse<Knex>, key: string) {
+    const knex = auth;
 
     if (key === 'schemas') {
       const qb = knex.select('schema_name').from('information_schema.schemata');

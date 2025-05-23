@@ -38,7 +38,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
       targetTableIncrementalValues?: Record<TARGET_TABLES, string>;
     },
   ): Promise<DataObjectStream<SyncRecord>> {
-    const octokit = auth.custom as Octokit;
+    const octokit = auth;
     const { owner, repo, includeClosed, includePRs = false } = this.config;
     const { targetTableIncrementalValues } = args;
 

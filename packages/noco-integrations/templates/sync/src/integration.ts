@@ -58,7 +58,7 @@ export default class ProviderSyncIntegration extends SyncIntegration<ProviderSyn
       | TicketingTeamRecord
     >
   > {
-    const providerClient = auth.custom; // as ProviderSDK;
+    const providerClient = auth;
     const { projectId, includeClosed } = this.config;
     const { targetTableIncrementalValues } = args;
 

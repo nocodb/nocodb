@@ -8,6 +8,8 @@ import type {
 } from '@noco-integrations/core';
 
 export class LinearAuthIntegration extends AuthIntegration {
+  public client: LinearClient | null = null;
+
   public async authenticate(): Promise<AuthResponse<LinearClient>> {
     switch (this.config.type) {
       case AuthType.ApiKey:
@@ -15,21 +17,21 @@ export class LinearAuthIntegration extends AuthIntegration {
           throw new Error('Missing required Linear API token');
         }
 
-        return {
-          custom: new LinearClient({
-            apiKey: this.config.token,
-          }),
-        };
+        this.client = new LinearClient({
+          apiKey: this.config.token,
+        });
+
+        return this.client;
       case AuthType.OAuth:
         if (!this.config.oauth_token) {
           throw new Error('Missing required Linear OAuth token');
         }
 
-        return {
-          custom: new LinearClient({
-            accessToken: this.config.oauth_token,
-          }),
-        };
+        this.client = new LinearClient({
+          accessToken: this.config.oauth_token,
+        });
+
+        return this.client;
       default:
         throw new Error('Not implemented');
     }
@@ -37,7 +39,7 @@ export class LinearAuthIntegration extends AuthIntegration {
 
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
-      const client = (await this.authenticate()).custom;
+      const client = await this.authenticate();
 
       if (!client) {
         return {

@@ -6,17 +6,19 @@ import type {
 } from '@noco-integrations/core';
 
 export class ClickhouseAuthIntegration extends AuthIntegration {
+  public client: ClickHouseClient | null = null;
+
   public async authenticate(): Promise<AuthResponse<ClickHouseClient>> {
     switch (this.config.type) {
       case AuthType.Custom:
-        return {
-          custom: createClient({
+        this.client = createClient({
             host: this.config.host,
             username: this.config.username,
             password: this.config.password,
             database: this.config.database,
-          }),
-        };
+          });
+
+        return this.client;
       default:
         throw new Error('Not implemented');
     }
@@ -24,7 +26,7 @@ export class ClickhouseAuthIntegration extends AuthIntegration {
 
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
-      const client = (await this.authenticate()).custom;
+      const client = await this.authenticate();
 
       if (!client) {
         return {

@@ -440,6 +440,10 @@ export class SyncModuleService {
         throw e;
       }
 
+      if (authWrapper?.destroy) {
+        await authWrapper.destroy();
+      }
+
       const job = await this.triggerSync(context, syncConfig.id, true, req);
 
       return {
@@ -712,7 +716,13 @@ export class SyncModuleService {
 
     const auth = await authWrapper.authenticate();
 
-    return await tempIntegrationWrapper.fetchOptions(auth, key);
+    const options = await tempIntegrationWrapper.fetchOptions(auth, key);
+
+    if (authWrapper?.destroy) {
+      await authWrapper.destroy();
+    }
+
+    return options;
   }
 
   async integrationFetchDestinationSchema(
@@ -743,6 +753,12 @@ export class SyncModuleService {
 
     const auth = await authWrapper.authenticate();
 
-    return await tempIntegrationWrapper.getDestinationSchema(auth);
+    const schema = await tempIntegrationWrapper.getDestinationSchema(auth);
+
+    if (authWrapper?.destroy) {
+      await authWrapper.destroy();
+    }
+
+    return schema;
   }
 }

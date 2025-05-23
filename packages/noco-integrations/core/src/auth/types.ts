@@ -1,9 +1,12 @@
 import { IntegrationWrapper } from '../integration';
 
 export abstract class AuthIntegration<T = any> extends IntegrationWrapper<T> {
+  public client: any = null;
+
   abstract authenticate(): Promise<AuthResponse<any>>;
   abstract testConnection(): Promise<TestConnectionResponse>;
   exchangeToken?(oauthPayload: any): Promise<Record<string, any>>;
+  destroy?(): Promise<void>;
 }
 
 export interface TestConnectionResponse {
@@ -19,6 +22,4 @@ export enum AuthType {
   Custom = 'custom',
 }
 
-export interface AuthResponse<T = any> {
-  custom?: T;
-}
+export type AuthResponse<T = any> = T;

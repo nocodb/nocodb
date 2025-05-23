@@ -8,6 +8,8 @@ import type {
 } from '@noco-integrations/core';
 
 export class JiraAuthIntegration extends AuthIntegration {
+  public client: JiraClient | null = null;
+
   public async authenticate(): Promise<AuthResponse<JiraClient>> {
     switch (this.config.type) {
       case AuthType.ApiKey:
@@ -15,30 +17,30 @@ export class JiraAuthIntegration extends AuthIntegration {
           throw new Error('Missing required Jira configuration');
         }
 
-        return {
-          custom: new JiraClient({
+        this.client = new JiraClient({
             protocol: 'https',
             host: this.extractHostFromUrl(this.config.jira_url),
             username: this.config.email,
             password: this.config.token,
             apiVersion: '3',
             strictSSL: true,
-          }),
-        };
+        });
+
+        return this.client;
       case AuthType.OAuth:
         if (!this.config.jira_url || !this.config.oauth_token) {
           throw new Error('Missing required Jira configuration');
         }
 
-        return {
-          custom: new JiraClient({
+        this.client = new JiraClient({
             protocol: 'https',
             host: this.extractHostFromUrl(this.config.jira_url),
             bearer: this.config.oauth_token,
             apiVersion: '3',
             strictSSL: true,
-          }),
-        };
+        });
+
+        return this.client;
       default:
         throw new Error('Not implemented');
     }
@@ -46,7 +48,7 @@ export class JiraAuthIntegration extends AuthIntegration {
 
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
-      const jira = (await this.authenticate()).custom;
+      const jira = await this.authenticate();
 
       if (!jira) {
         return {

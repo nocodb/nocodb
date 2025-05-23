@@ -106,7 +106,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
       {
         issuer: config.issuer ?? req.ncSiteUrl + `/sso/${client.id}`,
         entryPoint: config.entryPoint,
-        cert: config.cert,
+        idpCert: config.cert,
         callbackUrl: req.ncSiteUrl + `/sso/${client.id}/redirect`,
         audience: config.audience ?? req.ncSiteUrl + `/sso/${client.id}`,
         passReqToCallback: true,

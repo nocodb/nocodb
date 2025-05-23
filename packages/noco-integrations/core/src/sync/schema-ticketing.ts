@@ -1,6 +1,5 @@
-import { UITypes } from 'nocodb-sdk';
-import { TARGET_TABLES } from './common';
-import { SyncSchema, SyncRecord, SyncValue, SyncLinkValue } from './types';
+import { UITypes, TARGET_TABLES } from 'nocodb-sdk';
+import { SyncSchema, SyncRecord, SyncValue } from './types';
 
 export interface TicketingTicketRecord extends SyncRecord {
   Name: SyncValue<string>;

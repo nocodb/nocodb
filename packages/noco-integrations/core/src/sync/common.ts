@@ -1,5 +1,7 @@
-import { UITypes } from 'nocodb-sdk';
+import { UITypes, SyncCategory, TARGET_TABLES } from 'nocodb-sdk';
 import { SyncColumnDefinition } from './types';
+
+export { SyncCategory, TARGET_TABLES };
 
 export const syncSystemFields: SyncColumnDefinition[] = [
   // Generic System Fields
@@ -54,9 +56,3 @@ export const syncSystemFieldsMap = syncSystemFields.reduce((acc, field) => {
   acc[field.title] = field;
   return acc;
 }, {} as Record<string, SyncColumnDefinition>);
-
-export enum TARGET_TABLES {
-  TICKETING_TICKET = 'ticketing_ticket',
-  TICKETING_USER = 'ticketing_user',
-  TICKETING_COMMENT = 'ticketing_comment',
-}

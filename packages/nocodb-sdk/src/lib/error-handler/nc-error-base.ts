@@ -214,16 +214,22 @@ export class NcErrorBase {
   }
 
   invalidValueForField(
-    payload: string | { value: string; column: string; type: UITypes },
-    args?: NcErrorArgs
+    payload:
+      | string
+      | { value: string; column: string; type: UITypes; reason?: string },
+    args?: NcErrorArgs,
   ): never {
+    const withReason =
+      typeof payload === 'object' && payload.reason
+        ? `, reason: ${payload.reason}`
+        : ``;
     throw NcErrorGenerator._.generateError(
       NcErrorType.INVALID_VALUE_FOR_FIELD,
       {
         params:
           typeof payload === 'string'
             ? payload
-            : `Invalid value '${payload.value}' for type '${payload.type}' on column '${payload.column}'`,
+            : `Invalid value '${payload.value}' for type '${payload.type}' on column '${payload.column}'${withReason}`,
         ...args,
       }
     );

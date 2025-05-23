@@ -20,6 +20,11 @@ export interface TicketingUserRecord extends SyncRecord {
   Email: SyncValue<string>;
 }
 
+export interface TicketingCommentRecord extends SyncRecord {
+  Title: SyncValue<string>;
+  Body: SyncValue<string>;
+}
+
 export const SCHEMA_TICKETING: SyncSchema = {
   [TARGET_TABLES.TICKETING_TICKET]: {
     title: 'Ticket',

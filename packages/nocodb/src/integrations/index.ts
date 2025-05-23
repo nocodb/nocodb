@@ -6,6 +6,8 @@
 import ClickhouseAuth from '@noco-local-integrations/clickhouse-auth';
 import GithubAuth from '@noco-local-integrations/github-auth';
 import GithubSync from '@noco-local-integrations/github-sync';
+import GitlabAuth from '@noco-local-integrations/gitlab-auth';
+import GitlabSync from '@noco-local-integrations/gitlab-sync';
 import NocodbAi from '@noco-local-integrations/nocodb-ai';
 import OpenaiAi from '@noco-local-integrations/openai-ai';
 
@@ -15,6 +17,8 @@ export default [
   ClickhouseAuth,
   GithubAuth,
   GithubSync,
+  GitlabAuth,
+  GitlabSync,
   NocodbAi,
   OpenaiAi,
 ] as IntegrationEntry[];

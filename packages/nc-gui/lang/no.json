@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Oppgrader {workspace} til {plan}-planen",
     "upgradeToPlanSubtitle": "Du vil bli belastet umiddelbart for dette abonnementet.",
     "reactivateToPlan": "Reaktivere {plan}-abonnement?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Du kan bare duplisere prosjekter til arbeidsområder der du har skaperrettigheter eller høyere.",
     "snapshotBaseRestoreMessage": "Du kan bare gjenopprette til arbeidsområder der du har skaperrettigheter eller høyere.",
     "currentWorkspace": "Gjeldende arbeidsområde",
+    "currentBase": "Current base",
     "latitude": "Breddegrad",
     "longitude": "Lengdegrad",
     "failed": "Mislyktes",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API-utdrag",
     "includeData": "Inkluder data",
     "includeRecords": "Inkluder poster",
-    "baseDuplicateMessage": "Merk: Revisjonslogger og integrasjoner vil ikke bli duplisert.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Inkluder visninger",
     "includeWebhook": "Inkluder webhook",
     "includeComments": "Inkluder kommentarer",
@@ -1611,6 +1616,7 @@
     "changePlan": "Endre plan"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Hvert arbeidsområde må ha minst én eier. Vennligst tildel en annen bruker som eier før du forlater arbeidsområdet. Hvis du er det siste medlemmet, bør du vurdere å slette arbeidsområdet i stedet.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Aktiver for å gjøre denne tilkoblingen privat og skjult fra andre skapere i arbeidsområdet.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Kopier feilkode",
     "paidUserBadgeTooltip": "Brukeren har redaktør- eller høyere rolle i minst én base.",
     "approachingLimit": "Nærmer seg grensen",
-    "exceedingLimit": "Overskrider grensen"
+    "exceedingLimit": "Overskrider grensen",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Søk ikoner",

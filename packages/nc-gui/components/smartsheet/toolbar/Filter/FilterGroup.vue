@@ -1,49 +1,9 @@
 <script setup lang="ts">
-import { cp } from 'fs'
-import { type ClientType, type ColumnType, type FilterType, UITypes } from 'nocodb-sdk'
+import { type FilterType, UITypes } from 'nocodb-sdk'
+import { type GroupEmits, type GroupProps } from './types'
 import { SmartsheetToolbarFilterGroupRow } from '#components'
-interface Props {
-  modelValue: ColumnFilterType[]
-  index: number
-  nestedLevel: number
-  columns: ColumnTypeForFilter[]
-  dbClientType?: ClientType
-  showNullAndEmptyInFilter?: boolean
-  disableAddNewFilter?: boolean
-  actionBtnType?: 'text' | 'secondary'
-
-  webHook?: boolean
-  link?: boolean
-  isForm?: boolean
-  isPublic?: boolean
-
-  disabled?: boolean
-  // some view is different when locked view but not disabled
-  isLockedView?: boolean
-  isLogicalOpChangeAllowed?: boolean
-
-  // limit imposed by user plan
-  filterPerViewLimit: number
-  // total filter already added into section
-  filtersCount?: number
-
-  // what's this???
-  queryFilter?: boolean
-}
-interface Emits {
-  (event: 'update:modelValue', model: string): void
-  (event: 'change', model: FilterGroupChangeEvent): void
-  (event: 'row-change', model: FilterRowChangeEvent): void
-  (
-    event: 'delete',
-    model: {
-      filter: ColumnFilterType[]
-      index: number
-    },
-  ): void
-}
-const props = defineProps<Props>()
-const emits = defineEmits<Emits>()
+const props = defineProps<GroupProps>()
+const emits = defineEmits<GroupEmits>()
 const vModel = useVModel(props, 'modelValue', emits)
 
 const { t } = useI18n()

@@ -74,7 +74,7 @@ const { isUIAllowed } = useRoles()
 
 const options = computed(() => {
   const currentUserField: any[] = []
-  if (isInFilter.value) {
+  if (isEeUI && isInFilter.value) {
     currentUserField.push({
       id: CURRENT_USER_TOKEN,
       display_name: t('title.currentUser'),

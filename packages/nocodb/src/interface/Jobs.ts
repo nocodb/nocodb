@@ -210,5 +210,6 @@ export interface SyncDataSyncModuleJobData extends JobData {
   syncConfigId: string;
   targetTables?: string[];
   trigger: SyncTrigger;
+  bulk?: boolean;
   req: NcRequest;
 }

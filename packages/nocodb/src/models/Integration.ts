@@ -595,6 +595,18 @@ export default class Integration implements IntegrationType {
     return this.castType(integrationData);
   }
 
+  static tempIntegrationWrapper(config: Partial<IntegrationType>) {
+    const integrationWrapper = Integration.availableIntegrations.find(
+      (el) => el.type === config.type && el.sub_type === config.sub_type,
+    );
+
+    if (!integrationWrapper) {
+      throw new Error('Integration not found');
+    }
+
+    return new integrationWrapper.wrapper(config.config);
+  }
+
   public wrapper: IntegrationWrapper;
 
   getIntegrationWrapper<T = any>() {

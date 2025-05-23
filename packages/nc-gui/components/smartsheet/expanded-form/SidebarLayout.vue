@@ -48,7 +48,7 @@ watch(
       timerId = setTimeout(() => {
         isReadySidebar.value = true
         clearTimeout(timerId)
-      }, 1000)
+      }, 300)
     } else {
       isReadySidebar.value = false
     }
@@ -65,11 +65,11 @@ onBeforeUnmount(() => {
 
 <template>
   <Splitpanes
-    class="nc-expanded-form-right-sidebar-content-resizable-wrapper w-full h-full relative"
+    class="nc-expanded-form-right-sidebar-content-resizable-wrapper w-full h-full"
     @resize="(event: any) => onResize(event[1].size)"
   >
-    <Pane :size="expandedFormPreviewSize" class="flex-1 h-full relative">
-      <slot name="preview" />
+    <Pane :size="expandedFormPreviewSize" class="flex-1 h-full">
+      <slot />
     </Pane>
     <Pane
       v-if="isExpandedFormSidebarEnabled && isReadySidebar && route.query.rowId"

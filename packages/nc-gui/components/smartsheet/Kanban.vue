@@ -483,138 +483,566 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
 </script>
 
 <template>
-  <div
-    class="flex flex-col w-full bg-gray-50 h-full"
-    data-testid="nc-kanban-wrapper"
-    :style="{
-      minHeight: 'calc(100% - var(--topbar-height))',
-    }"
-  >
+  <SmartsheetExpandedFormSidebarLayout>
     <div
-      ref="kanbanContainerRef"
-      class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-scrollbar-x-lg"
+      class="flex flex-col w-full bg-gray-50 h-full"
+      data-testid="nc-kanban-wrapper"
       :style="{
-        minHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 0.4rem)',
-        maxHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 0.4rem)',
+        minHeight: 'calc(100% - var(--topbar-height))',
       }"
     >
-      <div v-if="isViewDataLoading" class="flex flex-row min-h-full gap-x-2">
-        <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-80 !min-h-full !rounded-xl overflow-hidden" />
-      </div>
-      <NcDropdown
-        v-else
-        v-model:visible="contextMenu"
-        :trigger="['contextmenu']"
-        overlay-class-name="nc-dropdown-kanban-context-menu"
+      <div
+        ref="kanbanContainerRef"
+        class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-scrollbar-x-lg"
+        :style="{
+          minHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 0.4rem)',
+          maxHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 0.4rem)',
+        }"
       >
-        <div class="flex gap-3">
-          <!-- Draggable Stack -->
-          <Draggable
-            v-model="groupingFieldColOptions"
-            class="flex gap-3"
-            item-key="id"
-            group="kanban-stack"
-            draggable=".nc-kanban-stack"
-            handle=".nc-kanban-stack-drag-handler"
-            :filter="draggableStackFilter"
-            :move="onMoveCallback"
-            @start="(e) => e.target.classList.add('grabbing')"
-            @end="(e) => e.target.classList.remove('grabbing')"
-            @change="onMoveStack($event)"
-          >
-            <template #item="{ element: stack, index: stackIdx }">
-              <div
-                class="nc-kanban-stack"
-                :class="{
-                  'w-[44px]': stack.collapsed,
-                  'hidden':
-                    (hideEmptyStack && !formattedData.get(stack.title)?.length) ||
-                    (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId),
-                }"
-                :data-testid="`nc-kanban-stack-${stack.title}`"
-              >
-                <!-- Non Collapsed Stacks -->
-                <a-card
-                  v-if="!stack.collapsed"
-                  :key="`${stack.id}-${stackIdx}`"
-                  class="flex flex-col w-68.5 h-full !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none !border-gray-200"
+        <div v-if="isViewDataLoading" class="flex flex-row min-h-full gap-x-2">
+          <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-80 !min-h-full !rounded-xl overflow-hidden" />
+        </div>
+        <NcDropdown
+          v-else
+          v-model:visible="contextMenu"
+          :trigger="['contextmenu']"
+          overlay-class-name="nc-dropdown-kanban-context-menu"
+        >
+          <div class="flex gap-3">
+            <!-- Draggable Stack -->
+            <Draggable
+              v-model="groupingFieldColOptions"
+              class="flex gap-3"
+              item-key="id"
+              group="kanban-stack"
+              draggable=".nc-kanban-stack"
+              handle=".nc-kanban-stack-drag-handler"
+              :filter="draggableStackFilter"
+              :move="onMoveCallback"
+              @start="(e) => e.target.classList.add('grabbing')"
+              @end="(e) => e.target.classList.remove('grabbing')"
+              @change="onMoveStack($event)"
+            >
+              <template #item="{ element: stack, index: stackIdx }">
+                <div
+                  class="nc-kanban-stack"
                   :class="{
-                    'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
-                    '!cursor-default': isLocked || !hasEditPermission,
+                    'w-[44px]': stack.collapsed,
+                    'hidden':
+                      (hideEmptyStack && !formattedData.get(stack.title)?.length) ||
+                      (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId),
                   }"
-                  :head-style="{ paddingBottom: '0px' }"
-                  :body-style="{
-                    padding: '0px !important',
-                    height: '100%',
-                    borderRadius: '0.75rem !important',
-                    paddingBottom: '0rem !important',
-                  }"
+                  :data-testid="`nc-kanban-stack-${stack.title}`"
                 >
-                  <!-- Skeleton -->
-                  <div v-if="!formattedData.get(stack.title) || !countByStack" class="mt-2.5 px-3 !w-full">
-                    <a-skeleton-input :active="true" class="!w-full !h-9.75 !rounded-lg overflow-hidden" />
-                  </div>
+                  <!-- Non Collapsed Stacks -->
+                  <a-card
+                    v-if="!stack.collapsed"
+                    :key="`${stack.id}-${stackIdx}`"
+                    class="flex flex-col w-68.5 h-full !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none !border-gray-200"
+                    :class="{
+                      'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
+                      '!cursor-default': isLocked || !hasEditPermission,
+                    }"
+                    :head-style="{ paddingBottom: '0px' }"
+                    :body-style="{
+                      padding: '0px !important',
+                      height: '100%',
+                      borderRadius: '0.75rem !important',
+                      paddingBottom: '0rem !important',
+                    }"
+                  >
+                    <!-- Skeleton -->
+                    <div v-if="!formattedData.get(stack.title) || !countByStack" class="mt-2.5 px-3 !w-full">
+                      <a-skeleton-input :active="true" class="!w-full !h-9.75 !rounded-lg overflow-hidden" />
+                    </div>
 
-                  <!-- Stack -->
-                  <a-layout v-else>
-                    <a-layout-header
-                      class="border-b-1 border-gray-100 min-h-[49px]"
-                      :class="`nc-kanban-stack-header-${stack.id}`"
-                    >
-                      <div
-                        class="nc-kanban-stack-head w-full flex gap-1"
-                        :class="{
-                          'items-start': compareStack(stack, isRenameOrNewStack),
-                          'items-center': !compareStack(stack, isRenameOrNewStack),
-                        }"
+                    <!-- Stack -->
+                    <a-layout v-else>
+                      <a-layout-header
+                        class="border-b-1 border-gray-100 min-h-[49px]"
+                        :class="`nc-kanban-stack-header-${stack.id}`"
                       >
                         <div
-                          class="flex-1 flex gap-1 max-w-[calc(100%_-_32px)]"
+                          class="nc-kanban-stack-head w-full flex gap-1"
                           :class="{
                             'items-start': compareStack(stack, isRenameOrNewStack),
                             'items-center': !compareStack(stack, isRenameOrNewStack),
                           }"
                         >
-                          <NcButton
-                            v-if="!(isLocked || isPublic || !hasEditPermission)"
-                            :disabled="
-                              !stack.title || compareStack(stack, isSavingStack) || compareStack(stack, isRenameOrNewStack)
-                            "
-                            type="text"
-                            size="xs"
-                            class="nc-kanban-stack-drag-handler !px-1.5 !cursor-move !:disabled:cursor-not-allowed mt-0.5"
-                          >
-                            <GeneralLoader v-if="compareStack(stack, isSavingStack)" size="regular" class="stack-rename-loader" />
-                            <GeneralIcon v-else icon="ncDrag" class="!font-weight-800 flex-none" />
-                          </NcButton>
-
                           <div
-                            class="flex-1 flex max-w-[calc(100%_-_28px)]"
+                            class="flex-1 flex gap-1 max-w-[calc(100%_-_32px)]"
                             :class="{
-                              '-ml-1': compareStack(stack, isRenameOrNewStack),
+                              'items-start': compareStack(stack, isRenameOrNewStack),
+                              'items-center': !compareStack(stack, isRenameOrNewStack),
                             }"
                           >
-                            <template
-                              v-if="compareStack(stack, isRenameOrNewStack) && metaColumnById[isRenameOrNewStack?.fk_column_id]"
-                            >
-                              <SmartsheetKanbanEditOrAddStack
-                                :column="metaColumnById[isRenameOrNewStack?.fk_column_id]"
-                                :option-id="isRenameOrNewStack.id"
-                                @submit="(loadMeta, payload) => handleSubmitRenameOrNewStack(loadMeta, payload, stackIdx)"
-                              />
-                            </template>
-                            <a-tag
-                              v-else
-                              class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none !mt-0.5"
-                              :color="stack.color"
-                              @dblclick="
-                                () => {
-                                  if (stack.title !== null && hasEditPermission && !isPublic && !isLocked) {
-                                    isRenameOrNewStack = stack
-                                  }
-                                }
+                            <NcButton
+                              v-if="!(isLocked || isPublic || !hasEditPermission)"
+                              :disabled="
+                                !stack.title || compareStack(stack, isSavingStack) || compareStack(stack, isRenameOrNewStack)
                               "
+                              type="text"
+                              size="xs"
+                              class="nc-kanban-stack-drag-handler !px-1.5 !cursor-move !:disabled:cursor-not-allowed mt-0.5"
                             >
+                              <GeneralLoader
+                                v-if="compareStack(stack, isSavingStack)"
+                                size="regular"
+                                class="stack-rename-loader"
+                              />
+                              <GeneralIcon v-else icon="ncDrag" class="!font-weight-800 flex-none" />
+                            </NcButton>
+
+                            <div
+                              class="flex-1 flex max-w-[calc(100%_-_28px)]"
+                              :class="{
+                                '-ml-1': compareStack(stack, isRenameOrNewStack),
+                              }"
+                            >
+                              <template
+                                v-if="compareStack(stack, isRenameOrNewStack) && metaColumnById[isRenameOrNewStack?.fk_column_id]"
+                              >
+                                <SmartsheetKanbanEditOrAddStack
+                                  :column="metaColumnById[isRenameOrNewStack?.fk_column_id]"
+                                  :option-id="isRenameOrNewStack.id"
+                                  @submit="(loadMeta, payload) => handleSubmitRenameOrNewStack(loadMeta, payload, stackIdx)"
+                                />
+                              </template>
+                              <a-tag
+                                v-else
+                                class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none !mt-0.5"
+                                :color="stack.color"
+                                @dblclick="
+                                  () => {
+                                    if (stack.title !== null && hasEditPermission && !isPublic && !isLocked) {
+                                      isRenameOrNewStack = stack
+                                    }
+                                  }
+                                "
+                              >
+                                <span
+                                  :style="{
+                                    color: tinycolor.isReadable(stack.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                                      ? '#fff'
+                                      : tinycolor.mostReadable(stack.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                                  }"
+                                  class="text-sm font-semibold"
+                                >
+                                  <NcTooltip class="truncate max-w-full" placement="bottom" show-on-truncate-only>
+                                    <template #title>
+                                      {{ stack.title ?? 'Uncategorized' }}
+                                    </template>
+                                    <span
+                                      data-testid="nc-kanban-stack-title"
+                                      class="text-ellipsis overflow-hidden"
+                                      :style="{
+                                        wordBreak: 'keep-all',
+                                        whiteSpace: 'nowrap',
+                                        display: 'inline',
+                                      }"
+                                    >
+                                      {{ stack.title ?? 'Uncategorized' }}
+                                    </span>
+                                  </NcTooltip>
+                                </span>
+                              </a-tag>
+                            </div>
+                          </div>
+                          <NcDropdown
+                            placement="bottomRight"
+                            overlay-class-name="nc-dropdown-kanban-stack-context-menu"
+                            class="bg-white !rounded-lg"
+                          >
+                            <NcButton
+                              :disabled="compareStack(stack, isSavingStack)"
+                              type="text"
+                              size="xs"
+                              class="!px-1.5 mt-0.5"
+                              data-testid="nc-kanban-stack-context-menu"
+                            >
+                              <GeneralIcon icon="threeDotVertical" />
+                            </NcButton>
+
+                            <template #overlay>
+                              <NcMenu variant="small">
+                                <NcMenuItem
+                                  v-if="hasEditPermission && !isPublic"
+                                  v-e="['c:kanban:add-new-record']"
+                                  data-testid="nc-kanban-context-menu-add-new-record"
+                                  @click="
+                                    () => {
+                                      selectedStackTitle = stack.title
+                                      handleOpenNewRecordForm(stack.title)
+                                    }
+                                  "
+                                >
+                                  <div class="flex gap-2 items-center">
+                                    <component :is="iconMap.plus" class="flex-none w-4 h-4" />
+                                    {{ $t('activity.newRecord') }}
+                                  </div>
+                                </NcMenuItem>
+                                <NcMenuItem
+                                  v-if="stack.title !== null && hasEditPermission && !isPublic && !isLocked"
+                                  v-e="['c:kanban:rename-stack']"
+                                  data-testid="nc-kanban-context-menu-rename-stack"
+                                  @click="
+                                    () => {
+                                      isRenameOrNewStack = stack
+                                    }
+                                  "
+                                >
+                                  <div class="flex gap-2 items-center">
+                                    <component :is="iconMap.ncEdit" class="flex-none w-4 h-4" />
+                                    {{ $t('activity.kanban.renameStack') }}
+                                  </div>
+                                </NcMenuItem>
+                                <NcMenuItem
+                                  v-e="['c:kanban:collapse-stack']"
+                                  data-testid="nc-kanban-context-menu-collapse-stack"
+                                  @click="handleCollapseStack(stackIdx)"
+                                >
+                                  <div class="flex gap-2 items-center">
+                                    <component :is="iconMap.minimize" class="flex-none w-4 h-4" />
+                                    {{ $t('activity.kanban.collapseStack') }}
+                                  </div>
+                                </NcMenuItem>
+
+                                <NcMenuItem
+                                  v-e="['c:kanban:collapse-all-stack']"
+                                  data-testid="nc-kanban-context-menu-collapse-all-stack"
+                                  @click="handleCollapseAllStack"
+                                >
+                                  <div class="flex gap-2 items-center">
+                                    <component :is="iconMap.minimizeAll" class="flex-none w-4 h-4" />
+                                    {{ $t('activity.kanban.collapseAll') }}
+                                  </div>
+                                </NcMenuItem>
+                                <NcMenuItem
+                                  v-e="['c:kanban:expand-all-stack']"
+                                  data-testid="nc-kanban-context-menu-expand-all-stack"
+                                  @click="handleExpandAllStack"
+                                >
+                                  <div class="flex gap-2 items-center">
+                                    <component :is="iconMap.maximizeAll" class="flex-none w-4 h-4" />
+                                    {{ $t('activity.kanban.expandAll') }}
+                                  </div>
+                                </NcMenuItem>
+                                <template v-if="stack.title !== null && !isPublic && hasEditPermission && !isLocked">
+                                  <NcDivider />
+                                  <NcMenuItem
+                                    v-e="['c:kanban:delete-stack']"
+                                    class="!text-red-600 !hover:bg-red-50"
+                                    data-testid="nc-kanban-context-menu-delete-stack"
+                                    @click="handleDeleteStackClick(stack.title, stackIdx)"
+                                  >
+                                    <div class="flex gap-2 items-center">
+                                      <component :is="iconMap.delete" class="flex-none w-4 h-4" />
+                                      {{ $t('activity.kanban.deleteStack') }}
+                                    </div>
+                                  </NcMenuItem>
+                                </template>
+                              </NcMenu>
+                            </template>
+                          </NcDropdown>
+                        </div>
+                      </a-layout-header>
+
+                      <a-layout-content
+                        class="overflow-y-hidden"
+                        :style="{
+                          backgroundColor: tinycolor
+                            .mix(
+                              stack.color || '#ccc',
+                              '#ffffff',
+                              tinycolor(stack.color || '#ccc').isLight()
+                                ? 70
+                                : tinycolor(stack.color || '#ccc').getBrightness() <= 100
+                                ? 80
+                                : 90,
+                            )
+                            .toString(),
+                        }"
+                      >
+                        <div
+                          :ref="kanbanListRef"
+                          class="nc-kanban-list h-full px-2 nc-scrollbar-thin"
+                          :data-stack-title="stack.title"
+                        >
+                          <!-- Draggable Record Card -->
+                          <Draggable
+                            :list="formattedData.get(stack.title)"
+                            item-key="row.Id"
+                            draggable=".nc-kanban-item"
+                            group="kanban-card"
+                            class="flex flex-col h-full"
+                            :filter="draggableCardFilter"
+                            @start="(e) => e.target.classList.add('grabbing')"
+                            @end="(e) => e.target.classList.remove('grabbing')"
+                            @change="onMove($event, stack.title)"
+                          >
+                            <template #item="{ element: record, index }">
+                              <div class="nc-kanban-item py-1 first:pt-2 last:pb-2">
+                                <LazySmartsheetRow :row="record">
+                                  <a-card
+                                    :key="`${getRowId(record)}-${index}`"
+                                    class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer"
+                                    :body-style="{ padding: '16px !important' }"
+                                    :data-stack="stack.title"
+                                    :data-testid="`nc-gallery-card-${record.row.id}`"
+                                    :class="{
+                                      'not-draggable': !hasEditPermission || isPublic,
+                                      '!cursor-default': !hasEditPermission || isPublic,
+                                    }"
+                                    @click="expandFormClick($event, record)"
+                                    @contextmenu="showContextMenu($event, record)"
+                                  >
+                                    <!--
+                                     Check the coverImageColumn ID because kanbanMetaData?.fk_cover_image_col_id
+                                     could reference a non-existent column. This is a workaround to handle such scenarios properly.
+                                 -->
+                                    <template v-if="coverImageColumn?.id" #cover>
+                                      <template v-if="!reloadAttachments && attachments(record).length">
+                                        <a-carousel
+                                          :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
+                                          class="gallery-carousel !border-b-1 !border-gray-200"
+                                          arrows
+                                        >
+                                          <template #customPaging>
+                                            <a>
+                                              <div>
+                                                <div></div>
+                                              </div>
+                                            </a>
+                                          </template>
+
+                                          <template #prevArrow>
+                                            <div class="z-10 arrow">
+                                              <NcButton
+                                                type="secondary"
+                                                size="xsmall"
+                                                class="!absolute !left-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
+                                              >
+                                                <GeneralIcon icon="arrowLeft" class="text-gray-700 w-4 h-4" />
+                                              </NcButton>
+                                            </div>
+                                          </template>
+
+                                          <template #nextArrow>
+                                            <div class="z-10 arrow">
+                                              <NcButton
+                                                type="secondary"
+                                                size="xsmall"
+                                                class="!absolute !right-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
+                                              >
+                                                <GeneralIcon icon="arrowRight" class="text-gray-700 w-4 h-4" />
+                                              </NcButton>
+                                            </div>
+                                          </template>
+
+                                          <template v-for="attachment in attachments(record)">
+                                            <LazyCellAttachmentPreviewImage
+                                              v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
+                                              :key="attachment.path"
+                                              class="h-52"
+                                              :object-fit="coverImageObjectFitStyle"
+                                              :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
+                                            />
+                                          </template>
+                                        </a-carousel>
+                                      </template>
+                                      <div
+                                        v-else
+                                        class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center"
+                                      >
+                                        <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
+                                      </div>
+                                    </template>
+                                    <div class="flex flex-col gap-3 !children:pointer-events-none">
+                                      <h2
+                                        v-if="displayField"
+                                        class="nc-card-display-value-wrapper"
+                                        :class="{
+                                          '!children:pointer-events-auto':
+                                            isButton(displayField) ||
+                                            (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
+                                        }"
+                                      >
+                                        <template
+                                          v-if="!isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField)"
+                                        >
+                                          <LazySmartsheetVirtualCell
+                                            v-if="isVirtualCol(displayField)"
+                                            v-model="record.row[displayField.title]"
+                                            class="!text-brand-500"
+                                            :column="displayField"
+                                            :row="record"
+                                          />
+
+                                          <LazySmartsheetCell
+                                            v-else
+                                            v-model="record.row[displayField.title]"
+                                            class="!text-brand-500"
+                                            :column="displayField"
+                                            :edit-enabled="false"
+                                            :read-only="true"
+                                          />
+                                        </template>
+                                        <template v-else> -</template>
+                                      </h2>
+
+                                      <div
+                                        v-for="col in fieldsWithoutDisplay"
+                                        :key="`record-${record.row.id}-${col.id}`"
+                                        class="nc-card-col-wrapper"
+                                        :class="{
+                                          '!children:pointer-events-auto':
+                                            isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)),
+                                        }"
+                                        @click="handleCellClick(col, $event)"
+                                      >
+                                        <div class="flex flex-col rounded-lg w-full">
+                                          <div class="flex flex-row w-full justify-start">
+                                            <div class="nc-card-col-header w-full !children:text-gray-500">
+                                              <LazySmartsheetHeaderVirtualCell
+                                                v-if="isVirtualCol(col)"
+                                                :column="col"
+                                                :hide-menu="true"
+                                              />
+
+                                              <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                            </div>
+                                          </div>
+
+                                          <div
+                                            v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col) || isPercent(col)"
+                                            class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
+                                          >
+                                            <LazySmartsheetVirtualCell
+                                              v-if="isVirtualCol(col)"
+                                              v-model="record.row[col.title]"
+                                              :column="col"
+                                              :row="record"
+                                              class="!text-gray-800"
+                                            />
+
+                                            <LazySmartsheetCell
+                                              v-else
+                                              v-model="record.row[col.title]"
+                                              :column="col"
+                                              :edit-enabled="false"
+                                              :read-only="true"
+                                              class="!text-gray-800"
+                                            />
+                                          </div>
+                                          <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </a-card>
+                                </LazySmartsheetRow>
+                              </div>
+                            </template>
+                            <template v-if="!formattedData.get(stack.title)?.length" #footer>
+                              <div class="h-full w-full flex flex-col gap-4 items-center justify-center">
+                                <div class="flex flex-col items-center gap-2 text-gray-600 text-center">
+                                  <span class="text-sm font-semibold">
+                                    {{ $t('general.empty') }} {{ $t('general.stack').toLowerCase() }}
+                                  </span>
+                                  <span class="text-xs font-weight-500">
+                                    {{ $t('title.looksLikeThisStackIsEmpty') }}
+                                  </span>
+                                </div>
+                                <NcButton
+                                  v-if="isUIAllowed('dataInsert')"
+                                  size="xs"
+                                  type="secondary"
+                                  @click="
+                                    () => {
+                                      selectedStackTitle = stack.title
+                                      handleOpenNewRecordForm(stack.title)
+                                    }
+                                  "
+                                >
+                                  <div class="flex items-center gap-2">
+                                    <component :is="iconMap.plus" v-if="!isPublic && !isLocked" />
+
+                                    {{ $t('activity.newRecord') }}
+                                  </div>
+                                </NcButton>
+                              </div>
+                            </template>
+                          </Draggable>
+                        </div>
+                      </a-layout-content>
+                      <a-layout-footer v-if="formattedData.get(stack.title)" class="border-t-1 border-gray-100">
+                        <div class="flex items-center justify-between">
+                          <NcButton
+                            v-if="isUIAllowed('dataInsert')"
+                            size="xs"
+                            type="secondary"
+                            @click="
+                              () => {
+                                selectedStackTitle = stack.title
+                                handleOpenNewRecordForm(stack.title)
+                              }
+                            "
+                          >
+                            <div class="flex items-center gap-2">
+                              <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
+
+                              {{ $t('activity.newRecord') }}
+                            </div>
+                          </NcButton>
+                          <div v-else>&nbsp;</div>
+
+                          <!-- Record Count -->
+                          <div class="nc-kanban-data-count text-gray-500 font-weight-500 px-1">
+                            {{ formattedData.get(stack.title)!.length }}/{{ countByStack.get(stack.title) ?? 0 }}
+                            {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
+                          </div>
+                        </div>
+                      </a-layout-footer>
+                    </a-layout>
+                  </a-card>
+
+                  <!-- Collapsed Stacks -->
+                  <a-card
+                    v-else
+                    :key="`${stack.id}-collapsed`"
+                    class="nc-kanban-collapsed-stack flex items-center w-68.5 h-[44px] !rounded-xl cursor-pointer h-full !p-2 overflow-hidden !shadow-none !hover:shadow-none !border-gray-200"
+                    :class="{
+                      'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
+                    }"
+                    :body-style="{
+                      padding: '0px !important',
+                      height: '100%',
+                      width: '100%',
+                      borderRadius: '0.75rem !important',
+                      paddingBottom: '0rem !important',
+                    }"
+                  >
+                    <div class="h-full flex items-center justify-between" @click="handleCollapseStack(stackIdx)">
+                      <div
+                        v-if="!formattedData.get(stack.title) || !countByStack"
+                        class="!w-full !h-full flex items-center justify-center"
+                      >
+                        <a-skeleton-input :active="true" class="!w-full !h-4 !rounded-lg overflow-hidden" />
+                      </div>
+                      <div v-else class="nc-kanban-stack-head w-full flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-1">
+                          <NcButton
+                            v-if="!(isLocked || isPublic || !hasEditPermission)"
+                            :disabled="!stack.title"
+                            type="text"
+                            size="xs"
+                            class="nc-kanban-stack-drag-handler !px-1.5 !cursor-move"
+                            @click.stop
+                          >
+                            <GeneralIcon icon="ncDrag" class="font-weight-800 flex-none" />
+                          </NcButton>
+
+                          <div class="flex-1 flex max-w-[115px]">
+                            <a-tag class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none" :color="stack.color">
                               <span
                                 :style="{
                                   color: tinycolor.isReadable(stack.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
@@ -623,7 +1051,7 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                                 }"
                                 class="text-sm font-semibold"
                               >
-                                <NcTooltip class="truncate max-w-full" placement="bottom" show-on-truncate-only>
+                                <NcTooltip class="truncate max-w-full" placement="left" show-on-truncate-only>
                                   <template #title>
                                     {{ stack.title ?? 'Uncategorized' }}
                                   </template>
@@ -643,563 +1071,141 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                             </a-tag>
                           </div>
                         </div>
-                        <NcDropdown
-                          placement="bottomRight"
-                          overlay-class-name="nc-dropdown-kanban-stack-context-menu"
-                          class="bg-white !rounded-lg"
-                        >
-                          <NcButton
-                            :disabled="compareStack(stack, isSavingStack)"
-                            type="text"
-                            size="xs"
-                            class="!px-1.5 mt-0.5"
-                            data-testid="nc-kanban-stack-context-menu"
+
+                        <div class="flex items-center gap-2 truncate">
+                          <div
+                            class="nc-kanban-data-count px-1 rounded bg-gray-200 text-gray-800 text-sm font-weight-500 truncate"
+                            :style="{ 'word-break': 'keep-all', 'white-space': 'nowrap' }"
                           >
-                            <GeneralIcon icon="threeDotVertical" />
-                          </NcButton>
-
-                          <template #overlay>
-                            <NcMenu variant="small">
-                              <NcMenuItem
-                                v-if="hasEditPermission && !isPublic"
-                                v-e="['c:kanban:add-new-record']"
-                                data-testid="nc-kanban-context-menu-add-new-record"
-                                @click="
-                                  () => {
-                                    selectedStackTitle = stack.title
-                                    handleOpenNewRecordForm(stack.title)
-                                  }
-                                "
-                              >
-                                <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.plus" class="flex-none w-4 h-4" />
-                                  {{ $t('activity.newRecord') }}
-                                </div>
-                              </NcMenuItem>
-                              <NcMenuItem
-                                v-if="stack.title !== null && hasEditPermission && !isPublic && !isLocked"
-                                v-e="['c:kanban:rename-stack']"
-                                data-testid="nc-kanban-context-menu-rename-stack"
-                                @click="
-                                  () => {
-                                    isRenameOrNewStack = stack
-                                  }
-                                "
-                              >
-                                <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.ncEdit" class="flex-none w-4 h-4" />
-                                  {{ $t('activity.kanban.renameStack') }}
-                                </div>
-                              </NcMenuItem>
-                              <NcMenuItem
-                                v-e="['c:kanban:collapse-stack']"
-                                data-testid="nc-kanban-context-menu-collapse-stack"
-                                @click="handleCollapseStack(stackIdx)"
-                              >
-                                <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.minimize" class="flex-none w-4 h-4" />
-                                  {{ $t('activity.kanban.collapseStack') }}
-                                </div>
-                              </NcMenuItem>
-
-                              <NcMenuItem
-                                v-e="['c:kanban:collapse-all-stack']"
-                                data-testid="nc-kanban-context-menu-collapse-all-stack"
-                                @click="handleCollapseAllStack"
-                              >
-                                <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.minimizeAll" class="flex-none w-4 h-4" />
-                                  {{ $t('activity.kanban.collapseAll') }}
-                                </div>
-                              </NcMenuItem>
-                              <NcMenuItem
-                                v-e="['c:kanban:expand-all-stack']"
-                                data-testid="nc-kanban-context-menu-expand-all-stack"
-                                @click="handleExpandAllStack"
-                              >
-                                <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.maximizeAll" class="flex-none w-4 h-4" />
-                                  {{ $t('activity.kanban.expandAll') }}
-                                </div>
-                              </NcMenuItem>
-                              <template v-if="stack.title !== null && !isPublic && hasEditPermission && !isLocked">
-                                <NcDivider />
-                                <NcMenuItem
-                                  v-e="['c:kanban:delete-stack']"
-                                  class="!text-red-600 !hover:bg-red-50"
-                                  data-testid="nc-kanban-context-menu-delete-stack"
-                                  @click="handleDeleteStackClick(stack.title, stackIdx)"
-                                >
-                                  <div class="flex gap-2 items-center">
-                                    <component :is="iconMap.delete" class="flex-none w-4 h-4" />
-                                    {{ $t('activity.kanban.deleteStack') }}
-                                  </div>
-                                </NcMenuItem>
-                              </template>
-                            </NcMenu>
-                          </template>
-                        </NcDropdown>
-                      </div>
-                    </a-layout-header>
-
-                    <a-layout-content
-                      class="overflow-y-hidden"
-                      :style="{
-                        backgroundColor: tinycolor
-                          .mix(
-                            stack.color || '#ccc',
-                            '#ffffff',
-                            tinycolor(stack.color || '#ccc').isLight()
-                              ? 70
-                              : tinycolor(stack.color || '#ccc').getBrightness() <= 100
-                              ? 80
-                              : 90,
-                          )
-                          .toString(),
-                      }"
-                    >
-                      <div
-                        :ref="kanbanListRef"
-                        class="nc-kanban-list h-full px-2 nc-scrollbar-thin"
-                        :data-stack-title="stack.title"
-                      >
-                        <!-- Draggable Record Card -->
-                        <Draggable
-                          :list="formattedData.get(stack.title)"
-                          item-key="row.Id"
-                          draggable=".nc-kanban-item"
-                          group="kanban-card"
-                          class="flex flex-col h-full"
-                          :filter="draggableCardFilter"
-                          @start="(e) => e.target.classList.add('grabbing')"
-                          @end="(e) => e.target.classList.remove('grabbing')"
-                          @change="onMove($event, stack.title)"
-                        >
-                          <template #item="{ element: record, index }">
-                            <div class="nc-kanban-item py-1 first:pt-2 last:pb-2">
-                              <LazySmartsheetRow :row="record">
-                                <a-card
-                                  :key="`${getRowId(record)}-${index}`"
-                                  class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer"
-                                  :body-style="{ padding: '16px !important' }"
-                                  :data-stack="stack.title"
-                                  :data-testid="`nc-gallery-card-${record.row.id}`"
-                                  :class="{
-                                    'not-draggable': !hasEditPermission || isPublic,
-                                    '!cursor-default': !hasEditPermission || isPublic,
-                                  }"
-                                  @click="expandFormClick($event, record)"
-                                  @contextmenu="showContextMenu($event, record)"
-                                >
-                                  <!--
-                                     Check the coverImageColumn ID because kanbanMetaData?.fk_cover_image_col_id
-                                     could reference a non-existent column. This is a workaround to handle such scenarios properly.
-                                 -->
-                                  <template v-if="coverImageColumn?.id" #cover>
-                                    <template v-if="!reloadAttachments && attachments(record).length">
-                                      <a-carousel
-                                        :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
-                                        class="gallery-carousel !border-b-1 !border-gray-200"
-                                        arrows
-                                      >
-                                        <template #customPaging>
-                                          <a>
-                                            <div>
-                                              <div></div>
-                                            </div>
-                                          </a>
-                                        </template>
-
-                                        <template #prevArrow>
-                                          <div class="z-10 arrow">
-                                            <NcButton
-                                              type="secondary"
-                                              size="xsmall"
-                                              class="!absolute !left-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
-                                            >
-                                              <GeneralIcon icon="arrowLeft" class="text-gray-700 w-4 h-4" />
-                                            </NcButton>
-                                          </div>
-                                        </template>
-
-                                        <template #nextArrow>
-                                          <div class="z-10 arrow">
-                                            <NcButton
-                                              type="secondary"
-                                              size="xsmall"
-                                              class="!absolute !right-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
-                                            >
-                                              <GeneralIcon icon="arrowRight" class="text-gray-700 w-4 h-4" />
-                                            </NcButton>
-                                          </div>
-                                        </template>
-
-                                        <template v-for="attachment in attachments(record)">
-                                          <LazyCellAttachmentPreviewImage
-                                            v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
-                                            :key="attachment.path"
-                                            class="h-52"
-                                            :object-fit="coverImageObjectFitStyle"
-                                            :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
-                                          />
-                                        </template>
-                                      </a-carousel>
-                                    </template>
-                                    <div
-                                      v-else
-                                      class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center"
-                                    >
-                                      <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
-                                    </div>
-                                  </template>
-                                  <div class="flex flex-col gap-3 !children:pointer-events-none">
-                                    <h2
-                                      v-if="displayField"
-                                      class="nc-card-display-value-wrapper"
-                                      :class="{
-                                        '!children:pointer-events-auto':
-                                          isButton(displayField) ||
-                                          (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
-                                      }"
-                                    >
-                                      <template
-                                        v-if="!isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField)"
-                                      >
-                                        <LazySmartsheetVirtualCell
-                                          v-if="isVirtualCol(displayField)"
-                                          v-model="record.row[displayField.title]"
-                                          class="!text-brand-500"
-                                          :column="displayField"
-                                          :row="record"
-                                        />
-
-                                        <LazySmartsheetCell
-                                          v-else
-                                          v-model="record.row[displayField.title]"
-                                          class="!text-brand-500"
-                                          :column="displayField"
-                                          :edit-enabled="false"
-                                          :read-only="true"
-                                        />
-                                      </template>
-                                      <template v-else> -</template>
-                                    </h2>
-
-                                    <div
-                                      v-for="col in fieldsWithoutDisplay"
-                                      :key="`record-${record.row.id}-${col.id}`"
-                                      class="nc-card-col-wrapper"
-                                      :class="{
-                                        '!children:pointer-events-auto':
-                                          isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)),
-                                      }"
-                                      @click="handleCellClick(col, $event)"
-                                    >
-                                      <div class="flex flex-col rounded-lg w-full">
-                                        <div class="flex flex-row w-full justify-start">
-                                          <div class="nc-card-col-header w-full !children:text-gray-500">
-                                            <LazySmartsheetHeaderVirtualCell
-                                              v-if="isVirtualCol(col)"
-                                              :column="col"
-                                              :hide-menu="true"
-                                            />
-
-                                            <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
-                                          </div>
-                                        </div>
-
-                                        <div
-                                          v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col) || isPercent(col)"
-                                          class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
-                                        >
-                                          <LazySmartsheetVirtualCell
-                                            v-if="isVirtualCol(col)"
-                                            v-model="record.row[col.title]"
-                                            :column="col"
-                                            :row="record"
-                                            class="!text-gray-800"
-                                          />
-
-                                          <LazySmartsheetCell
-                                            v-else
-                                            v-model="record.row[col.title]"
-                                            :column="col"
-                                            :edit-enabled="false"
-                                            :read-only="true"
-                                            class="!text-gray-800"
-                                          />
-                                        </div>
-                                        <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </a-card>
-                              </LazySmartsheetRow>
-                            </div>
-                          </template>
-                          <template v-if="!formattedData.get(stack.title)?.length" #footer>
-                            <div class="h-full w-full flex flex-col gap-4 items-center justify-center">
-                              <div class="flex flex-col items-center gap-2 text-gray-600 text-center">
-                                <span class="text-sm font-semibold">
-                                  {{ $t('general.empty') }} {{ $t('general.stack').toLowerCase() }}
-                                </span>
-                                <span class="text-xs font-weight-500">
-                                  {{ $t('title.looksLikeThisStackIsEmpty') }}
-                                </span>
-                              </div>
-                              <NcButton
-                                v-if="isUIAllowed('dataInsert')"
-                                size="xs"
-                                type="secondary"
-                                @click="
-                                  () => {
-                                    selectedStackTitle = stack.title
-                                    handleOpenNewRecordForm(stack.title)
-                                  }
-                                "
-                              >
-                                <div class="flex items-center gap-2">
-                                  <component :is="iconMap.plus" v-if="!isPublic && !isLocked" />
-
-                                  {{ $t('activity.newRecord') }}
-                                </div>
-                              </NcButton>
-                            </div>
-                          </template>
-                        </Draggable>
-                      </div>
-                    </a-layout-content>
-                    <a-layout-footer v-if="formattedData.get(stack.title)" class="border-t-1 border-gray-100">
-                      <div class="flex items-center justify-between">
-                        <NcButton
-                          v-if="isUIAllowed('dataInsert')"
-                          size="xs"
-                          type="secondary"
-                          @click="
-                            () => {
-                              selectedStackTitle = stack.title
-                              handleOpenNewRecordForm(stack.title)
-                            }
-                          "
-                        >
-                          <div class="flex items-center gap-2">
-                            <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
-
-                            {{ $t('activity.newRecord') }}
+                            <!-- Record Count -->
+                            {{ formattedData.get(stack.title)!.length }}
+                            {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
                           </div>
-                        </NcButton>
-                        <div v-else>&nbsp;</div>
 
-                        <!-- Record Count -->
-                        <div class="nc-kanban-data-count text-gray-500 font-weight-500 px-1">
-                          {{ formattedData.get(stack.title)!.length }}/{{ countByStack.get(stack.title) ?? 0 }}
-                          {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
+                          <NcButton type="text" size="xs" class="!px-1.5">
+                            <component :is="iconMap.arrowDown" class="text-grey h-4 w-4 flex-none" />
+                          </NcButton>
                         </div>
-                      </div>
-                    </a-layout-footer>
-                  </a-layout>
-                </a-card>
-
-                <!-- Collapsed Stacks -->
-                <a-card
-                  v-else
-                  :key="`${stack.id}-collapsed`"
-                  class="nc-kanban-collapsed-stack flex items-center w-68.5 h-[44px] !rounded-xl cursor-pointer h-full !p-2 overflow-hidden !shadow-none !hover:shadow-none !border-gray-200"
-                  :class="{
-                    'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
-                  }"
-                  :body-style="{
-                    padding: '0px !important',
-                    height: '100%',
-                    width: '100%',
-                    borderRadius: '0.75rem !important',
-                    paddingBottom: '0rem !important',
-                  }"
-                >
-                  <div class="h-full flex items-center justify-between" @click="handleCollapseStack(stackIdx)">
-                    <div
-                      v-if="!formattedData.get(stack.title) || !countByStack"
-                      class="!w-full !h-full flex items-center justify-center"
-                    >
-                      <a-skeleton-input :active="true" class="!w-full !h-4 !rounded-lg overflow-hidden" />
-                    </div>
-                    <div v-else class="nc-kanban-stack-head w-full flex items-center justify-between gap-2">
-                      <div class="flex items-center gap-1">
-                        <NcButton
-                          v-if="!(isLocked || isPublic || !hasEditPermission)"
-                          :disabled="!stack.title"
-                          type="text"
-                          size="xs"
-                          class="nc-kanban-stack-drag-handler !px-1.5 !cursor-move"
-                          @click.stop
-                        >
-                          <GeneralIcon icon="ncDrag" class="font-weight-800 flex-none" />
-                        </NcButton>
-
-                        <div class="flex-1 flex max-w-[115px]">
-                          <a-tag class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none" :color="stack.color">
-                            <span
-                              :style="{
-                                color: tinycolor.isReadable(stack.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                                  ? '#fff'
-                                  : tinycolor.mostReadable(stack.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                              }"
-                              class="text-sm font-semibold"
-                            >
-                              <NcTooltip class="truncate max-w-full" placement="left" show-on-truncate-only>
-                                <template #title>
-                                  {{ stack.title ?? 'Uncategorized' }}
-                                </template>
-                                <span
-                                  data-testid="nc-kanban-stack-title"
-                                  class="text-ellipsis overflow-hidden"
-                                  :style="{
-                                    wordBreak: 'keep-all',
-                                    whiteSpace: 'nowrap',
-                                    display: 'inline',
-                                  }"
-                                >
-                                  {{ stack.title ?? 'Uncategorized' }}
-                                </span>
-                              </NcTooltip>
-                            </span>
-                          </a-tag>
-                        </div>
-                      </div>
-
-                      <div class="flex items-center gap-2 truncate">
-                        <div
-                          class="nc-kanban-data-count px-1 rounded bg-gray-200 text-gray-800 text-sm font-weight-500 truncate"
-                          :style="{ 'word-break': 'keep-all', 'white-space': 'nowrap' }"
-                        >
-                          <!-- Record Count -->
-                          {{ formattedData.get(stack.title)!.length }}
-                          {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
-                        </div>
-
-                        <NcButton type="text" size="xs" class="!px-1.5">
-                          <component :is="iconMap.arrowDown" class="text-grey h-4 w-4 flex-none" />
-                        </NcButton>
                       </div>
                     </div>
-                  </div>
-                </a-card>
-              </div>
-            </template>
-          </Draggable>
+                  </a-card>
+                </div>
+              </template>
+            </Draggable>
 
-          <div v-if="hasEditPermission && !isPublic && !isLocked && groupingFieldColumn?.id" class="nc-kanban-add-new-stack">
-            <!-- Add New Stack -->
-            <a-card
-              class="flex flex-col w-68.5 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200 nc-kanban-stack-header-new-stack"
-              :class="[
-                {
-                  '!cursor-default': isLocked || !hasEditPermission,
-                  '!border-none': !compareStack(addNewStackObj, isRenameOrNewStack),
-                },
-              ]"
-              :head-style="{ paddingBottom: '0px' }"
-              :body-style="{
-                padding: '0px !important',
-                height: '100%',
-                borderRadius: '0.75rem !important',
-                paddingBottom: '0rem !important',
-              }"
-            >
-              <!-- Skeleton -->
-              <div v-if="!formattedData.get(null) || !countByStack" class="mt-2.5 px-3 !w-full">
-                <a-skeleton-input :active="true" class="!w-full !h-9.75 !rounded-lg overflow-hidden" />
-              </div>
+            <div v-if="hasEditPermission && !isPublic && !isLocked && groupingFieldColumn?.id" class="nc-kanban-add-new-stack">
+              <!-- Add New Stack -->
+              <a-card
+                class="flex flex-col w-68.5 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200 nc-kanban-stack-header-new-stack"
+                :class="[
+                  {
+                    '!cursor-default': isLocked || !hasEditPermission,
+                    '!border-none': !compareStack(addNewStackObj, isRenameOrNewStack),
+                  },
+                ]"
+                :head-style="{ paddingBottom: '0px' }"
+                :body-style="{
+                  padding: '0px !important',
+                  height: '100%',
+                  borderRadius: '0.75rem !important',
+                  paddingBottom: '0rem !important',
+                }"
+              >
+                <!-- Skeleton -->
+                <div v-if="!formattedData.get(null) || !countByStack" class="mt-2.5 px-3 !w-full">
+                  <a-skeleton-input :active="true" class="!w-full !h-9.75 !rounded-lg overflow-hidden" />
+                </div>
 
-              <!-- Stack -->
-              <a-layout v-else>
-                <a-layout-header
-                  :class="{
-                    '!p-0 overflow-hidden': !compareStack(addNewStackObj, isRenameOrNewStack),
-                  }"
-                >
-                  <div
-                    class="w-full flex"
+                <!-- Stack -->
+                <a-layout v-else>
+                  <a-layout-header
                     :class="{
-                      'items-start': compareStack(addNewStackObj, isRenameOrNewStack),
-                      'cursor-pointer': !compareStack(addNewStackObj, isRenameOrNewStack),
+                      '!p-0 overflow-hidden': !compareStack(addNewStackObj, isRenameOrNewStack),
                     }"
-                    @click="
-                      () => {
-                        if (!compareStack(addNewStackObj, isRenameOrNewStack)) {
-                          isRenameOrNewStack = addNewStackObj
-                        }
-                      }
-                    "
                   >
-                    <NcButton
-                      v-if="!compareStack(addNewStackObj, isRenameOrNewStack)"
-                      type="secondary"
-                      class="add-new-stack-btn w-full !rounded-xl min-h-11"
-                    >
-                      <div class="flex items-center gap-2">
-                        <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
-
-                        {{ $t('general.new') }} {{ $t('general.stack').toLowerCase() }}
-                      </div>
-                    </NcButton>
-
                     <div
-                      v-else
-                      class="flex-1 flex"
+                      class="w-full flex"
                       :class="{
-                        '-ml-1': compareStack(addNewStackObj, isRenameOrNewStack),
+                        'items-start': compareStack(addNewStackObj, isRenameOrNewStack),
+                        'cursor-pointer': !compareStack(addNewStackObj, isRenameOrNewStack),
                       }"
-                      @click.stop
+                      @click="
+                        () => {
+                          if (!compareStack(addNewStackObj, isRenameOrNewStack)) {
+                            isRenameOrNewStack = addNewStackObj
+                          }
+                        }
+                      "
                     >
-                      <template
-                        v-if="compareStack(addNewStackObj, isRenameOrNewStack) && metaColumnById[groupingFieldColumn?.id]"
+                      <NcButton
+                        v-if="!compareStack(addNewStackObj, isRenameOrNewStack)"
+                        type="secondary"
+                        class="add-new-stack-btn w-full !rounded-xl min-h-11"
                       >
-                        <SmartsheetKanbanEditOrAddStack
-                          :column="metaColumnById[groupingFieldColumn?.id]"
-                          is-new-stack
-                          @submit="(loadMeta) => handleSubmitRenameOrNewStack(loadMeta, undefined)"
-                        />
-                      </template>
+                        <div class="flex items-center gap-2">
+                          <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
+
+                          {{ $t('general.new') }} {{ $t('general.stack').toLowerCase() }}
+                        </div>
+                      </NcButton>
+
+                      <div
+                        v-else
+                        class="flex-1 flex"
+                        :class="{
+                          '-ml-1': compareStack(addNewStackObj, isRenameOrNewStack),
+                        }"
+                        @click.stop
+                      >
+                        <template
+                          v-if="compareStack(addNewStackObj, isRenameOrNewStack) && metaColumnById[groupingFieldColumn?.id]"
+                        >
+                          <SmartsheetKanbanEditOrAddStack
+                            :column="metaColumnById[groupingFieldColumn?.id]"
+                            is-new-stack
+                            @submit="(loadMeta) => handleSubmitRenameOrNewStack(loadMeta, undefined)"
+                          />
+                        </template>
+                      </div>
                     </div>
-                  </div>
-                </a-layout-header>
-              </a-layout>
-            </a-card>
+                  </a-layout-header>
+                </a-layout>
+              </a-card>
+            </div>
           </div>
-        </div>
-        <!-- Drop down Menu -->
-        <template v-if="!isLocked && !isPublic && hasEditPermission" #overlay>
-          <NcMenu variant="small" @click="contextMenu = false">
-            <NcMenuItem v-if="contextMenuTarget" v-e="['a:kanban:expand-record']" @click="expandForm(contextMenuTarget)">
-              <div class="flex items-center gap-2 nc-kanban-context-menu-item">
-                <component :is="iconMap.maximize" class="flex" />
-                <!-- Expand Record -->
-                {{ $t('activity.expandRecord') }}
-              </div>
-            </NcMenuItem>
-            <NcDivider />
-            <NcMenuItem
-              v-if="contextMenuTarget"
-              v-e="['a:kanban:delete-record']"
-              class="!text-red-600 !hover:bg-red-50"
-              @click="deleteRow(contextMenuTarget)"
-            >
-              <div class="flex items-center gap-2 nc-kanban-context-menu-item">
-                <component :is="iconMap.delete" class="flex" />
-                <!-- Delete Record -->
-                {{
-                  $t('general.deleteEntity', {
-                    entity: $t('objects.record').toLowerCase(),
-                  })
-                }}
-              </div>
-            </NcMenuItem>
-          </NcMenu>
-        </template>
-      </NcDropdown>
+          <!-- Drop down Menu -->
+          <template v-if="!isLocked && !isPublic && hasEditPermission" #overlay>
+            <NcMenu variant="small" @click="contextMenu = false">
+              <NcMenuItem v-if="contextMenuTarget" v-e="['a:kanban:expand-record']" @click="expandForm(contextMenuTarget)">
+                <div class="flex items-center gap-2 nc-kanban-context-menu-item">
+                  <component :is="iconMap.maximize" class="flex" />
+                  <!-- Expand Record -->
+                  {{ $t('activity.expandRecord') }}
+                </div>
+              </NcMenuItem>
+              <NcDivider />
+              <NcMenuItem
+                v-if="contextMenuTarget"
+                v-e="['a:kanban:delete-record']"
+                class="!text-red-600 !hover:bg-red-50"
+                @click="deleteRow(contextMenuTarget)"
+              >
+                <div class="flex items-center gap-2 nc-kanban-context-menu-item">
+                  <component :is="iconMap.delete" class="flex" />
+                  <!-- Delete Record -->
+                  {{
+                    $t('general.deleteEntity', {
+                      entity: $t('objects.record').toLowerCase(),
+                    })
+                  }}
+                </div>
+              </NcMenuItem>
+            </NcMenu>
+          </template>
+        </NcDropdown>
+      </div>
     </div>
-  </div>
+  </SmartsheetExpandedFormSidebarLayout>
 
   <Suspense>
     <LazySmartsheetExpandedForm

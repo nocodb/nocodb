@@ -1,5 +1,7 @@
 <script setup lang="ts"></script>
 
-<template>This is dashboard</template>
+<template>
+  <LazySmartsheetDashboard />
+</template>
 
 <style scoped lang="scss"></style>

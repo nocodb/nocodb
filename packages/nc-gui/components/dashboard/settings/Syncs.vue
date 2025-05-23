@@ -1,6 +1,30 @@
 <script setup lang="ts">
-import { SyncTrigger, SyncType } from 'nocodb-sdk'
-import { JobStatus } from '#imports'
+import Draggable from 'vuedraggable'
+
+/*
+const res = await $api.internal.postOperation(
+        base.value.fk_workspace_id!,
+        baseId.value!,
+        {
+          operation: 'createSync',
+        },
+        formState.value,
+      )
+(await $api.internal.getOperation(activeWorkspace.value!.id!, props.baseId!, {
+    operation: 'listSync',
+    fk_model_id: props.tableId,
+  })) as {
+    id: string
+    fk_integration_id: string
+    sync_type: string
+    sync_trigger: string
+    sync_trigger_cron?: string
+    sync_trigger_secret?: string
+    last_sync_at: string | null
+    next_sync_at: string | null
+    sync_job_id: string
+  }[]
+*/
 
 interface Props {
   state: string
@@ -12,193 +36,75 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:state', 'update:reload'])
 
+const vState = useVModel(props, 'state', emits)
+
 const vReload = useVModel(props, 'reload', emits)
 
-const { $api, $poller } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
-const { projectPageTab } = storeToRefs(useConfigStore())
+const basesStore = useBases()
+const { loadProject } = basesStore
+const { isDataSourceLimitReached, bases } = storeToRefs(basesStore)
 
-const workspaceStore = useWorkspace()
-const { activeWorkspace } = storeToRefs(workspaceStore)
-
-const baseStore = useBase()
-const { loadTables } = baseStore
+const base = computed(() => bases.value.get(props.baseId) ?? {})
 
 const { isUIAllowed } = useRoles()
 
+const { projectPageTab } = storeToRefs(useConfigStore())
+
+const { refreshCommandPalette } = useCommandPalette()
+
+const { updateStatLimit, showExternalSourcePlanLimitExceededModal } = useEeConfig()
+
+const sources = ref<SourceType[]>([])
+
+const activeBaseId = ref('')
+
+const isReloading = ref(false)
+
+const isDeleteBaseModalOpen = ref(false)
+const toBeDeletedBase = ref<SourceType | undefined>()
+
 const searchQuery = ref<string>('')
-const syncs = ref<any[]>([])
-const isLoading = ref(false)
-const isCreateSyncModalOpen = ref(false)
-const isEditSyncModalOpen = ref(false)
-const activeSyncId = ref('')
 
-const getSyncFrequency = (trigger: string, cron?: string) => {
-  if (trigger === SyncTrigger.Manual) return 'Manual'
-  if (trigger === SyncTrigger.Schedule && cron) {
-    // Parse cron expression to human-readable format (simplified)
-    if (cron.includes('hourly')) return 'Hourly'
-    if (cron.includes('daily')) return 'Daily'
-    if (cron.includes('weekly')) return 'Weekly'
-    return cron
-  }
-  return 'Unknown'
-}
-
-const loadSyncs = async () => {
-  isLoading.value = true
-  try {
-    const response = await $api.internal.getOperation(activeWorkspace.value!.id!, props.baseId, {
-      operation: 'listSync',
-    })
-
-    // Process and organize syncs data
-    syncs.value = response.map((sync: any) => {
-      return {
-        ...sync,
-        frequency: getSyncFrequency(sync.sync_trigger, sync.sync_trigger_cron),
-      }
-    })
-  } catch (e) {
-    console.error(e)
-  } finally {
-    isLoading.value = false
-  }
-}
-
-const formatDate = (dateString: string | null) => {
-  if (!dateString) return '-'
-  const date = new Date(dateString)
-  return date.toLocaleString()
-}
-
-const handleCreateSync = () => {
-  isCreateSyncModalOpen.value = true
-}
-
-const handleEditSync = (syncId: string) => {
-  activeSyncId.value = syncId
-  isEditSyncModalOpen.value = true
-}
-
-const handleSyncNow = async (syncId: string) => {
-  try {
-    const response = await $api.internal.postOperation(
-      activeWorkspace.value!.id!,
-      props.baseId,
-      {
-        operation: 'triggerSync',
-      },
-      {
-        syncConfigId: syncId,
-      },
-    )
-
-    if (response.job) {
-      // Monitor job status
-      $poller.subscribe({ id: response.job.id }, async (data) => {
-        if (data.status !== 'close') {
-          if (data.status === JobStatus.COMPLETED) {
-            // Refresh syncs list after completion
-            await loadSyncs()
-          }
-        }
-      })
-    }
-  } catch (e) {
-    console.error(e)
-  }
-}
-
-const handleMigrateSync = async (syncId: string) => {
-  try {
-    await $api.internal.postOperation(
-      activeWorkspace.value!.id!,
-      props.baseId,
-      {
-        operation: 'migrateSync',
-      },
-      {
-        syncConfigId: syncId,
-      },
-    )
-  } catch (e) {
-    console.error(e)
-  }
-}
-
-const handleDeleteSync = async (syncId: string) => {
-  try {
-    await $api.internal.postOperation(
-      activeWorkspace.value!.id!,
-      props.baseId,
-      {
-        operation: 'deleteSync',
-      },
-      {
-        syncConfigId: syncId,
-      },
-    )
-    await loadTables()
-    await loadSyncs()
-  } catch (e) {
-    console.error(e)
-  }
-}
-
-const isSearchResultAvailable = () => {
-  if (!searchQuery.value) return true
-  return syncs.value.some(
-    (sync) =>
-      sync.title?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      sync.sync_type?.toLowerCase().includes(searchQuery.value.toLowerCase()),
-  )
-}
-
-// Load syncs when component is mounted
-onMounted(() => {
-  until(() => !!activeWorkspace.value)
-    .toBeTruthy()
-    .then(() => {
-      loadSyncs()
-    })
-})
-
-// Watch for reload prop changes
 watch(
   () => props.reload,
-  (reload) => {
-    if (reload) {
-      vReload.value = false
+  async (reload) => {
+    if (reload && !isReloading.value) {
+      await loadBases()
     }
   },
 )
 
-watch(
-  projectPageTab,
-  () => {
-    if (projectPageTab.value === 'syncs') {
-      until(() => !!activeWorkspace.value)
-        .toBeTruthy()
-        .then(() => {
-          loadSyncs()
-        })
+const activeSource = ref<SourceType | null>(null)
+const openedTab = ref('erd')
+
+const isOpenModal = computed({
+  get: () => !!activeSource.value,
+  set: (value) => {
+    if (!value) {
+      activeSource.value = null
     }
   },
-  {
-    immediate: true,
-  },
-)
+})
+
+const handleClickRow = (source: SourceType, tab?: string) => {
+  if (tab && tab !== openedTab.value) {
+    openedTab.value = tab
+  }
+
+  activeSource.value = source
+}
 </script>
 
 <template>
-  <div class="flex flex-col h-full p-6" data-testid="nc-settings-syncs-tab">
+  <div class="flex flex-col h-full p-6" data-testid="nc-settings-datasources-tab">
     <div class="mb-6 flex items-center justify-between gap-3">
       <a-input
         v-model:value="searchQuery"
         type="text"
-        class="nc-search-syncs-input nc-input-border-on-value !max-w-90 nc-input-sm"
-        placeholder="Search syncs"
+        class="nc-search-data-source-input nc-input-border-on-value !max-w-90 nc-input-sm"
+        placeholder="Search data source"
         allow-clear
       >
         <template #prefix>
@@ -206,155 +112,317 @@ watch(
         </template>
       </a-input>
 
-      <NcButton v-if="isUIAllowed('sourceCreate')" size="small" class="z-10 !px-2" type="primary" @click="handleCreateSync">
+      <NcButton
+        v-if="!isDataSourceLimitReached && isUIAllowed('sourceCreate')"
+        size="large"
+        class="z-10 !px-2"
+        type="primary"
+        @click="
+          () => {
+            if (showExternalSourcePlanLimitExceededModal()) return
+            vState = DataSourcesSubTab.New
+          }
+        "
+      >
         <div class="flex flex-row items-center w-full gap-x-1">
-          <GeneralIcon icon="plus" />
-          <div class="flex">Create Sync</div>
+          <component :is="iconMap.plus" />
+          <div class="flex">{{ $t('activity.newSource') }}</div>
         </div>
       </NcButton>
     </div>
+    <div
+      data-testid="nc-settings-datasources"
+      class="flex flex-row w-full nc-data-sources-view flex-grow min-h-0"
+      :style="{
+        maxHeight: isNewBaseModalOpen ? '100%' : activeSource ? 'calc(100% - 46px)' : 'calc(100% - 66px)',
+      }"
+    >
+      <NcModal
+        v-model:visible="isOpenModal"
+        centered
+        size="large"
+        wrap-class-name="nc-active-data-sources-view"
+        @keydown.esc="activeSource = null"
+      >
+        <div v-if="activeSource" class="h-full">
+          <div class="px-4 pt-4 pb-2 flex items-center justify-between gap-3">
+            <a-breadcrumb separator=">" class="flex-1 cursor-pointer font-weight-bold !ml-1">
+              <a-breadcrumb-item @click="activeSource = null">
+                <a class="!no-underline text-base">Data Sources</a>
+              </a-breadcrumb-item>
+              <a-breadcrumb-item v-if="activeSource">
+                <span class="capitalize text-base">{{ activeSource.alias || 'Default Source' }}</span>
+              </a-breadcrumb-item>
+            </a-breadcrumb>
 
-    <div class="flex-1 overflow-auto">
-      <div class="ds-table overflow-y-auto nc-scrollbar-thin relative max-h-full mb-4">
-        <div class="ds-table-head sticky top-0 bg-white z-10">
-          <div class="ds-table-row !border-0">
-            <div class="ds-table-col ds-table-name">Name</div>
-            <div class="ds-table-col ds-table-type">Type</div>
-            <div class="ds-table-col ds-table-frequency">Frequency</div>
-            <div class="ds-table-col ds-table-last-sync">Last Run</div>
-            <div class="ds-table-col ds-table-actions">Actions</div>
+            <NcButton size="small" type="text" class="nc-close-btn" @click="isOpenModal = false">
+              <GeneralIcon icon="close" class="text-gray-600" />
+            </NcButton>
           </div>
+
+          <NcTabs v-model:activeKey="openedTab" class="nc-source-tab w-full h-[calc(100%_-_58px)] max-h-[calc(100%_-_58px)]">
+            <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="edit">
+              <template #tab>
+                <div class="tab" data-testid="nc-connection-tab">
+                  <div>{{ $t('labels.connectionDetails') }}</div>
+                </div>
+              </template>
+              <div class="h-full">
+                <LazyDashboardSettingsDataSourcesEditBase
+                  :source-id="activeSource.id"
+                  @source-updated="loadBases(true)"
+                  @close="activeSource = null"
+                />
+              </div>
+            </a-tab-pane>
+            <a-tab-pane key="erd">
+              <template #tab>
+                <div class="tab" data-testid="nc-erd-tab">
+                  <div>{{ $t('title.erdView') }}</div>
+                </div>
+              </template>
+              <div class="h-full p-6">
+                <LazyDashboardSettingsErd
+                  class="h-full overflow-auto"
+                  :base-id="base.id"
+                  :source-id="activeSource.id"
+                  :show-all-columns="false"
+                />
+              </div>
+            </a-tab-pane>
+
+            <a-tab-pane key="acl">
+              <template #tab>
+                <div class="tab" data-testid="nc-acl-tab">
+                  <div>{{ $t('labels.viewHide') }}</div>
+                </div>
+              </template>
+
+              <div class="p-6 h-full">
+                <LazyDashboardSettingsUIAcl :source-id="activeSource.id" />
+              </div>
+            </a-tab-pane>
+            <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="meta-sync">
+              <template #tab>
+                <div class="tab" data-testid="nc-meta-sync-tab">
+                  <div>{{ $t('labels.metaSync') }}</div>
+                </div>
+              </template>
+              <div class="p-6 h-full">
+                <LazyDashboardSettingsMetadata :source-id="activeSource.id" @source-synced="loadBases(true)" />
+              </div>
+            </a-tab-pane>
+          </NcTabs>
         </div>
-        <div class="ds-table-body relative">
-          <div
-            v-for="sync in syncs"
-            :key="sync.id"
-            class="ds-table-row border-gray-200"
-            :class="{
-              '!hidden':
-                searchQuery &&
-                !sync.title?.toLowerCase().includes(searchQuery.toLowerCase()) &&
-                !sync.sync_type?.toLowerCase().includes(searchQuery.toLowerCase()),
-            }"
-          >
-            <div class="ds-table-col ds-table-name font-medium">
-              <div class="flex items-center gap-1">
-                <GeneralIcon icon="ncZap" class="!text-green-700 !h-5 !w-5" />
-                {{ sync.title || 'Untitled Sync' }}
+      </NcModal>
+      <div
+        class="flex flex-col w-full"
+        :class="{
+          'overflow-auto': !isNewBaseModalOpen,
+        }"
+      >
+        <template v-if="isNewBaseModalOpen">
+          <DashboardSettingsDataSourcesCreateBase
+            v-model:open="isNewBaseModalOpen"
+            :connection-type="clientType"
+            is-modal
+            @source-created="loadBases(true)"
+          />
+        </template>
+        <div v-else class="ds-table overflow-y-auto nc-scrollbar-thin relative max-h-full mb-4">
+          <div class="ds-table-head sticky top-0 bg-white z-10">
+            <div class="ds-table-row !border-0">
+              <div class="ds-table-col ds-table-enabled cursor-pointer">{{ $t('general.visibility') }}</div>
+              <div class="ds-table-col ds-table-name">{{ $t('general.name') }}</div>
+              <div class="ds-table-col ds-table-integration-name">{{ $t('general.connection') }} {{ $t('general.name') }}</div>
+              <div class="ds-table-col ds-table-type">{{ $t('general.type') }}</div>
+              <div class="ds-table-col ds-table-actions">{{ $t('labels.actions') }}</div>
+            </div>
+          </div>
+          <div class="ds-table-body relative">
+            <Draggable :list="sources" item-key="id" handle=".ds-table-handle" @end="moveBase">
+              <template v-if="'default'.includes(searchQuery.toLowerCase())" #header>
+                <div
+                  v-if="sources[0]"
+                  class="ds-table-row border-gray-200 cursor-pointer"
+                  @click="handleClickRow(sources[0], 'erd')"
+                >
+                  <div class="ds-table-col ds-table-enabled">
+                    <div class="flex items-center gap-1" @click.stop>
+                      <div v-if="sources.length > 2" class="ds-table-handle" />
+                      <NcTooltip>
+                        <template #title>
+                          <template v-if="sources[0].enabled">{{ $t('activity.hideInUI') }}</template>
+                          <template v-else>{{ $t('activity.showInUI') }}</template>
+                        </template>
+                        <a-switch
+                          :checked="sources[0].enabled ? true : false"
+                          class="cursor-pointer"
+                          size="small"
+                          @change="toggleBase(sources[0], $event)"
+                        />
+                      </NcTooltip>
+                    </div>
+                  </div>
+                  <div class="ds-table-col ds-table-name font-medium">
+                    <div class="flex items-center gap-1">
+                      <!-- <GeneralBaseLogo :base-type="sources[0].type" /> -->
+                      {{ $t('general.default') }}
+                    </div>
+                  </div>
+
+                  <div class="ds-table-col ds-table-integration-name">
+                    <div class="flex items-center gap-1">-</div>
+                  </div>
+                  <div class="ds-table-col ds-table-type">
+                    <div class="flex items-center gap-1">-</div>
+                  </div>
+
+                  <div class="ds-table-col ds-table-actions">
+                    <NcButton
+                      v-if="!sources[0].is_meta && !sources[0].is_local"
+                      size="small"
+                      class="nc-action-btn nc-edit-base cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
+                      type="text"
+                      @click.stop="baseAction(sources[0].id, DataSourcesSubTab.Edit)"
+                    >
+                      <GeneralIcon icon="edit" class="text-gray-600" />
+                    </NcButton>
+                  </div>
+                </div>
+              </template>
+              <template #item="{ element: source, index }">
+                <div
+                  v-if="index !== 0"
+                  class="ds-table-row border-gray-200 cursor-pointer"
+                  :class="{
+                    '!hidden': !source?.alias?.toLowerCase()?.includes(searchQuery.toLowerCase()),
+                  }"
+                  @click="handleClickRow(source, 'edit')"
+                >
+                  <div class="ds-table-col ds-table-enabled">
+                    <div class="flex items-center gap-1" @click.stop>
+                      <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
+                      <NcTooltip>
+                        <template #title>
+                          <template v-if="source.enabled">{{ $t('activity.hideInUI') }}</template>
+                          <template v-else>{{ $t('activity.showInUI') }}</template>
+                        </template>
+                        <a-switch
+                          :checked="source.enabled ? true : false"
+                          class="cursor-pointer"
+                          size="small"
+                          @change="toggleBase(source, $event)"
+                        />
+                      </NcTooltip>
+                    </div>
+                  </div>
+                  <div class="ds-table-col ds-table-name font-medium w-full">
+                    <div v-if="source.is_meta || source.is_local" class="h-8 w-1">-</div>
+
+                    <NcTooltip v-else class="truncate" show-on-truncate-only>
+                      <template #title>
+                        {{ source.is_meta || source.is_local ? $t('general.base') : source.alias }}
+                      </template>
+                      {{ source.is_meta || source.is_local ? $t('general.base') : source.alias }}
+                    </NcTooltip>
+                  </div>
+                  <div class="ds-table-col ds-table-integration-name w-full">
+                    <NcTooltip class="truncate" show-on-truncate-only>
+                      <template #title>
+                        {{ source?.integration_title || '-' }}
+                      </template>
+                      {{ source?.integration_title || '-' }}
+                    </NcTooltip>
+                  </div>
+
+                  <div class="ds-table-col ds-table-type">
+                    <NcBadge rounded="lg" class="flex items-center gap-2 px-0 py-1 !h-7 truncate !border-transparent">
+                      <GeneralBaseLogo :source-type="source.type" class="flex-none !w-4 !h-4" />
+                      <NcTooltip placement="bottom" show-on-truncate-only class="text-sm truncate">
+                        <template #title> {{ clientTypesMap[source.type]?.text || source.type }}</template>
+
+                        {{ source.type && clientTypesMap[source.type] ? clientTypesMap[source.type]?.text : source.type }}
+                      </NcTooltip>
+                    </NcBadge>
+                  </div>
+                  <div class="ds-table-col justify-end gap-x-1 ds-table-actions" @click.stop>
+                    <div class="flex justify-end">
+                      <NcDropdown v-if="!source.is_meta && !source.is_local" placement="bottomRight">
+                        <NcButton size="small" type="secondary">
+                          <GeneralIcon icon="threeDotVertical" />
+                        </NcButton>
+                        <template #overlay>
+                          <NcMenu variant="small">
+                            <NcMenuItem @click="handleClickRow(source, 'edit')">
+                              <GeneralIcon icon="edit" />
+                              <span>{{ $t('general.edit') }}</span>
+                            </NcMenuItem>
+
+                            <NcDivider />
+                            <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click.stop="openDeleteBase(source)">
+                              <GeneralIcon icon="delete" />
+                              {{ $t('general.remove') }}
+                            </NcMenuItem>
+                          </NcMenu>
+                        </template>
+                      </NcDropdown>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </Draggable>
+
+            <div
+              v-if="!isReloading && sources?.length && !isSearchResultAvailable()"
+              class="flex-none integration-table-empty flex items-center justify-center py-8 px-6"
+            >
+              <div class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center">
+                <img
+                  src="~assets/img/placeholder/no-search-result-found.png"
+                  class="!w-[164px] flex-none"
+                  alt="No search results found"
+                />
+
+                {{ $t('title.noResultsMatchedYourSearch') }}
               </div>
             </div>
-            <div class="ds-table-col ds-table-type">
-              <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate !border-transparent">
-                {{ sync.sync_type === SyncType.Full ? 'Full' : 'Incremental' }}
-              </NcBadge>
-            </div>
-            <div class="ds-table-col ds-table-frequency">
-              {{ sync.frequency }}
-            </div>
-            <div class="ds-table-col ds-table-last-sync">
-              {{ formatDate(sync.last_sync_at) }}
-            </div>
-            <div class="ds-table-col ds-table-actions">
-              <div class="flex justify-end gap-2">
-                <NcTooltip>
-                  <template #title>Sync Now</template>
-                  <NcButton size="small" type="text" class="nc-action-btn !w-8 !px-1 !rounded-lg" @click="handleSyncNow(sync.id)">
-                    <GeneralIcon icon="refresh" class="text-gray-600" />
-                  </NcButton>
-                </NcTooltip>
-
-                <NcTooltip>
-                  <template #title>Migrate Sync</template>
-                  <NcButton
-                    size="small"
-                    type="text"
-                    class="nc-action-btn !w-8 !px-1 !rounded-lg"
-                    @click="handleMigrateSync(sync.id)"
-                  >
-                    <GeneralIcon icon="ncZap" class="text-gray-600" />
-                  </NcButton>
-                </NcTooltip>
-
-                <NcDropdown placement="bottomRight">
-                  <NcButton size="small" type="text" class="nc-action-btn !w-8 !px-1 !rounded-lg">
-                    <GeneralIcon icon="threeDotVertical" />
-                  </NcButton>
-                  <template #overlay>
-                    <NcMenu variant="small">
-                      <NcMenuItem @click="handleEditSync(sync.id)">
-                        <GeneralIcon icon="edit" />
-                        <span>Edit</span>
-                      </NcMenuItem>
-                      <NcDivider />
-                      <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="handleDeleteSync(sync.id)">
-                        <GeneralIcon icon="delete" />
-                        <span>Delete</span>
-                      </NcMenuItem>
-                    </NcMenu>
-                  </template>
-                </NcDropdown>
-              </div>
-            </div>
           </div>
-
           <div
-            v-if="!isLoading && syncs.length === 0"
-            class="flex-none integration-table-empty flex items-center justify-center py-8 px-6"
+            v-show="isReloading"
+            class="flex items-center justify-center absolute left-0 top-0 w-full h-[calc(100%_-_45px)] z-10 pb-10 pointer-events-none"
           >
-            <div class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center">
-              <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[164px] flex-none" alt="No syncs found" />
-              No syncs found
-            </div>
-          </div>
-
-          <div
-            v-if="!isLoading && syncs.length > 0 && !isSearchResultAvailable()"
-            class="flex-none integration-table-empty flex items-center justify-center py-8 px-6"
-          >
-            <div class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center">
-              <img
-                src="~assets/img/placeholder/no-search-result-found.png"
-                class="!w-[164px] flex-none"
-                alt="No search results found"
-              />
-              No results matched your search
+            <div class="flex flex-col justify-center items-center gap-2">
+              <GeneralLoader size="xlarge" />
+              <span class="text-center">{{ $t('general.loading') }}</span>
             </div>
           </div>
         </div>
 
-        <div
-          v-show="isLoading"
-          class="flex items-center justify-center absolute left-0 top-0 w-full h-[calc(100%_-_45px)] z-10 pb-10 pointer-events-none"
+        <GeneralDeleteModal
+          v-model:visible="isDeleteBaseModalOpen"
+          :entity-name="$t('general.datasource')"
+          :on-delete="deleteBase"
+          :delete-label="$t('general.remove')"
         >
-          <div class="flex flex-col justify-center items-center gap-2">
-            <GeneralLoader size="xlarge" />
-            <span class="text-center">Loading</span>
-          </div>
-        </div>
+          <template #entity-preview>
+            <div v-if="toBeDeletedBase" class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
+              <GeneralBaseLogo :source-type="toBeDeletedBase.type" />
+              <div
+                class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
+                :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+              >
+                {{ toBeDeletedBase.alias }}
+              </div>
+            </div>
+          </template>
+        </GeneralDeleteModal>
       </div>
     </div>
-
-    <!-- Create Sync Modal -->
-    <DashboardSettingsSyncCreate
-      v-if="isCreateSyncModalOpen"
-      v-model:open="isCreateSyncModalOpen"
-      :base-id="props.baseId"
-      @sync-created="loadSyncs"
-    />
-
-    <!-- Edit Sync Modal -->
-    <DashboardSettingsSyncEdit
-      v-if="isEditSyncModalOpen && activeSyncId"
-      v-model:open="isEditSyncModalOpen"
-      :base-id="props.baseId"
-      :sync-id="activeSyncId"
-      @update:open="isEditSyncModalOpen = $event"
-      @sync-updated="loadSyncs"
-    />
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .ds-table {
   @apply border-1 border-gray-200 rounded-lg h-full;
 }
@@ -367,38 +435,65 @@ watch(
 }
 
 .ds-table-row {
-  @apply grid grid-cols-12 border-b border-gray-100 w-full h-full;
+  @apply grid grid-cols-18 border-b border-gray-100 w-full h-full;
 }
 
 .ds-table-col {
-  @apply flex items-center justify-center py-3 mr-2;
+  @apply flex items-start py-3 mr-2;
+}
+
+.ds-table-enabled {
+  @apply col-span-2 flex justify-center items-center;
 }
 
 .ds-table-name {
-  @apply col-span-4 items-center capitalize;
+  @apply col-span-6 items-center capitalize;
+}
+
+.ds-table-integration-name {
+  @apply col-span-5 items-center capitalize;
 }
 
 .ds-table-type {
-  @apply col-span-2 items-center;
-}
-
-.ds-table-frequency {
-  @apply col-span-2 items-center;
-}
-
-.ds-table-last-sync {
-  @apply col-span-2 items-center;
+  @apply col-span-3 items-center;
 }
 
 .ds-table-actions {
-  @apply col-span-2 flex w-full;
+  @apply col-span-2 flex w-full justify-center;
 }
 
 .ds-table-col:last-child {
   @apply border-r-0;
 }
 
+.ds-table-handle {
+  @apply cursor-pointer justify-self-start mr-2 w-[16px];
+}
 .ds-table-body .ds-table-row:hover {
   @apply bg-gray-50/60;
+}
+
+:deep(.ant-tabs-content),
+:deep(.ant-tabs) {
+  @apply !h-full;
+}
+:deep(.ant-tabs-content-holder) {
+  @apply !min-h-0 !flex-shrink;
+}
+</style>
+
+<style lang="scss">
+.nc-active-data-sources-view {
+  .ant-modal-content {
+    @apply overflow-hidden;
+  }
+  .nc-modal {
+    @apply !p-0;
+    height: min(calc(100vh - 100px), 1024px);
+    max-height: min(calc(100vh - 100px), 1024px) !important;
+  }
+  .ant-tabs-nav {
+    @apply pl-3;
+  }
 }
 </style>

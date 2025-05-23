@@ -1,6 +1,7 @@
 import { UITypes } from 'nocodb-sdk';
+import { SyncColumnDefinition } from './types';
 
-export const syncSystemFields = [
+export const syncSystemFields: SyncColumnDefinition[] = [
   // Generic System Fields
   {
     column_name: 'remote_id',

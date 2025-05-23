@@ -1,8 +1,8 @@
 import { IntegrationWrapper } from '../integration';
 
 export abstract class AuthIntegration<T = any> extends IntegrationWrapper<T> {
-  abstract authenticate(payload: AuthCredentials): Promise<AuthResponse<any>>;
-  exchangeToken?(payload: any): Promise<Record<string, any>>;
+  abstract authenticate(): Promise<AuthResponse<any>>;
+  exchangeToken?(oauthPayload: any): Promise<Record<string, any>>;
 }
 
 export enum AuthType {

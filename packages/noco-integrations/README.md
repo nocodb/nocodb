@@ -6,10 +6,11 @@ This monorepo contains the integration framework and various integrations for No
 
 ```
 nocodb-integrations/
+├── core/                      # Core integration framework
 ├── packages/
-│   ├── core/                    # Core integration framework
-│   ├── auth-github/            # GitHub auth integration
-│   └── ...                     # Other integrations
+│   ├── auth-github/           # GitHub auth integration
+│   ├── ai-openai/             # OpenAI integration
+│   └── ...                    # Other integrations
 ```
 
 ## Development
@@ -44,7 +45,7 @@ pnpm test
 pnpm test:coverage
 
 # Run tests for a specific package
-pnpm --filter @noco-integrations/ai-openai test
+pnpm --filter @noco-integrations/openai-ai test
 ```
 
 Each integration package contains its own tests in a `tests/` directory. All tests use Vitest as the testing framework.
@@ -54,7 +55,7 @@ Each integration package contains its own tests in a `tests/` directory. All tes
 1. Create a new package in the `packages` directory
 2. Follow the integration package structure:
    ```
-   type-integration/
+  provider-type/
    ├── src/
    │   ├── index.ts             # Main entry point
    │   ├── manifest.ts          # Integration metadata

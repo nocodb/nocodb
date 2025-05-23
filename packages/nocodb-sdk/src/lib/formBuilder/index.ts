@@ -15,7 +15,7 @@ export interface FormBuilderElement {
   // property path in the form JSON
   model?: string;
   // default value
-  defaultValue?: string;
+  defaultValue?: string[] | string | boolean | number | null;
   // label for the element
   label?: string;
   // placeholder for the element (if applicable)

@@ -1,0 +1,3 @@
+[submodule "packages/noco-integrations"]
+	path = packages/noco-integrations
+	url = git@github.com:nocodb/noco-integrations.git

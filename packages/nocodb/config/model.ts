@@ -57,7 +57,7 @@ class SmtpConfig {
   @IsBoolean()
   ignoreTLS: boolean;
   @IsString()
-  passowrd: string;
+  password: string;
   @IsBoolean()
   rejectUnauthorized: boolean;
   @IsBoolean()
@@ -141,7 +141,7 @@ export class ServerConfig {
   s3Config?: S3Config;
 
   @ValidateNested()
-  @Type(() => S3Config)
+  @Type(() => S3CloudConfig)
   s3CloudConfig?: S3CloudConfig;
 
   @ValidateNested()

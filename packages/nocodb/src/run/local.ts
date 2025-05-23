@@ -5,7 +5,6 @@ import cors from 'cors';
 import express from 'express';
 import Noco from '~/Noco';
 import { handleUncaughtErrors } from '~/utils';
-import { serverConfig } from 'config';
 handleUncaughtErrors(process);
 
 // ref: https://github.com/nodejs/node/issues/40702#issuecomment-1103623246

@@ -159,7 +159,7 @@ class NcPluginMgrv2 {
         host: serverConfig.smtpConfig.host,
         port: serverConfig.smtpConfig.port,
         username: serverConfig.smtpConfig.username,
-        password: serverConfig.smtpConfig.passowrd,
+        password: serverConfig.smtpConfig.password,
         secure: serverConfig.smtpConfig.secure,
         ignoreTLS: serverConfig.smtpConfig.ignoreTLS,
         rejectUnauthorized: serverConfig.smtpConfig.rejectUnauthorized,

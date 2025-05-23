@@ -5,7 +5,6 @@ import express from 'express';
 
 import Noco from '~/Noco';
 import { handleUncaughtErrors } from '~/utils';
-import { serverConfig } from 'config';
 handleUncaughtErrors(process);
 
 const server = express();

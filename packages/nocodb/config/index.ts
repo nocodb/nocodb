@@ -74,19 +74,19 @@ const fromEnv = (): object => {
       },
     },
     s3CloudConfig: {
-      accessKey: process.env.NC_CLOUD_S3_ACCESS_SECRET,
+      accessKey: process.env.NC_CLOUD_S3_ACCESS_KEY,
       secretKey: process.env.NC_CLOUD_S3_ACCESS_SECRET,
       acl: process.env.NC_CLOUD_S3_ACL,
-      bucketName: process.env.NC_CLOUD_S3_ACL,
+      bucketName: process.env.NC_CLOUD_BUCKET_NAME,
       region: process.env.NC_CLOUD_S3_REGION,
     },
     s3Config: {
-      accessKey: process.env.NC_S3_ACCESS_SECRET,
+      accessKey: process.env.NC_S3_ACCESS_KEY,
       secretKey: process.env.NC_S3_ACCESS_SECRET,
       acl: process.env.NC_S3_ACL,
-      bucketName: process.env.NC_S3_ACL,
+      bucketName: process.env.NC_S3_BUCKET_NAME,
       region: process.env.NC_S3_REGION,
-      forcePathStyle: stringToBoolTry(process.env.NC_S3_FORCE_PATH_STYL),
+      forcePathStyle: stringToBoolTry(process.env.NC_S3_FORCE_PATH_STYLE),
       endPoint: process.env.NC_S3_ENDPOINT,
     },
 
@@ -162,6 +162,7 @@ const getCfg = () => {
       !!mergedCfgWithoutDefault['s3Config'],
       !!mergedCfgWithoutDefault['smtpConfig'],
     ),
+    mergedCfgWithoutDefault,
   ) as unknown as ServerConfig;
 
   // derived config

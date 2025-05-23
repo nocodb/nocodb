@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Faça upgrade de {workspace} para o plano {plan}",
     "upgradeToPlanSubtitle": "Será cobrado imediatamente por este plano.",
     "reactivateToPlan": "Reativar plano {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Só pode duplicar bases para espaços de trabalho onde tenha acesso de criador ou superior.",
     "snapshotBaseRestoreMessage": "Só pode restaurar em espaços de trabalho onde tenha acesso de criador ou superior.",
     "currentWorkspace": "Espaço de trabalho atual",
+    "currentBase": "Current base",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Falhou",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "Trechos de API",
     "includeData": "Incluir dados",
     "includeRecords": "Incluir registos",
-    "baseDuplicateMessage": "Nota: Os registos de auditoria e integrações não serão duplicados.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Incluir vistas",
     "includeWebhook": "Incluir webhook",
     "includeComments": "Incluir comentários",
@@ -1611,6 +1616,7 @@
     "changePlan": "Alterar plano"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Cada espaço de trabalho deve ter pelo menos um proprietário. Atribua outro utilizador como proprietário antes de sair. Se for o último membro, considere eliminar o espaço de trabalho.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Ative para tornar esta conexão privada e oculta de outros criadores neste espaço de trabalho.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Copiar código de erro",
     "paidUserBadgeTooltip": "O usuário possui função de editor ou superior em ao menos uma base.",
     "approachingLimit": "Aproximando-se do limite",
-    "exceedingLimit": "Excedendo o limite"
+    "exceedingLimit": "Excedendo o limite",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Pesquisar ícones",

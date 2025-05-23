@@ -1,4 +1,4 @@
-import { UITypes, type FilterType, type TableType } from 'nocodb-sdk'
+import { type FilterType, type TableType, UITypes } from 'nocodb-sdk'
 
 export function useColumnFilteredOrSorted() {
   const { nestedFilters, allFilters, sorts, filtersFromUrlParams, meta } = useSmartsheetStoreOrThrow()
@@ -6,12 +6,6 @@ export function useColumnFilteredOrSorted() {
   const userColumnIds = computed(() =>
     ((meta.value as TableType)?.columns || []).filter((c) => c.uidt === UITypes.User).map((c) => c.id),
   )
-
-  const combinedFilters = computed(() => [
-    ...allFilters.value,
-    ...nestedFilters.value,
-    ...(filtersFromUrlParams.value?.errors?.length ? [] : filtersFromUrlParams.value?.filters || []),
-  ])
 
   const filteredColumnIds = computed(() => {
     const columnIds: Set<string> = new Set<string>()
@@ -98,6 +92,5 @@ export function useColumnFilteredOrSorted() {
     sortedColumnIds,
     isColumnSortedOrFiltered,
     userColumnIds,
-    combinedFilters,
   }
 }

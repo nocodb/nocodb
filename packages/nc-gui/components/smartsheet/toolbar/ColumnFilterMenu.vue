@@ -25,7 +25,7 @@ const {
   whereQueryFromUrl,
 } = useSmartsheetStoreOrThrow()
 
-const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds, combinedFilters } = useColumnFilteredOrSorted()
+const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds } = useColumnFilteredOrSorted()
 
 // todo: avoid duplicate api call by keeping a filter store
 const { nonDeletedFilters, loadFilters } = useViewFilters(
@@ -106,25 +106,27 @@ const checkForCurrentUserFilter = (currentFilters: FilterType[] = []) => {
   return hasCurrentUserFilter
 }
 
-reloadViewDataEventHook.on(async (params) => {
-  if (params?.isFormFieldFilters) return
-  isCurrentUserFilterPresent.value = checkForCurrentUserFilter(Object.values(allFilters.value).flat(Infinity) as FilterType[])
-})
+if (isEeUI) {
+  reloadViewDataEventHook.on(async (params) => {
+    if (params?.isFormFieldFilters) return
+    isCurrentUserFilterPresent.value = checkForCurrentUserFilter(Object.values(allFilters.value).flat(Infinity) as FilterType[])
+  })
 
-watch(
-  [smatsheetAllFilters, nestedFilters, allFilters, filtersFromUrlParams],
-  () => {
-    isCurrentUserFilterPresent.value = checkForCurrentUserFilter(
-      !ncIsEmptyObject(allFilters.value)
-        ? (Object.values(allFilters.value).flat(Infinity) as FilterType[])
-        : [...smatsheetAllFilters.value, ...nestedFilters.value],
-    )
-  },
-  {
-    deep: true,
-    immediate: true,
-  },
-)
+  watch(
+    [smatsheetAllFilters, nestedFilters, allFilters, filtersFromUrlParams],
+    () => {
+      isCurrentUserFilterPresent.value = checkForCurrentUserFilter(
+        !ncIsEmptyObject(allFilters.value)
+          ? (Object.values(allFilters.value).flat(Infinity) as FilterType[])
+          : [...smatsheetAllFilters.value, ...nestedFilters.value],
+      )
+    },
+    {
+      deep: true,
+      immediate: true,
+    },
+  )
+}
 </script>
 
 <template>

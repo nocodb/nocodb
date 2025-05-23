@@ -2,14 +2,9 @@ import { NcBaseErrorv2, NcErrorArgs } from '~/lib/error/nc-base.error';
 import { NcErrorType } from '~/lib/globals';
 import { presetErrorCodexMap } from '~/lib/error-handler/preset-error-codex-map';
 
-export class NcErrorGenerator {
-  static _instance: NcErrorGenerator;
-  static get _() {
-    if (!NcErrorGenerator._instance) {
-      NcErrorGenerator._instance = new NcErrorGenerator();
-      NcErrorGenerator._instance.setErrorCodexes(presetErrorCodexMap);
-    }
-    return NcErrorGenerator._instance;
+export class NcErrorCodexManager {
+  constructor() {
+    this.setErrorCodexes(presetErrorCodexMap);
   }
 
   errorCodexMap: Partial<

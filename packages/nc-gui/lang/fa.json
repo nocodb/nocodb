@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "{workspace} را به پلن {plan} ارتقاء دهید",
     "upgradeToPlanSubtitle": "برای این پلن فوراً هزینه از شما دریافت خواهد شد.",
     "reactivateToPlan": "فعال‌سازی مجدد پلن {plan}؟",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "فقط می‌توانید پایگاه‌ها را به فضاهای کاری که دسترسی سازنده یا بالاتر دارید تکثیر کنید.",
     "snapshotBaseRestoreMessage": "فقط می‌توانید به فضاهای کاری که دسترسی سازنده یا بالاتر دارید بازیابی کنید.",
     "currentWorkspace": "فضای کار فعلی",
+    "currentBase": "Current base",
     "latitude": "عرض جغرافیایی",
     "longitude": "طول جغرافیایی",
     "failed": "ناموفق",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "قطعه‌کدهای API",
     "includeData": "شامل داده",
     "includeRecords": "شامل رکوردها",
-    "baseDuplicateMessage": "توجه: لاگ‌های بازرسی و ادغام‌ها تکثیر نخواهند شد.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "شامل نماها",
     "includeWebhook": "شامل وب‌هوک",
     "includeComments": "شامل دیدگاه‌ها",
@@ -1611,6 +1616,7 @@
     "changePlan": "تغییر پلن"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "هر فضای کار باید حداقل یک مالک داشته باشد. قبل از ترک فضای کار، کاربر دیگری را به‌عنوان مالک تعیین کنید. اگر آخرین عضو هستید، به‌جای آن، فضای کار را حذف کنید.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "فعال کردن برای خصوصی و پنهان ساختن این اتصال از دیگر سازندگان در این محیط کاری.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "کپی کد خطا",
     "paidUserBadgeTooltip": "کاربر در حداقل یک پایگاه دارای نقش ویرایشگر یا بالاتر است.",
     "approachingLimit": "نزدیک به حد مجاز",
-    "exceedingLimit": "فراتر از حد"
+    "exceedingLimit": "فراتر از حد",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "جستجو آیکون",

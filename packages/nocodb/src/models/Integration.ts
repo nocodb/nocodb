@@ -8,7 +8,7 @@ import {
 } from 'nocodb-sdk';
 import type { ClientType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type { IntegrationWrapper } from '@noco-integrations/core';
+import type { IntegrationWrapper } from '@noco-local-integrations/core';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';

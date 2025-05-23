@@ -245,7 +245,9 @@ export type DeepPartial<T> = T extends object
   : T;
 
 export type RowColoringInfoFilterRow = {
+  id: string;
   is_set_as_background: boolean;
+  nc_order: number;
   color: string;
   conditions: FilterType[];
   nestedConditions: FilterType[];

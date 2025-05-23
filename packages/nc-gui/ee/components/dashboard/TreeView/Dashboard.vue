@@ -1,15 +1,18 @@
 <script setup lang="ts">
+import DashboardTreeViewDashboardList from './DashboardList.vue'
+
 const props = defineProps<{
   baseId: string
 }>()
 
 const baseId = toRef(props, 'baseId')
 
+const { loadDashboards } = useDashboardStore()
+
 const isExpanded = ref(false)
 
 const onExpand = async () => {
-  // loadAutomations({ baseId: baseId.value })
-  // isOptionsOpen.value = !isOptionsOpen.value
+  loadDashboards({ baseId: baseId.value })
   isExpanded.value = !isExpanded.value
 }
 </script>
@@ -25,6 +28,7 @@ const onExpand = async () => {
         :class="{ '!rotate-90': isExpanded }"
       />
     </div>
+    <DashboardTreeViewDashboardList v-if="isExpanded" :base-id="baseId!" />
   </div>
 </template>
 

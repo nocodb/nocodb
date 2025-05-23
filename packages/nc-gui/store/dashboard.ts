@@ -152,6 +152,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
             {
               ...updates,
               id: dashboardId,
+              dashboardId: dashboardId,
             },
           )
 

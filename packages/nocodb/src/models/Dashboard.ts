@@ -157,20 +157,20 @@ export default class Dashboard implements DashboardType {
     updateObj = prepareForDb(updateObj, ['meta']);
 
     // update meta
-    const res = await ncMeta.metaUpdate(
+    await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.DASHBOARDS,
-      prepareForDb(updateObj),
+      updateObj,
       dashboardId,
     );
 
     await NocoCache.update(
       `${CacheScope.DASHBOARD}:${dashboardId}`,
-      prepareForResponse(res),
+      prepareForResponse(updateObj),
     );
 
-    return res;
+    return this.get(context, dashboardId, ncMeta);
   }
 
   static async delete(

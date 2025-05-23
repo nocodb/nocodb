@@ -9,6 +9,7 @@ import AsanaSync from '@noco-local-integrations/asana-sync';
 import AzureAi from '@noco-local-integrations/azure-ai';
 import ClaudeAi from '@noco-local-integrations/claude-ai';
 import ClickhouseAuth from '@noco-local-integrations/clickhouse-auth';
+import ClickhouseSync from '@noco-local-integrations/clickhouse-sync';
 import DeepseekAi from '@noco-local-integrations/deepseek-ai';
 import GithubAuth from '@noco-local-integrations/github-auth';
 import GithubSync from '@noco-local-integrations/github-sync';
@@ -23,6 +24,8 @@ import LinearSync from '@noco-local-integrations/linear-sync';
 import NocodbAi from '@noco-local-integrations/nocodb-ai';
 import OpenaiAi from '@noco-local-integrations/openai-ai';
 import OpenaiCompatibleAi from '@noco-local-integrations/openai-compatible-ai';
+import PostgresAuth from '@noco-local-integrations/postgres-auth';
+import PostgresSync from '@noco-local-integrations/postgres-sync';
 
 import type { IntegrationEntry } from '@noco-local-integrations/core';
 
@@ -33,6 +36,7 @@ export default [
   AzureAi,
   ClaudeAi,
   ClickhouseAuth,
+  ClickhouseSync,
   DeepseekAi,
   GithubAuth,
   GithubSync,
@@ -47,4 +51,6 @@ export default [
   NocodbAi,
   OpenaiAi,
   OpenaiCompatibleAi,
+  PostgresAuth,
+  PostgresSync,
 ] as IntegrationEntry[];

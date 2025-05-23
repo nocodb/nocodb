@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 const {
   formState,
+  syncConfigForm,
   integrationConfigs,
   selectedIntegrationIndex,
   addIntegrationConfig,
@@ -50,7 +51,12 @@ const configs = computed(() => {
         <GeneralIcon icon="close" class="h-3 w-3" />
       </a-button>
     </div>
-    <a-button v-if="!editMode || !editModeModified" type="text" class="ml-2 flex items-center" @click="addIntegrationConfig">
+    <a-button
+      v-if="(!editMode || !editModeModified) && syncConfigForm.sync_category !== 'custom'"
+      type="text"
+      class="ml-2 flex items-center"
+      @click="addIntegrationConfig"
+    >
       <GeneralIcon icon="plus" class="h-3 w-3 mr-1" />
       Add Source
     </a-button>

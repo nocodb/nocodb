@@ -137,8 +137,13 @@ export class SyncModuleService {
 
       integrationsToDelete.push(mainIntegration);
 
+      const mainIntegrationWithConfig = await Integration.get(
+        context,
+        mainIntegration.id,
+      );
+
       const wrapper =
-        await mainIntegration.getIntegrationWrapper<SyncIntegration>();
+        await mainIntegrationWithConfig.getIntegrationWrapper<SyncIntegration>();
 
       const authIntegration = await Integration.get(
         context,
@@ -233,14 +238,16 @@ export class SyncModuleService {
             baseId: base.id,
             table: {
               title: tableTitle,
-              columns: columns.map((column) => ({
-                title: column.title,
-                column_name: column.column_name || column.title,
-                uidt: column.uidt as UITypes,
-                readonly: true,
-                pv: column.pv,
-                meta: column.meta,
-              })),
+              columns: columns
+                .filter((column) => !column.exclude)
+                .map((column) => ({
+                  title: column.title,
+                  column_name: column.column_name || column.title,
+                  uidt: column.uidt as UITypes,
+                  readonly: true,
+                  pv: column.pv,
+                  meta: column.meta,
+                })),
             },
             apiVersion: NcApiVersion.V3,
             synced: true,
@@ -431,6 +438,10 @@ export class SyncModuleService {
         await SyncConfig.delete(context, syncConfig.id);
 
         throw e;
+      }
+
+      if (authWrapper?.destroy) {
+        await authWrapper.destroy();
       }
 
       const job = await this.triggerSync(context, syncConfig.id, true, req);
@@ -705,6 +716,49 @@ export class SyncModuleService {
 
     const auth = await authWrapper.authenticate();
 
-    return await tempIntegrationWrapper.fetchOptions(auth, key);
+    const options = await tempIntegrationWrapper.fetchOptions(auth, key);
+
+    if (authWrapper?.destroy) {
+      await authWrapper.destroy();
+    }
+
+    return options;
+  }
+
+  async integrationFetchDestinationSchema(
+    context: NcContext,
+    param: {
+      integration: IntegrationReqType;
+    },
+  ) {
+    const { integration } = param;
+
+    const tempIntegrationWrapper =
+      Integration.tempIntegrationWrapper<SyncIntegration>(integration);
+
+    const authIntegration = await Integration.get(
+      context,
+      integration.config.authIntegrationId,
+    );
+
+    if (!authIntegration) {
+      NcError.genericNotFound(
+        'AuthIntegration',
+        integration.config.authIntegrationId,
+      );
+    }
+
+    const authWrapper =
+      await authIntegration.getIntegrationWrapper<AuthIntegration>();
+
+    const auth = await authWrapper.authenticate();
+
+    const schema = await tempIntegrationWrapper.getDestinationSchema(auth);
+
+    if (authWrapper?.destroy) {
+      await authWrapper.destroy();
+    }
+
+    return schema;
   }
 }

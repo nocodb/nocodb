@@ -8,20 +8,22 @@ import type {
 } from '@noco-integrations/core';
 
 export class GithubAuthIntegration extends AuthIntegration {
+  public client: Octokit | null = null;
+
   public async authenticate(): Promise<AuthResponse<Octokit>> {
     switch (this.config.type) {
       case AuthType.ApiKey:
-        return {
-          custom: new Octokit({
-            auth: this.config.token,
-          }),
-        };
+        this.client = new Octokit({
+          auth: this.config.token,
+        });
+
+        return this.client;
       case AuthType.OAuth:
-        return {
-          custom: new Octokit({
-            auth: this.config.oauth_token,
-          }),
-        };
+        this.client = new Octokit({
+          auth: this.config.oauth_token,
+        });
+
+        return this.client;
       default:
         throw new Error('Not implemented');
     }
@@ -29,7 +31,7 @@ export class GithubAuthIntegration extends AuthIntegration {
 
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
-      const octokit = (await this.authenticate()).custom;
+      const octokit = await this.authenticate();
 
       if (!octokit) {
         return {

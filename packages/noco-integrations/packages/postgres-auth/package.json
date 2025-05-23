@@ -1,0 +1,24 @@
+{
+  "name": "@noco-integrations/postgres-auth",
+  "version": "0.1.0",
+  "description": "PostgreSQL Authentication for NocoDB",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@noco-integrations/core": "workspace:*",
+    "knex": "3.1.0",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.1",
+    "typescript": "^5.1.6"
+  }
+} 

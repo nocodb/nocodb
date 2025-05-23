@@ -44,7 +44,7 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
       | TicketingTeamRecord
     >
   > {
-    const jira = auth.custom as JiraClient;
+    const jira = auth;
     const { projectKey, includeClosed, jqlQuery } = this.config;
     const { targetTableIncrementalValues } = args;
 

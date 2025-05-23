@@ -8,22 +8,24 @@ import type {
 } from '@noco-integrations/core';
 
 export class GitlabAuthIntegration extends AuthIntegration {
+  public client: InstanceType<typeof Gitlab> | null = null;
+
   public async authenticate(): Promise<
     AuthResponse<InstanceType<typeof Gitlab>>
   > {
     switch (this.config.type) {
       case AuthType.ApiKey:
-        return {
-          custom: new Gitlab({
-            token: this.config.token,
-          }),
-        };
+        this.client = new Gitlab({
+          token: this.config.token,
+        });
+
+        return this.client;
       case AuthType.OAuth:
-        return {
-          custom: new Gitlab({
-            oauthToken: this.config.oauth_token,
-          }),
-        };
+        this.client = new Gitlab({
+          oauthToken: this.config.oauth_token,
+        });
+
+        return this.client;
       default:
         throw new Error('Not implemented');
     }
@@ -31,7 +33,7 @@ export class GitlabAuthIntegration extends AuthIntegration {
 
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
-      const gitlab = (await this.authenticate()).custom;
+      const gitlab = await this.authenticate();
 
       if (!gitlab) {
         return {

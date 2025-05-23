@@ -8,32 +8,28 @@ import type {
 } from '@noco-integrations/core';
 
 export class AsanaAuthIntegration extends AuthIntegration {
-  public async authenticate(): Promise<AuthResponse<asana.Client>> {
-    let client;
+  public client: asana.Client | null = null;
 
+  public async authenticate(): Promise<AuthResponse<asana.Client>> {
     switch (this.config.type) {
       case AuthType.ApiKey:
         if (!this.config.token) {
           throw new Error('Missing required Asana API token');
         }
 
-        client = asana.Client.create();
-        client.useAccessToken(this.config.token);
+        this.client = asana.Client.create();
+        this.client.useAccessToken(this.config.token);
 
-        return {
-          custom: client,
-        };
+        return this.client;
       case AuthType.OAuth:
         if (!this.config.oauth_token) {
           throw new Error('Missing required Asana OAuth token');
         }
 
-        client = asana.Client.create();
-        client.useAccessToken(this.config.oauth_token);
+        this.client = asana.Client.create();
+        this.client.useAccessToken(this.config.oauth_token);
 
-        return {
-          custom: client,
-        };
+        return this.client;
       default:
         throw new Error('Not implemented');
     }
@@ -41,7 +37,7 @@ export class AsanaAuthIntegration extends AuthIntegration {
 
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
-      const client = (await this.authenticate()).custom;
+      const client = await this.authenticate();
 
       if (!client) {
         return {

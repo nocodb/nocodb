@@ -65,7 +65,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
       | TicketingTeamRecord
     >
   > {
-    const linear = auth.custom as LinearClient;
+    const linear = auth;
     const { teamKey, includeCanceled, includeCompleted } = this.config;
     const { targetTableIncrementalValues } = args;
 

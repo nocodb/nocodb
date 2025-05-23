@@ -21,7 +21,8 @@ enum Step {
   Category = 0,
   SyncSettings = 1,
   Integration = 2,
-  Create = 3,
+  DestinationSchema = 3,
+  Create = 4,
 }
 
 const step = ref(Step.Category)
@@ -102,18 +103,41 @@ const handleSubmit = async () => {
 const nextStep = async () => {
   switch (step.value) {
     case Step.Category:
-      step.value++
+      step.value = Step.SyncSettings
       break
     case Step.Integration:
       if (await saveCurrentFormState()) {
-        step.value++
+        if (syncConfigForm.value.sync_category === 'custom') {
+          step.value = Step.DestinationSchema
+        } else {
+          step.value = Step.Create
+        }
       }
       break
     case Step.SyncSettings:
       try {
         await validateSyncConfig()
-        step.value++
+        step.value = Step.Integration
       } catch {}
+      break
+    case Step.DestinationSchema:
+      if (formState.value.config.custom_schema) {
+        // make sure every table has a primary key
+        for (const table of Object.values(formState.value.config.custom_schema) as {
+          systemFields: {
+            primaryKey: string[]
+          }
+        }[]) {
+          if (!table.systemFields.primaryKey || table.systemFields.primaryKey.length === 0) {
+            message.error('Every table must have at least one unique identifier column')
+            return
+          }
+        }
+
+        if (await saveCurrentFormState()) {
+          step.value = Step.Create
+        }
+      }
       break
     case Step.Create:
       handleSubmit()
@@ -122,8 +146,26 @@ const nextStep = async () => {
 }
 
 const previousStep = () => {
-  if (step.value > 0) {
-    step.value--
+  switch (step.value) {
+    case Step.Category:
+      step.value = Step.Category
+      break
+    case Step.SyncSettings:
+      step.value = Step.Category
+      break
+    case Step.Integration:
+      step.value = Step.SyncSettings
+      break
+    case Step.DestinationSchema:
+      step.value = Step.Integration
+      break
+    case Step.Create:
+      if (syncConfigForm.value.sync_category === 'custom') {
+        step.value = Step.DestinationSchema
+      } else {
+        step.value = Step.Integration
+      }
+      break
   }
 }
 
@@ -135,7 +177,7 @@ const onCategoryChange = (value: string) => {
 const continueEnabled = computed(() => {
   switch (step.value) {
     case Step.Category:
-      return !!formState.value.sync_category
+      return !!syncConfigForm.value.sync_category
     case Step.Integration:
       return formState.value.sub_type
     default:
@@ -215,11 +257,11 @@ const isModalClosable = computed(() => {
           <div class="w-5xl">
             <DashboardSettingsSyncSteps :current="step" />
           </div>
-          <div class="w-3xl flex rounded-lg p-6 w-full border-1 border-nc-border-gray-medium">
+          <div class="flex rounded-lg p-6 border-1 border-nc-border-gray-medium">
             <a-form name="external-base-create-form" layout="vertical" no-style hide-required-mark class="flex flex-col w-full">
               <div class="nc-form-section">
                 <div class="flex flex-col gap-5">
-                  <template v-if="step === Step.Category">
+                  <div v-if="step === Step.Category" class="w-3xl">
                     <a-row :gutter="24">
                       <a-col :span="24">
                         <a-form-item label="Sync Category">
@@ -230,19 +272,22 @@ const isModalClosable = computed(() => {
                         </a-form-item>
                       </a-col>
                     </a-row>
-                  </template>
-                  <template v-if="step === Step.Integration">
+                  </div>
+                  <div v-if="step === Step.Integration" class="w-3xl">
                     <div>
                       <!-- Integration tabs and configuration -->
                       <DashboardSettingsSyncIntegrationTabs />
                       <DashboardSettingsSyncIntegrationConfig />
                     </div>
-                  </template>
-                  <template v-if="step === Step.SyncSettings">
+                  </div>
+                  <div v-if="step === Step.SyncSettings" class="w-3xl">
                     <DashboardSettingsSyncSettings />
-                  </template>
-                  <template v-if="step === Step.Create">
-                    <template v-if="creatingSync">
+                  </div>
+                  <div v-if="syncConfigForm.sync_category === 'custom' && step === Step.DestinationSchema">
+                    <DashboardSettingsSyncDestinationSchema />
+                  </div>
+                  <div v-if="step === Step.Create" class="w-3xl">
+                    <div v-if="creatingSync">
                       <div class="mb-4 prose-xl font-bold">Creating sync schema and syncing initial data</div>
 
                       <GeneralProgressPanel ref="progressRef" class="w-full" />
@@ -253,11 +298,11 @@ const isModalClosable = computed(() => {
                       <div v-else-if="goBack" class="flex justify-center items-center">
                         <NcButton class="mt-6 mb-8" type="ghost" size="medium" @click="onDashboard">Go Dashboard</NcButton>
                       </div>
-                    </template>
-                    <template v-else>
+                    </div>
+                    <div v-else>
                       <DashboardSettingsSyncReview />
-                    </template>
-                  </template>
+                    </div>
+                  </div>
                 </div>
               </div>
             </a-form>
@@ -277,6 +322,10 @@ const isModalClosable = computed(() => {
 <style lang="scss" scoped>
 :deep(.ant-steps-item-finish .ant-steps-icon) {
   top: -3px;
+}
+
+.nc-form-section > div > div {
+  @apply flex flex-col gap-2;
 }
 
 .nc-add-source-left-panel {

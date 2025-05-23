@@ -18,17 +18,26 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'Clickhouse Instance URL',
+    label: 'Host',
     width: 100,
-    model: 'config.url',
+    model: 'config.host',
     category: 'Authentication',
-    placeholder: 'Enter your Clickhouse Instance URL',
+    placeholder: 'Enter your PostgreSQL host',
     validators: [
       {
         type: 'required',
-        message: 'Clickhouse Instance URL is required',
+        message: 'Host is required',
       },
     ],
+  },
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Port',
+    width: 100,
+    model: 'config.port',
+    category: 'Authentication',
+    placeholder: '5432',
+    defaultValue: '5432',
   },
   {
     type: FormBuilderInputType.Input,
@@ -55,6 +64,20 @@ export const form: FormDefinition = [
       {
         type: 'required',
         message: 'Password is required',
+      },
+    ],
+  },
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Database',
+    width: 100,
+    model: 'config.database',
+    category: 'Authentication',
+    placeholder: 'Enter your database name',
+    validators: [
+      {
+        type: 'required',
+        message: 'Database name is required',
       },
     ],
   },

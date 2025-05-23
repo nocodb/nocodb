@@ -726,6 +726,10 @@ export class SyncModuleSyncDataProcessor {
             }
           });
         });
+
+        if (authWrapper?.destroy) {
+          await authWrapper.destroy();
+        }
       } catch (error) {
         await SyncConfig.update(context, syncConfig.id, {
           sync_job_id: null,
@@ -907,6 +911,10 @@ export class SyncModuleSyncDataProcessor {
           offset += 100;
         }
       }
+    }
+
+    if (authWrapper?.destroy) {
+      await authWrapper.destroy();
     }
   }
 }

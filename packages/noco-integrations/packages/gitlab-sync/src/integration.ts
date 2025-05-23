@@ -53,7 +53,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
       | TicketingTeamRecord
     >
   > {
-    const gitlab = auth.custom as InstanceType<typeof Gitlab>;
+    const gitlab = auth;
     const { projectId, includeClosed, includeMRs = false } = this.config;
     const { targetTableIncrementalValues } = args;
 

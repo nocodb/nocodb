@@ -106,7 +106,7 @@ export default class AsanaSyncIntegration extends SyncIntegration<AsanaSyncPaylo
       | TicketingTeamRecord
     >
   > {
-    const client = auth.custom as asana.Client;
+    const client = auth;
     const { projectId, includeCompleted, includeSubtasks } = this.config;
     const { targetTableIncrementalValues } = args;
 

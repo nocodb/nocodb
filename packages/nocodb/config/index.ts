@@ -4,55 +4,60 @@ import { validateSync } from "class-validator";
 import { Command, Option } from "commander"
 import * as fs from 'fs'
 import * as toml from 'toml'
-import * as lodash from 'lodash'
+import lodash from 'lodash'
+import { rmUndefined, stringToBoolTry} from './util'
 
-const objectOcuppied = (obj: Object) => {
-    if (typeof obj === 'undefined' || Object.values(obj).length === 0) {
-        return false;
-    }
+const fromDefault = (): Object => {
+    return {
+        host: "localhost",
+        port: "8080",
+        workerType: 'disabled',
+        environment: "production",
 
-    for (const key in obj) {
-        if (typeof obj[key] === 'object' && objectOcuppied(obj[key])) {
-            return true
-        } else if (obj[key] !== undefined) {
-            return true
-        }
-    }
+        nocoDbConfig: {
+            isCloud: false,
+            migrationJobsVersion: "8",
+            version: '0258003',
+            minimalDb: false,
+            dataReflection: true,
+            externalDb: true,
+        },
 
-    return false;
-}
+        auth: {
+            jwt: {
+                secret: "change-me-not-safe-for-production",
+                time: '10h',
+            }
+        },
+        s3Config: {
+            forcePathStyle: false,
+        },
 
-const rmUndefined = (obj: Object) => {
-  let res = {};
-
-  Object.keys(obj).forEach((key) => {
-    if (typeof obj[key] === 'object') {
-        if (objectOcuppied(obj[key])) res[key] = rmUndefined(obj[key]);
-    } else if (obj[key] != undefined) {
-        res[key] = obj[key];
-    }
-  });
-
-  return res;
+        smtpConfig: {
+            ignoreTLS: false,
+            rejectUnauthorized: false,
+            secure: false,
+        },
+    };
 };
 
 const fromEnv = (): Object => {
     let res = {
-        host: process.env.HOST ?? "localhost",
-        port: "8080",
-        workerType: process.env.WORKER_TYPE ?? 'disabled',
-        environment: process.env.NODE_ENV ?? "production",
+        host: process.env.HOST,
+        port: process.env.PORT,
+        workerType: process.env.WORKER_TYPE,
+        environment: process.env.NODE_ENV,
 
-        // nocoDbConfig: {
-        //     isCloud: process.env.NC_CLOUD === 'true',
-        //     licenseKey: process.env.NC_LICENSE_KEY,
-        //     migrationJobsVersion: process.env.NC_MIGRATION_JOBS_VERSION ?? "8",
-        //     version: process.env.NC_VERSION ?? '0258003',
-        //     uuid: process.env.NC_SERVER_UUID,
-        //     minimalDb: process.env.NC_MINIMAL_DBS === 'true',
-        //     dataReflection: process.env.NC_PG_DATA_REFLECTION !== 'false',
-        //     externalDb: process.env.NC_CONNECT_TO_EXTERNAL_DB !== 'false',
-        // },
+        nocoDbConfig: {
+            isCloud: stringToBoolTry(process.env.NC_CLOUD),
+            licenseKey: process.env.NC_LICENSE_KEY,
+            migrationJobsVersion: process.env.NC_MIGRATION_JOBS_VERSION,
+            version: process.env.NC_VERSION,
+            uuid: process.env.NC_SERVER_UUID,
+            minimalDb: stringToBoolTry(process.env.NC_MINIMAL_DBS),
+            dataReflection: stringToBoolTry(process.env.NC_PG_DATA_REFLECTION),
+            externalDb: stringToBoolTry(process.env.NC_CONNECT_TO_EXTERNAL_DB),
+        },
 
         auth: {
             googleOidc: {
@@ -64,8 +69,8 @@ const fromEnv = (): Object => {
                 clientSecret: process.env.NC_GITHUB_CLIENT_SECRET,
             },
             jwt: {
-                secret: process.env.NC_AUTH_JWT_SECRET ?? "change-me-not-safe-for-production",
-                time: process.env.NC_JWT_EXPIRES_IN ?? '10h',
+                secret: process.env.NC_AUTH_JWT_SECRET,
+                time: process.env.NC_JWT_EXPIRES_IN,
             }
         },
         s3CloudConfig: {
@@ -81,15 +86,15 @@ const fromEnv = (): Object => {
             acl: process.env.NC_S3_ACL,
             bucketName: process.env.NC_S3_ACL,
             region: process.env.NC_S3_REGION,
-            forcePathStyle: process.env.NC_S3_FORCE_PATH_STYL === 'true',
+            forcePathStyle: stringToBoolTry(process.env.NC_S3_FORCE_PATH_STYL),
             endPoint: process.env.NC_S3_ENDPOINT,
         },
 
         smtpConfig: {
-            ignoreTLS: process.env.NC_SMTP_IGNORE_TLS === 'true',
+            ignoreTLS: stringToBoolTry(process.env.NC_SMTP_IGNORE_TLS),
             passowrd: process.env.NC_SMTP_PASSWORD,
-            rejectUnauthorized: process.env.NC_SMTP_REJECT_UNAUTHORIZED === 'false',
-            secure: process.env.NC_SMTP_SECURE === 'false',
+            rejectUnauthorized: stringToBoolTry(process.env.NC_SMTP_REJECT_UNAUTHORIZED),
+            secure: stringToBoolTry(process.env.NC_SMTP_SECURE),
             username: process.env.NC_SMTP_USERNAME,
             from: process.env.NC_SMTP_FROM,
             host: process.env.NC_SMTP_HOST,
@@ -150,7 +155,8 @@ const getCfg = () => {
     const cliCfg = fromCli();
     const tomlCfg = fromToml();
     const envCfg = fromEnv();
-    const mergedCfg = lodash.merge(envCfg, tomlCfg, cliCfg) as ServerConfig;
+    const defaultCfg = fromDefault();
+    const mergedCfg = lodash.merge(defaultCfg, tomlCfg, envCfg, cliCfg) as ServerConfig;
 
     mergedCfg.publicUrl ??= `http://${mergedCfg.host}:${mergedCfg.port}/`;
     mergedCfg.dashboardUrl ??=  mergedCfg.nocoDbConfig.isCloud ? '/' : '/dashboard';

@@ -1,4 +1,4 @@
-export const objectOcuppied = (obj: Object) => {
+const objectOcuppied = (obj: Object) => {
     if (typeof obj === 'undefined' || Object.values(obj).length === 0) {
         return false;
     }
@@ -27,3 +27,17 @@ export const rmUndefined = (obj: Object) => {
 
   return res;
 };
+
+export const stringToBoolTry = (s: string | undefined | null): string | boolean => {
+    if (typeof s !== 'string') {
+        return s
+    }
+
+    if (s.toLowerCase() === 'true') {
+        return true;
+    } else if (s.toLowerCase() === 'false') {
+        return false;
+    } else {
+        return s
+    }
+}

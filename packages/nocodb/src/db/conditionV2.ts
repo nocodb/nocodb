@@ -18,12 +18,13 @@ import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getRefColumnIfAlias } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { getColumnName, isFilterValueConsistOf } from '~/helpers/dbHelpers';
+import { getColumnName } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
 import Filter from '~/models/Filter';
 import { getAliasGenerator } from '~/utils';
 import { validateAndStringifyJson } from '~/utils/tsUtils';
+import { handleCurrentUserFilter } from '~/db/conditionV2Ext';
 
 // tod: tobe fixed
 // extend(customParseFormat);
@@ -324,7 +325,7 @@ const parseConditionV2 = async (
         filter.comparison_op === 'notempty'
       )
         filter.value = '';
-      const _field = sanitize(
+      let _field = sanitize(
         customWhereClause
           ? filter.value
           : alias
@@ -332,22 +333,17 @@ const parseConditionV2 = async (
           : column.column_name,
       );
       let _val = customWhereClause ? customWhereClause : filter.value;
-      if (
-        [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
-          column.uidt,
-        )
-      ) {
-        const filterValueCurrentUserTokenResult = isFilterValueConsistOf(
-          filter.value,
-          CURRENT_USER_TOKEN,
-          {
-            replace: context.user?.id ?? '___false',
-          },
-        );
-        if (filterValueCurrentUserTokenResult?.exists) {
-          _val = filterValueCurrentUserTokenResult.value;
-        }
-      }
+      handleCurrentUserFilter(context, {
+        column,
+        filter,
+        setVal: (val) => {
+          if (customWhereClause) {
+            _field = val;
+          } else {
+            _val = val;
+          }
+        },
+      });
 
       // get column name for CreateTime, LastModifiedTime
       column.column_name = await getColumnName(context, column);

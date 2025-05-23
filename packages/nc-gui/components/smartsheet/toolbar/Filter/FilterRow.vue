@@ -185,6 +185,7 @@ const onDelete = () => {
         class="nc-filter-field-select min-w-32 max-h-8"
         :columns="columns"
         :disabled="isDisabled"
+        :db-client-type="dbClientType"
         @click.stop
         @change="onColumnChange($event)"
       />
@@ -259,6 +260,7 @@ const onDelete = () => {
           :column="column"
           :filter="vModel"
           :disabled="isDisabled"
+          :db-client-type="dbClientType"
           @update-filter-value="(value) => onValueChange(value)"
           @click.stop
         />

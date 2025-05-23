@@ -4,9 +4,8 @@
 */
 
 import ClickhouseAuth from '@noco-local-integrations/clickhouse-auth';
-import ClickhouseTableSync from '@noco-local-integrations/clickhouse-table-sync';
 import GithubAuth from '@noco-local-integrations/github-auth';
-import GithubIssuesSync from '@noco-local-integrations/github-issues-sync';
+import GithubSync from '@noco-local-integrations/github-sync';
 import NocodbAi from '@noco-local-integrations/nocodb-ai';
 import OpenaiAi from '@noco-local-integrations/openai-ai';
 
@@ -14,9 +13,8 @@ import type { IntegrationEntry } from '@noco-local-integrations/core';
 
 export default [
   ClickhouseAuth,
-  ClickhouseTableSync,
   GithubAuth,
-  GithubIssuesSync,
+  GithubSync,
   NocodbAi,
   OpenaiAi,
 ] as IntegrationEntry[];

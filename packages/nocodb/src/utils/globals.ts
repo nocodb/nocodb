@@ -63,6 +63,7 @@ export enum MetaTable {
   CUSTOM_URLS = 'nc_custom_urls_v2',
   SCRIPTS = 'nc_scripts',
   SYNC_CONFIGS = 'nc_sync_configs',
+  SYNC_MAPPINGS = 'nc_sync_mappings',
   USAGE_STATS = 'nc_usage_stats',
   MCP_TOKENS = 'nc_mcp_tokens',
 }

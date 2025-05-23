@@ -54,7 +54,7 @@ export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
   getTitle() {
     return 'Sync Integration';
   }
-  abstract getDestinationSchema(auth: AuthResponse<any>): Promise<SyncSchema>;
+  abstract getDestinationSchema(auth: AuthResponse<any>): Promise<SyncSchema | CustomSyncSchema>;
   abstract fetchData(
     auth: AuthResponse<any>,
     args: {
@@ -105,6 +105,8 @@ export interface SyncTable {
 }
 
 export type SyncSchema = Partial<Record<TARGET_TABLES, SyncTable>>;
+
+export type CustomSyncSchema = Record<string, SyncTable>;
 
 export type SyncValue<T> = T | null;
 

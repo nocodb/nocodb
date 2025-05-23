@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
 import type { ClientType, ColumnType } from 'nocodb-sdk'
-import { RelationTypes, isHiddenCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue?: string
@@ -18,9 +18,47 @@ const localValue = computed({
   set: (val) => emit('update:modelValue', val),
 })
 
+const { showSystemFields, metaColumnById, fieldsMap, isLocalMode } = useViewColumnsOrThrow()
+
 const options = computed<SelectProps['options']>(() =>
   // sort by view column order and keep system columns at the end
   [...(props.columns ?? [])]
+    .filter((c: ColumnType) => {
+      if (
+        isLocalMode.value &&
+        c?.id &&
+        fieldsMap.value[c.id] &&
+        (!fieldsMap.value[c.id]?.initialShow || (!showSystemFields.value && isSystemColumn(c)))
+      ) {
+        return false
+      }
+
+      if (c.uidt === UITypes.Links) {
+        return true
+      }
+      if (isSystemColumn(metaColumnById?.value?.[c.id!])) {
+        if (isHiddenCol(c, meta.value)) {
+          /** ignore mm relation column, created by and last modified by system field */
+          return false
+        }
+
+        return (
+          /** if the field is used in filter, then show it anyway */
+          localValue.value === c.id ||
+          /** hide system columns if not enabled */
+          showSystemFields.value
+        )
+      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.uidt === UITypes.Button) {
+        return false
+      } else if (isSort) {
+        /** ignore hasmany and manytomany relations if it's using within sort menu */
+        return !(isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO)
+        /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
+      } else {
+        const isVirtualSystemField = c.colOptions && c.system
+        return !isVirtualSystemField
+      }
+    })
     ?.sort((field1, field2) => {
       let orderVal1 = 0
       let orderVal2 = 0

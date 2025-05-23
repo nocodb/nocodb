@@ -11,6 +11,7 @@ export const defaultColumns: ColumnType[] = [
     dt: 'text',
     fk_model_id: defaultColumnModelId,
     order: defaultColumnOrder++,
+    system: false,
   },
   {
     id: 'col-decimal',
@@ -19,6 +20,7 @@ export const defaultColumns: ColumnType[] = [
     dt: 'decimal',
     fk_model_id: defaultColumnModelId,
     order: defaultColumnOrder++,
+    system: false,
   },
   {
     id: 'col-number',
@@ -41,6 +43,7 @@ export const defaultColumns: ColumnType[] = [
     },
     fk_model_id: defaultColumnModelId,
     order: defaultColumnOrder++,
+    system: false,
   },
   {
     id: 'col-datetime',
@@ -49,18 +52,22 @@ export const defaultColumns: ColumnType[] = [
       dateFormat: 'YY/MM/DD',
     },
     title: 'DateTime',
+    dt: 'datetime',
     fk_model_id: defaultColumnModelId,
     order: defaultColumnOrder++,
+    system: false,
   },
   {
-    id: 'col-date-monthonly',
+    id: 'col-date',
     uidt: UITypes.Date,
     meta: {
       dateFormat: 'YY-MM',
     },
+    dt: 'date',
     title: 'Date',
     fk_model_id: defaultColumnModelId,
     order: defaultColumnOrder++,
+    system: false,
   },
   {
     id: 'col-date-monthonly',
@@ -68,16 +75,20 @@ export const defaultColumns: ColumnType[] = [
     meta: {
       dateFormat: 'YY-MM',
     },
+    dt: 'date',
     title: 'Date (monthonly)',
     fk_model_id: defaultColumnModelId,
     order: defaultColumnOrder++,
+    system: false,
   },
   {
     id: 'col-checkbox',
     uidt: UITypes.Checkbox,
     title: 'Checkbox',
+    dt: 'boolean',
     fk_model_id: defaultColumnModelId,
     order: defaultColumnOrder++,
+    system: false,
   },
   {
     id: 'col-lookup',
@@ -91,6 +102,7 @@ export const defaultColumns: ColumnType[] = [
       fk_lookup_column_id: 'col2-slt',
       fk_related_model_id: table2ColumnModelId,
     },
+    system: false,
   },
   {
     id: 'col-lookup-decimal',
@@ -104,6 +116,7 @@ export const defaultColumns: ColumnType[] = [
       fk_lookup_column_id: 'col2-decimal',
       fk_related_model_id: table2ColumnModelId,
     },
+    system: false,
   },
 ]
 

@@ -32,76 +32,92 @@ async function registerIntegrations(EE = false) {
 
   // Get all local integrations from ../noco-integrations/packages
   try {
-    if (EE) {
-      const localIntegrationsPath = path.join(
-        __dirname,
-        '..',
-        '..',
-        'noco-integrations',
-        'packages',
+    const localIntegrationsPath = path.join(
+      __dirname,
+      '..',
+      '..',
+      'noco-integrations',
+      'packages',
+    );
+
+    const localIntegrationDirs = await fs.readdir(localIntegrationsPath, {
+      withFileTypes: true,
+    });
+
+    let missingDeps = [];
+
+    for (const dirent of localIntegrationDirs) {
+      if (!dirent.isDirectory()) {
+        continue;
+      }
+
+      // check if package.json exists
+      const packageJsonPath = path.join(
+        localIntegrationsPath,
+        dirent.name,
+        'package.json',
       );
-      const localIntegrationDirs = await fs.readdir(localIntegrationsPath, {
-        withFileTypes: true,
-      });
 
-      let missingDeps = [];
+      const packageJsonExists = await fs
+        .access(packageJsonPath)
+        .then(() => true)
+        .catch(() => false);
 
-      for (const dirent of localIntegrationDirs) {
-        if (dirent.isDirectory() && dirent.name !== 'core') {
-          const packageName = dirent.name;
-          integrationDeps[
-            packageName
-          ] = `@noco-local-integrations/${packageName}`;
-        }
-
-        // check if the dependencies of local integrations are present in the package.json
-        const integrationPackageJsonPath = path.join(
-          localIntegrationsPath,
-          dirent.name,
-          'package.json',
-        );
-        const integrationPackageJson = JSON.parse(
-          await fs.readFile(integrationPackageJsonPath, 'utf-8'),
-        );
-        const dependencies = integrationPackageJson.dependencies;
-
-        for (const [dep, version] of Object.entries(dependencies)) {
-          if (dep.startsWith('@noco-integrations/')) {
-            continue;
-          }
-
-          if (version === 'workspace:*') {
-            continue;
-          }
-
-          if (!allDeps[dep]) {
-            console.log(
-              `${dirent.name} depends on ${dep} but it is not present in package.json`,
-            );
-            // add it to the package.json
-            packageJson.dependencies[dep] = version;
-            missingDeps.push(dep);
-          }
-        }
-      }
-
-      if (missingDeps.length > 0) {
-        // sort the dependencies
-        packageJson.dependencies = Object.fromEntries(
-          Object.entries(packageJson.dependencies).sort((a, b) =>
-            a[0].localeCompare(b[0]),
-          ),
-        );
-        // write the package.json
-        await fs.writeFile(
-          packageJsonPath,
-          JSON.stringify(packageJson, null, 2),
-        );
-        // inform the user to run pnpm install
+      if (!packageJsonExists) {
         console.log(
-          'Please run `pnpm install` to install the missing dependencies',
+          `[registerIntegrations]: package.json not found for ${dirent.name}, skipping...`,
         );
+        continue;
       }
+
+      const packageName = dirent.name;
+      integrationDeps[packageName] = `@noco-local-integrations/${packageName}`;
+
+      // check if the dependencies of local integrations are present in the package.json
+      const integrationPackageJsonPath = path.join(
+        localIntegrationsPath,
+        dirent.name,
+        'package.json',
+      );
+      const integrationPackageJson = JSON.parse(
+        await fs.readFile(integrationPackageJsonPath, 'utf-8'),
+      );
+
+      const dependencies = integrationPackageJson.dependencies;
+
+      for (const [dep, version] of Object.entries(dependencies)) {
+        if (dep.startsWith('@noco-integrations/')) {
+          continue;
+        }
+
+        if (version === 'workspace:*') {
+          continue;
+        }
+
+        if (!allDeps[dep]) {
+          console.log(
+            `${dirent.name} depends on ${dep} but it is not present in package.json`,
+          );
+          // add it to the package.json
+          packageJson.dependencies[dep] = version;
+          missingDeps.push(dep);
+        }
+      }
+    }
+
+    if (missingDeps.length > 0) {
+      // sort the dependencies
+      packageJson.dependencies = Object.fromEntries(
+        Object.entries(packageJson.dependencies).sort((a, b) =>
+          a[0].localeCompare(b[0]),
+        ),
+      );
+      // write the package.json
+      await fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2));
+      // inform the user to run pnpm install
+      console.log(
+        'Please run `pnpm install` to install the missing dependencies',
+      );
     }
   } catch (e) {
     console.log(
@@ -145,15 +161,6 @@ async function registerIntegrations(EE = false) {
 ${exportEntries.map((entry) => `  ${entry},`).join('\n')}
 ] as IntegrationEntry[];\n`;
 
-  if (EE) {
-    // check if src/ee/integrations/index.ts exists
-    const eeIndexPath = path.join(__dirname, '..', 'src/ee/integrations');
-    const exists = await fs.stat(eeIndexPath).catch(() => false);
-    if (!exists) {
-      return;
-    }
-  }
-
   // Write the generated content to index.ts
   await fs.writeFile(indexPath, indexContent);
 
@@ -161,8 +168,18 @@ ${exportEntries.map((entry) => `  ${entry},`).join('\n')}
 }
 
 async function main() {
-  await registerIntegrations();
-  await registerIntegrations(true);
+  // check if src/ee/integrations/index.ts exists
+  const eeIndexPath = path.join(__dirname, '..', 'src/ee/integrations');
+  const isEE = await fs
+    .access(eeIndexPath)
+    .then(() => true)
+    .catch(() => false);
+
+  if (isEE) {
+    await registerIntegrations(true);
+  } else {
+    await registerIntegrations();
+  }
 }
 
 main();

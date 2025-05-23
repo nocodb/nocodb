@@ -52,7 +52,7 @@
     "watch:run:playwright:pg:cyquick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env NC_DISABLE_TELE=true NODE_ENV=test EE=true ENTRYPOINT=src/run/dockerRunPG_CyQuick.ts rspack --config rspack.dev.ee.js",
     "mail": "email dev --dir src/services/mail/templates --port 8001",
     "mail:ee": "email dev --dir src/ee/services/mail/templates --port 8002",
-    "test": "jest --runInBand --forceExit",
+    "test": "jest --runInBand --forceExit --passWithNoTests",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r @swc-node/register node_modules/.bin/jest --runInBand",

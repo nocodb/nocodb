@@ -20,6 +20,8 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
     const isChanged = ref(false)
 
+    const changeKey = ref(0)
+
     const setNestedProp = (obj: any, path: string, value: any) => {
       const keys = path.split('.')
       const lastKey = keys.pop()
@@ -212,6 +214,8 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       () => {
         onChange?.()
 
+        changeKey.value++
+
         if (checkDifference()) {
           isChanged.value = true
         } else {
@@ -255,6 +259,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       deepReference,
       setFormState,
       loadOptions,
+      changeKey,
     }
   },
   'form-builder-helper',

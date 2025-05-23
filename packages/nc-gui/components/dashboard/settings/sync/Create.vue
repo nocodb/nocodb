@@ -103,17 +103,21 @@ const handleSubmit = async () => {
 const nextStep = async () => {
   switch (step.value) {
     case Step.Category:
-      step.value++
+      step.value = Step.SyncSettings
       break
     case Step.Integration:
       if (await saveCurrentFormState()) {
-        step.value++
+        if (syncConfigForm.value.sync_category === 'custom') {
+          step.value = Step.DestinationSchema
+        } else {
+          step.value = Step.Create
+        }
       }
       break
     case Step.SyncSettings:
       try {
         await validateSyncConfig()
-        step.value++
+        step.value = Step.Integration
       } catch {}
       break
     case Step.DestinationSchema:
@@ -131,7 +135,7 @@ const nextStep = async () => {
         }
 
         if (await saveCurrentFormState()) {
-          step.value++
+          step.value = Step.Create
         }
       }
       break
@@ -142,12 +146,26 @@ const nextStep = async () => {
 }
 
 const previousStep = () => {
-  if (step.value > 0) {
-    step.value--
-
-    if (step.value === Step.Category) {
-      syncConfigForm.value.sync_category = null
-    }
+  switch (step.value) {
+    case Step.Category:
+      step.value = Step.Category
+      break
+    case Step.SyncSettings:
+      step.value = Step.Category
+      break
+    case Step.Integration:
+      step.value = Step.SyncSettings
+      break
+    case Step.DestinationSchema:
+      step.value = Step.Integration
+      break
+    case Step.Create:
+      if (syncConfigForm.value.sync_category === 'custom') {
+        step.value = Step.DestinationSchema
+      } else {
+        step.value = Step.Integration
+      }
+      break
   }
 }
 
@@ -159,7 +177,7 @@ const onCategoryChange = (value: string) => {
 const continueEnabled = computed(() => {
   switch (step.value) {
     case Step.Category:
-      return !!formState.value.sync_category
+      return !!syncConfigForm.value.sync_category
     case Step.Integration:
       return formState.value.sub_type
     default:

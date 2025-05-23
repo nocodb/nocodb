@@ -1072,6 +1072,15 @@ export default {
 
   &.nc-expanded-cell-vertical-mode {
     @apply !bg-transparent;
+
+    .nc-cell-name-wrapper,
+    .nc-virtual-cell-name-wrapper {
+      @apply !px-0;
+
+      svg.nc-icon:not(.invisible):not(.nc-column-context-menu) {
+        @apply !ml-0;
+      }
+    }
   }
 
   svg.nc-cell-icon,

@@ -279,7 +279,7 @@ function shouldShowRaw(key: string) {
         </div>
         <div
           v-if="isShowableValue(processNewDataFor(columnKey))"
-          class="nc-audit-mini-item-cell nc-audit-addition border-1 border-green-200 rounded-md bg-green-50"
+          class="max-w-full nc-audit-mini-item-cell nc-audit-addition border-1 border-green-200 rounded-md bg-green-50"
           :class="{
             'px-1 py-0.25': shouldUseNormalizedPadding(columnKey),
             '!p-0.25': shouldUseUniformPadding(columnKey),

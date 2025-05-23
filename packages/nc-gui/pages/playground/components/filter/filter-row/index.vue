@@ -5,18 +5,32 @@ const columns: ColumnType[] = [
   {
     id: 'col1',
     uidt: UITypes.SingleLineText,
+    title: 'Column 1',
+    dt: 'text',
+    order: 1,
   },
   {
     id: 'col2',
     uidt: UITypes.Decimal,
+    title: 'Column 2',
+    dt: 'decimal',
+    order: 2,
   },
   {
     id: 'col3',
     uidt: UITypes.Number,
+    title: 'Column 3',
+    dt: 'bigint',
+    dtx: 'specificType',
+    meta: { isLocaleString: false },
+    system: false,
+    order: 5,
   },
   {
     id: 'col4',
     uidt: UITypes.Links,
+    title: 'Column 4',
+    order: 3,
   },
   {
     id: 'col5',
@@ -24,6 +38,8 @@ const columns: ColumnType[] = [
     meta: {
       dateFormat: 'YY/MM/DD',
     },
+    title: 'Column 5',
+    order: 4,
   },
   {
     id: 'col-date-monthonly',
@@ -31,6 +47,8 @@ const columns: ColumnType[] = [
     meta: {
       dateFormat: 'YY-MM',
     },
+    title: 'Column 6',
+    order: 6,
   },
 ]
 
@@ -45,11 +63,18 @@ const column1 = computed(() => {
   return columns.find((col) => col.id === column1Id.value)
 })
 
-const changeTimes1 = ref(0)
+const lastChangeEvent = ref({})
 const options1 = ref({
   disabled: false,
   index: 0,
+  isLogicalOpChangeAllowed: false,
 })
+const onFilter1Change = (event) => {
+  lastChangeEvent.value = event
+  if (event.type === 'fk_column_id') {
+    column1Id.value = event.value
+  }
+}
 </script>
 
 <template>
@@ -64,10 +89,16 @@ const options1 = ref({
           <div class="w-[300px] max-h-[100px] overflow-wrap bg-gray-300 overflow-y-scroll">
             {{ filter1 }}
           </div>
+
+          <span>Last change event:</span>
+          <div class="w-[300px] max-h-[100px] overflow-wrap bg-gray-300 overflow-y-scroll">
+            {{ lastChangeEvent }}
+          </div>
         </div>
         <div class="flex gap-2">
           <div class="flex flex-col gap-2">
             <div><NcSwitch v-model:checked="options1.disabled">disabled</NcSwitch><br /></div>
+            <div><NcSwitch v-model:checked="options1.isLogicalOpChangeAllowed">isLogicalOpChangeAllowed</NcSwitch><br /></div>
             <div>Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-gray-200" /><br /></div>
           </div>
           <div class="flex">
@@ -91,7 +122,8 @@ const options1 = ref({
         :comparison-ops="comparisonOpList(column1?.uidt)"
         :comparison-sub-ops="[]"
         :disabled="options1.disabled"
-        :show-null-and-empty-in-filter="true"
+        :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"
+        @change="onFilter1Change($event)"
       />
     </div>
   </div>

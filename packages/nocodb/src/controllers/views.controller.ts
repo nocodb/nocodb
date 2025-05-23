@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ViewUpdateReqType } from 'nocodb-sdk';
-import { ViewRowColorService } from 'src/services/view-row-color.service';
+import { ViewRowColorService } from '~/services/view-row-color.service';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { ViewsService } from '~/services/views.service';
@@ -54,6 +54,18 @@ export class ViewsController {
     @Param('viewId') viewId: string,
   ) {
     return await this.viewRowColorService.getByViewId({
+      context,
+      fk_view_id: viewId,
+    });
+  }
+
+  @Delete(['/api/v1/db/meta/views/:viewId/row-color'])
+  @Acl('viewRowColorInfoDelete')
+  async viewRowColorInfoDelete(
+    @TenantContext() context: NcContext,
+    @Param('viewId') viewId: string,
+  ) {
+    return await this.viewRowColorService.removeRowColorInfo({
       context,
       fk_view_id: viewId,
     });

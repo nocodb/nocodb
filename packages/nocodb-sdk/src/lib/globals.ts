@@ -1,4 +1,4 @@
-import { FilterType } from './Api';
+import { ColumnType, FilterType } from './Api';
 import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
 import { PlanTitles } from './payment';
 
@@ -255,6 +255,7 @@ export type RowColoringInfoSelect = {
   mode: ROW_COLORING_MODE.SELECT;
   fk_column_id: string;
   options: { title: string; color: string }[];
+  selectColumn: ColumnType;
   is_set_as_background: boolean;
 };
 export type RowColoringInfoFilter = {

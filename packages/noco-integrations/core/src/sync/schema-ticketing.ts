@@ -1,6 +1,24 @@
 import { UITypes } from 'nocodb-sdk';
 import { TARGET_TABLES } from './common';
-import { SyncSchema } from './types';
+import { SyncSchema, SyncRecord, SyncValue, SyncLinkValue } from './types';
+
+export interface TicketingTicketRecord extends SyncRecord {
+  Name: SyncValue<string>;
+  Description: SyncValue<string>;
+  'Due Date': SyncValue<string>;
+  Priority: SyncValue<string>;
+  Status: SyncValue<string>;
+  Tags: SyncValue<string>;
+  'Ticket Type': SyncValue<string>;
+  'Ticket Url': SyncValue<string>;
+  'Is Active': SyncValue<boolean>;
+  'Completed At': SyncValue<string>;
+}
+
+export interface TicketingUserRecord extends SyncRecord {
+  Name: SyncValue<string>;
+  Email: SyncValue<string>;
+}
 
 export const SCHEMA_TICKETING: SyncSchema = {
   [TARGET_TABLES.TICKETING_TICKET]: {
@@ -17,14 +35,7 @@ export const SCHEMA_TICKETING: SyncSchema = {
       { title: 'Is Active', uidt: UITypes.Checkbox },
       { title: 'Completed At', uidt: UITypes.DateTime },
     ],
-    relations: [
-      {
-        type: 'hm',
-        columnTitle: 'Subtickets',
-        relatedTable: TARGET_TABLES.TICKETING_TICKET,
-        relatedTableColumnTitle: 'Parent Ticket',
-      },
-    ],
+    relations: [],
   },
   [TARGET_TABLES.TICKETING_USER]: {
     title: 'User',
@@ -34,13 +45,11 @@ export const SCHEMA_TICKETING: SyncSchema = {
     ],
     relations: [
       {
-        type: 'oo',
         columnTitle: 'Created Tickets',
         relatedTable: TARGET_TABLES.TICKETING_TICKET,
         relatedTableColumnTitle: 'Creator',
       },
       {
-        type: 'mm',
         columnTitle: 'Assigned Tickets',
         relatedTable: TARGET_TABLES.TICKETING_TICKET,
         relatedTableColumnTitle: 'Assignees',

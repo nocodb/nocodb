@@ -1,26 +1,14 @@
 import { Readable } from 'stream';
-import { UITypes, TARGET_TABLES } from 'nocodb-sdk';
+import { UITypes } from 'nocodb-sdk';
 import { IntegrationWrapper } from '../integration';
 import type { AuthResponse } from '../auth';
-
-/**
- * Represents a data object that can be synced
- * @template T - The type of data being synced
- */
+import { TARGET_TABLES } from './common';
 export interface DataObject<
   T = Record<string, string | number | boolean | null>,
 > {
-  /** The target table to sync to */
   targetTable: string;
-  /** A unique identifier for the record */
   recordId: string;
-  /**
-   * The data to sync
-   * Optional only when adding relationships to existing records - in that case, use an empty object
-   */
-  data?: T;
-  /** Links to other records */
-  links?: Record<string, SyncLinkValue>;
+  data: T;
 }
 
 export class DataObjectStream<
@@ -51,36 +39,19 @@ export class DataObjectStream<
 }
 
 export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
-  getTitle() {
-    return 'Sync Integration';
-  }
   abstract getDestinationSchema(
     auth: AuthResponse<any>,
-  ): Promise<SyncSchema | CustomSyncSchema>;
+    payload: T,
+  ): Promise<SyncSchema>;
   abstract fetchData(
     auth: AuthResponse<any>,
     args: {
-      targetTables?: (TARGET_TABLES | string)[];
-      targetTableIncrementalValues?: Record<
-        TARGET_TABLES | string,
-        string | number
-      >;
+      payload: any;
+      targetTables?: string[];
+      lastRecord?: AnyRecordType;
     },
-  ): Promise<DataObjectStream<SyncRecord>>;
-  abstract formatData(
-    targetTable: TARGET_TABLES | string,
-    data: any,
-  ): {
-    data: SyncRecord;
-    links?: Record<string, SyncLinkValue>;
-  };
-  abstract getIncrementalKey(targetTable: TARGET_TABLES | string): string;
-  async fetchOptions(_auth: AuthResponse<any>, _key: string): Promise<{
-    label: string;
-    value: string;
-  }[]> {
-    return [];
-  }
+  ): Promise<DataObjectStream>;
+  abstract getIncrementalKey(): string;
 }
 
 export type AnyRecordType = Record<string, string | number | boolean | null>;
@@ -98,12 +69,10 @@ export interface SyncColumnDefinition {
     options: { title: string }[];
   };
   pv?: boolean;
-  meta?: {
-    richMode?: boolean;
-  };
 }
 
 export interface SyncRelation {
+  type: 'hm' | 'oo' | 'mm';
   columnTitle: string;
   relatedTable: TARGET_TABLES;
   relatedTableColumnTitle: string;
@@ -115,19 +84,4 @@ export interface SyncTable {
   relations: SyncRelation[];
 }
 
-export type SyncSchema = Partial<Record<TARGET_TABLES, SyncTable>>;
-
-export type CustomSyncSchema = Record<string, SyncTable>;
-
-export type SyncValue<T> = T | null;
-
-export type SyncLinkValue = string[] | null;
-
-export interface SyncRecord {
-  RemoteCreatedAt?: SyncValue<string>;
-  RemoteUpdatedAt?: SyncValue<string>;
-  RemoteDeletedAt?: SyncValue<string>;
-  RemoteDeleted?: SyncValue<boolean>;
-  RemoteRaw: SyncValue<string>;
-  RemoteSyncedAt?: SyncValue<string>;
-}
+export type SyncSchema = Record<TARGET_TABLES, SyncTable>;

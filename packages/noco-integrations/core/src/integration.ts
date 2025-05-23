@@ -1,11 +1,11 @@
-export class IntegrationWrapper {
-  protected config: any;
+export class IntegrationWrapper<T = any> {
+  protected _config: Readonly<T>;
 
-  constructor(config: any) {
-    this.config = config;
+  constructor(config: T) {
+    this._config = config;
   }
 
-  public getConfig() {
-    return this.config;
+  get config(): Readonly<T> {
+    return this._config;
   }
 }

@@ -18,6 +18,7 @@ export enum SyncCategory {
   TICKETING = 'ticketing',
   CRM = 'crm',
   FILE_STORAGE = 'file_storage',
+  CUSTOM = 'custom',
 }
 
 export const SyncTriggerMeta = {
@@ -82,6 +83,12 @@ export const SyncCategoryMeta = {
     label: 'File Storage',
     description: 'Sync data from a file storage system',
     icon: 'ncFolder',
+  },
+  [SyncCategory.CUSTOM]: {
+    value: SyncCategory.CUSTOM,
+    label: 'Custom',
+    description: 'Sync data from a dynamic source',
+    icon: 'ncDatabase',
   },
 }
 

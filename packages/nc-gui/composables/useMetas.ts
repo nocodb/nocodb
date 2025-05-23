@@ -113,5 +113,29 @@ export const useMetas = createSharedComposable(() => {
     }
   }
 
-  return { getMeta, clearAllMeta, metas, metasWithIdAsKey, removeMeta, setMeta }
+  // return partial metadata for related table of a meta service
+  const getPartialMeta = async (linkColumnId: string, tableIdOrTitle: string): Promise<TableType | null> => {
+    if (!tableIdOrTitle || !linkColumnId) return null
+
+    if (metas.value[tableIdOrTitle]) {
+      return metas.value[tableIdOrTitle]
+    }
+
+    // wait until loading is finished if requesting same meta
+    await until(() => !loadingState.value[tableIdOrTitle]).toBeTruthy({
+      timeout: 5000,
+    })
+
+    try {
+      loadingState.value[tableIdOrTitle] = true
+      const model = await $api.dbLinks.tableRead(linkColumnId, tableIdOrTitle)
+      metas.value[tableIdOrTitle] = model
+      return model
+    } catch (e) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      loadingState.value[tableIdOrTitle] = false
+    }
+  }
+  return { getMeta, clearAllMeta, metas, metasWithIdAsKey, removeMeta, setMeta, getPartialMeta }
 })

@@ -14,6 +14,7 @@ import type {
 } from '~/models';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
+import { Model } from '~/models';
 
 export const lookupOrLtarBuilder =
   (
@@ -52,12 +53,15 @@ export const lookupOrLtarBuilder =
         await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
       // if (relation.type !== RelationTypes.BELONGS_TO) continue;
 
-      const childColumn = await relation.getChildColumn(context);
-      const parentColumn = await relation.getParentColumn(context);
-      const childModel = await childColumn.getModel(context);
-      await childModel.getColumns(context);
-      const parentModel = await parentColumn.getModel(context);
-      await parentModel.getColumns(context);
+      const { parentContext, childContext, mmContext, refContext } =
+        await relation.getParentChildContext(context);
+
+      const childColumn = await relation.getChildColumn(childContext);
+      const parentColumn = await relation.getParentColumn(parentContext);
+      const childModel = await childColumn.getModel(childContext);
+      await childModel.getColumns(childContext);
+      const parentModel = await parentColumn.getModel(parentContext);
+      await parentModel.getColumns(parentContext);
 
       let relationType = relation.type;
 
@@ -66,59 +70,82 @@ export const lookupOrLtarBuilder =
           ? RelationTypes.BELONGS_TO
           : RelationTypes.HAS_MANY;
       }
-      let lookupColumn = lookup ? await lookup.getLookupColumn(context) : null;
+      let lookupColumn = lookup
+        ? await lookup.getLookupColumn(refContext)
+        : null;
 
       switch (relationType) {
         case RelationTypes.BELONGS_TO:
-          selectQb = knex(
-            knex.raw(`?? as ??`, [
-              baseModelSqlv2.getTnPath(parentModel.table_name),
-              alias,
-            ]),
-          ).where(
-            `${alias}.${parentColumn.column_name}`,
-            knex.raw(`??`, [
-              `${
-                tableAlias ?? baseModelSqlv2.getTnPath(childModel.table_name)
-              }.${childColumn.column_name}`,
-            ]),
-          );
-          lookupColumn = lookupColumn ?? parentModel.displayValue;
+          {
+            const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
+              model: parentModel,
+              dbDriver: baseModelSqlv2.dbDriver,
+            });
+
+            selectQb = knex(
+              knex.raw(`?? as ??`, [
+                parentBaseModel.getTnPath(parentModel.table_name),
+                alias,
+              ]),
+            ).where(
+              `${alias}.${parentColumn.column_name}`,
+              knex.raw(`??`, [
+                `${
+                  tableAlias ?? baseModelSqlv2.getTnPath(childModel.table_name)
+                }.${childColumn.column_name}`,
+              ]),
+            );
+            lookupColumn = lookupColumn ?? parentModel.displayValue;
+          }
           break;
         case RelationTypes.HAS_MANY:
-          isArray = relation.type !== RelationTypes.ONE_TO_ONE;
-          selectQb = knex(
-            knex.raw(`?? as ??`, [
-              baseModelSqlv2.getTnPath(childModel.table_name),
-              alias,
-            ]),
-          ).where(
-            `${alias}.${childColumn.column_name}`,
-            knex.raw(`??`, [
-              `${
-                tableAlias ?? baseModelSqlv2.getTnPath(parentModel.table_name)
-              }.${parentColumn.column_name}`,
-            ]),
-          );
-          lookupColumn = lookupColumn ?? childModel.displayValue;
+          {
+            const childBaseModel = await Model.getBaseModelSQL(childContext, {
+              model: childModel,
+              dbDriver: baseModelSqlv2.dbDriver,
+            });
+            isArray = relation.type !== RelationTypes.ONE_TO_ONE;
+            selectQb = knex(
+              knex.raw(`?? as ??`, [
+                childBaseModel.getTnPath(childModel.table_name),
+                alias,
+              ]),
+            ).where(
+              `${alias}.${childColumn.column_name}`,
+              knex.raw(`??`, [
+                `${
+                  tableAlias ?? baseModelSqlv2.getTnPath(parentModel.table_name)
+                }.${parentColumn.column_name}`,
+              ]),
+            );
+            lookupColumn = lookupColumn ?? childModel.displayValue;
+          }
           break;
         case RelationTypes.MANY_TO_MANY:
           {
+            const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
+              model: parentModel,
+              dbDriver: baseModelSqlv2.dbDriver,
+            });
             isArray = true;
             const mmModel = await relation.getMMModel(context);
             const mmParentColumn = await relation.getMMParentColumn(context);
             const mmChildColumn = await relation.getMMChildColumn(context);
+            const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+              model: mmModel,
+              dbDriver: baseModelSqlv2.dbDriver,
+            });
 
             const assocAlias = `__nc${getAliasCount()}`;
             selectQb = knex(
               knex.raw(`?? as ??`, [
-                baseModelSqlv2.getTnPath(parentModel.table_name),
+                parentBaseModel.getTnPath(parentModel.table_name),
                 alias,
               ]),
             )
               .join(
                 knex.raw(`?? as ??`, [
-                  baseModelSqlv2.getTnPath(mmModel.table_name),
+                  mmBaseModel.getTnPath(mmModel.table_name),
                   assocAlias,
                 ]),
                 `${assocAlias}.${mmParentColumn.column_name}`,
@@ -151,12 +178,24 @@ export const lookupOrLtarBuilder =
         // not belongs to then ignore the sort option
         // if (relation.type !== RelationTypes.BELONGS_TO) continue;
 
-        const childColumn = await relation.getChildColumn(context);
-        const parentColumn = await relation.getParentColumn(context);
-        const childModel = await childColumn.getModel(context);
-        await childModel.getColumns(context);
-        const parentModel = await parentColumn.getModel(context);
-        await parentModel.getColumns(context);
+        const { parentContext, childContext, refContext, mmContext } =
+          await relation.getParentChildContext(context);
+
+        const childColumn = await relation.getChildColumn(childContext);
+        const parentColumn = await relation.getParentColumn(parentContext);
+        const childModel = await childColumn.getModel(childContext);
+        await childModel.getColumns(childContext);
+        const parentModel = await parentColumn.getModel(parentContext);
+        await parentModel.getColumns(parentContext);
+
+        const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
+          model: parentModel,
+          dbDriver: baseModelSqlv2.dbDriver,
+        });
+        const childBaseModel = await Model.getBaseModelSQL(childContext, {
+          model: childModel,
+          dbDriver: baseModelSqlv2.dbDriver,
+        });
 
         let relationType = relation.type;
 
@@ -171,7 +210,7 @@ export const lookupOrLtarBuilder =
             {
               selectQb.join(
                 knex.raw(`?? as ??`, [
-                  baseModelSqlv2.getTnPath(parentModel.table_name),
+                  parentBaseModel.getTnPath(parentModel.table_name),
                   nestedAlias,
                 ]),
                 `${prevAlias}.${childColumn.column_name}`,
@@ -184,7 +223,7 @@ export const lookupOrLtarBuilder =
               isArray = relation.type !== RelationTypes.ONE_TO_ONE;
               selectQb.join(
                 knex.raw(`?? as ??`, [
-                  baseModelSqlv2.getTnPath(childModel.table_name),
+                  childBaseModel.getTnPath(childModel.table_name),
                   nestedAlias,
                 ]),
                 `${prevAlias}.${parentColumn.column_name}`,
@@ -194,16 +233,21 @@ export const lookupOrLtarBuilder =
             break;
           case RelationTypes.MANY_TO_MANY: {
             isArray = true;
-            const mmModel = await relation.getMMModel(context);
-            const mmParentColumn = await relation.getMMParentColumn(context);
-            const mmChildColumn = await relation.getMMChildColumn(context);
+            const mmModel = await relation.getMMModel(mmContext);
+            const mmParentColumn = await relation.getMMParentColumn(mmContext);
+            const mmChildColumn = await relation.getMMChildColumn(mmContext);
+
+            const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+              model: mmModel,
+              dbDriver: baseModelSqlv2.dbDriver,
+            });
 
             const assocAlias = `__nc${getAliasCount()}`;
 
             selectQb
               .join(
                 knex.raw(`?? as ??`, [
-                  baseModelSqlv2.getTnPath(mmModel.table_name),
+                  mmBaseModel.getTnPath(mmModel.table_name),
                   assocAlias,
                 ]),
                 `${assocAlias}.${mmChildColumn.column_name}`,
@@ -211,7 +255,7 @@ export const lookupOrLtarBuilder =
               )
               .join(
                 knex.raw(`?? as ??`, [
-                  baseModelSqlv2.getTnPath(parentModel.table_name),
+                  parentBaseModel.getTnPath(parentModel.table_name),
                   nestedAlias,
                 ]),
                 `${nestedAlias}.${parentColumn.column_name}`,
@@ -226,7 +270,7 @@ export const lookupOrLtarBuilder =
 `${prevAlias}.${childColumn.title}`
 );*/
 
-        lookupColumn = await nestedLookup.getLookupColumn(context);
+        lookupColumn = await nestedLookup.getLookupColumn(refContext);
         prevAlias = nestedAlias;
       }
 
@@ -270,17 +314,31 @@ export const lookupOrLtarBuilder =
               await lookupColumn.getColOptions<LinkToAnotherRecordColumn>(
                 context,
               );
-            // if (relation.type !== RelationTypes.BELONGS_TO) continue;
+
+            const { parentContext, childContext, mmContext } =
+              await relation.getParentChildContext(context);
 
             const colOptions = (await lookupColumn.getColOptions(
               context,
             )) as LinkToAnotherRecordColumn;
-            const childColumn = await colOptions.getChildColumn(context);
-            const parentColumn = await colOptions.getParentColumn(context);
-            const childModel = await childColumn.getModel(context);
-            await childModel.getColumns(context);
-            const parentModel = await parentColumn.getModel(context);
-            await parentModel.getColumns(context);
+            const childColumn = await colOptions.getChildColumn(childContext);
+            const parentColumn = await colOptions.getParentColumn(
+              parentContext,
+            );
+            const childModel = await childColumn.getModel(childContext);
+            await childModel.getColumns(childContext);
+            const parentModel = await parentColumn.getModel(parentContext);
+            await parentModel.getColumns(parentContext);
+
+            const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
+              model: parentModel,
+              dbDriver: baseModelSqlv2.dbDriver,
+            });
+            const childBaseModel = await Model.getBaseModelSQL(childContext, {
+              model: childModel,
+              dbDriver: baseModelSqlv2.dbDriver,
+            });
+
             let cn;
 
             let relationType = relation.type;
@@ -296,7 +354,7 @@ export const lookupOrLtarBuilder =
                 {
                   selectQb.join(
                     knex.raw(`?? as ??`, [
-                      baseModelSqlv2.getTnPath(parentModel.table_name),
+                      parentBaseModel.getTnPath(parentModel.table_name),
                       nestedAlias,
                     ]),
                     `${alias}.${childColumn.column_name}`,
@@ -313,7 +371,7 @@ export const lookupOrLtarBuilder =
                   isArray = relation.type !== RelationTypes.ONE_TO_ONE;
                   selectQb.join(
                     knex.raw(`?? as ??`, [
-                      baseModelSqlv2.getTnPath(childModel.table_name),
+                      childBaseModel.getTnPath(childModel.table_name),
                       nestedAlias,
                     ]),
                     `${alias}.${parentColumn.column_name}`,
@@ -328,20 +386,25 @@ export const lookupOrLtarBuilder =
               case RelationTypes.MANY_TO_MANY:
                 {
                   isArray = true;
-                  const mmModel = await relation.getMMModel(context);
+                  const mmModel = await relation.getMMModel(mmContext);
                   const mmParentColumn = await relation.getMMParentColumn(
-                    context,
+                    mmContext,
                   );
                   const mmChildColumn = await relation.getMMChildColumn(
-                    context,
+                    mmContext,
                   );
+
+                  const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+                    model: mmModel,
+                    dbDriver: baseModelSqlv2.dbDriver,
+                  });
 
                   const assocAlias = `__nc${getAliasCount()}`;
 
                   selectQb
                     .join(
                       knex.raw(`?? as ??`, [
-                        baseModelSqlv2.getTnPath(mmModel.table_name),
+                        mmBaseModel.getTnPath(mmModel.table_name),
                         assocAlias,
                       ]),
                       `${assocAlias}.${mmChildColumn.column_name}`,
@@ -349,7 +412,7 @@ export const lookupOrLtarBuilder =
                     )
                     .join(
                       knex.raw(`?? as ??`, [
-                        baseModelSqlv2.getTnPath(parentModel.table_name),
+                        parentBaseModel.getTnPath(parentModel.table_name),
                         nestedAlias,
                       ]),
                       `${nestedAlias}.${parentColumn.column_name}`,
@@ -364,7 +427,7 @@ export const lookupOrLtarBuilder =
 
             selectQb.join(
               knex.raw(`?? as ??`, [
-                baseModelSqlv2.getTnPath(parentModel.table_name),
+                parentBaseModel.getTnPath(parentModel.table_name),
                 nestedAlias,
               ]),
               `${nestedAlias}.${parentColumn.column_name}`,

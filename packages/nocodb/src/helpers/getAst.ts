@@ -206,11 +206,14 @@ const getAst = async (
       query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
     if (nestedFields && nestedFields !== '*') {
       if (col.uidt === UITypes.LinkToAnotherRecord) {
-        const model = await col
-          .getColOptions<LinkToAnotherRecordColumn>(context)
-          .then((colOpt) => colOpt.getRelatedTable(context));
+        const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
+          context,
+        );
+        const model = await colOpt.getRelatedTable(context);
 
-        const { ast } = await getAst(context, {
+        const { refContext: refTableContext } = colOpt.getRelContext(context);
+
+        const { ast } = await getAst(refTableContext, {
           model,
           query: query?.nested?.[col.title],
           dependencyFields: (dependencyFields.nested[col.title] =
@@ -232,12 +235,16 @@ const getAst = async (
         ).reduce((o, f) => ({ ...o, [f]: 1 }), {});
       }
     } else if (col.uidt === UITypes.LinkToAnotherRecord) {
-      const model = await col
-        .getColOptions<LinkToAnotherRecordColumn>(context)
-        .then((colOpt) => colOpt.getRelatedTable(context));
+      const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
+        context,
+      );
+
+      const { refContext: refTableContext } = colOpt.getRelContext(context);
+
+      const model = await colOpt.getRelatedTable(context);
 
       value = (
-        await getAst(context, {
+        await getAst(refTableContext, {
           model,
           query: query?.nested?.[col.title],
           extractOnlyPrimaries: nestedFields !== '*',
@@ -324,7 +331,7 @@ const extractDependencies = async (
     fieldsSet: new Set(),
   },
 ) => {
-  switch (column.uidt) {
+  switch (column?.uidt) {
     case UITypes.Lookup:
       await extractLookupDependencies(context, column, dependencyFields);
       break;
@@ -347,10 +354,17 @@ const extractLookupDependencies = async (
 ) => {
   const lookupColumnOpts = await lookUpColumn.getColOptions(context);
   const relationColumn = await lookupColumnOpts.getRelationColumn(context);
-  await extractRelationDependencies(context, relationColumn, dependencyFields);
+  const relationColumnOpts =
+    await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
+  const { refContext } = relationColumnOpts.getRelContext(context);
+  await extractRelationDependencies(
+    refContext,
+    relationColumn,
+    dependencyFields,
+  );
   await extractDependencies(
     context,
-    await lookupColumnOpts.getLookupColumn(context),
+    await lookupColumnOpts.getLookupColumn(refContext),
     (dependencyFields.nested[relationColumn.title] = dependencyFields.nested[
       relationColumn.title
     ] || {

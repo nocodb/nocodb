@@ -20,9 +20,6 @@ import {
 import { sanitize } from '~/helpers/sqlSanitize';
 
 export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
-  // todo:
-  //  pass view id as argument
-  //  add option to get only pk and pv
   return async ({
     qb,
     columns: _columns,
@@ -32,6 +29,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     fieldsSet,
     alias,
     validateFormula,
+    pkAndPvOnly = false,
   }: {
     fieldsSet?: Set<string>;
     qb: Knex.QueryBuilder & Knex.QueryInterface;
@@ -41,6 +39,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     viewId?: string;
     alias?: string;
     validateFormula?: boolean;
+    pkAndPvOnly?: boolean;
   }): Promise<void> => {
     // keep a common object for all columns to share across all columns
     const aliasToColumnBuilder = {};
@@ -81,7 +80,8 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           viewOrTableColumn,
           view,
           column,
-          extractPkAndPv,
+          extractPkAndPv || pkAndPvOnly,
+          pkAndPvOnly,
         )
       ) {
         continue;

@@ -1,4 +1,4 @@
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { BelongsToCellRenderer } from './BelongsTo'
 import { HasManyCellRenderer } from './HasMany'
 import { ManyToManyCellRenderer } from './ManyToMany'
@@ -18,7 +18,29 @@ export const LtarCellRenderer: CellRenderer = {
       return cellRenderer.render(ctx, props)
     }
   },
-  handleClick: async (props) => {
+  handleClick: async (_props) => {
+    let props = _props
+
+    const colOption = props.column?.columnObj?.colOptions as LinkToAnotherRecordType
+
+    if (colOption?.fk_related_base_id && colOption.fk_related_base_id !== colOption.base_id) {
+      const relatedBaseId = colOption?.fk_related_base_id
+      const { isUIAllowed } = useRoles()
+      const baseRoles = props.baseRoles?.[relatedBaseId]
+
+      // Load related table meta if not present
+      if (!baseRoles) {
+        if (props.baseRoleLoader.isLoading(relatedBaseId)) return
+
+        props.baseRoleLoader.loadBaseRole(relatedBaseId)
+        return
+      }
+      props = {
+        ...props,
+        readonly: props.readonly || !isUIAllowed('dataEdit', baseRoles),
+      }
+    }
+
     const cellRenderer = getLtarCellRenderer(props.column.columnObj)
     if (cellRenderer) {
       return cellRenderer?.handleClick?.(props)

@@ -246,7 +246,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
             fn: async (id: string) => {
               const res: any = await $api.dbViewRow.delete(
                 'noco',
-                base.value.id as string,
+                meta.value?.base_id ?? (base.value.id as string),
                 meta.value?.id as string,
                 activeView.value?.id as string,
                 encodeURIComponent(id),
@@ -276,7 +276,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
           return message.info(t('msg.info.updateNotAllowedWithoutPK'))
         }
 
-        await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id, encodeURIComponent(id), updateOrInsertObj)
+        await $api.dbTableRow.update(
+          NOCO,
+          meta.value.base_id ?? (base.value.id as string),
+          meta.value.id,
+          encodeURIComponent(id),
+          updateOrInsertObj,
+        )
 
         if (!undo) {
           const undoObject = [...changedColumns.value].reduce((obj, col) => {
@@ -341,7 +347,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       record = await $api.dbTableRow.read(
         NOCO,
         // todo: base_id missing on view type
-        ((base?.value?.id ?? meta.value?.base_id) || (sharedView.value?.view as any)?.base_id) as string,
+        ((meta.value?.base_id ?? base?.value?.id) || (sharedView.value?.view as any)?.base_id) as string,
         meta.value.id as string,
         encodeURIComponent(recordId),
         {
@@ -402,7 +408,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
       const res: { message?: string[] } | number = await $api.dbTableRow.delete(
         NOCO,
-        base.value.id as string,
+        meta.value?.base_id ?? (base.value.id as string),
         meta.value.id as string,
         encodeURIComponent(recordId),
       )
@@ -625,6 +631,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     })
   })
 
+  const baseRoles = computedAsync(async () => {
+    // if active base id and meta base id is different, then extract the base roles of the meta base
+    if (meta.value?.base_id !== base.value?.id) {
+      return await basesStore.getBaseRoles(meta.value?.base_id, {
+        skipUpdatingUser: true,
+      })
+    }
+  })
+
   return {
     ...rowStore,
     loadComments,
@@ -653,6 +668,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     primaryKey,
     saveRowAndStay,
     updateComment,
+    baseRoles,
   }
 }, 'expanded-form-store')
 

@@ -686,12 +686,15 @@ export class DataTableService {
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       context,
     );
-    const relatedModel = await colOptions.getRelatedTable(context);
-    await relatedModel.getColumns(context);
+
+    const { refContext } = await colOptions.getParentChildContext(context);
+
+    const relatedModel = await colOptions.getRelatedTable(refContext);
+    await relatedModel.getColumns(refContext);
 
     if (colOptions.type !== RelationTypes.MANY_TO_MANY) return;
 
-    const { dependencyFields } = await getAst(context, {
+    const { dependencyFields } = await getAst(refContext, {
       model: relatedModel,
       query: param.query,
       extractOnlyPrimaries: !(param.query?.f || param.query?.fields),

@@ -3,6 +3,7 @@ import {
   type ColumnReqType,
   type ColumnType,
   columnTypeName,
+  isCrossBaseLink,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
@@ -375,7 +376,8 @@ const isDuplicateAllowed = computed(() => {
     ((!isMetaReadOnly.value && !isDataReadOnly.value) || readonlyMetaAllowedTypes.includes(column.value?.uidt)) &&
     !column.value.meta?.custom &&
     column.value.uidt !== UITypes.ForeignKey &&
-    (!meta.value?.synced || !column.value?.readonly)
+    (!meta.value?.synced || !column.value?.readonly) &&
+    !isCrossBaseLink(column.value)
   )
 })
 const isFilterSupported = computed(

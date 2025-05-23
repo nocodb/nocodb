@@ -12,6 +12,7 @@ import { TableMetaLoader } from '../loaders/TableMetaLoader'
 import type { CanvasGridColumn } from '../../../../../lib/types'
 import { CanvasElement } from '../utils/CanvasElement'
 import { calculateGroupRowTop, isGroupExpanded } from '../utils/groupby'
+import { BaseRoleLoader } from '../loaders/BaseRoleLoader'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -151,7 +152,8 @@ export function useCanvasTable({
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
 }) {
-  const { metas, getMeta } = useMetas()
+  const { metas, getMeta, getPartialMeta } = useMetas()
+  const { getBaseRoles } = useBases()
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref<{
@@ -173,6 +175,7 @@ export function useCanvasTable({
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas)
+  const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas)
   const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
   const elementMap = new CanvasElement([])
@@ -267,7 +270,7 @@ export function useCanvasTable({
     () => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES),
   )
 
-  const fetchMetaIds = ref<string[]>([])
+  const fetchMetaIds = ref<string[][]>([])
 
   const columns = computed<CanvasGridColumn[]>(() => {
     const fetchMetaIdsLocal: string[] = []
@@ -290,7 +293,7 @@ export function useCanvasTable({
 
           if (relatedColObj && relatedColObj.colOptions?.fk_related_model_id) {
             if (!metas.value?.[relatedColObj.colOptions.fk_related_model_id]) {
-              fetchMetaIdsLocal.push(relatedColObj.colOptions.fk_related_model_id)
+              fetchMetaIdsLocal.push([relatedColObj.id, relatedColObj.colOptions.fk_related_model_id])
             } else {
               relatedTableMeta = metas.value?.[relatedColObj.colOptions.fk_related_model_id]
             }
@@ -298,7 +301,7 @@ export function useCanvasTable({
         } else if (isLTAR(f.uidt, f.colOptions)) {
           if (f.colOptions?.fk_related_model_id) {
             if (!metas.value?.[f.colOptions.fk_related_model_id]) {
-              fetchMetaIdsLocal.push(f.colOptions.fk_related_model_id)
+              fetchMetaIdsLocal.push([f.id, f.colOptions.fk_related_model_id])
             } else {
               relatedTableMeta = metas.value?.[f.colOptions.fk_related_model_id]
             }
@@ -713,6 +716,7 @@ export function useCanvasTable({
     imageLoader,
     spriteLoader,
     tableMetaLoader,
+    baseRoleLoader,
     partialRowHeight,
     vSelectedAllRecords,
     isRowDraggingEnabled,
@@ -1202,7 +1206,16 @@ export function useCanvasTable({
     async () => {
       if (!fetchMetaIds.value.length) return
 
-      await Promise.all(fetchMetaIds.value.map(async (id) => getMeta(id, false, false, undefined, true)))
+      await Promise.all(
+        fetchMetaIds.value.map(async ([colId, tableId]) => {
+          try {
+            await getMeta(tableId, false, false, undefined, true)
+          } catch {}
+          if (!metas.value[tableId]) {
+            await getPartialMeta(colId, tableId)
+          }
+        }),
+      )
       fetchMetaIds.value = []
       triggerRefreshCanvas()
     },
@@ -1293,6 +1306,7 @@ export function useCanvasTable({
     // Action Manager
     actionManager,
     imageLoader,
+    baseRoleLoader,
     handleCellClick,
     handleCellHover,
     renderCell,

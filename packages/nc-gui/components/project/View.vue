@@ -253,10 +253,10 @@ onMounted(() => {
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
-        <a-tab-pane v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('sourceCreate') && base.id" key="syncs">
+        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id" key="syncs">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__syncs">
-              <GeneralIcon icon="ncZap" />
+              <GeneralIcon icon="sync" />
               <div>Syncs</div>
             </div>
           </template>

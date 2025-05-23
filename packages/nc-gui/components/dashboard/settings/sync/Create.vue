@@ -43,9 +43,15 @@ const {
   validateSyncConfig,
 } = useProvideSyncStore(activeWorkspaceId, props.baseId!)
 
-const handleSubmit = async () => {
-  isLoading.value = true
-  creatingSync.value = true
+    try {
+      const res = await $api.internal.postOperation(
+        base.value.fk_workspace_id!,
+        baseId.value!,
+        {
+          operation: 'createSync',
+        },
+        formState.value,
+      )
 
   try {
     const syncData = await createSync()

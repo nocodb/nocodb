@@ -21,7 +21,7 @@ export interface IntegrationManifest {
 export interface IntegrationEntry {
   type: IntegrationType;
   sub_type: string;
-  wrapper: typeof IntegrationWrapper;
+  wrapper:  new (config: any) => IntegrationWrapper<any>;
   form: FormDefinition;
   manifest: IntegrationManifest;
 }

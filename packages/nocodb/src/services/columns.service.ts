@@ -148,7 +148,7 @@ async function reuseOrSave(
   return res;
 }
 
-async function getJunctionTableName(
+export async function getJunctionTableName(
   param: {
     base: Base;
   },

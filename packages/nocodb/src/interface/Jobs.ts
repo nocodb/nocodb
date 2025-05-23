@@ -207,6 +207,7 @@ export interface RestoreSnapshotJobData extends JobData {
 
 export interface SyncDataSyncModuleJobData extends JobData {
   syncConfigId: string;
+  targetTables?: string[];
   trigger: SyncTrigger;
   req: NcRequest;
 }

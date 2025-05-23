@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { FormDefinition } from 'nocodb-sdk'
 import { IntegrationsType, SyncTrigger, SyncType } from 'nocodb-sdk'
-import { JobStatus, generateUniqueTitle as generateTitle } from '#imports'
+import { JobStatus } from '#imports'
 
 const props = defineProps<{ open: boolean; isModal?: boolean }>()
 const emit = defineEmits(['update:open'])
@@ -89,15 +89,9 @@ const { form, formState, isLoading, validateInfos, submit } = useProvideFormBuil
   },
 })
 
-const { t } = useI18n()
-
 const selectedSyncType = computed(() => {
   return formState.value.sub_type
 })
-
-const generateUniqueTitle = () => {
-  return generateTitle(t('objects.table'), tables.value, 'title')
-}
 
 // select and focus title field on load
 onMounted(async () => {
@@ -105,14 +99,14 @@ onMounted(async () => {
 
   await loadDynamicIntegrations()
 
-  formState.value.table_name = generateUniqueTitle()
+  formState.value.title = 'Sync Source'
   formState.value.type = IntegrationsType.Sync
 
   nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
       const input = form.value?.$el?.querySelector('input[type=text]')
-      input?.setSelectionRange(0, formState.value.table_name.length)
+      input?.setSelectionRange(0, formState.value.title.length)
       input?.focus()
     }, 500)
   })
@@ -121,7 +115,9 @@ onMounted(async () => {
 })
 
 const changeIntegration = async () => {
-  const integrationForm = await getIntegrationForm(IntegrationsType.Sync, formState.value.sub_type)
+  const integrationForm = (await getIntegrationForm(IntegrationsType.Sync, formState.value.sub_type)).filter(
+    (el: any) => el.model !== 'title',
+  )
 
   activeIntegrationItemForm.value = [
     ...integrationForm,
@@ -182,7 +178,6 @@ const changeIntegration = async () => {
 const refreshState = async (keepForm = false) => {
   if (!keepForm) {
     formState.value = {
-      table_name: generateUniqueTitle(),
       type: IntegrationsType.Sync,
     }
   }
@@ -219,7 +214,7 @@ const filterIntegration = (i: IntegrationItemType) => !!(i.sub_type !== SyncData
         <div class="flex items-center">
           <GeneralIcon icon="sync" class="!text-green-700 !h-5 !w-5" />
         </div>
-        <div class="flex-1 text-base font-weight-700">Add Sync Table</div>
+        <div class="flex-1 text-base font-weight-700">Create Sync</div>
 
         <div class="flex items-center gap-3">
           <NcButton
@@ -230,7 +225,7 @@ const filterIntegration = (i: IntegrationItemType) => !!(i.sub_type !== SyncData
             class="nc-extdb-btn-submit"
             @click="submit"
           >
-            Create Sync Table
+            Create Sync
           </NcButton>
           <NcButton :disabled="creatingSync" size="small" type="text" @click="vOpen = false">
             <GeneralIcon icon="close" class="text-gray-600" />
@@ -246,8 +241,8 @@ const filterIntegration = (i: IntegrationItemType) => !!(i.sub_type !== SyncData
                   <div class="nc-form-section-body">
                     <a-row :gutter="24">
                       <a-col :span="12">
-                        <a-form-item label="Table Name" v-bind="validateInfos.table_name">
-                          <a-input v-model:value="formState.table_name" />
+                        <a-form-item label="Sync Title" v-bind="validateInfos.title">
+                          <a-input v-model:value="formState.title" />
                         </a-form-item>
                       </a-col>
                     </a-row>
@@ -271,7 +266,7 @@ const filterIntegration = (i: IntegrationItemType) => !!(i.sub_type !== SyncData
               <WorkspaceIntegrationsEditOrAdd load-datasource-info :base-id="baseId" />
             </template>
             <template v-else>
-              <div class="mb-4 prose-xl font-bold">Creating table and syncing initial data</div>
+              <div class="mb-4 prose-xl font-bold">Creating sync schema and syncing initial data</div>
 
               <GeneralProgressPanel ref="progressRef" class="w-full" />
 

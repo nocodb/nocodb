@@ -2,7 +2,8 @@ import { Readable } from 'stream';
 import { UITypes } from 'nocodb-sdk';
 import { IntegrationWrapper } from '../integration';
 import type { AuthResponse } from '../auth';
-import { TARGET_TABLES } from './common';
+import { TARGET_TABLES, NC_LINK_VALUES_KEY } from './common';
+
 export interface DataObject<
   T = Record<string, string | number | boolean | null>,
 > {
@@ -48,7 +49,7 @@ export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
       targetTables?: string[];
       lastRecord?: AnyRecordType;
     },
-  ): Promise<DataObjectStream>;
+  ): Promise<DataObjectStream<SyncRecord>>;
   abstract getIncrementalKey(): string;
 }
 
@@ -71,7 +72,6 @@ export interface SyncColumnDefinition {
 }
 
 export interface SyncRelation {
-  type: 'hm' | 'oo' | 'mm';
   columnTitle: string;
   relatedTable: TARGET_TABLES;
   relatedTableColumnTitle: string;
@@ -84,3 +84,17 @@ export interface SyncTable {
 }
 
 export type SyncSchema = Record<TARGET_TABLES, SyncTable>;
+
+export type SyncValue<T> = T | null;
+
+export type SyncLinkValue = string[] | null;
+
+export interface SyncRecord {
+  RemoteCreatedAt?: SyncValue<string>;
+  RemoteUpdatedAt?: SyncValue<string>;
+  RemoteDeletedAt?: SyncValue<string>;
+  RemoteWasDeleted?: SyncValue<boolean>;
+  RemoteRaw: SyncValue<string>;
+  RemoteSyncedAt?: SyncValue<string>;
+  [NC_LINK_VALUES_KEY]?: Record<string, SyncLinkValue>;
+}

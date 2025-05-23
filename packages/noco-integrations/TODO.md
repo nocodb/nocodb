@@ -16,7 +16,7 @@ Avoid using `any` as much as possible. Try to use the derived types from librari
   4. [x] Implement Groq integration
   5. [x] Implement Amazon Bedrock integration
   6. [x] Implement Azure integration
-  7. [ ] Implement Deepseek integration
+  7. [x] Implement Deepseek integration
   8. [ ] Implement OpenAI Compatible integration
 
 ## Notes

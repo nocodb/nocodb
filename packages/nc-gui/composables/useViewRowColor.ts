@@ -3,7 +3,7 @@ import { validateRowFilters } from '~/utils/dataUtils'
 
 export function useViewRowColor(params: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
-  view: ViewType
+  view: Ref<ViewType>
   rowColorInfo?: RowColoringInfo
 }) {
   const { $api } = useNuxtApp()
@@ -17,7 +17,8 @@ export function useViewRowColor(params: {
   }
   const rowColorInfo = computedAsync(async () => {
     if (!rowColorInfoLoaded.value) {
-      _rowColorInfo.value = await $api.getViewRowColor(params.view.id)
+      _rowColorInfo.value = await $api.dbView.getViewRowColor(params.view.value.id)
+      rowColorInfoLoaded.value = true
     }
     return _rowColorInfo.value
   })
@@ -28,7 +29,6 @@ export function useViewRowColor(params: {
       const value = row[selectRowColorInfo.selectColumn.title]
       let color: string | null | undefined = selectRowColorInfo.options.find((k) => k.title === value)?.color
       color = color ? getLighterTint(color) : null
-
       return color
         ? {
             is_set_as_background: selectRowColorInfo.is_set_as_background,
@@ -60,7 +60,7 @@ export function useViewRowColor(params: {
 
   const getLeftBorderColor = (row: any) => {
     const evaluateResult = evaluateRowColor(row)
-    if (evaluateResult?.is_set_as_background) {
+    if (evaluateResult?.is_set_as_background === false) {
       return evaluateResult.color
     }
     return null
@@ -68,7 +68,7 @@ export function useViewRowColor(params: {
 
   const getRowColor = (row: any) => {
     const evaluateResult = evaluateRowColor(row)
-    if (evaluateResult?.is_set_as_background === false) {
+    if (evaluateResult?.is_set_as_background) {
       return evaluateResult.color
     }
     return null

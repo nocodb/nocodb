@@ -124,7 +124,6 @@ const isFieldInaccessible1 = ref(true)
         :index="options1.index"
         :columns="columns"
         :show-null-and-empty-in-filter="options1.showNullAndEmptyInFilter"
-        :comparison-sub-ops="[]"
         :disabled="options1.disabled"
         :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"
         :is-locked-view="options1.isLockedView"

@@ -20,7 +20,10 @@ export class ViewRowColorService {
     nc_order: number;
     filter: FilterType;
     ncMeta?: MetaService;
-  }): Promise<RowColoringInfo | null> {
+  }): Promise<{
+    id: string;
+    info: RowColoringInfo;
+  }> {
     return null;
   }
 

@@ -2,7 +2,7 @@
 import type { ColumnType } from 'nocodb-sdk'
 
 interface Props {
-  modelValue?: RowColorSingleSelectOption
+  modelValue?: Ref<any>
   columns?: ColumnType[]
 }
 
@@ -12,10 +12,10 @@ interface Emits {
 }
 
 const props = defineProps({
-  modelValue: {
+  modelValue: ref({
     isSetAsBackground: false,
     fk_column_id: '',
-  },
+  }),
   columns: [],
 } as Props as any)
 

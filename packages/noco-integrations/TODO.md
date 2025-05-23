@@ -30,11 +30,11 @@ Avoid using `any` as much as possible. Try to use the derived types from librari
 ### Jira
 - [x] Auth Integration
 - [x] Sync Integration
-- [ ] format<Entity> pattern
-  - [ ] Implement formatTicket
-  - [ ] Implement formatUser
-  - [ ] Implement formatComment
-  - [ ] Implement formatTeam
+- [x] format<Entity> pattern
+  - [x] Implement formatTicket
+  - [x] Implement formatUser
+  - [x] Implement formatComment
+  - [x] Implement formatTeam
 
 ### Linear
 - [x] Auth Integration

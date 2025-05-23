@@ -1,11 +1,10 @@
-import { serverConfig } from 'config'
 const {DbFactory} = require('../../build/main/index');
 const path = require('path');
 const glob = require('glob');
 
 let models = {};
 
-const password = serverConfig.environment === 'testing' ? '' : 'password';
+const password = process.env.NODE_ENV === 'testing' ? '' : 'password';
 
 dbDriver = DbFactory.create({
   "client": "mysql",

@@ -84,6 +84,13 @@ const onFilter1Delete = (event) => {
   deleted1LastEvent.value = event
   deleted1Times.value++
 }
+
+const comparisonOps1 = computed(() => {
+  const list = comparisonOpList(column1.value?.uidt).filter((compOp) =>
+    isComparisonOpAllowed(filter1.value, compOp, column1.value?.uidt, true),
+  )
+  return list
+})
 </script>
 
 <template>
@@ -137,7 +144,7 @@ const onFilter1Delete = (event) => {
         :model-value="filter1"
         :index="options1.index"
         :columns="columns"
-        :comparison-ops="comparisonOpList(column1?.uidt)"
+        :comparison-ops="comparisonOps1"
         :comparison-sub-ops="[]"
         :disabled="options1.disabled"
         :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"

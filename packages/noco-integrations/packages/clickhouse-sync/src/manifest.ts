@@ -4,7 +4,7 @@ import {
 } from '@noco-integrations/core';
 
 const manifest: IntegrationManifest = {
-  title: 'ClickHouse Sync',
+  title: 'ClickHouse',
   icon: 'ncDatabase',
   version: '0.1.0',
   description: 'Sync data with ClickHouse database',

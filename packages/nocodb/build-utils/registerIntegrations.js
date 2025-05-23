@@ -1,6 +1,5 @@
 const path = require('path');
 const fs = require('fs').promises;
-const { glob } = require('glob');
 
 const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
@@ -9,178 +8,161 @@ const camelize = (s) => s.replace(/-./g, (x) => x[1].toUpperCase());
 const prepareComponentName = (name) => capitalize(camelize(name));
 
 async function registerIntegrations(EE = false) {
+  // Read the package.json file
+  const packageJsonPath = path.join(__dirname, '..', 'package.json');
+  const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf-8'));
+
+  // Get all dependencies that start with @noco-integrations/ from package.json
+  const integrationDeps = {};
+  const allDeps = {
+    ...packageJson.dependencies,
+    ...packageJson.devDependencies,
+  };
+
+  for (const [dep, _version] of Object.entries(allDeps)) {
+    if (
+      dep.startsWith('@noco-integrations/') &&
+      dep !== '@noco-integrations/core'
+    ) {
+      // Extract the package name without the @noco-integrations/ prefix
+      const packageName = dep.replace('@noco-integrations/', '');
+      integrationDeps[packageName] = dep;
+    }
+  }
+
+  // Get all local integrations from ../noco-integrations/packages
+  try {
+    if (EE) {
+      const localIntegrationsPath = path.join(
+        __dirname,
+        '..',
+        '..',
+        'noco-integrations',
+        'packages',
+      );
+      const localIntegrationDirs = await fs.readdir(localIntegrationsPath, {
+        withFileTypes: true,
+      });
+
+      let missingDeps = [];
+
+      for (const dirent of localIntegrationDirs) {
+        if (dirent.isDirectory() && dirent.name !== 'core') {
+          const packageName = dirent.name;
+          integrationDeps[
+            packageName
+          ] = `@noco-local-integrations/${packageName}`;
+        }
+
+        // check if the dependencies of local integrations are present in the package.json
+        const integrationPackageJsonPath = path.join(
+          localIntegrationsPath,
+          dirent.name,
+          'package.json',
+        );
+        const integrationPackageJson = JSON.parse(
+          await fs.readFile(integrationPackageJsonPath, 'utf-8'),
+        );
+        const dependencies = integrationPackageJson.dependencies;
+
+        for (const [dep, version] of Object.entries(dependencies)) {
+          if (dep.startsWith('@noco-integrations/')) {
+            continue;
+          }
+
+          if (version === 'workspace:*') {
+            continue;
+          }
+
+          if (!allDeps[dep]) {
+            console.log(
+              `${dirent.name} depends on ${dep} but it is not present in package.json`,
+            );
+            // add it to the package.json
+            packageJson.dependencies[dep] = version;
+            missingDeps.push(dep);
+          }
+        }
+      }
+
+      if (missingDeps.length > 0) {
+        // sort the dependencies
+        packageJson.dependencies = Object.fromEntries(
+          Object.entries(packageJson.dependencies).sort((a, b) =>
+            a[0].localeCompare(b[0]),
+          ),
+        );
+        // write the package.json
+        await fs.writeFile(
+          packageJsonPath,
+          JSON.stringify(packageJson, null, 2),
+        );
+        // inform the user to run pnpm install
+        console.log(
+          'Please run `pnpm install` to install the missing dependencies',
+        );
+      }
+    }
+  } catch (e) {
+    console.log(
+      'Local integrations directory not found or not accessible:',
+      e.message,
+    );
+  }
+
+  // Generate index.ts content for standard integrations
   const integrationRoot = EE ? 'src/ee/integrations' : 'src/integrations';
+  const indexPath = path.join(__dirname, '..', `${integrationRoot}/index.ts`);
 
-  const files = await glob(`${integrationRoot}/**/*`, {
-    ignore: [
-      `${integrationRoot}/*`,
-      `${integrationRoot}/*/*`,
-      `${integrationRoot}/*/module/**/*`,
-    ],
-    cwd: `${__dirname}/../`,
-    absolute: true,
-  });
-
-  if (!files || !files.length) {
-    return;
-  }
-
-  files.sort((a, b) => a.localeCompare(b));
-
-  const availableIntegrations = [];
-  const availableTypes = [];
-
-  for (const file of files) {
-    const integrationType = file
-      .replace(/.*integrations\//, '')
-      ?.split('/')?.[0];
-
-    if (!integrationType) continue;
-
-    if (!availableTypes.includes(integrationType)) {
-      availableTypes.push(integrationType);
-    }
-
-    const subTypeRegex = new RegExp(`.*integrations/${integrationType}/`);
-    const integrationSubType = file.replace(subTypeRegex, '')?.split('/')?.[0];
-
-    if (!integrationSubType) continue;
-
-    let integration = availableIntegrations.find((el) => {
-      return integrationType === el.type && integrationSubType === el.sub_type;
-    });
-
-    if (!integration) {
-      integration = {
-        type: integrationType,
-        sub_type: integrationSubType,
-      };
-      availableIntegrations.push(integration);
-    }
-
-    if (file.includes('entry')) {
-      const filename = path.basename(file).replace('.ts', '');
-      integration.entry = `~/integrations/${integrationType}/${integrationSubType}/${filename}`;
-    } else if (file.includes('form')) {
-      const filename = path.basename(file).replace('.ts', '');
-      integration.form = `~/integrations/${integrationType}/${integrationSubType}/${filename}`;
-    } else if (file.includes('manifest')) {
-      const filename = path.basename(file).replace('.ts', '');
-      integration.manifest = `~/integrations/${integrationType}/${integrationSubType}/${filename}`;
-    }
-  }
-
-  // Generate the content for integrations.ts
-  let integrationsEntry = `/*
+  // Generate the content for index.ts
+  let indexContent = `/*
   This file is auto-generated by \`pnpm run registerIntegrations\`
   !!! Do not edit this file manually !!!
 */
 
-import type { FormDefinition, IntegrationsType } from 'nocodb-sdk';
-import type IntegrationWrapper from '~/integrations/integration.wrapper';
-
 `;
 
-  // Generate import statements for types
-  for (const type of availableTypes) {
-    integrationsEntry += `import ${prepareComponentName(
-      type,
-    )}CommonManifest from '~/integrations/${type}/${type}.manifest';\n`;
+  // Generate import statements for each integration
+  const importStatements = [];
+  const exportEntries = [];
+
+  for (const [packageName, fullPackageName] of Object.entries(
+    integrationDeps,
+  )) {
+    const componentName = prepareComponentName(packageName);
+    importStatements.push(`import ${componentName} from '${fullPackageName}';`);
+    exportEntries.push(componentName);
   }
 
-  integrationsEntry += `\n`;
+  // Add all imports
+  indexContent += importStatements.join('\n');
+  indexContent += '\n\n';
+  // Import IntegrationEntry type
+  indexContent += `import type { IntegrationEntry } from '@noco-local-integrations/core';\n\n`;
 
-  // Generate import statements
-  for (const integration of availableIntegrations) {
-    if (integration.entry) {
-      integrationsEntry += `import ${prepareComponentName(
-        integration.type,
-      )}${prepareComponentName(integration.sub_type)}Entry from '${
-        integration.entry
-      }';\n`;
-    }
-    if (integration.form) {
-      integrationsEntry += `import ${prepareComponentName(
-        integration.type,
-      )}${prepareComponentName(integration.sub_type)}Form from '${
-        integration.form
-      }';\n`;
-    }
-    if (integration.manifest) {
-      integrationsEntry += `import ${prepareComponentName(
-        integration.type,
-      )}${prepareComponentName(integration.sub_type)}Manifest from '${
-        integration.manifest
-      }';\n`;
+  // Add export statement
+  indexContent += `export default [
+${exportEntries.map((entry) => `  ${entry},`).join('\n')}
+] as IntegrationEntry[];\n`;
+
+  if (EE) {
+    // check if src/ee/integrations/index.ts exists
+    const eeIndexPath = path.join(__dirname, '..', 'src/ee/integrations');
+    const exists = await fs.stat(eeIndexPath).catch(() => false);
+    if (!exists) {
+      return;
     }
   }
 
-  if (availableIntegrations.length) {
-    integrationsEntry += `\nexport default [\n`;
+  // Write the generated content to index.ts
+  await fs.writeFile(indexPath, indexContent);
 
-    // Generate integration objects
-    for (const integration of availableIntegrations) {
-      integrationsEntry += `  {\n`;
-      integrationsEntry += `    type: '${integration.type}',\n`;
-      integrationsEntry += `    sub_type: '${integration.sub_type}',\n`;
-      if (integration.entry) {
-        integrationsEntry += `    wrapper: ${prepareComponentName(
-          integration.type,
-        )}${prepareComponentName(integration.sub_type)}Entry,\n`;
-      }
-      if (integration.form) {
-        integrationsEntry += `    form: ${prepareComponentName(
-          integration.type,
-        )}${prepareComponentName(integration.sub_type)}Form,\n`;
-      }
-      if (integration.manifest) {
-        integrationsEntry += `    meta: {
-      ...${prepareComponentName(integration.type)}CommonManifest,
-      ...${prepareComponentName(integration.type)}${prepareComponentName(
-          integration.sub_type,
-        )}Manifest,
-    },\n`;
-      }
-      integrationsEntry += `  },\n`;
-    }
-
-    integrationsEntry += `] as {
-  type: IntegrationsType;
-  sub_type: string;
-  form?: FormDefinition;
-  wrapper?: typeof IntegrationWrapper;
-  meta?: {
-    title?: string;
-    value?: string;
-    icon?: string;
-    description?: string;
-    exposedEndpoints?: string[];
-  };
-}[];\n`;
-  } else {
-    integrationsEntry += `export default [] as {
-  type: IntegrationsType;
-  sub_type: string;
-  form?: FormDefinition;
-  wrapper?: typeof IntegrationWrapper;
-  meta?: {
-    title?: string;
-    value?: string;
-    icon?: string;
-    description?: string;
-    exposedEndpoints?: string[];
-  };
-}[];\n`;
-  }
-
-  // Write the generated content to integrations.ts
-  await fs.writeFile(
-    path.join(__dirname, '..', `${integrationRoot}/integrations.ts`),
-    integrationsEntry,
-  );
-
-  console.log('integrations.ts has been generated successfully.');
+  console.log(`${integrationRoot}/index.ts has been generated successfully.`);
 }
 
-registerIntegrations();
-registerIntegrations(true);
+async function main() {
+  await registerIntegrations();
+  await registerIntegrations(true);
+}
+
+main();

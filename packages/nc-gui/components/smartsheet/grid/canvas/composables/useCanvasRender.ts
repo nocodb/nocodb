@@ -351,7 +351,7 @@ export function useCanvasRender({
       } else if (meta.value?.synced && colObj?.readonly) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
-          icon: 'refresh',
+          icon: 'ncZap',
           size: 14,
           color: '#6a7184',
           x: rightOffset - scrollLeft.value,
@@ -612,7 +612,7 @@ export function useCanvasRender({
         } else if (meta.value?.synced && colObj?.readonly) {
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {
-            icon: 'refresh',
+            icon: 'ncZap',
             size: 14,
             color: '#6a7184',
             x: rightOffset,

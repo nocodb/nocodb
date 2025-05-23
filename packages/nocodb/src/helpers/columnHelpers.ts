@@ -607,3 +607,18 @@ export const travelLookupColumn = async ({
     return targetColumn;
   }
 };
+
+export const getMMColumnNames = (parent: Model, child: Model) => {
+  const parentCn = `${parent.table_name.slice(0, 30)}_id`;
+  let childCn = `${child.table_name.slice(0, 30)}_id`;
+
+  // handle duplicate column names in self referencing tables or if first 30 characters are same
+  if (parentCn === childCn) {
+    childCn = `${child.table_name.slice(0, 29)}1_id`;
+  }
+
+  return {
+    parentCn,
+    childCn,
+  };
+};

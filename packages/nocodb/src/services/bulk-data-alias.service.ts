@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { NcRequest } from 'nocodb-sdk';
+import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
@@ -79,6 +79,7 @@ export class BulkDataAliasService {
       cookie: NcRequest;
       raw?: boolean;
       allowSystemColumn?: boolean;
+      apiVersion?: NcApiVersion;
     },
   ) {
     return await this.executeBulkOperation(context, {
@@ -90,6 +91,7 @@ export class BulkDataAliasService {
           cookie: param.cookie,
           raw: param.raw,
           allowSystemColumn: param.allowSystemColumn,
+          apiVersion: param.apiVersion,
         },
       ],
     });

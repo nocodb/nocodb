@@ -1,14 +1,18 @@
 <script lang="ts" setup>
-import type { SyncDataType } from 'nocodb-sdk'
+import type { SyncCategory, SyncDataType } from 'nocodb-sdk'
 import { iconMap } from '#imports'
 
 const props = defineProps<{
-  modelValue?: SyncDataType
+  value?: SyncDataType
+  category?: SyncCategory
 }>()
 
-const emits = defineEmits(['update:modelValue', 'change'])
+const emits = defineEmits(['update:value', 'change'])
 
-const vModel = useVModel(props, 'modelValue', emits)
+const vModel = computed({
+  get: () => props.value,
+  set: (val) => emits('update:value', val),
+})
 
 const { integrationsRefreshKey } = useIntegrationStore()
 
@@ -17,7 +21,7 @@ const availableIntegrations = computed(() => {
   integrationsRefreshKey.value
 
   return allIntegrations.filter((i) => {
-    return i.type === IntegrationCategoryType.SYNC
+    return i.type === IntegrationCategoryType.SYNC && (!props.category || i.sync_category === props.category)
   })
 })
 
@@ -28,12 +32,10 @@ const onChange = (value: SyncDataType) => {
 
 <template>
   <NcSelect
-    v-model:value="vModel"
+    :value="vModel"
     class="nc-select-shadow"
     dropdown-class-name="nc-dropdown-sync-type"
     placeholder="Select Source"
-    show-search
-    dropdown-match-select-width
     @change="onChange"
   >
     <a-select-option v-for="integration in availableIntegrations" :key="`${integration.sub_type}`" :value="integration.sub_type">

@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "قم بترقية {workspace} إلى خطة {plan}",
     "upgradeToPlanSubtitle": "سيتم تحصيل الرسوم فورًا مقابل هذه الخطة.",
     "reactivateToPlan": "إعادة تنشيط خطة {plan}؟",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "لا يمكنك تكرار القواعد إلا في مساحات العمل التي تمتلك فيها صلاحية منشئ أو أعلى.",
     "snapshotBaseRestoreMessage": "يمكنك الاستعادة فقط إلى مساحات العمل التي تمتلك فيها صلاحية منشئ أو أعلى.",
     "currentWorkspace": "مساحة العمل الحالية",
+    "currentBase": "Current base",
     "latitude": "خط العرض",
     "longitude": "خط الطول",
     "failed": "فشل",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "مقتطفات API",
     "includeData": "تضمين البيانات",
     "includeRecords": "تضمين السجلات",
-    "baseDuplicateMessage": "ملاحظة: لن يتم تكرار سجلات التدقيق أو التكاملات.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "تضمين العروض",
     "includeWebhook": "تضمين Webhook",
     "includeComments": "تضمين التعليقات",
@@ -1611,6 +1616,7 @@
     "changePlan": "تغيير الخطة"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "يجب أن تحتوي كل مساحة عمل على مالك واحد على الأقل. يرجى تعيين مستخدم آخر كمالك قبل مغادرة مساحة العمل. إذا كنت آخر عضو، فكر في حذف مساحة العمل بدلاً من ذلك.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "تمكين لجعل هذا الاتصال خاصًا ومخفيًا عن المبدعين الآخرين في هذه مساحة العمل.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "نسخ رمز الخطأ",
     "paidUserBadgeTooltip": "لدى المستخدم دور محرر أو أعلى في قاعدة واحدة على الأقل.",
     "approachingLimit": "يقترب من الحد",
-    "exceedingLimit": "تجاوز الحد"
+    "exceedingLimit": "تجاوز الحد",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "البحث عن الأيقونات",

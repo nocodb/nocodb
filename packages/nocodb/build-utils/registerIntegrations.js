@@ -30,6 +30,21 @@ async function registerIntegrations(EE = false) {
     }
   }
 
+  // Get all local integrations from ../noco-integrations/packages
+  try {
+    const localIntegrationsPath = path.join(__dirname, '..', '..', 'noco-integrations', 'packages');
+    const localIntegrationDirs = await fs.readdir(localIntegrationsPath, { withFileTypes: true });
+    
+    for (const dirent of localIntegrationDirs) {
+      if (dirent.isDirectory() && dirent.name !== 'core') {
+        const packageName = dirent.name;
+        integrationDeps[packageName] = `@noco-local-integrations/${packageName}`;
+      }
+    }
+  } catch (e) {
+    console.log('Local integrations directory not found or not accessible:', e.message);
+  }
+
   // Generate index.ts content for standard integrations
   const integrationRoot = EE ? 'src/ee/integrations' : 'src/integrations';
   const indexPath = path.join(__dirname, '..', `${integrationRoot}/index.ts`);
@@ -58,7 +73,7 @@ async function registerIntegrations(EE = false) {
   indexContent += importStatements.join('\n');
   indexContent += '\n\n';
   // Import IntegrationEntry type
-  indexContent += `import type { IntegrationEntry } from '@noco-integrations/core';\n\n`;
+  indexContent += `import type { IntegrationEntry } from '@noco-local-integrations/core';\n\n`;
 
   // Add export statement
   indexContent += `export default [

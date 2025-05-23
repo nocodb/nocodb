@@ -18,29 +18,6 @@ import { NcErrorGenerator } from './nc-error-generator';
 export class NcErrorBase {
   static _ = new NcErrorBase();
 
-  /*
-  permissionDenied(
-    permissionName: string,
-    roles: Record<string, boolean>,
-    extendedScopeRoles: any,
-  ): never {}
-  */
-
-  /*
-  recordNotFound(
-    id: string | string[] | Record<string, string> | Record<string, string>[],
-    args?: NcErrorArgs
-  ): never {}
-  */
-
-  /*
-  ajvValidationError(param: {
-    message: string;
-    errors: ErrorObject[];
-    humanReadableError: boolean;
-  }): never {}
-  */
-
   authenticationRequired(args?: NcErrorArgs): never {
     throw NcErrorGenerator._.generateError(
       NcErrorType.AUTHENTICATION_REQUIRED,

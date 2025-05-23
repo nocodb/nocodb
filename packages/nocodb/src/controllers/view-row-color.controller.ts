@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -21,6 +22,7 @@ export class ViewRowColorController {
   constructor(private readonly viewRowColorService: ViewRowColorService) {}
 
   @Post('/row-color-select')
+  @HttpCode(200)
   @Acl('viewRowColorSelectAdd')
   async setViewRowColorSelect(
     @TenantContext() context: NcContext,
@@ -39,6 +41,7 @@ export class ViewRowColorController {
   }
 
   @Post('/row-color-conditions')
+  @HttpCode(200)
   @Acl('viewRowColorConditionAdd')
   async addViewRowColorCondition(
     @TenantContext() context: NcContext,

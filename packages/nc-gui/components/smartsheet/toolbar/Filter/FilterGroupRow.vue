@@ -56,12 +56,6 @@ const logicalOps = [
 ]
 
 // #region utils & computed
-const slots = useSlots()
-
-const slotHasChildren = (name?: string) => {
-  return (slots[name ?? 'default']?.()?.length ?? 0) > 0
-}
-
 const isDisabled = computed(() => {
   return vModel.value.readOnly || props.disabled || props.isLockedView
 })
@@ -129,6 +123,7 @@ const onDelete = () => {
     <div class="flex rounded-lg p-2 min-w-full w-min border-1" :class="[`nc-filter-nested-level-${nestedLevel}`]">
       <SmartsheetToolbarFilterGroup
         v-model="vModel.children"
+        :index="index"
         :nested-level="nestedLevel + 1"
         :columns="columns"
         :disabled="disabled"
@@ -144,7 +139,7 @@ const onDelete = () => {
         :filters-count="filtersCount"
         :query-filter="queryFilter"
         :fk-parent-id="vModel.id"
-        :tmp-fk-parent-id="vModel.tmp_id"
+        :parent-filter="vModel"
         :is-full-width="isFullWidth"
         :handler="handler"
         @change="onFilterChange"

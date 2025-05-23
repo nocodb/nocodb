@@ -4,9 +4,13 @@ import 'splitpanes/dist/splitpanes.css'
 
 const slots = useSlots()
 
-const { leftSidebarWidth, windowSize, expandedFormRightSidebarState, expandedFormRightSidebarWidthPercent } = storeToRefs(
-  useSidebarStore(),
-)
+const {
+  leftSidebarWidth,
+  windowSize,
+  expandedFormRightSidebarState,
+  expandedFormRightSidebarWidthPercent,
+  isExpandedFormSidebarEnabled,
+} = storeToRefs(useSidebarStore())
 
 const expandedFormPreviewSize = computed(() => {
   if (!slots.sidebar) {
@@ -44,7 +48,7 @@ const normalizeExpandedFormSidebarWidth = computed(() => {
     class="nc-expanded-form-right-sidebar-content-resizable-wrapper w-full h-full"
     @resize="(event: any) => onResize(event[1].size)"
   >
-    <Pane :size="expandedFormPreviewSize" class="flex-1 h-full">
+    <Pane :size="expandedFormPreviewSize" class="flex-1 h-full relative">
       <slot name="preview" />
     </Pane>
     <Pane
@@ -61,6 +65,12 @@ const normalizeExpandedFormSidebarWidth = computed(() => {
     </Pane>
   </Splitpanes>
 </template>
+
+<style lang="scss" scoped>
+.nc-expanded-form-sidebar-splitpane {
+  box-shadow: -8px 0px 16px -4px rgba(0, 0, 0, 0.16);
+}
+</style>
 
 <style lang="scss">
 /** Split pane CSS */

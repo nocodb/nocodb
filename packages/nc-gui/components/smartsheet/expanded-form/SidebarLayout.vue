@@ -2,8 +2,6 @@
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
-const slots = useSlots()
-
 const route = useRoute()
 
 const { isMobileMode } = useGlobal()

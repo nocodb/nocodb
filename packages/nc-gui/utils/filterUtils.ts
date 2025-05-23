@@ -704,6 +704,7 @@ export const composeColumnsForFilter = async ({
   for (const column of rootMeta.columns!) {
     if (column.uidt !== UITypes.Lookup) {
       result.push({ ...column, filterUidt: getFilterUidt(column) })
+      continue
     }
 
     let nextCol: ColumnType | undefined = column
@@ -714,7 +715,6 @@ export const composeColumnsForFilter = async ({
       const lookupRelation: ColumnType | undefined = (await getMeta(nextCol.fk_model_id!))?.columns?.find(
         (c) => c.id === (nextCol!.colOptions as LookupType).fk_relation_column_id,
       )
-
       // this is less likely to happen but if relation column is not found then break the loop
       if (!lookupRelation) {
         break

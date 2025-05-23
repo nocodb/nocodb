@@ -72,6 +72,8 @@ const searchVal = ref<string | null>()
 
 const { isUIAllowed } = useRoles()
 
+const { showUpgradeToUseCurrentUserFilter } = useEeConfig()
+
 const options = computed(() => {
   const currentUserField: any[] = []
   if (isEeUI && isInFilter.value) {
@@ -105,6 +107,9 @@ const vModel = computed({
     return getSelectedUsers(optionsMap.value, modelValue)
   },
   set: (val) => {
+    // @ts-expect-error antd select returns string[] instead of { label: string, value: string }[]
+    if (isEeUI && val.includes(CURRENT_USER_TOKEN) && showUpgradeToUseCurrentUserFilter()) return
+
     const value: string[] = []
     if (val && val.length) {
       val.forEach((item) => {

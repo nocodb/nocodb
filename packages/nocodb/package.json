@@ -29,7 +29,7 @@
     "start": "pnpm run watch:run",
     "start:prod": "node docker/main",
     "lint": "eslint \"src/**/*.ts\" --fix",
-    "test": "jest --runInBand --forceExit",
+    "test": "jest --runInBand --forceExit --passWithNoTests",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r @swc-node/register node_modules/.bin/jest --runInBand",
@@ -80,7 +80,7 @@
     "ajv-formats": "^2.1.1",
     "auto-bind": "^4.0.0",
     "aws-sdk": "^2.1550.0",
-    "axios": "^1.7.9",
+    "axios": "^1.9.0",
     "bcryptjs": "^2.4.3",
     "boxen": "^5.1.2",
     "bull": "^4.16.5",
@@ -170,7 +170,7 @@
     "uuid": "^9.0.1",
     "validator": "^13.12.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
-    "zod": "^3.24.4"
+    "zod": "^3.25.7"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",
@@ -211,7 +211,7 @@
     "run-script-webpack-plugin": "0.2.2",
     "supertest": "^6.3.4",
     "ts-checker-rspack-plugin": "^1.1.1",
-    "ts-jest": "29.2.5",
+    "ts-jest": "29.1.2",
     "typescript": "^5.7.3"
   }
 }

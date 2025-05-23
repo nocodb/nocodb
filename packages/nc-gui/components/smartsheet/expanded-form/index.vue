@@ -699,9 +699,7 @@ const modalProps = computed(() => {
     ...(attrs || {}),
     ...(isExpandedFormSidebarEnabled.value
       ? {
-          getContainer: false,
           style: {
-            position: 'absolute',
             height: '100%',
           },
           placement: 'right',
@@ -709,13 +707,13 @@ const modalProps = computed(() => {
           mask: true,
           bodyStyle: {
             padding: 0,
+            minWidth: `${expandedFormRightSidebarState.value.minWidth}px !important`,
+            maxWidth: `${normalizeExpandedFormSidebarWidth.value}px !important`,
           },
         }
       : {
           bodyStyle: {
             padding: 0,
-            minWidth: `${expandedFormRightSidebarState.value.minWidth}px !important`,
-            maxWidth: `${normalizeExpandedFormSidebarWidth.value}px !important`,
           },
         }),
   }
@@ -762,264 +760,264 @@ export default {
 </script>
 
 <template>
-  <Teleport to="#nc-expanded-form-sidebar-splitpane">
-    <component
-      v-if="isExpanded"
-      :is="isExpandedFormSidebarEnabled ? Drawer : isMobileMode ? Drawer : NcModal"
-      :class="{ 'active': isExpanded, 'nc-drawer-sidebar-expanded-form': isExpandedFormSidebarEnabled }"
-      :closable="false"
-      :footer="null"
-      :visible="isExpanded"
-      :width="
-        isExpandedFormSidebarEnabled
-          ? `${expandedFormRightSidebarWidthPercent}%`
-          : commentsDrawer && isUIAllowed('commentList', baseRoles)
-          ? 'min(80vw,1280px)'
-          : 'min(70vw,768px)'
-      "
-      class="nc-drawer-expanded-form !transition-none"
-      v-bind="modalProps"
-      @update:visible="onIsExpandedUpdate"
+  <component
+    :is="isExpandedFormSidebarEnabled ? Drawer : isMobileMode ? Drawer : NcModal"
+    :class="{ 'active': isExpanded, 'nc-drawer-sidebar-expanded-form': isExpandedFormSidebarEnabled }"
+    :closable="false"
+    :footer="null"
+    :visible="isExpanded"
+    :width="
+      isExpandedFormSidebarEnabled
+        ? `${expandedFormRightSidebarState.width}px`
+        : commentsDrawer && isUIAllowed('commentList', baseRoles)
+        ? 'min(80vw,1280px)'
+        : 'min(70vw,768px)'
+    "
+    class="nc-drawer-expanded-form !transition-none"
+    v-bind="modalProps"
+    @update:visible="onIsExpandedUpdate"
+  >
+    <div
+      class="xs:(max-h-full h-full) max-h-215 flex flex-col"
+      :class="{
+        'h-full': isExpandedFormSidebarEnabled,
+        'h-[85vh]': !isExpandedFormSidebarEnabled,
+      }"
     >
+      <div v-if="isMobileMode" class="flex-none h-4 flex items-center justify-center">
+        <div class="flex-none h-full flex items-center justify-center cursor-pointer" @click="onClose">
+          <div class="w-[72px] h-[2px] rounded-full bg-[#49494a]"></div>
+        </div>
+      </div>
       <div
-        class="xs:(max-h-full h-full) max-h-215 flex flex-col"
+        class="flex gap-2 min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header px-4 xs:(px-2 py-0 min-h-[48px]) border-b-1 border-gray-200"
         :class="{
-          'h-full': isExpandedFormSidebarEnabled,
-          'h-[85vh]': !isExpandedFormSidebarEnabled,
+          'py-2': isExpandedFormSidebarEnabled,
+          'py-3': !isExpandedFormSidebarEnabled,
         }"
       >
-        <div v-if="isMobileMode" class="flex-none h-4 flex items-center justify-center">
-          <div class="flex-none h-full flex items-center justify-center cursor-pointer" @click="onClose">
-            <div class="w-[72px] h-[2px] rounded-full bg-[#49494a]"></div>
-          </div>
-        </div>
-        <div
-          class="flex gap-2 min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header px-4 xs:(px-2 py-0 min-h-[48px]) border-b-1 border-gray-200"
-          :class="{
-            'py-2': isExpandedFormSidebarEnabled,
-            'py-3': !isExpandedFormSidebarEnabled,
-          }"
-        >
-          <div class="flex gap-2 min-w-0 min-h-8">
-            <div class="flex gap-2">
-              <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
-                <template #title> {{ $t('labels.prevRow') }} {{ renderAltOrOptlKey() }} + ←</template>
-                <NcButton
-                  :disabled="isFirstRow || isLoading"
-                  class="nc-prev-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
-                  type="text"
-                  size="xsmall"
-                  @click="onPrev"
-                >
-                  <GeneralIcon icon="chevronDown" class="transform rotate-180" />
-                </NcButton>
-              </NcTooltip>
-              <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
-                <template #title> {{ $t('labels.nextRow') }} {{ renderAltOrOptlKey() }} + →</template>
-                <NcButton
-                  :disabled="islastRow || isLoading"
-                  class="nc-next-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
-                  type="text"
-                  size="xsmall"
-                  @click="onNext"
-                >
-                  <GeneralIcon icon="chevronDown" />
-                </NcButton>
-              </NcTooltip>
-            </div>
-            <div v-if="isLoading" class="flex items-center">
-              <a-skeleton-input active class="!h-6 !sm:mr-14 !w-52 !rounded-md !overflow-hidden" size="small" />
-            </div>
-            <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end) min-w-0">
-              <div v-if="!props.showNextPrevIcons" class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
-                <GeneralIcon icon="table" class="text-gray-700 flex-none" />
-                <span class="nc-expanded-form-table-name whitespace-nowrap">
-                  {{ tableTitle }}
-                </span>
-              </div>
-              <div
-                v-if="row.rowMeta?.new || props.newRecordHeader"
-                class="flex items-center truncate font-bold text-gray-800 text-xl overflow-hidden"
-              >
-                {{ props.newRecordHeader ?? $t('activity.newRecord') }}
-              </div>
-              <div
-                v-else-if="displayValue && !row?.rowMeta?.new"
-                class="flex items-center font-bold text-gray-800 text-2xl overflow-hidden"
-              >
-                <span class="min-w-[120px] md:min-w-[300px]">
-                  <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" show-tooltip />
-                </span>
-              </div>
-            </div>
-          </div>
-          <div class="ml-auto">
-            <SmartsheetExpandedFormViewModeSelector v-model="activeViewMode" view="view" class="nc-expanded-form-mode-switch" />
-          </div>
+        <div class="flex gap-2 min-w-0 min-h-8">
           <div class="flex gap-2">
-            <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit', baseRoles) && !isSqlView">
-              <template #title> {{ renderAltOrOptlKey() }} + S</template>
+            <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
+              <template #title> {{ $t('labels.prevRow') }} {{ renderAltOrOptlKey() }} + ←</template>
               <NcButton
-                v-e="['c:row-expand:save']"
-                :disabled="changedColumns.size === 0 && !isUnsavedFormExist && !isLTARChanged"
-                :loading="isSaving"
-                class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
-                data-testid="nc-expanded-form-save"
-                type="primary"
-                size="xsmall"
-                @click="save"
-              >
-                <div class="xs:px-1">{{ newRecordSubmitBtnText ?? $t('activity.saveRow') }}</div>
-              </NcButton>
-            </NcTooltip>
-            <NcTooltip>
-              <template #title> {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }} </template>
-              <NcButton
-                v-if="!isNew && rowId && !isMobileMode"
-                :disabled="isLoading"
-                class="!<lg:hidden text-gray-700 !h-7 !w-7"
+                :disabled="isFirstRow || isLoading"
+                class="nc-prev-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
                 type="text"
                 size="xsmall"
-                @click="copyRecordUrl()"
+                @click="onPrev"
               >
-                <div
-                  v-e="['c:row-expand:copy-url']"
-                  data-testid="nc-expanded-form-copy-url"
-                  class="flex items-center relative h-4 w-4"
-                >
-                  <Transition name="icon-fade" :duration="200">
-                    <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row h-4 w-4" />
-                    <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row h-4 w-4" />
-                  </Transition>
-                </div>
+                <GeneralIcon icon="chevronDown" class="transform rotate-180" />
               </NcButton>
             </NcTooltip>
-            <NcDropdown v-if="!isNew && rowId && !isMobileMode" placement="bottomRight">
-              <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7" :disabled="isLoading">
-                <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />
+            <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
+              <template #title> {{ $t('labels.nextRow') }} {{ renderAltOrOptlKey() }} + →</template>
+              <NcButton
+                :disabled="islastRow || isLoading"
+                class="nc-next-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
+                type="text"
+                size="xsmall"
+                @click="onNext"
+              >
+                <GeneralIcon icon="chevronDown" />
               </NcButton>
-              <template #overlay>
-                <NcMenu variant="small">
-                  <NcMenuItem @click="_loadRow()">
-                    <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
-                      <component :is="iconMap.reload" class="cursor-pointer" />
-                      {{ $t('general.reload') }} {{ $t('objects.record') }}
-                    </div>
-                  </NcMenuItem>
-                  <NcMenuItem
-                    v-if="!isNew && rowId"
-                    type="secondary"
-                    class="!lg:hidden"
-                    :disabled="isLoading"
-                    @click="copyRecordUrl()"
-                  >
-                    <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
-                      <component :is="iconMap.copy" class="cursor-pointer" />
-                      {{ $t('labels.copyRecordURL') }}
-                    </div>
-                  </NcMenuItem>
-                  <NcMenuItem v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView" @click="!isNew ? onDuplicateRow() : () => {}">
-                    <div
-                      v-e="['c:row-expand:duplicate']"
-                      class="flex gap-2 items-center"
-                      data-testid="nc-expanded-form-duplicate"
-                    >
-                      <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
-                      <span class="-ml-0.25">
-                        {{ $t('labels.duplicateRecord') }}
-                      </span>
-                    </div>
-                  </NcMenuItem>
-                  <NcDivider
+            </NcTooltip>
+          </div>
+          <div v-if="isLoading" class="flex items-center">
+            <a-skeleton-input active class="!h-6 !sm:mr-14 !w-52 !rounded-md !overflow-hidden" size="small" />
+          </div>
+          <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end) min-w-0">
+            <div v-if="!props.showNextPrevIcons" class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
+              <GeneralIcon icon="table" class="text-gray-700 flex-none" />
+              <span class="nc-expanded-form-table-name whitespace-nowrap">
+                {{ tableTitle }}
+              </span>
+            </div>
+            <div
+              v-if="row.rowMeta?.new || props.newRecordHeader"
+              class="flex items-center truncate font-bold text-gray-800 text-xl overflow-hidden"
+            >
+              {{ props.newRecordHeader ?? $t('activity.newRecord') }}
+            </div>
+            <div
+              v-else-if="displayValue && !row?.rowMeta?.new"
+              class="flex items-center font-bold text-gray-800 text-2xl overflow-hidden"
+            >
+              <span class="min-w-[120px] md:min-w-[300px]">
+                <NcTooltip class="truncate" show-on-truncate-only>
+                  <template #title>
+                    {{ displayValue }}
+                  </template>
+
+                  <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
+                </NcTooltip>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="ml-auto">
+          <SmartsheetExpandedFormViewModeSelector v-model="activeViewMode" view="view" class="nc-expanded-form-mode-switch" />
+        </div>
+        <div class="flex gap-2">
+          <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit', baseRoles) && !isSqlView">
+            <template #title> {{ renderAltOrOptlKey() }} + S</template>
+            <NcButton
+              v-e="['c:row-expand:save']"
+              :disabled="changedColumns.size === 0 && !isUnsavedFormExist && !isLTARChanged"
+              :loading="isSaving"
+              class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
+              data-testid="nc-expanded-form-save"
+              type="primary"
+              size="xsmall"
+              @click="save"
+            >
+              <div class="xs:px-1">{{ newRecordSubmitBtnText ?? $t('activity.saveRow') }}</div>
+            </NcButton>
+          </NcTooltip>
+          <NcTooltip>
+            <template #title> {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }} </template>
+            <NcButton
+              v-if="!isNew && rowId && !isMobileMode"
+              :disabled="isLoading"
+              class="!<lg:hidden text-gray-700 !h-7 !w-7"
+              type="text"
+              size="xsmall"
+              @click="copyRecordUrl()"
+            >
+              <div
+                v-e="['c:row-expand:copy-url']"
+                data-testid="nc-expanded-form-copy-url"
+                class="flex items-center relative h-4 w-4"
+              >
+                <Transition name="icon-fade" :duration="200">
+                  <component :is="iconMap.check" v-if="isRecordLinkCopied" class="cursor-pointer nc-duplicate-row h-4 w-4" />
+                  <component :is="iconMap.copy" v-else class="cursor-pointer nc-duplicate-row h-4 w-4" />
+                </Transition>
+              </div>
+            </NcButton>
+          </NcTooltip>
+          <NcDropdown v-if="!isNew && rowId && !isMobileMode" placement="bottomRight">
+            <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7" :disabled="isLoading">
+              <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />
+            </NcButton>
+            <template #overlay>
+              <NcMenu variant="small">
+                <NcMenuItem @click="_loadRow()">
+                  <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
+                    <component :is="iconMap.reload" class="cursor-pointer" />
+                    {{ $t('general.reload') }} {{ $t('objects.record') }}
+                  </div>
+                </NcMenuItem>
+                <NcMenuItem
+                  v-if="!isNew && rowId"
+                  type="secondary"
+                  class="!lg:hidden"
+                  :disabled="isLoading"
+                  @click="copyRecordUrl()"
+                >
+                  <div v-e="['c:row-expand:copy-url']" data-testid="nc-expanded-form-copy-url" class="flex gap-2 items-center">
+                    <component :is="iconMap.copy" class="cursor-pointer" />
+                    {{ $t('labels.copyRecordURL') }}
+                  </div>
+                </NcMenuItem>
+                <NcMenuItem v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView" @click="!isNew ? onDuplicateRow() : () => {}">
+                  <div v-e="['c:row-expand:duplicate']" class="flex gap-2 items-center" data-testid="nc-expanded-form-duplicate">
+                    <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
+                    <span class="-ml-0.25">
+                      {{ $t('labels.duplicateRecord') }}
+                    </span>
+                  </div>
+                </NcMenuItem>
+                <NcDivider
                   v-if="
                     isUIAllowed('dataEdit', {
                       roles: baseRoles,
                     }) && !isSqlView
                   "
                 />
-                  <NcMenuItem
-                    v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
-                    class="!text-red-500 !hover:bg-red-50"
-                    @click="!isNew && onDeleteRowClick()"
-                  >
-                    <div v-e="['c:row-expand:delete']" class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">
-                      <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
-                      <span class="-ml-0.25">
-                        {{
-                          $t('general.deleteEntity', {
-                            entity: $t('objects.record').toLowerCase(),
-                          })
-                        }}
-                      </span>
-                    </div>
-                  </NcMenuItem>
-                </NcMenu>
-              </template>
-            </NcDropdown>
+                <NcMenuItem
+                  v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
+                  class="!text-red-500 !hover:bg-red-50"
+                  @click="!isNew && onDeleteRowClick()"
+                >
+                  <div v-e="['c:row-expand:delete']" class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">
+                    <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
+                    <span class="-ml-0.25">
+                      {{
+                        $t('general.deleteEntity', {
+                          entity: $t('objects.record').toLowerCase(),
+                        })
+                      }}
+                    </span>
+                  </div>
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
 
-            <NcButton
-              class="nc-expand-form-close-btn !w-7 !h-7"
-              data-testid="nc-expanded-form-close"
-              type="text"
-              size="xsmall"
-              @click="onClose"
-            >
-              <GeneralIcon class="text-md text-gray-700 h-4 w-4" icon="close" />
-            </NcButton>
-          </div>
-        </div>
-        <div
-          ref="wrapper"
-          class="flex-grow w-full"
-          :class="{
-            'h-[calc(100%_-_49px)]': isExpandedFormSidebarEnabled,
-            'h-[calc(100%_-_3.5rem)]': !isExpandedFormSidebarEnabled,
-          }"
-        >
-          <template v-if="activeViewMode === ExpandedFormMode.FIELD">
-            <SmartsheetExpandedFormPresentorsFields
-              :row-id="rowId"
-              :fields="fields ?? []"
-              :hidden-fields="hiddenFields"
-              :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist"
-              :is-unsaved-form-exist="isUnsavedFormExist"
-              :is-loading="isLoading"
-              :is-saving="isSaving"
-              :new-record-submit-btn-text="newRecordSubmitBtnText"
-              @copy:record-url="copyRecordUrl()"
-              @delete:row="onDeleteRowClick()"
-              @save="save()"
-              @update:model-value="emits('update:modelValue', $event)"
-              @created-record="emits('createdRecord', $event)"
-              @update-row-comment-count="emits('updateRowCommentCount', $event)"
-            />
-          </template>
-          <template v-else-if="activeViewMode === ExpandedFormMode.ATTACHMENT">
-            <SmartsheetExpandedFormPresentorsAttachments
-              :row-id="rowId"
-              :view="props.view"
-              :fields="fields ?? []"
-              :hidden-fields="hiddenFields"
-              :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist"
-              :is-unsaved-form-exist="isUnsavedFormExist"
-              :is-loading="isLoading"
-              :is-saving="isSaving"
-              :new-record-submit-btn-text="newRecordSubmitBtnText"
-              @copy:record-url="copyRecordUrl()"
-              @delete:row="onDeleteRowClick()"
-              @save="save()"
-              @update:model-value="emits('update:modelValue', $event)"
-              @created-record="emits('createdRecord', $event)"
-              @update-row-comment-count="emits('updateRowCommentCount', $event)"
-            />
-          </template>
-          <template v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION">
-            <SmartsheetExpandedFormPresentorsDiscussion :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist" />
-          </template>
+          <NcButton
+            class="nc-expand-form-close-btn !w-7 !h-7"
+            data-testid="nc-expanded-form-close"
+            type="text"
+            size="xsmall"
+            @click="onClose"
+          >
+            <GeneralIcon class="text-md text-gray-700 h-4 w-4" icon="close" />
+          </NcButton>
         </div>
       </div>
-    </component>
-  </Teleport>
+      <div
+        ref="wrapper"
+        class="flex-grow w-full"
+        :class="{
+          'h-[calc(100%_-_49px)]': isExpandedFormSidebarEnabled,
+          'h-[calc(100%_-_3.5rem)]': !isExpandedFormSidebarEnabled,
+        }"
+      >
+        <template v-if="activeViewMode === ExpandedFormMode.FIELD">
+          <SmartsheetExpandedFormPresentorsFields
+            :row-id="rowId"
+            :fields="fields ?? []"
+            :hidden-fields="hiddenFields"
+            :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist"
+            :is-unsaved-form-exist="isUnsavedFormExist"
+            :is-loading="isLoading"
+            :is-saving="isSaving"
+            :new-record-submit-btn-text="newRecordSubmitBtnText"
+            @copy:record-url="copyRecordUrl()"
+            @delete:row="onDeleteRowClick()"
+            @save="save()"
+            @update:model-value="emits('update:modelValue', $event)"
+            @created-record="emits('createdRecord', $event)"
+            @update-row-comment-count="emits('updateRowCommentCount', $event)"
+          />
+        </template>
+        <template v-else-if="activeViewMode === ExpandedFormMode.ATTACHMENT">
+          <SmartsheetExpandedFormPresentorsAttachments
+            :row-id="rowId"
+            :view="props.view"
+            :fields="fields ?? []"
+            :hidden-fields="hiddenFields"
+            :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist"
+            :is-unsaved-form-exist="isUnsavedFormExist"
+            :is-loading="isLoading"
+            :is-saving="isSaving"
+            :new-record-submit-btn-text="newRecordSubmitBtnText"
+            @copy:record-url="copyRecordUrl()"
+            @delete:row="onDeleteRowClick()"
+            @save="save()"
+            @update:model-value="emits('update:modelValue', $event)"
+            @created-record="emits('createdRecord', $event)"
+            @update-row-comment-count="emits('updateRowCommentCount', $event)"
+          />
+        </template>
+        <template v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION">
+          <SmartsheetExpandedFormPresentorsDiscussion :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist" />
+        </template>
+      </div>
+    </div>
+  </component>
+
   <GeneralDeleteModal v-model:visible="showDeleteRowModal" entity-name="Record" :on-delete="() => onConfirmDeleteRowClick()">
     <template #entity-preview>
       <span>
@@ -1067,8 +1065,9 @@ export default {
   }
 
   &.nc-drawer-sidebar-expanded-form {
+    transform: none !important;
     .ant-drawer-content-wrapper {
-      @apply !rounded-l-xl overflow-hidden;
+      @apply !rounded-l-xl overflow-hidden mt-[calc(var(--topbar-height)_+_var(--toolbar-height))] h-[calc(100vh_-_var(--topbar-height)_-_var(--toolbar-height))];
     }
   }
 }

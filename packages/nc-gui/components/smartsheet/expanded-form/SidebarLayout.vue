@@ -4,6 +4,10 @@ import 'splitpanes/dist/splitpanes.css'
 
 const slots = useSlots()
 
+const route = useRoute()
+
+const { isMobileMode } = useGlobal()
+
 const {
   leftSidebarWidth,
   windowSize,
@@ -11,14 +15,17 @@ const {
   expandedFormRightSidebarWidthPercent,
   isExpandedFormSidebarEnabled,
   normalizeExpandedFormSidebarWidth,
+  miniSidebarWidth,
 } = storeToRefs(useSidebarStore())
 
 const expandedFormPreviewSize = computed(() => {
+  if (isMobileMode.value || !route.query.rowId) return 100
+
   return 100 - expandedFormRightSidebarWidthPercent.value
 })
 
 function onResize(widthPercent: any) {
-  const sidebarWidth = (widthPercent * (windowSize.value - leftSidebarWidth.value)) / 100
+  const sidebarWidth = (widthPercent * (windowSize.value - leftSidebarWidth.value - miniSidebarWidth.value)) / 100
 
   if (sidebarWidth > expandedFormRightSidebarState.value.maxWidth) {
     expandedFormRightSidebarState.value.width = expandedFormRightSidebarState.value.maxWidth
@@ -39,24 +46,24 @@ function onResize(widthPercent: any) {
       <slot name="preview" />
     </Pane>
     <Pane
+      v-if="isExpandedFormSidebarEnabled && route.query.rowId"
       id="nc-expanded-form-sidebar-splitpane"
       min-size="15%"
-      class="nc-expanded-form-sidebar-splitpane empty:hidden"
+      class="nc-expanded-form-sidebar-splitpane"
       :size="expandedFormRightSidebarWidthPercent"
       :style="{
         minWidth: `${expandedFormRightSidebarState.minWidth}px !important`,
         maxWidth: `${normalizeExpandedFormSidebarWidth}px !important`,
       }"
     >
-      <slot name="sidebar" />
+      <!-- <slot name="sidebar" /> -->
     </Pane>
   </Splitpanes>
 </template>
 
 <style lang="scss" scoped>
 .nc-expanded-form-sidebar-splitpane {
-  @apply rounded-l-xl;
-  box-shadow: -8px 0px 16px -4px rgba(0, 0, 0, 0.16);
+  @apply rounded-l-xl !bg-transparent;
 }
 </style>
 

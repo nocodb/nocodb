@@ -477,39 +477,38 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
           :view-width="viewWidth"
         />
       </template>
-      <template #sidebar>
-        <Suspense>
-          <LazySmartsheetExpandedForm
-            v-if="expandedFormRow && expandedFormDlg"
-            v-model="expandedFormDlg"
-            :load-row="!isPublic"
-            :row="expandedFormRow"
-            :state="expandedFormRowState"
-            :meta="meta"
-            :view="view"
-            @update:model-value="addRowExpandOnClose(expandedFormRow)"
-          />
-        </Suspense>
-        <SmartsheetExpandedForm
-          v-if="expandedFormOnRowIdDlg && meta?.id"
-          ref="expandedFormRef"
-          v-model="expandedFormOnRowIdDlg"
-          :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
-          :meta="meta"
-          :load-row="!isPublic"
-          :state="expandedFormRowState"
-          :row-id="routeQuery.rowId"
-          :view="view"
-          show-next-prev-icons
-          :first-row="isInfiniteScrollingEnabled ? isFirstRow : pisFirstRow"
-          :last-row="isInfiniteScrollingEnabled ? isLastRow : pisLastRow"
-          :expand-form="expandForm"
-          @next="isInfiniteScrollingEnabled ? goToNextRow() : pGoToNextRow()"
-          @prev="isInfiniteScrollingEnabled ? goToPreviousRow() : pGoToPreviousRow()"
-          @update-row-comment-count="updateRowCommentCount"
-        />
-      </template>
     </SmartsheetExpandedFormSidebarLayout>
+
+    <Suspense>
+      <LazySmartsheetExpandedForm
+        v-if="expandedFormRow && expandedFormDlg"
+        v-model="expandedFormDlg"
+        :load-row="!isPublic"
+        :row="expandedFormRow"
+        :state="expandedFormRowState"
+        :meta="meta"
+        :view="view"
+        @update:model-value="addRowExpandOnClose(expandedFormRow)"
+      />
+    </Suspense>
+    <SmartsheetExpandedForm
+      v-if="expandedFormOnRowIdDlg && meta?.id"
+      ref="expandedFormRef"
+      v-model="expandedFormOnRowIdDlg"
+      :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
+      :meta="meta"
+      :load-row="!isPublic"
+      :state="expandedFormRowState"
+      :row-id="routeQuery.rowId"
+      :view="view"
+      show-next-prev-icons
+      :first-row="isInfiniteScrollingEnabled ? isFirstRow : pisFirstRow"
+      :last-row="isInfiniteScrollingEnabled ? isLastRow : pisLastRow"
+      :expand-form="expandForm"
+      @next="isInfiniteScrollingEnabled ? goToNextRow() : pGoToNextRow()"
+      @prev="isInfiniteScrollingEnabled ? goToPreviousRow() : pGoToPreviousRow()"
+      @update-row-comment-count="updateRowCommentCount"
+    />
 
     <Suspense>
       <LazyDlgBulkUpdate

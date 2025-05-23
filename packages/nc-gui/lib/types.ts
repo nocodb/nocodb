@@ -23,8 +23,10 @@ import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/
 import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
 import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
 import type { UseDetachedLongTextProps } from '../components/smartsheet/grid/canvas/composables/useDetachedLongText'
+import type { BaseRoleLoader } from '../components/smartsheet/grid/canvas/loaders/BaseRoleLoader'
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
+import type Record from '~icons/*'
 
 interface User {
   id: string
@@ -381,6 +383,7 @@ interface CellRendererOptions {
   relatedTableMeta?: TableType
   meta?: TableType
   metas?: { [idOrTitle: string]: TableType | any }
+  baseRoles?: Record<string, any>
   x: number
   y: number
   width: number
@@ -392,6 +395,7 @@ interface CellRendererOptions {
   spriteLoader: SpriteLoader
   actionManager: ActionManager
   tableMetaLoader: TableMetaLoader
+  baseRoleLoader: BaseRoleLoader
   isMysql: (sourceId?: string) => boolean
   isMssql: (sourceId?: string) => boolean
   isXcdbBase: (sourceId?: string) => boolean

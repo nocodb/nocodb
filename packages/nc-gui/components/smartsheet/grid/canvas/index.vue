@@ -325,6 +325,7 @@ const {
   actionManager,
   imageLoader,
   readOnly,
+  baseRoleLoader,
 
   // column resize related refs
   colResizeHoveredColIds,
@@ -1516,6 +1517,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       prevActiveCell?.row === rowIndex && prevActiveCell?.column === colIndex && comparePath(prevActiveCell?.path, groupPath),
     imageLoader,
     path: groupPath,
+    baseRoleLoader,
   })
   // Set the active cell to the clicked cell
   activeCell.value.row = rowIndex

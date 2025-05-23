@@ -1,7 +1,12 @@
-import UITypes, { isNumericCol } from './UITypes';
+import UITypes, {isLinksOrLTAR, isNumericCol} from './UITypes';
 import { RolesObj, RolesType } from './globals';
 import { ClientType } from './enums';
-import { ColumnType, FormulaType, IntegrationsType } from './Api';
+import {
+  ColumnType,
+  FormulaType,
+  IntegrationsType,
+  LinkToAnotherRecordType,
+} from './Api';
 import { FormulaDataTypes } from './formulaHelpers';
 import { ncIsNull, ncIsUndefined } from '~/lib/is';
 
@@ -309,5 +314,15 @@ export function toSafeInteger(value: number) {
   return Math.max(
     Number.MIN_SAFE_INTEGER,
     Math.min(value, Number.MAX_SAFE_INTEGER)
+  );
+}
+
+export function isCrossBaseLink(col: ColumnType) {
+  return (
+    col &&
+    isLinksOrLTAR(col) &&
+    (col.colOptions as LinkToAnotherRecordType)?.fk_related_base_id &&
+    (col.colOptions as LinkToAnotherRecordType)?.fk_related_base_id !==
+      (col.colOptions as LinkToAnotherRecordType)?.base_id
   );
 }

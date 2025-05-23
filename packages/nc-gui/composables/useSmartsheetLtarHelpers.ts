@@ -61,7 +61,7 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
       try {
         await $api.dbTableRow.nestedAdd(
           NOCO,
-          base.value.id as string,
+          metaValue?.base_id ?? (base.value.id as string),
           metaValue?.id as string,
           encodeURIComponent(rowId),
           type,
@@ -131,7 +131,7 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
             if (!row.row[column.title!]) return
             await $api.dbTableRow.nestedRemove(
               NOCO,
-              base.value.id as string,
+              meta.value?.base_id ?? (base.value.id as string),
               meta.value?.id as string,
               extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
               (<LinkToAnotherRecordType>column.colOptions)?.type as any,
@@ -143,7 +143,7 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
             for (const link of (row.row[column.title!] as Record<string, any>[]) || []) {
               await $api.dbTableRow.nestedRemove(
                 NOCO,
-                base.value.id as string,
+                meta.value?.base_id ?? (base.value.id as string),
                 meta.value?.id as string,
                 encodeURIComponent(extractPkFromRow(row.row, meta.value?.columns as ColumnType[])),
                 (<LinkToAnotherRecordType>column?.colOptions).type as 'hm' | 'mm',
@@ -162,7 +162,7 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
     const loadRow = async (row: Row) => {
       const record = await $api.dbTableRow.read(
         NOCO,
-        base.value?.id as string,
+        meta.value?.base_id ?? (base.value?.id as string),
         meta.value?.title as string,
         encodeURIComponent(extractPkFromRow(row.row, meta.value?.columns as ColumnType[])),
       )

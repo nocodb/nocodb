@@ -67,6 +67,7 @@ const {
   refreshCurrentRow,
   rowId,
   relatedTableDisplayValueColumn,
+  externalBaseUserRoles,
 } = useLTARStoreOrThrow()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
@@ -475,7 +476,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
       <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between gap-3 min-h-11">
         <div class="flex items-center gap-2">
           <NcButton
-            v-if="!isPublic && !isDataReadOnly && isUIAllowed('dataEdit') && !isForm"
+            v-if="
+              !isPublic && !isDataReadOnly && isUIAllowed('dataEdit', externalBaseUserRoles) && isUIAllowed('dataEdit') && !isForm
+            "
             v-e="['c:row-expand:open']"
             size="small"
             class="!hover:(bg-white text-brand-500) !h-7 !text-small"

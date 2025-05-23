@@ -39,6 +39,11 @@ export default class LinkToAnotherRecordColumn extends LinkToAnotherRecordColumn
 
   filter?: Filter;
 
+  fk_related_source_id?: string;
+  fk_related_base_id?: string;
+  fk_mm_source_id?: string;
+  fk_mm_base_id?: string;
+
   constructor(data: Partial<LinkToAnotherRecordColumn>) {
     super(data);
   }

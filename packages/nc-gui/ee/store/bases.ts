@@ -2,6 +2,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { BaseType, OracleUi, ProjectUserReqType, RequestParams, SourceType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
+import type Record from '~icons/*'
 
 // todo: merge with base store
 export const useBases = defineStore('basesStore', () => {
@@ -12,6 +13,8 @@ export const useBases = defineStore('basesStore', () => {
   const { user: currentUser } = useGlobal()
 
   const { appInfo } = useGlobal()
+
+  const baseRoles = ref<Record<string, any>>({})
 
   const bases = ref<Map<string, NcProject>>(new Map())
 
@@ -464,6 +467,22 @@ export const useBases = defineStore('basesStore', () => {
     ncLastVisitedBase().set(activeProjectId.value)
   })
 
+  const getBaseRoles = async (baseId: string) => {
+    if (baseRoles.value[baseId]) return baseRoles.value[baseId]
+
+    const user = await loadRoles(baseId, {
+      skipUpdatingUser: true,
+    })
+
+    if (user) {
+      baseRoles.value[baseId] = {
+        roles: user.base_roles || user.workspace_roles || {},
+      }
+    }
+
+    return baseRoles.value[baseId]
+  }
+
   return {
     bases,
     basesList,
@@ -496,6 +515,8 @@ export const useBases = defineStore('basesStore', () => {
     isDataSourceLimitReached,
     showProjectList,
     baseHomeSearchQuery,
+    getBaseRoles,
+    baseRoles,
   }
 })
 

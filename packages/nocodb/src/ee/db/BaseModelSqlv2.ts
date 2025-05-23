@@ -1329,6 +1329,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
 
+        const { mmContext, refContext } = colOptions.getRelContext(
+          this.context,
+        );
+
         switch (colOptions.type) {
           case 'mm':
             {
@@ -1336,12 +1340,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 this.context,
                 colOptions.fk_mm_model_id,
               );
-              const mmParentColumn = await Column.get(this.context, {
+
+              const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+                model: mmTable,
+                dbDriver: this.dbDriver,
+              });
+
+              const mmParentColumn = await Column.get(mmContext, {
                 colId: colOptions.fk_mm_child_column_id,
               });
 
               execQueries.push((trx) =>
-                trx(this.getTnPath(mmTable.table_name))
+                trx(mmBaseModel.getTnPath(mmTable.table_name))
                   .del()
                   .where(mmParentColumn.column_name, id),
               );
@@ -1350,19 +1360,23 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           case 'hm':
             {
               // skip if it's an mm table column
-              const relatedTable = await colOptions.getRelatedTable(
-                this.context,
-              );
+              const relatedTable = await colOptions.getRelatedTable(refContext);
+
               if (relatedTable.mm) {
                 break;
               }
 
-              const childColumn = await Column.get(this.context, {
+              const refBaseModel = await Model.getBaseModelSQL(refContext, {
+                model: relatedTable,
+                dbDriver: this.dbDriver,
+              });
+
+              const childColumn = await Column.get(refContext, {
                 colId: colOptions.fk_child_column_id,
               });
 
               execQueries.push((trx) =>
-                trx(this.getTnPath(relatedTable.table_name))
+                trx(refBaseModel.getTnPath(relatedTable.table_name))
                   .update({
                     [childColumn.column_name]: null,
                   })
@@ -2690,14 +2704,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
 
+        const { childContext, refContext, mmContext } =
+          await colOptions.getParentChildContext(this.context);
+
         switch (colOptions.type) {
           case 'mm':
             {
               const mmTable = await Model.get(
-                this.context,
+                mmContext,
                 colOptions.fk_mm_model_id,
               );
-              const mmParentColumn = await Column.get(this.context, {
+              const mmParentColumn = await Column.get(mmContext, {
                 colId: colOptions.fk_mm_child_column_id,
               });
 
@@ -2711,14 +2728,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           case 'hm':
             {
               // skip if it's an mm table column
-              const relatedTable = await colOptions.getRelatedTable(
-                this.context,
-              );
+              const relatedTable = await colOptions.getRelatedTable(refContext);
               if (relatedTable.mm) {
                 break;
               }
 
-              const childColumn = await Column.get(this.context, {
+              const childColumn = await Column.get(childContext, {
                 colId: colOptions.fk_child_column_id,
               });
 
@@ -2840,24 +2855,32 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
 
+        const { parentContext, childContext, refContext, mmContext } =
+          await colOptions.getParentChildContext(this.context);
+
         if (colOptions.type === 'bt') {
           continue;
         }
 
-        const childColumn = await colOptions.getChildColumn(this.context);
-        const parentColumn = await colOptions.getParentColumn(this.context);
-        const parentTable = await parentColumn.getModel(this.context);
-        const childTable = await childColumn.getModel(this.context);
-        await childTable.getColumns(this.context);
-        await parentTable.getColumns(this.context);
+        const childColumn = await colOptions.getChildColumn(childContext);
+        const parentColumn = await colOptions.getParentColumn(parentContext);
+        const parentTable = await parentColumn.getModel(parentContext);
+        const childTable = await childColumn.getModel(childContext);
+        await childTable.getColumns(childContext);
+        await parentTable.getColumns(parentContext);
 
-        const childTn = this.getTnPath(childTable);
+        const childBaseModel = await Model.getBaseModelSQL(childContext, {
+          model: childTable,
+          dbDriver: this.dbDriver,
+        });
+
+        const childTn = childBaseModel.getTnPath(childTable);
 
         switch (colOptions.type) {
           case 'mm':
             {
-              const vChildCol = await colOptions.getMMChildColumn(this.context);
-              const vTable = await colOptions.getMMModel(this.context);
+              const vChildCol = await colOptions.getMMChildColumn(mmContext);
+              const vTable = await colOptions.getMMModel(mmContext);
 
               const vTn = this.getTnPath(vTable);
 
@@ -2875,14 +2898,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           case 'hm':
             {
               // skip if it's an mm table column
-              const relatedTable = await colOptions.getRelatedTable(
-                this.context,
-              );
+              const relatedTable = await colOptions.getRelatedTable(refContext);
               if (relatedTable.mm) {
                 break;
               }
 
-              const childColumn = await Column.get(this.context, {
+              const childColumn = await Column.get(childContext, {
                 colId: colOptions.fk_child_column_id,
               });
 

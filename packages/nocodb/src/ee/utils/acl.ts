@@ -137,6 +137,7 @@ const permissionScopes = {
     'cloud-org_orgDomainList',
   ],
   base: [
+    'nestedDataListCopyPasteOrDeleteAll',
     'formViewGet',
     'baseGet',
     'tableGet',
@@ -437,6 +438,7 @@ const rolePermissions:
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
+      nestedDataListCopyPasteOrDeleteAll: true,
       viewColumnUpdate: true,
       gridViewUpdate: true,
       formViewUpdate: true,

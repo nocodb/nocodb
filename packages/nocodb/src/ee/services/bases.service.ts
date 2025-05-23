@@ -20,6 +20,8 @@ import { TablesService } from '~/services/tables.service';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { DataReflectionService } from '~/services/data-reflection.service';
 import { PaymentService } from '~/modules/payment/payment.service';
+import { ColumnsService } from '~/services/columns.service';
+import { isEE } from '~/utils';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -29,6 +31,7 @@ export class BasesService extends BasesServiceCE {
     protected readonly appHooksService: AppHooksService,
     protected metaService: MetaService,
     protected tablesService: TablesService,
+    protected columnsService: ColumnsService,
     protected dataReflectionService: DataReflectionService,
     protected paymentService: PaymentService,
   ) {
@@ -248,6 +251,35 @@ export class BasesService extends BasesServiceCE {
 
     if (!base) {
       NcError.baseNotFound(param.baseId);
+    }
+
+    if (isEE) {
+      // delete all cross base links
+      const crossBaseLinks = await ncMeta
+        .knex(MetaTable.COL_RELATIONS)
+        .where({
+          base_id: context.base_id,
+          fk_workspace_id: context.workspace_id,
+        })
+        .where((qb) => {
+          qb.where((mmQb) => {
+            mmQb
+              .whereNot('fk_mm_base_id', base.id)
+              .whereNotNull('fk_mm_base_id');
+          }).orWhere((relQb) => {
+            relQb
+              .whereNot('fk_related_base_id', base.id)
+              .whereNotNull('fk_related_base_id');
+          });
+        });
+
+      for (const link of crossBaseLinks) {
+        await this.columnsService.columnDelete(context, {
+          columnId: link.fk_column_id,
+          req: param.req,
+          user: param.user,
+        });
+      }
     }
 
     const workspace = await Workspace.get(base.fk_workspace_id);

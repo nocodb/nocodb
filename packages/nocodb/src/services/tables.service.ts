@@ -254,17 +254,23 @@ export class TablesService {
       // get relation column names
       const relColumns = await Promise.all(
         tables.map((t) => {
-          return t.getColumns(context).then((cols) => {
-            return cols.find((c) => {
-              return (
-                isLinksOrLTAR(c) &&
-                (c.colOptions as LinkToAnotherRecordColumn).type ===
-                  RelationTypes.MANY_TO_MANY &&
-                (c.colOptions as LinkToAnotherRecordColumn).fk_mm_model_id ===
-                  table.id
-              );
+          return t
+            .getColumns({
+              ...context,
+              base_id: t.base_id,
+              workspace_id: t.fk_workspace_id,
+            })
+            .then((cols) => {
+              return cols.find((c) => {
+                return (
+                  isLinksOrLTAR(c) &&
+                  (c.colOptions as LinkToAnotherRecordColumn).type ===
+                    RelationTypes.MANY_TO_MANY &&
+                  (c.colOptions as LinkToAnotherRecordColumn).fk_mm_model_id ===
+                    table.id
+                );
+              });
             });
-          });
         }),
       );
 
@@ -308,7 +314,7 @@ export class TablesService {
           c
             .getColOptions<LinkToAnotherRecordColumn>(context)
             .then((opt) => opt.getRelatedTable(context))
-            .then(),
+            .then((t) => t?.title),
         ),
       );
       NcError.badRequest(

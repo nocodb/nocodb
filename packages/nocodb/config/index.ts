@@ -48,7 +48,7 @@ const fromEnv = (): object => {
   const res = {
     host: process.env.HOST,
     port: process.env.PORT,
-    workerType: process.env.WORKER_TYPE,
+    workerType: process.env.NC_WORKER_TYPE,
     environment: process.env.NODE_ENV,
 
     nocoDbConfig: {
@@ -151,9 +151,10 @@ const fromCli = (): object => {
 };
 
 const getCfg = () => {
-  const cliCfg = fromCli();
-  const tomlCfg = fromToml(cliCfg['config']);
   const envCfg = fromEnv();
+  // disable cliFlags on teting, flags conflict
+  const cliCfg = envCfg['environment'] === 'testing' ? {} : fromCli();
+  const tomlCfg = fromToml(cliCfg['config']);
 
   delete cliCfg['config'];
   const mergedCfgWithoutDefault = lodash.merge(tomlCfg, envCfg, cliCfg);

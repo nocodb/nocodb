@@ -112,6 +112,23 @@ const handleSyncNow = async (syncId: string) => {
   }
 }
 
+const handleMigrateSync = async (syncId: string) => {
+  try {
+    await $api.internal.postOperation(
+      activeWorkspace.value!.id!,
+      props.baseId,
+      {
+        operation: 'migrateSync',
+      },
+      {
+        syncConfigId: syncId,
+      },
+    )
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 const handleDeleteSync = async (syncId: string) => {
   try {
     await $api.internal.postOperation(
@@ -241,6 +258,18 @@ watch(
                   <template #title>Sync Now</template>
                   <NcButton size="small" type="text" class="nc-action-btn !w-8 !px-1 !rounded-lg" @click="handleSyncNow(sync.id)">
                     <GeneralIcon icon="refresh" class="text-gray-600" />
+                  </NcButton>
+                </NcTooltip>
+
+                <NcTooltip>
+                  <template #title>Migrate Sync</template>
+                  <NcButton
+                    size="small"
+                    type="text"
+                    class="nc-action-btn !w-8 !px-1 !rounded-lg"
+                    @click="handleMigrateSync(sync.id)"
+                  >
+                    <GeneralIcon icon="ncZap" class="text-gray-600" />
                   </NcButton>
                 </NcTooltip>
 

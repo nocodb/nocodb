@@ -245,3 +245,5 @@ interface PlanLimitExceededDetailsType {
 }
 
 export { Roles, RolesObj, RolesType, PlanLimitExceededDetailsType };
+
+export type RowColoringMode = null | 'SELECT' | 'FILTER'

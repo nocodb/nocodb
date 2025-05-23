@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { ProjectRoles, type ScriptType, type TableType, type ViewType, stringifyRolesObj } from 'nocodb-sdk'
+import { type DashboardType, ProjectRoles, type ScriptType, type TableType, type ViewType, stringifyRolesObj } from 'nocodb-sdk'
 import ProjectWrapper from '../ProjectWrapper.vue'
 import { useRouter } from '#app'
 
@@ -156,6 +156,26 @@ function openAutomationDescriptionDialog(script: ScriptType) {
   const { close } = useDialog(resolveComponent('DlgAutomationDescriptionUpdate'), {
     'modelValue': isOpen,
     'script': script,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+function openDashboardDescriptionDialog(dashboard: DashboardType) {
+  if (!dashboard?.id) return
+
+  $e('c:dashboard:description')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgDashboardDescriptionUpdate'), {
+    'modelValue': isOpen,
+    'dashboard': dashboard,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -370,6 +390,7 @@ provide(TreeViewInj, {
   duplicateTable,
   openViewDescriptionDialog,
   openAutomationDescriptionDialog,
+  openDashboardDescriptionDialog,
   openTableDescriptionDialog,
   handleTableRename,
   contextMenuTarget,

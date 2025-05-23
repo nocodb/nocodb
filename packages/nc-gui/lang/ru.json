@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Обновите {workspace} до тарифа {plan}",
     "upgradeToPlanSubtitle": "Плата за этот тариф будет списана немедленно.",
     "reactivateToPlan": "Возобновить тариф {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Дублировать базы можно только в рабочие пространства, где у вас есть права создателя или выше.",
     "snapshotBaseRestoreMessage": "Восстанавливать снимки можно только в рабочие пространства, где у вас есть права создателя или выше.",
     "currentWorkspace": "Текущее рабочее пространство",
+    "currentBase": "Current base",
     "latitude": "Широта",
     "longitude": "Долгота",
     "failed": "Ошибка",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "Сниппеты API",
     "includeData": "Включить данные",
     "includeRecords": "Включить записи",
-    "baseDuplicateMessage": "Примечание: Журналы аудита и интеграции не будут дублированы.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Включить представления",
     "includeWebhook": "Включить вебхук",
     "includeComments": "Включить комментарии",
@@ -1611,6 +1616,7 @@
     "changePlan": "Изменить план"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Каждое рабочее пространство должно иметь хотя бы одного владельца. Пожалуйста, назначьте другого пользователя Владельцем перед тем, как покинуть рабочее пространство. Если вы последний участник, рассмотрите возможность удаления рабочего пространства.",
     "currentDateNotAvail": "Опция текущей даты недоступна для этого источника данных / типа данных",
     "privateConnection": "Включите, чтобы сделать это подключение приватным и скрыть его от других создателей в этом рабочем пространстве.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Скопировать код ошибки",
     "paidUserBadgeTooltip": "У пользователя есть роль редактора или выше хотя бы в одной базе.",
     "approachingLimit": "Предел почти достигнут",
-    "exceedingLimit": "Предел превышен"
+    "exceedingLimit": "Предел превышен",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Поиск значков",

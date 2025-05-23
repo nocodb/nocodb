@@ -1,6 +1,5 @@
 import dayjs from 'dayjs';
 import {
-  CURRENT_USER_TOKEN,
   FormulaDataTypes,
   getEquivalentUIType,
   isAIPromptCol,
@@ -24,7 +23,7 @@ import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
 import Filter from '~/models/Filter';
 import { getAliasGenerator } from '~/utils';
 import { validateAndStringifyJson } from '~/utils/tsUtils';
-import { handleCurrentUserFilter } from '~/db/conditionV2Ext';
+import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
 
 // tod: tobe fixed
 // extend(customParseFormat);

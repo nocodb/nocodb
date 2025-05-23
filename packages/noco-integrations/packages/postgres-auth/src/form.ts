@@ -1,4 +1,4 @@
-import { AuthType, FormBuilderInputType } from '@noco-integrations/core';
+import { FormBuilderInputType } from '@noco-integrations/core';
 import type { FormDefinition } from '@noco-integrations/core';
 
 export const form: FormDefinition = [
@@ -17,27 +17,6 @@ export const form: FormDefinition = [
     ],
   },
   {
-    type: FormBuilderInputType.Select,
-    label: 'Auth Type',
-    width: 48,
-    model: 'config.type',
-    category: 'Authentication',
-    placeholder: 'Select auth type',
-    defaultValue: AuthType.Custom,
-    options: [
-      {
-        label: 'Custom',
-        value: AuthType.Custom,
-      },
-    ],
-    validators: [
-      {
-        type: 'required',
-        message: 'Auth type is required',
-      },
-    ],
-  },
-  {
     type: FormBuilderInputType.Input,
     label: 'Host',
     width: 100,
@@ -50,10 +29,6 @@ export const form: FormDefinition = [
         message: 'Host is required',
       },
     ],
-    condition: {
-      model: 'config.type',
-      value: AuthType.Custom,
-    },
   },
   {
     type: FormBuilderInputType.Input,
@@ -63,10 +38,6 @@ export const form: FormDefinition = [
     category: 'Authentication',
     placeholder: '5432',
     defaultValue: '5432',
-    condition: {
-      model: 'config.type',
-      value: AuthType.Custom,
-    },
   },
   {
     type: FormBuilderInputType.Input,
@@ -81,10 +52,6 @@ export const form: FormDefinition = [
         message: 'Username is required',
       },
     ],
-    condition: {
-      model: 'config.type',
-      value: AuthType.Custom,
-    },
   },
   {
     type: FormBuilderInputType.Password,
@@ -99,10 +66,6 @@ export const form: FormDefinition = [
         message: 'Password is required',
       },
     ],
-    condition: {
-      model: 'config.type',
-      value: AuthType.Custom,
-    },
   },
   {
     type: FormBuilderInputType.Input,
@@ -117,9 +80,5 @@ export const form: FormDefinition = [
         message: 'Database name is required',
       },
     ],
-    condition: {
-      model: 'config.type',
-      value: AuthType.Custom,
-    },
   },
 ];

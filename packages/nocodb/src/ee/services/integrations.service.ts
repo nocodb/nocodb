@@ -368,6 +368,14 @@ export class IntegrationsService extends IntegrationsServiceCE {
   async authIntegrationTestConnection(
     param: IntegrationReqType,
   ): Promise<TestConnectionResponse> {
+    // Avoid testing connection for oauth integrations
+    // We need to exchange the code to get the access token and here we can't store the access token
+    if (param.config?.type === 'oauth') {
+      return {
+        success: true,
+      };
+    }
+
     const tempIntegrationWrapper =
       Integration.tempIntegrationWrapper<AuthIntegration>(param);
 

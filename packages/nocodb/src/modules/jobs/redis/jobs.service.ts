@@ -56,7 +56,7 @@ export class JobsService implements OnModuleInit {
   }
 
   async toggleQueue() {
-    if (serverConfig.workerType === 'disabed') {
+    if (serverConfig.workerType === 'disabled') {
       // resume primary instance queue if there is no worker
       const workerCount = await JobsRedis.workerCount();
       const localWorkerPaused = await this.jobsQueue.isPaused(true);

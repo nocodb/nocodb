@@ -92,7 +92,7 @@ const fromEnv = (): object => {
 
     smtpConfig: {
       ignoreTLS: stringToBoolTry(process.env.NC_SMTP_IGNORE_TLS),
-      passowrd: process.env.NC_SMTP_PASSWORD,
+      password: process.env.NC_SMTP_PASSWORD,
       rejectUnauthorized: stringToBoolTry(
         process.env.NC_SMTP_REJECT_UNAUTHORIZED,
       ),

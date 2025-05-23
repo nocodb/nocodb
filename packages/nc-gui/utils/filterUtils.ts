@@ -36,7 +36,16 @@ export interface FilterGroupChangeEvent {
 
 export interface FilterRowChangeEvent {
   filter: ColumnFilterType
-  type: 'logical_op' | 'fk_column_id' | 'comparison_op' | 'comparison_sub_op' | 'value' | 'child_add' | 'child_delete'
+  type:
+    | 'logical_op'
+    | 'fk_column_id'
+    | 'fk_value_col_id'
+    | 'comparison_op'
+    | 'comparison_sub_op'
+    | 'value'
+    | 'dynamic'
+    | 'child_add'
+    | 'child_delete'
   prevValue: any
   value: any
   index: number
@@ -610,7 +619,37 @@ export const isFilterDraft = (filter: Filter, col: ColumnTypeForFilter) => {
   return true
 }
 
-export const getDynamicColumns = (metaColumns: ColumnType[], column: ColumnType, dbClientType?: ClientType) => {
+export const isDynamicFilterAllowed = (filter: ColumnFilterType, column?: ColumnType, dbClientType?: ClientType) => {
+  if (!column) {
+    return false
+  }
+  // if virtual column, don't allow dynamic filter
+  if (isVirtualCol(column)) return false
+  const sqlUi = SqlUiFactory.create({ client: dbClientType ?? ClientType.PG })
+
+  // disable dynamic filter for certain fields like rating, attachment, etc
+  if (
+    [
+      UITypes.Attachment,
+      UITypes.Rating,
+      UITypes.Checkbox,
+      UITypes.QrCode,
+      UITypes.Barcode,
+      UITypes.Collaborator,
+      UITypes.GeoData,
+      UITypes.SpecificDBType,
+    ].includes(column.uidt as UITypes)
+  )
+    return false
+
+  const abstractType = sqlUi.getAbstractType(column)
+
+  if (!['integer', 'float', 'text', 'string'].includes(abstractType)) return false
+
+  return !filter.comparison_op || ['eq', 'lt', 'gt', 'lte', 'gte', 'like', 'nlike', 'neq'].includes(filter.comparison_op)
+}
+
+export const getDynamicColumns = (metaColumns: ColumnType[], column?: ColumnType, dbClientType?: ClientType) => {
   if (!column) return []
   const sqlUi = SqlUiFactory.create({ client: dbClientType ?? ClientType.PG })
 

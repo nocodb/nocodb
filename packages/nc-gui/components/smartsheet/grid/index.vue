@@ -477,7 +477,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
           :view-width="viewWidth"
         />
       </template>
-      <template v-if="(expandedFormRow && expandedFormDlg) || (expandedFormOnRowIdDlg && meta?.id)" #sidebar>
+      <template #sidebar>
         <Suspense>
           <LazySmartsheetExpandedForm
             v-if="expandedFormRow && expandedFormDlg"

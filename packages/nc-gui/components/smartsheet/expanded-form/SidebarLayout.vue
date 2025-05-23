@@ -13,10 +13,6 @@ const {
 } = storeToRefs(useSidebarStore())
 
 const expandedFormPreviewSize = computed(() => {
-  if (!slots.sidebar) {
-    return 100
-  }
-
   return 100 - expandedFormRightSidebarWidthPercent.value
 })
 
@@ -45,16 +41,16 @@ const normalizeExpandedFormSidebarWidth = computed(() => {
 
 <template>
   <Splitpanes
-    class="nc-expanded-form-right-sidebar-content-resizable-wrapper w-full h-full"
+    class="nc-expanded-form-right-sidebar-content-resizable-wrapper w-full h-full relative"
     @resize="(event: any) => onResize(event[1].size)"
   >
     <Pane :size="expandedFormPreviewSize" class="flex-1 h-full relative">
       <slot name="preview" />
     </Pane>
     <Pane
-      v-show="$slots.sidebar"
+      id="nc-expanded-form-sidebar-splitpane"
       min-size="15%"
-      class="nc-expanded-form-sidebar-splitpane relative"
+      class="nc-expanded-form-sidebar-splitpane empty:hidden"
       :size="expandedFormRightSidebarWidthPercent"
       :style="{
         minWidth: `${expandedFormRightSidebarState.minWidth}px !important`,
@@ -80,7 +76,7 @@ const normalizeExpandedFormSidebarWidth = computed(() => {
     @apply !w-0 relative overflow-visible;
   }
   .splitpanes__splitter:before {
-    @apply bg-gray-200 w-0.25 absolute left-0 top-0 h-full z-40;
+    @apply bg-gray-200 w-0.25 absolute left-0 top-0 h-full z-1001;
     content: '';
   }
 

@@ -789,7 +789,7 @@ a {
   user-select: auto;
 }
 
-.nc-drawer-expanded-form .ant-drawer-content-wrapper {
+.nc-drawer-expanded-form:not(.nc-drawer-sidebar-expanded-form) .ant-drawer-content-wrapper {
   transition: width 0.3s !important;
 }
 

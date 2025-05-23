@@ -50,6 +50,11 @@ export const syncSystemFields: SyncColumnDefinition[] = [
   },
 ];
 
+export const syncSystemFieldsMap = syncSystemFields.reduce((acc, field) => {
+  acc[field.title] = field;
+  return acc;
+}, {} as Record<string, SyncColumnDefinition>);
+
 export enum TARGET_TABLES {
   TICKETING_TICKET = 'ticketing_ticket',
   TICKETING_USER = 'ticketing_user',

@@ -1,9 +1,4 @@
-import {
-  NcBaseError,
-  NcErrorBase,
-  NcErrorGenerator,
-  NcErrorType,
-} from 'nocodb-sdk';
+import { NcBaseError, NcErrorBase, NcErrorType } from 'nocodb-sdk';
 import type { ErrorObject } from 'ajv';
 import type {
   BaseType,
@@ -35,12 +30,15 @@ export class NcError extends NcErrorBase {
   static get _() {
     if (!this._instance) {
       this._instance = new NcError();
-      NcErrorGenerator._.setErrorCodex(NcErrorType.INVALID_LIMIT_VALUE, {
-        message: `Limit value should be between ${defaultLimitConfig.limitMin} and ${defaultLimitConfig.limitMax}`,
-        code: 422,
-      });
     }
     return this._instance;
+  }
+  constructor() {
+    super();
+    this.errorCodex.setErrorCodex(NcErrorType.INVALID_LIMIT_VALUE, {
+      message: `Limit value should be between ${defaultLimitConfig.limitMin} and ${defaultLimitConfig.limitMax}`,
+      code: 422,
+    });
   }
 
   permissionDenied(
@@ -48,7 +46,7 @@ export class NcError extends NcErrorBase {
     roles: Record<string, boolean>,
     extendedScopeRoles: any,
   ): never {
-    throw NcErrorGenerator._.generateError(NcErrorType.PERMISSION_DENIED, {
+    throw this.errorCodex.generateError(NcErrorType.PERMISSION_DENIED, {
       customMessage: generateReadablePermissionErr(
         permissionName,
         roles,
@@ -103,7 +101,7 @@ export class NcError extends NcErrorBase {
       }
     }
 
-    throw NcErrorGenerator._.generateError(NcErrorType.RECORD_NOT_FOUND, {
+    throw this.errorCodex.generateError(NcErrorType.RECORD_NOT_FOUND, {
       params: formatedId,
       ...args,
     });

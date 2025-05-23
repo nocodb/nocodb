@@ -198,6 +198,7 @@ const parseConditionV2 = async (
         UITypes.Lookup,
         UITypes.Decimal,
         UITypes.Number,
+        UITypes.Rating,
       ].includes(column.uidt) ||
       ([UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
         !customWhereClause)

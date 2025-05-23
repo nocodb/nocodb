@@ -1,10 +1,15 @@
 import { ncIsNull, ncIsNumber, ncIsUndefined } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
+import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { NcContext } from 'nocodb-sdk';
-import type { FilterVerificationResult } from '~/db/field-handler/field-handler.interface';
+import type {
+  FilterOptions,
+  FilterVerificationResult,
+} from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
 import type { MetaService } from 'src/meta/meta.service';
+import type CustomKnex from 'src/db/CustomKnex';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
 export class DecimalGeneralHandler extends GenericFieldHandler {
@@ -82,5 +87,33 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
       return { value: numberValue };
     }
     return { value: params.value };
+  }
+
+  override filterBlank(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+      qb: Knex.QueryBuilder;
+    },
+    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ): void {
+    const { qb, sourceField } = args;
+
+    qb.whereNull(sourceField as any);
+  }
+
+  override filterNotblank(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+      qb: Knex.QueryBuilder;
+    },
+    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ): void {
+    const { qb, sourceField } = args;
+
+    qb.whereNotNull(sourceField as any);
   }
 }

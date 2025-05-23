@@ -192,9 +192,13 @@ const parseConditionV2 = async (
       }
     }
     if (
-      [UITypes.JSON, UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(
-        column.uidt,
-      ) ||
+      [
+        UITypes.JSON,
+        UITypes.LinkToAnotherRecord,
+        UITypes.Lookup,
+        UITypes.Decimal,
+        UITypes.Number,
+      ].includes(column.uidt) ||
       ([UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
         !customWhereClause)
     ) {
@@ -207,6 +211,7 @@ const parseConditionV2 = async (
           depth: aliasCount,
           context,
           throwErrorIfInvalid,
+          customWhereClause,
         },
       );
     }

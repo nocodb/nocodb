@@ -37,14 +37,19 @@ import { DateTimeMsSQLHandler } from './handlers/date-time/date-time.mssql.handl
 import { DateTimeSQLiteHandler } from './handlers/date-time/date-time.sqlite.handler';
 import { DateTimeMySQLHandler } from './handlers/date-time/date-time.mysql.handler';
 import { DateTimePGHandler } from './handlers/date-time/date-time.pg.handler';
+import { DecimalMysqlHandler } from './handlers/decimal/decimal.mysql.handler';
+import { DecimalSqliteHandler } from './handlers/decimal/decimal.sqlite.handler';
+import { NumberPgHandler } from './handlers/number/number.pg.handler';
+import { NumberMysqlHandler } from './handlers/number/number.mysql.handler';
+import { NumberSqliteHandler } from './handlers/number/number.sqlite.handler';
 import type { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 import type {
-  FilterVerificationResult,
   FilterOptions,
+  FilterVerificationResult,
   IFieldHandler,
 } from './field-handler.interface';
 import type { Knex } from 'knex';
@@ -52,6 +57,7 @@ import type { Filter } from '~/models';
 import type { FieldHandlerInterface } from '~/db/field-handler/field-handler.interface';
 import { Column } from '~/models';
 import { JsonPgHandler } from '~/db/field-handler/handlers/json/json.pg.handler';
+import { DecimalPgHandler } from '~/db/field-handler/handlers/decimal/decimal.pg.handler';
 
 const CLIENT_DEFAULT = '_default';
 
@@ -112,9 +118,15 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.Number]: {
     [CLIENT_DEFAULT]: NumberGeneralHandler,
+    [ClientType.PG]: NumberPgHandler,
+    [ClientType.MYSQL]: NumberMysqlHandler,
+    [ClientType.SQLITE]: NumberSqliteHandler,
   },
   [UITypes.Decimal]: {
     [CLIENT_DEFAULT]: DecimalGeneralHandler,
+    [ClientType.PG]: DecimalPgHandler,
+    [ClientType.MYSQL]: DecimalMysqlHandler,
+    [ClientType.SQLITE]: DecimalSqliteHandler,
   },
   [UITypes.Currency]: {
     [CLIENT_DEFAULT]: DecimalGeneralHandler,

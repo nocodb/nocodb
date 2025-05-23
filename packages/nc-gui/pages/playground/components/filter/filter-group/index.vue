@@ -9,6 +9,7 @@ const columns = computedAsync(async () => {
   if (!metas.value || Object.keys(metas.value).length === 0) return []
   return await composeColumnsForFilter({ rootMeta: rootMeta.value, getMeta: async (id) => metas.value[id] })
 })
+const filterMap = ref({})
 const filters = ref([])
 const options1 = ref({
   index: 0,
@@ -29,25 +30,39 @@ const options1 = ref({
   queryFilter: false,
   disableAddNewFilter: false,
   handler: {
-    addFilter: async () => {
-      filters.value.push({
-        _id: Math.random().toString(36).substring(2, 15),
+    addFilter: async (event: FilterGroupChangeEvent) => {
+      const newFilter = {
+        tmp_id: Math.random().toString(36).substring(2, 15),
         fk_column_id: columns.value[1].id,
         comparison_op: 'eq',
         is_group: false,
         logical_op: 'and',
-      })
+        fk_parent_id: event.fk_parent_id,
+        tmp_fk_parent_id: event.tmp_fk_parent_id,
+        parent: filterMap.value[event.tmp_fk_parent_id],
+      }
+      filterMap.value[newFilter.tmp_id] = newFilter
+      filters.value.push(newFilter)
     },
-    addFilterGroup: async () => {
-      filters.value.push({
-        _id: Math.random().toString(36).substring(2, 15),
+    addFilterGroup: async (event: FilterGroupChangeEvent) => {
+      const newFilter = {
+        tmp_id: Math.random().toString(36).substring(2, 15),
         is_group: true,
         logical_op: 'and',
         children: [],
-      })
+        fk_parent_id: event.fk_parent_id,
+        tmp_fk_parent_id: event.tmp_fk_parent_id,
+        parent: filterMap.value[event.tmp_fk_parent_id],
+      }
+      filterMap.value[newFilter.tmp_id] = newFilter
+      filters.value.push(newFilter)
     },
     deleteFilter: async (event: FilterGroupChangeEvent) => {
-      console.log(event)
+      if (event.filter.parent) {
+        event.filter.parent.children = event.filter.parent.children?.filter((child) => child.tmp_id !== event.filter?.tmp_id)
+      } else if (!event.filter?.tmp_fk_parent_id) {
+        filters.value = filters.value.filter((filter) => filter.tmp_id !== event.filter.tmp_id)
+      }
     },
   },
 })

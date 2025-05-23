@@ -107,24 +107,46 @@ const onLockedViewFooterOpen = () => {}
 const innerAdd = async (isGroup: boolean) => {
   const prevValue = [...vModel.value]
   if (isGroup && props.handler?.addFilterGroup) {
-    await props.handler.addFilterGroup()
+    await props.handler.addFilterGroup({
+      type: 'add',
+      filter: null,
+      filters: [...vModel.value],
+      index: props.index,
+      value: [...vModel.value],
+      tmp_fk_parent_id: props.tmp_fk_parent_id,
+      fk_parent_id: props.fk_parent_id,
+      prevValue,
+    })
   } else if (!isGroup && props.handler?.addFilter) {
-    await props.handler.addFilter()
+    await props.handler.addFilter({
+      type: 'add',
+      filter: null,
+      filters: [...vModel.value],
+      index: props.index,
+      value: [...vModel.value],
+      tmp_fk_parent_id: props.tmp_fk_parent_id,
+      fk_parent_id: props.fk_parent_id,
+      prevValue,
+    })
   } else {
     const newFilter = isGroup
       ? {
+          _id: Math.random().toString(36).substring(2, 15),
           is_group: true,
           logical_op: vModel.value[0]?.logical_op ?? 'and',
           children: [],
           fk_parent_id: props.fk_parent_id,
+          tmp_fk_parent_id: props.tmp_fk_parent_id,
           order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
         }
       : {
+          _id: Math.random().toString(36).substring(2, 15),
           is_group: false,
           logical_op: vModel.value[0]?.logical_op ?? 'and',
           fk_column_id: props.columns[0].id,
           comparison_op: null,
           fk_parent_id: props.fk_parent_id,
+          tmp_fk_parent_id: props.tmp_fk_parent_id,
           order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
         }
     if (!newFilter.is_group) {
@@ -143,6 +165,7 @@ const innerAdd = async (isGroup: boolean) => {
       filters: [...vModel.value],
       index: props.index,
       value: [...vModel.value],
+      tmp_fk_parent_id: props.tmp_fk_parent_id,
       fk_parent_id: props.fk_parent_id,
       prevValue,
     })
@@ -178,6 +201,8 @@ const onFilterDelete = async (
       filters: [...vModel.value],
       index: props.index,
       value: [...vModel.value],
+      tmp_fk_parent_id: props.tmp_fk_parent_id,
+      fk_parent_id: props.fk_parent_id,
       prevValue,
     })
   } else {
@@ -189,6 +214,8 @@ const onFilterDelete = async (
       filters: [...vModel.value],
       index: props.index,
       value: [...vModel.value],
+      tmp_fk_parent_id: props.tmp_fk_parent_id,
+      fk_parent_id: props.fk_parent_id,
       prevValue,
     })
   }

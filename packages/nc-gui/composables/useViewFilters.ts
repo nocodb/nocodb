@@ -13,8 +13,10 @@ import { UITypes, isSystemColumn } from 'nocodb-sdk'
 export type ColumnFilterType = FilterType & {
   status?: string
   id?: string
-  _id?: string
-  _fk_parent_id: string
+  // used in new viewmodel to keep reference when not yet saved
+  tmp_id?: string
+  tmp_fk_parent_id: string
+  parent?: ColumnFilterType
   children?: ColumnFilterType[]
   is_group?: boolean
 }

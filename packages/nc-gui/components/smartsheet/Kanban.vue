@@ -115,6 +115,17 @@ const isRequiredGroupingFieldColumn = computed(() => {
   return !!groupingFieldColumn.value?.rqd
 })
 
+const allRowsRowOnly = computed(() => {
+  return Array.from(formattedData.value.values())
+    .flatMap((rowArray) => rowArray)
+    .map((k) => k.row)
+})
+
+const { getLeftBorderColor, getRowColor } = useViewRowColorRender({
+  meta,
+  view,
+  rows: allRowsRowOnly,
+})
 const kanbanContainerRef = ref()
 
 const selectedStackTitle = ref('')
@@ -480,6 +491,16 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
 
   openNewRecordFormHook.trigger()
 }
+
+const getRowColorStyle = (row) => {
+  const rowColor = getRowColor(row)
+  if (rowColor) {
+    return {
+      'background-color': `${rowColor} !important`,
+    }
+  }
+  return {}
+}
 </script>
 
 <template>
@@ -788,13 +809,16 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                                     'not-draggable': !hasEditPermission || isPublic,
                                     '!cursor-default': !hasEditPermission || isPublic,
                                   }"
+                                  :style="{
+                                    ...(getRowColorStyle(record.row) ?? {}),
+                                  }"
                                   @click="expandFormClick($event, record)"
                                   @contextmenu="showContextMenu($event, record)"
                                 >
                                   <!--
-                                     Check the coverImageColumn ID because kanbanMetaData?.fk_cover_image_col_id
-                                     could reference a non-existent column. This is a workaround to handle such scenarios properly.
-                                 -->
+                                    Check the coverImageColumn ID because kanbanMetaData?.fk_cover_image_col_id
+                                    could reference a non-existent column. This is a workaround to handle such scenarios properly.
+                                  -->
                                   <template v-if="coverImageColumn?.id" #cover>
                                     <template v-if="!reloadAttachments && attachments(record).length">
                                       <a-carousel
@@ -852,84 +876,94 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                                       <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                                     </div>
                                   </template>
-                                  <div class="flex flex-col gap-3 !children:pointer-events-none">
-                                    <h2
-                                      v-if="displayField"
-                                      class="nc-card-display-value-wrapper"
-                                      :class="{
-                                        '!children:pointer-events-auto':
-                                          isButton(displayField) ||
-                                          (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
-                                      }"
-                                    >
-                                      <template
-                                        v-if="!isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField)"
-                                      >
-                                        <LazySmartsheetVirtualCell
-                                          v-if="isVirtualCol(displayField)"
-                                          v-model="record.row[displayField.title]"
-                                          class="!text-brand-500"
-                                          :column="displayField"
-                                          :row="record"
-                                        />
-
-                                        <LazySmartsheetCell
-                                          v-else
-                                          v-model="record.row[displayField.title]"
-                                          class="!text-brand-500"
-                                          :column="displayField"
-                                          :edit-enabled="false"
-                                          :read-only="true"
-                                        />
-                                      </template>
-                                      <template v-else> -</template>
-                                    </h2>
-
+                                  <div class="flex content-stretch">
                                     <div
-                                      v-for="col in fieldsWithoutDisplay"
-                                      :key="`record-${record.row.id}-${col.id}`"
-                                      class="nc-card-col-wrapper"
-                                      :class="{
-                                        '!children:pointer-events-auto':
-                                          isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)),
+                                      class="w-[4px] min-h-4 min-w-[4px] ml-[-8px] mr-[8px] rounded-sm"
+                                      :style="{
+                                        ...(getLeftBorderColor(record.row)
+                                          ? { 'background-color': `${getLeftBorderColor(record.row)} !important` }
+                                          : {}),
                                       }"
-                                      @click="handleCellClick(col, $event)"
-                                    >
-                                      <div class="flex flex-col rounded-lg w-full">
-                                        <div class="flex flex-row w-full justify-start">
-                                          <div class="nc-card-col-header w-full !children:text-gray-500">
-                                            <LazySmartsheetHeaderVirtualCell
-                                              v-if="isVirtualCol(col)"
-                                              :column="col"
-                                              :hide-menu="true"
-                                            />
-
-                                            <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
-                                          </div>
-                                        </div>
-
-                                        <div
-                                          v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col) || isPercent(col)"
-                                          class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
+                                    ></div>
+                                    <div class="flex flex-col gap-3 !children:pointer-events-none">
+                                      <h2
+                                        v-if="displayField"
+                                        class="nc-card-display-value-wrapper"
+                                        :class="{
+                                          '!children:pointer-events-auto':
+                                            isButton(displayField) ||
+                                            (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
+                                        }"
+                                      >
+                                        <template
+                                          v-if="!isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField)"
                                         >
                                           <LazySmartsheetVirtualCell
-                                            v-if="isVirtualCol(col)"
-                                            v-model="record.row[col.title]"
-                                            :column="col"
+                                            v-if="isVirtualCol(displayField)"
+                                            v-model="record.row[displayField.title]"
+                                            class="!text-brand-500"
+                                            :column="displayField"
                                             :row="record"
-                                            class="!text-gray-800"
                                           />
 
                                           <LazySmartsheetCell
                                             v-else
-                                            v-model="record.row[col.title]"
-                                            :column="col"
+                                            v-model="record.row[displayField.title]"
+                                            class="!text-brand-500"
+                                            :column="displayField"
                                             :edit-enabled="false"
                                             :read-only="true"
-                                            class="!text-gray-800"
                                           />
+                                        </template>
+                                        <template v-else> -</template>
+                                      </h2>
+
+                                      <div
+                                        v-for="col in fieldsWithoutDisplay"
+                                        :key="`record-${record.row.id}-${col.id}`"
+                                        class="nc-card-col-wrapper"
+                                        :class="{
+                                          '!children:pointer-events-auto':
+                                            isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)),
+                                        }"
+                                        @click="handleCellClick(col, $event)"
+                                      >
+                                        <div class="flex flex-col rounded-lg w-full">
+                                          <div class="flex flex-row w-full justify-start">
+                                            <div class="nc-card-col-header w-full !children:text-gray-500">
+                                              <LazySmartsheetHeaderVirtualCell
+                                                v-if="isVirtualCol(col)"
+                                                :column="col"
+                                                :hide-menu="true"
+                                              />
+
+                                              <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                            </div>
+                                          </div>
+
+                                          <div
+                                            v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col) || isPercent(col)"
+                                            class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
+                                          >
+                                            <LazySmartsheetVirtualCell
+                                              v-if="isVirtualCol(col)"
+                                              v-model="record.row[col.title]"
+                                              :column="col"
+                                              :row="record"
+                                              class="!text-gray-800"
+                                            />
+
+                                            <LazySmartsheetCell
+                                              v-else
+                                              v-model="record.row[col.title]"
+                                              :column="col"
+                                              :edit-enabled="false"
+                                              :read-only="true"
+                                              class="!text-gray-800"
+                                            />
+                                          </div>
+                                          <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
                                         </div>
-                                        <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
                                       </div>
                                     </div>
                                   </div>

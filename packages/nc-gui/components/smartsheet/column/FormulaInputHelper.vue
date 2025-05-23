@@ -20,7 +20,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   suggestionHeight: 'large',
   disableSuggestionHeaders: false,
-  disabledFormulas: [],
+  disabledFormulas: () => [],
 })
 
 const emits = defineEmits(['update:value'])

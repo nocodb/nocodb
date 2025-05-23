@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { ClientType, RowColoringInfoFilter } from 'nocodb-sdk'
 import { useDebounceFn } from '@vueuse/core'
+import type { GroupHandler } from '../Filter/types'
 
 interface Props {
   modelValue?: RowColoringInfoFilter
@@ -14,9 +15,12 @@ interface Props {
     conditionUpdate: (params: { index: number; color: string; is_set_as_background: boolean }) => void
     conditionDelete: (index: number) => void
     allConditionDeleted: () => void
-    filterAdd: () => void
-    filterUpdate: () => void
-    filterDelete: () => void
+    filters: {
+      addFilter: (index: number, event: FilterGroupChangeEvent) => Promise<void>
+      addFilterGroup: (index: number, event: FilterGroupChangeEvent) => Promise<void>
+      deleteFilter: (index: number, event: FilterGroupChangeEvent) => Promise<void>
+      rowChange: (index: number, event: FilterRowChangeEvent) => Promise<void>
+    }
   }
 }
 
@@ -98,6 +102,12 @@ const updateColor = (index: number, field: string, value: string) => {
             action-btn-type="text"
             :filters-count="filtersCount"
             :db-client-type="dbClientType"
+            :handler="{
+              addFilter: ($event) => handler.filters.addFilter(i, $event),
+              addFilterGroup: ($event) => handler.filters.addFilterGroup(i, $event),
+              deleteFilter: ($event) => handler.filters.deleteFilter(i, $event),
+              rowChange: ($event) => handler.filters.rowChange(i, $event),
+            }"
             :query-filter="false"
           >
             <template #root-header>

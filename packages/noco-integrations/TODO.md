@@ -21,11 +21,11 @@ Avoid using `any` as much as possible. Try to use the derived types from librari
 ### GitLab
 - [x] Auth Integration
 - [x] Sync Integration
-- [ ] format<Entity> pattern
-  - [ ] Implement formatTicket
-  - [ ] Implement formatUser
-  - [ ] Implement formatComment
-  - [ ] Implement formatTeam
+- [x] format<Entity> pattern
+  - [x] Implement formatTicket
+  - [x] Implement formatUser
+  - [x] Implement formatComment
+  - [x] Implement formatTeam
 
 ### Jira
 - [x] Auth Integration

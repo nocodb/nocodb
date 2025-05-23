@@ -219,7 +219,7 @@
     "@types/validator": "^13.12.2",
     "@types/vue-barcode-reader": "^0.0.3",
     "@unocss/nuxt": "^0.64.1",
-    "@vitest/ui": "^0.34.7",
+    "@vitest/ui": "^3.0.7",
     "@vue/compiler-sfc": "^3.5.13",
     "@vue/test-utils": "^2.4.6",
     "@vueuse/nuxt": "^12.5.0",
@@ -229,7 +229,7 @@
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^8.10.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "happy-dom": "^6.0.4",
+    "happy-dom": "^17.1.8",
     "nuxt": "3.15.4",
     "nuxt-windicss": "^3.0.1",
     "prettier": "^2.8.8",
@@ -239,7 +239,7 @@
     "unplugin-vue-components": "^0.26.0",
     "vite-plugin-monaco-editor": "^1.1.0",
     "vite-plugin-purge-icons": "^0.10.0",
-    "vitest": "^2.1.9",
+    "vitest": "^3.0.7",
     "windicss": "^3.5.6"
   }
 }

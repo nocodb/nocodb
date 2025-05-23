@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "{workspace}を{plan}プランへアップグレード",
     "upgradeToPlanSubtitle": "このプランは直ちに課金されます。",
     "reactivateToPlan": "{plan}プランを再開しますか？",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "ベースを複製できるのは、あなたが作成者権限以上を持つワークスペースのみです。",
     "snapshotBaseRestoreMessage": "復元できるのは、あなたが作成者権限以上を持つワークスペースのみです。",
     "currentWorkspace": "現在のワークスペース",
+    "currentBase": "Current base",
     "latitude": "緯度",
     "longitude": "経度",
     "failed": "失敗",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "APIスニペット",
     "includeData": "データを含む",
     "includeRecords": "レコードを含める",
-    "baseDuplicateMessage": "注意：監査ログとインテグレーションは複製されません。",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "ビューを含める",
     "includeWebhook": "Webhookを含める",
     "includeComments": "コメントを含める",
@@ -1611,6 +1616,7 @@
     "changePlan": "プランを変更"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "各ワークスペースには、少なくとも1人のオーナーが必要です。ワークスペースを離れる前に、他のユーザーを所有者として割り当ててください。あなたが最後のメンバーである場合は、代わりにワークスペースを削除することを検討してください。",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "この接続を非公開にし、このワークスペース内の他の作成者から隠すことを可能にします。",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "エラーコードをコピー",
     "paidUserBadgeTooltip": "ユーザーは少なくとも1つのベースでエディター以上の権限を持っています。",
     "approachingLimit": "上限に近づいています",
-    "exceedingLimit": "上限を超えています"
+    "exceedingLimit": "上限を超えています",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "アイコンを検索",

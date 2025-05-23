@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Jauniniet {workspace} uz plānu {plan}",
     "upgradeToPlanSubtitle": "Par šo plānu jums tiks nekavējoties iekasēta maksa.",
     "reactivateToPlan": "Atjaunot plānu {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Bāzes varat dublēt tikai darbvietās, kurās jums ir vismaz veidotāja piekļuve.",
     "snapshotBaseRestoreMessage": "Varat atjaunot tikai darbvietās, kurās jums ir vismaz veidotāja piekļuve.",
     "currentWorkspace": "Pašreizējā darbvieta",
+    "currentBase": "Current base",
     "latitude": "Platums",
     "longitude": "Garums",
     "failed": "Neizdevās",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API fragmenti",
     "includeData": "Iekļaut Datus",
     "includeRecords": "Iekļaut ierakstus",
-    "baseDuplicateMessage": "Piezīme: auditācijas žurnāli un integrācijas netiks dublēti.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Iekļaut skatījumus",
     "includeWebhook": "Iekļaut webhook",
     "includeComments": "Iekļaut komentārus",
@@ -1611,6 +1616,7 @@
     "changePlan": "Mainīt plānu"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Katrā darbvietā jābūt vismaz vienam īpašniekam. Pirms pametiet darbvietu, norādiet citu lietotāju kā īpašnieku. Ja esat pēdējais dalībnieks, apsveriet darbvietas dzēšanu.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Iespējojiet, lai padarītu šo savienojumu privātu un paslēptu no citiem veidotājiem šajā darbvietā.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Kopēt kļūdas kodu",
     "paidUserBadgeTooltip": "Lietotājam ir redaktora vai augstāka loma vismaz vienā bāzē.",
     "approachingLimit": "Tuvoties limitam",
-    "exceedingLimit": "Pārsniedz limitu"
+    "exceedingLimit": "Pārsniedz limitu",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Meklēt ikonas",

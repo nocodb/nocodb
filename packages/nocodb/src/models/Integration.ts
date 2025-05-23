@@ -62,6 +62,8 @@ export default class Integration implements IntegrationType {
     Object.assign(this, integration);
   }
 
+  public static async init() {}
+
   protected static castType(integration: Integration): Integration {
     return integration && new Integration(integration);
   }

@@ -30,14 +30,29 @@ const openPopup = (url: string, name: string, state: string, width = 500, height
   if (!popup) throw new Error('Popup blocked')
 
   return new Promise<string | null>((resolve, reject) => {
+    let popupClosed = false
+
     const interval = setInterval(() => {
+      // First check if we already know the popup is closed
+      if (popupClosed) {
+        clearInterval(interval)
+        reject(new Error('Popup closed by user'))
+        return
+      }
+
       try {
-        if (popup.closed) {
+        // Try to access popup.closed, which might throw in cross-origin scenarios
+        popupClosed = popup.closed
+        if (popupClosed) {
           clearInterval(interval)
           reject(new Error('Popup closed by user'))
+          return
         }
 
         const url = popup.location.href
+        console.log('url', url)
+        console.log('OAuthConfig.value.redirectUri', OAuthConfig.value.redirectUri)
+
         if (url.includes(OAuthConfig.value.redirectUri)) {
           const params = new URL(url).searchParams
           const code = params.get(OAuthConfig.value.codeKey || 'code')
@@ -54,8 +69,19 @@ const openPopup = (url: string, name: string, state: string, width = 500, height
             reject(new Error('No code returned'))
           }
         }
-      } catch {
-        // Cross-origin frame access error is expected, ignore it
+      } catch (e) {
+        // Handle cross-origin errors
+        // If we get an error accessing popup properties, check if we can detect it's closed
+        try {
+          // This might also throw, but worth trying
+          popupClosed = popup.closed
+          if (popupClosed) {
+            clearInterval(interval)
+            reject(new Error('Popup closed by user'))
+          }
+        } catch {
+          // Completely swallow the error - we'll keep checking
+        }
       }
     }, 500)
   })

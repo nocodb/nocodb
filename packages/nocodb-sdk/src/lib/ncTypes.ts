@@ -12,6 +12,7 @@ export interface NcContext {
     workspace_roles?: Record<string, boolean>;
     provider?: string;
   };
+  fk_model_id?: string;
 }
 
 export interface NcRequest extends Partial<Request> {

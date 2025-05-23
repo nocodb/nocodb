@@ -2,7 +2,7 @@ import { Readable } from 'stream';
 import { UITypes } from 'nocodb-sdk';
 import { IntegrationWrapper } from '../integration';
 import type { AuthResponse } from '../auth';
-import { TARGET_TABLES, NC_LINK_VALUES_KEY } from './common';
+import { TARGET_TABLES } from './common';
 
 export interface DataObject<
   T = Record<string, string | number | boolean | null>,
@@ -10,6 +10,7 @@ export interface DataObject<
   targetTable: string;
   recordId: string;
   data: T;
+  links?: Record<string, SyncLinkValue>;
 }
 
 export class DataObjectStream<
@@ -67,8 +68,10 @@ export interface SyncColumnDefinition {
   colOptions?: {
     options: { title: string }[];
   };
-  system?: boolean;
   pv?: boolean;
+  meta?: {
+    richMode?: boolean;
+  };
 }
 
 export interface SyncRelation {
@@ -96,5 +99,4 @@ export interface SyncRecord {
   RemoteWasDeleted?: SyncValue<boolean>;
   RemoteRaw: SyncValue<string>;
   RemoteSyncedAt?: SyncValue<string>;
-  [NC_LINK_VALUES_KEY]?: Record<string, SyncLinkValue>;
 }

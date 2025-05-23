@@ -489,7 +489,7 @@ async function onRename() {
                     </template>
 
                     <component
-                      :is="iconMap.sync"
+                      :is="iconMap.ncZap"
                       v-if="table?.synced"
                       class="w-4 text-sm"
                       :class="isTableOpened ? '!text-brand-600/85' : '!text-gray-600/75'"
@@ -621,7 +621,7 @@ async function onRename() {
                     @click="onSyncOptions"
                   >
                     <div v-e="['c:table:sync']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="sync" class="opacity-80" />
+                      <GeneralIcon icon="ncZap" class="opacity-80" />
                       Sync Options
                     </div>
                   </NcMenuItem>

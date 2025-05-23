@@ -885,6 +885,7 @@ export class TablesService {
             column_name: colMetaFromDb?.cn || c.cn || c.column_name,
             order: i + 1,
             readonly: c.readonly || false,
+            meta: c.meta || {},
           } as NormalColumnRequestType;
         }),
         ...virtualColumns.map((c, i) => ({

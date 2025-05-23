@@ -1,3 +1,4 @@
+import { FilterType } from './Api';
 import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
 import { PlanTitles } from './payment';
 
@@ -196,6 +197,11 @@ export enum NcErrorType {
   BASE_USER_ERROR = 'BASE_USER_ERROR',
 }
 
+export enum ROW_COLORING_MODE {
+  FILTER = 'filter',
+  SELECT = 'select',
+}
+
 export const NcErrorTypeMap = {
   [NcErrorType.TABLE_NOT_FOUNDV3]: 'TABLE_NOT_FOUND',
   [NcErrorType.BASE_NOT_FOUNDV3]: 'BASE_NOT_FOUND',
@@ -203,6 +209,7 @@ export const NcErrorTypeMap = {
   [NcErrorType.FIELD_NOT_FOUNDV3]: 'FIELD_NOT_FOUND',
   [NcErrorType.INVALID_FILTERV3]: 'INVALID_FILTER',
 };
+
 export const LongTextAiMetaProp = 'ai';
 
 export const NO_SCOPE = 'nc';
@@ -230,6 +237,35 @@ export const DURATION_TYPE_MAP = {
 }
 
 export const CURRENT_USER_TOKEN = '@me'
+
+// this type makes every parameter inside an object be optional
+// useful for where / insert / update query
+export type DeepPartial<T> = T extends object
+  ? { [P in keyof T]?: DeepPartial<T[P]> }
+  : T;
+
+export type RowColoringInfoFilterRow = {
+  is_set_as_background: boolean;
+  color: string;
+  conditions: FilterType[];
+  nestedConditions: FilterType[];
+};
+
+export type RowColoringInfoSelect = {
+  mode: ROW_COLORING_MODE.SELECT;
+  fk_column_id: string;
+  options: { title: string; color: string }[];
+  is_set_as_background: boolean;
+};
+export type RowColoringInfoFilter = {
+  mode: ROW_COLORING_MODE.FILTER;
+  conditions: RowColoringInfoFilterRow[];
+};
+
+export type RowColoringInfo = {
+  fk_model_id: string;
+  fk_view_id: string;
+} & (RowColoringInfoSelect | RowColoringInfoFilter);
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
 

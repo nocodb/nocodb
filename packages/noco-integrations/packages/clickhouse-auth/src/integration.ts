@@ -24,6 +24,16 @@ export class ClickhouseAuthIntegration extends AuthIntegration {
     }
   }
 
+  public async destroy(): Promise<void> {
+    if (this.client) {
+      try {
+        await this.client.close();
+      } catch {
+        // Ignore errors when closing connection
+      }
+    }
+  }
+
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
       const client = await this.authenticate();

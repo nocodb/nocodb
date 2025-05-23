@@ -1,0 +1,24 @@
+{
+  "name": "@noco-integrations/clickhouse-sync",
+  "version": "0.1.0",
+  "description": "ClickHouse Sync Integration for NocoDB",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@noco-integrations/core": "workspace:*",
+    "@noco-integrations/clickhouse-auth": "workspace:*",
+    "@clickhouse/client": "^1.11.1"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.1",
+    "typescript": "^5.1.6"
+  }
+} 

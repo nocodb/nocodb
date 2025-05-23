@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "ធ្វើបច្ចុប្បន្នភាព {workspace} ទៅគម្រោង {plan}",
     "upgradeToPlanSubtitle": "អ្នកនឹងត្រូវបានគិតថ្លៃជាបន្ទាន់សម្រាប់ផែនការនេះ។",
     "reactivateToPlan": "ដំណើរការឡើងវិញផែនការ {plan} ឬ?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "អ្នកអាចចម្លង Base ទៅ workspace ដែលអ្នកមានសិទ្ធិ Creator ឬខ្ពស់ជាងនេះប៉ុណ្ណោះ។",
     "snapshotBaseRestoreMessage": "អ្នកអាចស្ដារឡើងវិញបានតែទៅ workspace ដែលអ្នកមានសិទ្ធិ Creator ឬខ្ពស់ជាងនេះប៉ុណ្ណោះ។",
     "currentWorkspace": "workspace បច្ចុប្បន្ន",
+    "currentBase": "Current base",
     "latitude": "រយៈទទឹង",
     "longitude": "រយៈបណ្ដោយ",
     "failed": "បរាជ័យ",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API Snippets",
     "includeData": "រួមបញ្ចូលទិន្នន័យ",
     "includeRecords": "រួមបញ្ចូលកំណត់ត្រា",
-    "baseDuplicateMessage": "ចំណាំ៖ កំណត់ហេតុត្រួតពិនិត្យ និងការរួមបញ្ចូល នឹងមិនត្រូវបានចម្លង។",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "រួមបញ្ចូលទិដ្ឋភាព",
     "includeWebhook": "រួមបញ្ចូល Webhook",
     "includeComments": "រួមបញ្ចូលមតិយោបល់",
@@ -1611,6 +1616,7 @@
     "changePlan": "ផ្លាស់ប្តូរគម្រោង"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "workspace ទៀងទាល់ត្រូវមានម្ចាស់យ៉ាងហោចណាស់ម្នាក់។ សូមផ្ដល់អ្នកប្រើផ្សេងទៀតជាម្ចាស់ មុនពេលចាកចេញពី workspace។ ប្រសិនបើអ្នកជាសមាជិកចុងក្រោយ សូមពិចារណាលុប workspace ផ្ទាល់ទៅវិញ។",
     "currentDateNotAvail": "ជម្រើសកាលបរិច្ឆេទបច្ចុប្បន្នមិនមានសម្រាប់ប្រភពទិន្នន័យ ឬប្រភេទទិន្នន័យ",
     "privateConnection": "បើកដើម្បីធ្វើឱ្យការតភ្ជាប់នេះមានការឯកជន និងលាក់ពីអ្នកបង្កើតផ្សេងទៀតនៅក្នុងកន្លែងធ្វើការនេះ។",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "ចម្លងកូដកំហុស",
     "paidUserBadgeTooltip": "អ្នកប្រើមានតួនាទី Editor ឬខ្ពស់ជាងនេះក្នុងយ៉ាងហោចណាស់មួយ Base។",
     "approachingLimit": "កំពុងជិតដល់កំណត់",
-    "exceedingLimit": "លើសកំណត់"
+    "exceedingLimit": "លើសកំណត់",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "ស្វែងរកនិមិត្តសញ្ញា",

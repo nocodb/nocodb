@@ -755,3 +755,35 @@ export const getFilterCount = (filters: FilterType[]) => {
   }
   return result
 }
+
+export const adjustFilterWhenColumnChange = ({
+  filter,
+  column,
+  showNullAndEmptyInFilter,
+}: {
+  filter: ColumnFilterType
+  column: ColumnTypeForFilter
+  showNullAndEmptyInFilter?: boolean
+}) => {
+  const evalUidt: UITypes = column.filterUidt ?? column.uidt
+  if (isVirtualCol(column)) {
+    filter.dynamic = false
+    filter.fk_value_col_id = null
+  } else {
+    filter.fk_value_col_id = null
+  }
+  filter.comparison_op = comparisonOpList(evalUidt, parseProp(column.meta)?.date_format).find((compOp) =>
+    isComparisonOpAllowed(filter, compOp, evalUidt as UITypes, showNullAndEmptyInFilter),
+  )?.value
+
+  if (isDateType(evalUidt) && !['blank', 'notblank'].includes(filter.comparison_op!)) {
+    if (filter.comparison_op === 'isWithin') {
+      filter.comparison_sub_op = 'pastNumberOfDays'
+    } else {
+      filter.comparison_sub_op = 'exactDate'
+    }
+  } else {
+    // reset
+    filter.comparison_sub_op = null
+  }
+}

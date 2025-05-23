@@ -288,6 +288,9 @@ const onFilterDelete = async (
         </div>
       </template>
     </div>
+    <template v-else>
+      <slot name="root-header"></slot>
+    </template>
     <!-- #region filter group rows -->
     <div
       v-if="visibleFilters && visibleFilters.length"

@@ -1,15 +1,16 @@
 <script lang="ts" setup>
 import { JobStatus } from '#imports'
 
-const props = defineProps<{ open: boolean; isModal?: boolean }>()
-const emit = defineEmits(['update:open'])
+const props = defineProps<{ open: boolean; baseId: string; isModal?: boolean }>()
+const emit = defineEmits(['update:open', 'syncCreated'])
 const vOpen = useVModel(props, 'open', emit)
 
 const { loadDynamicIntegrations } = useIntegrationStore()
 
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
 const baseStore = useBase()
 const { loadTables } = baseStore
-const { tables } = storeToRefs(baseStore)
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -38,7 +39,7 @@ const {
   resetStore,
   saveCurrentFormState,
   validateSyncConfig,
-} = useProvideSyncStore()
+} = useProvideSyncStore(activeWorkspaceId, props.baseId!)
 
 const handleSubmit = async () => {
   isLoading.value = true
@@ -70,9 +71,6 @@ const handleSubmit = async () => {
 
             await loadTables()
 
-            const newTable = tables.value.find((el) => el.id === syncData.table?.id)
-            if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
-
             refreshCommandPalette()
             goToDashboard.value = true
           } else if (data.status === JobStatus.FAILED) {
@@ -80,15 +78,14 @@ const handleSubmit = async () => {
 
             await loadTables()
 
-            const newTable = tables.value.find((el) => el.id === syncData.table?.id)
-            if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
-
             refreshCommandPalette()
 
             goBack.value = true
           } else {
             progressRef.value?.pushProgress(data.data?.message ?? 'Syncing...', 'progress')
           }
+
+          emit('syncCreated')
         }
       },
     )
@@ -220,7 +217,7 @@ const isModalClosable = computed(() => {
           <div class="w-5xl">
             <DashboardSettingsSyncSteps :current="step" />
           </div>
-          <div class="w-xl flex rounded-lg p-6 w-full border-1 border-nc-border-gray-medium">
+          <div class="w-3xl flex rounded-lg p-6 w-full border-1 border-nc-border-gray-medium">
             <a-form name="external-base-create-form" layout="vertical" no-style hide-required-mark class="flex flex-col w-full">
               <div class="nc-form-section">
                 <div class="flex flex-col gap-5">
@@ -267,7 +264,7 @@ const isModalClosable = computed(() => {
               </div>
             </a-form>
           </div>
-          <div v-if="!creatingSync" class="w-xl flex justify-between">
+          <div v-if="!creatingSync" class="w-3xl flex justify-between">
             <NcButton type="ghost" :disabled="step === Step.Category" @click="previousStep"> Back </NcButton>
             <NcButton type="primary" :loading="creatingSync" :disabled="!continueEnabled" @click="nextStep">
               {{ step === Step.Create ? 'Create' : 'Continue' }}

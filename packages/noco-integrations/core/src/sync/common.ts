@@ -50,6 +50,11 @@ export const syncSystemFields: SyncColumnDefinition[] = [
     title: 'SyncRunId',
     uidt: UITypes.SingleLineText,
   },
+  {
+    column_name: 'sync_provider',
+    title: 'SyncProvider',
+    uidt: UITypes.SingleLineText,
+  },
 ];
 
 export const syncSystemFieldsMap = syncSystemFields.reduce((acc, field) => {

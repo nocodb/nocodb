@@ -2770,7 +2770,7 @@ export class ColumnsService implements IColumnsService {
       NcError.sourceMetaReadOnly(source.alias);
     }
 
-    if (table.synced && column.readonly) {
+    if (table.synced && column.readonly && !param.forceDeleteSystem) {
       NcError.badRequest(
         `The column '${
           column.title || column.column_name

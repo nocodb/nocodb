@@ -32,7 +32,6 @@ const isLoading = ref(false)
 const isCreateSyncModalOpen = ref(false)
 const isEditSyncModalOpen = ref(false)
 const activeSyncId = ref('')
-const activeTableId = ref('')
 
 const getSyncFrequency = (trigger: string, cron?: string) => {
   if (trigger === SyncTrigger.Manual) return 'Manual'
@@ -77,9 +76,8 @@ const handleCreateSync = () => {
   isCreateSyncModalOpen.value = true
 }
 
-const handleEditSync = (syncId: string, tableId: string) => {
+const handleEditSync = (syncId: string) => {
   activeSyncId.value = syncId
-  activeTableId.value = tableId
   isEditSyncModalOpen.value = true
 }
 
@@ -283,7 +281,7 @@ watch(
                   </NcButton>
                   <template #overlay>
                     <NcMenu variant="small">
-                      <NcMenuItem @click="handleEditSync(sync.id, sync.fk_model_id)">
+                      <NcMenuItem @click="handleEditSync(sync.id)">
                         <GeneralIcon icon="edit" />
                         <span>Edit</span>
                       </NcMenuItem>
@@ -346,11 +344,12 @@ watch(
 
     <!-- Edit Sync Modal -->
     <DashboardSettingsSyncEdit
-      v-if="isEditSyncModalOpen && activeSyncId && activeTableId"
+      v-if="isEditSyncModalOpen && activeSyncId"
       v-model:open="isEditSyncModalOpen"
       :base-id="props.baseId"
-      :table-id="activeTableId"
+      :sync-id="activeSyncId"
       @update:open="isEditSyncModalOpen = $event"
+      @sync-updated="loadSyncs"
     />
   </div>
 </template>

@@ -53,4 +53,5 @@ export const syncSystemFields: SyncColumnDefinition[] = [
 export enum TARGET_TABLES {
   TICKETING_TICKET = 'ticketing_ticket',
   TICKETING_USER = 'ticketing_user',
+  TICKETING_COMMENT = 'ticketing_comment',
 }

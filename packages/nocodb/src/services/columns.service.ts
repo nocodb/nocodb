@@ -61,6 +61,7 @@ import {
   createHmAndBtColumn,
   createOOColumn,
   generateFkName,
+  getMMColumnNames,
   sanitizeColumnName,
   validateLookupPayload,
   validatePayload,
@@ -3998,13 +3999,10 @@ export class ColumnsService implements IColumnsService {
 
       const associateTableCols = [];
 
-      const ColumnName = `${table.table_name.slice(0, 30)}_id`;
-      let refColumnName = `${refTable.table_name.slice(0, 30)}_id`;
-
-      // handle duplicate column names in self referencing tables or if first 30 characters are same
-      if (ColumnName === refColumnName) {
-        refColumnName = `${refTable.table_name.slice(0, 29)}1_id`;
-      }
+      const { parentCn: columnName, childCn: refColumnName } = getMMColumnNames(
+        table,
+        refTable,
+      );
 
       associateTableCols.push(
         {
@@ -4023,9 +4021,9 @@ export class ColumnsService implements IColumnsService {
           uidt: UITypes.ForeignKey,
         },
         {
-          cn: ColumnName,
-          column_name: ColumnName,
-          title: ColumnName,
+          cn: columnName,
+          column_name: columnName,
+          title: columnName,
           rqd: true,
           pk: true,
           ai: false,
@@ -4069,7 +4067,7 @@ export class ColumnsService implements IColumnsService {
         const rel1Args = {
           ...param.column,
           childTable: aTn,
-          childColumn: ColumnName,
+          childColumn: columnName,
           parentTable: table.table_name,
           parentColumn: primaryKey.column_name,
           type: 'real',
@@ -4089,7 +4087,7 @@ export class ColumnsService implements IColumnsService {
         await sqlMgr.sqlOpPlus(param.source, 'relationCreate', rel2Args);
       }
       const parentCol = (await assocModel.getColumns(context))?.find(
-        (c) => c.column_name === ColumnName,
+        (c) => c.column_name === columnName,
       );
       const childCol = (await assocModel.getColumns(context))?.find(
         (c) => c.column_name === refColumnName,

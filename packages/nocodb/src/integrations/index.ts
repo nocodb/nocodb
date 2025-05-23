@@ -4,9 +4,17 @@
 */
 
 import AiOpenai from '@noco-integrations/ai-openai';
+import AuthClickhouse from '@noco-integrations/auth-clickhouse';
 import AuthGithub from '@noco-integrations/auth-github';
+import SyncClickhouseTable from '@noco-integrations/sync-clickhouse-table';
 import SyncGithubIssues from '@noco-integrations/sync-github-issues';
 
 import type { IntegrationEntry } from '@noco-integrations/core';
 
-export default [AiOpenai, AuthGithub, SyncGithubIssues] as IntegrationEntry[];
+export default [
+  AiOpenai,
+  AuthClickhouse,
+  AuthGithub,
+  SyncClickhouseTable,
+  SyncGithubIssues,
+] as IntegrationEntry[];

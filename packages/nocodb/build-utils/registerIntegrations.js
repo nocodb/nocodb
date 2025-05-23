@@ -61,9 +61,9 @@ async function registerIntegrations(EE = false) {
   indexContent += `import type { IntegrationEntry } from '@noco-integrations/core';\n\n`;
 
   // Add export statement
-  indexContent += `export default [${exportEntries.join(
-    ', ',
-  )}] as IntegrationEntry[];\n`;
+  indexContent += `export default [
+${exportEntries.map((entry) => `  ${entry},`).join('\n')}
+] as IntegrationEntry[];\n`;
 
   // Write the generated content to index.ts
   await fs.writeFile(indexPath, indexContent);

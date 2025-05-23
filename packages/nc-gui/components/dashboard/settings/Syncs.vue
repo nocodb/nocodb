@@ -16,6 +16,8 @@ const vReload = useVModel(props, 'reload', emits)
 
 const { $api, $poller } = useNuxtApp()
 
+const { projectPageTab } = storeToRefs(useConfigStore())
+
 const workspaceStore = useWorkspace()
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
@@ -156,6 +158,18 @@ watch(
     }
   },
 )
+
+watch(
+  projectPageTab,
+  () => {
+    if (projectPageTab.value === 'syncs') {
+      loadSyncs()
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -173,7 +187,7 @@ watch(
         </template>
       </a-input>
 
-      <NcButton v-if="isUIAllowed('syncCreate')" size="large" class="z-10 !px-2" type="primary" @click="handleCreateSync">
+      <NcButton v-if="isUIAllowed('sourceCreate')" size="large" class="z-10 !px-2" type="primary" @click="handleCreateSync">
         <div class="flex flex-row items-center w-full gap-x-1">
           <GeneralIcon icon="plus" />
           <div class="flex">Create Sync</div>
@@ -206,7 +220,7 @@ watch(
           >
             <div class="ds-table-col ds-table-name font-medium">
               <div class="flex items-center gap-1">
-                <GeneralIcon icon="sync" class="!text-green-700 !h-5 !w-5" />
+                <GeneralIcon icon="ncZap" class="!text-green-700 !h-5 !w-5" />
                 {{ sync.title || 'Untitled Sync' }}
               </div>
             </div>

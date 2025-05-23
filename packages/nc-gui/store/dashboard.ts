@@ -189,7 +189,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
           operation: 'dashboardDelete',
         },
         {
-          id: dashboardId,
+          dashboardId,
         },
       )
 

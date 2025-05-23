@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "{workspace} {plan} 플랜으로 업그레이드",
     "upgradeToPlanSubtitle": "이 플랜에 대해 즉시 요금이 청구됩니다.",
     "reactivateToPlan": "{plan} 요금제를 다시 활성화하시겠습니까?",
-    "whatsNew": "새로운 기능!"
+    "whatsNew": "새로운 기능!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP 설정",
     "mcpTokenVisibilityInfo": "MCP 클라이언트 구성 저장",
     "mcpTokenVisibilityInfoDescription": "MCP 클라이언트 구성은 한 번만 볼 수 있으므로 안전하게 저장해야 합니다",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "작성자 액세스 권한이 있는 작업 공간 이상에만 베이스를 복제할 수 있습니다.",
     "snapshotBaseRestoreMessage": "Creator 액세스 권한이 있는 작업 영역 이상으로만 복원할 수 있습니다.",
     "currentWorkspace": "현재 작업 공간",
+    "currentBase": "Current base",
     "latitude": "위도",
     "longitude": "경도",
     "failed": "실패",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API 스니펫",
     "includeData": "데이터 포함",
     "includeRecords": "항목 포함",
-    "baseDuplicateMessage": "참고: 감사 로그 및 통합은 중복되지 않습니다.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "보기 포함",
     "includeWebhook": "웹훅 포함",
     "includeComments": "주석 포함",
@@ -1611,6 +1616,7 @@
     "changePlan": "체인지플랜"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "각 작업 영역에는 소유자가 한 명 이상 있어야 합니다. 작업 영역을 나가기 전에 다른 사용자를 소유자로 지정하십시오. 마지막 구성원인 경우 대신 작업 영역을 삭제하는 것이 좋습니다.",
     "currentDateNotAvail": "데이터 소스 또는 데이터 유형에 대해 현재 날짜 옵션을 사용할 수 없습니다",
     "privateConnection": "이 연결을 비공개로 설정하고 이 작업공간의 다른 작성자에게 숨기도록 설정합니다.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "오류 코드 복사",
     "paidUserBadgeTooltip": "사용자는 하나 이상의 기반에서 편집자 이상의 역할을 가지고 있습니다.",
     "approachingLimit": "한계에 가까워짐",
-    "exceedingLimit": "한도 초과"
+    "exceedingLimit": "한도 초과",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",

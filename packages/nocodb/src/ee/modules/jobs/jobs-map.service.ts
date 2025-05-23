@@ -92,6 +92,10 @@ export class JobsMap extends JobsMapCE {
       [JobTypes.SyncModuleSyncData]: {
         this: this.syncModuleSyncDataProcessor,
       },
+      [JobTypes.SyncModuleMigrateSync]: {
+        this: this.syncModuleSyncDataProcessor,
+        fn: 'migrateSync',
+      },
       [JobTypes.UpdateUsageStats]: {
         this: this.updateUsageStatsProcessor,
       },

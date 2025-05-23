@@ -1,0 +1,41 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# NocoDB Integrations Source Map
+
+This rule provides navigation guidance for the NocoDB integrations monorepo.
+
+## Core Package
+
+- [core/src/integration.ts](mdc:core/src/integration.ts): Base `IntegrationWrapper` class that all integrations extend
+- [core/src/index.ts](mdc:core/src/index.ts): Main exports for the core package
+
+### Integration Types
+
+- [core/src/ai/types.ts](mdc:core/src/ai/types.ts): AI integration abstract class and interfaces
+- [core/src/auth/types.ts](mdc:core/src/auth/types.ts): Auth integration abstract class and interfaces
+- [core/src/sync/types.ts](mdc:core/src/sync/types.ts): Sync integration abstract class and interfaces
+
+## Integration Packages
+
+Each integration package follows this structure:
+
+- `src/index.ts`: Exports the integration entry point with the `IntegrationEntry` object
+- `src/integration.ts`: Implementation of the integration class extending appropriate base class
+- `src/form.ts`: Form definition for configuration UI
+- `src/manifest.ts`: Integration metadata (title, icon, version, etc.)
+
+### AI Integrations
+- [packages/openai-ai](mdc:packages/openai-ai): OpenAI integration implementation
+- [packages/nocodb-ai](mdc:packages/nocodb-ai): NocoDB AI implementation
+
+### Auth Integrations
+- [packages/github-auth](mdc:packages/github-auth): GitHub authentication integration
+- [packages/gitlab-auth](mdc:packages/gitlab-auth): GitLab authentication integration
+- [packages/clickhouse-auth](mdc:packages/clickhouse-auth): ClickHouse authentication integration
+
+### Sync Integrations
+- [packages/github-sync](mdc:packages/github-sync): GitHub sync integration
+- [packages/gitlab-sync](mdc:packages/gitlab-sync): GitLab sync integration

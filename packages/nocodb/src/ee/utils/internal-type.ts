@@ -1,3 +1,4 @@
+import type { TestConnectionResponse } from '@noco-local-integrations/core';
 import type {
   DataReflection,
   Integration,
@@ -28,4 +29,13 @@ export type InternalPOSTResponseType = Promise<
       syncConfig: SyncConfig;
       job: { id: JobId; secret?: string };
     }
+  | {
+      syncConfig: SyncConfig;
+      integration: Integration;
+    }
+  | TestConnectionResponse
+  | {
+      value: string;
+      label: string;
+    }[]
 >;

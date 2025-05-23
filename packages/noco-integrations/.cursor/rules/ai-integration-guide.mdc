@@ -1,0 +1,191 @@
+---
+description: creating a ai type integration
+globs: 
+alwaysApply: false
+---
+# Creating AI Integrations for NocoDB
+
+This guide will walk you through the process of creating a new AI integration for NocoDB.
+
+## What is an AI Integration?
+
+AI integrations in NocoDB allow users to integrate AI capabilities into their applications. Each AI integration extends the `AiIntegration` abstract class and implements specific methods to interact with AI services.
+
+## Required Files and Structure
+
+Each AI integration package should follow this structure:
+
+```
+packages/your-ai-provider/
+├── package.json          # Package dependencies and metadata
+├── tsconfig.json         # TypeScript configuration
+└── src/
+    ├── index.ts          # Exports the integration entry point
+    ├── integration.ts    # Implementation of the integration class
+    ├── form.ts           # Form definition for configuration UI
+    └── manifest.ts       # Integration metadata (title, icon, version, etc.)
+```
+
+## Step-by-Step Guide
+
+### 1. Create the Integration Class
+
+Your integration class should extend the `AiIntegration` abstract class ([core/src/ai/types.ts](mdc:core/src/ai/types.ts)) and implement all required methods:
+
+```typescript
+// src/integration.ts
+import { AiIntegration, AiGenerateObjectArgs } from '@noco-integrations/core';
+
+export class YourAiIntegration extends AiIntegration {
+  // Required implementation of generateObject
+  public async generateObject<T = any>(args: AiGenerateObjectArgs) {
+    const { messages, schema, customModel } = args;
+    
+    // Initialize your AI provider client with config
+    // Transform messages to the format your AI provider expects
+    // Call your AI provider's API
+    // Make sure to pass any credentials required on this step
+    
+    return {
+      usage: {
+        input_tokens: 0, // Provide actual token usage
+        output_tokens: 0,
+        total_tokens: 0,
+        model: 'your-model',
+      },
+      data: {} as T, // Return the generated data
+    };
+  }
+
+  // Required implementation of getModelAlias
+  public getModelAlias(model: string): string {
+    const aliases: Record<string, string> = {
+      'model-id': 'Human Readable Model Name',
+    };
+    return aliases[model] || model;
+  }
+
+  // Optional: Override availableModels if needed
+  public availableModels(): { value: string; label: string }[] {
+    return this.config.models.map((model: string) => ({
+      value: model,
+      label: this.getModelAlias(model),
+    }));
+  }
+}
+```
+
+See [packages/openai-ai/src/integration.ts](mdc:packages/openai-ai/src/integration.ts) for a complete example.
+
+### 2. Create the Form Definition
+
+Define the configuration UI for your integration:
+
+```typescript
+// src/form.ts
+import {
+  FormBuilderInputType,
+  type FormDefinition,
+} from '@noco-integrations/core';
+
+export const form: FormDefinition = [
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Integration name',
+    width: 100,
+    model: 'title',
+    placeholder: 'Integration name',
+    category: 'General',
+    validators: [
+      {
+        type: 'required',
+        message: 'Integration name is required',
+      },
+    ],
+  },
+  // Add fields for API keys, model selection, etc.
+];
+```
+
+See [packages/openai-ai/src/form.ts](mdc:packages/openai-ai/src/form.ts) for a complete example.
+
+### 3. Create the Manifest
+
+Provide metadata about your integration:
+
+```typescript
+// src/manifest.ts
+import { createManifest, IntegrationType } from '@noco-integrations/core';
+
+export const manifest = createManifest(IntegrationType.Ai, {
+  title: 'Your AI Provider',
+  icon: 'your-provider-icon',
+  description: 'Your AI Provider integration for NocoDB',
+  version: '0.1.0',
+  author: 'Your Name',
+});
+```
+
+See [packages/openai-ai/src/manifest.ts](mdc:packages/openai-ai/src/manifest.ts) for a complete example.
+
+### 4. Create the Integration Entry Point
+
+Export your integration entry:
+
+```typescript
+// src/index.ts
+import {
+  type IntegrationEntry,
+  IntegrationType,
+} from '@noco-integrations/core';
+import { YourAiIntegration } from './integration';
+import { form } from './form';
+import { manifest } from './manifest';
+
+const integration: IntegrationEntry = {
+  type: IntegrationType.Ai,
+  sub_type: 'your-provider-id',
+  wrapper: YourAiIntegration,
+  form,
+  manifest,
+};
+
+export default integration;
+```
+
+See [packages/openai-ai/src/index.ts](mdc:packages/openai-ai/src/index.ts) for a complete example.
+
+### 5. Set Up Package.json
+
+Ensure your package.json includes the necessary dependencies:
+
+```json
+{
+  "name": "@noco-integrations/your-ai-provider",
+  "version": "0.1.0",
+  "description": "Your AI Provider integration for NocoDB",
+  "main": "dist/index.js",
+  "dependencies": {
+    "@noco-integrations/core": "workspace:*",
+    "your-ai-provider-sdk": "^1.0.0"
+  },
+  "peerDependencies": {
+    "@noco-integrations/core": "workspace:*"
+  }
+}
+```
+
+## Best Practices
+
+1. **Error Handling**: Implement robust error handling to gracefully manage API failures.
+2. **Token Usage**: Accurately track and report token usage for billing purposes.
+3. **Model Support**: Provide clear aliases for supported models and validate model compatibility.
+4. **Configuration Validation**: Ensure all required configuration parameters are validated.
+
+## Example
+
+For a complete example of an AI integration, see the OpenAI implementation:
+- [packages/openai-ai/src/integration.ts](mdc:packages/openai-ai/src/integration.ts)
+- [packages/openai-ai/src/form.ts](mdc:packages/openai-ai/src/form.ts)
+- [packages/openai-ai/src/manifest.ts](mdc:packages/openai-ai/src/manifest.ts)
+- [packages/openai-ai/src/index.ts](mdc:packages/openai-ai/src/index.ts)

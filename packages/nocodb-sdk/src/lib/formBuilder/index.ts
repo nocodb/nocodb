@@ -15,7 +15,7 @@ export interface FormBuilderElement {
   // property path in the form JSON
   model?: string;
   // default value
-  defaultValue?: string;
+  defaultValue?: string[] | string | boolean | number | null;
   // label for the element
   label?: string;
   // placeholder for the element (if applicable)
@@ -62,6 +62,8 @@ export interface FormBuilderElement {
   showHintAsTooltip?: boolean;
   // validators for the element
   validators?: { type: 'required'; message?: string }[];
+  // fetch options for the element using key
+  fetchOptionsKey?: string;
 }
 
 export type FormDefinition = FormBuilderElement[];

@@ -43,7 +43,7 @@
     "preinstall": "npx only-allow pnpm"
   },
   "dependencies": {
-    "axios": "^1.7.9",
+    "axios": "^1.9.0",
     "chevrotain": "^10.5.0",
     "dayjs": "^1.11.13",
     "jsep": "^1.4.0",

@@ -1,0 +1,20 @@
+{
+  "name": "@noco-integrations/github-auth",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@noco-integrations/core": "workspace:*",
+    "axios": "^1.9.0",
+    "octokit": "3.2.1"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.10",
+    "typescript": "^5.8.3"
+  }
+}

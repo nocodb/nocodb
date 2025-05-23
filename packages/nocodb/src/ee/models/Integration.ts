@@ -9,7 +9,7 @@ import type {
   SourceType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type AuthIntegration from '~/integrations/auth/auth.interface';
+import type { AuthIntegration } from '@noco-local-integrations/core';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -52,17 +52,6 @@ export default class Integration extends IntegrationCE {
   }
 
   public static async init() {
-    // we use dynamic import to avoid circular reference
-    const ceIntegrations = (await import('src/integrations/integrations'))
-      .default;
-
-    const eeIntegrations = (await import('src/ee/integrations/integrations'))
-      .default;
-
-    // we use dynamic import to avoid circular reference
-    Integration.availableIntegrations = [...ceIntegrations, ...eeIntegrations];
-    IntegrationCE.availableIntegrations = Integration.availableIntegrations;
-
     for (const tp of Object.values(IntegrationsType)) {
       if (!integrationCategoryNeedDefault(tp as IntegrationsType)) continue;
 

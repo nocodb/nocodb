@@ -77,6 +77,9 @@ module.exports = {
     tsConfig: {
       configFile: resolve('./src/ee-cloud/tsconfig.json'),
     },
+    alias: {
+      '@noco-local-integrations': resolve(__dirname, '../noco-integrations/packages'),
+    },
   },
 
   mode: 'production',

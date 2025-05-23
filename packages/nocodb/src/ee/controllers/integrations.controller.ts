@@ -174,7 +174,7 @@ export class IntegrationsController {
       .map((i) => ({
         type: i.type,
         sub_type: i.sub_type,
-        meta: i.meta,
+        manifest: i.manifest,
       }));
   }
 
@@ -195,11 +195,15 @@ export class IntegrationsController {
       integrationType: integration.type,
       integrationSubType: integration.sub_type,
       form: integration.form,
-      meta: integration.meta,
+      manifest: integration.manifest,
     };
   }
 
   @Post(['/api/v2/integrations/:integrationId/store'])
+  @Acl('integrationStore', {
+    scope: 'workspace',
+    extendedScope: 'base',
+  })
   async storeIntegration(
     @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,
@@ -232,6 +236,10 @@ export class IntegrationsController {
   }
 
   @Post(['/api/v2/integrations/:integrationId/:endpoint'])
+  @Acl('integrationEndpointGet', {
+    scope: 'workspace',
+    extendedScope: 'base',
+  })
   async integrationEndpointGet(
     @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,

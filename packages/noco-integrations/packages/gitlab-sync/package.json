@@ -1,0 +1,19 @@
+{
+  "name": "@noco-integrations/gitlab-sync",
+  "version": "0.1.0",
+  "description": "GitLab sync integration for NocoDB",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w"
+  },
+  "dependencies": {
+    "@gitbeaker/rest": "^42.5.0",
+    "@noco-integrations/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.46",
+    "typescript": "^5.8.3"
+  }
+}

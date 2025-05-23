@@ -8,7 +8,7 @@ import {
 } from 'nocodb-sdk';
 import type { ClientType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type IntegrationWrapper from '~/integrations/integration.wrapper';
+import type { IntegrationWrapper } from '@noco-local-integrations/core';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -26,6 +26,7 @@ import {
 } from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { IntegrationStore, Source } from '~/models';
+import Integrations from '~/integrations';
 
 export default class Integration implements IntegrationType {
   public static availableIntegrations: {
@@ -33,14 +34,14 @@ export default class Integration implements IntegrationType {
     sub_type: string;
     form?: FormDefinition;
     wrapper?: typeof IntegrationWrapper;
-    meta?: {
+    manifest?: {
       title?: string;
       value?: string;
       icon?: string;
       description?: string;
-      exposedEndpoints?: string[];
+      expose?: string[];
     };
-  }[];
+  }[] = Integrations;
 
   id?: string;
   fk_workspace_id?: string;
@@ -68,13 +69,6 @@ export default class Integration implements IntegrationType {
   protected static encryptConfigIfRequired(obj: Record<string, unknown>) {
     obj.config = encryptPropIfRequired({ data: obj });
     obj.is_encrypted = isEncryptionRequired();
-  }
-
-  public static async init() {
-    // we use dynamic import to avoid circular reference
-    Integration.availableIntegrations = (
-      await import('src/integrations/integrations')
-    ).default;
   }
 
   public static async createIntegration(
@@ -601,9 +595,21 @@ export default class Integration implements IntegrationType {
     return this.castType(integrationData);
   }
 
+  static tempIntegrationWrapper<T = any>(config: Partial<IntegrationType>) {
+    const integrationWrapper = Integration.availableIntegrations.find(
+      (el) => el.type === config.type && el.sub_type === config.sub_type,
+    );
+
+    if (!integrationWrapper) {
+      throw new Error('Integration not found');
+    }
+
+    return new integrationWrapper.wrapper(config.config) as T;
+  }
+
   public wrapper: IntegrationWrapper;
 
-  getIntegrationWrapper<T extends IntegrationWrapper>() {
+  getIntegrationWrapper<T = any>(logger?: (message: string) => void) {
     if (!this.wrapper) {
       const integrationWrapper = Integration.availableIntegrations.find(
         (el) => el.type === this.type && el.sub_type === this.sub_type,
@@ -613,7 +619,7 @@ export default class Integration implements IntegrationType {
         throw new Error('Integration not found');
       }
 
-      this.wrapper = new integrationWrapper.wrapper(this);
+      this.wrapper = new integrationWrapper.wrapper(this.getConfig(), logger);
     }
 
     return this.wrapper as T;
@@ -628,7 +634,7 @@ export default class Integration implements IntegrationType {
       throw new Error('Integration meta not found');
     }
 
-    return integrationMeta?.meta;
+    return integrationMeta?.manifest;
   }
 
   async storeInsert(

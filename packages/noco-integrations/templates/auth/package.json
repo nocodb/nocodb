@@ -1,0 +1,17 @@
+{
+  "name": "@noco-integrations/auth-template",
+  "version": "0.1.0",
+  "description": "Template for Auth integrations in NocoDB",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@noco-integrations/core": "workspace:*",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.2"
+  }
+} 

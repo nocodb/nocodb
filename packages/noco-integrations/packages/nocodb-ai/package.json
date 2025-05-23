@@ -1,0 +1,21 @@
+{
+  "name": "@noco-integrations/nocodb-ai",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^1.3.22",
+    "@noco-integrations/core": "workspace:*",
+    "ai": "^4.3.16",
+    "zod": "^3.25.7"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.10",
+    "typescript": "^5.8.3"
+  }
+}

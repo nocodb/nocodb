@@ -12,6 +12,8 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { ScriptsService } from '~/services/scripts.service';
 import { getBaseSchema } from '~/helpers/scriptHelper';
+import { NcError } from '~/helpers/catchError';
+import { IntegrationsService } from '~/services/integrations.service';
 import {
   InternalGETResponseType,
   InternalPOSTResponseType,
@@ -28,6 +30,7 @@ export class InternalController extends InternalControllerCE {
     private readonly syncService: SyncModuleService,
     private readonly scriptsService: ScriptsService,
     private readonly columnsService: ColumnsService,
+    private readonly integrationsService: IntegrationsService,
   ) {
     super(mcpService, aclMiddleware);
   }
@@ -50,8 +53,12 @@ export class InternalController extends InternalControllerCE {
       getDataReflection: 'workspace',
       deleteDataReflection: 'workspace',
       listenRemoteImport: 'workspace',
-      createSyncTable: 'base',
+      createSync: 'base',
       triggerSync: 'base',
+      migrateSync: 'base',
+      addChildSync: 'base',
+      authIntegrationTestConnection: 'workspace',
+      syncIntegrationFetchOptions: 'workspace',
       listScripts: 'base',
       getScript: 'base',
       createScript: 'base',
@@ -75,11 +82,9 @@ export class InternalController extends InternalControllerCE {
       case 'getDataReflection':
         return await this.dataReflectionService.get(workspaceId);
       case 'listSync':
-        return await this.syncService.listSync(
-          context,
-          req.query.fk_model_id,
-          req,
-        );
+        return await this.syncService.listSync(context, req);
+      case 'readSync':
+        return await this.syncService.readSync(context, req.query.id);
       case 'listScripts':
         return await this.scriptsService.listScripts(context, baseId);
       case 'getScript':
@@ -133,17 +138,24 @@ export class InternalController extends InternalControllerCE {
           req,
         );
 
-      case 'createSyncTable':
-        return await this.syncService.createSyncTable(context, payload, req);
       case 'createSync':
         return await this.syncService.createSync(context, payload, req);
       case 'triggerSync':
+        if (!payload.syncConfigId) {
+          NcError.genericNotFound('SyncConfig', payload.syncConfigId);
+        }
+
         return await this.syncService.triggerSync(
           context,
           payload.syncConfigId,
+          payload.bulk,
           req,
         );
       case 'updateSync':
+        if (!payload.syncConfigId) {
+          NcError.genericNotFound('SyncConfig', payload.syncConfigId);
+        }
+
         return await this.syncService.updateSync(
           context,
           payload.syncConfigId,
@@ -151,11 +163,35 @@ export class InternalController extends InternalControllerCE {
           req,
         );
       case 'deleteSync':
+        if (!payload.syncConfigId) {
+          NcError.genericNotFound('SyncConfig', payload.syncConfigId);
+        }
+
         return await this.syncService.deleteSync(
           context,
           payload.syncConfigId,
           req,
         );
+      case 'migrateSync':
+        if (!payload.syncConfigId) {
+          NcError.genericNotFound('SyncConfig', payload.syncConfigId);
+        }
+
+        return await this.syncService.migrateSync(
+          context,
+          payload.syncConfigId,
+          req,
+        );
+      case 'syncIntegrationFetchOptions':
+        return await this.syncService.integrationFetchOptions(context, {
+          integration: payload.integration,
+          key: payload.key,
+        });
+      case 'authIntegrationTestConnection':
+        return await this.integrationsService.authIntegrationTestConnection(
+          payload,
+        );
+
       case 'createScript':
         return await this.scriptsService.createScript(
           context,

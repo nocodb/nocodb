@@ -1,0 +1,17 @@
+{
+  "name": "@noco-integrations/ai-template",
+  "version": "0.1.0",
+  "description": "Template for AI integrations in NocoDB",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@noco-integrations/core": "workspace:*",
+    "ai": "^2.2.31"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.2"
+  }
+} 

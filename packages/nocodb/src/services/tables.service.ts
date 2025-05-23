@@ -235,10 +235,16 @@ export class TablesService {
       tableId: string;
       user: User;
       forceDeleteRelations?: boolean;
+      forceDeleteSyncs?: boolean;
       req?: any;
     },
   ) {
     const table = await Model.getByIdOrName(context, { id: param.tableId });
+
+    if (table?.synced && !param.forceDeleteSyncs) {
+      NcError.badRequest('Synced tables cannot be deleted');
+    }
+
     await table.getColumns(context);
 
     if (table.mm) {
@@ -879,6 +885,7 @@ export class TablesService {
             column_name: colMetaFromDb?.cn || c.cn || c.column_name,
             order: i + 1,
             readonly: c.readonly || false,
+            meta: c.meta || {},
           } as NormalColumnRequestType;
         }),
         ...virtualColumns.map((c, i) => ({

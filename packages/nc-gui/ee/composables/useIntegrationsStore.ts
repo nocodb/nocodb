@@ -1,5 +1,5 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import type { FormDefinition, IntegrationCategoryType, IntegrationType, PaginatedType } from 'nocodb-sdk'
+import type { FormDefinition, IntegrationCategoryType, IntegrationType, PaginatedType, SyncCategory } from 'nocodb-sdk'
 import { ClientType, IntegrationsType, SyncDataType } from 'nocodb-sdk'
 import { getI18n } from '../../plugins/a.i18n'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
@@ -54,6 +54,10 @@ function getStaticInitializor(type: IntegrationsSubType) {
 }
 
 const integrationForms: Record<string, FormDefinition> = {}
+
+const integrationIdentifier = (integration: { type: IntegrationsType | IntegrationCategoryType; sub_type: string }) => {
+  return `${integration.type}-${integration.sub_type}`
+}
 
 const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState(() => {
   const router = useRouter()
@@ -161,14 +165,14 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   }
 
   const getIntegrationForm = async (type: IntegrationCategoryType | IntegrationsType, subType: string) => {
-    if (subType in integrationForms) {
-      return integrationForms[subType]
+    if (integrationIdentifier({ type, sub_type: subType }) in integrationForms) {
+      return integrationForms[integrationIdentifier({ type, sub_type: subType })]
     }
 
     const integrationInfo = await $api.integrations.info(type, subType)
 
     if (integrationInfo?.form) {
-      integrationForms[subType] = integrationInfo.form
+      integrationForms[integrationIdentifier({ type, sub_type: subType })] = integrationInfo.form
       return integrationInfo.form
     }
 
@@ -411,16 +415,16 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
       activeIntegrationItem.value = integrationItem
 
-      if (integrationItem.dynamic === true && !(integrationItem.sub_type in integrationForms)) {
+      if (integrationItem.dynamic === true && !(integrationIdentifier(integrationItem) in integrationForms)) {
         const integrationInfo = await $api.integrations.info(integrationItem.type, integrationItem.sub_type)
 
         if (integrationInfo?.form) {
-          integrationForms[integrationItem.sub_type] = integrationInfo.form
+          integrationForms[integrationIdentifier(integrationItem)] = integrationInfo.form
 
           activeIntegrationItem.value.form = integrationInfo.form
         }
       } else if (integrationItem.dynamic === true) {
-        activeIntegrationItem.value.form = integrationForms[integrationItem.sub_type]
+        activeIntegrationItem.value.form = integrationForms[integrationIdentifier(integrationItem)]
       }
 
       pageMode.value = IntegrationsPageMode.EDIT
@@ -468,29 +472,30 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       const dynamicIntegrations = (await $api.integrations.list()) as {
         type: IntegrationsType
         sub_type: string
-        meta: {
+        manifest: {
           title?: string
           icon?: string
           iconStyle?: any
           description?: string
           order?: number
           hidden?: boolean
+          sync_category?: SyncCategory
         }
       }[]
 
-      dynamicIntegrations.sort((a, b) => (a.meta.order ?? Infinity) - (b.meta.order ?? Infinity))
+      dynamicIntegrations.sort((a, b) => (a.manifest.order ?? Infinity) - (b.manifest.order ?? Infinity))
 
       for (const di of dynamicIntegrations) {
         let icon: FunctionalComponent<SVGAttributes, {}, any, {}> | VNode
 
-        if (di.meta.icon) {
-          if (di.meta.icon in iconMap) {
-            icon = iconMap[di.meta.icon as keyof typeof iconMap]
+        if (di.manifest.icon) {
+          if (di.manifest.icon in iconMap) {
+            icon = iconMap[di.manifest.icon as keyof typeof iconMap]
           } else {
-            if (isValidURL(di.meta.icon)) {
+            if (isValidURL(di.manifest.icon)) {
               icon = h('img', {
-                src: di.meta.icon,
-                alt: di.meta.title || di.sub_type,
+                src: di.manifest.icon,
+                alt: di.manifest.title || di.sub_type,
               })
             }
           }
@@ -499,14 +504,15 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         }
 
         const integration: IntegrationItemType = {
-          title: di.meta.title || di.sub_type,
+          title: di.manifest.title || di.sub_type,
           sub_type: di.sub_type,
           icon,
           type: di.type,
-          iconStyle: di.meta.iconStyle,
+          iconStyle: di.manifest.iconStyle,
           isAvailable: true,
           dynamic: true,
-          hidden: di.meta?.hidden ?? false,
+          hidden: di.manifest?.hidden ?? false,
+          sync_category: di.manifest?.sync_category,
         }
 
         allIntegrations.push(integration)
@@ -536,6 +542,23 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
     if (dataReflectionIntegration) {
       dataReflectionIntegration.source_count = basesList.value.length ?? 0
+    }
+  }
+
+  const testConnection = async (integration: IntegrationType) => {
+    try {
+      const res = await $api.internal.postOperation(
+        activeWorkspaceId.value,
+        NO_SCOPE,
+        {
+          operation: 'authIntegrationTestConnection',
+        },
+        integration,
+      )
+
+      return res as { success: boolean; message?: string }
+    } catch (e) {
+      await message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 
@@ -578,6 +601,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     listIntegrationByType,
     loadDynamicIntegrations,
     getIntegrationForm,
+    testConnection,
   }
 }, 'integrations-store')
 

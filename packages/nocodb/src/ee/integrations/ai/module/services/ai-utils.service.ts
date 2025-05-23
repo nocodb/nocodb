@@ -10,7 +10,7 @@ import {
 } from 'nocodb-sdk';
 import { z } from 'zod';
 import type { NcContext } from '~/interface/config';
-import type AiIntegration from '~/integrations/ai/ai.interface';
+import type { AiIntegration } from '@noco-local-integrations/core';
 import { Base, Integration, Model } from '~/models';
 import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
 import {

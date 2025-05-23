@@ -1,0 +1,157 @@
+---
+description: creating a sync type integration
+globs: 
+alwaysApply: false
+---
+# Sync Integration Guide
+
+This guide provides instructions for creating a sync integration for NocoDB, which allows syncing data from external services into NocoDB tables.
+
+## Key Files and Structure
+
+A sync integration requires the following files:
+
+- **index.ts**: Main entry point that exports the integration
+- **integration.ts**: Core implementation extending `SyncIntegration`
+- **form.ts**: Configuration form definition
+- **manifest.ts**: Integration metadata
+
+## Core Components
+
+The core interfaces and types for sync integrations are located in:
+
+- [core/src/sync/types.ts](mdc:core/src/sync/types.ts): Contains the `SyncIntegration` abstract class and related types
+- [core/src/sync/schema-ticketing.ts](mdc:core/src/sync/schema-ticketing.ts): Predefined schema for ticketing systems
+
+## Implementation Steps
+
+### 1. Extend SyncIntegration
+
+Create a class that extends `SyncIntegration` and implements these required methods:
+
+```typescript
+export default class YourSyncIntegration extends SyncIntegration<YourConfigType> {
+  // Return a user-friendly name for the integration instance
+  public getTitle(): string
+
+  // Return schema definition
+  public async getDestinationSchema(auth: AuthResponse<any>): Promise<SyncSchema>
+
+  // Fetch data from external API and stream it
+  public async fetchData(
+    auth: AuthResponse<any>,
+    args: {
+      targetTables?: TARGET_TABLES[];
+      targetTableIncrementalValues?: Record<TARGET_TABLES, string | number>;
+    }
+  ): Promise<DataObjectStream<SyncRecord>>
+
+  // Format external data to match NocoDB schema
+  public formatData(
+    targetTable: TARGET_TABLES,
+    data: any
+  ): {
+    data: SyncRecord;
+    links?: Record<string, SyncLinkValue>;
+  }
+
+  // Return the property used for incremental sync
+  public getIncrementalKey(targetTable: TARGET_TABLES): string
+}
+```
+
+### 2. Create the Integration Entry Point
+
+The `index.ts` should export an `IntegrationEntry` object:
+
+```typescript
+const integration: IntegrationEntry = {
+  type: IntegrationType.Sync,
+  sub_type: 'your-integration-id',
+  wrapper: YourSyncIntegration,
+  form,
+  manifest,
+};
+
+export default integration;
+```
+
+### 3. Define the Form
+
+Create a configuration form in `form.ts`:
+
+```typescript
+const form: FormDefinition = [
+  // Form fields for your integration configuration
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Configuration Field',
+    width: 100,
+    model: 'config.yourField',
+    category: 'Settings',
+    validators: [
+      {
+        type: 'required',
+        message: 'This field is required',
+      },
+    ],
+  },
+  // More fields as needed
+];
+```
+
+### 4. Create the Manifest
+
+Define metadata in `manifest.ts`:
+
+```typescript
+const manifest: IntegrationManifest = {
+  title: 'Your Integration',
+  icon: 'yourIcon',
+  version: '0.1.0',
+  description: 'Sync data from Your Service to NocoDB',
+  sync_category: SyncCategory.TICKETING, // Or appropriate category
+};
+```
+
+## Working with DataObjectStream
+
+The `fetchData` method should:
+
+1. Create a stream: `const stream = new DataObjectStream<YourRecordType>();`
+2. Fetch and process data asynchronously
+3. Push records to the stream: `stream.push({ recordId, targetTable, data, links })`
+4. End the stream when done: `stream.end()`
+5. Handle errors: `stream.emit('error', error)`
+
+## Proper Stream Handling
+
+We MUST return stream without awaiting it.
+
+```typescript
+// Proper stream handling pattern
+(async () => {
+  try {
+    // Fetch and process data
+    for (const item of items) {
+      stream.push({
+        recordId: `${item.id}`,
+        targetTable: TARGET_TABLES.TICKETING_TICKET,
+        ...this.formatData(TARGET_TABLES.TICKETING_TICKET, item),
+      });
+    }
+    stream.end(); // Critical: must end the stream
+  } catch (error) {
+    stream.emit('error', error);
+  }
+})();
+
+return stream;
+```
+
+## Examples
+
+For complete implementation examples, see:
+
+- [packages/github-sync](mdc:packages/github-sync/src/integration.ts): GitHub sync integration
+- [packages/gitlab-sync](mdc:packages/gitlab-sync/src/integration.ts): GitLab sync integration

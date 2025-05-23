@@ -1,0 +1,29 @@
+{
+  "name": "nocodb-integrations",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "test:coverage": "pnpm -r test:coverage",
+    "test:watch": "pnpm -r test:watch",
+    "lint": "eslint \"packages/**/src/**/*.{ts,tsx}\"",
+    "lint:fix": "eslint --fix \"packages/**/src/**/*.{ts,tsx}\"",
+    "format": "prettier --write \"packages/**/src/**/*.{ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"packages/**/src/**/*.{ts,tsx,json,md}\"",
+    "fix": "pnpm format && pnpm lint:fix",
+    "clean": "pnpm -r clean"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.26.0",
+    "@types/node": "^20.17.46",
+    "@typescript-eslint/eslint-plugin": "^8.32.0",
+    "@typescript-eslint/parser": "^8.32.0",
+    "eslint": "^9.26.0",
+    "eslint-plugin-import": "^2.31.0",
+    "prettier": "^3.5.3",
+    "taze": "^19.1.0",
+    "typescript": "^5.8.3"
+  }
+}

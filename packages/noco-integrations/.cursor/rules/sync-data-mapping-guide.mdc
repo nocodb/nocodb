@@ -1,0 +1,132 @@
+---
+description: sync data mapping
+globs: 
+alwaysApply: false
+---
+# Sync Data Mapping Guide
+
+This guide explains how to map data from external APIs to NocoDB's schema in sync integrations.
+
+## Data Structure
+
+NocoDB sync integrations use these key data structures:
+
+- **DataObject**: Represents a record to be synced to NocoDB
+- **SyncRecord**: Base record type with remote metadata fields
+- **SyncSchema**: Schema definition for target tables
+- **SyncLinkValue**: Relationships between records
+
+## Target Tables
+
+NocoDB defines standard target tables in `TARGET_TABLES` enum:
+
+```typescript
+enum TARGET_TABLES {
+  TICKETING_TICKET = 'ticketing_ticket',
+  TICKETING_USER = 'ticketing_user',
+  TICKETING_COMMENT = 'ticketing_comment',
+  TICKETING_TEAM = 'ticketing_team',
+}
+```
+
+Each target table has a predefined schema in `SCHEMA_TICKETING`.
+
+## Mapping Records
+
+The `formatData` method converts external API data to NocoDB format:
+
+```typescript
+public formatData(targetTable: TARGET_TABLES, data: any) {
+  switch (targetTable) {
+    case TARGET_TABLES.TICKETING_TICKET:
+      return {
+        data: {
+          Name: data.title,
+          Description: data.body,
+          // Map other fields
+          RemoteRaw: JSON.stringify(data),
+        },
+        links: {
+          // Define relationships
+          Assignees: data.assignees?.map(a => `${a.id}`) || null,
+          Creator: data.creator ? [`${data.creator.id}`] : null,
+        }
+      };
+    // Handle other tables
+  }
+}
+```
+
+## Base Record Fields
+
+Every sync record should include these metadata fields:
+
+```typescript
+interface SyncRecord {
+  RemoteCreatedAt?: string | null;
+  RemoteUpdatedAt?: string | null;
+  RemoteRaw: string | null;
+}
+```
+
+## Creating Relationships
+
+To create relationships between EXISTING records:
+
+1. First sync each record with its primary data
+2. Then create relationship-only data objects:
+
+```typescript
+// Add a user to team members
+stream.push({
+  recordId: `${teamId}`,
+  targetTable: TARGET_TABLES.TICKETING_TEAM,
+  links: {
+    Members: [`${userId}`],
+  },
+});
+```
+
+## Handling Incremental Sync
+
+The `fetchData` method receives the last synced value:
+
+```typescript
+public async fetchData(
+  auth: AuthResponse<any>,
+  args: {
+    targetTables?: TARGET_TABLES[];
+    targetTableIncrementalValues?: Record<TARGET_TABLES, string | number>;
+  }
+) {
+  // Get last sync value for incremental fetch
+  const ticketIncrementalValue = 
+    args.targetTableIncrementalValues?.[TARGET_TABLES.TICKETING_TICKET];
+  
+  // Use it to fetch only new/updated records
+  // ...
+}
+```
+
+The `getIncrementalKey` method defines which field tracks changes:
+
+```typescript
+public getIncrementalKey(targetTable: TARGET_TABLES) {
+  switch (targetTable) {
+    case TARGET_TABLES.TICKETING_TICKET:
+      return 'updated_at';
+    // Other tables...
+    default:
+      return 'updated_at';
+  }
+}
+```
+
+## Common Patterns
+
+1. **Track unique records**: Use maps to avoid duplicate records
+2. **Process batches**: Fetch data in batches to handle large datasets
+3. **Error handling**: Wrap API calls in try/catch and emit errors
+4. **Field mapping**: Create helper methods for consistent mapping
+
+Examples of these patterns can be found in [github-sync](mdc:packages/github-sync/src/integration.ts).

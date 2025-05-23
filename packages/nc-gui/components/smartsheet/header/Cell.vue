@@ -226,7 +226,7 @@ const onClick = (e: Event) => {
       <div v-if="!isExpandedForm && meta?.synced && column.readonly">
         <NcTooltip class="flex items-center" placement="bottom">
           <template #title> This field is synced </template>
-          <GeneralIcon icon="sync" class="flex-none !w-4 !h-4 !text-gray-500" />
+          <GeneralIcon icon="ncZap" class="flex-none !w-4 !h-4 !text-gray-500" />
         </NcTooltip>
       </div>
       <LazySmartsheetHeaderMenu

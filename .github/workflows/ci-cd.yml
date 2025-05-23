@@ -98,7 +98,6 @@ jobs:
     with:
       db: pg
       shard: 2
-
   playwright-pg-shard-3:
     needs: pre-build-for-playwright
     if: ${{ github.event_name == 'push' || !github.event.pull_request.draft || inputs.force == true }}

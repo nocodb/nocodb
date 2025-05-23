@@ -152,6 +152,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !isPaidPlan.value
   })
 
+  const blockCurrentUserFilter = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER)
+  })
+
   /** Helper functions */
   function getLimit(type: PlanLimitTypes, workspace?: NcWorkspace | null) {
     if (!isPaymentEnabled.value) return Infinity
@@ -668,6 +672,21 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseCurrentUserFilter = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockCurrentUserFilter.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseCurrentUserFilter'),
+      content: t('upgrade.upgradeToUseCurrentUserFilterSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     getLimit,
@@ -712,5 +731,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockWsImageLogoUpload,
     isSideBannerExpanded,
     cloudFeatures,
+    blockCurrentUserFilter,
+    showUpgradeToUseCurrentUserFilter,
   }
 })

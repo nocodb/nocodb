@@ -5,11 +5,13 @@
 
 import AsanaAuth from '@noco-local-integrations/asana-auth';
 import AsanaSync from '@noco-local-integrations/asana-sync';
+import ClaudeAi from '@noco-local-integrations/claude-ai';
 import ClickhouseAuth from '@noco-local-integrations/clickhouse-auth';
 import GithubAuth from '@noco-local-integrations/github-auth';
 import GithubSync from '@noco-local-integrations/github-sync';
 import GitlabAuth from '@noco-local-integrations/gitlab-auth';
 import GitlabSync from '@noco-local-integrations/gitlab-sync';
+import GoogleAi from '@noco-local-integrations/google-ai';
 import JiraAuth from '@noco-local-integrations/jira-auth';
 import JiraSync from '@noco-local-integrations/jira-sync';
 import LinearAuth from '@noco-local-integrations/linear-auth';
@@ -22,11 +24,13 @@ import type { IntegrationEntry } from '@noco-local-integrations/core';
 export default [
   AsanaAuth,
   AsanaSync,
+  ClaudeAi,
   ClickhouseAuth,
   GithubAuth,
   GithubSync,
   GitlabAuth,
   GitlabSync,
+  GoogleAi,
   JiraAuth,
   JiraSync,
   LinearAuth,

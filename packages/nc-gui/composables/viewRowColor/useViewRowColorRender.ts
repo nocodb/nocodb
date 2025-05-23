@@ -14,6 +14,9 @@ export function useViewRowColorRender(params: {
   const evaluateRowColor = (row: any) => {
     if (rowColorInfo.value && rowColorInfo.value.mode === ROW_COLORING_MODE.SELECT) {
       const selectRowColorInfo = rowColorInfo.value
+      if (!selectRowColorInfo) {
+        return null
+      }
       const value = row[selectRowColorInfo.selectColumn.title]
       const rawColor: string | null | undefined = selectRowColorInfo.options.find((k) => k.title === value)?.color
       const color = rawColor ? getLighterTint(rawColor) : null
@@ -26,6 +29,9 @@ export function useViewRowColorRender(params: {
         : null
     } else if (rowColorInfo.value && rowColorInfo.value.mode === ROW_COLORING_MODE.FILTER) {
       const filterRowColorInfo = rowColorInfo.value
+      if (!filterRowColorInfo || !filterRowColorInfo.conditions) {
+        return null
+      }
       for (const eachCondition of filterRowColorInfo.conditions) {
         const isFilterValid = validateRowFilters(
           eachCondition.conditions,

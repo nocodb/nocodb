@@ -2618,7 +2618,9 @@ const getRowColorStyle = (row) => {
                             <div
                               class="inline-block min-w-[4px] h-full rounded-full"
                               :style="{
-                                'background-color': `${getLeftBorderColor(row.row)} !important`,
+                                ...(getLeftBorderColor(row.row)
+                                  ? { 'background-color': `${getLeftBorderColor(row.row)} !important` }
+                                  : {}),
                               }"
                             ></div>
                           </div>

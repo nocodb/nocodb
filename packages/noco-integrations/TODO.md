@@ -17,7 +17,7 @@ Avoid using `any` as much as possible. Try to use the derived types from librari
   5. [x] Implement Amazon Bedrock integration
   6. [x] Implement Azure integration
   7. [x] Implement Deepseek integration
-  8. [ ] Implement OpenAI Compatible integration
+  8. [x] Implement OpenAI Compatible integration
 
 ## Notes
 - Each integration should follow the structure defined in the monorepo guide

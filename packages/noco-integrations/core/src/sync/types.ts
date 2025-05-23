@@ -3,12 +3,23 @@ import { UITypes, TARGET_TABLES } from 'nocodb-sdk';
 import { IntegrationWrapper } from '../integration';
 import type { AuthResponse } from '../auth';
 
+/**
+ * Represents a data object that can be synced
+ * @template T - The type of data being synced
+ */
 export interface DataObject<
   T = Record<string, string | number | boolean | null>,
 > {
+  /** The target table to sync to */
   targetTable: string;
+  /** A unique identifier for the record */
   recordId: string;
-  data: T;
+  /** 
+   * The data to sync 
+   * Optional only when adding relationships to existing records - in that case, use an empty object
+   */
+  data?: T;
+  /** Links to other records */
   links?: Record<string, SyncLinkValue>;
 }
 

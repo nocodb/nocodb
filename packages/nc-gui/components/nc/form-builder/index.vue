@@ -14,6 +14,7 @@ const {
   deepReference,
   setFormState,
   loadOptions,
+  changeKey,
 } = useFormBuilderHelperOrThrow()
 
 const { loadIntegrations, integrations, eventBus, pageMode, IntegrationsPageMode } = useProvideIntegrationViewStore()
@@ -161,7 +162,7 @@ watch(
                     />
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Select">
-                    <NcFormBuilderInputMountedWrapper @mounted="loadOptions(field)">
+                    <NcFormBuilderInputMountedWrapper :key="changeKey" @mounted="loadOptions(field)">
                       <NcSelect
                         :value="deepReference(field.model)"
                         :options="field.options"

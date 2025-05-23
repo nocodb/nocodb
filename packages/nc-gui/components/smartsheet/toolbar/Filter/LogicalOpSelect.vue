@@ -4,7 +4,6 @@ interface Props {
   filter: ColumnFilterType
   link: boolean
   webHook: boolean
-  isLogicalOpChangeAllowed: boolean
 
   isLockedView: boolean
   readOnly: boolean
@@ -40,10 +39,10 @@ const onChange = () => {
     :dropdown-match-select-width="false"
     class="h-full !max-w-18 !min-w-18 capitalize"
     hide-details
-    :disabled="filter.readOnly || !isLogicalOpChangeAllowed || isLockedView || readOnly"
+    :disabled="filter.readOnly || isLockedView || readOnly"
     dropdown-class-name="nc-dropdown-filter-logical-op"
     :class="{
-      'nc-disabled-logical-op': filter.readOnly || !isLogicalOpChangeAllowed || readOnly,
+      'nc-disabled-logical-op': filter.readOnly || readOnly,
     }"
     @change="onChange"
     @click.stop

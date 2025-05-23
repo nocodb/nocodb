@@ -1,110 +1,49 @@
-import { UITypes, TARGET_TABLES } from 'nocodb-sdk';
-import { SyncSchema, SyncRecord, SyncValue } from './types';
-
-export interface TicketingTicketRecord extends SyncRecord {
-  Name: SyncValue<string>;
-  Description: SyncValue<string>;
-  'Due Date': SyncValue<string>;
-  Priority: SyncValue<string>;
-  Status: SyncValue<string>;
-  Tags: SyncValue<string>;
-  'Ticket Type': SyncValue<string>;
-  Url: SyncValue<string>;
-  'Is Active': SyncValue<boolean>;
-  'Completed At': SyncValue<string>;
-  'Ticket Number': SyncValue<string>;
-}
-
-export interface TicketingUserRecord extends SyncRecord {
-  Name: SyncValue<string>;
-  Email: SyncValue<string>;
-  Url: SyncValue<string>;
-}
-
-export interface TicketingCommentRecord extends SyncRecord {
-  Title: SyncValue<string>;
-  Body: SyncValue<string>;
-  Url: SyncValue<string>;
-}
-
-export interface TicketingTeamRecord extends SyncRecord {
-  Name: SyncValue<string>;
-  Description: SyncValue<string>;
-}
+import { UITypes } from 'nocodb-sdk';
+import { TARGET_TABLES } from './common';
+import { SyncSchema } from './types';
 
 export const SCHEMA_TICKETING: SyncSchema = {
   [TARGET_TABLES.TICKETING_TICKET]: {
     title: 'Ticket',
     columns: [
-      { title: 'Name', uidt: UITypes.SingleLineText, pv: true },
-      {
-        title: 'Description',
-        uidt: UITypes.LongText,
-        meta: { richMode: true },
-      },
-      { title: 'Ticket Number', uidt: UITypes.SingleLineText },
+      { title: 'Name', uidt: UITypes.SingleLineText },
+      { title: 'Description', uidt: UITypes.LongText },
       { title: 'Due Date', uidt: UITypes.Date },
       { title: 'Priority', uidt: UITypes.SingleSelect },
       { title: 'Status', uidt: UITypes.SingleSelect },
       { title: 'Tags', uidt: UITypes.MultiSelect },
       { title: 'Ticket Type', uidt: UITypes.SingleSelect },
-      { title: 'Url', uidt: UITypes.URL },
+      { title: 'Ticket Url', uidt: UITypes.URL },
       { title: 'Is Active', uidt: UITypes.Checkbox },
       { title: 'Completed At', uidt: UITypes.DateTime },
     ],
-    relations: [],
+    relations: [
+      {
+        type: 'hm',
+        columnTitle: 'Subtickets',
+        relatedTable: TARGET_TABLES.TICKETING_TICKET,
+        relatedTableColumnTitle: 'Parent Ticket',
+      },
+    ],
   },
   [TARGET_TABLES.TICKETING_USER]: {
     title: 'User',
     columns: [
-      { title: 'Email', uidt: UITypes.Email },
-      { title: 'Name', uidt: UITypes.SingleLineText, pv: true },
-      { title: 'Url', uidt: UITypes.URL },
+      { title: 'Email Address', uidt: UITypes.Email },
+      { title: 'Name', uidt: UITypes.SingleLineText },
     ],
     relations: [
       {
+        type: 'oo',
         columnTitle: 'Created Tickets',
         relatedTable: TARGET_TABLES.TICKETING_TICKET,
         relatedTableColumnTitle: 'Creator',
       },
       {
+        type: 'mm',
         columnTitle: 'Assigned Tickets',
         relatedTable: TARGET_TABLES.TICKETING_TICKET,
         relatedTableColumnTitle: 'Assignees',
-      },
-    ],
-  },
-  [TARGET_TABLES.TICKETING_COMMENT]: {
-    title: 'Comment',
-    columns: [
-      { title: 'Title', uidt: UITypes.SingleLineText },
-      { title: 'Body', uidt: UITypes.LongText, meta: { richMode: true } },
-      { title: 'Url', uidt: UITypes.URL },
-    ],
-    relations: [
-      {
-        columnTitle: 'Ticket',
-        relatedTable: TARGET_TABLES.TICKETING_TICKET,
-        relatedTableColumnTitle: 'Comments',
-      },
-      {
-        columnTitle: 'Created By',
-        relatedTable: TARGET_TABLES.TICKETING_USER,
-        relatedTableColumnTitle: 'Created By',
-      },
-    ],
-  },
-  [TARGET_TABLES.TICKETING_TEAM]: {
-    title: 'Team',
-    columns: [
-      { title: 'Name', uidt: UITypes.SingleLineText, pv: true },
-      { title: 'Description', uidt: UITypes.LongText },
-    ],
-    relations: [
-      {
-        columnTitle: 'Members',
-        relatedTable: TARGET_TABLES.TICKETING_USER,
-        relatedTableColumnTitle: 'Teams',
       },
     ],
   },

@@ -18,7 +18,7 @@
   "devDependencies": {
     "fs": "0.0.1-security",
     "husky": "^8.0.3",
-    "lerna": "^7.4.2",
+    "lerna": "^8.2.2",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "husky": {

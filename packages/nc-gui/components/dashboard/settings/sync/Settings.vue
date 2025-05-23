@@ -74,7 +74,7 @@ const formModel = computed(() => {
       </NcButton>
     </div>
 
-    <div v-if="!editMode" class="mt-4">
+    <div v-if="syncConfigForm.sync_category !== 'custom' && !editMode" class="mt-4">
       <a-radio-group v-model:value="syncAllModels" class="w-full" @change="syncConfigEditFormChanged = true">
         <div class="flex items-start mb-4">
           <a-radio :value="true" class="!mt-0.5">

@@ -74,11 +74,18 @@ export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
     data: SyncRecord;
     links?: Record<string, SyncLinkValue>;
   };
-  abstract getIncrementalKey(targetTable: TARGET_TABLES | string): string;
-  async fetchOptions(_auth: AuthResponse<any>, _key: string): Promise<{
-    label: string;
-    value: string;
-  }[]> {
+  abstract getIncrementalKey(
+    targetTable: TARGET_TABLES | string,
+  ): string | null;
+  async fetchOptions(
+    _auth: AuthResponse<any>,
+    _key: string,
+  ): Promise<
+    {
+      label: string;
+      value: string;
+    }[]
+  > {
     return [];
   }
 }
@@ -89,6 +96,14 @@ export interface CustomSystemFieldsPayload {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export type SyncAbstractType =
+  | 'string'
+  | 'number'
+  | 'decimal'
+  | 'boolean'
+  | 'date'
+  | 'datetime';
 
 export interface SyncColumnDefinition {
   title: string;
@@ -101,6 +116,9 @@ export interface SyncColumnDefinition {
   meta?: {
     richMode?: boolean;
   };
+  // For custom sync
+  abstractType?: SyncAbstractType;
+  exclude?: boolean;
 }
 
 export interface SyncRelation {
@@ -113,11 +131,17 @@ export interface SyncTable {
   title: string;
   columns: SyncColumnDefinition[];
   relations: SyncRelation[];
+  systemFields?: CustomSystemFieldsPayload;
 }
 
 export type SyncSchema = Partial<Record<TARGET_TABLES, SyncTable>>;
 
 export type CustomSyncSchema = Record<string, SyncTable>;
+
+export interface CustomSyncPayload {
+  [key: string]: any;
+  custom_schema?: CustomSyncSchema;
+}
 
 export type SyncValue<T> = T | null;
 
@@ -130,4 +154,8 @@ export interface SyncRecord {
   RemoteDeleted?: SyncValue<boolean>;
   RemoteRaw: SyncValue<string>;
   RemoteSyncedAt?: SyncValue<string>;
+}
+
+export interface CustomSyncRecord extends SyncRecord {
+  [key: string]: SyncValue<string | number | boolean | undefined | null>;
 }

@@ -4,6 +4,7 @@ import {
   FormDefinition,
   IntegrationsType as IntegrationType,
   SyncCategory,
+  UITypes,
 } from 'nocodb-sdk';
 import type { IntegrationWrapper } from './integration';
 
@@ -33,4 +34,6 @@ export {
   FormBuilderElement,
   FormBuilderInputType,
   IntegrationType,
+  SyncCategory,
+  UITypes,
 };

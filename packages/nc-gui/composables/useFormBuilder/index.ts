@@ -1,15 +1,16 @@
 import { Form } from 'ant-design-vue'
 import { diff } from 'deep-object-diff'
-import type { FormDefinition } from 'nocodb-sdk'
+import type { FormBuilderCondition, FormBuilderElement, FormDefinition } from 'nocodb-sdk'
 
 const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
   (props: {
     formSchema: MaybeRef<FormDefinition | undefined>
     onSubmit?: () => Promise<any>
     onChange?: () => void
+    fetchOptions?: (key: string) => Promise<any>
     initialState?: Ref<Record<string, any>>
   }) => {
-    const { formSchema, onSubmit, onChange, initialState = ref({}) } = props
+    const { formSchema, onSubmit, onChange, fetchOptions, initialState = ref({}) } = props
 
     const useForm = Form.useForm
 
@@ -19,21 +20,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
     const isChanged = ref(false)
 
-    const formElementsCategorized = computed(() => {
-      const categorizedItems: Record<string, any> = {}
-
-      for (const item of unref(formSchema) || []) {
-        item.category = item.category || FORM_BUILDER_NON_CATEGORIZED
-
-        if (!categorizedItems[item.category]) {
-          categorizedItems[item.category] = []
-        }
-
-        categorizedItems[item.category].push(item)
-      }
-
-      return categorizedItems
-    })
+    const changeKey = ref(0)
 
     const setNestedProp = (obj: any, path: string, value: any) => {
       const keys = path.split('.')
@@ -79,19 +66,84 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       setFormStateHelper(formState, path, value)
     }
 
-    const checkCondition = (condition?: { model: string; value: string }) => {
-      if (!condition) return true
+    const loadOptions = async (field: FormBuilderElement) => {
+      if (!fetchOptions || !field.fetchOptionsKey) return []
 
-      const value = deepReference(condition.model)
-      return value === condition.value
+      const options = await fetchOptions(field.fetchOptionsKey)
+
+      field.options = options
     }
+
+    const checkCondition = (field: FormBuilderElement) => {
+      if (!field.condition) return true
+
+      const condition = field.condition
+
+      function checkConditionItem(condition: FormBuilderCondition) {
+        const value = deepReference(condition.model)
+        if (condition.value || condition.equal) {
+          return condition.value ? condition.value === value : condition.equal === value
+        }
+
+        if (condition.in) {
+          return condition.in.includes(value)
+        }
+
+        if (condition.empty) {
+          if (Array.isArray(value)) {
+            return value.length === 0
+          }
+
+          return !value
+        }
+
+        if (condition.notEmpty) {
+          if (Array.isArray(value)) {
+            return value.length > 0
+          }
+
+          return !!value
+        }
+
+        return false
+      }
+
+      if (Array.isArray(condition)) {
+        return condition.every((c) => {
+          return checkConditionItem(c)
+        })
+      }
+
+      return checkConditionItem(condition)
+    }
+
+    const formElementsCategorized = computed(() => {
+      const categorizedItems: Record<string, any> = {}
+
+      // apply condition to form schema
+      const filteredFormSchema = unref(formSchema)?.filter((item) => {
+        return checkCondition(item)
+      })
+
+      for (const item of filteredFormSchema || []) {
+        item.category = item.category || FORM_BUILDER_NON_CATEGORIZED
+
+        if (!categorizedItems[item.category]) {
+          categorizedItems[item.category] = []
+        }
+
+        categorizedItems[item.category].push(item)
+      }
+
+      return categorizedItems
+    })
 
     const validators = computed(() => {
       const validatorsObject: Record<string, any> = {}
       for (const field of unref(formSchema) || []) {
         if (!field.model) continue
 
-        if (field.validators && checkCondition(field.condition)) {
+        if (field.validators && checkCondition(field)) {
           validatorsObject[field.model] = field.validators
             .map((validator: { type: 'required'; message?: string }) => {
               if (validator.type === 'required') {
@@ -162,6 +214,8 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       () => {
         onChange?.()
 
+        changeKey.value++
+
         if (checkDifference()) {
           isChanged.value = true
         } else {
@@ -204,6 +258,8 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       checkCondition,
       deepReference,
       setFormState,
+      loadOptions,
+      changeKey,
     }
   },
   'form-builder-helper',

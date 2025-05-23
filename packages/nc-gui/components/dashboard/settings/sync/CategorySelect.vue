@@ -19,7 +19,7 @@ const selectCategory = (value: SyncCategory) => {
 </script>
 
 <template>
-  <div class="w-full flex flex-wrap gap-4 max-h-[300px] overflow-y-auto">
+  <div class="w-full flex flex-wrap gap-4 overflow-y-auto">
     <template v-for="category in categories" :key="category.value">
       <NcAlert
         type="info"

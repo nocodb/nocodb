@@ -229,13 +229,14 @@ watch(
           <div
             v-for="sync in syncs"
             :key="sync.id"
-            class="ds-table-row border-gray-200"
+            class="ds-table-row border-gray-200 cursor-pointer"
             :class="{
               '!hidden':
                 searchQuery &&
                 !sync.title?.toLowerCase().includes(searchQuery.toLowerCase()) &&
                 !sync.sync_type?.toLowerCase().includes(searchQuery.toLowerCase()),
             }"
+            @click="handleEditSync(sync.id)"
           >
             <div class="ds-table-col ds-table-name font-medium">
               <div class="flex items-center gap-1">
@@ -256,26 +257,7 @@ watch(
             </div>
             <div class="ds-table-col ds-table-actions">
               <div class="flex justify-end gap-2">
-                <NcTooltip>
-                  <template #title>Sync Now</template>
-                  <NcButton size="small" type="text" class="nc-action-btn !w-8 !px-1 !rounded-lg" @click="handleSyncNow(sync.id)">
-                    <GeneralIcon icon="refresh" class="text-gray-600" />
-                  </NcButton>
-                </NcTooltip>
-
-                <NcTooltip>
-                  <template #title>Migrate Sync</template>
-                  <NcButton
-                    size="small"
-                    type="text"
-                    class="nc-action-btn !w-8 !px-1 !rounded-lg"
-                    @click="handleMigrateSync(sync.id)"
-                  >
-                    <GeneralIcon icon="ncZap" class="text-gray-600" />
-                  </NcButton>
-                </NcTooltip>
-
-                <NcDropdown placement="bottomRight">
+                <NcDropdown placement="bottomRight" @click.stop>
                   <NcButton size="small" type="text" class="nc-action-btn !w-8 !px-1 !rounded-lg">
                     <GeneralIcon icon="threeDotVertical" />
                   </NcButton>

@@ -57,3 +57,5 @@ export enum TARGET_TABLES {
   TICKETING_TICKET = 'ticketing_ticket',
   TICKETING_USER = 'ticketing_user',
 }
+
+export const NC_LINK_VALUES_KEY = '_NcLinkValues_';

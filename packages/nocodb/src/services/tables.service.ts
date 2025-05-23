@@ -241,7 +241,7 @@ export class TablesService {
   ) {
     const table = await Model.getByIdOrName(context, { id: param.tableId });
 
-    if (table.synced) {
+    if (table?.synced && !param.forceDeleteSyncs) {
       NcError.badRequest('Synced tables cannot be deleted');
     }
 

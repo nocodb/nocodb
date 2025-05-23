@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "{workspace} çalışma alanını {plan} planına yükseltin",
     "upgradeToPlanSubtitle": "Bu plan için hemen ücretlendirileceksiniz.",
     "reactivateToPlan": "{plan} planı yeniden etkinleştirilsin mi?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Tabanları yalnızca oluşturucu veya üzeri erişiminiz olan çalışma alanlarına çoğaltabilirsiniz.",
     "snapshotBaseRestoreMessage": "Yalnızca oluşturucu veya üzeri erişiminiz olan çalışma alanlarına geri yükleyebilirsiniz.",
     "currentWorkspace": "Geçerli çalışma alanı",
+    "currentBase": "Current base",
     "latitude": "Enlem",
     "longitude": "Boylam",
     "failed": "Başarısız",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API Kod Parçacıkları",
     "includeData": "Veriyi Ekle",
     "includeRecords": "Kayıtları dahil et",
-    "baseDuplicateMessage": "Not: Denetim kayıtları ve entegrasyonlar çoğaltılmayacaktır.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Görünümleri dahil et",
     "includeWebhook": "Webhook'u dahil et",
     "includeComments": "Yorumları dahil et",
@@ -1611,6 +1616,7 @@
     "changePlan": "PlanıDeğiştir"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Her çalışma alanının en az bir sahibi olmalıdır. Çalışma alanından ayrılmadan önce lütfen başka bir kullanıcıyı Sahip olarak atayın. Son üye sizseniz, çalışma alanını silmeyi düşünebilirsiniz.",
     "currentDateNotAvail": "Geçerli tarih seçeneği veri kaynağı veya veri türü için mevcut değil",
     "privateConnection": "Bu bağlantıyı özel ve bu çalışma alanındaki diğer yaratıcıların erişimine kapalı yapmak için etkinleştirin.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Hata kodunu kopyala",
     "paidUserBadgeTooltip": "Kullanıcının en az bir veritabanında editör veya daha yüksek bir rolü var.",
     "approachingLimit": "Sınıra yaklaşılıyor",
-    "exceedingLimit": "Sınır aşıldı"
+    "exceedingLimit": "Sınır aşıldı",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "İkonları ara",

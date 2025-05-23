@@ -9,7 +9,7 @@ export interface TicketingTicketRecord extends SyncRecord {
   Status: SyncValue<string>;
   Tags: SyncValue<string>;
   'Ticket Type': SyncValue<string>;
-  'Ticket Url': SyncValue<string>;
+  Url: SyncValue<string>;
   'Is Active': SyncValue<boolean>;
   'Completed At': SyncValue<string>;
   'Ticket Number': SyncValue<string>;
@@ -18,11 +18,13 @@ export interface TicketingTicketRecord extends SyncRecord {
 export interface TicketingUserRecord extends SyncRecord {
   Name: SyncValue<string>;
   Email: SyncValue<string>;
+  Url: SyncValue<string>;
 }
 
 export interface TicketingCommentRecord extends SyncRecord {
   Title: SyncValue<string>;
   Body: SyncValue<string>;
+  Url: SyncValue<string>;
 }
 
 export interface TicketingTeamRecord extends SyncRecord {
@@ -46,7 +48,7 @@ export const SCHEMA_TICKETING: SyncSchema = {
       { title: 'Status', uidt: UITypes.SingleSelect },
       { title: 'Tags', uidt: UITypes.MultiSelect },
       { title: 'Ticket Type', uidt: UITypes.SingleSelect },
-      { title: 'Ticket Url', uidt: UITypes.URL },
+      { title: 'Url', uidt: UITypes.URL },
       { title: 'Is Active', uidt: UITypes.Checkbox },
       { title: 'Completed At', uidt: UITypes.DateTime },
     ],

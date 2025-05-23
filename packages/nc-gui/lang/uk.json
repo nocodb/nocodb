@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Оновіть {workspace} до тарифу {plan}",
     "upgradeToPlanSubtitle": "Оплату за цей план буде стягнуто негайно.",
     "reactivateToPlan": "Повторно активувати план {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Ви можете дублювати бази лише у робочі простори, де маєте права творця або вище.",
     "snapshotBaseRestoreMessage": "Ви можете відновлювати бази лише у робочі простори, де маєте права творця або вище.",
     "currentWorkspace": "Поточний робочий простір",
+    "currentBase": "Current base",
     "latitude": "Широта",
     "longitude": "Довгота",
     "failed": "Невдало",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API уривки",
     "includeData": "Включити дані",
     "includeRecords": "Включити записи",
-    "baseDuplicateMessage": "Примітка: журнали аудиту та інтеграції не будуть продубльовані.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Включити вигляди",
     "includeWebhook": "Включити вебхук",
     "includeComments": "Включити коментарі",
@@ -1611,6 +1616,7 @@
     "changePlan": "Зміна плану"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "У кожному робочому просторі має бути щонайменше один власник. Призначте іншого користувача власником, перш ніж покинути робочий простір. Якщо ви останній учасник, розгляньте можливість видалення робочого простору.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Увімкніть, щоб зробити це підключення приватним і прихованим від інших творців у цьому робочому просторі.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Скопіювати код помилки",
     "paidUserBadgeTooltip": "Користувач має роль редактора або вище принаймні в одній базі.",
     "approachingLimit": "Наближається до ліміту",
-    "exceedingLimit": "Перевищує ліміт"
+    "exceedingLimit": "Перевищує ліміт",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Пошук іконок",

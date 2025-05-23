@@ -25,7 +25,11 @@ export const SCHEMA_TICKETING: SyncSchema = {
     title: 'Ticket',
     columns: [
       { title: 'Name', uidt: UITypes.SingleLineText },
-      { title: 'Description', uidt: UITypes.LongText },
+      {
+        title: 'Description',
+        uidt: UITypes.LongText,
+        meta: { richMode: true },
+      },
       { title: 'Due Date', uidt: UITypes.Date },
       { title: 'Priority', uidt: UITypes.SingleSelect },
       { title: 'Status', uidt: UITypes.SingleSelect },

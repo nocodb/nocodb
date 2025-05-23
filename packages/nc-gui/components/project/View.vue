@@ -256,7 +256,7 @@ onMounted(() => {
         <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id" key="syncs">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__syncs">
-              <GeneralIcon icon="sync" />
+              <GeneralIcon icon="ncZap" />
               <div>Syncs</div>
             </div>
           </template>

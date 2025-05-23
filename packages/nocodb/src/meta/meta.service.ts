@@ -4,7 +4,7 @@ import CryptoJS from 'crypto-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import type * as knex from 'knex';
+import { diff } from 'deep-object-diff';
 import type { Knex } from 'knex';
 import type { Condition } from '~/db/CustomKnex';
 import XcMigrationSource from '~/meta/migrations/XcMigrationSource';
@@ -13,6 +13,7 @@ import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable, RootScopes, RootScopeTables } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
+import Noco from '~/Noco';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -20,10 +21,35 @@ dayjs.extend(timezone);
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
+const EXCLUDED_SYNC_TABLES: string[] = [
+  MetaTable.HOOK_LOGS,
+  MetaTable.AUDIT,
+  MetaTable.USERS,
+  MetaTable.COMMENTS,
+  MetaTable.COMMENTS_REACTIONS,
+  MetaTable.FILE_REFERENCES,
+  MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE,
+  MetaTable.API_TOKENS,
+  MetaTable.ACL,
+  MetaTable.ORGS_OLD,
+  MetaTable.TEAMS,
+  MetaTable.TEAM_USERS,
+  MetaTable.API_TOKENS,
+  MetaTable.USER_REFRESH_TOKENS,
+  MetaTable.PLUGIN,
+  MetaTable.STORE,
+  MetaTable.SYNC_LOGS,
+  MetaTable.SYNC_SOURCE,
+  MetaTable.INTEGRATIONS_STORE,
+  MetaTable.DATA_REFLECTION,
+  MetaTable.USAGE_STATS,
+];
+
 @Injectable()
 export class MetaService {
-  private _knex: knex.Knex;
-  private _config: any;
+  private _knex: Knex;
+  private _config: NcConfig;
+  private trx: Knex.Transaction | null;
 
   constructor(config: NcConfig, @Optional() trx = null) {
     this._config = config;
@@ -34,7 +60,7 @@ export class MetaService {
     this.trx = trx;
   }
 
-  get knexInstance(): knex.Knex {
+  get knexInstance(): Knex {
     return this._knex;
   }
 
@@ -52,6 +78,79 @@ export class MetaService {
 
   public get knex(): any {
     return this.knexConnection;
+  }
+
+  /**
+   * Checks if a table is excluded from event logging and real-time syncing.
+   * @param target - The metadata table name.
+   * @returns {boolean} - True if the table is excluded.
+   */
+  private isExcludedTable(target: string): boolean {
+    return EXCLUDED_SYNC_TABLES.includes(target);
+  }
+
+  /**
+   * Logs an event to the nc_event_log table and emits a real-time event if not excluded.
+   * @param workspace_id - Workspace identifier.
+   * @param base_id - Base identifier.
+   * @param target - Metadata table name.
+   * @param operation - Type of operation (insert, update, delete).
+   * @param data - New data or patch payload.
+   * @param oldData - Previous data (for updates and deletes, optional).
+   */
+  private async logAndEmitEvent(
+    workspace_id: string,
+    base_id: string,
+    target: string,
+    operation: 'insert' | 'update' | 'delete',
+    data: any,
+    oldData?: any,
+  ): Promise<void> {
+    if (this.isExcludedTable(target)) {
+      return;
+    }
+
+    let payload: any;
+    if (operation === 'update' && oldData) {
+      payload = diff(oldData, data) || {};
+    } else {
+      payload = data;
+    }
+
+    const event = {
+      id: await this.genNanoid('nc_event_log'),
+      fk_workspace_id: workspace_id ?? 'nc',
+      base_id,
+      target,
+      operation,
+      payload: JSON.stringify(payload),
+      old_data: oldData ? JSON.stringify(oldData) : null,
+      created_at: this.now(),
+    };
+
+    try {
+      await this.knexConnection('nc_event_log').insert(event);
+    } catch (error) {
+      console.error(`Failed to log event to nc_event_log: ${error.message}`);
+      throw NcError.metaError({
+        message: 'Failed to log event',
+        sql: '',
+      });
+    }
+
+    const realtimeEvent = {
+      type: `META_${operation.toUpperCase()}`,
+      workspace_id: workspace_id ?? 'nc',
+      base_id,
+      target,
+      payload,
+    };
+
+    try {
+      await Noco.realtimeService.emit(realtimeEvent);
+    } catch (error) {
+      console.error(`Failed to emit real-time event: ${error.message}`);
+    }
   }
 
   public contextCondition(
@@ -142,6 +241,14 @@ export class MetaService {
       updated_at: this.now(),
     });
 
+    await this.logAndEmitEvent(
+      workspace_id,
+      base_id,
+      target,
+      'insert',
+      insertObj,
+    );
+
     return insertObj;
   }
 
@@ -208,6 +315,18 @@ export class MetaService {
 
     await this.knexConnection.batchInsert(target, insertObj);
 
+    if (!this.isExcludedTable(target)) {
+      for (const obj of insertObj) {
+        await this.logAndEmitEvent(
+          workspace_id,
+          base_id,
+          target,
+          'insert',
+          obj,
+        );
+      }
+    }
+
     return insertObj;
   }
 
@@ -263,6 +382,13 @@ export class MetaService {
       updated_at: at,
     };
 
+    let oldRecords: any[] = [];
+    if (!this.isExcludedTable(target)) {
+      const getQuery = this.knexConnection(target).whereIn('id', ids);
+      this.contextCondition(getQuery, workspace_id, base_id, target);
+      oldRecords = await getQuery;
+    }
+
     if (!condition) {
       query.whereIn('id', ids).update(updateObj);
     } else {
@@ -282,6 +408,21 @@ export class MetaService {
     }
 
     this.contextCondition(query, workspace_id, base_id, target);
+
+    await query;
+
+    if (!this.isExcludedTable(target)) {
+      for (const oldRecord of oldRecords) {
+        await this.logAndEmitEvent(
+          workspace_id,
+          base_id,
+          target,
+          'update',
+          updateObj,
+          oldRecord,
+        );
+      }
+    }
 
     return query;
   }
@@ -342,10 +483,6 @@ export class MetaService {
     return `${prefix}${nanoidv2()}`;
   }
 
-  // private connection: XKnex;
-  // todo: need to fix
-  private trx: Knex.Transaction;
-
   /***
    * Delete meta data
    * @param workspace_id - Workspace id
@@ -364,6 +501,21 @@ export class MetaService {
     force = false,
   ): Promise<void> {
     const query = this.knexConnection(target);
+
+    let oldData: any;
+    if (idOrCondition && !this.isExcludedTable(target)) {
+      const getQuery = this.knexConnection(target);
+      if (typeof idOrCondition !== 'object') {
+        getQuery.where('id', idOrCondition);
+      } else {
+        getQuery.where(idOrCondition);
+      }
+      if (xcCondition) {
+        getQuery.condition(xcCondition);
+      }
+      this.contextCondition(getQuery, workspace_id, base_id, target);
+      oldData = await getQuery.first();
+    }
 
     if (workspace_id === base_id) {
       if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
@@ -406,7 +558,20 @@ export class MetaService {
     // Apply context condition
     this.contextCondition(query, workspace_id, base_id, target);
 
-    return query.del();
+    await query.del();
+
+    if (oldData) {
+      await this.logAndEmitEvent(
+        workspace_id,
+        base_id,
+        target,
+        'delete',
+        { id: oldData.id },
+        oldData,
+      );
+    }
+
+    return;
   }
 
   /***
@@ -657,6 +822,21 @@ export class MetaService {
   ): Promise<any> {
     const query = this.knexConnection(target);
 
+    let oldData: any;
+    if (idOrCondition && !this.isExcludedTable(target)) {
+      const getQuery = this.knexConnection(target);
+      if (typeof idOrCondition !== 'object') {
+        getQuery.where('id', idOrCondition);
+      } else {
+        getQuery.where(idOrCondition);
+      }
+      if (xcCondition) {
+        getQuery.condition(xcCondition);
+      }
+      this.contextCondition(getQuery, workspace_id, base_id, target);
+      oldData = await getQuery.first();
+    }
+
     if (workspace_id === base_id) {
       if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
         NcError.metaError({
@@ -705,7 +885,20 @@ export class MetaService {
     // Apply context condition
     this.contextCondition(query, workspace_id, base_id, target);
 
-    return await query;
+    await query;
+
+    if (oldData) {
+      await this.logAndEmitEvent(
+        workspace_id,
+        base_id,
+        target,
+        'update',
+        data,
+        oldData,
+      );
+    }
+
+    return query;
   }
 
   async commit() {
@@ -759,6 +952,15 @@ export class MetaService {
       await this.knexConnection('nc_projects').update(base).where({
         id: baseId,
       });
+
+      await this.logAndEmitEvent(
+        RootScopes.WORKSPACE,
+        baseId,
+        MetaTable.PROJECT,
+        'update',
+        base,
+        { id: baseId },
+      );
     } catch (e) {
       console.log(e);
     }

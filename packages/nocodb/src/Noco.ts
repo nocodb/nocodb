@@ -15,6 +15,7 @@ import type { Express } from 'express';
 import type http from 'http';
 import type Sharp from 'sharp';
 import type { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import type { RealtimeService } from '~/meta/realtime.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
 import { isEE, T } from '~/utils';
@@ -44,6 +45,7 @@ export default class Noco {
   public readonly router: express.Router;
   public readonly baseRouter: express.Router;
   public static _ncMeta: any;
+  public static realtimeService: RealtimeService;
   public static appHooksService: AppHooksService;
   public readonly metaMgr: any;
   public readonly metaMgrv2: any;
@@ -132,9 +134,6 @@ export default class Noco {
       }
       process.env.NC_DISABLE_TELE = 'true';
     }
-
-    nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
-    NcDebug.log('Websocket adapter initialized');
 
     this._httpServer = nestApp.getHttpAdapter().getInstance();
     this._server = server;

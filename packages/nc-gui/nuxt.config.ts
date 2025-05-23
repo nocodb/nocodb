@@ -217,7 +217,9 @@ export default defineNuxtConfig({
       },
     },
     optimizeDeps: {
+      exclude: ['@electric-sql/pglite'],
       include: [
+        'zod',
         '@ckpack/vue-color',
         '@tiptap/core',
         '@tiptap/extension-code',

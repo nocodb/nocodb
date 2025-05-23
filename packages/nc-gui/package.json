@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@ckpack/vue-color": "^1.6.0",
+    "@electric-sql/pglite": "^0.3.0",
     "@floating-ui/vue": "^1.1.6",
     "@iconify/vue": "^4.3.0",
     "@nuxt/image": "^1.9.0",
@@ -83,6 +84,8 @@
     "jsbarcode": "^3.11.6",
     "jsep": "^1.4.0",
     "jwt-decode": "^3.1.2",
+    "knex": "^3.1.0",
+    "knex-pglite": "^0.11.0",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "locale-codes": "^1.3.1",
@@ -130,7 +133,8 @@
     "vue3-text-clamp": "^0.1.2",
     "vuedraggable": "^4.1.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
-    "youtube-vue3": "^0.1.15"
+    "youtube-vue3": "^0.1.15",
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.26.3",

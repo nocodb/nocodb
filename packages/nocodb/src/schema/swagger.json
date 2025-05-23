@@ -4654,6 +4654,21 @@
         ]
       }
     },
+    "/api/v2/meta/bootstrap/:baseId": {
+      "get": {
+        "summary": "Bootstrap Base",
+        "operationId": "base-bootstrap",
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Base"
+        ],
+        "description": "Bootstrap all tables in a given Base"
+      }
+    },
     "/api/v2/meta/duplicate/{workspaceId}/shared/{sharedBaseId}": {
       "post": {
         "summary": "Duplicate Shared Base",

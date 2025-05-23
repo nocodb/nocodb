@@ -13,6 +13,8 @@ export const useBases = defineStore('basesStore', () => {
 
   const { isUIAllowed } = useRoles()
 
+  useRealtime()
+
   const bases = ref<Map<string, NcProject>>(new Map())
 
   const basesList = computed<NcProject[]>(() =>

@@ -272,3 +272,106 @@ export const CACHE_PREFIX =
   process.env.NC_CACHE_PREFIX && process.env.NC_CACHE_PREFIX.trim().length > 0
     ? process.env.NC_CACHE_PREFIX
     : 'nc';
+
+export const SyncTables = {
+  PROJECT: 'nc_bases_v2',
+  SOURCES: 'nc_sources_v2',
+  MODELS: 'nc_models_v2',
+  COLUMNS: 'nc_columns_v2',
+  COL_RELATIONS: 'nc_col_relations_v2',
+  COL_SELECT_OPTIONS: 'nc_col_select_options_v2',
+  COL_LOOKUP: 'nc_col_lookup_v2',
+  COL_ROLLUP: 'nc_col_rollup_v2',
+  COL_FORMULA: 'nc_col_formula_v2',
+  COL_QRCODE: 'nc_col_qrcode_v2',
+  COL_BARCODE: 'nc_col_barcode_v2',
+  COL_LONG_TEXT: 'nc_col_long_text_v2',
+  FILTER_EXP: 'nc_filter_exp_v2',
+  SORT: 'nc_sort_v2',
+  FORM_VIEW: 'nc_form_view_v2',
+  FORM_VIEW_COLUMNS: 'nc_form_view_columns_v2',
+  GALLERY_VIEW: 'nc_gallery_view_v2',
+  GALLERY_VIEW_COLUMNS: 'nc_gallery_view_columns_v2',
+  CALENDAR_VIEW: 'nc_calendar_view_v2',
+  CALENDAR_VIEW_COLUMNS: 'nc_calendar_view_columns_v2',
+  CALENDAR_VIEW_RANGE: 'nc_calendar_view_range_v2',
+  GRID_VIEW: 'nc_grid_view_v2',
+  GRID_VIEW_COLUMNS: 'nc_grid_view_columns_v2',
+  KANBAN_VIEW: 'nc_kanban_view_v2',
+  KANBAN_VIEW_COLUMNS: 'nc_kanban_view_columns_v2',
+  VIEWS: 'nc_views_v2',
+  HOOKS: 'nc_hooks_v2',
+  PROJECT_USERS: 'nc_base_users_v2',
+  MODEL_ROLE_VISIBILITY: 'nc_disabled_models_for_role_v2',
+  MAP_VIEW: 'nc_map_view_v2',
+  MAP_VIEW_COLUMNS: 'nc_map_view_columns_v2',
+  EXTENSIONS: 'nc_extensions',
+  JOBS: 'nc_jobs',
+  COL_BUTTON: 'nc_col_button_v2',
+  SYNC_CONFIGS: 'nc_sync_configs',
+};
+
+export const SyncTablePermissionMap = {
+  // Base metadata
+  [SyncTables.PROJECT]: 'baseGet',
+  [SyncTables.SOURCES]: 'baseGet',
+  [SyncTables.PROJECT_USERS]: 'baseUserList',
+
+  // Table-related metadata
+  [SyncTables.MODELS]: 'tableList',
+  [SyncTables.COLUMNS]: 'columnList',
+  [SyncTables.COL_RELATIONS]: 'relationList',
+  [SyncTables.COL_SELECT_OPTIONS]: 'columnList',
+  [SyncTables.COL_LOOKUP]: 'columnList',
+  [SyncTables.COL_ROLLUP]: 'columnList',
+  [SyncTables.COL_FORMULA]: 'columnList',
+  [SyncTables.COL_QRCODE]: 'columnList',
+  [SyncTables.COL_BARCODE]: 'columnList',
+  [SyncTables.COL_LONG_TEXT]: 'columnList',
+  [SyncTables.COL_BUTTON]: 'columnList',
+
+  // Filter-related metadata
+  [SyncTables.FILTER_EXP]: 'filterList',
+
+  // Sort-related metadata
+  [SyncTables.SORT]: 'sortList',
+
+  // Views-related metadata
+  [SyncTables.VIEWS]: 'viewList',
+  [SyncTables.MODEL_ROLE_VISIBILITY]: 'tableList',
+
+  // Form views
+  [SyncTables.FORM_VIEW]: 'formViewGet',
+  [SyncTables.FORM_VIEW_COLUMNS]: 'formViewGet',
+
+  // Gallery views
+  [SyncTables.GALLERY_VIEW]: 'galleryViewGet',
+  [SyncTables.GALLERY_VIEW_COLUMNS]: 'galleryViewGet',
+
+  // Calendar views
+  [SyncTables.CALENDAR_VIEW]: 'calendarViewGet',
+  [SyncTables.CALENDAR_VIEW_COLUMNS]: 'calendarViewGet',
+  [SyncTables.CALENDAR_VIEW_RANGE]: 'calendarViewGet',
+
+  // Grid views
+  [SyncTables.GRID_VIEW]: 'tableGet', // Grid view is essentially data view
+  [SyncTables.GRID_VIEW_COLUMNS]: 'tableGet',
+
+  // Kanban views
+  [SyncTables.KANBAN_VIEW]: 'kanbanViewGet',
+  [SyncTables.KANBAN_VIEW_COLUMNS]: 'kanbanViewGet',
+
+  // Map views
+  [SyncTables.MAP_VIEW]: 'tableGet', // No specific map permission, using dataList
+  [SyncTables.MAP_VIEW_COLUMNS]: 'tableGet',
+
+  // Integration-related metadata
+  [SyncTables.HOOKS]: 'hookTrigger',
+  [SyncTables.SYNC_CONFIGS]: 'baseGet',
+
+  // Extension-related metadata
+  [SyncTables.EXTENSIONS]: 'extensionList',
+
+  // Jobs-related metadata
+  [SyncTables.JOBS]: 'jobList',
+};

@@ -8,7 +8,6 @@ import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module
 import { JobsModule } from '~/modules/jobs/jobs.module';
 
 /* Generic */
-import { SocketGateway } from '~/gateways/socket.gateway';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { InitMetaServiceProvider } from '~/providers/init-meta-service.provider';
 import { JwtStrategyProvider } from '~/providers/jwt-strategy.provider';
@@ -18,6 +17,7 @@ import { HookHandlerService } from '~/services/hook-handler.service';
 import { MailService } from '~/services/mail/mail.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
+import { RealtimeService } from '~/meta/realtime.service';
 /* User */
 import { UsersController } from '~/controllers/users/users.controller';
 import { UsersService } from '~/services/users/users.service';
@@ -124,6 +124,7 @@ import { IntegrationsController } from '~/controllers/integrations.controller';
 import { OldDatasController } from '~/controllers/old-datas/old-datas.controller';
 import { OldDatasService } from '~/controllers/old-datas/old-datas.service';
 import { PublicDatasController } from '~/controllers/public-datas.controller';
+import { RealtimeController } from '~/controllers/realtime.controller';
 import { BaseUsersV3Controller } from '~/controllers/v3/base-users-v3.controller';
 import { BasesV3Controller } from '~/controllers/v3/bases-v3.controller';
 import { ColumnsV3Controller } from '~/controllers/v3/columns-v3.controller';
@@ -223,6 +224,7 @@ export const nocoModuleMetadata = {
 
           // MCP
           McpController,
+          RealtimeController,
 
           /* V3 APIs */
           BasesV3Controller,
@@ -250,12 +252,12 @@ export const nocoModuleMetadata = {
     InitMetaServiceProvider,
     JwtStrategyProvider,
     GlobalGuard,
-    SocketGateway,
     AppHooksService,
     AppHooksListenerService,
     TelemetryService,
     HookHandlerService,
     MailService,
+    RealtimeService,
 
     AclMiddleware,
 

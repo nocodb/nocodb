@@ -1,98 +1,80 @@
 import type { Socket } from 'socket.io-client'
-import { io } from 'socket.io-client'
+import type { ComputedRef } from 'vue'
+import { defineNuxtPlugin, useNuxtApp, useRouter } from '#app'
 
-// todo: ignore init if tele disabled
-export default defineNuxtPlugin(async (nuxtApp) => {
+export default defineNuxtPlugin((nuxtApp) => {
   if (!isEeUI) {
     const router = useRouter()
-
     const route = router.currentRoute
+    const { $socket } = useNuxtApp() as { $socket: ComputedRef<Socket | null> }
 
-    const { appInfo } = useGlobal()
+    const emitPageEvent = (to: any, from: any) => {
+      return
+      if (!$socket.value?.connected || (to.path === from.path && to.query?.type === from.query?.type)) {
+        return
+      }
 
-    let socket: Socket
-
-    const init = async (token: string) => {
-      try {
-        if (socket) socket.disconnect()
-
-        const url = new URL(appInfo.value.ncSiteUrl, window.location.href.split(/[?#]/)[0])
-        let socketPath = url.pathname
-        socketPath += socketPath.endsWith('/') ? 'socket.io' : '/socket.io'
-
-        socket = io(url.href, {
-          extraHeaders: { 'xc-auth': token },
-          path: socketPath,
-        })
-
-        socket.on('connect_error', () => {
-          socket.disconnect()
-        })
-      } catch {}
-    }
-
-    if (nuxtApp.$state.signedIn.value) {
-      await init(nuxtApp.$state.token.value)
-    }
-
-    router.afterEach((to, from) => {
-      if (!socket || (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type))) return
-
-      socket.emit('page', {
-        path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : ''),
+      $socket.value.emit('page', {
+        path: to.matched[0].path + (to.query?.type ? `?type=${to.query.type}` : ''),
         pid: route.value?.params?.baseId,
       })
-    })
+    }
 
-    const tele = {
+    router.afterEach(emitPageEvent)
+
+    interface Telemetry {
+      emit(evt: string, data: Record<string, any>): void
+    }
+
+    const tele: Telemetry = {
       emit(evt: string, data: Record<string, any>) {
-        if (socket) {
-          socket.emit('event', {
+        return
+        if (!$socket.value?.connected) {
+          console.warn(`Socket not connected, cannot emit event: ${evt}`)
+          return
+        }
+
+        try {
+          $socket.value.emit('event', {
             event: evt,
             ...(data || {}),
             path: route.value?.matched?.[0]?.path,
             pid: route.value?.params?.baseId,
           })
+        } catch (err) {
+          console.error(`Failed to emit event ${evt}:`, err)
         }
       },
     }
 
     nuxtApp.vueApp.directive('e', {
       created(el, binding, vnode) {
-        if (vnode.el) vnode.el.addEventListener('click', getListener(binding))
-        else el.addEventListener('click', getListener(binding))
+        const listener = getListener(binding)
+        if (vnode.el) vnode.el.addEventListener('click', listener)
+        else el.addEventListener('click', listener)
       },
       beforeUnmount(el, binding, vnode) {
-        if (vnode.el) vnode.el.removeEventListener('click', getListener(binding))
-        else el.removeEventListener('click', getListener(binding))
+        const listener = getListener(binding)
+        if (vnode.el) vnode.el.removeEventListener('click', listener)
+        else el.removeEventListener('click', listener)
       },
     })
 
     function getListener(binding: any) {
-      return function () {
-        // if (!socket) return
-
-        const event = binding.value && binding.value[0]
-        const data = binding.value && binding.value[1]
-        const extra = binding.value && binding.value.slice(2)
-        tele.emit(event, {
-          data,
-          extra,
-        })
+      return () => {
+        const event = binding.value?.[0]
+        const data = binding.value?.[1]
+        const extra = binding.value?.slice(2)
+        // tele.emit(event, { data, extra })
       }
     }
 
-    watch((nuxtApp.$state as ReturnType<typeof useGlobal>).token, (newToken, oldToken) => {
-      try {
-        if (newToken && newToken !== oldToken) init(newToken)
-        else if (!newToken) socket?.disconnect()
-      } catch (e) {
-        console.error(e)
-      }
-    })
-
     nuxtApp.provide('tele', tele)
-    nuxtApp.provide('e', (e: string, data?: Record<string, any>) => tele.emit(e, { data }))
+    nuxtApp.provide('e', (e: string, data?: Record<string, any>) => {})
+
+    onBeforeUnmount(() => {
+      router.afterEach(() => {})
+    })
   }
 
   document.body.removeEventListener('click', clickListener, true)
@@ -106,6 +88,7 @@ function clickListener(e) {
   if (e.nc_handled) return
   e.nc_handled = true
   let target = e.target
+  return
 
   const { $e } = useNuxtApp()
 
@@ -135,6 +118,7 @@ function keydownListener(e) {
   if (e.nc_handled || e.which !== 13) return
   e.nc_handled = true
   const { $e } = useNuxtApp()
+  return
 
   let target = e.target
 

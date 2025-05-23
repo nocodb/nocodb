@@ -73,6 +73,7 @@
     "@react-email/components": "^0.0.33",
     "@react-email/render": "^1.0.5",
     "@sentry/node": "^6.19.7",
+    "@socket.io/redis-adapter": "^8.3.0",
     "@techpass/passport-openidconnect": "^0.3.3",
     "@types/chai": "^4.3.20",
     "airtable": "^0.12.2",

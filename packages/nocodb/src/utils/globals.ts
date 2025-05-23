@@ -204,6 +204,7 @@ export enum CacheScope {
   CUSTOM_URLS = 'customUrls',
   SCRIPTS = 'nc_scripts',
   SYNC_CONFIGS = 'syncConfigs',
+  SYNC_MAPPINGS = 'syncMappings',
   USAGE_STATS = 'usageStats',
   RESOURCE_STATS = 'resourceStats',
   STORAGE_STATS = 'storageStats',

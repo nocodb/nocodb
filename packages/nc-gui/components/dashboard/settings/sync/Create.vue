@@ -41,7 +41,7 @@ const { form, formState, isLoading, validateInfos, submit } = useProvideFormBuil
         base.value.fk_workspace_id!,
         baseId.value!,
         {
-          operation: 'createSyncTable',
+          operation: 'createSync',
         },
         formState.value,
       )

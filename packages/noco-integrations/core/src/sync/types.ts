@@ -14,8 +14,8 @@ export interface DataObject<
   targetTable: string;
   /** A unique identifier for the record */
   recordId: string;
-  /** 
-   * The data to sync 
+  /**
+   * The data to sync
    * Optional only when adding relationships to existing records - in that case, use an empty object
    */
   data?: T;
@@ -54,22 +54,33 @@ export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
   getTitle() {
     return 'Sync Integration';
   }
-  abstract getDestinationSchema(auth: AuthResponse<any>): Promise<SyncSchema | CustomSyncSchema>;
+  abstract getDestinationSchema(
+    auth: AuthResponse<any>,
+  ): Promise<SyncSchema | CustomSyncSchema>;
   abstract fetchData(
     auth: AuthResponse<any>,
     args: {
-      targetTables?: TARGET_TABLES[];
-      targetTableIncrementalValues?: Record<TARGET_TABLES, string | number>;
+      targetTables?: (TARGET_TABLES | string)[];
+      targetTableIncrementalValues?: Record<
+        TARGET_TABLES | string,
+        string | number
+      >;
     },
   ): Promise<DataObjectStream<SyncRecord>>;
   abstract formatData(
-    targetTable: TARGET_TABLES,
+    targetTable: TARGET_TABLES | string,
     data: any,
   ): {
     data: SyncRecord;
     links?: Record<string, SyncLinkValue>;
   };
-  abstract getIncrementalKey(targetTable: TARGET_TABLES): string;
+  abstract getIncrementalKey(targetTable: TARGET_TABLES | string): string;
+  async fetchOptions(_auth: AuthResponse<any>, _key: string): Promise<{
+    label: string;
+    value: string;
+  }[]> {
+    return [];
+  }
 }
 
 export type AnyRecordType = Record<string, string | number | boolean | null>;

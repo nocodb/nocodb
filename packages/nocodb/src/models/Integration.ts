@@ -73,8 +73,6 @@ export default class Integration implements IntegrationType {
     obj.is_encrypted = isEncryptionRequired();
   }
 
-  public static async init() {}
-
   public static async createIntegration(
     integration: IntegrationType & {
       workspaceId?: string;

@@ -19,7 +19,7 @@ Before checking a box run `pnpm run install && pnpm run build` to ensure the int
 - [ ] Sync Integration
 
 ### Linear
-- [ ] Auth Integration
+- [x] Auth Integration
 - [ ] Sync Integration
 
 ### Asana

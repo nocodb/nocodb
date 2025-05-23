@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { defaultColumns } from '../columns'
+import { defaultColumns } from '../../../-helper/columns'
 const columns = defaultColumns
 const filters = ref([
   {

@@ -25,11 +25,16 @@ export interface TicketingCommentRecord extends SyncRecord {
   Body: SyncValue<string>;
 }
 
+export interface TicketingTeamRecord extends SyncRecord {
+  Name: SyncValue<string>;
+  Description: SyncValue<string>;
+}
+
 export const SCHEMA_TICKETING: SyncSchema = {
   [TARGET_TABLES.TICKETING_TICKET]: {
     title: 'Ticket',
     columns: [
-      { title: 'Name', uidt: UITypes.SingleLineText },
+      { title: 'Name', uidt: UITypes.SingleLineText, pv: true },
       {
         title: 'Description',
         uidt: UITypes.LongText,
@@ -51,7 +56,7 @@ export const SCHEMA_TICKETING: SyncSchema = {
     title: 'User',
     columns: [
       { title: 'Email', uidt: UITypes.Email },
-      { title: 'Name', uidt: UITypes.SingleLineText },
+      { title: 'Name', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Url', uidt: UITypes.URL },
     ],
     relations: [
@@ -84,6 +89,20 @@ export const SCHEMA_TICKETING: SyncSchema = {
         columnTitle: 'Created By',
         relatedTable: TARGET_TABLES.TICKETING_USER,
         relatedTableColumnTitle: 'Created By',
+      },
+    ],
+  },
+  [TARGET_TABLES.TICKETING_TEAM]: {
+    title: 'Team',
+    columns: [
+      { title: 'Name', uidt: UITypes.SingleLineText, pv: true },
+      { title: 'Description', uidt: UITypes.LongText },
+    ],
+    relations: [
+      {
+        columnTitle: 'Members',
+        relatedTable: TARGET_TABLES.TICKETING_USER,
+        relatedTableColumnTitle: 'Teams',
       },
     ],
   },

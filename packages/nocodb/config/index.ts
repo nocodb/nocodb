@@ -109,18 +109,17 @@ const fromEnv = (): Object => {
     };
 
     return rmUndefined(res);
-
 };
 
-const fromToml = (): Object => {
+const fromToml = (cfgPath: string = process.env.NC_CFG_PATH): Object => {
     const defaultCfgPaths = [
         "./nocodb.toml",
         "/etc/nocodb.toml",
     ];
 
     let tomlString: string
-    if (typeof process.env.NC_CFG_TOML !== 'undefined') {
-            tomlString = fs.readFileSync('NC_CFG_TOML', 'utf8')
+    if (cfgPath) {
+            tomlString = fs.readFileSync(cfgPath, 'utf8')
     } else {
         for (const cfgPath of defaultCfgPaths) {
             if (!fs.existsSync(cfgPath)) {
@@ -146,6 +145,7 @@ const fromCli = (): Object => {
         .description('Open Source Airtable Alternative')
         .addOption(new Option('-h, --host <host>', 'Bind host for NocoDB'))
         .addOption(new Option('-p, --port <port>', 'Bind port for NocoDB'))
+        .addOption(new Option('-c, --config <path>', 'Path to TOML configuration'));
 
     const parsed = program.parse();
     return parsed.opts();
@@ -153,11 +153,14 @@ const fromCli = (): Object => {
 
 const getCfg = () => {
     const cliCfg = fromCli();
-    const tomlCfg = fromToml();
+    const tomlCfg = fromToml(cliCfg['config']);
     const envCfg = fromEnv();
     const defaultCfg = fromDefault();
+
+    delete cliCfg['config'];
     const mergedCfg = lodash.merge(defaultCfg, tomlCfg, envCfg, cliCfg) as ServerConfig;
 
+    // derived config
     mergedCfg.publicUrl ??= `http://${mergedCfg.host}:${mergedCfg.port}/`;
     mergedCfg.dashboardUrl ??=  mergedCfg.nocoDbConfig.isCloud ? '/' : '/dashboard';
     if (mergedCfg.nocoDbConfig.externalDb) mergedCfg.nocoDbConfig.externalDb = !mergedCfg.nocoDbConfig.minimalDb;

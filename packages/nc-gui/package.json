@@ -198,7 +198,7 @@
     "@iconify-json/tabler": "^1.2.15",
     "@iconify-json/vscode-icons": "^1.2.11",
     "@intlify/unplugin-vue-i18n": "^6.0.3",
-    "@nuxt/image": "^1.9.0",
+    "@nuxt/image": "^1.10.0",
     "@nuxt/kit": "3.15.4",
     "@sentry/vite-plugin": "^2.23.0",
     "@types/d3-scale": "^4.0.9",

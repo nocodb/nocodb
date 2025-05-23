@@ -21,6 +21,8 @@ overrides:
   ws@<8.17.1: '>=8.17.1'
   xml2js@<0.5.0: '>=0.5.0'
   '**>ent': npm:ent-replace@latest
+  image-size@<1.2.1: '>=1.2.1'
+  tar-fs@<2.1.2: '>=3.0.7'
 
 patchedDependencies:
   splitpanes@3.1.5:
@@ -507,8 +509,8 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3(@vue/compiler-dom@3.5.14)(eslint@8.57.1)(rollup@4.28.0)(vue-i18n@9.14.2(vue@3.5.14))(vue@3.5.14)
       '@nuxt/image':
-        specifier: ^1.9.0
-        version: 1.9.0(ioredis@5.4.2)(magicast@0.3.5)(rollup@4.28.0)
+        specifier: ^1.10.0
+        version: 1.10.0(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.14.1))(ioredis@5.4.2)(magicast@0.3.5)
       '@nuxt/kit':
         specifier: 3.15.4
         version: 3.15.4(magicast@0.3.5)(rollup@4.28.0)
@@ -580,7 +582,7 @@ importers:
         version: 2.4.6
       '@vueuse/nuxt':
         specifier: ^12.5.0
-        version: 12.5.0(magicast@0.3.5)(nuxt@3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.12.0)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0))(xml2js@0.6.2)(yaml@2.7.0))(rollup@4.28.0)
+        version: 12.5.0(magicast@0.3.5)(nuxt@3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.14.1))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.14.1)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0))(xml2js@0.6.2)(yaml@2.7.0))(rollup@4.28.0)
       '@windicss/plugin-animations':
         specifier: ^1.0.9
         version: 1.0.9
@@ -604,7 +606,7 @@ importers:
         version: 17.4.7
       nuxt:
         specifier: 3.15.4
-        version: 3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.12.0)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0))(xml2js@0.6.2)(yaml@2.7.0)
+        version: 3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.14.1))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.14.1)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0))(xml2js@0.6.2)(yaml@2.7.0)
       nuxt-windicss:
         specifier: ^3.0.1
         version: 3.0.1(magicast@0.3.5)(rollup@4.28.0)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0))
@@ -659,7 +661,7 @@ importers:
         version: 1.9.0(encoding@0.1.13)
       knex:
         specifier: ^3.1.0
-        version: 3.1.0(mysql2@3.12.0)(pg@8.13.1)(sqlite3@5.1.7)(tedious@16.7.1)
+        version: 3.1.0(mysql2@3.14.1)(pg@8.13.1)(sqlite3@5.1.7)(tedious@16.7.1)
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -668,7 +670,7 @@ importers:
     dependencies:
       knex:
         specifier: ^3.1.0
-        version: 3.1.0(mysql2@3.12.0)(pg@8.13.1)(sqlite3@5.1.7)(tedious@16.7.1)
+        version: 3.1.0(mysql2@3.14.1)(pg@8.13.1)(sqlite3@5.1.7)(tedious@16.7.1)
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -744,7 +746,7 @@ importers:
         version: 4.29.0
       knex:
         specifier: ^3.1.0
-        version: 3.1.0(mysql2@3.12.0)(pg@8.13.1)(sqlite3@5.1.7)(tedious@16.7.1)
+        version: 3.1.0(mysql2@3.12.0)(pg@8.13.1)
       knex-databricks:
         specifier: link:../nc-knex-dialects/knex-databricks
         version: link:../nc-knex-dialects/knex-databricks
@@ -765,7 +767,7 @@ importers:
         version: 0.11.10
       snowflake-sdk:
         specifier: ^1.15.0
-        version: 1.15.0(asn1.js@5.4.1)(debug@4.4.0)(encoding@0.1.13)
+        version: 1.15.0(asn1.js@5.4.1)(encoding@0.1.13)
     devDependencies:
       '@types/node':
         specifier: 18.19.55
@@ -970,7 +972,7 @@ importers:
         version: 1.11.13
       debug:
         specifier: ^4.4.0
-        version: 4.4.0(supports-color@9.4.0)
+        version: 4.4.0(supports-color@5.5.0)
       deep-object-diff:
         specifier: ^1.1.9
         version: 1.1.9
@@ -1051,7 +1053,7 @@ importers:
         version: 9.0.2
       knex:
         specifier: 3.1.0
-        version: 3.1.0(mysql2@3.12.0)(pg@8.13.1)(sqlite3@5.1.7)(tedious@16.7.1)
+        version: 3.1.0(mysql2@3.14.1)(pg@8.13.1)(sqlite3@5.1.7)(tedious@16.7.1)
       knex-databricks:
         specifier: link:../nc-knex-dialects/knex-databricks
         version: link:../nc-knex-dialects/knex-databricks
@@ -1086,14 +1088,14 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0
       mysql2:
-        specifier: ^3.12.0
-        version: 3.12.0
+        specifier: ^3.14.1
+        version: 3.14.1
       nanoid:
         specifier: ^3.3.8
         version: 3.3.8
       nc-help:
         specifier: 0.3.4
-        version: 0.3.4(debug@4.4.0)(knex@3.1.0(mysql2@3.12.0)(pg@8.13.1)(sqlite3@5.1.7)(tedious@16.7.1))
+        version: 0.3.4(debug@4.4.0)(knex@3.1.0(mysql2@3.14.1)(pg@8.13.1)(sqlite3@5.1.7)(tedious@16.7.1))
       nc-lib-gui:
         specifier: 0.263.4
         version: 0.263.4
@@ -1385,7 +1387,7 @@ importers:
     dependencies:
       axios:
         specifier: ^1.9.0
-        version: 1.9.0(debug@4.4.0)
+        version: 1.9.0
       chevrotain:
         specifier: ^10.5.0
         version: 10.5.0
@@ -1458,7 +1460,7 @@ importers:
     dependencies:
       axios:
         specifier: 1.9.0
-        version: 1.9.0(debug@4.4.0)
+        version: 1.9.0
     devDependencies:
       '@biomejs/biome':
         specifier: ^1.9.4
@@ -2731,16 +2733,8 @@ packages:
     resolution: {integrity: sha512-oy5V7pD+UvfkEATUKvIjvIAH/xCzfsFVw7ygW2SI6NClZzquT+mwdTfgfdbUiceh6iQO0CHtCPsyze/MZ2YbAA==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/helper-string-parser@7.25.9':
-    resolution: {integrity: sha512-4A/SCr/2KLd5jrtOMFzaKjVtAei3+2r/NChoBNoZ3EyP/+GlhoaEGoWOZUmFmoITP7zOJyHIMm+DYRd8o3PvHA==}
-    engines: {node: '>=6.9.0'}
-
   '@babel/helper-string-parser@7.27.1':
     resolution: {integrity: sha512-qMlSxKbpRlAridDExk92nSobyDdpPijUq2DW6oDnUqd0iOGxmQjyqhMIihI9+zv4LPyZdRje2cavWPbCbWm3eA==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/helper-validator-identifier@7.25.9':
-    resolution: {integrity: sha512-Ed61U6XJc3CVRfkERJWDz4dJwKe7iLmmJsbOGu9wSloNSFttHV0I8g6UAgb7qnK5ly5bGLPd4oXZlxCdANBOWQ==}
     engines: {node: '>=6.9.0'}
 
   '@babel/helper-validator-identifier@7.27.1':
@@ -5355,9 +5349,9 @@ packages:
     peerDependencies:
       vite: '*'
 
-  '@nuxt/image@1.9.0':
-    resolution: {integrity: sha512-kuuePx/jtlmsuG/G8mTMELntw4p8MLD4tu9f4A064xor/ks29oEoBmFRzvfFwxqZ7cqfG2M4LZfTZFjQz5St+Q==}
-    engines: {node: '>=18.20.5'}
+  '@nuxt/image@1.10.0':
+    resolution: {integrity: sha512-/B58GeEmme7bkmQUrXzEw8P9sJb9BkMaYZqLDtq8ZdDLEddE3P4nVya8RQPB+p4b7EdqWajpPqdy1A2ZPLev/A==}
+    engines: {node: '>=18.20.6'}
 
   '@nuxt/kit@3.14.1592':
     resolution: {integrity: sha512-r9r8bISBBisvfcNgNL3dSIQHSBe0v5YkX5zwNblIC2T0CIEgxEVoM5rq9O5wqgb5OEydsHTtT2hL57vdv6VT2w==}
@@ -5365,6 +5359,10 @@ packages:
 
   '@nuxt/kit@3.15.4':
     resolution: {integrity: sha512-dr7I7eZOoRLl4uxdxeL2dQsH0OrbEiVPIyBHnBpA4co24CBnoJoF+JINuP9l3PAM3IhUzc5JIVq3/YY3lEc3Hw==}
+    engines: {node: '>=18.12.0'}
+
+  '@nuxt/kit@3.17.4':
+    resolution: {integrity: sha512-l+hY8sy2XFfg3PigZj+PTu6+KIJzmbACTRimn1ew/gtCz+F38f6KTF4sMRTN5CUxiB8TRENgEonASmkAWfpO9Q==}
     engines: {node: '>=18.12.0'}
 
   '@nuxt/schema@3.14.1592':
@@ -8424,6 +8422,11 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
+  acorn@8.14.1:
+    resolution: {integrity: sha512-OvQ/2pUDKmgfCg++xsTX1wGxfTaszcHVcTctW4UJB4hibJx2HXxxO5UmVgyjMa+ZDsiaf5wWLXYpRWMmBI0QHg==}
+    engines: {node: '>=0.4.0'}
+    hasBin: true
+
   acorn@8.8.2:
     resolution: {integrity: sha512-xjIYgE8HBrkpd/sJqOGNspf8uHG+NOHGOw6a/Urj8taM2EXfdNAH2oFcPeIFfsv3+kz/mJrS5VuMqbNLjCa2vw==}
     engines: {node: '>=0.4.0'}
@@ -9082,17 +9085,47 @@ packages:
   bare-events@2.4.2:
     resolution: {integrity: sha512-qMKFd2qG/36aA4GwvKq8MxnPgCQAmBWmSyLWsJcbn8v03wvIPQ/hG1Ms8bPzndZxMDoHpxez5VOS+gC9Yi24/Q==}
 
+  bare-events@2.5.4:
+    resolution: {integrity: sha512-+gFfDkR8pj4/TrWCGUGWmJIkBwuxPS5F+a5yWjOHQt2hHvNZd5YLzadjmDUtFmMM4y429bnKLa8bYBMHcYdnQA==}
+
   bare-fs@2.3.1:
     resolution: {integrity: sha512-W/Hfxc/6VehXlsgFtbB5B4xFcsCl+pAh30cYhoFyXErf6oGrwjh8SwiPAdHgpmWonKuYpZgGywN0SXt7dgsADA==}
+
+  bare-fs@4.1.5:
+    resolution: {integrity: sha512-1zccWBMypln0jEE05LzZt+V/8y8AQsQQqxtklqaIyg5nu6OAYFhZxPXinJTSG+kU5qyNmeLgcn9AW7eHiCHVLA==}
+    engines: {bare: '>=1.16.0'}
+    peerDependencies:
+      bare-buffer: '*'
+    peerDependenciesMeta:
+      bare-buffer:
+        optional: true
 
   bare-os@2.4.0:
     resolution: {integrity: sha512-v8DTT08AS/G0F9xrhyLtepoo9EJBJ85FRSMbu1pQUlAf6A8T0tEEQGMVObWeqpjhSPXsE0VGlluFBJu2fdoTNg==}
 
+  bare-os@3.6.1:
+    resolution: {integrity: sha512-uaIjxokhFidJP+bmmvKSgiMzj2sV5GPHaZVAIktcxcpCyBFFWO+YlikVAdhmUo2vYFvFhOXIAlldqV29L8126g==}
+    engines: {bare: '>=1.14.0'}
+
   bare-path@2.1.3:
     resolution: {integrity: sha512-lh/eITfU8hrj9Ru5quUp0Io1kJWIk1bTjzo7JH1P5dWmQ2EL4hFUlfI8FonAhSlgIfhn63p84CDY/x+PisgcXA==}
 
+  bare-path@3.0.0:
+    resolution: {integrity: sha512-tyfW2cQcB5NN8Saijrhqn0Zh7AnFNsnczRcuWODH0eYAXBsJ5gVxAUuNr7tsHSC6IZ77cA0SitzT+s47kot8Mw==}
+
   bare-stream@2.1.3:
     resolution: {integrity: sha512-tiDAH9H/kP+tvNO5sczyn9ZAA7utrSMobyDchsnyyXBuUe2FSQWbxhtuHB8jwpHYYevVo2UJpcmvvjrbHboUUQ==}
+
+  bare-stream@2.6.5:
+    resolution: {integrity: sha512-jSmxKJNJmHySi6hC42zlZnq00rga4jjxcgNZjY9N5WlOe/iOoGRtdwGsHzQv2RlH2KOYMwGUXhf2zXd32BA9RA==}
+    peerDependencies:
+      bare-buffer: '*'
+      bare-events: '*'
+    peerDependenciesMeta:
+      bare-buffer:
+        optional: true
+      bare-events:
+        optional: true
 
   base-64@1.0.0:
     resolution: {integrity: sha512-kwDPIFCGx0NZHog36dj+tHiwP4QMzsZ3AgMViUBKI0+V5n4U0ufTCUMhnQ04diaRI8EX/QcPfql7zlhZ7j4zgg==}
@@ -9340,6 +9373,14 @@ packages:
       magicast:
         optional: true
 
+  c12@3.0.4:
+    resolution: {integrity: sha512-t5FaZTYbbCtvxuZq9xxIruYydrAGsJ+8UdP0pZzMiK2xl/gNiSOy0OxhLzHUEEb0m1QXYqfzfvyIFEmz/g9lqg==}
+    peerDependencies:
+      magicast: ^0.3.5
+    peerDependenciesMeta:
+      magicast:
+        optional: true
+
   cac@6.7.14:
     resolution: {integrity: sha512-b6Ilus+c3RrdDk+JhLKUAQfzzgLEPy6wcXqS7f/xe1EETvsDP6GORG7SFuOs6cID5YkqchW/LXZbX5bc8j7ZcQ==}
     engines: {node: '>=8'}
@@ -9532,9 +9573,6 @@ packages:
   chokidar@4.0.3:
     resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
     engines: {node: '>= 14.16.0'}
-
-  chownr@1.1.4:
-    resolution: {integrity: sha512-jJ0bqzaylmJtVnNgzTeSOs8DPavpbYgEr/b0YL8/2GO3xJEhInFmhKMUnEJQjZumK7KXGFhUy89PrsJWlakBVg==}
 
   chownr@2.0.0:
     resolution: {integrity: sha512-bIomtDF5KGpdogkLd9VspvFzk9KfpyyGlS8YFVZl7TGPBHL5snIOnxeshwVgPteQ9b4Eydl+pVbIyE1DcvCWgQ==}
@@ -10138,6 +10176,9 @@ packages:
   crossws@0.3.3:
     resolution: {integrity: sha512-/71DJT3xJlqSnBr83uGJesmVHSzZEvgxHt/fIKxBAAngqMHmnBWQNxCphVxxJ2XL3xleu5+hJD6IQ3TglBedcw==}
 
+  crossws@0.3.5:
+    resolution: {integrity: sha512-ojKiDvcmByhwa8YYqbQI/hg7MEU0NC03+pSdEq4ZUnZR9xXpwk7E43SMNGkn+JxJGPFtNvQ48+vV2p+P1ml5PA==}
+
   crypt@0.0.2:
     resolution: {integrity: sha512-mCxBlsHFYh9C+HVpiEacem8FEBnMXgU9gy4zmNC+SXAZNB/1idgp/aulFJ4FgCi7GPEVbfyng092GqL2k2rmow==}
 
@@ -10596,6 +10637,9 @@ packages:
   destr@2.0.3:
     resolution: {integrity: sha512-2N3BOUU4gYMpTP24s5rF5iP7BDr7uNTCs4ozw3kf/eKfvWSIu93GEBi5m427YoyJoeOzQ5smuu4nNAPGb8idSQ==}
 
+  destr@2.0.5:
+    resolution: {integrity: sha512-ugFTXCtDZunbzasqBxrK93Ik/DRYsO6S/fedkWEMKqt04xZ4csmnmwGDBAb07QWNaGMAmnTIemsYZCksjATwsA==}
+
   destroy@1.2.0:
     resolution: {integrity: sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg==}
     engines: {node: '>= 0.8', npm: 1.2.8000 || >= 1.4.16}
@@ -10729,6 +10773,10 @@ packages:
 
   dotenv@16.4.7:
     resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
+    engines: {node: '>=12'}
+
+  dotenv@16.5.0:
+    resolution: {integrity: sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==}
     engines: {node: '>=12'}
 
   dotenv@8.6.0:
@@ -12194,6 +12242,9 @@ packages:
   h3@1.15.0:
     resolution: {integrity: sha512-OsjX4JW8J4XGgCgEcad20pepFQWnuKH+OwkCJjogF3C+9AZ1iYdtB4hX6vAb5DskBiu5ljEXqApINjR8CqoCMQ==}
 
+  h3@1.15.3:
+    resolution: {integrity: sha512-z6GknHqyX0h9aQaTx22VZDf6QyZn+0Nh+Ym8O/u0SGSkyF5cuTJYKlc8MkzW3Nzf9LE1ivcpmYC3FUGpywhuUQ==}
+
   handle-thing@2.0.1:
     resolution: {integrity: sha512-9Qn4yBxelxoh2Ow62nP+Ka/kMnOXRi8BXnRaUwezLNhqelnN49xKz4F/dPP8OYLxLxq6JDtZb2i9XznUQbNPTg==}
 
@@ -12586,11 +12637,15 @@ packages:
     resolution: {integrity: sha512-bAH5jbK/F3T3Jls4I0SO1hmPR0dKU0a7+SY6n1yzRtG54FLO8d6w/nxLFX2Nb7dBu6cCWXPaAME6cYqFUMmuCA==}
     engines: {node: '>= 4'}
 
+  ignore@7.0.4:
+    resolution: {integrity: sha512-gJzzk+PQNznz8ysRrC0aOkBNVRBDtE1n53IqyqEf3PXrYwomFs5q4pGMizBMJF+ykh03insJ27hB8gSrD2Hn8A==}
+    engines: {node: '>= 4'}
+
   image-meta@0.2.1:
     resolution: {integrity: sha512-K6acvFaelNxx8wc2VjbIzXKDVB0Khs0QT35U6NkGfTdCmjLNcO2945m7RFNR9/RPVFm48hq7QPzK8uGH18HCGw==}
 
-  image-size@1.2.0:
-    resolution: {integrity: sha512-4S8fwbO6w3GeCVN6OPtA9I5IGKkcDMPcKndtUlpJuCwu7JLjtj7JZpwqLuyY2nrmQT3AWsCJLSKPsc2mPBSl3w==}
+  image-size@2.0.2:
+    resolution: {integrity: sha512-IRqXKlaXwgSMAMtpNzZa1ZAe8m+Sa1770Dhk8VkSsP9LS+iHD62Zd8FQKs8fbPiagBE7BzoFX23cxFnwshpV6w==}
     engines: {node: '>=16.x'}
     hasBin: true
 
@@ -13910,6 +13965,10 @@ packages:
     resolution: {integrity: sha512-bbgPw/wmroJsil/GgL4qjDzs5YLTBMQ99weRsok1XCDccQeehbHA/I1oRvk2NPtr7KGZgT/Y5tPRnAtMqeG2Kg==}
     engines: {node: '>=14'}
 
+  local-pkg@1.1.1:
+    resolution: {integrity: sha512-WunYko2W1NcdfAFpuLUoucsgULmgDBRkdxHxWQ7mK0cQqwPiy8E1enjuRBrhLtZkB5iScJ1XIPdhVEFK8aOLSg==}
+    engines: {node: '>=14'}
+
   locale-codes@1.3.1:
     resolution: {integrity: sha512-C7fxGkU4jAuHqavtKj4IhSD2yPEzChFMRfNHjzwIAz9JTbYHtBJDcQQgmJDezBogk9/vvgS7chKMhpVEKavk5A==}
     engines: {node: '>=8'}
@@ -14647,10 +14706,6 @@ packages:
   moveable@0.53.0:
     resolution: {integrity: sha512-71jS9zIoQzMhnNvduhg4tUEdm23+fO/40FN7muVMbZvVwbTku2MIxxLhnU4qFvxI4oVxn75l79SbtgjuA+s7Pw==}
 
-  mri@1.2.0:
-    resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
-    engines: {node: '>=4'}
-
   mrmime@1.0.1:
     resolution: {integrity: sha512-hzzEagAgDyoU1Q6yg5uI+AorQgdvMCur3FcKf7NhMKWsaYg+RnbTyHRa/9IlLF9rf455MOCtcqqrQQ83pPP7Uw==}
     engines: {node: '>=10'}
@@ -14720,6 +14775,10 @@ packages:
 
   mysql2@3.12.0:
     resolution: {integrity: sha512-C8fWhVysZoH63tJbX8d10IAoYCyXy4fdRFz2Ihrt9jtPILYynFEKUUzpp1U7qxzDc3tMbotvaBH+sl6bFnGZiw==}
+    engines: {node: '>= 8.0'}
+
+  mysql2@3.14.1:
+    resolution: {integrity: sha512-7ytuPQJjQB8TNAYX/H2yhL+iQOnIBjAMam361R7UAL0lOVXWjtdrmoL9HYKqKoLp/8UUTRcvo1QPvK9KL7wA8w==}
     engines: {node: '>= 8.0'}
 
   mysql2@3.2.0:
@@ -15328,9 +15387,6 @@ packages:
   octokit@3.2.1:
     resolution: {integrity: sha512-u+XuSejhe3NdIvty3Jod00JvTdAE/0/+XbhIDhefHbu+2OcTRHd80aCiH6TX19ZybJmwPQBKFQmHGxp0i9mJrg==}
     engines: {node: '>= 18'}
-
-  ofetch@1.3.4:
-    resolution: {integrity: sha512-KLIET85ik3vhEfS+3fDlc/BAZiAp+43QEC/yCo5zkNoY2YaKvNkOaFr/6wCFgFH1kuYQM5pMNi0Tg8koiIemtw==}
 
   ofetch@1.4.1:
     resolution: {integrity: sha512-QZj2DfGplQAr2oj9KzceK9Hwz6Whxazmn85yYeVuS3u9XTMOGMRx0kO95MQ+vLsj/S/NwBDMMLU5hpxvI6Tklw==}
@@ -16512,6 +16568,9 @@ packages:
     resolution: {integrity: sha512-qxXIEh4pCGfHICj1mAJQ2/2XVZkjCDTcEgfoSQxc/fYivUZxTkk7L3bDBJSoNrEzXI17oUO5Dp07ktqE5KzczA==}
     engines: {node: '>=0.6'}
 
+  quansync@0.2.10:
+    resolution: {integrity: sha512-t41VRkMYbkHyCYmOvx/6URnN80H7k4X0lLdBMGsz+maAwrJQYB1djpV6vHrQIBE0WBSGqhtEHrK9U3DWWH8v7A==}
+
   query-string@7.1.3:
     resolution: {integrity: sha512-hh2WYhq4fi8+b+/2Kg9CEge4fDPvHS534aOOvOZeQ3+Vf2mCFsaFBYj0i+iXcAq6I9Vzp5fjMFBlONvayDC1qg==}
     engines: {node: '>=6'}
@@ -16532,9 +16591,6 @@ packages:
 
   queue-tick@1.0.1:
     resolution: {integrity: sha512-kJt5qhMxoszgU/62PLP1CJytzd2NKetjSRnyuj31fDd3Rlcz3fzlFdFLD1SItunPwyqEOkca6GbV612BWfaBag==}
-
-  queue@6.0.2:
-    resolution: {integrity: sha512-iHZWu+q3IdFZFX36ro/lKBkSvfkztY5Y7HMiPlOUjhupPcG2JMfst2KKEpu5XndviX/3UhFbRngUPNKtgvtZiA==}
 
   quick-format-unescaped@4.0.4:
     resolution: {integrity: sha512-tYC1Q1hgyRuHgloV/YXs2w15unPVh8qfu/qCTfhTYamaw7fyhumKa2yGpdSo87vY32rIclj+4fWYQXUMs9EHvg==}
@@ -17792,6 +17848,9 @@ packages:
   streamx@2.18.0:
     resolution: {integrity: sha512-LLUC1TWdjVdn1weXGcSxyTR3T4+acB6tVGXT95y0nGbca4t4o/ng1wKAGTljm9VicuCVLvRlqFYXYy5GwgM7sQ==}
 
+  streamx@2.22.0:
+    resolution: {integrity: sha512-sLh1evHOzBy/iWRiR6d1zRcLao4gGZr3C1kzNz4fopCOKJb6xD9ub8Mpi9Mr1R6id5o43S+d93fI48UC5uM9aw==}
+
   strict-uri-encode@2.0.0:
     resolution: {integrity: sha512-QwiXZgpRcKkhTj2Scnn++4PKtWsH0kpzZ62L2R6c/LUVYv7hVnZqcg2+sMuT6R7Jusu1vviK/MFsu6kNJfWlEQ==}
     engines: {node: '>=4'}
@@ -18074,11 +18133,11 @@ packages:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
     engines: {node: '>=6'}
 
-  tar-fs@2.1.1:
-    resolution: {integrity: sha512-V0r2Y9scmbDRLCNex/+hYzvp/zyYjvFbHPNgVTKfQvVrb6guiE/fxP+XblDNR011utopbkex2nM4dHNV6GDsng==}
-
   tar-fs@3.0.6:
     resolution: {integrity: sha512-iokBDQQkUyeXhgPYaZxmczGPhnhXZ0CmrqI+MOb/WFGS9DW5wnfrLgtjUJBvz50vQ3qfRwJ62QVoCFu8mPVu5w==}
+
+  tar-fs@3.0.9:
+    resolution: {integrity: sha512-XF4w9Xp+ZQgifKakjZYmFdkLoSWd34VGKcsTCwlNWM7QG3ZbaxnTsaBwnjFZqHRf/rROxaR8rXnbtwdvaDI+lA==}
 
   tar-stream@2.2.0:
     resolution: {integrity: sha512-ujeqbceABgwMZxEJnk2HDY2DlnUZ+9oEcb1KzTVfYHio0UE6dG71n60d8D2I4qNvleWrrXpmjpt7vZeF1LnMZQ==}
@@ -18748,6 +18807,10 @@ packages:
     resolution: {integrity: sha512-FH+yZ36YaVlh0ZjHesP20Q4uL+wL0EqTNxDZcUupsIn6WRYXZAbIYEMDLTaLBpkNVzFpqZXS+am51/HR3ANUNw==}
     engines: {node: '>=18.12.0'}
 
+  unimport@5.0.1:
+    resolution: {integrity: sha512-1YWzPj6wYhtwHE+9LxRlyqP4DiRrhGfJxdtH475im8ktyZXO3jHj/3PZ97zDdvkYoovFdi0K4SKl3a7l92v3sQ==}
+    engines: {node: '>=18.12.0'}
+
   union-value@1.0.1:
     resolution: {integrity: sha512-tJfXmxMeWYnczCVs7XAEvIV7ieppALdyepWMkHkwciRpZraG/xwT+s2JN8+pr1+8jCRf80FFzvr+MpQeeoF4Xg==}
     engines: {node: '>=0.10.0'}
@@ -18852,6 +18915,10 @@ packages:
       vue-template-es2015-compiler:
         optional: true
 
+  unplugin-utils@0.2.4:
+    resolution: {integrity: sha512-8U/MtpkPkkk3Atewj1+RcKIjb5WBimZ/WSLhhR3w6SsIj8XJuKTacSP8g+2JhfSGw0Cb125Y+2zA/IzJZDVbhA==}
+    engines: {node: '>=18.12.0'}
+
   unplugin-vue-components@0.26.0:
     resolution: {integrity: sha512-s7IdPDlnOvPamjunVxw8kNgKNK8A5KM1YpK5j/p97jEKTjlPNrA0nZBiSfAKKlK1gWZuyWXlKL5dk3EDw874LQ==}
     engines: {node: '>=14'}
@@ -18891,53 +18958,13 @@ packages:
     resolution: {integrity: sha512-Q3LU0e4zxKfRko1wMV2HmP8lB9KWislY7hxXpxd+lGx0PRInE4vhMBVEZwpdVYHvtqzhSrzuIfErsob6bQfCzw==}
     engines: {node: '>=18.12.0'}
 
+  unplugin@2.3.4:
+    resolution: {integrity: sha512-m4PjxTurwpWfpMomp8AptjD5yj8qEZN5uQjjGM3TAs9MWWD2tXSSNNj6jGR2FoVGod4293ytyV6SwBbertfyJg==}
+    engines: {node: '>=18.12.0'}
+
   unset-value@1.0.0:
     resolution: {integrity: sha512-PcA2tsuGSF9cnySLHTLSh2qrQiJ70mn+r+Glzxv2TWZblxsxCC52BDlZoPCsz7STd9pN7EZetkWZBAvk4cgZdQ==}
     engines: {node: '>=0.10.0'}
-
-  unstorage@1.10.2:
-    resolution: {integrity: sha512-cULBcwDqrS8UhlIysUJs2Dk0Mmt8h7B0E6mtR+relW9nZvsf/u4SkAYyNliPiPW7XtFNb5u3IUMkxGxFTTRTgQ==}
-    peerDependencies:
-      '@azure/app-configuration': ^1.5.0
-      '@azure/cosmos': ^4.0.0
-      '@azure/data-tables': ^13.2.2
-      '@azure/identity': ^4.0.1
-      '@azure/keyvault-secrets': ^4.8.0
-      '@azure/storage-blob': ^12.17.0
-      '@capacitor/preferences': ^5.0.7
-      '@netlify/blobs': ^6.5.0 || ^7.0.0
-      '@planetscale/database': ^1.16.0
-      '@upstash/redis': ^1.28.4
-      '@vercel/kv': ^1.0.1
-      idb-keyval: ^6.2.1
-      ioredis: ^5.3.2
-    peerDependenciesMeta:
-      '@azure/app-configuration':
-        optional: true
-      '@azure/cosmos':
-        optional: true
-      '@azure/data-tables':
-        optional: true
-      '@azure/identity':
-        optional: true
-      '@azure/keyvault-secrets':
-        optional: true
-      '@azure/storage-blob':
-        optional: true
-      '@capacitor/preferences':
-        optional: true
-      '@netlify/blobs':
-        optional: true
-      '@planetscale/database':
-        optional: true
-      '@upstash/redis':
-        optional: true
-      '@vercel/kv':
-        optional: true
-      idb-keyval:
-        optional: true
-      ioredis:
-        optional: true
 
   unstorage@1.14.4:
     resolution: {integrity: sha512-1SYeamwuYeQJtJ/USE1x4l17LkmQBzg7deBJ+U9qOBoHo15d1cDxG4jM31zKRgF7pG0kirZy4wVMX6WL6Zoscg==}
@@ -19009,6 +19036,10 @@ packages:
 
   untyped@1.5.2:
     resolution: {integrity: sha512-eL/8PlhLcMmlMDtNPKhyyz9kEBDS3Uk4yMu/ewlkT2WFbtzScjHWPJLdQLmaGPUKjXzwe9MumOtOgc4Fro96Kg==}
+    hasBin: true
+
+  untyped@2.0.0:
+    resolution: {integrity: sha512-nwNCjxJTjNuLCgFr42fEak5OcLuB3ecca+9ksPFNvtfYSLpjf+iJqSIaSnIile6ZPbKYxI5k2AfXqeopGudK/g==}
     hasBin: true
 
   unwasm@0.3.9:
@@ -20330,7 +20361,7 @@ snapshots:
   '@aws-amplify/api-rest@3.5.14(encoding@0.1.13)(react-native@0.73.5(@babel/core@7.26.7)(@babel/preset-env@7.24.0(@babel/core@7.26.7))(encoding@0.1.13)(react@19.0.0))':
     dependencies:
       '@aws-amplify/core': 5.8.14(encoding@0.1.13)(react-native@0.73.5(@babel/core@7.26.7)(@babel/preset-env@7.24.0(@babel/core@7.26.7))(encoding@0.1.13)(react@19.0.0))
-      axios: 1.9.0(debug@4.4.0)
+      axios: 1.9.0
       tslib: 1.14.1
       url: 0.11.0
     transitivePeerDependencies:
@@ -22585,7 +22616,7 @@ snapshots:
       '@babel/traverse': 7.26.7
       '@babel/types': 7.27.1
       convert-source-map: 2.0.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -22643,7 +22674,7 @@ snapshots:
       '@babel/core': 7.26.7
       '@babel/helper-compilation-targets': 7.26.5
       '@babel/helper-plugin-utils': 7.26.5
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       lodash.debounce: 4.0.8
       resolve: 1.22.10
     transitivePeerDependencies:
@@ -22654,7 +22685,7 @@ snapshots:
       '@babel/core': 7.26.7
       '@babel/helper-compilation-targets': 7.26.5
       '@babel/helper-plugin-utils': 7.26.5
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       lodash.debounce: 4.0.8
       resolve: 1.22.10
     transitivePeerDependencies:
@@ -22724,11 +22755,7 @@ snapshots:
     dependencies:
       '@babel/types': 7.27.1
 
-  '@babel/helper-string-parser@7.25.9': {}
-
   '@babel/helper-string-parser@7.27.1': {}
-
-  '@babel/helper-validator-identifier@7.25.9': {}
 
   '@babel/helper-validator-identifier@7.27.1': {}
 
@@ -23502,7 +23529,7 @@ snapshots:
       '@babel/parser': 7.27.2
       '@babel/template': 7.25.9
       '@babel/types': 7.27.1
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -23514,15 +23541,15 @@ snapshots:
       '@babel/parser': 7.27.2
       '@babel/template': 7.27.2
       '@babel/types': 7.27.1
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
 
   '@babel/types@7.19.0':
     dependencies:
-      '@babel/helper-string-parser': 7.25.9
-      '@babel/helper-validator-identifier': 7.25.9
+      '@babel/helper-string-parser': 7.27.1
+      '@babel/helper-validator-identifier': 7.27.1
       to-fast-properties: 2.0.0
 
   '@babel/types@7.27.1':
@@ -23992,7 +24019,7 @@ snapshots:
   '@eslint/eslintrc@2.1.4':
     dependencies:
       ajv: 6.12.6
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       espree: 9.6.1
       globals: 13.21.0
       ignore: 5.3.0
@@ -24184,7 +24211,7 @@ snapshots:
   '@humanwhocodes/config-array@0.13.0':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -24292,7 +24319,7 @@ snapshots:
       '@antfu/install-pkg': 0.4.1
       '@antfu/utils': 0.7.10
       '@iconify/types': 2.0.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       kolorist: 1.8.0
       local-pkg: 0.5.1
       mlly: 1.7.4
@@ -24304,7 +24331,7 @@ snapshots:
       '@antfu/install-pkg': 0.4.1
       '@antfu/utils': 0.7.10
       '@iconify/types': 2.0.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       globals: 15.14.0
       kolorist: 1.8.0
       local-pkg: 0.5.1
@@ -24998,7 +25025,7 @@ snapshots:
 
   '@kwsites/file-exists@1.1.1':
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -25463,7 +25490,7 @@ snapshots:
       '@types/xml2js': 0.4.14
       '@xmldom/is-dom-node': 1.0.1
       '@xmldom/xmldom': 0.8.10
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       xml-crypto: 6.1.2
       xml-encryption: 3.0.2
       xml2js: 0.6.2
@@ -25623,7 +25650,7 @@ snapshots:
 
   '@nuxt/devtools-wizard@1.7.0':
     dependencies:
-      consola: 3.4.0
+      consola: 3.4.2
       diff: 7.0.0
       execa: 7.2.0
       global-directory: 4.0.1
@@ -25681,19 +25708,20 @@ snapshots:
       - utf-8-validate
       - vue
 
-  '@nuxt/image@1.9.0(ioredis@5.4.2)(magicast@0.3.5)(rollup@4.28.0)':
+  '@nuxt/image@1.10.0(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.14.1))(ioredis@5.4.2)(magicast@0.3.5)':
     dependencies:
-      '@nuxt/kit': 3.15.4(magicast@0.3.5)(rollup@4.28.0)
-      consola: 3.4.0
+      '@nuxt/kit': 3.17.4(magicast@0.3.5)
+      consola: 3.4.2
       defu: 6.1.4
-      h3: 1.13.0
+      h3: 1.15.3
       image-meta: 0.2.1
-      ohash: 1.1.4
-      pathe: 2.0.2
-      std-env: 3.8.0
+      knitwork: 1.2.0
+      ohash: 2.0.11
+      pathe: 2.0.3
+      std-env: 3.9.0
       ufo: 1.5.4
     optionalDependencies:
-      ipx: 2.1.0(ioredis@5.4.2)
+      ipx: 2.1.0(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.14.1))(ioredis@5.4.2)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -25702,16 +25730,19 @@ snapshots:
       - '@azure/keyvault-secrets'
       - '@azure/storage-blob'
       - '@capacitor/preferences'
+      - '@deno/kv'
       - '@netlify/blobs'
       - '@planetscale/database'
       - '@upstash/redis'
+      - '@vercel/blob'
       - '@vercel/kv'
+      - aws4fetch
+      - bare-buffer
+      - db0
       - idb-keyval
       - ioredis
       - magicast
-      - rollup
-      - supports-color
-      - uWebSockets.js
+      - uploadthing
 
   '@nuxt/kit@3.14.1592(magicast@0.3.5)(rollup@4.28.0)':
     dependencies:
@@ -25766,6 +25797,33 @@ snapshots:
       - magicast
       - rollup
       - supports-color
+
+  '@nuxt/kit@3.17.4(magicast@0.3.5)':
+    dependencies:
+      c12: 3.0.4(magicast@0.3.5)
+      consola: 3.4.2
+      defu: 6.1.4
+      destr: 2.0.5
+      errx: 0.1.0
+      exsolve: 1.0.5
+      ignore: 7.0.4
+      jiti: 2.4.2
+      klona: 2.0.6
+      knitwork: 1.2.0
+      mlly: 1.7.4
+      ohash: 2.0.11
+      pathe: 2.0.3
+      pkg-types: 2.1.0
+      scule: 1.3.0
+      semver: 7.7.2
+      std-env: 3.9.0
+      tinyglobby: 0.2.13
+      ufo: 1.5.4
+      unctx: 2.4.1
+      unimport: 5.0.1
+      untyped: 2.0.0
+    transitivePeerDependencies:
+      - magicast
 
   '@nuxt/schema@3.14.1592(magicast@0.3.5)(rollup@4.28.0)':
     dependencies:
@@ -26331,7 +26389,7 @@ snapshots:
     dependencies:
       '@iconify/iconify': 2.1.2(encoding@0.1.13)
       axios: 1.9.0(debug@4.4.0)
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       fast-glob: 3.3.2
       fs-extra: 10.1.0
     transitivePeerDependencies:
@@ -27706,7 +27764,7 @@ snapshots:
       '@swc-node/sourcemap-support': 0.5.1
       '@swc/core': 1.10.0(@swc/helpers@0.5.17)
       colorette: 2.0.20
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       oxc-resolver: 1.12.0
       pirates: 4.0.6
       tslib: 2.8.1
@@ -28505,7 +28563,7 @@ snapshots:
       '@typescript-eslint/scope-manager': 5.62.0
       '@typescript-eslint/type-utils': 5.62.0(eslint@8.57.1)(typescript@5.8.3)
       '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)(typescript@5.8.3)
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       eslint: 8.57.1
       graphemer: 1.4.0
       ignore: 5.3.1
@@ -28523,7 +28581,7 @@ snapshots:
       '@typescript-eslint/type-utils': 6.1.0(eslint@8.57.1)
       '@typescript-eslint/utils': 6.1.0(eslint@8.57.1)
       '@typescript-eslint/visitor-keys': 6.1.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       eslint: 8.57.1
       graphemer: 1.4.0
       ignore: 5.2.4
@@ -28559,7 +28617,7 @@ snapshots:
       '@typescript-eslint/scope-manager': 5.62.0
       '@typescript-eslint/types': 5.62.0
       '@typescript-eslint/typescript-estree': 5.62.0(typescript@5.8.3)
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       eslint: 8.57.1
     transitivePeerDependencies:
       - supports-color
@@ -28570,7 +28628,7 @@ snapshots:
       '@typescript-eslint/types': 6.1.0
       '@typescript-eslint/typescript-estree': 6.1.0
       '@typescript-eslint/visitor-keys': 6.1.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       eslint: 8.57.1
     transitivePeerDependencies:
       - supports-color
@@ -28612,7 +28670,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/typescript-estree': 5.62.0(typescript@5.8.3)
       '@typescript-eslint/utils': 5.62.0(eslint@8.57.1)(typescript@5.8.3)
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       eslint: 8.57.1
       tsutils: 3.21.0(typescript@5.8.3)
     optionalDependencies:
@@ -28624,7 +28682,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/typescript-estree': 6.1.0
       '@typescript-eslint/utils': 6.1.0(eslint@8.57.1)
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       eslint: 8.57.1
       ts-api-utils: 1.0.2(typescript@5.8.3)
     transitivePeerDependencies:
@@ -28634,7 +28692,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/typescript-estree': 6.21.0(typescript@5.8.3)
       '@typescript-eslint/utils': 6.21.0(eslint@8.57.1)(typescript@5.8.3)
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       eslint: 8.57.1
       ts-api-utils: 1.0.2(typescript@5.8.3)
     optionalDependencies:
@@ -28654,7 +28712,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 5.62.0
       '@typescript-eslint/visitor-keys': 5.62.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       globby: 11.1.0
       is-glob: 4.0.3
       semver: 7.7.2
@@ -28668,7 +28726,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 6.1.0
       '@typescript-eslint/visitor-keys': 6.1.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       globby: 11.1.0
       is-glob: 4.0.3
       semver: 7.7.2
@@ -28680,7 +28738,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 6.21.0
       '@typescript-eslint/visitor-keys': 6.21.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       globby: 11.1.0
       is-glob: 4.0.3
       minimatch: 9.0.3
@@ -28695,7 +28753,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 8.18.2
       '@typescript-eslint/visitor-keys': 8.18.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       fast-glob: 3.3.2
       is-glob: 4.0.3
       minimatch: 9.0.5
@@ -29309,7 +29367,7 @@ snapshots:
       vue-demi: 0.14.10(vue@3.5.14)
     optionalDependencies:
       async-validator: 4.2.5
-      axios: 1.9.0(debug@4.4.0)
+      axios: 1.9.0
       change-case: 4.1.2
       focus-trap: 7.5.4
       fuse.js: 6.6.2
@@ -29341,13 +29399,13 @@ snapshots:
       - rollup
       - supports-color
 
-  '@vueuse/nuxt@12.5.0(magicast@0.3.5)(nuxt@3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.12.0)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0))(xml2js@0.6.2)(yaml@2.7.0))(rollup@4.28.0)':
+  '@vueuse/nuxt@12.5.0(magicast@0.3.5)(nuxt@3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.14.1))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.14.1)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0))(xml2js@0.6.2)(yaml@2.7.0))(rollup@4.28.0)':
     dependencies:
       '@nuxt/kit': 3.15.4(magicast@0.3.5)(rollup@4.28.0)
       '@vueuse/core': 12.5.0
       '@vueuse/metadata': 12.5.0
       local-pkg: 1.0.0
-      nuxt: 3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.12.0)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0))(xml2js@0.6.2)(yaml@2.7.0)
+      nuxt: 3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.14.1))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.14.1)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0))(xml2js@0.6.2)(yaml@2.7.0)
       vue: 3.5.14
     transitivePeerDependencies:
       - magicast
@@ -29461,7 +29519,7 @@ snapshots:
 
   '@windicss/config@1.9.4':
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       jiti: 1.21.6
       windicss: 3.5.6
     transitivePeerDependencies:
@@ -29477,7 +29535,7 @@ snapshots:
     dependencies:
       '@antfu/utils': 0.7.10
       '@windicss/config': 1.9.4
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       fast-glob: 3.3.2
       magic-string: 0.30.17
       micromatch: 4.0.8
@@ -29579,19 +29637,21 @@ snapshots:
 
   acorn@8.14.0: {}
 
+  acorn@8.14.1: {}
+
   acorn@8.8.2: {}
 
   add-stream@1.0.0: {}
 
   agent-base@6.0.2:
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
 
   agent-base@7.1.0:
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -30269,6 +30329,14 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
+  axios@1.9.0:
+    dependencies:
+      follow-redirects: 1.15.9(debug@3.2.7)
+      form-data: 4.0.1
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+
   axios@1.9.0(debug@4.4.0):
     dependencies:
       follow-redirects: 1.15.9(debug@4.4.0)
@@ -30398,6 +30466,9 @@ snapshots:
   bare-events@2.4.2:
     optional: true
 
+  bare-events@2.5.4:
+    optional: true
+
   bare-fs@2.3.1:
     dependencies:
       bare-events: 2.4.2
@@ -30405,7 +30476,17 @@ snapshots:
       bare-stream: 2.1.3
     optional: true
 
+  bare-fs@4.1.5:
+    dependencies:
+      bare-events: 2.5.4
+      bare-path: 3.0.0
+      bare-stream: 2.6.5(bare-events@2.5.4)
+    optional: true
+
   bare-os@2.4.0:
+    optional: true
+
+  bare-os@3.6.1:
     optional: true
 
   bare-path@2.1.3:
@@ -30413,9 +30494,21 @@ snapshots:
       bare-os: 2.4.0
     optional: true
 
+  bare-path@3.0.0:
+    dependencies:
+      bare-os: 3.6.1
+    optional: true
+
   bare-stream@2.1.3:
     dependencies:
       streamx: 2.18.0
+    optional: true
+
+  bare-stream@2.6.5(bare-events@2.5.4):
+    dependencies:
+      streamx: 2.22.0
+    optionalDependencies:
+      bare-events: 2.5.4
     optional: true
 
   base-64@1.0.0: {}
@@ -30553,7 +30646,7 @@ snapshots:
     dependencies:
       bytes: 3.1.2
       content-type: 1.0.5
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       http-errors: 2.0.0
       iconv-lite: 0.6.3
       on-finished: 2.4.1
@@ -30731,6 +30824,23 @@ snapshots:
       confbox: 0.2.2
       defu: 6.1.4
       dotenv: 16.4.7
+      exsolve: 1.0.5
+      giget: 2.0.0
+      jiti: 2.4.2
+      ohash: 2.0.11
+      pathe: 2.0.3
+      perfect-debounce: 1.0.0
+      pkg-types: 2.1.0
+      rc9: 2.1.2
+    optionalDependencies:
+      magicast: 0.3.5
+
+  c12@3.0.4(magicast@0.3.5):
+    dependencies:
+      chokidar: 4.0.3
+      confbox: 0.2.2
+      defu: 6.1.4
+      dotenv: 16.5.0
       exsolve: 1.0.5
       giget: 2.0.0
       jiti: 2.4.2
@@ -31030,8 +31140,6 @@ snapshots:
     dependencies:
       readdirp: 4.1.1
 
-  chownr@1.1.4: {}
-
   chownr@2.0.0: {}
 
   chrome-launcher@0.15.2:
@@ -31193,7 +31301,7 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.0
       '@types/estree': 1.0.6
-      acorn: 8.14.0
+      acorn: 8.14.1
       estree-walker: 3.0.3
       periscopic: 3.1.0
     optional: true
@@ -31716,6 +31824,10 @@ snapshots:
     dependencies:
       uncrypto: 0.1.3
 
+  crossws@0.3.5:
+    dependencies:
+      uncrypto: 0.1.3
+
   crypt@0.0.2: {}
 
   crypto-js@4.2.0: {}
@@ -32009,9 +32121,9 @@ snapshots:
 
   dayjs@1.11.9: {}
 
-  db0@0.2.1(mysql2@3.12.0):
+  db0@0.2.1(mysql2@3.14.1):
     optionalDependencies:
-      mysql2: 3.12.0
+      mysql2: 3.14.1
 
   debounce@1.2.1: {}
 
@@ -32187,6 +32299,8 @@ snapshots:
 
   destr@2.0.3: {}
 
+  destr@2.0.5: {}
+
   destroy@1.2.0: {}
 
   detect-indent@5.0.0: {}
@@ -32291,6 +32405,8 @@ snapshots:
   dotenv@16.4.5: {}
 
   dotenv@16.4.7: {}
+
+  dotenv@16.5.0: {}
 
   dotenv@8.6.0: {}
 
@@ -33036,7 +33152,7 @@ snapshots:
 
   eslint-plugin-yml@1.8.0(eslint@8.57.1):
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       eslint: 8.57.1
       lodash: 4.17.21
       natural-compare: 1.4.0
@@ -33368,7 +33484,7 @@ snapshots:
       content-type: 1.0.5
       cookie: 0.7.2
       cookie-signature: 1.2.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       encodeurl: 2.0.0
       escape-html: 1.0.3
       etag: 1.8.1
@@ -33659,7 +33775,7 @@ snapshots:
 
   finalhandler@2.1.0:
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       encodeurl: 2.0.0
       escape-html: 1.0.3
       on-finished: 2.4.1
@@ -33735,7 +33851,7 @@ snapshots:
 
   follow-redirects@1.15.9(debug@4.4.0):
     optionalDependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
 
   for-each@0.3.3:
     dependencies:
@@ -33984,7 +34100,7 @@ snapshots:
   gaxios@6.1.1(encoding@0.1.13):
     dependencies:
       extend: 3.0.2
-      https-proxy-agent: 7.0.6(supports-color@9.4.0)
+      https-proxy-agent: 7.0.6
       is-stream: 2.0.1
       node-fetch: 2.7.0(encoding@0.1.13)
     transitivePeerDependencies:
@@ -34095,7 +34211,7 @@ snapshots:
     dependencies:
       basic-ftp: 5.0.5
       data-uri-to-buffer: 6.0.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       fs-extra: 11.3.0
     transitivePeerDependencies:
       - supports-color
@@ -34122,7 +34238,7 @@ snapshots:
   giget@1.2.4:
     dependencies:
       citty: 0.1.6
-      consola: 3.4.0
+      consola: 3.4.2
       defu: 6.1.4
       node-fetch-native: 1.6.6
       nypm: 0.5.2
@@ -34413,6 +34529,18 @@ snapshots:
       iron-webcrypto: 1.2.1
       node-mock-http: 1.0.0
       ohash: 1.1.4
+      radix3: 1.1.2
+      ufo: 1.5.4
+      uncrypto: 0.1.3
+
+  h3@1.15.3:
+    dependencies:
+      cookie-es: 1.2.2
+      crossws: 0.3.5
+      defu: 6.1.4
+      destr: 2.0.5
+      iron-webcrypto: 1.2.1
+      node-mock-http: 1.0.0
       radix3: 1.1.2
       ufo: 1.5.4
       uncrypto: 0.1.3
@@ -34712,7 +34840,7 @@ snapshots:
     dependencies:
       '@tootallnate/once': 1.1.2
       agent-base: 6.0.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
     optional: true
@@ -34721,14 +34849,14 @@ snapshots:
     dependencies:
       '@tootallnate/once': 2.0.0
       agent-base: 6.0.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
 
   http-proxy-agent@7.0.2:
     dependencies:
       agent-base: 7.1.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -34771,14 +34899,21 @@ snapshots:
   https-proxy-agent@5.0.1:
     dependencies:
       agent-base: 6.0.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
 
   https-proxy-agent@7.0.4:
     dependencies:
       agent-base: 7.1.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
+    transitivePeerDependencies:
+      - supports-color
+
+  https-proxy-agent@7.0.6:
+    dependencies:
+      agent-base: 7.1.3
+      debug: 4.4.0(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -34864,11 +34999,11 @@ snapshots:
 
   ignore@7.0.3: {}
 
+  ignore@7.0.4: {}
+
   image-meta@0.2.1: {}
 
-  image-size@1.2.0:
-    dependencies:
-      queue: 6.0.2
+  image-size@2.0.2: {}
 
   immer@9.0.6: {}
 
@@ -34892,7 +35027,7 @@ snapshots:
   importx@0.4.4:
     dependencies:
       bundle-require: 5.0.0(esbuild@0.23.1)
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       esbuild: 0.23.1
       jiti: 2.0.0-beta.3
       jiti-v1: jiti@1.21.7
@@ -35034,7 +35169,7 @@ snapshots:
     dependencies:
       '@ioredis/commands': 1.2.0
       cluster-key-slot: 1.1.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       denque: 2.1.0
       lodash.defaults: 4.2.0
       lodash.isarguments: 3.1.0
@@ -35050,23 +35185,23 @@ snapshots:
 
   ipaddr.js@2.1.0: {}
 
-  ipx@2.1.0(ioredis@5.4.2):
+  ipx@2.1.0(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.14.1))(ioredis@5.4.2):
     dependencies:
       '@fastify/accept-negotiator': 1.1.0
       citty: 0.1.6
-      consola: 3.4.0
+      consola: 3.4.2
       defu: 6.1.4
       destr: 2.0.3
       etag: 1.8.1
-      h3: 1.13.0
+      h3: 1.15.3
       image-meta: 0.2.1
-      listhen: 1.7.2
-      ofetch: 1.3.4
+      listhen: 1.9.0
+      ofetch: 1.4.1
       pathe: 1.1.2
       sharp: 0.32.6
       svgo: 3.3.2
       ufo: 1.5.4
-      unstorage: 1.10.2(ioredis@5.4.2)
+      unstorage: 1.14.4(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.14.1))(ioredis@5.4.2)
       xss: 1.0.14
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -35076,13 +35211,18 @@ snapshots:
       - '@azure/keyvault-secrets'
       - '@azure/storage-blob'
       - '@capacitor/preferences'
+      - '@deno/kv'
       - '@netlify/blobs'
       - '@planetscale/database'
       - '@upstash/redis'
+      - '@vercel/blob'
       - '@vercel/kv'
+      - aws4fetch
+      - bare-buffer
+      - db0
       - idb-keyval
       - ioredis
-      - uWebSockets.js
+      - uploadthing
     optional: true
 
   iron-webcrypto@1.2.1: {}
@@ -35548,7 +35688,7 @@ snapshots:
 
   istanbul-lib-source-maps@4.0.1:
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       istanbul-lib-coverage: 3.2.0
       source-map: 0.6.1
     transitivePeerDependencies:
@@ -36317,7 +36457,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  knex@3.1.0(mysql2@3.12.0)(pg@8.13.1)(sqlite3@5.1.7)(tedious@16.7.1):
+  knex@3.1.0(mysql2@3.12.0)(pg@8.13.1):
     dependencies:
       colorette: 2.0.19
       commander: 10.0.1
@@ -36335,6 +36475,28 @@ snapshots:
       tildify: 2.0.0
     optionalDependencies:
       mysql2: 3.12.0
+      pg: 8.13.1
+    transitivePeerDependencies:
+      - supports-color
+
+  knex@3.1.0(mysql2@3.14.1)(pg@8.13.1)(sqlite3@5.1.7)(tedious@16.7.1):
+    dependencies:
+      colorette: 2.0.19
+      commander: 10.0.1
+      debug: 4.3.4
+      escalade: 3.1.2
+      esm: 3.2.25
+      get-package-type: 0.1.0
+      getopts: 2.3.0
+      interpret: 2.2.0
+      lodash: 4.17.21
+      pg-connection-string: 2.6.2
+      rechoir: 0.8.0
+      resolve-from: 5.0.0
+      tarn: 3.0.2
+      tildify: 2.0.0
+    optionalDependencies:
+      mysql2: 3.14.1
       pg: 8.13.1
       sqlite3: 5.1.7
       tedious: 16.7.1
@@ -36548,7 +36710,7 @@ snapshots:
       cli-truncate: 3.1.0
       colorette: 2.0.20
       commander: 9.5.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       execa: 6.1.0
       lilconfig: 2.0.5
       listr2: 4.0.5(enquirer@2.4.1)
@@ -36597,7 +36759,7 @@ snapshots:
       '@parcel/watcher-wasm': 2.4.1
       citty: 0.1.6
       clipboardy: 4.0.0
-      consola: 3.4.0
+      consola: 3.4.2
       crossws: 0.3.1
       defu: 6.1.4
       get-port-please: 3.1.2
@@ -36607,7 +36769,7 @@ snapshots:
       mlly: 1.7.4
       node-forge: 1.3.1
       pathe: 1.1.2
-      std-env: 3.8.0
+      std-env: 3.9.0
       ufo: 1.5.4
       untun: 0.1.3
       uqr: 0.1.2
@@ -36664,6 +36826,12 @@ snapshots:
     dependencies:
       mlly: 1.7.4
       pkg-types: 1.3.1
+
+  local-pkg@1.1.1:
+    dependencies:
+      mlly: 1.7.4
+      pkg-types: 2.1.0
+      quansync: 0.2.10
 
   locale-codes@1.3.1:
     dependencies:
@@ -37253,7 +37421,7 @@ snapshots:
       flow-enums-runtime: 0.0.6
       graceful-fs: 4.2.11
       hermes-parser: 0.23.1
-      image-size: 1.2.0
+      image-size: 2.0.2
       invariant: 2.2.4
       jest-worker: 29.7.0
       jsc-safe-url: 0.2.4
@@ -37396,7 +37564,7 @@ snapshots:
 
   micromark@2.11.4:
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       parse-entities: 2.0.0
     transitivePeerDependencies:
       - supports-color
@@ -37404,7 +37572,7 @@ snapshots:
   micromark@4.0.0:
     dependencies:
       '@types/debug': 4.1.12
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       decode-named-character-reference: 1.0.2
       devlop: 1.1.0
       micromark-core-commonmark: 2.0.1
@@ -37685,9 +37853,6 @@ snapshots:
       croact-moveable: 0.9.0(croact@1.0.4)
       react-moveable: 0.56.0
 
-  mri@1.2.0:
-    optional: true
-
   mrmime@1.0.1: {}
 
   mrmime@2.0.0: {}
@@ -37718,7 +37883,7 @@ snapshots:
     dependencies:
       '@tediousjs/connection-string': 0.5.0
       commander: 11.1.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       rfdc: 1.4.1
       tarn: 3.0.2
       tedious: 16.7.1
@@ -37782,6 +37947,18 @@ snapshots:
   mylas@2.1.13: {}
 
   mysql2@3.12.0:
+    dependencies:
+      aws-ssl-profiles: 1.1.2
+      denque: 2.1.0
+      generate-function: 2.3.1
+      iconv-lite: 0.6.3
+      long: 5.2.3
+      lru.min: 1.1.1
+      named-placeholders: 1.1.3
+      seq-queue: 0.0.5
+      sqlstring: 2.3.3
+
+  mysql2@3.14.1:
     dependencies:
       aws-ssl-profiles: 1.1.2
       denque: 2.1.0
@@ -37862,12 +38039,12 @@ snapshots:
 
   nc-analytics@0.0.6: {}
 
-  nc-help@0.3.4(debug@4.4.0)(knex@3.1.0(mysql2@3.12.0)(pg@8.13.1)(sqlite3@5.1.7)(tedious@16.7.1)):
+  nc-help@0.3.4(debug@4.4.0)(knex@3.1.0(mysql2@3.14.1)(pg@8.13.1)(sqlite3@5.1.7)(tedious@16.7.1)):
     dependencies:
       axios: 1.9.0(debug@4.4.0)
       emittery: 0.13.1
       is-docker: 2.2.1
-      knex: 3.1.0(mysql2@3.12.0)(pg@8.13.1)(sqlite3@5.1.7)(tedious@16.7.1)
+      knex: 3.1.0(mysql2@3.14.1)(pg@8.13.1)(sqlite3@5.1.7)(tedious@16.7.1)
       lodash: 4.17.21
       posthog-node: 1.3.0(debug@4.4.0)
     transitivePeerDependencies:
@@ -37928,7 +38105,7 @@ snapshots:
 
   nice-try@1.0.5: {}
 
-  nitropack@2.10.4(aws4fetch@1.0.20)(encoding@0.1.13)(mysql2@3.12.0)(xml2js@0.6.2):
+  nitropack@2.10.4(aws4fetch@1.0.20)(encoding@0.1.13)(mysql2@3.14.1)(xml2js@0.6.2):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.4
       '@netlify/functions': 2.8.2
@@ -37952,7 +38129,7 @@ snapshots:
       cookie-es: 1.2.2
       croner: 9.0.0
       crossws: 0.3.1
-      db0: 0.2.1(mysql2@3.12.0)
+      db0: 0.2.1(mysql2@3.14.1)
       defu: 6.1.4
       destr: 2.0.3
       dot-prop: 9.0.0
@@ -37995,7 +38172,7 @@ snapshots:
       unctx: 2.4.1
       unenv: 1.10.0
       unimport: 3.14.5(rollup@4.28.0)
-      unstorage: 1.14.4(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(ioredis@5.4.2)
+      unstorage: 1.14.4(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.14.1))(ioredis@5.4.2)
       untyped: 1.5.2
       unwasm: 0.3.9
     optionalDependencies:
@@ -38327,7 +38504,7 @@ snapshots:
       - uWebSockets.js
       - vite
 
-  nuxt@3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.12.0)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0))(xml2js@0.6.2)(yaml@2.7.0):
+  nuxt@3.15.4(@biomejs/biome@1.9.4)(@parcel/watcher@2.5.1)(@types/node@22.13.1)(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.14.1))(encoding@0.1.13)(eslint@8.57.1)(ioredis@5.4.2)(magicast@0.3.5)(mysql2@3.14.1)(optionator@0.9.3)(rollup@4.28.0)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0))(xml2js@0.6.2)(yaml@2.7.0):
     dependencies:
       '@nuxt/cli': 3.21.1(magicast@0.3.5)
       '@nuxt/devalue': 2.0.2
@@ -38365,7 +38542,7 @@ snapshots:
       magic-string: 0.30.17
       mlly: 1.7.4
       nanotar: 0.2.0
-      nitropack: 2.10.4(aws4fetch@1.0.20)(encoding@0.1.13)(mysql2@3.12.0)(xml2js@0.6.2)
+      nitropack: 2.10.4(aws4fetch@1.0.20)(encoding@0.1.13)(mysql2@3.14.1)(xml2js@0.6.2)
       nypm: 0.5.2
       ofetch: 1.4.1
       ohash: 1.1.4
@@ -38387,7 +38564,7 @@ snapshots:
       unimport: 4.0.0(rollup@4.28.0)
       unplugin: 2.1.2
       unplugin-vue-router: 0.11.2(rollup@4.28.0)(vue-router@4.5.0(vue@3.5.14))(vue@3.5.14)
-      unstorage: 1.14.4(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(ioredis@5.4.2)
+      unstorage: 1.14.4(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.14.1))(ioredis@5.4.2)
       untyped: 1.5.2
       vue: 3.5.14
       vue-bundle-renderer: 2.1.1
@@ -38455,7 +38632,7 @@ snapshots:
       '@yarnpkg/lockfile': 1.1.0
       '@yarnpkg/parsers': 3.0.0-rc.46
       '@zkochan/js-yaml': 0.0.6
-      axios: 1.9.0(debug@4.4.0)
+      axios: 1.9.0
       chalk: 4.1.2
       cli-cursor: 3.1.0
       cli-spinners: 2.6.1
@@ -38504,7 +38681,7 @@ snapshots:
   nypm@0.3.12:
     dependencies:
       citty: 0.1.6
-      consola: 3.4.0
+      consola: 3.4.2
       execa: 8.0.1
       pathe: 1.1.2
       pkg-types: 1.3.1
@@ -38513,7 +38690,7 @@ snapshots:
   nypm@0.4.1:
     dependencies:
       citty: 0.1.6
-      consola: 3.4.0
+      consola: 3.4.2
       pathe: 1.1.2
       pkg-types: 1.3.1
       tinyexec: 0.3.2
@@ -38683,13 +38860,6 @@ snapshots:
       '@octokit/plugin-throttling': 8.2.0(@octokit/core@5.2.0)
       '@octokit/request-error': 5.1.1
       '@octokit/types': 13.8.0
-
-  ofetch@1.3.4:
-    dependencies:
-      destr: 2.0.3
-      node-fetch-native: 1.6.4
-      ufo: 1.5.4
-    optional: true
 
   ofetch@1.4.1:
     dependencies:
@@ -38958,10 +39128,10 @@ snapshots:
     dependencies:
       '@tootallnate/quickjs-emscripten': 0.23.0
       agent-base: 7.1.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       get-uri: 6.0.3
       http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.6(supports-color@9.4.0)
+      https-proxy-agent: 7.0.6
       pac-resolver: 7.0.1
       socks-proxy-agent: 8.0.2
     transitivePeerDependencies:
@@ -39135,7 +39305,7 @@ snapshots:
       '@node-saml/node-saml': 5.0.1
       '@xmldom/xmldom': 0.9.8
       axios: 1.9.0(debug@4.4.0)
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       lodash: 4.17.21
       xpath: 0.0.34
     transitivePeerDependencies:
@@ -39423,9 +39593,10 @@ snapshots:
       node-fetch: 2.7.0(encoding@0.1.13)
       progress: 2.0.3
       semver: 7.7.2
-      tar-fs: 2.1.1
+      tar-fs: 3.0.9
       yargs: 16.2.0
     transitivePeerDependencies:
+      - bare-buffer
       - encoding
       - supports-color
 
@@ -39464,6 +39635,7 @@ snapshots:
       resolve: 1.22.10
       stream-meter: 1.0.4
     transitivePeerDependencies:
+      - bare-buffer
       - encoding
       - supports-color
 
@@ -39755,8 +39927,10 @@ snapshots:
       pump: 3.0.0
       rc: 1.2.8
       simple-get: 4.0.1
-      tar-fs: 2.1.1
+      tar-fs: 3.0.9
       tunnel-agent: 0.6.0
+    transitivePeerDependencies:
+      - bare-buffer
 
   prelude-ls@1.1.2: {}
 
@@ -39954,7 +40128,7 @@ snapshots:
   proxy-agent@6.4.0:
     dependencies:
       agent-base: 7.1.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.4
       lru-cache: 7.18.3
@@ -40030,6 +40204,8 @@ snapshots:
 
   qs@6.5.3: {}
 
+  quansync@0.2.10: {}
+
   query-string@7.1.3:
     dependencies:
       decode-uri-component: 0.2.2
@@ -40046,10 +40222,6 @@ snapshots:
   queue-microtask@1.2.3: {}
 
   queue-tick@1.0.1: {}
-
-  queue@6.0.2:
-    dependencies:
-      inherits: 2.0.4
 
   quick-format-unescaped@4.0.4: {}
 
@@ -40632,7 +40804,7 @@ snapshots:
 
   retry-request@5.0.2:
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       extend: 3.0.2
     transitivePeerDependencies:
       - supports-color
@@ -40640,7 +40812,7 @@ snapshots:
   retry-request@7.0.1(encoding@0.1.13):
     dependencies:
       '@types/request': 2.48.12
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       extend: 3.0.2
       teeny-request: 9.0.0(encoding@0.1.13)
     transitivePeerDependencies:
@@ -40764,7 +40936,7 @@ snapshots:
 
   router@2.2.0:
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       depd: 2.0.0
       is-promise: 4.0.0
       parseurl: 1.3.3
@@ -40994,7 +41166,7 @@ snapshots:
 
   send@1.2.0:
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       encodeurl: 2.0.0
       escape-html: 1.0.3
       etag: 1.8.1
@@ -41124,13 +41296,15 @@ snapshots:
   sharp@0.32.6:
     dependencies:
       color: 4.2.3
-      detect-libc: 2.0.3
+      detect-libc: 2.0.4
       node-addon-api: 6.1.0
       prebuild-install: 7.1.1
       semver: 7.7.2
       simple-get: 4.0.1
       tar-fs: 3.0.6
       tunnel-agent: 0.6.0
+    transitivePeerDependencies:
+      - bare-buffer
     optional: true
 
   sharp@0.33.4:
@@ -41294,7 +41468,7 @@ snapshots:
     dependencies:
       '@kwsites/file-exists': 1.1.1
       '@kwsites/promise-deferred': 1.1.1
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -41420,7 +41594,46 @@ snapshots:
       fastest-levenshtein: 1.0.16
       generic-pool: 3.9.0
       glob: 10.4.5
-      https-proxy-agent: 7.0.6(supports-color@9.4.0)
+      https-proxy-agent: 7.0.6
+      jsonwebtoken: 9.0.2
+      mime-types: 2.1.35
+      mkdirp: 1.0.4
+      moment: 2.29.4
+      moment-timezone: 0.5.43
+      open: 7.4.2
+      python-struct: 1.1.3
+      simple-lru-cache: 0.0.2
+      toml: 3.0.0
+      uuid: 8.3.2
+      winston: 3.10.0
+    transitivePeerDependencies:
+      - aws-crt
+      - debug
+      - encoding
+      - supports-color
+
+  snowflake-sdk@1.15.0(asn1.js@5.4.1)(encoding@0.1.13):
+    dependencies:
+      '@aws-sdk/client-s3': 3.743.0
+      '@aws-sdk/node-http-handler': 3.374.0
+      '@azure/storage-blob': 12.18.0(encoding@0.1.13)
+      '@google-cloud/storage': 7.15.0(encoding@0.1.13)
+      '@techteamer/ocsp': 1.0.1
+      asn1.js: 5.4.1
+      asn1.js-rfc2560: 5.0.1(asn1.js@5.4.1)
+      asn1.js-rfc5280: 3.0.0
+      axios: 1.7.9(debug@3.2.7)
+      big-integer: 1.6.51
+      bignumber.js: 9.1.2
+      binascii: 0.0.2
+      bn.js: 5.2.1
+      browser-request: 0.3.3
+      expand-tilde: 2.0.2
+      fast-xml-parser: 4.5.1
+      fastest-levenshtein: 1.0.16
+      generic-pool: 3.9.0
+      glob: 10.4.5
+      https-proxy-agent: 7.0.6
       jsonwebtoken: 9.0.2
       mime-types: 2.1.35
       mkdirp: 1.0.4
@@ -41529,7 +41742,7 @@ snapshots:
   socks-proxy-agent@6.2.1:
     dependencies:
       agent-base: 6.0.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       socks: 2.7.1
     transitivePeerDependencies:
       - supports-color
@@ -41538,7 +41751,7 @@ snapshots:
   socks-proxy-agent@7.0.0:
     dependencies:
       agent-base: 6.0.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       socks: 2.7.1
     transitivePeerDependencies:
       - supports-color
@@ -41546,7 +41759,7 @@ snapshots:
   socks-proxy-agent@8.0.2:
     dependencies:
       agent-base: 7.1.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       socks: 2.7.1
     transitivePeerDependencies:
       - supports-color
@@ -41632,7 +41845,7 @@ snapshots:
 
   spdy-transport@3.0.0:
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       detect-node: 2.1.0
       hpack.js: 2.1.6
       obuf: 1.1.2
@@ -41643,7 +41856,7 @@ snapshots:
 
   spdy@4.0.2:
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       handle-thing: 2.0.1
       http-deceiver: 1.2.7
       select-hose: 2.0.0
@@ -41700,6 +41913,7 @@ snapshots:
     optionalDependencies:
       node-gyp: 8.4.1
     transitivePeerDependencies:
+      - bare-buffer
       - bluebird
       - supports-color
 
@@ -41811,6 +42025,14 @@ snapshots:
       text-decoder: 1.1.1
     optionalDependencies:
       bare-events: 2.4.2
+
+  streamx@2.22.0:
+    dependencies:
+      fast-fifo: 1.3.2
+      text-decoder: 1.1.1
+    optionalDependencies:
+      bare-events: 2.5.4
+    optional: true
 
   strict-uri-encode@2.0.0: {}
 
@@ -42036,7 +42258,7 @@ snapshots:
     dependencies:
       component-emitter: 1.3.0
       cookiejar: 2.1.4
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       fast-safe-stringify: 2.1.1
       form-data: 4.0.1
       formidable: 2.1.2
@@ -42082,7 +42304,7 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.0
       '@jridgewell/trace-mapping': 0.3.25
       '@types/estree': 1.0.6
-      acorn: 8.14.0
+      acorn: 8.14.1
       aria-query: 5.3.2
       axobject-query: 4.1.0
       code-red: 1.0.4
@@ -42175,13 +42397,6 @@ snapshots:
 
   tapable@2.2.1: {}
 
-  tar-fs@2.1.1:
-    dependencies:
-      chownr: 1.1.4
-      mkdirp-classic: 0.5.3
-      pump: 3.0.0
-      tar-stream: 2.2.0
-
   tar-fs@3.0.6:
     dependencies:
       pump: 3.0.0
@@ -42190,6 +42405,16 @@ snapshots:
       bare-fs: 2.3.1
       bare-path: 2.1.3
     optional: true
+
+  tar-fs@3.0.9:
+    dependencies:
+      pump: 3.0.0
+      tar-stream: 3.1.6
+    optionalDependencies:
+      bare-fs: 4.1.5
+      bare-path: 3.0.0
+    transitivePeerDependencies:
+      - bare-buffer
 
   tar-stream@2.2.0:
     dependencies:
@@ -42686,7 +42911,7 @@ snapshots:
   tuf-js@1.1.7:
     dependencies:
       '@tufjs/models': 1.0.4
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       make-fetch-happen: 11.1.1
     transitivePeerDependencies:
       - supports-color
@@ -42972,6 +43197,23 @@ snapshots:
     transitivePeerDependencies:
       - rollup
 
+  unimport@5.0.1:
+    dependencies:
+      acorn: 8.14.1
+      escape-string-regexp: 5.0.0
+      estree-walker: 3.0.3
+      local-pkg: 1.1.1
+      magic-string: 0.30.17
+      mlly: 1.7.4
+      pathe: 2.0.3
+      picomatch: 4.0.2
+      pkg-types: 2.1.0
+      scule: 1.3.0
+      strip-literal: 3.0.0
+      tinyglobby: 0.2.13
+      unplugin: 2.3.4
+      unplugin-utils: 0.2.4
+
   union-value@1.0.1:
     dependencies:
       arr-union: 3.1.0
@@ -43083,7 +43325,7 @@ snapshots:
       '@antfu/install-pkg': 0.5.0
       '@antfu/utils': 0.7.10
       '@iconify/utils': 2.2.1
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       kolorist: 1.8.0
       local-pkg: 0.5.1
       unplugin: 2.1.0
@@ -43092,6 +43334,11 @@ snapshots:
       svelte: 4.2.19
     transitivePeerDependencies:
       - supports-color
+
+  unplugin-utils@0.2.4:
+    dependencies:
+      pathe: 2.0.3
+      picomatch: 4.0.2
 
   unplugin-vue-components@0.26.0(@babel/parser@7.27.2)(@nuxt/kit@3.15.4(magicast@0.3.5)(rollup@4.28.0))(rollup@4.28.0)(vue@3.5.14):
     dependencies:
@@ -43164,30 +43411,18 @@ snapshots:
       acorn: 8.14.0
       webpack-virtual-modules: 0.6.2
 
+  unplugin@2.3.4:
+    dependencies:
+      acorn: 8.14.1
+      picomatch: 4.0.2
+      webpack-virtual-modules: 0.6.2
+
   unset-value@1.0.0:
     dependencies:
       has-value: 0.3.1
       isobject: 3.0.1
 
-  unstorage@1.10.2(ioredis@5.4.2):
-    dependencies:
-      anymatch: 3.1.3
-      chokidar: 3.6.0
-      destr: 2.0.3
-      h3: 1.13.0
-      listhen: 1.7.2
-      lru-cache: 10.4.3
-      mri: 1.2.0
-      node-fetch-native: 1.6.4
-      ofetch: 1.4.1
-      ufo: 1.5.4
-    optionalDependencies:
-      ioredis: 5.4.2
-    transitivePeerDependencies:
-      - uWebSockets.js
-    optional: true
-
-  unstorage@1.14.4(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.12.0))(ioredis@5.4.2):
+  unstorage@1.14.4(aws4fetch@1.0.20)(db0@0.2.1(mysql2@3.14.1))(ioredis@5.4.2):
     dependencies:
       anymatch: 3.1.3
       chokidar: 3.6.0
@@ -43199,7 +43434,7 @@ snapshots:
       ufo: 1.5.4
     optionalDependencies:
       aws4fetch: 1.0.20
-      db0: 0.2.1(mysql2@3.12.0)
+      db0: 0.2.1(mysql2@3.14.1)
       ioredis: 5.4.2
 
   unstructured-client@0.16.0(zod@3.25.7):
@@ -43226,6 +43461,14 @@ snapshots:
       scule: 1.3.0
     transitivePeerDependencies:
       - supports-color
+
+  untyped@2.0.0:
+    dependencies:
+      citty: 0.1.6
+      defu: 6.1.4
+      jiti: 2.4.2
+      knitwork: 1.2.0
+      scule: 1.3.0
 
   unwasm@0.3.9:
     dependencies:
@@ -43398,7 +43641,7 @@ snapshots:
   vite-node@3.0.5(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0):
     dependencies:
       cac: 6.7.14
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       es-module-lexer: 1.6.0
       pathe: 2.0.3
       vite: 6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0)
@@ -43419,7 +43662,7 @@ snapshots:
   vite-node@3.1.4(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0):
     dependencies:
       cac: 6.7.14
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       es-module-lexer: 1.7.0
       pathe: 2.0.3
       vite: 6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0)
@@ -43463,7 +43706,7 @@ snapshots:
     dependencies:
       '@antfu/utils': 0.7.10
       '@rollup/pluginutils': 5.1.4(rollup@4.28.0)
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       error-stack-parser-es: 0.1.5
       fs-extra: 11.3.0
       open: 10.1.0
@@ -43509,7 +43752,7 @@ snapshots:
   vite-plugin-windicss@1.9.4(vite@6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0)):
     dependencies:
       '@windicss/plugin-utils': 1.9.4
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       kolorist: 1.8.0
       vite: 6.1.0(@types/node@22.13.1)(jiti@2.4.2)(sass@1.84.0)(terser@5.38.1)(tsx@4.19.2)(yaml@2.7.0)
       windicss: 3.5.6
@@ -43540,7 +43783,7 @@ snapshots:
       '@vitest/spy': 3.1.4
       '@vitest/utils': 3.1.4
       chai: 5.2.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       expect-type: 1.2.1
       magic-string: 0.30.17
       pathe: 2.0.3
@@ -43656,7 +43899,7 @@ snapshots:
 
   vue-eslint-parser@9.3.1(eslint@8.57.1):
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       eslint: 8.57.1
       eslint-scope: 7.2.2
       eslint-visitor-keys: 3.4.3
@@ -44112,7 +44355,7 @@ snapshots:
   windicss-webpack-plugin@1.8.0:
     dependencies:
       '@windicss/plugin-utils': 1.9.4
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       get-port: 6.1.2
       loader-utils: 2.0.4
       lodash: 4.17.21
@@ -44369,7 +44612,7 @@ snapshots:
 
   youtube-player@5.6.0:
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.0(supports-color@5.5.0)
       load-script: 1.0.0
       sister: 3.0.2
     transitivePeerDependencies:

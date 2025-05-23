@@ -2,6 +2,8 @@
 import { type FormBuilderElement, type IntegrationType } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType, iconMap } from '#imports'
 
+const emit = defineEmits(['change'])
+
 const {
   form,
   formState,
@@ -168,12 +170,9 @@ watch(
                       />
                     </template>
                     <template v-else-if="field.type === FormBuilderInputType.Switch">
-                      <div class="flex flex-col px-2" :class="field.border ? 'border-1 rounded-lg shadow' : ''">
-                        <div class="flex items-center aa">
-                          <NcSwitch
-                            :checked="!!deepReference(field.model)"
-                            @update:checked="setFormStateWithEmit(field.model, $event)"
-                          />
+                      <div class="flex flex-col p-2" :class="field.border ? 'border-1 rounded-lg shadow' : ''">
+                        <div class="flex items-center">
+                          <NcSwitch :checked="!!deepReference(field.model)" @update:checked="setFormStateWithEmit(field.model, $event)" />
                           <span class="ml-[6px] font-bold">{{ field.label }}</span>
                           <NcTooltip v-if="field.helpText">
                             <template #title>

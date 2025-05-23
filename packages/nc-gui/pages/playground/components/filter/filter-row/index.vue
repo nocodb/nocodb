@@ -85,10 +85,11 @@ const onFilter1Delete = (event) => {
   deleted1LastEvent.value = event
   deleted1Times.value++
 }
+const isFieldInaccessible1 = ref(true)
 </script>
 
 <template>
-  <div class="bg-gray-100">
+  <div class="bg-gray-100 overflow-y-scroll">
     <a-card>
       <div class="flex flex-col gap-2">
         <h4>Simple</h4>
@@ -198,5 +199,42 @@ const onFilter1Delete = (event) => {
         @delete="onFilter1Delete($event)"
       />
     </div>
+
+    <a-card>
+      <div class="flex flex-col gap-2">
+        <h4>fieldInaccessibleError slot</h4>
+
+        <div class="flex gap-2">
+          <div class="flex flex-col gap-2">
+            <div><NcSwitch v-model:checked="isFieldInaccessible1">isFieldInaccessible1</NcSwitch></div>
+          </div>
+        </div>
+      </div>
+    </a-card>
+    <div class="p-4">
+      <SmartsheetToolbarFilterRow
+        :model-value="filter1"
+        :index="options1.index"
+        :columns="columns"
+        :show-null-and-empty-in-filter="options1.showNullAndEmptyInFilter"
+        :comparison-sub-ops="[]"
+        :disabled="options1.disabled"
+        :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"
+        :is-locked-view="options1.isLockedView"
+        :db-client-type="options1.dbClientType"
+        @change="onFilter1Change($event)"
+        @delete="onFilter1Delete($event)"
+      >
+        <template v-if="isFieldInaccessible1" #fieldInaccessibleError>
+          <NcTooltip class="flex-1 flex items-center gap-2 px-2 !text-red-500 cursor-pointer" :disabled="false">
+            <template #title> Field inaccessible error message</template>
+            <GeneralIcon icon="alertTriangle" class="flex-none" />
+            {{ $t('title.fieldInaccessible') }}
+          </NcTooltip>
+        </template>
+      </SmartsheetToolbarFilterRow>
+    </div>
+
+    <div class="min-h-[64px] h-[64px] block"></div>
   </div>
 </template>

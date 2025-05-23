@@ -20,6 +20,14 @@ jest.mock('~/integrations/sync/module/services/sync.service', () => {
   };
 });
 
+// Mock the SyncModuleSyncDataProcessor import that's causing the error
+jest.mock('~/integrations/sync/module/services/sync.processor', () => {
+  return {
+    __esModule: true,
+    SyncModuleSyncDataProcessor: class {},
+  };
+});
+
 const knexGenericMock = {
   select: jest.fn().mockReturnThis(),
   from: jest.fn().mockReturnThis(),

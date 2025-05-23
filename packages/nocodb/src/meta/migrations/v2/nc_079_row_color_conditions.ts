@@ -6,10 +6,6 @@ const up = async (knex: Knex) => {
     table.string('id', 20).primary().notNullable();
 
     table.string('fk_view_id', 20);
-    // table
-    //   .foreign('fk_view_id')
-    //   .references(`${MetaTable.VIEWS}.id`)
-    //   .onDelete('cascade');
 
     table.string('fk_workspace_id', 20);
 
@@ -18,13 +14,16 @@ const up = async (knex: Knex) => {
     table.integer('nc_order');
     table.boolean('is_set_as_background');
 
+    table.index(['fk_workspace_id', 'base_id']);
+    table.index('fk_view_id');
+
     table.timestamps(true, true);
   });
   await knex.schema.alterTable(MetaTable.VIEWS, (table) => {
     table.string('row_coloring_mode', 10);
   });
   await knex.schema.alterTable(MetaTable.FILTER_EXP, (table) => {
-    table.string('fk_row_color_conditions_id', 20);
+    table.string('fk_row_color_condition_id', 20);
   });
 };
 
@@ -34,7 +33,7 @@ const down = async (knex: Knex) => {
     table.dropColumn('row_coloring_mode'),
   );
   await knex.schema.alterTable(MetaTable.FILTER_EXP, (table) =>
-    table.dropColumn('fk_row_color_conditions_id'),
+    table.dropColumn('fk_row_color_condition_id'),
   );
 };
 

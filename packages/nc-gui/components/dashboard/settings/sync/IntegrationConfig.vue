@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 const {
   formState,
+  syncConfigForm,
   selectedIntegrationIndex,
   deleteSync,
   changeIntegration,
@@ -32,7 +33,11 @@ const onDeleteSync = async () => {
     <a-row v-if="!editMode || editModeAddIntegration" :gutter="24" :class="{ 'mb-4': editMode }">
       <a-col :span="24">
         <a-form-item label="Select Source" class="w-full">
-          <DashboardSettingsSyncSelect :value="formState.sub_type" @change="changeIntegration" />
+          <DashboardSettingsSyncSelect
+            :value="formState.sub_type"
+            :category="syncConfigForm.sync_category"
+            @change="changeIntegration"
+          />
         </a-form-item>
       </a-col>
     </a-row>

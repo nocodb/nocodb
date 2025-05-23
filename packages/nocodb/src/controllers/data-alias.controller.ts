@@ -12,7 +12,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { query, Response } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -53,6 +53,7 @@ export class DataAliasController {
       disableOptimization: opt === 'false',
       getHiddenColumns: getHiddenColumns === 'true',
       includeSortAndFilterColumns: includeSortAndFilterColumns === 'true',
+      includeRowColorColumns: req.query.include_row_color === 'true',
     });
     const elapsedMilliSeconds = parseHrtimeToMilliSeconds(
       process.hrtime(startTime),

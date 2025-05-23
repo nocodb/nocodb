@@ -24,9 +24,9 @@ export default class RowColorCondition implements IRowColorCondition {
     Object.assign(this, data);
   }
 
-  static async getById(context: NcContext, id: string) {
+  static async getById(context: NcContext, id: string, ncMeta = Noco.ncMeta) {
     return new RowColorCondition(
-      await Noco.ncMeta.metaGet(
+      await ncMeta.metaGet(
         context.workspace_id,
         context.base_id,
         MetaTable.ROW_COLOR_CONDITIONS,
@@ -52,5 +52,33 @@ export default class RowColorCondition implements IRowColorCondition {
         },
       )
     ).map((row) => new RowColorCondition(row));
+  }
+
+  static async delete(context: NcContext, id: string, ncMeta = Noco.ncMeta) {
+    try {
+      await ncMeta.startTransaction();
+
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.ROW_COLOR_CONDITIONS,
+        {
+          id: id,
+        },
+      );
+
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          fk_row_color_condition_id: id,
+        },
+      );
+      await ncMeta.commit();
+    } catch (ex) {
+      await ncMeta.rollback();
+      throw ex;
+    }
   }
 }

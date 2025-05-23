@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Päivitä {workspace} {plan}-pakettiin",
     "upgradeToPlanSubtitle": "Sinulta veloitetaan tästä paketista heti.",
     "reactivateToPlan": "Aktivoidaanko {plan}-paketti uudelleen?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Voit kopioida pohjia vain työtiloihin, joissa sinulla on luojan oikeudet tai korkeammat.",
     "snapshotBaseRestoreMessage": "Voit palauttaa vain työtiloihin, joissa sinulla on luojan oikeudet tai korkeammat.",
     "currentWorkspace": "Nykyinen työtila",
+    "currentBase": "Current base",
     "latitude": "Leveysaste",
     "longitude": "Pituusaste",
     "failed": "Epäonnistui",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API Pätkät",
     "includeData": "Sisällytä tiedot",
     "includeRecords": "Sisällytä tietueet",
-    "baseDuplicateMessage": "Huom: Auditointilokit ja integraatiot eivät kopioidu.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Sisällytä näkymät",
     "includeWebhook": "Sisällytä webhook",
     "includeComments": "Sisällytä kommentit",
@@ -1611,6 +1616,7 @@
     "changePlan": "Vaihda pakettia"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Jokaisella työtilalla on oltava vähintään yksi omistaja. Määritä toinen käyttäjä omistajaksi ennen kuin poistut työtilasta. Jos olet viimeinen jäsen, harkitse työtilan poistamista.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Ota käyttöön, jotta tämä yhteys on yksityinen ja piilotettu muilta tekijöiltä tässä työtilassa.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Kopioi virhekoodi",
     "paidUserBadgeTooltip": "Käyttäjällä on vähintään Editor-rooli yhdessäkin kannassa.",
     "approachingLimit": "Lähellä rajaa",
-    "exceedingLimit": "Ylittää rajan"
+    "exceedingLimit": "Ylittää rajan",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Etsi kuvakkeita",

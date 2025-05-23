@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Upgrade {workspace} to {plan} plan",
     "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
     "reactivateToPlan": "Reactivate {plan} plan?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
     "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
     "currentWorkspace": "Current workspace",
+    "currentBase": "Current base",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Failed",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API Snippets",
     "includeData": "Include Data",
     "includeRecords": "Include records",
-    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Include views",
     "includeWebhook": "Include webhook",
     "includeComments": "Include comments",
@@ -1611,6 +1616,7 @@
     "changePlan": "ChangePlan"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for the data source or the data type",
     "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Copy error code",
     "paidUserBadgeTooltip": "User has an editor or higher role in at least one base.",
     "approachingLimit": "Approaching limit",
-    "exceedingLimit": "Exceeding limit"
+    "exceedingLimit": "Exceeding limit",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Search icons",

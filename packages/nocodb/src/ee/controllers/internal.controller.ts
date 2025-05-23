@@ -166,7 +166,6 @@ export class InternalController extends InternalControllerCE {
         if (!payload.syncConfigId) {
           NcError.genericNotFound('SyncConfig', payload.syncConfigId);
         }
-
         return await this.syncService.deleteSync(
           context,
           payload.syncConfigId,
@@ -187,6 +186,13 @@ export class InternalController extends InternalControllerCE {
           integration: payload.integration,
           key: payload.key,
         });
+      case 'syncIntegrationFetchDestinationSchema':
+        return (await this.syncService.integrationFetchDestinationSchema(
+          context,
+          {
+            integration: payload.integration,
+          },
+        )) as any;
       case 'authIntegrationTestConnection':
         return await this.integrationsService.authIntegrationTestConnection(
           payload,

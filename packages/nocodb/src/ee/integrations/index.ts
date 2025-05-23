@@ -23,6 +23,8 @@ import LinearSync from '@noco-local-integrations/linear-sync';
 import NocodbAi from '@noco-local-integrations/nocodb-ai';
 import OpenaiAi from '@noco-local-integrations/openai-ai';
 import OpenaiCompatibleAi from '@noco-local-integrations/openai-compatible-ai';
+import PostgresAuth from '@noco-local-integrations/postgres-auth';
+import PostgresSync from '@noco-local-integrations/postgres-sync';
 
 import type { IntegrationEntry } from '@noco-local-integrations/core';
 
@@ -47,4 +49,6 @@ export default [
   NocodbAi,
   OpenaiAi,
   OpenaiCompatibleAi,
+  PostgresAuth,
+  PostgresSync,
 ] as IntegrationEntry[];

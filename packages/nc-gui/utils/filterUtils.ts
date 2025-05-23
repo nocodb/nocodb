@@ -1,6 +1,8 @@
-import { type ColumnType, UITypes, isDateMonthFormat, isNumericCol, numericUITypes } from 'nocodb-sdk'
+import { SqlUiFactory, UITypes, isDateMonthFormat, isNumericCol, isSystemColumn, isVirtualCol, numericUITypes } from 'nocodb-sdk'
+import { ClientType, type ColumnType, type FilterType } from 'nocodb-sdk'
 
 export const MAX_NESTED_LEVEL = 5
+export const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 export interface ComparisonOpUiType {
   text: string
@@ -593,4 +595,31 @@ export const isFilterDraft = (filter: Filter, col: ColumnTypeForFilter) => {
   }
 
   return true
+}
+
+export const getDynamicColumns = (metaColumns: ColumnType[], column: ColumnType, dbClientType?: ClientType) => {
+  if (!column) return []
+  const sqlUi = SqlUiFactory.create({ client: dbClientType ?? ClientType.PG })
+
+  return metaColumns.filter((c: ColumnType) => {
+    if (excludedFilterColUidt.includes(c.uidt as UITypes) || isVirtualCol(c) || (isSystemColumn(c) && !c.pk)) {
+      return false
+    }
+
+    const dynamicColAbstractType = sqlUi.getAbstractType(c)
+
+    const filterColAbstractType = sqlUi.getAbstractType(column)
+
+    // treat float and integer as number
+    if ([dynamicColAbstractType, filterColAbstractType].every((type) => ['float', 'integer'].includes(type))) {
+      return true
+    }
+
+    // treat text and string as string
+    if ([dynamicColAbstractType, filterColAbstractType].every((type) => ['text', 'string'].includes(type))) {
+      return true
+    }
+
+    return filterColAbstractType === dynamicColAbstractType
+  })
 }

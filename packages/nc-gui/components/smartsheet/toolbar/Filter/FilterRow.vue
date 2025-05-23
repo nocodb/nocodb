@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { ClientType } from 'nocodb-sdk'
+import type { RowHandler } from './types'
 
 interface Props {
   modelValue: ColumnFilterType
   index: number
   columns: ColumnTypeForFilter[]
+  handler?: RowHandler
   dbClientType?: ClientType
   showNullAndEmptyInFilter?: boolean
 
@@ -157,96 +159,147 @@ const onColumnChange = (fk_column_id: string) => {
 }
 const onLogicalOpChange = (logical_op: string) => {
   const prevValue = vModel.value.logical_op
-  vModel.value.logical_op = logical_op as any
-  emits('change', {
-    filter: { ...vModel.value },
-    type: 'logical_op',
-    prevValue,
-    value: logical_op,
-    index: props.index,
-  })
+  if (props.handler?.rowChange) {
+    props.handler?.rowChange({
+      filter: { ...vModel.value },
+      type: 'logical_op',
+      prevValue,
+      value: logical_op,
+      index: props.index,
+    })
+  } else {
+    vModel.value.logical_op = logical_op as any
+    emits('change', {
+      filter: { ...vModel.value },
+      type: 'logical_op',
+      prevValue,
+      value: logical_op,
+      index: props.index,
+    })
+  }
 }
 const onComparisonOpChange = (comparison_op: string) => {
   const prevValue = vModel.value.comparison_op
-  vModel.value.comparison_op = comparison_op as any
-  const filter = vModel.value
 
-  const col = column.value
-  if (col) {
-    // adjust value and sub op
-    if (
-      col.uidt === UITypes.SingleSelect &&
-      ['anyof', 'nanyof'].includes(filterPrevComparisonOp.value) &&
-      ['eq', 'neq'].includes(filter.comparison_op!)
-    ) {
-      // anyof and nanyof can allow multiple selections,
-      // while `eq` and `neq` only allow one selection
-      filter.value = null
-    } else if (['blank', 'notblank', 'empty', 'notempty', 'null', 'notnull'].includes(filter.comparison_op!)) {
-      // since `blank`, `empty`, `null` doesn't require value,
-      // hence remove the previous value
-      filter.value = null
-      filter.comparison_sub_op = null
-    } else if (isDateType((col.filterUidt ?? col.uidt) as UITypes)) {
-      // for date / datetime,
-      // the input type could be decimal or datepicker / datetime picker
-      // hence remove the previous value
-      filter.value = null
+  if (props.handler?.rowChange) {
+    props.handler?.rowChange({
+      filter: { ...vModel.value },
+      type: 'comparison_op',
+      prevValue,
+      value: comparison_op,
+      index: props.index,
+    })
+  } else {
+    vModel.value.comparison_op = comparison_op as any
+    const filter = vModel.value
+
+    const col = column.value
+    if (col) {
+      // adjust value and sub op
       if (
-        !comparisonSubOpList(filter.comparison_op!, parseProp(col?.meta)?.date_format)
-          .map((op) => op.value)
-          .includes(filter.comparison_sub_op!)
+        col.uidt === UITypes.SingleSelect &&
+        ['anyof', 'nanyof'].includes(filterPrevComparisonOp.value) &&
+        ['eq', 'neq'].includes(filter.comparison_op!)
       ) {
-        if (filter.comparison_op === 'isWithin') {
-          filter.comparison_sub_op = 'pastNumberOfDays'
-        } else {
-          filter.comparison_sub_op = 'exactDate'
+        // anyof and nanyof can allow multiple selections,
+        // while `eq` and `neq` only allow one selection
+        filter.value = null
+      } else if (['blank', 'notblank', 'empty', 'notempty', 'null', 'notnull'].includes(filter.comparison_op!)) {
+        // since `blank`, `empty`, `null` doesn't require value,
+        // hence remove the previous value
+        filter.value = null
+        filter.comparison_sub_op = null
+      } else if (isDateType((col.filterUidt ?? col.uidt) as UITypes)) {
+        // for date / datetime,
+        // the input type could be decimal or datepicker / datetime picker
+        // hence remove the previous value
+        filter.value = null
+        if (
+          !comparisonSubOpList(filter.comparison_op!, parseProp(col?.meta)?.date_format)
+            .map((op) => op.value)
+            .includes(filter.comparison_sub_op!)
+        ) {
+          if (filter.comparison_op === 'isWithin') {
+            filter.comparison_sub_op = 'pastNumberOfDays'
+          } else {
+            filter.comparison_sub_op = 'exactDate'
+          }
         }
       }
     }
-  }
-  filterPrevComparisonOp.value = vModel.value.comparison_op!
+    filterPrevComparisonOp.value = vModel.value.comparison_op!
 
-  emits('change', {
-    filter: { ...vModel.value },
-    type: 'comparison_op',
-    prevValue,
-    value: comparison_op,
-    index: props.index,
-  })
+    emits('change', {
+      filter: { ...vModel.value },
+      type: 'comparison_op',
+      prevValue,
+      value: comparison_op,
+      index: props.index,
+    })
+  }
 }
 const onComparisonSubOpChange = (comparison_sub_op: string) => {
   const prevValue = vModel.value.comparison_sub_op
-  vModel.value.comparison_sub_op = comparison_sub_op as any
-  emits('change', {
-    filter: { ...vModel.value },
-    type: 'comparison_sub_op',
-    prevValue,
-    value: comparison_sub_op,
-    index: props.index,
-  })
+  if (props.handler?.rowChange) {
+    props.handler?.rowChange({
+      filter: { ...vModel.value },
+      type: 'comparison_sub_op',
+      prevValue,
+      value: comparison_sub_op,
+      index: props.index,
+    })
+  } else {
+    vModel.value.comparison_sub_op = comparison_sub_op as any
+    emits('change', {
+      filter: { ...vModel.value },
+      type: 'comparison_sub_op',
+      prevValue,
+      value: comparison_sub_op,
+      index: props.index,
+    })
+  }
 }
 const onFkValueColIdChanged = (fk_value_col_id: string) => {
   const prevValue = vModel.value.fk_value_col_id
-  vModel.value.fk_value_col_id = fk_value_col_id as any
-  emits('change', {
-    filter: { ...vModel.value },
-    type: 'fk_value_col_id',
-    prevValue,
-    value: fk_value_col_id,
-    index: props.index,
-  })
+  if (props.handler?.rowChange) {
+    props.handler?.rowChange({
+      filter: { ...vModel.value },
+      type: 'fk_value_col_id',
+      prevValue,
+      value: fk_value_col_id,
+      index: props.index,
+    })
+  } else {
+    vModel.value.fk_value_col_id = fk_value_col_id as any
+    emits('change', {
+      filter: { ...vModel.value },
+      type: 'fk_value_col_id',
+      prevValue,
+      value: fk_value_col_id,
+      index: props.index,
+    })
+  }
 }
 const onValueChange = (value: string) => {
   const prevValue = vModel.value.value
-  vModel.value.value = value as any
-  emits('change', {
-    filter: { ...vModel.value },
-    type: 'value',
-    prevValue,
-    value,
-    index: props.index,
-  })
+  if (props.handler?.rowChange) {
+    props.handler?.rowChange({
+      filter: { ...vModel.value },
+      type: 'value',
+      prevValue,
+      value,
+      index: props.index,
+    })
+  } else {
+    vModel.value.value = value as any
+    emits('change', {
+      filter: { ...vModel.value },
+      type: 'value',
+      prevValue,
+      value,
+      index: props.index,
+    })
+  }
 }
 const onDelete = () => {
   emits('delete', {
@@ -282,7 +335,11 @@ const onChangeToDynamic = async () => {
 </script>
 
 <template>
-  <div class="flex flex-row gap-x-0 w-full nc-filter-wrapper bg-white" v-bind="containerProps">
+  <div
+    class="flex flex-row gap-x-0 w-full nc-filter-wrapper bg-white"
+    :class="`nc-filter-wrapper-${vModel.fk_column_id}`"
+    v-bind="containerProps"
+  >
     <!-- #region logical op -->
     <template v-if="index === 0">
       <div class="flex items-center !min-w-18 !max-w-18 pl-3 nc-filter-where-label" v-bind="logicalOpsProps">
@@ -323,7 +380,7 @@ const onChangeToDynamic = async () => {
     <slot name="fieldInaccessibleError"></slot>
     <template v-if="!slotHasChildren('fieldInaccessibleError')">
       <SmartsheetToolbarFieldListAutoCompleteDropdown
-        v-model="vModel.fk_column_id"
+        :value="vModel.fk_column_id"
         v-bind="columnSelectProps"
         class="nc-filter-field-select min-w-32 max-h-8"
         :class="{
@@ -376,8 +433,8 @@ const onChangeToDynamic = async () => {
       <template v-else>
         <template v-if="comparisonSubOps && comparisonSubOps.length > 0">
           <NcSelect
-            v-model:value="vModel.comparison_sub_op"
             v-e="['c:filter:sub-comparison-op:select', { link: !!link, webHook: !!webHook }]"
+            :value="vModel.comparison_sub_op"
             v-bind="comparisonSubOpsProps"
             :dropdown-match-select-width="false"
             class="caption nc-filter-sub_operation-select min-w-28"

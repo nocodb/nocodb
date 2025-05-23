@@ -801,7 +801,7 @@ export default {
             </div>
           </div>
         </div>
-        <div v-if="!isUIAllowed('viewCreateOrEdit', baseRoles)" class="ml-auto">
+        <div class="ml-auto">
           <SmartsheetExpandedFormViewModeSelector v-model="activeViewMode" view="view" class="nc-expanded-form-mode-switch" />
         </div>
         <div class="flex gap-2">

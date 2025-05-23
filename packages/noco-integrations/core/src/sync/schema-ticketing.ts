@@ -12,6 +12,7 @@ export interface TicketingTicketRecord extends SyncRecord {
   'Ticket Url': SyncValue<string>;
   'Is Active': SyncValue<boolean>;
   'Completed At': SyncValue<string>;
+  'Ticket Number': SyncValue<string>;
 }
 
 export interface TicketingUserRecord extends SyncRecord {
@@ -29,7 +30,7 @@ export const SCHEMA_TICKETING: SyncSchema = {
         uidt: UITypes.LongText,
         meta: { richMode: true },
       },
-      { title: 'Issue Number', uidt: UITypes.SingleLineText },
+      { title: 'Ticket Number', uidt: UITypes.SingleLineText },
       { title: 'Due Date', uidt: UITypes.Date },
       { title: 'Priority', uidt: UITypes.SingleSelect },
       { title: 'Status', uidt: UITypes.SingleSelect },

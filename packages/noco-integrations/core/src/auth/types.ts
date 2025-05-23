@@ -13,12 +13,6 @@ export enum AuthType {
   Custom = 'custom',
 }
 
-export interface AuthCredentials<T = any> {
-  type: AuthType;
-  [key: string]: any;
-  custom?: T;
-}
-
 export interface AuthResponse<T = any> {
   custom?: T;
 }

@@ -8,3 +8,8 @@ export enum SyncTrigger {
   Schedule = 'schedule',
   Webhook = 'webhook',
 }
+
+export enum OnDeleteAction {
+  Delete = 'delete',
+  MarkDeleted = 'mark_deleted',
+}

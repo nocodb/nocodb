@@ -24,8 +24,8 @@ export const syncSystemFields: SyncColumnDefinition[] = [
     uidt: UITypes.DateTime,
   },
   {
-    column_name: 'remote_was_deleted',
-    title: 'RemoteWasDeleted',
+    column_name: 'remote_deleted',
+    title: 'RemoteDeleted',
     uidt: UITypes.Checkbox,
   },
   {
@@ -41,6 +41,11 @@ export const syncSystemFields: SyncColumnDefinition[] = [
   {
     column_name: 'sync_config_id',
     title: 'SyncConfigId',
+    uidt: UITypes.SingleLineText,
+  },
+  {
+    column_name: 'sync_run_id',
+    title: 'SyncRunId',
     uidt: UITypes.SingleLineText,
   },
 ];

@@ -613,7 +613,7 @@ export default class Integration implements IntegrationType {
 
   public wrapper: IntegrationWrapper;
 
-  getIntegrationWrapper<T = any>(logger?: (message: string) => void) {
+  getIntegrationWrapper<T = any>() {
     if (!this.wrapper) {
       const integrationWrapper = Integration.availableIntegrations.find(
         (el) => el.type === this.type && el.sub_type === this.sub_type,

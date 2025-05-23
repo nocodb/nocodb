@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Opgrader {workspace} til {plan}-planen",
     "upgradeToPlanSubtitle": "Du vil blive opkrævet med det samme for denne plan.",
     "reactivateToPlan": "Genaktiver {plan}-plan?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Du kan kun duplikere baser til arbejdsområder, hvor du har skaberrettigheder eller højere.",
     "snapshotBaseRestoreMessage": "Du kan kun gendanne til arbejdsområder, hvor du har skaberrettigheder eller højere.",
     "currentWorkspace": "Nuværende arbejdsområde",
+    "currentBase": "Current base",
     "latitude": "Breddegrad",
     "longitude": "Længdegrad",
     "failed": "Mislykket",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API Udklip",
     "includeData": "Inkluder data",
     "includeRecords": "Medtag poster",
-    "baseDuplicateMessage": "Bemærk: Revisionslogge og integrationer bliver ikke duplikeret.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Medtag visninger",
     "includeWebhook": "Medtag webhook",
     "includeComments": "Medtag kommentarer",
@@ -1611,6 +1616,7 @@
     "changePlan": "Skift plan"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Hvert arbejdsområde skal have mindst én ejer. Tildel en anden bruger som ejer, før du forlader arbejdsområdet. Hvis du er det sidste medlem, bør du i stedet slette arbejdsområdet.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Aktiver for at gøre denne forbindelse privat og skjult for andre skabere i dette arbejdsområde.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Kopiér fejlkode",
     "paidUserBadgeTooltip": "Brugeren har rollen editor eller højere i mindst én base.",
     "approachingLimit": "Nærmer sig grænsen",
-    "exceedingLimit": "Overskrider grænsen"
+    "exceedingLimit": "Overskrider grænsen",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Søg ikoner",

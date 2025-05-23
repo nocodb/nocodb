@@ -12,10 +12,9 @@ export class ClickhouseAuthIntegration extends AuthIntegration {
     switch (this.config.type) {
       case AuthType.Custom:
         this.client = createClient({
-            host: this.config.host,
+            url: this.config.url,
             username: this.config.username,
             password: this.config.password,
-            database: this.config.database,
           });
 
         return this.client;

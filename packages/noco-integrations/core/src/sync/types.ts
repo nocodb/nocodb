@@ -96,7 +96,7 @@ export interface SyncRecord {
   RemoteCreatedAt?: SyncValue<string>;
   RemoteUpdatedAt?: SyncValue<string>;
   RemoteDeletedAt?: SyncValue<string>;
-  RemoteWasDeleted?: SyncValue<boolean>;
+  RemoteDeleted?: SyncValue<boolean>;
   RemoteRaw: SyncValue<string>;
   RemoteSyncedAt?: SyncValue<string>;
 }

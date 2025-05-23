@@ -425,6 +425,11 @@ export class GenericFieldHandler
     qb.where(sourceField as any, '<=', val);
   }
 
+  filterAllof: FilterOperation;
+  filterNallof: FilterOperation;
+  filterAnyof: FilterOperation;
+  filterNanyof: FilterOperation;
+
   // to be implemented on checkbox itself
   filterChecked(
     _args: {

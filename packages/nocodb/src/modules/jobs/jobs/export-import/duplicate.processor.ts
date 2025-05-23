@@ -83,6 +83,7 @@ export class DuplicateProcessor {
       excludeViews?: boolean;
       excludeComments?: boolean;
       excludeUsers?: boolean;
+      throwOnError?: boolean;
     };
     operation: JobTypes;
   }) {
@@ -159,6 +160,7 @@ export class DuplicateProcessor {
           sourceModels: models,
           destProject: targetBase,
           destBase: targetBaseSource,
+          options,
           hrTime,
           req,
         });
@@ -587,6 +589,7 @@ export class DuplicateProcessor {
         excludeHooks?: boolean;
         excludeComments?: boolean;
         excludeUsers?: boolean;
+        throwOnError?: boolean;
       };
       req: any;
     },
@@ -646,6 +649,7 @@ export class DuplicateProcessor {
         destProject,
         destBase,
         destModel: model,
+        throwOnError: !!options?.throwOnError,
         req,
       });
 
@@ -657,6 +661,7 @@ export class DuplicateProcessor {
           destProject,
           destBase,
           handledLinks,
+          throwOnError: !!options?.throwOnError,
         },
       );
 
@@ -754,7 +759,13 @@ export class DuplicateProcessor {
                   const row = {};
                   for (let i = 0; i < headers.length; i++) {
                     if (headers[i]) {
-                      row[headers[i]] = results.data[i];
+                      if (results.data[i] !== '') {
+                        if (results.data[i] === '__nc_empty_string__') {
+                          row[headers[i]] = '';
+                        } else {
+                          row[headers[i]] = results.data[i];
+                        }
+                      }
                     }
                   }
                   chunk.push(row);

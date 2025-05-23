@@ -18,6 +18,7 @@ interface Props {
   wrapChild?: keyof HTMLElementTagNameMap
   mouseLeaveDelay?: number
   overlayInnerStyle?: object
+  arrow?: boolean
 }
 
 const props = defineProps<Props>()
@@ -146,6 +147,7 @@ const onClick = () => {
     :trigger="[]"
     :placement="placement"
     :mouse-leave-delay="mouseLeaveDelay"
+    :arrow="arrow"
   >
     <template #title>
       <div ref="element">

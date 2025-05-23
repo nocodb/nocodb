@@ -2,6 +2,7 @@ import {
   isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
+  NcApiVersion,
   ncIsUndefined,
   UITypes,
   ViewTypes,
@@ -330,19 +331,6 @@ export default class Model implements TableType {
         (b.order != null ? b.order : Infinity),
     );
 
-    for (const model of modelList) {
-      if (model.meta?.hasNonDefaultViews === undefined) {
-        model.meta = {
-          ...(model.meta ?? {}),
-          hasNonDefaultViews: await Model.getNonDefaultViewsCountAndReset(
-            context,
-            { modelId: model.id },
-            ncMeta,
-          ),
-        };
-      }
-    }
-
     return modelList.map((m) => this.castType(m));
   }
 
@@ -376,19 +364,6 @@ export default class Model implements TableType {
       }
 
       await NocoCache.setList(CacheScope.MODEL, [base_id], modelList);
-    }
-
-    for (const model of modelList) {
-      if (model.meta?.hasNonDefaultViews === undefined) {
-        model.meta = {
-          ...(model.meta ?? {}),
-          hasNonDefaultViews: await Model.getNonDefaultViewsCountAndReset(
-            context,
-            { modelId: model.id },
-            ncMeta,
-          ),
-        };
-      }
     }
 
     return modelList.map((m) => this.castType(m));
@@ -715,7 +690,11 @@ export default class Model implements TableType {
         if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
           val = JSON.stringify(val);
         }
-        if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
+        if (
+          context.api_version !== NcApiVersion.V3 &&
+          col.uidt === UITypes.DateTime &&
+          dayjs(val).isValid()
+        ) {
           const { isMySQL, isSqlite, isMssql, isPg } = clientMeta;
           if (
             val.indexOf('-') < 0 &&
@@ -1196,30 +1175,5 @@ export default class Model implements TableType {
     );
 
     return res;
-  }
-
-  static async getNonDefaultViewsCountAndReset(
-    context: NcContext,
-    {
-      modelId,
-      userId: _,
-    }: {
-      modelId: string;
-      userId?: string;
-    },
-    ncMeta = Noco.ncMeta,
-  ) {
-    const model = await this.get(context, modelId, ncMeta);
-    let modelMeta = parseMetaProp(model);
-
-    const views = await View.list(context, modelId, ncMeta);
-    modelMeta = {
-      ...(modelMeta ?? {}),
-      hasNonDefaultViews: views.length > 1,
-    };
-
-    await this.updateMeta(context, modelId, { meta: modelMeta }, ncMeta);
-
-    return modelMeta?.hasNonDefaultViews;
   }
 }

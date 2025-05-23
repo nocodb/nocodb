@@ -5,7 +5,7 @@ import { formulaTextSegmentsCache, replaceUrlsWithLinkCache } from '../component
 import { getI18n } from '../plugins/a.i18n'
 export { isValidURL }
 
-const _replaceUrlsWithLink = (text: string): boolean | string => {
+const _replaceUrlsWithLink = (text: string, plainCellValue = false): boolean | string => {
   if (!text) {
     return false
   }
@@ -54,7 +54,7 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
 
       const anchorLabel = label || url || ''
 
-      if (!isUrl) return anchorLabel
+      if (!isUrl || plainCellValue) return anchorLabel
 
       const a = document.createElement('a')
       a.textContent = anchorLabel
@@ -70,12 +70,12 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
   return isUrlPatternFound ? out : false // Return false if no URL found
 }
 
-export const replaceUrlsWithLink = (text: string) => {
-  if (replaceUrlsWithLinkCache.has(text)) {
-    return replaceUrlsWithLinkCache.get(text)!
+export const replaceUrlsWithLink = (text: string, plainCellValue = false) => {
+  if (replaceUrlsWithLinkCache.has(`${text}-${plainCellValue}`)) {
+    return replaceUrlsWithLinkCache.get(`${text}-${plainCellValue}`)!
   }
-  const result = _replaceUrlsWithLink(text)
-  replaceUrlsWithLinkCache.set(text, result)
+  const result = _replaceUrlsWithLink(text, plainCellValue)
+  replaceUrlsWithLinkCache.set(`${text}-${plainCellValue}`, result)
   return result
 }
 
@@ -156,7 +156,7 @@ const handleCopyToClipboard = async (text: string) => {
   }
 }
 
-export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
+export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allowLocalUrl?: boolean) => {
   url = addMissingUrlSchma(url)
 
   if (!url) return
@@ -185,7 +185,7 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank') => {
   }
 
   // Don't do anything if url is not valid, just warn in console for debugging purpose
-  if (!isValidURL(url)) {
+  if (!isValidURL(url, { require_tld: !allowLocalUrl })) {
     console.warn('Invalid URL:', url)
     return
   }

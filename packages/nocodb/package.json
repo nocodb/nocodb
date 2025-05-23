@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.263.0",
+  "version": "0.263.4",
   "description": "NocoDB Backend",
   "main": "dist/bundle.js",
   "author": {
@@ -29,7 +29,7 @@
     "start": "pnpm run watch:run",
     "start:prod": "node docker/main",
     "lint": "eslint \"src/**/*.ts\" --fix",
-    "test": "jest --runInBand --forceExit",
+    "test": "jest --runInBand --forceExit --passWithNoTests",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r @swc-node/register node_modules/.bin/jest --runInBand",
@@ -57,6 +57,7 @@
     "@aws-sdk/s3-request-presigner": "^3.743.0",
     "@google-cloud/storage": "^7.15.0",
     "@jm18457/kafkajs-msk-iam-authentication-mechanism": "^3.1.2",
+    "@modelcontextprotocol/sdk": "^1.11.1",
     "@nest-lab/throttler-storage-redis": "^1.1.0",
     "@nestjs/bull": "^10.2.3",
     "@nestjs/common": "^10.4.15",
@@ -79,7 +80,7 @@
     "ajv-formats": "^2.1.1",
     "auto-bind": "^4.0.0",
     "aws-sdk": "^2.1550.0",
-    "axios": "^1.7.9",
+    "axios": "^1.9.0",
     "bcryptjs": "^2.4.3",
     "boxen": "^5.1.2",
     "bull": "^4.16.5",
@@ -93,6 +94,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "cron": "^1.8.2",
+    "cron-parser": "^5.2.0",
     "crypto-js": "^4.2.0",
     "dataloader": "^2.2.3",
     "dayjs": "^1.11.13",
@@ -131,7 +133,7 @@
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.12.0",
     "nanoid": "^3.3.8",
-    "nc-lib-gui": "0.263.0",
+    "nc-lib-gui": "0.263.4",
     "nocodb-sdk": "workspace:^",
     "node-addon-api": "^8.3.0",
     "nodemailer": "^6.10.0",
@@ -147,6 +149,7 @@
     "passport-http": "^0.3.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
+    "pdf-parse": "^1.1.1",
     "pg": "^8.13.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -166,7 +169,8 @@
     "twilio": "^4.23.0",
     "uuid": "^9.0.1",
     "validator": "^13.12.0",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "zod": "^3.25.7"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.9",
@@ -207,7 +211,7 @@
     "run-script-webpack-plugin": "0.2.2",
     "supertest": "^6.3.4",
     "ts-checker-rspack-plugin": "^1.1.1",
-    "ts-jest": "29.2.5",
+    "ts-jest": "29.1.2",
     "typescript": "^5.7.3"
   }
 }

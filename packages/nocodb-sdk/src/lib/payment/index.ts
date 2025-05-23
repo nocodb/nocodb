@@ -149,6 +149,10 @@ export const GRACE_PERIOD_DURATION = 14;
 
 export const LOYALTY_GRACE_PERIOD_END_DATE = '2025-05-30';
 
+export const SEAT_PRICE_CAP = 9;
+
+export const LOYALTY_SEAT_PRICE_CAP = 4;
+
 export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: 'to add more workspaces.',
   [PlanLimitTypes.LIMIT_EDITOR]: 'to add more editors.',

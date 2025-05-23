@@ -1,9 +1,7 @@
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { NcContext } from 'nocodb-sdk';
 import { UpdateWebhookHandler } from '~/db/update-webhook-handler';
 
 export type RelationUpdateWebhookContext = {
-  context: NcContext;
   user: any;
   parentBaseModel: IBaseModelSqlV2;
   childBaseModel: IBaseModelSqlV2;
@@ -56,7 +54,7 @@ export class RelationUpdateWebhookHandler {
   async sendBeforeUpdateWebhook() {
     this.parentUpdateWebhookHandler = await UpdateWebhookHandler.beginUpdate(
       {
-        context: this.relationWebhookContext.context,
+        context: this.relationWebhookContext.parentBaseModel.context,
         user: this.relationWebhookContext.user,
         baseModel: this.relationWebhookContext.parentBaseModel,
         isSingleUpdate: true,
@@ -72,7 +70,7 @@ export class RelationUpdateWebhookHandler {
     ) {
       this.childUpdateWebhookHandler = await UpdateWebhookHandler.beginUpdate(
         {
-          context: this.relationWebhookContext.context,
+          context: this.relationWebhookContext.childBaseModel.context,
           user: this.relationWebhookContext.user,
           baseModel: this.relationWebhookContext.childBaseModel,
           isSingleUpdate: true,
@@ -87,7 +85,7 @@ export class RelationUpdateWebhookHandler {
     this.affectedParentUpdateWebhookHandler =
       await UpdateWebhookHandler.beginUpdate(
         {
-          context: this.relationWebhookContext.context,
+          context: this.relationWebhookContext.parentBaseModel.context,
           user: this.relationWebhookContext.user,
           baseModel: this.relationWebhookContext.parentBaseModel,
           isSingleUpdate: true,
@@ -101,7 +99,7 @@ export class RelationUpdateWebhookHandler {
     this.affectedChildUpdateWebhookHandler =
       await UpdateWebhookHandler.beginUpdate(
         {
-          context: this.relationWebhookContext.context,
+          context: this.relationWebhookContext.childBaseModel.context,
           user: this.relationWebhookContext.user,
           baseModel: this.relationWebhookContext.childBaseModel,
           isSingleUpdate: true,

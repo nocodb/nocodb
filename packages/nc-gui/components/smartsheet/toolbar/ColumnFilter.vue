@@ -55,6 +55,8 @@ const modelValue = useVModel(props, 'modelValue', emit)
 
 const isOpen = useVModel(props, 'isOpen', emit)
 
+provide(IsInFilterInj, ref(true))
+
 const {
   nestedLevel,
   parentId,
@@ -328,6 +330,13 @@ const selectFilterField = (filter: Filter, index: number) => {
 
   // reset filter value as well
   filter.value = null
+
+  // Check if dynamic filter is still allowed for the new column
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  if (filter.dynamic && !isDynamicFilterAllowed(filter)) {
+    filter.dynamic = false
+    filter.fk_value_col_id = null // Also reset the dynamic value column if it was set
+  }
 
   // Do not save the filter on field change if its a draft/placeholder filter
   if (!isFilterDraft(filter, col)) {
@@ -658,6 +667,7 @@ eventBus.on(async (event) => {
                   :key="i"
                   ref="localNestedFilters"
                   v-model="filter.children"
+                  v-model:is-open="isOpen"
                   :nested-level="nestedLevel + 1"
                   :parent-id="filter.id"
                   :auto-save="autoSave"
@@ -886,7 +896,7 @@ eventBus.on(async (event) => {
                   />
 
                   <SmartsheetToolbarFilterInput
-                    v-if="showFilterInput(filter)"
+                    v-if="showFilterInput(filter) && (isViewFilter ? isOpen : true)"
                     class="nc-filter-value-select rounded-md min-w-34"
                     :class="{
                       '!w-full': webHook,

@@ -1,18 +1,20 @@
 import dayjs from 'dayjs';
 import { ColumnType, SelectOptionsType } from '~/lib/Api';
-import { getDateFormat, getDateTimeFormat } from '~/lib/dateTimeHelper';
 import { convertDurationToSeconds } from '~/lib/durationUtils';
 import { parseProp } from '~/lib/helperFunctions';
 import {
   ncIsBoolean,
   ncIsFunction,
   ncIsNaN,
+  ncIsNull,
   ncIsNumber,
   ncIsString,
+  ncIsUndefined,
 } from '~/lib/is';
 import UITypes from '~/lib/UITypes';
 import { SerializerOrParserFnProps } from '../column.interface';
 import { SelectTypeConversionError } from '~/lib/error';
+import { checkboxTypeMap } from '~/lib/columnHelper/utils/common';
 
 /**
  * Remove outer quotes & unescape
@@ -125,8 +127,10 @@ export const serializeCheckboxValue = (
 
   if (ncIsString(value)) {
     const strval = value.trim().toLowerCase();
-    if (strval === 'true' || strval === '1') return true;
-    if (strval === 'false' || strval === '0' || strval === '') return false;
+    const parsedValue = checkboxTypeMap[strval];
+    if (!ncIsNull(parsedValue) && !ncIsUndefined(parsedValue)) {
+      return parsedValue;
+    }
   }
 
   return null;
@@ -146,29 +150,6 @@ export const serializeCurrencyValue = (value: any) => {
   return serializeDecimalValue(value, (value) => {
     return value?.replace(/[^0-9.]/g, '')?.trim();
   });
-};
-
-export const serializeDateOrDateTimeValue = (
-  value: string | null,
-  col: ColumnType
-) => {
-  if (!value) return null;
-
-  value = value?.toString().trim();
-
-  let parsedDateOrDateTime = dayjs(value, getDateTimeFormat(value));
-
-  if (!parsedDateOrDateTime.isValid()) {
-    parsedDateOrDateTime = dayjs(value, getDateFormat(value));
-  }
-
-  if (!parsedDateOrDateTime.isValid()) {
-    return null;
-  }
-
-  return col.uidt === UITypes.Date
-    ? parsedDateOrDateTime.format('YYYY-MM-DD')
-    : parsedDateOrDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ');
 };
 
 export const serializeTimeValue = (

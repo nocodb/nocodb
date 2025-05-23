@@ -1,5 +1,6 @@
 import { useStorage } from '@vueuse/core'
 import { PlanLimitTypes } from 'nocodb-sdk'
+import { usePlugin } from './usePlugin'
 import { ExtensionsEvents } from '#imports'
 
 const extensionsState = createGlobalState(() => {
@@ -15,36 +16,6 @@ interface ExtensionPanelState {
 const extensionsPanelState = createGlobalState(() =>
   useStorage<Record<string, ExtensionPanelState>>('nc-extensions-global-state', {}),
 )
-
-export interface ExtensionManifest {
-  id: string
-  title: string
-  subTitle: string
-  description: string
-  entry: string
-  version: string
-  iconUrl: string
-  publisher: {
-    name: string
-    email: string
-    url: string
-    icon?: {
-      src: string
-      width?: number
-      height?: number
-    }
-  }
-  links: {
-    title: string
-    href: string
-  }[]
-  config: {
-    modalSize?: 'xs' | 'sm' | 'md' | 'lg'
-    contentMinHeight?: string
-  }
-  order: number
-  disabled?: boolean
-}
 
 export interface IKvStore<T extends Record<string, any>> {
   get<K extends keyof T>(key: K): T[K] | null
@@ -73,31 +44,9 @@ abstract class ExtensionType {
 
 export { ExtensionType }
 
-enum ExtensionLib {
-  assets = 'assets',
-  modules = 'modules',
-  markdowns = 'markdownModules',
-}
-
 export const useExtensions = createSharedComposable(() => {
-  const globs = {
-    [ExtensionLib.assets]: import.meta.glob('../extensions/*/assets/*', { query: '?url', import: 'default' }),
-    [ExtensionLib.modules]: import.meta.glob('../extensions/*/*.json', { import: 'default' }),
-    [ExtensionLib.markdowns]: import.meta.glob('../extensions/*/*.md', {
-      query: '?raw',
-      import: 'default',
-    }),
-  } as const
-
-  const extensionAssets: {
-    [ExtensionLib.assets]: Record<string, string>
-    [ExtensionLib.modules]: Record<string, ExtensionManifest>
-    [ExtensionLib.markdowns]: Record<string, string>
-  } = {
-    [ExtensionLib.assets]: {},
-    [ExtensionLib.modules]: {},
-    [ExtensionLib.markdowns]: {},
-  }
+  const { pluginsLoaded, getPluginAssetUrl, availableExtensions, availableExtensionIds, pluginTypes, pluginDescriptionContent } =
+    usePlugin()
 
   const { baseExtensions } = extensionsState()
 
@@ -110,17 +59,6 @@ export const useExtensions = createSharedComposable(() => {
   const { updateStatLimit } = useEeConfig()
 
   const eventBus = useEventBus<ExtensionsEvents>(Symbol('useExtensions'))
-
-  const extensionsLoaded = ref(false)
-
-  const availableExtensions = ref<ExtensionManifest[]>([])
-
-  const availableExtensionIds = computed(() => {
-    return availableExtensions.value.map((e) => e.id)
-  })
-
-  // Object to store description content for each extension
-  const descriptionContent = ref<Record<string, string>>({})
 
   const activeBaseExtensions = computed(() => {
     if (!base.value || !base.value.id) {
@@ -325,17 +263,6 @@ export const useExtensions = createSharedComposable(() => {
       console.log(e)
     }
   }
-
-  const getExtensionAssetsUrl = (pathOrUrl: string) => {
-    if (pathOrUrl.startsWith('http')) {
-      return pathOrUrl
-    } else {
-      const file = extensionAssets[ExtensionLib.assets][`../extensions/${pathOrUrl}`]
-
-      return file || ''
-    }
-  }
-
   class KvStore<T extends Record<string, any> = any> implements IKvStore<T> {
     private _id: string
     private data: T
@@ -467,76 +394,6 @@ export const useExtensions = createSharedComposable(() => {
     }
   }
 
-  // Function to load extensions
-  onMounted(async () => {
-    for (const [key, glob] of Object.entries(globs)) {
-      for (const path of Object.keys(glob)) {
-        if (!glob[path]) continue
-
-        try {
-          if (key in extensionAssets) {
-            extensionAssets[key as ExtensionLib][path] = (await glob[path]()) as any
-          }
-        } catch (error) {
-          console.error(`Failed to load file at ${path} for ${key}:`, error)
-        }
-      }
-    }
-
-    try {
-      const extensionCount = Object.keys(extensionAssets[ExtensionLib.modules]).length
-      let disabledCount = 0
-
-      // Array to hold the promises
-
-      for (const [path, manifest] of Object.entries(extensionAssets[ExtensionLib.modules])) {
-        try {
-          if (!Array.isArray(manifest.links)) {
-            manifest.links = []
-          }
-
-          if (!manifest?.config || !manifest?.config?.modalSize) {
-            manifest.config = {
-              ...(manifest.config || {}),
-              modalSize: 'lg',
-            }
-          }
-
-          if (manifest?.disabled !== true) {
-            availableExtensions.value.push(manifest)
-
-            // Load the descriptionMarkdown if available
-            if (manifest.description) {
-              const markdownPath = `../extensions/${manifest.description}`
-
-              if (extensionAssets[ExtensionLib.markdowns][markdownPath] && manifest?.id) {
-                try {
-                  const markdownContent = extensionAssets[ExtensionLib.markdowns][markdownPath]
-
-                  descriptionContent.value[manifest.id] = `${markdownContent}`
-                } catch (markdownError) {
-                  console.error(`Failed to load Markdown file at ${markdownPath}:`, markdownError)
-                }
-              }
-            }
-          } else {
-            disabledCount++
-          }
-        } catch (error) {
-          console.error(`Failed to load module at ${path}:`, error)
-        }
-      }
-
-      if (availableExtensions.value.length + disabledCount === extensionCount) {
-        // Sort extensions
-        availableExtensions.value.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
-        extensionsLoaded.value = true
-      }
-    } catch (error) {
-      console.error('Error loading extensions:', error)
-    }
-  })
-
   watch(
     () => base.value?.id,
     (baseId) => {
@@ -563,14 +420,13 @@ export const useExtensions = createSharedComposable(() => {
 
     $e('c:extension:details', { source: from, extensionId })
   }
-
   // Extension market modal
   const isMarketVisible = ref(false)
 
   return {
-    extensionsLoaded,
+    extensionsLoaded: pluginsLoaded,
     availableExtensions,
-    descriptionContent,
+    descriptionContent: pluginDescriptionContent,
     extensionList,
     isPanelExpanded,
     toggleExtensionPanel,
@@ -580,7 +436,7 @@ export const useExtensions = createSharedComposable(() => {
     updateExtensionMeta,
     clearKvStore,
     deleteExtension,
-    getExtensionAssetsUrl,
+    getExtensionAssetsUrl: (pathOrUrl: string) => getPluginAssetUrl(pathOrUrl, pluginTypes.extension),
     isDetailsVisible,
     detailsExtensionId,
     detailsFrom,

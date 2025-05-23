@@ -131,6 +131,10 @@ export class DataTableService {
       cookie: any;
       undo?: boolean;
       apiVersion?: NcApiVersion;
+      internalFlags?: {
+        allowSystemColumn?: boolean;
+        skipHooks?: boolean;
+      };
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -152,6 +156,8 @@ export class DataTableService {
         typecast: (param.cookie?.query?.typecast ?? '') === 'true',
         undo: param.undo,
         apiVersion: param.apiVersion,
+        allowSystemColumn: param.internalFlags?.allowSystemColumn,
+        skip_hooks: param.internalFlags?.skipHooks,
       },
     );
 
@@ -197,6 +203,9 @@ export class DataTableService {
       body: any;
       cookie: any;
       apiVersion?: NcApiVersion;
+      internalFlags?: {
+        allowSystemColumn?: boolean;
+      };
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -218,6 +227,7 @@ export class DataTableService {
         throwExceptionIfNotExist: true,
         isSingleRecordUpdation: !Array.isArray(param.body),
         apiVersion: param.apiVersion,
+        allowSystemColumn: param.internalFlags?.allowSystemColumn,
       },
     );
 
@@ -341,7 +351,7 @@ export class DataTableService {
 
     const result = (Array.isArray(body) ? body : [body]).map((row) => {
       return pkColumns.reduce((acc, col) => {
-        acc[col.title] = row[col.title] ?? row[col.column_name];
+        acc[col.title] = row[col.title] ?? row[col.column_name] ?? row[col.id];
         return acc;
       }, {});
     });
@@ -369,14 +379,19 @@ export class DataTableService {
 
     for (const row of rows) {
       let pk;
+      // TODO: refactor to extractPkValues of baseModelSqlV2
+
       // if only one primary key then extract the value
       if (model.primaryKeys.length === 1)
-        pk = row[model.primaryKey.title] ?? row[model.primaryKey.column_name];
+        pk =
+          row[model.primaryKey.title] ??
+          row[model.primaryKey.column_name] ??
+          row[model.primaryKey.id];
       // if composite primary key then join the values with ___
       else
         pk = model.primaryKeys
           .map((pk) =>
-            (row[pk.title] ?? row[pk.column_name])
+            (row[pk.title] ?? row[pk.column_name] ?? row[pk.id])
               ?.toString?.()
               ?.replaceAll('_', '\\_'),
           )
@@ -681,12 +696,15 @@ export class DataTableService {
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       context,
     );
-    const relatedModel = await colOptions.getRelatedTable(context);
-    await relatedModel.getColumns(context);
+
+    const { refContext } = await colOptions.getParentChildContext(context);
+
+    const relatedModel = await colOptions.getRelatedTable(refContext);
+    await relatedModel.getColumns(refContext);
 
     if (colOptions.type !== RelationTypes.MANY_TO_MANY) return;
 
-    const { dependencyFields } = await getAst(context, {
+    const { dependencyFields } = await getAst(refContext, {
       model: relatedModel,
       query: param.query,
       extractOnlyPrimaries: !(param.query?.f || param.query?.fields),

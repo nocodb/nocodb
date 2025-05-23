@@ -9,7 +9,10 @@ import {
   UITypes,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
+import { getColumnName } from 'src/helpers/dbHelpers';
 import genRollupSelectv2 from '../genRollupSelectv2';
+import { replaceDelimitedWithKeyValuePg } from '../aggregations/pg';
+import { replaceDelimitedWithKeyValueSqlite3 } from '../aggregations/sqlite3';
 import { lookupOrLtarBuilder } from './lookup-or-ltar-builder';
 import {
   binaryExpressionBuilder,
@@ -24,6 +27,7 @@ import type {
   FnParsedTreeNode,
   FormulaQueryBuilderBaseParams,
   TAliasToColumn,
+  TAliasToColumnParam,
 } from './formula-query-builder.types';
 import NocoCache from '~/cache/NocoCache';
 import { getRefColumnIfAlias } from '~/helpers';
@@ -115,7 +119,10 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.Formula:
       case UITypes.Button:
         {
-          aliasToColumn[col.id] = async (parentColumns?: Set<string>) => {
+          aliasToColumn[col.id] = async ({
+            tableAlias,
+            parentColumns,
+          }: TAliasToColumnParam) => {
             if (parentColumns?.has(col.id)) {
               NcError.formulaError('Circular reference detected', {
                 details: {
@@ -159,9 +166,10 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         break;
       case UITypes.Rollup:
       case UITypes.Links:
-        aliasToColumn[col.id] = async (
-          _parentColumns?: Set<string>,
-        ): Promise<any> => {
+        aliasToColumn[col.id] = async ({
+          tableAlias,
+          parentColumns: _parentColumns,
+        }: TAliasToColumnParam): Promise<any> => {
           const qb = await genRollupSelectv2({
             baseModelSqlv2,
             knex,
@@ -182,9 +190,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             break;
           }
           if (knex.clientType().startsWith('mysql')) {
-            aliasToColumn[col.id] = async (
-              _parentColumns?: Set<string>,
-            ): Promise<any> => {
+            aliasToColumn[col.id] = async (): Promise<any> => {
               return {
                 // convert from DB timezone to UTC
                 builder: knex.raw(
@@ -198,9 +204,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             refCol.dt !== 'timestamp with time zone' &&
             refCol.dt !== 'timestamptz'
           ) {
-            aliasToColumn[col.id] = async (
-              _parentColumns?: Set<string>,
-            ): Promise<any> => {
+            aliasToColumn[col.id] = async (): Promise<any> => {
               return {
                 // convert from DB timezone to UTC
                 builder: knex
@@ -235,23 +239,47 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy:
         {
-          aliasToColumn[col.id] = async (
-            _parentColumns?: Set<string>,
-          ): Promise<any> => {
+          aliasToColumn[col.id] = async (): Promise<any> => {
             baseUsers =
               baseUsers ??
               (await BaseUser.getUsersList(context, {
                 base_id: model.base_id,
               }));
 
+            let finalStatement = '';
+
+            // CreatedBy and LastModifiedBy with system = false has no column_name
+            // need to get it from siblings
+            const columnName = await getColumnName(context, col, columns);
+
             // create nested replace statement for each user
-            const finalStatement = baseUsers.reduce((acc, user) => {
-              const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [
-                user.id,
-                user.email,
-              ]);
-              return qb.toQuery();
-            }, knex.raw(`??`, [col.column_name]).toQuery());
+            if (knex.clientType() === 'pg') {
+              finalStatement = `(${replaceDelimitedWithKeyValuePg({
+                knex,
+                needleColumn: columnName,
+                stack: baseUsers.map((user) => ({
+                  key: user.id,
+                  value: `${user.email}`,
+                })),
+              })})`;
+            } else if (knex.clientType() === 'sqlite3') {
+              finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
+                knex,
+                needleColumn: columnName,
+                stack: baseUsers.map((user) => ({
+                  key: user.id,
+                  value: `${user.email}`,
+                })),
+              })})`;
+            } else {
+              finalStatement = baseUsers.reduce((acc, user) => {
+                const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [
+                  user.id,
+                  user.email,
+                ]);
+                return qb.toQuery();
+              }, knex.raw(`??`, [columnName]).toQuery());
+            }
 
             return {
               builder: knex.raw(finalStatement).wrap('(', ')'),
@@ -301,7 +329,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         break;
       }
       default:
-        aliasToColumn[col.id] = () =>
+        aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
           Promise.resolve({
             builder: knex.raw(`??`, [
               `${tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)}.${
@@ -352,7 +380,10 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       return { builder: knex.raw(`?`, [pt.value]) };
     } else if (pt.type === 'Identifier') {
       const { builder } =
-        (await aliasToColumn?.[pt.name]?.(params.parentColumns)) || {};
+        (await aliasToColumn?.[pt.name]?.({
+          tableAlias,
+          parentColumns: params.parentColumns,
+        })) || {};
       if (typeof builder === 'function') {
         return { builder: knex.raw(`??`, builder(pt.fnName)) };
       }

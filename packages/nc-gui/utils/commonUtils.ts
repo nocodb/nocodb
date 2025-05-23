@@ -139,3 +139,29 @@ export const antSelectFilterOption = (
 
   return searchCompare(optionValue, inputValue)
 }
+
+export const ncLastVisitedBase = (): {
+  key: string
+  get: () => string | null
+  set: (value: string | null | undefined) => void
+} => {
+  const key = 'ncLastVisitedBase'
+
+  return {
+    key,
+    get: () => {
+      return sessionStorage.getItem(key)
+    },
+    set: (value: string | null | undefined) => {
+      if (!value) return
+
+      sessionStorage.setItem(key, value)
+    },
+  }
+}
+
+export const extractNameFromEmail = (email?: string) => {
+  if (!email) return ''
+
+  return email?.slice(0, email.indexOf('@'))
+}

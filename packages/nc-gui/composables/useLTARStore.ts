@@ -37,6 +37,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { base } = storeToRefs(useBase())
 
+    const { getBaseRoles } = useBases()
+
     const { $api, $e } = useNuxtApp()
 
     const { isMobileMode } = useGlobal()
@@ -226,6 +228,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       )
     })
 
+    // extract external base roles if cross base link
+    const externalBaseUserRoles = computedAsync(async () => {
+      if (base.value?.id && base.value?.id === relatedTableMeta.value?.base_id) return
+
+      return await getBaseRoles(relatedTableMeta.value?.base_id, {
+        skipUpdatingUser: true,
+      })
+    })
+
     /**
      * Extract only primary key(pk) and primary value(pv) column data
      */
@@ -370,7 +381,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
           childrenExcludedList.value = await $api.dbTableRow.list(
             NOCO,
-            baseId,
+            relatedTableMeta?.value?.base_id ?? baseId,
             relatedTableMeta?.value?.id as string,
             {
               limit: childrenExcludedListPagination.size,
@@ -401,7 +412,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
           childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
             NOCO,
-            baseId,
+            meta.value.base_id ?? baseId,
             meta.value.id,
             encodeURIComponent(rowId.value),
             colOptions.value.type as RelationTypes,
@@ -525,7 +536,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           } else {
             childrenList.value = await $api.dbTableRow.nestedList(
               NOCO,
-              (base?.value?.id || (sharedView.value?.view as any)?.base_id) as string,
+              meta.value?.base_id ?? ((base?.value?.id || (sharedView.value?.view as any)?.base_id) as string),
               meta.value.id,
               encodeURIComponent(rowId.value),
               colOptions.value.type as RelationTypes,
@@ -563,7 +574,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           try {
             const res: { message?: string[] } | number = await $api.dbTableRow.delete(
               NOCO,
-              baseId,
+              relatedTableMeta.value?.base_id ?? baseId,
               relatedTableMeta.value.id as string,
               encodeURIComponent(id as string),
             )
@@ -622,7 +633,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLoading.value[index] = true
         await $api.dbTableRow.nestedRemove(
           NOCO,
-          base.value.id as string,
+          metaValue?.base_id ?? (base.value.id as string),
           metaValue.id!,
           encodeURIComponent(rowId.value),
           colOptions.value.type as RelationTypes,
@@ -693,7 +704,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
         await $api.dbTableRow.nestedAdd(
           NOCO,
-          base.value.id as string,
+          metaValue?.base_id ?? (base.value.id as string),
           metaValue.id as string,
           encodeURIComponent(rowId.value),
           colOptions.value.type as RelationTypes,
@@ -824,6 +835,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       attachmentCol,
       fields,
       refreshCurrentRow,
+      externalBaseUserRoles,
     }
   },
   'ltar-store',

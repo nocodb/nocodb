@@ -16,6 +16,16 @@ export class JobsService implements OnModuleInit {
   constructor(private readonly fallbackQueueService: QueueService) {}
 
   async onModuleInit() {
+    await this.fallbackQueueService.add(
+      JobTypes.DataExportCleanUp,
+      {},
+      {
+        jobId: JobTypes.DataExportCleanUp,
+        // run every 5 hours
+        repeat: { cron: '* * * * *' },
+      },
+    );
+
     await this.add(JobTypes.InitMigrationJobs, {});
   }
 

@@ -79,6 +79,7 @@ export enum RelationTypes {
 export const ExpandedFormMode = {
   FIELD: 'field',
   ATTACHMENT: 'attachment',
+  DISCUSSION: 'discussion',
 } as const;
 
 export type ExpandedFormModeType =
@@ -191,6 +192,8 @@ export enum NcErrorType {
   SSO_LOGIN_REQUIRED = 'SSO_LOGIN_REQUIRED',
   MAX_INSERT_LIMIT_EXCEEDED = 'MAX_INSERT_LIMIT_EXCEEDED',
   INVALID_VALUE_FOR_FIELD = 'INVALID_VALUE_FOR_FIELD',
+  MAX_WORKSPACE_LIMIT_REACHED = 'MAX_WORKSPACE_LIMIT_REACHED',
+  BASE_USER_ERROR = 'BASE_USER_ERROR',
 }
 
 export const NcErrorTypeMap = {
@@ -199,7 +202,7 @@ export const NcErrorTypeMap = {
   [NcErrorType.VIEW_NOT_FOUNDV3]: 'VIEW_NOT_FOUND',
   [NcErrorType.FIELD_NOT_FOUNDV3]: 'FIELD_NOT_FOUND',
   [NcErrorType.INVALID_FILTERV3]: 'INVALID_FILTER',
-}
+};
 export const LongTextAiMetaProp = 'ai';
 
 export const NO_SCOPE = 'nc';
@@ -212,6 +215,21 @@ export const NON_SEAT_ROLES = [
   ProjectRoles.VIEWER,
   ProjectRoles.COMMENTER,
 ];
+
+export const DURATION_TYPE_MAP = {
+  0: 'h:mm',
+  1: 'h:mm:ss',
+  2: 'h:mm:ss.s',
+  3: 'h:mm:ss.ss',
+  4: 'h:mm:ss.sss',
+  'h:mm': 0,
+  'h:mm:ss': 1,
+  'h:mm:ss.s': 2,
+  'h:mm:ss.ss': 3,
+  'h:mm:ss.sss': 4,
+}
+
+export const CURRENT_USER_TOKEN = '@me'
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
 

@@ -22,21 +22,9 @@ const goToToday = () => {
 </script>
 
 <template>
-  <NcButton
-    class="!border-0 !h-6 today-btn !bg-gray-100"
-    data-testid="nc-calendar-today-btn"
-    size="small"
-    type="secondary"
-    @click="goToToday"
-  >
-    <span class="text-gray-700 !text-[13px]">
+  <NcButton class="today-btn !h-7" data-testid="nc-calendar-today-btn" size="small" type="secondary" @click="goToToday">
+    <span class="text-gray-700 font-bold !text-[13px]">
       {{ $t('labels.today') }}
     </span>
   </NcButton>
 </template>
-
-<style lang="scss" scoped>
-.today-btn {
-  @apply !hover:bg-gray-200;
-}
-</style>

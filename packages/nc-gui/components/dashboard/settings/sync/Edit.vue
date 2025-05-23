@@ -1,69 +1,50 @@
 <script lang="ts" setup>
-import type { FormDefinition } from 'nocodb-sdk'
-import { IntegrationsType, SyncTrigger, SyncType } from 'nocodb-sdk'
 import { JobStatus } from '#imports'
 
-const props = defineProps<{ open: boolean; tableId: string; baseId: string; isModal?: boolean }>()
-const emit = defineEmits(['update:open'])
+const props = defineProps<{ open: boolean; baseId: string; syncId: string; isModal?: boolean }>()
+const emit = defineEmits(['update:open', 'syncUpdated'])
 const vOpen = useVModel(props, 'open', emit)
 
-const { integrations, loadDynamicIntegrations, getIntegrationForm, loadIntegrations } = useIntegrationStore()
-
-const { refreshCommandPalette } = useCommandPalette()
-
-const { t } = useI18n()
-
-const { baseTables } = storeToRefs(useTablesStore())
-
-const tables = computed(() => baseTables.value.get(props.baseId) ?? [])
-
-const table = computed(() => tables.value.find((t) => t.id === props.tableId))
+const { integrations, loadDynamicIntegrations, loadIntegrations } = useIntegrationStore()
 
 const workspaceStore = useWorkspace()
-const { activeWorkspace } = storeToRefs(workspaceStore)
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
-const activeIntegrationItemForm = ref<FormDefinition>()
+const { $poller } = useNuxtApp()
 
-const tableSyncs = ref<Record<string, any>[]>([])
-
-const activeSync = ref<Record<string, any> | null>(null)
-
-const syncOptions = ref<
+const tabs = ref([
   {
-    label: string
-    value: string
-  }[]
->([])
-
-const { $api, $poller } = useNuxtApp()
-
-const createMoreModal = ref(false)
-
-const { formState, isLoading, validateInfos, clearValidate, submit, isChanged } = useProvideFormBuilderHelper({
-  formSchema: activeIntegrationItemForm,
-  onSubmit: async () => {
-    isLoading.value = true
-
-    try {
-      await $api.internal.postOperation(
-        activeWorkspace.value!.id!,
-        props.baseId!,
-        {
-          operation: 'updateSync',
-        },
-        { syncConfigId: activeSync.value!.id, ...formState.value },
-      )
-
-      await initialize()
-
-      refreshCommandPalette()
-    } catch (e) {
-      message.error(await extractSdkResponseErrorMsg(e))
-    } finally {
-      isLoading.value = false
-    }
+    title: 'Sync',
+    value: 'sync',
+    icon: 'ncZap' as const,
   },
-})
+  {
+    title: 'Sync Settings',
+    value: 'sync-settings',
+    icon: 'ncSettings' as const,
+  },
+  {
+    title: 'Integrations',
+    value: 'integrations',
+    icon: 'ncSettings' as const,
+  },
+])
+
+// Create a new integration configs store instance for this component
+const {
+  integrationConfigs,
+  isLoading,
+  loadConfig,
+  syncConfigEditForm,
+  editMode,
+  editModeSync,
+  syncConfigEditFormChanged,
+  triggerSync,
+  readSync,
+  editTab,
+} = useProvideSyncStore(activeWorkspaceId, props.baseId!)
+
+editMode.value = true
 
 const updatingSync = ref(false)
 
@@ -73,160 +54,55 @@ const completeSync = ref(false)
 
 const progressRef = ref()
 
-const selectedSyncType = computed(() => {
-  return formState.value.sub_type
-})
-
-const changeActiveSync = async (id: string) => {
-  activeSync.value = tableSyncs.value.find((sync) => sync.id === id)!
-
-  const integration = await $api.integration.read(activeSync.value.fk_integration_id, {
-    includeConfig: true,
-  })
-
-  const integrationForm = await getIntegrationForm(IntegrationsType.Sync, integration.sub_type!)
-
-  activeIntegrationItemForm.value = [
-    ...integrationForm,
-    {
-      type: FormBuilderInputType.Select,
-      label: 'Sync Type',
-      width: 48,
-      model: 'config.sync.sync_type',
-      category: 'Sync Options',
-      placeholder: 'Select sync type',
-      defaultValue: SyncType.Full,
-      options: [
-        {
-          label: 'Full',
-          value: SyncType.Full,
-        },
-        {
-          label: 'Incremental',
-          value: SyncType.Incremental,
-        },
-      ],
-      validators: [
-        {
-          type: 'required',
-          message: 'Sync type is required',
-        },
-      ],
-    },
-    {
-      type: FormBuilderInputType.Space,
-      width: 4,
-      category: 'Sync Options',
-    },
-    {
-      type: FormBuilderInputType.Select,
-      label: 'Sync Trigger',
-      width: 48,
-      model: 'config.sync.sync_trigger',
-      category: 'Sync Options',
-      placeholder: 'Select trigger type',
-      defaultValue: SyncTrigger.Manual,
-      options: [
-        {
-          label: 'Manual',
-          value: SyncTrigger.Manual,
-        },
-      ],
-      validators: [
-        {
-          type: 'required',
-          message: 'Sync trigger is required',
-        },
-      ],
-    },
-  ]
-
-  nextTick(() => {
-    formState.value = {
-      id: integration.id,
-      table_name: table.value?.title,
-      title: integration.title,
-      type: integration.type,
-      sub_type: integration.sub_type,
-      config: {
-        ...integration.config,
-        sync: {
-          ...activeSync.value,
-        },
-      },
-    }
-
-    nextTick(() => {
-      clearValidate()
-      isChanged.value = false
-    })
-
-    isLoading.value = false
-  })
-}
-
 async function initialize() {
-  tableSyncs.value = []
-  syncOptions.value = []
-
   isLoading.value = true
 
   await loadDynamicIntegrations()
   await loadIntegrations()
 
-  const syncs = (await $api.internal.getOperation(activeWorkspace.value!.id!, props.baseId!, {
-    operation: 'listSync',
-    fk_model_id: props.tableId,
-  })) as {
-    id: string
-    fk_integration_id: string
-    fk_model_id: string
-    sync_type: string
-    sync_trigger: string
-    sync_trigger_cron?: string
-    sync_trigger_secret?: string
-    last_sync_at: string | null
-    next_sync_at: string | null
-    sync_job_id: string
-  }[]
+  const sync = await readSync(props.syncId!)
 
-  if (syncs.length === 0) {
-    vOpen.value = false
-    return
-  }
+  editModeSync.value = sync
 
-  for (const sync of syncs) {
-    tableSyncs.value.push(sync)
+  syncConfigEditForm.value = sync
 
+  const existingIntegrationConfigs = [sync, ...sync.children]
+
+  integrationConfigs.value = existingIntegrationConfigs.map((sync) => {
     const integration = integrations.value.find((i) => i.id === sync.fk_integration_id)
 
-    if (!integration) continue
+    if (!integration) {
+      return null
+    }
 
-    syncOptions.value.push({
-      label: `${integration.title}`,
-      value: sync.id,
-    })
+    return {
+      ...integration,
+      syncConfigId: sync.id,
+      parentSyncConfigId: sync.fk_parent_sync_config_id,
+    }
+  }) as IntegrationConfig[]
+
+  isLoading.value = false
+}
+
+const onTabChange = async (value?: string) => {
+  if (value === 'integrations') {
+    await loadConfig(0)
   }
-
-  await changeActiveSync(syncs[0]!.id)
 }
 
 const onTrigger = async () => {
-  if (!activeSync.value) return
+  if (!editModeSync.value) return
 
   try {
     triggeredSync.value = true
 
-    const jobData = await $api.internal.postOperation(
-      activeWorkspace.value!.id!,
-      props.baseId!,
-      {
-        operation: 'triggerSync',
-      },
-      {
-        syncConfigId: activeSync.value.id,
-      },
-    )
+    const jobData = await triggerSync(props.syncId!, true)
+
+    if (!jobData) {
+      triggeredSync.value = false
+      return
+    }
 
     $poller.subscribe(
       { id: jobData.id },
@@ -247,11 +123,11 @@ const onTrigger = async () => {
             triggeredSync.value = false
             completeSync.value = true
           } else if (data.status === JobStatus.FAILED) {
-            progressRef.value.pushProgress(data.data?.error?.message ?? 'Sync failed', data.status)
+            progressRef.value?.pushProgress(data.data?.error?.message ?? 'Sync failed', data.status)
             triggeredSync.value = false
             completeSync.value = true
           } else {
-            progressRef.value.pushProgress(data.data?.message, data.status)
+            progressRef.value?.pushProgress(data.data?.message ?? '', data.status)
           }
         }
       },
@@ -262,61 +138,14 @@ const onTrigger = async () => {
   }
 }
 
-const onDeleteSync = async () => {
-  if (!activeSync.value) return
-
-  Modal.confirm({
-    title: `Do you want to delete ${formState.value.title}?`,
-    content: 'This action cannot be undone!!!',
-    wrapClassName: 'nc-modal-delete',
-    okText: t('general.yes'),
-    okType: 'danger',
-    cancelText: t('general.no'),
-    width: 450,
-    async onOk() {
-      try {
-        await $api.internal.postOperation(
-          activeWorkspace.value!.id!,
-          props.baseId!,
-          {
-            operation: 'deleteSync',
-          },
-          {
-            syncConfigId: activeSync.value!.id,
-          },
-        )
-
-        message.success('Sync deleted successfully')
-
-        await initialize()
-      } catch (e) {
-        message.error(await extractSdkResponseErrorMsgv2(e as any))
-      }
-    },
-  })
-}
-
 // select and focus title field on load
 onMounted(() => {
   initialize()
 })
 
 const isModalClosable = computed(() => {
-  return !updatingSync.value
+  return !updatingSync.value && !triggeredSync.value
 })
-
-const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [IntegrationCategoryType.SYNC].includes(c.value)
-const filterIntegration = (i: IntegrationItemType) => !!(i.sub_type !== SyncDataType.NOCODB && i.isAvailable)
-
-const integrationOptionsExpansionPanel = ref<string[]>([])
-
-const handleUpdateIntegrationOptionsExpansionPanel = (open: boolean) => {
-  if (open) {
-    integrationOptionsExpansionPanel.value = ['1']
-  } else {
-    integrationOptionsExpansionPanel.value = []
-  }
-}
 </script>
 
 <template>
@@ -329,147 +158,92 @@ const handleUpdateIntegrationOptionsExpansionPanel = (open: boolean) => {
     wrap-class-name="nc-modal-create-source"
     @keydown.esc="vOpen = false"
   >
-    <div class="flex-1 flex flex-col max-h-full">
+    <div class="flex-1 flex flex-col max-h-full create-source">
       <div class="px-4 py-3 w-full flex items-center gap-3 border-b-1 border-gray-200">
         <div class="flex items-center">
-          <GeneralIcon icon="sync" class="!text-green-700 !h-5 !w-5" />
+          <GeneralIcon icon="ncZap" class="!text-green-700 !h-5 !w-5" />
         </div>
         <div class="flex-1 text-base font-weight-700">Edit Sync Configuration</div>
 
         <div class="flex items-center gap-3">
-          <NcButton
-            size="small"
-            type="primary"
-            :disabled="!isChanged || !selectedSyncType || isLoading || triggeredSync"
-            :loading="updatingSync"
-            class="nc-extdb-btn-submit"
-            @click="submit"
-          >
-            Update Sync Table
-          </NcButton>
-          <NcButton :disabled="updatingSync" size="small" type="text" @click="vOpen = false">
+          <NcButton :disabled="updatingSync || triggeredSync" size="small" type="text" @click="vOpen = false">
             <GeneralIcon icon="close" class="text-gray-600" />
           </NcButton>
         </div>
       </div>
-      <div class="h-[calc(100%_-_58px)] flex">
-        <div class="nc-add-source-left-panel nc-scrollbar-thin relative">
-          <div class="create-source bg-white relative flex flex-col gap-2 w-full max-w-[768px]">
-            <a-form name="external-base-create-form" layout="vertical" no-style class="flex flex-col gap-5.5">
-              <div class="nc-form-section">
-                <div class="nc-form-section-body">
-                  <a-row :gutter="24">
-                    <a-col :span="12">
-                      <a-form-item label="Table Name" v-bind="validateInfos.table_name">
-                        <a-input v-model:value="formState.table_name" disabled />
-                      </a-form-item>
-                    </a-col>
-                  </a-row>
-                  <a-row :gutter="24">
-                    <a-col :span="12">
-                      <a-form-item label="Integration" v-bind="validateInfos.type">
-                        <div class="flex">
-                          <NcSelect :value="formState?.config?.sync?.id" :options="syncOptions" @change="changeActiveSync" />
-                          <NcButton class="!px-6 mx-2" size="small" type="ghost" @click="createMoreModal = true">
-                            <div class="flex items-center gap-2">
-                              <GeneralIcon icon="plus" class="!h-4 !w-4" />
-                              <div>Add</div>
-                            </div>
-                          </NcButton>
-                          <NcButton class="!px-6 mx-2" size="small" type="danger" @click="onDeleteSync">
-                            <div class="flex items-center gap-2">
-                              <GeneralIcon icon="delete" class="!h-4 !w-4" />
-                              <div>Delete</div>
-                            </div>
-                          </NcButton>
-                        </div>
-                      </a-form-item>
-                    </a-col>
-                  </a-row>
+      <div class="h-[calc(100%_-_58px)] flex justify-center p-5">
+        <div class="flex flex-col gap-10 w-full items-center overflow-y-auto">
+          <div>
+            <NcSelectTab v-model="editTab" :items="tabs" @update:model-value="onTabChange" />
+          </div>
+          <div class="w-3xl flex rounded-lg p-6 w-full border-1 border-nc-border-gray-medium">
+            <template v-if="editTab === 'sync'">
+              <div class="create-source bg-white relative flex flex-col gap-2 w-full max-w-[768px]">
+                <div v-if="editModeSync" class="sync-info bg-gray-100 p-4 rounded-lg w-full">
+                  <div class="flex justify-between items-center">
+                    <div class="text-lg font-semibold">Sync Information</div>
+                    <div class="flex flex-col gap-2">
+                      <div class="text-sm text-gray-500">
+                        Last Sync: {{ editModeSync.last_sync_at ? editModeSync.last_sync_at : 'Never' }}
+                      </div>
+                      <div v-if="editModeSync.next_sync_at" class="text-sm text-gray-500">
+                        Next Sync: {{ editModeSync.next_sync_at }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="w-full flex flex-col mt-3">
+                  <div class="flex items-center gap-3">
+                    <NcButton
+                      v-if="!triggeredSync && !completeSync"
+                      size="small"
+                      type="primary"
+                      class="nc-extdb-btn-submit"
+                      :loading="triggeredSync"
+                      :disabled="isLoading || updatingSync"
+                      @click="onTrigger"
+                    >
+                      Trigger Sync
+                    </NcButton>
+                    <NcButton
+                      v-if="completeSync"
+                      size="small"
+                      type="primary"
+                      class="nc-extdb-btn-submit"
+                      @click="completeSync = false"
+                    >
+                      Minimize
+                    </NcButton>
+                  </div>
+                </div>
+
+                <div class="flex">
+                  <GeneralProgressPanel v-if="triggeredSync || completeSync" ref="progressRef" class="w-full h-[400px]" />
                 </div>
               </div>
-            </a-form>
-            <div class="w-full flex flex-col mt-3">
-              <div class="flex items-center gap-3">
-                <NcButton
-                  v-if="!triggeredSync && !completeSync"
-                  size="small"
-                  type="primary"
-                  class="nc-extdb-btn-submit"
-                  :loading="triggeredSync"
-                  :disabled="isLoading || updatingSync"
-                  @click="onTrigger"
-                >
-                  Trigger Sync
-                </NcButton>
-                <NcButton
-                  v-if="completeSync"
-                  size="small"
-                  type="primary"
-                  class="nc-extdb-btn-submit"
-                  @click="completeSync = false"
-                >
-                  Minimize
-                </NcButton>
+            </template>
+            <template v-if="editTab === 'sync-settings'">
+              <a-form name="external-base-create-form" layout="vertical" no-style hide-required-mark class="flex flex-col w-full">
+                <div class="nc-form-section">
+                  <div class="flex flex-col gap-5">
+                    <DashboardSettingsSyncSettings :edit-mode="true" />
+                  </div>
+                </div>
+              </a-form>
+            </template>
+            <template v-if="editTab === 'integrations'">
+              <div class="create-source bg-white relative flex flex-col gap-2 w-full max-w-[768px]">
+                <div class="nc-form-section w-full">
+                  <!-- Integration tabs and configuration -->
+                  <DashboardSettingsSyncIntegrationTabs />
+                  <DashboardSettingsSyncIntegrationConfig :edit-mode="true" />
+                </div>
               </div>
-            </div>
-
-            <div class="flex">
-              <GeneralProgressPanel v-if="triggeredSync || completeSync" ref="progressRef" class="w-full h-[400px]" />
-            </div>
-
-            <a-collapse v-model:active-key="integrationOptionsExpansionPanel" ghost class="nc-source-advanced-options !mt-6">
-              <template #expandIcon="{ isActive }">
-                <NcButton
-                  type="text"
-                  size="small"
-                  class="!-ml-1.5"
-                  @click="handleUpdateIntegrationOptionsExpansionPanel(!integrationOptionsExpansionPanel.length)"
-                >
-                  <div class="nc-form-section-title">Integration options</div>
-
-                  <GeneralIcon
-                    icon="chevronDown"
-                    class="ml-2 flex-none cursor-pointer transform transition-transform duration-500"
-                    :class="{ '!rotate-180': isActive }"
-                  />
-                </NcButton>
-              </template>
-              <a-collapse-panel key="1" collapsible="disabled">
-                <template #header>
-                  <span></span>
-                </template>
-
-                <NcFormBuilder :key="formState.sub_type" class="py-2" />
-              </a-collapse-panel>
-            </a-collapse>
-
-            <WorkspaceIntegrationsTab
-              is-modal
-              :filter-category="filterIntegrationCategory"
-              :filter-integration="filterIntegration"
-            />
-            <WorkspaceIntegrationsEditOrAdd load-datasource-info :base-id="baseId" />
+            </template>
           </div>
-          <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
-            <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
-              <a-spin size="large" />
-            </div>
-          </general-overlay>
-        </div>
-        <div class="nc-add-source-right-panel">
-          <DashboardSettingsDataSourcesSupportedDocs />
-          <NcDivider />
         </div>
       </div>
     </div>
-    <DashboardSettingsSyncCreateMore
-      v-if="createMoreModal"
-      v-model:open="createMoreModal"
-      :table-id="tableId"
-      :base-id="baseId"
-      @create-sync="initialize"
-    />
   </NcModal>
 </template>
 

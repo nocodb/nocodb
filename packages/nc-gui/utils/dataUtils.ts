@@ -175,6 +175,12 @@ export function validateRowFilters(
   columns: ColumnType[],
   client: any,
   metas: Record<string, any>,
+  options?: {
+    currentUser?: {
+      id: string
+      email: string
+    }
+  },
 ) {
   return sdkValidateRowFilters({
     filters: _filters,
@@ -182,6 +188,7 @@ export function validateRowFilters(
     columns,
     client,
     metas,
+    options,
   })
 }
 
@@ -355,7 +362,7 @@ export const getUserValue = (modelValue: string | string[] | null | Array<any>, 
 }
 
 export const getDecimalValue = (modelValue: string | null | number, col: ColumnType) => {
-  if (!modelValue || isNaN(Number(modelValue))) {
+  if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
     return ''
   }
   const columnMeta = parseProp(col.meta)
@@ -364,10 +371,10 @@ export const getDecimalValue = (modelValue: string | null | number, col: ColumnT
 }
 
 export const getIntValue = (modelValue: string | null | number) => {
-  if (!modelValue || isNaN(Number(modelValue))) {
+  if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
     return ''
   }
-  return Number(modelValue) as unknown as string
+  return Number(modelValue).toString()
 }
 
 export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => {
@@ -419,15 +426,14 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
 
   const colOptions = col.colOptions as LookupType
   const relationColumnOptions = colOptions.fk_relation_column_id
-    ? meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
+    ? (meta?.value ?? meta)?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
     : col.colOptions
+
   const relatedTableMeta =
     relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
-
   const childColumn = relatedTableMeta?.columns.find(
-    (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? colOptions?.fk_child_column_id),
+    (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? relatedTableMeta?.columns.find((c) => c.pv).id),
   ) as ColumnType | undefined
-
   if (Array.isArray(modelValue)) {
     return modelValue
       .map((v) => {
@@ -437,7 +443,7 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
       .join(', ')
   }
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  return parsePlainCellValue(modelValue, { ...params, col: childColumn! })
+  return parsePlainCellValue(modelValue, { ...params, col: childColumn })
 }
 
 export function getLookupColumnType(
@@ -565,12 +571,21 @@ export const parsePlainCellValue = (
     return getAttachmentValue(value)
   }
 
-  if (isFormula(col) && col?.meta?.display_type) {
-    const childColumn = {
-      uidt: col?.meta?.display_type,
-      ...col?.meta?.display_column_meta,
+  if (isFormula(col)) {
+    if (col?.meta?.display_type) {
+      const childColumn = {
+        uidt: col?.meta?.display_type,
+        ...col?.meta?.display_column_meta,
+      }
+
+      return parsePlainCellValue(value, { ...params, col: childColumn })
+    } else {
+      const url = replaceUrlsWithLink(value, true)
+
+      if (url && ncIsString(url)) {
+        return url
+      }
     }
-    return parsePlainCellValue(value, { ...params, col: childColumn })
   }
 
   if (isButton(col)) {

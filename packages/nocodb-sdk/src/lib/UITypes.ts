@@ -490,6 +490,12 @@ export const checkboxIconList = [
   },
 ];
 
+export const checkboxIconListMap = checkboxIconList.reduce((acc, curr) => {
+  acc[curr.label] = curr;
+
+  return acc;
+}, {} as Record<string, (typeof checkboxIconList)[number]>);
+
 export const ratingIconList = [
   {
     full: 'mdi-star',
@@ -517,6 +523,12 @@ export const ratingIconList = [
     label: 'flag',
   },
 ];
+
+export const ratingIconListMap = ratingIconList.reduce((acc, curr) => {
+  acc[curr.label] = curr;
+
+  return acc;
+}, {} as Record<string, (typeof ratingIconList)[number]>);
 
 export const durationOptions = [
   {

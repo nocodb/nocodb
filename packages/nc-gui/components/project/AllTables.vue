@@ -47,7 +47,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
-    sourceId, // || sources.value[0].id,
+    sourceId,
     'baseId': openedProject.value.id,
     'onCreate': closeDialog,
     'onUpdate:modelValue': () => closeDialog(),
@@ -221,7 +221,7 @@ const sourceIdToIconMap = computed(() => {
           <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-brand-500" />
         </div>
         <div class="flex flex-col gap-1">
-          <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
+          <div class="label">{{ $t('dashboards.create_new_table') }}</div>
           <div class="subtext">{{ $t('msg.subText.createNewTable') }}</div>
         </div>
       </div>
@@ -280,7 +280,7 @@ const sourceIdToIconMap = computed(() => {
         @click="onCreateSyncClick"
       >
         <div class="icon-wrapper">
-          <GeneralIcon icon="sync" class="!h-7 !w-7 !text-green-700" />
+          <GeneralIcon icon="ncZap" class="!h-7 !w-7 !text-green-700" />
         </div>
         <div class="flex flex-col gap-1">
           <div class="label">Sync Data</div>
@@ -414,7 +414,11 @@ const sourceIdToIconMap = computed(() => {
 
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
     <LazyDashboardSettingsDataSourcesCreateBase v-if="isNewBaseModalOpen" v-model:open="isNewBaseModalOpen" is-modal />
-    <LazyDashboardSettingsSyncCreate v-if="isNewSyncModalOpen" v-model:open="isNewSyncModalOpen" />
+    <LazyDashboardSettingsSyncCreate
+      v-if="isNewSyncModalOpen && base?.id"
+      v-model:open="isNewSyncModalOpen"
+      :base-id="base?.id"
+    />
   </div>
 </template>
 

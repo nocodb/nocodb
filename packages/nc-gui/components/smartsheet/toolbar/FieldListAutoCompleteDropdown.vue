@@ -173,13 +173,13 @@ const colors = computed(() => {
       :value="option.value"
       :disabled="option.ncItemDisabled"
     >
-      <NcTooltip :disabled="!option.ncItemDisabled" placement="right">
+      <NcTooltip :disabled="!option.ncItemDisabled" placement="right" class="w-full max-w-50">
         <template #title>
           {{ option.ncItemTooltip }}
         </template>
 
-        <div class="flex items-center w-full justify-between w-full gap-2 max-w-50">
-          <div class="flex gap-1.5 flex-1 items-center truncate items-center h-full">
+        <div class="flex items-center w-full justify-between gap-2">
+          <div class="flex gap-1.5 flex-1 items-center truncate h-full">
             <component :is="option.icon" class="!w-3.5 !h-3.5 !mx-0" :class="colors[option.value] || '!text-gray-500'" />
             <NcTooltip
               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

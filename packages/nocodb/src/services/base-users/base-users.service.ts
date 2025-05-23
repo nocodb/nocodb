@@ -7,6 +7,7 @@ import {
   PluginCategory,
   ProjectRoles,
   WorkspaceRolesToProjectRoles,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
@@ -74,7 +75,7 @@ export class BaseUsersService {
         base_roles: extractRolesObj(param.baseUser.roles),
       }) > getProjectRolePower(param.req.user)
     ) {
-      NcError.badRequest(`Insufficient privilege to invite with this role`);
+      NcError.forbidden(`Insufficient privilege to invite with this role`);
     }
 
     if (
@@ -87,7 +88,7 @@ export class BaseUsersService {
         ProjectRoles.NO_ACCESS,
       ].includes(param.baseUser.roles as ProjectRoles)
     ) {
-      NcError.badRequest('Invalid role');
+      NcError.baseUserError('Invalid role');
     }
 
     const emails = (param.baseUser.email || '')
@@ -98,14 +99,26 @@ export class BaseUsersService {
     // check for invalid emails
     const invalidEmails = emails.filter((v) => !validator.isEmail(v));
     if (!emails.length) {
-      return NcError.badRequest('Invalid email address');
+      return NcError.baseUserError('Invalid email address');
     }
     if (invalidEmails.length) {
-      NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
+      NcError.baseUserError(
+        'Invalid email address : ' + invalidEmails.join(', '),
+      );
     }
 
     const invite_token = uuidv4();
     const error = [];
+
+    const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
+    const newRolePower = reverseOrderedProjectRoles.indexOf(
+      param.baseUser.roles as ProjectRoles,
+    );
+
+    // Check if current user has sufficient privilege to assign this role
+    if (newRolePower > getProjectRolePower(param.req.user)) {
+      NcError.forbidden(`Insufficient privilege to assign this role`);
+    }
 
     for (const email of emails) {
       // add user to base if user already exist
@@ -125,9 +138,41 @@ export class BaseUsersService {
           user.id,
           ncMeta,
         );
+
+        const targetUser =
+          baseUser &&
+          (await User.getWithRoles(
+            context,
+            user.id,
+            {
+              user,
+              baseId: param.baseId,
+              workspaceId: context.workspace_id,
+            },
+            ncMeta,
+          ));
+
+        // if old role is owner and there is only one owner then restrict update
+        if (targetUser && this.isOldRoleIsOwner(targetUser)) {
+          const baseUsers = await BaseUser.getUsersList(
+            context,
+            {
+              base_id: param.baseId,
+            },
+            ncMeta,
+          );
+          this.checkMultipleOwnerExist(baseUsers);
+          await this.ensureBaseOwner(context, {
+            baseUsers,
+            ignoreUserId: user.id,
+            baseId: param.baseId,
+            req: param.req,
+          });
+        }
+
         // if already exists and has a role then throw error
         if (baseUser?.is_mapped && baseUser?.roles) {
-          NcError.badRequest(
+          NcError.baseUserError(
             `${user.email} with role ${baseUser.roles} already exists in this base`,
           );
         }
@@ -300,7 +345,7 @@ export class BaseUsersService {
     );
 
     if (!param.baseId) {
-      NcError.badRequest('Missing base id');
+      NcError.baseUserError('Missing base id');
     }
 
     const base = await Base.get(context, param.baseId, ncMeta);
@@ -319,13 +364,13 @@ export class BaseUsersService {
         ProjectRoles.NO_ACCESS,
       ].includes(param.baseUser.roles as ProjectRoles)
     ) {
-      NcError.badRequest('Invalid role');
+      NcError.baseUserError('Invalid role');
     }
 
     const user = await User.get(param.userId, ncMeta);
 
     if (!user) {
-      NcError.badRequest(`User with id '${param.userId}' doesn't exist`);
+      NcError.baseUserError(`User with id '${param.userId}' doesn't exist`);
     }
 
     const targetUser = await User.getWithRoles(
@@ -334,18 +379,19 @@ export class BaseUsersService {
       {
         user,
         baseId: param.baseId,
+        workspaceId: base.fk_workspace_id,
       },
       ncMeta,
     );
 
     if (!targetUser) {
-      NcError.badRequest(
+      NcError.baseUserError(
         `User with id '${param.userId}' doesn't exist in this base`,
       );
     }
 
-    // if old role is owner and there is only one owner then restrict to update
-    if (extractRolesObj(targetUser.base_roles)?.[ProjectRoles.OWNER]) {
+    // if old role is owner and there is only one owner then restrict update
+    if (this.isOldRoleIsOwner(targetUser)) {
       const baseUsers = await BaseUser.getUsersList(
         context,
         {
@@ -353,11 +399,13 @@ export class BaseUsersService {
         },
         ncMeta,
       );
-      if (
-        baseUsers.filter((u) => u.roles?.includes(ProjectRoles.OWNER))
-          .length === 1
-      )
-        NcError.badRequest('At least one owner is required');
+      this.checkMultipleOwnerExist(baseUsers);
+      await this.ensureBaseOwner(context, {
+        baseUsers,
+        ignoreUserId: param.userId,
+        baseId: param.baseId,
+        req: param.req,
+      });
     }
     const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
     const newRolePower = reverseOrderedProjectRoles.indexOf(
@@ -366,11 +414,11 @@ export class BaseUsersService {
 
     // Check if current user has sufficient privilege to assign this role
     if (newRolePower > getProjectRolePower(param.req.user)) {
-      NcError.badRequest(`Insufficient privilege to assign this role`);
+      NcError.forbidden(`Insufficient privilege to assign this role`);
     }
 
     if (getProjectRolePower(targetUser) > getProjectRolePower(param.req.user)) {
-      NcError.badRequest(`Insufficient privilege to update user`);
+      NcError.forbidden(`Insufficient privilege to update user`);
     }
 
     const oldBaseUser = await BaseUser.get(
@@ -415,6 +463,134 @@ export class BaseUsersService {
       msg: 'User has been updated successfully',
     };
   }
+  /**
+   * Checks if the user's current role is OWNER.
+   * This considers both base roles and workspace roles.
+   */
+  protected isOldRoleIsOwner(targetUser) {
+    // Check if a base role is defined and if it includes the OWNER role.
+    if (targetUser.base_roles) {
+      const baseRole = getProjectRole(targetUser);
+      if (baseRole) {
+        return baseRole === ProjectRoles.OWNER;
+      }
+    }
+
+    // Check if workspace_roles are present and if OWNER role is derived from them.
+    if ((targetUser as { workspace_roles?: string }).workspace_roles) {
+      return extractRolesObj(
+        (targetUser as { workspace_roles?: string }).workspace_roles,
+      )?.[WorkspaceUserRoles.OWNER];
+    }
+
+    // Return false if no OWNER role is found.
+    return false;
+  }
+
+  /**
+   * Ensures that at least one owner exists among the base users.
+   * Throws a bad request error if no valid owner is found.
+   */
+  protected checkMultipleOwnerExist(baseUsers: (Partial<User> & BaseUser)[]) {
+    const ownersCount = baseUsers.filter((u) => {
+      // Check if the user has an explicit OWNER role in base roles.
+      if (u.roles?.includes(ProjectRoles.OWNER)) return true;
+
+      // If no base roles, check if the workspace role maps to an OWNER role.
+      if (!u.roles && (u as { workspace_roles?: string }).workspace_roles) {
+        return (
+          WorkspaceRolesToProjectRoles[
+            (
+              u as {
+                workspace_roles?: string;
+              }
+            ).workspace_roles
+          ] === ProjectRoles.OWNER
+        );
+      }
+      return false;
+    }).length;
+
+    // Throw error if no valid owner is found.
+    if (ownersCount <= 1) {
+      NcError.baseUserError('At least one owner is required');
+    }
+  }
+
+  /**
+   * Ensures that a base has an assigned owner.
+   * If no direct owner is found, assigns ownership to the first user
+   * whose role is derived from the workspace role.
+   */
+  protected async ensureBaseOwner(
+    context,
+    {
+      baseUsers,
+      ignoreUserId,
+      baseId,
+      req,
+    }: {
+      baseUsers: (Partial<User> & BaseUser)[];
+      ignoreUserId: string;
+      baseId: string;
+      req: NcRequest;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    // Check if at least one user (excluding ignored user) has an assigned OWNER role.
+    const ownerUser = baseUsers.find(
+      (u) => u.id !== ignoreUserId && u.roles?.includes(ProjectRoles.OWNER),
+    );
+
+    // If an owner exists, no further action is required.
+    if (ownerUser) {
+      return;
+    }
+
+    // Find the first user (excluding ignored user) with an OWNER role derived from workspace roles.
+    const derivedOwner = baseUsers.find(
+      (u) =>
+        u.id !== ignoreUserId &&
+        (u as { workspace_roles?: string }).workspace_roles ===
+          WorkspaceUserRoles.OWNER,
+    );
+
+    // If no derived owner is found, return early.
+    if (!derivedOwner) {
+      return;
+    }
+
+    // Check if the baseUser already exists for the derived owner.
+    const baseUser = await BaseUser.get(
+      context,
+      baseId,
+      derivedOwner.id,
+      ncMeta,
+    );
+
+    if (baseUser) {
+      // Update the role to OWNER if the baseUser already exists.
+      await BaseUser.updateRoles(
+        context,
+        baseId,
+        derivedOwner.id,
+        ProjectRoles.OWNER,
+        ncMeta,
+      );
+    } else {
+      // Insert a new baseUser with OWNER role if it doesn't exist.
+      await BaseUser.insert(
+        context,
+        {
+          base_id: baseId,
+          fk_user_id: derivedOwner.id,
+          roles: ProjectRoles.OWNER,
+          invited_by: req?.user?.id,
+        },
+        ncMeta,
+      );
+    }
+  }
 
   async baseUserDelete(
     context: NcContext,
@@ -424,16 +600,17 @@ export class BaseUsersService {
       // todo: refactor
       req: any;
     },
+    ncMeta = Noco.ncMeta,
   ): Promise<any> {
     const base_id = param.baseId;
 
     if (param.req.user?.id === param.userId) {
-      NcError.badRequest("Admin can't delete themselves!");
+      NcError.baseUserError("Admin can't delete themselves!");
     }
 
-    const user = await User.get(param.userId);
+    const user = await User.get(param.userId, ncMeta);
 
-    const base = await Base.get(context, base_id);
+    const base = await Base.get(context, base_id, ncMeta);
 
     if (!user) {
       NcError.userNotFound(param.userId);
@@ -446,28 +623,45 @@ export class BaseUsersService {
         );
     }
 
-    const baseUser = await User.getWithRoles(context, param.userId, {
-      baseId: base_id,
-    });
+    const baseUser = await User.getWithRoles(
+      context,
+      param.userId,
+      {
+        baseId: base_id,
+        workspaceId: base.fk_workspace_id,
+        user,
+      },
+      ncMeta,
+    );
 
     // check if user have access to delete user based on role power
     if (
       getProjectRolePower(baseUser.base_roles) >
       getProjectRolePower(param.req.user)
     ) {
-      NcError.badRequest('Insufficient privilege to delete user');
+      NcError.forbidden('Insufficient privilege to delete user');
     }
 
     // if old role is owner and there is only one owner then restrict to delete
-    if (extractRolesObj(baseUser.base_roles)?.[ProjectRoles.OWNER]) {
-      const baseUsers = await BaseUser.getUsersList(context, {
-        base_id: param.baseId,
-      });
-      if (
-        baseUsers.filter((u) => u.roles?.includes(ProjectRoles.OWNER))
-          .length === 1
-      )
-        NcError.badRequest('At least one owner is required');
+    if (this.isOldRoleIsOwner(baseUser)) {
+      const baseUsers = await BaseUser.getUsersList(
+        context,
+        {
+          base_id: param.baseId,
+        },
+        ncMeta,
+      );
+      this.checkMultipleOwnerExist(baseUsers);
+      await this.ensureBaseOwner(
+        context,
+        {
+          baseUsers,
+          ignoreUserId: param.userId,
+          baseId: param.baseId,
+          req: param.req,
+        },
+        ncMeta,
+      );
     }
 
     // block self delete if user is owner or super
@@ -478,7 +672,7 @@ export class BaseUsersService {
       NcError.badRequest("Admin can't delete themselves!");
     }
 
-    await BaseUser.delete(context, base_id, param.userId);
+    await BaseUser.delete(context, base_id, param.userId, ncMeta);
 
     this.appHooksService.emit(AppEvents.PROJECT_USER_DELETE, {
       base,
@@ -502,7 +696,7 @@ export class BaseUsersService {
     const user = await User.get(param.userId);
 
     if (!user) {
-      NcError.badRequest(`User with id '${param.userId}' not found`);
+      NcError.baseUserError(`User with id '${param.userId}' not found`);
     }
 
     const base = await Base.get(context, param.baseId);
@@ -531,7 +725,7 @@ export class BaseUsersService {
     );
 
     if (!pluginData) {
-      NcError.badRequest(
+      NcError.baseUserError(
         `No Email Plugin is found. Please go to App Store to configure first or copy the invitation URL to users instead.`,
       );
     }

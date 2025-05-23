@@ -621,12 +621,6 @@ export default class View implements ViewType {
         }
       }
 
-      await Model.getNonDefaultViewsCountAndReset(
-        context,
-        { modelId: view.fk_model_id },
-        ncMeta,
-      );
-
       cleanCommandPaletteCache(context.workspace_id).catch(() => {
         logger.error('Failed to clean command palette cache');
       });
@@ -1551,12 +1545,6 @@ export default class View implements ViewType {
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
     });
-
-    await Model.getNonDefaultViewsCountAndReset(
-      context,
-      { modelId: view.fk_model_id },
-      ncMeta,
-    );
   }
 
   static async showAllColumns(
@@ -2465,12 +2453,6 @@ export default class View implements ViewType {
           insertedView,
         );
       }
-
-      await Model.getNonDefaultViewsCountAndReset(
-        context,
-        { modelId: view.fk_model_id },
-        ncMeta,
-      );
 
       if (copyFromView) {
         Noco.appHooksService.emit(AppEvents.VIEW_DUPLICATE_COMPLETE, {

@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import {
+  CURRENT_USER_TOKEN,
   FormulaDataTypes,
   getEquivalentUIType,
   isAIPromptCol,
@@ -12,10 +13,12 @@ import type { FilterType } from 'nocodb-sdk';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
+import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getRefColumnIfAlias } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { getColumnName } from '~/helpers/dbHelpers';
+import { getColumnName, isFilterValueConsistOf } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
 import Filter from '~/models/Filter';
@@ -243,14 +246,36 @@ const parseConditionV2 = async (
             .includes(filterVal.toLowerCase());
         });
 
+        let finalStatement = '';
+
         // create nested replace statement for each user
-        const finalStatement = users.reduce((acc, user) => {
-          const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [
-            user.id,
-            user.display_name || user.email,
-          ]);
-          return qb.toQuery();
-        }, knex.raw(`??`, [column.column_name]).toQuery());
+        if (knex.clientType() === 'pg') {
+          finalStatement = `(${replaceDelimitedWithKeyValuePg({
+            knex,
+            needleColumn: column.column_name,
+            stack: users.map((user) => ({
+              key: user.id,
+              value: user.display_name || user.email,
+            })),
+          })})`;
+        } else if (knex.clientType() === 'sqlite3') {
+          finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
+            knex,
+            needleColumn: column.column_name,
+            stack: users.map((user) => ({
+              key: user.id,
+              value: user.display_name || user.email,
+            })),
+          })})`;
+        } else {
+          finalStatement = users.reduce((acc, user) => {
+            const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [
+              user.id,
+              user.display_name || user.email,
+            ]);
+            return qb.toQuery();
+          }, knex.raw(`??`, [column.column_name]).toQuery());
+        }
 
         let val = filter.value;
         if (filter.comparison_op === 'like') {
@@ -306,7 +331,23 @@ const parseConditionV2 = async (
           ? `${alias}.${column.column_name}`
           : column.column_name,
       );
-      const _val = customWhereClause ? customWhereClause : filter.value;
+      let _val = customWhereClause ? customWhereClause : filter.value;
+      if (
+        [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+          column.uidt,
+        )
+      ) {
+        const filterValueCurrentUserTokenResult = isFilterValueConsistOf(
+          filter.value,
+          CURRENT_USER_TOKEN,
+          {
+            replace: context.user?.id ?? '___false',
+          },
+        );
+        if (filterValueCurrentUserTokenResult?.exists) {
+          _val = filterValueCurrentUserTokenResult.value;
+        }
+      }
 
       // get column name for CreateTime, LastModifiedTime
       column.column_name = await getColumnName(context, column);
@@ -823,7 +864,10 @@ const parseConditionV2 = async (
                     column.dt !== 'timestamptz'
                   ) {
                     qb.where(
-                      knex.raw("?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'", [field]),
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
                       gt_op,
                       knex.raw('?::timestamptz', [val]),
                     );
@@ -879,7 +923,10 @@ const parseConditionV2 = async (
                     column.dt !== 'timestamptz'
                   ) {
                     qb.where(
-                      knex.raw("?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'", [field]),
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
                       ge_op,
                       knex.raw('?::timestamptz', [val]),
                     );
@@ -934,7 +981,10 @@ const parseConditionV2 = async (
                     column.dt !== 'timestamptz'
                   ) {
                     qb.where(
-                      knex.raw("?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'", [field]),
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
                       lt_op,
                       knex.raw('?::timestamptz', [val]),
                     );
@@ -991,7 +1041,10 @@ const parseConditionV2 = async (
                     column.dt !== 'timestamptz'
                   ) {
                     qb.where(
-                      knex.raw("?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'", [field]),
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
                       le_op,
                       knex.raw('?::timestamptz', [val]),
                     );

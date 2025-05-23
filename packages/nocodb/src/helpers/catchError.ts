@@ -389,6 +389,18 @@ export function extractDBError(error): {
             table: extractTableNameMatch[1],
           };
         }
+
+        const extractColumnNameMatch = error.message.match(
+          / column "(\w+)" does not exist/i,
+        );
+
+        if (extractColumnNameMatch && extractColumnNameMatch[1]) {
+          message = `The column '${extractColumnNameMatch[1]}' does not exist.`;
+          _type = DBError.COLUMN_NOT_EXIST;
+          _extra = {
+            table: extractColumnNameMatch[1],
+          };
+        }
       }
       break;
     case '42703':
@@ -585,6 +597,7 @@ const errorHelpers: {
   [key in NcErrorType]: {
     message: string | ((...params: string[]) => string);
     code: number;
+    error_code?: NcErrorType;
   };
 } = {
   [NcErrorType.UNKNOWN_ERROR]: {
@@ -797,8 +810,17 @@ const errorHelpers: {
     message: (limit: string) => `Maximum ${limit} records during insert`,
     code: 422,
   },
+  [NcErrorType.MAX_WORKSPACE_LIMIT_REACHED]: {
+    message: () =>
+      `The maximum workspace limit has been reached. Please contact your administrator to request access to a workspace.`,
+    code: 403,
+  },
   [NcErrorType.INVALID_VALUE_FOR_FIELD]: {
     message: (message: string) => message,
+    code: 422,
+  },
+  [NcErrorType.BASE_USER_ERROR]: {
+    message: (message: string) => message || 'Something went wrong',
     code: 422,
   },
 };
@@ -863,7 +885,7 @@ export class NcError {
     permissionName: string,
     roles: Record<string, boolean>,
     extendedScopeRoles: any,
-  ) {
+  ): never {
     throw new NcBaseErrorv2(NcErrorType.PERMISSION_DENIED, {
       customMessage: generateReadablePermissionErr(
         permissionName,
@@ -878,78 +900,78 @@ export class NcError {
     });
   }
 
-  static authenticationRequired(args?: NcErrorArgs) {
+  static authenticationRequired(args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.AUTHENTICATION_REQUIRED, args);
   }
 
-  static apiTokenNotAllowed(args?: NcErrorArgs) {
+  static apiTokenNotAllowed(args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.API_TOKEN_NOT_ALLOWED, args);
   }
 
-  static workspaceNotFound(id: string, args?: NcErrorArgs) {
+  static workspaceNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.WORKSPACE_NOT_FOUND, {
       params: id,
       ...args,
     });
   }
 
-  static columnAssociatedWithLink(_id: string, args: NcErrorArgs) {
+  static columnAssociatedWithLink(_id: string, args: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.COLUMN_ASSOCIATED_WITH_LINK, args);
   }
 
-  static tableAssociatedWithLink(_id: string, args: NcErrorArgs) {
+  static tableAssociatedWithLink(_id: string, args: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.TABLE_ASSOCIATED_WITH_LINK, args);
   }
 
-  static baseNotFound(id: string, args?: NcErrorArgs) {
+  static baseNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.BASE_NOT_FOUND, {
       params: id,
       ...args,
     });
   }
-  static baseNotFoundV3(id: string, args?: NcErrorArgs) {
+  static baseNotFoundV3(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.BASE_NOT_FOUNDV3, {
       params: id,
       ...args,
     });
   }
 
-  static sourceNotFound(id: string, args?: NcErrorArgs) {
+  static sourceNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.SOURCE_NOT_FOUND, {
       params: id,
       ...args,
     });
   }
 
-  static tableNotFound(id: string, args?: NcErrorArgs) {
+  static tableNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.TABLE_NOT_FOUND, {
       params: id,
       ...args,
     });
   }
 
-  static tableNotFoundV3(id: string, args?: NcErrorArgs) {
+  static tableNotFoundV3(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.TABLE_NOT_FOUNDV3, {
       params: id,
       ...args,
     });
   }
 
-  static userNotFound(id: string, args?: NcErrorArgs) {
+  static userNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.USER_NOT_FOUND, {
       params: id,
       ...args,
     });
   }
 
-  static viewNotFound(id: string, args?: NcErrorArgs) {
+  static viewNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.VIEW_NOT_FOUND, {
       params: id,
       ...args,
     });
   }
 
-  static viewNotFoundV3(id: string, args?: NcErrorArgs) {
+  static viewNotFoundV3(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.VIEW_NOT_FOUNDV3, {
       params: id,
       ...args,
@@ -966,7 +988,7 @@ export class NcError {
   static recordNotFound(
     id: string | string[] | Record<string, string> | Record<string, string>[],
     args?: NcErrorArgs,
-  ) {
+  ): never {
     let formatedId: string | string[] = '';
     if (!id) {
       formatedId = 'unknown';
@@ -1010,75 +1032,86 @@ export class NcError {
     });
   }
 
-  static genericNotFound(resource: string, id: string, args?: NcErrorArgs) {
+  static genericNotFound(
+    resource: string,
+    id: string,
+    args?: NcErrorArgs,
+  ): never {
     throw new NcBaseErrorv2(NcErrorType.GENERIC_NOT_FOUND, {
       params: [resource, id],
       ...args,
     });
   }
 
-  static requiredFieldMissing(field: string, args?: NcErrorArgs) {
+  static requiredFieldMissing(field: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.REQUIRED_FIELD_MISSING, {
       params: field,
       ...args,
     });
   }
 
-  static duplicateRecord(id: string | string[], args?: NcErrorArgs) {
+  static duplicateRecord(id: string | string[], args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.ERROR_DUPLICATE_RECORD, {
       params: id,
       ...args,
     });
   }
 
-  static fieldNotFound(id: string, args?: NcErrorArgs) {
+  static fieldNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.FIELD_NOT_FOUND, {
       params: id,
       ...args,
     });
   }
 
-  static fieldNotFoundV3(id: string, args?: NcErrorArgs) {
+  static fieldNotFoundV3(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.FIELD_NOT_FOUNDV3, {
       params: id,
       ...args,
     });
   }
 
-  static invalidOffsetValue(offset: string | number, args?: NcErrorArgs) {
+  static invalidOffsetValue(
+    offset: string | number,
+    args?: NcErrorArgs,
+  ): never {
     throw new NcBaseErrorv2(NcErrorType.INVALID_OFFSET_VALUE, {
       params: `${offset}`,
       ...args,
     });
   }
-  static invalidPageValue(page: string | number, args?: NcErrorArgs) {
+  static invalidPageValue(page: string | number, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.INVALID_PAGE_VALUE, {
       params: `${page}`,
       ...args,
     });
   }
 
-  static invalidPrimaryKey(value: any, pkColumn: string, args?: NcErrorArgs) {
+  static invalidPrimaryKey(
+    value: any,
+    pkColumn: string,
+    args?: NcErrorArgs,
+  ): never {
     throw new NcBaseErrorv2(NcErrorType.INVALID_PK_VALUE, {
       params: [value, pkColumn],
       ...args,
     });
   }
 
-  static invalidLimitValue(args?: NcErrorArgs) {
+  static invalidLimitValue(args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.INVALID_LIMIT_VALUE, {
       ...args,
     });
   }
 
-  static invalidFilter(filter: string, args?: NcErrorArgs) {
+  static invalidFilter(filter: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.INVALID_FILTER, {
       params: filter,
       ...args,
     });
   }
 
-  static invalidFilterV3(message: string, args?: NcErrorArgs) {
+  static invalidFilterV3(message: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.INVALID_FILTERV3, {
       params: message,
       ...args,
@@ -1086,75 +1119,84 @@ export class NcError {
   }
 
   static invalidValueForField(
-    payload: string | { value: string; column: string; type: UITypes },
+    payload:
+      | string
+      | { value: string; column: string; type: UITypes; reason?: string },
     args?: NcErrorArgs,
-  ) {
+  ): never {
+    const withReason =
+      typeof payload === 'object' && payload.reason
+        ? `, reason: ${payload.reason}`
+        : ``;
     throw new NcBaseErrorv2(NcErrorType.INVALID_VALUE_FOR_FIELD, {
       params:
         typeof payload === 'string'
           ? payload
-          : `Invalid value '${payload.value}' for type '${payload.type}' on column '${payload.column}'`,
+          : `Invalid value '${payload.value}' for type '${payload.type}' on column '${payload.column}'${withReason}`,
       ...args,
     });
   }
 
-  static invalidSharedViewPassword(args?: NcErrorArgs) {
+  static invalidSharedViewPassword(args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.INVALID_SHARED_VIEW_PASSWORD, {
       ...args,
     });
   }
 
-  static invalidAttachmentJson(payload: string, args?: NcErrorArgs) {
+  static invalidAttachmentJson(payload: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.INVALID_ATTACHMENT_JSON, {
       params: payload,
       ...args,
     });
   }
 
-  static notImplemented(feature: string = 'Feature', args?: NcErrorArgs) {
+  static notImplemented(
+    feature: string = 'Feature',
+    args?: NcErrorArgs,
+  ): never {
     throw new NcBaseErrorv2(NcErrorType.NOT_IMPLEMENTED, {
       params: feature,
       ...args,
     });
   }
 
-  static internalServerError(message: string, args?: NcErrorArgs) {
+  static internalServerError(message: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.INTERNAL_SERVER_ERROR, {
       params: message,
       ...args,
     });
   }
 
-  static formulaError(message: string, args?: NcErrorArgs) {
+  static formulaError(message: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.FORMULA_ERROR, {
       params: message,
       ...args,
     });
   }
 
-  static formulaCircularRefError(message: string, args?: NcErrorArgs) {
+  static formulaCircularRefError(message: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.FORMULA_CIRCULAR_REF_ERROR, {
       params: message,
       ...args,
     });
   }
 
-  static notFound(message = 'Not found') {
+  static notFound(message = 'Not found'): never {
     throw new NotFound(message);
   }
 
-  static badRequest(message) {
+  static badRequest(message): never {
     throw new BadRequest(message);
   }
 
-  static unauthorized(message: string, args?: NcErrorArgs) {
+  static unauthorized(message: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.AUTHENTICATION_REQUIRED, {
       params: message,
       ...args,
     });
   }
 
-  static forbidden(message: string, args?: NcErrorArgs) {
+  static forbidden(message: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.FORBIDDEN, {
       params: message,
       ...args,
@@ -1165,55 +1207,58 @@ export class NcError {
     message: string;
     errors: ErrorObject[];
     humanReadableError: boolean;
-  }) {
+  }): never {
     throw new AjvError(param);
   }
 
-  static unprocessableEntity(message = 'Unprocessable entity') {
+  static unprocessableEntity(message = 'Unprocessable entity'): never {
     throw new UnprocessableEntity(message);
   }
 
-  static testConnectionError(message = 'Unprocessable entity', code?: string) {
+  static testConnectionError(
+    message = 'Unprocessable entity',
+    code?: string,
+  ): never {
     throw new TestConnectionError(message, code);
   }
 
-  static notAllowed(message = 'Not allowed') {
+  static notAllowed(message = 'Not allowed'): never {
     throw new NotAllowed(message);
   }
 
-  static emailDomainNotAllowed(domain: string) {
+  static emailDomainNotAllowed(domain: string): never {
     throw new SsoError(
       `Email domain ${domain} is not allowed for this organization`,
     );
   }
 
-  static metaError(param: { message: string; sql: string }) {
+  static metaError(param: { message: string; sql: string }): never {
     throw new MetaError(param);
   }
 
-  static sourceDataReadOnly(name: string) {
+  static sourceDataReadOnly(name: string): never {
     NcError.forbidden(`Source '${name}' is read-only`);
   }
 
-  static sourceMetaReadOnly(name: string) {
+  static sourceMetaReadOnly(name: string): never {
     NcError.forbidden(`Source '${name}' schema is read-only`);
   }
 
-  static integrationNotFound(id: string, args?: NcErrorArgs) {
+  static integrationNotFound(id: string, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.INTEGRATION_NOT_FOUND, {
       params: id,
       ...(args || {}),
     });
   }
 
-  static cannotCalculateIntermediateOrderError() {
+  static cannotCalculateIntermediateOrderError(): never {
     throw new NcBaseErrorv2(
       NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER,
       {},
     );
   }
 
-  static reorderFailed() {
+  static reorderFailed(): never {
     throw new NcBaseErrorv2(NcErrorType.REORDER_FAILED, {});
   }
 
@@ -1221,7 +1266,7 @@ export class NcError {
     bases: BaseType[],
     sources: SourceType[],
     args?: NcErrorArgs,
-  ) {
+  ): never {
     throw new NcBaseErrorv2(NcErrorType.INTEGRATION_LINKED_WITH_BASES, {
       params: bases.map((s) => s.title).join(', '),
       details: {
@@ -1243,7 +1288,7 @@ export class NcError {
     });
   }
 
-  static invalidAttachmentUploadScope(args?: NcErrorArgs) {
+  static invalidAttachmentUploadScope(args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.INVALID_ATTACHMENT_UPLOAD_SCOPE, args);
   }
 
@@ -1251,7 +1296,7 @@ export class NcError {
     columnTitle: string;
     options: string[];
     validOptions: string[];
-  }) {
+  }): never {
     throw new OptionsNotExistsError(props);
   }
 
@@ -1259,7 +1304,7 @@ export class NcError {
     message: string,
     details: Omit<PlanLimitExceededDetailsType, 'higherPlan'>,
     args?: NcErrorArgs,
-  ) {
+  ): never {
     throw new NcBaseErrorv2(NcErrorType.PLAN_LIMIT_EXCEEDED, {
       params: message,
       ...args,
@@ -1270,14 +1315,26 @@ export class NcError {
     });
   }
 
-  static allowedOnlySSOAccess(ncWorkspaceId: string) {
+  static allowedOnlySSOAccess(ncWorkspaceId: string): never {
     throw new NcBaseErrorv2(NcErrorType.SSO_LOGIN_REQUIRED, {
       params: ncWorkspaceId,
     });
   }
-  static maxInsertLimitExceeded(limit: number, args?: NcErrorArgs) {
+  static maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
     throw new NcBaseErrorv2(NcErrorType.MAX_INSERT_LIMIT_EXCEEDED, {
       params: limit.toString(),
+      ...args,
+    });
+  }
+  static baseUserError(message: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.BASE_USER_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
+  static maxWorkspaceLimitReached(args?: NcErrorArgs): never {
+    throw new NcBaseErrorv2(NcErrorType.MAX_WORKSPACE_LIMIT_REACHED, {
       ...args,
     });
   }

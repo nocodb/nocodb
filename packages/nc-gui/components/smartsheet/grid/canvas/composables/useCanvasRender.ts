@@ -351,7 +351,7 @@ export function useCanvasRender({
       } else if (meta.value?.synced && colObj?.readonly) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
-          icon: 'refresh',
+          icon: 'ncZap',
           size: 14,
           color: '#6a7184',
           x: rightOffset - scrollLeft.value,
@@ -612,7 +612,7 @@ export function useCanvasRender({
         } else if (meta.value?.synced && colObj?.readonly) {
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {
-            icon: 'refresh',
+            icon: 'ncZap',
             size: 14,
             color: '#6a7184',
             x: rightOffset,
@@ -2999,7 +2999,6 @@ export function useCanvasRender({
       } catch (e) {
         val = group.value
       }
-
       renderCell(ctx, group.column, {
         value: val,
         x: x - 11,
@@ -3018,12 +3017,19 @@ export function useCanvasRender({
         relatedTableMeta: group.relatedTableMeta,
         mousePosition,
         skipRender: false,
+        renderCell,
         fontFamily: '700 13px Inter',
         isGroupHeader: true,
       })
     } else {
+      let val = group.value
+      try {
+        val = JSON.parse(group.value)
+      } catch (e) {
+        val = group.value
+      }
       renderCell(ctx, group.column, {
-        value: group.value?.toString?.().split(','),
+        value: val,
         x: x - 11,
         y: y - 13,
         width: maxWidth,
@@ -3035,6 +3041,7 @@ export function useCanvasRender({
         readonly: true,
         textColor: '#1f293a', // gray-800
         imageLoader,
+        meta,
         tableMetaLoader,
         relatedColObj: group.relatedColumn,
         relatedTableMeta: group.relatedTableMeta,

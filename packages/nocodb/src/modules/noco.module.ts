@@ -108,11 +108,14 @@ import { TablesService } from '~/services/tables.service';
 import { UtilsService } from '~/services/utils.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
+import { McpTokenService } from '~/services/mcp.service';
+import { McpService } from '~/mcp/mcp.service';
+import { McpController } from '~/mcp/mcp.controller';
+import { InternalController } from '~/controllers/internal.controller';
 
 /* Datas */
 import { BulkDataAliasController } from '~/controllers/bulk-data-alias.controller';
 import { CalendarDatasController } from '~/controllers/calendars-datas.controller';
-import { DataAliasExportController } from '~/controllers/data-alias-export.controller';
 import { DataAliasNestedController } from '~/controllers/data-alias-nested.controller';
 import { DataAliasController } from '~/controllers/data-alias.controller';
 import { DataTableController } from '~/controllers/data-table.controller';
@@ -120,7 +123,6 @@ import { DatasController } from '~/controllers/datas.controller';
 import { IntegrationsController } from '~/controllers/integrations.controller';
 import { OldDatasController } from '~/controllers/old-datas/old-datas.controller';
 import { OldDatasService } from '~/controllers/old-datas/old-datas.service';
-import { PublicDatasExportController } from '~/controllers/public-datas-export.controller';
 import { PublicDatasController } from '~/controllers/public-datas.controller';
 import { BaseUsersV3Controller } from '~/controllers/v3/base-users-v3.controller';
 import { BasesV3Controller } from '~/controllers/v3/bases-v3.controller';
@@ -147,6 +149,9 @@ import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { ViewsV3Service } from '~/services/v3/views-v3.service';
+
+/* ACL */
+import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -214,6 +219,10 @@ export const nocoModuleMetadata = {
           ExtensionsController,
           JobsMetaController,
           IntegrationsController,
+          InternalController,
+
+          // MCP
+          McpController,
 
           /* V3 APIs */
           BasesV3Controller,
@@ -230,10 +239,8 @@ export const nocoModuleMetadata = {
           BulkDataAliasController,
           DataAliasController,
           DataAliasNestedController,
-          DataAliasExportController,
           OldDatasController,
           PublicDatasController,
-          PublicDatasExportController,
           Datav3Controller,
         ]
       : []),
@@ -249,6 +256,8 @@ export const nocoModuleMetadata = {
     TelemetryService,
     HookHandlerService,
     MailService,
+
+    AclMiddleware,
 
     /* Users */
     UsersService,
@@ -302,7 +311,8 @@ export const nocoModuleMetadata = {
     ViewsV3Service,
     FiltersV3Service,
     NocoJobsService,
-
+    McpTokenService,
+    McpService,
     /* Datas */
     DataTableService,
     DatasService,

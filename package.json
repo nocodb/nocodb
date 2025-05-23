@@ -31,7 +31,8 @@
     ]
   },
   "scripts": {
-    "bootstrap": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-mail-templates --filter=nc-gui --filter=playwright install && pnpm run registerIntegrations",
+    "bootstrap": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-mail-templates --filter=nc-gui --filter=playwright install && pnpm run integrations:build && pnpm run registerIntegrations",
+    "integrations:build": "cd ./packages/noco-integrations/ && pnpm i && pnpm run build",
     "start:frontend": "pnpm --filter=nc-gui run dev",
     "start:backend": "pnpm --filter=nocodb run start",
     "lint:staged:playwright": "cd ./tests/playwright; pnpm dlx lint-staged; cd -",
@@ -47,7 +48,7 @@
   "pnpm": {
     "overrides": {
       "vue": "latest",
-      "typescript": "~5.4.5",
+      "typescript": "latest",
       "ajv@<6.12.3": ">=6.12.3",
       "node.extend@<1.1.7": ">=1.1.7",
       "tough-cookie@<4.1.3": ">=4.1.3",

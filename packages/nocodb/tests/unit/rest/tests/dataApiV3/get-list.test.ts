@@ -20,8 +20,8 @@ import {
 } from './beforeEach';
 import { ncAxios } from './ncAxios';
 import { normalizeObject, verifyColumnsInRsp } from './helpers';
+import type { ITestContext } from './helpers';
 import type { Column, Model } from '../../../../../src/models';
-import type { ITestContext } from './beforeEach';
 import type { INcAxios } from './ncAxios';
 
 interface ListResult {
@@ -49,7 +49,7 @@ describe('dataApiV3', () => {
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      urlPrefix = `/api/${API_VERSION}/${testContext.sakilaProject.id}`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -240,6 +240,7 @@ describe('dataApiV3', () => {
       let columns: Column[] = [];
       let expectedColumns: Column[] = [];
       let insertedRecords: any[];
+      let textBasedUrlPrefix: string;
 
       beforeEach(async function () {
         const initResult = await beforeEachTextBased(testContext);
@@ -252,18 +253,19 @@ describe('dataApiV3', () => {
           ...columns,
         ];
         insertedRecords = initResult.insertedRecords;
+        textBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
       });
 
       it('List: default', async function () {
         const rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {},
           status: 200,
         });
 
         expect(rsp.body.pageInfo).to.have.property('next');
         expect(rsp.body.pageInfo.next).to.include(
-          `${urlPrefix}/${table.id}?page=2`,
+          `${textBasedUrlPrefix}/${table.id}?page=2`,
         );
 
         // verify if all the columns are present in the response
@@ -282,7 +284,7 @@ describe('dataApiV3', () => {
 
       it('List: offset, limit', async function () {
         const rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: { offset: 200, limit: 100 },
           status: 200,
         });
@@ -290,16 +292,16 @@ describe('dataApiV3', () => {
         expect(rsp.body.pageInfo).to.have.property('next');
         expect(rsp.body.pageInfo).to.have.property('prev');
         expect(rsp.body.pageInfo.next).to.include(
-          `${urlPrefix}/${table.id}?page=4`,
+          `${textBasedUrlPrefix}/${table.id}?page=4`,
         );
         expect(rsp.body.pageInfo.prev).to.include(
-          `${urlPrefix}/${table.id}?page=2`,
+          `${textBasedUrlPrefix}/${table.id}?page=2`,
         );
       });
 
       it('List: fields, single', async function () {
         const rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: { fields: 'SingleLineText' },
         });
 
@@ -310,7 +312,7 @@ describe('dataApiV3', () => {
 
       it('List: fields, multiple', async function () {
         const rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: { fields: ['SingleLineText', 'MultiLineText'] },
         });
 
@@ -325,7 +327,7 @@ describe('dataApiV3', () => {
       it('List: sort, ascending', async function () {
         const sortColumn = columns.find((c) => c.title === 'SingleLineText')!;
         const rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: { sort: 'SingleLineText', limit: 400 },
         });
 
@@ -339,7 +341,7 @@ describe('dataApiV3', () => {
       it('List: sort, descending', async function () {
         const sortColumn = columns.find((c) => c.title === 'SingleLineText')!;
         const rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: { sort: '-SingleLineText', limit: 400 },
         });
 
@@ -352,7 +354,7 @@ describe('dataApiV3', () => {
 
       it('List: sort, multiple', async function () {
         const rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             sort: ['-SingleLineText', '-MultiLineText'],
             limit: 400,
@@ -371,7 +373,7 @@ describe('dataApiV3', () => {
 
       it('List: filter, single', async function () {
         const rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             where: '(SingleLineText,eq,Afghanistan)',
             limit: 400,
@@ -387,7 +389,7 @@ describe('dataApiV3', () => {
 
       it('List: filter, multiple', async function () {
         const rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             where:
               '(SingleLineText,eq,Afghanistan)~and(MultiLineText,eq,"Allahabad, India")',
@@ -430,13 +432,13 @@ describe('dataApiV3', () => {
 
         // fetch records from view
         let rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: { viewId: gridView.id },
         });
 
         expect(rsp.body.pageInfo).to.have.property('next');
         expect(rsp.body.pageInfo.next).to.include(
-          `${urlPrefix}/${table.id}?page=2`,
+          `${textBasedUrlPrefix}/${table.id}?page=2`,
         );
 
         await updateView(testContext.context, {
@@ -454,7 +456,7 @@ describe('dataApiV3', () => {
 
         // fetch records from view
         rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
           },
@@ -462,12 +464,12 @@ describe('dataApiV3', () => {
 
         expect(rsp.body.pageInfo).to.have.property('next');
         expect(rsp.body.pageInfo.next).to.include(
-          `${urlPrefix}/${table.id}?page=2`,
+          `${textBasedUrlPrefix}/${table.id}?page=2`,
         );
 
         // use count api to verify since we are not including count in pageInfo
         let countRsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/count`,
+          url: `${textBasedUrlPrefix}/${table.id}/count`,
           query: {
             viewId: gridView.id,
           },
@@ -489,7 +491,7 @@ describe('dataApiV3', () => {
 
         // fetch records from view
         rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
           },
@@ -497,12 +499,12 @@ describe('dataApiV3', () => {
 
         expect(rsp.body.pageInfo).to.have.property('next');
         expect(rsp.body.pageInfo.next).to.include(
-          `${urlPrefix}/${table.id}?page=2`,
+          `${textBasedUrlPrefix}/${table.id}?page=2`,
         );
 
         // use count api to verify since we are not including count in pageInfo
         countRsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/count`,
+          url: `${textBasedUrlPrefix}/${table.id}/count`,
           query: {
             viewId: gridView.id,
           },
@@ -530,7 +532,7 @@ describe('dataApiV3', () => {
 
         // fetch records from view
         rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
           },
@@ -584,11 +586,11 @@ describe('dataApiV3', () => {
 
         // fetch records from view
         const rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: { viewId: gridView.id },
         });
         const rspCount = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/count`,
+          url: `${textBasedUrlPrefix}/${table.id}/count`,
           query: { viewId: gridView.id },
         });
         expect(rspCount.body.count).to.equal(61);
@@ -608,7 +610,7 @@ describe('dataApiV3', () => {
         const gridView = await prepareViewForTests();
 
         const rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
             sort: 'Url',
@@ -627,7 +629,7 @@ describe('dataApiV3', () => {
 
         // use count api to verify since we are not including count in pageInfo
         const countRsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/count`,
+          url: `${textBasedUrlPrefix}/${table.id}/count`,
           query: {
             viewId: gridView.id,
           },
@@ -644,7 +646,7 @@ describe('dataApiV3', () => {
         const gridView = await prepareViewForTests();
 
         const rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
             where: '(Phone,eq,1-541-754-3010)',
@@ -659,7 +661,7 @@ describe('dataApiV3', () => {
         );
 
         const rspCount = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/count`,
+          url: `${textBasedUrlPrefix}/${table.id}/count`,
           query: {
             viewId: gridView.id,
             where: '(Phone,eq,1-541-754-3010)',
@@ -680,7 +682,7 @@ describe('dataApiV3', () => {
         const gridView = await prepareViewForTests();
 
         const rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             viewId: gridView.id,
             fields: ['Phone', 'MultiLineText', 'SingleLineText', 'Email'],
@@ -693,7 +695,7 @@ describe('dataApiV3', () => {
 
         // use count api to verify since we are not including count in pageInfo
         const countRsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/count`,
+          url: `${textBasedUrlPrefix}/${table.id}/count`,
           query: {
             viewId: gridView.id,
           },
@@ -712,13 +714,13 @@ describe('dataApiV3', () => {
       it('List: invalid ID', async function () {
         // Invalid table ID
         await ncAxiosGet({
-          url: `${urlPrefix}/123456789`,
+          url: `${textBasedUrlPrefix}/123456789`,
           status: 422,
         });
 
         // Invalid view ID
         await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             viewId: '123456789',
           },
@@ -727,23 +729,21 @@ describe('dataApiV3', () => {
       });
 
       it('List: invalid limit & offset', async function () {
-        // Invalid limit : falls back to default value
         let rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             limit: -100,
           },
           status: 200,
         });
-        console.log('B');
 
         expect(rsp.body.pageInfo).to.have.property('next');
         expect(rsp.body.pageInfo.next).to.include(
-          `${urlPrefix}/${table.id}?page=2`,
+          `${textBasedUrlPrefix}/${table.id}?page=2`,
         );
 
         rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             limit: 'abc',
           },
@@ -751,12 +751,12 @@ describe('dataApiV3', () => {
         });
         expect(rsp.body.pageInfo).to.have.property('next');
         expect(rsp.body.pageInfo.next).to.include(
-          `${urlPrefix}/${table.id}?page=2`,
+          `${textBasedUrlPrefix}/${table.id}?page=2`,
         );
 
         // Invalid offset : falls back to default value
         rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             offset: -100,
           },
@@ -765,11 +765,11 @@ describe('dataApiV3', () => {
 
         expect(rsp.body.pageInfo).to.have.property('next');
         expect(rsp.body.pageInfo.next).to.include(
-          `${urlPrefix}/${table.id}?page=2`,
+          `${textBasedUrlPrefix}/${table.id}?page=2`,
         );
 
         rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             offset: 'abc',
           },
@@ -778,12 +778,12 @@ describe('dataApiV3', () => {
 
         expect(rsp.body.pageInfo).to.have.property('next');
         expect(rsp.body.pageInfo.next).to.include(
-          `${urlPrefix}/${table.id}?page=2`,
+          `${textBasedUrlPrefix}/${table.id}?page=2`,
         );
 
         // Offset > totalRows : returns empty list
         rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             offset: 10000,
           },
@@ -795,21 +795,21 @@ describe('dataApiV3', () => {
       it('List: invalid sort, filter, fields', async function () {
         // expect to ignore invalid sort, filter, fields
         await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             sort: 'abc',
           },
           status: 422,
         });
         await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             where: 'abc',
           },
           status: 422,
         });
         await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}`,
           query: {
             fields: 'abc',
           },
@@ -821,6 +821,7 @@ describe('dataApiV3', () => {
 
     describe('number-based', () => {
       let table: Model;
+      let numberBasedUrlPrefix: string;
       beforeEach(async function () {
         table = await createTable(testContext.context, testContext.base, {
           title: 'numberTable',
@@ -830,6 +831,7 @@ describe('dataApiV3', () => {
             { column_name: 'f,Decimal', uidt: UITypes.Number },
           ],
         });
+        numberBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
         await createBulkRowsV3(testContext.context, {
           base: testContext.base,
           table: table,
@@ -852,7 +854,7 @@ describe('dataApiV3', () => {
 
       it(`get list table with sort and filter`, async () => {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}`,
           query: {
             limit: 5,
             fields: ['fNumber', 'f,Decimal'],

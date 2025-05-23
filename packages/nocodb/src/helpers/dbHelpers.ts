@@ -330,6 +330,8 @@ export function transformObject(value, idToAliasMap) {
     const btAlias = idToAliasMap[k];
     if (btAlias) {
       result[btAlias] = v;
+    } else {
+      result[k] = v;
     }
   });
   return result;
@@ -397,12 +399,14 @@ export function shouldSkipField(
   view,
   column,
   extractPkAndPv,
+  pkAndPvOnly = false,
 ) {
-  if (fieldsSet) {
+  if (fieldsSet && !pkAndPvOnly) {
     return !fieldsSet.has(column.title);
   } else {
-    if (column.system && isCreatedOrLastModifiedByCol(column)) return true;
-    if (column.system && isOrderCol(column)) return true;
+    if (!pkAndPvOnly && column.system && isCreatedOrLastModifiedByCol(column))
+      return true;
+    if (!pkAndPvOnly && column.system && isOrderCol(column)) return true;
     if (!extractPkAndPv) {
       if (!(viewOrTableColumn instanceof Column)) {
         if (
@@ -576,4 +580,35 @@ export const validateFuncOnColumn = async ({
       }
     }
   }
+};
+
+export const isFilterValueConsistOf = (
+  filterValue: any,
+  needle: string,
+  option?: {
+    replace?: string;
+  },
+) => {
+  const evalNeedle = needle.toLowerCase().trim();
+  if (Array.isArray(filterValue)) {
+    const result = filterValue.find(
+      (k) => k.toLowerCase().trim() === evalNeedle,
+    );
+    if (result && option?.replace) {
+      filterValue.map((k) => k.replace(evalNeedle, option.replace));
+    }
+    return { exists: result, value: filterValue };
+  } else if (typeof filterValue === 'string') {
+    const result = filterValue
+      .split(',')
+      .find((k) => k.toLowerCase().trim() === evalNeedle);
+    if (result && option?.replace) {
+      filterValue = filterValue
+        .split(',')
+        .map((k) => k.replace(evalNeedle, option.replace))
+        .join(',');
+    }
+    return { exists: result, value: filterValue };
+  }
+  return { exists: false };
 };

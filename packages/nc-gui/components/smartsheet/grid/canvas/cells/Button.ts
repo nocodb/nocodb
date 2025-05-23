@@ -224,7 +224,7 @@ const iconSpacing = 6
 
 export const ButtonCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props: CellRendererOptions) => {
-    const { x, y, width, column, spriteLoader, mousePosition, actionManager, pk, disabled, value } = props
+    const { x, y, width, column, spriteLoader, mousePosition, actionManager, pk, disabled, value, allowLocalUrl } = props
     const isLoading = actionManager.isLoading(pk, column.id!)
 
     let disabledState = isLoading || disabled?.isInvalid
@@ -243,8 +243,12 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (buttonMeta.type === ButtonActionsType.Url) {
       const url = addMissingUrlSchma(value?.url?.toString() ?? '')
-
-      disabledState = !(url && isValidURL(url))
+      disabledState = !(
+        url &&
+        isValidURL(url, {
+          require_tld: !allowLocalUrl,
+        })
+      )
     }
 
     const hasIcon = !!buttonMeta.icon
@@ -331,7 +335,7 @@ export const ButtonCellRenderer: CellRenderer = {
       ctx.globalAlpha = 1
     }
   },
-  async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition, path }) {
+  async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition, path, allowLocalUrl }) {
     if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
@@ -385,7 +389,7 @@ export const ButtonCellRenderer: CellRenderer = {
       mousePosition.y <= startY + buttonHeight
 
     if (!isHovered) return false
-    await actionManager.executeButtonAction([pk], column, { row: [row], path })
+    await actionManager.executeButtonAction([pk], column, { row: [row], path, allowLocalUrl })
     return true
   },
 
@@ -446,7 +450,7 @@ export const ButtonCellRenderer: CellRenderer = {
     const { e, row, column, actionManager, pk, path } = ctx
     if (e.key === 'Enter') {
       if (column.readonly || column.columnObj?.readonly) return false
-      await actionManager.executeButtonAction([pk], column, { row: [row], path })
+      await actionManager.executeButtonAction([pk], column, { row: [row], path, allowLocalUrl })
       return true
     }
 

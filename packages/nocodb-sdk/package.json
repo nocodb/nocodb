@@ -1,6 +1,6 @@
 {
   "name": "nocodb-sdk",
-  "version": "0.263.0",
+  "version": "0.263.4",
   "description": "NocoDB SDK",
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
@@ -39,7 +39,7 @@
     "generate:sdk": "node build-script/mergeAndGenerateSwaggerCE && pnpm exec swagger-typescript-api -r -p ./nc_swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates; rm ./nc_swagger.json"
   },
   "dependencies": {
-    "axios": "^1.7.9",
+    "axios": "^1.9.0",
     "chevrotain": "^10.5.0",
     "dayjs": "^1.11.13",
     "jsep": "^1.4.0",

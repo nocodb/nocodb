@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { ViewTypes, isReadOnlyColumn, isSystemColumn } from 'nocodb-sdk'
+import { ExpandedFormMode, ViewTypes, isReadOnlyColumn, isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'
@@ -29,7 +29,9 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord', 'updateRowCommentCount'])
 
-const { activeView } = storeToRefs(useViewsStore())
+const viewsStore = useViewsStore()
+
+const { activeView } = storeToRefs(viewsStore)
 
 const key = ref(0)
 
@@ -40,8 +42,6 @@ const { dashboardUrl } = useDashboard()
 const { copy } = useCopy()
 
 const { isMobileMode } = useGlobal()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
@@ -91,6 +91,8 @@ provide(CellClickHookInj, undefined)
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 provide(MetaInj, meta)
 
 // override cell event hook to avoid unexpected behavior at form fields
@@ -118,6 +120,7 @@ const {
   loadComments,
   loadAudits,
   clearColumns,
+  baseRoles,
 } = expandedFormStore
 
 const loadingEmit = (event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | 'createdRecord') => {
@@ -182,22 +185,21 @@ const fields = computed(() => {
 
 const tableTitle = computed(() => meta.value?.title)
 
-const { setCurrentViewExpandedFormMode } = useSharedView()
-
-const activeViewMode = ref(props.view?.expanded_record_mode ?? 'field')
+const activeViewMode = ref(
+  !isPublic.value && isEeUI ? props.view?.expanded_record_mode ?? ExpandedFormMode.FIELD : ExpandedFormMode.FIELD,
+)
 
 watch(activeViewMode, async (v) => {
   const viewId = props.view?.id
   if (!viewId) return
-  if (v === 'field') {
-    await setCurrentViewExpandedFormMode(viewId, v)
-  } else if (v === 'attachment') {
+
+  if (v === ExpandedFormMode.FIELD || v === ExpandedFormMode.DISCUSSION) {
+    await viewsStore.setCurrentViewExpandedFormMode(viewId, v)
+  } else if (v === ExpandedFormMode.ATTACHMENT) {
     const firstAttachmentField = fields.value?.find((f) => f.uidt === 'Attachment')
-    await setCurrentViewExpandedFormMode(viewId, v, props.view?.attachment_mode_column_id ?? firstAttachmentField?.id)
+
+    await viewsStore.setCurrentViewExpandedFormMode(viewId, v, props.view?.attachment_mode_column_id ?? firstAttachmentField?.id)
   }
-  // else if (v === 'discussion') {
-  //   await setCurrentViewExpandedFormMode(viewId, v)
-  // }
 })
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)
@@ -268,7 +270,7 @@ const isExpanded = useVModel(props, 'modelValue', emits, {
 })
 
 const onClose = () => {
-  if (!isUIAllowed('dataEdit')) {
+  if (!isUIAllowed('dataEdit', baseRoles.value)) {
     isExpanded.value = false
   } else if (changedColumns.value.size > 0) {
     isCloseModalOpen.value = true
@@ -629,7 +631,7 @@ const onIsExpandedUpdate = (v: boolean) => {
     if (isKanban.value) {
       emits('cancel')
     }
-  } else if (!v && isUIAllowed('dataEdit')) {
+  } else if (!v && isUIAllowed('dataEdit', baseRoles.value)) {
     preventModalStatus.value = true
   } else {
     isExpanded.value = v
@@ -731,7 +733,7 @@ export default {
     :closable="false"
     :footer="null"
     :visible="isExpanded"
-    :width="commentsDrawer && isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
+    :width="commentsDrawer && isUIAllowed('commentList', baseRoles) ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
     class="nc-drawer-expanded-form"
     :size="isMobileMode ? 'medium' : 'small'"
     v-bind="modalProps"
@@ -749,7 +751,7 @@ export default {
         <div class="flex gap-2 min-w-0 min-h-8">
           <div class="flex gap-2">
             <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
-              <template #title> {{ renderAltOrOptlKey() }} + ←</template>
+              <template #title> {{ $t('labels.prevRow') }} {{ renderAltOrOptlKey() }} + ←</template>
               <NcButton
                 :disabled="isFirstRow || isLoading"
                 class="nc-prev-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
@@ -761,7 +763,7 @@ export default {
               </NcButton>
             </NcTooltip>
             <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
-              <template #title> {{ renderAltOrOptlKey() }} + →</template>
+              <template #title> {{ $t('labels.nextRow') }} {{ renderAltOrOptlKey() }} + →</template>
               <NcButton
                 :disabled="islastRow || isLoading"
                 class="nc-next-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
@@ -778,8 +780,8 @@ export default {
           </div>
           <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end) min-w-0">
             <div v-if="!props.showNextPrevIcons" class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
-              <GeneralIcon icon="table" class="text-gray-700" />
-              <span class="nc-expanded-form-table-name">
+              <GeneralIcon icon="table" class="text-gray-700 flex-none" />
+              <span class="nc-expanded-form-table-name whitespace-nowrap">
                 {{ tableTitle }}
               </span>
             </div>
@@ -794,47 +796,16 @@ export default {
               class="flex items-center font-bold text-gray-800 text-2xl overflow-hidden"
             >
               <span class="min-w-[120px] md:min-w-[300px]">
-                <NcTooltip class="truncate" show-on-truncate-only>
-                  <template #title>
-                    {{ displayValue }}
-                  </template>
-
-                  <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
-                </NcTooltip>
+                <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" show-tooltip />
               </span>
             </div>
           </div>
         </div>
-        <div class="ml-auto">
-          <NcSelectTab
-            v-if="
-              isEeUI &&
-              (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) ||
-                isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE))
-            "
-            v-model="activeViewMode"
-            class="nc-expanded-form-mode-switch"
-            :disabled="!isUIAllowed('viewCreateOrEdit')"
-            :tooltip="!isUIAllowed('viewCreateOrEdit') ? 'You do not have permission to change view mode.' : undefined"
-            :items="[
-              { icon: 'fields', value: 'field', tooltip: 'Fields' },
-              {
-                icon: 'file',
-                value: 'attachment',
-                tooltip: 'File Preview',
-                hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE),
-              },
-              {
-                icon: 'ncMessageSquare',
-                value: 'discussion',
-                tooltip: 'Discussion',
-                hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE) || isSqlView,
-              },
-            ]"
-          />
+        <div v-if="!isUIAllowed('viewCreateOrEdit', baseRoles)" class="ml-auto">
+          <SmartsheetExpandedFormViewModeSelector v-model="activeViewMode" view="view" class="nc-expanded-form-mode-switch" />
         </div>
         <div class="flex gap-2">
-          <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit') && !isSqlView">
+          <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit', baseRoles) && !isSqlView">
             <template #title> {{ renderAltOrOptlKey() }} + S</template>
             <NcButton
               v-e="['c:row-expand:save']"
@@ -895,7 +866,7 @@ export default {
                     {{ $t('labels.copyRecordURL') }}
                   </div>
                 </NcMenuItem>
-                <NcMenuItem v-if="isUIAllowed('dataEdit') && !isSqlView" @click="!isNew ? onDuplicateRow() : () => {}">
+                <NcMenuItem v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView" @click="!isNew ? onDuplicateRow() : () => {}">
                   <div v-e="['c:row-expand:duplicate']" class="flex gap-2 items-center" data-testid="nc-expanded-form-duplicate">
                     <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
                     <span class="-ml-0.25">
@@ -903,9 +874,15 @@ export default {
                     </span>
                   </div>
                 </NcMenuItem>
-                <NcDivider v-if="isUIAllowed('dataEdit') && !isSqlView" />
+                <NcDivider
+                  v-if="
+                    isUIAllowed('dataEdit', {
+                      roles: baseRoles,
+                    }) && !isSqlView
+                  "
+                />
                 <NcMenuItem
-                  v-if="isUIAllowed('dataEdit') && !isSqlView"
+                  v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
                   class="!text-red-500 !hover:bg-red-50"
                   @click="!isNew && onDeleteRowClick()"
                 >
@@ -936,7 +913,7 @@ export default {
         </div>
       </div>
       <div ref="wrapper" class="flex-grow h-[calc(100%_-_4rem)] w-full">
-        <template v-if="activeViewMode === 'field'">
+        <template v-if="activeViewMode === ExpandedFormMode.FIELD">
           <SmartsheetExpandedFormPresentorsFields
             :row-id="rowId"
             :fields="fields ?? []"
@@ -954,7 +931,7 @@ export default {
             @update-row-comment-count="emits('updateRowCommentCount', $event)"
           />
         </template>
-        <template v-else-if="activeViewMode === 'attachment'">
+        <template v-else-if="activeViewMode === ExpandedFormMode.ATTACHMENT">
           <SmartsheetExpandedFormPresentorsAttachments
             :row-id="rowId"
             :view="props.view"
@@ -973,7 +950,7 @@ export default {
             @update-row-comment-count="emits('updateRowCommentCount', $event)"
           />
         </template>
-        <template v-else-if="activeViewMode === 'discussion'">
+        <template v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION">
           <SmartsheetExpandedFormPresentorsDiscussion :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist" />
         </template>
       </div>

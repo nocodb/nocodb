@@ -844,13 +844,7 @@ export default {
               class="flex items-center font-bold text-gray-800 text-2xl overflow-hidden"
             >
               <span class="min-w-[120px] md:min-w-[300px]">
-                <NcTooltip class="truncate" show-on-truncate-only>
-                  <template #title>
-                    {{ displayValue }}
-                  </template>
-
-                  <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
-                </NcTooltip>
+                <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" show-tooltip />
               </span>
             </div>
           </div>

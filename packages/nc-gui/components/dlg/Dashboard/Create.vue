@@ -207,7 +207,7 @@ onMounted(() => {
 </style>
 
 <style lang="scss">
-.nc-modal-wrapper.nc-modal-script-create-wrapper {
+.nc-modal-wrapper.nc-modal-dashboard-create-wrapper {
   .ant-modal-content {
     @apply !rounded-5;
   }

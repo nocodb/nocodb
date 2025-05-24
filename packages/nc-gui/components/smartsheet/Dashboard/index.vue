@@ -97,7 +97,7 @@ const isReadonly = computed(() => {
         <div class="flex flex-col items-center justify-center h-full text-center">
           <h3 class="text-xl font-semibold text-gray-700 mb-2">Dashboard Not Found</h3>
           <p class="text-gray-500 mb-4">The dashboard you're looking for doesn't exist or has been deleted.</p>
-          <NcButton type="primary" @click="router.push('/nc/base')">Go Back</NcButton>
+          <NcButton type="primary" @click="router.push('/')">Go Back</NcButton>
         </div>
       </div>
 

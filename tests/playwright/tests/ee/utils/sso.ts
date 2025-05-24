@@ -16,7 +16,7 @@ export const startOpenIDIdp = async (env = {}) => {
 
   return new Promise((resolve, reject) => {
     try {
-      openIDChildProcess = spawn('npm', ['start'], {
+      openIDChildProcess = spawn('bash', ['-c', 'npm install && npm start'], {
         cwd: path.join(__dirname, '../../../../../scripts/ee/playwright/openid-provider'),
         env: {
           ...process.env,
@@ -36,7 +36,9 @@ export const startOpenIDIdp = async (env = {}) => {
         console.log(log);
 
         // skip warning logs
-        if (log.includes('WARNING:')) return resolve(null);
+        const lowerCaseLog = log.toLowerCase();
+        if (lowerCaseLog.includes('npm') || lowerCaseLog.includes('debugger') || lowerCaseLog.includes('warning:'))
+          return resolve(null);
 
         reject(log);
       });

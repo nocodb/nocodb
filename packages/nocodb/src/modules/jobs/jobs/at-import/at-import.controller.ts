@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import {
   Controller,
   HttpCode,
@@ -48,7 +49,7 @@ export class AtImportController {
     // if environment value avail use it
     // or if it's docker construct using `PORT`
     if (process.env.NC_DOCKER) {
-      baseURL = `http://localhost:${process.env.PORT || 8080}`;
+      baseURL = `http://localhost:${serverConfig.port}`;
     }
 
     const job = await this.jobsService.add(JobTypes.AtImport, {

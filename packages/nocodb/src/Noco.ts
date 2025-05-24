@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import path from 'path';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
@@ -24,7 +25,7 @@ import { getRedisURL } from '~/helpers/redisHelpers';
 dotenv.config();
 declare const module: any;
 
-if (['development', 'test'].includes(process.env.NODE_ENV)) {
+if (['development', 'testing'].includes(serverConfig.environment)) {
   require('source-map-support').install();
 }
 
@@ -55,13 +56,6 @@ export default class Noco {
   public static sharp: typeof Sharp;
 
   constructor() {
-    process.env.PORT = process.env.PORT || '8080';
-    // todo: move
-    // if env variable NC_MINIMAL_DBS is set, then disable base creation with external sources
-    if (process.env.NC_MINIMAL_DBS === 'true') {
-      process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED = 'true';
-    }
-
     this.router = express.Router();
     this.baseRouter = express.Router();
 
@@ -94,7 +88,7 @@ export default class Noco {
   }
 
   public static isEE(): boolean {
-    return this.ee || process.env.NC_CLOUD === 'true';
+    return this.ee || serverConfig.nocoDbConfig.isCloud;
   }
 
   public static async loadEEState(): Promise<boolean> {
@@ -126,7 +120,7 @@ export default class Noco {
       );
     }
 
-    if (process.env.NC_WORKER_CONTAINER === 'true') {
+    if (serverConfig.workerType === 'worker') {
       if (!getRedisURL()) {
         throw new Error('NC_REDIS_URL is required');
       }
@@ -151,7 +145,7 @@ export default class Noco {
     await nestApp.enableShutdownHooks();
     NcDebug.log('Shutdown hooks enabled');
 
-    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
+    const dashboardPath = serverConfig.dashboardUrl;
     server.use(express.static(path.join(__dirname, 'public')));
 
     if (dashboardPath !== '/' && dashboardPath !== '') {
@@ -161,7 +155,7 @@ export default class Noco {
     await Integration.init();
     NcDebug.log('Integration initialized');
 
-    if (process.env.NC_WORKER_CONTAINER !== 'true') {
+    if (serverConfig.workerType !== 'worker') {
       await DataReflection.init();
     }
 
@@ -206,8 +200,7 @@ export default class Noco {
 
       this.config.auth.jwt.options = this.config.auth.jwt.options || {};
       if (!this.config.auth.jwt.options?.expiresIn) {
-        this.config.auth.jwt.options.expiresIn =
-          process.env.NC_JWT_EXPIRES_IN ?? '10h';
+        this.config.auth.jwt.options.expiresIn = serverConfig.auth.jwt.time;
       }
     }
     let serverId = (

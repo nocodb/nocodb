@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import { Module } from '@nestjs/common';
 
 /* Modules */
@@ -171,7 +172,7 @@ export const nocoModuleMetadata = {
     // NotFoundHandlerModule,
   ],
   controllers: [
-    ...(process.env.NC_WORKER_CONTAINER !== 'true'
+    ...(serverConfig.workerType !== 'worker'
       ? [
           /* Users */
           UsersController,

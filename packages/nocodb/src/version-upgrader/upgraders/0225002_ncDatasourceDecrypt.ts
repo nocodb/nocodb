@@ -1,6 +1,7 @@
 import CryptoJS from 'crypto-js';
 import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
 import { MetaTable, RootScopes } from '~/utils/globals';
+import { serverConfig } from 'config';
 
 const logger = {
   log: (message: string) => {
@@ -60,7 +61,7 @@ const decryptConfigWithFallbackKey = async ({
 export default async function ({ ncMeta }: NcUpgraderCtx) {
   logger.log('Starting decryption of sources and integrations');
 
-  let encryptionKey = process.env.NC_AUTH_JWT_SECRET;
+  let encryptionKey = serverConfig.auth.jwt.secret;
   let fallbackEncryptionKey: string | null = null;
 
   const encryptionKeyFromMeta = (

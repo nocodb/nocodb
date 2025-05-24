@@ -4,6 +4,7 @@ import PgConnectionConfig = Knex.PgConnectionConfig;
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import CustomKnex from '~/db/CustomKnex';
 import { SqlClientFactory } from '~/db/sql-client/lib/SqlClientFactory';
+import { serverConfig } from 'config';
 const logger = new Logger('initBaseBehavior');
 
 async function isSchemaCreateAllowed(
@@ -49,7 +50,7 @@ export async function initBaseBehavior() {
   }
 
   // disable minimal databases feature if NC_DISABLE_PG_DATA_REFLECTION is set to true
-  if (process.env.NC_DISABLE_PG_DATA_REFLECTION === 'true') {
+  if (serverConfig.nocoDbConfig.dataReflection == false) {
     return;
   }
 
@@ -65,7 +66,7 @@ export async function initBaseBehavior() {
     // if schema creation is not allowed, return
     if (!schemaCreateAllowed?.rows?.[0]?.has_database_privilege) {
       // set NC_DISABLE_PG_DATA_REFLECTION to true and log warning
-      process.env.NC_DISABLE_PG_DATA_REFLECTION = 'true';
+      serverConfig.nocoDbConfig.dataReflection = false
       logger.warn(
         `User ${
           (dataConfig.connection as PgConnectionConfig)?.user
@@ -75,12 +76,12 @@ export async function initBaseBehavior() {
     }
 
     // set NC_DISABLE_PG_DATA_REFLECTION to false
-    process.env.NC_DISABLE_PG_DATA_REFLECTION = 'false';
+    serverConfig.nocoDbConfig.dataReflection = true
   } catch (error) {
     logger.warn(
       `Error while checking schema creation permission: ${error.message}`,
     );
-    process.env.NC_DISABLE_PG_DATA_REFLECTION = 'true';
+    serverConfig.nocoDbConfig.dataReflection = false
   } finally {
     // close the connection since it's only used to verify permission
     await tempConnection?.destroy();

@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
@@ -24,7 +25,7 @@ export class JobsService implements OnModuleInit {
 
   // pause primary instance queue
   async onModuleInit() {
-    if (process.env.NC_WORKER_CONTAINER === 'false') {
+    if (serverConfig.workerType === 'main') {
       await this.jobsQueue.pause(true);
     }
 
@@ -55,10 +56,7 @@ export class JobsService implements OnModuleInit {
   }
 
   async toggleQueue() {
-    if (
-      process.env.NC_WORKER_CONTAINER !== 'true' &&
-      process.env.NC_WORKER_CONTAINER !== 'false'
-    ) {
+    if (serverConfig.workerType === 'disabled') {
       // resume primary instance queue if there is no worker
       const workerCount = await JobsRedis.workerCount();
       const localWorkerPaused = await this.jobsQueue.isPaused(true);

@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import dns from 'node:dns';
 import cors from 'cors';
 import express from 'express';
@@ -24,13 +25,13 @@ process.env[`DEBUG`] = 'xc*';
 
 // (async () => {
 //   await nocobuild(server);
-//   const httpServer = server.listen(process.env.PORT || 8080, async () => {
+//   const httpServer = server.listen(serverConfig.port, async () => {
 //     console.log('Server started');
 //   });
 // })().catch((e) => console.log(e));
 
 (async () => {
-  const httpServer = server.listen(process.env.PORT || 8080, async () => {
+  const httpServer = server.listen(serverConfig.port, async () => {
     server.use(await Noco.init({}, httpServer, server));
   });
 })().catch((e) => console.log(e));

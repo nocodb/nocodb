@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import os from 'os';
 import Emittery from 'emittery';
 import { machineIdSync } from 'node-machine-id';
@@ -77,7 +78,7 @@ class Tele {
           node_version: process.version,
           docker: isDocker(),
           xc_version: xc_version,
-          env: process.env.NODE_ENV || 'production',
+          env: serverConfig.environment,
           oneClick: !!process.env.NC_ONE_CLICK,
         };
         teleData.machine_id = `${machineIdSync()},,`;
@@ -253,8 +254,8 @@ class Tele {
 
   static async payload() {
     if (
-      process.env.NODE_ENV === 'test' ||
-      process.env.NODE_ENV === 'development' ||
+      serverConfig.environment == 'testing' ||
+      serverConfig.environment == 'development' ||
       isEE
     )
       return null;
@@ -263,7 +264,7 @@ class Tele {
       package_id: packageVersion,
       node_version: process.version,
       xc_version: process.env.NC_SERVER_UUID,
-      env: process.env.NODE_ENV || 'production',
+      env: serverConfig.environment,
       oneClick: !!process.env.NC_ONE_CLICK,
       disabled: isDisabled,
     };
@@ -296,16 +297,14 @@ async function waitForMachineId(teleData) {
 }
 
 // this is to keep the server alive
-if (process.env.NC_PUBLIC_URL) {
-  setInterval(() => {
-    axios({
-      method: 'get',
-      url: process.env.NC_PUBLIC_URL,
-    })
-      .then(() => {})
-      .catch(() => {});
-  }, 2 * 60 * 60 * 1000).unref();
-}
+setInterval(() => {
+  axios({
+    method: 'get',
+    url: serverConfig.publicUrl,
+  })
+    .then(() => {})
+    .catch(() => {});
+}, 2 * 60 * 60 * 1000).unref();
 
 if (process.env.NC_ONE_CLICK) {
   try {

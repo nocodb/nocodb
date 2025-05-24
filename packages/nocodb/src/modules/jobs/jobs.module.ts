@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import { forwardRef, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { RecoverDisconnectedTableNames } from './migration-jobs/nc_job_008_recover_disconnected_table_name';
@@ -77,7 +78,7 @@ export const JobsModuleMetadata = {
   ],
   controllers: [
     JobsController,
-    ...(process.env.NC_WORKER_CONTAINER !== 'true'
+    ...(serverConfig.workerType !== 'worker'
       ? [
           DuplicateController,
           MigrateController,

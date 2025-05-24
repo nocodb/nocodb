@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import debug from 'debug';
 import boxen from 'boxen';
 import ncAttachmentUpgrader from './upgraders/0101002_ncAttachmentUpgrader';
@@ -93,7 +94,7 @@ export default class NcUpgrader {
         this.log(`upgrade : Inserting config to meta database`);
         const configObj: any = {};
         const isOld =
-          process.env.NC_CLOUD !== 'true' &&
+          !serverConfig.nocoDbConfig.isCloud &&
           (await ctx.ncMeta.baseList())?.length;
         configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
         await ctx.ncMeta.metaInsert2(

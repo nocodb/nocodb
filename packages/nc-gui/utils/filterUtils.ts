@@ -1,3 +1,4 @@
+import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isDateMonthFormat, isNumericCol, numericUITypes } from 'nocodb-sdk'
 
 const getEqText = (fieldUiType: UITypes) => {
@@ -484,4 +485,57 @@ export const comparisonSubOpList = (
       includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
     },
   ]
+}
+
+export const getPlaceholderNewRow = (filters: Filter[], columns: ColumnType[]) => {
+  if (filters.some((filter) => filter.logical_op === 'or')) {
+    return {}
+  }
+  const placeholderNewRow: Record<string, any> = {}
+  for (const eachFilter of filters) {
+    if (['checked', 'notchecked', 'allof', 'eq'].includes(eachFilter.comparison_op as any)) {
+      const column = columns.find((col) => col.id === eachFilter.fk_column_id)
+      if (column) {
+        if (
+          [
+            UITypes.Number,
+            UITypes.Decimal,
+            UITypes.SingleLineText,
+            UITypes.LongText,
+            UITypes.SingleSelect,
+            UITypes.GeoData,
+            UITypes.Email,
+            UITypes.PhoneNumber,
+            UITypes.URL,
+            UITypes.Time,
+            UITypes.Year,
+            UITypes.Currency,
+            UITypes.Percent,
+            UITypes.Rating,
+            UITypes.Duration,
+            UITypes.JSON,
+
+            // User is using allOf and anyOf so we cannot include it here
+            // UITypes.User,
+          ].includes(column.uidt as UITypes) ||
+          ([UITypes.Date, UITypes.DateTime].includes(column.uidt as UITypes) && eachFilter.comparison_sub_op === 'exactDate')
+        ) {
+          placeholderNewRow[column.title!] = eachFilter.value
+        } else if (
+          [UITypes.Checkbox].includes(column.uidt as UITypes) &&
+          ['checked', 'notchecked'].includes(eachFilter.comparison_op as any)
+        ) {
+          placeholderNewRow[column.title!] = eachFilter.comparison_op === 'checked'
+        } else if ([UITypes.MultiSelect].includes(column.uidt as UITypes) && ['allof'].includes(eachFilter.comparison_op)) {
+          placeholderNewRow[column.title!] = eachFilter.value
+        } else if ([UITypes.User].includes(column.uidt as UITypes) && ['allof'].includes(eachFilter.comparison_op)) {
+          const isMulti = parseProp(column.meta)?.is_multi
+          if (isMulti || eachFilter.value?.indexOf?.(',') < 0) {
+            placeholderNewRow[column.title!] = eachFilter.value
+          }
+        }
+      }
+    }
+  }
+  return placeholderNewRow
 }

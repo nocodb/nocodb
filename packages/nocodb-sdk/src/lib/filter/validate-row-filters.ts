@@ -11,6 +11,7 @@ import { parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
 import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
 import { CURRENT_USER_TOKEN } from '../globals';
+import { ColumnHelper } from '../columnHelper';
 
 extend(relativeTime);
 extend(customParseFormat);
@@ -208,7 +209,6 @@ export function validateRowFilters(params: {
             val = +data[field];
             break;
         }
-
         if (
           [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
             column.uidt! as UITypes
@@ -260,6 +260,12 @@ export function validateRowFilters(params: {
             default:
               res = false; // Unsupported operation for User fields
           }
+        } else if([UITypes.JSON, UITypes.Time].includes(column.uidt as UITypes) && ['eq'].includes(filter.comparison_op)) {
+          res = ColumnHelper.getColumn(column.uidt as UITypes).equalityComparison(
+            val, filter.value, {
+              col: column,
+            }
+          );
         } else {
           switch (filter.comparison_op as any) {
             case 'eq':

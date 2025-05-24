@@ -1,0 +1,464 @@
+---
+description: create custom sync integration
+globs: 
+alwaysApply: false
+---
+# Custom Sync Integration Guide
+
+This guide provides comprehensive instructions for creating custom sync integrations for database systems like PostgreSQL, ClickHouse, MySQL, or any other data source that requires dynamic schema detection.
+
+## Overview
+
+Custom sync integrations differ from standard sync integrations (like GitHub or Jira) in that they:
+
+1. **Detect schemas dynamically** from the target system
+2. **Support arbitrary table structures** rather than predefined schemas
+3. **Use `CustomSyncSchema` and `CustomSyncRecord`** types instead of the standard ticketing schema
+4. **Handle primary keys and relationships** dynamically
+5. **Require authentication integrations** for database connections
+
+## Directory Structure
+
+```
+packages/your-database-sync/
+├── package.json
+├── tsconfig.json
+└── src/
+    ├── index.ts          # Integration entry point
+    ├── integration.ts    # Main integration class
+    ├── form.ts           # Configuration UI form
+    └── manifest.ts       # Integration metadata
+```
+
+## Core Implementation
+
+### 1. Integration Class Structure
+
+Your integration must extend `SyncIntegration<CustomSyncPayload>`:
+
+```typescript
+import {
+  DataObjectStream,
+  SyncIntegration,
+  UITypes,
+} from '@noco-integrations/core';
+import type {
+  AuthResponse,
+  CustomSyncPayload,
+  CustomSyncRecord,
+  CustomSyncSchema,
+  SyncAbstractType,
+  TARGET_TABLES,
+} from '@noco-integrations/core';
+
+class YourDatabaseSyncIntegration extends SyncIntegration<CustomSyncPayload> {
+  // Implementation methods...
+}
+```
+
+### 2. Required Methods Implementation
+
+#### `getDestinationSchema(auth: AuthResponse<YourClient>): Promise<CustomSyncSchema>`
+
+This method dynamically detects the schema from your database:
+
+```typescript
+public async getDestinationSchema(
+  auth: AuthResponse<YourClient>,
+): Promise<CustomSyncSchema> {
+  // Check if we have cached schema
+  if (
+    this.config.custom_schema &&
+    this.config.tables &&
+    this.config.tables.length === Object.keys(this.config.custom_schema).length &&
+    Object.keys(this.config.custom_schema).every((table) =>
+      this.config.tables.includes(table),
+    )
+  ) {
+    return this.config.custom_schema;
+  }
+
+  const client = auth;
+  const schema: CustomSyncSchema = {};
+
+  for (const table of this.config.tables) {
+    const columns: {
+      title: string;
+      uidt: UITypes;
+      abstractType: SyncAbstractType;
+    }[] = [];
+
+    // Query your database's information schema
+    const tableSchema = await this.getTableColumns(client, table);
+
+    for (const column of tableSchema) {
+      const { uidt, abstractType } = this.autoDetectType(column.data_type);
+
+      columns.push({
+        title: column.column_name,
+        uidt,
+        abstractType,
+      });
+    }
+
+    // Get primary key information
+    const primaryKeys = await this.getPrimaryKeys(client, table);
+
+    schema[table] = {
+      title: table,
+      columns,
+      relations: [],
+      systemFields: {
+        primaryKey: primaryKeys,
+      },
+    };
+  }
+
+  return schema;
+}
+```
+
+#### `fetchData()` - Stream Data from Database
+
+```typescript
+public async fetchData(
+  auth: AuthResponse<YourClient>,
+  args: {
+    targetTables?: (TARGET_TABLES | string)[];
+    targetTableIncrementalValues?: Record<TARGET_TABLES | string, string | number>;
+  },
+): Promise<DataObjectStream<CustomSyncRecord>> {
+  const client = auth;
+  const stream = new DataObjectStream<CustomSyncRecord>();
+
+  (async () => {
+    try {
+      // Ensure we have schema information
+      const schema = this.config.custom_schema || 
+        (await this.getDestinationSchema(auth));
+
+      const targetTables = args.targetTables || [];
+      const incrementalValues = args.targetTableIncrementalValues || {};
+
+      // Process each table
+      for (const tableName of targetTables) {
+        const tableSchema = schema[tableName as string];
+        if (!tableSchema) {
+          console.warn(`Schema not found for table: ${tableName}`);
+          continue;
+        }
+
+        // Build and execute query
+        const rows = await this.queryTable(
+          client, 
+          tableName as string, 
+          tableSchema,
+          incrementalValues[tableName]
+        );
+
+        for (const row of rows) {
+          const recordId = this.generateRecordId(tableName as string, row);
+          const { data, links } = this.formatData(tableName as string, row);
+
+          stream.push({
+            targetTable: tableName as string,
+            recordId,
+            data,
+            links,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      stream.emit('error', error);
+    } finally {
+      stream.push(null); // CRITICAL: End the stream
+    }
+  })();
+
+  return stream;
+}
+```
+
+#### `formatData()` - Transform Database Records
+
+```typescript
+public formatData(
+  targetTable: TARGET_TABLES | string,
+  data: any,
+): {
+  data: CustomSyncRecord;
+  links?: Record<string, string[] | null>;
+} {
+  const formattedData: CustomSyncRecord = {
+    RemoteRaw: null, // Avoid raw data for custom schemas
+  };
+
+  const tableSchema = this.config.custom_schema?.[targetTable];
+
+  if (tableSchema) {
+    const systemFields = tableSchema.systemFields;
+    if (systemFields) {
+      if (systemFields.createdAt && data[systemFields.createdAt]) {
+        formattedData.RemoteCreatedAt = data[systemFields.createdAt];
+      }
+      if (systemFields.updatedAt && data[systemFields.updatedAt]) {
+        formattedData.RemoteUpdatedAt = data[systemFields.updatedAt];
+      }
+    }
+
+    // Map all columns from schema
+    for (const column of tableSchema.columns) {
+      if (!column.exclude && data[column.title] !== undefined) {
+        formattedData[column.title] = data[column.title];
+      }
+    }
+  } else {
+    // Fallback: map all data directly
+    Object.assign(formattedData, data);
+  }
+
+  return { data: formattedData };
+}
+```
+
+#### `getIncrementalKey()` - Support Incremental Sync
+
+```typescript
+public getIncrementalKey(targetTable: TARGET_TABLES | string): string | null {
+  const tableSchema = this.config.custom_schema?.[targetTable];
+  if (tableSchema?.systemFields?.updatedAt) {
+    return tableSchema.systemFields.updatedAt;
+  }
+  
+  // Common fallback names
+  const commonUpdatedFields = ['updated_at', 'updatedAt', 'modified_at', 'last_modified'];
+  
+  if (tableSchema) {
+    for (const field of commonUpdatedFields) {
+      if (tableSchema.columns.some(col => col.title === field)) {
+        return field;
+      }
+    }
+  }
+  
+  return null; // No incremental sync available
+}
+```
+
+### 3. Helper Methods
+
+#### Primary Key Generation
+
+```typescript
+private generateRecordId(tableName: string, row: any): string {
+  const primaryKeys = this.config.custom_schema?.[tableName]?.systemFields?.primaryKey;
+
+  if (primaryKeys && primaryKeys.length > 0) {
+    return primaryKeys
+      .sort()
+      .map((pk) => `${row[pk]}`)
+      .join('_');
+  }
+
+  throw new Error('No primary keys found for table: ' + tableName);
+}
+```
+
+#### Type Detection
+
+```typescript
+private autoDetectType(type: string): {
+  uidt: UITypes;
+  abstractType: SyncAbstractType;
+} {
+  const lowerType = type.toLowerCase();
+
+  // Integer types
+  if (lowerType.includes('int') || lowerType.includes('serial')) {
+    return { uidt: UITypes.Number, abstractType: 'number' };
+  }
+
+  // Decimal/Float types
+  if (lowerType.includes('decimal') || lowerType.includes('numeric') || 
+      lowerType.includes('float') || lowerType.includes('double')) {
+    return { uidt: UITypes.Decimal, abstractType: 'decimal' };
+  }
+
+  // Boolean types
+  if (lowerType.includes('bool')) {
+    return { uidt: UITypes.Checkbox, abstractType: 'boolean' };
+  }
+
+  // Date types
+  if (lowerType.includes('date') && !lowerType.includes('time')) {
+    return { uidt: UITypes.Date, abstractType: 'date' };
+  }
+
+  // DateTime/Timestamp types
+  if (lowerType.includes('timestamp') || lowerType.includes('datetime')) {
+    return { uidt: UITypes.DateTime, abstractType: 'datetime' };
+  }
+
+  // Default to string
+  return { uidt: UITypes.SingleLineText, abstractType: 'string' };
+}
+```
+
+#### Options Fetching (for Form Dropdowns)
+
+```typescript
+public async fetchOptions(auth: AuthResponse<YourClient>, key: string) {
+  const client = auth;
+
+  switch (key) {
+    case 'databases':
+      return await this.getDatabases(client);
+    case 'schemas':
+      return await this.getSchemas(client);
+    case 'tables':
+      if (this.config.schema) {
+        return await this.getTables(client, this.config.schema);
+      }
+      return [];
+    default:
+      return [];
+  }
+}
+```
+
+## Configuration Form
+
+Your form should use `SelectIntegration` to reference an auth integration:
+
+```typescript
+import { FormBuilderInputType, IntegrationType } from '@noco-integrations/core';
+import type { FormDefinition } from '@noco-integrations/core';
+
+const form: FormDefinition = [
+  {
+    type: FormBuilderInputType.SelectIntegration,
+    label: 'Database Connection',
+    width: 100,
+    model: 'config.authIntegrationId',
+    category: 'Authentication',
+    integrationFilter: {
+      type: IntegrationType.Auth,
+      sub_type: 'your-database', // Match your auth integration sub_type
+    },
+    validators: [
+      {
+        type: 'required' as const,
+        message: 'Database connection is required',
+      },
+    ],
+  },
+  {
+    type: FormBuilderInputType.Select,
+    label: 'Schema/Database',
+    width: 100,
+    model: 'config.schema',
+    category: 'Sync Settings',
+    options: [],
+    fetchOptionsKey: 'schemas',
+    condition: [
+      {
+        model: 'config.authIntegrationId',
+        notEmpty: true,
+      },
+    ],
+  },
+  {
+    type: FormBuilderInputType.Select,
+    label: 'Tables',
+    width: 100,
+    model: 'config.tables',
+    category: 'Sync Settings',
+    selectMode: 'multiple',
+    options: [],
+    fetchOptionsKey: 'tables',
+    condition: [
+      {
+        model: 'config.authIntegrationId',
+        notEmpty: true,
+      },
+      {
+        model: 'config.schema',
+        notEmpty: true,
+      },
+    ],
+  },
+];
+```
+
+## Integration Manifest
+
+```typescript
+import {
+  type IntegrationManifest,
+  SyncCategory,
+} from '@noco-integrations/core';
+
+const manifest: IntegrationManifest = {
+  title: 'Your Database',
+  icon: 'your-database-icon',
+  version: '0.1.0',
+  description: 'Sync data with Your Database',
+  author: 'Your Name',
+  sync_category: SyncCategory.CUSTOM, // Use CUSTOM for database integrations
+};
+```
+
+## Integration Entry Point
+
+```typescript
+import {
+  type IntegrationEntry,
+  IntegrationType,
+} from '@noco-integrations/core';
+import YourDatabaseSyncIntegration from './integration';
+import manifest from './manifest';
+import form from './form';
+
+const integration: IntegrationEntry = {
+  type: IntegrationType.Sync,
+  sub_type: 'your-database', // Must match auth integration sub_type
+  wrapper: YourDatabaseSyncIntegration,
+  form,
+  manifest,
+};
+
+export { manifest, form, YourDatabaseSyncIntegration };
+export default integration;
+```
+
+## Database-Specific Implementation Examples
+
+### PostgreSQL Pattern
+See [packages/postgres-sync/src/integration.ts](mdc:packages/postgres-sync/src/integration.ts) for:
+- Using Knex.js client
+- Querying `information_schema.columns`
+- Handling primary keys via `information_schema.key_column_usage`
+
+### ClickHouse Pattern  
+See [packages/clickhouse-sync/src/integration.ts](mdc:packages/clickhouse-sync/src/integration.ts) for:
+- Using ClickHouse client
+- Querying `system.columns` and `system.tables`
+- Handling ClickHouse-specific data types
+
+## Important Notes
+
+1. **Stream Handling**: Always call `stream.push(null)` to end the stream in your async function
+2. **Error Handling**: Wrap async operations in try/catch and emit errors to the stream
+3. **Primary Keys**: Custom sync integrations MUST have primary keys defined for each table
+4. **Schema Caching**: Cache the schema in `config.custom_schema` to avoid repeated detection
+5. **Auth Integration**: Your sync integration sub_type must match your auth integration sub_type
+6. **Type Detection**: Implement robust type detection for your database's specific data types
+
+## Common Pitfalls
+
+1. **Forgetting to end the stream** - This will cause hangs
+2. **Missing primary keys** - Will cause sync failures
+3. **Incorrect type mapping** - May cause data import issues
+4. **Not handling auth integration dependency** - Users won't be able to configure the integration
+5. **Schema detection failures** - Always provide fallback error handling

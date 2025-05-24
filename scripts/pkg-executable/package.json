@@ -27,16 +27,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@nestjs/common": "^10.3.8",
-    "@nestjs/core": "^10.3.8",
+    "@nestjs/common": "^11.1.1",
+    "@nestjs/core": "^11.1.1",
     "cors": "^2.8.5",
-    "express": "^4.18.3",
+    "express": "^5.1.0",
     "nocodb": "0.204.9"
   },
   "overrides": {
     "sqlite3": "5.1.6"
   },
   "devDependencies": {
-    "@mapbox/node-pre-gyp": "^1.0.11"
+    "@mapbox/node-pre-gyp": "^2.0.0"
   }
 }

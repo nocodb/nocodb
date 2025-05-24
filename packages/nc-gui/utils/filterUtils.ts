@@ -495,28 +495,30 @@ export const getPlaceholderNewRow = (filters: Filter[], columns: ColumnType[]) =
   for (const eachFilter of filters) {
     if (['eq'].includes(eachFilter.comparison_op as any)) {
       const column = columns.find((col) => col.id === eachFilter.fk_column_id)
-      if (
-        column &&
-        [
-          UITypes.Number,
-          UITypes.Decimal,
-          UITypes.SingleLineText,
-          UITypes.LongText,
-          UITypes.SingleSelect,
-          UITypes.MultiSelect,
-          UITypes.GeoData,
-          UITypes.Email,
-          UITypes.PhoneNumber,
-          UITypes.URL,
-          UITypes.Time,
-          UITypes.Duration,
-          UITypes.Checkbox,
+      if (column) {
+        if (
+          [
+            UITypes.Number,
+            UITypes.Decimal,
+            UITypes.SingleLineText,
+            UITypes.LongText,
+            UITypes.SingleSelect,
+            UITypes.MultiSelect,
+            UITypes.GeoData,
+            UITypes.Email,
+            UITypes.PhoneNumber,
+            UITypes.URL,
+            UITypes.Time,
+            UITypes.Duration,
+            UITypes.Checkbox,
 
-          // User is using allOf and anyOf so we cannot include it here
-          // UITypes.User,
-        ].includes(column.uidt as UITypes)
-      ) {
-        placeholderNewRow[column.title!] = eachFilter.value
+            // User is using allOf and anyOf so we cannot include it here
+            // UITypes.User,
+          ].includes(column.uidt as UITypes) ||
+          ([UITypes.Date, UITypes.DateTime].includes(column.uidt as UITypes) && eachFilter.comparison_sub_op === 'exactDate')
+        ) {
+          placeholderNewRow[column.title!] = eachFilter.value
+        }
       }
     }
   }

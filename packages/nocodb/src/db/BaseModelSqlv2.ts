@@ -61,12 +61,8 @@ import type {
 } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { NcContext } from '~/interface/config';
 import type {
-  BarcodeColumn,
-  ButtonColumn,
   FormulaColumn,
   LinkToAnotherRecordColumn,
-  QrCodeColumn,
-  RollupColumn,
   SelectOption,
   User,
 } from '~/models';

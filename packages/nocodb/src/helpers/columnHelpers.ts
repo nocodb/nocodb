@@ -652,7 +652,7 @@ export const getTargetTableRelColumn = async (
   }
 
   const colOptions =
-    await relationColumn.getColOptions<LinkToAnotherRecordType>(context);
+    await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
   const { refContext } = colOptions.getRelContext(context);
 
   const targetTable =

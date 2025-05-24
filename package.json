@@ -69,7 +69,8 @@
       "**>ent": "npm:ent-replace@latest",
       "image-size@<1.2.1": ">=1.2.1",
       "tar-fs@<2.1.2": ">=3.0.7",
-      "highlight.js@<9.18.5": ">=11.11.1"
+      "highlight.js@<9.18.5": ">=11.11.1",
+      "multer@1.4.4-lts.1": ">=2.0.0"
     },
     "supportedArchitectures": {
       "os": [

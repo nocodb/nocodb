@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "dotenv": "^16.4.1",
-    "oidc-provider": "^8.4.5"
+    "oidc-provider": "^9.1.1"
   },
   "keywords": [],
   "author": "",

@@ -1,3 +1,5 @@
+import type { WorkerType } from './model';
+
 const objectOccupied = (obj: object) => {
   if (typeof obj === 'undefined' || Object.values(obj).length === 0) {
     return false;
@@ -29,16 +31,34 @@ export const rmUndefined = (obj: object) => {
 };
 
 export const stringToBoolTry = (
-  s: string | undefined | null,
+  s: string | undefined,
+  inverse = false,
 ): string | boolean => {
   if (typeof s !== 'string') {
     return s;
   }
 
   if (s.toLowerCase() === 'true') {
-    return true;
+    return inverse ? false : true;
   } else if (s.toLowerCase() === 'false') {
-    return false;
+    return inverse ? true : false;
+  } else {
+    return s;
+  }
+};
+
+// special case to keep backward compatibility
+export const stringToBoolWorker = (
+  s: string | undefined,
+): WorkerType | string => {
+  if (typeof s === 'undefined') {
+    return 'disabled';
+  }
+
+  if (s.toLowerCase() === 'true') {
+    return 'worker';
+  } else if (s.toLowerCase() === 'false') {
+    return 'main';
   } else {
     return s;
   }

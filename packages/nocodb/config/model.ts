@@ -112,6 +112,7 @@ const environments = [
   'staging',
 ] as const;
 const workerType = ['disabled', 'worker', 'main'] as const;
+export type WorkerType = (typeof workerType)[number];
 
 export class ServerConfig {
   host: string;
@@ -120,7 +121,7 @@ export class ServerConfig {
   @IsUrl({ require_tld: false })
   publicUrl: string;
   @IsIn(workerType)
-  workerType: (typeof workerType)[number];
+  workerType: WorkerType;
   @IsIn(environments)
   environment: (typeof environments)[number];
   @IsUrl({ require_host: false })

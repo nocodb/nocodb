@@ -5,7 +5,7 @@ import { plainToClass } from 'class-transformer';
 import * as toml from 'toml';
 import lodash from 'lodash';
 import { ServerConfig } from './model';
-import { rmUndefined, stringToBoolTry } from './util';
+import { rmUndefined, stringToBoolTry, stringToBoolWorker } from './util';
 
 const fromDefault = (s3: boolean, smtp: boolean) => {
   return {
@@ -48,7 +48,7 @@ const fromEnv = (): object => {
   const res = {
     host: process.env.HOST,
     port: process.env.PORT,
-    workerType: process.env.NC_WORKER_TYPE,
+    workerType: stringToBoolWorker(process.env.NC_WORKER_CONTAINER),
     environment: process.env.NODE_ENV,
 
     nocoDbConfig: {
@@ -56,7 +56,10 @@ const fromEnv = (): object => {
       licenseKey: process.env.NC_LICENSE_KEY,
       minimalDb: stringToBoolTry(process.env.NC_MINIMAL_DBS),
       dataReflection: stringToBoolTry(process.env.NC_PG_DATA_REFLECTION),
-      externalDb: stringToBoolTry(process.env.NC_CONNECT_TO_EXTERNAL_DB),
+      externalDb: stringToBoolTry(
+        process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
+        true,
+      ),
     },
 
     auth: {

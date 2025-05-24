@@ -218,7 +218,6 @@
     "@types/turndown": "^5.0.5",
     "@types/validator": "^13.12.2",
     "@types/vue-barcode-reader": "^0.0.3",
-    "@unocss/nuxt": "^0.64.1",
     "@vitest/ui": "^3.0.7",
     "@vue/compiler-sfc": "^3.5.13",
     "@vue/test-utils": "^2.4.6",

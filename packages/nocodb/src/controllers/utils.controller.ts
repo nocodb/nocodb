@@ -25,10 +25,12 @@ import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { TelemetryService } from '~/services/telemetry.service';
 import { NcRequest } from '~/interface/config';
 import { Integration } from '~/models';
-import { MetaTable, RootScopes } from '~/utils/globals';
+import { MetaTable } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import { deepMerge, isEE } from '~/utils';
 import Noco from '~/Noco';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext } from '~/interface/config';
 
 @Controller()
 export class UtilsController {
@@ -62,7 +64,11 @@ export class UtilsController {
     scope: 'org',
   })
   @HttpCode(200)
-  async testConnection(@Body() body: any, @Req() req: NcRequest) {
+  async testConnection(
+    @TenantContext() context: NcContext,
+    @Body() body: any,
+    @Req() req: NcRequest,
+  ) {
     body.pool = {
       min: 0,
       max: 1,
@@ -72,9 +78,7 @@ export class UtilsController {
 
     if (body.fk_integration_id) {
       const integration = await Integration.get(
-        {
-          workspace_id: RootScopes.BYPASS,
-        },
+        context,
         body.fk_integration_id,
       );
 

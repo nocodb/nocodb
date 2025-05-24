@@ -318,6 +318,7 @@ export class IntegrationsService {
     const integration = await Integration.createIntegration({
       ...integrationBody,
       ...(param.integration.copy_from_id ? { title: uniqueTitle } : {}),
+      workspaceId: context.workspace_id,
       created_by: param.req.user.id,
     });
 

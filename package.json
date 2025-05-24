@@ -18,7 +18,7 @@
   "devDependencies": {
     "fs": "0.0.1-security",
     "husky": "^8.0.3",
-    "lerna": "^7.4.2",
+    "lerna": "^8.2.2",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "husky": {
@@ -61,13 +61,15 @@
       "ip@=2.0.0": ">=2.0.1",
       "node.extend@<1.1.7": ">=1.1.7",
       "tough-cookie": "^5.1.0",
-      "typescript": "latest",
+      "typescript": "5.8.3",
       "ufo": ">=1.5.4",
-      "vue": "latest",
       "whatwg-url": "13.0.0",
       "ws@<8.17.1": ">=8.17.1",
       "xml2js@<0.5.0": ">=0.5.0",
-      "**>ent": "npm:ent-replace@latest"
+      "**>ent": "npm:ent-replace@latest",
+      "image-size@<1.2.1": ">=1.2.1",
+      "tar-fs@<2.1.2": ">=3.0.7",
+      "highlight.js@<9.18.5": ">=11.11.1"
     },
     "supportedArchitectures": {
       "os": [

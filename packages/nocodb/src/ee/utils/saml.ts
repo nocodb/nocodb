@@ -8,13 +8,11 @@ export async function parseSamlMetadata(metadataXml) {
     throw new Error('Invalid SAML metadata: missing entryPoint');
   }
 
-  const metadata = {
+  return {
     entityIdFromMeta: reader.entityId,
     identityProviderUrl: config.identityProviderUrl,
     entryPoint: config.entryPoint,
-    cert: config.cert,
+    cert: config.idpCert,
     logoutUrl: config.logoutUrl,
   };
-
-  return metadata;
 }

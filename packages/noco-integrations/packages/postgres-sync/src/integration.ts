@@ -183,12 +183,10 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     data: CustomSyncRecord;
     links?: Record<string, string[] | null>;
   } {
-    // Convert data to JSON string for raw storage
-    const rawData = JSON.stringify(data);
-
     // Format the record with required SyncRecord fields
     const formattedData: CustomSyncRecord = {
-      RemoteRaw: rawData,
+      // Avoid raw data for custom schemas
+      RemoteRaw: null,
     };
 
     const tableSchema = this.config.custom_schema?.[targetTable];

@@ -218,7 +218,11 @@ export default class Column<T = any> implements ColumnType {
       insertObj.source_id = model.source_id;
     }
 
-    if (!column.uidt) throw new Error('UI Datatype not found');
+    // Fallback to SingleLineText if no UI Datatype is provided
+    if (!column.uidt) {
+      insertObj.uidt = UITypes.SingleLineText;
+    }
+
     const row = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,

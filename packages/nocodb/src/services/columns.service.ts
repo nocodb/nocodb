@@ -3628,7 +3628,11 @@ export class ColumnsService implements IColumnsService {
     const relType = RelationTypes.ONE_TO_ONE;
 
     for (const c of columnsInRelatedTable) {
-      if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+      if (
+        c.uidt !== UITypes.LinkToAnotherRecord &&
+        c.uidt !== UITypes.LinkToAnotherRecordV2
+      )
+        continue;
       const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
         refContext,
         ncMeta,

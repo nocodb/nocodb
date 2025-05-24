@@ -7,6 +7,7 @@ import { BelongsToHelper } from './BelongsTo';
 import { HasManyHelper } from './HasMany';
 import { ManyToManyHelper } from './ManyToMany';
 import { OneToOneHelper } from './OneToOne';
+import { UITypes } from '~/lib';
 
 export class LTARHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -17,7 +18,8 @@ export class LTARHelper extends AbstractColumnHelper {
     let columnHelper: new () => AbstractColumnHelper = DefaultColumnHelper;
 
     if (isHm(params.col)) columnHelper = HasManyHelper;
-    if (isMm(params.col)) columnHelper = ManyToManyHelper;
+    if (isMm(params.col) || params.col.uidt === UITypes.LinkToAnotherRecordV2)
+      columnHelper = ManyToManyHelper;
     if (isBt(params.col)) columnHelper = BelongsToHelper;
     if (isOo(params.col)) columnHelper = OneToOneHelper;
 

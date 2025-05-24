@@ -1,4 +1,4 @@
-import { NcApiVersion, UITypes } from 'nocodb-sdk';
+import { isLTARType, NcApiVersion } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import { NcError } from 'src/helpers/catchError';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -42,7 +42,7 @@ export class DataV3Service {
     );
     let nestedNextPageAvail = false;
     for (const column of columns) {
-      if (column.uidt === UITypes.LinkToAnotherRecord) {
+      if (isLTARType(column)) {
         // slice if more than limit and mark as more available
         for (const row of pagedData.list) {
           if (row[column.id]?.length > nestedLimit) {

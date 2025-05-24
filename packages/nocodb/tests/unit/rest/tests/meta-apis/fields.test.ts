@@ -217,6 +217,7 @@ export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
             ]);
             break;
           case UITypes.LinkToAnotherRecord:
+          case UITypes.LinkToAnotherRecordV2:
             expect(responseColumn.options).to.have.keys([
               'relation_type',
               'linked_table_id',

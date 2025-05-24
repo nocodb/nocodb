@@ -315,6 +315,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             break
           }
           case UITypes.Links:
+          case UITypes.LinkToAnotherRecordV2:
           case UITypes.LinkToAnotherRecord: {
             /**
              * Links/LTAR object is also big as in new record it will include while linked record data(depends on how many columns related table has)

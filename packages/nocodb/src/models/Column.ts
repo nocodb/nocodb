@@ -1162,6 +1162,7 @@ export default class Column<T = any> implements ColumnType {
         cacheScopeName = CacheScope.COL_LOOKUP;
         break;
       case UITypes.LinkToAnotherRecord:
+      case UITypes.LinkToAnotherRecordV2:
       case UITypes.Links:
         colOptionTableName = MetaTable.COL_RELATIONS;
         cacheScopeName = CacheScope.COL_RELATION;
@@ -2035,7 +2036,8 @@ export default class Column<T = any> implements ColumnType {
           break;
         }
         case UITypes.Links:
-        case UITypes.LinkToAnotherRecord: {
+        case UITypes.LinkToAnotherRecord:
+        case UITypes.LinkToAnotherRecordV2: {
           insertArr.push({
             fk_column_id: column.id,
             type: column.type,
@@ -2189,6 +2191,7 @@ export default class Column<T = any> implements ColumnType {
           break;
         case UITypes.Links:
         case UITypes.LinkToAnotherRecord:
+        case UITypes.LinkToAnotherRecordV2:
           await ncMeta.bulkMetaInsert(
             context.workspace_id,
             context.base_id,

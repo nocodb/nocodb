@@ -1,8 +1,8 @@
 import {
   isLinksOrLTAR,
+  isLTARType,
   isSelfLinkCol,
   RelationTypes,
-  UITypes,
 } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { SwaggerColumn } from '../getSwaggerColumnMetas';
@@ -226,7 +226,7 @@ export const getNestedParams = async (
   columns: SwaggerColumn[],
 ): Promise<any[]> => {
   return await columns.reduce(async (paramsArr, { column }) => {
-    if (column.uidt === UITypes.LinkToAnotherRecord && !column.system) {
+    if (isLTARType(column) && !column.system) {
       const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>(
         context,
       );

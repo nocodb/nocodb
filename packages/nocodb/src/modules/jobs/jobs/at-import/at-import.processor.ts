@@ -1499,6 +1499,7 @@ export class AtImportProcessor {
 
           // we will pick up LTAR once all table data's are in place
           case UITypes.LinkToAnotherRecord:
+          case UITypes.LinkToAnotherRecordV2:
           case UITypes.Links:
             if (storeLinks) {
               if (ncLinkDataStore[table.title][record.id] === undefined)

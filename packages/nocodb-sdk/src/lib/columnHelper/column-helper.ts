@@ -77,6 +77,7 @@ export class ColumnHelperClass {
     [UITypes.Rollup]: RollupHelper,
     [UITypes.Links]: LinksHelper,
     [UITypes.LinkToAnotherRecord]: LTARHelper,
+    [UITypes.LinkToAnotherRecordV2]: LTARHelper,
     [UITypes.Button]: ButtonHelper,
   };
 

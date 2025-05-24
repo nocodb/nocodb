@@ -40,7 +40,7 @@ const onDelete = async () => {
   isLoading.value = true
   try {
     const meta = (await getMeta(toBeDeletedTable.id as string, true)) as TableType
-    const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
+    const relationColumns = meta?.columns?.filter((c) => isLinksOrLTAR(c.uidt) && !isSystemColumn(c))
 
     if (relationColumns?.length && !isXcdbBase(toBeDeletedTable.source_id)) {
       const refColMsgs = await Promise.all(

@@ -36,13 +36,14 @@ async function createBaseTables() {
     let tblSchema = ncIn[i];
     let reducedColumnSet = tblSchema.columns.filter(
       a =>
+        a.uidt !== UITypes.LinkToAnotherRecordV2 &&
         a.uidt !== UITypes.LinkToAnotherRecord &&
         a.uidt !== UITypes.Lookup &&
         a.uidt !== UITypes.Rollup &&
         a.uidt !== UITypes.Formula
     );
     link.push(
-      ...tblSchema.columns.filter(a => a.uidt === UITypes.LinkToAnotherRecord)
+      ...tblSchema.columns.filter(a => a.uidt === UITypes.LinkToAnotherRecord||a.uidt === UITypes.LinkToAnotherRecordV2)
     );
     lookup.push(...tblSchema.columns.filter(a => a.uidt === UITypes.Lookup));
     rollup.push(...tblSchema.columns.filter(a => a.uidt === UITypes.Rollup));
@@ -422,7 +423,7 @@ async function restoreBaseData() {
           let table = ncTables[tblId];
           // retrieve datatype
           const dt = table.columns.find(x => x.title === key)?.uidt;
-          if (dt === UITypes.LinkToAnotherRecord) delete record[key];
+          if (dt === UITypes.LinkToAnotherRecord || dt === UITypes.LinkToAnotherRecordV2) delete record[key];
           if (dt === UITypes.Lookup) delete record[key];
           if (dt === UITypes.Rollup) delete record[key];
         }

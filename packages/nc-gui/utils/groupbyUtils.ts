@@ -11,7 +11,12 @@ export const valueToTitle = (value: string, col: ColumnType, displayValueProp?: 
     }
   }
 
-  if (col.uidt === UITypes.LinkToAnotherRecord && displayValueProp && value && typeof value === 'object') {
+  if (
+    (col.uidt === UITypes.LinkToAnotherRecord || col.uidt === UITypes.LinkToAnotherRecordV2) &&
+    displayValueProp &&
+    value &&
+    typeof value === 'object'
+  ) {
     return value[displayValueProp] ?? GROUP_BY_VARS.NULL
   }
 

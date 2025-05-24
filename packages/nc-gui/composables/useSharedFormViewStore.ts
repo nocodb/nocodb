@@ -656,6 +656,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         break
       }
       case UITypes.LinkToAnotherRecord:
+      case UITypes.LinkToAnotherRecordV2:
       case UITypes.Links: {
         const values = Array.isArray(value) ? value : value.split(',')
         const rows = await loadLinkedRecords(c, values)

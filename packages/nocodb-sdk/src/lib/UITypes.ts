@@ -330,6 +330,14 @@ export function isLinksOrLTAR(
   );
 }
 
+export function isLTARType(
+  colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string
+) {
+  return [UITypes.LinkToAnotherRecord, UITypes.LinkToAnotherRecordV2].includes(
+    <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
+  );
+}
+
 export function isSelfLinkCol(
   col: ColumnType & { colOptions: unknown }
 ): boolean {

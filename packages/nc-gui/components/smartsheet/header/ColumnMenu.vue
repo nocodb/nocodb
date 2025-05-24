@@ -550,11 +550,7 @@ const onDeleteColumn = () => {
       </div>
     </NcMenuItem>
 
-    <NcMenuItem
-      v-if="[UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)"
-      :disabled="isSqlView"
-      @click="openLookupMenuDialog"
-    >
+    <NcMenuItem v-if="isLinksOrLTAR(column)" :disabled="isSqlView" @click="openLookupMenuDialog">
       <div v-e="['a:field:lookup:create']" class="nc-column-lookup-create nc-header-menu-item">
         <component :is="iconMap.cellLookup" class="opacity-80 !w-4.5 !h-4.5" />
         {{ t('general.addLookupField') }}

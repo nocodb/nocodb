@@ -962,7 +962,8 @@ const createRollupColumn = async (
   const ltarColumn = (await table.getColumns(ctx)).find(
     (column) =>
       (column.uidt === UITypes.Links ||
-        column.uidt === UITypes.LinkToAnotherRecord) &&
+        column.uidt === UITypes.LinkToAnotherRecord||
+        column.uidt === UITypes.LinkToAnotherRecordV2) &&
       column.colOptions?.fk_related_model_id === childTable.id,
   );
 
@@ -1028,7 +1029,8 @@ const createLookupColumn = async (
     ltarColumn = (await table.getColumns(ctx)).find(
       (column) =>
         (column.uidt === UITypes.Links ||
-          column.uidt === UITypes.LinkToAnotherRecord) &&
+          column.uidt === UITypes.LinkToAnotherRecord||
+          column.uidt === UITypes.LinkToAnotherRecordV2) &&
         column.colOptions?.fk_related_model_id === childTable.id,
     );
   }

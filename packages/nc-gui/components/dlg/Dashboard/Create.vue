@@ -117,7 +117,7 @@ onMounted(() => {
     <div class="p-5 flex flex-col gap-5">
       <div class="flex justify-between w-full items-center">
         <div class="flex flex-row items-center gap-x-2 text-base font-semibold text-gray-800">
-          <GeneralIcon icon="ncAutomation" class="!text-gray-600 w-5 h-5" />
+          <GeneralIcon icon="ncBarChart2" class="!text-gray-600 w-5 h-5" />
           {{ $t('activity.createDashboard') }}
         </div>
       </div>

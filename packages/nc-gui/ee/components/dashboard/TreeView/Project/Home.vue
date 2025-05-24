@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { SourceType, TableType } from 'nocodb-sdk'
+import type { DashboardType, SourceType, TableType } from 'nocodb-sdk'
 import { PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
 import Automation from '../Automation.vue'
 import Dashboard from '../Dashboard.vue'
@@ -241,6 +241,7 @@ onKeyStroke('Escape', () => {
 })
 
 const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
+const isDashboardEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.DASHBOARD))
 
 const openBaseHomePage = async () => {
   const isSharedBase = route.value.params.typeOrId === 'base'
@@ -260,6 +261,33 @@ const openBaseHomePage = async () => {
         }
       : undefined,
   )
+}
+
+async function openNewDashboardModal() {
+  const isDlgOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgDashboardCreate'), {
+    'modelValue': isDlgOpen,
+    'baseId': base.value.id,
+    'onUpdate:modelValue': () => closeDialog(),
+    'onCreated': async (dashboard: DashboardType) => {
+      closeDialog()
+
+      ncNavigateTo({
+        workspaceId: activeWorkspaceId.value,
+        automation: true,
+        baseId: base.value.id,
+        dashboardId: dashboard.id,
+      })
+
+      $e('a:dashboard:create')
+    },
+  })
+
+  function closeDialog() {
+    isDlgOpen.value = false
+    close(1000)
+  }
 }
 
 const isVisibleCreateNew = ref(false)
@@ -345,6 +373,10 @@ const showCreateNewAsDropdown = computed(() => {
                   New Script
                   <div class="flex-1 w-full" />
                   <NcBadge :border="false" size="xs" class="!text-brand-600 !bg-brand-50"> Beta </NcBadge>
+                </NcMenuItem>
+                <NcMenuItem v-if="isDashboardEnabled" data-testid="create-new-script" @click="openNewDashboardModal">
+                  <GeneralIcon icon="ncBarChart2" />
+                  New Dashboard
                 </NcMenuItem>
               </NcMenu>
             </template>

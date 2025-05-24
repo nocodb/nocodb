@@ -242,7 +242,7 @@ const deleteDashboard = () => {
             @emoji-selected="emits('selectIcon', $event)"
           >
             <template #default>
-              <GeneralIcon icon="ncScript" class="w-4 text-nc-content-gray-subtle !text-[16px]" />
+              <GeneralIcon icon="ncBarChart2" class="w-4 text-nc-content-gray-subtle !text-[16px]" />
             </template>
           </LazyGeneralEmojiPicker>
         </div>

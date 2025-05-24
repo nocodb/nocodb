@@ -249,6 +249,7 @@ const filteredScripts = computed(() => {
   >
     <template v-if="(!isNewSidebarEnabled || !scripts?.length) && !isSharedBase && isUIAllowed('scriptCreateOrEdit')">
       <div
+        v-if="!isNewSidebarEnabled"
         :class="{
           '!pl-13.3 !xs:(pl-13.5)': !isNewSidebarEnabled,
         }"

@@ -1,8 +1,12 @@
 import dayjs from 'dayjs';
-import { ButtonActionsType, ColumnType } from '~/lib/Api';
-import { LongTextAiMetaProp } from '~/lib/globals';
+import {
+  ButtonActionsType,
+  ColumnType,
+  LinkToAnotherRecordType,
+} from '~/lib/Api';
+import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
 import { parseProp } from '~/lib/helperFunctions';
-import UITypes from '~/lib/UITypes';
+import UITypes, { isLinksOrLTAR } from '~/lib/UITypes';
 
 export const dataTypeLow = (column: ColumnType) => column.dt?.toLowerCase();
 
@@ -167,5 +171,14 @@ export const isNumericFieldType = (column: ColumnType, abstractType: any) => {
     isCurrency(column) ||
     isPercent(column) ||
     isDuration(column)
+  );
+};
+
+export const isMMLike = (column: ColumnType) => {
+  return (
+    (isLinksOrLTAR(column) &&
+      (column.colOptions as LinkToAnotherRecordType)?.type ===
+        RelationTypes.MANY_TO_ONE) ||
+    column.uidt === UITypes.LinkToAnotherRecordV2
   );
 };

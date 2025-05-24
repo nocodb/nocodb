@@ -16424,6 +16424,7 @@
           },
           "uidt": {
             "enum": [
+              "LinkToAnotherRecordV2",
               "LinkToAnotherRecord",
               "Links"
             ],

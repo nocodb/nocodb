@@ -170,6 +170,48 @@ export class RelationManager {
     );
   }
 
+  async getLinkV2RelatedRow() {
+    const {
+      childTable,
+      childBaseModel,
+      childTn,
+      childColumn,
+      childId,
+      parentBaseModel,
+      parentTable,
+      parentTn,
+      parentColumn,
+      relationColOptions,
+      mmContext
+    } = this.relationContext;
+
+    const vChildCol = await relationColOptions.getMMChildColumn(mmContext);
+    const vParentCol = await relationColOptions.getMMParentColumn(mmContext);
+    const vTable = await relationColOptions.getMMModel(mmContext);
+
+    const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+      model: vTable,
+      dbDriver: childBaseModel.dbDriver,
+    });
+
+    const vTn = assocBaseModel.getTnPath(vTable);
+
+    // Get related records from parent table through junction table
+    return await parentBaseModel.execAndParse(
+      parentBaseModel.dbDriver(parentTn)
+        .select(`${parentTn}.*`)
+        .join(vTn, `${vTn}.${vParentCol.column_name}`, `${parentTn}.${parentColumn.column_name}`)
+        .where({
+          [`${vTn}.${vChildCol.column_name}`]: childBaseModel.dbDriver(childTn)
+            .select(childColumn.column_name)
+            .where(_wherePk(childTable.primaryKeys, childId))
+            .first()
+        }),
+      null,
+      { raw: true }
+    );
+  }
+
   async getHmOrOoChildLinkedWithParent() {
     const {
       childBaseModel: baseModel,
@@ -260,9 +302,22 @@ export class RelationManager {
 
           // if relation type is Many to One / One to One, then remove the existing link
           if([RelationTypes.MANY_TO_ONE,RelationTypes.ONE_TO_ONE,].includes(colOptions.type )){
-
+            // Get existing children linked to this parent
+            const existingChildren = await this.getLinkV2RelatedRow();
+            // Remove each existing child with proper audit logging
+            for (const child of existingChildren) {
+              // Create a new relation manager with the correct IDs for this relationship
+              const relationManager = await RelationManager.getRelationManager(
+                baseModel,
+                this.relationContext.relationColumn.id,
+                {
+                  rowId: parentId,
+                  childId: getCompositePkValue(childTable.primaryKeys, child)
+                }
+              );
+              await relationManager.removeChild({ req });
+            }
           }
-
 
           if (baseModel.isSnowflake || baseModel.isDatabricks) {
             const parentPK = parentBaseModel

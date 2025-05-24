@@ -111,14 +111,28 @@ const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } },
 
     if (fields.value.length < 2) return
 
-    await Promise.all(
-      fields.value.map(async (field, index) => {
-        if (field.order !== index + 1) {
-          field.order = index + 1
-          await saveOrUpdate(field, index, true, !!isDefaultView.value)
-        }
-      }),
-    )
+    const movedField = fields.value[_event.moved.newIndex]
+    if (!movedField) return
+    let newOrder
+
+    if (_event.moved.newIndex === 0) {
+      // Moving to first position
+      const nextField = fields.value[1]
+      newOrder = nextField.order / 2 // Half of next field's order
+    } else if (_event.moved.newIndex === fields.value.length - 1) {
+      // Moving to last position
+      const prevField = fields.value[fields.value.length - 2]
+      newOrder = prevField.order + 1000 // Add buffer to previous field's order
+    } else {
+      // Moving somewhere in the middle
+      const prevField = fields.value[_event.moved.newIndex - 1]
+      const nextField = fields.value[_event.moved.newIndex + 1]
+      newOrder = (prevField.order + nextField.order) / 2 // Average between neighbors
+    }
+
+    // Update only the moved field
+    movedField.order = newOrder
+    await saveOrUpdate(movedField, _event.moved.newIndex, true, !!isDefaultView.value)
 
     await loadViewColumns()
     reloadViewDataHook.trigger()

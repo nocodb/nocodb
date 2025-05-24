@@ -32,7 +32,6 @@ export interface FilterOperation {
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     rootArgs: {
       knex: CustomKnex;
@@ -40,7 +39,7 @@ export interface FilterOperation {
       column: Column;
     },
     options: FilterOptions,
-  ): void;
+  ): Promise<(qb: Knex.QueryBuilder) => void>;
 }
 
 export interface FilterOperationHandlers {

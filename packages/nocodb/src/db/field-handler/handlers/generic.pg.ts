@@ -14,64 +14,10 @@ export class GenericPgFieldHandler
   implements FieldHandlerInterface, FilterOperationHandlers
 {
   // region filter comparisons
-  filterLike(
+  async filterLike(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
-    },
-    rootArgs: {
-      knex: CustomKnex;
-      filter: Filter;
-      column: Column;
-    },
-    _options: FilterOptions,
-  ) {
-    const { val, qb, sourceField } = args;
-    const { knex } = rootArgs;
-
-    if (!ncIsStringHasValue(val)) {
-      qb.where((subQb) => {
-        subQb.where(sourceField as any, '');
-        subQb.whereNull(sourceField as any);
-      });
-    } else {
-      qb.where(knex.raw('??::text ilike ?', [sourceField, `%${val}%`]));
-    }
-  }
-
-  filterNlike(
-    args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
-      val: any;
-      qb: Knex.QueryBuilder;
-    },
-    rootArgs: {
-      knex: CustomKnex;
-      filter: Filter;
-      column: Column;
-    },
-    _options: FilterOptions,
-  ) {
-    const { val, qb, sourceField } = args;
-    const { knex } = rootArgs;
-
-    if (!ncIsStringHasValue(val)) {
-      qb.whereNotNull(sourceField as any);
-    } else {
-      qb.where((nestedQb) => {
-        nestedQb.where(
-          knex.raw('??::text not ilike ?', [sourceField, `%${val}%`]),
-        );
-      });
-    }
-  }
-
-  innerFilterAllAnyOf(
-    args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
-      val: any;
-      qb: Knex.QueryBuilder;
     },
     rootArgs: {
       knex: CustomKnex;
@@ -81,7 +27,70 @@ export class GenericPgFieldHandler
     _options: FilterOptions,
   ) {
     const { val, sourceField } = args;
-    const { qb } = args;
+    const { knex } = rootArgs;
+
+    return (qb: Knex.QueryBuilder) => {
+      if (!ncIsStringHasValue(val)) {
+        qb.where((subQb) => {
+          subQb.where(sourceField as any, '');
+          subQb.whereNull(sourceField as any);
+        });
+      } else {
+        qb.where(knex.raw('??::text ilike ?', [sourceField, `%${val}%`]));
+      }
+    };
+  }
+
+  async filterNlike(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    _options: FilterOptions,
+  ) {
+    const { sourceField } = args;
+    let { val } = args;
+    const { knex } = rootArgs;
+
+    return (qb: Knex.QueryBuilder) => {
+      if (!ncIsStringHasValue(val)) {
+        // val is empty -> all values including NULL but empty strings
+        qb.whereNot(sourceField as any, '');
+        qb.orWhereNull(sourceField as any);
+      } else {
+        val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
+
+        qb.whereNot(knex.raw(`?? ilike ?`, [sourceField, val]));
+        if (val !== '%%') {
+          // if value is not empty, empty or null should be included
+          qb.orWhere(sourceField as any, '');
+          qb.orWhereNull(sourceField as any);
+        } else {
+          // if value is empty, then only null is included
+          qb.orWhereNull(sourceField as any);
+        }
+      }
+    };
+  }
+
+  async innerFilterAllAnyOf(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    _options: FilterOptions,
+  ) {
+    const { val, sourceField } = args;
     const { filter, knex, column } = rootArgs;
 
     // Condition for filter, without negation
@@ -107,16 +116,16 @@ export class GenericPgFieldHandler
         }
       }
     };
-    qb.where((subQb) => {
+    return (qb: Knex.QueryBuilder) => {
       if (
         filter.comparison_op === 'allof' ||
         filter.comparison_op === 'anyof'
       ) {
-        subQb.where(condition);
+        qb.where(condition);
       } else {
-        subQb.whereNot(condition).orWhereNull(sourceField as any);
+        qb.whereNot(condition).orWhereNull(sourceField as any);
       }
-    });
+    };
   }
   // endregion filter comparisons
 }

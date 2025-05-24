@@ -57,98 +57,110 @@ export class GenericFieldHandler
     const field =
       options.customWhereClause ??
       (alias ? `${alias}.${column.column_name}` : column.column_name);
+    return await this.handleFilter(
+      { val, sourceField: field },
+      { knex, filter, column },
+      options,
+    );
+  }
 
-    return (qb: Knex.QueryBuilder) => {
-      let filterOperation: FilterOperation;
-      switch (filter.comparison_op) {
-        case 'eq':
-          filterOperation = this.filterEq;
-          break;
+  async handleFilter(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    options: FilterOptions,
+  ) {
+    const { sourceField, val } = args;
+    const { filter } = rootArgs;
+    let filterOperation: FilterOperation;
+    switch (filter.comparison_op) {
+      case 'eq':
+        filterOperation = this.filterEq;
+        break;
 
-        case 'neq':
-          filterOperation = this.filterNeq;
-          break;
+      case 'neq':
+        filterOperation = this.filterNeq;
+        break;
 
-        case 'not':
-          filterOperation = this.filterNot;
-          break;
+      case 'not':
+        filterOperation = this.filterNot;
+        break;
 
-        case 'like':
-          filterOperation = this.filterLike;
-          break;
+      case 'like':
+        filterOperation = this.filterLike;
+        break;
 
-        case 'nlike':
-          filterOperation = this.filterNlike;
-          break;
+      case 'nlike':
+        filterOperation = this.filterNlike;
+        break;
 
-        case 'empty':
-        case 'null':
-        case 'blank':
-          filterOperation = this.filterBlank;
-          break;
+      case 'empty':
+      case 'null':
+      case 'blank':
+        filterOperation = this.filterBlank;
+        break;
 
-        case 'notempty':
-        case 'notnull':
-        case 'notblank':
-          filterOperation = this.filterNotblank;
-          break;
+      case 'notempty':
+      case 'notnull':
+      case 'notblank':
+        filterOperation = this.filterNotblank;
+        break;
 
-        case 'is':
-          filterOperation = this.filterIs;
-          break;
+      case 'is':
+        filterOperation = this.filterIs;
+        break;
 
-        case 'isnot':
-          filterOperation = this.filterIsnot;
-          break;
+      case 'isnot':
+        filterOperation = this.filterIsnot;
+        break;
 
-        case 'gt':
-          filterOperation = this.filterGt;
-          break;
+      case 'gt':
+        filterOperation = this.filterGt;
+        break;
 
-        case 'ge':
-        case 'gte':
-          filterOperation = this.filterGte;
-          break;
+      case 'ge':
+      case 'gte':
+        filterOperation = this.filterGte;
+        break;
 
-        case 'lt':
-          filterOperation = this.filterLt;
-          break;
+      case 'lt':
+        filterOperation = this.filterLt;
+        break;
 
-        case 'le':
-        case 'lte':
-          filterOperation = this.filterLte;
-          break;
+      case 'le':
+      case 'lte':
+        filterOperation = this.filterLte;
+        break;
 
-        case 'in':
-          filterOperation = this.filterIn;
-          break;
+      case 'in':
+        filterOperation = this.filterIn;
+        break;
 
-        default:
-          filterOperation = unsupportedFilter;
-      }
+      default:
+        filterOperation = unsupportedFilter;
+    }
 
-      filterOperation(
-        {
-          val,
-          sourceField: field,
-          qb,
-        },
-        {
-          knex,
-          filter,
-          column,
-        },
-        options,
-      );
-    };
+    return await filterOperation(
+      {
+        val,
+        sourceField,
+      },
+      rootArgs,
+      options,
+    );
   }
 
   // region filter comparisons
-  filterEq(
+  async filterEq(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     rootArgs: {
       knex: CustomKnex;
@@ -157,23 +169,24 @@ export class GenericFieldHandler
     },
     _options: FilterOptions,
   ) {
-    const { val, qb, sourceField } = args;
+    const { val, sourceField } = args;
     const { knex } = rootArgs;
 
-    if (!ncIsStringHasValue(val)) {
-      qb.where((nestedQb) => {
-        nestedQb.whereNull(sourceField as any);
-      });
-    } else {
-      qb.where(knex.raw('?? = ?', [sourceField, val]));
-    }
+    return (qb: Knex.QueryBuilder) => {
+      if (!ncIsStringHasValue(val)) {
+        qb.where((nestedQb) => {
+          nestedQb.whereNull(sourceField as any);
+        });
+      } else {
+        qb.where(knex.raw('?? = ?', [sourceField, val]));
+      }
+    };
   }
 
-  filterNeq(
+  async filterNeq(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     rootArgs: {
       knex: CustomKnex;
@@ -182,29 +195,30 @@ export class GenericFieldHandler
     },
     _options: FilterOptions,
   ) {
-    const { val, qb, sourceField } = args;
+    const { val, sourceField } = args;
     const { knex } = rootArgs;
 
-    if (!ncIsStringHasValue(val)) {
-      qb.where((nestedQb) => {
-        nestedQb
-          .where(knex.raw("?? != ''", [sourceField]))
-          .orWhereNotNull(sourceField as any);
-      });
-    } else {
-      qb.where((nestedQb) => {
-        nestedQb
-          .where(knex.raw('?? != ?', [sourceField, val]))
-          .orWhereNull(sourceField as any);
-      });
-    }
+    return (qb: Knex.QueryBuilder) => {
+      if (!ncIsStringHasValue(val)) {
+        qb.where((nestedQb) => {
+          nestedQb
+            .where(knex.raw("?? != ''", [sourceField]))
+            .orWhereNotNull(sourceField as any);
+        });
+      } else {
+        qb.where((nestedQb) => {
+          nestedQb
+            .where(knex.raw('?? != ?', [sourceField, val]))
+            .orWhereNull(sourceField as any);
+        });
+      }
+    };
   }
 
-  filterNot(
+  async filterNot(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     rootArgs: {
       knex: CustomKnex;
@@ -216,11 +230,10 @@ export class GenericFieldHandler
     return this.filterNeq(args, rootArgs, options);
   }
 
-  filterLike(
+  async filterLike(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     rootArgs: {
       knex: CustomKnex;
@@ -229,24 +242,25 @@ export class GenericFieldHandler
     },
     _options: FilterOptions,
   ) {
-    const { val, qb, sourceField } = args;
+    const { val, sourceField } = args;
     const { knex } = rootArgs;
 
-    if (!ncIsStringHasValue(val)) {
-      qb.where((subQb) => {
-        subQb.where(sourceField as any, '');
-        subQb.whereNull(sourceField as any);
-      });
-    } else {
-      qb.where(knex.raw('?? like ?', [sourceField, `%${val}%`]));
-    }
+    return (qb: Knex.QueryBuilder) => {
+      if (!ncIsStringHasValue(val)) {
+        qb.where((subQb) => {
+          subQb.where(sourceField as any, '');
+          subQb.whereNull(sourceField as any);
+        });
+      } else {
+        qb.where(knex.raw('?? like ?', [sourceField, `%${val}%`]));
+      }
+    };
   }
 
-  filterNlike(
+  async filterNlike(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     rootArgs: {
       knex: CustomKnex;
@@ -255,23 +269,59 @@ export class GenericFieldHandler
     },
     _options: FilterOptions,
   ) {
-    const { val, qb, sourceField } = args;
+    const { sourceField } = args;
+    let { val } = args;
     const { knex } = rootArgs;
 
-    if (!ncIsStringHasValue(val)) {
-      qb.whereNotNull(sourceField as any);
-    } else {
+    return (qb: Knex.QueryBuilder) => {
+      if (!ncIsStringHasValue(val)) {
+        // val is empty -> all values including NULL but empty strings
+        qb.whereNot(sourceField as any, '');
+        qb.orWhereNull(sourceField as any);
+      } else {
+        val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
+
+        qb.whereNot(knex.raw(`?? like ?`, [sourceField, val]));
+        if (val !== '%%') {
+          // if value is not empty, empty or null should be included
+          qb.orWhere(sourceField as any, '');
+          qb.orWhereNull(sourceField as any);
+        } else {
+          // if value is empty, then only null is included
+          qb.orWhereNull(sourceField as any);
+        }
+      }
+    };
+  }
+
+  async filterBlank(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    _options: FilterOptions,
+  ) {
+    const { sourceField } = args;
+    const { knex } = rootArgs;
+
+    return (qb: Knex.QueryBuilder) => {
       qb.where((nestedQb) => {
-        nestedQb.where(knex.raw('?? not like ?', [sourceField, `%${val}%`]));
+        nestedQb
+          .whereNull(sourceField as any)
+          .orWhere(knex.raw("?? = ''", [sourceField]));
       });
-    }
+    };
   }
 
-  filterBlank(
+  async filterNotblank(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     rootArgs: {
       knex: CustomKnex;
@@ -280,44 +330,21 @@ export class GenericFieldHandler
     },
     _options: FilterOptions,
   ) {
-    const { qb, sourceField } = args;
+    const { sourceField } = args;
     const { knex } = rootArgs;
-
-    qb.where((nestedQb) => {
-      nestedQb
-        .whereNull(sourceField as any)
-        .orWhere(knex.raw("?? = ''", [sourceField]));
-    });
+    return (qb: Knex.QueryBuilder) => {
+      qb.where((nestedQb) => {
+        nestedQb
+          .whereNotNull(sourceField as any)
+          .orWhere(knex.raw("?? != ''", [sourceField]));
+      });
+    };
   }
 
-  filterNotblank(
+  async filterIs(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
-    },
-    rootArgs: {
-      knex: CustomKnex;
-      filter: Filter;
-      column: Column;
-    },
-    _options: FilterOptions,
-  ) {
-    const { qb, sourceField } = args;
-    const { knex } = rootArgs;
-
-    qb.where((nestedQb) => {
-      nestedQb
-        .whereNotNull(sourceField as any)
-        .orWhere(knex.raw("?? != ''", [sourceField]));
-    });
-  }
-
-  filterIs(
-    args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
-      val: any;
-      qb: Knex.QueryBuilder;
     },
     rootArgs: {
       knex: CustomKnex;
@@ -340,7 +367,7 @@ export class GenericFieldHandler
     }
   }
 
-  filterIsnot(
+  async filterIsnot(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
@@ -367,7 +394,7 @@ export class GenericFieldHandler
     }
   }
 
-  filterGt(
+  async filterGt(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
@@ -380,15 +407,16 @@ export class GenericFieldHandler
     },
     _options: FilterOptions,
   ) {
-    const { val, qb, sourceField } = args;
-    qb.where(sourceField as any, '>', val);
+    const { val, sourceField } = args;
+    return (qb: Knex.QueryBuilder) => {
+      qb.where(sourceField as any, '>', val);
+    };
   }
 
-  filterGte(
+  async filterGte(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     _rootArgs: {
       knex: CustomKnex;
@@ -397,15 +425,16 @@ export class GenericFieldHandler
     },
     _options: FilterOptions,
   ) {
-    const { val, qb, sourceField } = args;
-    qb.where(sourceField as any, '>=', val);
+    const { val, sourceField } = args;
+    return (qb: Knex.QueryBuilder) => {
+      qb.where(sourceField as any, '>=', val);
+    };
   }
 
-  filterLt(
+  async filterLt(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     _rootArgs: {
       knex: CustomKnex;
@@ -414,15 +443,16 @@ export class GenericFieldHandler
     },
     _options: FilterOptions,
   ) {
-    const { val, qb, sourceField } = args;
-    qb.where(sourceField as any, '<', val);
+    const { val, sourceField } = args;
+    return (qb: Knex.QueryBuilder) => {
+      qb.where(sourceField as any, '<', val);
+    };
   }
 
-  filterLte(
+  async filterLte(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     _rootArgs: {
       knex: CustomKnex;
@@ -431,8 +461,10 @@ export class GenericFieldHandler
     },
     _options: FilterOptions,
   ) {
-    const { val, qb, sourceField } = args;
-    qb.where(sourceField as any, '<=', val);
+    const { val, sourceField } = args;
+    return (qb: Knex.QueryBuilder) => {
+      qb.where(sourceField as any, '<=', val);
+    };
   }
 
   filterAllof: FilterOperation;
@@ -440,11 +472,10 @@ export class GenericFieldHandler
   filterAnyof: FilterOperation;
   filterNanyof: FilterOperation;
 
-  innerFilterAllAnyOf(
+  async innerFilterAllAnyOf(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     rootArgs: {
       knex: CustomKnex;
@@ -453,7 +484,7 @@ export class GenericFieldHandler
     },
     _options: FilterOptions,
   ) {
-    const { qb, val, sourceField } = args;
+    const { val, sourceField } = args;
     const { filter, knex } = rootArgs;
 
     // Condition for filter, without negation
@@ -476,23 +507,24 @@ export class GenericFieldHandler
         }
       }
     };
-    qb.where((subQb) => {
-      if (
-        filter.comparison_op === 'allof' ||
-        filter.comparison_op === 'anyof'
-      ) {
-        subQb.where(condition);
-      } else {
-        subQb.whereNot(condition).orWhereNull(sourceField as any);
-      }
-    });
+    return (qb: Knex.QueryBuilder) => {
+      qb.where((subQb) => {
+        if (
+          filter.comparison_op === 'allof' ||
+          filter.comparison_op === 'anyof'
+        ) {
+          subQb.where(condition);
+        } else {
+          subQb.whereNot(condition).orWhereNull(sourceField as any);
+        }
+      });
+    };
   }
 
-  filterIn(
+  async filterIn(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     _rootArgs: {
       knex: CustomKnex;
@@ -501,11 +533,13 @@ export class GenericFieldHandler
     },
     _options: FilterOptions,
   ) {
-    const { val, qb, sourceField } = args;
-    qb.whereIn(
-      sourceField as any,
-      Array.isArray(val) ? val : val?.split?.(','),
-    );
+    const { val, sourceField } = args;
+    return (qb: Knex.QueryBuilder) => {
+      qb.whereIn(
+        sourceField as any,
+        Array.isArray(val) ? val : val?.split?.(','),
+      );
+    };
   }
 
   // to be implemented on checkbox itself

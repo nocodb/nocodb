@@ -6,7 +6,6 @@ import type {
   FilterOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
-import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
 export class GenericMysqlFieldHandler
@@ -14,55 +13,10 @@ export class GenericMysqlFieldHandler
   implements FieldHandlerInterface, FilterOperationHandlers
 {
   // region filter comparisons
-  override filterLike(
+  override async innerFilterAllAnyOf(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
-    },
-    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
-    _options: FilterOptions,
-  ): void {
-    const { val, qb, sourceField } = args;
-    const { knex } = rootArgs;
-
-    if (!ncIsStringHasValue(val)) {
-      qb.whereNull(sourceField as any);
-    } else {
-      qb.where(knex.raw('?? ilike ?', [sourceField, `%${val}%`]));
-    }
-  }
-
-  filterNlike(
-    args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
-      val: any;
-      qb: Knex.QueryBuilder;
-    },
-    rootArgs: {
-      knex: CustomKnex;
-      filter: Filter;
-      column: Column;
-    },
-    _options: FilterOptions,
-  ) {
-    const { val, qb, sourceField } = args;
-    const { knex } = rootArgs;
-
-    if (!ncIsStringHasValue(val)) {
-      qb.whereNotNull(sourceField as any);
-    } else {
-      qb.where((nestedQb) => {
-        nestedQb.where(knex.raw('?? not ilike ?', [sourceField, `%${val}%`]));
-      });
-    }
-  }
-
-  override innerFilterAllAnyOf(
-    args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
-      val: any;
-      qb: Knex.QueryBuilder;
     },
     rootArgs: {
       knex: CustomKnex;
@@ -72,7 +26,6 @@ export class GenericMysqlFieldHandler
     _options: FilterOptions,
   ) {
     const { val, sourceField } = args;
-    const { qb } = args;
     const { filter, knex, column } = rootArgs;
 
     // Condition for filter, without negation
@@ -98,16 +51,16 @@ export class GenericMysqlFieldHandler
         }
       }
     };
-    qb.where((subQb) => {
+    return (qb: Knex.QueryBuilder) => {
       if (
         filter.comparison_op === 'allof' ||
         filter.comparison_op === 'anyof'
       ) {
-        subQb.where(condition);
+        qb.where(condition);
       } else {
-        subQb.whereNot(condition).orWhereNull(sourceField as any);
+        qb.whereNot(condition).orWhereNull(sourceField as any);
       }
-    });
+    };
   }
   // endregion filter comparisons
 }

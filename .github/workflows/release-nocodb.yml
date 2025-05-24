@@ -123,4 +123,5 @@ jobs:
       GH_TOKEN: "${{ secrets.GH_TOKEN }}"
 
   aiopusher:
+    needs: release-npm
     uses: ./.github/workflows/nix-aiopusher.yml

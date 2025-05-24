@@ -493,7 +493,7 @@ export const getPlaceholderNewRow = (filters: Filter[], columns: ColumnType[]) =
   }
   const placeholderNewRow: Record<string, any> = {}
   for (const eachFilter of filters) {
-    if (['checked', 'notchecked', 'eq'].includes(eachFilter.comparison_op as any)) {
+    if (['checked', 'notchecked', 'allof', 'eq'].includes(eachFilter.comparison_op as any)) {
       const column = columns.find((col) => col.id === eachFilter.fk_column_id)
       if (column) {
         if (
@@ -503,7 +503,6 @@ export const getPlaceholderNewRow = (filters: Filter[], columns: ColumnType[]) =
             UITypes.SingleLineText,
             UITypes.LongText,
             UITypes.SingleSelect,
-            UITypes.MultiSelect,
             UITypes.GeoData,
             UITypes.Email,
             UITypes.PhoneNumber,
@@ -527,6 +526,13 @@ export const getPlaceholderNewRow = (filters: Filter[], columns: ColumnType[]) =
           ['checked', 'notchecked'].includes(eachFilter.comparison_op as any)
         ) {
           placeholderNewRow[column.title!] = eachFilter.comparison_op === 'checked'
+        } else if ([UITypes.MultiSelect].includes(column.uidt as UITypes) && ['allof'].includes(eachFilter.comparison_op)) {
+          placeholderNewRow[column.title!] = eachFilter.value
+        } else if ([UITypes.User].includes(column.uidt as UITypes) && ['allof'].includes(eachFilter.comparison_op)) {
+          const isMulti = parseProp(column.meta)?.is_multi
+          if (isMulti || eachFilter.value?.indexOf?.(',') < 0) {
+            placeholderNewRow[column.title!] = eachFilter.value
+          }
         }
       }
     }

@@ -332,24 +332,25 @@ const toggleCrossBase = () => {
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type">
         <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit">
-          <a-radio value="mm" data-testid="Many to Many">
-            <span class="nc-ltar-icon nc-mm-icon">
-              <GeneralIcon icon="mm_solid" />
-            </span>
-            {{ $t('title.manyToMany') }}
-          </a-radio>
-          <a-radio value="hm" data-testid="Has Many">
-            <span class="nc-ltar-icon nc-hm-icon">
-              <GeneralIcon icon="hm_solid" />
-            </span>
-            {{ $t('title.hasMany') }}
-          </a-radio>
+            <a-radio value="mm" data-testid="Many to Many">
+              <span class="nc-ltar-icon nc-mm-icon">
+                <GeneralIcon icon="mm_solid" />
+              </span>
+              {{ $t('title.manyToMany') }}
+            </a-radio>
+            <a-radio value="hm" data-testid="Has Many">
+              <span class="nc-ltar-icon nc-hm-icon">
+                <GeneralIcon icon="hm_solid" />
+              </span>
+              {{ $t('title.hasMany') }}
+            </a-radio>
           <a-radio value="oo" data-testid="One to One">
-            <span class="nc-ltar-icon nc-oo-icon">
-              <GeneralIcon icon="oneToOneSolid" />
-            </span>
-            {{ $t('title.oneToOne') }}
-          </a-radio>
+              <span class="nc-ltar-icon nc-oo-icon">
+                <GeneralIcon icon="oneToOneSolid" />
+              </span>
+              {{ $t('title.oneToOne') }}
+            </a-radio>
+          </template>
         </a-radio-group>
       </a-form-item>
     </div>

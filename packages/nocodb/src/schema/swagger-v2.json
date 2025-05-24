@@ -16415,7 +16415,9 @@
               "bt",
               "hm",
               "mm",
-              "oo"
+              "oo",
+              "mo",
+              "om"
             ],
             "type": "string",
             "description": "The type of the relationship"
@@ -16855,6 +16857,7 @@
           "QrCode",
           "Links",
           "LinkToAnotherRecord",
+          "LinkToAnotherRecordV2",
           "Lookup",
           "Rollup",
           "ID",
@@ -17385,7 +17388,9 @@
             "type": "string",
             "enum": [
               "hm",
-              "mm"
+              "mm",
+              "om",
+              "mo"
             ]
           },
           "fk_child_column_id": {

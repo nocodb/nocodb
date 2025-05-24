@@ -1226,7 +1226,7 @@ watch(activeAiTab, (newValue) => {
         />
         <SmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" v-model:value="formState" />
         <SmartsheetColumnLinkedToAnotherRecordOptions
-          v-if="formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links"
+          v-if="isLinksOrLTAR(formState.uidt)"
           :key="`${formState.uidt}-${formState.id || 'new'}`"
           v-model:value="formState"
           :is-edit="isEdit"

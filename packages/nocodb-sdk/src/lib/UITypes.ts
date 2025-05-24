@@ -12,6 +12,7 @@ import { parseProp } from './helperFunctions';
 enum UITypes {
   ID = 'ID',
   LinkToAnotherRecord = 'LinkToAnotherRecord',
+  LinkToAnotherRecordV2 = 'LinkToAnotherRecordV2',
   ForeignKey = 'ForeignKey',
   Lookup = 'Lookup',
   SingleLineText = 'SingleLineText',
@@ -57,6 +58,7 @@ enum UITypes {
 export const UITypesName = {
   [UITypes.ID]: 'ID',
   [UITypes.LinkToAnotherRecord]: 'Link to another record',
+  [UITypes.LinkToAnotherRecordV2]: 'Link to another record V2',
   [UITypes.ForeignKey]: 'Foreign key',
   [UITypes.Order]: 'Order',
   [UITypes.Lookup]: 'Lookup',
@@ -136,6 +138,7 @@ export const columnTypeName = (column?: ColumnType) => {
 export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.ID]: 'ID',
   [UITypes.LinkToAnotherRecord]: '{TableName}',
+  [UITypes.LinkToAnotherRecordV2]: '{TableName} (V2)',
   [UITypes.ForeignKey]: 'Foreign key',
   [UITypes.Lookup]: '{FieldName} (from {TableName})',
   [UITypes.SingleLineText]: 'Text',
@@ -317,7 +320,7 @@ export function isHiddenCol(
 export function isLinksOrLTAR(
   colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string
 ) {
-  return [UITypes.LinkToAnotherRecord, UITypes.Links].includes(
+  return [UITypes.LinkToAnotherRecord, UITypes.LinkToAnotherRecordV2, UITypes.Links].includes(
     <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
   );
 }

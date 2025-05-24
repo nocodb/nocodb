@@ -11,7 +11,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
   const isNewSidebarEnabled = computed(() => {
-    return isFeatureEnabled(FEATURE_FLAG.IMPROVED_SIDEBAR)
+    return isFeatureEnabled(FEATURE_FLAG.IMPROVED_SIDEBAR_UI)
   })
 
   const miniSidebarWidth = computed(() => {

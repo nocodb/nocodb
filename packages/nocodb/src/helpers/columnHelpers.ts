@@ -622,3 +622,20 @@ export const getMMColumnNames = (parent: Model, child: Model) => {
     childCn,
   };
 };
+
+
+// get the reverse type of the relation
+export const getRevType = (type: RelationTypes) => {
+  switch (type) {
+    case RelationTypes.BELONGS_TO:
+      return RelationTypes.HAS_MANY;
+    case RelationTypes.HAS_MANY:
+      return RelationTypes.BELONGS_TO;
+    case RelationTypes.MANY_TO_ONE:
+      return RelationTypes.ONE_TO_MANY;
+    case RelationTypes.ONE_TO_MANY:
+      return RelationTypes.MANY_TO_ONE;
+  }
+
+  return type;
+};

@@ -29,6 +29,7 @@ interface AuditUpdateLog {
   type: RelationTypes;
   direction: 'parent_child' | 'child_parent';
 }
+
 interface AuditUpdateObj extends AuditUpdateLog {
   columnTitle: string;
   refColumnTitle?: string;
@@ -37,6 +38,7 @@ interface AuditUpdateObj extends AuditUpdateLog {
   model: Model;
   refModel?: Model;
 }
+
 export class RelationManager {
   constructor(
     private relationContext: {
@@ -265,6 +267,7 @@ export class RelationManager {
       childId,
       parentId,
       mmContext,
+      relationColumn,
     } = this.relationContext;
 
     const isMMLike =
@@ -306,7 +309,6 @@ export class RelationManager {
           });
 
           const vTn = assocBaseModel.getTnPath(vTable);
-
           // if relation type is Many to One / One to One, then remove the existing link
           if (
             [RelationTypes.MANY_TO_ONE, RelationTypes.ONE_TO_ONE].includes(
@@ -330,7 +332,63 @@ export class RelationManager {
               );
               await relationManager.removeChild({ req });
               // merge audit logs
-              this.auditUpdateObj.push(...relationManager.auditUpdateObj)
+              this.auditUpdateObj.push(...relationManager.auditUpdateObj);
+            }
+          }
+
+          // if relation type is One to Many / One to One, then remove any existing parent link
+          if (
+            [RelationTypes.ONE_TO_MANY, RelationTypes.ONE_TO_ONE].includes(
+              colOptions.type as RelationTypes,
+            )
+          ) {
+            const targetRelationColumn = await parentTable
+              .getColumns(parentBaseModel.context)
+              .then((columns) =>
+                columns.find(
+                  (col: Column<LinkToAnotherRecordColumn>) =>
+                    col.uidt === UITypes.LinkToAnotherRecordV2 &&
+                    col.colOptions?.fk_related_model_id ===
+                      relationColumn.fk_model_id &&
+                    col &&
+                    col.colOptions?.fk_child_column_id ===
+                      colOptions.fk_parent_column_id &&
+                    col.colOptions?.fk_parent_column_id ===
+                      colOptions.fk_child_column_id &&
+                    col.colOptions?.fk_mm_model_id ===
+                      colOptions.fk_mm_model_id,
+                ),
+              );
+            const targetRelationManager =
+              await RelationManager.getRelationManager(
+                parentBaseModel,
+                targetRelationColumn.id,
+                {
+                  // in case of LinkToAnotherRecordV2, childId is the rowId
+                  rowId: parentId,
+                  // provide a dummy value
+                  childId: '',
+                },
+              );
+
+            // Get existing children linked to this parent
+            const existingChildren =
+              await targetRelationManager.getLinkV2RelatedRow();
+
+            // Remove each existing child with proper audit logging
+            for (const child of existingChildren) {
+              // Create a new relation manager with the correct IDs for this relationship
+              const relationManager = await RelationManager.getRelationManager(
+                parentBaseModel,
+                targetRelationColumn.id,
+                {
+                  rowId: parentId,
+                  childId: getCompositePkValue(childTable.primaryKeys, child),
+                },
+              );
+              await relationManager.removeChild({ req });
+              // merge audit logs
+              this.auditUpdateObj.push(...relationManager.auditUpdateObj);
             }
           }
 

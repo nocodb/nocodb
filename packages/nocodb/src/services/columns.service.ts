@@ -63,6 +63,7 @@ import {
   createOOColumn,
   generateFkName,
   getMMColumnNames,
+  getRevType,
   sanitizeColumnName,
   validateLookupPayload,
   validatePayload,
@@ -4168,13 +4169,19 @@ export class ColumnsService implements IColumnsService {
         };
       }
 
+      const revType = getRevType(
+        (param.column as Pick<LinkToAnotherColumnReqType, 'type'>)
+          .type as RelationTypes,
+      );
+
+      // create column in ref table
       savedColumn = await Column.insert(refContext, {
         title: getUniqueColumnAliasName(
           await refTable.getColumns(refContext),
           pluralize(table.title),
         ),
         uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecordV2,
-        type: (param.column as Pick<LinkToAnotherColumnReqType, 'type'>).type,
+        type: revType,
 
         // ref_db_alias
         fk_model_id: refTable.id,
@@ -4199,26 +4206,6 @@ export class ColumnsService implements IColumnsService {
         ...refCrossBaseLinkProps,
       });
 
-      const getRevType = (type: RelationTypes) => {
-        switch (type) {
-          case RelationTypes.BELONGS_TO:
-            return RelationTypes.HAS_MANY;
-          case RelationTypes.HAS_MANY:
-            return RelationTypes.BELONGS_TO;
-          case RelationTypes.MANY_TO_ONE:
-            return RelationTypes.ONE_TO_MANY;
-          case RelationTypes.ONE_TO_MANY:
-            return RelationTypes.MANY_TO_ONE;
-        }
-
-        return type;
-      };
-
-      const revType = getRevType(
-        (param.column as Pick<LinkToAnotherColumnReqType, 'type'>)
-          .type as RelationTypes,
-      );
-
       const parentRelCol = await Column.insert(context, {
         title: getUniqueColumnAliasName(
           await table.getColumns(context),
@@ -4226,7 +4213,7 @@ export class ColumnsService implements IColumnsService {
         ),
 
         uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecordV2,
-        type: revType,
+        type: (param.column as Pick<LinkToAnotherColumnReqType, 'type'>).type,
 
         fk_model_id: table.id,
 

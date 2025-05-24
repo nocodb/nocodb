@@ -329,6 +329,8 @@ export class RelationManager {
                 },
               );
               await relationManager.removeChild({ req });
+              // merge audit logs
+              this.auditUpdateObj.push(...relationManager.auditUpdateObj)
             }
           }
 

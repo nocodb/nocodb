@@ -4,6 +4,7 @@ import {
   isAIPromptCol,
   isLinksOrLTAR,
   LongTextAiMetaProp,
+  SqlUiFactory,
   UITypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
@@ -28,6 +29,7 @@ import {
   GalleryView,
   KanbanView,
   LinksColumn,
+  Source,
 } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
@@ -220,7 +222,17 @@ export default class Column<T = any> implements ColumnType {
 
     // Fallback to SingleLineText if no UI Datatype is provided
     if (!column.uidt) {
-      insertObj.uidt = UITypes.SingleLineText;
+      if (column.dt) {
+        const source = await Source.get(
+          context,
+          column.source_id || insertObj.source_id,
+        );
+        const sqlUi = SqlUiFactory.create(await source.getConnectionConfig());
+        insertObj.uidt =
+          sqlUi.getUIType(column as ColumnType) || UITypes.SingleLineText;
+      } else {
+        insertObj.uidt = UITypes.SingleLineText;
+      }
     }
 
     const row = await ncMeta.metaInsert2(

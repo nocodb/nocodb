@@ -7,12 +7,66 @@ import type {
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
+import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 
 export class GenericPgFieldHandler
   extends GenericFieldHandler
   implements FieldHandlerInterface, FilterOperationHandlers
 {
   // region filter comparisons
+  filterLike(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+      qb: Knex.QueryBuilder;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    _options: FilterOptions,
+  ) {
+    const { val, qb, sourceField } = args;
+    const { knex } = rootArgs;
+
+    if (!ncIsStringHasValue(val)) {
+      qb.where((subQb) => {
+        subQb.where(sourceField as any, '');
+        subQb.whereNull(sourceField as any);
+      });
+    } else {
+      qb.where(knex.raw('??::text ilike ?', [sourceField, `%${val}%`]));
+    }
+  }
+
+  filterNlike(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+      qb: Knex.QueryBuilder;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    _options: FilterOptions,
+  ) {
+    const { val, qb, sourceField } = args;
+    const { knex } = rootArgs;
+
+    if (!ncIsStringHasValue(val)) {
+      qb.whereNotNull(sourceField as any);
+    } else {
+      qb.where((nestedQb) => {
+        nestedQb.where(
+          knex.raw('??::text not ilike ?', [sourceField, `%${val}%`]),
+        );
+      });
+    }
+  }
+
   innerFilterAllAnyOf(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;

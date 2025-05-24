@@ -63,6 +63,7 @@ export interface FilterOperationHandlers {
   filterNallof: FilterOperation;
   filterAnyof: FilterOperation;
   filterNanyof: FilterOperation;
+  filterIn: FilterOperation;
 }
 
 export interface FilterVerificationResult {

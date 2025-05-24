@@ -1,5 +1,5 @@
 import rfdc from 'rfdc'
-import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
+import type { ColumnReqType, ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { ButtonActionsType, UITypes, isAIPromptCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
@@ -384,6 +384,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           try {
             oldCol = column.value
             await $api.dbTableColumn.update(column.value?.id as string, updateData)
+
+            // if LTARv2 column update and relation type changed
+            // then reload the reference table meta
+            if (column.value.uidt === UITypes.LinkToAnotherRecordV2)
+              getMeta((column.value?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id, true)
 
             if (oldCol && [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(oldCol.uidt)) {
               viewsStore.loadViews({ tableId: oldCol?.fk_model_id, ignoreLoading: true, force: true })

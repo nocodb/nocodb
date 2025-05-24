@@ -9,18 +9,13 @@ export class ClickhouseAuthIntegration extends AuthIntegration {
   public client: ClickHouseClient | null = null;
 
   public async authenticate(): Promise<AuthResponse<ClickHouseClient>> {
-    switch (this.config.type) {
-      case AuthType.Custom:
-        this.client = createClient({
-            url: this.config.url,
-            username: this.config.username,
-            password: this.config.password,
-          });
+    this.client = createClient({
+      url: this.config.url,
+      username: this.config.username,
+      password: this.config.password,
+    });
 
-        return this.client;
-      default:
-        throw new Error('Not implemented');
-    }
+    return this.client;
   }
 
   public async destroy(): Promise<void> {

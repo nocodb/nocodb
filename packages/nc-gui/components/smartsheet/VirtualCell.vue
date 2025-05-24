@@ -44,7 +44,7 @@ const isPrimaryCol = computed(() => isPrimary(column.value))
 const virtualCellType = computed(() => {
   if (isLink(column.value)) return 'link'
   if (isHm(column.value)) return 'hm'
-  if (isMm(column.value)) return 'mm'
+  if (isMm(column.value) || column.value?.uidt === UITypes.LinkToAnotherRecordV2) return 'mm'
   if (isBt(column.value)) return 'bt'
   if (isOo(column.value)) return 'oo'
   if (isRollup(column.value)) return 'rollup'
@@ -81,7 +81,7 @@ const virtualCellClassName = computed(() => {
   >
     <VirtualCellLinks v-if="virtualCellType === 'link'" />
     <LazyVirtualCellHasMany v-else-if="virtualCellType === 'hm'" />
-    <LazyVirtualCellManyToMany v-else-if="virtualCellType === 'mm'" />
+    <LazyVirtualCellManyToMany v-else-if="virtualCellType === 'mm' " />
     <LazyVirtualCellBelongsTo v-else-if="virtualCellType === 'bt'" />
     <LazyVirtualCellOneToOne v-else-if="virtualCellType === 'oo'" />
     <LazyVirtualCellRollup v-else-if="virtualCellType === 'rollup'" />

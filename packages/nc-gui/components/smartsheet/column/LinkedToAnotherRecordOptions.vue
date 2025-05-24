@@ -332,25 +332,40 @@ const toggleCrossBase = () => {
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type">
         <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit">
-            <a-radio value="mm" data-testid="Many to Many">
-              <span class="nc-ltar-icon nc-mm-icon">
-                <GeneralIcon icon="mm_solid" />
+          <a-radio :value="RelationTypes.MANY_TO_MANY" data-testid="Many to Many">
+            <span class="nc-ltar-icon nc-mm-icon">
+              <GeneralIcon icon="mm_solid" />
+            </span>
+            {{ $t('title.manyToMany') }}
+          </a-radio>
+          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecordV2">
+            <a-radio :value="RelationTypes.ONE_TO_MANY" data-testid="One to Many">
+              <span class="nc-ltar-icon nc-om-icon">
+                <GeneralIcon icon="hm_solid" />
               </span>
-              {{ $t('title.manyToMany') }}
+              {{ $t('title.oneToMany') }}
             </a-radio>
-            <a-radio value="hm" data-testid="Has Many">
+            <a-radio :value="RelationTypes.MANY_TO_ONE" data-testid="Many to One">
+              <span class="nc-ltar-icon nc-mo-icon">
+                <GeneralIcon icon="oneToOneSolid" />
+              </span>
+              {{ $t('title.manyToOne') }}
+            </a-radio>
+          </template>
+          <template v-else>
+            <a-radio :value="RelationTypes.HAS_MANY" data-testid="Has Many">
               <span class="nc-ltar-icon nc-hm-icon">
                 <GeneralIcon icon="hm_solid" />
               </span>
               {{ $t('title.hasMany') }}
             </a-radio>
-          <a-radio value="oo" data-testid="One to One">
-              <span class="nc-ltar-icon nc-oo-icon">
-                <GeneralIcon icon="oneToOneSolid" />
-              </span>
-              {{ $t('title.oneToOne') }}
-            </a-radio>
           </template>
+          <a-radio :value="RelationTypes.ONE_TO_ONE" data-testid="One to One">
+            <span class="nc-ltar-icon nc-oo-icon">
+              <GeneralIcon icon="oneToOneSolid" />
+            </span>
+            {{ $t('title.oneToOne') }}
+          </a-radio>
         </a-radio-group>
       </a-form-item>
     </div>
@@ -372,9 +387,11 @@ const toggleCrossBase = () => {
         >Advanced Link</span
       >
     </div>
+
     <div v-if="isEeUI && vModel.is_custom_link">
       <LazySmartsheetColumnLinkAdvancedOptions v-model:value="vModel" :is-edit="isEdit" :meta="meta" />
     </div>
+
     <template v-else>
       <template v-if="isFeatureEnabled(FEATURE_FLAG.CROSS_BASE_LINK)">
         <div>
@@ -489,6 +506,7 @@ const toggleCrossBase = () => {
           >{{ $t('labels.limitRecordSelectionToView') }}</span
         >
       </div>
+
       <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
         <NcSelect
           v-model:value="vModel.childViewId"
@@ -565,6 +583,7 @@ const toggleCrossBase = () => {
         </div>
       </div>
     </template>
+
     <template v-if="(!isXcdbBase && !isEdit) || isLinks">
       <div>
         <NcButton

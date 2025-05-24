@@ -124,6 +124,7 @@ export function useGridCellHandler(params: {
   cellTypesRegistry.set(UITypes.Lookup, LookupCellRenderer)
   cellTypesRegistry.set(UITypes.Button, ButtonCellRenderer)
   cellTypesRegistry.set(UITypes.LinkToAnotherRecord, LtarCellRenderer)
+  cellTypesRegistry.set(UITypes.LinkToAnotherRecordV2, LtarCellRenderer)
   cellTypesRegistry.set(UITypes.Formula, FormulaCellRenderer)
   cellTypesRegistry.set(UITypes.Geometry, SingleLineTextCellRenderer)
   cellTypesRegistry.set(UITypes.SpecificDBType, SingleLineTextCellRenderer)

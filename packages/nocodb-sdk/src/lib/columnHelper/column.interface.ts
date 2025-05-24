@@ -49,6 +49,10 @@ export default abstract class AbstractColumnHelper {
     value: SerializerOrParserFnProps['value'],
     params: SerializerOrParserFnProps['params']
   ): string;
+
+  public equalityComparison(a: any, b:any, _param: SerializerOrParserFnProps['params']): boolean {
+    return a == b
+  }
 }
 
 export interface SerializerOrParserFnProps {

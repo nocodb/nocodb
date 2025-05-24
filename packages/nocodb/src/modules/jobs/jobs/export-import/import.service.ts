@@ -371,7 +371,10 @@ export class ImportService {
 
           const colOptions = col.colOptions as LinksColumn;
           if (idMap.has(colOptions.fk_related_model_id)) {
-            if (colOptions.type === 'mm') {
+            if (
+              colOptions.type === RelationTypes.MANY_TO_MANY ||
+              col.uidt === UITypes.LinkToAnotherRecordV2
+            ) {
               if (!linkMap.has(colOptions.fk_mm_model_id)) {
                 // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
                 delete col.column_name;
@@ -626,7 +629,10 @@ export class ImportService {
               }
             }
           } else if (externalIdMap.has(colOptions.fk_related_model_id)) {
-            if (colOptions.type === 'mm') {
+            if (
+              colOptions.type === RelationTypes.MANY_TO_MANY ||
+              col.uidt === UITypes.LinkToAnotherRecordV2
+            ) {
               if (!linkMap.has(colOptions.fk_mm_model_id)) {
                 // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
                 delete col.column_name;

@@ -33,6 +33,8 @@ export default async function ({
   const { parentContext, childContext, mmContext, refContext } =
     await relationColumnOption.getParentChildContext(context);
 
+  const isMMLike = relationColumn.uidt === UITypes.LinkToAnotherRecordV2;
+
   const rollupColumn = await columnOptions.getRollupColumn(refContext);
   const childCol = await relationColumnOption.getChildColumn(childContext);
   const childModel = await childCol?.getModel(childContext);
@@ -153,7 +155,11 @@ export default async function ({
     }
   };
 
-  switch (relationColumnOption.type) {
+  const relationType = isMMLike
+    ? RelationTypes.MANY_TO_MANY
+    : relationColumnOption.type;
+
+  switch (relationType) {
     case RelationTypes.HAS_MANY: {
       const queryBuilder: any = knex(
         knex.raw(`?? as ??`, [

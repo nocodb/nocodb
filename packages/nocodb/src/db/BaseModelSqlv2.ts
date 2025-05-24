@@ -113,19 +113,9 @@ import {
   View,
 } from '~/models';
 import Noco from '~/Noco';
-import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
-import {
-  batchUpdate,
-  extractColsMetaForAudit,
-  extractExcludedColumnNames,
-  generateAuditV1Payload,
-  nocoExecute,
-  populateUpdatePayloadDiff,
-  remapWithAlias,
-  removeBlankPropsAndMask,
-} from '~/utils';
-import { MetaTable } from '~/utils/globals';
-import { chunkArray } from '~/utils/tsUtils';
+import {HANDLE_WEBHOOK} from '~/services/hook-handler.service';
+import {MetaTable} from '~/utils/globals';
+import {chunkArray} from '~/utils/tsUtils';
 
 dayjs.extend(utc);
 
@@ -1453,7 +1443,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             break;
           case UITypes.Links:
           case UITypes.LinkToAnotherRecord:
+          case UITypes.LinkToAnotherRecordV2:
             {
+              const isMMLike = column.uidt === UITypes.LinkToAnotherRecordV2;
               this._columns[column.title] = column;
               const colOptions = (await column.getColOptions(
                 this.context,
@@ -1461,7 +1453,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
               const { refContext } = colOptions.getRelContext(this.context);
 
-              if (colOptions?.type === 'hm') {
+              if (colOptions?.type === 'hm' && !isMMLike) {
                 const listLoader = new DataLoader(
                   async (ids: string[]) => {
                     if (ids.length > 1) {
@@ -1506,7 +1498,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
                 };
-              } else if (colOptions.type === 'mm') {
+              } else if (colOptions.type === 'mm' || isMMLike) {
                 const listLoader = new DataLoader(
                   async (ids: string[]) => {
                     if (ids?.length > 1) {
@@ -5278,7 +5270,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if ([UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(col.uidt)) {
         if (col.uidt === UITypes.Lookup) {
           const nestedCol = await this.getNestedColumn(col);
-          if (nestedCol?.uidt !== UITypes.LinkToAnotherRecord) {
+          if (nestedCol?.uidt !== UITypes.LinkToAnotherRecord && nestedCol?.uidt !== UITypes.LinkToAnotherRecordV2) {
             continue;
           }
         }

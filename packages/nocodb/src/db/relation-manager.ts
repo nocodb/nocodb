@@ -1,4 +1,9 @@
-import { AuditOperationSubTypes, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  AuditOperationSubTypes,
+  isLinksOrLTAR,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -68,7 +73,9 @@ export class RelationManager {
     colOptions: LinkToAnotherRecordColumn,
   ) {
     const isBelongsTo =
-      colOptions.type === RelationTypes.BELONGS_TO || relationColumn.meta?.bt;
+      (relationColumn.uidt === UITypes.LinkToAnotherRecordV2 &&
+        colOptions.type === RelationTypes.BELONGS_TO) ||
+      relationColumn.meta?.bt;
     return isBelongsTo || colOptions.type === RelationTypes.MANY_TO_MANY;
   }
 
@@ -83,11 +90,7 @@ export class RelationManager {
     await baseModel.model.getColumns(baseModel.context);
     const column = baseModel.model.columnsById[colId];
 
-    if (
-      !column ||
-      ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
-    )
-      NcError.fieldNotFound(colId);
+    if (!column || !isLinksOrLTAR(column.uidt)) NcError.fieldNotFound(colId);
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       baseModel.context,
@@ -214,6 +217,11 @@ export class RelationManager {
       parentId,
       mmContext,
     } = this.relationContext;
+
+    const isMMLike =
+      this.relationContext.relationColumn.uidt ===
+      UITypes.LinkToAnotherRecordV2;
+
     const { onlyUpdateAuditLogs, req } = params;
     if (onlyUpdateAuditLogs && colOptions.type !== RelationTypes.BELONGS_TO) {
       return await this.handleOnlyUpdateAudit(params);
@@ -231,7 +239,12 @@ export class RelationManager {
         child: childId,
       },
     );
-    switch (colOptions.type) {
+
+    const relationType = isMMLike
+      ? RelationTypes.MANY_TO_MANY
+      : colOptions.type;
+
+    switch (relationType) {
       case RelationTypes.MANY_TO_MANY:
         {
           const vChildCol = await colOptions.getMMChildColumn(mmContext);
@@ -244,6 +257,12 @@ export class RelationManager {
           });
 
           const vTn = assocBaseModel.getTnPath(vTable);
+
+          // if relation type is Many to One / One to One, then remove the existing link
+          if([RelationTypes.MANY_TO_ONE,RelationTypes.ONE_TO_ONE,].includes(colOptions.type )){
+
+          }
+
 
           if (baseModel.isSnowflake || baseModel.isDatabricks) {
             const parentPK = parentBaseModel

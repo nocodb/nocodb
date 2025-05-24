@@ -1,5 +1,6 @@
 import {
   FormBuilderInputType,
+  FormBuilderValidatorType,
   type FormDefinition,
   IntegrationType,
 } from '@noco-integrations/core';
@@ -17,7 +18,7 @@ const form: FormDefinition = [
     },
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'Asana connection is required',
       },
     ],
@@ -31,7 +32,7 @@ const form: FormDefinition = [
     category: 'Source',
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'Project ID is required',
       },
     ],

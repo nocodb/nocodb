@@ -1,5 +1,6 @@
 import {
   FormBuilderInputType,
+  FormBuilderValidatorType,
   type FormDefinition,
 } from '@noco-integrations/core';
 
@@ -13,7 +14,7 @@ export const form: FormDefinition = [
     category: 'General',
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'Integration name is required',
       },
     ],
@@ -27,7 +28,7 @@ export const form: FormDefinition = [
     category: 'Credentials',
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'API Key is required',
       },
     ],
@@ -50,7 +51,7 @@ export const form: FormDefinition = [
     defaultValue: ['model-id-1'],
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'At least one model is required',
       },
     ],

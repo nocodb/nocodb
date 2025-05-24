@@ -348,7 +348,7 @@ const form: FormDefinition = [
     },
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'Database connection is required',
       },
     ],

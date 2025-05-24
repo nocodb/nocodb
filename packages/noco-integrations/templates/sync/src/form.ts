@@ -2,6 +2,7 @@ import {
   FormBuilderInputType,
   type FormDefinition,
   IntegrationType,
+  FormBuilderValidatorType,
 } from '@noco-integrations/core';
 
 /**
@@ -22,7 +23,7 @@ const form: FormDefinition = [
     },
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'Provider connection is required',
       },
     ],
@@ -38,7 +39,7 @@ const form: FormDefinition = [
     category: 'Source',
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'Project ID is required',
       },
     ],

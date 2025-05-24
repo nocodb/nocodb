@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { form } from '../src/form';
-import { FormBuilderInputType } from '@noco-integrations/core';
+import { FormBuilderInputType, FormBuilderValidatorType } from '@noco-integrations/core';
 
 describe('OpenAI Form Definition', () => {
   it('should contain all required form fields', () => {
@@ -16,7 +16,7 @@ describe('OpenAI Form Definition', () => {
     expect(apiKeyField?.type).toBe(FormBuilderInputType.Input);
     expect(apiKeyField?.label).toBe('API Key');
     expect(apiKeyField?.validators).toContainEqual(expect.objectContaining({
-      type: 'required',
+      type: FormBuilderValidatorType.Required,
     }));
 
     // Check that we have the Organization ID field
@@ -31,7 +31,7 @@ describe('OpenAI Form Definition', () => {
     expect(modelsField?.type).toBe(FormBuilderInputType.Select);
     expect(modelsField?.label).toBe('Models');
     expect(modelsField?.validators).toContainEqual(expect.objectContaining({
-      type: 'required',
+      type: FormBuilderValidatorType.Required,
     }));
   });
 

@@ -1,6 +1,7 @@
 import {
   FormBuilderElement,
   FormBuilderInputType,
+  FormBuilderValidatorType,
   FormDefinition,
   IntegrationsType as IntegrationType,
   SyncCategory,
@@ -33,6 +34,7 @@ export {
   FormDefinition,
   FormBuilderElement,
   FormBuilderInputType,
+  FormBuilderValidatorType,
   IntegrationType,
   SyncCategory,
   UITypes,

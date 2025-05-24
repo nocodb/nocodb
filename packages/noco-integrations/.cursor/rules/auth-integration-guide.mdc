@@ -179,7 +179,7 @@ packages/provider-auth/
        category: 'General',
        validators: [
          {
-           type: 'required' as const,
+           type: FormBuilderValidatorType.Required,
            message: 'Integration name is required',
          },
        ],
@@ -208,7 +208,7 @@ packages/provider-auth/
        ],
        validators: [
          {
-           type: 'required' as const,
+           type: FormBuilderValidatorType.Required,
            message: 'Auth type is required',
          },
        ],
@@ -222,7 +222,7 @@ packages/provider-auth/
        placeholder: 'Enter your API Token',
        validators: [
          {
-           type: 'required' as const,
+           type: FormBuilderValidatorType.Required,
            message: 'API Token is required',
          },
        ],
@@ -241,7 +241,7 @@ packages/provider-auth/
              category: 'Authentication',
              validators: [
                {
-                 type: 'required' as const,
+                 type: FormBuilderValidatorType.Required,
                  message: 'OAuth Configuration is required',
                },
              ],
@@ -436,7 +436,7 @@ See [packages/github-auth/SETUP.md](mdc:packages/github-auth/SETUP.md) and [pack
 
 1. **Always implement `testConnection()`** - This method validates that the authentication credentials work
 2. **Return the client directly from `authenticate()`** - Don't wrap in custom objects unless necessary
-3. **Use `'required' as const`** in form validators for proper TypeScript typing
+3. **Use `FormBuilderValidatorType.Required`** in form validators for proper TypeScript typing
 4. **Include proper error handling** with meaningful error messages
 5. **Store client instance** as a class property for potential reuse
 6. **Handle both API Key and OAuth flows** when both are supported by the provider

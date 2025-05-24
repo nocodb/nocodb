@@ -1,4 +1,4 @@
-import { FormBuilderInputType } from '@noco-integrations/core';
+import { FormBuilderInputType, FormBuilderValidatorType } from '@noco-integrations/core';
 import type { FormDefinition } from '@noco-integrations/core';
 
 export const form: FormDefinition = [
@@ -11,7 +11,7 @@ export const form: FormDefinition = [
     category: 'General',
     validators: [
       {
-        type: 'required',
+        type: FormBuilderValidatorType.Required,
         message: 'Integration name is required',
       },
     ],
@@ -25,7 +25,7 @@ export const form: FormDefinition = [
     placeholder: 'Enter your PostgreSQL host',
     validators: [
       {
-        type: 'required',
+        type: FormBuilderValidatorType.Required,
         message: 'Host is required',
       },
     ],
@@ -48,7 +48,7 @@ export const form: FormDefinition = [
     placeholder: 'Enter your username',
     validators: [
       {
-        type: 'required',
+        type: FormBuilderValidatorType.Required,
         message: 'Username is required',
       },
     ],
@@ -62,7 +62,7 @@ export const form: FormDefinition = [
     placeholder: 'Enter your password',
     validators: [
       {
-        type: 'required',
+        type: FormBuilderValidatorType.Required,
         message: 'Password is required',
       },
     ],
@@ -76,7 +76,7 @@ export const form: FormDefinition = [
     placeholder: 'Enter your database name',
     validators: [
       {
-        type: 'required',
+        type: FormBuilderValidatorType.Required,
         message: 'Database name is required',
       },
     ],

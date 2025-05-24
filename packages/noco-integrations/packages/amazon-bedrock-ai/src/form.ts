@@ -1,5 +1,6 @@
 import {
   FormBuilderInputType,
+  FormBuilderValidatorType,
   type FormDefinition,
 } from '@noco-integrations/core';
 
@@ -13,7 +14,7 @@ export const form: FormDefinition = [
     category: 'General',
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'Integration name is required',
       },
     ],
@@ -27,7 +28,7 @@ export const form: FormDefinition = [
     category: 'Credentials',
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'Access Key ID is required',
       },
     ],
@@ -46,7 +47,7 @@ export const form: FormDefinition = [
     category: 'Credentials',
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'Secret Access Key is required',
       },
     ],
@@ -60,7 +61,7 @@ export const form: FormDefinition = [
     category: 'Credentials',
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'AWS Region is required',
       },
     ],
@@ -101,7 +102,7 @@ export const form: FormDefinition = [
     defaultValue: ['amazon.nova-pro-v1:0'],
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'At least one model is required',
       },
     ],

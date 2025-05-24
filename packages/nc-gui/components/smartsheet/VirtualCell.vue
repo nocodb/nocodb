@@ -81,7 +81,7 @@ const virtualCellClassName = computed(() => {
   >
     <VirtualCellLinks v-if="virtualCellType === 'link'" />
     <LazyVirtualCellHasMany v-else-if="virtualCellType === 'hm'" />
-    <LazyVirtualCellManyToMany v-else-if="virtualCellType === 'mm' " />
+    <LazyVirtualCellManyToMany v-else-if="virtualCellType === 'mm'" />
     <LazyVirtualCellBelongsTo v-else-if="virtualCellType === 'bt'" />
     <LazyVirtualCellOneToOne v-else-if="virtualCellType === 'oo'" />
     <LazyVirtualCellRollup v-else-if="virtualCellType === 'rollup'" />

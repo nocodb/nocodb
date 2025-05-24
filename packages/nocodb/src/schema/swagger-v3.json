@@ -4065,7 +4065,8 @@
           "properties": {
             "type": {
               "enum": [
-                "LinkToAnotherRecord"
+                "LinkToAnotherRecord",
+                "LinkToAnotherRecordV2"
               ]
             },
             "options": {
@@ -5814,7 +5815,8 @@
                 "properties": {
                   "type": {
                     "enum": [
-                      "LinkToAnotherRecord"
+                      "LinkToAnotherRecord",
+                      "LinkToAnotherRecordV2"
                     ]
                   },
                   "options": {
@@ -6031,7 +6033,8 @@
                 "properties": {
                   "type": {
                     "enum": [
-                      "LinkToAnotherRecord"
+                      "LinkToAnotherRecord",
+                      "LinkToAnotherRecordV2"
                     ]
                   },
                   "options": {

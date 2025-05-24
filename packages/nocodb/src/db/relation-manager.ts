@@ -178,11 +178,10 @@ export class RelationManager {
       childColumn,
       childId,
       parentBaseModel,
-      parentTable,
       parentTn,
       parentColumn,
       relationColOptions,
-      mmContext
+      mmContext,
     } = this.relationContext;
 
     const vChildCol = await relationColOptions.getMMChildColumn(mmContext);
@@ -198,17 +197,23 @@ export class RelationManager {
 
     // Get related records from parent table through junction table
     return await parentBaseModel.execAndParse(
-      parentBaseModel.dbDriver(parentTn)
+      parentBaseModel
+        .dbDriver(parentTn)
         .select(`${parentTn}.*`)
-        .join(vTn, `${vTn}.${vParentCol.column_name}`, `${parentTn}.${parentColumn.column_name}`)
+        .join(
+          vTn,
+          `${vTn}.${vParentCol.column_name}`,
+          `${parentTn}.${parentColumn.column_name}`,
+        )
         .where({
-          [`${vTn}.${vChildCol.column_name}`]: childBaseModel.dbDriver(childTn)
+          [`${vTn}.${vChildCol.column_name}`]: childBaseModel
+            .dbDriver(childTn)
             .select(childColumn.column_name)
             .where(_wherePk(childTable.primaryKeys, childId))
-            .first()
+            .first(),
         }),
       null,
-      { raw: true }
+      { raw: true },
     );
   }
 
@@ -301,7 +306,11 @@ export class RelationManager {
           const vTn = assocBaseModel.getTnPath(vTable);
 
           // if relation type is Many to One / One to One, then remove the existing link
-          if([RelationTypes.MANY_TO_ONE,RelationTypes.ONE_TO_ONE,].includes(colOptions.type )){
+          if (
+            [RelationTypes.MANY_TO_ONE, RelationTypes.ONE_TO_ONE].includes(
+              colOptions.type as RelationTypes,
+            )
+          ) {
             // Get existing children linked to this parent
             const existingChildren = await this.getLinkV2RelatedRow();
             // Remove each existing child with proper audit logging
@@ -312,8 +321,8 @@ export class RelationManager {
                 this.relationContext.relationColumn.id,
                 {
                   rowId: parentId,
-                  childId: getCompositePkValue(childTable.primaryKeys, child)
-                }
+                  childId: getCompositePkValue(childTable.primaryKeys, child),
+                },
               );
               await relationManager.removeChild({ req });
             }

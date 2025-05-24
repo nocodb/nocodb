@@ -113,9 +113,19 @@ import {
   View,
 } from '~/models';
 import Noco from '~/Noco';
-import {HANDLE_WEBHOOK} from '~/services/hook-handler.service';
-import {MetaTable} from '~/utils/globals';
-import {chunkArray} from '~/utils/tsUtils';
+import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
+import { MetaTable } from '~/utils/globals';
+import { chunkArray } from '~/utils/tsUtils';
+import {
+  batchUpdate,
+  extractColsMetaForAudit,
+  extractExcludedColumnNames,
+  generateAuditV1Payload,
+  nocoExecute,
+  populateUpdatePayloadDiff,
+  remapWithAlias,
+  removeBlankPropsAndMask,
+} from '~/utils';
 
 dayjs.extend(utc);
 
@@ -3913,8 +3923,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (await this.isDataAuditEnabled()) {
       await Audit.insert(
         await Promise.all(
-          data?.map?.((d) =>
-            generateAuditV1Payload<DataDeletePayload>(
+          data?.map?.((d) => {
+            return generateAuditV1Payload<DataDeletePayload>(
               AuditV1OperationTypes.DATA_DELETE,
               {
                 details: {
@@ -3934,8 +3944,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 },
                 req,
               },
-            ),
-          ),
+            );
+          }),
         ),
       );
     }
@@ -5262,7 +5272,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if ([UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(col.uidt)) {
         if (col.uidt === UITypes.Lookup) {
           const nestedCol = await this.getNestedColumn(col);
-          if (nestedCol?.uidt !== UITypes.LinkToAnotherRecord && nestedCol?.uidt !== UITypes.LinkToAnotherRecordV2) {
+          if (
+            nestedCol?.uidt !== UITypes.LinkToAnotherRecord &&
+            nestedCol?.uidt !== UITypes.LinkToAnotherRecordV2
+          ) {
             continue;
           }
         }

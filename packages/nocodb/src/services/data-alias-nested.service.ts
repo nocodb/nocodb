@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { isLinksOrLTAR, UITypes } from 'nocodb-sdk';
+import { isLinksOrLTAR } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';

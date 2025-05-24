@@ -1,11 +1,11 @@
-import { createManifest, IntegrationType } from '@noco-integrations/core';
+import type { IntegrationManifest } from '@noco-integrations/core';
 
-export const manifest = createManifest(IntegrationType.Auth, {
-  title: 'Auth Integration',
-  icon: 'auth', // Replace with appropriate icon
-  description: 'Authentication integration for NocoDB',
+export const manifest: IntegrationManifest = {
+  title: 'Provider Name', // TODO: Replace with your provider name
+  icon: 'providerIcon', // TODO: Replace with appropriate icon
+  description: 'Provider authentication integration for NocoDB',
   version: '0.1.0',
   author: 'NocoDB',
-  website: 'https://nocodb.com',
-  order: 1,
-}); 
+  website: 'https://provider.com', // TODO: Replace with your provider's website
+  order: 1, // TODO: Adjust ordering as needed
+}; 

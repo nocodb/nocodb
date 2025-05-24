@@ -21,27 +21,15 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Auth Type',
-    width: 100,
+    width: 48,
     model: 'config.type',
     category: 'Authentication',
     placeholder: 'Select auth type',
     defaultValue: AuthType.ApiKey,
     options: [
       {
-        label: 'API Key',
+        label: 'API Key', // Or 'Personal Access Token' - adjust based on your provider
         value: AuthType.ApiKey,
-      },
-      {
-        label: 'Basic Auth',
-        value: AuthType.Basic,
-      },
-      {
-        label: 'Bearer Token',
-        value: AuthType.Bearer, 
-      },
-      {
-        label: 'Custom',
-        value: AuthType.Custom,
       },
       ...(redirectUri && clientId
         ? [
@@ -59,19 +47,17 @@ export const form: FormDefinition = [
       },
     ],
   },
-  
-  // API Key authentication fields
   {
     type: FormBuilderInputType.Input,
-    label: 'API Key',
+    label: 'API Token', // Adjust label based on provider (e.g., 'Personal Access Token', 'API Key')
     width: 100,
     model: 'config.token',
     category: 'Authentication',
-    placeholder: 'Enter your API Key',
+    placeholder: 'Enter your API Token',
     validators: [
       {
         type: 'required' as const,
-        message: 'API Key is required',
+        message: 'API Token is required',
       },
     ],
     condition: {
@@ -79,107 +65,6 @@ export const form: FormDefinition = [
       value: AuthType.ApiKey,
     },
   },
-  
-  // Basic authentication fields
-  {
-    type: FormBuilderInputType.Input,
-    label: 'Username',
-    width: 48,
-    model: 'config.username',
-    category: 'Authentication',
-    placeholder: 'Enter your username',
-    validators: [
-      {
-        type: 'required' as const,
-        message: 'Username is required',
-      },
-    ],
-    condition: {
-      model: 'config.type',
-      value: AuthType.Basic,
-    },
-  },
-  {
-    type: FormBuilderInputType.Space,
-    width: 4,
-    category: 'Authentication',
-    condition: {
-      model: 'config.type',
-      value: AuthType.Basic,
-    },
-  },
-  {
-    type: FormBuilderInputType.Password,
-    label: 'Password',
-    width: 48,
-    model: 'config.password',
-    category: 'Authentication',
-    placeholder: 'Enter your password',
-    validators: [
-      {
-        type: 'required' as const,
-        message: 'Password is required',
-      },
-    ],
-    condition: {
-      model: 'config.type',
-      value: AuthType.Basic,
-    },
-  },
-  
-  // Bearer token authentication fields
-  {
-    type: FormBuilderInputType.Input,
-    label: 'Bearer Token',
-    width: 100,
-    model: 'config.bearer_token',
-    category: 'Authentication',
-    placeholder: 'Enter your Bearer Token',
-    validators: [
-      {
-        type: 'required' as const,
-        message: 'Bearer Token is required',
-      },
-    ],
-    condition: {
-      model: 'config.type',
-      value: AuthType.Bearer,
-    },
-  },
-  
-  // Custom authentication fields
-  {
-    type: FormBuilderInputType.Input,
-    label: 'Custom Field 1',
-    width: 100,
-    model: 'config.custom_field1',
-    category: 'Authentication',
-    placeholder: 'Enter custom field value',
-    validators: [
-      {
-        type: 'required' as const,
-        message: 'This field is required',
-      },
-    ],
-    condition: {
-      model: 'config.type',
-      value: AuthType.Custom,
-    },
-  },
-  {
-    type: FormBuilderInputType.Input,
-    label: 'Custom Field 2',
-    width: 100,
-    model: 'config.custom_field2',
-    category: 'Authentication',
-    placeholder: 'Enter custom field value',
-    condition: {
-      model: 'config.type',
-      value: AuthType.Custom,
-    },
-  },
-  
-  // OAuth authentication fields - only shown if OAuth is configured
   ...(redirectUri && clientId
     ? [
         {
@@ -199,7 +84,7 @@ export const form: FormDefinition = [
             value: AuthType.OAuth,
           },
           oauthMeta: {
-            provider: 'Your Service',
+            provider: 'Provider Name', // TODO: Replace with your provider name
             authUri,
             redirectUri,
             clientId,

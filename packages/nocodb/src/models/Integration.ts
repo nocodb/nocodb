@@ -374,8 +374,12 @@ export default class Integration implements IntegrationType {
     ncMeta = Noco.ncMeta,
   ): Promise<Integration> {
     const integrationData = await ncMeta.metaGet2(
-      context.workspace_id ? context.workspace_id : RootScopes.BYPASS,
-      context.workspace_id ? RootScopes.WORKSPACE : RootScopes.BYPASS,
+      context.workspace_id && context.workspace_id !== RootScopes.BYPASS
+        ? context.workspace_id
+        : RootScopes.BYPASS,
+      context.workspace_id && context.workspace_id !== RootScopes.BYPASS
+        ? RootScopes.WORKSPACE
+        : RootScopes.BYPASS,
       MetaTable.INTEGRATIONS,
       id,
       null,

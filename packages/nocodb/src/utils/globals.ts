@@ -15,7 +15,6 @@ export enum MetaTable {
   COL_BARCODE = 'nc_col_barcode_v2',
   COL_LONG_TEXT = 'nc_col_long_text_v2',
   FILTER_EXP = 'nc_filter_exp_v2',
-  // HOOK_FILTER_EXP = 'nc_hook_filter_exp_v2',
   SORT = 'nc_sort_v2',
   SHARED_VIEWS = 'nc_shared_views_v2',
   ACL = 'nc_acl_v2',
@@ -66,6 +65,25 @@ export enum MetaTable {
   SYNC_MAPPINGS = 'nc_sync_mappings',
   USAGE_STATS = 'nc_usage_stats',
   MCP_TOKENS = 'nc_mcp_tokens',
+
+  LAYOUT = 'nc_ds_layout_v2',
+  WIDGET = 'nc_ds_widget_v2',
+  DASHBOARD_PROJECT_DB_PROJECT_LINKINGS = 'nc_ds_dashboard_project_db_project_linkings_v2',
+  WIDGET_DB_DEPENDENCIES = 'nc_ds_widget_db_dependencies_v2',
+  BOOK = 'nc_books',
+  WORKSPACE = 'workspace',
+  WORKSPACE_USER = 'workspace_user',
+  FOLLOWER = 'nc_follower',
+  COWRITER = 'cowriter',
+  MODEL_STAT = 'nc_model_stats_v2',
+  DB_MUX = 'nc_sql_executor_v2',
+  SSO_CLIENT = 'nc_sso_client',
+  SSO_CLIENT_DOMAIN = 'nc_sso_client_domain',
+  ORG_DOMAIN = 'nc_org_domain',
+  ORG = 'nc_org',
+  ORG_USERS = 'nc_org_users',
+  PLANS = 'nc_plans',
+  SUBSCRIPTIONS = 'nc_subscriptions',
 }
 
 export enum MetaTableOldV2 {
@@ -248,7 +266,9 @@ export const RootScopeTables = {
     MetaTable.USERS,
     MetaTable.USER_REFRESH_TOKENS,
     MetaTable.API_TOKENS,
+    MetaTable.FOLLOWER,
     MetaTable.PLUGIN,
+    MetaTable.DB_MUX,
     MetaTable.STORE,
     MetaTable.NOTIFICATION,
     MetaTable.JOBS,
@@ -259,18 +279,25 @@ export const RootScopeTables = {
     MetaTable.CUSTOM_URLS,
     MetaTable.MCP_TOKENS,
   ],
-  [RootScopes.BASE]: [MetaTable.PROJECT],
-  // It's a special case and Workspace is equivalent to org in oss
-  [RootScopes.WORKSPACE]: [
-    MetaTable.INTEGRATIONS,
-    MetaTable.INTEGRATIONS_STORE,
-    // We need to clear fk_integration_id from following tables
-    MetaTable.COL_BUTTON,
-    MetaTable.COL_LONG_TEXT,
+  [RootScopes.ORG]: [
+    MetaTable.ORG,
+    MetaTable.ORG_DOMAIN,
+    MetaTable.ORG_USERS,
+    MetaTable.SSO_CLIENT,
+    MetaTable.SSO_CLIENT_DOMAIN,
   ],
+  [RootScopes.WORKSPACE]: [
+    MetaTable.WORKSPACE,
+    MetaTable.WORKSPACE_USER,
+    MetaTable.INTEGRATIONS,
+    MetaTable.SOURCES,
+  ],
+  [RootScopes.BASE]: [MetaTable.PROJECT],
 };
 
 export const CACHE_PREFIX =
   process.env.NC_CACHE_PREFIX && process.env.NC_CACHE_PREFIX.trim().length > 0
     ? process.env.NC_CACHE_PREFIX
     : 'nc';
+
+export const NC_STORE_DEFAULT_WORKSPACE_ID_KEY = 'NC_DEFAULT_WORKSPACE_ID';

@@ -54,6 +54,8 @@ export default class Noco {
 
   public static sharp: typeof Sharp;
 
+  public static ncDefaultWorkspaceId: string;
+
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
     // todo: move

@@ -28,13 +28,17 @@ packages/provider-auth/
 ## Implementation Steps
 
 1. **Create the basic package structure**:
-   - Use [packages/github-auth](mdc:packages/github-auth) as a reference
+   - Use ](mdc:packages/github-auth) as a reference
    - Update package.json with the correct name and dependencies
 
 2. **Implement the core files**:
 
    a. **config.ts** - Define environment variables and OAuth configuration (if available):
    ```typescript
+   /**
+    * Centralized configuration for Provider Auth Integration
+    */
+
    // Environment variables (follow naming convention)
    export const clientId = process.env.INTEGRATION_AUTH_PROVIDER_CLIENT_ID;
    export const clientSecret = process.env.INTEGRATION_AUTH_PROVIDER_CLIENT_SECRET;
@@ -44,45 +48,101 @@ packages/provider-auth/
    export const scopes = ['scope1', 'scope2'];
 
    // OAuth URIs (customize for your provider)
-   export const authUri = 
+   export const authUri =
      clientId && redirectUri
-       ? `https://provider.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${encodeURIComponent(scopes.join(' '))}`
+       ? `https://provider.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes.join(' '))}`
        : '';
 
    export const tokenUri = 'https://provider.com/oauth/token';
    ```
 
-   b. **integration.ts** - Implement the auth integration class, try to use official SDK if available:
+   b. **integration.ts** - Implement the auth integration class with testConnection method:
    ```typescript
+   import axios from 'axios';
    import { AuthIntegration, AuthType } from '@noco-integrations/core';
    import { clientId, clientSecret, tokenUri } from './config';
-   import type { AuthResponse } from '@noco-integrations/core';
+   import type {
+     AuthResponse,
+     TestConnectionResponse,
+   } from '@noco-integrations/core';
 
    export class ProviderAuthIntegration extends AuthIntegration {
-     public async authenticate(): Promise<AuthResponse<any>> {
+     public client: ProviderClient | null = null;
+
+     public async authenticate(): Promise<AuthResponse<ProviderClient>> {
        switch (this.config.type) {
          case AuthType.ApiKey:
-           return {
-             custom: new ProviderClient({
-               token: this.config.token,
-             }),
-           };
+           if (!this.config.token) {
+             throw new Error('Missing required Provider API token');
+           }
+
+           this.client = new ProviderClient({
+             auth: this.config.token,
+           });
+
+           return this.client;
          case AuthType.OAuth:
-           return {
-             custom: new ProviderClient({
-               oauth_token: this.config.oauth_token,
-             }),
-           };
+           if (!this.config.oauth_token) {
+             throw new Error('Missing required Provider OAuth token');
+           }
+
+           this.client = new ProviderClient({
+             auth: this.config.oauth_token,
+           });
+
+           return this.client;
          default:
            throw new Error('Not implemented');
+       }
+     }
+
+     public async testConnection(): Promise<TestConnectionResponse> {
+       try {
+         const client = await this.authenticate();
+
+         if (!client) {
+           return {
+             success: false,
+             message: 'Missing Provider client',
+           };
+         }
+
+         // Test connection by calling provider's user/me endpoint
+         await client.users.me(); // Adjust based on provider's API
+         return {
+           success: true,
+         };
+       } catch (error) {
+         return {
+           success: false,
+           message: error instanceof Error ? error.message : 'Unknown error',
+         };
        }
      }
 
      public async exchangeToken(payload: {
        code: string;
      }): Promise<{ oauth_token: string }> {
-       // Implement token exchange logic here
-       // This method exchanges the authorization code for an access token
+       const response = await axios.post(
+         tokenUri,
+         {
+           grant_type: 'authorization_code',
+           client_id: clientId,
+           client_secret: clientSecret,
+           code: payload.code,
+           redirect_uri: this.config.redirect_uri, // Include if required by provider
+         },
+         {
+           headers: {
+             'Content-Type': 'application/x-www-form-urlencoded', // Adjust based on provider
+             Accept: 'application/json',
+           },
+         },
+       );
+
+       return {
+         oauth_token: response.data.access_token,
+       };
      }
    }
    ```
@@ -102,14 +162,14 @@ packages/provider-auth/
    };
    ```
 
-   d. **form.ts** - Create the configuration form:
+   d. **form.ts** - Create the configuration form with proper TypeScript typing:
    ```typescript
-   import { FormBuilderInputType, AuthType } from '@noco-integrations/core';
+   import { FormBuilderInputType } from '@noco-integrations/core';
+   import { AuthType } from '@noco-integrations/core';
    import { authUri, clientId, redirectUri, scopes } from './config';
    import type { FormDefinition } from '@noco-integrations/core';
 
    export const form: FormDefinition = [
-     // Basic form fields
      {
        type: FormBuilderInputType.Input,
        label: 'Integration name',
@@ -119,12 +179,11 @@ packages/provider-auth/
        category: 'General',
        validators: [
          {
-           type: 'required',
+           type: FormBuilderValidatorType.Required,
            message: 'Integration name is required',
          },
        ],
      },
-     // Auth type selection field
      {
        type: FormBuilderInputType.Select,
        label: 'Auth Type',
@@ -135,7 +194,7 @@ packages/provider-auth/
        defaultValue: AuthType.ApiKey,
        options: [
          {
-           label: 'API Key',
+           label: 'API Key', // Or 'Personal Access Token' for some providers
            value: AuthType.ApiKey,
          },
          ...(redirectUri && clientId
@@ -149,22 +208,21 @@ packages/provider-auth/
        ],
        validators: [
          {
-           type: 'required',
+           type: FormBuilderValidatorType.Required,
            message: 'Auth type is required',
          },
        ],
      },
-     // API key input field
      {
        type: FormBuilderInputType.Input,
-       label: 'API Token',
+       label: 'API Token', // Adjust label based on provider (e.g., 'Personal Access Token')
        width: 100,
        model: 'config.token',
        category: 'Authentication',
        placeholder: 'Enter your API Token',
        validators: [
          {
-           type: 'required',
+           type: FormBuilderValidatorType.Required,
            message: 'API Token is required',
          },
        ],
@@ -173,7 +231,6 @@ packages/provider-auth/
          value: AuthType.ApiKey,
        },
      },
-     // OAuth configuration (only shown if OAuth environment variables are set)
      ...(redirectUri && clientId
        ? [
            {
@@ -184,7 +241,7 @@ packages/provider-auth/
              category: 'Authentication',
              validators: [
                {
-                 type: 'required',
+                 type: FormBuilderValidatorType.Required,
                  message: 'OAuth Configuration is required',
                },
              ],
@@ -207,34 +264,127 @@ packages/provider-auth/
 
    e. **index.ts** - Export the integration entry point:
    ```typescript
-   import { IntegrationType } from '@noco-integrations/core';
-   import { ProviderAuthIntegration } from './integration';
-   import { form } from './form';
+   import {
+     type IntegrationEntry,
+     IntegrationType,
+   } from '@noco-integrations/core';
+   import { Providegrati/form';
    import { manifest } from './manifest';
-   import type { IntegrationEntry } from '@noco-integrations/core';
 
-   export default {
+   const integration: IntegrationEntry = {
      type: IntegrationType.Auth,
      sub_type: 'provider', // Change to your provider's identifier
      wrapper: ProviderAuthIntegration,
      form,
      manifest,
-   } as IntegrationEntry;
+   };
+
+   export default integration;
    ```
 
-3. **Update package.json**:
-   ```json
-   {
+3. **Update packning   {
      "name": "@noco-integrations/provider-auth",
      "version": "0.1.0",
      "main": "dist/index.js",
+     "types": "dist/index.d.ts",
+     "scripts": {
+       "build": "tsc",
+       "clean": "rimraf dist",
+       "lint": "eslint src --ext .ts"
+     },
      "dependencies": {
        "@noco-integrations/core": "workspace:*",
-       "axios": "^1.4.0",
+       "axios": "^1.9.0",
        "provider-client-library": "^1.0.0"
+     },
+     "devDependencies": {
+       "@types/provider": "^1.0.0", // Include if needed fo types
+       "rimraf": "^5.0."typescript": "^5.8.3"
      }
    }
    ```
+
+## Protation Examples
+
+### Example: API Client Initialization Patterns
+
+**GitHub Pattern (using Octokit):**
+```typescript
+this.client = new Octokit({
+  auth: this.config.token,
+});
+```
+
+**Asana Pattern (using official SDK):**
+```typescript
+this.client = asana.Client.create();
+this.client.useAccessToken(this.config.token);
+```
+
+### Example: OAuth URL Construction Patterns
+
+**GitHub Style:**
+```typescript
+export const authUri =
+  clientId && redirectUri
+    ? `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${encodeURIComponent(scopes.join(' '))}`
+    : '';
+```
+
+**Asana Style:**
+```typescript
+export const authUri =
+  clientId && redirectUri
+    ? `https://app.asana.com/-/oauth_authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`
+    : '';
+```
+
+### Example: Token Exchange Implementation
+
+**Simple Token Exchange (GitHub):**
+```typescript
+const response = await axios.post(
+  tokenUri,
+  {
+    client_id: clientId,
+    client_secret: clientSecret,
+    code: payload.code,
+  },
+  {
+    headers: {
+      Accept: 'application/json',
+    },
+  },
+);
+
+return {
+  oauth_token: response.data.access_token,
+};
+```
+
+**Standard OAuth Token Exchange (Asana):**
+```typescript
+const response = await axios.post(
+  tokenUri,
+  {
+    grant_type: 'authorization_code',
+    client_id: clientId,
+    client_secret: clientSecret,
+    code: payload.code,
+    redirect_uri: this.config.redirect_uri,
+  },
+  {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Accept: 'application/json',
+    },
+  },
+);
+
+return {
+  oauth_token: response.data.access_token,
+};
+```
 
 ## OAuth Environment Variables
 
@@ -262,11 +412,12 @@ The README.md should focus on end-users and include:
 - Title and brief introduction to the integration
 - Features list
 - Authentication methods with step-by-step instructions:
-  - API Key Authentication process
+  - API Key/Personal Access Token Authentication process
   - OAuth Authentication process (if supported)
 - Required permissions and scopes
+- Integration-specific considerations
 
-See [packages/github-auth/README.md](mdc:packages/github-auth/README.md) and [packages/gitlab-auth/README.md](mdc:packages/gitlab-auth/README.md) for reference implementations.
+See [packages/github-auth/README.md](mdc:packages/github-auth/README.md) and [packages/asana-auth/README.md](mdc:packages/asana-auth/README.md) for reference implementations.
 
 ## SETUP.md Structure
 
@@ -277,23 +428,38 @@ The SETUP.md should focus on administrators and include:
 - Client ID and secret retrieval instructions
 - OAuth scopes and permissions details
 - Callback URL configuration
+- Provider-specific setup requirements
 
-See [packages/github-auth/SETUP.md](mdc:packages/github-auth/SETUP.md) and [packages/gitlab-auth/SETUP.md](mdc:packages/gitlab-auth/SETUP.md) for reference implementations.
+See [packages/github-auth/SETUP.md](mdc:packages/github-auth/SETUP.md) and [packages/asana-auth/SETUP.md](mdc:packages/asana-auth/SETUP.md) for reference implementations.
+
+## Key Implementation Patterns
+
+1. **Always implement `testConnection()`** - This method validates that the authentication credentials work
+2. **Return the client directly from `authenticate()`** - Don't wrap in custom objects unless necessary
+3. **Use `FormBuilderValidatorType.Required`** in form validators for proper TypeScript typing
+4. **Include proper error handling** with meaningful error messages
+5. **Store client instance** as a class property for potential reuse
+6. **Handle both API Key and OAuth flows** when both are supported by the provider
+7. **Use official SDKs** when available rather than raw HTTP calls
 
 ## Implementation Checklist
 
-When creating documentation for a new auth integration:
+When creating a new auth integration:
 
-1. Create SETUP.md with environment setup instructions
-2. Create or update README.md with user-facing instructions
-3. Ensure consistent formatting with existing documentation
-4. Include provider-specific screenshots where helpful
-5. Reference official provider documentation where appropriate
-6. Update TODO.md to mark documentation tasks as complete
-
+1. ✅ Create basic package structure with all required files
+2. ✅ Implement config.ts with proper environment variable naming
+3. ✅ Implement integration.ts with authenticate() and testConnection() methods
+4. ✅ Create manifest.ts with proper metadata
+5. ✅ Build form.ts with proper TypeScript typing using 'as const'
+6. ✅ Export integration entry point in index.ts
+7. ✅ Update package.json with correct dependencies and scripts
+8. ✅ Create SETUP.md with environment setup instructions
+9. ✅ Create README.md with user-facing instructions
+10. ✅ Test both API Key and OAuth authentication flows (if supported)
 
 ## References
 
-- See [GitHub Auth](mdc:packages/github-auth) for a complete example
-- See [GitLab Auth](mdc:packages/gitlab-auth) for another example
-- Core types are defined in [core/src/types/auth.ts](mdc:core/src/types/auth.ts)
+- See [GitHub Auth](mdc:packages/github-auth) for a complete OAuth + API Key example
+- See [Asana Auth](mdc:packages/asana-auth) for another complete implementation
+- See [GitLab Auth](mdc:packages/gitlab-auth) for additional patterns
+- Core types are defined in [core/src/auth/types.ts](mdc:core/src/auth/types.ts)

@@ -1,237 +1,122 @@
 import axios from 'axios';
 import { AuthIntegration, AuthType } from '@noco-integrations/core';
 import { clientId, clientSecret, tokenUri } from './config';
-import type { AuthResponse } from '@noco-integrations/core';
+import type {
+  AuthResponse,
+  TestConnectionResponse,
+} from '@noco-integrations/core';
 
 /**
- * Template Auth Integration class
+ * Provider Auth Integration
  * 
- * This template demonstrates how to create an auth integration that returns 
- * service clients (SDKs) for different authentication methods.
- * 
- * NOTE: In actual implementations, you would use a real service client/SDK 
- * by importing and initializing it here.
+ * TODO: Replace with your actual provider:
+ * 1. Import your provider's SDK/client library
+ * 2. Update the class name to match your provider
+ * 3. Implement proper client initialization in authenticate()
+ * 4. Update testConnection() to use provider-specific API call
+ * 5. Update exchangeToken() for provider-specific OAuth flow
  */
-export class TemplateAuthIntegration extends AuthIntegration {
-  /**
-   * The authenticate method should return a fully initialized SDK client
-   * that can be used by the consumer of this integration.
-   * 
-   * BEST PRACTICE: Always return an initialized client/SDK rather than just
-   * raw credentials, as this makes it easier for the integration consumer.
-   */
+export class ProviderAuthIntegration extends AuthIntegration {
+  public client: any | null = null; // TODO: Replace 'any' with your provider's client type
+
   public async authenticate(): Promise<AuthResponse<any>> {
-    // This method should return an authenticated client or credentials
-    // Implementation depends on the type of authentication
     switch (this.config.type) {
       case AuthType.ApiKey:
-        // Example implementation for API Key authentication
-        return {
-          custom: this.createApiKeyClient(this.config.token),
+        if (!this.config.token) {
+          throw new Error('Missing required Provider API token');
+        }
+
+        // TODO: Replace with your provider's SDK initialization
+        // Example for typical SDK:
+        // this.client = new ProviderSDK({
+        //   apiKey: this.config.token,
+        //   baseUrl: 'https://api.provider.com',
+        // });
+        
+        // For template purposes, creating a mock client
+        this.client = {
+          apiKey: this.config.token,
+          // Add your provider's methods here
+          getUser: async () => ({ id: 'user123', name: 'Test User' }),
         };
+
+        return this.client;
 
       case AuthType.OAuth:
-        // Example implementation for OAuth authentication
-        return {
-          custom: this.createOAuthClient(this.config.oauth_token),
+        if (!this.config.oauth_token) {
+          throw new Error('Missing required Provider OAuth token');
+        }
+
+        // TODO: Replace with your provider's SDK initialization
+        // Example for typical SDK:
+        // this.client = new ProviderSDK({
+        //   accessToken: this.config.oauth_token,
+        //   baseUrl: 'https://api.provider.com',
+        // });
+        
+        // For template purposes, creating a mock client
+        this.client = {
+          oauthToken: this.config.oauth_token,
+          // Add your provider's methods here
+          getUser: async () => ({ id: 'user123', name: 'Test User' }),
         };
 
-      case AuthType.Basic:
-        // Example implementation for Basic authentication
-        return {
-          custom: this.createBasicAuthClient(
-            this.config.username,
-            this.config.password
-          ),
-        };
-
-      case AuthType.Bearer:
-        // Example implementation for Bearer token authentication
-        return {
-          custom: this.createBearerTokenClient(this.config.bearer_token),
-        };
-
-      case AuthType.Custom:
-        // Example implementation for Custom authentication
-        return {
-          custom: this.createCustomClient(this.config),
-        };
+        return this.client;
 
       default:
         throw new Error('Authentication type not supported');
     }
   }
 
-  /**
-   * Create an authenticated client using an API key
-   */
-  private createApiKeyClient(apiKey: string): any {
-    // TODO: Replace with actual client/SDK initialization
-    
-    // Example implementation:
-    // return new ServiceSDK({
-    //   apiKey: apiKey,
-    //   baseUrl: 'https://api.service.com',
-    // });
-    
-    // For template purposes, returning an object with the SDK methods
-    return {
-      apiKey,
-      
-      // Example SDK methods
-      getResource: async (id: string) => {
-        // Implementation would use the apiKey for authentication
-        return { id, name: 'Resource Name' };
-      },
-      
-      createResource: async (data: any) => {
-        // Implementation would use the apiKey for authentication
-        return { id: '123', ...data };
+  public async testConnection(): Promise<TestConnectionResponse> {
+    try {
+      const client = await this.authenticate();
+
+      if (!client) {
+        return {
+          success: false,
+          message: 'Missing Provider client',
+        };
       }
-    };
+
+      // TODO: Replace with your provider's test API call
+      // Examples:
+      // - await client.users.me();
+      // - await client.getUser();
+      // - await client.getCurrentUser();
+      
+      // For template purposes, using mock method
+      await client.getUser();
+      
+      return {
+        success: true,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
   }
 
-  /**
-   * Create an authenticated client using OAuth token
-   */
-  private createOAuthClient(oauthToken: string): any {
-    // TODO: Replace with actual client/SDK initialization
-    
-    // Example implementation:
-    // return new ServiceSDK({
-    //   token: oauthToken,
-    //   baseUrl: 'https://api.service.com',
-    // });
-    
-    // For template purposes, returning an object with the SDK methods
-    return {
-      token: oauthToken,
-      
-      // Example SDK methods
-      getResource: async (id: string) => {
-        // Implementation would use the OAuth token for authentication
-        return { id, name: 'Resource Name' };
-      },
-      
-      createResource: async (data: any) => {
-        // Implementation would use the OAuth token for authentication
-        return { id: '123', ...data };
-      }
-    };
-  }
-
-  /**
-   * Create an authenticated client using Basic authentication
-   */
-  private createBasicAuthClient(username: string, password: string): any {
-    // TODO: Replace with actual client/SDK initialization
-    
-    // Example implementation:
-    // return new ServiceSDK({
-    //   auth: {
-    //     username,
-    //     password,
-    //   },
-    //   baseUrl: 'https://api.service.com',
-    // });
-    
-    // For template purposes, returning an object with the SDK methods
-    return {
-      credentials: { username, password },
-      
-      // Example SDK methods
-      getResource: async (id: string) => {
-        // Implementation would use basic auth credentials
-        return { id, name: 'Resource Name' };
-      },
-      
-      createResource: async (data: any) => {
-        // Implementation would use basic auth credentials
-        return { id: '123', ...data };
-      }
-    };
-  }
-
-  /**
-   * Create an authenticated client using Bearer token
-   */
-  private createBearerTokenClient(bearerToken: string): any {
-    // TODO: Replace with actual client/SDK initialization
-    
-    // Example implementation:
-    // return new ServiceSDK({
-    //   bearer: bearerToken,
-    //   baseUrl: 'https://api.service.com',
-    // });
-    
-    // For template purposes, returning an object with the SDK methods
-    return {
-      bearer: bearerToken,
-      
-      // Example SDK methods
-      getResource: async (id: string) => {
-        // Implementation would use the bearer token for authentication
-        return { id, name: 'Resource Name' };
-      },
-      
-      createResource: async (data: any) => {
-        // Implementation would use the bearer token for authentication
-        return { id: '123', ...data };
-      }
-    };
-  }
-
-  /**
-   * Create an authenticated client using custom authentication
-   */
-  private createCustomClient(config: any): any {
-    // TODO: Replace with actual client/SDK initialization
-    
-    // Example implementation:
-    // return new ServiceSDK({
-    //   customField1: config.custom_field1,
-    //   customField2: config.custom_field2,
-    //   baseUrl: 'https://api.service.com',
-    // });
-    
-    // For template purposes, returning an object with the SDK methods
-    return {
-      customConfig: {
-        field1: config.custom_field1,
-        field2: config.custom_field2,
-      },
-      
-      // Example SDK methods
-      getResource: async (id: string) => {
-        // Implementation would use the custom configuration
-        return { id, name: 'Resource Name' };
-      },
-      
-      createResource: async (data: any) => {
-        // Implementation would use the custom configuration
-        return { id: '123', ...data };
-      }
-    };
-  }
-
-  /**
-   * Exchange an OAuth authorization code for an access token
-   * This method is only needed if your integration supports OAuth
-   */
   public async exchangeToken(payload: {
     code: string;
   }): Promise<{ oauth_token: string }> {
-    // Example implementation:
+    // TODO: Update the token exchange implementation based on your provider's OAuth flow
+    // Some providers require different grant_type, headers, or additional parameters
+    
     const response = await axios.post(
       tokenUri,
       {
+        grant_type: 'authorization_code',
         client_id: clientId,
         client_secret: clientSecret,
         code: payload.code,
-        grant_type: 'authorization_code',
+        // redirect_uri: this.config.redirect_uri, // Include if required by your provider
       },
       {
         headers: {
+          'Content-Type': 'application/x-www-form-urlencoded', // Some providers use application/json
           Accept: 'application/json',
         },
       },

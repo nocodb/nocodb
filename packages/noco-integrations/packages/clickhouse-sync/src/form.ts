@@ -1,5 +1,9 @@
-import { FormBuilderInputType, IntegrationType } from '@noco-integrations/core';
-import type { FormDefinition } from '@noco-integrations/core';
+import {
+  FormBuilderInputType,
+  FormBuilderValidatorType,
+  type FormDefinition,
+  IntegrationType,
+} from '@noco-integrations/core';
 
 const form: FormDefinition = [
   {
@@ -14,7 +18,7 @@ const form: FormDefinition = [
     },
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'ClickHouse connection is required',
       },
     ],

@@ -1,4 +1,4 @@
-import { FormBuilderInputType } from '@noco-integrations/core';
+import { FormBuilderInputType, FormBuilderValidatorType } from '@noco-integrations/core';
 import { AuthType } from '@noco-integrations/core';
 import { authUri, clientId, redirectUri, scopes } from './config';
 import type { FormDefinition } from '@noco-integrations/core';
@@ -13,7 +13,7 @@ export const form: FormDefinition = [
     category: 'General',
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'Integration name is required',
       },
     ],
@@ -42,7 +42,7 @@ export const form: FormDefinition = [
     ],
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'Auth type is required',
       },
     ],
@@ -56,7 +56,7 @@ export const form: FormDefinition = [
     placeholder: 'https://your-domain.atlassian.net',
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'Jira Cloud URL is required',
       },
     ],
@@ -70,7 +70,7 @@ export const form: FormDefinition = [
     placeholder: 'Enter your API Token',
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'API Token is required',
       },
     ],
@@ -88,8 +88,8 @@ export const form: FormDefinition = [
     placeholder: 'Enter your Jira email address',
     validators: [
       {
-        type: 'required' as const,
-        message: 'Email address is required',
+        type: FormBuilderValidatorType.Required,
+        message: 'Email is required',
       },
     ],
     condition: {
@@ -107,7 +107,7 @@ export const form: FormDefinition = [
           category: 'Authentication',
           validators: [
             {
-              type: 'required' as const,
+              type: FormBuilderValidatorType.Required,
               message: 'OAuth Configuration is required',
             },
           ],

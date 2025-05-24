@@ -1,17 +1,20 @@
 {
-  "name": "@noco-integrations/auth-template",
+  "name": "@noco-integrations/provider-auth",
   "version": "0.1.0",
-  "description": "Template for Auth integrations in NocoDB",
+  "description": "Provider authentication integration for NocoDB",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "lint": "eslint src --ext .ts"
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
-    "axios": "^1.6.2"
+    "axios": "^1.9.0"
   },
   "devDependencies": {
-    "typescript": "^5.4.2"
+    "rimraf": "^5.0.10",
+    "typescript": "^5.8.3"
   }
 } 

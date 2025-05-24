@@ -1,4 +1,4 @@
-import { FormBuilderInputType } from '@noco-integrations/core';
+import { FormBuilderInputType, FormBuilderValidatorType } from '@noco-integrations/core';
 import { AuthType } from '@noco-integrations/core';
 import { authUri, clientId, redirectUri, scopes } from './config';
 import type { FormDefinition } from '@noco-integrations/core';
@@ -13,7 +13,7 @@ export const form: FormDefinition = [
     category: 'General',
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'Integration name is required',
       },
     ],
@@ -42,7 +42,7 @@ export const form: FormDefinition = [
     ],
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'Auth type is required',
       },
     ],
@@ -56,7 +56,7 @@ export const form: FormDefinition = [
     placeholder: 'Enter your Linear API Token',
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'API Token is required',
       },
     ],
@@ -75,7 +75,7 @@ export const form: FormDefinition = [
           category: 'Authentication',
           validators: [
             {
-              type: 'required' as const,
+              type: FormBuilderValidatorType.Required,
               message: 'OAuth Configuration is required',
             },
           ],

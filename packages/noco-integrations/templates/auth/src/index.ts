@@ -2,14 +2,14 @@ import {
   type IntegrationEntry,
   IntegrationType,
 } from '@noco-integrations/core';
-import { TemplateAuthIntegration } from './integration';
+import { ProviderAuthIntegration } from './integration';
 import { form } from './form';
 import { manifest } from './manifest';
 
 const integration: IntegrationEntry = {
   type: IntegrationType.Auth,
-  sub_type: 'auth-template', // This should be replaced with your specific service identifier
-  wrapper: TemplateAuthIntegration,
+  sub_type: 'provider', // TODO: Replace with your provider identifier (e.g., 'github', 'gitlab', 'asana')
+  wrapper: ProviderAuthIntegration,
   form,
   manifest,
 };

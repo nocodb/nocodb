@@ -98,7 +98,7 @@ export const form: FormDefinition = [
     category: 'General',
     validators: [
       {
-        type: 'required',
+        type: FormBuilderValidatorType.Required,
         message: 'Integration name is required',
       },
     ],

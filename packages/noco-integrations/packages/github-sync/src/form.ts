@@ -1,5 +1,6 @@
 import {
   FormBuilderInputType,
+  FormBuilderValidatorType,
   type FormDefinition,
   IntegrationType,
 } from '@noco-integrations/core';
@@ -17,8 +18,8 @@ const form: FormDefinition = [
     },
     validators: [
       {
-        type: 'required' as const,
-        message: 'GitHub connection is required',
+        type: FormBuilderValidatorType.Required,
+        message: 'Provider connection is required',
       },
     ],
   },
@@ -31,8 +32,8 @@ const form: FormDefinition = [
     category: 'Source',
     validators: [
       {
-        type: 'required' as const,
-        message: 'Repository owner is required',
+        type: FormBuilderValidatorType.Required,
+        message: 'Repository is required',
       },
     ],
   },
@@ -50,8 +51,8 @@ const form: FormDefinition = [
     category: 'Source',
     validators: [
       {
-        type: 'required' as const,
-        message: 'Repository name is required',
+        type: FormBuilderValidatorType.Required,
+        message: 'Repo is required',
       },
     ],
   },

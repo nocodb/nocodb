@@ -268,7 +268,7 @@ const form: FormDefinition = [
     },
     validators: [
       {
-        type: 'required' as const,
+        type: FormBuilderValidatorType.Required,
         message: 'Connection is required',
       },
     ],
@@ -288,7 +288,7 @@ const form: FormDefinition = [
   model: 'config.projectKey',
   placeholder: 'e.g., PROJ',
   category: 'Source',
-  validators: [{ type: 'required', message: 'Project key is required' }],
+  validators: [{ type: FormBuilderValidatorType.Required, message: 'Project key is required' }],
 },
 
 // Include closed items toggle

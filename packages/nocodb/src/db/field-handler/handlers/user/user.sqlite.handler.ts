@@ -27,6 +27,7 @@ export class UserLikeNLikeSqliteHandler extends UserGeneralHandler {
 export class UserSqliteHandler extends GenericSqliteFieldHandler {
   userHandler = new UserLikeNLikeSqliteHandler();
 
+  override filter = this.userHandler.filter;
   override filterLike = this.userHandler.filterLikeNlike;
   override filterNlike = this.userHandler.filterLikeNlike;
   override parseUserInput = this.userHandler.parseUserInput;

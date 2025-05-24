@@ -200,6 +200,7 @@ const parseConditionV2 = async (
         UITypes.Number,
         UITypes.Rating,
         UITypes.Percent,
+        UITypes.User,
       ].includes(column.uidt) ||
       ([UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
         !customWhereClause)

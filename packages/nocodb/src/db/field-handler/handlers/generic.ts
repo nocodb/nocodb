@@ -1,8 +1,8 @@
 import { type NcContext } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
-import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
-import type { MetaService } from 'src/meta/meta.service';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { MetaService } from '~/meta/meta.service';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
   FieldHandlerInterface,
@@ -141,12 +141,25 @@ export class GenericFieldHandler
       case 'in':
         filterOperation = this.filterIn;
         break;
+      case 'allof':
+        filterOperation = this.filterAllof;
+        break;
+      case 'nallof':
+        filterOperation = this.filterNallof;
+        break;
+      case 'anyof':
+        filterOperation = this.filterAnyof;
+        break;
+      case 'nanyof':
+        filterOperation = this.filterNanyof;
+        break;
 
       default:
         filterOperation = unsupportedFilter;
     }
 
-    return await filterOperation(
+    // to keep `this` reference
+    return await filterOperation.bind(this)(
       {
         val,
         sourceField,
@@ -467,11 +480,6 @@ export class GenericFieldHandler
     };
   }
 
-  filterAllof: FilterOperation;
-  filterNallof: FilterOperation;
-  filterAnyof: FilterOperation;
-  filterNanyof: FilterOperation;
-
   async innerFilterAllAnyOf(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
@@ -519,6 +527,65 @@ export class GenericFieldHandler
         }
       });
     };
+  }
+
+  async filterAllof(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    options: FilterOptions,
+  ) {
+    return this.innerFilterAllAnyOf(args, rootArgs, options);
+  }
+
+  async filterNallof(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    options: FilterOptions,
+  ) {
+    return this.innerFilterAllAnyOf(args, rootArgs, options);
+  }
+
+  async filterAnyof(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    options: FilterOptions,
+  ) {
+    return this.innerFilterAllAnyOf(args, rootArgs, options);
+  }
+  async filterNanyof(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    options: FilterOptions,
+  ) {
+    return this.innerFilterAllAnyOf(args, rootArgs, options);
   }
 
   async filterIn(

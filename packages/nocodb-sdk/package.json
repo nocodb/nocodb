@@ -57,7 +57,7 @@
     "eslint-plugin-functional": "^5.0.8",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "npm-run-all": "^4.1.5",
+    "npm-run-all2": "^5.0.0",
     "prettier": "^2.8.8",
     "rimraf": "^5.0.10",
     "swagger-typescript-api": "10.0.3",

@@ -9,16 +9,18 @@ This monorepo contains various integration packages for NocoDB. Each integration
 
 ## Repository Structure
 
-- [packages/core](mdc:packages/core): Contains the core interfaces and types for all integrations
+- [core](mdc:core): Contains the core interfaces and types for all integrations
 - [packages](mdc:packages): Contains all integration packages, each implementing a specific integration type
 
 ## Integration Types
 
 The repository currently supports the following integration types:
 
-1. **AI Integrations**: Implement the `AiIntegration` abstract class ([packages/core/src/types/ai.ts](mdc:packages/core/src/types/ai.ts))
-2. **Auth Integrations**: Implement the `AuthIntegration` abstract class ([packages/core/src/types/auth.ts](mdc:packages/core/src/types/auth.ts))
-3. **Sync Integrations**: Implement the `SyncIntegration` abstract class ([packages/core/src/types/sync.ts](mdc:packages/core/src/types/sync.ts))
+1. **AI Integrations**: Implement the `AiIntegration` abstract class ([core/src/ai/types.ts](mdc:core/src/ai/types.ts))
+2. **Auth Integrations**: Implement the `AuthIntegration` abstract class ([core/src/auth/types.ts](mdc:core/src/auth/types.ts))
+3. **Sync Integrations**: Implement the `SyncIntegration` abstract class ([core/src/sync/types.ts](mdc:core/src/sync/types.ts))
+   - **Standard Sync**: Use predefined schemas like ticketing ([core/src/sync/schema-ticketing.ts](mdc:core/src/sync/schema-ticketing.ts))
+   - **Custom Sync**: Use dynamic schemas for databases ([core/src/sync/schema-custom.ts](mdc:core/src/sync/schema-custom.ts))
 
 ## Creating a New Integration
 
@@ -53,7 +55,7 @@ packages/integration-type-name/
 
 ## Integration Entry Structure
 
-Each integration must export an `IntegrationEntry` object ([packages/core/src/types/index.ts](mdc:packages/core/src/types/index.ts)) that includes:
+Each integration must export an `IntegrationEntry` object ([core/src/types.ts](mdc:core/src/types.ts)) that includes:
 
 ```typescript
 export interface IntegrationEntry {
@@ -65,15 +67,20 @@ export interface IntegrationEntry {
 }
 ```
 
-## Example Integration
+## Example Integrations
 
-See [packages/ai-openai](mdc:packages/ai-openai) for a complete example of an AI integration.
+- **AI**: See [packages/openai-ai](mdc:packages/openai-ai) for a complete example of an AI integration
+- **Auth**: See [packages/github-auth](mdc:packages/github-auth) for an authentication integration
+- **Standard Sync**: See [packages/github-sync](mdc:packages/github-sync) for a predefined schema sync integration
+- **Custom Sync**: See [packages/postgres-sync](mdc:packages/postgres-sync) for a database sync integration with dynamic schema detection
 
 ## Development Workflow
 
 1. Create a new directory in `packages/` with your integration name (e.g., `packages/auth-google`)
 2. Set up the basic structure with `package.json`, `tsconfig.json`, and the required source files
-3. Implement the appropriate integration interface
+3. Implement the appropriate integration interface:
+   - For custom sync integrations, use `CustomSyncSchema` and `CustomSyncRecord` types
+   - For standard sync integrations, use predefined schemas like `TARGET_TABLES`
 4. Export the `IntegrationEntry` from your `index.ts` file
 
 

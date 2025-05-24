@@ -3,13 +3,24 @@ description: creating a sync type integration
 globs: 
 alwaysApply: false
 ---
-# Sync Integration Guide
+# Standard Sync Integration Guide
 
-This guide provides instructions for creating a sync integration for NocoDB, which allows syncing data from external services into NocoDB tables.
+This guide provides comprehensive instructions for creating **standard sync integrations** for NocoDB, which sync data from external services (like GitHub, Jira, Linear, Asana) into NocoDB tables using predefined schemas.
+
+**For database integrations with dynamic schemas (PostgreSQL, ClickHouse, etc.), see the Custom Sync Integration Guide instead.**
+
+## Overview
+
+Standard sync integrations:
+- Use **predefined schemas** like ticketing systems ([core/src/sync/schema-ticketing.ts](mdc:core/src/sync/schema-ticketing.ts))
+- Work with **TARGET_TABLES** enum for table identification
+- Use **SyncRecord** type for data formatting
+- Are designed for external service APIs (GitHub issues, Jira tickets, etc.)
+- Support incremental syncing via timestamp-based queries
 
 ## Key Files and Structure
 
-A sync integration requires the following files:
+A standard sync integration requires the following files:
 
 - **index.ts**: Main entry point that exports the integration
 - **integration.ts**: Core implementation extending `SyncIntegration`
@@ -21,137 +32,440 @@ A sync integration requires the following files:
 The core interfaces and types for sync integrations are located in:
 
 - [core/src/sync/types.ts](mdc:core/src/sync/types.ts): Contains the `SyncIntegration` abstract class and related types
-- [core/src/sync/schema-ticketing.ts](mdc:core/src/sync/schema-ticketing.ts): Predefined schema for ticketing systems
+- [core/src/sync/schema-ticketing.ts](mdc:core/src/sync/schema-ticketing.ts): Predefined schema for ticketing systems with tables:
+  - `TICKETING_TICKET`: Main items (issues, tickets, tasks)
+  - `TICKETING_USER`: People involved (creators, assignees, commenters)
+  - `TICKETING_COMMENT`: Comments/discussions on tickets
+  - `TICKETING_TEAM`: Groups/teams/organizations
 
-## Implementation Steps
+## Implementation Patterns
 
-### 1. Extend SyncIntegration
-
-Create a class that extends `SyncIntegration` and implements these required methods:
+### 1. Integration Class Structure
 
 ```typescript
-export default class YourSyncIntegration extends SyncIntegration<YourConfigType> {
-  // Return a user-friendly name for the integration instance
-  public getTitle(): string
+import {
+  DataObjectStream,
+  SCHEMA_TICKETING,
+  SyncIntegration,
+  TARGET_TABLES,
+} from '@noco-integrations/core';
+import type {
+  AuthResponse,
+  SyncLinkValue,
+  SyncRecord,
+  TicketingTicketRecord,
+  TicketingUserRecord,
+  TicketingCommentRecord,
+  TicketingTeamRecord,
+} from '@noco-integrations/core';
 
-  // Return schema definition
-  public async getDestinationSchema(auth: AuthResponse<any>): Promise<SyncSchema>
+export interface YourSyncPayload {
+  projectId: string;
+  includeClosed: boolean;
+  customFilter?: string;
+}
 
-  // Fetch data from external API and stream it
-  public async fetchData(
-    auth: AuthResponse<any>,
-    args: {
-      targetTables?: TARGET_TABLES[];
-      targetTableIncrementalValues?: Record<TARGET_TABLES, string | number>;
-    }
-  ): Promise<DataObjectStream<SyncRecord>>
-
-  // Format external data to match NocoDB schema
-  public formatData(
-    targetTable: TARGET_TABLES,
-    data: any
-  ): {
-    data: SyncRecord;
-    links?: Record<string, SyncLinkValue>;
+export default class YourSyncIntegration extends SyncIntegration<YourSyncPayload> {
+  public getTitle(): string {
+    return `${this.config.projectId}`;
   }
 
-  // Return the property used for incremental sync
-  public getIncrementalKey(targetTable: TARGET_TABLES): string
+  public async getDestinationSchema(_auth: AuthResponse<YourClient>) {
+    return SCHEMA_TICKETING;
+  }
+
+  // Implementation methods...
 }
 ```
 
-### 2. Create the Integration Entry Point
+### 2. Data Fetching with Stream Pattern
 
-The `index.ts` should export an `IntegrationEntry` object:
+The `fetchData` method should use the async IIFE pattern to handle streaming:
 
 ```typescript
+public async fetchData(
+  auth: AuthResponse<YourClient>,
+  args: {
+    targetTables?: TARGET_TABLES[];
+    targetTableIncrementalValues?: Record<TARGET_TABLES, string | number>;
+  },
+): Promise<DataObjectStream<SyncRecord>> {
+  const client = auth;
+  const stream = new DataObjectStream<SyncRecord>();
+
+  // Track processed entities to avoid duplicates
+  const userMap = new Map<string, boolean>();
+  const issueMap = new Map<string, boolean>();
+  const teamMap = new Map<string, boolean>();
+
+  (async () => {
+    try {
+      const ticketIncrementalValue = 
+        args.targetTableIncrementalValues?.[TARGET_TABLES.TICKETING_TICKET];
+
+      // 1. Fetch main entities (tickets/issues)
+      const tickets = await this.fetchTickets(client, ticketIncrementalValue);
+      
+      for (const ticket of tickets) {
+        // Process ticket
+        stream.push({
+          recordId: `${ticket.id}`,
+          targetTable: TARGET_TABLES.TICKETING_TICKET,
+          ...this.formatData(TARGET_TABLES.TICKETING_TICKET, ticket),
+        });
+
+        // Process related users
+        const users = this.extractUsers(ticket);
+        for (const user of users) {
+          if (!userMap.has(user.id)) {
+            userMap.set(user.id, true);
+            stream.push({
+              recordId: `${user.id}`,
+              targetTable: TARGET_TABLES.TICKETING_USER,
+              ...this.formatData(TARGET_TABLES.TICKETING_USER, user),
+            });
+          }
+        }
+
+        // Process comments if requested
+        if (args.targetTables?.includes(TARGET_TABLES.TICKETING_COMMENT)) {
+          const comments = await this.fetchComments(client, ticket.id);
+          for (const comment of comments) {
+            stream.push({
+              recordId: `${comment.id}`,
+              targetTable: TARGET_TABLES.TICKETING_COMMENT,
+              ...this.formatData(TARGET_TABLES.TICKETING_COMMENT, {
+                ...comment,
+                issueId: ticket.id,
+              }),
+            });
+          }
+        }
+      }
+
+      // 2. Fetch teams if requested
+      if (args.targetTables?.includes(TARGET_TABLES.TICKETING_TEAM)) {
+        const teams = await this.fetchTeams(client);
+        for (const team of teams) {
+          if (!teamMap.has(team.id)) {
+            teamMap.set(team.id, true);
+            stream.push({
+              recordId: `${team.id}`,
+              targetTable: TARGET_TABLES.TICKETING_TEAM,
+              ...this.formatData(TARGET_TABLES.TICKETING_TEAM, team),
+            });
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error('[Your Sync] Error:', error);
+      stream.emit('error', error);
+    } finally {
+      stream.end(); // CRITICAL: Always end the stream
+    }
+  })();
+
+  return stream; // Return immediately, don't await
+}
+```
+
+### 3. Data Formatting Patterns
+
+Each target table needs specific formatting. Use the dispatch pattern:
+
+```typescript
+public formatData(
+  targetTable: TARGET_TABLES,
+  data: any,
+): {
+  data: SyncRecord;
+  links?: Record<string, SyncLinkValue>;
+} {
+  switch (targetTable) {
+    case TARGET_TABLES.TICKETING_TICKET:
+      return this.formatTicket(data);
+    case TARGET_TABLES.TICKETING_USER:
+      return this.formatUser(data);
+    case TARGET_TABLES.TICKETING_COMMENT:
+      return this.formatComment(data);
+    case TARGET_TABLES.TICKETING_TEAM:
+      return this.formatTeam(data);
+    default:
+      throw new Error(`Unknown target table: ${targetTable}`);
+  }
+}
+
+private formatTicket(issue: any): {
+  data: TicketingTicketRecord;
+  links?: Record<string, SyncLinkValue>;
+} {
+  return {
+    data: {
+      Name: issue.title || issue.summary,
+      Description: issue.body || issue.description,
+      'Ticket Number': issue.number || issue.key,
+      'Due Date': issue.due_date,
+      Priority: issue.priority?.name,
+      Status: issue.status?.name || issue.state,
+      Tags: issue.labels?.map(l => l.name).join(','),
+      'Ticket Type': issue.issue_type || 'Issue',
+      Url: issue.html_url || issue.url,
+      'Is Active': issue.state !== 'closed',
+      'Completed At': issue.closed_at,
+      RemoteCreatedAt: issue.created_at,
+      RemoteUpdatedAt: issue.updated_at,
+      RemoteRaw: JSON.stringify(issue),
+    },
+    links: {
+      Creator: issue.user?.id ? [`${issue.user.id}`] : null,
+      Assignees: issue.assignees?.map(a => `${a.id}`) || null,
+    },
+  };
+}
+```
+
+### 4. Incremental Sync Implementation
+
+```typescript
+public getIncrementalKey(targetTable: TARGET_TABLES): string | null {
+  switch (targetTable) {
+    case TARGET_TABLES.TICKETING_TICKET:
+      return 'RemoteUpdatedAt'; // Most common pattern
+    case TARGET_TABLES.TICKETING_USER:
+      return null; // Users rarely change, full sync
+    case TARGET_TABLES.TICKETING_COMMENT:
+      return 'RemoteCreatedAt'; // Comments are usually append-only
+    case TARGET_TABLES.TICKETING_TEAM:
+      return null; // Teams rarely change
+    default:
+      return null;
+  }
+}
+```
+
+## Configuration Form Patterns
+
+### Required SelectIntegration Field
+
+```typescript
+import {
+  FormBuilderInputType,
+  type FormDefinition,
+  IntegrationType,
+} from '@noco-integrations/core';
+
+const form: FormDefinition = [
+  {
+    type: FormBuilderInputType.SelectIntegration,
+    label: 'Your Service Connection',
+    width: 100,
+    model: 'config.authIntegrationId',
+    category: 'Authentication',
+    integrationFilter: {
+      type: IntegrationType.Auth,
+      sub_type: 'your-service', // Must match auth integration sub_type
+    },
+    validators: [
+      {
+        type: 'required' as const,
+        message: 'Connection is required',
+      },
+    ],
+  },
+  // ... other configuration fields
+];
+```
+
+### Common Configuration Patterns
+
+```typescript
+// Project/Repository selection
+{
+  type: FormBuilderInputType.Input,
+  label: 'Project Key',
+  width: 48,
+  model: 'config.projectKey',
+  placeholder: 'e.g., PROJ',
+  category: 'Source',
+  validators: [{ type: 'required', message: 'Project key is required' }],
+},
+
+// Include closed items toggle
+{
+  type: FormBuilderInputType.Switch,
+  label: 'Include closed items',
+  width: 48,
+  model: 'config.includeClosed',
+  category: 'Source',
+  defaultValue: true,
+},
+
+// Custom query/filter
+{
+  type: FormBuilderInputType.Input,
+  label: 'Custom Filter',
+  width: 100,
+  model: 'config.customQuery',
+  placeholder: 'e.g., priority = "High"',
+  category: 'Source',
+},
+```
+
+## Integration Manifest
+
+```typescript
+import {
+  type IntegrationManifest,
+  SyncCategory,
+} from '@noco-integrations/core';
+
+const manifest: IntegrationManifest = {
+  title: 'Your Service',
+  icon: 'yourServiceIcon',
+  version: '0.1.0',
+  description: 'Sync tickets and issues from Your Service',
+  sync_category: SyncCategory.TICKETING, // For ticketing systems
+};
+```
+
+## Integration Entry Point
+
+```typescript
+import {
+  type IntegrationEntry,
+  IntegrationType,
+} from '@noco-integrations/core';
+import YourSyncIntegration from './integration';
+import manifest from './manifest';
+import form from './form';
+
 const integration: IntegrationEntry = {
   type: IntegrationType.Sync,
-  sub_type: 'your-integration-id',
+  sub_type: 'your-service', // Must match auth integration sub_type
   wrapper: YourSyncIntegration,
   form,
   manifest,
 };
 
+export { manifest, form, YourSyncIntegration };
 export default integration;
 ```
 
-### 3. Define the Form
+## Best Practices
 
-Create a configuration form in `form.ts`:
-
+### 1. Error Handling and Logging
 ```typescript
-const form: FormDefinition = [
-  // Form fields for your integration configuration
-  {
-    type: FormBuilderInputType.Input,
-    label: 'Configuration Field',
-    width: 100,
-    model: 'config.yourField',
-    category: 'Settings',
-    validators: [
-      {
-        type: 'required',
-        message: 'This field is required',
-      },
-    ],
-  },
-  // More fields as needed
-];
+// Use this.log() for debugging
+this.log(`[Your Sync] Fetching tickets for project ${projectKey}`);
+
+// Handle API errors gracefully
+try {
+  const comments = await client.getComments(issueId);
+} catch (error) {
+  this.log(`[Your Sync] Error fetching comments for ${issueId}: ${error}`);
+  // Continue processing other items
+}
 ```
 
-### 4. Create the Manifest
-
-Define metadata in `manifest.ts`:
-
+### 2. Pagination Handling
 ```typescript
-const manifest: IntegrationManifest = {
-  title: 'Your Integration',
-  icon: 'yourIcon',
-  version: '0.1.0',
-  description: 'Sync data from Your Service to NocoDB',
-  sync_category: SyncCategory.TICKETING, // Or appropriate category
-};
-```
+// For APIs with pagination
+let page = 1;
+const perPage = 100;
+let hasMore = true;
 
-## Working with DataObjectStream
-
-The `fetchData` method should:
-
-1. Create a stream: `const stream = new DataObjectStream<YourRecordType>();`
-2. Fetch and process data asynchronously
-3. Push records to the stream: `stream.push({ recordId, targetTable, data, links })`
-4. End the stream when done: `stream.end()`
-5. Handle errors: `stream.emit('error', error)`
-
-## Proper Stream Handling
-
-We MUST return stream without awaiting it.
-
-```typescript
-// Proper stream handling pattern
-(async () => {
-  try {
-    // Fetch and process data
-    for (const item of items) {
-      stream.push({
-        recordId: `${item.id}`,
-        targetTable: TARGET_TABLES.TICKETING_TICKET,
-        ...this.formatData(TARGET_TABLES.TICKETING_TICKET, item),
-      });
-    }
-    stream.end(); // Critical: must end the stream
-  } catch (error) {
-    stream.emit('error', error);
+while (hasMore) {
+  const result = await client.getIssues({ page, perPage });
+  
+  for (const issue of result.data) {
+    // Process issue
   }
-})();
-
-return stream;
+  
+  hasMore = result.data.length === perPage;
+  page++;
+}
 ```
+
+### 3. Relationship Management
+```typescript
+// Always push related entities before creating relationships
+// 1. Push user first
+stream.push({
+  recordId: `${user.id}`,
+  targetTable: TARGET_TABLES.TICKETING_USER,
+  data: userData,
+});
+
+// 2. Then push ticket with user relationship
+stream.push({
+  recordId: `${ticket.id}`,
+  targetTable: TARGET_TABLES.TICKETING_TICKET,
+  data: ticketData,
+  links: {
+    Creator: [`${user.id}`], // Reference the user
+  },
+});
+```
+
+### 4. Memory Management
+```typescript
+// Use Maps to track processed entities and avoid duplicates
+const userMap = new Map<string, boolean>();
+
+// Check before processing
+if (!userMap.has(user.id)) {
+  userMap.set(user.id, true);
+  // Process user
+}
+```
+
+## Standard vs Custom Sync Integrations
+
+**Use Standard Sync Integration when:**
+- Syncing from external APIs (GitHub, Jira, Linear, Asana, etc.)
+- Working with predefined schemas (ticketing, project management)
+- Using TARGET_TABLES enum for table identification
+- Data fits the ticketing model (tickets, users, comments, teams)
+
+**Use Custom Sync Integration when:**
+- Syncing from databases (PostgreSQL, ClickHouse, MySQL, etc.)
+- Schema needs to be detected dynamically
+- Working with arbitrary table structures
+- Data doesn't fit predefined schemas
 
 ## Examples
 
 For complete implementation examples, see:
 
-- [packages/github-sync](mdc:packages/github-sync/src/integration.ts): GitHub sync integration
-- [packages/gitlab-sync](mdc:packages/gitlab-sync/src/integration.ts): GitLab sync integration
+### GitHub Pattern ([packages/github-sync](mdc:packages/github-sync/src/integration.ts))
+- Repository-based syncing (owner/repo)
+- Issues and Pull Requests as tickets
+- Issue comments and team member relationships
+- Incremental sync via `updated_at`
+
+### Jira Pattern ([packages/jira-sync](mdc:packages/jira-sync/src/integration.ts))
+- Project-based syncing with JQL queries
+- Issues as tickets with custom fields
+- Comment fetching per issue
+- Project as team entity
+
+### Linear Pattern ([packages/linear-sync](mdc:packages/linear-sync/src/integration.ts))
+- Team-based issue syncing
+- Linear-specific status and priority mapping
+- Workspace and team relationships
+
+### Asana Pattern ([packages/asana-sync](mdc:packages/asana-sync/src/integration.ts))
+- Project-based task syncing
+- Task hierarchies and dependencies
+- Team and user assignments
+
+## Common Pitfalls
+
+1. **Forgetting to end the stream** - Always call `stream.end()` in the finally block
+2. **Missing error handling** - Wrap async operations in try/catch
+3. **Not handling relationships** - Push related entities before creating links
+4. **Duplicate processing** - Use Maps to track processed entities
+5. **Incorrect incremental keys** - Use appropriate timestamp fields for each table
+6. **Missing auth integration filter** - Ensure sub_type matches between sync and auth
+7. **Not handling pagination** - Many APIs require pagination for large datasets

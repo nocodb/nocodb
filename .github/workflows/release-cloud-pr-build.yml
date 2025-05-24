@@ -14,6 +14,7 @@ on:
       - "packages/nocodb-sdk/**"
       - "packages/nc-gui/**"
       - "packages/nocodb/**"
+      - "packages/noco-integrations/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

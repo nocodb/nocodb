@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, isDateOrDateTimeCol, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, isDateOrDateTimeCol, isLinksOrLTAR, UITypes } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
 
 const props = defineProps<{ modelValue: boolean; column: any; hideBackBtn?: boolean }>()
@@ -76,11 +76,10 @@ const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 const relation = computed(() => {
   return injectedColumn!.value?.colOptions?.type
 })
-
 const linkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
     await addLTARRef(row, injectedColumn?.value as ColumnType)
-    if (relation.value === 'oo' || relation.value === 'bt') {
+    if ([RelationTypes.MANY_TO_ONE, RelationTypes.BELONGS_TO,RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relation.value as RelationTypes))  {
       isChildrenExcludedListLinked.value.forEach((isLinked, idx) => {
         if (isLinked) {
           isChildrenExcludedListLinked.value[idx] = false

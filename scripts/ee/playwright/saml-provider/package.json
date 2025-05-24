@@ -10,6 +10,11 @@
     "dotenv": "^16.4.1",
     "@smartlook/saml-idp": "^1.3.0"
   },
+  "overrides": {
+    "@smartlook/saml-idp": {
+      "xml-crypto": "2.1.6"
+    }
+  },
   "keywords": [],
   "author": "",
   "license": "ISC"

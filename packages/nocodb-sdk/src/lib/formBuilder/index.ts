@@ -9,6 +9,25 @@ export enum FormBuilderInputType {
   OAuth = 'oauth',
 }
 
+export interface FormBuilderCondition {
+  // model path to check for condition
+  model: string;
+  // value to check for condition
+  value?: string;
+  // check if the value is equal to the model value
+  equal?: string;
+  // check if the value is in the array
+  in?: string[];
+  // check if the value is empty
+  empty?: boolean;
+  // check if the value is not empty
+  notEmpty?: boolean;
+}
+
+export enum FormBuilderValidatorType {
+  Required = 'required',
+}
+
 export interface FormBuilderElement {
   // element type
   type: FormBuilderInputType;
@@ -61,7 +80,7 @@ export interface FormBuilderElement {
   // show hint as tooltip for the element (if applicable) - default is false
   showHintAsTooltip?: boolean;
   // validators for the element
-  validators?: { type: 'required'; message?: string }[];
+  validators?: { type: FormBuilderValidatorType; message?: string }[];
   // fetch options for the element using key
   fetchOptionsKey?: string;
 }

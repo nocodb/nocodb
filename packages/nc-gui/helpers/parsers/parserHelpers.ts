@@ -382,6 +382,7 @@ export const generateUniqueColumnName = ({
     }
 
     case UITypes.Links:
+    case UITypes.LinkToAnotherRecordV2:
     case UITypes.LinkToAnotherRecord: {
       if (!formState.childTableTitle) {
         return `title${generateUniqueColumnSuffix({ tableExplorerColumns, metaColumns })}`

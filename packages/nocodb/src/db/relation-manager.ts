@@ -16,6 +16,7 @@ import {
   getCompositePkValue,
   getOppositeRelationType,
 } from '~/helpers/dbHelpers';
+import { getTargetTableRelColumn } from '~/helpers';
 
 interface AuditUpdateLog {
   pkValue?: Record<string, any>;
@@ -342,23 +343,11 @@ export class RelationManager {
               colOptions.type as RelationTypes,
             )
           ) {
-            const targetRelationColumn = await parentTable
-              .getColumns(parentBaseModel.context)
-              .then((columns) =>
-                columns.find(
-                  (col: Column<LinkToAnotherRecordColumn>) =>
-                    col.uidt === UITypes.LinkToAnotherRecordV2 &&
-                    col.colOptions?.fk_related_model_id ===
-                      relationColumn.fk_model_id &&
-                    col &&
-                    col.colOptions?.fk_child_column_id ===
-                      colOptions.fk_parent_column_id &&
-                    col.colOptions?.fk_parent_column_id ===
-                      colOptions.fk_child_column_id &&
-                    col.colOptions?.fk_mm_model_id ===
-                      colOptions.fk_mm_model_id,
-                ),
-              );
+            const targetRelationColumn = await getTargetTableRelColumn(
+              childBaseModel.context,
+              relationColumn,
+              parentTable,
+            );
             const targetRelationManager =
               await RelationManager.getRelationManager(
                 parentBaseModel,

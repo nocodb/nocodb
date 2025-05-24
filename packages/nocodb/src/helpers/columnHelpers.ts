@@ -2,11 +2,12 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   getAvailableRollupForUiType,
+  REGEXSTR_INTL_LETTER,
+  REGEXSTR_NUMERIC_ARABIC,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
-import { REGEXSTR_INTL_LETTER, REGEXSTR_NUMERIC_ARABIC } from 'nocodb-sdk';
 import type {
   BoolType,
   ColumnReqType,
@@ -18,15 +19,16 @@ import type {
 } from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
-import type Model from '~/models/Model';
 import type { NcContext } from '~/interface/config';
 import type { RollupColumn, View } from '~/models';
+import Model from '~/models/Model';
 import { GridViewColumn } from '~/models';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import Column from '~/models/Column';
 import { DriverClient } from '~/utils/nc-config';
 import Noco from '~/Noco';
+import { NcError } from '~/helpers/catchError';
 
 export const randomID = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz_',
@@ -638,4 +640,38 @@ export const getRevType = (type: RelationTypes) => {
   }
 
   return type;
+};
+
+export const getTargetTableRelColumn = async (
+  context: NcContext,
+  relationColumn: Column,
+  _targetTable?: Model,
+) => {
+  if (relationColumn.uidt !== UITypes.LinkToAnotherRecordV2) {
+    NcError.notImplemented();
+  }
+
+  const colOptions =
+    await relationColumn.getColOptions<LinkToAnotherRecordType>(context);
+  const { refContext } = colOptions.getRelContext(context);
+
+  const targetTable =
+    _targetTable ||
+    (await Model.get(refContext, colOptions.fk_related_model_id));
+
+  return await targetTable
+    .getColumns(refContext)
+    .then((columns) =>
+      columns.find(
+        (col: Column<LinkToAnotherRecordColumn>) =>
+          col.uidt === UITypes.LinkToAnotherRecordV2 &&
+          col.colOptions?.fk_related_model_id === relationColumn.fk_model_id &&
+          col &&
+          col.colOptions?.fk_child_column_id ===
+            colOptions.fk_parent_column_id &&
+          col.colOptions?.fk_parent_column_id ===
+            colOptions.fk_child_column_id &&
+          col.colOptions?.fk_mm_model_id === colOptions.fk_mm_model_id,
+      ),
+    );
 };

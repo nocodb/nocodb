@@ -57,8 +57,8 @@ enum UITypes {
 
 export const UITypesName = {
   [UITypes.ID]: 'ID',
-  [UITypes.LinkToAnotherRecord]: 'Link to another record',
-  [UITypes.LinkToAnotherRecordV2]: 'Link to another record V2',
+  [UITypes.LinkToAnotherRecord]: 'Link to another record(Legacy)',
+  [UITypes.LinkToAnotherRecordV2]: 'Link to another record',
   [UITypes.ForeignKey]: 'Foreign key',
   [UITypes.Order]: 'Order',
   [UITypes.Lookup]: 'Lookup',

@@ -7,7 +7,7 @@ import {
   isLinksOrLTAR,
   isSystemColumn,
   parseStringDateTime,
-  timeFormats,
+  timeFormats, isMMLike,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
@@ -485,8 +485,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       try {
         isChildrenLoading.value = true
-        if (isSingleTargetRelation.value) return
         if (!column.value) return
+        if (isSingleTargetRelation.value && !isMMLike(column.value)) return
         let offset = childrenListPagination.size * (childrenListPagination.page - 1) + childrenListOffsetCount.value
         if (offset < 0 || resetOffset) {
           offset = 0

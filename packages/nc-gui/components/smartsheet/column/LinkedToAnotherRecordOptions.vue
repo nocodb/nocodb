@@ -332,40 +332,52 @@ const toggleCrossBase = () => {
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type">
         <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit">
-          <a-radio :value="RelationTypes.MANY_TO_MANY" data-testid="Many to Many">
-            <span class="nc-ltar-icon nc-mm-icon">
-              <GeneralIcon icon="mm_solid" />
-            </span>
-            {{ $t('title.manyToMany') }}
-          </a-radio>
-          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecordV2">
-            <a-radio :value="RelationTypes.ONE_TO_MANY" data-testid="One to Many">
-              <span class="nc-ltar-icon nc-om-icon">
-                <GeneralIcon icon="hm_solid" />
-              </span>
-              {{ $t('title.oneToMany') }}
-            </a-radio>
-            <a-radio :value="RelationTypes.MANY_TO_ONE" data-testid="Many to One">
-              <span class="nc-ltar-icon nc-mo-icon">
-                <GeneralIcon icon="oneToOneSolid" />
-              </span>
-              {{ $t('title.manyToOne') }}
-            </a-radio>
-          </template>
-          <template v-else>
-            <a-radio :value="RelationTypes.HAS_MANY" data-testid="Has Many">
-              <span class="nc-ltar-icon nc-hm-icon">
-                <GeneralIcon icon="hm_solid" />
-              </span>
-              {{ $t('title.hasMany') }}
-            </a-radio>
-          </template>
-          <a-radio :value="RelationTypes.ONE_TO_ONE" data-testid="One to One">
-            <span class="nc-ltar-icon nc-oo-icon">
-              <GeneralIcon icon="oneToOneSolid" />
-            </span>
-            {{ $t('title.oneToOne') }}
-          </a-radio>
+          <a-row :gutter="[16, 16]">
+            <a-col :span="12">
+              <a-radio :value="RelationTypes.MANY_TO_MANY" data-testid="Many to Many">
+                <span class="nc-ltar-icon nc-mm-icon">
+                  <GeneralIcon icon="mm_solid" />
+                </span>
+                {{ $t('title.manyToMany') }}
+              </a-radio>
+            </a-col>
+            <template v-if="vModel.uidt === UITypes.LinkToAnotherRecordV2">
+              <a-col :span="12">
+                <a-radio :value="RelationTypes.ONE_TO_MANY" data-testid="One to Many">
+                  <span class="nc-ltar-icon nc-om-icon">
+                    <GeneralIcon icon="hm_solid" />
+                  </span>
+                  {{ $t('title.oneToMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="12">
+                <a-radio :value="RelationTypes.MANY_TO_ONE" data-testid="Many to One" class="nc-relation-radio">
+                  <span class="nc-ltar-icon nc-mo-icon">
+                    <GeneralIcon icon="bt_solid" />
+                  </span>
+                  {{ $t('title.manyToOne') }}
+                </a-radio>
+              </a-col>
+            </template>
+            <template v-else>
+              <a-col :span="12">
+                <a-radio :value="RelationTypes.HAS_MANY" data-testid="Has Many">
+                  <span class="nc-ltar-icon nc-hm-icon">
+                    <GeneralIcon icon="hm_solid" />
+                  </span>
+                  {{ $t('title.hasMany') }}
+                </a-radio>
+              </a-col>
+            </template>
+            <a-col :span="12">
+              <a-radio :value="RelationTypes.ONE_TO_ONE" data-testid="One to One">
+                <span class="nc-ltar-icon nc-oo-icon">
+                  <GeneralIcon icon="oneToOneSolid" />
+                </span>
+                {{ $t('title.oneToOne') }}
+              </a-radio>
+            </a-col>
+          </a-row>
         </a-radio-group>
       </a-form-item>
     </div>
@@ -673,36 +685,56 @@ const toggleCrossBase = () => {
 </template>
 
 <style lang="scss" scoped>
-:deep(.nc-filter-grid) {
-  @apply !pr-0;
-}
+:deep(.nc-ltar-relation-type) {
+  .ant-radio-group {
+    @apply w-full;
 
-:deep(.nc-ltar-relation-type .ant-radio-group) {
-  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-gray-300 rounded-lg);
-
-  .ant-radio-wrapper {
-    @apply transition-all flex-row-reverse justify-between items-center py-1 pl-1 pr-3;
-
-    &.ant-radio-wrapper-checked:not(.ant-radio-wrapper-disabled):focus-within {
-      @apply border-brand-500;
+    .ant-row {
+      @apply w-full;
     }
 
-    span:not(.ant-radio):not(.nc-ltar-icon) {
-      @apply flex-1 pl-0 flex items-center gap-2;
-    }
+    .ant-radio-wrapper {
+      @apply w-full h-9 border-1 border-gray-200 rounded-lg transition-all duration-200;
+      @apply hover:border-gray-300 hover:bg-gray-50;
+      @apply flex items-center gap-2 px-3;
 
-    .ant-radio {
-      @apply top-0;
-    }
+      &.ant-radio-wrapper-checked {
+        @apply border-brand-500 bg-brand-50;
+      }
 
-    .nc-ltar-icon {
-      @apply inline-flex items-center p-1 rounded-md;
+      .ant-radio {
+        @apply top-0;
+      }
+
+      span:not(.ant-radio):not(.nc-ltar-icon) {
+        @apply flex items-center gap-2;
+      }
+
+      .nc-ltar-icon {
+        @apply flex items-center justify-center w-5 h-5 rounded-md shrink-0;
+
+        &.nc-mm-icon {
+          @apply bg-pink-100 text-pink-600;
+        }
+        &.nc-om-icon {
+          @apply bg-orange-100 text-orange-600;
+        }
+        &.nc-mo-icon {
+          @apply bg-blue-100 text-blue-600;
+        }
+        &.nc-hm-icon {
+          @apply bg-orange-100 text-orange-600;
+        }
+        &.nc-oo-icon {
+          @apply bg-purple-100 text-purple-600;
+        }
+      }
     }
   }
-}
 
-:deep(.nc-ltar-relation-type .ant-col.ant-form-item-control) {
-  @apply h-8.5;
+  .ant-form-item-control {
+    @apply h-auto;
+  }
 }
 </style>
 

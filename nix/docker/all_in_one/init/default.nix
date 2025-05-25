@@ -68,6 +68,14 @@ writeShellApplication {
       shadow:    files
     EOF
 
+    # backward compatiblity with legacy nocodb image
+    ln -s /src/app/data /var
+    if [ -f /var/noco.db ]; then
+      chown nocodb:nocodb /var/noco.db
+      mkdir -p /var/lib/nocodb
+      ln -s /var/noco.db /var/lib/nocodb/noco.db
+    fi
+
     # stateful logs
     mkdir -p /var/log/
 

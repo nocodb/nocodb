@@ -61,11 +61,17 @@ env_aio_set() {
 		esac
 	done
 
+	if [ "${aio_postgres_enable+set}" != set ] &&
+		# keep backward compatiblity with legacy nocodb image
+		[ ! -f /var/noco.db ] &&
+		[ ! -f /"$kernal_env_store_dir"/DATABASE_URL ] &&
+		[ ! -f /"$kernal_env_store_dir"/NC_DB_JSON ] &&
+		[ ! -f /"$kernal_env_store_dir"/NC_DB ]; then
+		aio_postgres_enable="$_aio_postgres_enable_default"
+	fi
+
 	if [ "${aio_minio_enable+set}" != set ]; then
 		aio_minio_enable="$_aio_minio_enable_default"
-	fi
-	if [ "${aio_postgres_enable+set}" != set ]; then
-		aio_postgres_enable="$_aio_postgres_enable_default"
 	fi
 	if [ "${aio_ssl_enable+set}" != set ]; then
 		aio_ssl_enable="$_aio_ssl_enable_default"

@@ -2,7 +2,21 @@ name: aiopusher
 
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Docker image tag"
+        required: true
+      current_version:
+        description: "The current NocoDB version"
+        required: false
   workflow_call:
+    inputs:
+      tag:
+        description: "Docker image tag"
+        required: true
+      current_version:
+        description: "The current NocoDB version"
+        required: false
 
 jobs:
   aiopusher:
@@ -13,4 +27,4 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Run AioPusher
-        run: nix run .#workflows.aiopusher
+        run: nix run .#workflows.aiopusher ${{ github.event.inputs.tag }} ${{ github.event.inputs.current_version }}

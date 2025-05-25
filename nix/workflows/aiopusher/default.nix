@@ -40,26 +40,28 @@ writeShellApplication {
     }
 
     image_push() {
-      # $1: version tag
+      # $1: string tag
       # $2: arch tag 1
       # $3: arch tag 1
+      # $4?: version tag
 
       docker manifest \
-        create "$image:latest" \
+        create "$image:$1" \
         --amend "$image:$2" \
         --amend "$image:$3"
       docker manifest push "$image:$1"
 
-      if [ -n "$1" ]; then
-        docker image tag "$image:latest" "$image:$1"
-        docker push "$image:$1"
+      if [ -n "$4" ]; then
+        docker image tag "$image:$1" "$image:$4"
+        docker push "$image:$4"
       fi
     }
 
     ########
     # MAIN #
     ########
-    # $1?: version
+    # $1?: string tag
+    # $1?: version tag
 
     docker login \
       --username "$(secret_get username)" \
@@ -67,6 +69,6 @@ writeShellApplication {
 
     image_build x86_64-linux
     image_build aarch64-linux
-    image_push "$1" x86_64-linux aarch64-linux
+    image_push "''${1:-untagged}" "$2" x86_64-linux aarch64-linux
   '';
 }

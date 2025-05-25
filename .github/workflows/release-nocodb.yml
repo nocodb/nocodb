@@ -87,16 +87,12 @@ jobs:
       NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
 
   # Build docker image and push to docker hub
-  release-docker:
-    needs: [release-draft-note, process-input]
-    uses: ./.github/workflows/release-docker.yml
+  aiopusher:
+    needs: [release-npm, process-input]
+    uses: ./.github/workflows/nix-aiopusher.yml
     with:
-      currentVersion: 'N/A'
-      tag: ${{ needs.process-input.outputs.target_tag }}
-      targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
-    secrets:
-      DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"
-      DOCKERHUB_TOKEN: "${{ secrets.DOCKERHUB_TOKEN }}"
+      tag: "latest"
+      current_version: ${{ needs.process-input.outputs.target_tag }}
 
   # Build executables and publish to GitHub
   release-executables:
@@ -121,6 +117,3 @@ jobs:
     uses: ./.github/workflows/publish-docs.yml
     secrets:
       GH_TOKEN: "${{ secrets.GH_TOKEN }}"
-
-  aiopusher:
-    uses: ./.github/workflows/nix-aiopusher.yml

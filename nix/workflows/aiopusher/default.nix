@@ -17,7 +17,7 @@ writeShellApplication {
   ];
 
   text = ''
-    image="nocodb/nocodb_aio"
+    image="nocodb/nocodb"
 
     note () {
       echo "$@"

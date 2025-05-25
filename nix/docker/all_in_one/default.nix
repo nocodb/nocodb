@@ -36,7 +36,7 @@ let
   valkeyconf = callPackage ./confs/valkey.nix { };
 in
 dockerTools.buildLayeredImage {
-  name = "nocodb_aio";
+  name = "nocodb";
 
   contents = [
     dockerTools.binSh

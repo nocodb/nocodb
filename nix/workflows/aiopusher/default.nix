@@ -69,6 +69,6 @@ writeShellApplication {
 
     image_build x86_64-linux
     image_build aarch64-linux
-    image_push "''${1:-untagged}" "$2" x86_64-linux aarch64-linux
+    image_push "''${1:-untagged}" x86_64-linux aarch64-linux "$2"
   '';
 }

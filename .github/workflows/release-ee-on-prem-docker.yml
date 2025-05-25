@@ -11,6 +11,14 @@ on:
         description: "Version suffix (e.g. 1, 2, 3, etc), defaults to github runner number"
         required: false
         default: ""  # Optional, defaults to empty if not provided
+      skipGeneratedTag:
+        description: "Skip adding the generated version tag (useful for test builds to avoid cluttering the registry with versioned tags)"
+        required: false
+        type: choice
+        options:
+          - "false"
+          - "true"
+        default: "false"
 jobs:
   buildx:
     runs-on: [self-hosted, docker-build]
@@ -159,7 +167,7 @@ jobs:
           push: true
           # use version from NC_ON_PREM_VERSION
           tags: |
-            nocodb/nocodb-ee:${{ env.NC_ON_PREM_VERSION }}
+            ${{ inputs.skipGeneratedTag != 'true' && format('nocodb/nocodb-ee:{0}', env.NC_ON_PREM_VERSION) || '' }}
             ${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG != '' && format('nocodb/nocodb-ee:{0}', steps.get-docker-repository.outputs.DOCKER_BUILD_TAG) || '' }}
 
         # Temp fix

@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "Fă upgrade pentru a încărca o imagine pentru workspace",
-    "upgradeToUploadWsImageSubtitle": "Planul tău {activePlan} permite doar pictograme și emoji. Fă upgrade la planul {plan} pentru a încărca o imagine personalizată ca avatar al workspace-ului."
+    "upgradeToUploadWsImageSubtitle": "Planul tău {activePlan} permite doar pictograme și emoji. Fă upgrade la planul {plan} pentru a încărca o imagine personalizată ca avatar al workspace-ului.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

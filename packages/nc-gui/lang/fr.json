@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "Passez à une version supérieure pour téléverser une image d'espace de travail",
-    "upgradeToUploadWsImageSubtitle": "Votre plan {activePlan} actuel autorise uniquement les icônes et les émojis. Passez au plan {plan} pour téléverser une image personnalisée comme avatar de votre espace de travail."
+    "upgradeToUploadWsImageSubtitle": "Votre plan {activePlan} actuel autorise uniquement les icônes et les émojis. Passez au plan {plan} pour téléverser une image personnalisée comme avatar de votre espace de travail.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

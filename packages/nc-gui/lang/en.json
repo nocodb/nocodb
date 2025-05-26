@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "Additional charges may apply for new invites",
     "newEditorWillBeChangedSubtitle": "Members assigned the Editor role or higher may incur additional charges.",
     "upgradeToUploadWsImage": "Upgrade to upload a workspace image",
-    "upgradeToUploadWsImageSubtitle": "Your current {activePlan} plan allows only icons and emojis. Upgrade to the {plan} plan to upload a custom image as your workspace avatar."
+    "upgradeToUploadWsImageSubtitle": "Your current {activePlan} plan allows only icons and emojis. Upgrade to the {plan} plan to upload a custom image as your workspace avatar.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

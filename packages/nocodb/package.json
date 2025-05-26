@@ -47,7 +47,7 @@
     "watch:run:playwright:mysql": "rm -f ./test_noco.db; cross-env NODE_ENV=test NC_DB=\"mysql2://localhost:3306?u=root&p=password&d=pw_ncdb\" PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true ENTRYPOINT=src/run/testDocker rspack --config rspack.dev.ee.js",
     "watch:run:playwright": "rm -f ./test_noco.db; cross-env NODE_ENV=test DATABASE_URL=sqlite:./test_noco.db PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true NC_SNAPSHOT_WINDOW_SEC=3 ENTRYPOINT=src/run/testDocker rspack --config rspack.dev.ee.js",
     "watch:run:playwright:pg": "rm -f ./test_noco.db; cross-env NODE_ENV=test NC_DB=\"pg://localhost:5432?u=postgres&p=password&d=pw_ncdb\" PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true ENTRYPOINT=src/run/testDocker rspack --config rspack.dev.ee.js",
-    "watch:run:playwright:pg:ee": "rm -f ./test_noco.db; cross-env NODE_ENV=test NC_DB=\"pg://localhost:5432?u=postgres&p=password&d=pw_ncdb_meta\" NC_DATA_DB=\"pg://localhost:5432?u=postgres&p=password&d=pw_ncdb_data\" PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true ENTRYPOINT=src/ee/run/testDocker rspack --config rspack.dev.ee.js",
+    "watch:run:playwright:pg:ee": "rm -f ./test_noco.db; cross-env NODE_ENV=test NC_DB=\"pg://localhost:5432?u=postgres&p=password&d=pw_ncdb_meta\" NC_DATA_DB=\"pg://localhost:5432?u=postgres&p=password&d=pw_ncdb_data\" NC_AUDIT_DB=\"pg://localhost:5432?u=postgres&p=password&d=pw_ncdb_audit\" PLAYWRIGHT_TEST=true NC_DISABLE_TELE=true EE=true ENTRYPOINT=src/ee/run/testDocker rspack --config rspack.dev.ee.js",
     "watch:run:playwright:quick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env DATABASE_URL=sqlite:./test_noco.db NC_DISABLE_TELE=true NODE_ENV=test EE=true ENTRYPOINT=src/run/docker rspack --config rspack.dev.ee.js",
     "watch:run:playwright:pg:cyquick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env NC_DISABLE_TELE=true NODE_ENV=test EE=true ENTRYPOINT=src/run/dockerRunPG_CyQuick.ts rspack --config rspack.dev.ee.js",
     "mail": "email dev --dir src/services/mail/templates --port 8001",
@@ -209,7 +209,7 @@
     "tinycolor2": "^1.6.0",
     "twilio": "^4.23.0",
     "unstructured-client": "^0.16.0",
-    "uuid": "^9.0.1",
+    "uuid": "^11.1.0",
     "validator": "^13.12.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "^3.25.7"

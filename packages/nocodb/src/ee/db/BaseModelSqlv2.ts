@@ -51,12 +51,12 @@ import {
   remapWithAlias,
 } from '~/utils';
 import {
-  Audit,
   Column,
   FileReference,
   Filter,
   Model,
   ModelStat,
+  RecordAudit,
 } from '~/models';
 import { getSingleQueryReadFn } from '~/services/data-opt/pg-helpers';
 import { canUseOptimisedQuery, removeBlankPropsAndMask } from '~/utils';
@@ -1125,7 +1125,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         .map((c) => c.title),
     ]);
     if (await this.isDataAuditEnabled())
-      await Audit.insert(
+      await RecordAudit.insert(
         await generateAuditV1Payload<DataInsertPayload>(
           AuditV1OperationTypes.DATA_INSERT,
           {
@@ -1155,9 +1155,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     if (await this.isDataAuditEnabled()) {
       let parentAuditId;
       if (!req.ncParentAuditId) {
-        parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+        parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
-        await Audit.insert(
+        await RecordAudit.insert(
           await generateAuditV1Payload<DataBulkDeletePayload>(
             AuditV1OperationTypes.DATA_BULK_INSERT,
             {
@@ -1176,7 +1176,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         req.ncParentAuditId = parentAuditId;
       }
       // data here is not mapped to column alias
-      await Audit.insert(
+      await RecordAudit.insert(
         await Promise.all(
           data.map((d) => {
             const data = remapWithAlias({
@@ -1222,7 +1222,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
     const id = this.extractPksValues(data);
     if (await this.isDataAuditEnabled()) {
-      await Audit.insert(
+      await RecordAudit.insert(
         await generateAuditV1Payload<DataDeletePayload>(
           AuditV1OperationTypes.DATA_DELETE,
           {
@@ -1259,9 +1259,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     if (await this.isDataAuditEnabled()) {
-      const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+      const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
-      await Audit.insert(
+      await RecordAudit.insert(
         await generateAuditV1Payload<DataBulkDeletePayload>(
           AuditV1OperationTypes.DATA_BULK_DELETE,
           {
@@ -1279,7 +1279,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       req.ncParentAuditId = parentAuditId;
 
       const column_meta = extractColsMetaForAudit(this.model.columns);
-      await Audit.insert(
+      await RecordAudit.insert(
         await Promise.all(
           data?.map?.((d) =>
             generateAuditV1Payload<DataDeletePayload>(
@@ -2503,7 +2503,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       );
     }
 
-    await Audit.insert(
+    await RecordAudit.insert(
       await generateAuditV1Payload<DataLinkPayload>(
         AuditV1OperationTypes.DATA_LINK,
         {
@@ -2583,7 +2583,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       );
     }
 
-    await Audit.insert(
+    await RecordAudit.insert(
       await generateAuditV1Payload<DataUnlinkPayload>(
         AuditV1OperationTypes.DATA_UNLINK,
         {
@@ -3114,7 +3114,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }) as UpdatePayload;
 
       if (updateDiff) {
-        await Audit.insert(
+        await RecordAudit.insert(
           await generateAuditV1Payload<DataUpdatePayload>(
             AuditV1OperationTypes.DATA_UPDATE,
             {
@@ -3167,9 +3167,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     // disable external source audit in cloud
     if ((await this.isDataAuditEnabled()) && newData && newData.length > 0) {
-      const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+      const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
-      await Audit.insert(
+      await RecordAudit.insert(
         await generateAuditV1Payload<DataBulkUpdatePayload>(
           AuditV1OperationTypes.DATA_BULK_UPDATE,
           {
@@ -3187,7 +3187,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       req.ncParentAuditId = parentAuditId;
 
-      await Audit.insert(
+      await RecordAudit.insert(
         (
           await Promise.all(
             newData.map(async (d, i) => {
@@ -3283,7 +3283,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         ),
       );
     }
-    await Audit.insert(auditUpdateObj);
+    await RecordAudit.insert(auditUpdateObj);
   }
 
   async getCustomConditionsAndApply({

@@ -95,6 +95,8 @@ export const InitMetaServiceProvider: FactoryProvider = {
     Noco.config = config;
     Noco.eventEmitter = eventEmitter;
 
+    await Noco.prepareAuditService();
+
     if (!instanceConfig) {
       NcDebug.log('Inserting instance config');
       // bump to latest version for fresh install

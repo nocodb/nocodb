@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
-import { Audit } from '~/models';
+import { Audit, RecordAudit } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
@@ -10,7 +10,7 @@ export class AuditsService {
     protected readonly appHooksService: AppHooksService,
   ) {}
 
-  async auditOnlyList(param: {
+  async recordAuditList(param: {
     query: {
       row_id: string;
       fk_model_id: string;
@@ -18,16 +18,16 @@ export class AuditsService {
       offset?: string | number;
     };
   }) {
-    return await Audit.auditList(param.query);
+    return await RecordAudit.auditList(param.query);
   }
 
-  async auditOnlyCount(param: {
+  async recordAuditCount(param: {
     query?: {
       row_id: string;
       fk_model_id: string;
     };
   }) {
-    return await Audit.auditCount({
+    return await RecordAudit.auditCount({
       fk_model_id: param.query.fk_model_id,
       row_id: param.query.row_id,
     });

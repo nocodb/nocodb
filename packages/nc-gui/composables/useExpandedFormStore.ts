@@ -101,8 +101,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       const response = await $api.utils.auditList({
         row_id: rowId,
         fk_model_id: meta.value.id as string,
-        offset: 0,
-        limit: currentAuditPages.value * auditsInAPage,
+        offset: (currentAuditPages.value - 1) * auditsInAPage,
+        limit: auditsInAPage,
       })
 
       const res = response.list?.reverse?.() || []
@@ -117,7 +117,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         }
       })
 
-      mightHaveMoreAudits.value = audits.value.length < (response.pageInfo?.totalRows ?? +Infinity)
+      mightHaveMoreAudits.value = res?.length >= auditsInAPage
     } catch (e: any) {
       const errorInfo = await extractSdkResponseErrorMsgv2(e)
 

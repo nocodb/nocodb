@@ -22,8 +22,8 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 @Injectable()
 export class MetaService {
-  private _knex: knex.Knex;
-  private _config: any;
+  protected _knex: knex.Knex;
+  protected _config: any;
 
   constructor(config: NcConfig, @Optional() trx = null) {
     this._config = config;
@@ -321,7 +321,6 @@ export class MetaService {
       [MetaTable.VIEWS]: 'vw',
       [MetaTable.HOOKS]: 'hk',
       [MetaTable.HOOK_LOGS]: 'hkl',
-      [MetaTable.AUDIT]: 'adt',
       [MetaTable.API_TOKENS]: 'tkn',
       [MetaTable.EXTENSIONS]: 'ext',
       [MetaTable.COMMENTS]: 'com',
@@ -344,7 +343,7 @@ export class MetaService {
 
   // private connection: XKnex;
   // todo: need to fix
-  private trx: Knex.Transaction;
+  protected trx: Knex.Transaction;
 
   /***
    * Delete meta data

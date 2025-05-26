@@ -29,7 +29,7 @@ export default class Audit extends AuditCE {
       };
     },
   ) {
-    return await Noco.ncMeta.metaList2(
+    return await Noco.ncAudit.metaList2(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.AUDIT,
@@ -76,7 +76,7 @@ export default class Audit extends AuditCE {
       endDate?: string;
     },
   ): Promise<number> {
-    return await Noco.ncMeta.metaCount(
+    return await Noco.ncAudit.metaCount(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.AUDIT,
@@ -124,7 +124,7 @@ export default class Audit extends AuditCE {
       };
     },
   ) {
-    return await Noco.ncMeta.metaList2(
+    return await Noco.ncAudit.metaList2(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.AUDIT,
@@ -175,7 +175,7 @@ export default class Audit extends AuditCE {
       endDate?: string;
     },
   ): Promise<number> {
-    return await Noco.ncMeta.metaCount(
+    return await Noco.ncAudit.metaCount(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.AUDIT,
@@ -200,7 +200,7 @@ export default class Audit extends AuditCE {
 
   public static async insert(
     audit: Partial<Audit> | Partial<Audit>[],
-    ncMeta = Noco.ncMeta,
+    ncAudit = Noco.ncAudit,
     {
       forceAwait,
       catchException = false,
@@ -219,7 +219,7 @@ export default class Audit extends AuditCE {
       return;
     }
 
-    return AuditCE.insert(audit, ncMeta, { forceAwait, catchException });
+    return AuditCE.insert(audit, ncAudit, { forceAwait, catchException });
   }
 
   static async globalAuditList({
@@ -248,7 +248,7 @@ export default class Audit extends AuditCE {
       user?: 'asc' | 'desc';
     };
   }) {
-    return await Noco.ncMeta.metaList2(
+    return await Noco.ncAudit.metaList2(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.AUDIT,
@@ -298,7 +298,7 @@ export default class Audit extends AuditCE {
     startDate?: string;
     endDate?: string;
   }): Promise<number> {
-    return await Noco.ncMeta.metaCount(
+    return await Noco.ncAudit.metaCount(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.AUDIT,

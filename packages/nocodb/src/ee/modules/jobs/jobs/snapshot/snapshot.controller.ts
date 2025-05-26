@@ -175,7 +175,7 @@ export class SnapshotController {
     if (!source) {
       throw new Error(`Source not found!`);
     }
-    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
     const targetBase = await this.basesService.baseCreate({
       base: {

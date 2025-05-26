@@ -62,7 +62,7 @@ export class DuplicateController extends DuplicateControllerCE {
       base?: any;
     },
   ) {
-    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
     const base = await Base.getByUuid(
       {

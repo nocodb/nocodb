@@ -21,7 +21,7 @@ export class AuditsController {
     @Query('offset') offset?: number,
   ) {
     return new PagedResponseImpl(
-      await this.auditsService.auditOnlyList({
+      await this.auditsService.recordAuditList({
         query: {
           row_id: rowId,
           fk_model_id: fkModelId,
@@ -30,12 +30,6 @@ export class AuditsController {
         },
       }),
       {
-        count: await this.auditsService.auditOnlyCount({
-          query: {
-            row_id: rowId,
-            fk_model_id: fkModelId,
-          },
-        }),
         ...req.query,
       },
     );

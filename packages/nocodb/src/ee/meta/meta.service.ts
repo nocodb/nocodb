@@ -75,7 +75,6 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.VIEWS]: 'vw',
       [MetaTable.HOOKS]: 'hk',
       [MetaTable.HOOK_LOGS]: 'hkl',
-      [MetaTable.AUDIT]: 'adt',
       [MetaTable.API_TOKENS]: 'tkn',
       [MetaTable.WORKSPACE]: 'w',
       [MetaTable.COWRITER]: 'cw',

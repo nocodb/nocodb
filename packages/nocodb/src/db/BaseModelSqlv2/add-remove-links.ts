@@ -504,7 +504,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       baseModel.model.id === parentTable.id ? childTable : parentTable,
     );
 
-    const auditUpdateObj = [] as {
+    const _auditUpdateObj = [] as {
       columnTitle: string;
       columnId: string;
       refColumnTitle?: string;

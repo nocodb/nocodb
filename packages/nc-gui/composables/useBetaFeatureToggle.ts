@@ -170,7 +170,7 @@ const FEATURES = [
     id: 'cross_base_link',
     title: 'Cross Base Link',
     description: 'Enables link creation between tables in different bases.',
-    enabled: true,
+    enabled: false,
     version: 1,
     isEE: true,
   },

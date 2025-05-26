@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "Jauniniet, lai augšupielādētu darba telpas attēlu",
-    "upgradeToUploadWsImageSubtitle": "Pašreizējais plāns {activePlan} ļauj izmantot tikai ikonas un emocijzīmes. Jauniniet uz plānu {plan}, lai kā darba telpas avatāru augšupielādētu pielāgotu attēlu."
+    "upgradeToUploadWsImageSubtitle": "Pašreizējais plāns {activePlan} ļauj izmantot tikai ikonas un emocijzīmes. Jauniniet uz plānu {plan}, lai kā darba telpas avatāru augšupielādētu pielāgotu attēlu.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

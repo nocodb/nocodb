@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "Обновите тарифный план, чтобы загрузить изображение рабочего пространства",
-    "upgradeToUploadWsImageSubtitle": "Ваш текущий тариф {activePlan} позволяет использовать только иконки и эмодзи. Перейдите на тариф {plan}, чтобы загрузить собственное изображение в качестве аватара рабочего пространства."
+    "upgradeToUploadWsImageSubtitle": "Ваш текущий тариф {activePlan} позволяет использовать только иконки и эмодзи. Перейдите на тариф {plan}, чтобы загрузить собственное изображение в качестве аватара рабочего пространства.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

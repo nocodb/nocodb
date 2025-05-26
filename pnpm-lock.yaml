@@ -1551,7 +1551,7 @@ importers:
         specifier: ^3.14.1
         version: 3.14.1
       pg:
-        specifier: ^8.16.0
+        specifier: ^8.8.0
         version: 8.16.0
       prettier:
         specifier: ^2.7.1

@@ -3,6 +3,7 @@ packages/nocodb/src/ee-on-prem
 packages/nocodb/src/ee-cloud
 packages/nocodb-sdk/src/ee
 packages/nc-lib-gui/*
+packages/nc-cli/*
 packages/nc-gui/ee
 packages/noco-integrations/packages/*
 packages/noco-integrations/templates/*
@@ -72,4 +73,5 @@ packages/nc-secret-mgr/dist/**
 flake.lock
 flake.nix
 nix
+lerna.json
 packages/nc-mail-template/emails/*-ee.tsx

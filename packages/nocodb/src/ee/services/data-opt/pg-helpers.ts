@@ -29,6 +29,7 @@ import type {
   Source,
 } from '~/models';
 import type CustomKnex from 'src/db/CustomKnex';
+import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
 import { Column, Filter, Model, Sort, View } from '~/models';
 import {
   _wherePk,
@@ -874,19 +875,48 @@ export async function extractColumn({
                 dbDriver: knex,
               });
 
-              refBaseModel = childBaseModel;
-              relQb = knex(
-                knex.raw('?? as ??', [
-                  childBaseModel.getTnPath(childModel),
-                  relTableAlias,
-                ]),
-              ).where(
-                childColumn.column_name,
-                knex.raw('??.??', [
-                  rootAlias,
-                  sanitize(parentColumn.column_name),
-                ]),
-              );
+              const isEvaluateRecursive = true;
+              if (isEvaluateRecursive) {
+                const cteQB = await recursiveCTEFromLookupColumn({
+                  baseModelSqlV2: childBaseModel,
+                  lookupColumn: column,
+                  tableAlias: relTableAlias,
+                });
+                // applying CTE
+                cteQB(qb);
+
+                refBaseModel = childBaseModel;
+                relQb = knex(
+                  knex.raw('?? as ??', [relTableAlias, relTableAlias]),
+                )
+                  .where(
+                    `${relTableAlias}.root_id`,
+                    knex.raw('??.??', [
+                      rootAlias,
+                      sanitize(parentColumn.column_name),
+                    ]),
+                  )
+                  .andWhere(
+                    `${relTableAlias}.root_id`,
+                    '<>',
+                    knex.raw('??.??', [relTableAlias, 'id']),
+                  );
+              } else {
+                refBaseModel = childBaseModel;
+                relQb = knex(
+                  knex.raw('?? as ??', [
+                    childBaseModel.getTnPath(childModel),
+                    relTableAlias,
+                  ]),
+                ).where(
+                  childColumn.column_name,
+                  knex.raw('??.??', [
+                    rootAlias,
+                    sanitize(parentColumn.column_name),
+                  ]),
+                );
+              }
+              console.log(relQb.toQuery());
             }
 
             break;
@@ -950,6 +980,7 @@ export async function extractColumn({
           );
         }
         qb.select(knex.raw('??.??', [lookupTableAlias, getAs(column)]));
+        console.log('qb', qb.toQuery());
       }
       break;
     case UITypes.Formula:

@@ -25,6 +25,7 @@ overrides:
   highlight.js@<9.18.5: '>=11.11.1'
   multer@1.4.4-lts.1: '>=2.0.0'
   vue-i8n@<9.14.3: '>=9.14.3'
+  knex@<3.1.0: '>=3.1.0'
 
 patchedDependencies:
   splitpanes@3.1.5:
@@ -1492,8 +1493,8 @@ importers:
         specifier: ^4.18.1
         version: 4.18.1
       knex:
-        specifier: ^2.4.2
-        version: 2.4.2(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6(encoding@0.1.13))
+        specifier: '>=3.1.0'
+        version: 3.1.0(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6(encoding@0.1.13))
       nocodb-sdk:
         specifier: workspace:^
         version: link:../../packages/nocodb-sdk
@@ -11518,10 +11519,6 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  escalade@3.1.1:
-    resolution: {integrity: sha512-k0er2gUkLf8O0zKJiAhmkTnJlTvINGv7ygDNPbeIsX/TJjGJZHuh9B2UxbsaEkmlEo9MfhrSzmhIlhRlI2GXnw==}
-    engines: {node: '>=6'}
-
   escalade@3.1.2:
     resolution: {integrity: sha512-ErCHMCae19vR8vQGe50xIsVomy19rg6gFu3+r3jkEO46suLMWBksvVyoGgQV+jOfl84ZSOSlmv6Gxa89PmTGmA==}
     engines: {node: '>=6'}
@@ -14192,34 +14189,6 @@ packages:
     resolution: {integrity: sha512-dhG34DXATL5hSxJbIexCft8FChFXtmskoZYnoPWjXQuebWYCNkVeV3KkGegCK9CP1oswI/vQibS2GY7Em/sJJA==}
     engines: {node: '>= 8'}
 
-  knex@2.4.2:
-    resolution: {integrity: sha512-tMI1M7a+xwHhPxjbl/H9K1kHX+VncEYcvCx5K00M16bWvpYPKAZd6QrCu68PtHAdIZNQPWZn0GVhqVBEthGWCg==}
-    engines: {node: '>=12'}
-    hasBin: true
-    peerDependencies:
-      better-sqlite3: '*'
-      mysql: '*'
-      mysql2: '*'
-      pg: '*'
-      pg-native: '*'
-      sqlite3: '*'
-      tedious: '*'
-    peerDependenciesMeta:
-      better-sqlite3:
-        optional: true
-      mysql:
-        optional: true
-      mysql2:
-        optional: true
-      pg:
-        optional: true
-      pg-native:
-        optional: true
-      sqlite3:
-        optional: true
-      tedious:
-        optional: true
-
   knex@3.1.0:
     resolution: {integrity: sha512-GLoII6hR0c4ti243gMs5/1Rb3B+AjwMOfjYm97pu0FOQa7JH56hgBxYf5WK2525ceSbBY1cjeZ9yk99GPMB6Kw==}
     engines: {node: '>=16'}
@@ -16361,9 +16330,6 @@ packages:
 
   pg-cloudflare@1.1.1:
     resolution: {integrity: sha512-xWPagP/4B6BgFO+EKz3JONXv3YDgvkbVrGw2mTo3D6tVDQRh1e7cqVGvyR3BE+eQgAvx1XhW/iEASj4/jCWl3Q==}
-
-  pg-connection-string@2.5.0:
-    resolution: {integrity: sha512-r5o/V/ORTA6TmUnyWZR9nCj1klXCO2CEKNRlVuJptZe85QuhFayC7WeMic7ndayT5IRIR0S0xFxFi2ousartlQ==}
 
   pg-connection-string@2.6.2:
     resolution: {integrity: sha512-ch6OwaeaPYcova4kKZ15sbJ2hKb/VP48ZD2gE7i1J+L4MspCtBMAx8nMgz7bksc7IojCIIWuEhHibSMFH8m8oA==}
@@ -34121,8 +34087,6 @@ snapshots:
       '@esbuild/win32-ia32': 0.25.4
       '@esbuild/win32-x64': 0.25.4
 
-  escalade@3.1.1: {}
-
   escalade@3.1.2: {}
 
   escalade@3.2.0: {}
@@ -37641,29 +37605,6 @@ snapshots:
 
   klona@2.0.6: {}
 
-  knex@2.4.2(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6(encoding@0.1.13)):
-    dependencies:
-      colorette: 2.0.19
-      commander: 9.5.0
-      debug: 4.3.4
-      escalade: 3.1.1
-      esm: 3.2.25
-      get-package-type: 0.1.0
-      getopts: 2.3.0
-      interpret: 2.2.0
-      lodash: 4.17.21
-      pg-connection-string: 2.5.0
-      rechoir: 0.8.0
-      resolve-from: 5.0.0
-      tarn: 3.0.2
-      tildify: 2.0.0
-    optionalDependencies:
-      mysql2: 3.2.0
-      pg: 8.10.0
-      sqlite3: 5.1.6(encoding@0.1.13)
-    transitivePeerDependencies:
-      - supports-color
-
   knex@3.1.0(mysql2@3.12.0)(pg@8.13.1):
     dependencies:
       colorette: 2.0.19
@@ -37707,6 +37648,29 @@ snapshots:
       pg: 8.13.1
       sqlite3: 5.1.7
       tedious: 16.7.1
+    transitivePeerDependencies:
+      - supports-color
+
+  knex@3.1.0(mysql2@3.2.0)(pg@8.10.0)(sqlite3@5.1.6(encoding@0.1.13)):
+    dependencies:
+      colorette: 2.0.19
+      commander: 10.0.1
+      debug: 4.3.4
+      escalade: 3.1.2
+      esm: 3.2.25
+      get-package-type: 0.1.0
+      getopts: 2.3.0
+      interpret: 2.2.0
+      lodash: 4.17.21
+      pg-connection-string: 2.6.2
+      rechoir: 0.8.0
+      resolve-from: 5.0.0
+      tarn: 3.0.2
+      tildify: 2.0.0
+    optionalDependencies:
+      mysql2: 3.2.0
+      pg: 8.10.0
+      sqlite3: 5.1.6(encoding@0.1.13)
     transitivePeerDependencies:
       - supports-color
 
@@ -40655,8 +40619,6 @@ snapshots:
 
   pg-cloudflare@1.1.1:
     optional: true
-
-  pg-connection-string@2.5.0: {}
 
   pg-connection-string@2.6.2: {}
 

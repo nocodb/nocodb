@@ -71,10 +71,15 @@ writeShellApplication {
     # backward compatiblity with legacy nocodb image
     mkdir -p /src/app/data
     ln -s /src/app/data /var
+
+    mkdir -p /var/lib/nocodb
     if [ -f /var/noco.db ]; then
       chown nocodb:nocodb /var/noco.db
-      mkdir -p /var/lib/nocodb
       ln -s /var/noco.db /var/lib/nocodb/noco.db
+    fi
+    if [ -f /var/nc ]; then
+      chown nocodb:nocodb -R /var/nc
+      ln -s /var/nc /var/lib/nocodb/nc
     fi
 
     # stateful logs

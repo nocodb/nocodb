@@ -7,7 +7,10 @@ nocodb_env_path='/run/nocodb.dynamic.env'
 acme_env_path='/run/acme.dynamic.env'
 minio_env_path='/run/minio.dynamic.env'
 
-aio_pass_dynamic="$({ tr -dc A-Za-z < /dev/urandom | head -c 16 ; : ; })"
+aio_pass_dynamic="$({
+	tr -dc A-Za-z </dev/urandom | head -c 16
+	:
+})"
 kernal_env_store_dir="/run/kernelenvs"
 s6_services_temp_path='/run/s6-service-temp'
 
@@ -36,7 +39,7 @@ env_passthrough() {
 		*" $key "*) continue ;;
 		esac
 
-		echo "$key=$(cat "$file")" >> "$nocodb_env_path"
+		echo "$key=$(cat "$file")" >>"$nocodb_env_path"
 	done
 }
 
@@ -46,7 +49,7 @@ env_aio_set() {
 
 		case "$key" in
 		"$aio_env_prefix"*) : ;;
-		*) continue ;
+		*) continue ;;
 		esac
 		value="$(cat "$file")"
 
@@ -57,7 +60,7 @@ env_aio_set() {
 		aio_ssl_domain) aio_ssl_domain="$value" ;;
 		aio_ssl_email) aio_ssl_email="$value" ;;
 		aio_valkey_enable) aio_valkey_enable="$value" ;;
-		*) log ignoring unknown aio env "$key=$value"
+		*) log ignoring unknown aio env "$key=$value" ;;
 		esac
 	done
 
@@ -69,6 +72,10 @@ env_aio_set() {
 		[ ! -f /"$kernal_env_store_dir"/NC_DB ]; then
 		aio_postgres_enable="$_aio_postgres_enable_default"
 	fi
+	if [ "${aio_valkey_enable+set}" != set ] &&
+		[ ! -f /"$kernal_env_store_dir"/NC_REDIS_URL ]; then
+		aio_valkey_enable="$_aio_valkey_enable_default"
+	fi
 
 	if [ "${aio_minio_enable+set}" != set ]; then
 		aio_minio_enable="$_aio_minio_enable_default"
@@ -76,11 +83,9 @@ env_aio_set() {
 	if [ "${aio_ssl_enable+set}" != set ]; then
 		aio_ssl_enable="$_aio_ssl_enable_default"
 	fi
+
 	if [ "${aio_ssl_domain+set}" != set ]; then
 		aio_ssl_domain="$_aio_ssl_domain_default"
-	fi
-	if [ "${aio_valkey_enable+set}" != set ]; then
-		aio_valkey_enable="$_aio_valkey_enable_default"
 	fi
 }
 
@@ -88,7 +93,7 @@ env_aio_act() {
 	if "$aio_postgres_enable"; then
 		touch "$s6_services_temp_path"/nocodb-srv/dependencies.d/postgresql
 
-		cat <<- EOF >> "$nocodb_env_path"
+		cat <<-EOF >>"$nocodb_env_path"
 			DATABASE_URL="postgresql:///nocodb?host=/run/postgresql&user=postgres"
 		EOF
 
@@ -98,7 +103,7 @@ env_aio_act() {
 	if "$aio_minio_enable"; then
 		touch "$s6_services_temp_path"/nocodb-srv/dependencies.d/minio
 
-		cat <<- EOF >> "$nocodb_env_path"
+		cat <<-EOF >>"$nocodb_env_path"
 			NC_S3_BUCKET_NAME="aiominionocodb"
 			NC_S3_REGION="us-east-1"
 			NC_S3_ACCESS_KEY="$aio_pass_dynamic"
@@ -107,16 +112,16 @@ env_aio_act() {
 		EOF
 
 		if "$aio_ssl_enable"; then
-			cat <<- EOF >> "$nocodb_env_path"
+			cat <<-EOF >>"$nocodb_env_path"
 				NC_S3_ENDPOINT="https://${aio_ssl_domain}"
 			EOF
 		else
-			cat <<- EOF >> "$nocodb_env_path"
+			cat <<-EOF >>"$nocodb_env_path"
 				NC_S3_ENDPOINT="http://localhost:9000"
 			EOF
 		fi
 
-		cat <<- EOF >> "$minio_env_path"
+		cat <<-EOF >>"$minio_env_path"
 			MINIO_ROOT_USER="$aio_pass_dynamic"
 			MINIO_ROOT_PASSWORD="$aio_pass_dynamic"
 		EOF
@@ -132,20 +137,20 @@ env_aio_act() {
 		fi
 
 		touch "$s6_services_temp_path"/nocodb-srv/dependencies.d/acme
-		cat <<- EOF >> "$acme_env_path"
+		cat <<-EOF >>"$acme_env_path"
 			aio_ssl_email="$aio_ssl_email"
 		EOF
 
 		log enabled ssl
 	fi
-	cat <<- EOF >> "$acme_env_path"
+	cat <<-EOF >>"$acme_env_path"
 		aio_ssl_domain="$aio_ssl_domain"
 	EOF
 
 	if "$aio_valkey_enable"; then
 		touch "$s6_services_temp_path"/nocodb-srv/dependencies.d/valkey
 
-		cat <<- EOF >> "$nocodb_env_path"
+		cat <<-EOF >>"$nocodb_env_path"
 			NC_REDIS_URL="redis-socket:///run/valkey/valkey.sock?database=nocodb"
 		EOF
 

@@ -69,6 +69,7 @@ writeShellApplication {
     EOF
 
     # backward compatiblity with legacy nocodb image
+    mkdir -p /src/app/data
     ln -s /src/app/data /var
     if [ -f /var/noco.db ]; then
       chown nocodb:nocodb /var/noco.db

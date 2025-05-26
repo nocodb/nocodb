@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "升級以上傳工作區圖像",
-    "upgradeToUploadWsImageSubtitle": "您目前的 {activePlan} 方案僅允許使用圖示與表情符號。升級至 {plan} 方案即可上傳自訂影像作為工作區頭像。"
+    "upgradeToUploadWsImageSubtitle": "您目前的 {activePlan} 方案僅允許使用圖示與表情符號。升級至 {plan} 方案即可上傳自訂影像作為工作區頭像。",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

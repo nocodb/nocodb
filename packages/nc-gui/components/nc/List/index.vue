@@ -155,7 +155,7 @@ const list = computed(() => {
     if (props?.filterOption) {
       return props.filterOption(query, item, i)
     } else {
-      return item[optionLabelKey]?.toLowerCase()?.includes(query)
+      return searchCompare(item[optionLabelKey], query)
     }
   })
 })
@@ -351,6 +351,14 @@ watch(
     immediate: true,
   },
 )
+
+watch(searchQuery, () => {
+  if (activeOptionIndex.value === -1) return
+
+  nextTick(() => {
+    handleAutoScrollOption()
+  })
+})
 </script>
 
 <template>

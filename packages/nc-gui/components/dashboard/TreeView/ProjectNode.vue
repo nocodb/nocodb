@@ -124,7 +124,11 @@ const showBaseOption = (source: SourceType) => {
   return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
 }
 
-const enableEditMode = () => {
+const enableEditMode = (fromProjectHeader = false) => {
+  if (fromProjectHeader) {
+    isProjectNodeContextMenuOpen.value = false
+  }
+
   if (!isUIAllowed('baseRename') || isProjectNodeContextMenuOpen.value) return
 
   editMode.value = true
@@ -658,7 +662,7 @@ defineExpose({
               @click="onProjectClick(base)"
             >
               <template #title>{{ base.title }}</template>
-              <span @dblclick.stop="enableEditMode">
+              <span @dblclick.stop="enableEditMode()">
                 {{ base.title }}
               </span>
             </NcTooltip>
@@ -692,7 +696,7 @@ defineExpose({
                     <DashboardTreeViewProjectActionMenu
                       :show-base-option="(source) => showBaseOption(source)"
                       @click-menu="onClickMenu"
-                      @rename="enableEditMode"
+                      @rename="enableEditMode()"
                       @duplicate-project="duplicateProject($event)"
                       @copy-project-info="copyProjectInfo()"
                       @open-erd-view="openErdView($event)"
@@ -961,7 +965,7 @@ defineExpose({
         v-if="isProjectHeader"
         :show-base-option="(source) => showBaseOption(source)"
         @click-menu="onClickMenu"
-        @rename="enableEditMode"
+        @rename="enableEditMode(true)"
         @duplicate-project="duplicateProject($event)"
         @copy-project-info="copyProjectInfo()"
         @open-erd-view="openErdView($event)"

@@ -73,4 +73,5 @@ packages/nc-secret-mgr/dist/**
 flake.lock
 flake.nix
 nix
+lerna.json
 packages/nc-mail-template/emails/*-ee.tsx

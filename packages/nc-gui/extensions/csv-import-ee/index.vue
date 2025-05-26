@@ -296,7 +296,7 @@ const handleChange = (info: { file: UploadFile }) => {
   fileInfo.value = {
     ...fileInfo.value,
     name: info?.file?.name || '',
-    size: info?.file?.size ? `${(info?.file?.size / 1048576).toFixed(2)} MB` : '0 MB',
+    size: info?.file?.size ? getReadableFileSize(info?.file?.size) : '0 MB',
     processingFile: true,
   }
   importPayload.value.file.name = fileInfo.value.name

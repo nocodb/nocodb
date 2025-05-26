@@ -116,13 +116,13 @@ const handleScroll = () => {
       <GeneralIcon
         v-if="status !== 'inprogress'"
         icon="chevronDown"
-        class="h-4 w-4 flex-none transform opacity-80"
-        :class="{ '!rotate-180': isOpen }"
+        class="h-4 w-4 flex-none opacity-80 transform !transition-transform duration-200 rotate-270"
+        :class="{ '!rotate-360': isOpen }"
       />
     </div>
     <div
       v-if="isOpen && status !== 'inprogress'"
-      class="flex border-1 border-nc-border-gray-medium rounded-lg items-stretch children:(px-3 py-2 flex flex-col gap-2 text-sm flex-1) overflow-hidden bg-nc-bg-gray-extralight group-hover:bg-nc-bg-gray-light"
+      class="flex border-1 border-nc-border-gray-medium rounded-lg items-stretch children:(px-3 py-2 flex-col gap-2 text-sm flex-1) overflow-hidden bg-nc-bg-gray-extralight group-hover:bg-nc-bg-gray-light"
     >
       <div class="border-r-1 border-nc-border-gray-medium flex flex-col justify-between">
         <div class="text-nc-content-gray-subtle2">New records</div>

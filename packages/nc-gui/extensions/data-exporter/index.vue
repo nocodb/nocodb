@@ -36,7 +36,7 @@ const dataExporterRef = ref<HTMLDivElement>()
 const { width } = useElementSize(dataExporterRef)
 
 const exportedFiles = computed(() => {
-  return jobList.value
+  const list = jobList.value
     .filter(
       (job) =>
         (job.job === 'data-export' || job.name === 'data-export') &&
@@ -58,6 +58,12 @@ const exportedFiles = computed(() => {
       }
     })
     .sort((a, b) => dayjs(b.created_at).unix() - dayjs(a.created_at).unix())
+
+  if (fullscreen.value) {
+    return list
+  }
+
+  return list.slice(0, 1)
 })
 
 const exportPayload = ref<{
@@ -140,7 +146,7 @@ async function exportDataAsync() {
       delimiter: exportPayload.value.delimiter,
       encoding: exportPayload.value.encoding,
     })
-    jobList.value.unshift(jobData)
+    jobList.value.unshift({ ...jobData, name: 'data-export' })
 
     $poller.subscribe(
       { id: jobData.id },
@@ -537,7 +543,7 @@ onMounted(async () => {
         <div class="flex flex-col flex-1 nc-scrollbar-thin">
           <div v-if="fullscreen" class="data-exporter-header sticky top-0 z-100">Recent Exports</div>
           <div v-if="exportedFiles.length" class="flex-1 flex flex-col max-h-[calc(100%_-_25px)]">
-            <template v-for="exp of exportedFiles.slice(0, fullscreen ? undefined : 1)">
+            <template v-for="exp of exportedFiles">
               <div
                 v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"
                 :key="exp.id"

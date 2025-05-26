@@ -124,6 +124,8 @@ declare module 'vue' {
     MdiTableColumnPlusAfter: typeof import('~icons/mdi/table-column-plus-after')['default']
     MdiThumbUp: typeof import('~icons/mdi/thumb-up')['default']
     MiCircleWarning: typeof import('~icons/mi/circle-warning')['default']
+    MiFullscreen: typeof import('~icons/mi/fullscreen')['default']
+    MiFullscreenExit: typeof import('~icons/mi/fullscreen-exit')['default']
     NcIconsInbox: typeof import('~icons/nc-icons/inbox')['default']
     PhFlowArrowThin: typeof import('~icons/ph/flow-arrow-thin')['default']
     PhMagnifyingGlassBold: typeof import('~icons/ph/magnifying-glass-bold')['default']

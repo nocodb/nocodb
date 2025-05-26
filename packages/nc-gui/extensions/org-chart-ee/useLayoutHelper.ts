@@ -1,4 +1,5 @@
 import dagre from 'dagre'
+import { Position } from '@vue-flow/core'
 
 export interface CoordPosition {
   x: number
@@ -46,6 +47,8 @@ export function useLayoutHelper() {
       return {
         ...node,
         position: { x: nodeWithPosition.x, y: nodeWithPosition.y },
+        targetPosition: direction === 'TB' ? Position.Top : Position.Bottom,
+        sourcePosition: direction === 'TB' ? Position.Bottom : Position.Top,
       }
     })
   }

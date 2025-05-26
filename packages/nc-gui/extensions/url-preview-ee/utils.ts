@@ -219,17 +219,87 @@ const matchBehance = (url: string) => {
 urlMatchers.push(['Behance', matchBehance])
 
 // Dailymotion
-const DAILYMOTION_RE = /^https?:\/\/(www\.|)dailymotion\.com\/video\/([a-zA-Z0-9]+)(?:\?.*)?$/
+const DAILYMOTION_RE = /^https?:\/\/(?:www\.)?(?:dailymotion\.com\/video|dai\.ly)\/([a-zA-Z0-9]+)(?:\?.*)?$/
+
 const matchDailymotion = (url: string) => {
   try {
     const match = url.match(DAILYMOTION_RE)
     if (!match) return null
-    return `https://www.dailymotion.com/embed/video/${match[2]}`
+    return `https://www.dailymotion.com/embed/video/${match[1]}`
   } catch {
     return null
   }
 }
 urlMatchers.push(['Dailymotion', matchDailymotion])
+
+// Notion
+const NOTION_RE = /^https?:\/\/([a-zA-Z0-9-]+)\.notion\.site\/(?:[a-zA-Z0-9-]+-)?([a-f0-9]{32})(?:\?.*)?$/
+const matchNotion = (url: string) => {
+  try {
+    const match = url.match(NOTION_RE)
+    if (!match) return null
+
+    const siteSubdomain = match[1]
+    const pageId = match[2]
+
+    // Construct embed URL with /ebd/{pageId}
+    return `https://${siteSubdomain}.notion.site/ebd/${pageId}`
+  } catch {
+    return null
+  }
+}
+
+urlMatchers.push(['Notion', matchNotion])
+
+const TED_RE = /^https?:\/\/(www\.)?ted\.com\/talks\/([^\/\?]+)(?:\?.*)?$/
+const matchTed = (url: string) => {
+  try {
+    const match = url.match(TED_RE)
+    if (!match) return null
+    return `https://embed.ted.com/talks/${match[2]}`
+  } catch {
+    return null
+  }
+}
+urlMatchers.push(['TED', matchTed])
+
+const JSFIDDLE_RE = /^https?:\/\/jsfiddle\.net\/([a-zA-Z0-9]+)(?:\/(\d+))?\/?$/
+const matchJSFiddle = (url: string) => {
+  try {
+    const match = url.match(JSFIDDLE_RE)
+    if (!match) return null
+    const user = match[1]
+    const version = match[2] || '1' // default to version 1 if not present
+    return `https://jsfiddle.net/${user}/${version}/embedded/`
+  } catch {
+    return null
+  }
+}
+urlMatchers.push(['JSFiddle', matchJSFiddle])
+
+const STACKBLITZ_RE = /^https?:\/\/stackblitz\.com\/edit\/([a-zA-Z0-9-_]+)(?:\?.*)?$/
+const matchStackBlitz = (url: string) => {
+  try {
+    const match = url.match(STACKBLITZ_RE)
+    if (!match) return null
+    return `https://stackblitz.com/edit/${match[1]}?embed=1`
+  } catch {
+    return null
+  }
+}
+urlMatchers.push(['StackBlitz', matchStackBlitz])
+
+const CODESANDBOX_RE = /^https?:\/\/codesandbox\.io\/(?:s|embed)\/([a-zA-Z0-9-_]+)(?:\?.*)?$/
+const matchCodeSandbox = (url: string) => {
+  try {
+    const match = url.match(CODESANDBOX_RE)
+    if (!match) return null
+    return `https://codesandbox.io/embed/${match[1]}?fontsize=14&hidenavigation=1&theme=dark`
+  } catch {
+    return null
+  }
+}
+urlMatchers.push(['CodeSandbox', matchCodeSandbox])
 
 export const getEmbedURL = (url: string): [string, string] => {
   for (const matcher of urlMatchers) {

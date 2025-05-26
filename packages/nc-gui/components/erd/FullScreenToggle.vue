@@ -5,7 +5,11 @@ import MiFullscreen from '~icons/material-symbols/fullscreen'
 import MiFullscreenExit from '~icons/material-symbols/fullscreen-exit'
 
 const props = defineProps<{
-  config: ERDConfig
+  config:
+    | ERDConfig
+    | {
+        isFullScreen: boolean
+      }
 }>()
 
 const emit = defineEmits(['toggleFullScreen'])

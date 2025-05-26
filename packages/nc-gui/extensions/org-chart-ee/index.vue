@@ -11,11 +11,6 @@ const { fullscreen, tables, getViewsForTable, getTableMeta, activeTableId, activ
 const EXTENSION_ID = extension.value.extensionId
 
 const kvStore = extension.value.kvStore
-const savedData = (await kvStore.get('data')) as SavedData | undefined
-
-const { getPossibleAttachmentSrc } = useAttachment()
-
-const mandatoryColumns = ['Id', 'Title'] as const
 
 const tableId = ref<string>(activeTableId.value!)
 const viewId = ref<string | undefined>(activeViewId.value || undefined)
@@ -87,6 +82,35 @@ const onTableSelect = () => {
 }
 
 const tableMeta = computedAsync(() => (tableId.value ? getTableMeta(tableId.value) : undefined))
+
+provide(MetaInj, tableMeta)
+
+const displayValueCol = computed(() => {
+  return (
+    (tableMeta.value?.columns || []).find((c) => {
+      return c.pv
+    }) || (tableMeta.value?.columns || [])[0]
+  )
+})
+
+const pkValueCol = computed(() => {
+  return (tableMeta.value?.columns || []).find((c) => {
+    return c.pk
+  })
+})
+
+const pkValueColTitle = computed(() => {
+  return pkValueCol.value?.title ?? ''
+})
+
+const mandatoryColumns = computed(() => {
+  return (tableMeta.value?.columns || [])
+    .filter((c) => {
+      return c.pv || c.pk
+    })
+    .map((c) => c.title)
+})
+
 const relationFields = computed(() =>
   tableMeta.value?.columns?.filter(
     (c) =>
@@ -99,7 +123,7 @@ const relationFields = computed(() =>
 )
 watch(relationFields, (relationFields) => {
   if (relationFields && relationFields.length === 1) {
-    relationFieldId.value = relationFields[0].id
+    relationFieldId.value = relationFields[0]?.id
   }
 })
 const coverImageFields = computed(() => tableMeta.value?.columns?.filter((c) => c.uidt === 'Attachment' && !c.system))
@@ -149,10 +173,11 @@ const nodes = computed(() => {
       .entries()
       .map(([k, v]) => ({ id: k.toString(), position: defaultPosition, data: v }))
       .toArray()
+
     return layout(nodes, edges.value, relationshipType.value)
   } catch (e) {
     console.error(e)
-    throw e
+    return []
   }
 })
 
@@ -176,7 +201,9 @@ const loadChildren = async (rowIds: string[]) => {
 
     childRowList.forEach((childRow: any, i: any) => {
       const parentRowId = rowIdsToFetch[i]
-      const childRowIds = (childRow.list ? childRow.list.map((l: any) => l.Id) : [childRow.Id]) as string[]
+      const childRowIds = (
+        childRow.list ? childRow.list.map((l: any) => l[pkValueColTitle.value]) : [childRow[pkValueColTitle.value]]
+      ) as string[]
 
       if (childRowIds) {
         parentToUnfilteredChildIds.set(parentRowId, [...childRowIds])
@@ -197,31 +224,33 @@ const loadChildren = async (rowIds: string[]) => {
               await $api.dbDataTableRow.list(tableId.value, {
                 viewId: viewId.value,
                 fields: coverImageFieldId.value
-                  ? [...mandatoryColumns, selectedCoverImageField.value?.title]
-                  : [...mandatoryColumns],
-                where: `where=${unfetchedChildRowIdsToFilterAndFetch.map((id) => `(Id,eq,${id})`).join('~or')}`,
+                  ? [...mandatoryColumns.value, selectedCoverImageField.value?.title]
+                  : [...mandatoryColumns.value],
+                where: `where=${unfetchedChildRowIdsToFilterAndFetch
+                  .map((id) => `(${pkValueColTitle.value},eq,${id})`)
+                  .join('~or')}`,
               })
             ).list
           : ([] as any[])
 
         const existingParentFetchPromises = finalChildrenDataFilteredByViews.length
           ? finalChildrenDataFilteredByViews.map((children: any) =>
-              $api.dbDataTableRow.nestedList(selectedTable.value.id, relationFieldId.value!, children.Id),
+              $api.dbDataTableRow.nestedList(selectedTable.value.id, relationFieldId.value!, children[pkValueColTitle.value]),
             )
           : []
         const existingParents = await Promise.all(existingParentFetchPromises)
         existingParents.forEach((existingParent: any, i: any) => {
           const childRow = finalChildrenDataFilteredByViews[i]
           existingParent.list.forEach((parent: any) => {
-            if (hierarchyData.value.has(parent.Id)) {
-              hierarchyData.value.get(parent.Id)!.push(childRow.Id)
+            if (hierarchyData.value.has(parent[pkValueColTitle.value])) {
+              hierarchyData.value.get(parent[pkValueColTitle.value])!.push(childRow[pkValueColTitle.value])
             } else {
               // If parent is not fetched already, we can't just create new array as it will block actual fetching of the parent in future.
               // Instead, we trigger entire fetch of the parent and then push the childRowId. Lastly, we need to trigger the hierarchy ref again,
               // since Promise resolves after the original triggerRef is executed.
-              rowIdsToFetch.find((rid) => parent.Id === rid) ||
-                loadChildren([parent.Id]).then(() => {
-                  hierarchyData.value.get(parent.Id)!.push(childRow.Id)
+              rowIdsToFetch.find((rid) => parent[pkValueColTitle.value] === rid) ||
+                loadChildren([parent[pkValueColTitle.value]]).then(() => {
+                  hierarchyData.value.get(parent[pkValueColTitle.value])!.push(childRow[pkValueColTitle.value])
                   triggerRef(hierarchyData)
                 })
             }
@@ -229,12 +258,12 @@ const loadChildren = async (rowIds: string[]) => {
         })
 
         const finalChildrenMap = new Map<string, any>()
-        finalChildrenDataFilteredByViews.forEach((c: any) => finalChildrenMap.set(c.Id, c))
+        finalChildrenDataFilteredByViews.forEach((c: any) => finalChildrenMap.set(c[pkValueColTitle.value], c))
 
         parentToUnfilteredChildIds.entries().forEach(([parentRowId, childIds]) => {
           hierarchyData.value.set(
             parentRowId,
-            childIds.filter((cid) => finalChildrenMap.has(cid)).map((cid) => finalChildrenMap.get(cid).Id),
+            childIds.filter((cid) => finalChildrenMap.has(cid)).map((cid) => finalChildrenMap.get(cid)[pkValueColTitle.value]),
           )
           childIds.forEach((cid) => {
             finalChildrenMap.has(cid) && dataMap.value.set(cid, finalChildrenMap.get(cid))
@@ -287,9 +316,9 @@ const loadGraph = async () => {
     })
     // set rows data
     parentRows.list.forEach((parentRow: any) => {
-      dataMap.value.set(parentRow.Id, parentRow)
+      dataMap.value.set(parentRow[pkValueColTitle.value], parentRow)
     })
-    parentRowIds.value = parentRows.list.map((pr: any) => pr.Id as string)
+    parentRowIds.value = parentRows.list.map((pr: any) => pr[pkValueColTitle.value] as string)
     await loadChildren(parentRowIds.value)
 
     isReady.value = true
@@ -304,30 +333,43 @@ const applyChanges = () => {
   return loadGraph()
 }
 
-if (savedData) {
-  if (tables.value.findIndex((t: any) => t.id === savedData.tabledId) === -1) {
-    await clearData()
-  } else {
-    const views = await getViewsForTable(savedData.tabledId)
-    if (views.findIndex((v) => v.id === savedData.viewId) === -1) {
+onMounted(async () => {
+  const savedData = (await kvStore.get('data')) as SavedData | undefined
+
+  if (savedData) {
+    if (tables.value.findIndex((t: any) => t.id === savedData.tabledId) === -1) {
       await clearData()
     } else {
-      const tableMeta = (await getTableMeta(savedData.tabledId))!
-      if (tableMeta.columns?.findIndex((c) => c.id === savedData.relationFieldId) === -1) {
+      const views = await getViewsForTable(savedData.tabledId)
+      if (views.findIndex((v) => v.id === savedData.viewId) === -1) {
         await clearData()
       } else {
-        tableId.value = savedData.tabledId
-        viewId.value = savedData.viewId
-        relationFieldId.value = savedData.relationFieldId
-        coverImageFieldId.value = savedData.coverImageFieldId
-        if (savedData.relationshipType) {
-          relationshipType.value = savedData.relationshipType
+        const savedTableMeta = (await getTableMeta(savedData.tabledId))!
+        if (savedTableMeta.columns?.findIndex((c) => c.id === savedData.relationFieldId) === -1) {
+          await clearData()
+        } else {
+          tableId.value = savedData.tabledId
+          viewId.value = savedData.viewId
+          relationFieldId.value = savedData.relationFieldId
+          coverImageFieldId.value = savedData.coverImageFieldId
+          if (savedData.relationshipType) {
+            relationshipType.value = savedData.relationshipType
+          }
+
+          if (tableId.value) {
+            await until(() => !!tableMeta.value).toBeTruthy({ timeout: 5000 })
+          }
+
+          await loadGraph()
         }
-        await loadGraph()
       }
     }
   }
-}
+})
+
+watch([displayValueCol, pkValueCol], () => {
+  loadGraph()
+})
 </script>
 
 <template>
@@ -337,7 +379,7 @@ if (savedData) {
         <div class="flex flex-col space-y-4 h-full">
           <section>
             <h1>Table and View</h1>
-            <div class="flex">
+            <div class="flex flex-col gap-3">
               <a-form-item class="!my-0 w-full table-select">
                 <NcSelect
                   v-model:value="tableId"
@@ -497,60 +539,24 @@ if (savedData) {
           </section>
           <div class="flex-1"></div>
           <div class="px-6 py-4 flex flex-col">
-            <a-button
-              size="small"
-              class="!rounded-md !h-[2rem]"
-              type="primary"
-              :disabled="!isDirty || !relationFieldId"
-              @click.prevent="applyChanges"
-            >
+            <NcButton size="small" type="primary" :disabled="!isDirty || !relationFieldId" @click.prevent="applyChanges">
               <div class="flex justify-center items-center gap-2" data-rec="true">Apply Changes</div>
-            </a-button>
+            </NcButton>
           </div>
         </div>
       </div>
       <Graph
         v-if="isReady"
-        :class="fullscreen ? '!w-4/5' : 'w-full'"
+        id="printOrgPage"
         :nodes="nodes"
         :edges="edges"
-        :element-watch="fullscreen"
-        @node-selected="nodeSelected"
+        :fullscreen="fullscreen"
+        :cover-image-field-id="coverImageFieldId"
+        :selected-cover-image-field="selectedCoverImageField"
+        :hierarchy-data="hierarchyData"
+        :node-selected="nodeSelected"
+        :display-value-col="displayValueCol"
       >
-        <template #default="{ props: record }">
-          <div class="w-full h-full">
-            <div v-if="coverImageFieldId">
-              <CellAttachmentPreviewImage
-                v-if="
-                  selectedCoverImageField?.title &&
-                  record[selectedCoverImageField.title] &&
-                  record[selectedCoverImageField.title].length
-                "
-                :key="`carousel-${record.Id}`"
-                class="object-contain h-22 border-b"
-                :srcs="getPossibleAttachmentSrc(record[selectedCoverImageField.title][0], 'card_cover')"
-              />
-              <div v-else class="h-22 w-full flex flex-row border-b border-gray-200 items-center justify-center">
-                <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
-              </div>
-            </div>
-            <div class="font-bold text-left w-full px-2 py-1 flex flex-col space-y-1">
-              <span class="overflow-hidden font-bold text-lg text-center">{{ record.Title }}</span>
-              <div class="flex w-full justify-center items-center">
-                <a-button
-                  size="small"
-                  class="!rounded-md w-8"
-                  type="text"
-                  :disabled="hierarchyData.has(record.Id)"
-                  @click.prevent="nodeSelected(record.Id)"
-                >
-                  <GeneralIcon v-if="!hierarchyData.has(record.Id)" icon="chevronDown" />
-                  <GeneralIcon v-else icon="chevronUpDown" />
-                </a-button>
-              </div>
-            </div>
-          </div>
-        </template>
       </Graph>
       <div v-else-if="!fullscreen" class="h-full w-full flex items-center justify-center">
         <NcButton size="small" type="secondary" @click="fullscreen = true">
@@ -570,19 +576,8 @@ if (savedData) {
 </style>
 
 <style lang="scss" scoped>
-.table-select :deep(.ant-select-selector) {
-  &:not(:focus-within) {
-    border-right: 0;
-  }
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-.view-select :deep(.ant-select-selector) {
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-}
 section {
-  @apply flex flex-col px-6 py-4 gap-4 border-b border-nc-border-gray-medium !m-0;
+  @apply flex flex-col px-6 py-4 gap-3 border-b border-nc-border-gray-medium !m-0;
   h1 {
     font-size: 16px;
     font-weight: 700;

@@ -20,6 +20,7 @@ eventBus.on((event, payload) => {
     // We only modify state when something is selected. We don't update on un-selections
     // (except when unsupported url detected).
     // null rowId indicates "un-selection".
+
     if (payload.rowId !== null) {
       if (selectedValue && isValidURL(selectedValue)) {
         const [platformRaw, embedURLRaw] = getEmbedURL(selectedValue)
@@ -58,15 +59,17 @@ const openSelectedLink = async () => {
         </div>
       </NcButton>
     </template>
-    <div class="h-full flex h-full justify-center items-center">
+    <div class="h-full flex justify-center items-center">
       <div v-if="showEmptyState" class="w-full text-center">
         <div class="mb-2">To view a preview, select a cell in the URL field.</div>
         <img src="./assets/empty-state-banner.svg" class="w-80 mx-auto" />
       </div>
       <div v-else-if="embedURL === 'unsupported'" class="w-full text-center">
         <GeneralIcon icon="alertTriangleSolid" class="!text-red-700 w-8 h-8 flex-none" />
-        <div class="mb-2 font-bold">URL not supported</div>
-        <div>We currently do not support this link.</div>
+        <div class="my-2 font-bold">URL not supported</div>
+        <div>
+          <a target="_blank" rel="noopener" class="!no-underline"> View supported URLs </a>
+        </div>
       </div>
       <iframe v-else-if="embedURL" class="w-full h-full" :class="platform === 'Spotify' ? 'p-2' : ''" :src="embedURL"></iframe>
     </div>

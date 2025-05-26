@@ -738,20 +738,16 @@ export class UsersService extends UsersServiceCE {
           }),
         );
 
-        if (userList.length !== 1) {
-          throw new Error('There was an error, please contact support');
-        }
-
-        const cognitoUser = userList[0];
-
-        await client.send(
-          new AdminDeleteUserCommand({
-            UserPoolId: this.configService.get('cognito.aws_user_pools_id', {
-              infer: true,
+        for (const cognitoUser of userList) {
+          await client.send(
+            new AdminDeleteUserCommand({
+              UserPoolId: this.configService.get('cognito.aws_user_pools_id', {
+                infer: true,
+              }),
+              Username: cognitoUser.Username,
             }),
-            Username: cognitoUser.Username,
-          }),
-        );
+          );
+        }
       }
 
       await transaction.commit();

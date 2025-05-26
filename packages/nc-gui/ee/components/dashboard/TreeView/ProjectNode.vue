@@ -135,7 +135,11 @@ const showBaseOption = (source: SourceType) => {
   return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
 }
 
-const enableEditMode = () => {
+const enableEditMode = (fromProjectHeader = false) => {
+  if (fromProjectHeader) {
+    isProjectNodeContextMenuOpen.value = false
+  }
+
   if (!isUIAllowed('baseRename') || isProjectNodeContextMenuOpen.value) return
 
   editMode.value = true
@@ -735,7 +739,7 @@ defineExpose({
               @click="onProjectClick(base)"
             >
               <template #title>{{ base.title }}</template>
-              <span @dblclick.stop="enableEditMode">
+              <span @dblclick.stop="enableEditMode()">
                 {{ base.title }}
               </span>
             </NcTooltip>
@@ -773,7 +777,7 @@ defineExpose({
                       :data-reflection-state="dataReflectionState"
                       :data-reflection-text="dataReflectionText"
                       @click-menu="onClickMenu($event)"
-                      @rename="enableEditMode"
+                      @rename="enableEditMode()"
                       @toggle-starred="toggleStarred($event)"
                       @duplicate-project="duplicateProject($event)"
                       @open-erd-view="openErdView($event)"
@@ -1052,7 +1056,7 @@ defineExpose({
         :data-reflection-state="dataReflectionState"
         :data-reflection-text="dataReflectionText"
         @click-menu="onClickMenu($event)"
-        @rename="enableEditMode"
+        @rename="enableEditMode(true)"
         @toggle-starred="toggleStarred($event)"
         @duplicate-project="duplicateProject($event)"
         @open-erd-view="openErdView($event)"

@@ -155,7 +155,7 @@ export default class Widget implements WidgetType {
     updateObj = prepareForDb(updateObj, ['config', 'meta', 'position']);
 
     // update meta
-    const res = await ncMeta.metaUpdate(
+    await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.WIDGETS,
@@ -163,12 +163,9 @@ export default class Widget implements WidgetType {
       widgetId,
     );
 
-    await NocoCache.update(
-      `${CacheScope.WIDGET}:${widgetId}`,
-      prepareForResponse(res),
-    );
+    await NocoCache.update(`${CacheScope.WIDGET}:${widgetId}`, updateObj);
 
-    return res;
+    return await this.get(context, widgetId);
   }
 
   static async delete(

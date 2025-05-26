@@ -18,6 +18,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const activeDashboard = ref<DashboardType | null>(null)
   const isLoading = ref(false)
   const isLoadingDashboard = ref(false)
+  const isEditingDashboard = ref(false)
 
   // Getters
   const isDashboardActive = computed(() => {
@@ -152,7 +153,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
             {
               ...updates,
               id: dashboardId,
-              dashboardId: dashboardId,
+              dashboardId,
             },
           )
 
@@ -265,6 +266,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     activeDashboard,
     isLoading,
     isLoadingDashboard,
+    isEditingDashboard,
 
     // Getters
     isDashboardActive,

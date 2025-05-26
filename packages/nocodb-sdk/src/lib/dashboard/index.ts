@@ -12,25 +12,6 @@ export interface DashboardType {
   owned_by?: string;
 }
 
-export interface WidgetType {
-  id?: string;
-  title: string;
-  description?: string;
-  fk_dashboard_id: string;
-  type: WidgetTypes;
-  config?: any;
-  meta?: any;
-  order?: number;
-  position?: {
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-  };
-  created_at?: string;
-  updated_at?: string;
-}
-
 export enum WidgetTypes {
   CHART = 'chart',
   TABLE = 'table',
@@ -39,14 +20,48 @@ export enum WidgetTypes {
   IFRAME = 'iframe',
 }
 
+export enum ChartTypes {
+  BAR = 'bar',
+  LINE = 'line',
+  PIE = 'pie',
+  DONUT = 'donut',
+  SCATTER = 'scatter',
+}
+export enum WidgetSourceTypes {
+  VIEW = 'view',
+  MODEL = 'model',
+  FILTER = 'filter',
+}
+
+export type WidgetDataSource =
+  | {
+      fk_model_id: string;
+      type: WidgetSourceTypes.MODEL;
+    }
+  | {
+      fk_view_id: string;
+      fk_model_id?: string;
+      type: WidgetSourceTypes.VIEW;
+    }
+  | {
+      fk_model_id: string;
+      type: WidgetSourceTypes.FILTER;
+    };
+
+export const WidgetChartLabelMap = {
+  [ChartTypes.BAR]: 'Bar Chart',
+  [ChartTypes.LINE]: 'Line Chart',
+  [ChartTypes.PIE]: 'Pie Chart',
+  [ChartTypes.DONUT]: 'Donut Chart',
+  [ChartTypes.SCATTER]: 'Scatter Plot',
+  [WidgetTypes.TABLE]: 'Table',
+  [WidgetTypes.METRIC]: 'Metric',
+  [WidgetTypes.TEXT]: 'Text',
+  [WidgetTypes.IFRAME]: 'IFrame',
+};
 export interface ChartWidgetConfig {
-  chartType: 'bar' | 'line' | 'pie' | 'doughnut' | 'area' | 'scatter';
-  fk_view_id?: string;
-  fk_model_id?: string;
-  dataSource?: {
-    type: 'view' | 'model' | 'custom';
-    source_id?: string;
-  };
+  chartType: ChartTypes;
+  dataSource?: WidgetDataSource;
   xAxis?: {
     column_id: string;
     label?: string;
@@ -56,46 +71,23 @@ export interface ChartWidgetConfig {
     aggregation?: 'sum' | 'avg' | 'count' | 'min' | 'max';
     label?: string;
   }[];
-  filters?: any[];
   groupBy?: string[];
   limit?: number;
 }
 
 export interface TableWidgetConfig {
-  fk_view_id?: string;
-  fk_model_id?: string;
-  dataSource?: {
-    type: 'view' | 'model' | 'custom';
-    source_id?: string;
-  };
+  dataSource?: WidgetDataSource;
   columns?: string[];
-  filters?: any[];
-  sorts?: any[];
-  limit?: number;
-  showPagination?: boolean;
 }
 
 export interface MetricWidgetConfig {
-  fk_view_id?: string;
-  fk_model_id?: string;
-  dataSource?: {
-    type: 'view' | 'model' | 'custom';
-    source_id?: string;
-  };
+  dataSource?: WidgetDataSource;
   metric: {
     column_id?: string;
     aggregation: 'sum' | 'avg' | 'count' | 'min' | 'max';
     label?: string;
   };
   filters?: any[];
-  comparison?: {
-    enabled: boolean;
-    period: 'previous_period' | 'previous_year' | 'custom';
-    customPeriod?: {
-      start: string;
-      end: string;
-    };
-  };
 }
 
 export interface TextWidgetConfig {
@@ -116,5 +108,56 @@ export type WidgetConfig =
   | MetricWidgetConfig
   | TextWidgetConfig
   | IframeWidgetConfig;
+
+export interface CommonWidgetType {
+  id: string;
+  title: string;
+  description?: string;
+  fk_dashboard_id: string;
+  type: WidgetTypes;
+  config?: WidgetConfig;
+  meta?: any;
+  order?: number;
+  position?: {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  };
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ChartWidgetType extends CommonWidgetType {
+  type: WidgetTypes.CHART;
+  config: ChartWidgetConfig;
+}
+
+export interface TableWidgetType extends CommonWidgetType {
+  type: WidgetTypes.TABLE;
+  config: TableWidgetConfig;
+}
+
+export interface MetricWidgetType extends CommonWidgetType {
+  type: WidgetTypes.METRIC;
+  config: MetricWidgetConfig;
+}
+
+export interface TextWidgetType extends CommonWidgetType {
+  type: WidgetTypes.TEXT;
+  config: TextWidgetConfig;
+}
+
+export interface IframeWidgetType extends CommonWidgetType {
+  type: WidgetTypes.IFRAME;
+  config: IframeWidgetConfig;
+}
+
+export type WidgetType =
+  | ChartWidgetType
+  | TableWidgetType
+  | MetricWidgetType
+  | TextWidgetType
+  | IframeWidgetType;
 
 export * from './validation';

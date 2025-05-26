@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "ওয়ার্কস্পেসের ছবি আপলোড করতে আপগ্রেড করুন",
-    "upgradeToUploadWsImageSubtitle": "আপনার বর্তমান {activePlan} প্ল্যান কেবল আইকন ও ইমোজি অনুমতি দেয়। কাস্টম ছবি ওয়ার্কস্পেস অবতার হিসেবে আপলোড করতে {plan} প্ল্যানে আপগ্রেড করুন।"
+    "upgradeToUploadWsImageSubtitle": "আপনার বর্তমান {activePlan} প্ল্যান কেবল আইকন ও ইমোজি অনুমতি দেয়। কাস্টম ছবি ওয়ার্কস্পেস অবতার হিসেবে আপলোড করতে {plan} প্ল্যানে আপগ্রেড করুন।",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

@@ -16,11 +16,11 @@
     "clean": "pnpm -r clean"
   },
   "devDependencies": {
-    "@eslint/js": "^9.26.0",
-    "@types/node": "^20.17.46",
-    "@typescript-eslint/eslint-plugin": "^8.32.0",
-    "@typescript-eslint/parser": "^8.32.0",
-    "eslint": "^9.26.0",
+    "@eslint/js": "^9.27.0",
+    "@types/node": "^20.17.50",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1",
+    "eslint": "^9.27.0",
     "eslint-plugin-import": "^2.31.0",
     "prettier": "^3.5.3",
     "taze": "^19.1.0",

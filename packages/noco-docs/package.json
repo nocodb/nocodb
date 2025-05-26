@@ -37,8 +37,8 @@
     "@docusaurus/preset-classic": "3.1.1",
     "@mdx-js/react": "^3.0.1",
     "clsx": "^1.2.1",
-    "dayjs": "^1.11.11",
-    "docusaurus-plugin-sass": "^0.2.5",
+    "dayjs": "^1.11.13",
+    "docusaurus-plugin-sass": "^0.2.6",
     "docusaurus-theme-search-typesense": "^0.16.0",
     "nc-analytics": "^0.0.9",
     "plugin-image-zoom": "github:flexanalytics/plugin-image-zoom",
@@ -51,7 +51,7 @@
     "@docusaurus/module-type-aliases": "3.1.1",
     "@tsconfig/docusaurus": "^1.0.7",
     "remark-cli": "^12.0.1",
-    "remark-validate-links": "^13.0.1",
+    "remark-validate-links": "^13.0.2",
     "typescript": "^4.9.5"
   },
   "browserslist": {

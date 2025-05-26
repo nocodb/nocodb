@@ -21,11 +21,11 @@ const FEATURES = [
     enabled: !ncIsPlaywright(),
   },
   {
-    id: 'improved_sidebar',
+    id: 'improved_sidebar_ui',
     title: 'Improved Sidebar',
     description: 'New and Improved sidebar for better UI experience',
-    enabled: false,
-    isEngineering: true,
+    enabled: !ncIsPlaywright(),
+    isEngineering: false,
   },
   {
     id: 'link_to_another_record',

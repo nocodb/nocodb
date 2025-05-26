@@ -876,10 +876,10 @@ export async function extractColumn({
                 dbDriver: knex,
               });
 
-              const isEvaluateRecursive = parseProp(
+              const useRecursiveEvaluation = parseProp(
                 column.meta,
-              )?.isRecursiveEvaluation;
-              if (isEvaluateRecursive) {
+              )?.useRecursiveEvaluation;
+              if (useRecursiveEvaluation) {
                 const cteQB = await recursiveCTEFromLookupColumnHM({
                   baseModelSqlV2: childBaseModel,
                   lookupColumn: column,

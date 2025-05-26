@@ -894,15 +894,15 @@ export async function extractColumn({
                 )
                   .where(
                     `${relTableAlias}.root_id`,
+                    '<>',
+                    knex.raw('??.??', [relTableAlias, 'id']),
+                  )
+                  .andWhere(
+                    `${relTableAlias}.root_id`,
                     knex.raw('??.??', [
                       rootAlias,
                       sanitize(parentColumn.column_name),
                     ]),
-                  )
-                  .andWhere(
-                    `${relTableAlias}.root_id`,
-                    '<>',
-                    knex.raw('??.??', [relTableAlias, 'id']),
                   );
               } else {
                 refBaseModel = childBaseModel;

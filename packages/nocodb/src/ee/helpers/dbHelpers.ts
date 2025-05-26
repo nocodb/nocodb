@@ -1,5 +1,6 @@
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
+import { NC_RECURSIVE_MAX_DEPTH } from '~/constants';
 
 export * from 'src/helpers/dbHelpers';
 
@@ -47,7 +48,7 @@ export function generateRecursiveCTE({
         :sourceTable: as :innerTableAlias:
         inner join :cteTableName: on
           :innerTableAlias:.:innerLinkIdColumn: = :cteTableName:.id
-          and :cteTableName:.lvl < 10`,
+          and :cteTableName:.lvl < ${NC_RECURSIVE_MAX_DEPTH}`,
       {
         innerTableAlias,
         sourceTable,

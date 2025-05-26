@@ -4,6 +4,7 @@ import {
   extractFilterFromXwhere,
   isOrderCol,
   NcDataErrorCodes,
+  parseProp,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -29,7 +30,7 @@ import type {
   Source,
 } from '~/models';
 import type CustomKnex from 'src/db/CustomKnex';
-import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
+import { recursiveCTEFromLookupColumnHM } from '~/helpers/lookupHelpers';
 import { Column, Filter, Model, Sort, View } from '~/models';
 import {
   _wherePk,
@@ -875,9 +876,11 @@ export async function extractColumn({
                 dbDriver: knex,
               });
 
-              const isEvaluateRecursive = true;
+              const isEvaluateRecursive = parseProp(
+                column.meta,
+              )?.isRecursiveEvaluation;
               if (isEvaluateRecursive) {
-                const cteQB = await recursiveCTEFromLookupColumn({
+                const cteQB = await recursiveCTEFromLookupColumnHM({
                   baseModelSqlV2: childBaseModel,
                   lookupColumn: column,
                   tableAlias: relTableAlias,
@@ -916,7 +919,6 @@ export async function extractColumn({
                   ]),
                 );
               }
-              console.log(relQb.toQuery());
             }
 
             break;
@@ -980,7 +982,6 @@ export async function extractColumn({
           );
         }
         qb.select(knex.raw('??.??', [lookupTableAlias, getAs(column)]));
-        console.log('qb', qb.toQuery());
       }
       break;
     case UITypes.Formula:

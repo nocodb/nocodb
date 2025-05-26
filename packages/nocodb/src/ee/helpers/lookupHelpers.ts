@@ -3,7 +3,7 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import { generateRecursiveCTE } from '~/helpers/dbHelpers';
 
-export async function recursiveCTEFromLookupColumn({
+export async function recursiveCTEFromLookupColumnHM({
   baseModelSqlV2,
   lookupColumn,
   tableAlias,

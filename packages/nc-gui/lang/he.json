@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "שדרג כדי להעלות תמונת סביבת עבודה",
-    "upgradeToUploadWsImageSubtitle": "התוכנית הנוכחית שלך {activePlan} מאפשרת שימוש באייקונים ואימוג׳ים בלבד. שדרג לתוכנית {plan} כדי להעלות תמונה מותאמת כאווטאר של סביבת העבודה."
+    "upgradeToUploadWsImageSubtitle": "התוכנית הנוכחית שלך {activePlan} מאפשרת שימוש באייקונים ואימוג׳ים בלבד. שדרג לתוכנית {plan} כדי להעלות תמונה מותאמת כאווטאר של סביבת העבודה.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

@@ -586,8 +586,6 @@ onBeforeUnmount(() => {
               </div>
               <div v-else class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No Bases</div>
             </div>
-
-            <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
           </div>
           <slot name="footer"> </slot>
         </div>
@@ -609,6 +607,7 @@ onBeforeUnmount(() => {
           </ProjectWrapper>
         </div>
       </Transition>
+      <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
     </template>
   </div>
 </template>

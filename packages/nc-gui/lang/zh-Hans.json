@@ -871,7 +871,7 @@
     "newSnapshot": "新建快照",
     "searchASnapshot": "搜索快照",
     "continue": "继续",
-    "toggleExperimentalFeature": "启用或禁用实验功能以探索即将推出的功能。",
+    "toggleExperimentalFeature": "Easily toggle all experimental feature on / off",
     "modifiedOn": "修改于",
     "configuration": "配置",
     "setup": "设置",

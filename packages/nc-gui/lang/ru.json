@@ -871,7 +871,7 @@
     "newSnapshot": "Новый снимок",
     "searchASnapshot": "Найти снимок",
     "continue": "Продолжить",
-    "toggleExperimentalFeature": "Включайте и выключайте экспериментальные функции, чтобы изучить будущий функционал.",
+    "toggleExperimentalFeature": "Easily toggle all experimental feature on / off",
     "modifiedOn": "Изменено",
     "configuration": "Конфигурация",
     "setup": "Настройка",

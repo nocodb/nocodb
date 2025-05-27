@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "Frissítés munkatérkép feltöltéséhez",
-    "upgradeToUploadWsImageSubtitle": "A jelenlegi {activePlan} csomag csak ikonokat és emojikat enged. Frissítsen a(z) {plan} csomagra, hogy egyéni képet tölthessen fel munkatér avatárként."
+    "upgradeToUploadWsImageSubtitle": "A jelenlegi {activePlan} csomag csak ikonokat és emojikat enged. Frissítsen a(z) {plan} csomagra, hogy egyéni képet tölthessen fel munkatér avatárként.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

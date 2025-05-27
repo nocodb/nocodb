@@ -806,7 +806,8 @@
     "upgradeToPlan": "{plan} planına yükseltin",
     "upgradeWorkspaceToPlan": "{workspace} çalışma alanını {plan} planına yükseltin",
     "upgradeToPlanSubtitle": "Bu plan için hemen ücretlendirileceksiniz.",
-    "reactivateToPlan": "{plan} planı yeniden etkinleştirilsin mi?"
+    "reactivateToPlan": "{plan} planı yeniden etkinleştirilsin mi?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1321,7 +1322,8 @@
     "invoice": "Fatura",
     "status": "Durum",
     "invoiceTotal": "Fatura Toplamı",
-    "pastInvoices": "Geçmiş Faturalar"
+    "pastInvoices": "Geçmiş Faturalar",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Çözmek için tıklayın",

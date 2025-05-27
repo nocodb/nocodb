@@ -7,7 +7,7 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { isUIAllowed, orgRoles, workspaceRoles } = useRoles()
 
-const { openedProject } = storeToRefs(useBases())
+const { openedProject, showProjectList } = storeToRefs(useBases())
 
 const { base, isSharedBase } = storeToRefs(useBase())
 
@@ -96,8 +96,12 @@ const hasBaseCreateAccess = computed(() => {
   return isUIAllowed('baseCreate', { roles: workspaceRoles ?? orgRoles })
 })
 
+const isBaseHomePage = computed(() => {
+  return !showProjectList.value && !!openedProject.value
+})
+
 const hasTableCreateAccess = computed(() => {
-  if (!base.value || !openedProject.value) return true
+  if (!base.value || !isBaseHomePage.value) return true
 
   return isUIAllowed('tableCreate', {
     roles: base.value?.project_role || base.value.workspace_role,
@@ -106,13 +110,13 @@ const hasTableCreateAccess = computed(() => {
 })
 
 const hasViewCreateAccess = computed(() => {
-  if (!base.value || !openedProject.value) return true
+  if (!base.value || !isBaseHomePage.value) return true
 
   return isUIAllowed('viewCreateOrEdit')
 })
 
 const hasAutomationCreateAccess = computed(() => {
-  if (!base.value || !openedProject.value) return true
+  if (!base.value || !isBaseHomePage.value) return true
 
   return isUIAllowed('scriptCreateOrEdit')
 })
@@ -120,8 +124,8 @@ const hasAutomationCreateAccess = computed(() => {
 
 <template>
   <div v-if="!isSharedBase" class="nc-mini-sidebar-btn-full-width">
-    <NcDropdown v-model:visible="isVisibleCreateNew" :overlay-class-name="`!min-w-48 !left-2`">
-      <div class="w-full h-full flex items-center justify-center">
+    <NcDropdown v-model:visible="isVisibleCreateNew" :overlay-class-name="`!min-w-48 !left-1`">
+      <div class="w-full py-1 flex items-center justify-center">
         <div
           class="border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium"
           :class="{
@@ -148,12 +152,12 @@ const hasAutomationCreateAccess = computed(() => {
             :title="
               hasTableCreateAccess ? $t('tooltip.navigateToBaseToCreateTable') : $t('tooltip.youDontHaveAccessToCreateNewTable')
             "
-            :disabled="!(!openedProject || !hasTableCreateAccess)"
+            :disabled="!(!isBaseHomePage || !hasTableCreateAccess)"
             placement="right"
           >
             <NcMenuItem
               data-testid="mini-sidebar-table-create"
-              :disabled="!openedProject || !hasTableCreateAccess"
+              :disabled="!isBaseHomePage || !hasTableCreateAccess"
               @click="openTableCreateDialog"
             >
               <GeneralIcon icon="table" />
@@ -226,12 +230,12 @@ const hasAutomationCreateAccess = computed(() => {
                   ? $t('tooltip.navigateToBaseToCreateAutomation')
                   : $t('tooltip.youDontHaveAccessToCreateNewAutomation')
               "
-              :disabled="!(!openedProject || !hasAutomationCreateAccess)"
+              :disabled="!(!isBaseHomePage || !hasAutomationCreateAccess)"
               placement="right"
             >
               <NcMenuItem
                 data-testid="mini-sidebar--script-create"
-                :disabled="!openedProject || !hasAutomationCreateAccess"
+                :disabled="!isBaseHomePage || !hasAutomationCreateAccess"
                 @click="openNewScriptModal({ baseId: openedProject?.id })"
               >
                 <GeneralIcon icon="ncPlay" />

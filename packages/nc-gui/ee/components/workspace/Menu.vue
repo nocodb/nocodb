@@ -116,6 +116,7 @@ const onWorkspaceCreateClick = () => {
     v-else-if="activeWorkspace"
     :class="{
       'flex flex-row flex-grow w-full max-w-85/100 hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md': !isMiniSidebar,
+      'nc-mini-sidebar-btn-full-width flex items-center justify-center children:(h-auto w-full)': isMiniSidebar,
     }"
     :style="{
       maxWidth: !isMiniSidebar ? `calc(100% - 2.5rem)` : undefined,
@@ -126,12 +127,12 @@ const onWorkspaceCreateClick = () => {
       class="h-full min-w-0 rounded-lg"
       :trigger="[isMiniSidebar && !isMobileMode ? 'hover' : 'click']"
       placement="bottomLeft"
-      :overlay-class-name="`nc-dropdown-workspace-menu !overflow-hidden  ${isMiniSidebar ? '!left-2' : ''}`"
+      :overlay-class-name="`nc-dropdown-workspace-menu !overflow-hidden  ${isMiniSidebar ? '!left-1' : ''}`"
     >
       <div
         v-e="['c:workspace:menu']"
         :class="{
-          'nc-mini-sidebar-btn-full-width': isMiniSidebar,
+          'flex items-center justify-center': isMiniSidebar,
           'flex': !isMiniSidebar,
         }"
       >

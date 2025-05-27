@@ -1729,7 +1729,10 @@
     "searchOptions": "Zoekopties",
     "lockViewDescription": "Leg uit waarom u deze weergave vergrendelt. Dit bericht wordt getoond wanneer iemand probeert de weergave te ontgrendelen (optioneel).",
     "noBaseUsersFound": "Geen base-gebruikers gevonden",
-    "noInvoices": "Geen facturen"
+    "noInvoices": "Geen facturen",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL-filters worden toegepast via URL-parameters en gecombineerd met weergavefilters die via de werkbalk zijn ingesteld.",

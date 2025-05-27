@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "{workspace} को {plan} प्लान में अपग्रेड करें",
     "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
     "reactivateToPlan": "Reactivate {plan} plan?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
     "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
     "currentWorkspace": "Current workspace",
+    "currentBase": "Current base",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Failed",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "एपीआई स्निपेट्स",
     "includeData": "डेटा शामिल करें",
     "includeRecords": "Include records",
-    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Include views",
     "includeWebhook": "Include webhook",
     "includeComments": "Include comments",
@@ -1611,6 +1616,7 @@
     "changePlan": "प्लान बदलें"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "डेटा स्रोत या डेटा प्रकार के लिए वर्तमान तिथि विकल्प उपलब्ध नहीं है",
     "privateConnection": "इस कनेक्शन को निजी और इस कार्यक्षेत्र में अन्य निर्माताओं से छिपा रखने के लिए सक्षम करें।",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Copy error code",
     "paidUserBadgeTooltip": "उपयोगकर्ता के पास कम से कम एक बेस में एडिटर या उससे उच्च भूमिका है।",
     "approachingLimit": "सीमा के करीब",
-    "exceedingLimit": "सीमा पार"
+    "exceedingLimit": "सीमा पार",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "आइकन खोजें",

@@ -2264,6 +2264,9 @@
       "createNewTable": "Von vorn beginnen",
       "importData": "Aus Dateien und externen Quellen",
       "connectExternalData": "In Echtzeit zu externen Datenbanken"
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

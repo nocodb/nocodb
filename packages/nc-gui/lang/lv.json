@@ -807,6 +807,21 @@
     "reactivateToPlan": "Atjaunot plānu {plan}?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Atjauno momentuzņēmumu",
     "note": "Piezīme:",
     "snapshotRestoreMessage1": "Šī momentuzņēmuma atjaunošana neietekmēs esošo bāzi.",
@@ -1208,8 +1223,8 @@
     "agreeToTos": "Reģistrējoties jūs piekrītat pakalpojumu sniegšanas noteikumiem.",
     "welcomeToNc": "Laipni lūdzam NocoDB!",
     "inviteOnlySignup": "Atļaut reģistrēties tikai izmantojot ielūguma url",
-    "nextRow": "Nākamā rinda",
-    "prevRow": "Iepriekšējā rinda",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Rokasgrāmatas datu pievienošana režģa skatā",
     "addRowForm": "Ierakstu datu ievadīšana caur formu",
     "noAccess": "Nav piekļuves",
@@ -2061,6 +2076,7 @@
       "copyToClipboardLocalFileUrl": "Pārlūks neļauj tieši ielādēt vietējo resursu. URL vietā nokopēts starpliktuvē."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Manuālie āķi nevar tikt atspējoti",
       "errorLoadingRecord": "Kļūda, ielādējot ierakstu datus",
       "fetchingCalendarData": "Kļūda kalendāra datu iegūšanā",
@@ -2194,6 +2210,9 @@
       "nCellsCopied": "{n} šūnas nokopētas"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "Licences atslēga atjaunota",
       "columnDuplicated": "Sekmīgi dublēta sleja",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
@@ -2238,7 +2257,8 @@
       "paymentSuccessful": "Maksājums veiksmīgs",
       "paymentSuccessfulSubtitle": "Maksājums ir apstrādāts. Tagad varat izmantot savu jauno plānu.",
       "upgradeSuccessful": "Jaunināšana veiksmīga",
-      "upgradeSuccessfulSubtitle": "Maksājums par jauninājumu ir apstrādāts. Tagad varat izmantot savu jauno plānu."
+      "upgradeSuccessfulSubtitle": "Maksājums par jauninājumu ir apstrādāts. Tagad varat izmantot savu jauno plānu.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Sākt no nulles.",

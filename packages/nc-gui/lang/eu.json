@@ -119,6 +119,7 @@
     "upgradeToAdd": "Upgrade to add",
     "requestUpgradeToAdd": "Gehitzeko igoera eskatu",
     "upgradeToAddMoreExtensions": "Doako planean zaude orain, eta honek luzapen bakarra onartzen du. Igoera eginez, luzapen mugagabeak desblokeatuko dituzu.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Igoera egin lan-espazioko ikuskaritza eskuratzeko",
     "upgradeToAccessWsAuditSubtitle": "Upgrade to the {plan} plan to enable workspace audit logs and efficiently monitor key activities.",
     "upgradeToAddMoreAttachments": "Igoera egin eranskin gehiago gehitzeko",
@@ -155,6 +156,7 @@
     "upgradeToUploadWsImageSubtitle": "Zure uneko {activePlan} planak ikonoak eta emojiak soilik onartzen ditu. {plan} planera igota, irudi pertsonalizatua igo dezakezu lan-espazioko avatar gisa."
   },
   "general": {
+    "script": "Script",
     "supported": "Onartuta",
     "usage": "Erabilera",
     "snapshot": "Instantanea",
@@ -822,6 +824,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Instantanea berreskuratzen",
     "note": "Oharra:",
     "snapshotRestoreMessage1": "Instantanea hau berreskuratzeak ez du eraginik izango dagoen basean.",

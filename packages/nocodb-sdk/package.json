@@ -18,25 +18,25 @@
     "url": "https://github.com/nocodb/nocodb/issues"
   },
   "engines": {
-    "node": ">=18.19.1"
+    "node": ">=18"
   },
   "license": "AGPL-3.0-or-later",
   "keywords": [],
   "scripts": {
-    "build": "pnpm generate:sdk && run-p build:*",
+    "build": "rimraf ./build && pnpm generate:sdk && run-p build:*",
     "build:main": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "build:module": "tsc -p tsconfig.module.json && tsc-alias -p tsconfig.module.json",
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
     "fix:lint": "eslint src --ext .ts --fix",
     "test": "run-s build test:*",
-    "test:unit": "ENV_FILE=./config/.env.test jest",
     "test:lint": "eslint src --ext .ts",
     "test:prettier": "prettier \"src/**/*.ts\" --list-different",
     "test:spelling": "cspell \"{README.md,.github/*.md,src/**/*.ts}\"",
+    "test:unit": "ENV_FILE=./config/.env.test jest",
     "watch:build": "tsc -p tsconfig.json -w",
-    "preinstall": "npx only-allow pnpm",
-    "generate:sdk": "node build-script/mergeAndGenerateSwaggerCE && pnpm exec swagger-typescript-api -r -p ./nc_swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates; rm ./nc_swagger.json"
+    "generate:sdk": "node build-script/mergeAndGenerateSwaggerCE && pnpm dlx swagger-typescript-api@10.0.3 -r -p ./nc_swagger.json -o ./src/lib/  --axios --unwrap-response-data  --module-name-first-tag --type-suffix=Type --templates ../../scripts/sdk/templates; rm ./nc_swagger.json",
+    "preinstall": "npx only-allow pnpm"
   },
   "dependencies": {
     "axios": "^1.9.0",
@@ -46,8 +46,8 @@
     "validator": "^13.12.0"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
     "@types/jest": "^29.5.14",
+    "@types/node": "^22.15.21",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "cspell": "^4.2.8",
@@ -57,10 +57,11 @@
     "eslint-plugin-functional": "^5.0.8",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "npm-run-all": "^4.1.5",
+    "express": "^4.21.2",
+    "jest": "^29.7.0",
+    "npm-run-all2": "^8.0.4",
     "prettier": "^2.8.8",
     "rimraf": "^5.0.10",
-    "swagger-typescript-api": "10.0.3",
     "ts-jest": "^29.2.5",
     "tsc-alias": "^1.8.10",
     "typescript": "^5.7.3"

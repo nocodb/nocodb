@@ -3112,6 +3112,11 @@ export interface LinkToAnotherRecordType {
   ur?: string;
   /** Model for Bool */
   virtual?: BoolType;
+  fk_related_base_id?: string;
+  fk_mm_base_id?: string;
+  base_id?: string;
+  fk_related_source_id?: string;
+  fk_mm_source_id?: string;
 }
 
 /**
@@ -7766,6 +7771,39 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
+  dbLinks = {
+    /**
+ * @description Read the table metadata by linked column ID and  table ID
+ * 
+ * @tags DB Links
+ * @name TableRead
+ * @summary Read Partial Linked Table
+ * @request GET:/api/v1/db/internal/links/{linkColumnId}/tables/{tableId}
+ * @response `200` `TableType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    tableRead: (
+      linkColumnId: IdType,
+      tableId: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        TableType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/internal/links/${linkColumnId}/tables/${tableId}`,
+        method: 'GET',
         format: 'json',
         ...params,
       }),

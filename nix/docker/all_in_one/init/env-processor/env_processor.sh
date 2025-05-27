@@ -13,12 +13,13 @@ aio_pass_dynamic="$({
 })"
 kernal_env_store_dir="/run/kernelenvs"
 s6_services_temp_path='/run/s6-service-temp'
+migrations_dir="/var/lib/migrations"
 
 _aio_postgres_enable_default=true
-_aio_minio_enable_default=false
-_aio_ssl_domain_default="localhost"
-_aio_ssl_enable_default=false
 _aio_valkey_enable_default=true
+_aio_minio_enable_default=false
+_aio_ssl_enable_default=false
+_aio_ssl_domain_default="localhost"
 
 log() {
 	echo env processor: "$@"
@@ -64,17 +65,23 @@ env_aio_set() {
 		esac
 	done
 
-	if [ "${aio_postgres_enable+set}" != set ] &&
+	if [ "${aio_postgres_enable+set}" != set ]; then
 		# keep backward compatiblity with legacy nocodb image
-		[ ! -f /var/noco.db ] &&
-		[ ! -f /"$kernal_env_store_dir"/DATABASE_URL ] &&
-		[ ! -f /"$kernal_env_store_dir"/NC_DB_JSON ] &&
-		[ ! -f /"$kernal_env_store_dir"/NC_DB ]; then
-		aio_postgres_enable="$_aio_postgres_enable_default"
+		if [ ! -f "$migrations_dir/from_legacy_image_with_sqlite" ] &&
+			[ ! -f /"$kernal_env_store_dir"/DATABASE_URL ] &&
+			[ ! -f /"$kernal_env_store_dir"/NC_DB_JSON ] &&
+			[ ! -f /"$kernal_env_store_dir"/NC_DB ]; then
+			aio_postgres_enable="$_aio_postgres_enable_default"
+		else
+			aio_postgres_enable=false
+		fi
 	fi
-	if [ "${aio_valkey_enable+set}" != set ] &&
-		[ ! -f /"$kernal_env_store_dir"/NC_REDIS_URL ]; then
-		aio_valkey_enable="$_aio_valkey_enable_default"
+	if [ "${aio_valkey_enable+set}" != set ]; then
+		if [ ! -f /"$kernal_env_store_dir"/NC_REDIS_URL ]; then
+			aio_valkey_enable="$_aio_valkey_enable_default"
+		else
+			aio_valkey_enable=false
+		fi
 	fi
 
 	if [ "${aio_minio_enable+set}" != set ]; then

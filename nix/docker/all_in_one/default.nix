@@ -72,7 +72,7 @@ dockerTools.buildLayeredImage {
   ];
 
   config = {
-    WorkingDir = "/var/lib";
+    WorkingDir = "/usr/app/data";
 
     ExposedPorts = {
       # proxy bypass

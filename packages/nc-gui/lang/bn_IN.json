@@ -2264,6 +2264,9 @@
       "createNewTable": "শূন্য থেকে শুরু করুন।",
       "importData": "ফাইল ও বাহ্যিক সোর্স থেকে।",
       "connectExternalData": "রিয়েলটাইমে বাহ্যিক ডাটাবেসের সাথে।"
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

@@ -1729,7 +1729,10 @@
     "searchOptions": "Søk alternativer",
     "lockViewDescription": "Forklar hvorfor du låser denne visningen. Denne meldingen vil vises når noen prøver å låse opp denne visningen (valgfritt).",
     "noBaseUsersFound": "Ingen prosjektbrukere funnet",
-    "noInvoices": "Ingen fakturaer"
+    "noInvoices": "Ingen fakturaer",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL-filtre brukes fra URL-parametere og kombineres med visningsfiltre satt via verktøylinjen.",

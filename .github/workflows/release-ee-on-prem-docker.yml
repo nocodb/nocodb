@@ -132,12 +132,14 @@ jobs:
 
       # Configure Git for tag creation
       - name: Configure Git
+        if: ${{ inputs.skipGeneratedTag != 'true' }}
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
       # Create and push version tag
       - name: Create and push tag
+        if: ${{ inputs.skipGeneratedTag != 'true' }}
         run: |
           git tag -a "v${NC_ON_PREM_VERSION}" -m "Release version ${NC_ON_PREM_VERSION}"
           git push origin "v${NC_ON_PREM_VERSION}"

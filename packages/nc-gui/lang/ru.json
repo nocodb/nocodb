@@ -2262,6 +2262,9 @@
       "createNewTable": "Начните с нуля.",
       "importData": "Из файлов и внешних источников.",
       "connectExternalData": "К внешним базам данных в реальном времени."
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

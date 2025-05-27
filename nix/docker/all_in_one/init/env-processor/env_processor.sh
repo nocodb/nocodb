@@ -124,7 +124,7 @@ env_aio_act() {
 			EOF
 		else
 			cat <<-EOF >>"$nocodb_env_path"
-				NC_S3_ENDPOINT="http://localhost:9000"
+				NC_S3_ENDPOINT="http://${aio_ssl_domain}"
 			EOF
 		fi
 

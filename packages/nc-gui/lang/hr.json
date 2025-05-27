@@ -1729,7 +1729,10 @@
     "searchOptions": "Pretraži opcije",
     "lockViewDescription": "Objasnite zašto zaključavate ovaj prikaz. Ova će se poruka prikazati kada ga netko pokuša otključati (neobavezno).",
     "noBaseUsersFound": "Nisu pronađeni korisnici baze",
-    "noInvoices": "Nema računa"
+    "noInvoices": "Nema računa",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL filtri primjenjuju se iz parametara URL-a i kombiniraju s filtrima prikaza postavljenima putem alatne trake.",

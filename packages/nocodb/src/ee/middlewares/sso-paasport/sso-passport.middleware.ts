@@ -6,12 +6,13 @@ import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
-import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
+import { Strategy as OpenIDConnectStrategy } from '@govtechsg/passport-openidconnect';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import passport from 'passport';
 import isEmail from 'validator/lib/isEmail';
 import { CloudOrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import type { StrategyOptions } from '@govtechsg/passport-openidconnect';
 import type {
   GoogleClientConfigType,
   OpenIDClientConfigType,
@@ -233,7 +234,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
     const config = client.config as OpenIDClientConfigType;
     this.debugger.info(`Initializing OIDC strategy for client: ${client.id}`);
     // OpenID Connect
-    const clientConfig = {
+    const clientConfig: StrategyOptions = {
       issuer: (config as any).issuer,
       authorizationURL: config.authUrl,
       tokenURL: config.tokenUrl,
@@ -245,10 +246,10 @@ export class SSOPassportMiddleware implements NestMiddleware {
       pkce: 'S256',
       // cache based store for managing the state of the authorization request
       store: {
-        store: async (req, meta, callback) => {
+        store: async (req, meta, appState, callback) => {
           const handle = `oidc_${uuidv4()}`;
           let host: string;
-          let continueAfterSignIn: string;
+          let continueAfterSignIn;
 
           // extract workspace id from query params if available
           // and ignore if it's main sub-domain
@@ -298,16 +299,16 @@ export class SSOPassportMiddleware implements NestMiddleware {
                 });
               }
 
-              req.extra = {
+              (req as any).extra = {
                 continueAfterSignIn: state.continueAfterSignIn,
               };
-              req.ncRedirectHost = state.host;
+              (req as any).ncRedirectHost = state.host;
 
               await NocoCache.del(key);
               this.debugger.info(
                 `State verified for authorization request: ${providedState}`,
               );
-              return callback(null, true, state);
+              return callback(null, {}, state);
             })
             .catch((err) => {
               this.debugger.error(`OIDC authentication error: ${err.message}`);
@@ -320,8 +321,8 @@ export class SSOPassportMiddleware implements NestMiddleware {
     return new OpenIDConnectStrategy(
       clientConfig,
       // todo: replace with async-await syntax
-      (_issuer, _subject, profile, done) => {
-        const email = profile.email || profile?._json?.email;
+      (_issue: string, profile, context, done) => {
+        const email = profile.emails[0].value;
 
         if (!email) {
           this.debugger.warn(`User account is missing email id`, profile);

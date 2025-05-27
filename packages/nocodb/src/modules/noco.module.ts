@@ -32,7 +32,6 @@ import { ApiDocsController } from '~/controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '~/controllers/api-tokens.controller';
 import { AttachmentsSecureController } from '~/controllers/attachments-secure.controller';
 import { AttachmentsController } from '~/controllers/attachments.controller';
-import { AuditsController } from '~/controllers/audits.controller';
 import { BaseUsersController } from '~/controllers/base-users.controller';
 import { BasesController } from '~/controllers/bases.controller';
 import { CachesController } from '~/controllers/caches.controller';
@@ -182,7 +181,6 @@ export const nocoModuleMetadata = {
           ...(process.env.NC_SECURE_ATTACHMENTS === 'true'
             ? [AttachmentsSecureController]
             : [AttachmentsController]),
-          AuditsController,
           SourcesController,
           CachesController,
           CalendarsController,

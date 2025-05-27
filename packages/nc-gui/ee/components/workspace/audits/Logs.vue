@@ -43,7 +43,6 @@ const columns: NcTableColumnProps<AuditType>[] = [
     minWidth: 220,
     padding: '0px 12px',
     dataIndex: 'user',
-    showOrderBy: true,
   },
   {
     key: 'created_at',
@@ -212,16 +211,14 @@ onKeyStroke('ArrowDown', onDown)
               <div>&nbsp;</div>
               <NcPagination
                 v-model:current="auditPaginationData.page"
-                v-model:page-size="auditPaginationData.pageSize"
+                :page-size="auditPaginationData.pageSize"
                 :total="+auditPaginationData.totalRows"
-                show-size-changer
                 :use-stored-page-size="false"
                 :prev-page-tooltip="`${renderAltOrOptlKey()}+←`"
                 :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
                 :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
                 :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
                 @update:current="loadAudits(undefined, undefined, false)"
-                @update:page-size="loadAudits(auditPaginationData.page, $event, false)"
               />
               <div class="text-gray-500 text-xs">
                 {{ auditPaginationData.totalRows }} {{ auditPaginationData.totalRows === 1 ? 'record' : 'records' }}

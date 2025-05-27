@@ -1,4 +1,5 @@
 import type { TestConnectionResponse } from '@noco-local-integrations/core';
+import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type {
   DataReflection,
   Integration,
@@ -16,6 +17,7 @@ export type InternalGETResponseType = Promise<
   | SyncConfig[]
   | Script[]
   | Script
+  | PagedResponseImpl<any>
 >;
 
 export type InternalPOSTResponseType = Promise<

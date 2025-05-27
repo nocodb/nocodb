@@ -19,12 +19,14 @@ import {
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
 import { ColumnsService } from '~/services/columns.service';
+import { AuditsService } from '~/services/audits.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
   constructor(
     protected readonly mcpService: McpTokenService,
     protected readonly aclMiddleware: AclMiddleware,
+    protected readonly auditsService: AuditsService,
     private readonly dataReflectionService: DataReflectionService,
     private readonly remoteImportService: RemoteImportService,
     private readonly syncService: SyncModuleService,
@@ -32,7 +34,7 @@ export class InternalController extends InternalControllerCE {
     private readonly columnsService: ColumnsService,
     private readonly integrationsService: IntegrationsService,
   ) {
-    super(mcpService, aclMiddleware);
+    super(mcpService, aclMiddleware, auditsService);
   }
 
   protected async checkAcl(operation: string, req, scope?: string) {
@@ -65,6 +67,7 @@ export class InternalController extends InternalControllerCE {
       updateScript: 'base',
       deleteScript: 'base',
       baseSchema: 'base',
+      workspaceAuditList: 'workspace',
     };
   }
 
@@ -95,6 +98,16 @@ export class InternalController extends InternalControllerCE {
         return await this.mcpService.list(context, req);
       case 'mcpGet':
         return await this.mcpService.get(context, req.query.tokenId as string);
+      case 'workspaceAuditList':
+        return await this.auditsService.workspaceAuditList(context, {
+          page: req.query.page ? parseInt(req.query.page || '1') : undefined,
+          baseId,
+          user: req.query.user,
+          type: req.query.type,
+          startDate: req.query.startDate,
+          endDate: req.query.endDate,
+          orderBy: req.query.orderBy,
+        });
       default:
         return await super.internalAPI(
           context,

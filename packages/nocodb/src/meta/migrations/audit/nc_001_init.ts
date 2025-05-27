@@ -61,12 +61,14 @@ const up = async (knex: Knex) => {
   });
 
   await knex.schema.alterTable(MetaTable.AUDIT, (table) => {
-    table.index(['base_id', 'fk_workspace_id'], 'nc_audit_v2_context');
+    table.index(['fk_workspace_id', 'base_id'], 'nc_audit_v2_tenant');
   });
 
   await knex.schema.alterTable(MetaTable.RECORD_AUDIT, (table) => {
-    table.index(['base_id', 'fk_workspace_id'], 'nc_record_audit_v2_context');
-    table.index(['fk_model_id', 'row_id'], 'nc_record_audit_v2_data_index');
+    table.index(
+      ['fk_workspace_id', 'base_id', 'fk_model_id', 'row_id'],
+      'nc_record_audit_v2_tenant',
+    );
   });
 };
 

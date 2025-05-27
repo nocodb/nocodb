@@ -1,4 +1,5 @@
 import type { AuditV1OperationTypes } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaTable, RootScopes } from '~/utils/globals';
@@ -99,9 +100,10 @@ export default class RecordAudit {
       if (forceAwait) {
         return await insertAudit();
       } else {
-        return insertAudit().catch((e) => {
+        insertAudit().catch((e) => {
           console.error('Error inserting audit', e);
         });
+        return;
       }
     } catch (e) {
       if (!catchException) {
@@ -112,60 +114,37 @@ export default class RecordAudit {
     }
   }
 
-  public static async auditList({
-    limit: _limit = 25,
-    offset: _offset = 0,
-    fk_model_id,
-    row_id,
-  }: {
-    limit?: number | string;
-    offset?: number | string;
-    fk_model_id: string;
-    row_id: string;
-  }) {
-    const limit = Math.max(1, Math.min(+_limit || 25, 1000));
-    const offset = Math.max(0, +_offset || 0);
+  public static async auditList(
+    context: NcContext,
+    {
+      fk_model_id,
+      row_id,
+      page,
+    }: {
+      fk_model_id: string;
+      row_id: string;
+      page?: number;
+    },
+  ) {
+    const limit = 25;
+    const offset = (Math.max(1, page ?? 1) - 1) * limit;
+
+    if (!context.workspace_id || !context.base_id || !fk_model_id || !row_id) {
+      return [];
+    }
 
     const query = Noco.ncAudit
       .knex(MetaTable.RECORD_AUDIT)
-      .where('row_id', row_id)
+      .where('fk_workspace_id', context.workspace_id)
+      .where('base_id', context.base_id)
       .where('fk_model_id', fk_model_id)
+      .where('row_id', row_id)
       .orderBy('id', 'desc')
       .limit(limit)
       .offset(offset);
 
     const audits = await query;
 
-    return audits?.map((a) => new RecordAudit(a));
-  }
-
-  public static async auditCount({
-    fk_model_id,
-    row_id,
-  }: {
-    fk_model_id: string;
-    row_id: string;
-  }) {
-    return await Noco.ncAudit.metaCount(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.RECORD_AUDIT,
-      {
-        xcCondition: {
-          _and: [
-            {
-              row_id: {
-                eq: row_id,
-              },
-            },
-            {
-              fk_model_id: {
-                eq: fk_model_id,
-              },
-            },
-          ],
-        },
-      },
-    );
+    return audits;
   }
 }

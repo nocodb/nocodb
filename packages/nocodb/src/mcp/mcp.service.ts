@@ -569,6 +569,8 @@ export class McpService {
         },
       );
 
+      /*
+      TODO: Enable once audit is ready
       server.tool(
         'readAuditLogs',
         {
@@ -614,7 +616,7 @@ export class McpService {
             };
           }
         },
-      );
+      );*/
     }
   }
 }

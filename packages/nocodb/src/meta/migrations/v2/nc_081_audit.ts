@@ -163,9 +163,7 @@ const up = async (knex: Knex) => {
 
     // Log progress every 10,000 records
     if (processedCount % 10000 === 0) {
-      console.log(
-        `Processed ${processedCount} audit records (${recordAuditCount} to RECORD_AUDIT, ${auditCount} to AUDIT)...`,
-      );
+      console.log(`Processed ${processedCount} audit records`);
     }
 
     // If we got fewer records than batch size, we're done
@@ -184,13 +182,15 @@ const up = async (knex: Knex) => {
   // Step 5: Add indexes after data migration for better performance
   await knex.schema.alterTable(MetaTable.AUDIT, (table) => {
     table.primary(['id']);
-    table.index(['base_id', 'fk_workspace_id'], 'nc_audit_v2_context');
+    table.index(['fk_workspace_id', 'base_id'], 'nc_audit_v2_tenant');
   });
 
   await knex.schema.alterTable(MetaTable.RECORD_AUDIT, (table) => {
     table.primary(['id']);
-    table.index(['base_id', 'fk_workspace_id'], 'nc_record_audit_v2_context');
-    table.index(['fk_model_id', 'row_id'], 'nc_record_audit_v2_data_index');
+    table.index(
+      ['fk_workspace_id', 'base_id', 'fk_model_id', 'row_id'],
+      'nc_record_audit_v2_tenant',
+    );
   });
 };
 

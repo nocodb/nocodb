@@ -91,19 +91,23 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
     const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
-    if (!rowId) return
+    if (!rowId || !base.value.fk_workspace_id || !meta.value.base_id) return
 
     try {
       if (showLoading) {
         isAuditLoading.value = true
       }
 
-      const response = await $api.utils.auditList({
-        row_id: rowId,
-        fk_model_id: meta.value.id as string,
-        offset: (currentAuditPages.value - 1) * auditsInAPage,
-        limit: auditsInAPage,
-      })
+      const response = await $api.internal.getOperation(
+        base.value.fk_workspace_id,
+        (meta.value.base_id as string) ?? (base.value.id as string),
+        {
+          operation: 'recordAuditList',
+          fk_model_id: meta.value.id as string,
+          row_id: rowId,
+          page: currentAuditPages.value,
+        },
+      )
 
       const res = response.list?.reverse?.() || []
 

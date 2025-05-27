@@ -82,37 +82,24 @@ export const useAuditsStore = defineStore('auditsStore', () => {
         page = 1
       }
 
-      if (loadActionWorkspaceLogsOnly.value) {
-        if (!activeWorkspaceId.value) return
+      if (!activeWorkspaceId.value) return
 
-        const { list, pageInfo } = await $api.workspace.auditList(activeWorkspaceId.value, {
-          offset: limit * (page - 1),
-          limit,
-          ...auditLogsQuery.value,
-          type:
-            ncIsArray(auditLogsQuery.value.type) && auditLogsQuery.value.type.length
-              ? auditLogsQuery.value.type.flatMap((cat) => auditV1OperationsCategory[cat]?.types ?? [])
-              : undefined,
-          sourceId: undefined,
-        })
+      const { list, pageInfo } = await $api.internal.getOperation(activeWorkspaceId.value, NO_SCOPE, {
+        operation: 'workspaceAuditList',
+        page,
+        baseId: auditLogsQuery.value.baseId,
+        user: auditLogsQuery.value.user,
+        type:
+          ncIsArray(auditLogsQuery.value.type) && auditLogsQuery.value.type.length
+            ? auditLogsQuery.value.type.flatMap((cat) => auditV1OperationsCategory[cat]?.types ?? [])
+            : undefined,
+        startDate: auditLogsQuery.value.startDate,
+        endDate: auditLogsQuery.value.endDate,
+        orderBy: auditLogsQuery.value.orderBy,
+      })
 
-        audits.value = list
-        auditPaginationData.value.totalRows = pageInfo.totalRows ?? 0
-      } else {
-        const { list, pageInfo } = await $api.audits.globalAuditList({
-          offset: limit * (page - 1),
-          limit,
-          ...auditLogsQuery.value,
-          type:
-            ncIsArray(auditLogsQuery.value.type) && auditLogsQuery.value.type.length
-              ? auditLogsQuery.value.type.flatMap((cat) => auditV1OperationsCategory[cat]?.types ?? [])
-              : undefined,
-          sourceId: undefined,
-        })
-
-        audits.value = list
-        auditPaginationData.value.totalRows = pageInfo.totalRows ?? 0
-      }
+      audits.value = list
+      auditPaginationData.value.totalRows = pageInfo.totalRows ?? 0
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e))
       audits.value = []

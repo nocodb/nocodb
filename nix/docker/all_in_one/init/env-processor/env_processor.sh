@@ -3,7 +3,9 @@
 envs_docker_def=' HOME  HOSTNAME  OLDPWD  PATH  PORT  PWD  SHLVL TERM '
 aio_env_prefix='aio_'
 
-nocodb_env_path='/run/nocodb.dynamic.env'
+nocodb_env_common_path='/run/nocodb.dynamic.env'
+nocodb_env_main_path='/run/nocodb.main.dynamic.env'
+nocodb_env_worker_path='/run/nocodb.worker.dynamic.env'
 acme_env_path='/run/acme.dynamic.env'
 minio_env_path='/run/minio.dynamic.env'
 
@@ -31,7 +33,14 @@ env_passthrough() {
 
 		case "$key" in
 		"_") continue ;;
-		# ignore aio envs
+		# passthrough aio envs
+		"$aio_env_prefix"_pass_main_*)
+			echo "${key#aio_pass_main_}=$(cat "$file")" >>"$nocodb_env_main_path"
+		;;
+		"$aio_env_prefix"_pass_worker_*)
+			echo "${key#aio_pass_worker_}=$(cat "$file")" >>"$nocodb_env_worker_path"
+		;;
+		# ignore other aio envs
 		"$aio_env_prefix"*) continue ;;
 		esac
 
@@ -40,7 +49,7 @@ env_passthrough() {
 		*" $key "*) continue ;;
 		esac
 
-		echo "$key=$(cat "$file")" >>"$nocodb_env_path"
+		echo "$key=$(cat "$file")" >>"$nocodb_env_common_path"
 	done
 }
 
@@ -100,7 +109,7 @@ env_aio_act() {
 	if "$aio_postgres_enable"; then
 		touch "$s6_services_temp_path"/nocodb-srv/dependencies.d/postgresql
 
-		cat <<-EOF >>"$nocodb_env_path"
+		cat <<-EOF >>"$nocodb_env_common_path"
 			DATABASE_URL="postgresql:///nocodb?host=/run/postgresql&user=postgres"
 		EOF
 
@@ -110,7 +119,7 @@ env_aio_act() {
 	if "$aio_minio_enable"; then
 		touch "$s6_services_temp_path"/nocodb-srv/dependencies.d/minio
 
-		cat <<-EOF >>"$nocodb_env_path"
+		cat <<-EOF >>"$nocodb_env_common_path"
 			NC_S3_BUCKET_NAME="aiominionocodb"
 			NC_S3_REGION="us-east-1"
 			NC_S3_ACCESS_KEY="$aio_pass_dynamic"
@@ -119,11 +128,11 @@ env_aio_act() {
 		EOF
 
 		if "$aio_ssl_enable"; then
-			cat <<-EOF >>"$nocodb_env_path"
+			cat <<-EOF >>"$nocodb_env_common_path"
 				NC_S3_ENDPOINT="https://${aio_ssl_domain}"
 			EOF
 		else
-			cat <<-EOF >>"$nocodb_env_path"
+			cat <<-EOF >>"$nocodb_env_common_path"
 				NC_S3_ENDPOINT="http://${aio_ssl_domain}"
 			EOF
 		fi
@@ -157,7 +166,7 @@ env_aio_act() {
 	if "$aio_valkey_enable"; then
 		touch "$s6_services_temp_path"/nocodb-srv/dependencies.d/valkey
 
-		cat <<-EOF >>"$nocodb_env_path"
+		cat <<-EOF >>"$nocodb_env_common_path"
 			NC_REDIS_URL="redis-socket:///run/valkey/valkey.sock?database=nocodb"
 		EOF
 
@@ -169,7 +178,9 @@ env_aio_act() {
 ## MAIN ##
 ##########
 
-touch "$nocodb_env_path"
+touch "$nocodb_env_common_path"
+touch "$nocodb_env_main_path"
+touch "$nocodb_env_worker_path"
 
 s6-dumpenv "$kernal_env_store_dir"
 env_aio_set

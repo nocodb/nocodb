@@ -1729,7 +1729,10 @@
     "searchOptions": "Opcje wyszukiwania",
     "lockViewDescription": "Wyjaśnij, dlaczego blokujesz ten widok. Ta wiadomość zostanie wyświetlona, gdy ktoś spróbuje odblokować ten widok (opcjonalne).",
     "noBaseUsersFound": "Nie znaleziono użytkowników bazy",
-    "noInvoices": "Brak faktur"
+    "noInvoices": "Brak faktur",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "Filtry URL są pobierane z parametrów adresu i łączone z filtrami widoku ustawionymi na pasku narzędzi.",

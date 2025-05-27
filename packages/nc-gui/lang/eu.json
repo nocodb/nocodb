@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Igo {workspace} {plan} planera",
     "upgradeToPlanSubtitle": "Plan honengatik berehala kobratuko zaizu.",
     "reactivateToPlan": "Berreaktibatu {plan} plana?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Baseak soilik sortzaile baimena edo handiagoa duzun workspace-etan bikoiztu ditzakezu.",
     "snapshotBaseRestoreMessage": "Soilik sortzaile baimena edo handiagoa duzun workspace-etan berreskuratu dezakezu.",
     "currentWorkspace": "Uneko workspace-a",
+    "currentBase": "Current base",
     "latitude": "Latitudea",
     "longitude": "Longitudea",
     "failed": "Huts",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API Zatiak",
     "includeData": "Datuak Gehitu",
     "includeRecords": "Erregistroak barne",
-    "baseDuplicateMessage": "Oharra: Ikuskaritza erregistroak eta integrazioak ez dira bikoiztuko.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Ikuspegiak barne",
     "includeWebhook": "Webhook barne",
     "includeComments": "Iruzkinak barne",
@@ -1611,6 +1616,7 @@
     "changePlan": "Plana aldatu"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Workspace bakoitzak jabe bat gutxienez izan behar du. Mesedez, izendatu beste erabiltzaile bat Jabe gisa workspace-a utzi aurretik. Azken kidea bazara, kontuan hartu workspace-a ezabatzea.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Gaitu konexio hau pribatu eta lan-espazio honetako beste sortzaileetatik ezkutatuta uzteko.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Kopiatu errore kodea",
     "paidUserBadgeTooltip": "Erabiltzaileak gutxienez base bateko editore edo maila handiagoko rola du.",
     "approachingLimit": "Mugara hurbiltzen",
-    "exceedingLimit": "Muga gaindituta"
+    "exceedingLimit": "Muga gaindituta",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Bilatu ikonoak",

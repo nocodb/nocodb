@@ -90,7 +90,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div class="nc-mini-sidebar" data-testid="nc-mini-sidebar">
-    <div class="flex flex-col gap-3 items-center">
+    <div class="flex flex-col items-center">
       <DashboardSidebarMiniSidebarItemWrapper size="small">
         <div
           class="min-h-9"
@@ -111,15 +111,13 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               <div class="px-1 text-bodySmBold text-white bg-gray-700 rounded">{{ renderAltOrOptlKey(true) }} B</div>
             </div>
           </template>
-          <div
-            class="nc-mini-sidebar-btn-full-width"
-            data-testid="nc-sidebar-project-btn"
-            :class="{
-              active: isProjectPageOpen,
-            }"
-            @click="navigateToProjectPage"
-          >
-            <div class="nc-mini-sidebar-btn">
+          <div class="nc-mini-sidebar-btn-full-width" data-testid="nc-sidebar-project-btn" @click="navigateToProjectPage">
+            <div
+              class="nc-mini-sidebar-btn"
+              :class="{
+                active: isProjectPageOpen,
+              }"
+            >
               <GeneralIcon :icon="isProjectListOrHomePageOpen ? 'ncBaseOutlineDuo' : 'ncBaseOutline'" class="h-4 w-4" />
             </div>
           </div>
@@ -151,12 +149,14 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               v-e="['c:team:settings']"
               class="nc-mini-sidebar-btn-full-width"
               data-testid="nc-sidebar-team-settings-btn"
-              :class="{
-                active: isWorkspaceSettingsPageOpened,
-              }"
               @click="navigateToSettings"
             >
-              <div class="nc-mini-sidebar-btn">
+              <div
+                class="nc-mini-sidebar-btn"
+                :class="{
+                  active: isWorkspaceSettingsPageOpened,
+                }"
+              >
                 <GeneralIcon :icon="isWorkspaceSettingsPageOpened ? 'ncSettingsDuo' : 'ncSettings'" class="h-4 w-4" />
               </div>
             </div>
@@ -168,12 +168,14 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               v-e="['c:integrations']"
               class="nc-mini-sidebar-btn-full-width"
               data-testid="nc-sidebar-integrations-btn"
-              :class="{
-                active: isIntegrationsPageOpened,
-              }"
               @click="navigateToIntegrations"
             >
-              <div class="nc-mini-sidebar-btn">
+              <div
+                class="nc-mini-sidebar-btn"
+                :class="{
+                  active: isIntegrationsPageOpened,
+                }"
+              >
                 <GeneralIcon :icon="isIntegrationsPageOpened ? 'ncIntegrationDuo' : 'integration'" class="h-4 w-4" />
               </div>
             </div>
@@ -181,17 +183,21 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </DashboardSidebarMiniSidebarItemWrapper>
         <NcDivider class="!my-0 !border-nc-border-gray-dark" />
         <DashboardSidebarMiniSidebarItemWrapper>
-          <NcTooltip v-if="appInfo.feedEnabled" :title="$t('title.whatsNew')" placement="right" hide-on-click :arrow="false">
-            <DashboardSidebarFeed />
+          <NcTooltip :title="$t('general.notification')" placement="right" hide-on-click :arrow="false">
+            <NotificationMenu />
           </NcTooltip>
         </DashboardSidebarMiniSidebarItemWrapper>
       </template>
     </div>
-    <div class="flex flex-col gap-3 items-center">
-      <DashboardSidebarMiniSidebarItemWrapper v-if="appInfo.feedEnabled">
-        <NcTooltip :title="$t('general.notification')" placement="right" hide-on-click :arrow="false">
-          <NotificationMenu />
+    <div class="flex flex-col items-center">
+      <DashboardSidebarMiniSidebarItemWrapper>
+        <NcTooltip v-if="appInfo.feedEnabled" :title="$t('title.whatsNew')" placement="right" hide-on-click :arrow="false">
+          <DashboardSidebarFeed />
         </NcTooltip>
+      </DashboardSidebarMiniSidebarItemWrapper>
+
+      <DashboardSidebarMiniSidebarItemWrapper>
+        <DashboardSidebarCreateNewActionMenu />
       </DashboardSidebarMiniSidebarItemWrapper>
 
       <DashboardSidebarUserInfo />
@@ -201,7 +207,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <style lang="scss">
 .nc-mini-sidebar {
-  @apply w-[var(--mini-sidebar-width)] flex-none bg-nc-bg-gray-light flex flex-col justify-between items-center p-1.5 border-r-1 border-nc-border-gray-medium z-12;
+  @apply w-[var(--mini-sidebar-width)] flex-none bg-nc-bg-gray-light flex flex-col justify-between items-center border-r-1 border-nc-border-gray-medium z-12;
 
   .nc-mini-sidebar-ws-item {
     @apply cursor-pointer h-9 w-8 rounded py-1 flex items-center justify-center children:flex-none text-nc-content-gray-muted transition-all duration-200;
@@ -221,7 +227,13 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 
   .nc-mini-sidebar-btn-full-width {
-    @apply w-[var(--mini-sidebar-width)] flex-none flex justify-center cursor-pointer;
+    @apply w-[var(--mini-sidebar-width)] h-[var(--mini-sidebar-width)] flex-none flex justify-center items-center cursor-pointer;
+
+    &:hover {
+      .nc-mini-sidebar-btn:not(.active) {
+        @apply bg-nc-bg-gray-medium;
+      }
+    }
   }
 
   .nc-mini-sidebar-btn {
@@ -232,7 +244,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
 
     &.active {
-      @apply bg-nc-bg-gray-medium hover:bg-nc-bg-gray-medium !text-nc-content-gray;
+      @apply bg-brand-100 !text-nc-content-brand;
     }
   }
 }

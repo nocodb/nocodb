@@ -32,7 +32,7 @@ const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const automationStore = useAutomationStore()
 
-const { updateAutomation } = automationStore
+const { updateAutomation, openNewScriptModal } = automationStore
 
 const { activeAutomationId, automations } = storeToRefs(automationStore)
 
@@ -129,33 +129,6 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
   markItem(currentItem.id)
 
   $e('a:script:reorder')
-}
-
-async function openNewScriptModal() {
-  const isDlgOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgAutomationCreate'), {
-    'modelValue': isDlgOpen,
-    'baseId': baseId.value,
-    'onUpdate:modelValue': () => closeDialog(),
-    'onCreated': async (script: ScriptType) => {
-      closeDialog()
-
-      ncNavigateTo({
-        workspaceId: activeWorkspaceId.value,
-        automation: true,
-        baseId: baseId.value,
-        automationId: script.id,
-      })
-
-      $e('a:script:create')
-    },
-  })
-
-  function closeDialog() {
-    isDlgOpen.value = false
-    close(1000)
-  }
 }
 
 async function changeScript(script: ScriptType) {
@@ -294,7 +267,7 @@ const filteredScripts = computed(() => {
         :class="{
           '!pl-13.3 !xs:(pl-13.5)': !isNewSidebarEnabled,
         }"
-        @click="openNewScriptModal"
+        @click="openNewScriptModal({ baseId })"
       >
         <div
           :class="{

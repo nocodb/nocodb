@@ -394,7 +394,8 @@
     "reactivate": "Reactivate",
     "left": "left",
     "seat": "Seat",
-    "seats": "Seats"
+    "seats": "Seats",
+    "automation": "Automation"
   },
   "objects": {
     "script": "Script",

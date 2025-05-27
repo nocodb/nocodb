@@ -1,3 +1,4 @@
+import { DlgAutomationCreate } from '#components'
 import type { ScriptType } from 'nocodb-sdk'
 import { parseScript, validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
 
@@ -299,6 +300,35 @@ export const useAutomationStore = defineStore('automation', () => {
     $e('c:script:details', { scriptId })
   }
 
+  async function openNewScriptModal({ baseId }: { baseId?: string }) {
+    if (!baseId) return
+
+    const isDlgOpen = ref(true)
+
+    const { close } = useDialog(DlgAutomationCreate, {
+      'modelValue': isDlgOpen,
+      'baseId': baseId,
+      'onUpdate:modelValue': () => closeDialog(),
+      'onCreated': async (script: ScriptType) => {
+        closeDialog()
+
+        ncNavigateTo({
+          workspaceId: activeWorkspaceId.value,
+          automation: true,
+          baseId: baseId,
+          automationId: script.id,
+        })
+
+        $e('a:script:create')
+      },
+    })
+
+    function closeDialog() {
+      isDlgOpen.value = false
+      close(1000)
+    }
+  }
+
   return {
     // State
     automations,
@@ -331,6 +361,7 @@ export const useAutomationStore = defineStore('automation', () => {
     descriptionContent: pluginDescriptionContent,
     getScriptContent,
     getScriptAssetsURL: (pathOrUrl: string) => getPluginAssetUrl(pathOrUrl, pluginTypes.script),
+    openNewScriptModal,
   }
 })
 

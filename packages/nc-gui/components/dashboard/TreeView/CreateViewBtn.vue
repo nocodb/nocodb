@@ -12,9 +12,8 @@ const { $e } = useNuxtApp()
 
 const alignLeftLevel = toRef(props, 'alignLeftLevel')
 
-const { refreshCommandPalette } = useCommandPalette()
 const viewsStore = useViewsStore()
-const { loadViews, navigateToView } = viewsStore
+const { loadViews, onOpenViewCreateModal } = viewsStore
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -89,48 +88,16 @@ async function onOpenModal({
   isOpen.value = false
   isViewListLoading.value = false
 
-  const isDlgOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgViewCreate'), {
-    'modelValue': isDlgOpen,
+  onOpenViewCreateModal({
     title,
     type,
-    'tableId': table.value.id,
-    'selectedViewId': copyViewId,
-    calendarRange,
+    copyViewId,
     groupingFieldColumnId,
+    calendarRange,
     coverImageColumnId,
-    'baseId': base.value.id,
-    'onUpdate:modelValue': closeDialog,
-    'onCreated': async (view?: ViewType) => {
-      closeDialog()
-
-      refreshCommandPalette()
-
-      await loadViews({
-        tableId: table.value.id!,
-        force: true,
-      })
-
-      if (view) {
-        navigateToView({
-          view,
-          tableId: table.value.id!,
-          baseId: base.value.id!,
-          doNotSwitchTab: true,
-        })
-      }
-
-      $e('a:view:create', { view: view?.type || type })
-    },
+    baseId: base.value.id!,
+    tableId: table.value.id!,
   })
-
-  function closeDialog() {
-    isOpen.value = false
-    isDlgOpen.value = false
-
-    close(1000)
-  }
 }
 </script>
 

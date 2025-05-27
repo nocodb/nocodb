@@ -76,15 +76,19 @@ const accountUrl = computed(() => {
     <div
       class="flex items-center"
       :class="{
-        'justify-center': isMiniSidebar,
+        'justify-center h-[var(--mini-sidebar-width)]': isMiniSidebar,
         'justify-between': !isMiniSidebar,
       }"
     >
-      <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
+      <NcDropdown
+        v-model:visible="isMenuOpen"
+        placement="topLeft"
+        :overlay-class-name="`!min-w-64 ${isMiniSidebar ? '!left-2' : ''}`"
+      >
         <div
           class="flex"
           :class="{
-            'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg h-8 cursor-pointer':
+            'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg cursor-pointer':
               !isMiniSidebar,
             'nc-mini-sidebar-ws-item !w-[var(--mini-sidebar-width)] flex-none': isMiniSidebar,
           }"

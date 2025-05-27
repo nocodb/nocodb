@@ -126,7 +126,7 @@ const onWorkspaceCreateClick = () => {
       class="h-full min-w-0 rounded-lg"
       :trigger="[isMiniSidebar && !isMobileMode ? 'hover' : 'click']"
       placement="bottomLeft"
-      overlay-class-name="nc-dropdown-workspace-menu !overflow-hidden"
+      :overlay-class-name="`nc-dropdown-workspace-menu !overflow-hidden  ${isMiniSidebar ? '!left-2' : ''}`"
     >
       <div
         v-e="['c:workspace:menu']"

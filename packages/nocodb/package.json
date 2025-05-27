@@ -180,7 +180,7 @@
     "@types/multer": "^1.4.12",
     "@types/node": "^22.13.1",
     "@types/passport-google-oauth20": "^2.0.16",
-    "@types/passport-jwt": "^3.0.13",
+    "@types/passport-jwt": "^4.0.1",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@types/supertest": "^6.0.3",

@@ -806,7 +806,8 @@
     "upgradeToPlan": "Oppgrader til {plan}-planen",
     "upgradeWorkspaceToPlan": "Oppgrader {workspace} til {plan}-planen",
     "upgradeToPlanSubtitle": "Du vil bli belastet umiddelbart for dette abonnementet.",
-    "reactivateToPlan": "Reaktivere {plan}-abonnement?"
+    "reactivateToPlan": "Reaktivere {plan}-abonnement?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1321,7 +1322,8 @@
     "invoice": "Faktura",
     "status": "Status",
     "invoiceTotal": "Totalt fakturabeløp",
-    "pastInvoices": "Tidligere fakturaer"
+    "pastInvoices": "Tidligere fakturaer",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Klikk for å løse",

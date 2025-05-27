@@ -28,7 +28,13 @@ const up = async (knex: Knex) => {
     table.text('details');
     table.string('fk_user_id', 20);
     table.string('fk_ref_id', 20);
-    table.string('fk_parent_id', 20);
+
+    if (knex.client.config.client === 'pg') {
+      table.uuid('fk_parent_id');
+    } else {
+      table.string('fk_parent_id', 36);
+    }
+
     table.string('fk_workspace_id', 20);
     table.string('fk_org_id', 20); // new column
     table.text('user_agent');
@@ -57,7 +63,13 @@ const up = async (knex: Knex) => {
     table.text('details');
     table.string('fk_user_id', 20);
     table.string('fk_ref_id', 20);
-    table.string('fk_parent_id', 20);
+
+    if (knex.client.config.client === 'pg') {
+      table.uuid('fk_parent_id');
+    } else {
+      table.string('fk_parent_id', 36);
+    }
+
     table.string('fk_workspace_id', 20);
     table.string('fk_org_id', 20); // new column
     table.text('user_agent');
@@ -130,7 +142,8 @@ const up = async (knex: Knex) => {
         details: record.details,
         fk_user_id: record.fk_user_id,
         fk_ref_id: record.fk_ref_id,
-        fk_parent_id: record.fk_parent_id,
+        // TODO: discuss migration of fk_parent_id
+        fk_parent_id: null,
         fk_workspace_id: record.fk_workspace_id,
         fk_org_id: null, // new column with NULLs
         user_agent: record.user_agent,

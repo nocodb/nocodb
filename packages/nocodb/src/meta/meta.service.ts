@@ -1,5 +1,6 @@
 import { Injectable, Optional } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
+import { v7 as uuidv7 } from 'uuid';
 import CryptoJS from 'crypto-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -292,6 +293,10 @@ export class MetaService {
    * @returns {string} - Generated nanoid
    * */
   public async genNanoid(target: string) {
+    if (target === MetaTable.AUDIT || target === MetaTable.RECORD_AUDIT) {
+      return uuidv7();
+    }
+
     const prefixMap: { [key: string]: string } = {
       [MetaTable.PROJECT]: 'p',
       [MetaTable.SOURCES]: 'b',

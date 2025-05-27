@@ -1,4 +1,5 @@
-import type { AuditV1OperationTypes } from 'nocodb-sdk';
+import { type AuditV1OperationTypes } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaTable, RootScopes } from '~/utils/globals';
@@ -111,5 +112,64 @@ export default class Audit {
         throw e;
       }
     }
+  }
+
+  static async baseAuditList(
+    context: NcContext,
+    {
+      page = 1,
+      user,
+      type,
+      startDate,
+      endDate,
+      orderBy,
+    }: {
+      page?: number;
+      user?: string;
+      type?: string[];
+      startDate?: string;
+      endDate?: string;
+      orderBy?: {
+        created_at?: 'asc' | 'desc';
+      };
+    },
+  ) {
+    const limit = 25;
+    const offset = (Math.max(1, page ?? 1) - 1) * limit;
+
+    if (!context.workspace_id || !context.base_id) {
+      console.error('Invalid context for baseAuditList', context);
+      return [];
+    }
+
+    if (orderBy?.created_at) {
+      orderBy.created_at = orderBy.created_at === 'asc' ? 'asc' : 'desc';
+    }
+
+    return await Noco.ncAudit.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.AUDIT,
+      {
+        limit,
+        offset,
+        orderBy: {
+          ...(orderBy?.created_at
+            ? { id: orderBy?.created_at }
+            : { id: 'desc' }),
+        },
+        xcCondition: {
+          _and: [
+            { fk_workspace_id: { eq: context.workspace_id } },
+            { base_id: { eq: context.base_id } },
+            { version: { eq: 1 } },
+            ...(user ? [{ user: { eq: user } }] : []),
+            ...(startDate ? [{ created_at: { ge: startDate } }] : []),
+            ...(endDate ? [{ created_at: { le: endDate } }] : []),
+            ...(type ? [{ op_type: { in: type } }] : []),
+          ],
+        },
+      },
+    );
   }
 }

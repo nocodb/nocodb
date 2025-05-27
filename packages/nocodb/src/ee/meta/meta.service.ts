@@ -1,6 +1,7 @@
 import { MetaService as MetaServiceCE } from 'src/meta/meta.service';
 import { Injectable, Optional } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
+import { v7 as uuidv7 } from 'uuid';
 import type { Condition, Knex } from '~/db/CustomKnex';
 import XcMigrationSourcev3 from '~/meta/migrations/XcMigrationSourcev3';
 import { NcConfig } from '~/utils/nc-config';
@@ -46,6 +47,10 @@ export class MetaService extends MetaServiceCE {
    * @returns {string} - Generated nanoid
    * */
   public async genNanoid(target: string) {
+    if (target === MetaTable.AUDIT || target === MetaTable.RECORD_AUDIT) {
+      return uuidv7();
+    }
+
     const prefixMap: { [key: string]: string } = {
       [MetaTable.PROJECT]: 'p',
       [MetaTable.SOURCES]: 'b',

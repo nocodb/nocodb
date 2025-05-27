@@ -22,7 +22,13 @@ const up = async (knex: Knex) => {
     table.text('details');
     table.string('fk_user_id', 20);
     table.string('fk_ref_id', 20);
-    table.string('fk_parent_id', 20);
+
+    if (knex.client.config.client === 'pg') {
+      table.uuid('fk_parent_id');
+    } else {
+      table.string('fk_parent_id', 36);
+    }
+
     table.string('fk_workspace_id', 20);
     table.string('fk_org_id', 20);
     table.text('user_agent');
@@ -51,7 +57,13 @@ const up = async (knex: Knex) => {
     table.text('details');
     table.string('fk_user_id', 20);
     table.string('fk_ref_id', 20);
-    table.string('fk_parent_id', 20);
+
+    if (knex.client.config.client === 'pg') {
+      table.uuid('fk_parent_id');
+    } else {
+      table.string('fk_parent_id', 36);
+    }
+
     table.string('fk_workspace_id', 20);
     table.string('fk_org_id', 20); // new column
     table.text('user_agent');

@@ -352,9 +352,17 @@ export default class Base extends BaseCE {
 
     await NocoCache.del(`${CacheScope.BASE_TO_WORKSPACE}:${baseId}`);
 
-    await ncMeta.metaDelete(RootScopes.ROOT, RootScopes.ROOT, MetaTable.AUDIT, {
-      base_id: baseId,
-    });
+    await Noco.ncAudit.metaDelete(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.AUDIT,
+      {
+        ...(context.workspace_id
+          ? { fk_workspace_id: context.workspace_id }
+          : {}),
+        base_id: baseId,
+      },
+    );
 
     CustomUrl.bulkDelete({ base_id: baseId }, ncMeta).catch(() => {
       logger.error(`Failed to delete custom urls of baseId: ${baseId}`);

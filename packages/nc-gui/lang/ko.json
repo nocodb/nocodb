@@ -2258,6 +2258,9 @@
       "createNewTable": "처음부터 시작하십시오.",
       "importData": "파일 및 외부 소스에서.",
       "connectExternalData": "실시간으로 외부 데이터베이스로."
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

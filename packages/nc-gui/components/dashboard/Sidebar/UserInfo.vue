@@ -71,7 +71,12 @@ const accountUrl = computed(() => {
 </script>
 
 <template>
-  <div class="flex w-full flex-col border-gray-200 gap-y-1">
+  <div
+    class="flex w-full flex-col border-gray-200 gap-y-1"
+    :class="{
+      'sticky bottom-0 bg-[var(--mini-sidebar-bg-color)]': isMiniSidebar,
+    }"
+  >
     <LazyGeneralMaintenanceAlert v-if="!isMiniSidebar" />
     <div
       class="flex items-center"

@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Passa il workspace {workspace} al piano {plan}",
     "upgradeToPlanSubtitle": "Ti verrà addebitato immediatamente questo piano.",
     "reactivateToPlan": "Riattivare il piano {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Puoi duplicare le basi solo in spazi di lavoro in cui hai accesso di tipo creatore o superiore.",
     "snapshotBaseRestoreMessage": "Puoi ripristinare solo in spazi di lavoro in cui hai accesso di tipo creatore o superiore.",
     "currentWorkspace": "Spazio di lavoro attuale",
+    "currentBase": "Current base",
     "latitude": "Latitudine",
     "longitude": "Longitudine",
     "failed": "Fallito",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "Snippet API",
     "includeData": "Includi Dati",
     "includeRecords": "Includi record",
-    "baseDuplicateMessage": "Nota: i log di audit e le integrazioni non verranno duplicati.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Includi viste",
     "includeWebhook": "Includi webhook",
     "includeComments": "Includi commenti",
@@ -1611,6 +1616,7 @@
     "changePlan": "Cambia piano"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Ogni spazio di lavoro deve avere almeno un proprietario. Assegna un altro utente come proprietario prima di uscire. Se sei l'ultimo membro, prendi in considerazione l'eliminazione dello spazio di lavoro.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Attiva per rendere questa connessione privata e nascosta agli altri creatori in questo spazio di lavoro.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Copia codice errore",
     "paidUserBadgeTooltip": "L'utente ha un ruolo di editor o superiore in almeno una base.",
     "approachingLimit": "Limite in avvicinamento",
-    "exceedingLimit": "Limite superato"
+    "exceedingLimit": "Limite superato",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Icona di ricerca",

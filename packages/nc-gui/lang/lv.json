@@ -806,7 +806,8 @@
     "upgradeToPlan": "Jauniniet uz plānu {plan}",
     "upgradeWorkspaceToPlan": "Jauniniet {workspace} uz plānu {plan}",
     "upgradeToPlanSubtitle": "Par šo plānu jums tiks nekavējoties iekasēta maksa.",
-    "reactivateToPlan": "Atjaunot plānu {plan}?"
+    "reactivateToPlan": "Atjaunot plānu {plan}?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1321,7 +1322,8 @@
     "invoice": "Rēķins",
     "status": "Statuss",
     "invoiceTotal": "Rēķina kopsumma",
-    "pastInvoices": "Iepriekšējie rēķini"
+    "pastInvoices": "Iepriekšējie rēķini",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Noklikšķiniet, lai atrisinātu",

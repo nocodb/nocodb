@@ -807,6 +807,21 @@
     "reactivateToPlan": "Återaktivera {plan}-planen?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Återställer ögonblicksbild",
     "note": "Observera:",
     "snapshotRestoreMessage1": "Att återställa denna ögonblicksbild påverkar inte den befintliga basen.",
@@ -1208,8 +1223,8 @@
     "agreeToTos": "Genom att registrera dig godkänner du användarvillkoren.",
     "welcomeToNc": "Välkommen till NocoDB!",
     "inviteOnlySignup": "Tillåt registrering endast med hjälp av url för inbjudan",
-    "nextRow": "Nästa rad",
-    "prevRow": "Föregående rad",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Lägg till data manuellt i rutnät",
     "addRowForm": "Ange postdata via ett formulär",
     "noAccess": "Ingen åtkomst",
@@ -2061,6 +2076,7 @@
       "copyToClipboardLocalFileUrl": "Webbläsaren tillåter inte direktladdning av lokala resurser. URL har kopierats till urklipp i stället."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Manuella krokar kan inte inaktiveras",
       "errorLoadingRecord": "Fel vid inläsning av postdata",
       "fetchingCalendarData": "Fel vid hämtning av kalenderdata",
@@ -2194,6 +2210,9 @@
       "nCellsCopied": "{n} celler kopierade"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "Licensnyckeln uppdaterades",
       "columnDuplicated": "Kolumnen duplicerades framgångsrikt",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
@@ -2238,7 +2257,8 @@
       "paymentSuccessful": "Betalning lyckades",
       "paymentSuccessfulSubtitle": "Din betalning har bearbetats. Du kan nu använda din nya plan.",
       "upgradeSuccessful": "Uppgradering lyckades",
-      "upgradeSuccessfulSubtitle": "Din betalning för uppgraderingen har bearbetats. Du kan nu använda din nya plan."
+      "upgradeSuccessfulSubtitle": "Din betalning för uppgraderingen har bearbetats. Du kan nu använda din nya plan.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Börja från början.",

@@ -73,7 +73,8 @@
       "vue-i8n@<9.14.3": ">=9.14.3",
       "cross-spawn@<7.0.5 >=7.0.0": ">=7.0.5",
       "dset@<3.1.4": ">=3.1.4",
-      "http-proxy-middleware@<2.0.9": "2.0.9"
+      "http-proxy-middleware@<2.0.9": "2.0.9",
+      "@babel/runtime@<7.22.11": ">=7.26.10"
     },
     "onlyBuiltDependencies": [
       "@nestjs/core",

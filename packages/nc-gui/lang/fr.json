@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Passez l'espace de travail {workspace} au plan {plan}",
     "upgradeToPlanSubtitle": "Vous serez facturé immédiatement pour ce plan.",
     "reactivateToPlan": "Réactiver le plan {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Vous ne pouvez dupliquer les bases que dans des espaces de travail où vous avez un accès créateur ou supérieur.",
     "snapshotBaseRestoreMessage": "Vous pouvez uniquement restaurer dans des espaces de travail où vous avez un accès créateur ou supérieur.",
     "currentWorkspace": "Espace de travail courant",
+    "currentBase": "Current base",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "En erreur",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "Extraits API",
     "includeData": "Inclure les données",
     "includeRecords": "Inclure les enregistrements",
-    "baseDuplicateMessage": "Remarque : Les journaux d'audit et les intégrations ne seront pas dupliqués.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Inclure les vues",
     "includeWebhook": "Inclure le Webhook",
     "includeComments": "Inclure des commentaires",
@@ -1611,6 +1616,7 @@
     "changePlan": "Changer le plan"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Chaque espace de travail doit avoir au moins un propriétaire. Veuillez attribuer un autre utilisateur en tant que Propriétaire avant de quitter l'espace de travail. Si vous êtes le dernier membre, envisagez de supprimer l'espace de travail à la place.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Activer pour rendre cette connexion privée et cachée aux autres créateurs de cet espace de travail.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Copier le code d'erreur",
     "paidUserBadgeTooltip": "L'utilisateur possède un rôle Éditeur ou supérieur dans au moins une base.",
     "approachingLimit": "Limite approchée",
-    "exceedingLimit": "Limite dépassée"
+    "exceedingLimit": "Limite dépassée",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Rechercher des icônes",

@@ -119,6 +119,7 @@
     "upgradeToAdd": "업그레이드하여 추가",
     "requestUpgradeToAdd": "추가하려면 업그레이드 요청",
     "upgradeToAddMoreExtensions": "현재 하나의 확장만 허용하는 무료 요금제를 사용 중입니다. 업그레이드하여 무제한 확장 기능을 잠금 해제하세요.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Workspace Audit에 액세스하도록 업그레이드",
     "upgradeToAccessWsAuditSubtitle": "{plan} 플랜으로 업그레이드하여 워크스페이스 감사 로그를 활성화하고 주요 활동을 효율적으로 모니터링하세요.",
     "upgradeToAddMoreAttachments": "더 많은 첨부 파일을 추가하려면 업그레이드하십시오",
@@ -155,6 +156,7 @@
     "upgradeToUploadWsImageSubtitle": "현재 {activePlan} 요금제는 아이콘과 이모티콘만 허용합니다. {plan} 플랜으로 업그레이드하여 사용자 지정 이미지를 작업 영역 아바타로 업로드합니다."
   },
   "general": {
+    "script": "Script",
     "supported": "지원",
     "usage": "사용량",
     "snapshot": "스냅샷",
@@ -819,6 +821,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "스냅샷 복원",
     "note": "메모:",
     "snapshotRestoreMessage1": "이 스냅샷을 복원해도 기존 기반에는 영향을 주지 않습니다.",

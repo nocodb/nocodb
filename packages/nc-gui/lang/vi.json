@@ -807,6 +807,21 @@
     "reactivateToPlan": "Kích hoạt lại gói {plan}?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Đang khôi phục Ảnh chụp nhanh",
     "note": "Lưu ý:",
     "snapshotRestoreMessage1": "Việc khôi phục ảnh chụp nhanh này sẽ không ảnh hưởng tới cơ sở hiện tại.",
@@ -1208,8 +1223,8 @@
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!",
     "inviteOnlySignup": "Chỉ cho phép đăng ký bằng url mời",
-    "nextRow": "Next Row",
-    "prevRow": "Previous Row",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Thêm dữ liệu theo cách thủ công trong chế độ xem lưới",
     "addRowForm": "Nhập dữ liệu hồ sơ thông qua biểu mẫu",
     "noAccess": "Không có quyền truy cập",
@@ -2061,6 +2076,7 @@
       "copyToClipboardLocalFileUrl": "Trình duyệt không cho phép tải tài nguyên cục bộ trực tiếp. URL đã được sao chép vào clipboard."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Không thể vô hiệu hóa hook thủ công",
       "errorLoadingRecord": "Lỗi khi tải dữ liệu bản ghi",
       "fetchingCalendarData": "Lỗi khi tìm nạp dữ liệu lịch",
@@ -2194,6 +2210,9 @@
       "nCellsCopied": "Đã sao chép {n} ô"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "Khóa giấy phép đã được cập nhật",
       "columnDuplicated": "Column duplicated successfully",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
@@ -2238,7 +2257,8 @@
       "paymentSuccessful": "Thanh toán thành công",
       "paymentSuccessfulSubtitle": "Thanh toán của bạn đã được xử lý. Bạn có thể sử dụng gói mới ngay bây giờ.",
       "upgradeSuccessful": "Nâng cấp thành công",
-      "upgradeSuccessfulSubtitle": "Thanh toán nâng cấp của bạn đã được xử lý. Bạn có thể sử dụng gói mới ngay bây giờ."
+      "upgradeSuccessfulSubtitle": "Thanh toán nâng cấp của bạn đã được xử lý. Bạn có thể sử dụng gói mới ngay bây giờ.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Bắt đầu từ đầu.",

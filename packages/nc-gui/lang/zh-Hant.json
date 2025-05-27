@@ -1729,7 +1729,10 @@
     "searchOptions": "搜索選項",
     "lockViewDescription": "說明您鎖定此檢視的原因。當有人嘗試解除鎖定時將顯示此訊息（可選）。",
     "noBaseUsersFound": "找不到 Base 使用者",
-    "noInvoices": "沒有發票"
+    "noInvoices": "沒有發票",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL 篩選會從網址參數套用，並與工具列中設定的檢視篩選合併。",

@@ -119,6 +119,7 @@
     "upgradeToAdd": "Fă upgrade pentru a adăuga",
     "requestUpgradeToAdd": "Solicită upgrade pentru a adăuga",
     "upgradeToAddMoreExtensions": "În prezent ești pe planul gratuit, care permite o singură extensie. Fă upgrade pentru a debloca extensii nelimitate.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Fă upgrade pentru a accesa auditul spațiului de lucru",
     "upgradeToAccessWsAuditSubtitle": "Fă upgrade la planul {plan} pentru a activa jurnalele de audit ale workspace-ului și a monitoriza eficient activitățile cheie.",
     "upgradeToAddMoreAttachments": "Fă upgrade pentru a adăuga mai multe atașamente",
@@ -155,6 +156,7 @@
     "upgradeToUploadWsImageSubtitle": "Planul tău {activePlan} permite doar pictograme și emoji. Fă upgrade la planul {plan} pentru a încărca o imagine personalizată ca avatar al workspace-ului."
   },
   "general": {
+    "script": "Script",
     "supported": "Acceptat",
     "usage": "Utilizare",
     "snapshot": "Instantaneu",
@@ -822,6 +824,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Se restaurează instantaneul",
     "note": "Notă:",
     "snapshotRestoreMessage1": "Restaurarea acestui instantaneu nu va afecta baza existentă.",

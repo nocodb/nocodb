@@ -12,6 +12,7 @@ export function generateRecursiveCTE({
   cteTableName,
   sourceTable,
   tableAlias,
+  direction,
   qb,
 }: {
   knex: CustomKnex;
@@ -22,9 +23,16 @@ export function generateRecursiveCTE({
   // sourceTable can be a subquery, another CTE, or physical table
   sourceTable: string | Knex.QueryInterface | Knex.Raw;
   tableAlias?: string;
+  // the pk join clause,
+  // viewed from top table (cte table) then the union table
+  direction?: 'id_to_link' | 'link_to_id';
   qb: Knex.QueryBuilder;
 }) {
   const innerTableAlias = tableAlias ?? '__nc_t1';
+  const pkJoinClause =
+    direction === 'link_to_id'
+      ? ':innerTableAlias:.:innerIdColumn: = :cteTableName:.link_id'
+      : ':innerTableAlias:.:innerLinkIdColumn: = :cteTableName:.id';
 
   qb.withRecursive(
     cteTableName,
@@ -47,7 +55,7 @@ export function generateRecursiveCTE({
       from 
         :sourceTable: as :innerTableAlias:
         inner join :cteTableName: on
-          :innerTableAlias:.:innerLinkIdColumn: = :cteTableName:.id
+          ${pkJoinClause}
           and :cteTableName:.lvl < ${NC_RECURSIVE_MAX_DEPTH}`,
       {
         innerTableAlias,

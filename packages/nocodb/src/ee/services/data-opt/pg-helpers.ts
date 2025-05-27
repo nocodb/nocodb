@@ -30,7 +30,7 @@ import type {
   Source,
 } from '~/models';
 import type CustomKnex from 'src/db/CustomKnex';
-import { recursiveCTEFromLookupColumnHM } from '~/helpers/lookupHelpers';
+import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
 import { Column, Filter, Model, Sort, View } from '~/models';
 import {
   _wherePk,
@@ -776,19 +776,50 @@ export async function extractColumn({
                   dbDriver: knex,
                 },
               );
+
               refBaseModel = parentBaseModel;
-              relQb = knex(
-                knex.raw('?? as ??', [
-                  parentBaseModel.getTnPath(parentModel),
-                  relTableAlias,
-                ]),
-              ).where(
-                parentColumn.column_name,
-                knex.raw('??.??', [
-                  rootAlias,
-                  sanitize(childColumn.column_name),
-                ]),
-              );
+              const useRecursiveEvaluation = parseProp(
+                column.meta,
+              )?.useRecursiveEvaluation;
+              if (useRecursiveEvaluation) {
+                result.isArray = true;
+                const cteQB = await recursiveCTEFromLookupColumn({
+                  baseModelSqlV2: parentBaseModel,
+                  lookupColumn: column,
+                  tableAlias: relTableAlias,
+                });
+                // applying CTE
+                cteQB(qb);
+
+                relQb = knex(
+                  knex.raw('?? as ??', [relTableAlias, relTableAlias]),
+                )
+                  .where(
+                    `${relTableAlias}.root_id`,
+                    '<>',
+                    knex.raw('??.??', [relTableAlias, 'id']),
+                  )
+                  .andWhere(
+                    `${relTableAlias}.root_id`,
+                    knex.raw('??.??', [
+                      rootAlias,
+                      sanitize(parentColumn.column_name),
+                    ]),
+                  );
+              } else {
+                relQb = knex(
+                  knex.raw('?? as ??', [
+                    parentBaseModel.getTnPath(parentModel),
+                    relTableAlias,
+                  ]),
+                ).where(
+                  parentColumn.column_name,
+                  knex.raw('??.??', [
+                    rootAlias,
+                    sanitize(childColumn.column_name),
+                  ]),
+                );
+              }
             }
             break;
           case RelationTypes.ONE_TO_ONE:
@@ -880,7 +911,7 @@ export async function extractColumn({
                 column.meta,
               )?.useRecursiveEvaluation;
               if (useRecursiveEvaluation) {
-                const cteQB = await recursiveCTEFromLookupColumnHM({
+                const cteQB = await recursiveCTEFromLookupColumn({
                   baseModelSqlV2: childBaseModel,
                   lookupColumn: column,
                   tableAlias: relTableAlias,

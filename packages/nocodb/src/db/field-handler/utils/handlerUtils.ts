@@ -12,7 +12,7 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import { Filter, Model } from '~/models';
-import { recursiveCTEFromLookupColumnHM } from '~/helpers/lookupHelpers';
+import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
 
 export function ncIsStringHasValue(val: string | undefined | null) {
   return val !== '' && !ncIsUndefined(val) && !ncIsNull(val);
@@ -95,7 +95,7 @@ export async function nestedConditionJoin({
               lookupColumn.meta,
             )?.useRecursiveEvaluation;
             if (useRecursiveEvaluation) {
-              const cteQB = await recursiveCTEFromLookupColumnHM({
+              const cteQB = await recursiveCTEFromLookupColumn({
                 baseModelSqlV2: childBaseModel,
                 lookupColumn,
                 tableAlias: relAlias,
@@ -128,14 +128,33 @@ export async function nestedConditionJoin({
           break;
         case RelationTypes.BELONGS_TO:
           {
-            qb.join(
-              knex.raw(`?? as ??`, [
-                parentBaseModel.getTnPath(parentModel.table_name),
-                relAlias,
-              ]),
-              `${alias}.${childColumn.column_name}`,
-              `${relAlias}.${parentColumn.column_name}`,
-            );
+            const useRecursiveEvaluation = parseProp(
+              lookupColumn.meta,
+            )?.useRecursiveEvaluation;
+            if (useRecursiveEvaluation) {
+              const cteQB = await recursiveCTEFromLookupColumn({
+                baseModelSqlV2: childBaseModel,
+                lookupColumn,
+                tableAlias: relAlias,
+              });
+              // applying CTE
+              cteQB(qb);
+
+              qb.join(
+                knex.raw(`?? as ??`, [relAlias, relAlias]),
+                `${alias}.${parentColumn.column_name}`,
+                `${relAlias}.root_id`,
+              );
+            } else {
+              qb.join(
+                knex.raw(`?? as ??`, [
+                  parentBaseModel.getTnPath(parentModel.table_name),
+                  relAlias,
+                ]),
+                `${alias}.${childColumn.column_name}`,
+                `${relAlias}.${parentColumn.column_name}`,
+              );
+            }
           }
           break;
         case 'mm':

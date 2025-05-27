@@ -3,7 +3,7 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import { generateRecursiveCTE } from '~/helpers/dbHelpers';
 
-export async function recursiveCTEFromLookupColumnHM({
+export async function recursiveCTEFromLookupColumn({
   baseModelSqlV2,
   lookupColumn,
   tableAlias,
@@ -29,15 +29,30 @@ export async function recursiveCTEFromLookupColumnHM({
     await parentModel.getColumns(baseModelSqlV2.context)
   ).find((col) => col.id === lookupColOpt.fk_lookup_column_id);
 
-  return (qb: Knex.QueryBuilder) => {
-    generateRecursiveCTE({
-      qb,
-      cteTableName: tableAlias,
-      idColumnName: parentColumn.column_name,
-      linkIdColumnName: childColumn.column_name,
-      knex: baseModelSqlV2.dbDriver,
-      selectingColumnName: selectColumn.column_name,
-      sourceTable: baseModelSqlV2.getTnPath(parentModel.table_name),
-    });
-  };
+  if (relation.type === 'hm') {
+    return (qb: Knex.QueryBuilder) => {
+      generateRecursiveCTE({
+        qb,
+        cteTableName: tableAlias,
+        idColumnName: parentColumn.column_name,
+        linkIdColumnName: childColumn.column_name,
+        knex: baseModelSqlV2.dbDriver,
+        selectingColumnName: selectColumn.column_name,
+        sourceTable: baseModelSqlV2.getTnPath(parentModel.table_name),
+      });
+    };
+  } else if (relation.type === 'bt') {
+    return (qb: Knex.QueryBuilder) => {
+      generateRecursiveCTE({
+        qb,
+        cteTableName: tableAlias,
+        idColumnName: parentColumn.column_name,
+        linkIdColumnName: childColumn.column_name,
+        knex: baseModelSqlV2.dbDriver,
+        selectingColumnName: selectColumn.column_name,
+        direction: 'link_to_id',
+        sourceTable: baseModelSqlV2.getTnPath(parentModel.table_name),
+      });
+    };
+  }
 }

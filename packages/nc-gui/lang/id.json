@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "Tingkatkan untuk mengunggah gambar ruang kerja",
-    "upgradeToUploadWsImageSubtitle": "Paket {activePlan} Anda saat ini hanya mengizinkan ikon dan emoji. Tingkatkan ke paket {plan} untuk mengunggah gambar kustom sebagai avatar ruang kerja Anda."
+    "upgradeToUploadWsImageSubtitle": "Paket {activePlan} Anda saat ini hanya mengizinkan ikon dan emoji. Tingkatkan ke paket {plan} untuk mengunggah gambar kustom sebagai avatar ruang kerja Anda.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

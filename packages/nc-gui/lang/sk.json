@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Upgradujte pracovný priestor {workspace} na plán {plan}",
     "upgradeToPlanSubtitle": "Za tento plán vám bude okamžite účtovaná platba.",
     "reactivateToPlan": "Znovu aktivovať plán {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Databázy môžete duplikovať len do pracovných priestorov, v ktorých máte oprávnenie tvorcu alebo vyššie.",
     "snapshotBaseRestoreMessage": "Obnovovať môžete len do pracovných priestorov, v ktorých máte oprávnenie tvorcu alebo vyššie.",
     "currentWorkspace": "Aktuálny pracovný priestor",
+    "currentBase": "Current base",
     "latitude": "Zemepisná šírka",
     "longitude": "Zemepisná dĺžka",
     "failed": "Zlyhalo",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API výstrižky",
     "includeData": "Zahrnúť údaje",
     "includeRecords": "Zahrnúť záznamy",
-    "baseDuplicateMessage": "Poznámka: Auditné záznamy a integrácie nebudú duplikované.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Zahrnúť zobrazenia",
     "includeWebhook": "Zahrnúť webhook",
     "includeComments": "Zahrnúť komentáre",
@@ -1611,6 +1616,7 @@
     "changePlan": "Zmeniť plán"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Každý pracovný priestor musí mať aspoň jedného vlastníka. Pred opustením pracovného priestoru priraďte iného používateľa ako vlastníka. Ak ste posledným členom, zvážte namiesto toho vymazanie pracovného priestoru.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Povoliť, aby toto pripojenie bolo súkromné a skryté pred ostatnými tvorcami v tomto pracovnom priestore.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Skopírovať chybový kód",
     "paidUserBadgeTooltip": "Používateľ má rolu Editora alebo vyššiu aspoň v jednej databáze.",
     "approachingLimit": "Blíži sa limit",
-    "exceedingLimit": "Limit prekročený"
+    "exceedingLimit": "Limit prekročený",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Vyhľadať ikony",

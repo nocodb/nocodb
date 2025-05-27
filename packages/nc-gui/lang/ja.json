@@ -806,7 +806,8 @@
     "upgradeToPlan": "{plan}プランへアップグレード",
     "upgradeWorkspaceToPlan": "{workspace}を{plan}プランへアップグレード",
     "upgradeToPlanSubtitle": "このプランは直ちに課金されます。",
-    "reactivateToPlan": "{plan}プランを再開しますか？"
+    "reactivateToPlan": "{plan}プランを再開しますか？",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1321,7 +1322,8 @@
     "invoice": "請求書",
     "status": "ステータス",
     "invoiceTotal": "請求合計",
-    "pastInvoices": "過去の請求書"
+    "pastInvoices": "過去の請求書",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "クリックして解決",

@@ -6,6 +6,7 @@ packages/nc-lib-gui/*
 packages/nc-cli/*
 packages/nc-gui/ee
 packages/noco-integrations/packages/*
+packages/noco-integrations/wip/*
 packages/noco-integrations/templates/*
 packages/noco-integrations/.cursor/*
 scripts/sync

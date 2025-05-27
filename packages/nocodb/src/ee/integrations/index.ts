@@ -20,6 +20,8 @@ import JiraAuth from '@noco-local-integrations/jira-auth';
 import JiraSync from '@noco-local-integrations/jira-sync';
 import LinearAuth from '@noco-local-integrations/linear-auth';
 import LinearSync from '@noco-local-integrations/linear-sync';
+import MysqlAuth from '@noco-local-integrations/mysql-auth';
+import MysqlSync from '@noco-local-integrations/mysql-sync';
 import NocodbAi from '@noco-local-integrations/nocodb-ai';
 import OpenaiAi from '@noco-local-integrations/openai-ai';
 import OpenaiCompatibleAi from '@noco-local-integrations/openai-compatible-ai';
@@ -46,6 +48,8 @@ export default [
   JiraSync,
   LinearAuth,
   LinearSync,
+  MysqlAuth,
+  MysqlSync,
   NocodbAi,
   OpenaiAi,
   OpenaiCompatibleAi,

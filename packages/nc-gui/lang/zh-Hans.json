@@ -2264,6 +2264,9 @@
       "createNewTable": "从头开始。",
       "importData": "来自文件和外部来源。",
       "connectExternalData": "实时连接到外部数据库。"
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

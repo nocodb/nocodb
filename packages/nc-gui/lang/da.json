@@ -2264,6 +2264,9 @@
       "createNewTable": "Start fra bunden.",
       "importData": "Fra filer og eksterne kilder.",
       "connectExternalData": "I realtid til eksterne databaser."
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

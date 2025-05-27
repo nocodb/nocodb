@@ -668,10 +668,6 @@ onBeforeUnmount(() => {
 }
 
 :deep(.nc-sidebar-create-base-btn.nc-button.ant-btn-text.theme-default) {
-  @apply pl-[15px];
-
-  &:hover {
-    @apply bg-transparent;
-  }
+  @apply hover:bg-brand-50 pl-[15px];
 }
 </style>

@@ -1729,7 +1729,10 @@
     "searchOptions": "ជម្រើសស្វែងរក",
     "lockViewDescription": "ពន្យល់ហេតុអ្វីបានបិទបន្តងទិដ្ឋភាពនេះ។ សារនេះនឹងបង្ហាញនៅពេលដែលនរណាម្នាក់ព្យាយាមដោះសោ​ទិដ្ឋភាព (ស្រេចចិត្ត)។",
     "noBaseUsersFound": "រកមិនឃើញអ្នកប្រើ Base",
-    "noInvoices": "គ្មានវិក្កយបត្រ"
+    "noInvoices": "គ្មានវិក្កយបត្រ",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "តម្រង URL ត្រូវបានអនុវត្តពីប៉ារ៉ាម៉ែត្រ URL និងបញ្ចូលជាមួយ តម្រងទិដ្ឋភាពដែលបានកំណត់តាមរបារ​ឧបករណ៍។",

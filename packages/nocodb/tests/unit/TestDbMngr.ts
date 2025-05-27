@@ -12,6 +12,7 @@ export default class TestDbMngr {
   public static readonly sakilaDbName = 'test_sakila';
   public static metaKnex: Knex;
   public static sakilaKnex: Knex;
+  private static isInitialized = false;
 
   public static defaultConnection = {
     user: 'root',
@@ -19,6 +20,16 @@ export default class TestDbMngr {
     host: 'localhost',
     port: 3306,
     client: 'mysql2',
+    pool: {
+      min: 2,
+      max: 10,
+      acquireTimeoutMillis: 30000,
+      createTimeoutMillis: 30000,
+      destroyTimeoutMillis: 5000,
+      idleTimeoutMillis: 30000,
+      reapIntervalMillis: 1000,
+      createRetryIntervalMillis: 100,
+    },
   };
 
   public static pgConnection = {
@@ -27,6 +38,16 @@ export default class TestDbMngr {
     host: 'localhost',
     port: 5432,
     client: 'pg',
+    pool: {
+      min: 2,
+      max: 10,
+      acquireTimeoutMillis: 30000,
+      createTimeoutMillis: 30000,
+      destroyTimeoutMillis: 5000,
+      idleTimeoutMillis: 30000,
+      reapIntervalMillis: 1000,
+      createRetryIntervalMillis: 100,
+    },
   };
 
   public static connection: {
@@ -63,6 +84,10 @@ export default class TestDbMngr {
   }
 
   static async init() {
+    if (TestDbMngr.isInitialized) {
+      return;
+    }
+    
     TestDbMngr.populateConnectionConfig();
 
     // common for both pg and mysql
@@ -72,6 +97,8 @@ export default class TestDbMngr {
       console.log('Mysql is not configured. Switching to sqlite');
       await TestDbMngr.switchToSqlite();
     }
+    
+    TestDbMngr.isInitialized = true;
   }
 
   private static async isDbConfigured() {

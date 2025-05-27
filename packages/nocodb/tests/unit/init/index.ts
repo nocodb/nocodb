@@ -7,21 +7,30 @@ import cleanupMeta from './cleanupMeta';
 import { cleanUpSakila, resetAndSeedSakila } from './cleanupSakila';
 
 let server;
+let serverInitPromise;
 
 const serverInit = async () => {
-  const serverInstance = express();
-  serverInstance.enable('trust proxy');
-  // serverInstance.use(await Noco.init());
-  await nocobuild(serverInstance);
-  serverInstance.use(function (req, res, next) {
-    // 50 sec timeout
-    req.setTimeout(500000, function () {
-      console.log('Request has timed out.');
-      res.send(408);
+  if (serverInitPromise) {
+    return serverInitPromise;
+  }
+  
+  serverInitPromise = (async () => {
+    const serverInstance = express();
+    serverInstance.enable('trust proxy');
+    // serverInstance.use(await Noco.init());
+    await nocobuild(serverInstance);
+    serverInstance.use(function (req, res, next) {
+      // 30 sec timeout
+      req.setTimeout(30000, function () {
+        console.log('Request has timed out.');
+        res.send(408);
+      });
+      next();
     });
-    next();
-  });
-  return serverInstance;
+    return serverInstance;
+  })();
+  
+  return serverInitPromise;
 };
 
 const isFirstTimeRun = () => !server;

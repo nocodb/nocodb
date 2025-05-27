@@ -1,0 +1,11 @@
+{
+  "require": "@swc-node/register",
+  "timeout": 120000,
+  "exit": true,
+  "delay": 100,
+  "parallel": true,
+  "jobs": 4,
+  "reporter": "spec",
+  "recursive": true,
+  "bail": false
+}

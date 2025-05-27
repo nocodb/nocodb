@@ -2,14 +2,14 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "skipLibCheck": true,
-    "composite": true,
-    "target": "es2017",
+    "composite": false,
+    "target": "es2020",
     "outDir": "build/main",
     "rootDir": "src",
     "moduleResolution": "node",
     "module": "commonjs",
-    "declaration": true,
-    "inlineSourceMap": true,
+    "declaration": false,
+    "inlineSourceMap": false,
     "esModuleInterop": true
     /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
     "allowJs": false,

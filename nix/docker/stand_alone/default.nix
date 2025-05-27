@@ -7,7 +7,7 @@ let
   port = 80;
 in
 dockerTools.buildLayeredImage {
-  name = "nocodb";
+  name = "nocodb_sa";
   contents = [ dockerTools.binSh ];
 
   config = {

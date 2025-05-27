@@ -2264,6 +2264,9 @@
       "createNewTable": "Začať od začiatku.",
       "importData": "Z súborov a externých zdrojov.",
       "connectExternalData": "V reálnom čase k externým databázam."
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

@@ -807,6 +807,21 @@
     "reactivateToPlan": "{plan} প্ল্যান পুনরায় সক্রিয় করবেন?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "স্ন্যাপশট রিস্টোর করা হচ্ছে",
     "note": "নোট:",
     "snapshotRestoreMessage1": "এই স্ন্যাপশট রিস্টোর করলে বিদ্যমান বেসে কোনও প্রভাব পড়বে না।",
@@ -1208,8 +1223,8 @@
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!",
     "inviteOnlySignup": "শুধুমাত্র আমন্ত্রণ লিঙ্ক ব্যবহার করে সাইন আপ করতে দিন",
-    "nextRow": "Next Row",
-    "prevRow": "Previous Row",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "গ্রিড ভিউতে তথ্য ম্যানুয়ালি যোগ করুন",
     "addRowForm": "ফর্মের মাধ্যমে রেকর্ডের তথ্য প্রবেশ করুন",
     "noAccess": "অ্যাক্সেস নেই",
@@ -2061,6 +2076,7 @@
       "copyToClipboardLocalFileUrl": "ব্রাউজার সরাসরি স্থানীয় রিসোর্স লোড করতে দেয় না। URL কিপবোর্ডে কপি করা হয়েছে।"
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "ম্যানুয়াল হুকগুলি নিষ্ক্রিয় করা যায় না",
       "errorLoadingRecord": "রেকর্ড ডেটা লোড করার সময় ত্রুটি",
       "fetchingCalendarData": "ক্যালেন্ডার ডেটা আনতে সমস্যা",
@@ -2194,6 +2210,9 @@
       "nCellsCopied": "{n}টি সেল কপি করা হয়েছে"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "লাইসেন্স কী আপডেট করা হয়েছে",
       "columnDuplicated": "Column duplicated successfully",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
@@ -2238,7 +2257,8 @@
       "paymentSuccessful": "পেমেন্ট সফল হয়েছে",
       "paymentSuccessfulSubtitle": "আপনার পেমেন্ট প্রক্রিয়াকরণ সম্পন্ন হয়েছে। এখন আপনি আপনার নতুন পরিকল্পনা ব্যবহার করতে পারেন।",
       "upgradeSuccessful": "আপগ্রেড সফল হয়েছে",
-      "upgradeSuccessfulSubtitle": "আপগ্রেডের জন্য আপনার পেমেন্ট প্রক্রিয়াকরণ সম্পন্ন হয়েছে। এখন আপনি আপনার নতুন প্ল্যান ব্যবহার করতে পারেন।"
+      "upgradeSuccessfulSubtitle": "আপগ্রেডের জন্য আপনার পেমেন্ট প্রক্রিয়াকরণ সম্পন্ন হয়েছে। এখন আপনি আপনার নতুন প্ল্যান ব্যবহার করতে পারেন।",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "শূন্য থেকে শুরু করুন।",

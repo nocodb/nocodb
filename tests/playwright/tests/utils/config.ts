@@ -35,6 +35,7 @@ const knexConfig = {
 };
 
 function getKnexConfig({ dbName, dbType }: { dbName: string; dbType: string }) {
+  // deep copy to avoid mutation of original
   const config = JSON.parse(JSON.stringify(knexConfig[dbType]));
 
   if (dbType === 'sqlite') {

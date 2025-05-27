@@ -85,40 +85,47 @@ const accountUrl = computed(() => {
         placement="topLeft"
         :overlay-class-name="`!min-w-64 ${isMiniSidebar ? '!left-1' : ''}`"
       >
-        <div
-          class="flex"
-          :class="{
-            'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg cursor-pointer':
-              !isMiniSidebar,
-            'nc-mini-sidebar-ws-item !w-[var(--mini-sidebar-width)] flex-none': isMiniSidebar,
-          }"
-          data-testid="nc-sidebar-userinfo"
-        >
-          <div
-            v-if="isMiniSidebar"
-            class="nc-user-icon-wrapper border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300"
-            :class="{
-              'border-nc-gray-medium': !isMenuOpen,
-              'active border-primary shadow-selected': isMenuOpen,
-            }"
-          >
-            <GeneralUserIcon :user="user" size="medium" class="!w-full !h-full !min-w-full cursor-pointer" />
-          </div>
-
-          <template v-else>
-            <GeneralUserIcon :user="user" size="medium" />
-
-            <NcTooltip class="max-w-32 truncate" show-on-truncate-only>
-              <template #title>
-                {{ name ? name : user?.email }}
-              </template>
-
-              {{ name ? name : user?.email }}
-            </NcTooltip>
-
-            <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-gray-500" />
+        <NcTooltip :disabled="!isMiniSidebar" placement="right" hide-on-click>
+          <template #title>
+            <div>
+              <div v-if="name">{{ name }}</div>
+              <div>{{ user?.email }}</div>
+            </div>
           </template>
-        </div>
+          <div
+            class="flex"
+            :class="{
+              'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg cursor-pointer': !isMiniSidebar,
+              'nc-mini-sidebar-ws-item !w-[var(--mini-sidebar-width)] flex-none': isMiniSidebar,
+            }"
+            data-testid="nc-sidebar-userinfo"
+          >
+            <div
+              v-if="isMiniSidebar"
+              class="nc-user-icon-wrapper border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300"
+              :class="{
+                'border-nc-gray-medium': !isMenuOpen,
+                'active border-primary shadow-selected': isMenuOpen,
+              }"
+            >
+              <GeneralUserIcon :user="user" size="medium" class="!w-full !h-full !min-w-full cursor-pointer" />
+            </div>
+
+            <template v-else>
+              <GeneralUserIcon :user="user" size="medium" />
+
+              <NcTooltip class="max-w-32 truncate" show-on-truncate-only>
+                <template #title>
+                  {{ name ? name : user?.email }}
+                </template>
+
+                {{ name ? name : user?.email }}
+              </NcTooltip>
+
+              <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-gray-500" />
+            </template>
+          </div>
+        </NcTooltip>
         <template #overlay>
           <NcMenu data-testid="nc-sidebar-userinfo" variant="small">
             <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">

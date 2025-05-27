@@ -17,7 +17,7 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "husky": "^8.0.3",
-    "lerna": "^7.4.2",
+    "lerna": "^8.2.2",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "husky": {
@@ -70,7 +70,10 @@
       "cookie": ">=0.7.2",
       "vue@<3": ">=3",
       "@azure/identity@<4.2.1": ">=4.2.1",
-      "vue-i8n@<9.14.3": ">=9.14.3"
+      "vue-i8n@<9.14.3": ">=9.14.3",
+      "cross-spawn@<7.0.5 >=7.0.0": ">=7.0.5",
+      "dset@<3.1.4": ">=3.1.4",
+      "http-proxy-middleware@<2.0.9": "2.0.9"
     },
     "onlyBuiltDependencies": [
       "@nestjs/core",

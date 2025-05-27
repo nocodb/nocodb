@@ -1729,7 +1729,10 @@
     "searchOptions": "Sök alternativ",
     "lockViewDescription": "Förklara varför du låser denna vy. Meddelandet visas när någon försöker låsa upp vyn (valfritt).",
     "noBaseUsersFound": "Inga basanvändare hittades",
-    "noInvoices": "Inga fakturor"
+    "noInvoices": "Inga fakturor",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL-filter tillämpas från URL-parametrar och kombineras med vyfilter som ställts in via verktygsfältet.",

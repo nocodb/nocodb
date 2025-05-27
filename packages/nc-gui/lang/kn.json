@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "{workspace} ಅನ್ನು {plan} ಯೋಜನೆಗೆ ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ",
     "upgradeToPlanSubtitle": "ಈ ಪ್ಲ್ಯಾನ್‌ಗಾಗಿ ನಿಮಗೆ ತಕ್ಷಣವೇ ಶುಲ್ಕ ವಿಧಿಸಲಾಗುತ್ತದೆ.",
     "reactivateToPlan": "{plan} ಪ್ಲ್ಯಾನ್ ಅನ್ನು ಮರುಸಕ್ರಿಯಗೊಳಿಸಲಿಕ್ಕೆ?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "ನೀವು ರಚನಾ ಪ್ರವೇಶ ಹೊಂದಿರುವ ವರ್ಕ್‌ಸ್ಪೇಸ್‌ಗಳಿಗೆ ಮಾತ್ರ ಬೇಸ್‌ಗಳನ್ನು ನಕಲಿಸಬಹುದು.",
     "snapshotBaseRestoreMessage": "ನೀವು ರಚನಾ ಪ್ರವೇಶ ಅಥವಾ ಹೆಚ್ಚಿನ ಅನುಮತಿ ಇರುವ ವರ್ಕ್‌ಸ್ಪೇಸ್‌ಗಳಿಗೆ ಮಾತ್ರ ಪುನಸ್ಥಾಪಿಸಬಹುದು.",
     "currentWorkspace": "ಪ್ರಸ್ತುತ ವರ್ಕ್‌ಸ್ಪೇಸ್",
+    "currentBase": "Current base",
     "latitude": "ಅಕ್ಷಾಂಶ",
     "longitude": "ರೇಖಾಂಶ",
     "failed": "ವಿಫಲವಾಗಿದೆ",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API ತುಂಡುಗಳು",
     "includeData": "ಡೇಟಾವನ್ನು ಸೇರಿಸಿ",
     "includeRecords": "ದಾಖಲೆಗಳನ್ನು ಸೇರಿಸಿ",
-    "baseDuplicateMessage": "ಗಮನಿಸಿ: ಆಡಿಟ್ ಲಾಗ್‌ಗಳು ಮತ್ತು ಸಂಯೋಜನೆಗಳನ್ನು ನಕಲಿಸಲಾಗುವುದಿಲ್ಲ.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "ದೃಶ್ಯಗಳನ್ನು ಸೇರಿಸಿ",
     "includeWebhook": "ವೆಬ್‌ಹುಕ್ ಸೇರಿಸಿ",
     "includeComments": "ಕಾಮೆಂಟ್‌ಗಳನ್ನು ಸೇರಿಸಿ",
@@ -1611,6 +1616,7 @@
     "changePlan": "ಯೋಜನೆ ಬದಲಾವಣೆ"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "ಪ್ರತಿ ವರ್ಕ್‌ಸ್ಪೇಸ್‌ಗೆ ಕನಿಷ್ಠ ಒಬ್ಬ ಮಾಲೀಕರು ಅಗತ್ಯ. ದಯವಿಟ್ಟು ನಿಮ್ಮಿಂದ ಹೋಗುವ ಮೊದಲು ಮತ್ತೊಬ್ಬರನ್ನು ಮಾಲೀಕರಾಗಿ ನಿಯೋಜಿಸಿ. ನೀವು ಕೊನೆಯ ಸದಸ್ಯರಾಗಿದ್ದರೆ, ವರ್ಕ್‌ಸ್ಪೇಸ್ ಅಳಿಸುವುದನ್ನು ಪರಿಗಣಿಸಿ.",
     "currentDateNotAvail": "ಡೇಟಾ ಮೂಲ ಅಥವಾ ಡೇಟಾ ಪ್ರಕಾರಕ್ಕೆ ಪ್ರಸ್ತುತ ದಿನಾಂಕ ಆಯ್ಕೆ ಲಭ್ಯವಿಲ್ಲ",
     "privateConnection": "ಈ ಹಿಂದೆ ಎಲ್ಲ ಲೋಕಪಾಲರಿಗೆ ಮುಚ್ಚಿಕೊಡುವುದಾಕುವಿರಿಯಾಗಿ ಈ ಸಂಪರ್ಕವನ್ನು ಖಾಸಗಿ ಮತ್ತು ಅಡಗಿಸಿಡಲು ಸಕ್ರಿಯಗೊಳಿಸಿ.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "ದೋಷ ಕೋಡ್ ಅನ್ನು ಪ್ರತಿಕರಿಸಿ",
     "paidUserBadgeTooltip": "ಬಳಕೆದಾರ ಕನಿಷ್ಠ ಒಂದು ಬೇಸ್\r\u000bನಲ್ಲಿ ಎಡಿಟರ್ ಅಥವಾ ಅದಕ್ಕಿಂತ ಮೇಲಿನ ಪಾತ್ರ ಹೊಂದಿದ್ದಾರೆ.",
     "approachingLimit": "ಮಿತಿ ಸಮೀಪಿಸುತ್ತಿದೆ",
-    "exceedingLimit": "ಮಿತಿಯನ್ನು ಮೀರುತ್ತಿದೆ"
+    "exceedingLimit": "ಮಿತಿಯನ್ನು ಮೀರುತ್ತಿದೆ",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "ಐಕಾನ್‌ಗಳನ್ನು ಹುಡುಕಿ",

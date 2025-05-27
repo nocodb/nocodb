@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "Upgradujte pro nahrání obrázku pracovního prostoru",
-    "upgradeToUploadWsImageSubtitle": "Váš současný tarif {activePlan} povoluje pouze ikony a emotikony. Přejděte na tarif {plan}, abyste mohli nahrát vlastní obrázek jako avatar pracovního prostoru."
+    "upgradeToUploadWsImageSubtitle": "Váš současný tarif {activePlan} povoluje pouze ikony a emotikony. Přejděte na tarif {plan}, abyste mohli nahrát vlastní obrázek jako avatar pracovního prostoru.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

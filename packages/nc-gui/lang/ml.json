@@ -2264,6 +2264,9 @@
       "createNewTable": "തുടക്കം മുതൽ തുടങ്ങുക.",
       "importData": "ഫയലുകളും ബാഹ്യ ഉറവിടങ്ങളും നിന്ന്.",
       "connectExternalData": "റിയല്‍ടൈമില്‍ ബാഹ്യ ഡാറ്റാബേസുകളിലേക്ക്."
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

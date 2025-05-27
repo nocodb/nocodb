@@ -182,9 +182,13 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
                 const existingRecord = list.find(
                   (r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`,
                 )
+
+                // return record without upsert field
+                const { [upsertField.title!]: _, ...rest } = record
+
                 return {
                   ...rowPkData(existingRecord!, tableMeta.columns!),
-                  ...record,
+                  ...rest,
                 }
               }),
           )

@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "{workspace} কে {plan} প্ল্যানে আপগ্রেড করুন",
     "upgradeToPlanSubtitle": "এই প্ল্যানের জন্য আপনাকে তাৎক্ষণিক চার্জ করা হবে।",
     "reactivateToPlan": "{plan} প্ল্যান পুনরায় সক্রিয় করবেন?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "আপনি শুধু সেই ওয়ার্কস্পেসে বেস ডুপ্লিকেট করতে পারেন যেখানে আপনার ক্রিয়েটর অথবা তার উপরের অনুমতি রয়েছে।",
     "snapshotBaseRestoreMessage": "আপনি শুধুমাত্র সেই ওয়ার্কস্পেসে রিস্টোর করতে পারেন যেখানে আপনার ক্রিয়েটর অথবা তার উপরের অনুমতি রয়েছে।",
     "currentWorkspace": "বর্তমান ওয়ার্কস্পেস",
+    "currentBase": "Current base",
     "latitude": "অক্ষাংশ",
     "longitude": "দ্রাঘিমাংশ",
     "failed": "ব্যর্থ",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "এপিআই স্নিপেট",
     "includeData": "তথ্য অন্তর্ভুক্ত করুন",
     "includeRecords": "রেকর্ড অন্তর্ভুক্ত করুন",
-    "baseDuplicateMessage": "নোট: অডিট লগ ও ইন্টিগ্রেশন ডুপ্লিকেট করা হবে না।",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "ভিউ অন্তর্ভুক্ত করুন",
     "includeWebhook": "ওয়েবহুক অন্তর্ভুক্ত করুন",
     "includeComments": "মন্তব্য অন্তর্ভুক্ত করুন",
@@ -1611,6 +1616,7 @@
     "changePlan": "পরিকল্পনা পরিবর্তন করুন"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "প্রতিটি ওয়ার্কস্পেসে অন্তত একজন মালিক থাকতে হবে। ওয়ার্কস্পেস ছাড়ার আগে দয়া করে অন্য কাউকে মালিক হিসেবে নির্ধারণ করুন। আপনি যদি শেষ সদস্য হন, তবে ওয়ার্কস্পেস মুছে ফেলার কথা বিবেচনা করুন।",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "এটি ব্যক্তিগত এবং এই ওয়ার্কস্পেসের অন্যান্য নির্মাতাদের থেকে লুকিয়ে রাখতে এই সংযোগ সক্ষম করুন।",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "ত্রুটি কোড কপি করুন",
     "paidUserBadgeTooltip": "ব্যবহারকারী কমপক্ষে একটিতে সম্পাদক বা উচ্চতর ভূমিকা ধারণ করে।",
     "approachingLimit": "সীমার কাছাকাছি",
-    "exceedingLimit": "সীমা অতিক্রম করেছে"
+    "exceedingLimit": "সীমা অতিক্রম করেছে",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "আইকন অনুসন্ধান করুন",

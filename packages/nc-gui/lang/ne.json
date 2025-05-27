@@ -1729,7 +1729,10 @@
     "searchOptions": "विकल्पहरू खोज्नुहोस्",
     "lockViewDescription": "तपाईं यो दृश्य किन लक गर्दै हुनुहुन्छ भनेर स्पष्ट गर्नुहोस्। यो सन्देश कसैले दृश्य अनलक गर्न खोज्दा देखाइनेछ (वैकल्पिक)।",
     "noBaseUsersFound": "कुनै बेस प्रयोगकर्ता भेटिएनन्",
-    "noInvoices": "कुनै बिल छैन"
+    "noInvoices": "कुनै बिल छैन",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL फिल्टरहरू URL प्यारामिटरहरूबाट लागू हुन्छन् र टुलबारमार्फत सेट गरिएको दृश्य फिल्टरहरूसँग मिलेर काम गर्छन्।",

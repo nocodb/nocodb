@@ -2264,6 +2264,9 @@
       "createNewTable": "Mulai dari awal.",
       "importData": "Dari file & sumber eksternal.",
       "connectExternalData": "Secara real-time ke database eksternal."
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

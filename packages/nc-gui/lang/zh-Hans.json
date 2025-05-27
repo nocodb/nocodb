@@ -94,7 +94,7 @@
     "none": "空"
   },
   "upgrade": {
-    "UpgradeToInviteMore": "Invite more members",
+    "UpgradeToInviteMore": "",
     "UpgradeToInviteMoreSubtitle": "The {activePlan} plan allows up to {editors} editors & {commenters} commenters per workspace. Upgrade to the {plan} plan for unlimited users.",
     "UpgradeToPlanToAccessThisFeature": "Upgrade to {plan} plan to access this feature",
     "UpgradeToCreateAdditionalSnapshots": "Upgrade to create additional snapshots",

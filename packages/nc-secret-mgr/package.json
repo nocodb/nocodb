@@ -46,7 +46,7 @@
     "class-transformer": "0.3.1",
     "class-validator": "^0.14.1",
     "cross-env": "^7.0.3",
-    "mocha": "^10.3.0",
+    "mocha": "^10.8.2",
     "nodemon": "^3.0.3",
     "pkg": "^5.8.0",
     "eslint-config-prettier": "^8.10.0",

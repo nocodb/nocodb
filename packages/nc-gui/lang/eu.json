@@ -807,6 +807,21 @@
     "reactivateToPlan": "Berreaktibatu {plan} plana?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Instantanea berreskuratzen",
     "note": "Oharra:",
     "snapshotRestoreMessage1": "Instantanea hau berreskuratzeak ez du eraginik izango dagoen basean.",
@@ -1208,8 +1223,8 @@
     "agreeToTos": "Erregistratuz, Zerbitzu Baldintzak onartzen dituzu",
     "welcomeToNc": "Ongietorri NocoDB-ra!",
     "inviteOnlySignup": "Erregistroa soilik gonbidapen URL baten bidez onartzea",
-    "nextRow": "Next Row",
-    "prevRow": "Previous Row",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Datuak eskuz gehitu sareko ikuspegian",
     "addRowForm": "Datu erregistro bat sartu formulario baten bidez",
     "noAccess": "Sarbiderik ez",
@@ -2061,6 +2076,7 @@
       "copyToClipboardLocalFileUrl": "Nabigatzaileak ez du tokiko baliabidea zuzenean kargatzen uzten. URLa arbelean kopiatu da."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Eskuzko hook-ak ezin dira desgaitu",
       "errorLoadingRecord": "Errorea erregistroen datuak kargatzean",
       "fetchingCalendarData": "Errorea egutegiaren datuak eskuratzean",
@@ -2194,6 +2210,9 @@
       "nCellsCopied": "{n} gelaxka kopiatuta"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "Lizentzia giltza eguneratu da",
       "columnDuplicated": "Column duplicated successfully",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
@@ -2238,7 +2257,8 @@
       "paymentSuccessful": "Ordainketa ongi burutu da",
       "paymentSuccessfulSubtitle": "Zure ordainketa prozesatu da. Orain zure plan berria erabil dezakezu.",
       "upgradeSuccessful": "Igoera arrakastatsua",
-      "upgradeSuccessfulSubtitle": "Igoerarako zure ordainketa prozesatu da. Orain zure plan berria erabil dezakezu."
+      "upgradeSuccessfulSubtitle": "Igoerarako zure ordainketa prozesatu da. Orain zure plan berria erabil dezakezu.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Hasi hutsetik.",

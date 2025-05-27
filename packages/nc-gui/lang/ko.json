@@ -804,6 +804,21 @@
     "reactivateToPlan": "{plan} 요금제를 다시 활성화하시겠습니까?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "스냅샷 복원",
     "note": "메모:",
     "snapshotRestoreMessage1": "이 스냅샷을 복원해도 기존 기반에는 영향을 주지 않습니다.",
@@ -1205,8 +1220,8 @@
     "agreeToTos": "NocoDB의 {tosLink}에 동의합니다",
     "welcomeToNc": "Welcome to NocoDB!",
     "inviteOnlySignup": "초대 URL을 사용한 가입만 허용",
-    "nextRow": "다음 행",
-    "prevRow": "이전 항목",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "그리드 뷰에 수동으로 데이터 추가",
     "addRowForm": "양식을 통해 항목 데이터 입력",
     "noAccess": "접근 권한 없음",
@@ -2055,6 +2070,7 @@
       "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "수동 후크는 비활성화할 수 없습니다",
       "errorLoadingRecord": "항목 데이터 로딩 오류",
       "fetchingCalendarData": "캘린더 데이터를 가져오는 중 오류가 발생했습니다",
@@ -2188,6 +2204,9 @@
       "nCellsCopied": "{n} 칸이 복사되었습니다"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "라이센스 키 업데이트됨",
       "columnDuplicated": "필드가 성공적으로 복제되었습니다",
       "rowDuplicatedWithoutSavedYet": "항목 중복됨 (저장되지 않음)",
@@ -2229,8 +2248,11 @@
       "roleUpdated": "역할이 성공적으로 업데이트되었습니다",
       "connectionAdded": "연동이 성공적으로 완료되었습니다",
       "connectionAddedDesc": "이제 베이스 소유자와 생성자는 자격 증명을 다시 입력하지 않고도 데이터 소스를 추가할 수 있습니다.",
-      "paymentSuccessful": "Payment Successful",
-      "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan."
+      "paymentSuccessful": "결제 성공",
+      "paymentSuccessfulSubtitle": "결제가 처리되었습니다. 이제 새 요금제를 사용할 수 있습니다.",
+      "upgradeSuccessful": "업그레이드 성공",
+      "upgradeSuccessfulSubtitle": "업그레이드에 대한 결제가 처리되었습니다. 이제 새 요금제를 사용할 수 있습니다.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "처음부터 시작하십시오.",

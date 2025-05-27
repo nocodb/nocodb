@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "ធ្វើបច្ចុប្បន្នភាពដើម្បីផ្ទុករូប Workspace",
-    "upgradeToUploadWsImageSubtitle": "គម្រោង {activePlan} បច្ចុប្បន្នអនុញ្ញាតបានតែរូបតំណាងនិងអ៊ីមូជី។ សូមធ្វើបច្ចុប្បន្នភាពទៅគម្រោង {plan} ដើម្បីផ្ទុករូបភាពផ្ទាល់ខ្លួនជារូបអាវ៉ាតារ Workspace របស់អ្នក។"
+    "upgradeToUploadWsImageSubtitle": "គម្រោង {activePlan} បច្ចុប្បន្នអនុញ្ញាតបានតែរូបតំណាងនិងអ៊ីមូជី។ សូមធ្វើបច្ចុប្បន្នភាពទៅគម្រោង {plan} ដើម្បីផ្ទុករូបភាពផ្ទាល់ខ្លួនជារូបអាវ៉ាតារ Workspace របស់អ្នក។",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

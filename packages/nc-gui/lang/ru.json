@@ -1729,7 +1729,10 @@
     "searchOptions": "Поиск опций",
     "lockViewDescription": "Объясните, почему вы блокируете это представление. Это сообщение будет показано, когда кто-либо попытается разблокировать это представление (необязательно).",
     "noBaseUsersFound": "Пользователи проекта не найдены",
-    "noInvoices": "Нет счетов"
+    "noInvoices": "Нет счетов",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "Фильтры URL применяются из параметров URL и объединяются с фильтрами представления, установленными через панель инструментов.",

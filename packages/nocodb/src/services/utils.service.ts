@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import process from 'process';
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
@@ -440,17 +441,17 @@ export class UtilsService {
       baseHasAdmin,
       firstUser: !baseHasAdmin,
       type: 'rest',
-      env: process.env.NODE_ENV,
+      env: serverConfig.environment,
       googleAuthEnabled: !!(
-        process.env.NC_GOOGLE_CLIENT_ID && process.env.NC_GOOGLE_CLIENT_SECRET
+        serverConfig.auth.googleOidc.clientId && serverConfig.auth.googleOidc.clientSecret
       ),
       githubAuthEnabled: !!(
-        process.env.NC_GITHUB_CLIENT_ID && process.env.NC_GITHUB_CLIENT_SECRET
+        serverConfig.auth.githubOidc.clientId && serverConfig.auth.githubOidc.clientSecret
       ),
       oidcAuthEnabled,
       oidcProviderName,
       oneClick: !!process.env.NC_ONE_CLICK,
-      connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
+      connectToExternalDB: serverConfig.nocoDbConfig.externalDb,
       version: packageVersion,
       defaultLimit: Math.max(
         Math.min(defaultLimitConfig.limitDefault, defaultLimitConfig.limitMax),
@@ -470,7 +471,7 @@ export class UtilsService {
       ee: Noco.isEE(),
       ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
       ncMaxAttachmentsAllowed: NC_MAX_ATTACHMENTS_ALLOWED,
-      isCloud: process.env.NC_CLOUD === 'true',
+      isCloud: serverConfig.nocoDbConfig.isCloud,
       automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',
       baseHostName: process.env.NC_BASE_HOST_NAME,
       disableEmailAuth: this.configService.get('auth.disableEmailAuth', {

@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import {
   Body,
   Controller,
@@ -18,7 +19,7 @@ import { NcRequest } from '~/interface/config';
 
 // todo: move to a interceptor
 // const blockInCloudMw = (_req, res, next) => {
-//   if (process.env.NC_CLOUD === 'true') {
+//   if (serverConfig.nocoDbConfig.isCloud) {
 //     res.status(403).send('Not allowed');
 //   } else next();
 // };

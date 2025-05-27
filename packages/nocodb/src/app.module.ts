@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import { Module, RequestMethod } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 // @ts-ignore
@@ -37,7 +38,7 @@ export const ceModuleConfig = {
           SentryModule.forRoot({
             dsn: process.env.NC_SENTRY_DSN,
             debug: false,
-            environment: process.env.NODE_ENV,
+            environment: serverConfig.environment,
             release: packageInfo.version, // must create a release in sentry.io dashboard
             logLevels: ['debug'], //based on sentry.io loglevel //
           }),
@@ -60,7 +61,6 @@ export const ceModuleConfig = {
 export class AppModule {
   // Global Middleware
   configure(consumer: MiddlewareConsumer) {
-    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
     consumer
       .apply(RawBodyMiddleware)
       .forRoutes({
@@ -72,7 +72,7 @@ export class AppModule {
       .apply(UrlEncodeMiddleware)
       .forRoutes('*')
       .apply(GuiMiddleware)
-      .forRoutes({ path: `${dashboardPath}*`, method: RequestMethod.GET })
+      .forRoutes({ path: `${serverConfig.dashboardUrl}*`, method: RequestMethod.GET })
       .apply(GlobalMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }

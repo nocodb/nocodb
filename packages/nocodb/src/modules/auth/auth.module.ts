@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 
@@ -14,7 +15,7 @@ import { AuthController } from '~/modules/auth/auth.controller';
 export const authModuleMetadata = {
   imports: [PassportModule, NocoModule],
   controllers: [
-    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [AuthController] : []),
+    ...(serverConfig.workerType != "worker" ? [AuthController] : []),
   ],
   providers: [
     AuthService,

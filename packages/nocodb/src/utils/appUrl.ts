@@ -1,6 +1,5 @@
-export const getAppUrl = () => {
-  const siteUrl =
-    process.env.NC_PUBLIC_URL || `http://localhost:${process.env.PORT || 8080}`;
+import { serverConfig } from "config";
 
-  return `${siteUrl}${process.env.NC_DASHBOARD_URL ?? '/dashboard'}`;
+export const getAppUrl = () => {
+  return `${serverConfig.publicUrl}${serverConfig.dashboardUrl}`;
 };

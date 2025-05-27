@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
@@ -203,7 +204,7 @@ export class BasesService {
 
       if (
         dataConfig?.client === 'pg' &&
-        process.env.NC_DISABLE_PG_DATA_REFLECTION !== 'true'
+        serverConfig.nocoDbConfig.dataReflection
       ) {
         baseBody.prefix = '';
         baseBody.sources = [
@@ -220,7 +221,7 @@ export class BasesService {
         ];
       } else if (
         dataConfig?.client === 'sqlite3' &&
-        process.env.NC_MINIMAL_DBS === 'true'
+        serverConfig.nocoDbConfig.minimalDb
       ) {
         // if env variable NC_MINIMAL_DBS is set, then create a SQLite file/connection for each base
         // each file will be named as nc_<random_id>.db
@@ -268,7 +269,7 @@ export class BasesService {
         ];
       }
     } else {
-      if (process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED) {
+      if (!serverConfig.nocoDbConfig.externalDb) {
         NcError.badRequest('Connecting to external db is disabled');
       }
 
@@ -326,7 +327,7 @@ export class BasesService {
 
     // populate metadata if existing table
     for (const source of await base.getSources(undefined, ncMeta)) {
-      if (process.env.NC_CLOUD !== 'true' && !base.is_meta) {
+      if (!serverConfig.nocoDbConfig.isCloud && !base.is_meta) {
         const info = await populateMeta(context, {
           source,
           base,

@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import {
   Controller,
   Get,
@@ -58,7 +59,7 @@ export class ApiDocsController {
   swaggerHtml(@Param('baseId') baseId: string, @Response() res) {
     res.send(
       getSwaggerHtml({
-        ncSiteUrl: process.env.NC_PUBLIC_URL || '',
+        ncSiteUrl: serverConfig.publicUrl,
         dashboardPath: Noco.getConfig().dashboardPath || '',
       }),
     );
@@ -69,7 +70,7 @@ export class ApiDocsController {
   redocHtml(@Param('baseId') baseId: string, @Response() res) {
     res.send(
       getRedocHtml({
-        ncSiteUrl: process.env.NC_PUBLIC_URL || '',
+        ncSiteUrl: serverConfig.publicUrl,
         dashboardPath: Noco.getConfig().dashboardPath || '',
       }),
     );
@@ -80,7 +81,7 @@ export class ApiDocsController {
   swaggerHtmlV2(@Param('baseId') baseId: string, @Response() res) {
     res.send(
       getSwaggerHtml({
-        ncSiteUrl: process.env.NC_PUBLIC_URL || '',
+        ncSiteUrl: serverConfig.publicUrl,
         dashboardPath: Noco.getConfig().dashboardPath || '',
       }),
     );
@@ -91,7 +92,7 @@ export class ApiDocsController {
   redocHtmlV2(@Param('baseId') baseId: string, @Response() res) {
     res.send(
       getRedocHtml({
-        ncSiteUrl: process.env.NC_PUBLIC_URL || '',
+        ncSiteUrl: serverConfig.publicUrl,
         dashboardPath: Noco.getConfig().dashboardPath || '',
       }),
     );

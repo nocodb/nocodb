@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import dns from 'node:dns';
 import cors from 'cors';
 import express from 'express';
@@ -33,7 +34,7 @@ process.env[`NC_DB`] = `mysql2://localhost:3306?u=root&p=password&d=${metaDb}`;
 // process.env[`DEBUG`] = 'xc*';
 
 (async () => {
-  const httpServer = server.listen(process.env.PORT || 8080, async () => {
+  const httpServer = server.listen(serverConfig.port, async () => {
     server.use(await Noco.init({}, httpServer, server));
   });
 })().catch((e) => console.log(e));

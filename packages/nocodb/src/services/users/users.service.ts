@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import { promisify } from 'util';
 import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
@@ -144,7 +145,7 @@ export class UsersService {
 
     const isFirstUser = await User.isFirst(ncMeta);
 
-    if (isFirstUser && process.env.NC_CLOUD !== 'true') {
+    if (isFirstUser && !serverConfig.nocoDbConfig.isCloud) {
       roles = `${OrgUserRoles.CREATOR},${OrgUserRoles.SUPER_ADMIN}`;
       // todo: update in nc_store
       // roles = 'owner,creator,editor'
@@ -181,7 +182,7 @@ export class UsersService {
     );
 
     // if first user and super admin, create a base
-    if (isFirstUser && process.env.NC_CLOUD !== 'true') {
+    if (isFirstUser && !serverConfig.nocoDbConfig.isCloud) {
       // todo: update swagger type
       (user as any).createdProject = await this.createDefaultProject(
         user,

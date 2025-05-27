@@ -10,15 +10,13 @@ import type { Socket } from 'socket.io';
 import { T } from '~/utils';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { TelemetryService } from '~/services/telemetry.service';
+import { serverConfig } from 'config';
 
 function getHash(str) {
   return crypto.createHash('md5').update(str).digest('hex');
 }
 
-const url = new URL(
-  process.env.NC_PUBLIC_URL ||
-    `http://localhost:${process.env.PORT || '8080'}/`,
-);
+const url = new URL(serverConfig.publicUrl);
 let namespace = url.pathname;
 namespace += namespace.endsWith('/') ? '' : '/';
 

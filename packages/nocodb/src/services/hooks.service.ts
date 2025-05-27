@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import { Inject, Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import View from '../models/View';
@@ -33,7 +34,7 @@ export class HooksService {
           : notificationJsonOrObject;
     } catch {}
 
-    if (notification.type !== 'URL' && process.env.NC_CLOUD === 'true') {
+    if (notification.type !== 'URL' && serverConfig.nocoDbConfig.isCloud) {
       NcError.badRequest('Only URL notification is supported');
     }
   }

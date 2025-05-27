@@ -4,7 +4,7 @@ const glob = require('glob');
 
 let models = {};
 
-const password = process.env.NODE_ENV === 'test' ? '' : 'password';
+const password = process.env.NODE_ENV === 'testing' ? '' : 'password';
 
 dbDriver = DbFactory.create({
   "client": "mysql",

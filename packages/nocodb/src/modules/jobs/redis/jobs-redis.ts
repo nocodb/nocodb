@@ -1,3 +1,4 @@
+import { serverConfig } from 'config'
 import { Logger } from '@nestjs/common';
 import type { InstanceCommands } from '~/interface/Jobs';
 import { PubSubRedis } from '~/redis/pubsub-redis';
@@ -49,7 +50,7 @@ export class JobsRedis {
       }
     };
 
-    if (process.env.NC_WORKER_CONTAINER === 'true') {
+    if (serverConfig.workerType === 'worker') {
       await PubSubRedis.subscribe(InstanceTypes.WORKER, async (message) => {
         await onMessage(InstanceTypes.WORKER, message);
       });

@@ -11,6 +11,7 @@ import Noco from '~/Noco';
 import { UsersService } from '~/services/users/users.service';
 import { BaseUser, Plugin, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import { serverConfig } from 'config';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -77,25 +78,25 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   async authenticate(req: Request, options?: any): Promise<void> {
     const googlePlugin = await Plugin.getPluginByTitle('Google');
 
+    let client_id = serverConfig.auth?.googleOidc?.clientId;
+    let client_secret = serverConfig.auth?.googleOidc?.clientSecret;
     if (googlePlugin && googlePlugin.input) {
-      const settings = JSON.parse(googlePlugin.input);
-      process.env.NC_GOOGLE_CLIENT_ID = settings.client_id;
-      process.env.NC_GOOGLE_CLIENT_SECRET = settings.client_secret;
+      const pluginSettings = JSON.parse(googlePlugin.input);
+      client_id = pluginSettings.client_id;
+      client_secret = pluginSettings.client_secret;
     }
 
-    if (
-      !process.env.NC_GOOGLE_CLIENT_ID ||
-      !process.env.NC_GOOGLE_CLIENT_SECRET
-    )
+    if (!client_id || !client_secret) {
       return this.error({
         message:
           'Google client id or secret not found. Please add it in plugin settings or define env variables.',
       });
+    }
 
     return super.authenticate(req, {
       ...options,
-      clientID: process.env.NC_GOOGLE_CLIENT_ID ?? '',
-      clientSecret: process.env.NC_GOOGLE_CLIENT_SECRET ?? '',
+      clientID: client_id,
+      clientSecret: client_secret,
       callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
       passReqToCallback: true,
       scope: ['profile', 'email'],
@@ -112,8 +113,8 @@ export const GoogleStrategyProvider: FactoryProvider = {
     // if not found provide dummy values to avoid error
     // it will be handled in authenticate method ( reading from plugin )
     const clientConfig = {
-      clientID: process.env.NC_GOOGLE_CLIENT_ID ?? 'dummy-id',
-      clientSecret: process.env.NC_GOOGLE_CLIENT_SECRET ?? 'dummy-secret',
+      clientID: serverConfig.auth?.googleOidc?.clientId ?? 'dummy-id',
+      clientSecret: serverConfig.auth?.googleOidc?.clientSecret ?? 'dummy-secret',
       // todo: update url
       callbackURL: 'http://localhost:8080/dahsboard',
       passReqToCallback: true,

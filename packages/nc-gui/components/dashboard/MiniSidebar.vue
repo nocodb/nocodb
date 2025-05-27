@@ -115,10 +115,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             <div
               class="nc-mini-sidebar-btn"
               :class="{
-                active: isProjectPageOpen,
+                'active': isProjectPageOpen,
+                'active-base': isProjectListOrHomePageOpen,
               }"
             >
-              <GeneralIcon :icon="isProjectListOrHomePageOpen ? 'ncBaseOutlineDuo' : 'ncBaseOutline'" class="h-4 w-4" />
+              <GeneralIcon icon="ncBaseOutline" class="h-4 w-4" />
             </div>
           </div>
         </NcTooltip>
@@ -142,7 +143,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             </div>
           </NcTooltip>
         </DashboardSidebarMiniSidebarItemWrapper>
-        <NcDivider v-if="isUIAllowed('workspaceSettings')" class="!my-0 !border-nc-border-gray-dark" />
+        <div v-if="isUIAllowed('workspaceSettings')" class="px-2 w-full">
+          <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+        </div>
         <DashboardSidebarMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')">
           <NcTooltip :title="$t('title.teamAndSettings')" placement="right" hide-on-click :arrow="false">
             <div
@@ -157,7 +160,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                   active: isWorkspaceSettingsPageOpened,
                 }"
               >
-                <GeneralIcon :icon="isWorkspaceSettingsPageOpened ? 'ncSettingsDuo' : 'ncSettings'" class="h-4 w-4" />
+                <GeneralIcon icon="ncSettings" class="h-4 w-4" />
               </div>
             </div>
           </NcTooltip>
@@ -176,12 +179,15 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
                   active: isIntegrationsPageOpened,
                 }"
               >
-                <GeneralIcon :icon="isIntegrationsPageOpened ? 'ncIntegrationDuo' : 'integration'" class="h-4 w-4" />
+                <GeneralIcon icon="integration" class="h-4 w-4" />
               </div>
             </div>
           </NcTooltip>
         </DashboardSidebarMiniSidebarItemWrapper>
-        <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+
+        <div class="px-2 w-full">
+          <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+        </div>
         <DashboardSidebarMiniSidebarItemWrapper>
           <NcTooltip :title="$t('general.notification')" placement="right" hide-on-click :arrow="false">
             <NotificationMenu />
@@ -196,6 +202,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </NcTooltip>
       </DashboardSidebarMiniSidebarItemWrapper>
 
+      <div class="px-2 w-full">
+        <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+      </div>
       <DashboardSidebarMiniSidebarItemWrapper>
         <DashboardSidebarCreateNewActionMenu />
       </DashboardSidebarMiniSidebarItemWrapper>
@@ -244,7 +253,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
 
     &.active {
-      @apply bg-brand-100 !text-nc-content-brand;
+      @apply !bg-brand-100 !text-nc-content-brand;
+    }
+
+    &.active-base {
+      @apply !text-nc-content-brand;
     }
   }
 }

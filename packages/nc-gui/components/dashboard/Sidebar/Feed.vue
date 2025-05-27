@@ -26,7 +26,7 @@ const gotoFeed = () => navigateToFeed()
         active: isFeedPageOpened,
       }"
     >
-      <GeneralIcon :icon="isFeedPageOpened ? 'ncMegaPhoneDuo' : 'megaPhone'" class="h-4 w-4" />
+      <GeneralIcon icon="megaPhone" class="h-4 w-4" />
     </div>
   </div>
   <NcButton

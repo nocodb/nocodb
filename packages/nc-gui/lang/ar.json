@@ -806,7 +806,8 @@
     "upgradeToPlan": "قم بالترقية إلى خطة {plan}",
     "upgradeWorkspaceToPlan": "قم بترقية {workspace} إلى خطة {plan}",
     "upgradeToPlanSubtitle": "سيتم تحصيل الرسوم فورًا مقابل هذه الخطة.",
-    "reactivateToPlan": "إعادة تنشيط خطة {plan}؟"
+    "reactivateToPlan": "إعادة تنشيط خطة {plan}؟",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1321,7 +1322,8 @@
     "invoice": "فاتورة",
     "status": "الحالة",
     "invoiceTotal": "إجمالي الفاتورة",
-    "pastInvoices": "الفواتير السابقة"
+    "pastInvoices": "الفواتير السابقة",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "انقر للحل",

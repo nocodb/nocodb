@@ -3,7 +3,7 @@
 ###########
 # Builder
 ###########
-FROM node:22-alpine as builder
+FROM node:22.16.0-alpine as builder
 WORKDIR /usr/src/app
 
 # install node-gyp dependencies
@@ -35,7 +35,7 @@ RUN pnpm install --prod --shamefully-hoist --reporter=silent \
 ##########
 # Runner
 ##########
-FROM alpine:3.20
+FROM alpine:3.21
 WORKDIR /usr/src/app
 
 ENV NC_DOCKER=0.6 \

@@ -20,7 +20,7 @@ RUN cp $GOPATH/bin/litestream /usr/src/lt
 ###########
 # Builder
 ###########
-FROM node:22-slim AS builder
+FROM node:22.16.0-slim AS builder
 WORKDIR /usr/src/app
 
 # Install dependencies required for node-gyp and other build tools
@@ -57,7 +57,7 @@ RUN pnpm install --prod --shamefully-hoist \
 ##########
 # Runner
 ##########
-FROM node:22-slim
+FROM node:22.16.0-slim
 WORKDIR /usr/src/app
 
 ENV LITESTREAM_S3_SKIP_VERIFY=false \

@@ -18,7 +18,7 @@
     "url": "https://github.com/nocodb/nocodb/issues"
   },
   "engines": {
-    "node": ">=18.19.1"
+    "node": ">=18.20.8"
   },
   "license": "AGPL-3.0-or-later",
   "keywords": [],
@@ -43,7 +43,7 @@
     "chevrotain": "^10.5.0",
     "dayjs": "^1.11.13",
     "jsep": "^1.4.0",
-    "validator": "^13.12.0"
+    "validator": "^13.15.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
@@ -61,9 +61,9 @@
     "prettier": "^2.8.8",
     "rimraf": "^5.0.10",
     "swagger-typescript-api": "10.0.3",
-    "ts-jest": "^29.2.5",
+    "ts-jest": "^29.3.4",
     "tsc-alias": "^1.8.10",
-    "typescript": "^5.7.3"
+    "typescript": "^5.8.3"
   },
   "files": [
     "build/main",

@@ -119,6 +119,7 @@
     "upgradeToAdd": "Passez à une version supérieure pour ajouter",
     "requestUpgradeToAdd": "Demander la mise à niveau pour ajouter",
     "upgradeToAddMoreExtensions": "Vous êtes actuellement sur le plan Gratuit, qui permet seulement une extension. Passez à une version supérieure pour débloquer des extensions illimitées.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Passez à une version supérieure pour accéder à l'audit de l'espace de travail",
     "upgradeToAccessWsAuditSubtitle": "Passez au plan {plan} pour activer les journaux d'audit de l'espace de travail et surveiller efficacement les activités clés.",
     "upgradeToAddMoreAttachments": "Passez à une version supérieure pour ajouter plus de pièces jointes",
@@ -155,6 +156,7 @@
     "upgradeToUploadWsImageSubtitle": "Votre plan {activePlan} actuel autorise uniquement les icônes et les émojis. Passez au plan {plan} pour téléverser une image personnalisée comme avatar de votre espace de travail."
   },
   "general": {
+    "script": "Script",
     "supported": "Pris en charge",
     "usage": "Utilisation",
     "snapshot": "Instantané",
@@ -822,6 +824,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Restauration de l'instantané",
     "note": "Remarque :",
     "snapshotRestoreMessage1": "La restauration de cet instantané n'affectera pas la base existante.",

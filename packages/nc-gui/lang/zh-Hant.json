@@ -807,6 +807,21 @@
     "reactivateToPlan": "確定重新啟用 {plan} 方案？"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "還原快照中",
     "note": "注意：",
     "snapshotRestoreMessage1": "還原此快照不會影響現有 Base。",
@@ -1208,8 +1223,8 @@
     "agreeToTos": "通過註冊，表示您同意遵守服務條款",
     "welcomeToNc": "歡迎來到 NocoDB！",
     "inviteOnlySignup": "只接受使用邀請連結進行註冊",
-    "nextRow": "Next Row",
-    "prevRow": "Previous Row",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "在網格檢視中手動添加資料",
     "addRowForm": "通過表單輸入記錄資料",
     "noAccess": "無存取權限",
@@ -2061,6 +2076,7 @@
       "copyToClipboardLocalFileUrl": "瀏覽器不允許直接載入本機資源，已改為將 URL 複製到剪貼簿。"
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "手動鉤子無法禁用",
       "errorLoadingRecord": "加載記錄數據時出錯",
       "fetchingCalendarData": "獲取日曆數據時出錯",
@@ -2194,6 +2210,9 @@
       "nCellsCopied": "{n} 個儲存格已複製"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "許可證密鑰已更新",
       "columnDuplicated": "Column duplicated successfully",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
@@ -2238,7 +2257,8 @@
       "paymentSuccessful": "付款成功",
       "paymentSuccessfulSubtitle": "您的付款已完成，現在可以使用新的方案。",
       "upgradeSuccessful": "升級成功",
-      "upgradeSuccessfulSubtitle": "您的升級付款已完成，現在可以使用新的方案。"
+      "upgradeSuccessfulSubtitle": "您的升級付款已完成，現在可以使用新的方案。",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "從零開始。",

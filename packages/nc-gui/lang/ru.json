@@ -806,7 +806,8 @@
     "upgradeToPlan": "Обновитесь до тарифа {plan}",
     "upgradeWorkspaceToPlan": "Обновите {workspace} до тарифа {plan}",
     "upgradeToPlanSubtitle": "Плата за этот тариф будет списана немедленно.",
-    "reactivateToPlan": "Возобновить тариф {plan}?"
+    "reactivateToPlan": "Возобновить тариф {plan}?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1321,7 +1322,8 @@
     "invoice": "Счет",
     "status": "Статус",
     "invoiceTotal": "Всего к оплате",
-    "pastInvoices": "Предыдущие счета"
+    "pastInvoices": "Предыдущие счета",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Нажмите, чтобы разрешить",

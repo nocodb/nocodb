@@ -1729,7 +1729,10 @@
     "searchOptions": "Opzioni ricerca",
     "lockViewDescription": "Spiega perché stai bloccando questa vista. Questo messaggio sarà mostrato quando qualcuno proverà a sbloccarla (opzionale).",
     "noBaseUsersFound": "Nessun utente della base trovato",
-    "noInvoices": "Nessuna fattura"
+    "noInvoices": "Nessuna fattura",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "I filtri URL vengono applicati dai parametri dell'URL e combinati con i filtri della vista impostati dalla barra degli strumenti.",

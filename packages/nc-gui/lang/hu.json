@@ -807,6 +807,21 @@
     "reactivateToPlan": "{plan} csomag újraaktiválása?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Pillanatkép visszaállítása",
     "note": "Megjegyzés:",
     "snapshotRestoreMessage1": "Ennek a pillanatképnek a visszaállítása nem érinti a meglévő bázist.",
@@ -1208,8 +1223,8 @@
     "agreeToTos": "A regisztrációval elfogadja a Szolgáltatási feltételeket",
     "welcomeToNc": "Üdvözöljük a NocoDB-ben!",
     "inviteOnlySignup": "Regisztráció csak meghívó URL-lel engedélyezett",
-    "nextRow": "Következő rekord",
-    "prevRow": "Előző rekord",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Adatok manuális hozzáadása a rács nézetben",
     "addRowForm": "Adatok bevitele űrlapon keresztül",
     "noAccess": "Nincs hozzáférés",
@@ -2061,6 +2076,7 @@
       "copyToClipboardLocalFileUrl": "A böngésző nem engedélyezi a helyi erőforrás közvetlen betöltését. Az URL a vágólapra lett másolva."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "A kézi horgokat nem lehet letiltani",
       "errorLoadingRecord": "Hiba a rekordadatok betöltése közben",
       "fetchingCalendarData": "Hiba a naptár adatok lekérésekor",
@@ -2194,6 +2210,9 @@
       "nCellsCopied": "{n} cella másolva"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "Licence kulcs frissítve",
       "columnDuplicated": "Mező sikeresen duplikálva",
       "rowDuplicatedWithoutSavedYet": "Rekord duplikálva (még nincs mentve)",
@@ -2238,7 +2257,8 @@
       "paymentSuccessful": "Sikeres fizetés",
       "paymentSuccessfulSubtitle": "A fizetés feldolgozása megtörtént. Mostantól használhatja az új csomagot.",
       "upgradeSuccessful": "Sikeres frissítés",
-      "upgradeSuccessfulSubtitle": "A frissítésért fizetett összeget feldolgoztuk. Mostantól használhatja az új csomagot."
+      "upgradeSuccessfulSubtitle": "A frissítésért fizetett összeget feldolgoztuk. Mostantól használhatja az új csomagot.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Kezdés a semmiből.",

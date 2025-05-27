@@ -18,12 +18,12 @@ export class JiraAuthIntegration extends AuthIntegration {
         }
 
         this.client = new JiraClient({
-            protocol: 'https',
-            host: this.extractHostFromUrl(this.config.jira_url),
-            username: this.config.email,
-            password: this.config.token,
-            apiVersion: '3',
-            strictSSL: true,
+          protocol: 'https',
+          host: this.extractHostFromUrl(this.config.jira_url),
+          username: this.config.email,
+          password: this.config.token,
+          apiVersion: '3',
+          strictSSL: true,
         });
 
         return this.client;
@@ -33,11 +33,11 @@ export class JiraAuthIntegration extends AuthIntegration {
         }
 
         this.client = new JiraClient({
-            protocol: 'https',
-            host: this.extractHostFromUrl(this.config.jira_url),
-            bearer: this.config.oauth_token,
-            apiVersion: '3',
-            strictSSL: true,
+          protocol: 'https',
+          host: this.extractHostFromUrl(this.config.jira_url),
+          bearer: this.config.oauth_token,
+          apiVersion: '3',
+          strictSSL: true,
         });
 
         return this.client;

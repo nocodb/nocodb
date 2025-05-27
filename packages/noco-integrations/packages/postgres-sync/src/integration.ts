@@ -176,11 +176,15 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
             // Log progress for large tables
             if (offset % 1000 === 0) {
-              this.log(`[PostgreSQL Sync] Processed ${offset} records from table ${tableName}`);
+              this.log(
+                `[PostgreSQL Sync] Processed ${offset} records from table ${tableName}`,
+              );
             }
           }
 
-          this.log(`[PostgreSQL Sync] Completed syncing table ${tableName}, total records processed: ${offset}`);
+          this.log(
+            `[PostgreSQL Sync] Completed syncing table ${tableName}, total records processed: ${offset}`,
+          );
         }
       } catch (error) {
         console.error('Error fetching data from PostgreSQL:', error);

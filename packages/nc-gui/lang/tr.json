@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "Çalışma alanı resmi yüklemek için yükseltin",
-    "upgradeToUploadWsImageSubtitle": "Mevcut {activePlan} planınız yalnızca simgeler ve emojilere izin veriyor. Çalışma alanı avatarınız için özel bir resim yüklemek adına {plan} planına yükseltin."
+    "upgradeToUploadWsImageSubtitle": "Mevcut {activePlan} planınız yalnızca simgeler ve emojilere izin veriyor. Çalışma alanı avatarınız için özel bir resim yüklemek adına {plan} planına yükseltin.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

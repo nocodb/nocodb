@@ -1678,7 +1678,13 @@
     "paidUserBadgeTooltip": "User has an editor or higher role in at least one base.",
     "approachingLimit": "Approaching limit",
     "exceedingLimit": "Exceeding limit",
-    "filteredByCurrentUser": "Filtered by current user"
+    "filteredByCurrentUser": "Filtered by current user",
+    "navigateToBaseToCreateTable": "Navigate to a base to a create table",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToTableToCreateView": "Navigate to a table to a create view",
+    "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
+    "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation"
   },
   "placeholder": {
     "searchIcons": "Search icons",

@@ -5,11 +5,10 @@ const { $e } = useNuxtApp()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const isVisibleCreateNew = ref(false)
-
-const baseCreateDlg = ref(false)
+const { isUIAllowed, orgRoles, workspaceRoles } = useRoles()
 
 const { openedProject } = storeToRefs(useBases())
+
 const { base, isSharedBase } = storeToRefs(useBase())
 
 const tablesStore = useTablesStore()
@@ -22,7 +21,12 @@ const viewsStore = useViewsStore()
 const { loadViews, onOpenViewCreateModal } = viewsStore
 const { activeView } = storeToRefs(viewsStore)
 
+const isVisibleCreateNew = ref(false)
+
+const baseCreateDlg = ref(false)
+
 const isViewListLoading = ref(false)
+
 const toBeCreateType = ref<ViewTypes | 'AI'>()
 
 const isSqlView = computed(() => (activeTable.value as TableType)?.type === 'view')
@@ -83,6 +87,35 @@ function openTableCreateDialog() {
     sourceId: sourceId,
   })
 }
+
+const hasBaseCreateAccess = computed(() => {
+  if (isEeUI) {
+    return isUIAllowed('baseCreate')
+  }
+
+  return isUIAllowed('baseCreate', { roles: workspaceRoles ?? orgRoles })
+})
+
+const hasTableCreateAccess = computed(() => {
+  if (!base.value || !openedProject.value) return true
+
+  return isUIAllowed('tableCreate', {
+    roles: base.value?.project_role || base.value.workspace_role,
+    source: base.value?.sources?.[0],
+  })
+})
+
+const hasViewCreateAccess = computed(() => {
+  if (!base.value || !openedProject.value) return true
+
+  return isUIAllowed('viewCreateOrEdit')
+})
+
+const hasAutomationCreateAccess = computed(() => {
+  if (!base.value || !openedProject.value) return true
+
+  return isUIAllowed('scriptCreateOrEdit')
+})
 </script>
 
 <template>
@@ -107,23 +140,39 @@ function openTableCreateDialog() {
               {{ $t('labels.createNew') }}
             </span>
           </NcMenuItemLabel>
-          <NcMenuItem data-testid="mini-sidebar-base-create" @click="baseCreateDlg = true">
+          <NcMenuItem v-if="hasBaseCreateAccess" data-testid="mini-sidebar-base-create" @click="baseCreateDlg = true">
             <GeneralIcon icon="ncBaseOutline" class="h-4 w-4" />
             {{ $t('objects.project') }}
           </NcMenuItem>
           <NcTooltip
-            title="Navigate to a base to a create table"
-            :disabled="!!openedProject"
+            :title="
+              hasTableCreateAccess ? $t('tooltip.navigateToBaseToCreateTable') : $t('tooltip.youDontHaveAccessToCreateNewTable')
+            "
+            :disabled="!(!openedProject || !hasTableCreateAccess)"
             placement="right"
-            @click="openTableCreateDialog"
           >
-            <NcMenuItem data-testid="mini-sidebar-table-create" :disabled="!openedProject">
+            <NcMenuItem
+              data-testid="mini-sidebar-table-create"
+              :disabled="!openedProject || !hasTableCreateAccess"
+              @click="openTableCreateDialog"
+            >
               <GeneralIcon icon="table" />
               {{ $t('objects.table') }}
             </NcMenuItem>
           </NcTooltip>
-          <NcTooltip title="Navigate to a table to a create view" :disabled="!(!base || !activeTable)" placement="right">
-            <NcSubMenu class="py-0" data-testid="mini-sidebar-view-create" variant="small" :disabled="!base || !activeTable">
+          <NcTooltip
+            :title="
+              hasViewCreateAccess ? $t('tooltip.navigateToTableToCreateView') : $t('tooltip.youDontHaveAccessToCreateNewView')
+            "
+            :disabled="!(!base || !activeTable || !hasViewCreateAccess)"
+            placement="right"
+          >
+            <NcSubMenu
+              class="py-0"
+              data-testid="mini-sidebar-view-create"
+              variant="small"
+              :disabled="!base || !activeTable || !hasViewCreateAccess"
+            >
               <template #title>
                 <GeneralIcon icon="grid" />
                 {{ $t('objects.view') }}
@@ -169,18 +218,27 @@ function openTableCreateDialog() {
             </NcSubMenu>
           </NcTooltip>
 
-          <NcDivider />
-          <NcTooltip
-            title="Navigate to a base to a create automation"
-            :disabled="!!openedProject"
-            placement="right"
-            @click="openNewScriptModal({ baseId: openedProject?.id })"
-          >
-            <NcMenuItem data-testid="mini-sidebar--script-create" :disabled="!openedProject">
-              <GeneralIcon icon="ncPlay" />
-              {{ $t('general.automation') }}
-            </NcMenuItem>
-          </NcTooltip>
+          <template v-if="isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS)">
+            <NcDivider />
+            <NcTooltip
+              :title="
+                hasAutomationCreateAccess
+                  ? $t('tooltip.navigateToBaseToCreateAutomation')
+                  : $t('tooltip.youDontHaveAccessToCreateNewAutomation')
+              "
+              :disabled="!(!openedProject || !hasAutomationCreateAccess)"
+              placement="right"
+            >
+              <NcMenuItem
+                data-testid="mini-sidebar--script-create"
+                :disabled="!openedProject || !hasAutomationCreateAccess"
+                @click="openNewScriptModal({ baseId: openedProject?.id })"
+              >
+                <GeneralIcon icon="ncPlay" />
+                {{ $t('general.automation') }}
+              </NcMenuItem>
+            </NcTooltip>
+          </template>
           <!-- <NcDivider />
           <NcTooltip title="Navigate to a view to a create record" :disabled="!!activeView" placement="right">
             <NcMenuItem data-testid="mini-sidebar-record-create" :disabled="!activeView" class="capitalize">

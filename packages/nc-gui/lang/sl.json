@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "Nadgradite, da naložite sliko delovnega prostora",
-    "upgradeToUploadWsImageSubtitle": "Vaš trenutni načrt {activePlan} dovoljuje le ikone in emojije. Nadgradite na načrt {plan}, da naložite poljubno sliko kot avatar delovnega prostora."
+    "upgradeToUploadWsImageSubtitle": "Vaš trenutni načrt {activePlan} dovoljuje le ikone in emojije. Nadgradite na načrt {plan}, da naložite poljubno sliko kot avatar delovnega prostora.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

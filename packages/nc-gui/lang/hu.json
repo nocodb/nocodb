@@ -1729,7 +1729,10 @@
     "searchOptions": "Keresési opciók",
     "lockViewDescription": "Magyarázza el, miért zárolja ezt a nézetet. Ez az üzenet megjelenik, amikor valaki megpróbálja feloldani a zárolást (opcionális).",
     "noBaseUsersFound": "Nem találhatók bázisfelhasználók",
-    "noInvoices": "Nincsenek számlák"
+    "noInvoices": "Nincsenek számlák",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "Az URL-szűrők az URL paramétereiből származnak, és összevonódnak az eszköztáron beállított nézetszűrőkkel.",

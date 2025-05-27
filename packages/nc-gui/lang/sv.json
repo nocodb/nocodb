@@ -2264,6 +2264,9 @@
       "createNewTable": "Börja från början.",
       "importData": "Från filer och externa källor.",
       "connectExternalData": "I realtid till externa databaser."
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

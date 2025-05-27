@@ -807,6 +807,21 @@
     "reactivateToPlan": "{plan} planı yeniden etkinleştirilsin mi?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Anlık Görüntü Geri Yükleniyor",
     "note": "Not:",
     "snapshotRestoreMessage1": "Bu anlık görüntüyü geri yüklemek mevcut tabanı etkilemez.",
@@ -1208,8 +1223,8 @@
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!",
     "inviteOnlySignup": "Yalnızca davet URL'si kullanarak kaydolmaya izin ver",
-    "nextRow": "Sonraki Kayıt",
-    "prevRow": "Önceki Kayıt",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Tablo görünümüne elle veri ekle",
     "addRowForm": "Bir form aracılığıyla kayıt verisi girin",
     "noAccess": "Erişim Yok",
@@ -2061,6 +2076,7 @@
       "copyToClipboardLocalFileUrl": "Tarayıcı yerel kaynağı doğrudan yüklemeye izin vermiyor. Bunun yerine URL panoya kopyalandı."
     },
     "error": {
+      "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Elle tetiklenen bağlantılar devre dışı bırakılamaz",
       "errorLoadingRecord": "Kayıt verisi yüklenirken hata oluştu",
       "fetchingCalendarData": "Takvim verisi alınırken hata oluştu",
@@ -2194,6 +2210,9 @@
       "nCellsCopied": "{n} hücre kopyalandı"
     },
     "success": {
+      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenUpdated": "MCP Token Updated",
+      "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "Lisans Anahtarı Güncellendi",
       "columnDuplicated": "Sütun başarıyla çoğaltıldı",
       "rowDuplicatedWithoutSavedYet": "Satır çoğaltıldı (kaydedilmedi)",
@@ -2238,7 +2257,8 @@
       "paymentSuccessful": "Ödeme Başarılı",
       "paymentSuccessfulSubtitle": "Ödemeniz işlendi. Artık yeni planınızı kullanabilirsiniz.",
       "upgradeSuccessful": "Yükseltme Başarılı",
-      "upgradeSuccessfulSubtitle": "Yükseltme ödemeniz işlendi. Artık yeni planınızı kullanabilirsiniz."
+      "upgradeSuccessfulSubtitle": "Yükseltme ödemeniz işlendi. Artık yeni planınızı kullanabilirsiniz.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Sıfırdan başlayın.",

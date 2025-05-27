@@ -78,7 +78,7 @@
     "html-entities": "^2.5.2",
     "httpsnippet": "^2.0.0",
     "inflection": "^1.13.4",
-    "isomorphic-dompurify": "^1.13.0",
+    "isomorphic-dompurify": "^2.25.0",
     "jsbarcode": "^3.11.6",
     "jsep": "^1.4.0",
     "jwt-decode": "^3.1.2",

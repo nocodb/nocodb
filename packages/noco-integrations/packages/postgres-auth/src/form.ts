@@ -1,4 +1,7 @@
-import { FormBuilderInputType, FormBuilderValidatorType } from '@noco-integrations/core';
+import {
+  FormBuilderInputType,
+  FormBuilderValidatorType,
+} from '@noco-integrations/core';
 import type { FormDefinition } from '@noco-integrations/core';
 
 export const form: FormDefinition = [

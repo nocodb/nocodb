@@ -1,5 +1,5 @@
 import { type ClickHouseClient, createClient } from '@clickhouse/client';
-import { AuthIntegration, AuthType } from '@noco-integrations/core';
+import { AuthIntegration } from '@noco-integrations/core';
 import type {
   AuthResponse,
   TestConnectionResponse,

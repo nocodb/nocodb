@@ -234,6 +234,15 @@ export class SyncModuleService {
           // Add system fields to the columns
           const columns = [...tableSchema.columns, ...syncSystemFields];
 
+          // first non-pk column is pv
+          const pvColumn = columns.find(
+            (col) => !tableSchema.systemFields.primaryKey.includes(col.title),
+          );
+
+          if (pvColumn) {
+            pvColumn.pv = true;
+          }
+
           const model = await this.tablesService.tableCreate(context, {
             baseId: base.id,
             table: {

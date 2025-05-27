@@ -1729,7 +1729,10 @@
     "searchOptions": "Optionen durchsuchen",
     "lockViewDescription": "Erläutern Sie, warum Sie diese Ansicht sperren. Diese Nachricht wird angezeigt, wenn jemand versucht, diese Ansicht zu entsperren (optional).",
     "noBaseUsersFound": "Keine Base-Benutzer gefunden",
-    "noInvoices": "Keine Rechnungen"
+    "noInvoices": "Keine Rechnungen",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL-Filter werden aus URL-Parametern angewendet und mit den über die Symbolleiste gesetzten Ansichtsfiltern kombiniert.",

@@ -2264,6 +2264,9 @@
       "createNewTable": "เริ่มจากศูนย์",
       "importData": "จากไฟล์และแหล่งข้อมูลภายนอก",
       "connectExternalData": "แบบเรียลไทม์ไปยังฐานข้อมูลภายนอก"
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

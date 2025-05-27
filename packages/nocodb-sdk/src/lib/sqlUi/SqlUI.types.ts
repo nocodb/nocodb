@@ -63,4 +63,6 @@ export interface SqlUi {
   ): void;
 
   isParsedJsonReturnType(col: ColumnType): boolean;
+
+  get tableNameLengthLimit(): number;
 }

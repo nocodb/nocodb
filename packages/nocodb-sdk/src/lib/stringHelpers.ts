@@ -1,19 +1,35 @@
 import { ncIsUndefined } from './is';
 
-const OVERFLOW_REPLACEMENT_REGEX = /\.\.\.\s?(\d*)$/;
-const STRING_OVERFLOW_REPLACEMENT = '...{index}';
+const AppendToLengthSuffixConfig = {
+  _: {
+    replacement: '___{index}',
+    replacementRegex: /___\s?(\d*)$/,
+  },
+  dot: {
+    replacement: '...{index}',
+    replacementRegex: /\.\.\.\s?(\d*)$/,
+  },
+};
+export enum AppendToLengthSuffix {
+  _ = '_',
+  dot = 'dot',
+}
 
 export async function appendToLength(param: {
   value: string;
   appendage: string;
   maxLength: number;
   isExists: (value: string) => Promise<boolean>;
+  suffix?: AppendToLengthSuffix;
 }) {
   const { value, appendage, maxLength, isExists } = param;
+  const suffixConfig =
+    AppendToLengthSuffixConfig[param.suffix ?? AppendToLengthSuffix.dot];
+
   // if it's already in the form of truncated
   // skip with usual append
   if ((value + appendage).length > maxLength) {
-    const existingIndex = value.match(OVERFLOW_REPLACEMENT_REGEX)?.[1];
+    const existingIndex = value.match(suffixConfig.replacementRegex)?.[1];
 
     return truncateToLength({
       value,
@@ -23,6 +39,7 @@ export async function appendToLength(param: {
           ? Number(existingIndex)
           : undefined,
       isExists,
+      suffix: param.suffix,
     });
   }
 
@@ -35,6 +52,7 @@ export async function appendToLength(param: {
       return appendToLength({
         ...param,
         appendage: appendage + '_' + currentIndex++,
+        suffix: param.suffix,
       });
     }
   }
@@ -46,10 +64,13 @@ export async function truncateToLength(param: {
   maxLength: number;
   currentIndex?: number;
   isExists: (value: string) => Promise<boolean>;
+  suffix?: AppendToLengthSuffix;
 }) {
   const { value, currentIndex, maxLength, isExists } = param;
-  const replacement = ncIsUndefined(currentIndex) ? '' : ` ${currentIndex}`;
-  const suffix = STRING_OVERFLOW_REPLACEMENT.replace('{index}', replacement);
+  const suffixConfig =
+    AppendToLengthSuffixConfig[param.suffix ?? AppendToLengthSuffix.dot];
+  const replacement = ncIsUndefined(currentIndex) ? '' : `${currentIndex}`;
+  const suffix = suffixConfig.replacement.replace('{index}', replacement);
   const needle = value.substring(0, maxLength - suffix.length) + suffix;
   if (!(await isExists(needle))) {
     return needle;

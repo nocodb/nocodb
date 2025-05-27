@@ -1729,7 +1729,10 @@
     "searchOptions": "Options de recherche",
     "lockViewDescription": "Expliquez pourquoi vous verrouillez cette vue. Ce message sera affiché lorsque quelqu'un tentera de déverrouiller cette vue (facultatif).",
     "noBaseUsersFound": "Aucun utilisateur de base trouvé",
-    "noInvoices": "Aucune facture"
+    "noInvoices": "Aucune facture",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "Les filtres d'URL sont appliqués à partir des paramètres d'URL et se combinent avec les filtres de vue définis via la barre d'outils.",

@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "ಕಾರ್ಯಕ್ಷೇತ್ರ ಚಿತ್ರವನ್ನು ಅಪ್\r\u000bಲೋಡ್ ಮಾಡಲು ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ",
-    "upgradeToUploadWsImageSubtitle": "ನಿಮ್ಮ ಪ್ರಸ್ತುತ {activePlan} ಯೋಜನೆ ಐಕಾನ್‌ಗಳು ಮತ್ತು ಇಮೋಜಿಗಳನ್ನು ಮಾತ್ರ ಅನುಮತಿಸುತ್ತದೆ. ಕಾರ್ಯಕ್ಷೇತ್ರ ಅವತಾರವಾಗಿ ಕಸ್ಟಮ್ ಚಿತ್ರವನ್ನು ಅಪ್\r\u000bಲೋಡ್ ಮಾಡಲು {plan} ಯೋಜನೆಗೆ ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ."
+    "upgradeToUploadWsImageSubtitle": "ನಿಮ್ಮ ಪ್ರಸ್ತುತ {activePlan} ಯೋಜನೆ ಐಕಾನ್‌ಗಳು ಮತ್ತು ಇಮೋಜಿಗಳನ್ನು ಮಾತ್ರ ಅನುಮತಿಸುತ್ತದೆ. ಕಾರ್ಯಕ್ಷೇತ್ರ ಅವತಾರವಾಗಿ ಕಸ್ಟಮ್ ಚಿತ್ರವನ್ನು ಅಪ್\r\u000bಲೋಡ್ ಮಾಡಲು {plan} ಯೋಜನೆಗೆ ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

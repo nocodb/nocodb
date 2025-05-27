@@ -9,7 +9,6 @@ import AsanaSync from '@noco-local-integrations/asana-sync';
 import AzureAi from '@noco-local-integrations/azure-ai';
 import ClaudeAi from '@noco-local-integrations/claude-ai';
 import ClickhouseAuth from '@noco-local-integrations/clickhouse-auth';
-import ClickhouseSync from '@noco-local-integrations/clickhouse-sync';
 import DeepseekAi from '@noco-local-integrations/deepseek-ai';
 import GithubAuth from '@noco-local-integrations/github-auth';
 import GithubSync from '@noco-local-integrations/github-sync';
@@ -36,7 +35,6 @@ export default [
   AzureAi,
   ClaudeAi,
   ClickhouseAuth,
-  ClickhouseSync,
   DeepseekAi,
   GithubAuth,
   GithubSync,

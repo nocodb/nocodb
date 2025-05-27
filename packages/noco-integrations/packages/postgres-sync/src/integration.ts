@@ -96,62 +96,99 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     const knex = auth;
     const stream = new DataObjectStream<CustomSyncRecord>();
 
-    try {
-      // Ensure we have schema information
-      const schema =
-        this.config.custom_schema || (await this.getDestinationSchema(auth));
+    (async () => {
+      try {
+        // Ensure we have schema information
+        const schema =
+          this.config.custom_schema || (await this.getDestinationSchema(auth));
 
-      // Get tables to sync
-      const targetTables = args.targetTables || [];
-      const incrementalValues = args.targetTableIncrementalValues || {};
+        // Get tables to sync
+        const targetTables = args.targetTables || [];
+        const incrementalValues = args.targetTableIncrementalValues || {};
 
-      // Process each table
-      for (const tableName of targetTables) {
-        const tableSchema = schema[tableName as string];
-        if (!tableSchema) {
-          console.warn(`Schema not found for table: ${tableName}`);
-          continue;
+        // Process each table
+        for (const tableName of targetTables) {
+          const tableSchema = schema[tableName as string];
+          if (!tableSchema) {
+            console.warn(`Schema not found for table: ${tableName}`);
+            continue;
+          }
+
+          // Get column information from schema
+          const columnNames = tableSchema.columns.map((col) => col.title);
+
+          // Pagination settings
+          const pageSize = 100;
+          let offset = 0;
+          let hasMore = true;
+
+          while (hasMore) {
+            // Build query with pagination
+            let query = knex
+              .select(columnNames)
+              .from(`${this.config.schema}.${tableName}`)
+              .limit(pageSize)
+              .offset(offset);
+
+            // Apply incremental filter if available
+            const incrementalKey = this.getIncrementalKey(tableName as string);
+            const incrementalValue = incrementalValues[tableName];
+
+            if (incrementalKey && incrementalValue) {
+              query = query.where(incrementalKey, '>', incrementalValue);
+            }
+
+            // Add ordering to ensure consistent pagination
+            const primaryKeys = tableSchema.systemFields?.primaryKey;
+            if (primaryKeys && primaryKeys.length > 0) {
+              // Order by primary key(s) for consistent pagination
+              primaryKeys.forEach((pk) => {
+                query = query.orderBy(pk, 'asc');
+              });
+            } else {
+              // Fallback: order by first column if no primary key
+              if (columnNames.length > 0) {
+                query = query.orderBy(columnNames[0], 'asc');
+              }
+            }
+
+            // Execute query
+            const rows = await query;
+
+            // Process rows
+            for (const row of rows) {
+              const recordId = this.generateRecordId(tableName as string, row);
+
+              // Format data according to schema
+              const { data, links } = this.formatData(tableName as string, row);
+
+              stream.push({
+                targetTable: tableName as string,
+                recordId,
+                data,
+                links,
+              });
+            }
+
+            // Check if we have more data
+            hasMore = rows.length === pageSize;
+            offset += pageSize;
+
+            // Log progress for large tables
+            if (offset % 1000 === 0) {
+              this.log(`[PostgreSQL Sync] Processed ${offset} records from table ${tableName}`);
+            }
+          }
+
+          this.log(`[PostgreSQL Sync] Completed syncing table ${tableName}, total records processed: ${offset}`);
         }
-
-        // Get column information from schema
-        const columnNames = tableSchema.columns.map((col) => col.title);
-
-        // Build query
-        let query = knex
-          .select(columnNames)
-          .from(`${this.config.schema}.${tableName}`);
-
-        // Apply incremental filter if available
-        const incrementalKey = this.getIncrementalKey(tableName as string);
-        const incrementalValue = incrementalValues[tableName];
-
-        if (incrementalKey && incrementalValue) {
-          query = query.where(incrementalKey, '>', incrementalValue);
-        }
-
-        // Execute query and stream results
-        const rows = await query;
-
-        for (const row of rows) {
-          const recordId = this.generateRecordId(tableName as string, row);
-
-          // Format data according to schema
-          const { data, links } = this.formatData(tableName as string, row);
-
-          stream.push({
-            targetTable: tableName as string,
-            recordId,
-            data,
-            links,
-          });
-        }
+      } catch (error) {
+        console.error('Error fetching data from PostgreSQL:', error);
+        stream.emit('error', error);
+      } finally {
+        stream.push(null); // End the stream
       }
-    } catch (error) {
-      console.error('Error fetching data from PostgreSQL:', error);
-      stream.emit('error', error);
-    } finally {
-      stream.push(null); // End the stream
-    }
+    })();
 
     return stream;
   }

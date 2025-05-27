@@ -199,25 +199,6 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
-  packages/clickhouse-sync:
-    dependencies:
-      '@clickhouse/client':
-        specifier: ^1.11.1
-        version: 1.11.1
-      '@noco-integrations/clickhouse-auth':
-        specifier: workspace:*
-        version: link:../clickhouse-auth
-      '@noco-integrations/core':
-        specifier: workspace:*
-        version: link:../../core
-    devDependencies:
-      rimraf:
-        specifier: ^5.0.1
-        version: 5.0.10
-      typescript:
-        specifier: ^5.1.6
-        version: 5.8.3
-
   packages/deepseek-ai:
     dependencies:
       '@ai-sdk/deepseek':

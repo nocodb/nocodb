@@ -1,5 +1,11 @@
 name: "Enterprise : Docker build on-premise"
 
+# This workflow builds and releases the Enterprise Edition Docker image for on-premise deployment
+# It creates a versioned tag in the format YYYY.MM.N where:
+# - YYYY: Current year
+# - MM: Current month
+# - N: User-provided suffix number
+
 on:
   # Triggered manually
   workflow_dispatch:
@@ -8,9 +14,8 @@ on:
         description: "Docker image tag, if left blank only date based tag add(version)"
         required: false
       versionSuffix:
-        description: "Version suffix (e.g. 1, 2, 3, etc), defaults to github runner number"
-        required: false
-        default: ""  # Optional, defaults to empty if not provided
+        description: "Version suffix (e.g. 1, 2, 3, etc)"
+        required: true
       skipGeneratedTag:
         description: "Skip adding the generated version tag (useful for test builds to avoid cluttering the registry with versioned tags)"
         required: false
@@ -19,31 +24,43 @@ on:
           - "false"
           - "true"
         default: "false"
+
+# Required permissions for creating and pushing Git tags
+permissions:
+  contents: write
+
 jobs:
   buildx:
     runs-on: [self-hosted, docker-build]
     env:
       working-directory: ./packages/nocodb
     steps:
+      # Setup Node.js environment
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: 22.12.0
+
+      # Setup pnpm package manager
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
+
+      # Configure pnpm store directory
       - name: Get pnpm store directory
         shell: bash
         timeout-minutes: 1
         run: |
           echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
 
+      # Checkout repository
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 1
 
+      # Configure Docker repository and build tag
       - name: Get Docker Repository
         id: get-docker-repository
         run: |
@@ -54,14 +71,18 @@ jobs:
           echo DOCKER_REPOSITORY: ${DOCKER_REPOSITORY}
           echo DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
 
+      # Clean npm configuration and install dependencies
       - name: remove use-node-version line from .npmrc
         run: sed -i '/^use-node-version/d' .npmrc
       - name: install dependencies
         run: pnpm bootstrap
+
+      # Generate release version timestamp
       - name: Set outputs
         id: vars
         run: echo "release_version=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
+      # Create version identifier file with build metadata
       - name: Create nc.txt version identifier file
         run: |
           mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
@@ -73,12 +94,10 @@ jobs:
           cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nocodb/src/public/
           cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nc-sql-executor/src/public/nc.txt
 
-      ### main build and deploy starts here ###
+      # Build the GUI and copy to nocodb
       - name: build nc-gui and copy to nocodb
         env:
           NC_ON_PREM: true
-        #          NC_CDN_URL: "${{ secrets.CDN_URL }}/${{ steps.vars.outputs.release_version }}"
-        #          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           # generate static build of nc-gui
@@ -89,13 +108,10 @@ jobs:
           find ./ee/dist/ -type f -name '*.js.map' -delete &&
           find ./ee/dist/ -type f -name '*.css.map' -delete &&
 
-          # # delete sourcemaps refs - enable if needed
-          # find ./ee/dist/ -type f -name '*.js' -exec sed -i -E 's/sourceMappingURL=[^ ]*\.js\.map//g' {} +
-          # find ./ee/dist/ -type f -name '*.css' -exec sed -i -E 's/sourceMappingURL=[^ ]*\.css\.map//g' {} +
-
           # copy build to nocodb
           rsync -rvzh ./ee/dist/ ../nocodb/docker/nc-gui/
 
+      # Build nocodb package
       - name: build nocodb
         run: |
           # build nocodb ( pack nocodb-sdk and nc-gui )
@@ -103,30 +119,45 @@ jobs:
           EE=true pnpm exec rspack --config rspack.ee-on-prem.config.js &&
           # remove bundled libraries (nocodb-sdk, knex-snowflake)
           pnpm uninstall --save-prod nocodb-sdk knex-snowflake knex-databricks
-      #
-      #      - name: Move files to release version folder
-      #        run: |
-      #          mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
-      #          mv packages/nc-gui/ee/dist/* packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
 
-      #      - name: Deploy UI assets to CDN
-      #        uses: pranavxc/s3-deploy@2cdf96df65b6c97ee09a5771958582b77f22b738
-      #        with:
-      #          folder: packages/nc-gui/build/
-      #          bucket: ${{ secrets.CDN_BUCKET }}
-      #          dist-id: ${{ secrets.CDN_DIST_ID }}
-      #          invalidation: /${{ steps.vars.outputs.release_version }}/*
+      # Generate version number in format YYYY.MM.N
+      - name: Set NocoDB version
+        run: |
+          # Generate date components
+          VERSION_PREFIX=$(date +%Y.%m)
+          # Use provided suffix
+          SUFFIX="${{ inputs.versionSuffix }}"
+          # Combine prefix and suffix to create final version
+          echo "NC_ON_PREM_VERSION=$VERSION_PREFIX.$SUFFIX" >> $GITHUB_ENV
 
+      # Configure Git for tag creation
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
 
+      # Create and push version tag
+      - name: Create and push tag
+        run: |
+          git tag -a "v${NC_ON_PREM_VERSION}" -m "Release version ${NC_ON_PREM_VERSION}"
+          git push origin "v${NC_ON_PREM_VERSION}"
 
+      # Update version in package.json
+      - name: Update the version in Package.json
+        run: |
+          sed -i "s/\"version\": \".*\"/\"version\": \"${NC_ON_PREM_VERSION}\"/g" ./packages/nocodb/package.json
+          echo "NC_ON_PREM_VERSION: ${NC_ON_PREM_VERSION}"
+
+      # Setup Docker buildx for multi-architecture builds
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v2.2.1
 
-
+      # Setup QEMU for cross-platform builds
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2.1.0
 
+      # Cache Docker layers for faster builds
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
@@ -135,27 +166,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
+      # Login to DockerHub
       - name: Login to DockerHub
         uses: docker/login-action@v2.1.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set NocoDB version
-        run: |
-          # Generate date as prefix
-          VERSION_PREFIX=$(date +%Y.%m.%d)
-          # Use provided suffix or fallback to github.run_number
-          SUFFIX="${{ inputs.versionSuffix != '' && inputs.versionSuffix || github.run_number }}"
-          # Combine prefix and suffix to create final version
-          echo "NC_ON_PREM_VERSION=$VERSION_PREFIX.$SUFFIX" >> $GITHUB_ENV
-
-
-      - name: Update the version in Package.json
-        run: |
-          sed -i "s/\"version\": \".*\"/\"version\": \"${NC_ON_PREM_VERSION}\"/g" ./packages/nocodb/package.json
-          echo "NC_ON_PREM_VERSION: ${NC_ON_PREM_VERSION}"
-
+      # Build and push Docker image
       - name: Build and push
         uses: docker/build-push-action@v3.2.0
         with:
@@ -170,9 +188,10 @@ jobs:
             ${{ inputs.skipGeneratedTag != 'true' && format('nocodb/nocodb-ee:{0}', env.NC_ON_PREM_VERSION) || '' }}
             ${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG != '' && format('nocodb/nocodb-ee:{0}', steps.get-docker-repository.outputs.DOCKER_BUILD_TAG) || '' }}
 
-        # Temp fix
-        # https://github.com/docker/build-push-action/issues/252
-        # https://github.com/moby/buildkit/issues/1896
+      # Temp fix
+      # https://github.com/docker/build-push-action/issues/252
+      # https://github.com/moby/buildkit/issues/1896
+      # Move Docker build cache
       - name: Move cache
         run: |
           rm -rf /tmp/.buildx-cache

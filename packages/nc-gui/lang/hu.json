@@ -119,6 +119,7 @@
     "upgradeToAdd": "Frissítés hozzáadáshoz",
     "requestUpgradeToAdd": "Kérjen frissítést a hozzáadáshoz",
     "upgradeToAddMoreExtensions": "Jelenleg az ingyenes csomagot használja, amely csak egy bővítményt engedélyez. Frissítsen korlátlan bővítményhez.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Frissítés a munkatér auditnaplójának eléréséhez",
     "upgradeToAccessWsAuditSubtitle": "Frissítsen a(z) {plan} csomagra a munkatér auditnaplóinak engedélyezéséhez és a kulcsfontosságú tevékenységek hatékony figyeléséhez.",
     "upgradeToAddMoreAttachments": "Frissítés további mellékletek hozzáadásához",
@@ -155,6 +156,7 @@
     "upgradeToUploadWsImageSubtitle": "A jelenlegi {activePlan} csomag csak ikonokat és emojikat enged. Frissítsen a(z) {plan} csomagra, hogy egyéni képet tölthessen fel munkatér avatárként."
   },
   "general": {
+    "script": "Script",
     "supported": "Támogatott",
     "usage": "Használat",
     "snapshot": "Pillanatkép",
@@ -822,6 +824,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Pillanatkép visszaállítása",
     "note": "Megjegyzés:",
     "snapshotRestoreMessage1": "Ennek a pillanatképnek a visszaállítása nem érinti a meglévő bázist.",

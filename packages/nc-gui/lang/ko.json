@@ -149,8 +149,8 @@
     "apiLimitExceedTooltip": "{activePlan} 플랜에는 매월 {limit}개의 API 호출이 포함됩니다.",
     "freePlanEditorLimitTooltip": "무료 플랜은 최대 {limit} 명의 에디터 유형 사용자를 허용하며 무제한으로 업그레이드하십시오",
     "adjustCollaboratorRoles": "공동 작업자 역할 조정",
-    "newEditorWillBeChanged": "Additional charges may apply for new invites",
-    "newEditorWillBeChangedSubtitle": "Members assigned the Editor role or higher may incur additional charges.",
+    "newEditorWillBeChanged": "새 초대에는 추가 요금이 부과될 수 있습니다.",
+    "newEditorWillBeChangedSubtitle": "편집자 역할 이상이 할당된 회원에게는 추가 요금이 부과될 수 있습니다.",
     "upgradeToUploadWsImage": "작업 영역 이미지를 업로드하도록 업그레이드",
     "upgradeToUploadWsImageSubtitle": "현재 {activePlan} 요금제는 아이콘과 이모티콘만 허용합니다. {plan} 플랜으로 업그레이드하여 사용자 지정 이미지를 작업 영역 아바타로 업로드합니다."
   },
@@ -1638,9 +1638,11 @@
     "schemaChangeDisabledFormSqlView": "이 SQL 보기에 대해서는 스키마 편집이 비활성화되어 있습니다.",
     "shiftSpace": "Shift + 스페이스바",
     "expandShiftSpace": "'Shift + Space' 확장",
-    "selectAllMappedFields": "Select all mapped fields",
-    "copyErrorCode": "Copy error code",
-    "paidUserBadgeTooltip": "User has an editor or higher role in at least one base."
+    "selectAllMappedFields": "매핑된 모든 필드 선택",
+    "copyErrorCode": "오류 코드 복사",
+    "paidUserBadgeTooltip": "사용자는 하나 이상의 기반에서 편집자 이상의 역할을 가지고 있습니다.",
+    "approachingLimit": "한계에 가까워짐",
+    "exceedingLimit": "한도 초과"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",
@@ -2023,7 +2025,7 @@
       "deleteKanbanStackConfirmation": "이 스택을 삭제하면 '{groupingField}'에서 '{stackToBeDeleted}' 선택 옵션도 제거됩니다. 레코드가 분류되지 않은 스택으로 이동합니다.",
       "computedFieldEditWarning": "계산 필드: 내용이 읽기 전용입니다. 열 편집 메뉴를 사용하여 재구성합니다",
       "computedFieldDeleteWarning": "콘텐츠는 읽기 전용입니다",
-      "computedFieldClearWarning": "Can’t clear read-only field",
+      "computedFieldClearWarning": "읽기 전용 필드를 지울 수 없습니다.",
       "fieldReadonly": "이 필드는 읽기 전용입니다",
       "noMoreRecords": "더 이상 레코드가 없습니다",
       "tokenNameNotEmpty": "토큰 이름은 비워 둘 수 없습니다",

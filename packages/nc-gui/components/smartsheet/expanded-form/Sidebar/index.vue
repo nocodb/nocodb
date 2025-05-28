@@ -6,7 +6,7 @@ const props = defineProps<{
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const expandedFormStore = useExpandedFormStoreOrThrow()
-const isAuditsEnabled = true
+const { isExpandedFormSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const tab = ref<'fields' | 'comments' | 'audits'>(props.showFieldsTab ? 'fields' : 'comments')
 
@@ -22,39 +22,42 @@ watch(tab, (newValue) => {
     <NcTabs v-model:activeKey="tab" class="h-full">
       <a-tab-pane v-if="props.showFieldsTab" key="fields" class="w-full h-full">
         <template #tab>
-          <div v-e="['c:row-expand:fields']" class="flex items-center gap-2">
-            <GeneralIcon icon="fields" class="w-4 h-4" />
-            <span class="<lg:hidden"> {{ $t('objects.fields') }} </span>
-          </div>
+          <NcTooltip class="tab flex-1" :disabled="!isExpandedFormSidebarEnabled" hide-on-click>
+            <template #title>{{ $t('objects.fields') }}</template>
+
+            <div v-e="['c:row-expand:fields']" class="flex items-center gap-2">
+              <GeneralIcon icon="fields" class="w-4 h-4" />
+              <span v-if="!isExpandedFormSidebarEnabled" class="<lg:hidden"> {{ $t('objects.fields') }} </span>
+            </div>
+          </NcTooltip>
         </template>
         <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper />
       </a-tab-pane>
 
       <a-tab-pane v-if="!isSqlView" key="comments" class="w-full h-full">
         <template #tab>
-          <div v-e="['c:row-expand:comment']" class="flex items-center gap-2">
-            <GeneralIcon icon="messageCircle" class="w-4 h-4" />
-            <span class="<lg:hidden"> {{ $t('general.comments') }} </span>
-          </div>
+          <NcTooltip class="tab flex-1" :disabled="!isExpandedFormSidebarEnabled" hide-on-click>
+            <template #title>{{ $t('general.comments') }}</template>
+
+            <div v-e="['c:row-expand:comment']" class="flex items-center gap-2">
+              <GeneralIcon icon="messageCircle" class="w-4 h-4" />
+              <span v-if="!isExpandedFormSidebarEnabled" class="<lg:hidden"> {{ $t('general.comments') }} </span>
+            </div>
+          </NcTooltip>
         </template>
         <SmartsheetExpandedFormSidebarComments />
       </a-tab-pane>
 
-      <a-tab-pane v-if="!isSqlView" key="audits" :disabled="!isAuditsEnabled" class="w-full">
+      <a-tab-pane v-if="!isSqlView" key="audits" class="w-full">
         <template #tab>
-          <NcTooltip v-if="!isAuditsEnabled" class="tab flex-1">
-            <template #title>{{ $t('title.comingSoon') }}</template>
+          <NcTooltip class="tab flex-1" :disabled="!isExpandedFormSidebarEnabled" hide-on-click>
+            <template #title>{{ $t('title.audits') }}</template>
 
-            <div v-e="['c:row-expand:audit']" class="flex items-center gap-2 text-gray-400">
+            <div v-e="['c:row-expand:audit']" class="flex items-center gap-2">
               <GeneralIcon icon="audit" class="w-4 h-4" />
-              <span class="<lg:hidden"> {{ $t('title.audits') }} </span>
+              <span v-if="!isExpandedFormSidebarEnabled" class="<lg:hidden"> {{ $t('title.audits') }} </span>
             </div>
           </NcTooltip>
-
-          <div v-else v-e="['c:row-expand:audit']" class="flex items-center gap-2">
-            <GeneralIcon icon="audit" class="w-4 h-4" />
-            <span class="<lg:hidden"> {{ $t('title.audits') }} </span>
-          </div>
         </template>
         <SmartsheetExpandedFormSidebarAudits />
       </a-tab-pane>

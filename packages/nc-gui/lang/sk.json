@@ -807,6 +807,21 @@
     "reactivateToPlan": "Znovu aktivovať plán {plan}?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Obnovuje sa snapshot",
     "note": "Poznámka:",
     "snapshotRestoreMessage1": "Obnovenie tohto snapshotu neovplyvní existujúcu databázu.",
@@ -1208,8 +1223,8 @@
     "agreeToTos": "Registráciou súhlasíte s podmienkami služby",
     "welcomeToNc": "Vitajte na NocoDB!",
     "inviteOnlySignup": "Povoľte registráciu len pomocou url pozvánky",
-    "nextRow": "Ďalší riadok",
-    "prevRow": "Predchádzajúci rad",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Manuálne pridanie údajov v zobrazení mriežky",
     "addRowForm": "Zadajte údaje záznamu cez formulár",
     "noAccess": "Žiadny prístup",
@@ -2242,7 +2257,8 @@
       "paymentSuccessful": "Platba úspešná",
       "paymentSuccessfulSubtitle": "Vaša platba bola spracovaná. Môžete teraz používať svoj nový plán.",
       "upgradeSuccessful": "Upgrade úspešný",
-      "upgradeSuccessfulSubtitle": "Vaša platba za upgrade bola spracovaná. Teraz môžete používať svoj nový plán."
+      "upgradeSuccessfulSubtitle": "Vaša platba za upgrade bola spracovaná. Teraz môžete používať svoj nový plán.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Začať od začiatku.",

@@ -806,7 +806,8 @@
     "upgradeToPlan": "שדרג לתוכנית {plan}",
     "upgradeWorkspaceToPlan": "שדרג את {workspace} לתוכנית {plan}",
     "upgradeToPlanSubtitle": "תחויב מיידית עבור תוכנית זו.",
-    "reactivateToPlan": "להפעיל מחדש את תוכנית {plan}?"
+    "reactivateToPlan": "להפעיל מחדש את תוכנית {plan}?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1321,7 +1322,8 @@
     "invoice": "חשבונית",
     "status": "סטטוס",
     "invoiceTotal": "סכום חשבונית",
-    "pastInvoices": "חשבוניות קודמות"
+    "pastInvoices": "חשבוניות קודמות",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "לחץ כדי לפתור",

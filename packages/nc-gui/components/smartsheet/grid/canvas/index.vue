@@ -2442,6 +2442,7 @@ defineExpose({
             oncontextmenu="return false"
             @mousedown="handleMouseDown"
             @mousemove="handleMouseMove"
+            @mouseleave="hideTooltip"
           >
           </canvas>
           <template #overlay>

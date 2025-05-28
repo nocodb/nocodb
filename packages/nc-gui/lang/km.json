@@ -119,6 +119,7 @@
     "upgradeToAdd": "ធ្វើបច្ចុប្បន្នភាពដើម្បីបន្ថែម",
     "requestUpgradeToAdd": "ស្នើរសុំធ្វើបច្ចុប្បន្នភាពដើម្បី​បន្ថែម",
     "upgradeToAddMoreExtensions": "បច្ចុប្បន្ន អ្នកស្ថិតនៅលើគម្រោងឥតគិតថ្លៃ ដែលអនុញ្ញាតតែ Extension មួយ។ សូមធ្វើបច្ចុប្បន្នភាពដើម្បីដោះសោការបន្ថែមដោយគ្មានកំណត់។",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "ធ្វើបច្ចុប្បន្នភាពដើម្បីចូលប្រើការវាយតម្លៃ Workspace",
     "upgradeToAccessWsAuditSubtitle": "ធ្វើបច្ចុប្បន្នភាពទៅគម្រោង {plan} ដើម្បីបើកកំណត់ត្រាវាយតម្លៃ Workspace និងតាមដានសកម្មភាពសំខាន់ៗបានមានប្រសិទ្ធភាព",
     "upgradeToAddMoreAttachments": "ធ្វើបច្ចុប្បន្នភាពដើម្បីបន្ថែមឯកសារភ្ជាប់បន្ថែម",
@@ -155,6 +156,7 @@
     "upgradeToUploadWsImageSubtitle": "គម្រោង {activePlan} បច្ចុប្បន្នអនុញ្ញាតបានតែរូបតំណាងនិងអ៊ីមូជី។ សូមធ្វើបច្ចុប្បន្នភាពទៅគម្រោង {plan} ដើម្បីផ្ទុករូបភាពផ្ទាល់ខ្លួនជារូបអាវ៉ាតារ Workspace របស់អ្នក។"
   },
   "general": {
+    "script": "Script",
     "supported": "គាំទ្រ",
     "usage": "ការប្រើប្រាស់",
     "snapshot": "Snapshot",
@@ -822,6 +824,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "កំពុងស្ដារឡើងវិញ Snapshot",
     "note": "ចំណាំ៖",
     "snapshotRestoreMessage1": "ការស្ដារឡើងវិញ Snapshot នេះមិនប៉ៈពាល់ទៅ Base មានស្រាប់ទេ។",

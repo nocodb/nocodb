@@ -558,11 +558,11 @@
     },
     "currentPlan": {
       "nextInvoice": "Next Invoice",
-      "numberOfBilledUsers": "Number of Billed Users",
-      "numberOfBillableUsers": "Number of Billable Users",
-      "storageUsedGB": "Storage Used (GB)",
-      "webhookCallsMonthly": "Webhook calls (monthly)",
-      "apiCallsMonthly": "API calls (monthly)"
+      "numberOfBilledUsers": "청구된 사용자",
+      "numberOfBillableUsers": "청구 가능한 사용자",
+      "storageUsedGB": "사용된 스토리지",
+      "webhookCallsMonthly": "웹훅 호출",
+      "apiCallsMonthly": "API 호출"
     }
   },
   "datatype": {
@@ -790,7 +790,7 @@
     "onlyProceedIfYouTrustThisLink": "이 링크를 신뢰하는 경우에만 진행하십시오.",
     "reAssignViewModalSubtitle": "재할당되면 현재 소유자는 더 이상 뷰 구성을 편집할 수 없습니다.",
     "getMoreFromNocodb": "Get more from NocoDB",
-    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
+    "getMoreFromNocodbSubtitle": "무제한 시트, 추가 항목, 더 많은 저장 공간, 조건부 웹훅, SSO, 통합 등을 잠금 해제하세요!",
     "loyaltyBannerTitle": "충성도는 보상을 받습니다 — 상한 가격을 즐기세요!",
     "loyaltyBannerSubtitle": "무제한 시트, 추가 항목, 더 많은 저장 공간, 조건부 웹훅, SSO, 통합 등을 잠금 해제하세요!",
     "selectTimezone": "시간대 표시",
@@ -807,7 +807,7 @@
     "upgradeWorkspaceToPlan": "{workspace} {plan} 플랜으로 업그레이드",
     "upgradeToPlanSubtitle": "이 플랜에 대해 즉시 요금이 청구됩니다.",
     "reactivateToPlan": "{plan} 요금제를 다시 활성화하시겠습니까?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "새로운 기능!"
   },
   "labels": {
     "mcpSetup": "MCP 설정",
@@ -832,7 +832,7 @@
     "snapshotRestoreMessage1": "이 스냅샷을 복원해도 기존 기반에는 영향을 주지 않습니다.",
     "snapshotRestoreMessage2": "복원 시 선택한 작업 영역에 새 베이스가 생성됩니다.",
     "snapshotRestoreConfirmation": "이 기본 스냅샷을 복원하시겠습니까.",
-    "tryAgain": "다시 시도해주세요.",
+    "tryAgain": "다시 시도해주세요",
     "goToBase": "베이스로 이동",
     "errorMessage": "오류 메시지:",
     "duplicateBaseBaseTitle": "베이스 복제 \"{baseTitle}\"",
@@ -872,7 +872,7 @@
     "newSnapshot": "새 스냅샷",
     "searchASnapshot": "스냅샷 검색",
     "continue": "계속",
-    "toggleExperimentalFeature": "실험적 기능을 활성화하거나 비활성화하여 향후 기능을 탐색합니다.",
+    "toggleExperimentalFeature": "실험적 기능을 활성화하거나 비활성화하여 향후 기능을 탐색합니다",
     "modifiedOn": "수정된 날짜",
     "configuration": "구성",
     "setup": "설정",
@@ -1129,7 +1129,7 @@
     "csv": "CSV",
     "csvFile": "CSV 파일",
     "json": "JSON",
-    "jsonCapitalized": "Json",
+    "jsonCapitalized": "json",
     "jsonFile": "JSON 파일",
     "excel": "Excel",
     "microsoftExcel": "Microsoft Excel",
@@ -1325,7 +1325,7 @@
     "status": "상태",
     "invoiceTotal": "송장 합계",
     "pastInvoices": "청구서",
-    "createNew": "Create New"
+    "createNew": "새로 만들기"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",
@@ -1733,9 +1733,9 @@
     "lockViewDescription": "이 뷰를 잠그는 이유를 설명하세요. 이 메시지는 누군가 이 뷰를 잠금 해제하려고 할 때 표시됩니다 (선택 사항)",
     "noBaseUsersFound": "기본 사용자를 찾을 수 없습니다.",
     "noInvoices": "인보이스 없음",
-    "noResultsFoundForYourSearch": "No results found for your search.",
-    "noTables": "No tables",
-    "noAutomations": "No automations"
+    "noResultsFoundForYourSearch": "검색에 대한 결과를 찾을 수 없습니다.",
+    "noTables": "테이블 없음",
+    "noAutomations": "자동화 없음"
   },
   "msg": {
     "urlFilter": "URL 필터는 URL 매개 변수에서 적용되며 도구 모음을 통해 설정된 보기 필터와 결합됩니다.",
@@ -2088,7 +2088,7 @@
       "copyToClipboardLocalFileUrl": "브라우저는 로컬 리소스를 직접로드 할 수 없습니다. 대신 URL이 클립보드에 복사되었습니다."
     },
     "error": {
-      "failedToDeleteMcpToken": "MCP 토큰을 삭제하지 못했습니다.",
+      "failedToDeleteMcpToken": "MCP 토큰을 삭제하지 못했습니다",
       "manualTriggerHook": "수동 후크는 비활성화할 수 없습니다",
       "errorLoadingRecord": "항목 데이터 로딩 오류",
       "fetchingCalendarData": "캘린더 데이터를 가져오는 중 오류가 발생했습니다",
@@ -2222,7 +2222,7 @@
       "nCellsCopied": "{n} 칸이 복사되었습니다"
     },
     "success": {
-      "mcpTokenDeleted": "MCP 토큰이 삭제되었습니다.",
+      "mcpTokenDeleted": "MCP 토큰이 삭제되었습니다",
       "mcpTokenUpdated": "MCP 토큰 업데이트",
       "mcpTokenCreated": "MCP 토큰이 생성됨",
       "licenseKeyUpdated": "라이센스 키 업데이트됨",

@@ -1729,7 +1729,10 @@
     "searchOptions": "Bilatu aukerak",
     "lockViewDescription": "Azaldu zergatik blokeatzen duzun ikuspegi hau. Mezu hau bistaratuko da edonork ikuspegi hau desblokeatu nahi duenean (aukerakoa).",
     "noBaseUsersFound": "Ez da base erabiltzailerik aurkitu",
-    "noInvoices": "Fakturarik ez"
+    "noInvoices": "Fakturarik ez",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL iragazkiak URL parametroetatik aplikatzen dira eta tresna-barran ezarritako ikuspegi iragazkiekin konbinatzen dira.",

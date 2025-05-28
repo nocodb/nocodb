@@ -1729,7 +1729,10 @@
     "searchOptions": "Caută opțiuni",
     "lockViewDescription": "Explicați de ce blocați această vizualizare. Acest mesaj va fi afișat când cineva va încerca să deblocheze vizualizarea (opțional).",
     "noBaseUsersFound": "Nu au fost găsiți utilizatori ai bazei",
-    "noInvoices": "Nicio factură"
+    "noInvoices": "Nicio factură",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "Filtrele URL sunt aplicate din parametrii URL și se combină cu filtrele vizualizării setate din bara de instrumente.",

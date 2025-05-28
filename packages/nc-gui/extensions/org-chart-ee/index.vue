@@ -375,7 +375,7 @@ watch([displayValueCol, pkValueCol], () => {
 <template>
   <ExtensionsExtensionWrapper>
     <div class="flex w-full h-full relative">
-      <div v-if="fullscreen" class="h-full w-80 flex flex-col gap-6 nc-scrollbar-thin border-r justify-between">
+      <div v-if="fullscreen" class="h-full w-80 flex-none flex flex-col gap-6 nc-scrollbar-thin border-r justify-between">
         <div class="flex flex-col space-y-4 h-full">
           <section>
             <h1>Table and View</h1>
@@ -387,6 +387,7 @@ watch([displayValueCol, pkValueCol], () => {
                   placeholder="-select table-"
                   :filter-option="filterOption"
                   :show-search="tables?.length > 6"
+                  dropdown-class-name="w-[250px]"
                   @change="onTableSelect"
                 >
                   <a-select-option v-for="table of tables || []" :key="table.title" :value="table.id">
@@ -416,7 +417,7 @@ watch([displayValueCol, pkValueCol], () => {
                   class="w-full nc-select-shadow"
                   :filter-option="filterOption"
                   show-search
-                  placement="bottomRight"
+                  dropdown-class-name="w-[250px]"
                 >
                   <a-select-option v-for="view of viewList" :key="view.title" :value="view.id">
                     <div class="w-full flex items-center gap-2">
@@ -452,7 +453,7 @@ watch([displayValueCol, pkValueCol], () => {
                   class="w-full nc-select-shadow"
                   :filter-option="filterOption"
                   show-search
-                  placement="bottomRight"
+                  dropdown-class-name="w-[250px]"
                 >
                   <a-select-option v-for="relationField of relationFields" :key="relationField.id" :value="relationField.id">
                     <div class="w-full flex items-center gap-2">
@@ -497,6 +498,7 @@ watch([displayValueCol, pkValueCol], () => {
                   :filter-option="filterOption"
                   show-search
                   placement="bottomRight"
+                  dropdown-class-name="w-[250px]"
                 >
                   <a-select-option :value="undefined">
                     <div class="w-full flex items-center gap-2">

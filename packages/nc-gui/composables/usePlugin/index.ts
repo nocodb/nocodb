@@ -97,6 +97,8 @@ export const usePlugin = createSharedComposable(() => {
     },
   }
 
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
   const availablePlugins = computed<PluginManifest[]>(() => [...availableExtensions.value, ...availableScripts.value])
 
   const availableExtensionIds = computed(() => availableExtensions.value.map((e) => e.id))
@@ -157,7 +159,7 @@ export const usePlugin = createSharedComposable(() => {
         }
       }
 
-      if (manifest?.disabled !== true) {
+      if (manifest?.disabled !== true && (!manifest?.beta || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))) {
         // Add to available plugins collection
         pluginCollections[type].available.value.push(manifest as any)
 
@@ -247,7 +249,17 @@ export const usePlugin = createSharedComposable(() => {
   }
 
   onMounted(async () => {
-    await loadPlugins()
+    watch(
+      () => isFeatureEnabled(FEATURE_FLAG.EXTENSIONS),
+      async () => {
+        availableExtensions.value = []
+        availableScripts.value = []
+        await loadPlugins()
+      },
+      {
+        immediate: true,
+      },
+    )
   })
 
   /**

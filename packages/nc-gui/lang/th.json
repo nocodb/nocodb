@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "อัปเกรด {workspace} เป็นแผน {plan}",
     "upgradeToPlanSubtitle": "คุณจะถูกเรียกเก็บเงินทันทีสำหรับแผนนี้",
     "reactivateToPlan": "เปิดใช้งานแผน {plan} อีกครั้งหรือไม่?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "คุณสามารถทำสำเนาฐานได้เฉพาะในพื้นที่ทำงานที่คุณมีสิทธิ์ผู้สร้างขึ้นไปเท่านั้น",
     "snapshotBaseRestoreMessage": "คุณสามารถกู้คืนได้เฉพาะในพื้นที่ทำงานที่คุณมีสิทธิ์ผู้สร้างขึ้นไปเท่านั้น",
     "currentWorkspace": "พื้นที่ทำงานปัจจุบัน",
+    "currentBase": "Current base",
     "latitude": "ละติจูด",
     "longitude": "ลองจิจูด",
     "failed": "ล้มเหลว",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API Snippets",
     "includeData": "รวมข้อมูล",
     "includeRecords": "รวมเรคคอร์ด",
-    "baseDuplicateMessage": "หมายเหตุ: บันทึกการตรวจสอบและการผสานรวมจะไม่ถูกทำสำเนา",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "รวมมุมมอง",
     "includeWebhook": "รวมเว็บฮุค",
     "includeComments": "รวมความคิดเห็น",
@@ -1611,6 +1616,7 @@
     "changePlan": "เปลี่ยนแผน"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "แต่ละพื้นที่ทำงานต้องมีเจ้าของอย่างน้อยหนึ่งคน โปรดกำหนดผู้ใช้อื่นเป็นเจ้าของก่อนออกจากพื้นที่ทำงาน หากคุณเป็นสมาชิกคนสุดท้าย ให้พิจารณาลบพื้นที่ทำงานแทน",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "เปิดใช้งานเพื่อทำให้การเชื่อมต่อนี้เป็นส่วนตัวและซ่อนจากผู้สร้างอื่น ๆ ในพื้นที่ทำงานนี้",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "คัดลอกรหัสข้อผิดพลาด",
     "paidUserBadgeTooltip": "ผู้ใช้มีสิทธิ์ระดับ Editor หรือสูงกว่าอย่างน้อยหนึ่งฐาน",
     "approachingLimit": "ใกล้ถึงขีดจำกัด",
-    "exceedingLimit": "เกินขีดจำกัด"
+    "exceedingLimit": "เกินขีดจำกัด",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "ค้นหาไอคอน",

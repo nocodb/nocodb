@@ -1730,7 +1730,10 @@
     "searchOptions": "オプションを検索",
     "lockViewDescription": "ロックする理由を説明してください。このメッセージは、誰かがこのビューのロックを解除しようとしたときに表示されます（任意）。",
     "noBaseUsersFound": "ベースのユーザーが見つかりません",
-    "noInvoices": "請求書なし"
+    "noInvoices": "請求書なし",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URLフィルターはURLパラメーターから適用され、ツールバーで設定したビューフィルターと組み合わされます。",

@@ -57,7 +57,8 @@ const hiddenFields = computed(() => {
 .mini-columns-wrapper {
   .nc-expanded-cell-header {
     @apply !bg-transparent;
-    .nc-cell-name-wrapper {
+    .nc-cell-name-wrapper,
+    .nc-virtual-cell-name-wrapper {
       @apply !px-0;
       .name.truncate {
         @apply flex items-center pl-2;

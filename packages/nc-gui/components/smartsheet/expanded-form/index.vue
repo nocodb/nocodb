@@ -33,11 +33,9 @@ const viewsStore = useViewsStore()
 
 const { activeView } = storeToRefs(viewsStore)
 
-const {
-  isExpandedFormSidebarEnabled,
-  expandedFormRightSidebarState,
-  normalizeExpandedFormSidebarWidth,
-} = storeToRefs(useSidebarStore())
+const { isExpandedFormSidebarEnabled, expandedFormRightSidebarState, normalizeExpandedFormSidebarWidth } = storeToRefs(
+  useSidebarStore(),
+)
 
 const key = ref(0)
 
@@ -840,9 +838,13 @@ export default {
             </div>
             <div
               v-else-if="displayValue && !row?.rowMeta?.new"
-              class="flex items-center font-bold text-gray-800 text-2xl overflow-hidden"
+              class="flex items-center font-bold text-gray-800 overflow-hidden"
+              :class="{
+                'text-xl': isExpandedFormSidebarEnabled,
+                'text-2xl': !isExpandedFormSidebarEnabled,
+              }"
             >
-              <span class="min-w-[120px] md:min-w-[300px]">
+              <span class="min-w-[120px]">
                 <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" show-tooltip />
               </span>
             </div>

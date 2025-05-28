@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Upgradovat {workspace} na tarif {plan}",
     "upgradeToPlanSubtitle": "Za tento tarif vám bude okamžitě účtováno.",
     "reactivateToPlan": "Znovu aktivovat tarif {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "Nastavení MCP",
     "mcpTokenVisibilityInfo": "Uložte si konfiguraci klienta MCP",
     "mcpTokenVisibilityInfoDescription": "Konfiguraci klienta MCP si můžete zobrazit pouze jednou — ujistěte se, že ji bezpečně uložíte.",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Databáze můžete duplikovat pouze do pracovních prostorů, kde máte oprávnění tvůrce nebo vyšší.",
     "snapshotBaseRestoreMessage": "Obnovovat lze pouze do pracovních prostorů, kde máte oprávnění tvůrce nebo vyšší.",
     "currentWorkspace": "Aktuální pracovní prostor",
+    "currentBase": "Current base",
     "latitude": "Zeměpisná šířka",
     "longitude": "Zeměpisná délka",
     "failed": "Neúspěšné",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API úryvky",
     "includeData": "Zahrnout data",
     "includeRecords": "Zahrnout záznamy",
-    "baseDuplicateMessage": "Poznámka: záznamy auditu a integrace nebudou duplikovány.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Zahrnout zobrazení",
     "includeWebhook": "Zahrnout webhook",
     "includeComments": "Zahrnout komentáře",
@@ -1611,6 +1616,7 @@
     "changePlan": "Změnit tarif"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Každý pracovní prostor musí mít alespoň jednoho vlastníka. Před opuštěním přiřaďte jinému uživateli roli vlastníka. Pokud jste posledním členem, zvažte místo toho odstranění pracovního prostoru.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Povolte, aby bylo toto připojení soukromé a skryté od jiných tvůrců v tomto pracovním prostoru.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Zkopírovat chybový kód",
     "paidUserBadgeTooltip": "Uživatel má roli Editor nebo vyšší alespoň v jedné bázi.",
     "approachingLimit": "Blíží se limit",
-    "exceedingLimit": "Překročen limit"
+    "exceedingLimit": "Překročen limit",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Hledat ikony",

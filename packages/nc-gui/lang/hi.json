@@ -811,7 +811,6 @@
     "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
-    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -827,8 +826,6 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
-    "exampleScript": "Example Scripts",
-    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Restoring Snapshot",
     "note": "Note:",
     "snapshotRestoreMessage1": "Restoring this snapshot will not affect the existing base.",
@@ -1231,8 +1228,8 @@
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!",
     "inviteOnlySignup": "केवल आमंत्रण यूआरएल का उपयोग करके साइनअप की अनुमति दें",
-    "nextRow": "अगला रिकॉर्ड",
-    "prevRow": "पिछला रिकॉर्ड",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "ग्रिड दृश्य में मैन्युअली डेटा जोड़ें",
     "addRowForm": "फॉर्म के माध्यम से रिकॉर्ड डेटा दर्ज करें",
     "noAccess": "कोई पहुंच नहीं",
@@ -2267,7 +2264,8 @@
       "paymentSuccessful": "भुगतान सफल हुआ",
       "paymentSuccessfulSubtitle": "आपका भुगतान प्रोसेस हो गया है। अब आप अपना नया प्लान उपयोग कर सकते हैं।",
       "upgradeSuccessful": "अपग्रेड सफल",
-      "upgradeSuccessfulSubtitle": "अपग्रेड के लिए आपका भुगतान प्रोसेस हो गया है। अब आप अपना नया प्लान उपयोग कर सकते हैं।"
+      "upgradeSuccessfulSubtitle": "अपग्रेड के लिए आपका भुगतान प्रोसेस हो गया है। अब आप अपना नया प्लान उपयोग कर सकते हैं।",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Start from scratch.",

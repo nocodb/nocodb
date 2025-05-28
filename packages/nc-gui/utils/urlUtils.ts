@@ -156,6 +156,20 @@ const handleCopyToClipboard = async (text: string) => {
   }
 }
 
+export const openLinkUsingATag = (url: string, target?: '_blank') => {
+  const link = document.createElement('a')
+  link.href = url
+  if (target) {
+    link.target = target
+    link.rel = 'noopener noreferrer nofollow' // Prevents opener access & prefetching
+  }
+  link.style.display = 'none' // Hide the link
+  document.body.appendChild(link)
+
+  link.click()
+  document.body.removeChild(link)
+}
+
 export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allowLocalUrl?: boolean) => {
   url = addMissingUrlSchma(url)
 
@@ -170,16 +184,7 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allow
       return handleCopyToClipboard(url)
     }
 
-    const link = document.createElement('a')
-    link.href = url
-    if (target) {
-      link.target = target
-      link.rel = 'noopener noreferrer nofollow' // Prevents opener access & prefetching
-    }
-    link.style.display = 'none' // Hide the link
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    openLinkUsingATag(url, target)
 
     return
   }

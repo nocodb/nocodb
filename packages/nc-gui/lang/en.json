@@ -1337,7 +1337,9 @@
     "status": "Status",
     "invoiceTotal": "Invoice Total",
     "pastInvoices": "Past Invoices",
-    "createNew": "Create New"
+    "createNew": "Create New",
+    "dataApiV2": "Data APIs V2",
+    "metaApiV2": "Meta APIs V2"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

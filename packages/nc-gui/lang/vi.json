@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "Nâng cấp để tải lên hình ảnh cho workspace",
-    "upgradeToUploadWsImageSubtitle": "Gói {activePlan} hiện tại chỉ cho phép sử dụng biểu tượng và emoji. Nâng cấp lên gói {plan} để tải lên ảnh tùy chỉnh làm ảnh đại diện workspace."
+    "upgradeToUploadWsImageSubtitle": "Gói {activePlan} hiện tại chỉ cho phép sử dụng biểu tượng và emoji. Nâng cấp lên gói {plan} để tải lên ảnh tùy chỉnh làm ảnh đại diện workspace.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

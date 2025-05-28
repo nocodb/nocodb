@@ -225,6 +225,7 @@ export class DataTableService {
       {
         cookie: param.cookie,
         throwExceptionIfNotExist: true,
+        typecast: (param.cookie?.query?.typecast ?? '') === 'true',
         isSingleRecordUpdation: !Array.isArray(param.body),
         apiVersion: param.apiVersion,
         allowSystemColumn: param.internalFlags?.allowSystemColumn,

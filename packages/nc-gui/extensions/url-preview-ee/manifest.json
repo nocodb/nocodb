@@ -22,5 +22,6 @@
     "modalSize": "md",
     "contentMinHeight": "340px"
   },
-  "order": 5
+  "order": 5,
+  "beta": true
 }

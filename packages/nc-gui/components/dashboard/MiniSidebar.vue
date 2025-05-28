@@ -95,7 +95,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     <div class="flex flex-col items-center">
       <DashboardSidebarMiniSidebarItemWrapper size="small">
         <div
-          class="min-h-9"
+          class="min-h-9 sticky top-0 bg-[var(--mini-sidebar-bg-color)]"
           :class="{
             'pt-1.5 pb-2.5': isMobileMode,
           }"
@@ -220,7 +220,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <style lang="scss">
 .nc-mini-sidebar {
-  @apply w-[var(--mini-sidebar-width)] flex-none bg-nc-bg-gray-light flex flex-col justify-between items-center border-r-1 border-nc-border-gray-medium z-12;
+  --mini-sidebar-bg-color: var(--color-grey-100);
+
+  @apply w-[var(--mini-sidebar-width)] flex-none bg-[var(--mini-sidebar-bg-color)] flex flex-col justify-between items-center border-r-1 border-nc-border-gray-medium z-12 nc-scrollbar-thin relative;
 
   .nc-mini-sidebar-ws-item {
     @apply cursor-pointer h-9 w-8 rounded py-1 flex items-center justify-center children:flex-none text-nc-content-gray-muted transition-all duration-200;

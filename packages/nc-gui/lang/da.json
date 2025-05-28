@@ -808,6 +808,21 @@
     "reactivateToPlan": "Genaktiver {plan}-plan?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Gendanner snapshot",
     "note": "Bemærk:",
     "snapshotRestoreMessage1": "Gendannelse af dette snapshot påvirker ikke den eksisterende base.",
@@ -1209,8 +1224,8 @@
     "agreeToTos": "Ved at tilmelde dig accepterer du vilkårene for service",
     "welcomeToNc": "Velkommen til NocoDB!",
     "inviteOnlySignup": "Tillad kun tilmelding ved hjælp af inviteret url",
-    "nextRow": "Næste række",
-    "prevRow": "Forrige række",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Manuelt tilføj data i gittervisning",
     "addRowForm": "Indtast rekorddata via en formular",
     "noAccess": "Ingen adgang",
@@ -2243,7 +2258,8 @@
       "paymentSuccessful": "Betaling gennemført",
       "paymentSuccessfulSubtitle": "Din betaling er blevet behandlet. Du kan nu bruge din nye plan.",
       "upgradeSuccessful": "Opgradering gennemført",
-      "upgradeSuccessfulSubtitle": "Din betaling for opgraderingen er blevet behandlet. Du kan nu bruge din nye plan."
+      "upgradeSuccessfulSubtitle": "Din betaling for opgraderingen er blevet behandlet. Du kan nu bruge din nye plan.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Start fra bunden.",

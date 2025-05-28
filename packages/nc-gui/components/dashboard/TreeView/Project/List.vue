@@ -553,4 +553,8 @@ watch(
 .ghost {
   @apply bg-primary-selected;
 }
+
+:deep(.nc-sidebar-create-base-btn.nc-button.ant-btn-text.theme-default) {
+  @apply hover:bg-brand-50 pl-[15px];
+}
 </style>

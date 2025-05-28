@@ -807,6 +807,21 @@
     "reactivateToPlan": "{plan} ಪ್ಲ್ಯಾನ್ ಅನ್ನು ಮರುಸಕ್ರಿಯಗೊಳಿಸಲಿಕ್ಕೆ?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "ಸ್ನ್ಯಾಪ್‌ಶಾಟ್ ಪುನಸ್ಥಾಪಿಸಲಾಗುತ್ತಿದೆ",
     "note": "ಗಮನಿಸಿ:",
     "snapshotRestoreMessage1": "ಈ ಸ್ನ್ಯಾಪ್‌ಶಾಟ್ ಅನ್ನು ಪುನಸ್ಥಾಪಿಸುವುದರಿಂದ ಇಂದಿನ ಬೇಸ್ ಮೇಲೆ ಯಾವುದೇ ಪರಿಣಾಮ ಬೀರುವುದಿಲ್ಲ.",
@@ -1208,8 +1223,8 @@
     "agreeToTos": "ಸೈನ್ ಅಪ್ ಮಾಡುವ ಮೂಲಕ, ನೀವು ಸೇವಾ ನಿಯಮಗಳಿಗೆ ಒಪ್ಪುತ್ತೀರಿ",
     "welcomeToNc": "NocoDB ಗೆ ಸುಸ್ವಾಗತ!",
     "inviteOnlySignup": "ನಿಮಂತ್ರಣ url ಬಳಸಿ ಮಾತ್ರ ಸೈನ್ ಅಪ್‌ಗೆ ಅನುಮತಿಸಿ",
-    "nextRow": "ಮುಂದಿನ ದಾಖಲೆ",
-    "prevRow": "ಹಿಂದಿನ ದಾಖಲೆ",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "ಗ್ರಿಡ್ ವೀಕ್ಷಣೆಯಲ್ಲಿ ಮಾನ್ಯವಾಗಿ ಡೇಟಾವನ್ನು ಸೇರಿಸಿ",
     "addRowForm": "ಫಾರ್ಮ್ನ ಮೂಲಕ ದಾಖಲೆ ಡೇಟಾವನ್ನು ನಮೂದಿಸಿ",
     "noAccess": "ಆಕ್ಸೆಸ್ ಇಲ್ಲ",
@@ -2242,7 +2257,8 @@
       "paymentSuccessful": "ಪಾವತಿ ಯಶಸ್ವಿಯಾಗಿದೆ",
       "paymentSuccessfulSubtitle": "ನಿಮ್ಮ ಪಾವತಿ ಪೂರ್ಣಗೊಂಡಿದೆ. ಈಗ ನೀವು ನಿಮ್ಮ ಹೊಸ ಯೋಜನೆಯನ್ನು ಬಳಸಬಹುದು.",
       "upgradeSuccessful": "ಅಪ್\r\u000bಗ್ರೇಡ್ ಯಶಸ್ವಿಯಾಗಿದೆ",
-      "upgradeSuccessfulSubtitle": "ಅಪ್\r\u000bಗ್ರೇಡ್‌ನಿಗಾಗಿ ваша ಪಾವತಿ ಪ್ರಕ್ರಿಯೆ ಪೂರ್ಣಗೊಂಡಿದೆ. ಈಗ ನೀವು ನಿಮ್ಮ ಹೊಸ ಯೋಜನೆಯನ್ನು ಬಳಸಬಹುದು."
+      "upgradeSuccessfulSubtitle": "ಅಪ್\r\u000bಗ್ರೇಡ್‌ನಿಗಾಗಿ ваша ಪಾವತಿ ಪ್ರಕ್ರಿಯೆ ಪೂರ್ಣಗೊಂಡಿದೆ. ಈಗ ನೀವು ನಿಮ್ಮ ಹೊಸ ಯೋಜನೆಯನ್ನು ಬಳಸಬಹುದು.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "ಪ್ರಾರಂಭದಿಂದ ಶುರುಮಾಡಿ.",

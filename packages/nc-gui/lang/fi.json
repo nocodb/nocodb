@@ -807,6 +807,21 @@
     "reactivateToPlan": "Aktivoidaanko {plan}-paketti uudelleen?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Palautetaan tilannekuvaa",
     "note": "Huom:",
     "snapshotRestoreMessage1": "Tämän tilannekuvan palauttaminen ei vaikuta olemassa olevaan pohjaan.",
@@ -1208,8 +1223,8 @@
     "agreeToTos": "Rekisteröitymällä hyväksyt käyttöehdot.",
     "welcomeToNc": "Tervetuloa NocoDB:hen!",
     "inviteOnlySignup": "Salli rekisteröityminen vain kutsun url-osoitteen avulla",
-    "nextRow": "Seuraava rivi",
-    "prevRow": "Edellinen rivi",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Lisää tietoja manuaalisesti verkkonäkymään",
     "addRowForm": "Syötä tietojen tallennus lomakkeen kautta",
     "noAccess": "Ei pääsyä",
@@ -2242,7 +2257,8 @@
       "paymentSuccessful": "Maksu onnistui",
       "paymentSuccessfulSubtitle": "Maksusi on käsitelty. Voit nyt käyttää uutta pakettiasi.",
       "upgradeSuccessful": "Päivitys onnistui",
-      "upgradeSuccessfulSubtitle": "Päivityksen maksu on käsitelty. Voit nyt käyttää uutta pakettiasi."
+      "upgradeSuccessfulSubtitle": "Päivityksen maksu on käsitelty. Voit nyt käyttää uutta pakettiasi.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Aloita tyhjästä.",

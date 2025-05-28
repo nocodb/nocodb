@@ -102,7 +102,7 @@ export function useInfiniteData(args: {
 
   const { fetchSharedViewData, fetchCount } = useSharedView()
 
-  const { nestedFilters, allFilters, sorts, isExternalSource, isAlreadyShownUpgradeModal, filtersFromUrlParams } =
+  const { nestedFilters, allFilters, sorts, isExternalSource, isAlreadyShownUpgradeModal, validFiltersFromUrlParams } =
     disableSmartsheet
       ? {
           nestedFilters: ref([]),
@@ -912,7 +912,7 @@ export function useInfiniteData(args: {
     }
 
     const rowFilters = getPlaceholderNewRow(
-      [...allFilters.value, ...(!filtersFromUrlParams?.value?.errors?.length ? filtersFromUrlParams?.value?.filters || [] : [])],
+      [...allFilters.value, ...validFiltersFromUrlParams.value],
       metaValue?.columns as ColumnType[],
     )
     const newRow = {

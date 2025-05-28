@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Uppgradera {workspace} till {plan}-planen",
     "upgradeToPlanSubtitle": "Du debiteras omedelbart för denna plan.",
     "reactivateToPlan": "Återaktivera {plan}-planen?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Du kan bara duplicera baser till arbetsutrymmen där du har skaparbehörighet eller högre.",
     "snapshotBaseRestoreMessage": "Du kan bara återställa till arbetsutrymmen där du har skaparbehörighet eller högre.",
     "currentWorkspace": "Aktuellt arbetsutrymme",
+    "currentBase": "Current base",
     "latitude": "Latitud",
     "longitude": "Longitud",
     "failed": "Misslyckades",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API Snippets",
     "includeData": "Inkludera data",
     "includeRecords": "Inkludera poster",
-    "baseDuplicateMessage": "Obs: Granskningsloggar och integrationer dupliceras inte.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Inkludera vyer",
     "includeWebhook": "Inkludera webhook",
     "includeComments": "Inkludera kommentarer",
@@ -1611,6 +1616,7 @@
     "changePlan": "Ändra plan"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Varje arbetsutrymme måste ha minst en ägare. Tilldela en annan användare som ägare innan du lämnar arbetsutrymmet. Om du är sista medlemmen bör du istället överväga att ta bort arbetsutrymmet.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Aktivera för att göra denna anslutning privat och dold från andra skapare i denna arbetsyta.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Kopiera felkod",
     "paidUserBadgeTooltip": "Användaren har redaktörsbehörighet eller högre i minst en bas.",
     "approachingLimit": "Närmar sig gränsen",
-    "exceedingLimit": "Överskrider gränsen"
+    "exceedingLimit": "Överskrider gränsen",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Sök ikoner",

@@ -85,6 +85,16 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const hideMiniSidebar = ref(false)
 
+  const expandedFormRightSidebarState = ref({
+    minWidth: 484,
+    maxWidth: 700,
+    width: 700,
+  })
+
+  const expandedFormRightSidebarWidthPercent = computed(() => {
+    return (expandedFormRightSidebarState.value.width / (width.value - leftSidebarWidth.value)) * 100
+  })
+
   const hideSidebar = ref(false)
 
   const showTopbar = ref(false)
@@ -106,6 +116,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     showTopbar,
     isNewSidebarEnabled,
     miniSidebarWidth,
+    expandedFormRightSidebarState,
+    expandedFormRightSidebarWidthPercent,
   }
 })
 

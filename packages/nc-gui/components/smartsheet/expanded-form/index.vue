@@ -717,6 +717,8 @@ const stopLoading = () => {
 defineExpose({
   stopLoading,
 })
+
+const isExapandedSidebarEnabled = true
 </script>
 
 <script lang="ts">
@@ -727,7 +729,8 @@ export default {
 
 <template>
   <component
-    :is="isMobileMode ? Drawer : NcModal"
+    v-if="isExpanded"
+    :is="isExapandedSidebarEnabled ? 'div' : isMobileMode ? Drawer : NcModal"
     :body-style="{ padding: 0 }"
     :class="{ active: isExpanded }"
     :closable="false"

@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import type { RawValueType } from '../../components/nc/List/index.vue'
+import type { NcListItemType } from '../../components/nc/List/index.vue'
 import { type AcceptableCity, timezoneData } from './timezone-data'
-import type { SelectOption } from './types'
 
 const props = withDefaults(
   defineProps<{
     disable?: boolean
     disableMessage?: string
     isSidebar?: boolean
-    modelValue: string
+    modelValue: string | string[]
   }>(),
   {
     disable: false,
@@ -21,10 +20,10 @@ const emits = defineEmits<{
 }>()
 
 const vModel = useVModel(props, 'modelValue', emits, {
-  defaultValue: '',
+  defaultValue: props.isSidebar ? [] : '',
 })
 
-const options: Ref<SelectOption[]> = ref(
+const options: Ref<NcListItemType[]> = ref(
   timezoneData.map((d) => ({
     value: d.city,
   })),
@@ -32,13 +31,14 @@ const options: Ref<SelectOption[]> = ref(
 
 const visible = ref(false)
 
-const onSelect = (optionValue: RawValueType) => {
-  emits('citySelected', optionValue as AcceptableCity)
-
+const onSelect = (option: NcListItemType) => {
   if (props.isSidebar) {
-    vModel.value = ''
+    if (!vModel.value.includes(option.value as AcceptableCity)) {
+      emits('citySelected', option.value as AcceptableCity)
+    }
   } else {
-    vModel.value = optionValue as AcceptableCity
+    emits('citySelected', option.value as AcceptableCity)
+    vModel.value = option.value as AcceptableCity
   }
 }
 </script>
@@ -47,7 +47,12 @@ const onSelect = (optionValue: RawValueType) => {
   <NcDropdown v-model:visible="visible" overlay-class-name="!min-w-auto !w-full !max-w-[277px]" @click.stop>
     <slot>
       <NcTooltip v-if="isSidebar" class="w-full" :title="disableMessage" placement="bottom" :disabled="!disable">
-        <NcButton type="secondary" class="w-full" size="small" :disabled="disable">+ Add City</NcButton>
+        <NcButton type="secondary" class="w-full" size="small" :disabled="disable" inner-class="!gap-1">
+          <template #icon>
+            <GeneralIcon icon="ncPlus" />
+          </template>
+          Add City</NcButton
+        >
       </NcTooltip>
 
       <NcButton
@@ -78,8 +83,9 @@ const onSelect = (optionValue: RawValueType) => {
         option-value-key="value"
         variant="small"
         class="!w-full"
+        :is-multi-Select="isSidebar"
         data-testid="nc-column-uitypes-options-list-wrapper"
-        @update:value="onSelect"
+        @change="onSelect"
       />
     </template>
   </NcDropdown>

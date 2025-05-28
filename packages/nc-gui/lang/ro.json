@@ -2264,6 +2264,9 @@
       "createNewTable": "Porniți de la zero.",
       "importData": "Din fișiere și surse externe.",
       "connectExternalData": "În timp real către baze de date externe."
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

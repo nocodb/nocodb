@@ -10,6 +10,10 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
+  const hideSidebar = ref(false)
+
+  const showTopbar = ref(false)
+
   const isNewSidebarEnabled = computed(() => {
     return isFeatureEnabled(FEATURE_FLAG.IMPROVED_SIDEBAR_UI)
   })
@@ -19,7 +23,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   })
 
   const miniSidebarWidth = computed(() => {
-    return isNewSidebarEnabled.value ? MINI_SIDEBAR_WIDTH : 0
+    return isNewSidebarEnabled.value && !hideSidebar.value ? MINI_SIDEBAR_WIDTH : 0
   })
 
   const tablesStore = useTablesStore()
@@ -96,7 +100,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   })
 
   const expandedFormRightSidebarWidthPercent = computed(() => {
-    return (expandedFormRightSidebarState.value.width / (width.value - leftSidebarWidth.value)) * 100
+    return (expandedFormRightSidebarState.value.width / (width.value - leftSidebarWidth.value - miniSidebarWidth.value)) * 100
   })
 
   const normalizeExpandedFormSidebarWidth = computed(() => {
@@ -108,10 +112,6 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
       return expandedFormRightSidebarState.value.width
     }
   })
-
-  const hideSidebar = ref(false)
-
-  const showTopbar = ref(false)
 
   return {
     isLeftSidebarOpen,

@@ -27,6 +27,8 @@ const newRecordSubmitBtnText = toRef(props, 'newRecordSubmitBtnText')
 
 /* stores */
 
+const { isExpandedFormSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const { commentsDrawer, changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
@@ -56,7 +58,12 @@ export default {
         'flex-1': showRightSections,
       }"
     >
-      <SmartsheetExpandedFormPresentorsFieldsColumns :fields="fields" :hidden-fields="hiddenFields" :is-loading="isLoading" />
+      <SmartsheetExpandedFormPresentorsFieldsColumns
+        :fields="fields"
+        :hidden-fields="hiddenFields"
+        :is-loading="isLoading"
+        :forceVerticalMode="isExpandedFormSidebarEnabled"
+      />
 
       <div
         v-if="canEdit"

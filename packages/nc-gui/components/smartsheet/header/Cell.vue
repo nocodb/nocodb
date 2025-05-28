@@ -188,6 +188,7 @@ const onClick = (e: Event) => {
         class="name pl-1 max-w-full"
         placement="bottom"
         show-on-truncate-only
+        hide-on-click
         :disabled="isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false"
       >
         <template #title> {{ column.title }} </template>

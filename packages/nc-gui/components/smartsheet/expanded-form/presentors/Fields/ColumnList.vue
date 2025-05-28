@@ -55,9 +55,20 @@ const showCol = (col: ColumnType) => {
           v-if="isVirtualCol(col)"
           :column="col"
           class="nc-expanded-cell-header h-full flex-none"
+          :class="{
+            'nc-expanded-cell-vertical-mode': props.forceVerticalMode,
+          }"
           :is-hidden-col="isHiddenCol"
         />
-        <LazySmartsheetHeaderCell v-else :column="col" class="nc-expanded-cell-header flex-none" :is-hidden-col="isHiddenCol" />
+        <LazySmartsheetHeaderCell
+          v-else
+          :column="col"
+          class="nc-expanded-cell-header flex-none"
+          :class="{
+            'nc-expanded-cell-vertical-mode': props.forceVerticalMode,
+          }"
+          :is-hidden-col="isHiddenCol"
+        />
       </div>
 
       <a-skeleton-input

@@ -102,15 +102,16 @@ export function useInfiniteData(args: {
 
   const { fetchSharedViewData, fetchCount } = useSharedView()
 
-  const { nestedFilters, allFilters, sorts, isExternalSource, isAlreadyShownUpgradeModal } = disableSmartsheet
-    ? {
-        nestedFilters: ref([]),
-        allFilters: ref([]),
-        sorts: ref([]),
-        isExternalSource: computed(() => false),
-        isAlreadyShownUpgradeModal: ref(false),
-      }
-    : useSmartsheetStoreOrThrow()
+  const { nestedFilters, allFilters, sorts, isExternalSource, isAlreadyShownUpgradeModal, validFiltersFromUrlParams } =
+    disableSmartsheet
+      ? {
+          nestedFilters: ref([]),
+          allFilters: ref([]),
+          sorts: ref([]),
+          isExternalSource: computed(() => false),
+          isAlreadyShownUpgradeModal: ref(false),
+        }
+      : useSmartsheetStoreOrThrow()
 
   const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
@@ -910,8 +911,12 @@ export function useInfiniteData(args: {
       }
     }
 
+    const rowFilters = getPlaceholderNewRow(
+      [...allFilters.value, ...validFiltersFromUrlParams.value],
+      metaValue?.columns as ColumnType[],
+    )
     const newRow = {
-      row: { ...rowDefaultData(metaValue?.columns), ...rowOverwrite },
+      row: { ...rowDefaultData(metaValue?.columns), ...rowFilters, ...rowOverwrite },
       oldRow: {},
       rowMeta: { new: true, rowIndex: newRowIndex, path },
     }

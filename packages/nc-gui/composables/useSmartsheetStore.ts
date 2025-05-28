@@ -75,6 +75,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         )
       }
     })
+    const validFiltersFromUrlParams = computed(() => {
+      return !filtersFromUrlParams.value?.errors?.length ? filtersFromUrlParams.value?.filters || [] : []
+    })
 
     const whereQueryFromUrl = computed(() => {
       if (filtersFromUrlParams.value?.errors?.length) {
@@ -197,6 +200,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       isAlreadyShownUpgradeModal,
       filtersFromUrlParams,
       whereQueryFromUrl,
+      validFiltersFromUrlParams,
     }
   },
   'smartsheet-store',

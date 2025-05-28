@@ -808,6 +808,21 @@
     "reactivateToPlan": "{plan}プランを再開しますか？"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "スナップショットを復元中",
     "note": "注意：",
     "snapshotRestoreMessage1": "このスナップショットの復元は、既存のベースには影響しません。",
@@ -1209,8 +1224,8 @@
     "agreeToTos": "サインアップすることで、利用規約に同意するものとみなされます。",
     "welcomeToNc": "NocoDB へようこそ！",
     "inviteOnlySignup": "招待URL からのサインアップのみ許可",
-    "nextRow": "次の行",
-    "prevRow": "前の行",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "グリッドビューにデータを手動追加",
     "addRowForm": "フォームを通じてレコードデータを入力",
     "noAccess": "アクセスなし",
@@ -2244,7 +2259,8 @@
       "paymentSuccessful": "支払いが成功しました",
       "paymentSuccessfulSubtitle": "お支払いが処理され、新しいプランをご利用いただけます。",
       "upgradeSuccessful": "アップグレードが完了しました",
-      "upgradeSuccessfulSubtitle": "アップグレードのお支払いが処理されました。新しいプランをご利用いただけます。"
+      "upgradeSuccessfulSubtitle": "アップグレードのお支払いが処理されました。新しいプランをご利用いただけます。",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "ゼロから作成。",

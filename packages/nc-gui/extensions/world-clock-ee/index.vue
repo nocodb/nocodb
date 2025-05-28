@@ -156,7 +156,7 @@ watch(
           <div
             v-for="(clockInstance, i) in clockInstances"
             :key="clockInstance.id"
-            class="flex w-full justify-between border-t p-3 hover:cursor-pointer text-nc-content-gray-subtle"
+            class="flex w-full justify-between border-t p-3 hover:cursor-pointer text-nc-content-gray-subtle group"
             :class="{ 'bg-[#F0F3FF]': activeInstanceId === clockInstance.id, 'border-b': i === clockInstances.length - 1 }"
             @click="activeInstanceId = clockInstance.id"
           >
@@ -169,8 +169,12 @@ watch(
             </div>
             <div class="flex items-center space-x-2">
               <span class="font-bold text-base">{{ clockTimeStrings[i] }}</span>
-              <GeneralIcon v-if="activeInstanceId === clockInstance.id" icon="chevronRight" class="text-brand-600 w-4 h-4" />
-              <div v-else class="w-4"></div>
+
+              <NcButton size="xs" type="text" icon-only class="!px-0 -my-1" @click.stop="removeInstance(clockInstance.id)">
+                <template #icon>
+                  <GeneralIcon icon="delete" class="opacity-70" />
+                </template>
+              </NcButton>
             </div>
           </div>
         </div>

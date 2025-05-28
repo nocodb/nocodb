@@ -47,7 +47,16 @@ const onSelect = (option: NcListItemType) => {
   <NcDropdown v-model:visible="visible" overlay-class-name="!min-w-auto !w-full !max-w-[277px]" @click.stop>
     <slot>
       <NcTooltip v-if="isSidebar" class="w-full" :title="disableMessage" placement="bottom" :disabled="!disable">
-        <NcButton type="secondary" class="w-full" size="small" :disabled="disable" inner-class="!gap-1">
+        <NcButton
+          type="secondary"
+          class="w-full"
+          :class="{
+            '!text-nc-content-brand': !disable,
+          }"
+          size="small"
+          :disabled="disable"
+          inner-class="!gap-1"
+        >
           <template #icon>
             <GeneralIcon icon="ncPlus" />
           </template>

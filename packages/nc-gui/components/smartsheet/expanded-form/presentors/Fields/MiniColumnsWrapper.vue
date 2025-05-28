@@ -67,7 +67,7 @@ const hiddenFields = computed(() => {
         }
       }
       svg.nc-icon:not(.invisible):not(.nc-column-context-menu) {
-        @apply !w-4 !h-4 !mx-0;
+        @apply !mx-0;
       }
     }
   }

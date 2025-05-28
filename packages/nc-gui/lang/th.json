@@ -807,6 +807,21 @@
     "reactivateToPlan": "เปิดใช้งานแผน {plan} อีกครั้งหรือไม่?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "กำลังกู้คืนสแนปช็อต",
     "note": "หมายเหตุ:",
     "snapshotRestoreMessage1": "การกู้คืนสแนปช็อตนี้จะไม่ส่งผลต่อฐานที่มีอยู่",
@@ -1208,8 +1223,8 @@
     "agreeToTos": "เมื่อคุณสมัครใช้งานแล้ว ถือว่ายอมรับข้อตกลงการใช้งาน",
     "welcomeToNc": "ยินดีต้อนรับสู่ NocoDB!",
     "inviteOnlySignup": "อนุญาตให้สมัครได้ผ่านลิงก์เชิญชวนเท่านั้น",
-    "nextRow": "แถวต่อไป",
-    "prevRow": "แถวที่แล้ว",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "เพิ่มข้อมูลเองในมุมมองกริด",
     "addRowForm": "กรอกข้อมูลบันทึกผ่านแบบฟอร์ม",
     "noAccess": "ไม่มีการเข้าถึง",
@@ -2242,7 +2257,8 @@
       "paymentSuccessful": "ชำระเงินสำเร็จ",
       "paymentSuccessfulSubtitle": "การชำระเงินของคุณได้รับการประมวลผลแล้ว คุณสามารถใช้แผนใหม่ได้ทันที",
       "upgradeSuccessful": "อัปเกรดสำเร็จ",
-      "upgradeSuccessfulSubtitle": "การชำระเงินเพื่ออัปเกรดของคุณได้รับการประมวลผลแล้ว คุณสามารถใช้แผนใหม่ได้ทันที"
+      "upgradeSuccessfulSubtitle": "การชำระเงินเพื่ออัปเกรดของคุณได้รับการประมวลผลแล้ว คุณสามารถใช้แผนใหม่ได้ทันที",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "เริ่มจากศูนย์",

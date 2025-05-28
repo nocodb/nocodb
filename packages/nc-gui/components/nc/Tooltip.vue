@@ -21,18 +21,24 @@ interface Props {
   arrow?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  arrow: true,
+  placement: 'top',
+  wrapChild: 'div',
+  color: 'dark',
+})
 
-const modifierKey = computed(() => props.modifierKey)
-const tooltipStyle = computed(() => props.tooltipStyle)
-const disabled = computed(() => props.disabled)
-const showOnTruncateOnly = computed(() => props.showOnTruncateOnly)
-const hideOnClick = computed(() => props.hideOnClick)
-const placement = computed(() => props.placement ?? 'top')
-const wrapChild = computed(() => props.wrapChild ?? 'div')
-const attributes = computed(() => props.attrs)
-
-const color = computed(() => (props.color ? props.color : 'dark'))
+const {
+  modifierKey,
+  tooltipStyle,
+  disabled,
+  showOnTruncateOnly,
+  hideOnClick,
+  placement,
+  wrapChild,
+  attrs: attributes,
+  color,
+} = toRefs(props)
 
 const el = ref()
 
@@ -141,7 +147,7 @@ const onClick = () => {
   <a-tooltip
     v-model:visible="showTooltip"
     :overlay-class-name="`nc-tooltip-${color} ${showTooltip ? 'visible' : 'hidden'} ${overlayClassName ?? ''} ${
-      arrow === false ? 'nc-tooltip-arrow-hidden' : ''
+      !arrow ? 'nc-tooltip-arrow-hidden' : ''
     }`"
     :overlay-style="tooltipStyle"
     :overlay-inner-style="overlayInnerStyle"
@@ -149,7 +155,6 @@ const onClick = () => {
     :trigger="[]"
     :placement="placement"
     :mouse-leave-delay="mouseLeaveDelay"
-    :arrow="arrow"
   >
     <template #title>
       <div ref="element">

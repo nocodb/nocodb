@@ -807,6 +807,21 @@
     "reactivateToPlan": "فعال‌سازی مجدد پلن {plan}؟"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "در حال بازیابی اسنپ‌شات",
     "note": "توجه:",
     "snapshotRestoreMessage1": "بازیابی این اسنپ‌شات بر پایگاه موجود تأثیری نخواهد داشت.",
@@ -1208,8 +1223,8 @@
     "agreeToTos": "با ثبت نام، شما با شرایط ارائه سرویس ما موافقت میکنید",
     "welcomeToNc": "به NocoDB خوش آمدید!",
     "inviteOnlySignup": "فقط با لینک دعوت اجازه ثبت نام دهید",
-    "nextRow": "ردیف بعدی",
-    "prevRow": "ردیف قبلی",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "افزودن داده به صورت دستی در نمای جدول",
     "addRowForm": "وارد کردن داده رکورد از طریق فرم",
     "noAccess": "بدون دسترسی",
@@ -2242,7 +2257,8 @@
       "paymentSuccessful": "پرداخت موفق",
       "paymentSuccessfulSubtitle": "پرداخت شما با موفقیت انجام شد. اکنون می‌توانید از پلن جدید خود استفاده کنید.",
       "upgradeSuccessful": "ارتقاء موفق بود",
-      "upgradeSuccessfulSubtitle": "پرداخت شما برای ارتقاء با موفقیت انجام شد. اکنون می‌توانید از پلن جدید خود استفاده کنید."
+      "upgradeSuccessfulSubtitle": "پرداخت شما برای ارتقاء با موفقیت انجام شد. اکنون می‌توانید از پلن جدید خود استفاده کنید.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "از صفر شروع کنید.",

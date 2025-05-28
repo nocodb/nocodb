@@ -807,6 +807,21 @@
     "reactivateToPlan": "{plan} പ്ലാൻ വീണ്ടും സജീവമാക്കണോ?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "സ്നാപ്ഷോട്ട് റസ്റ്റോർ ചെയ്യുന്നു",
     "note": "ശ്രദ്ധിക്കുക:",
     "snapshotRestoreMessage1": "ഈ സ്നാപ്ഷോട്ട് റസ്റ്റോർ ചെയ്യുന്നത് നിലവിലുള്ള ബെസിനെ ബാധിക്കില്ല.",
@@ -1208,8 +1223,8 @@
     "agreeToTos": "സൈനപ്പ് ചെയ്യുന്നതിലൂടെ, സേവന ഉപാധികളോട് നിങ്ങൾ യോജിക്കുന്നു",
     "welcomeToNc": "NocoDB-ലേക്ക് സ്വാഗതം!",
     "inviteOnlySignup": "ചേരുക ഏതാണ്ടും ക്ഷണവുമായി മാത്രം അനുവദിക്കുക",
-    "nextRow": "അടുത്ത റെക്കോർഡ്",
-    "prevRow": "മുന്‍ റെക്കോർഡ്",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "ഗ്രിഡ് കാഴ്ചയിൽ മാനുവലായി ഡാറ്റ ചേർക്കുക",
     "addRowForm": "ഫോം വഴി റെക്കോർഡ് ഡാറ്റ നൽകുക",
     "noAccess": "ആക്സസ് ഇല്ല",
@@ -2242,7 +2257,8 @@
       "paymentSuccessful": "പെയ്മെന്റ് വിജയകരമായി",
       "paymentSuccessfulSubtitle": "നിങ്ങളുടെ പേയ്മെന്റ് പ്രോസസ്സ് ചെയ്തു. ഇനി നിങ്ങളുടെ പുതിയ പ്ലാൻ ഉപയോഗിക്കാം.",
       "upgradeSuccessful": "അപ്‌ഗ്രേഡ് വിജയകരമായി",
-      "upgradeSuccessfulSubtitle": "അപ്‌ഗ്രേഡിനുള്ള നിങ്ങളുടെ പേയ്മെന്റ് പ്രോസസ്സ് ചെയ്തു. ഇനി പുതിയ പ്ലാൻ ഉപയോഗിക്കാം."
+      "upgradeSuccessfulSubtitle": "അപ്‌ഗ്രേഡിനുള്ള നിങ്ങളുടെ പേയ്മെന്റ് പ്രോസസ്സ് ചെയ്തു. ഇനി പുതിയ പ്ലാൻ ഉപയോഗിക്കാം.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "തുടക്കം മുതൽ തുടങ്ങുക.",

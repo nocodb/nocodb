@@ -214,7 +214,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       </div>
       <DashboardSidebarMiniSidebarItemWrapper>
         <NcTooltip v-if="!isSharedBase" :title="$t('labels.createNew')" placement="right" hide-on-click :arrow="false">
-          <DashboardSidebarCreateNewActionMenu />
+          <DashboardMiniSidebarCreateNewActionMenu />
         </NcTooltip>
       </DashboardSidebarMiniSidebarItemWrapper>
 

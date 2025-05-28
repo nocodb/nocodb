@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 interface ItemType {
   title: string
-  icon: IconMapKey
+  icon?: IconMapKey
   e: string
   link: string
+  subItems?: ItemType[]
 }
 
 interface CategoryItemType {
@@ -25,13 +26,25 @@ const helpItems: CategoryItemType[] = [
         title: t('labels.documentation'),
         icon: 'file',
         e: 'e:nocodb:docs-open',
-        link: '',
+        link: 'https://docs.nocodb.com/',
       },
       {
         title: t('labels.apis'),
         icon: 'ncCode',
         e: 'c:nocodb:api-open',
         link: 'https://community.nocodb.com/',
+        subItems: [
+          {
+            title: t('labels.dataApiV2'),
+            e: 'c:nocodb:data-api-open',
+            link: 'https://data-apis-v2.nocodb.com/',
+          },
+          {
+            title: t('labels.metaApiV2'),
+            e: 'c:nocodb:meta-api-open',
+            link: 'https://meta-apis-v2.nocodb.com/',
+          },
+        ],
       },
     ],
   },
@@ -54,7 +67,7 @@ const helpItems: CategoryItemType[] = [
         title: 'X',
         icon: 'ncLogoTwitter',
         link: 'https://twitter.com/nocodb',
-        e: 'c:nocodb:twitter-open',
+        e: 'c:nocodb:twitter',
       },
     ],
   },
@@ -76,7 +89,7 @@ const helpItems: CategoryItemType[] = [
         title: t('general.contactUs'),
         icon: 'ncHeadphone',
         e: 'c:nocodb:contact-us-open',
-        link: 'https://community.nocodb.com/',
+        link: 'mailto:support@nocodb.com',
       },
     ],
   },
@@ -84,9 +97,14 @@ const helpItems: CategoryItemType[] = [
 
 const openUrl = (url: string, e: string) => {
   $e(e, {
-    trigger: 'feed',
+    trigger: 'mini-sidebar',
   })
-  window.open(url, '_blank')
+
+  if (url.startsWith('http')) {
+    window.open(url, '_blank')
+  } else {
+    openLinkUsingATag(url, '_blank')
+  }
 }
 </script>
 
@@ -105,7 +123,7 @@ const openUrl = (url: string, e: string) => {
       </div>
 
       <template #overlay>
-        <NcMenu variant="small" @click="visible = false">
+        <NcMenu variant="small">
           <template v-for="(category, idx) of helpItems" :key="idx">
             <NcDivider v-if="idx !== 0" />
             <NcMenuItemLabel>
@@ -114,10 +132,22 @@ const openUrl = (url: string, e: string) => {
               </span>
             </NcMenuItemLabel>
 
-            <NcMenuItem v-for="(item, i) of category.items" :key="i" @click="openUrl(item.link, item.e)">
-              <GeneralIcon :icon="item.icon" class="h-4 w-4" />
-              {{ item.title }}
-            </NcMenuItem>
+            <template v-for="(item, i) of category.items" :key="i">
+              <NcSubMenu v-if="item.subItems" class="py-0" variant="small">
+                <template #title>
+                  <GeneralIcon v-if="item.icon" :icon="item.icon" class="h-4 w-4" />
+                  {{ item.title }}
+                </template>
+                <NcMenuItem v-for="(subItem, j) of item.subItems" :key="j" @click="openUrl(subItem.link, subItem.e)">
+                  <GeneralIcon v-if="subItem.icon" :icon="subItem.icon" class="h-4 w-4" />
+                  {{ subItem.title }}
+                </NcMenuItem>
+              </NcSubMenu>
+              <NcMenuItem v-else @click="openUrl(item.link, item.e)">
+                <GeneralIcon v-if="item.icon" :icon="item.icon" class="h-4 w-4" />
+                {{ item.title }}
+              </NcMenuItem>
+            </template>
           </template>
         </NcMenu>
       </template>

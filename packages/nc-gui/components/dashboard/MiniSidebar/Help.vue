@@ -7,6 +7,7 @@ interface ItemType {
   subItems?: ItemType[]
   onClick?: () => void
   copyBtn?: boolean
+  tooltip?: string
 }
 
 interface CategoryItemType {
@@ -86,6 +87,7 @@ const helpItems: CategoryItemType[] = [
         e: 'c:nocodb:contact-us-mail-copy',
         link: '',
         copyBtn: true,
+        tooltip: 'Click to copy email',
       },
     ],
   },
@@ -158,18 +160,20 @@ const openUrl = (item: ItemType) => {
                   {{ subItem.title }}
                 </NcMenuItem>
               </NcSubMenu>
-              <NcMenuItem v-else @click="openUrl(item)">
-                <GeneralIcon v-if="item.icon" :icon="item.icon" class="h-4 w-4" />
-                {{ item.title }}
+              <NcTooltip v-else :title="item.tooltip" :disabled="!item.tooltip" placement="top" hide-on-click>
+                <NcMenuItem @click="openUrl(item)">
+                  <GeneralIcon v-if="item.icon" :icon="item.icon" class="h-4 w-4" />
+                  {{ item.title }}
 
-                <GeneralCopyButton
-                  v-if="item.copyBtn"
-                  ref="copyBtnRef"
-                  type="secondary"
-                  :content="item.title"
-                  :show-toast="false"
-                />
-              </NcMenuItem>
+                  <GeneralCopyButton
+                    v-if="item.copyBtn"
+                    ref="copyBtnRef"
+                    type="secondary"
+                    :content="item.title"
+                    :show-toast="false"
+                  />
+                </NcMenuItem>
+              </NcTooltip>
             </template>
           </template>
         </NcMenu>

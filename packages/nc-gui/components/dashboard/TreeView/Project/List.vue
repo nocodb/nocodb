@@ -484,21 +484,28 @@ watch(
               <div v-else class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No Bases</div>
             </div>
           </div>
-          <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
         </div>
       </Transition>
       <!-- Slide in Project Home -->
       <Transition name="layout" mode="out-in" :duration="400" appear>
-        <div v-if="!showProjectList" key="project-home" class="absolute w-full h-full top-0 left-0 z-5 flex flex-col">
-          <ProjectWrapper v-if="activeProjectId && openedBase?.id" :base-role="openedBase?.project_role" :base="openedBase">
-            <DashboardTreeViewProjectHome>
-              <template #footer>
-                <slot name="footer"></slot>
-              </template>
-            </DashboardTreeViewProjectHome>
-          </ProjectWrapper>
-        </div>
+        <template v-if="!showProjectList">
+          <div
+            v-if="activeProjectId && openedBase?.id && !openedBase.isLoading"
+            key="project-home"
+            class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
+          >
+            <ProjectWrapper :base-role="openedBase?.project_role" :base="openedBase">
+              <DashboardTreeViewProjectHome>
+                <template #footer>
+                  <slot name="footer"></slot>
+                </template>
+              </DashboardTreeViewProjectHome>
+            </ProjectWrapper>
+          </div>
+          <DashboardTreeViewProjectListSkeleton v-else />
+        </template>
       </Transition>
+      <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
     </template>
   </div>
 </template>
@@ -552,5 +559,9 @@ watch(
 }
 .ghost {
   @apply bg-primary-selected;
+}
+
+:deep(.nc-sidebar-create-base-btn.nc-button.ant-btn-text.theme-default) {
+  @apply hover:bg-brand-50 pl-[15px];
 }
 </style>

@@ -1,18 +1,16 @@
 <script lang="ts" setup>
-import type { ScriptType, SourceType } from 'nocodb-sdk'
+import type { SourceType, TableType } from 'nocodb-sdk'
 import Automation from '../Automation.vue'
 
 const router = useRouter()
 const route = router.currentRoute
 
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
-
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
-const { setMenuContext } = inject(TreeViewInj)!
+const { openNewScriptModal } = useAutomationStore()
 
-const { ncNavigateTo } = useGlobal()
+const { setMenuContext } = inject(TreeViewInj)!
 
 const { api } = useApi()
 
@@ -261,33 +259,6 @@ const openBaseHomePage = async () => {
   )
 }
 
-async function openNewScriptModal() {
-  const isDlgOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgAutomationCreate'), {
-    'modelValue': isDlgOpen,
-    'baseId': base.value.id,
-    'onUpdate:modelValue': () => closeDialog(),
-    'onCreated': async (script: ScriptType) => {
-      closeDialog()
-
-      ncNavigateTo({
-        workspaceId: activeWorkspaceId.value,
-        automation: true,
-        baseId: base.value.id,
-        automationId: script.id,
-      })
-
-      $e('a:script:create')
-    },
-  })
-
-  function closeDialog() {
-    isDlgOpen.value = false
-    close(1000)
-  }
-}
-
 const isVisibleCreateNew = ref(false)
 /**
  * Show create new dropdown only if their is more than one entity enabled (table, scripts, dashboard)
@@ -356,7 +327,11 @@ const showCreateNewAsDropdown = computed(() => {
                   <GeneralIcon icon="table" />
                   New Table
                 </NcMenuItem>
-                <NcMenuItem v-if="isAutomationEnabled" data-testid="create-new-script" @click="openNewScriptModal">
+                <NcMenuItem
+                  v-if="isAutomationEnabled"
+                  data-testid="create-new-script"
+                  @click="openNewScriptModal({ baseId: base.id })"
+                >
                   <GeneralIcon icon="ncScript" />
                   New Script
                 </NcMenuItem>

@@ -20,6 +20,8 @@ const { navigateToWorkspaceSettings, navigateToIntegrations: _navigateToIntegrat
 
 const { basesList, showProjectList } = storeToRefs(useBases())
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const { isUIAllowed } = useRoles()
 
 const isProjectListOrHomePageOpen = computed(() => {
@@ -90,10 +92,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div class="nc-mini-sidebar" data-testid="nc-mini-sidebar">
-    <div class="flex flex-col gap-3 items-center">
-      <DashboardSidebarMiniSidebarItemWrapper size="small">
+    <div class="flex flex-col items-center">
+      <DashboardMiniSidebarItemWrapper size="small">
         <div
-          class="min-h-9"
+          class="min-h-9 sticky top-0 bg-[var(--mini-sidebar-bg-color)]"
           :class="{
             'pt-1.5 pb-2.5': isMobileMode,
           }"
@@ -101,9 +103,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           <GeneralLoader v-if="isWorkspacesLoading" size="large" />
           <WorkspaceMenu v-else />
         </div>
-      </DashboardSidebarMiniSidebarItemWrapper>
+      </DashboardMiniSidebarItemWrapper>
 
-      <DashboardSidebarMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper>
         <NcTooltip placement="right" hide-on-click :arrow="false">
           <template #title>
             <div class="flex gap-1.5">
@@ -111,80 +113,110 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               <div class="px-1 text-bodySmBold text-white bg-gray-700 rounded">{{ renderAltOrOptlKey(true) }} B</div>
             </div>
           </template>
-          <div
-            class="nc-mini-sidebar-btn"
-            data-testid="nc-sidebar-project-btn"
-            :class="{
-              active: isProjectPageOpen,
-            }"
-            @click="navigateToProjectPage"
-          >
-            <GeneralIcon :icon="isProjectListOrHomePageOpen ? 'ncBaseOutlineDuo' : 'ncBaseOutline'" class="h-4 w-4" />
+          <div class="nc-mini-sidebar-btn-full-width" data-testid="nc-sidebar-project-btn" @click="navigateToProjectPage">
+            <div
+              class="nc-mini-sidebar-btn"
+              :class="{
+                'active': isProjectPageOpen,
+                'active-base': isProjectListOrHomePageOpen,
+              }"
+            >
+              <GeneralIcon icon="ncBaseOutline" class="h-4 w-4" />
+            </div>
           </div>
         </NcTooltip>
-      </DashboardSidebarMiniSidebarItemWrapper>
+      </DashboardMiniSidebarItemWrapper>
 
       <template v-if="!isMobileMode">
-        <DashboardSidebarMiniSidebarItemWrapper>
+        <DashboardMiniSidebarItemWrapper>
           <NcTooltip placement="right" hide-on-click :arrow="false">
             <template #title>
               <div class="flex items-center gap-1">{{ renderCmdOrCtrlKey(true) }} K</div>
             </template>
             <div
               v-e="['c:quick-actions']"
-              class="nc-mini-sidebar-btn"
+              class="nc-mini-sidebar-btn-full-width"
               data-testid="nc-sidebar-cmd-k-btn"
               @click="commandPalette?.open()"
             >
-              <GeneralIcon icon="search" class="h-4 w-4" />
+              <div class="nc-mini-sidebar-btn">
+                <GeneralIcon icon="search" class="h-4 w-4" />
+              </div>
             </div>
           </NcTooltip>
-        </DashboardSidebarMiniSidebarItemWrapper>
-        <NcDivider v-if="isUIAllowed('workspaceSettings')" class="!my-0 !border-nc-border-gray-dark" />
-        <DashboardSidebarMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')">
+        </DashboardMiniSidebarItemWrapper>
+        <div v-if="isUIAllowed('workspaceSettings')" class="px-2 w-full">
+          <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+        </div>
+        <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')">
           <NcTooltip :title="$t('title.teamAndSettings')" placement="right" hide-on-click :arrow="false">
             <div
               v-e="['c:team:settings']"
-              class="nc-mini-sidebar-btn"
+              class="nc-mini-sidebar-btn-full-width"
               data-testid="nc-sidebar-team-settings-btn"
-              :class="{
-                active: isWorkspaceSettingsPageOpened,
-              }"
               @click="navigateToSettings"
             >
-              <GeneralIcon :icon="isWorkspaceSettingsPageOpened ? 'ncSettingsDuo' : 'ncSettings'" class="h-4 w-4" />
+              <div
+                class="nc-mini-sidebar-btn"
+                :class="{
+                  active: isWorkspaceSettingsPageOpened,
+                }"
+              >
+                <GeneralIcon icon="ncSettings" class="h-4 w-4" />
+              </div>
             </div>
           </NcTooltip>
-        </DashboardSidebarMiniSidebarItemWrapper>
-        <DashboardSidebarMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings')">
+        </DashboardMiniSidebarItemWrapper>
+        <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings')">
           <NcTooltip :title="$t('general.integrations')" placement="right" hide-on-click :arrow="false">
             <div
               v-e="['c:integrations']"
-              class="nc-mini-sidebar-btn"
+              class="nc-mini-sidebar-btn-full-width"
               data-testid="nc-sidebar-integrations-btn"
-              :class="{
-                active: isIntegrationsPageOpened,
-              }"
               @click="navigateToIntegrations"
             >
-              <GeneralIcon :icon="isIntegrationsPageOpened ? 'ncIntegrationDuo' : 'integration'" class="h-4 w-4" />
+              <div
+                class="nc-mini-sidebar-btn"
+                :class="{
+                  active: isIntegrationsPageOpened,
+                }"
+              >
+                <GeneralIcon icon="integration" class="h-4 w-4" />
+              </div>
             </div>
           </NcTooltip>
-        </DashboardSidebarMiniSidebarItemWrapper>
-        <NcDivider class="!my-0 !border-nc-border-gray-dark" />
-        <DashboardSidebarMiniSidebarItemWrapper>
-          <NcTooltip v-if="appInfo.feedEnabled" :title="$t('title.whatsNew')" placement="right" hide-on-click :arrow="false">
-            <DashboardSidebarFeed />
+        </DashboardMiniSidebarItemWrapper>
+
+        <div class="px-2 w-full">
+          <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+        </div>
+        <DashboardMiniSidebarItemWrapper>
+          <NcTooltip :title="$t('general.notification')" placement="right" hide-on-click :arrow="false">
+            <NotificationMenu />
           </NcTooltip>
-        </DashboardSidebarMiniSidebarItemWrapper>
+        </DashboardMiniSidebarItemWrapper>
       </template>
     </div>
-    <div class="flex flex-col gap-3 items-center">
-      <DashboardSidebarMiniSidebarItemWrapper v-if="appInfo.feedEnabled">
-        <NcTooltip :title="$t('general.notification')" placement="right" hide-on-click :arrow="false">
-          <NotificationMenu />
+    <div class="flex flex-col items-center">
+      <DashboardMiniSidebarItemWrapper>
+        <NcTooltip :title="$t('general.help')" placement="right" hide-on-click :arrow="false">
+          <DashboardMiniSidebarHelp />
         </NcTooltip>
-      </DashboardSidebarMiniSidebarItemWrapper>
+      </DashboardMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper>
+        <NcTooltip v-if="appInfo.feedEnabled" :title="`${$t('title.whatsNew')}!`" placement="right" hide-on-click :arrow="false">
+          <DashboardSidebarFeed />
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+
+      <div class="px-2 w-full">
+        <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+      </div>
+      <DashboardMiniSidebarItemWrapper>
+        <NcTooltip v-if="!isSharedBase" :title="$t('labels.createNew')" placement="right" hide-on-click :arrow="false">
+          <DashboardMiniSidebarCreateNewActionMenu />
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
 
       <DashboardSidebarUserInfo />
     </div>
@@ -193,7 +225,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <style lang="scss">
 .nc-mini-sidebar {
-  @apply w-[var(--mini-sidebar-width)] flex-none bg-nc-bg-gray-light flex flex-col justify-between items-center p-1.5 border-r-1 border-nc-border-gray-medium z-12;
+  --mini-sidebar-bg-color: var(--color-grey-100);
+
+  @apply w-[var(--mini-sidebar-width)] flex-none bg-[var(--mini-sidebar-bg-color)] flex flex-col justify-between items-center border-r-1 border-nc-border-gray-medium z-12 nc-scrollbar-thin relative;
 
   .nc-mini-sidebar-ws-item {
     @apply cursor-pointer h-9 w-8 rounded py-1 flex items-center justify-center children:flex-none text-nc-content-gray-muted transition-all duration-200;
@@ -212,6 +246,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
   }
 
+  .nc-mini-sidebar-btn-full-width {
+    @apply w-[var(--mini-sidebar-width)] h-[var(--mini-sidebar-width)] flex-none flex justify-center items-center cursor-pointer;
+
+    &:hover {
+      .nc-mini-sidebar-btn:not(.active) {
+        @apply bg-nc-bg-gray-medium;
+      }
+    }
+  }
+
   .nc-mini-sidebar-btn {
     @apply cursor-pointer h-7 w-7 rounded !p-1.5 flex items-center justify-center children:flex-none !text-nc-content-gray-muted transition-all duration-200;
 
@@ -220,7 +264,15 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
 
     &.active {
-      @apply bg-nc-bg-gray-medium hover:bg-nc-bg-gray-medium !text-nc-content-gray;
+      @apply !bg-brand-100 !text-nc-content-brand;
+    }
+
+    &.active-base {
+      @apply !text-nc-content-brand;
+    }
+
+    &.hovered {
+      @apply bg-nc-bg-gray-medium;
     }
   }
 }

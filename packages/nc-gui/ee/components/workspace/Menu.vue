@@ -116,6 +116,7 @@ const onWorkspaceCreateClick = () => {
     v-else-if="activeWorkspace"
     :class="{
       'flex flex-row flex-grow w-full max-w-85/100 hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md': !isMiniSidebar,
+      'nc-mini-sidebar-btn-full-width flex items-center justify-center children:(h-auto w-full)': isMiniSidebar,
     }"
     :style="{
       maxWidth: !isMiniSidebar ? `calc(100% - 2.5rem)` : undefined,
@@ -126,32 +127,39 @@ const onWorkspaceCreateClick = () => {
       class="h-full min-w-0 rounded-lg"
       :trigger="[isMiniSidebar && !isMobileMode ? 'hover' : 'click']"
       placement="bottomLeft"
-      overlay-class-name="nc-dropdown-workspace-menu !overflow-hidden"
+      :overlay-class-name="`nc-dropdown-workspace-menu !overflow-hidden  ${isMiniSidebar ? '!left-1' : ''}`"
     >
       <div
         v-e="['c:workspace:menu']"
-        data-testid="nc-workspace-menu"
         :class="{
-          'nc-mini-sidebar-ws-item': isMiniSidebar,
-          'group cursor-pointer flex flex-grow w-full gap-x-2 items-center overflow-hidden py-1.25 xs:py-1.75 pr-0.25':
-            !isMiniSidebar,
-          'nc-small-shadow': workspacesList.length === 2,
-          'nc-medium-shadow': workspacesList.length > 2,
+          'flex items-center justify-center': isMiniSidebar,
+          'flex': !isMiniSidebar,
         }"
-        class="nc-workspace-menu"
       >
-        <GeneralWorkspaceIcon
-          :workspace="activeWorkspace"
-          icon-bg-color="#F4F4F5"
-          show-nocodb-icon
-          class="flex-none border-1 border-nc-border-gray-medium"
-          :size="isMiniSidebar ? 'mini-sidebar' : 'medium'"
-        />
-        <div v-if="activeWorkspace && !isMiniSidebar" class="flex min-w-10 w-full items-center">
-          <div class="nc-workspace-title font-semibold text-base text-md truncate capitalize">
-            {{ activeWorkspace.title }}
+        <div
+          data-testid="nc-workspace-menu"
+          :class="{
+            'nc-mini-sidebar-ws-item': isMiniSidebar,
+            'group cursor-pointer flex flex-grow w-full gap-x-2 items-center overflow-hidden py-1.25 xs:py-1.75 pr-0.25':
+              !isMiniSidebar,
+            'nc-small-shadow': workspacesList.length === 2,
+            'nc-medium-shadow': workspacesList.length > 2,
+          }"
+          class="nc-workspace-menu"
+        >
+          <GeneralWorkspaceIcon
+            :workspace="activeWorkspace"
+            icon-bg-color="#F4F4F5"
+            show-nocodb-icon
+            class="flex-none border-1 border-nc-border-gray-medium"
+            :size="isMiniSidebar ? 'mini-sidebar' : 'medium'"
+          />
+          <div v-if="activeWorkspace && !isMiniSidebar" class="flex min-w-10 w-full items-center">
+            <div class="nc-workspace-title font-semibold text-base text-md truncate capitalize">
+              {{ activeWorkspace.title }}
+            </div>
+            <GeneralIcon icon="chevronDown" class="mt-0.5 ml-1 min-w-6 text-lg !text-gray-500/75" />
           </div>
-          <GeneralIcon icon="chevronDown" class="mt-0.5 ml-1 min-w-6 text-lg !text-gray-500/75" />
         </div>
       </div>
 

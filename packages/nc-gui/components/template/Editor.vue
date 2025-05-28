@@ -13,7 +13,6 @@ import {
 } from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
-import { NcCheckbox } from '#components'
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'

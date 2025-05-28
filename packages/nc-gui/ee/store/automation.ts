@@ -1,4 +1,5 @@
 import type { ScriptType } from 'nocodb-sdk'
+import { DlgAutomationCreate } from '#components'
 import { parseScript, validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
 
 export const useAutomationStore = defineStore('automation', () => {
@@ -299,6 +300,61 @@ export const useAutomationStore = defineStore('automation', () => {
     $e('c:script:details', { scriptId })
   }
 
+  async function openNewScriptModal({
+    baseId,
+    e,
+    loadAutomationsOnClose,
+    scrollOnCreate,
+  }: {
+    baseId?: string
+    e?: string
+    loadAutomationsOnClose?: boolean
+    scrollOnCreate?: boolean
+  }) {
+    if (!baseId) return
+
+    const isDlgOpen = ref(true)
+
+    const { close } = useDialog(DlgAutomationCreate, {
+      'modelValue': isDlgOpen,
+      'baseId': baseId,
+      'onUpdate:modelValue': () => closeDialog(),
+      'onCreated': async (script: ScriptType) => {
+        closeDialog()
+
+        if (loadAutomationsOnClose) {
+          await loadAutomations({ baseId, force: true })
+        }
+
+        ncNavigateTo({
+          workspaceId: activeWorkspaceId.value,
+          automation: true,
+          baseId,
+          automationId: script.id,
+        })
+
+        $e(e ?? 'a:script:create')
+
+        if (!script) return
+
+        if (scrollOnCreate) {
+          setTimeout(() => {
+            const newScriptDom = document.querySelector(`[data-automation-id="${script.id}"]`)
+            if (!newScriptDom) return
+
+            // Scroll to the script node
+            newScriptDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+          }, 1000)
+        }
+      },
+    })
+
+    function closeDialog() {
+      isDlgOpen.value = false
+      close(1000)
+    }
+  }
+
   return {
     // State
     automations,
@@ -331,6 +387,7 @@ export const useAutomationStore = defineStore('automation', () => {
     descriptionContent: pluginDescriptionContent,
     getScriptContent,
     getScriptAssetsURL: (pathOrUrl: string) => getPluginAssetUrl(pathOrUrl, pluginTypes.script),
+    openNewScriptModal,
   }
 })
 

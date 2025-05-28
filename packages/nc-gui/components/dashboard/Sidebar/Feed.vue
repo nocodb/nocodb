@@ -16,14 +16,16 @@ const gotoFeed = () => navigateToFeed()
   <div
     v-if="isMiniSidebar"
     v-e="['c:nocodb:feed']"
-    class="nc-mini-sidebar-btn"
+    class="nc-mini-sidebar-btn-full-width"
     data-testid="nc-sidebar-product-feed"
     :class="{
       active: isFeedPageOpened,
     }"
     @click="gotoFeed"
   >
-    <GeneralIcon :icon="isFeedPageOpened ? 'ncMegaPhoneDuo' : 'megaPhone'" class="h-4 w-4" />
+    <div class="nc-mini-sidebar-btn">
+      <GeneralIcon :icon="isFeedPageOpened ? 'ncMegaPhoneDuo' : 'megaPhone'" class="h-4 w-4" />
+    </div>
   </div>
   <NcButton
     v-else

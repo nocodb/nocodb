@@ -112,14 +112,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             </div>
           </template>
           <div
-            class="nc-mini-sidebar-btn"
+            class="nc-mini-sidebar-btn-full-width"
             data-testid="nc-sidebar-project-btn"
             :class="{
               active: isProjectPageOpen,
             }"
             @click="navigateToProjectPage"
           >
-            <GeneralIcon :icon="isProjectListOrHomePageOpen ? 'ncBaseOutlineDuo' : 'ncBaseOutline'" class="h-4 w-4" />
+            <div class="nc-mini-sidebar-btn">
+              <GeneralIcon :icon="isProjectListOrHomePageOpen ? 'ncBaseOutlineDuo' : 'ncBaseOutline'" class="h-4 w-4" />
+            </div>
           </div>
         </NcTooltip>
       </DashboardSidebarMiniSidebarItemWrapper>
@@ -132,11 +134,13 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             </template>
             <div
               v-e="['c:quick-actions']"
-              class="nc-mini-sidebar-btn"
+              class="nc-mini-sidebar-btn-full-width"
               data-testid="nc-sidebar-cmd-k-btn"
               @click="commandPalette?.open()"
             >
-              <GeneralIcon icon="search" class="h-4 w-4" />
+              <div class="nc-mini-sidebar-btn">
+                <GeneralIcon icon="search" class="h-4 w-4" />
+              </div>
             </div>
           </NcTooltip>
         </DashboardSidebarMiniSidebarItemWrapper>
@@ -145,14 +149,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           <NcTooltip :title="$t('title.teamAndSettings')" placement="right" hide-on-click :arrow="false">
             <div
               v-e="['c:team:settings']"
-              class="nc-mini-sidebar-btn"
+              class="nc-mini-sidebar-btn-full-width"
               data-testid="nc-sidebar-team-settings-btn"
               :class="{
                 active: isWorkspaceSettingsPageOpened,
               }"
               @click="navigateToSettings"
             >
-              <GeneralIcon :icon="isWorkspaceSettingsPageOpened ? 'ncSettingsDuo' : 'ncSettings'" class="h-4 w-4" />
+              <div class="nc-mini-sidebar-btn">
+                <GeneralIcon :icon="isWorkspaceSettingsPageOpened ? 'ncSettingsDuo' : 'ncSettings'" class="h-4 w-4" />
+              </div>
             </div>
           </NcTooltip>
         </DashboardSidebarMiniSidebarItemWrapper>
@@ -160,14 +166,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           <NcTooltip :title="$t('general.integrations')" placement="right" hide-on-click :arrow="false">
             <div
               v-e="['c:integrations']"
-              class="nc-mini-sidebar-btn"
+              class="nc-mini-sidebar-btn-full-width"
               data-testid="nc-sidebar-integrations-btn"
               :class="{
                 active: isIntegrationsPageOpened,
               }"
               @click="navigateToIntegrations"
             >
-              <GeneralIcon :icon="isIntegrationsPageOpened ? 'ncIntegrationDuo' : 'integration'" class="h-4 w-4" />
+              <div class="nc-mini-sidebar-btn">
+                <GeneralIcon :icon="isIntegrationsPageOpened ? 'ncIntegrationDuo' : 'integration'" class="h-4 w-4" />
+              </div>
             </div>
           </NcTooltip>
         </DashboardSidebarMiniSidebarItemWrapper>
@@ -210,6 +218,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     &.nc-medium-shadow .nc-workspace-avatar {
       box-shadow: 0px 4px 0px -2px rgba(0, 0, 0, 0.4), 0px 7px 0px -3px rgba(0, 0, 0, 0.2);
     }
+  }
+
+  .nc-mini-sidebar-btn-full-width {
+    @apply w-[var(--mini-sidebar-width)] flex-none flex justify-center cursor-pointer;
   }
 
   .nc-mini-sidebar-btn {

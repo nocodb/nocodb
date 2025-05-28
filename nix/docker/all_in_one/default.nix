@@ -21,7 +21,7 @@
   nginxModules,
   lego,
   snooze,
-  valkey,
+  redis,
 }:
 let
   nginxCustom = nginx.override {
@@ -33,7 +33,7 @@ let
 
   pgconf = callPackage ./confs/postgres.nix { };
   nginxconf = callPackage ./confs/nginx.nix { };
-  valkeyconf = callPackage ./confs/valkey.nix { };
+  redisconf = callPackage ./confs/redis.nix { };
 in
 dockerTools.buildLayeredImage {
   name = "nocodb";
@@ -45,7 +45,7 @@ dockerTools.buildLayeredImage {
     nocodb
     postgresql
     snooze
-    valkey
+    redis
     execline.bin
     minio
     nginxCustom
@@ -63,7 +63,7 @@ dockerTools.buildLayeredImage {
 
     pgconf
     nginxconf
-    valkeyconf
+    redisconf
     s6-services
 
     s6

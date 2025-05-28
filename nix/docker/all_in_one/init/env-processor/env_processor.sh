@@ -18,7 +18,7 @@ s6_services_temp_path='/run/s6-service-temp'
 migrations_dir="/var/lib/migrations"
 
 _aio_postgres_enable_default=true
-_aio_valkey_enable_default=true
+_aio_redis_enable_default=true
 _aio_worker_enable_default=false
 _aio_minio_enable_default=false
 _aio_ssl_enable_default=false
@@ -70,7 +70,7 @@ env_aio_set() {
 		aio_ssl_enable) aio_ssl_enable="$value" ;;
 		aio_ssl_domain) aio_ssl_domain="$value" ;;
 		aio_ssl_email) aio_ssl_email="$value" ;;
-		aio_valkey_enable) aio_valkey_enable="$value" ;;
+		aio_redis_enable) aio_redis_enable="$value" ;;
 		aio_worker_enable) aio_worker_enable="$value" ;;
 		*) log ignoring unknown aio env "$key=$value" ;;
 		esac
@@ -87,11 +87,11 @@ env_aio_set() {
 			aio_postgres_enable=false
 		fi
 	fi
-	if [ "${aio_valkey_enable+set}" != set ]; then
+	if [ "${aio_redis_enable+set}" != set ]; then
 		if [ ! -f /"$kernal_env_store_dir"/NC_REDIS_URL ]; then
-			aio_valkey_enable="$_aio_valkey_enable_default"
+			aio_redis_enable="$_aio_redis_enable_default"
 		else
-			aio_valkey_enable=false
+			aio_redis_enable=false
 		fi
 	fi
 
@@ -175,19 +175,19 @@ env_aio_act() {
 		aio_ssl_domain="$aio_ssl_domain"
 	EOF
 
-	if "$aio_valkey_enable"; then
-		nocodb_dep_add valkey
+	if "$aio_redis_enable"; then
+		nocodb_dep_add redis
 
 		cat <<-EOF >>"$nocodb_env_common_path"
-			NC_REDIS_URL="redis-socket:///run/valkey/valkey.sock?database=nocodb"
+			NC_REDIS_URL="redis-socket:///run/redis/redis.sock?database=nocodb"
 		EOF
 
-		log enabled valkey
+		log enabled redis
 	fi
 
 	if "$aio_worker_enable"; then
 		touch "$s6_services_temp_path/nocodb/contents.d/nocodb-worker-srv"
-		nocodb_dep_add valkey
+		nocodb_dep_add redis
 
 		cat <<-EOF >>"$nocodb_env_main_path"
 			NC_WORKER_CONTAINER=false

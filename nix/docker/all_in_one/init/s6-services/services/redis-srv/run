@@ -1,0 +1,10 @@
+#!/bin/execlineb -P
+
+foreground { mkdir -p /var/lib/redis }
+foreground { chown -R redis:redis /var/lib/redis }
+foreground { mkdir -p /run/redis }
+foreground { chown -R redis:redis /run/redis }
+
+fdmove -c 2 1
+
+execline-cd  /var/lib/redis s6-setuidgid redis redis-server /etc/redis.conf

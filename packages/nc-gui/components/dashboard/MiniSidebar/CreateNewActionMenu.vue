@@ -124,7 +124,7 @@ const hasAutomationCreateAccess = computed(() => {
 
 <template>
   <div v-if="!isSharedBase" class="nc-mini-sidebar-btn-full-width">
-    <NcDropdown v-model:visible="isVisibleCreateNew" overlay-class-name="!min-w-48 !left-1">
+    <NcDropdown v-model:visible="isVisibleCreateNew" placement="right" overlay-class-name="!min-w-48">
       <div class="w-full py-1 flex items-center justify-center">
         <div
           class="border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium"

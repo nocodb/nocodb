@@ -6,6 +6,7 @@ interface ItemType {
   link: string
   subItems?: ItemType[]
   onClick?: () => void
+  copyBtn?: boolean
 }
 
 interface CategoryItemType {
@@ -20,6 +21,8 @@ const { t } = useI18n()
 const { navigateToFeed } = useWorkspace()
 
 const visible = ref(false)
+
+const copyBtnRef = ref()
 
 const helpItems: CategoryItemType[] = [
   {
@@ -75,6 +78,18 @@ const helpItems: CategoryItemType[] = [
     ],
   },
   {
+    category: t('general.contactSupport'),
+    items: [
+      {
+        title: 'support@nocodb.com',
+        icon: 'ncMail',
+        e: 'c:nocodb:contact-us-mail-copy',
+        link: '',
+        copyBtn: true,
+      },
+    ],
+  },
+  {
     category: t('title.whatsNew'),
     items: [
       {
@@ -83,17 +98,6 @@ const helpItems: CategoryItemType[] = [
         e: 'c:nocodb:changelog-open',
         link: '',
         onClick: () => navigateToFeed(undefined, undefined, { tab: 'github' }),
-      },
-    ],
-  },
-  {
-    category: t('general.support'),
-    items: [
-      {
-        title: t('general.contactUs'),
-        icon: 'ncHeadphone',
-        e: 'c:nocodb:contact-us-open',
-        link: 'mailto:support@nocodb.com',
       },
     ],
   },
@@ -109,15 +113,19 @@ const openUrl = (item: ItemType) => {
     visible.value = false
   } else if (item.link.startsWith('http')) {
     window.open(item.link, '_blank')
-  } else {
+  } else if (item.link) {
     openLinkUsingATag(item.link, '_blank')
+  }
+
+  if (item.copyBtn && copyBtnRef.value) {
+    copyBtnRef.value?.[0]?.copyContent?.(item.title)
   }
 }
 </script>
 
 <template>
   <div class="nc-mini-sidebar-btn-full-width">
-    <NcDropdown v-model:visible="visible" overlay-class-name="!min-w-55 !left-1">
+    <NcDropdown v-model:visible="visible" placement="right" overlay-class-name="!min-w-55">
       <div class="w-full py-1 flex items-center justify-center">
         <div
           class="nc-mini-sidebar-btn"
@@ -153,6 +161,14 @@ const openUrl = (item: ItemType) => {
               <NcMenuItem v-else @click="openUrl(item)">
                 <GeneralIcon v-if="item.icon" :icon="item.icon" class="h-4 w-4" />
                 {{ item.title }}
+
+                <GeneralCopyButton
+                  ref="copyBtnRef"
+                  type="secondary"
+                  v-if="item.copyBtn"
+                  :content="item.title"
+                  :show-toast="false"
+                />
               </NcMenuItem>
             </template>
           </template>

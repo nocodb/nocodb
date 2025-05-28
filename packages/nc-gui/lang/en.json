@@ -400,8 +400,7 @@
     "community": "Community",
     "youtube": "Youtube",
     "changelog": "Changelog",
-    "support": "Support",
-    "contactUs": "Contact Us"
+    "contactSupport": "Contact Support"
   },
   "objects": {
     "script": "Script",

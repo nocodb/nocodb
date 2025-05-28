@@ -5,6 +5,7 @@ interface ItemType {
   e: string
   link: string
   subItems?: ItemType[]
+  onClick?: () => void
 }
 
 interface CategoryItemType {
@@ -15,6 +16,8 @@ interface CategoryItemType {
 const { $e } = useNuxtApp()
 
 const { t } = useI18n()
+
+const { navigateToFeed } = useWorkspace()
 
 const visible = ref(false)
 
@@ -78,7 +81,8 @@ const helpItems: CategoryItemType[] = [
         title: t('general.changelog'),
         icon: 'ncList',
         e: 'c:nocodb:changelog-open',
-        link: 'https://community.nocodb.com/',
+        link: '',
+        onClick: () => navigateToFeed(undefined, undefined, { tab: 'github' }),
       },
     ],
   },
@@ -95,15 +99,18 @@ const helpItems: CategoryItemType[] = [
   },
 ]
 
-const openUrl = (url: string, e: string) => {
-  $e(e, {
+const openUrl = (item: ItemType) => {
+  $e(item.e, {
     trigger: 'mini-sidebar',
   })
 
-  if (url.startsWith('http')) {
-    window.open(url, '_blank')
+  if (item.onClick) {
+    item.onClick()
+    visible.value = false
+  } else if (item.link.startsWith('http')) {
+    window.open(item.link, '_blank')
   } else {
-    openLinkUsingATag(url, '_blank')
+    openLinkUsingATag(item.link, '_blank')
   }
 }
 </script>
@@ -138,12 +145,12 @@ const openUrl = (url: string, e: string) => {
                   <GeneralIcon v-if="item.icon" :icon="item.icon" class="h-4 w-4" />
                   {{ item.title }}
                 </template>
-                <NcMenuItem v-for="(subItem, j) of item.subItems" :key="j" @click="openUrl(subItem.link, subItem.e)">
+                <NcMenuItem v-for="(subItem, j) of item.subItems" :key="j" @click="openUrl(subItem)">
                   <GeneralIcon v-if="subItem.icon" :icon="subItem.icon" class="h-4 w-4" />
                   {{ subItem.title }}
                 </NcMenuItem>
               </NcSubMenu>
-              <NcMenuItem v-else @click="openUrl(item.link, item.e)">
+              <NcMenuItem v-else @click="openUrl(item)">
                 <GeneralIcon v-if="item.icon" :icon="item.icon" class="h-4 w-4" />
                 {{ item.title }}
               </NcMenuItem>

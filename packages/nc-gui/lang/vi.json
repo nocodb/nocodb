@@ -1729,7 +1729,10 @@
     "searchOptions": "Tìm kiếm tùy chọn",
     "lockViewDescription": "Giải thích lý do bạn khóa chế độ xem này. Thông báo này sẽ hiển thị khi có người cố gắng mở khóa (không bắt buộc).",
     "noBaseUsersFound": "Không tìm thấy người dùng của cơ sở",
-    "noInvoices": "Không có hóa đơn"
+    "noInvoices": "Không có hóa đơn",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "Bộ lọc URL được lấy từ tham số URL và kết hợp với bộ lọc chế độ xem trên thanh công cụ.",

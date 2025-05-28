@@ -18,6 +18,8 @@ const {
   miniSidebarWidth,
 } = storeToRefs(useSidebarStore())
 
+const isReadySidebar = ref(false)
+
 const expandedFormPreviewSize = computed(() => {
   if (isMobileMode.value || !route.query.rowId) return 100
 
@@ -35,6 +37,30 @@ function onResize(widthPercent: any) {
     expandedFormRightSidebarState.value.width = sidebarWidth
   }
 }
+
+let timerId: any
+
+watch(
+  () => route.query.rowId,
+  (rowId) => {
+    clearTimeout(timerId)
+    if (rowId) {
+      timerId = setTimeout(() => {
+        isReadySidebar.value = true
+        clearTimeout(timerId)
+      }, 1000)
+    } else {
+      isReadySidebar.value = false
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+onBeforeUnmount(() => {
+  clearTimeout(timerId)
+})
 </script>
 
 <template>
@@ -46,7 +72,7 @@ function onResize(widthPercent: any) {
       <slot name="preview" />
     </Pane>
     <Pane
-      v-if="isExpandedFormSidebarEnabled && route.query.rowId"
+      v-if="isExpandedFormSidebarEnabled && isReadySidebar && route.query.rowId"
       id="nc-expanded-form-sidebar-splitpane"
       min-size="15%"
       class="nc-expanded-form-sidebar-splitpane"
@@ -75,7 +101,7 @@ function onResize(widthPercent: any) {
     @apply !w-0 relative overflow-visible;
   }
   .splitpanes__splitter:before {
-    @apply bg-gray-200 w-0.25 absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-1001;
+    @apply bg-transparent w-0.25 absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-1001;
     content: '';
   }
 

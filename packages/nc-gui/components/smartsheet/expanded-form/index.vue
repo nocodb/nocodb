@@ -761,7 +761,7 @@ export default {
 
 <template>
   <component
-    :is="isExpandedFormSidebarEnabled ? Drawer : isMobileMode ? Drawer : NcModal"
+    :is="isExpandedFormSidebarEnabled || isMobileMode ? Drawer : NcModal"
     :class="{ 'active': isExpanded, 'nc-drawer-sidebar-expanded-form': isExpandedFormSidebarEnabled }"
     :closable="false"
     :footer="null"

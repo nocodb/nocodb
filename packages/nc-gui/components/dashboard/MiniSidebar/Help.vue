@@ -87,7 +87,7 @@ const helpItems: CategoryItemType[] = [
         e: 'c:nocodb:contact-us-mail-copy',
         link: '',
         copyBtn: true,
-        tooltip: 'Click to copy email',
+        tooltip: t('labels.clickToCopy'),
       },
     ],
   },

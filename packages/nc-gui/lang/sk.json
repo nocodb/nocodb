@@ -806,7 +806,8 @@
     "upgradeToPlan": "Upgradujte na plán {plan}",
     "upgradeWorkspaceToPlan": "Upgradujte pracovný priestor {workspace} na plán {plan}",
     "upgradeToPlanSubtitle": "Za tento plán vám bude okamžite účtovaná platba.",
-    "reactivateToPlan": "Znovu aktivovať plán {plan}?"
+    "reactivateToPlan": "Znovu aktivovať plán {plan}?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1321,7 +1322,8 @@
     "invoice": "Faktúra",
     "status": "Stav",
     "invoiceTotal": "Celková suma faktúry",
-    "pastInvoices": "Minulé faktúry"
+    "pastInvoices": "Minulé faktúry",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Kliknite na vyriešenie",

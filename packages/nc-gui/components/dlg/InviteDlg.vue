@@ -159,7 +159,13 @@ const isInviteButtonDisabled = computed(() => {
 })
 
 const showUserWillChargedWarning = computed(() => {
-  return !appInfo.value?.isOnPrem && isPaidPlan.value && !NON_SEAT_ROLES.includes(inviteData.roles) && !!emailBadges.value.length
+  return (
+    !appInfo.value?.isOnPrem &&
+    isPaymentEnabled.value &&
+    isPaidPlan.value &&
+    !NON_SEAT_ROLES.includes(inviteData.roles) &&
+    !!emailBadges.value.length
+  )
 })
 
 watch(inviteData, (newVal) => {

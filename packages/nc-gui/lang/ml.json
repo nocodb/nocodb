@@ -1729,7 +1729,10 @@
     "searchOptions": "തിരയൽ ഓപ്ഷനുകൾ",
     "lockViewDescription": "നിങ്ങൾ ഇത് ലോക്ക് ചെയ്യുന്നതിന്റെ കാരണങ്ങള്‍ എഴുതുക. ആരെങ്കിലും ഇത് അണ്‍ലോക്ക് ചെയ്യാൻ ശ്രമിക്കുമ്പോൾ ഈ സന്ദേശം കാണിക്കും (ഐച്ഛികം).",
     "noBaseUsersFound": "ബേസ് ഉപയോക്താക്കളൊന്നും കണ്ടെത്താനായില്ല",
-    "noInvoices": "ഇൻവോയിസുകളൊന്നുമില്ല"
+    "noInvoices": "ഇൻവോയിസുകളൊന്നുമില്ല",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL പാരാമീറ്ററുകളിൽ നിന്ന് URL ഫിൽറ്ററുകൾ പ്രയോഗിക്കുകയും, ടൂൾബാറില്‍ സജ്ജീകരിച്ച കാഴ്ച ഫിൽറ്ററുകളുമായി ചേർക്കുകയും ചെയ്യുന്നു.",

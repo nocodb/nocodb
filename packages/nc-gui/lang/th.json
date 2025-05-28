@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "อัปเกรดเพื่ออัปโหลดภาพเวิร์กสเปซ",
-    "upgradeToUploadWsImageSubtitle": "แผน {activePlan} ปัจจุบันของคุณอนุญาตเฉพาะไอคอนและอีโมจิ อัปเกรดเป็นแผน {plan} เพื่ออัปโหลดภาพที่กำหนดเองเป็นอวาตาร์เวิร์กสเปซ"
+    "upgradeToUploadWsImageSubtitle": "แผน {activePlan} ปัจจุบันของคุณอนุญาตเฉพาะไอคอนและอีโมจิ อัปเกรดเป็นแผน {plan} เพื่ออัปโหลดภาพที่กำหนดเองเป็นอวาตาร์เวิร์กสเปซ",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

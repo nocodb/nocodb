@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
 import { ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
-import type { BaseType, SourceType, TableType, WorkspaceUserRoles } from 'nocodb-sdk'
+import type { BaseType, SourceType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import Automation from './Automation.vue'
 
@@ -266,7 +266,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
   _openTableCreateDialog({
     baseId: base.value?.id,
-    sourceId: sourceId,
+    sourceId,
     onCloseCallback: () => {
       isExpanded.value = true
 

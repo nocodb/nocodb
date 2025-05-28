@@ -117,7 +117,7 @@ const openUrl = (item: ItemType) => {
 
 <template>
   <div class="nc-mini-sidebar-btn-full-width">
-    <NcDropdown v-model:visible="visible" :overlay-class-name="`!min-w-55 !left-1`">
+    <NcDropdown v-model:visible="visible" overlay-class-name="!min-w-55 !left-1">
       <div class="w-full py-1 flex items-center justify-center">
         <div
           class="nc-mini-sidebar-btn"

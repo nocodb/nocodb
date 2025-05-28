@@ -1,5 +1,5 @@
-import { DlgAutomationCreate } from '#components'
 import type { ScriptType } from 'nocodb-sdk'
+import { DlgAutomationCreate } from '#components'
 import { parseScript, validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
 
 export const useAutomationStore = defineStore('automation', () => {
@@ -329,7 +329,7 @@ export const useAutomationStore = defineStore('automation', () => {
         ncNavigateTo({
           workspaceId: activeWorkspaceId.value,
           automation: true,
-          baseId: baseId,
+          baseId,
           automationId: script.id,
         })
 

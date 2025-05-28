@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { viewTypeAlias, ViewTypes, type TableType } from 'nocodb-sdk'
+import { type TableType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 
 const { $e } = useNuxtApp()
 
@@ -80,11 +80,11 @@ async function onOpenModal({
 }
 
 function openTableCreateDialog() {
-  let sourceId = base.value!.sources?.[0].id
+  const sourceId = base.value!.sources?.[0].id
 
   _openTableCreateDialog({
     baseId: base.value?.id,
-    sourceId: sourceId,
+    sourceId,
   })
 }
 
@@ -124,7 +124,7 @@ const hasAutomationCreateAccess = computed(() => {
 
 <template>
   <div v-if="!isSharedBase" class="nc-mini-sidebar-btn-full-width">
-    <NcDropdown v-model:visible="isVisibleCreateNew" :overlay-class-name="`!min-w-48 !left-1`">
+    <NcDropdown v-model:visible="isVisibleCreateNew" overlay-class-name="!min-w-48 !left-1">
       <div class="w-full py-1 flex items-center justify-center">
         <div
           class="border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium"
@@ -181,15 +181,15 @@ const hasAutomationCreateAccess = computed(() => {
                 <GeneralIcon icon="grid" />
                 {{ $t('objects.view') }}
               </template>
-              <NcMenuItem @click.stop="onOpenModal({ type: ViewTypes.GRID })" data-testid="mini-sidebar-view-create-grid">
+              <NcMenuItem data-testid="mini-sidebar-view-create-grid" @click.stop="onOpenModal({ type: ViewTypes.GRID })">
                 <GeneralViewIcon :meta="{ type: ViewTypes.GRID }" />
                 <div>{{ $t('objects.viewType.grid') }}</div>
               </NcMenuItem>
               <NcTooltip :title="$t('tooltip.sourceDataIsReadonly')" :disabled="!activeSource?.is_data_readonly && !isSqlView">
                 <NcMenuItem
                   :disabled="!!activeSource?.is_data_readonly || isSqlView"
-                  @click="onOpenModal({ type: ViewTypes.FORM })"
                   data-testid="mini-sidebar-view-create-form"
+                  @click="onOpenModal({ type: ViewTypes.FORM })"
                 >
                   <GeneralViewIcon
                     :meta="{ type: ViewTypes.FORM }"
@@ -200,7 +200,7 @@ const hasAutomationCreateAccess = computed(() => {
                   <div>{{ $t('objects.viewType.form') }}</div>
                 </NcMenuItem>
               </NcTooltip>
-              <NcMenuItem @click="onOpenModal({ type: ViewTypes.GALLERY })" data-testid="mini-sidebar-view-create-gallery">
+              <NcMenuItem data-testid="mini-sidebar-view-create-gallery" @click="onOpenModal({ type: ViewTypes.GALLERY })">
                 <GeneralViewIcon :meta="{ type: ViewTypes.GALLERY }" />
                 <div>{{ $t('objects.viewType.gallery') }}</div>
               </NcMenuItem>

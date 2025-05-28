@@ -1,11 +1,9 @@
 <script lang="ts" setup>
-import type { ScriptType, SourceType, TableType } from 'nocodb-sdk'
+import type { SourceType, TableType } from 'nocodb-sdk'
 import Automation from '../Automation.vue'
 
 const router = useRouter()
 const route = router.currentRoute
-
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
@@ -13,8 +11,6 @@ const { baseUrl } = useBase()
 const { openNewScriptModal } = useAutomationStore()
 
 const { setMenuContext } = inject(TreeViewInj)!
-
-const { ncNavigateTo } = useGlobal()
 
 const { api } = useApi()
 

@@ -737,7 +737,6 @@ import NcLayout from '~icons/nc-icons-v2/layout.svg'
 import NcPlusCircleSolid from '~icons/nc-icons-v2/plus-circle-solid.svg'
 import NcHeadphone from '~icons/nc-icons-v2/headphone'
 
-
 import MdiNcCheckBold from '~icons/nc-icons/mdi-check-bold'
 import MdiNcCropSquare from '~icons/nc-icons/mdi-crop-square'
 import MdiNcCheckCircleOutline from '~icons/nc-icons/mdi-check-circle-outline'
@@ -1715,7 +1714,7 @@ export const iconMap = {
   'ncLayout': NcLayout,
   'ncPlusCircleSolid': h(NcPlusCircleSolid, { stroke: 'transparent' }),
   'ncDiscordForum': NcDiscordForum,
-  'ncHeadphone': NcHeadphone
+  'ncHeadphone': NcHeadphone,
 }
 
 export const getMdiIcon = (type: string): any => {

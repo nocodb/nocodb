@@ -808,7 +808,6 @@
     "reactivateToPlan": "重新激活 {plan} 方案？"
   },
   "labels": {
-    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -824,8 +823,6 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
-    "exampleScript": "Example Scripts",
-    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "恢复快照",
     "note": "备注：",
     "snapshotRestoreMessage1": "恢复此快照不会影响现有的 Base。",
@@ -1227,8 +1224,8 @@
     "agreeToTos": "注册即表示您同意服务条款",
     "welcomeToNc": "欢迎来到NocoDB！",
     "inviteOnlySignup": "只能通过邀请链接注册账户",
-    "nextRow": "下一行",
-    "prevRow": "上一行",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "在网格视图中手动添加数据",
     "addRowForm": "通过表单输入记录数据",
     "noAccess": "无权访问",
@@ -2262,7 +2259,8 @@
       "paymentSuccessful": "支付成功",
       "paymentSuccessfulSubtitle": "您的付款已处理完成。现在可以使用新的套餐。",
       "upgradeSuccessful": "升级成功",
-      "upgradeSuccessfulSubtitle": "您的升级付款已处理完成。现在可以使用新的套餐。"
+      "upgradeSuccessfulSubtitle": "您的升级付款已处理完成。现在可以使用新的套餐。",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "从头开始。",

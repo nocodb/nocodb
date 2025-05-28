@@ -14,6 +14,10 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     return isFeatureEnabled(FEATURE_FLAG.IMPROVED_SIDEBAR_UI)
   })
 
+  const isExpandedFormSidebarEnabled = computed(() => {
+    return isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_SIDEBAR)
+  })
+
   const miniSidebarWidth = computed(() => {
     return isNewSidebarEnabled.value ? MINI_SIDEBAR_WIDTH : 0
   })
@@ -118,6 +122,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     miniSidebarWidth,
     expandedFormRightSidebarState,
     expandedFormRightSidebarWidthPercent,
+    isExpandedFormSidebarEnabled,
   }
 })
 

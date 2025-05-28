@@ -33,6 +33,8 @@ const viewsStore = useViewsStore()
 
 const { activeView } = storeToRefs(viewsStore)
 
+const { isExpandedFormSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const key = ref(0)
 
 const wrapper = ref()
@@ -676,13 +678,19 @@ watch([expandedFormScrollWrapper, isLoading], () => {
   }
 })
 
+const attrs = useAttrs()
+
 const modalProps = computed(() => {
   if (isMobileMode.value) {
     return {
       placement: 'bottom',
+      ...(attrs || {}),
     }
   }
-  return {}
+  return {
+    ...(attrs || {}),
+    ...(isExpandedFormSidebarEnabled.value ? { getContainer: false, position: 'absolute', placement: 'right', mask: false } : {}),
+  }
 })
 
 // check if the row is new and has some changes on LTAR/Links
@@ -717,8 +725,6 @@ const stopLoading = () => {
 defineExpose({
   stopLoading,
 })
-
-const isExapandedSidebarEnabled = true
 </script>
 
 <script lang="ts">
@@ -730,26 +736,36 @@ export default {
 <template>
   <component
     v-if="isExpanded"
-    :is="isExapandedSidebarEnabled ? 'div' : isMobileMode ? Drawer : NcModal"
+    :is="isExpandedFormSidebarEnabled ? 'div' : isMobileMode ? Drawer : NcModal"
     :body-style="{ padding: 0 }"
     :class="{ active: isExpanded }"
     :closable="false"
     :footer="null"
     :visible="isExpanded"
     :width="commentsDrawer && isUIAllowed('commentList', baseRoles) ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
-    class="nc-drawer-expanded-form"
+    class="nc-drawer-expanded-form z-1001"
     :size="isMobileMode ? 'medium' : 'small'"
     v-bind="modalProps"
     @update:visible="onIsExpandedUpdate"
   >
-    <div class="h-[85vh] xs:(max-h-full h-full) max-h-215 flex flex-col">
+    <div
+      class="xs:(max-h-full h-full) max-h-215 flex flex-col"
+      :class="{
+        'h-full': isExpandedFormSidebarEnabled,
+        'h-[85vh]': !isExpandedFormSidebarEnabled,
+      }"
+    >
       <div v-if="isMobileMode" class="flex-none h-4 flex items-center justify-center">
         <div class="flex-none h-full flex items-center justify-center cursor-pointer" @click="onClose">
           <div class="w-[72px] h-[2px] rounded-full bg-[#49494a]"></div>
         </div>
       </div>
       <div
-        class="flex gap-2 min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header p-4 xs:(px-2 py-0 min-h-[48px]) border-b-1 border-gray-200"
+        class="flex gap-2 min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header px-4 xs:(px-2 py-0 min-h-[48px]) border-b-1 border-gray-200"
+        :class="{
+          'py-2': isExpandedFormSidebarEnabled,
+          'py-3': !isExpandedFormSidebarEnabled,
+        }"
       >
         <div class="flex gap-2 min-w-0 min-h-8">
           <div class="flex gap-2">
@@ -915,7 +931,14 @@ export default {
           </NcButton>
         </div>
       </div>
-      <div ref="wrapper" class="flex-grow h-[calc(100%_-_4rem)] w-full">
+      <div
+        ref="wrapper"
+        class="flex-grow w-full"
+        :class="{
+          'h-[calc(100%_-_49px)]': isExpandedFormSidebarEnabled,
+          'h-[calc(100%_-_3.5rem)]': !isExpandedFormSidebarEnabled,
+        }"
+      >
         <template v-if="activeViewMode === ExpandedFormMode.FIELD">
           <SmartsheetExpandedFormPresentorsFields
             :row-id="rowId"

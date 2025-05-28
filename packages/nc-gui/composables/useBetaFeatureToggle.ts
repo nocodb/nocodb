@@ -34,6 +34,12 @@ const FEATURES = [
     version: 2,
   },
   {
+    id: 'expanded_form_sidebar',
+    title: 'Expanded Form Sidebar',
+    description: 'New and Improved expanded form sidebar for better UI experience',
+    enabled: true,
+  },
+  {
     id: 'link_to_another_record',
     title: 'Link To Another Record',
     description: 'Show linked record display value in Link fields.',

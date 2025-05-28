@@ -877,6 +877,7 @@ onMounted(async () => {
                     placeholder="-select table-"
                     :filter-option="filterOption"
                     :show-search="tables?.length > 6"
+                    dropdown-match-select-width
                     @change="onTableSelect(true)"
                   >
                     <a-select-option v-for="table of tables || []" :key="table.title" :value="table.id">
@@ -912,7 +913,7 @@ onMounted(async () => {
                   <a-radio-group v-model:value="importPayload.upsert" name="upsert" @change="updateHistory()">
                     <div class="input-wrapper border-1 border-nc-border-gray-medium rounded-lg px-3 py-2 flex flex-col gap-2">
                       <a-radio :value="false">
-                        <div class="flex items-center justify-between gap-2">
+                        <div class="flex flex-col">
                           <div>Add records</div>
                           <div class="text-small leading-[18px] text-nc-content-gray-muted">Adds all records from CSV.</div>
                         </div>
@@ -920,7 +921,7 @@ onMounted(async () => {
                     </div>
                     <div class="input-wrapper border-1 border-nc-border-gray-medium rounded-lg px-3 py-2 flex flex-col gap-2">
                       <a-radio :value="true">
-                        <div class="flex items-center justify-between gap-2">
+                        <div class="flex flex-col">
                           <div>Merge records</div>
                           <div class="text-small leading-[18px] text-nc-content-gray-muted">
                             Updates existing records from CSV.
@@ -928,12 +929,13 @@ onMounted(async () => {
                         </div>
                       </a-radio>
                       <div v-if="importPayload.upsert" class="pl-6 flex flex-col gap-3" @click.stop>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 w-full">
                           <div class="text-sm text-nc-content-gray flex items-center gap-1 min-w-[100px]">Import type</div>
-                          <a-form-item class="!my-0 w-full">
+                          <a-form-item class="!my-0 w-[calc(100%_-_108px)]">
                             <NcSelect
                               v-model:value="importPayload.importType"
                               class="w-full nc-select-shadow"
+                              dropdown-class-name="w-[254px]"
                               @change="updateHistory()"
                             >
                               <a-select-option v-for="(opt, i) of importTypeOptions" :key="i" :value="opt.type">
@@ -958,7 +960,7 @@ onMounted(async () => {
                             </NcSelect>
                           </a-form-item>
                         </div>
-                        <div class="flex gap-2">
+                        <div class="flex gap-2 w-full">
                           <div class="text-sm text-nc-content-gray flex items-center gap-1 min-w-[100px]">
                             Merge field
                             <NcTooltip placement="bottomLeft">
@@ -969,23 +971,23 @@ onMounted(async () => {
                               <GeneralIcon icon="info" class="text-nc-content-gray-muted h-4 w-4" />
                             </NcTooltip>
                           </div>
-                          <a-form-item class="!my-0 w-full">
+                          <a-form-item class="!my-0 w-[calc(100%_-_108px)]">
                             <NcSelect
                               v-model:value="importPayload.upsertColumnId"
                               class="w-full nc-select-shadow"
                               placeholder="-select a field-"
+                              dropdown-class-name="w-[254px]"
                               @change="onUpsertColumnChange"
                             >
                               <a-select-option v-for="(opt, i) of tableColumns" :key="i" :value="opt.value">
                                 <div class="flex items-center gap-2 w-full">
-                                  <NcTooltip class="flex-1" show-on-truncate-only>
+                                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                                     <template #title>
                                       {{ opt.label }}
                                     </template>
-                                    <div class="truncate flex-1">
-                                      {{ opt.label }}
-                                    </div>
+                                    {{ opt.label }}
                                   </NcTooltip>
+
                                   <component
                                     :is="iconMap.check"
                                     v-if="importPayload.upsertColumnId === opt.value"

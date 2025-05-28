@@ -42,7 +42,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const skipRowRemovalOnCancel = ref(false)
 
-const { eventBus, allFilters, isExternalSource, filtersFromUrlParams } = useSmartsheetStoreOrThrow()
+const { eventBus, allFilters, isExternalSource, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
 
 const { showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
@@ -124,7 +124,7 @@ function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
   }, {} as Record<string, any>)
   group.count = group.count + 1
   const rowFilters = getPlaceholderNewRow(
-    [...allFilters.value, ...(!filtersFromUrlParams?.value?.errors?.length ? filtersFromUrlParams?.value?.filters || [] : [])],
+    [...allFilters.value, ...validFiltersFromUrlParams.value],
     metaValue?.columns as ColumnType[],
   )
 

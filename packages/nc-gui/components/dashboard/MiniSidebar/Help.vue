@@ -163,9 +163,9 @@ const openUrl = (item: ItemType) => {
                 {{ item.title }}
 
                 <GeneralCopyButton
+                  v-if="item.copyBtn"
                   ref="copyBtnRef"
                   type="secondary"
-                  v-if="item.copyBtn"
                   :content="item.title"
                   :show-toast="false"
                 />

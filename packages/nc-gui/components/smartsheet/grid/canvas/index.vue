@@ -1878,6 +1878,11 @@ const handleMouseMove = (e: MouseEvent) => {
   }
 }
 
+const handleMouseLeave = () => {
+  activeCursor.value = 'auto'
+  hideTooltip()
+}
+
 const reloadViewDataHookHandler = async (params) => {
   if (isGroupBy.value) {
     if (params?.path?.length) {
@@ -2442,7 +2447,7 @@ defineExpose({
             oncontextmenu="return false"
             @mousedown="handleMouseDown"
             @mousemove="handleMouseMove"
-            @mouseleave="hideTooltip"
+            @mouseleave="handleMouseLeave"
           >
           </canvas>
           <template #overlay>

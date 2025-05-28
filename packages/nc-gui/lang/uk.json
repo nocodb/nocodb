@@ -1729,7 +1729,10 @@
     "searchOptions": "Пошук опцій",
     "lockViewDescription": "Поясніть, чому ви блокуєте цей вигляд. Це повідомлення буде показано, коли хтось спробує розблокувати цей вигляд (необов'язково).",
     "noBaseUsersFound": "Користувачів бази не знайдено",
-    "noInvoices": "Немає рахунків"
+    "noInvoices": "Немає рахунків",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL-фільтри застосовуються з параметрів URL і комбінуються з фільтрами вигляду, встановленими через панель інструментів.",

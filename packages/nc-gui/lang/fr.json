@@ -811,7 +811,6 @@
     "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
-    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -827,8 +826,6 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
-    "exampleScript": "Example Scripts",
-    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Restauration de l'instantané",
     "note": "Remarque :",
     "snapshotRestoreMessage1": "La restauration de cet instantané n'affectera pas la base existante.",
@@ -1231,8 +1228,8 @@
     "agreeToTos": "En continuant, vous acceptez les Conditions d'Utilisation",
     "welcomeToNc": "Bienvenue sur NocoDB !",
     "inviteOnlySignup": "Autoriser l'inscription en utilisant uniquement l'url d'invitation",
-    "nextRow": "Rang suivant",
-    "prevRow": "Rang précédent",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Ajouter manuellement des données dans la vue Grille",
     "addRowForm": "Entrez les données de l'enregistrement via un formulaire",
     "noAccess": "Accès interdit",
@@ -2267,7 +2264,8 @@
       "paymentSuccessful": "Paiement réussi",
       "paymentSuccessfulSubtitle": "Votre paiement a été traité. Vous pouvez maintenant utiliser votre nouveau plan.",
       "upgradeSuccessful": "Mise à niveau réussie",
-      "upgradeSuccessfulSubtitle": "Votre paiement pour la mise à niveau a été traité. Vous pouvez maintenant utiliser votre nouveau plan."
+      "upgradeSuccessfulSubtitle": "Votre paiement pour la mise à niveau a été traité. Vous pouvez maintenant utiliser votre nouveau plan.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Commencer à partir de zéro.",

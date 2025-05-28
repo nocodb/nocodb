@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "{workspace} auf {plan}-Tarif upgraden",
     "upgradeToPlanSubtitle": "Sie werden für diesen Tarif sofort belastet.",
     "reactivateToPlan": "{plan}-Tarif reaktivieren?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Sie können Basen nur in Arbeitsbereiche duplizieren, in denen Sie mindestens Erstellerrechte haben.",
     "snapshotBaseRestoreMessage": "Sie können nur in Arbeitsbereichen wiederherstellen, in denen Sie mindestens Erstellerrechte haben.",
     "currentWorkspace": "Aktueller Arbeitsbereich",
+    "currentBase": "Current base",
     "latitude": "Breitengrad",
     "longitude": "Längengrad",
     "failed": "Fehlgeschlagen",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API-Snippets",
     "includeData": "Daten einbeziehen",
     "includeRecords": "Datensätze einschließen",
-    "baseDuplicateMessage": "Hinweis: Protokolle & Integrationen werden nicht dupliziert.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Ansichten einschließen",
     "includeWebhook": "Webhook einschließen",
     "includeComments": "Kommentare einschließen",
@@ -1669,7 +1674,8 @@
     "copyErrorCode": "Fehlercode kopieren",
     "paidUserBadgeTooltip": "Benutzer hat in mindestens einer Base die Rolle Editor oder höher.",
     "approachingLimit": "Grenzwert nähert sich",
-    "exceedingLimit": "Grenzwert überschritten"
+    "exceedingLimit": "Grenzwert überschritten",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Icons suchen",

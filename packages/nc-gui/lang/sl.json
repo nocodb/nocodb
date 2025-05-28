@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Nadgradite {workspace} na načrt {plan}",
     "upgradeToPlanSubtitle": "Za ta paket boste zaračunani takoj.",
     "reactivateToPlan": "Ponovno aktivirati paket {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Baze lahko podvojite le v delovne prostore, kjer imate dovoljenja ustvarjalca ali višja.",
     "snapshotBaseRestoreMessage": "Obnovitev je možna samo v delovnih prostorih, kjer imate dovoljenja ustvarjalca ali višja.",
     "currentWorkspace": "Trenutni delovni prostor",
+    "currentBase": "Current base",
     "latitude": "Zemljepisna širina",
     "longitude": "Zemljepisna dolžina",
     "failed": "Ni uspelo",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API Izrezki",
     "includeData": "Vključi podatke",
     "includeRecords": "Vključi zapise",
-    "baseDuplicateMessage": "Opomba: dnevniki revizij in integracije ne bodo podvojeni.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Vključi poglede",
     "includeWebhook": "Vključi spletni kavelj",
     "includeComments": "Vključi komentarje",
@@ -1611,6 +1616,7 @@
     "changePlan": "Spremeni načrt"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Vsak delovni prostor mora imeti vsaj enega lastnika. Preden ga zapustite, dodelite drugemu uporabniku vlogo lastnika. Če ste zadnji član, razmislite o izbrisu delovnega prostora.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Omogočite, da bo ta povezava zasebna in skrita pred drugimi ustvarjalci v tem delovnem prostoru.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Kopiraj kodo napake",
     "paidUserBadgeTooltip": "Uporabnik ima v najmanj eni bazi vlogo urednika ali višjo.",
     "approachingLimit": "Blizu omejitve",
-    "exceedingLimit": "Prekoračena omejitev"
+    "exceedingLimit": "Prekoračena omejitev",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Iskanje ikon",

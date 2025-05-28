@@ -484,7 +484,6 @@ watch(
               <div v-else class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No Bases</div>
             </div>
           </div>
-          <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
         </div>
       </Transition>
       <!-- Slide in Project Home -->
@@ -499,6 +498,7 @@ watch(
           </ProjectWrapper>
         </div>
       </Transition>
+      <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
     </template>
   </div>
 </template>

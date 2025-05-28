@@ -6,7 +6,7 @@
   "main": "dist/cli.js",
   "bin": "dist/cli.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
+    "build": "pnpm dlx webpack-cli --config webpack.config.js",
     "dev": "cross-env NC_DB=\"pg://localhost:5432?u=postgres&p=password&d=meta_2024_09_07\" nodemon --watch 'src/**/*.ts' --exec 'ts-node --project tsconfig.json' src/index.ts -- a b --nc-db abc",
     "test": "mocha --require ts-node/register src/**/*.spec.ts",
     "build:pkg": "npx @yao-pkg/pkg . --out-path dist-pkg --compress GZip",

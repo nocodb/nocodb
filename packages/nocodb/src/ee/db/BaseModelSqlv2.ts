@@ -2239,6 +2239,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       throwExceptionIfNotExist = false,
       isSingleRecordUpdation = false,
       allowSystemColumn = false,
+      typecast = false,
       apiVersion,
     }: {
       cookie?: any;
@@ -2246,6 +2247,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       throwExceptionIfNotExist?: boolean;
       isSingleRecordUpdation?: boolean;
       allowSystemColumn?: boolean;
+      typecast?: boolean;
       apiVersion?: NcApiVersion;
     } = {},
   ) {
@@ -2257,7 +2259,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       if (!raw) {
         for (const d of datas) {
-          await this.validate(d, columns, { allowSystemColumn });
+          await this.validate(d, columns, { allowSystemColumn, typecast });
         }
       }
 

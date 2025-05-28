@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "將 {workspace} 升級至 {plan} 方案",
     "upgradeToPlanSubtitle": "您將立即被收取此方案費用。",
     "reactivateToPlan": "確定重新啟用 {plan} 方案？",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "您只能在擁有建立者權限以上的工作區中複製 Base。",
     "snapshotBaseRestoreMessage": "您只能在擁有建立者權限以上的工作區中還原。",
     "currentWorkspace": "目前工作區",
+    "currentBase": "Current base",
     "latitude": "緯度",
     "longitude": "經度",
     "failed": "失敗",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API 程式碼片段",
     "includeData": "包括資料",
     "includeRecords": "包含紀錄",
-    "baseDuplicateMessage": "注意：稽核日誌與整合不會被複製。",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "包含檢視",
     "includeWebhook": "包含 webhook",
     "includeComments": "包含評論",
@@ -1611,6 +1616,7 @@
     "changePlan": "更改方案"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "每個工作區至少需要一位擁有者。在離開前請先指定其他使用者為擁有者；若您是最後一位成員，請考慮刪除工作區。",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "啟用此連接僅限私人且不會在此工作區中被其他創作者看到。",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "複製錯誤代碼",
     "paidUserBadgeTooltip": "使用者在至少一個 Base 中具有編輯者或更高的角色。",
     "approachingLimit": "接近限制",
-    "exceedingLimit": "超出限制"
+    "exceedingLimit": "超出限制",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "搜索圖標",

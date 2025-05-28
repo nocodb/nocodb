@@ -1034,6 +1034,7 @@ onMounted(async () => {
                 class="flex-1"
                 :bordered="false"
                 header-row-height="40px"
+                body-row-class-name="!cursor-default"
                 row-height="48px"
               >
                 <template #headerCell="{ column }">
@@ -1089,7 +1090,11 @@ onMounted(async () => {
                         v-if="columns[importMeta.columnId]?.uidt"
                         class="flex-none w-3.5 h-3.5"
                       />
-                      {{ columns[importMeta.columnId].title }}
+                      <NcTooltip class="truncate max-w-[calc(100%_-_24px)]" show-on-truncate-only>
+                        <template #title> {{ columns[importMeta.columnId].title }} </template>
+
+                        {{ columns[importMeta.columnId].title }}
+                      </NcTooltip>
                     </template>
                   </div>
                   <template v-if="column.key === 'mapping'">

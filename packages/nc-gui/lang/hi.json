@@ -1732,7 +1732,10 @@
     "searchOptions": "खोज विकल्प",
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional).",
     "noBaseUsersFound": "No base users found",
-    "noInvoices": "कोई इनवॉइस नहीं"
+    "noInvoices": "कोई इनवॉइस नहीं",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",

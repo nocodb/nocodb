@@ -119,6 +119,7 @@
     "upgradeToAdd": "Päivitä lisätäksesi",
     "requestUpgradeToAdd": "Pyydä päivitystä lisätäksesi",
     "upgradeToAddMoreExtensions": "Olet tällä hetkellä ilmaisessa paketissa, joka sallii vain yhden lisäosan. Päivitä avataksesi rajattomat lisäosat.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Päivitä saadaksesi työtilan auditoinnin käyttöön",
     "upgradeToAccessWsAuditSubtitle": "Päivitä {plan}-pakettiin ottaaksesi työtilan auditointilokit käyttöön ja seurataaksesi tärkeitä tapahtumia tehokkaasti.",
     "upgradeToAddMoreAttachments": "Päivitä lisätäksesi enemmän liitteitä",
@@ -155,6 +156,7 @@
     "upgradeToUploadWsImageSubtitle": "Nykyinen {activePlan}-pakettisi sallii vain kuvakkeet ja emojit. Päivitä {plan}-pakettiin ladataksesi mukautetun kuvan työtilan avatariksi."
   },
   "general": {
+    "script": "Script",
     "supported": "Tuettu",
     "usage": "Käyttö",
     "snapshot": "Tilannekuva",
@@ -822,6 +824,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Palautetaan tilannekuvaa",
     "note": "Huom:",
     "snapshotRestoreMessage1": "Tämän tilannekuvan palauttaminen ei vaikuta olemassa olevaan pohjaan.",

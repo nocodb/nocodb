@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Faça upgrade do {workspace} para o plano {plan}",
     "upgradeToPlanSubtitle": "Você será cobrado imediatamente por este plano.",
     "reactivateToPlan": "Reativar o plano {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Você só pode duplicar bases em espaços de trabalho onde você tem acesso de criador ou superior.",
     "snapshotBaseRestoreMessage": "Você só pode restaurar em espaços de trabalho onde você tem acesso de criador ou superior.",
     "currentWorkspace": "Espaço de trabalho atual",
+    "currentBase": "Current base",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Falhou",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "Trechos de API",
     "includeData": "Incluir Dados",
     "includeRecords": "Incluir registros",
-    "baseDuplicateMessage": "Observação: logs de auditoria e integrações não serão duplicados.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Incluir visualizações",
     "includeWebhook": "Incluir webhook",
     "includeComments": "Incluir comentários",
@@ -1669,7 +1674,8 @@
     "copyErrorCode": "Copiar código do erro",
     "paidUserBadgeTooltip": "O usuário tem papel de editor ou superior em pelo menos uma base.",
     "approachingLimit": "Aproximando-se do limite",
-    "exceedingLimit": "Excedendo o limite"
+    "exceedingLimit": "Excedendo o limite",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Pesquisar ícones",

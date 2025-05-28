@@ -166,6 +166,7 @@ const accountUrl = computed(() => {
               </NcMenuItem>
             </a>
             <a
+              v-if="!isMiniSidebar"
               v-e="['c:nocodb:twitter']"
               href="https://twitter.com/nocodb"
               target="_blank"
@@ -209,33 +210,35 @@ const accountUrl = computed(() => {
             <template v-if="!isMobileMode">
               <NcDivider />
 
-              <a
-                v-e="['c:nocodb:forum-open']"
-                href="https://community.nocodb.com"
-                target="_blank"
-                class="!underline-transparent"
-                rel="noopener"
-              >
-                <NcMenuItem>
-                  <GeneralIcon icon="ncHelp" class="menu-icon mt-0.5" />
-                  <span class="menu-btn"> {{ $t('title.forum') }} </span>
-                </NcMenuItem>
-              </a>
+              <template v-if="!isMiniSidebar">
+                <a
+                  v-e="['c:nocodb:forum-open']"
+                  href="https://community.nocodb.com"
+                  target="_blank"
+                  class="!underline-transparent"
+                  rel="noopener"
+                >
+                  <NcMenuItem>
+                    <GeneralIcon icon="ncHelp" class="menu-icon mt-0.5" />
+                    <span class="menu-btn"> {{ $t('title.forum') }} </span>
+                  </NcMenuItem>
+                </a>
 
-              <a
-                v-e="['c:nocodb:docs-open']"
-                href="https://docs.nocodb.com"
-                target="_blank"
-                class="!underline-transparent"
-                rel="noopener"
-              >
-                <NcMenuItem>
-                  <GeneralIcon icon="file" class="menu-icon mt-0.5" />
-                  <span class="menu-btn"> {{ $t('title.docs') }} </span>
-                </NcMenuItem>
-              </a>
+                <a
+                  v-e="['c:nocodb:docs-open']"
+                  href="https://docs.nocodb.com"
+                  target="_blank"
+                  class="!underline-transparent"
+                  rel="noopener"
+                >
+                  <NcMenuItem>
+                    <GeneralIcon icon="file" class="menu-icon mt-0.5" />
+                    <span class="menu-btn"> {{ $t('title.docs') }} </span>
+                  </NcMenuItem>
+                </a>
 
-              <NcDivider />
+                <NcDivider />
+              </template>
 
               <DashboardSidebarEEMenuOption v-if="isEeUI" />
               <NcMenuItem @click="openExperimentationMenu">

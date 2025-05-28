@@ -8,11 +8,13 @@ const { $e } = useNuxtApp()
 const { fullscreen, tables, getViewsForTable, getTableMeta, activeTableId, activeViewId, $api, extension } =
   useExtensionHelperOrThrow()
 
+const { eventBus } = useExtensions()
+
 const EXTENSION_ID = extension.value.extensionId
 
 const kvStore = extension.value.kvStore
 
-const tableId = ref<string>(activeTableId.value!)
+const tableId = ref<string | undefined>(activeTableId.value!)
 const viewId = ref<string | undefined>(activeViewId.value || undefined)
 const relationFieldId = ref<string>()
 const relationshipType = ref<'TB' | 'BT'>('TB')
@@ -28,11 +30,20 @@ const saveData = async () => {
     coverImageFieldId: coverImageFieldId.value,
     relationshipType: relationshipType.value,
   }
+
   await kvStore.set('data', dataToSave)
 }
 
-const clearData = async () => {
-  await kvStore.delete('data')
+const clearData = async (clearKvStore = true) => {
+  if (clearKvStore) {
+    await kvStore.delete('data')
+  }
+
+  tableId.value = undefined
+  viewId.value = undefined
+  relationFieldId.value = undefined
+  relationshipType.value = 'TB'
+  coverImageFieldId.value = undefined
 }
 
 interface SavedData {
@@ -368,7 +379,15 @@ onMounted(async () => {
 })
 
 watch([displayValueCol, pkValueCol], () => {
-  loadGraph()
+  if (viewId.value) {
+    loadGraph()
+  }
+})
+
+eventBus.on(async (event, payload) => {
+  if (event === ExtensionsEvents.CLEARDATA && payload && extension.value.id && payload === extension.value.id) {
+    clearData(false)
+  }
 })
 </script>
 
@@ -541,7 +560,12 @@ watch([displayValueCol, pkValueCol], () => {
           </section>
           <div class="flex-1"></div>
           <div class="px-6 py-4 flex flex-col">
-            <NcButton size="small" type="primary" :disabled="!isDirty || !relationFieldId" @click.prevent="applyChanges">
+            <NcButton
+              size="small"
+              type="primary"
+              :disabled="!isDirty || !relationFieldId || !viewId"
+              @click.prevent="applyChanges"
+            >
               <div class="flex justify-center items-center gap-2" data-rec="true">Apply Changes</div>
             </NcButton>
           </div>

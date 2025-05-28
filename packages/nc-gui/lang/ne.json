@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "वर्कस्पेस छवि अपलोड गर्न अपग्रेड गर्नुहोस्",
-    "upgradeToUploadWsImageSubtitle": "तपाईंको हालको {activePlan} योजनाले आइकन र इमोजी मात्र अनुमति दिन्छ। वर्कस्पेस अवतारको रूपमा अनुकूलित छवि अपलोड गर्न {plan} योजना मा अपग्रेड गर्नुहोस्।"
+    "upgradeToUploadWsImageSubtitle": "तपाईंको हालको {activePlan} योजनाले आइकन र इमोजी मात्र अनुमति दिन्छ। वर्कस्पेस अवतारको रूपमा अनुकूलित छवि अपलोड गर्न {plan} योजना मा अपग्रेड गर्नुहोस्।",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

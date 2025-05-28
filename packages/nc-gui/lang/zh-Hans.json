@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "升级以上传工作区图像",
-    "upgradeToUploadWsImageSubtitle": "您当前的 {activePlan} 套餐仅允许使用图标和表情符号。升级到 {plan} 套餐即可上传自定义图像作为工作区头像。"
+    "upgradeToUploadWsImageSubtitle": "您当前的 {activePlan} 套餐仅允许使用图标和表情符号。升级到 {plan} 套餐即可上传自定义图像作为工作区头像。",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

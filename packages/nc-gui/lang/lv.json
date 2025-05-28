@@ -1244,7 +1244,7 @@
     "apiSnippet": "API fragmenti",
     "includeData": "Iekļaut Datus",
     "includeRecords": "Iekļaut ierakstus",
-    "baseDuplicateMessage": "Piezīme: auditācijas žurnāli un integrācijas netiks dublēti.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Iekļaut skatījumus",
     "includeWebhook": "Iekļaut webhook",

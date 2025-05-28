@@ -1244,7 +1244,7 @@
     "apiSnippet": "API Snippets",
     "includeData": "Sertakan Data",
     "includeRecords": "Sertakan rekaman",
-    "baseDuplicateMessage": "Catatan: Log audit & integrasi tidak akan diduplikasi.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Sertakan tampilan",
     "includeWebhook": "Sertakan webhook",

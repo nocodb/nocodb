@@ -1244,7 +1244,7 @@
     "apiSnippet": "مقتطفات API",
     "includeData": "تضمين البيانات",
     "includeRecords": "تضمين السجلات",
-    "baseDuplicateMessage": "ملاحظة: لن يتم تكرار سجلات التدقيق أو التكاملات.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "تضمين العروض",
     "includeWebhook": "تضمين Webhook",

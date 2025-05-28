@@ -1244,7 +1244,7 @@
     "apiSnippet": "API 程式碼片段",
     "includeData": "包括資料",
     "includeRecords": "包含紀錄",
-    "baseDuplicateMessage": "注意：稽核日誌與整合不會被複製。",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "包含檢視",
     "includeWebhook": "包含 webhook",

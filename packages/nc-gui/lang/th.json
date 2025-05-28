@@ -1244,7 +1244,7 @@
     "apiSnippet": "API Snippets",
     "includeData": "รวมข้อมูล",
     "includeRecords": "รวมเรคคอร์ด",
-    "baseDuplicateMessage": "หมายเหตุ: บันทึกการตรวจสอบและการผสานรวมจะไม่ถูกทำสำเนา",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "รวมมุมมอง",
     "includeWebhook": "รวมเว็บฮุค",

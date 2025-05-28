@@ -1244,7 +1244,7 @@
     "apiSnippet": "API ತುಂಡುಗಳು",
     "includeData": "ಡೇಟಾವನ್ನು ಸೇರಿಸಿ",
     "includeRecords": "ದಾಖಲೆಗಳನ್ನು ಸೇರಿಸಿ",
-    "baseDuplicateMessage": "ಗಮನಿಸಿ: ಆಡಿಟ್ ಲಾಗ್‌ಗಳು ಮತ್ತು ಸಂಯೋಜನೆಗಳನ್ನು ನಕಲಿಸಲಾಗುವುದಿಲ್ಲ.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "ದೃಶ್ಯಗಳನ್ನು ಸೇರಿಸಿ",
     "includeWebhook": "ವೆಬ್‌ಹುಕ್ ಸೇರಿಸಿ",

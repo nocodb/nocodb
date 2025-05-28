@@ -1244,7 +1244,7 @@
     "apiSnippet": "API úryvky",
     "includeData": "Zahrnout data",
     "includeRecords": "Zahrnout záznamy",
-    "baseDuplicateMessage": "Poznámka: záznamy auditu a integrace nebudou duplikovány.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Zahrnout zobrazení",
     "includeWebhook": "Zahrnout webhook",

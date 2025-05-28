@@ -89,7 +89,7 @@ writeShellApplication {
       touch ${migrations_dir}/from_legacy_image_with_sqlite
     fi
     if [ -f ${working_dir}/noco.db ] || [ -d ${working_dir}/nc ] ; then
-      [ -f ${nocodb_run_dir} ] ||
+      [ -e ${nocodb_run_dir} ] ||
         ln -s ${working_dir} ${nocodb_run_dir}
     fi
 

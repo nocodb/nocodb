@@ -113,15 +113,18 @@ env_aio_set() {
 }
 
 nocodb_dep_add() {
-	# $1: dep
+	# $@: deps
+	
 
-	touch "$s6_services_temp_path/nocodb-main-srv/dependencies.d/$1"
-	touch "$s6_services_temp_path/nocodb-worker-srv/dependencies.d/$1"
+	for dep in "$@"; do
+		touch "$s6_services_temp_path/nocodb-main-srv/dependencies.d/$dep"
+		touch "$s6_services_temp_path/nocodb-worker-srv/dependencies.d/$dep"
+	done
 }
 
 env_aio_act() {
 	if "$aio_postgres_enable"; then
-		nocodb_dep_add postgresql
+		nocodb_dep_add postgresql postgresql-db-create
 
 		cat <<-EOF >>"$nocodb_env_common_path"
 			DATABASE_URL="postgresql:///nocodb?host=/run/postgresql&user=postgres"

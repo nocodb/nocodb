@@ -19,5 +19,4 @@ foreground {
 }
 
 fdmove -c 2 1
-
 execline-cd  /var/lib/nocodb s6-setuidgid nocodb nocodb

@@ -35,7 +35,6 @@ const { activeView } = storeToRefs(viewsStore)
 
 const {
   isExpandedFormSidebarEnabled,
-  expandedFormRightSidebarWidthPercent,
   expandedFormRightSidebarState,
   normalizeExpandedFormSidebarWidth,
 } = storeToRefs(useSidebarStore())

@@ -10,6 +10,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
+  const hideMiniSidebar = ref(false)
+
   const hideSidebar = ref(false)
 
   const showTopbar = ref(false)
@@ -90,8 +92,6 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const formRightSidebarWidthPercent = computed(() => {
     return (formRightSidebarState.value.width / (width.value - leftSidebarWidth.value)) * 100
   })
-
-  const hideMiniSidebar = ref(false)
 
   const expandedFormRightSidebarState = ref({
     minWidth: 484,

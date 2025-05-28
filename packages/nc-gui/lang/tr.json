@@ -119,6 +119,7 @@
     "upgradeToAdd": "Eklemek için yükseltin",
     "requestUpgradeToAdd": "Eklemek için yükseltme isteyin",
     "upgradeToAddMoreExtensions": "Şu anda yalnızca bir uzantıya izin veren Ücretsiz plandasınız. Sınırsız uzantı kilidini açmak için yükseltin.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Çalışma alanı denetimine erişmek için yükseltin",
     "upgradeToAccessWsAuditSubtitle": "Çalışma alanı denetim günlüklerini etkinleştirmek ve temel etkinlikleri etkili bir şekilde izlemek için {plan} planına yükseltin.",
     "upgradeToAddMoreAttachments": "Daha fazla ek dosya eklemek için yükseltin",
@@ -155,6 +156,7 @@
     "upgradeToUploadWsImageSubtitle": "Mevcut {activePlan} planınız yalnızca simgeler ve emojilere izin veriyor. Çalışma alanı avatarınız için özel bir resim yüklemek adına {plan} planına yükseltin."
   },
   "general": {
+    "script": "Script",
     "supported": "Destekleniyor",
     "usage": "Kullanım",
     "snapshot": "Anlık Görüntü",
@@ -822,6 +824,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Anlık Görüntü Geri Yükleniyor",
     "note": "Not:",
     "snapshotRestoreMessage1": "Bu anlık görüntüyü geri yüklemek mevcut tabanı etkilemez.",

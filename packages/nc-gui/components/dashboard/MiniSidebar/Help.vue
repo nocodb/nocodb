@@ -38,8 +38,8 @@ const helpItems: CategoryItemType[] = [
       {
         title: t('labels.apis'),
         icon: 'ncCode',
-        e: 'c:nocodb:api-open',
-        link: 'https://community.nocodb.com/',
+        e: '',
+        link: '',
         subItems: [
           {
             title: t('labels.dataApiV2'),
@@ -106,9 +106,11 @@ const helpItems: CategoryItemType[] = [
 ]
 
 const openUrl = (item: ItemType) => {
-  $e(item.e, {
-    trigger: 'mini-sidebar',
-  })
+  if (item.e) {
+    $e(item.e, {
+      trigger: 'mini-sidebar',
+    })
+  }
 
   if (item.onClick) {
     item.onClick()

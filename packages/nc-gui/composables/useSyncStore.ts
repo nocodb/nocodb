@@ -8,7 +8,7 @@ interface SyncConfig {
   title: string
   sync_type: SyncType
   sync_trigger: SyncTrigger
-  sync_category: SyncCategory
+  sync_category: SyncCategory | null
   exclude_models: string[]
   on_delete_action: OnDeleteAction
   sync_trigger_cron: string | null
@@ -87,14 +87,34 @@ const [useProvideSyncStore, useSyncStore] = useInjectionState(
     const selectedIntegrationIndex = ref(0)
     const activeIntegrationItemForm = ref<FormDefinition>()
 
-    // Use the form builder helper
-    const { formState, isLoading, validate, clearValidate, validateInfos } = useProvideFormBuilderHelper({
-      formSchema: activeIntegrationItemForm,
-    })
-
     const { getIntegrationForm } = useIntegrationStore()
 
     const { $api } = useNuxtApp()
+
+    // Use the form builder helper
+    const { formState, isLoading, validate, clearValidate, validateInfos } = useProvideFormBuilderHelper({
+      formSchema: activeIntegrationItemForm,
+      fetchOptions: async (key: string) => {
+        const wsId = unref(workspaceId)
+        const bsId = unref(baseId)
+
+        if (!key || !wsId || !bsId) return []
+
+        const options = await $api.internal.postOperation(
+          wsId,
+          bsId,
+          {
+            operation: 'syncIntegrationFetchOptions',
+          },
+          {
+            integration: formState.value,
+            key,
+          },
+        )
+
+        return options
+      },
+    })
 
     // Helper function to get deep reference value
     const deepReference = (path: string) => {
@@ -362,6 +382,22 @@ const [useProvideSyncStore, useSyncStore] = useInjectionState(
       await removeIntegrationConfig(selectedIntegrationIndex.value)
     }
 
+    const integrationFetchDestinationSchema = async (integration: IntegrationConfig) => {
+      const wsId = unref(workspaceId)
+      const bsId = unref(baseId)
+
+      if (!wsId || !bsId || !integration) {
+        return
+      }
+
+      return await $api.internal.postOperation(
+        wsId,
+        bsId,
+        { operation: 'syncIntegrationFetchDestinationSchema' },
+        { integration },
+      )
+    }
+
     return {
       syncConfigForm,
       syncConfigEditForm,
@@ -393,6 +429,7 @@ const [useProvideSyncStore, useSyncStore] = useInjectionState(
       triggerSync,
       deleteSync,
       editTab,
+      integrationFetchDestinationSchema,
     }
   },
   'use-sync-store',

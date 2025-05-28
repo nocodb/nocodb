@@ -2885,6 +2885,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       throwExceptionIfNotExist = false,
       isSingleRecordUpdation = false,
       allowSystemColumn = false,
+      typecast = false,
       apiVersion,
     }: {
       cookie?: any;
@@ -2892,6 +2893,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       throwExceptionIfNotExist?: boolean;
       isSingleRecordUpdation?: boolean;
       allowSystemColumn?: boolean;
+      typecast?: boolean;
       apiVersion?: NcApiVersion;
     } = {},
   ) {
@@ -2904,7 +2906,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // validate update data
       if (!raw) {
         for (const d of datas) {
-          await this.validate(d, columns, { allowSystemColumn });
+          await this.validate(d, columns, { allowSystemColumn, typecast });
         }
       }
 

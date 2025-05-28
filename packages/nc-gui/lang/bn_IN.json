@@ -119,6 +119,7 @@
     "upgradeToAdd": "Upgrade to add",
     "requestUpgradeToAdd": "যোগ করার জন্য আপগ্রেডের অনুরোধ করুন",
     "upgradeToAddMoreExtensions": "আপনি বর্তমানে ফ্রি প্ল্যানে আছেন, যা শুধুমাত্র একটি এক্সটেনশন অনুমতি দেয়। আনলিমিটেড এক্সটেনশন আনলক করতে আপগ্রেড করুন।",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "ওয়ার্কস্পেস অডিট অ্যাক্সেস করতে আপগ্রেড করুন",
     "upgradeToAccessWsAuditSubtitle": "Upgrade to the {plan} plan to enable workspace audit logs and efficiently monitor key activities.",
     "upgradeToAddMoreAttachments": "আরও সংযুক্তি যোগ করতে আপগ্রেড করুন",
@@ -155,6 +156,7 @@
     "upgradeToUploadWsImageSubtitle": "আপনার বর্তমান {activePlan} প্ল্যান কেবল আইকন ও ইমোজি অনুমতি দেয়। কাস্টম ছবি ওয়ার্কস্পেস অবতার হিসেবে আপলোড করতে {plan} প্ল্যানে আপগ্রেড করুন।"
   },
   "general": {
+    "script": "Script",
     "supported": "সমর্থিত",
     "usage": "ব্যবহার",
     "snapshot": "স্ন্যাপশট",
@@ -822,6 +824,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "স্ন্যাপশট রিস্টোর করা হচ্ছে",
     "note": "নোট:",
     "snapshotRestoreMessage1": "এই স্ন্যাপশট রিস্টোর করলে বিদ্যমান বেসে কোনও প্রভাব পড়বে না।",

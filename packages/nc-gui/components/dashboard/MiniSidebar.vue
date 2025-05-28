@@ -20,6 +20,8 @@ const { navigateToWorkspaceSettings, navigateToIntegrations: _navigateToIntegrat
 
 const { basesList, showProjectList } = storeToRefs(useBases())
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const { isUIAllowed } = useRoles()
 
 const isProjectListOrHomePageOpen = computed(() => {
@@ -206,7 +208,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <NcDivider class="!my-0 !border-nc-border-gray-dark" />
       </div>
       <DashboardSidebarMiniSidebarItemWrapper>
-        <DashboardSidebarCreateNewActionMenu />
+        <NcTooltip v-if="!isSharedBase" :title="$t('labels.createNew')" placement="right" hide-on-click :arrow="false">
+          <DashboardSidebarCreateNewActionMenu />
+        </NcTooltip>
       </DashboardSidebarMiniSidebarItemWrapper>
 
       <DashboardSidebarUserInfo />

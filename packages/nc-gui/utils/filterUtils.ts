@@ -493,7 +493,7 @@ export const getPlaceholderNewRow = (filters: Filter[], columns: ColumnType[]) =
   }
   const placeholderNewRow: Record<string, any> = {}
   for (const eachFilter of filters) {
-    if (['eq'].includes(eachFilter.comparison_op as any)) {
+    if (['checked', 'notchecked', 'eq'].includes(eachFilter.comparison_op as any)) {
       const column = columns.find((col) => col.id === eachFilter.fk_column_id)
       if (column) {
         if (
@@ -509,8 +509,12 @@ export const getPlaceholderNewRow = (filters: Filter[], columns: ColumnType[]) =
             UITypes.PhoneNumber,
             UITypes.URL,
             UITypes.Time,
+            UITypes.Year,
+            UITypes.Currency,
+            UITypes.Percent,
+            UITypes.Rating,
             UITypes.Duration,
-            UITypes.Checkbox,
+            UITypes.JSON,
 
             // User is using allOf and anyOf so we cannot include it here
             // UITypes.User,
@@ -518,6 +522,11 @@ export const getPlaceholderNewRow = (filters: Filter[], columns: ColumnType[]) =
           ([UITypes.Date, UITypes.DateTime].includes(column.uidt as UITypes) && eachFilter.comparison_sub_op === 'exactDate')
         ) {
           placeholderNewRow[column.title!] = eachFilter.value
+        } else if (
+          [UITypes.Checkbox].includes(column.uidt as UITypes) &&
+          ['checked', 'notchecked'].includes(eachFilter.comparison_op as any)
+        ) {
+          placeholderNewRow[column.title!] = eachFilter.comparison_op === 'checked'
         }
       }
     }

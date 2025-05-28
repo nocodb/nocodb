@@ -25,5 +25,7 @@
   "config": {
     "contentMinHeight": "340px"
   },
-  "order": 1
+  "order": 1,
+  "beta": true,
+  "disabled": true
 }

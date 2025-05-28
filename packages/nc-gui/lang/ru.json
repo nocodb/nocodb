@@ -808,7 +808,6 @@
     "reactivateToPlan": "Возобновить тариф {plan}?"
   },
   "labels": {
-    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -824,8 +823,6 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
-    "exampleScript": "Example Scripts",
-    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Восстановление снимка",
     "note": "Примечание:",
     "snapshotRestoreMessage1": "Восстановление этого снимка не повлияет на существующую базу.",
@@ -1228,8 +1225,8 @@
     "agreeToTos": "Регистрируясь, вы соглашаетесь с Условиями предоставления услуг",
     "welcomeToNc": "Добро пожаловать в NocoDB!",
     "inviteOnlySignup": "Разрешить регистрацию только по пригласительной ссылке",
-    "nextRow": "Следующая запись",
-    "prevRow": "Предыдущая запись",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Добавить данные вручную в представлении сетки",
     "addRowForm": "Ввести данные записи через форму",
     "noAccess": "Нет доступа",
@@ -2264,7 +2261,8 @@
       "paymentSuccessful": "Платеж выполнен!",
       "paymentSuccessfulSubtitle": "Платёж успешно обработан. Теперь вы можете использовать новый тарифный план.",
       "upgradeSuccessful": "Успешно обновлено",
-      "upgradeSuccessfulSubtitle": "Платёж за обновление успешно обработан. Теперь вы можете использовать новый тарифный план."
+      "upgradeSuccessfulSubtitle": "Платёж за обновление успешно обработан. Теперь вы можете использовать новый тарифный план.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Начните с нуля.",

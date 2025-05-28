@@ -70,7 +70,7 @@ provide(
       }),
   ),
 )
-useExpandedFormDetachedProvider()
+const states = useExpandedFormDetachedProvider()
 UseDetachedLongTextProvider()
 
 useProvideViewColumns(activeView, meta, () => reloadViewDataEventHook?.trigger())
@@ -162,9 +162,17 @@ watch([activeViewTitleOrId, activeTableId], () => {
   handleSidebarOpenOnMobileForNonViews()
 })
 
-const { leftSidebarWidth, windowSize } = storeToRefs(useSidebarStore())
+const { leftSidebarWidth, windowSize, isExpandedFormSidebarEnabled } = storeToRefs(useSidebarStore())
 
-const { isPanelExpanded, extensionPanelSize } = useExtensions()
+const { isPanelExpanded: _isPanelExpanded, extensionPanelSize } = useExtensions()
+
+const isPanelExpanded = computed(() => {
+  if (!isExpandedFormSidebarEnabled.value) return _isPanelExpanded.value
+
+  if (!_isPanelExpanded.value || route.query.rowId || states.value.length) return false
+
+  return _isPanelExpanded.value
+})
 
 const contentSize = computed(() => {
   if (isPanelExpanded.value && extensionPanelSize.value) {

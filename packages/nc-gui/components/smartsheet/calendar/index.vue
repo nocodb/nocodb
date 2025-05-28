@@ -132,72 +132,74 @@ reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) =>
     </div>
   </template>
   <template v-else>
-    <div class="flex h-full relative flex-row" data-testid="nc-calendar-wrapper">
-      <div class="flex flex-col w-full">
-        <template v-if="calendarRange?.length && !isCalendarMetaLoading">
-          <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
-          <template v-if="!isCalendarDataLoading">
-            <LazySmartsheetCalendarMonthView
-              v-if="activeCalendarView === 'month'"
-              @expand-record="expandRecord"
-              @new-record="newRecord"
-            />
+    <SmartsheetExpandedFormSidebarLayout>
+      <div class="flex h-full relative flex-row" data-testid="nc-calendar-wrapper">
+        <div class="flex flex-col w-full">
+          <template v-if="calendarRange?.length && !isCalendarMetaLoading">
+            <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
+            <template v-if="!isCalendarDataLoading">
+              <LazySmartsheetCalendarMonthView
+                v-if="activeCalendarView === 'month'"
+                @expand-record="expandRecord"
+                @new-record="newRecord"
+              />
 
-            <LazySmartsheetCalendarWeekViewDateField
-              v-else-if="activeCalendarView === 'week' && calDataType === UITypes.Date"
-              @expand-record="expandRecord"
-              @new-record="newRecord"
-            />
-            <LazySmartsheetCalendarWeekViewDateTimeField
-              v-else-if="
-                activeCalendarView === 'week' &&
-                [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
-              "
-              @expand-record="expandRecord"
-              @new-record="newRecord"
-            />
-            <LazySmartsheetCalendarDayViewDateField
-              v-else-if="activeCalendarView === 'day' && calDataType === UITypes.Date"
-              @expand-record="expandRecord"
-              @new-record="newRecord"
-            />
-            <LazySmartsheetCalendarDayViewDateTimeField
-              v-else-if="
-                activeCalendarView === 'day' &&
-                [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
-              "
-              @expand-record="expandRecord"
-              @new-record="newRecord"
-            />
+              <LazySmartsheetCalendarWeekViewDateField
+                v-else-if="activeCalendarView === 'week' && calDataType === UITypes.Date"
+                @expand-record="expandRecord"
+                @new-record="newRecord"
+              />
+              <LazySmartsheetCalendarWeekViewDateTimeField
+                v-else-if="
+                  activeCalendarView === 'week' &&
+                  [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
+                "
+                @expand-record="expandRecord"
+                @new-record="newRecord"
+              />
+              <LazySmartsheetCalendarDayViewDateField
+                v-else-if="activeCalendarView === 'day' && calDataType === UITypes.Date"
+                @expand-record="expandRecord"
+                @new-record="newRecord"
+              />
+              <LazySmartsheetCalendarDayViewDateTimeField
+                v-else-if="
+                  activeCalendarView === 'day' &&
+                  [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
+                "
+                @expand-record="expandRecord"
+                @new-record="newRecord"
+              />
+            </template>
+
+            <div
+              v-if="isCalendarDataLoading && activeCalendarView !== 'year'"
+              class="flex w-full items-center h-full justify-center"
+            >
+              <GeneralLoader size="xlarge" />
+            </div>
           </template>
-
-          <div
-            v-if="isCalendarDataLoading && activeCalendarView !== 'year'"
-            class="flex w-full items-center h-full justify-center"
-          >
-            <GeneralLoader size="xlarge" />
-          </div>
-        </template>
-        <template v-else-if="isCalendarMetaLoading">
-          <div class="flex w-full items-center h-full justify-center">
-            <GeneralLoader size="xlarge" />
-          </div>
-        </template>
-        <template v-else>
-          <div class="flex w-full items-center h-full justify-center">
-            {{ $t('activity.noRange') }}
-          </div>
-        </template>
+          <template v-else-if="isCalendarMetaLoading">
+            <div class="flex w-full items-center h-full justify-center">
+              <GeneralLoader size="xlarge" />
+            </div>
+          </template>
+          <template v-else>
+            <div class="flex w-full items-center h-full justify-center">
+              {{ $t('activity.noRange') }}
+            </div>
+          </template>
+        </div>
+        <Transition>
+          <LazySmartsheetCalendarSideMenu
+            v-show="showSideMenu"
+            :visible="showSideMenu"
+            @expand-record="expandRecord"
+            @new-record="newRecord"
+          />
+        </Transition>
       </div>
-      <Transition>
-        <LazySmartsheetCalendarSideMenu
-          v-show="showSideMenu"
-          :visible="showSideMenu"
-          @expand-record="expandRecord"
-          @new-record="newRecord"
-        />
-      </Transition>
-    </div>
+    </SmartsheetExpandedFormSidebarLayout>
 
     <Suspense>
       <LazySmartsheetExpandedForm

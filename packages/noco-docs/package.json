@@ -42,7 +42,7 @@
     "docusaurus-theme-search-typesense": "^0.24.0",
     "nc-analytics": "^0.0.9",
     "plugin-image-zoom": "github:flexanalytics/plugin-image-zoom",
-    "prism-react-renderer": "^1.3.5",
+    "prism-react-renderer": "^2.4.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "sass": "^1.89.0"
@@ -73,6 +73,6 @@
     ]
   },
   "engines": {
-    "node": ">=16.20.2"
+    "node": ">=22.16.0"
   }
 }

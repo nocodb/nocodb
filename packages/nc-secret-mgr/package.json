@@ -2,7 +2,7 @@
   "name": "nc-secret-mgr",
   "version": "0.0.1",
   "description": "",
-  "packageManager": "pnpm@9.6.0",
+  "packageManager": "pnpm@10.11.0",
   "main": "dist/cli.js",
   "bin": "dist/cli.js",
   "scripts": {
@@ -30,8 +30,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "chalk": "^4.1.0",
-    "commander": "^12.1.0",
+    "chalk": "^5.4.1",
+    "commander": "^14.0.0",
     "enquirer": "^2.4.1",
     "figlet": "^1.7.0",
     "knex": "^3.1.0",
@@ -42,19 +42,19 @@
   },
   "devDependencies": {
     "@types/figlet": "^1.5.8",
-    "chai": "^4.4.1",
+    "chai": "^5.2.0",
     "class-transformer": "0.3.1",
     "class-validator": "^0.14.1",
     "cross-env": "^7.0.3",
-    "mocha": "^10.8.2",
+    "mocha": "^11.5.0",
     "nodemon": "^3.0.3",
     "pkg": "^5.8.0",
-    "eslint-config-prettier": "^8.10.0",
+    "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-eslint-comments": "^3.2.0",
-    "eslint-plugin-functional": "^5.0.8",
+    "eslint-plugin-functional": "^9.0.1",
     "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-prettier": "^4.2.1",
-    "prettier": "^2.8.8",
-    "@mapbox/node-pre-gyp": "^1.0.11"
+    "eslint-plugin-prettier": "^5.4.0",
+    "prettier": "^3.5.3",
+    "@mapbox/node-pre-gyp": "^2.0.0"
   }
 }

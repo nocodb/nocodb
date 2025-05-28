@@ -18,7 +18,7 @@
     "url": "https://github.com/nocodb/nocodb/issues"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.16.0"
   },
   "license": "AGPL-3.0-or-later",
   "keywords": [],
@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "axios": "^1.9.0",
-    "chevrotain": "^10.5.0",
+    "chevrotain": "^11.0.3",
     "dayjs": "^1.11.13",
     "jsep": "^1.4.0",
     "validator": "^13.12.0"
@@ -48,20 +48,20 @@
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/node": "^22.15.21",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "cspell": "^4.2.8",
-    "eslint": "^8.57.1",
-    "eslint-config-prettier": "^8.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.33.0",
+    "@typescript-eslint/parser": "^8.33.0",
+    "cspell": "^9.0.2",
+    "eslint": "^9.27.0",
+    "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-eslint-comments": "^3.2.0",
-    "eslint-plugin-functional": "^5.0.8",
+    "eslint-plugin-functional": "^9.0.1",
     "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "express": "^4.21.2",
+    "eslint-plugin-prettier": "^5.4.0",
+    "express": "^5.1.0",
     "jest": "^29.7.0",
     "npm-run-all2": "^8.0.4",
-    "prettier": "^2.8.8",
-    "rimraf": "^5.0.10",
+    "prettier": "^3.5.3",
+    "rimraf": "^6.0.1",
     "ts-jest": "^29.2.5",
     "tsc-alias": "^1.8.10",
     "typescript": "^5.7.3"

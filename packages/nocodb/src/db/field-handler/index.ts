@@ -14,6 +14,7 @@ import type CustomKnex from '../CustomKnex';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 import type {
+  FilterOperationResult,
   FilterOptions,
   FilterVerificationResult,
   IFieldHandler,
@@ -268,7 +269,7 @@ export class FieldHandler implements IFieldHandler {
     filter: Filter,
     column?: Column,
     options: FilterOptions = {},
-  ): Promise<(qb: Knex.QueryBuilder) => void> {
+  ) {
     const knex = options.knex ?? this.info.knex;
     const dbClient = (knex.clientType?.() ??
       knex.client.config.client) as ClientType;
@@ -288,16 +289,13 @@ export class FieldHandler implements IFieldHandler {
     return this.applyFilters(filter.children, options);
   }
 
-  async applyFilters(
-    filters: Filter[],
-    options: FilterOptions = {},
-  ): Promise<(qb: Knex.QueryBuilder) => void> {
+  async applyFilters(filters: Filter[], options: FilterOptions = {}) {
     const model = options.baseModel?.model ?? this.info.baseModel.model;
     if (!model.columns) {
       await model.getColumns(options.context ?? this.info.context);
     }
     const qbHandlers: {
-      handler: (qb: Knex.QueryBuilder) => void;
+      handler: FilterOperationResult;
       index: number;
       logicalOps?: string;
     }[] = [];
@@ -326,10 +324,17 @@ export class FieldHandler implements IFieldHandler {
         });
       }
     }
-    return (qb: Knex.QueryBuilder) => {
-      for (const handler of qbHandlers.sort((a, b) => a.index - b.index)) {
-        qb[getLogicalOpMethod(handler.logicalOps)](qb);
-      }
+    return {
+      clause: (qb: Knex.QueryBuilder) => {
+        for (const handler of qbHandlers.sort((a, b) => a.index - b.index)) {
+          qb[getLogicalOpMethod(handler.logicalOps)](handler.handler.clause);
+        }
+      },
+      rootApply: (qb: Knex.QueryBuilder) => {
+        for (const handler of qbHandlers.sort((a, b) => a.index - b.index)) {
+          handler.handler.rootApply?.(qb);
+        }
+      },
     };
   }
 

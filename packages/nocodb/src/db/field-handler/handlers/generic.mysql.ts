@@ -51,15 +51,19 @@ export class GenericMysqlFieldHandler
         }
       }
     };
-    return (qb: Knex.QueryBuilder) => {
-      if (
-        filter.comparison_op === 'allof' ||
-        filter.comparison_op === 'anyof'
-      ) {
-        qb.where(condition);
-      } else {
-        qb.whereNot(condition).orWhereNull(sourceField as any);
-      }
+
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        if (
+          filter.comparison_op === 'allof' ||
+          filter.comparison_op === 'anyof'
+        ) {
+          qb.where(condition);
+        } else {
+          qb.whereNot(condition).orWhereNull(sourceField as any);
+        }
+      },
     };
   }
   // endregion filter comparisons

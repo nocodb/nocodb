@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "New Editors will be charged",
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "വർക്ക്സ്പേസ് ഇമേജ് അപ്‌ലോഡ് ചെയ്യാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
-    "upgradeToUploadWsImageSubtitle": "നിങ്ങളുടെ നിലവിലെ {activePlan} പ്ലാൻ ഐക്കണുകളും ഇമോജികളും മാത്രം പിന്തുണയ്ക്കുന്നു. വർക്ക്സ്പേസ് അവതാറായി കസ്റ്റം ഇമേജ് അപ്‌ലോഡ് ചെയ്യാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക."
+    "upgradeToUploadWsImageSubtitle": "നിങ്ങളുടെ നിലവിലെ {activePlan} പ്ലാൻ ഐക്കണുകളും ഇമോജികളും മാത്രം പിന്തുണയ്ക്കുന്നു. വർക്ക്സ്പേസ് അവതാറായി കസ്റ്റം ഇമേജ് അപ്‌ലോഡ് ചെയ്യാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",

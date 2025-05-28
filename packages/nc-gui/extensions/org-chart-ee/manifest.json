@@ -18,6 +18,5 @@
   },
   "config": {
     "contentMinHeight": "340px"
-  },
-  "beta": true
+  }
 }

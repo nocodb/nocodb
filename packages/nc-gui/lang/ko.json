@@ -153,7 +153,9 @@
     "newEditorWillBeChanged": "새 편집자에게는 요금이 청구됩니다",
     "newEditorWillBeChangedSubtitle": "새 편집자 및 더 높은 역할 구성원은 다음 청구 주기에 청구됩니다.",
     "upgradeToUploadWsImage": "작업 영역 이미지를 업로드하도록 업그레이드",
-    "upgradeToUploadWsImageSubtitle": "현재 {activePlan} 요금제는 아이콘과 이모티콘만 허용합니다. {plan} 플랜으로 업그레이드하여 사용자 지정 이미지를 작업 영역 아바타로 업로드합니다."
+    "upgradeToUploadWsImageSubtitle": "현재 {activePlan} 요금제는 아이콘과 이모티콘만 허용합니다. {plan} 플랜으로 업그레이드하여 사용자 지정 이미지를 작업 영역 아바타로 업로드합니다.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "스크립트",

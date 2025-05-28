@@ -17,12 +17,14 @@ kernal_env_store_dir="/run/kernelenvs"
 s6_services_temp_path='/run/s6-service-temp'
 migrations_dir="/var/lib/migrations"
 
-_aio_postgres_enable_default=true
-_aio_redis_enable_default=true
 _aio_worker_enable_default=false
 _aio_minio_enable_default=false
 _aio_ssl_enable_default=false
 _aio_ssl_domain_default="localhost"
+
+# additional logic used
+# _aio_postgres_enable_default=true
+# _aio_redis_enable_default=true
 
 log() {
 	echo env processor: "$@"
@@ -82,14 +84,14 @@ env_aio_set() {
 			[ ! -f /"$kernal_env_store_dir"/DATABASE_URL ] &&
 			[ ! -f /"$kernal_env_store_dir"/NC_DB_JSON ] &&
 			[ ! -f /"$kernal_env_store_dir"/NC_DB ]; then
-			aio_postgres_enable="$_aio_postgres_enable_default"
+			aio_postgres_enable=true
 		else
 			aio_postgres_enable=false
 		fi
 	fi
 	if [ "${aio_redis_enable+set}" != set ]; then
 		if [ ! -f /"$kernal_env_store_dir"/NC_REDIS_URL ]; then
-			aio_redis_enable="$_aio_redis_enable_default"
+			aio_redis_enable=true
 		else
 			aio_redis_enable=false
 		fi

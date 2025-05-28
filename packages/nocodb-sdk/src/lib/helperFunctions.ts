@@ -338,6 +338,6 @@ export function lookupCanHaveRecursiveEvaluation(param: {
     isEeUI &&
     dbClientType === ClientType.PG &&
     isSelfReferencingTableColumn(relationCol) &&
-    relationType === RelationTypes.HAS_MANY
+    [RelationTypes.HAS_MANY, RelationTypes.BELONGS_TO].includes(relationType)
   );
 }

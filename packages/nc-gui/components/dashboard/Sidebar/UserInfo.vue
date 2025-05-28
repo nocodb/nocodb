@@ -83,7 +83,7 @@ const accountUrl = computed(() => {
       <NcDropdown
         v-model:visible="isMenuOpen"
         placement="topLeft"
-        :overlay-class-name="`!min-w-64 ${isMiniSidebar ? '!left-2' : ''}`"
+        :overlay-class-name="`!min-w-64 ${isMiniSidebar ? '!left-1' : ''}`"
       >
         <div
           class="flex"

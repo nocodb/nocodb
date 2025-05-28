@@ -1,9 +1,9 @@
 <script setup lang="ts">
 const { isUIAllowed } = useRoles()
 
-const hasPermissionForSnapshots = computed(() => isUIAllowed('manageSnapshot'))
+const hasPermissionForSnapshots = computed(() => isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot'))
 
-const hasPermissionForMigrate = computed(() => isUIAllowed('migrateBase'))
+const hasPermissionForMigrate = computed(() => isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
 
 const router = useRouter()
 
@@ -11,7 +11,7 @@ const activeMenu = ref(isEeUI && hasPermissionForSnapshots.value ? 'snapshots' :
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const isMCPEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.MODEL_CONTEXT_PROTOCOL))
+const isMCPEnabled = computed(() => isUIAllowed('baseMiscSettings') && isFeatureEnabled(FEATURE_FLAG.MODEL_CONTEXT_PROTOCOL))
 
 const selectMenu = (option: string) => {
   if (!hasPermissionForSnapshots.value && option === 'snapshots') {
@@ -56,6 +56,7 @@ onMounted(() => {
         </div>
 
         <div
+          v-if="isUIAllowed('baseMiscSettings')"
           :class="{
             'active-menu': activeMenu === 'visibility',
           }"

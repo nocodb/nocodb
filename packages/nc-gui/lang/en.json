@@ -817,7 +817,8 @@
     "reactivateToPlan": "Reactivate {plan} plan?",
     "whatsNew": "What’s New!",
     "currentUser": "Current User",
-    "filteredByLoggedInUser": "Filtered by logged-in user"
+    "filteredByLoggedInUser": "Filtered by logged-in user",
+    "hideExtensions": "Hide Extensions"
   },
   "labels": {
     "crossBase": "Link to external base",

@@ -808,6 +808,21 @@
     "reactivateToPlan": "¿Reactivar el plan {plan}?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Restaurando instantánea",
     "note": "Nota:",
     "snapshotRestoreMessage1": "Restaurar esta instantánea no afectará la base existente.",
@@ -1209,8 +1224,8 @@
     "agreeToTos": "Al inscribirse, acepta las Condiciones de servicio",
     "welcomeToNc": "¡Bienvenido a NocoDB!",
     "inviteOnlySignup": "Permitir el registro sólo mediante la url de invitación",
-    "nextRow": "Siguiente fila",
-    "prevRow": "Fila anterior",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Añadir datos manualmente en la vista de cuadrícula",
     "addRowForm": "Introduzca datos de registro a través de un formulario",
     "noAccess": "Sin acceso",
@@ -2243,7 +2258,8 @@
       "paymentSuccessful": "Pago realizado con éxito",
       "paymentSuccessfulSubtitle": "Tu pago ha sido procesado. Ahora puedes usar tu nuevo plan.",
       "upgradeSuccessful": "Actualización exitosa",
-      "upgradeSuccessfulSubtitle": "Tu pago para la actualización ha sido procesado. Ahora puedes usar tu nuevo plan."
+      "upgradeSuccessfulSubtitle": "Tu pago para la actualización ha sido procesado. Ahora puedes usar tu nuevo plan.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Empezar desde cero.",

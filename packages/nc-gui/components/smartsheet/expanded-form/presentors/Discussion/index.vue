@@ -88,10 +88,10 @@ export default {
         'flex-1': showRightSections,
       }"
     >
-      <div class="w-[680px] max-w-full flex-grow flex flex-col px-6 2xl:px-0">
+      <div class="w-[680px] max-w-full flex-grow flex flex-col px-6">
         <div class="w-full h-0 flex-grow ml-15.8 border-l-1 border-gray-300" />
       </div>
-      <div v-if="mightHaveMoreAudits" class="w-[680px] max-w-full fflex-grow-0 flex-shrink-0 flex flex-col px-6 2xl:px-0">
+      <div v-if="mightHaveMoreAudits" class="w-[680px] max-w-full fflex-grow-0 flex-shrink-0 flex flex-col px-6">
         <div class="w-full h-15 flex-grow-0 flex-shrink-0 ml-15.8 border-l-1 border-gray-300 relative">
           <NcButton
             size="small"
@@ -104,7 +104,7 @@ export default {
         </div>
       </div>
       <div class="w-[680px] max-w-full pb-4">
-        <div v-for="group in auditCommentGroups" :key="group.created_at" class="w-full px-6 2xl:px-0">
+        <div v-for="group in auditCommentGroups" :key="group.created_at" class="w-full px-6">
           <template v-if="group.type === 'audit'">
             <SmartsheetExpandedFormPresentorsDiscussionEntryAudit :audit-group="group" />
           </template>
@@ -114,7 +114,7 @@ export default {
         </div>
         <div
           v-if="isUIAllowed('commentEdit')"
-          class="w-full border-t border-gray-200 px-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-white z-10"
+          class="w-full border-t border-gray-200 px-6 sticky bottom-0 pb-4 -mb-4 bg-white z-10"
         >
           <div class="font-bold my-3">Add a comment</div>
           <SmartsheetExpandedFormRichComment
@@ -132,7 +132,7 @@ export default {
             @keydown.enter.exact.prevent="handleCreatingNewComment"
           />
         </div>
-        <div v-else class="w-full px-6 2xl:px-0">
+        <div v-else class="w-full px-6">
           <div class="w-full h-4 flex-grow ml-15.8 -mb-4 border-l-1 border-gray-300" />
         </div>
 

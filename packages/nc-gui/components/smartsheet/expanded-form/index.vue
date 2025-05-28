@@ -775,10 +775,10 @@ export default {
     @update:visible="onIsExpandedUpdate"
   >
     <div
-      class="xs:(max-h-full h-full) max-h-215 flex flex-col"
+      class="xs:(max-h-full h-full) flex flex-col"
       :class="{
-        'h-full': isExpandedFormSidebarEnabled,
-        'h-[85vh]': !isExpandedFormSidebarEnabled,
+        'h-full max-h-full': isExpandedFormSidebarEnabled,
+        'h-[85vh] max-h-[85vh]': !isExpandedFormSidebarEnabled,
       }"
     >
       <div v-if="isMobileMode" class="flex-none h-4 flex items-center justify-center">

@@ -177,5 +177,3 @@ const openUrl = (item: ItemType) => {
     </NcDropdown>
   </div>
 </template>
-
-<style lang="scss" scoped></style>

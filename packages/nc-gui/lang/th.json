@@ -1729,7 +1729,10 @@
     "searchOptions": "ค้นหาตัวเลือก",
     "lockViewDescription": "อธิบายเหตุผลที่คุณล็อกมุมมองนี้ ข้อความนี้จะแสดงเมื่อมีผู้พยายามปลดล็อกมุมมอง (ไม่บังคับ)",
     "noBaseUsersFound": "ไม่พบผู้ใช้ฐาน",
-    "noInvoices": "ไม่มีใบแจ้งหนี้"
+    "noInvoices": "ไม่มีใบแจ้งหนี้",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "ตัวกรอง URL ถูกนำมาจากพารามิเตอร์ใน URL และจะถูกรวมกับตัวกรองมุมมองที่ตั้งค่าผ่านแถบเครื่องมือ",

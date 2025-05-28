@@ -1729,7 +1729,10 @@
     "searchOptions": "বিকল্পগুলি অনুসন্ধান করুন",
     "lockViewDescription": "আপনি কেন এই ভিউ লক করছেন তা ব্যাখ্যা করুন। কেউ আনলক করার চেষ্টা করলে এই বার্তাটি প্রদর্শিত হবে (ঐচ্ছিক)।",
     "noBaseUsersFound": "কোনও বেস ব্যবহারকারী পাওয়া যায়নি",
-    "noInvoices": "কোন ইনভয়েস নেই"
+    "noInvoices": "কোন ইনভয়েস নেই",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "URL প্যারামিটার থেকে URL ফিল্টার প্রয়োগ হয় এবং টুলবারে সেট করা ভিউ ফিল্টারের সাথে মিলিত হয়।",

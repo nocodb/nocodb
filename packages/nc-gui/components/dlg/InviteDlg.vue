@@ -14,6 +14,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const basesStore = useBases()
 
+const { appInfo } = useGlobal()
+
 const workspaceStore = useWorkspace()
 
 const { baseRoles, workspaceRoles } = useRoles()
@@ -157,7 +159,7 @@ const isInviteButtonDisabled = computed(() => {
 })
 
 const showUserWillChargedWarning = computed(() => {
-  return isPaidPlan.value && !NON_SEAT_ROLES.includes(inviteData.roles) && !!emailBadges.value.length
+  return !appInfo.value?.isOnPrem && isPaidPlan.value && !NON_SEAT_ROLES.includes(inviteData.roles) && !!emailBadges.value.length
 })
 
 watch(inviteData, (newVal) => {

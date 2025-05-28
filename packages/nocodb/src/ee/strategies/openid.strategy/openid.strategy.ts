@@ -3,7 +3,7 @@ import process from 'process';
 import { Injectable, Optional } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy as OpenIDConnectStrategy } from '@techpass/passport-openidconnect';
+import { Strategy as OpenIDConnectStrategy } from '@govtechsg/passport-openidconnect';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
 import boxen from 'boxen';

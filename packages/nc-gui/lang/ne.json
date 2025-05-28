@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "{workspace} लाई {plan} योजना मा अपग्रेड गर्नुहोस्",
     "upgradeToPlanSubtitle": "यो योजनाका लागि तपाईंलाई तत्काल शुल्क लगाइनेछ।",
     "reactivateToPlan": "{plan} योजना पुनः सक्रिय गर्ने?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "तपाईंले सिर्जनाकर्ता पहुँच वा सो भन्दा माथि भएको कार्यक्षेत्रमा मात्र बेसहरू नक्कल गर्न सक्नुहुन्छ।",
     "snapshotBaseRestoreMessage": "तपाईंले सिर्जनाकर्ता पहुँच वा सो भन्दा माथि भएको कार्यक्षेत्रमा मात्र पुनर्स्थापना गर्न सक्नुहुन्छ।",
     "currentWorkspace": "हालको कार्यक्षेत्र",
+    "currentBase": "Current base",
     "latitude": "अक्षांश",
     "longitude": "देशान्तर",
     "failed": "असफल",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API टुक्राहरू",
     "includeData": "डेटा समावेश गर्नुहोस्",
     "includeRecords": "रेकर्डहरू समावेश गर्नुहोस्",
-    "baseDuplicateMessage": "नोट: अडिट लगहरू र एकीकरणहरू नक्कल हुने छैनन्।",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "दृश्यहरू समावेश गर्नुहोस्",
     "includeWebhook": "वेबहुक समावेश गर्नुहोस्",
     "includeComments": "टिप्पणीहरू समावेश गर्नुहोस्",
@@ -1611,6 +1616,7 @@
     "changePlan": "योजना परिवर्तन गर्नुहोस्"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "हरेक कार्यक्षेत्रमा कम्तीमा एक मालिक हुनुपर्छ। कार्यक्षेत्र छोड्नु अघि अर्को प्रयोगकर्तालाई मालिकको रूपमा तोक्नुहोस्। यदि तपाईं अन्तिम सदस्य हुनुहुन्छ भने, त्यसको सट्टा कार्यक्षेत्र मेट्ने विचार गर्नुहोस्।",
     "currentDateNotAvail": "वर्तमान मिति विकल्प डाटा स्रोत वा डाटा प्रकारका लागि उपलब्ध छैन",
     "privateConnection": "यस कनेक्शनलाई निजी बनाउन र यो कार्यक्षेत्रमा अन्य सर्जकहरूबाट लुकाउन सक्रिय पार्नुहोस्।",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "त्रुटि कोड प्रतिलिपि गर्नुहोस्",
     "paidUserBadgeTooltip": "प्रयोगकर्ताको कम्तिमा एउटा बेसमा एडिटर वा उच्च भूमिका छ।",
     "approachingLimit": "सीमिततामा नजिकिँदै",
-    "exceedingLimit": "सीमितता नाघ्दै"
+    "exceedingLimit": "सीमितता नाघ्दै",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "आइकनहरू खोज्नुहोस्",

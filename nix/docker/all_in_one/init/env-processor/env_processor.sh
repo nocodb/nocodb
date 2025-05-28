@@ -102,7 +102,7 @@ env_aio_set() {
 		aio_ssl_enable="$_aio_ssl_enable_default"
 	fi
 	if [ "${aio_worker_enable+set}" != set ]; then
-		aio_worker_enable="$_aio_ssl_enable_default"
+		aio_worker_enable="$_aio_worker_enable_default"
 	fi
 
 	if [ "${aio_ssl_domain+set}" != set ]; then

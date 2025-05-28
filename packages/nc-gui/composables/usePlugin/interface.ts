@@ -54,6 +54,7 @@ export interface ScriptManifest {
   order: number
   disabled?: boolean
   type: 'script'
+  beta?: boolean
 }
 
 export type PluginManifest = ExtensionManifest | ScriptManifest

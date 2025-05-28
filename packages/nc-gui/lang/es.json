@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Actualiza {workspace} al plan {plan}",
     "upgradeToPlanSubtitle": "Se te cobrará inmediatamente por este plan.",
     "reactivateToPlan": "¿Reactivar el plan {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Solo puedes duplicar bases en espacios de trabajo donde tengas acceso de creador o superior.",
     "snapshotBaseRestoreMessage": "Solo puedes restaurar en espacios de trabajo donde tengas acceso de creador o superior.",
     "currentWorkspace": "Espacio de trabajo actual",
+    "currentBase": "Current base",
     "latitude": "Latitud",
     "longitude": "Longitud",
     "failed": "Fallido",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API Snippets",
     "includeData": "Incluir datos",
     "includeRecords": "Incluir registros",
-    "baseDuplicateMessage": "Nota: Los registros de auditoría e integraciones no se duplicarán.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Incluir vistas",
     "includeWebhook": "Incluir webhook",
     "includeComments": "Incluir comentarios",
@@ -1611,6 +1616,7 @@
     "changePlan": "CambiarPlan"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Cada espacio de trabajo debe tener al menos un propietario. Asigna otro usuario como propietario antes de salir. Si eres el último miembro, considera eliminar el espacio de trabajo en su lugar.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Active esta opción para que esta conexión sea privada y quede oculta a los demás creadores de este espacio de trabajo.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Copiar código de error",
     "paidUserBadgeTooltip": "El usuario tiene un rol de editor o superior en al menos una base.",
     "approachingLimit": "Acercándose al límite",
-    "exceedingLimit": "Excediendo el límite"
+    "exceedingLimit": "Excediendo el límite",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Buscar iconos",

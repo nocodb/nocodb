@@ -735,6 +735,7 @@ import NcMegaPhoneDuo from '~icons/nc-icons-v2/mega-phone-duo.svg'
 import NcNotificationDuo from '~icons/nc-icons-v2/notification-duo.svg'
 import NcLayout from '~icons/nc-icons-v2/layout.svg'
 import NcPlusCircleSolid from '~icons/nc-icons-v2/plus-circle-solid.svg'
+import NcHeadphone from '~icons/nc-icons-v2/headphone'
 
 import MdiNcCheckBold from '~icons/nc-icons/mdi-check-bold'
 import MdiNcCropSquare from '~icons/nc-icons/mdi-crop-square'
@@ -752,6 +753,7 @@ import MdiNcFlag from '~icons/nc-icons/mdi-flag'
 import MdiNcFlagOutline from '~icons/nc-icons/mdi-flag-outline'
 import MdiNcAttachFile from '~icons/nc-icons/mdi-attach'
 import MdiCloudKeyOutline from '~icons/mdi/cloud-key-outline'
+import NcDiscordForum from '~icons/nc-icons/discord-forum'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1673,6 +1675,7 @@ export const iconMap = {
   'ncLogoTwitchColored': h(NcLogoTwitchColored, { stroke: 'transparent' }),
   'ncLogoTwitch': h(NcLogoTwitch, { stroke: 'transparent' }),
   'ncLogoTwitterColored': h(NcLogoTwitterColored, { stroke: 'transparent' }),
+  'ncLogoTwitter': h(NcLogoTwitter, { stroke: 'transparent' }),
   'ncLogoTypeformColored': h(NcLogoTypeformColored, { stroke: 'transparent' }),
   'ncLogoTypeform': h(NcLogoTypeform, { stroke: 'transparent' }),
   'ncLogoWhatsappColored': h(NcLogoWhatsappColored, { stroke: 'transparent' }),
@@ -1710,6 +1713,8 @@ export const iconMap = {
   'ncNotificationDuo': NcNotificationDuo,
   'ncLayout': NcLayout,
   'ncPlusCircleSolid': h(NcPlusCircleSolid, { stroke: 'transparent' }),
+  'ncDiscordForum': NcDiscordForum,
+  'ncHeadphone': NcHeadphone,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4294,6 +4299,10 @@ export const searchableMap = {
   ncLayout: {
     icon: NcLayout,
     keywords: ['layout', 'table'],
+  },
+  ncHeadphone: {
+    icon: NcHeadphone,
+    keywords: ['headphone', 'call'],
   },
 }
 

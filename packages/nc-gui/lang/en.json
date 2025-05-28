@@ -394,7 +394,13 @@
     "reactivate": "Reactivate",
     "left": "left",
     "seat": "Seat",
-    "seats": "Seats"
+    "seats": "Seats",
+    "automation": "Automation",
+    "resources": "Resources",
+    "community": "Community",
+    "youtube": "Youtube",
+    "changelog": "Changelog",
+    "contactSupport": "Contact Support"
   },
   "objects": {
     "script": "Script",
@@ -809,7 +815,7 @@
     "upgradeWorkspaceToPlan": "Upgrade {workspace} to {plan} plan",
     "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
     "reactivateToPlan": "Reactivate {plan} plan?",
-    "whatsNew": "What’s New!",
+    "whatsNew": "What’s New",
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user"
   },
@@ -1330,7 +1336,9 @@
     "status": "Status",
     "invoiceTotal": "Invoice Total",
     "pastInvoices": "Past Invoices",
-    "createNew": "Create New"
+    "createNew": "Create New",
+    "dataApiV2": "Data APIs V2",
+    "metaApiV2": "Meta APIs V2"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1677,7 +1685,13 @@
     "paidUserBadgeTooltip": "User has an editor or higher role in at least one base.",
     "approachingLimit": "Approaching limit",
     "exceedingLimit": "Exceeding limit",
-    "filteredByCurrentUser": "Filtered by current user"
+    "filteredByCurrentUser": "Filtered by current user",
+    "navigateToBaseToCreateTable": "Navigate to a base to a create table",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToTableToCreateView": "Navigate to a table to a create view",
+    "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
+    "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation"
   },
   "placeholder": {
     "searchIcons": "Search icons",

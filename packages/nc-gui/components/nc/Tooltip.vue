@@ -21,18 +21,24 @@ interface Props {
   arrow?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  arrow: true,
+  placement: 'top',
+  wrapChild: 'div',
+  color: 'dark',
+})
 
-const modifierKey = computed(() => props.modifierKey)
-const tooltipStyle = computed(() => props.tooltipStyle)
-const disabled = computed(() => props.disabled)
-const showOnTruncateOnly = computed(() => props.showOnTruncateOnly)
-const hideOnClick = computed(() => props.hideOnClick)
-const placement = computed(() => props.placement ?? 'top')
-const wrapChild = computed(() => props.wrapChild ?? 'div')
-const attributes = computed(() => props.attrs)
-
-const color = computed(() => (props.color ? props.color : 'dark'))
+const {
+  modifierKey,
+  tooltipStyle,
+  disabled,
+  showOnTruncateOnly,
+  hideOnClick,
+  placement,
+  wrapChild,
+  attrs: attributes,
+  color,
+} = toRefs(props)
 
 const el = ref()
 
@@ -140,14 +146,15 @@ const onClick = () => {
 <template>
   <a-tooltip
     v-model:visible="showTooltip"
-    :overlay-class-name="`nc-tooltip-${color} ${showTooltip ? 'visible' : 'hidden'} ${overlayClassName}`"
+    :overlay-class-name="`nc-tooltip-${color} ${showTooltip ? 'visible' : 'hidden'} ${overlayClassName ?? ''} ${
+      !arrow ? 'nc-tooltip-arrow-hidden' : ''
+    }`"
     :overlay-style="tooltipStyle"
     :overlay-inner-style="overlayInnerStyle"
     arrow-point-at-center
     :trigger="[]"
     :placement="placement"
     :mouse-leave-delay="mouseLeaveDelay"
-    :arrow="arrow"
   >
     <template #title>
       <div ref="element">
@@ -188,6 +195,43 @@ const onClick = () => {
   }
   .ant-tooltip-arrow-content {
     @apply !bg-gray-200;
+  }
+}
+
+.nc-tooltip-arrow-hidden {
+  .ant-tooltip-arrow {
+    @apply hidden;
+  }
+
+  &.ant-tooltip-placement-right,
+  &.ant-tooltip-placement-rightTop,
+  &.ant-tooltip-placement-rightBottom {
+    .ant-tooltip-inner {
+      @apply -ml-2;
+    }
+  }
+
+  &.ant-tooltip-placement-left,
+  &.ant-tooltip-placement-leftTop,
+  &.ant-tooltip-placement-leftBottom {
+    .ant-tooltip-inner {
+      @apply -mr-2;
+    }
+  }
+
+  &.ant-tooltip-placement-top,
+  &.ant-tooltip-placement-topLeft,
+  &.ant-tooltip-placement-topRight {
+    .ant-tooltip-inner {
+      @apply -mb-2;
+    }
+  }
+  &.ant-tooltip-placement-bottom,
+  &.ant-tooltip-placement-bottomLeft,
+  &.ant-tooltip-placement-bottomRight {
+    .ant-tooltip-inner {
+      @apply -mt-2;
+    }
   }
 }
 </style>

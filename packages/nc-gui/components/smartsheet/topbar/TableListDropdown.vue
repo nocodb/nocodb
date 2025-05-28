@@ -9,9 +9,11 @@ const { isUIAllowed } = useRoles()
 
 const { base } = storeToRefs(useBase())
 
-const { activeTable, activeTables } = storeToRefs(useTablesStore())
+const tablesStore = useTablesStore()
 
-const { openTable } = useTablesStore()
+const { activeTable, activeTables } = storeToRefs(tablesStore)
+
+const { openTable, openTableCreateDialog: _openTableCreateDialog } = tablesStore
 
 const isOpen = ref<boolean>(false)
 
@@ -36,19 +38,6 @@ const handleNavigateToTable = (table: TableType) => {
   }
 }
 
-/**
- * Opens a dialog to create a new table.
- *
- * @returns void
- *
- * @remarks
- * This function is triggered when the user initiates the table creation process from the topbar.
- * It emits a tracking event, checks for a valid source, and opens a dialog for table creation.
- * The function also handles the dialog closure and potential scrolling to the newly created table.
- *
- * @see {@link packages/nc-gui/components/dashboard/TreeView/ProjectNode.vue} for a similar implementation
- * of table creation dialog. If this function is updated, consider updating the other implementation as well.
- */
 function openTableCreateDialog() {
   $e('c:table:create:topbar')
 
@@ -56,35 +45,7 @@ function openTableCreateDialog() {
 
   isOpen.value = false
 
-  const isCreateTableOpen = ref(true)
-  const sourceId = base.value!.sources?.[activeTableSourceIndex.value].id
-
-  if (!sourceId || !base.value?.id) return
-
-  const { close } = useDialog(resolveComponent('DlgTableCreate'), {
-    'modelValue': isCreateTableOpen,
-    sourceId,
-    'baseId': base.value!.id,
-    'onCreate': closeDialog,
-    'onUpdate:modelValue': () => closeDialog(),
-  })
-
-  function closeDialog(table?: TableType) {
-    isCreateTableOpen.value = false
-
-    if (!table) return
-
-    // TODO: Better way to know when the table node dom is available
-    setTimeout(() => {
-      const newTableDom = document.querySelector(`[data-table-id="${table.id}"]`)
-      if (!newTableDom) return
-
-      // Scroll to the table node
-      newTableDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    }, 1000)
-
-    close(1000)
-  }
+  _openTableCreateDialog({ baseId: base.value?.id, sourceId: base.value!.sources?.[activeTableSourceIndex.value].id })
 }
 </script>
 

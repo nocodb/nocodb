@@ -146,13 +146,33 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           },
         };
       } else if (relationType === RelationTypes.BELONGS_TO) {
-        qb = knex(
-          knex.raw(`?? as ??`, [
-            parentBaseModel.getTnPath(parentModel.table_name),
-            alias,
-          ]),
-        );
-        qb.select(`${alias}.${parentColumn.column_name}`);
+        let comparisonColumnName = childColumn.column_name;
+        const useRecursiveEvaluation = parseProp(
+          column.meta,
+        )?.useRecursiveEvaluation;
+        if (useRecursiveEvaluation) {
+          comparisonColumnName = parentColumn.column_name;
+          rootApply = await recursiveCTEFromLookupColumn({
+            baseModelSqlV2: childBaseModel,
+            lookupColumn: column,
+            tableAlias: alias,
+          });
+          qb = knex(knex.raw(`?? as ??`, [alias, alias])).where(
+            `${alias}.root_id`,
+            '<>',
+            knex.raw('??.??', [alias, 'id']),
+          );
+
+          qb.distinct().select(`${alias}.root_id`);
+        } else {
+          qb = knex(
+            knex.raw(`?? as ??`, [
+              parentBaseModel.getTnPath(parentModel.table_name),
+              alias,
+            ]),
+          );
+          qb.select(`${alias}.${parentColumn.column_name}`);
+        }
 
         const conditionJoinResult = await nestedConditionJoin({
           baseModelSqlv2: parentBaseModel,
@@ -175,15 +195,16 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           rootApply: (qb) => {
             rootApply?.(qb);
             conditionJoinResult.rootApply?.(qb);
+            console.log(conditionJoinResult.rootApply, qb.toQuery())
           },
           clause: (qbP: Knex.QueryBuilder) => {
             if (filter.comparison_op in negatedMapping)
               qbP.where((qb1) =>
                 qb1
-                  .whereNotIn(childColumn.column_name, qb)
+                  .whereNotIn(comparisonColumnName, qb)
                   .orWhereNull(childColumn.column_name),
               );
-            else qbP.whereIn(childColumn.column_name, qb);
+            else qbP.whereIn(comparisonColumnName, qb);
           },
         };
       } else if (relationType === RelationTypes.MANY_TO_MANY) {

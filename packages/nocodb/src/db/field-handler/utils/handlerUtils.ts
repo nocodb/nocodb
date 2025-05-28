@@ -106,7 +106,6 @@ export async function nestedConditionJoin({
                   tableAlias: relAlias,
                 }),
               );
-
               clauses.push((qb) => {
                 qb.join(
                   knex(`${relAlias} as ${relAlias}`)
@@ -208,7 +207,7 @@ export async function nestedConditionJoin({
     }
 
     if (lookupColumn.uidt === UITypes.Lookup) {
-      return nestedConditionJoin({
+      const filterOperationResult = await nestedConditionJoin({
         baseModelSqlv2,
         filter,
         lookupColumn: await (
@@ -220,6 +219,8 @@ export async function nestedConditionJoin({
         throwErrorIfInvalid,
         parseConditionV2,
       });
+      clauses.push(filterOperationResult.clause);
+      rootAppliances.push(filterOperationResult.rootApply);
     } else {
       switch (relationColOptions.type) {
         case RelationTypes.HAS_MANY: {

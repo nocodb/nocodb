@@ -308,7 +308,8 @@ export class SSOPassportMiddleware implements NestMiddleware {
               this.debugger.info(
                 `State verified for authorization request: ${providedState}`,
               );
-              return callback(null, {}, state);
+
+              return callback(null, state);
             })
             .catch((err) => {
               this.debugger.error(`OIDC authentication error: ${err.message}`);
@@ -321,8 +322,12 @@ export class SSOPassportMiddleware implements NestMiddleware {
     return new OpenIDConnectStrategy(
       clientConfig,
       // todo: replace with async-await syntax
-      (_issue: string, profile, context, done) => {
-        const email = profile.emails[0].value;
+      (_issue: string, profile: any, context, done) => {
+        const email =
+          profile.email ||
+          profile?._json?.email ||
+          profile.emails?.[0]?.value ||
+          profile?.id;
 
         if (!email) {
           this.debugger.warn(`User account is missing email id`, profile);

@@ -305,6 +305,7 @@ export class AppHooksListenerService
       case AppEvents.USER_SIGNUP:
         {
           const param = data as UserSignupEvent;
+          param.req = param.req || ({} as NcRequest);
 
           // assign user to req (as this is self-event)
           param.req.user = param.user;

@@ -157,7 +157,7 @@
   "general": {
     "script": "스크립트",
     "supported": "지원",
-    "usage": "사용법",
+    "usage": "사용량",
     "snapshot": "스냅샷",
     "snapshots": "스냅샷",
     "baseSnapshots": "프로젝트 스냅샷",
@@ -309,7 +309,7 @@
     "sortAsc": "오름차순 정렬",
     "sortDesc": "내림차순 정렬",
     "move": "이동",
-    "geoDataField": "위치 데이터 필드",
+    "geoDataField": "GeoData 필드",
     "type": "종류",
     "subType": "하위 유형",
     "name": "이름",

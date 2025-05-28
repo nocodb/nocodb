@@ -24,6 +24,10 @@ export interface FormBuilderCondition {
   notEmpty?: boolean;
 }
 
+export enum FormBuilderValidatorType {
+  Required = 'required',
+}
+
 export interface FormBuilderElement {
   // element type
   type: FormBuilderInputType;
@@ -71,7 +75,7 @@ export interface FormBuilderElement {
   // show hint as tooltip for the element (if applicable) - default is false
   showHintAsTooltip?: boolean;
   // validators for the element
-  validators?: { type: 'required'; message?: string }[];
+  validators?: { type: FormBuilderValidatorType; message?: string }[];
   // fetch options for the element using key
   fetchOptionsKey?: string;
 }

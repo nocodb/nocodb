@@ -1729,7 +1729,10 @@
     "searchOptions": "Cari opsi",
     "lockViewDescription": "Jelaskan alasan Anda mengunci tampilan ini. Pesan ini akan ditampilkan ketika seseorang mencoba membuka kunci tampilan (opsional).",
     "noBaseUsersFound": "Tidak ada pengguna basis ditemukan",
-    "noInvoices": "Tidak Ada Faktur"
+    "noInvoices": "Tidak Ada Faktur",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations"
   },
   "msg": {
     "urlFilter": "Filter URL diterapkan dari parameter URL dan digabungkan dengan filter tampilan yang ditetapkan melalui toolbar.",

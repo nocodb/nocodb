@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Fă upgrade spațiului {workspace} la planul {plan}",
     "upgradeToPlanSubtitle": "Veți fi taxat imediat pentru acest plan.",
     "reactivateToPlan": "Reactivați planul {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Puteți duplica baze doar în spațiile de lucru unde aveți acces de creator sau superior.",
     "snapshotBaseRestoreMessage": "Puteți restaura doar în spațiile de lucru unde aveți acces de creator sau superior.",
     "currentWorkspace": "Spațiul de lucru curent",
+    "currentBase": "Current base",
     "latitude": "Latitudine",
     "longitude": "Longitudine",
     "failed": "Eșuat",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "Fragmente API",
     "includeData": "Include data",
     "includeRecords": "Include înregistrări",
-    "baseDuplicateMessage": "Notă: Jurnalele de audit și integrările nu vor fi duplicate.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Include vizualizări",
     "includeWebhook": "Include webhook",
     "includeComments": "Include comentarii",
@@ -1611,6 +1616,7 @@
     "changePlan": "Schimbă planul"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Fiecare spațiu de lucru trebuie să aibă cel puțin un proprietar. Vă rugăm să atribuiți un alt utilizator ca proprietar înainte de a părăsi spațiul de lucru. Dacă sunteți ultimul membru, luați în considerare ștergerea spațiului de lucru.",
     "currentDateNotAvail": "Opțiunea de dată curentă nu este disponibilă pentru sursa de date sau tipul de date",
     "privateConnection": "Activează pentru a face această conexiune privată și ascunsă de alți creatori în acest spațiu de lucru.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Copiază codul de eroare",
     "paidUserBadgeTooltip": "Utilizatorul are rol de Editor sau superior în cel puțin o bază.",
     "approachingLimit": "Aproape de limită",
-    "exceedingLimit": "Depășește limita"
+    "exceedingLimit": "Depășește limita",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Caută icoane",

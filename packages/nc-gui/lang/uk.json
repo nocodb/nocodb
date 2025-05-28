@@ -808,6 +808,21 @@
     "reactivateToPlan": "Повторно активувати план {plan}?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Відновлення знімка",
     "note": "Примітка:",
     "snapshotRestoreMessage1": "Відновлення цього знімка не вплине на поточну базу.",
@@ -1209,8 +1224,8 @@
     "agreeToTos": "Реєструючись, ви погоджуєтесь з «Умовами користування» і «Політикою конфіденційності»",
     "welcomeToNc": "Ласкаво просимо до NocoDB!",
     "inviteOnlySignup": "Дозволити реєстрацію лише за допомогою URL-адреси запрошення",
-    "nextRow": "Наступний рядок",
-    "prevRow": "Попередній рядок",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Вручну додати дані у вигляді сітки",
     "addRowForm": "Ввести дані запису через форму",
     "noAccess": "Немає доступу",
@@ -2243,7 +2258,8 @@
       "paymentSuccessful": "Платіж успішний",
       "paymentSuccessfulSubtitle": "Ваш платіж оброблено. Тепер ви можете користуватися новим тарифом.",
       "upgradeSuccessful": "Оновлення успішне",
-      "upgradeSuccessfulSubtitle": "Ваш платіж за оновлення оброблено. Тепер ви можете користуватися новим тарифом."
+      "upgradeSuccessfulSubtitle": "Ваш платіж за оновлення оброблено. Тепер ви можете користуватися новим тарифом.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Почати з нуля.",

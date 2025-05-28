@@ -807,9 +807,7 @@
     "upgradeWorkspaceToPlan": "{workspace} को {plan} प्लान में अपग्रेड करें",
     "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
     "reactivateToPlan": "Reactivate {plan} plan?",
-    "whatsNew": "What’s New!",
-    "currentUser": "Current User",
-    "filteredByLoggedInUser": "Filtered by logged-in user"
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1326,7 +1324,8 @@
     "invoice": "इनवॉइस",
     "status": "स्थिति",
     "invoiceTotal": "कुल इनवॉइस",
-    "pastInvoices": "पिछले इनवॉइस"
+    "pastInvoices": "पिछले इनवॉइस",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

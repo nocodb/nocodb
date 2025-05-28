@@ -62,7 +62,6 @@ const topbarBreadcrumbItemWidth = computed(() => {
           v-if="
             !isSharedBase &&
             !activeAutomationId &&
-            isFeatureEnabled(FEATURE_FLAG.EXTENSIONS) &&
             openedViewsTab === 'view' &&
             !isMobileMode
           "

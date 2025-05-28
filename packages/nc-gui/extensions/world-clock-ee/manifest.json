@@ -21,5 +21,6 @@
   "config": {
     "modalSize": "lg",
     "contentMinHeight": "320px"
-  }
+  },
+  "beta": true
 }

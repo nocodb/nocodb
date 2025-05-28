@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.15.21",
+    "@types/node": "^22.15.23",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "cspell": "^4.2.8",
@@ -62,9 +62,9 @@
     "npm-run-all2": "^8.0.4",
     "prettier": "^2.8.8",
     "rimraf": "^5.0.10",
-    "ts-jest": "^29.2.5",
-    "tsc-alias": "^1.8.10",
-    "typescript": "^5.7.3"
+    "ts-jest": "^29.2.6",
+    "tsc-alias": "^1.8.16",
+    "typescript": "^5.8.3"
   },
   "files": [
     "build/main",

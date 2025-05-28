@@ -807,6 +807,21 @@
     "reactivateToPlan": "Reaktivirati {plan} plan?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Vraćanje snimke",
     "note": "Napomena:",
     "snapshotRestoreMessage1": "Vraćanje ove snimke neće utjecati na postojeću bazu.",
@@ -1208,8 +1223,8 @@
     "agreeToTos": "Prijavom, automatski prihvaćate uvjete korištenja",
     "welcomeToNc": "Dobro Došli u NocoDB!",
     "inviteOnlySignup": "Omogućite registraciju samo putem pozivnice URL-om",
-    "nextRow": "Next Row",
-    "prevRow": "Previous Row",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Ručno dodavanje podataka u prikazu mreže",
     "addRowForm": "Unesite podatke zapisa putem obrasca",
     "noAccess": "Nema pristupa",
@@ -2242,7 +2257,8 @@
       "paymentSuccessful": "Plaćanje uspješno",
       "paymentSuccessfulSubtitle": "Vaše je plaćanje obrađeno. Sada možete koristiti svoj novi plan.",
       "upgradeSuccessful": "Nadogradnja uspješna",
-      "upgradeSuccessfulSubtitle": "Plaćanje nadogradnje je obrađeno. Sada možete koristiti svoj novi plan."
+      "upgradeSuccessfulSubtitle": "Plaćanje nadogradnje je obrađeno. Sada možete koristiti svoj novi plan.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Započnite od nule.",

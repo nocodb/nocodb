@@ -91,7 +91,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const expandedFormRightSidebarState = ref({
     minWidth: 484,
-    maxWidth: 700,
+    maxWidth: Math.max(800, width.value / 2),
     width: 700,
   })
 

@@ -3,7 +3,7 @@
 envs_docker_def=' HOME  HOSTNAME  OLDPWD  PATH  PORT  PWD  SHLVL TERM '
 aio_env_prefix='aio_'
 
-nocodb_env_common_path='/run/nocodb.dynamic.env'
+nocodb_env_common_path='/run/nocodb.common.dynamic.env'
 nocodb_env_main_path='/run/nocodb.main.dynamic.env'
 nocodb_env_worker_path='/run/nocodb.worker.dynamic.env'
 acme_env_path='/run/acme.dynamic.env'
@@ -19,6 +19,7 @@ migrations_dir="/var/lib/migrations"
 
 _aio_postgres_enable_default=true
 _aio_valkey_enable_default=true
+_aio_worker_enable_default=false
 _aio_minio_enable_default=false
 _aio_ssl_enable_default=false
 _aio_ssl_domain_default="localhost"
@@ -70,6 +71,7 @@ env_aio_set() {
 		aio_ssl_domain) aio_ssl_domain="$value" ;;
 		aio_ssl_email) aio_ssl_email="$value" ;;
 		aio_valkey_enable) aio_valkey_enable="$value" ;;
+		aio_worker_enable) aio_worker_enable="$value" ;;
 		*) log ignoring unknown aio env "$key=$value" ;;
 		esac
 	done
@@ -99,15 +101,25 @@ env_aio_set() {
 	if [ "${aio_ssl_enable+set}" != set ]; then
 		aio_ssl_enable="$_aio_ssl_enable_default"
 	fi
+	if [ "${aio_worker_enable+set}" != set ]; then
+		aio_worker_enable="$_aio_ssl_enable_default"
+	fi
 
 	if [ "${aio_ssl_domain+set}" != set ]; then
 		aio_ssl_domain="$_aio_ssl_domain_default"
 	fi
 }
 
+nocodb_dep_add() {
+	# $1: dep
+
+	touch "$s6_services_temp_path/nocodb-main-srv/dependencies.d/$1"
+	touch "$s6_services_temp_path/nocodb-worker-srv/dependencies.d/$1"
+}
+
 env_aio_act() {
 	if "$aio_postgres_enable"; then
-		touch "$s6_services_temp_path"/nocodb-srv/dependencies.d/postgresql
+		nocodb_dep_add postgresql
 
 		cat <<-EOF >>"$nocodb_env_common_path"
 			DATABASE_URL="postgresql:///nocodb?host=/run/postgresql&user=postgres"
@@ -117,7 +129,7 @@ env_aio_act() {
 	fi
 
 	if "$aio_minio_enable"; then
-		touch "$s6_services_temp_path"/nocodb-srv/dependencies.d/minio
+		nocodb_dep_add minio
 
 		cat <<-EOF >>"$nocodb_env_common_path"
 			NC_S3_BUCKET_NAME="aiominionocodb"
@@ -152,7 +164,7 @@ env_aio_act() {
 			exit 1
 		fi
 
-		touch "$s6_services_temp_path"/nocodb-srv/dependencies.d/acme
+		nocodb_dep_add acme
 		cat <<-EOF >>"$acme_env_path"
 			aio_ssl_email="$aio_ssl_email"
 		EOF
@@ -164,13 +176,24 @@ env_aio_act() {
 	EOF
 
 	if "$aio_valkey_enable"; then
-		touch "$s6_services_temp_path"/nocodb-srv/dependencies.d/valkey
+		nocodb_dep_add valkey
 
 		cat <<-EOF >>"$nocodb_env_common_path"
 			NC_REDIS_URL="redis-socket:///run/valkey/valkey.sock?database=nocodb"
 		EOF
 
 		log enabled valkey
+	fi
+
+	if "$aio_worker_enable"; then
+		touch "$s6_services_temp_path/nocodb/contents.d/nocodb-worker-srv"
+		nocodb_dep_add valkey
+
+		cat <<-EOF >>"$nocodb_env_main_path"
+			NC_WORKER_CONTAINER=false
+		EOF
+
+		log enabled worker
 	fi
 }
 

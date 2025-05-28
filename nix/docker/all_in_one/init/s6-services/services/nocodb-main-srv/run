@@ -1,8 +1,9 @@
 #!/bin/execlineb -P
 
 # setup by ../../../env-processor
-envfile /run/nocodb.dynamic.env
-envfile /etc/s6-confs/nocodb.conf
+envfile /etc/s6-confs/nocodb.main.conf
+envfile /run/nocodb.common.dynamic.env
+envfile /run/nocodb.main.dynamic.env
 
 foreground { mkdir -p /var/lib/nocodb }
 foreground { chown -R nocodb:nocodb /var/lib/nocodb }

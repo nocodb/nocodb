@@ -806,7 +806,8 @@
     "upgradeToPlan": "Tingkatkan ke paket {plan}",
     "upgradeWorkspaceToPlan": "Tingkatkan {workspace} ke paket {plan}",
     "upgradeToPlanSubtitle": "Anda akan langsung dikenakan biaya untuk paket ini.",
-    "reactivateToPlan": "Aktifkan kembali paket {plan}?"
+    "reactivateToPlan": "Aktifkan kembali paket {plan}?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1321,7 +1322,8 @@
     "invoice": "Faktur",
     "status": "Status",
     "invoiceTotal": "Total Faktur",
-    "pastInvoices": "Faktur Sebelumnya"
+    "pastInvoices": "Faktur Sebelumnya",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Klik untuk selesaikan",

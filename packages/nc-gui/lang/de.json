@@ -808,6 +808,21 @@
     "reactivateToPlan": "{plan}-Tarif reaktivieren?"
   },
   "labels": {
+    "mcpSetup": "MCP Setup",
+    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
+    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
+    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
+    "regenerateToken": "Re-Generate Token",
+    "deleteToken": "Delete Token",
+    "creatingMCPToken": "Creating MCP Token",
+    "creatingTokenDescription": "Creating token for MCP server",
+    "mcpToken": "MCP Token",
+    "never": "Never",
+    "expiresAt": "Expires At",
+    "newMCPEndpoint": "New MCP Endpoint",
+    "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
+    "modelContextProtocol": "Model Context Protocol",
+    "mcp": "MCP",
     "restoringSnapshot": "Snapshot wird wiederhergestellt",
     "note": "Hinweis:",
     "snapshotRestoreMessage1": "Das Wiederherstellen dieses Snapshots beeinflusst die bestehende Basis nicht.",
@@ -1209,8 +1224,8 @@
     "agreeToTos": "Mit Ihrer Anmeldung stimmen Sie den allgemeinen Nutzungsbedingungen zu.",
     "welcomeToNc": "Willkommen bei NocoDB!",
     "inviteOnlySignup": "Anmeldung nur über Einladungs-URL zulassen",
-    "nextRow": "Nächster Eintrag",
-    "prevRow": "Vorheriger Eintrag",
+    "nextRow": "Next record",
+    "prevRow": "Prev record",
     "addRowGrid": "Daten manuell in der Gitteransicht hinzufügen",
     "addRowForm": "Datensatzdaten über ein Formular eingeben",
     "noAccess": "Kein Zugriff",
@@ -2244,7 +2259,8 @@
       "paymentSuccessful": "Zahlung erfolgreich",
       "paymentSuccessfulSubtitle": "Ihre Zahlung wurde verarbeitet. Sie können nun Ihren neuen Tarif nutzen.",
       "upgradeSuccessful": "Upgrade erfolgreich",
-      "upgradeSuccessfulSubtitle": "Ihre Zahlung für das Upgrade wurde verarbeitet. Sie können nun Ihren neuen Tarif nutzen."
+      "upgradeSuccessfulSubtitle": "Ihre Zahlung für das Upgrade wurde verarbeitet. Sie können nun Ihren neuen Tarif nutzen.",
+      "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
       "createNewTable": "Von vorn beginnen",

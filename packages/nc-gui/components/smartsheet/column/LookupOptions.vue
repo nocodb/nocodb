@@ -70,12 +70,11 @@ const selectedTable = computed(() => {
 // Todo: Add backend api level validation for unsupported fields
 const unsupportedUITypes = [UITypes.Button, UITypes.Links]
 
-// Check if recursive evaluation should be available (EE + PostgreSQL + self-referencing HM relation)
+// Check if recursive evaluation should be available (EE + PostgreSQL + self-referencing HM/BT relation)
 const canUseRecursiveEvaluation = computed(() => {
   if (!selectedTable.value) return false
   const relationCol = selectedTable.value.column
   const relation = relationCol.colOptions as LinkToAnotherRecordType
-  // Check if it's EE, PostgreSQL, self-referencing, and Has Many relation
   return lookupCanHaveRecursiveEvaluation({
     isEeUI,
     relationCol,
@@ -251,7 +250,6 @@ watch(
       </a-form-item>
     </div>
     <div class="w-full flex flex-row space-x-2">
-      <!-- Recursive Evaluation Toggle (EE + PostgreSQL + Self-referencing HM only) -->
       <a-form-item v-if="canUseRecursiveEvaluation" class="w-full">
         <div class="flex items-center gap-2">
           <NcSwitch v-model:checked="useRecursiveEvaluation">

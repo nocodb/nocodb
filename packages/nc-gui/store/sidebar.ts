@@ -99,6 +99,16 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     return (expandedFormRightSidebarState.value.width / (width.value - leftSidebarWidth.value)) * 100
   })
 
+  const normalizeExpandedFormSidebarWidth = computed(() => {
+    if (expandedFormRightSidebarState.value.width > expandedFormRightSidebarState.value.maxWidth) {
+      return expandedFormRightSidebarState.value.maxWidth
+    } else if (expandedFormRightSidebarState.value.width < expandedFormRightSidebarState.value.minWidth) {
+      return expandedFormRightSidebarState.value.minWidth
+    } else {
+      return expandedFormRightSidebarState.value.width
+    }
+  })
+
   const hideSidebar = ref(false)
 
   const showTopbar = ref(false)
@@ -122,6 +132,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     miniSidebarWidth,
     expandedFormRightSidebarState,
     expandedFormRightSidebarWidthPercent,
+    normalizeExpandedFormSidebarWidth,
     isExpandedFormSidebarEnabled,
   }
 })

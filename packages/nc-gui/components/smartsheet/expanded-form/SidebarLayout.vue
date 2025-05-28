@@ -10,6 +10,7 @@ const {
   expandedFormRightSidebarState,
   expandedFormRightSidebarWidthPercent,
   isExpandedFormSidebarEnabled,
+  normalizeExpandedFormSidebarWidth,
 } = storeToRefs(useSidebarStore())
 
 const expandedFormPreviewSize = computed(() => {
@@ -27,16 +28,6 @@ function onResize(widthPercent: any) {
     expandedFormRightSidebarState.value.width = sidebarWidth
   }
 }
-
-const normalizeExpandedFormSidebarWidth = computed(() => {
-  if (expandedFormRightSidebarState.value.width > expandedFormRightSidebarState.value.maxWidth) {
-    return expandedFormRightSidebarState.value.maxWidth
-  } else if (expandedFormRightSidebarState.value.width < expandedFormRightSidebarState.value.minWidth) {
-    return expandedFormRightSidebarState.value.minWidth
-  } else {
-    return expandedFormRightSidebarState.value.width
-  }
-})
 </script>
 
 <template>
@@ -64,6 +55,7 @@ const normalizeExpandedFormSidebarWidth = computed(() => {
 
 <style lang="scss" scoped>
 .nc-expanded-form-sidebar-splitpane {
+  @apply rounded-l-xl;
   box-shadow: -8px 0px 16px -4px rgba(0, 0, 0, 0.16);
 }
 </style>
@@ -76,7 +68,7 @@ const normalizeExpandedFormSidebarWidth = computed(() => {
     @apply !w-0 relative overflow-visible;
   }
   .splitpanes__splitter:before {
-    @apply bg-gray-200 w-0.25 absolute left-0 top-0 h-full z-1001;
+    @apply bg-gray-200 w-0.25 absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-1001;
     content: '';
   }
 

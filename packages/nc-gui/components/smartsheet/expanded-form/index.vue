@@ -33,7 +33,12 @@ const viewsStore = useViewsStore()
 
 const { activeView } = storeToRefs(viewsStore)
 
-const { isExpandedFormSidebarEnabled, expandedFormRightSidebarWidthPercent } = storeToRefs(useSidebarStore())
+const {
+  isExpandedFormSidebarEnabled,
+  expandedFormRightSidebarWidthPercent,
+  expandedFormRightSidebarState,
+  normalizeExpandedFormSidebarWidth,
+} = storeToRefs(useSidebarStore())
 
 const key = ref(0)
 
@@ -684,6 +689,9 @@ const modalProps = computed(() => {
   if (isMobileMode.value) {
     return {
       placement: 'bottom',
+      bodyStyle: {
+        padding: 0,
+      },
       ...(attrs || {}),
     }
   }
@@ -692,12 +700,24 @@ const modalProps = computed(() => {
     ...(isExpandedFormSidebarEnabled.value
       ? {
           getContainer: false,
-          style: { position: 'absolute', height: '100%' },
+          style: {
+            position: 'absolute',
+            height: '100%',
+          },
           placement: 'right',
           maskStyle: { background: 'transparent' },
           mask: true,
+          bodyStyle: {
+            padding: 0,
+          },
         }
-      : {}),
+      : {
+          bodyStyle: {
+            padding: 0,
+            minWidth: `${expandedFormRightSidebarState.value.minWidth}px !important`,
+            maxWidth: `${normalizeExpandedFormSidebarWidth.value}px !important`,
+          },
+        }),
   }
 })
 
@@ -746,7 +766,6 @@ export default {
     <component
       v-if="isExpanded"
       :is="isExpandedFormSidebarEnabled ? Drawer : isMobileMode ? Drawer : NcModal"
-      :body-style="{ padding: 0 }"
       :class="{ 'active': isExpanded, 'nc-drawer-sidebar-expanded-form': isExpandedFormSidebarEnabled }"
       :closable="false"
       :footer="null"
@@ -1044,6 +1063,12 @@ export default {
       .ant-drawer-content {
         @apply rounded-t-2xl;
       }
+    }
+  }
+
+  &.nc-drawer-sidebar-expanded-form {
+    .ant-drawer-content-wrapper {
+      @apply !rounded-l-xl overflow-hidden;
     }
   }
 }

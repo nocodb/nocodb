@@ -806,7 +806,8 @@
     "upgradeToPlan": "ارتقاء به پلن {plan}",
     "upgradeWorkspaceToPlan": "{workspace} را به پلن {plan} ارتقاء دهید",
     "upgradeToPlanSubtitle": "برای این پلن فوراً هزینه از شما دریافت خواهد شد.",
-    "reactivateToPlan": "فعال‌سازی مجدد پلن {plan}؟"
+    "reactivateToPlan": "فعال‌سازی مجدد پلن {plan}؟",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1321,7 +1322,8 @@
     "invoice": "فاکتور",
     "status": "وضعیت",
     "invoiceTotal": "مجموع فاکتور",
-    "pastInvoices": "فاکتورهای گذشته"
+    "pastInvoices": "فاکتورهای گذشته",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "کلیک کنید تا حل شود",

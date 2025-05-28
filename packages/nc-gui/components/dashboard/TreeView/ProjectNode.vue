@@ -58,7 +58,7 @@ const currentUserRole = computed(() => {
   return collaborators.value.find((coll) => coll.id === user.value?.id)?.roles as keyof typeof RoleLabels
 })
 
-const { loadProjectTables } = useTablesStore()
+const { loadProjectTables, openTableCreateDialog: _openTableCreateDialog } = useTablesStore()
 
 const { activeTable } = storeToRefs(useTablesStore())
 
@@ -255,57 +255,23 @@ const setColor = async (color: string, base: BaseType) => {
   }
 }
 
-/**
- * Opens a dialog to create a new table.
- *
- * @returns {void}
- *
- * @remarks
- * This function is triggered when the user initiates the table creation process.
- * It opens a dialog for table creation, handles the dialog closure,
- * and potentially scrolls to the newly created table.
- *
- * @see {@link packages/nc-gui/components/smartsheet/topbar/TableListDropdown.vue} for a similar implementation
- * of table creation dialog. If this function is updated, consider updating the other implementation as well.
- */
 function openTableCreateDialog(sourceIndex?: number | undefined) {
-  const isOpen = ref(true)
   let sourceId = base.value!.sources?.[0].id
   if (typeof sourceIndex === 'number') {
     sourceId = base.value!.sources?.[sourceIndex].id
   }
 
-  if (!sourceId || !base.value?.id) return
+  _openTableCreateDialog({
+    baseId: base.value?.id,
+    sourceId: sourceId,
+    onCloseCallback: () => {
+      base.value.isExpanded = true
 
-  const { close } = useDialog(resolveComponent('DlgTableCreate'), {
-    'modelValue': isOpen,
-    sourceId,
-    'baseId': base.value!.id,
-    'onCreate': closeDialog,
-    'onUpdate:modelValue': () => closeDialog(),
+      if (!activeKey.value || !activeKey.value.includes(`collapse-${sourceId}`)) {
+        activeKey.value.push(`collapse-${sourceId}`)
+      }
+    },
   })
-
-  function closeDialog(table?: TableType) {
-    isOpen.value = false
-
-    if (!table) return
-
-    base.value.isExpanded = true
-
-    if (!activeKey.value || !activeKey.value.includes(`collapse-${sourceId}`)) {
-      activeKey.value.push(`collapse-${sourceId}`)
-    }
-
-    // TODO: Better way to know when the table node dom is available
-    setTimeout(() => {
-      const newTableDom = document.querySelector(`[data-table-id="${table.id}"]`)
-      if (!newTableDom) return
-
-      newTableDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    }, 1000)
-
-    close(1000)
-  }
 }
 
 const isAddNewProjectChildEntityLoading = ref(false)

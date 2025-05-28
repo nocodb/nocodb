@@ -18,12 +18,14 @@ const gotoFeed = () => navigateToFeed()
     v-e="['c:nocodb:feed']"
     class="nc-mini-sidebar-btn-full-width"
     data-testid="nc-sidebar-product-feed"
-    :class="{
-      active: isFeedPageOpened,
-    }"
     @click="gotoFeed"
   >
-    <div class="nc-mini-sidebar-btn">
+    <div
+      class="nc-mini-sidebar-btn"
+      :class="{
+        active: isFeedPageOpened,
+      }"
+    >
       <GeneralIcon :icon="isFeedPageOpened ? 'ncMegaPhoneDuo' : 'megaPhone'" class="h-4 w-4" />
     </div>
   </div>

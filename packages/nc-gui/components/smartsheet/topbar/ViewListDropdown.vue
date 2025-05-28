@@ -17,9 +17,7 @@ const viewsStore = useViewsStore()
 
 const { activeView, views } = storeToRefs(viewsStore)
 
-const { loadViews, navigateToView } = viewsStore
-
-const { refreshCommandPalette } = useCommandPalette()
+const { navigateToView, onOpenViewCreateModal } = viewsStore
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -117,48 +115,16 @@ async function onOpenModal({
 
   $e('c:view:create:topbar', { view: type === 'AI' ? type : viewTypeAlias[type] })
 
-  const isDlgOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgViewCreate'), {
-    'modelValue': isDlgOpen,
+  onOpenViewCreateModal({
     title,
     type,
-    'tableId': activeTable.value.id,
-    'selectedViewId': copyViewId,
-    calendarRange,
+    copyViewId,
     groupingFieldColumnId,
+    calendarRange,
     coverImageColumnId,
-    'onUpdate:modelValue': closeDialog,
-    'baseId': base.value.id,
-    'onCreated': async (view?: ViewType) => {
-      closeDialog()
-
-      refreshCommandPalette()
-
-      await loadViews({
-        tableId: activeTable.value.id!,
-        force: true,
-      })
-
-      if (view) {
-        navigateToView({
-          view,
-          tableId: activeTable.value.id!,
-          baseId: base.value.id!,
-          doNotSwitchTab: true,
-        })
-      }
-
-      $e('a:view:create', { view: view?.type || type })
-    },
+    baseId: base.value.id!,
+    tableId: activeTable.value.id!,
   })
-
-  function closeDialog() {
-    isOpen.value = false
-    isDlgOpen.value = false
-
-    close(1000)
-  }
 }
 </script>
 

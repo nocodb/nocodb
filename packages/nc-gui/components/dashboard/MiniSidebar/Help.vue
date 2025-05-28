@@ -8,11 +8,13 @@ interface ItemType {
   onClick?: () => void
   copyBtn?: boolean
   tooltip?: string
+  hidden?: boolean
 }
 
 interface CategoryItemType {
   category: string
   items: ItemType[]
+  hidden?: boolean
 }
 
 const { $e } = useNuxtApp()
@@ -90,6 +92,7 @@ const helpItems: CategoryItemType[] = [
         tooltip: t('labels.clickToCopy'),
       },
     ],
+    hidden: !isEeUI,
   },
   {
     category: t('title.whatsNew'),
@@ -152,30 +155,34 @@ const openUrl = (item: ItemType) => {
             </NcMenuItemLabel>
 
             <template v-for="(item, i) of category.items" :key="i">
-              <NcSubMenu v-if="item.subItems" class="py-0" variant="small">
-                <template #title>
-                  <GeneralIcon v-if="item.icon" :icon="item.icon" class="h-4 w-4" />
-                  {{ item.title }}
-                </template>
-                <NcMenuItem v-for="(subItem, j) of item.subItems" :key="j" @click="openUrl(subItem)">
-                  <GeneralIcon v-if="subItem.icon" :icon="subItem.icon" class="h-4 w-4" />
-                  {{ subItem.title }}
-                </NcMenuItem>
-              </NcSubMenu>
-              <NcTooltip v-else :title="item.tooltip" :disabled="!item.tooltip" placement="top" hide-on-click>
-                <NcMenuItem @click="openUrl(item)">
-                  <GeneralIcon v-if="item.icon" :icon="item.icon" class="h-4 w-4" />
-                  {{ item.title }}
+              <template v-if="!item.hidden">
+                <NcSubMenu v-if="item.subItems" class="py-0" variant="small">
+                  <template #title>
+                    <GeneralIcon v-if="item.icon" :icon="item.icon" class="h-4 w-4" />
+                    {{ item.title }}
+                  </template>
+                  <template v-for="(subItem, j) of item.subItems" :key="j">
+                    <NcMenuItem v-if="!subItem.hidden" @click="openUrl(subItem)">
+                      <GeneralIcon v-if="subItem.icon" :icon="subItem.icon" class="h-4 w-4" />
+                      {{ subItem.title }}
+                    </NcMenuItem>
+                  </template>
+                </NcSubMenu>
+                <NcTooltip v-else :title="item.tooltip" :disabled="!item.tooltip" placement="top" hide-on-click>
+                  <NcMenuItem @click="openUrl(item)">
+                    <GeneralIcon v-if="item.icon" :icon="item.icon" class="h-4 w-4" />
+                    {{ item.title }}
 
-                  <GeneralCopyButton
-                    v-if="item.copyBtn"
-                    ref="copyBtnRef"
-                    type="secondary"
-                    :content="item.title"
-                    :show-toast="false"
-                  />
-                </NcMenuItem>
-              </NcTooltip>
+                    <GeneralCopyButton
+                      v-if="item.copyBtn"
+                      ref="copyBtnRef"
+                      type="secondary"
+                      :content="item.title"
+                      :show-toast="false"
+                    />
+                  </NcMenuItem>
+                </NcTooltip>
+              </template>
             </template>
           </template>
         </NcMenu>

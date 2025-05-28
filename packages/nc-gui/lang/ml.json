@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "{workspace} നെ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "upgradeToPlanSubtitle": "ഈ പ്ലാനിന് համար തുക ഉടൻ ചാർജ് ചെയ്യും.",
     "reactivateToPlan": "{plan} പ്ലാൻ വീണ്ടും സജീവമാക്കണോ?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "നിങ്ങളുടെ ക്രിയേറ്റർ അല്ലെങ്കിൽ അതിന് മുകളിലുള്ള ആക്‌സസ് ഉള്ള വര്‍ക്ക്‌സ്‌പേസുകളിലേക്കു മാത്രമേ ബേസുകൾ ഡ്യൂപ്ലിക്കേറ്റ് ചെയ്യാന്‍ കഴിയൂ.",
     "snapshotBaseRestoreMessage": "ക്രിയേറ്റർ അല്ലെങ്കിൽ അതിന് മുകളിലുള്ള ആക്‌സസ് ഉള്ള വര്‍ക്ക്‌സ്‌പേസുകളിലേക്കു മാത്രമേ റസ്റ്റോർ ചെയ്യാന്‍ കഴിയൂ.",
     "currentWorkspace": "നിലവിലുള്ള വർക്ക്സ്പേസ്",
+    "currentBase": "Current base",
     "latitude": "അക്ഷാംശം",
     "longitude": "രേഖാംശം",
     "failed": "പരാജയം",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API സ്നിപ്പറ്റുകൾ",
     "includeData": "ഡാറ്റ ഉൾപ്പെടുത്തുക",
     "includeRecords": "റിക്കോർഡുകള്‍ ഉൾപ്പെടുത്തുക",
-    "baseDuplicateMessage": "ശ്രദ്ധിക്കുക: ഓഡിറ്റ് ലോഗുകളും ഇന്റഗ്രേഷനുകളും ഡ്യൂപ്ലികേറ്റ് ചെയ്യുകയില്ല.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "കാഴ്ചകള്‍ ഉള്‍പ്പെടുത്തുക",
     "includeWebhook": "വെബ്‌ഹുക്ക് ഉള്‍പ്പെടുത്തുക",
     "includeComments": "കമന്റുകള്‍ ഉള്‍പ്പെടുത്തുക",
@@ -1611,6 +1616,7 @@
     "changePlan": "പദ്ധതി മാറ്റുക"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "ഓരോ വർക്ക്സ്പേസും കുറഞ്ഞത് ഒരു ഉടമ വേണം. jūs? translation: Each workspace ...",
     "currentDateNotAvail": "ഡാറ്റാ സ്രോതസ്സിനോ ഡാറ്റാ തരം കൊണ്ടോ നിലവിലെ ശൈലിയ്ക്ക് ഓപ്ഷൻ ലഭ്യമല്ല",
     "privateConnection": "ഈ കണക്ഷൻ സ്വകാര്യവും ഈ വർക്ക്‌‌സ്‌പേസിലെ മറ്റ് സ്രഷ്ടാക്കൾക്ക് മറഞ്ഞിരിക്കുന്നതും ആക്കാൻ പ്രാപ്തമാക്കുക.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "പിശക് കോഡ് പകർത്തുക",
     "paidUserBadgeTooltip": "ഉപയോക്താവിന് കുറഞ്ഞത് ഒരു ബേസിലും എഡിറ്റർ അല്ലെങ്കിൽ അതിനു മുകളിലുള്ള റോളുണ്ട്.",
     "approachingLimit": "പരിധിയിലേക്ക് അടുത്തു",
-    "exceedingLimit": "പരിധി മറികടക്കുന്നു"
+    "exceedingLimit": "പരിധി മറികടക്കുന്നു",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "ചിഹ്നങ്ങൾ തിരയുക",

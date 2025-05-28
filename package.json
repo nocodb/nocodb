@@ -47,13 +47,12 @@
   },
   "pnpm": {
     "overrides": {
+      "**>ip": "npm:@eggjs/ip@latest",
       "@azure/msal-node": "^2.16.2",
       "@babel/traverse@<7.23.2": ">=7.23.2",
       "ajv@<6.12.3": ">=6.12.3",
       "axios@>=0.8.1 <0.28.0": ">=0.28.0",
       "follow-redirects@<1.15.4": ">=1.15.4",
-      "ip@<1.1.9": ">=1.1.9",
-      "ip@=2.0.0": ">=2.0.1",
       "node.extend@<1.1.7": ">=1.1.7",
       "tough-cookie": "^5.1.0",
       "typescript": "5.8.3",

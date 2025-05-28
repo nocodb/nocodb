@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "将 {workspace} 升级到 {plan} 套餐",
     "upgradeToPlanSubtitle": "您将立即为此方案付款。",
     "reactivateToPlan": "重新激活 {plan} 方案？",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "您只能在拥有创建者及以上权限的工作区中复制 Base。",
     "snapshotBaseRestoreMessage": "您只能在拥有创建者及以上权限的工作区中恢复。",
     "currentWorkspace": "当前工作区",
+    "currentBase": "Current base",
     "latitude": "纬度",
     "longitude": "经度",
     "failed": "失败",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API代码片段",
     "includeData": "包括数据",
     "includeRecords": "包含记录",
-    "baseDuplicateMessage": "注意：审计日志和集成不会被复制。",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "包含视图",
     "includeWebhook": "包含 Webhook",
     "includeComments": "包含评论",
@@ -1669,7 +1674,8 @@
     "copyErrorCode": "复制错误代码",
     "paidUserBadgeTooltip": "用户在至少一个 Base 中拥有编辑者或更高角色。",
     "approachingLimit": "接近限制",
-    "exceedingLimit": "超出限制"
+    "exceedingLimit": "超出限制",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "搜索图标",

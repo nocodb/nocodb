@@ -593,19 +593,22 @@ onBeforeUnmount(() => {
 
       <!-- Slide in Project Home -->
       <Transition name="layout" mode="out-in" :duration="400" appear>
-        <div
-          v-if="!showProjectList && activeProjectId && openedBase?.id"
-          key="project-home"
-          class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
-        >
-          <ProjectWrapper :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)" :base="openedBase">
-            <DashboardTreeViewProjectHome>
-              <template #footer>
-                <slot name="footer"></slot>
-              </template>
-            </DashboardTreeViewProjectHome>
-          </ProjectWrapper>
-        </div>
+        <template v-if="!showProjectList">
+          <div
+            v-if="activeProjectId && openedBase?.id && !openedBase.isLoading"
+            key="project-home"
+            class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
+          >
+            <ProjectWrapper :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)" :base="openedBase">
+              <DashboardTreeViewProjectHome>
+                <template #footer>
+                  <slot name="footer"></slot>
+                </template>
+              </DashboardTreeViewProjectHome>
+            </ProjectWrapper>
+          </div>
+          <DashboardTreeViewProjectListSkeleton v-else />
+        </template>
       </Transition>
       <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
     </template>

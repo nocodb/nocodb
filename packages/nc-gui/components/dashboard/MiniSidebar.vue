@@ -93,7 +93,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 <template>
   <div class="nc-mini-sidebar" data-testid="nc-mini-sidebar">
     <div class="flex flex-col items-center">
-      <DashboardSidebarMiniSidebarItemWrapper size="small">
+      <DashboardMiniSidebarItemWrapper size="small">
         <div
           class="min-h-9 sticky top-0 bg-[var(--mini-sidebar-bg-color)]"
           :class="{
@@ -103,9 +103,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           <GeneralLoader v-if="isWorkspacesLoading" size="large" />
           <WorkspaceMenu v-else />
         </div>
-      </DashboardSidebarMiniSidebarItemWrapper>
+      </DashboardMiniSidebarItemWrapper>
 
-      <DashboardSidebarMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper>
         <NcTooltip placement="right" hide-on-click :arrow="false">
           <template #title>
             <div class="flex gap-1.5">
@@ -125,10 +125,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             </div>
           </div>
         </NcTooltip>
-      </DashboardSidebarMiniSidebarItemWrapper>
+      </DashboardMiniSidebarItemWrapper>
 
       <template v-if="!isMobileMode">
-        <DashboardSidebarMiniSidebarItemWrapper>
+        <DashboardMiniSidebarItemWrapper>
           <NcTooltip placement="right" hide-on-click :arrow="false">
             <template #title>
               <div class="flex items-center gap-1">{{ renderCmdOrCtrlKey(true) }} K</div>
@@ -144,11 +144,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               </div>
             </div>
           </NcTooltip>
-        </DashboardSidebarMiniSidebarItemWrapper>
+        </DashboardMiniSidebarItemWrapper>
         <div v-if="isUIAllowed('workspaceSettings')" class="px-2 w-full">
           <NcDivider class="!my-0 !border-nc-border-gray-dark" />
         </div>
-        <DashboardSidebarMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')">
+        <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')">
           <NcTooltip :title="$t('title.teamAndSettings')" placement="right" hide-on-click :arrow="false">
             <div
               v-e="['c:team:settings']"
@@ -166,8 +166,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               </div>
             </div>
           </NcTooltip>
-        </DashboardSidebarMiniSidebarItemWrapper>
-        <DashboardSidebarMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings')">
+        </DashboardMiniSidebarItemWrapper>
+        <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings')">
           <NcTooltip :title="$t('general.integrations')" placement="right" hide-on-click :arrow="false">
             <div
               v-e="['c:integrations']"
@@ -185,38 +185,38 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               </div>
             </div>
           </NcTooltip>
-        </DashboardSidebarMiniSidebarItemWrapper>
+        </DashboardMiniSidebarItemWrapper>
 
         <div class="px-2 w-full">
           <NcDivider class="!my-0 !border-nc-border-gray-dark" />
         </div>
-        <DashboardSidebarMiniSidebarItemWrapper>
+        <DashboardMiniSidebarItemWrapper>
           <NcTooltip :title="$t('general.notification')" placement="right" hide-on-click :arrow="false">
             <NotificationMenu />
           </NcTooltip>
-        </DashboardSidebarMiniSidebarItemWrapper>
+        </DashboardMiniSidebarItemWrapper>
       </template>
     </div>
     <div class="flex flex-col items-center">
-      <DashboardSidebarMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper>
         <NcTooltip :title="$t('general.help')" placement="right" hide-on-click :arrow="false">
           <DashboardMiniSidebarHelp />
         </NcTooltip>
-      </DashboardSidebarMiniSidebarItemWrapper>
-      <DashboardSidebarMiniSidebarItemWrapper>
+      </DashboardMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper>
         <NcTooltip v-if="appInfo.feedEnabled" :title="`${$t('title.whatsNew')}!`" placement="right" hide-on-click :arrow="false">
           <DashboardSidebarFeed />
         </NcTooltip>
-      </DashboardSidebarMiniSidebarItemWrapper>
+      </DashboardMiniSidebarItemWrapper>
 
       <div class="px-2 w-full">
         <NcDivider class="!my-0 !border-nc-border-gray-dark" />
       </div>
-      <DashboardSidebarMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper>
         <NcTooltip v-if="!isSharedBase" :title="$t('labels.createNew')" placement="right" hide-on-click :arrow="false">
           <DashboardMiniSidebarCreateNewActionMenu />
         </NcTooltip>
-      </DashboardSidebarMiniSidebarItemWrapper>
+      </DashboardMiniSidebarItemWrapper>
 
       <DashboardSidebarUserInfo />
     </div>

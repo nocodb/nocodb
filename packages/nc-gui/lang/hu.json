@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "{workspace} frissítése a(z) {plan} csomagra",
     "upgradeToPlanSubtitle": "Ezen csomag díja azonnal felszámításra kerül.",
     "reactivateToPlan": "{plan} csomag újraaktiválása?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Bázisokat csak olyan munkaterületre duplikálhat, ahol legalább létrehozói jogosultsága van.",
     "snapshotBaseRestoreMessage": "Csak olyan munkaterületre állíthat vissza, ahol legalább létrehozói jogosultsága van.",
     "currentWorkspace": "Aktuális munkaterület",
+    "currentBase": "Current base",
     "latitude": "Szélesség",
     "longitude": "Hosszúság",
     "failed": "Sikertelen",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API Snippet-ek",
     "includeData": "Adatok beillesztése",
     "includeRecords": "Rekordok beillesztése",
-    "baseDuplicateMessage": "Megjegyzés: az auditnaplók és az integrációk nem kerülnek duplikálásra.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Nézetek beillesztése",
     "includeWebhook": "Webhook beillesztése",
     "includeComments": "Megjegyzések beillesztése",
@@ -1611,6 +1616,7 @@
     "changePlan": "Csomagváltás"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Minden munkaterülethez legalább egy tulajdonos szükséges. Kérjük, jelöljön ki egy másik felhasználót tulajdonosként, mielőtt elhagyja a munkaterületet. Ha Ön az utolsó tag, fontolja meg a munkaterület törlését.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Engedélyezze, hogy ez a kapcsolat privát maradjon és rejtve legyen a többi készítő elől ezen a munkaterületen belül.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Hibakód másolása",
     "paidUserBadgeTooltip": "A felhasználó legalább egy adatbázisban szerkesztői vagy magasabb jogosultsággal rendelkezik.",
     "approachingLimit": "Közel a határhoz",
-    "exceedingLimit": "Túllépi a határt"
+    "exceedingLimit": "Túllépi a határt",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Ikonok keresése",

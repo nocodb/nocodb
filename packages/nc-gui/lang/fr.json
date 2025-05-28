@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Passez l'espace de travail {workspace} au plan {plan}",
     "upgradeToPlanSubtitle": "Vous serez facturé immédiatement pour ce plan.",
     "reactivateToPlan": "Réactiver le plan {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -1239,7 +1242,7 @@
     "apiSnippet": "Extraits API",
     "includeData": "Inclure les données",
     "includeRecords": "Inclure les enregistrements",
-    "baseDuplicateMessage": "Remarque : Les journaux d'audit et les intégrations ne seront pas dupliqués.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Inclure les vues",
     "includeWebhook": "Inclure le Webhook",
@@ -1671,7 +1674,8 @@
     "copyErrorCode": "Copier le code d'erreur",
     "paidUserBadgeTooltip": "L'utilisateur possède un rôle Éditeur ou supérieur dans au moins une base.",
     "approachingLimit": "Limite approchée",
-    "exceedingLimit": "Limite dépassée"
+    "exceedingLimit": "Limite dépassée",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Rechercher des icônes",

@@ -33,36 +33,11 @@ export async function getDisplayValueOfRefTable(
     .then((cols) => cols.find((col) => col.pv) || cols[0]);
 }
 
-/*
-CTE:
-with recursive rec__nc_1(lvl) as (
-	select 
-      0 as lvl,
-      f.id,
-      f.id as root_id,
-      f."Features_id",
-      f."title" as "ccntqo5s75uv7rr"
-	from 
-	  "pcy4edq5c5d852g"."Features" f
-	where f."Features_id" is not null
-	union ALL
-    select 
-      rec__nc_1.lvl + 1,
-      f.id,
-      rec__nc_1.root_id,
-      f."Features_id",
-      f."title" as "ccntqo5s75uv7rr"
-	from 
-	  "pcy4edq5c5d852g"."Features" f
-	  inner join rec__nc_1
-	on 
-	  f.id = rec__nc_1."Features_id"
-	  and rec__nc_1.lvl < 5
-)
-select ccntqo5s75uv7rr from rec__nc_1
-where root_id = :root_id
-*/
-
+// this function will generate the query for lookup column
+// or for  LTAR column and return the query builder
+// query result will be aggregated json array string in case of Myssql and Postgres
+// and string with separator in case of sqlite and mysql
+// this function is used for sorting and grouping of lookup/LTAR column at the moment
 export default async function generateLookupSelectQuery({
   column,
   baseModelSqlv2,

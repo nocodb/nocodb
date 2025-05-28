@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "Tingkatkan {workspace} ke paket {plan}",
     "upgradeToPlanSubtitle": "Anda akan langsung dikenakan biaya untuk paket ini.",
     "reactivateToPlan": "Aktifkan kembali paket {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "Anda hanya dapat menduplikasi basis ke workspace di mana Anda memiliki akses kreator atau lebih tinggi.",
     "snapshotBaseRestoreMessage": "Anda hanya dapat memulihkan ke workspace di mana Anda memiliki akses kreator atau lebih tinggi.",
     "currentWorkspace": "Workspace saat ini",
+    "currentBase": "Current base",
     "latitude": "Lintang",
     "longitude": "Bujur",
     "failed": "Gagal",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "API Snippets",
     "includeData": "Sertakan Data",
     "includeRecords": "Sertakan rekaman",
-    "baseDuplicateMessage": "Catatan: Log audit & integrasi tidak akan diduplikasi.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Sertakan tampilan",
     "includeWebhook": "Sertakan webhook",
     "includeComments": "Sertakan komentar",
@@ -1611,6 +1616,7 @@
     "changePlan": "Ubah Paket"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Setiap workspace harus memiliki setidaknya satu pemilik. Harap tetapkan pengguna lain sebagai Pemilik sebelum meninggalkan workspace. Jika Anda adalah anggota terakhir, pertimbangkan untuk menghapus workspace.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Aktifkan untuk menjadikan koneksi ini pribadi dan tersembunyi dari pembuat lain di ruang kerja ini.",
@@ -1668,7 +1674,8 @@
     "copyErrorCode": "Salin kode kesalahan",
     "paidUserBadgeTooltip": "Pengguna memiliki peran Editor atau lebih tinggi di setidaknya satu basis.",
     "approachingLimit": "Mendekati batas",
-    "exceedingLimit": "Melebihi batas"
+    "exceedingLimit": "Melebihi batas",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "Cari ikon",

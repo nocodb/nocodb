@@ -90,11 +90,13 @@ const accountUrl = computed(() => {
         placement="topLeft"
         :overlay-class-name="`!min-w-64 ${isMiniSidebar ? '!left-1' : ''}`"
       >
-        <NcTooltip :disabled="!isMiniSidebar" placement="right" hide-on-click>
+        <NcTooltip :disabled="!isMiniSidebar" placement="right" hide-on-click :arrow="false">
           <template #title>
             <div>
               <div v-if="name">{{ name }}</div>
-              <div>{{ user?.email }}</div>
+              <div>
+                {{ user?.email }}
+              </div>
             </div>
           </template>
           <div

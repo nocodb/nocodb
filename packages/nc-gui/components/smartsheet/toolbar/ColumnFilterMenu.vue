@@ -165,13 +165,14 @@ if (isEeUI) {
               {{ $t('tooltip.filteredByCurrentUser') }}
             </template>
             <span
-              class="nc-toolbar-btn-chip"
+              class="nc-toolbar-btn-chip inline-flex items-center"
               :class="{
                 [filteredOrSortedAppearanceConfig.FILTERED.toolbarChipBgClass]: true,
                 [filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass]: true,
               }"
             >
-              {{ combinedFilterLength }} {{ isCurrentUserFilterPresent ? '@' : '' }}
+              {{ combinedFilterLength }}
+              <span v-if="isCurrentUserFilterPresent" class="ml-1 pb-0.6">{{ '@' }}</span>
             </span>
           </NcTooltip>
 

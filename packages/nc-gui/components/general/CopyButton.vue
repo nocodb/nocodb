@@ -54,7 +54,7 @@ const copyContent = async (text?: GeneralCopyButtonProps['content']) => {
 }
 
 defineExpose({
-  copyContent: copyContent,
+  copyContent,
 })
 </script>
 

@@ -806,7 +806,8 @@
     "upgradeToPlan": "Uaktualnij do planu {plan}",
     "upgradeWorkspaceToPlan": "Uaktualnij {workspace} do planu {plan}",
     "upgradeToPlanSubtitle": "Za ten plan zostaniesz obciążony natychmiast.",
-    "reactivateToPlan": "Ponownie aktywować plan {plan}?"
+    "reactivateToPlan": "Ponownie aktywować plan {plan}?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1321,7 +1322,8 @@
     "invoice": "Faktura",
     "status": "Status",
     "invoiceTotal": "Suma faktury",
-    "pastInvoices": "Poprzednie faktury"
+    "pastInvoices": "Poprzednie faktury",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "Kliknij, aby rozwiązać",

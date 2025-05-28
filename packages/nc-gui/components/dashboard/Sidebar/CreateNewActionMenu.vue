@@ -181,13 +181,13 @@ function openTableCreateDialog() {
               {{ $t('general.automation') }}
             </NcMenuItem>
           </NcTooltip>
-          <NcDivider />
+          <!-- <NcDivider />
           <NcTooltip title="Navigate to a view to a create record" :disabled="!!activeView" placement="right">
             <NcMenuItem data-testid="mini-sidebar-record-create" :disabled="!activeView" class="capitalize">
               <GeneralIcon icon="ncPlus" />
               {{ $t('objects.record') }}
             </NcMenuItem>
-          </NcTooltip>
+          </NcTooltip> -->
         </NcMenu>
       </template>
     </NcDropdown>

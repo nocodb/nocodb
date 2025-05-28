@@ -807,9 +807,12 @@
     "upgradeWorkspaceToPlan": "שדרג את {workspace} לתוכנית {plan}",
     "upgradeToPlanSubtitle": "תחויב מיידית עבור תוכנית זו.",
     "reactivateToPlan": "להפעיל מחדש את תוכנית {plan}?",
-    "whatsNew": "What’s New!"
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -841,6 +844,7 @@
     "duplicateBaseMessage": "ניתן לשכפל בסיסים רק לסביבות עבודה שבהן יש לך גישת יוצר ומעלה.",
     "snapshotBaseRestoreMessage": "ניתן לשחזר רק לסביבות עבודה שבהן יש לך גישת יוצר ומעלה.",
     "currentWorkspace": "סביבת עבודה נוכחית",
+    "currentBase": "Current base",
     "latitude": "קו רוחב",
     "longitude": "קו אורך",
     "failed": "נכשל",
@@ -1238,7 +1242,8 @@
     "apiSnippet": "קטעי קוד API",
     "includeData": "כלול נתונים",
     "includeRecords": "כלול רשומות",
-    "baseDuplicateMessage": "הערה: יומני ביקורת ואינטגרציות לא ישוכפלו.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "כלול תצוגות",
     "includeWebhook": "כלול Webhook",
     "includeComments": "כלול תגובות",
@@ -1669,7 +1674,8 @@
     "copyErrorCode": "העתק קוד שגיאה",
     "paidUserBadgeTooltip": "למשתמש יש תפקיד עורך או גבוה יותר לפחות בבסיס אחד.",
     "approachingLimit": "מתקרב למגבלה",
-    "exceedingLimit": "חורג מהמגבלה"
+    "exceedingLimit": "חורג מהמגבלה",
+    "filteredByCurrentUser": "Filtered by current user"
   },
   "placeholder": {
     "searchIcons": "חפש אייקונים",

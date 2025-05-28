@@ -249,7 +249,17 @@ export const usePlugin = createSharedComposable(() => {
   }
 
   onMounted(async () => {
-    await loadPlugins()
+    watch(
+      () => isFeatureEnabled(FEATURE_FLAG.EXTENSIONS),
+      async () => {
+        availableExtensions.value = []
+        availableScripts.value = []
+        await loadPlugins()
+      },
+      {
+        immediate: true,
+      },
+    )
   })
 
   /**

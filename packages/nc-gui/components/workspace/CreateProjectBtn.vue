@@ -31,6 +31,7 @@ const centered = computed(() => props.centered ?? true)
     type="text"
     :size="size"
     :centered="centered"
+    full-width
     @click="baseCreateDlg = true"
   >
     <slot>
@@ -42,6 +43,10 @@ const centered = computed(() => props.centered ?? true)
         </svg>
 
         <div class="flex">{{ $t('title.createBase') }}</div>
+
+        <div class="px-1 flex-none text-bodySmBold !leading-[18px] text-nc-content-gray-subtle bg-nc-bg-gray-medium rounded">
+          {{ renderAltOrOptlKey(true) }} D
+        </div>
       </div>
     </slot>
     <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />

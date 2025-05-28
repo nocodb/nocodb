@@ -2275,8 +2275,8 @@
       "importData": "파일 및 외부 소스에서.",
       "connectExternalData": "실시간으로 외부 데이터베이스로."
     },
-    "noAccess": "접근 금지",
-    "noAccessDescription": "작업 영역에 액세스할 수 없습니다. 액세스 권한을 요청하려면 관리자에게 문의하십시오.",
-    "tryAgain": "다시 시도"
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

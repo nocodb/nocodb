@@ -68,19 +68,20 @@ const onSelect = (option: NcListItemType) => {
         v-else
         type="secondary"
         full-width
-        class="nc-country-selector w-full !px-3"
+        class="nc-country-selector !px-3"
         :class="{
           'nc-active ': visible,
         }"
         size="small"
-        icon-position="right"
         :disabled="disable"
       >
-        <template #icon>
-          <GeneralIcon icon="arrowDown" />
-        </template>
+        <div class="w-full flex items-center gap-2 text-left">
+          <NcTooltip :title="vModel" class="flex-1 max-w-[calc(100%_-_26px)] truncate !leading-5" show-on-truncate-only>
+            {{ vModel }}
+          </NcTooltip>
 
-        {{ vModel }}
+          <GeneralIcon icon="arrowDown" class="flex-none" />
+        </div>
       </NcButton>
     </slot>
     <template #overlay>

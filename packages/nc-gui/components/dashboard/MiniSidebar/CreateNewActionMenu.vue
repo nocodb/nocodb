@@ -60,9 +60,13 @@ async function onOpenModal({
   toBeCreateType.value = type
 
   isViewListLoading.value = true
-  await loadViews({
-    tableId: activeTable.value.id!,
-  })
+  try {
+    await loadViews({
+      tableId: activeTable.value.id!,
+    })
+  } catch (e) {
+    console.log('error', e)
+  }
 
   isVisibleCreateNew.value = false
   isViewListLoading.value = false
@@ -80,11 +84,9 @@ async function onOpenModal({
 }
 
 function openTableCreateDialog() {
-  const sourceId = base.value!.sources?.[0].id
-
   _openTableCreateDialog({
     baseId: base.value?.id,
-    sourceId,
+    sourceId: base.value!.sources?.[0].id,
   })
 }
 

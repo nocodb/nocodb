@@ -256,7 +256,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
   }: {
     baseId?: string
     sourceId?: string
-    onCloseCallback?: () => undefined
+    onCloseCallback?: () => void
   }) {
     if (!sourceId || !baseId) return
 

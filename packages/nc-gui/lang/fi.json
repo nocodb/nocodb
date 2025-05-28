@@ -2264,6 +2264,9 @@
       "createNewTable": "Aloita tyhjästä.",
       "importData": "Tiedostoista ja ulkoisista lähteistä.",
       "connectExternalData": "Reaaliaikaisesti ulkoisiin tietokantoihin."
-    }
+    },
+    "noAccess": "No Access",
+    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
+    "tryAgain": "Try Again"
   }
 }

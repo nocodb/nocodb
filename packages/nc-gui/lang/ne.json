@@ -806,7 +806,8 @@
     "upgradeToPlan": "{plan} योजना मा अपग्रेड गर्नुहोस्",
     "upgradeWorkspaceToPlan": "{workspace} लाई {plan} योजना मा अपग्रेड गर्नुहोस्",
     "upgradeToPlanSubtitle": "यो योजनाका लागि तपाईंलाई तत्काल शुल्क लगाइनेछ।",
-    "reactivateToPlan": "{plan} योजना पुनः सक्रिय गर्ने?"
+    "reactivateToPlan": "{plan} योजना पुनः सक्रिय गर्ने?",
+    "whatsNew": "What’s New!"
   },
   "labels": {
     "mcpSetup": "MCP Setup",
@@ -1321,7 +1322,8 @@
     "invoice": "बिल",
     "status": "स्थिति",
     "invoiceTotal": "कुल बिल",
-    "pastInvoices": "अघिल्ला बिलहरू"
+    "pastInvoices": "अघिल्ला बिलहरू",
+    "createNew": "Create New"
   },
   "activity": {
     "clickToResolve": "समाधान गर्न क्लिक गर्नुहोस्",

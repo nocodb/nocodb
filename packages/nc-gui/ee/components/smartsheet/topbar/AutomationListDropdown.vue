@@ -1,19 +1,15 @@
 <script setup lang="ts">
 import type { ScriptType } from 'nocodb-sdk'
 
-const { $e } = useNuxtApp()
-
-const { ncNavigateTo, isMobileMode } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
 const { base } = storeToRefs(useBase())
 
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
-
 const automationStore = useAutomationStore()
 
-const { openScript, loadAutomations } = automationStore
+const { openScript, openNewScriptModal } = automationStore
 
 const { activeAutomation, activeBaseAutomations } = storeToRefs(automationStore)
 
@@ -35,45 +31,12 @@ const handleNavigateToScript = (script: ScriptType) => {
 }
 
 function openAutomationCreateDialog() {
-  $e('c:automation:create:topbar')
-
-  isOpen.value = false
-
-  const isCreateAutomationOpen = ref(true)
-
-  if (!base.value?.id) return
-
-  const { close } = useDialog(resolveComponent('DlgAutomationCreate'), {
-    modelValue: isCreateAutomationOpen,
-    baseId: base.value!.id,
-    onCreated: closeDialog,
+  openNewScriptModal({
+    baseId: base.value?.id,
+    e: 'c:automation:create:topbar',
+    loadAutomationsOnClose: true,
+    scrollOnCreate: true,
   })
-
-  async function closeDialog(script?: ScriptType) {
-    isCreateAutomationOpen.value = false
-
-    await loadAutomations({ baseId: base.value!.id, force: true })
-
-    ncNavigateTo({
-      workspaceId: activeWorkspaceId.value,
-      automation: true,
-      baseId: base.value.id,
-      automationId: script.id,
-    })
-
-    if (!script) return
-
-    // TODO: Better way to know when the script node dom is available
-    setTimeout(() => {
-      const newScriptDom = document.querySelector(`[data-automation-id="${script.id}"]`)
-      if (!newScriptDom) return
-
-      // Scroll to the script node
-      newScriptDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    }, 1000)
-
-    close(1000)
-  }
 }
 </script>
 

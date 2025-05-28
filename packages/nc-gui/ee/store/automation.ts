@@ -300,7 +300,17 @@ export const useAutomationStore = defineStore('automation', () => {
     $e('c:script:details', { scriptId })
   }
 
-  async function openNewScriptModal({ baseId }: { baseId?: string }) {
+  async function openNewScriptModal({
+    baseId,
+    e,
+    loadAutomationsOnClose,
+    scrollOnCreate,
+  }: {
+    baseId?: string
+    e?: string
+    loadAutomationsOnClose?: boolean
+    scrollOnCreate?: boolean
+  }) {
     if (!baseId) return
 
     const isDlgOpen = ref(true)
@@ -312,6 +322,10 @@ export const useAutomationStore = defineStore('automation', () => {
       'onCreated': async (script: ScriptType) => {
         closeDialog()
 
+        if (loadAutomationsOnClose) {
+          await loadAutomations({ baseId, force: true })
+        }
+
         ncNavigateTo({
           workspaceId: activeWorkspaceId.value,
           automation: true,
@@ -319,7 +333,19 @@ export const useAutomationStore = defineStore('automation', () => {
           automationId: script.id,
         })
 
-        $e('a:script:create')
+        $e(e ?? 'a:script:create')
+
+        if (!script) return
+
+        if (scrollOnCreate) {
+          setTimeout(() => {
+            const newScriptDom = document.querySelector(`[data-automation-id="${script.id}"]`)
+            if (!newScriptDom) return
+
+            // Scroll to the script node
+            newScriptDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+          }, 1000)
+        }
       },
     })
 

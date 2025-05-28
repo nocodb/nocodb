@@ -4,18 +4,12 @@ import dayjs from 'dayjs'
 
 const automationStore = useAutomationStore()
 
-const { loadAutomations, openScript } = automationStore
+const { loadAutomations, openScript, openNewScriptModal: _openNewScriptModal } = automationStore
 
 const { activeBaseAutomations, isAutomationsLoading, isMarketVisible, isDetailsVisible, detailsScriptId } =
   storeToRefs(automationStore)
 
 const { openedProject } = storeToRefs(useBases())
-
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
-
-const { ncNavigateTo } = useGlobal()
-
-const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -44,30 +38,11 @@ const customRow = (record: Record<string, any>) => ({
 })
 
 async function openNewScriptModal() {
-  const isDlgOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgAutomationCreate'), {
-    'modelValue': isDlgOpen,
-    'baseId': openedProject.value.id!,
-    'onUpdate:modelValue': () => closeDialog(),
-    'onCreated': async (script: ScriptType) => {
-      closeDialog()
-
-      ncNavigateTo({
-        workspaceId: activeWorkspaceId.value,
-        automation: true,
-        baseId: openedProject.value.id!,
-        automationId: script.id,
-      })
-
-      $e('a:script:create')
-    },
+  _openNewScriptModal({
+    baseId: openedProject.value?.id,
+    loadAutomationsOnClose: true,
+    scrollOnCreate: true,
   })
-
-  function closeDialog() {
-    isDlgOpen.value = false
-    close(1000)
-  }
 }
 
 onMounted(async () => {

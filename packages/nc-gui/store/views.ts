@@ -577,15 +577,15 @@ export const useViewsStore = defineStore('viewsStore', () => {
         refreshCommandPalette()
 
         await loadViews({
-          tableId: tableId,
+          tableId,
           force: true,
         })
 
         if (view) {
           navigateToView({
             view,
-            tableId: tableId,
-            baseId: baseId,
+            tableId,
+            baseId,
             doNotSwitchTab: true,
           })
         }

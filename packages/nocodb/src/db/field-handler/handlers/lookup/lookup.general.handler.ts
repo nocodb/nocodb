@@ -195,7 +195,6 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           rootApply: (qb) => {
             rootApply?.(qb);
             conditionJoinResult.rootApply?.(qb);
-            console.log(conditionJoinResult.rootApply, qb.toQuery())
           },
           clause: (qbP: Knex.QueryBuilder) => {
             if (filter.comparison_op in negatedMapping)

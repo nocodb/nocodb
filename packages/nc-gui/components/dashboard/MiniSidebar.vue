@@ -199,7 +199,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     </div>
     <div class="flex flex-col items-center">
       <DashboardSidebarMiniSidebarItemWrapper>
-        <NcTooltip v-if="appInfo.feedEnabled" :title="$t('title.whatsNew')" placement="right" hide-on-click :arrow="false">
+        <NcTooltip :title="$t('general.help')" placement="right" hide-on-click :arrow="false">
+          <DashboardMiniSidebarHelp />
+        </NcTooltip>
+      </DashboardSidebarMiniSidebarItemWrapper>
+      <DashboardSidebarMiniSidebarItemWrapper>
+        <NcTooltip v-if="appInfo.feedEnabled" :title="`${$t('title.whatsNew')}!`" placement="right" hide-on-click :arrow="false">
           <DashboardSidebarFeed />
         </NcTooltip>
       </DashboardSidebarMiniSidebarItemWrapper>
@@ -264,6 +269,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
     &.active-base {
       @apply !text-nc-content-brand;
+    }
+
+    &.hovered {
+      @apply bg-nc-bg-gray-medium;
     }
   }
 }

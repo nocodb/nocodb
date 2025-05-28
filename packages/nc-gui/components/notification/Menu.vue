@@ -26,7 +26,7 @@ const isDropdownOpen = ref(false)
           :size="isMiniSidebar ? 'xs' : 'small'"
           class="!border-none nc-mini-sidebar-btn"
           :class="{
-            active: isDropdownOpen,
+            hovered: isDropdownOpen,
           }"
           type="text"
           data-testid="nc-sidebar-notification-btn"

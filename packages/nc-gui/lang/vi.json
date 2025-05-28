@@ -119,6 +119,7 @@
     "upgradeToAdd": "Nâng cấp để thêm",
     "requestUpgradeToAdd": "Yêu cầu nâng cấp để thêm",
     "upgradeToAddMoreExtensions": "Bạn đang sử dụng gói Miễn phí, chỉ cho phép một tiện ích mở rộng. Nâng cấp để mở khóa số tiện ích không giới hạn.",
+    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAccessWsAudit": "Nâng cấp để truy cập nhật ký kiểm tra workspace",
     "upgradeToAccessWsAuditSubtitle": "Nâng cấp lên gói {plan} để bật nhật ký kiểm tra workspace và theo dõi các hoạt động quan trọng hiệu quả.",
     "upgradeToAddMoreAttachments": "Nâng cấp để thêm nhiều tệp đính kèm hơn",
@@ -155,6 +156,7 @@
     "upgradeToUploadWsImageSubtitle": "Gói {activePlan} hiện tại chỉ cho phép sử dụng biểu tượng và emoji. Nâng cấp lên gói {plan} để tải lên ảnh tùy chỉnh làm ảnh đại diện workspace."
   },
   "general": {
+    "script": "Script",
     "supported": "Được hỗ trợ",
     "usage": "Sử dụng",
     "snapshot": "Ảnh chụp nhanh",
@@ -822,6 +824,8 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
+    "exampleScript": "Example Scripts",
+    "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Đang khôi phục Ảnh chụp nhanh",
     "note": "Lưu ý:",
     "snapshotRestoreMessage1": "Việc khôi phục ảnh chụp nhanh này sẽ không ảnh hưởng tới cơ sở hiện tại.",

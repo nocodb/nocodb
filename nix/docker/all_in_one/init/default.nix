@@ -82,13 +82,15 @@ writeShellApplication {
     migrate_state_set 0
 
     # backward compatiblity with legacy nocodb image
-    mkdir -p ${nocodb_run_dir}
+    # this also supports rollback to legacy image
+    # we can maybe change this after release
+    mkdir -p /var/lib/
     if [ -f ${working_dir}/noco.db ]; then
       touch ${migrations_dir}/from_legacy_image_with_sqlite
-      mv ${working_dir}/noco.db ${nocodb_run_dir}
     fi
-    if [ -d ${working_dir}/nc ]; then
-      mv ${working_dir}/nc ${nocodb_run_dir}
+    if [ -f ${working_dir}/noco.db ] || [ -d ${working_dir}/nc ] ; then
+      [ -f ${nocodb_run_dir} ] ||
+        ln -s ${working_dir} ${nocodb_run_dir}
     fi
 
     # setup envs

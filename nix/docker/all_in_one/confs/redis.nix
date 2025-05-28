@@ -1,7 +1,7 @@
 {
   writeTextDir,
 }:
-writeTextDir "etc/nocodb.conf" ''
+writeTextDir "etc/redis.conf" ''
   # disable tcp
   port 0
   bind 127.0.0.1

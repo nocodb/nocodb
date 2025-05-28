@@ -6,8 +6,17 @@ envfile /run/nocodb.common.dynamic.env
 envfile /run/nocodb.main.dynamic.env
 
 foreground { mkdir -p /var/lib/nocodb }
-foreground { chown -R nocodb:nocodb /var/lib/nocodb }
-foreground { chown nocodb:nocodb /tmp }
+foreground { chown nocodb:nocodb /tmp /var/lib/nocodb }
+foreground {
+	if {
+		test -d /var/lib/nocodb/nc
+	} chown -R nocodb:nocodb /var/lib/nocodb/nc
+}
+foreground {
+	if {
+		test -f /var/lib/nocodb/noco.db
+	} chown nocodb:nocodb /var/lib/nocodb/noco.db
+}
 
 # create database if not exists
 foreground {

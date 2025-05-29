@@ -277,7 +277,9 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
       importPayload.value.importColumns = tableMeta.columns.reduce((acc, column) => {
         if (!column.id || column.system || GENERATED_COLUMN_TYPES.includes(column.uidt as UITypes)) return acc
 
-        acc.push({ enabled: false, mapIndex: '', columnId: column.id })
+        const mapIndex = headers.value.find((h) => h.label === column.title)?.value ?? ''
+
+        acc.push({ enabled: false, mapIndex, columnId: column.id })
 
         return acc
       }, [] as ImportColumnType[])

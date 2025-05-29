@@ -174,23 +174,42 @@ export const isNumericFieldType = (column: ColumnType, abstractType: any) => {
   );
 };
 
-export const isMMOrMMLike = (column: ColumnType) => {
+export const isLTARMMOrMMLike = (
+  column: ColumnType,
+  colOptions = column?.colOptions
+) => {
   return (
     (column.uidt === UITypes.LinkToAnotherRecord &&
-      (column.colOptions as LinkToAnotherRecordType)?.type ===
+      (colOptions as LinkToAnotherRecordType)?.type ===
         RelationTypes.MANY_TO_MANY) ||
-    ((column.colOptions as LinkToAnotherRecordType)?.version ===
-      LinksVersion.V2 &&
+    ((colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2 &&
       [RelationTypes.BELONGS_TO, RelationTypes.HAS_MANY].includes(
-        (column.colOptions as LinkToAnotherRecordType)?.type as RelationTypes
+        (colOptions as LinkToAnotherRecordType)?.type as RelationTypes
+      ))
+  );
+};
+export const isMMOrMMLike = (
+  column: ColumnType,
+  colOptions = column?.colOptions
+) => {
+  return (
+    (isLinksOrLTAR(column.uidt) &&
+      (colOptions as LinkToAnotherRecordType)?.type ===
+        RelationTypes.MANY_TO_MANY) ||
+    ((colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2 &&
+      [RelationTypes.BELONGS_TO, RelationTypes.HAS_MANY].includes(
+        (colOptions as LinkToAnotherRecordType)?.type as RelationTypes
       ))
   );
 };
 
-export const isLinkV2 = (column: ColumnType) => {
+export const isLinkV2 = (
+  column: ColumnType,
+  colOptions = column?.colOptions
+) => {
   return (
     !!column &&
     isLinksOrLTAR(column) &&
-    (column.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2
+    (colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2
   );
 };

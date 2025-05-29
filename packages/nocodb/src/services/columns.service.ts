@@ -7,6 +7,7 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
+  isLTARMMOrMMLike,
   isMMOrMMLike,
   isSystemColumn,
   isVirtualCol,
@@ -2926,13 +2927,15 @@ export class ColumnsService implements IColumnsService {
           );
           const custom = column.meta?.custom;
 
-          const isMMLike = isMMOrMMLike(column);
+          const isMMLike = isLTARMMOrMMLike(column, relationColOpt);
 
-          const relationType = isMMLike ? 'mm' : relationColOpt.type;
+          const relationType = isMMLike
+            ? RelationTypes.MANY_TO_MANY
+            : relationColOpt.type;
 
           switch (relationType) {
-            case 'bt':
-            case 'hm':
+            case RelationTypes.HAS_MANY:
+            case RelationTypes.BELONGS_TO:
               {
                 await this.deleteHmOrBtRelation(context, {
                   column,
@@ -2951,7 +2954,7 @@ export class ColumnsService implements IColumnsService {
                 });
               }
               break;
-            case 'oo':
+            case RelationTypes.ONE_TO_ONE:
               {
                 await this.deleteOoRelation(context, {
                   relationColOpt,
@@ -2970,7 +2973,7 @@ export class ColumnsService implements IColumnsService {
                 });
               }
               break;
-            case 'mm':
+            case RelationTypes.MANY_TO_MANY:
               {
                 const mmTable = await relationColOpt.getMMModel(
                   mmContext,
@@ -3042,7 +3045,7 @@ export class ColumnsService implements IColumnsService {
                       ncMeta,
                     );
                   if (
-                    isMMOrMMLike(c) &&
+                    isMMOrMMLike(c, colOpt) &&
                     colOpt.fk_parent_column_id === childColumn.id &&
                     colOpt.fk_child_column_id === parentColumn.id &&
                     colOpt.fk_mm_model_id === relationColOpt.fk_mm_model_id &&
@@ -4011,7 +4014,8 @@ export class ColumnsService implements IColumnsService {
       );
     } else if (
       isMMLike ||
-      (param.column as LinkToAnotherColumnReqType).type === 'mm'
+      (param.column as LinkToAnotherColumnReqType).type ===
+        RelationTypes.MANY_TO_MANY
     ) {
       const aTn = await getJunctionTableName(param, table, refTable);
       const aTnAlias = aTn;

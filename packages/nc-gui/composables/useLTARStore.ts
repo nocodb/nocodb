@@ -5,9 +5,9 @@ import {
   UITypes,
   dateFormats,
   isDateOrDateTimeCol,
+  isLTARMMOrMMLike,
   isLinkV2,
   isLinksOrLTAR,
-  isMMOrMMLike,
   isSystemColumn,
   parseStringDateTime,
   timeFormats,
@@ -486,7 +486,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       try {
         isChildrenLoading.value = true
         if (!column.value) return
-        if (isSingleTargetRelation.value && !isMMOrMMLike(column.value)) return
+        if (isSingleTargetRelation.value && !isLTARMMOrMMLike(column.value)) return
         let offset = childrenListPagination.size * (childrenListPagination.page - 1) + childrenListOffsetCount.value
         if (offset < 0 || resetOffset) {
           offset = 0

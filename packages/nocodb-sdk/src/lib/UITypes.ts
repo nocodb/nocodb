@@ -317,10 +317,7 @@ export function isHiddenCol(
 export function isLinksOrLTAR(
   colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string
 ) {
-  return [
-    UITypes.LinkToAnotherRecord,
-    UITypes.Links,
-  ].includes(
+  return [UITypes.LinkToAnotherRecord, UITypes.Links].includes(
     <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
   );
 }

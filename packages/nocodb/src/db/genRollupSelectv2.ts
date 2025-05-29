@@ -1,5 +1,5 @@
 import {
-  isMMOrMMLike,
+  isLTARMMOrMMLike,
   NcDataErrorCodes,
   RelationTypes,
   UITypes,
@@ -38,7 +38,7 @@ export default async function ({
   const { parentContext, childContext, mmContext, refContext } =
     await relationColumnOption.getParentChildContext(context);
 
-  const isMMLike = isMMOrMMLike(relationColumn);
+  const isMMLike = isLTARMMOrMMLike(relationColumn);
 
   const rollupColumn = await columnOptions.getRollupColumn(refContext);
   const childCol = await relationColumnOption.getChildColumn(childContext);

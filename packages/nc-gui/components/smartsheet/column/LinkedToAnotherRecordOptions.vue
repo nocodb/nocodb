@@ -391,11 +391,7 @@ const getRelationIconClass = (type: string) => {
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />
           </template>
-          <a-select-option
-            v-for="option in relationOptions"
-            :key="option.value"
-            :value="option.value"
-          >
+          <a-select-option v-for="option in relationOptions" :key="option.value" :value="option.value">
             <div class="flex items-center gap-2">
               <span class="nc-ltar-icon" :class="getRelationIconClass(option.value)">
                 <GeneralIcon :icon="getRelationIcon(option.value)" />

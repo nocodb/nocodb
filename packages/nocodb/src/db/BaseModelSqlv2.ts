@@ -17,7 +17,7 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
-  isMMOrMMLike,
+  isLTARMMOrMMLike,
   isOrderCol,
   isSystemColumn,
   isVirtualCol,
@@ -1451,7 +1451,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           case UITypes.Links:
           case UITypes.LinkToAnotherRecord:
             {
-              const isMMLike = isMMOrMMLike(column);
+              const isMMLike = isLTARMMOrMMLike(column);
               this._columns[column.title] = column;
               const colOptions = (await column.getColOptions(
                 this.context,

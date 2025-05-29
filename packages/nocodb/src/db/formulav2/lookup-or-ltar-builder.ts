@@ -1,4 +1,4 @@
-import { isMMOrMMLike, RelationTypes, UITypes } from 'nocodb-sdk';
+import { isLTARMMOrMMLike, RelationTypes, UITypes } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import type { NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
@@ -309,7 +309,7 @@ export const lookupOrLtarBuilder =
           break;
         case UITypes.LinkToAnotherRecord:
           {
-            const isMMLike = isMMOrMMLike(lookupColumn);
+            const isMMLike = isLTARMMOrMMLike(lookupColumn);
             const nestedAlias = `__nc_formula${getAliasCount()}`;
             const relation =
               await lookupColumn.getColOptions<LinkToAnotherRecordColumn>(

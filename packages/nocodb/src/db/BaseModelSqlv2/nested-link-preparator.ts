@@ -1,4 +1,4 @@
-import { isMMOrMMLike, type NcRequest, RelationTypes } from 'nocodb-sdk';
+import { isLTARMMOrMMLike, type NcRequest, RelationTypes } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import {
   extractIdPropIfObjectOrReturn,
@@ -52,7 +52,7 @@ export class NestedLinkPreparator {
           continue;
         }
 
-        const relationType = isMMOrMMLike(col)
+        const relationType = isLTARMMOrMMLike(col)
           ? RelationTypes.MANY_TO_MANY
           : colOptions.type;
 

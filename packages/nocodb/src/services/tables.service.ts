@@ -336,8 +336,16 @@ export class TablesService {
     try {
       // delete all relations
       for (const c of relationColumns) {
+        console.log(
+          `Deleting relation column ${c.title} from table ${table.table_name}`,
+          c.system,
+        );
+
         // skip if column is hasmany relation to mm table
         if (c.system && !table.mm) {
+          console.log(
+            `Skipping system column ${c.title} from table ${table.table_name}`,
+          );
           continue;
         }
 
@@ -349,6 +357,9 @@ export class TablesService {
             ncMeta,
           ))
         ) {
+          console.log(
+            `Column ${c.title} not found in table ${table.table_name}`,
+          );
           continue;
         }
 

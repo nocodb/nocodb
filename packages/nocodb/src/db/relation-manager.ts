@@ -2,7 +2,7 @@ import {
   AuditOperationSubTypes,
   isLinksOrLTAR,
   isLinkV2,
-  isMMOrMMLike,
+  isLTARMMOrMMLike,
   RelationTypes,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
@@ -272,7 +272,7 @@ export class RelationManager {
       relationColumn,
     } = this.relationContext;
 
-    const isMMLike = isMMOrMMLike(this.relationContext.relationColumn);
+    const isMMLike = isLTARMMOrMMLike(this.relationContext.relationColumn);
 
     const { onlyUpdateAuditLogs, req } = params;
     if (onlyUpdateAuditLogs && colOptions.type !== RelationTypes.BELONGS_TO) {
@@ -781,7 +781,7 @@ export class RelationManager {
       },
     );
 
-    const relationType = isMMOrMMLike(relationColumn)
+    const relationType = isLTARMMOrMMLike(relationColumn)
       ? RelationTypes.MANY_TO_MANY
       : colOptions.type;
 

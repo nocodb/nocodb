@@ -182,8 +182,15 @@ env_aio_act() {
 		cat <<-EOF >>"$acme_env_path"
 			nc_aio_ssl_email="$nc_aio_ssl_email"
 		EOF
+		cat <<-EOF >>"$nocodb_env_common_path"
+			NC_PUBLIC_URL="https://$nc_aio_ssl_domain"
+		EOF
 
 		log enabled ssl
+	else
+		cat <<-EOF >>"$nocodb_env_common_path"
+			NC_PUBLIC_URL="http://$nc_aio_ssl_domain"
+		EOF
 	fi
 	cat <<-EOF >>"$acme_env_path"
 		nc_aio_ssl_domain="$nc_aio_ssl_domain"

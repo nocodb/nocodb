@@ -323,7 +323,9 @@ export default class Column<T = any> implements ColumnType {
           [RelationTypes.HAS_MANY, RelationTypes.BELONGS_TO].includes(
             column.type,
           ) ||
-          (column.type === RelationTypes.ONE_TO_ONE && !column.fk_mm_model_id)
+          (column.type === RelationTypes.ONE_TO_ONE &&
+            !column.fk_mm_model_id) ||
+          column.uidt === UITypes.Links
         ) {
           version = LinksVersion.V1;
         }

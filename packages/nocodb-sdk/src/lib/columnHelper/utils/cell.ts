@@ -176,7 +176,7 @@ export const isNumericFieldType = (column: ColumnType, abstractType: any) => {
 
 export const isMMOrMMLike = (column: ColumnType) => {
   return (
-    (isLinksOrLTAR(column) &&
+    (column.uidt === UITypes.LinkToAnotherRecord &&
       (column.colOptions as LinkToAnotherRecordType)?.type ===
         RelationTypes.MANY_TO_MANY) ||
     ((column.colOptions as LinkToAnotherRecordType)?.version ===

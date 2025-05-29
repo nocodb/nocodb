@@ -1,4 +1,4 @@
-import { RelationTypes } from 'nocodb-sdk';
+import {LinksVersion, RelationTypes} from 'nocodb-sdk';
 import type { BoolType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type Filter from '~/models/Filter';
@@ -183,7 +183,7 @@ export default class LinkToAnotherRecordColumn {
 
     // if version is not provided, default to 2
     if (insertObj.version === undefined) {
-      insertObj.version = 2;
+      insertObj.version = LinksVersion.V2;
     }
 
     await ncMeta.metaInsert2(

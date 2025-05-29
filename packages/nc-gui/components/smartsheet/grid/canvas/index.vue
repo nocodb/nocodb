@@ -159,6 +159,8 @@ const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
 const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
 
+const { withLoading } = useLoadingTrigger()
+
 const { showRecordPlanLimitExceededModal, navigateToPricing } = useEeConfig()
 
 // Props to Refs
@@ -1901,7 +1903,7 @@ const handleMouseLeave = () => {
   hideTooltip()
 }
 
-const reloadViewDataHookHandler = async (params) => {
+const reloadViewDataHookHandler = withLoading(async (params) => {
   if (isGroupBy.value) {
     if (params?.path?.length) {
       clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, params?.path)
@@ -1928,7 +1930,7 @@ const reloadViewDataHookHandler = async (params) => {
   calculateSlices()
 
   requestAnimationFrame(triggerRefreshCanvas)
-}
+})
 
 let rafId: number | null = null
 let scrollTimeout: number | null = null

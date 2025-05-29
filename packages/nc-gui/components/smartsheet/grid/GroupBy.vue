@@ -55,6 +55,8 @@ const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
 const { gridViewCols } = useViewColumnsOrThrow()
 
+const { withLoading } = useLoadingTrigger()
+
 const reloadAggregate = inject(ReloadAggregateHookInj, createEventHook())
 
 const displayField = computed(() => {
@@ -160,16 +162,18 @@ const findAndLoadSubGroup = async (key: any) => {
   oldActiveGroups.value = key
 }
 
-const reloadViewDataHandler = (params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) => {
-  if (vGroup.value.nested) {
-    props.loadGroups({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) }, vGroup.value)
-  } else {
-    _loadGroupData(vGroup.value, true, {
-      ...(params?.offset !== undefined ? { offset: params.offset } : {}),
-    })
-    props.loadGroupAggregation(vGroup.value)
-  }
-}
+const reloadViewDataHandler = withLoading(
+  (params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) => {
+    if (vGroup.value.nested) {
+      props.loadGroups({ ...(params?.offset !== undefined ? { offset: params.offset } : {}) }, vGroup.value)
+    } else {
+      _loadGroupData(vGroup.value, true, {
+        ...(params?.offset !== undefined ? { offset: params.offset } : {}),
+      })
+      props.loadGroupAggregation(vGroup.value)
+    }
+  },
+)
 
 onMounted(async () => {
   reloadViewDataHook?.on(reloadViewDataHandler)

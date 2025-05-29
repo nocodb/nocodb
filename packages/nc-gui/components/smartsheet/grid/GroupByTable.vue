@@ -48,6 +48,8 @@ const { showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
 const { user } = useGlobal()
 
+const { withLoading } = useLoadingTrigger()
+
 const route = router.currentRoute
 
 const routeQuery = computed(() => route.value.query as Record<string, string>)
@@ -178,11 +180,13 @@ const deleteRow = async (rowIndex: number) => {
   await _deleteRow(rowIndex)
 }
 
-const reloadTableData = async (params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) => {
-  await props.loadGroupData(vGroup.value, true, {
-    ...(params?.offset !== undefined ? { offset: params.offset } : {}),
-  })
-}
+const reloadTableData = withLoading(
+  async (params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) => {
+    await props.loadGroupData(vGroup.value, true, {
+      ...(params?.offset !== undefined ? { offset: params.offset } : {}),
+    })
+  },
+)
 
 provide(IsGroupByInj, ref(true))
 

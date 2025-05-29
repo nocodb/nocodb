@@ -523,6 +523,7 @@ export class ColumnsService implements IColumnsService {
         UITypes.Lookup,
         UITypes.Rollup,
         UITypes.LinkToAnotherRecord,
+        UITypes.LinkToAnotherRecordV2,
         UITypes.Formula,
         UITypes.QrCode,
         UITypes.Barcode,

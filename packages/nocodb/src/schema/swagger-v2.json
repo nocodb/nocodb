@@ -8933,7 +8933,8 @@
               "mm",
               "hm",
               "bt",
-              "oo"
+              "oo",
+              "ln"
             ]
           },
           "name": "relationType",
@@ -13927,6 +13928,7 @@
               "LastModifiedTime",
               "LongText",
               "LinkToAnotherRecord",
+              "LinkToAnotherRecordV2",
               "Lookup",
               "MultiSelect",
               "Number",
@@ -17391,7 +17393,8 @@
               "hm",
               "mm",
               "om",
-              "mo"
+              "mo",
+              "oo"
             ]
           },
           "fk_child_column_id": {
@@ -17589,6 +17592,7 @@
             "QrCode": "#/components/schemas/FieldTypeQrCode",
             "Links": "#/components/schemas/FieldTypeLinks",
             "LinkToAnotherRecord": "#/components/schemas/FieldTypeLinkToAnotherRecord",
+            "LinkToAnotherRecordV2": "#/components/schemas/FieldTypeLinkToAnotherRecord",
             "Lookup": "#/components/schemas/FieldTypeLookup",
             "Rollup": "#/components/schemas/FieldTypeRollup",
             "ID": "#/components/schemas/FieldTypeID",

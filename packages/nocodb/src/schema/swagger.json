@@ -12606,7 +12606,8 @@
               "mm",
               "hm",
               "bt",
-              "oo"
+              "oo",
+              "ln"
             ]
           },
           "name": "relationType",
@@ -12719,7 +12720,8 @@
               "mm",
               "hm",
               "bt",
-              "oo"
+              "oo",
+              "ln"
             ]
           },
           "name": "relationType",
@@ -12945,7 +12947,8 @@
               "mm",
               "hm",
               "bt",
-              "oo"
+              "oo",
+              "ln"
             ]
           },
           "name": "relationType",
@@ -14116,7 +14119,8 @@
               "mm",
               "hm",
               "bt",
-              "oo"
+              "oo",
+              "ln"
             ]
           },
           "name": "relationType",
@@ -25412,6 +25416,7 @@
               "LastModifiedTime",
               "LongText",
               "LinkToAnotherRecord",
+              "LinkToAnotherRecordV2",
               "Lookup",
               "MultiSelect",
               "Number",

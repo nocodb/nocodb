@@ -125,7 +125,7 @@ export default async function generateLookupSelectQuery({
             }`,
           ]),
         );
-      } else if (relationType === RelationTypes.HAS_MANY  && !isMMLike) {
+      } else if (relationType === RelationTypes.HAS_MANY && !isMMLike) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn(context);
         const parentColumn = await relation.getParentColumn(context);

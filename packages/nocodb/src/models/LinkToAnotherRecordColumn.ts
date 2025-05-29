@@ -47,7 +47,7 @@ export default class LinkToAnotherRecordColumn {
   ur?: string;
   fk_index_name?: string;
 
-  type: RelationTypes;
+  type: 'hm' | 'bt' | 'mm' | 'oo' | 'om' | 'mo';
   virtual: BoolType;
 
   mmModel?: Model;

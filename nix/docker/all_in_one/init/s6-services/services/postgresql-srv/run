@@ -9,7 +9,7 @@ importas -sCuD "-A peer --auth-host=md5 --auth-local=peer" INITOPTS INITOPTS
 importas -sCuD "" PGOPTS PGOPTS
 
 foreground { mkdir -p /run/postgresql }
-foreground { chown -R postgres:postgres /run/postgresql }
+foreground { chown -R postgres:postgres /run/postgresql /var/lib/postgresql }
 
 foreground {
     if { test $PGROOT != /var/lib/postgres }
@@ -25,9 +25,10 @@ foreground {
     foreground { chown -R postgres:postgres $PGDATA }
     foreground { chmod 0700 $PGDATA }
     foreground { redirfd -w 1 /dev/null s6-setuidgid postgres initdb $INITOPTS -D $PGDATA }
-    # TODO: for some reason PGDATA is not being expanded here, look into it 
-    foreground { ln -sf /etc/postgresql/postgresql.conf /var/lib/postgres/data/postgresql.conf }
 }
+
+# TODO: for some reason PGDATA is not being expanded here, look into it
+foreground { ln -sf /etc/postgresql/postgresql.conf /var/lib/postgres/data/postgresql.conf }
 
 fdmove -c 2 1
 

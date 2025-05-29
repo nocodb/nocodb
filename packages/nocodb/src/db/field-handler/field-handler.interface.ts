@@ -59,6 +59,10 @@ export interface FilterOperationHandlers {
   filterLte: FilterOperation;
   filterChecked: FilterOperation;
   filterNotchecked: FilterOperation;
+  filterAllof: FilterOperation;
+  filterNallof: FilterOperation;
+  filterAnyof: FilterOperation;
+  filterNanyof: FilterOperation;
 }
 
 export interface FilterVerificationResult {

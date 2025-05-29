@@ -650,9 +650,9 @@ export class ExportService {
     const mmColumns = param._fieldIds
       ? model.columns
           .filter((c) => param._fieldIds?.includes(c.id))
-          .filter((col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm')
+          .filter((col) => (isLinksOrLTAR(col) && col.colOptions?.type === RelationTypes.MANY_TO_MANY) || col.uidt === UITypes.LinkToAnotherRecordV2)
       : model.columns.filter(
-          (col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm',
+          (col) => (isLinksOrLTAR(col) && col.colOptions?.type === RelationTypes.MANY_TO_MANY) || col.uidt === UITypes.LinkToAnotherRecordV2,
         );
 
     const hasLink = !dataExportMode && mmColumns.length > 0;

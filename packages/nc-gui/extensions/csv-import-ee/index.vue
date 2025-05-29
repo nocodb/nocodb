@@ -1062,8 +1062,12 @@ onMounted(async () => {
             </div>
 
             <div
-              class="flex flex-col w-[calc(100%_-_420px)] gap-3 overflow-auto h-full pl-2.5 pr-4 py-4 bg-nc-bg-gray-extralight"
+              class="flex flex-col w-[calc(100%_-_420px)] gap-3 overflow-auto nc-scrollbar-thin h-full pl-2.5 pr-4 py-4 bg-nc-bg-gray-extralight"
             >
+              <div v-for="errorMsg of errorMsgs" :key="errorMsg" class="flex items-center gap-3 text-nc-content-gray-subtle2">
+                <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-yellow-dark" />
+                <span>{{ errorMsg }}</span>
+              </div>
               <div class="flex items-center justify-between gap-3">
                 <div class="text-sm font-weight-700 text-nc-content-gray">Select destination fields</div>
                 <div>
@@ -1078,6 +1082,7 @@ onMounted(async () => {
                 :data="importPayload.importColumns"
                 class="flex-1"
                 :bordered="false"
+                :disable-table-scroll="!!errorMsgs.length"
                 header-row-height="40px"
                 header-cell-class-name="!text-nc-content-gray-subtle2 !font-weight-700"
                 body-row-class-name="!cursor-default"

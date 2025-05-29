@@ -1,9 +1,9 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import { BelongsToCellRenderer } from './BelongsTo'
 import { HasManyCellRenderer } from './HasMany'
 import { ManyToManyCellRenderer } from './ManyToMany'
 import { OneToOneCellRenderer } from './OneToOne'
-import {UITypes} from "nocodb-sdk";
 
 export const getLtarCellRenderer = (column: ColumnType): CellRenderer | undefined => {
   if (isHm(column)) return HasManyCellRenderer

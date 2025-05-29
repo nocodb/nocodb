@@ -29,7 +29,7 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
       'lte',
       'ge',
       'le',
-      'le',
+      'in',
       'like',
       'nlike',
       'empty',

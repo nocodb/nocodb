@@ -21568,6 +21568,7 @@
               "LastModifiedTime",
               "LongText",
               "LinkToAnotherRecord",
+              "LinkToAnotherRecordV2",
               "Lookup",
               "MultiSelect",
               "Number",
@@ -24834,6 +24835,8 @@
               "bt",
               "hm",
               "mm",
+              "om",
+              "mo",
               "oo"
             ],
             "type": "string",
@@ -24842,6 +24845,7 @@
           "uidt": {
             "enum": [
               "LinkToAnotherRecord",
+              "LinkToAnotherRecordV2",
               "Links"
             ],
             "type": "string",

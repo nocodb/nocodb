@@ -140,6 +140,7 @@ export const renderAsCellLookupOrLtarValue = [
   UITypes.Barcode,
   UITypes.Lookup,
   UITypes.LinkToAnotherRecord,
+  UITypes.LinkToAnotherRecordV2,
   UITypes.Links,
 ]
 

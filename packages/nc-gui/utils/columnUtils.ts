@@ -52,6 +52,12 @@ const uiTypes: UiTypesType[] = [
     deprecated: 0,
   },
   {
+    name: UITypes.LinkToAnotherRecordV2,
+    icon: iconMap.cellLinks,
+    virtual: 1,
+    deprecated: 0,
+  },
+  {
     name: UITypes.Lookup,
     icon: iconMap.cellLookup,
     virtual: 1,
@@ -220,7 +226,7 @@ const getUIDTIcon = (uidt: UITypes | string) => {
 // 1. column not having default value
 // 2. column is not auto increment
 // 3. column is not auto generated
-const isColumnRequired = (col?: ColumnType) => col && col.rqd && !isValidValue(col?.cdf) && !col.ai && !col.meta?.ag
+const isColumnRequired = (col?: ColumnType) => col && col.rqd && !isValidValue(col?.cdf) && !col.ai && !parseProp(col.meta)?.ag
 
 const isVirtualColRequired = (col: ColumnType, columns: ColumnType[]) =>
   col.uidt === UITypes.LinkToAnotherRecord &&
@@ -302,7 +308,7 @@ const isColumnInvalid = (
         result.isInvalid = !colOptions.fk_webhook_id
       } else if (colOptions.type === ButtonActionsType.Url) {
         result.isInvalid = !!colOptions.error
-      } else if (colOptions.type === ButtonActionsType.AI) {
+      } else if (colOptions.type === ButtonActionsType.Ai) {
         result.isInvalid =
           !colOptions.fk_integration_id ||
           (isReadOnly
@@ -333,7 +339,7 @@ const isColumnInvalid = (
 
 // cater existing v1 cases
 
-function extractCheckboxIcon(meta: string | Record<string, any> = null) {
+function extractCheckboxIcon(meta?: string | Record<string, any>) {
   const parsedMeta = parseProp(meta)
 
   const icon = {
@@ -344,14 +350,14 @@ function extractCheckboxIcon(meta: string | Record<string, any> = null) {
   if (parsedMeta.icon) {
     icon.checked = parsedMeta.icon.checked || icon.checked
     icon.unchecked = parsedMeta.icon.unchecked || icon.unchecked
-  } else if (typeof parsedMeta.iconIdx === 'number' && checkboxIconList[parsedMeta.iconIdx]) {
-    icon.checked = checkboxIconList[parsedMeta.iconIdx].checked
-    icon.unchecked = checkboxIconList[parsedMeta.iconIdx].unchecked
+  } else if (typeof parsedMeta.iconIdx === 'number' && checkboxIconList?.[parsedMeta.iconIdx]) {
+    icon.checked = checkboxIconList?.[parsedMeta.iconIdx]?.checked || icon.checked
+    icon.unchecked = checkboxIconList?.[parsedMeta.iconIdx]?.unchecked || icon.unchecked
   }
   return icon
 }
 
-function extractRatingIcon(meta: string | Record<string, any> = null) {
+function extractRatingIcon(meta?: string | Record<string, any>) {
   const parsedMeta = parseProp(meta)
 
   const icon = {
@@ -362,9 +368,9 @@ function extractRatingIcon(meta: string | Record<string, any> = null) {
   if (parsedMeta.icon) {
     icon.full = parsedMeta.icon.full || icon.full
     icon.empty = parsedMeta.icon.empty || icon.empty
-  } else if (typeof parsedMeta.iconIdx === 'number' && ratingIconList[parsedMeta.iconIdx]) {
-    icon.full = ratingIconList[parsedMeta.iconIdx].full
-    icon.empty = ratingIconList[parsedMeta.iconIdx].empty
+  } else if (typeof parsedMeta.iconIdx === 'number' && ratingIconList?.[parsedMeta.iconIdx]) {
+    icon.full = ratingIconList?.[parsedMeta.iconIdx]?.full || icon.full
+    icon.empty = ratingIconList?.[parsedMeta.iconIdx]?.empty || icon.empty
   }
   return icon
 }

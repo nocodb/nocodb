@@ -10,7 +10,7 @@ import {
   MetaTable,
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
-import { prepareForDb } from '~/utils/modelUtils';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { deserializeJSON } from '~/utils/serialize';
 
 export default class Script extends ScriptCE implements ScriptType {
@@ -54,15 +54,8 @@ export default class Script extends ScriptCE implements ScriptType {
       );
 
       if (script) {
+        script = prepareForResponse(script, ['meta', 'config']);
         NocoCache.set(`${CacheScope.SCRIPTS}:${scriptId}`, script);
-      }
-    }
-
-    const deserializeProps = ['meta', 'config'];
-
-    for (const prop of deserializeProps) {
-      if (script[prop]) {
-        script[prop] = deserializeJSON(script[prop]);
       }
     }
 

@@ -2311,9 +2311,7 @@ export class ColumnsService implements IColumnsService {
           if (!colBody.fk_script_id) {
             colBody.fk_script_id = null;
           }
-
           const script = await Script.get(context, colBody.fk_script_id);
-
           if (!script) {
             colBody.fk_script_id = null;
           }

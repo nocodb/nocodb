@@ -111,6 +111,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       column.value?.uidt === UITypes.LinkToAnotherRecordV2 ? 'ln' : (colOptions.value?.type as RelationTypes),
     )
 
+    const isSingleTargetRelation = computed(() => {
+      return (
+        colOptions.value?.type === RelationTypes.MANY_TO_ONE ||
+        colOptions.value?.type === RelationTypes.BELONGS_TO ||
+        colOptions.value?.type === RelationTypes.ONE_TO_ONE
+      )
+    })
+
     const { sharedView } = useSharedView()
 
     const { getViewColumns } = useSmartsheetStoreOrThrow()
@@ -439,9 +447,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           // compare all keys and values
           childrenExcludedList.value.list.forEach((row: any, index: number) => {
             const found = (
-              [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(type.value)
-                ? [activeState[column.value.title]]
-                : activeState[column.value.title]
+              isSingleTargetRelation.value ? [activeState[column.value.title]] : activeState[column.value.title]
             ).find((a: any) => {
               let isSame = true
 
@@ -478,7 +484,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       try {
         isChildrenLoading.value = true
-        if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(type.value)) return
+        if (isSingleTargetRelation.value) return
         if (!column.value) return
         let offset = childrenListPagination.size * (childrenListPagination.page - 1) + childrenListOffsetCount.value
         if (offset < 0 || resetOffset) {
@@ -660,7 +666,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
         isChildrenExcludedListLinked.value[index] = false
         isChildrenListLinked.value[index] = false
-        if (type.value !== RelationTypes.BELONGS_TO && type.value !== RelationTypes.ONE_TO_ONE) {
+        if (!isSingleTargetRelation.value) {
           childrenListCount.value = childrenListCount.value - 1
         }
       } catch (e: any) {
@@ -748,7 +754,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenExcludedListLinked.value[index] = true
         isChildrenListLinked.value[index] = true
 
-        if (type.value !== RelationTypes.BELONGS_TO && type.value !== RelationTypes.ONE_TO_ONE) {
+        if (!isSingleTargetRelation.value) {
           childrenListCount.value = childrenListCount.value + 1
         } else {
           isChildrenExcludedListLinked.value = Array(childrenExcludedList.value?.list.length).fill(false)

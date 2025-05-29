@@ -200,8 +200,13 @@ env_aio_act() {
 	fi
 
 	if "$nc_aio_worker_enable"; then
+		if [ "${nc_aio_redis_enable+set}" != set ] && [ ! -f /"$kernal_env_store_dir"/NC_REDIS_URL ]; then
+			# shellcheck disable=SC2016
+			log '$nc_aio_redis_enable or NC_REDIS_URL must be set for $nc_aio_worker_enable'
+			exit 1
+		fi
+
 		touch "$s6_services_temp_path/nocodb/contents.d/nocodb-worker-srv"
-		nocodb_dep_add redis
 
 		cat <<-EOF >>"$nocodb_env_main_path"
 			NC_WORKER_CONTAINER=false

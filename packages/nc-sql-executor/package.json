@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@databricks/sql": "^1.9.0",
+    "@databricks/sql": "^1.11.0",
     "@fastify/static": "^8.2.0",
     "dayjs": "^1.11.13",
     "fastify": "^5.3.3",

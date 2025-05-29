@@ -1,5 +1,5 @@
 import Handlebars from 'handlebars';
-import handlebarHelpers from 'handlebars-helpers';
+import handlebarsHelpers from 'handlebars-helpers-v2';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
@@ -27,34 +27,7 @@ import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
 import { isEE, isOnPrem } from '~/utils';
 
-for (const moduleName of [
-  'array',
-  //'code',
-  'collection',
-  'comparison',
-  'date',
-  //'fs',
-  //'html',
-  //'i18n',
-  //'inflection',
-  //'logging',
-  //'markdown', // markdown is disabled because it can inject specified *.md file
-  //'match',
-  'math',
-  //'misc',
-  'number',
-  //'object', // can do deep merge
-  //'path', // access to server filesystem
-  //'regex', // should not needed
-  'string',
-  'url',
-]) {
-  if (handlebarHelpers[moduleName]) {
-    handlebarHelpers[moduleName]({
-      handlebars: Handlebars,
-    });
-  }
-}
+handlebarsHelpers({ handlebars: Handlebars });
 
 dayjs.extend(isBetween);
 dayjs.extend(isSameOrBefore);

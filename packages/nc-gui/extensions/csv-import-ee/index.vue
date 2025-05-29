@@ -375,9 +375,16 @@ const handleChange = (info: { file: UploadFile }) => {
   }
 }
 
-const onMappingField = (columnId: string, _value: string) => {
+const onMappingField = (columnId: string, value: string) => {
   const columnMeta = importPayload.value.importColumns.find((m) => m.columnId === columnId)
+
   if (columnMeta && !columnMeta.enabled) columnMeta.enabled = true
+
+  if (columnMeta) {
+    if (value && !columnMeta.enabled) columnMeta.enabled = true
+    if (!value && columnMeta.enabled) columnMeta.enabled = false
+  }
+
   updateHistory()
 }
 
@@ -1119,12 +1126,7 @@ onMounted(async () => {
                         :filter-option="(input, option) => antSelectFilterOption(input, option, 'data-label')"
                         class="nc-field-select-input w-full nc-select-shadow !border-none"
                         :placeholder="`-${$t('labels.multiField.selectField').toLowerCase()}-`"
-                        @update:value="
-                          (value) => {
-                            importMeta.mapIndex = value
-                            importMeta.enabled = !!value
-                          }
-                        "
+                        @update:value="(value) => (importMeta.mapIndex = value)"
                         @change="onMappingField(importMeta.columnId, $event)"
                       >
                         <a-select-option v-for="(col, i) of headers" :key="i" :value="col.value" :data-label="col.label">

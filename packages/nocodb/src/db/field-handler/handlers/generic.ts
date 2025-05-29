@@ -216,7 +216,7 @@ export class GenericFieldHandler
         qb.where((nestedQb) => {
           nestedQb
             .where(knex.raw("?? != ''", [sourceField]))
-            .orWhereNotNull(sourceField as any);
+            .andWhereNotNull(sourceField as any);
         });
       } else {
         qb.where((nestedQb) => {

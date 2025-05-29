@@ -1036,6 +1036,7 @@ onMounted(async () => {
                 class="flex-1"
                 :bordered="false"
                 header-row-height="40px"
+                header-cell-class-name="!text-nc-content-gray-subtle2 !font-weight-700"
                 body-row-class-name="!cursor-default"
                 row-height="48px"
               >
@@ -1050,7 +1051,11 @@ onMounted(async () => {
                   <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-3">
                     {{ column.title }}
 
-                    <NcBadge v-if="importPayload.tableId" class="!text-sm !h-5 bg-nc-bg-gray-medium truncate" :border="false">
+                    <NcBadge
+                      v-if="importPayload.tableId"
+                      class="!text-sm !h-5 bg-nc-bg-gray-medium truncate font-normal"
+                      :border="false"
+                    >
                       <LazyGeneralEmojiPicker
                         :emoji="importPayload.tableIcon || selectedTable?.meta?.icon"
                         readonly
@@ -1079,11 +1084,14 @@ onMounted(async () => {
 
                 <template #bodyCell="{ column, record: importMeta }">
                   <template v-if="column.key === 'select'">
-                    <NcCheckbox
-                      v-model:checked="importMeta.enabled"
-                      :disabled="importPayload.upsertColumnId === importMeta.columnId || !importMeta.mapIndex"
-                      @change="updateHistory()"
-                    />
+                    <NcTooltip :disabled="importMeta.enabled || !!importMeta.mapIndex">
+                      <template #title>Select CSV Column to map</template>
+                      <NcCheckbox
+                        v-model:checked="importMeta.enabled"
+                        :disabled="importPayload.upsertColumnId === importMeta.columnId || !importMeta.mapIndex"
+                        @change="updateHistory()"
+                      />
+                    </NcTooltip>
                   </template>
                   <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-2">
                     <template v-if="columns[importMeta.columnId]">
@@ -1106,12 +1114,20 @@ onMounted(async () => {
                     <a-form-item class="!my-0 w-full">
                       <NcSelect
                         :value="importMeta.mapIndex || null"
+                        show-search
+                        allow-clear
+                        :filter-option="(input, option) => antSelectFilterOption(input, option, 'data-label')"
                         class="nc-field-select-input w-full nc-select-shadow !border-none"
-                        placeholder="-select a field-"
-                        @update:value="(value) => (importMeta.mapIndex = value)"
+                        :placeholder="`-${$t('labels.multiField.selectField').toLowerCase()}-`"
+                        @update:value="
+                          (value) => {
+                            importMeta.mapIndex = value
+                            importMeta.enabled = !!value
+                          }
+                        "
                         @change="onMappingField(importMeta.columnId, $event)"
                       >
-                        <a-select-option v-for="(col, i) of headers" :key="i" :value="col.value">
+                        <a-select-option v-for="(col, i) of headers" :key="i" :value="col.value" :data-label="col.label">
                           <div class="flex items-center gap-2 w-full">
                             <NcTooltip class="truncate flex-1" show-on-truncate-only>
                               <template #title>
@@ -1221,7 +1237,15 @@ onMounted(async () => {
 
 :deep(.nc-field-select-input.ant-select) {
   .ant-select-selector {
-    @apply !bg-transparent;
+    @apply !bg-transparent rounded-lg;
+
+    .ant-select-selection-item {
+      @apply text-nc-content-gray text-sm font-weight-500;
+    }
+  }
+
+  &:not(.ant-select-focused):hover .ant-select-selector {
+    @apply !bg-nc-bg-gray-medium;
   }
 
   &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
@@ -1234,6 +1258,10 @@ onMounted(async () => {
   }
   &:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
     @apply !border-transparent;
+  }
+
+  &:not(.ant-select-focused):hover .ant-select-clear {
+    @apply !bg-nc-bg-gray-medium;
   }
 }
 

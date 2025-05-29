@@ -8,8 +8,8 @@ import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Knex } from 'knex';
-import { RelationUpdateWebhookHandler } from '~/db/relation-update-webhook-handler';
 import { Model } from '~/models';
+import { RelationUpdateWebhookHandler } from '~/db/relation-update-webhook-handler';
 import { NcError } from '~/helpers/catchError';
 import {
   _wherePk,
@@ -73,10 +73,12 @@ export class RelationManager {
     colOptions: LinkToAnotherRecordColumn,
   ) {
     const isBelongsTo =
-      (relationColumn.uidt === UITypes.LinkToAnotherRecordV2 &&
-        colOptions.type === RelationTypes.BELONGS_TO) ||
-      relationColumn.meta?.bt;
-    return isBelongsTo || colOptions.type === RelationTypes.MANY_TO_MANY;
+      colOptions.type === RelationTypes.BELONGS_TO || relationColumn.meta?.bt;
+    return (
+      relationColumn.uidt === UITypes.LinkToAnotherRecordV2 ||
+      isBelongsTo ||
+      colOptions.type === RelationTypes.MANY_TO_MANY
+    );
   }
 
   static async getRelationManager(

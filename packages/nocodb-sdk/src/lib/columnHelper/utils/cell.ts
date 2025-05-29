@@ -179,13 +179,13 @@ export const isLTARMMOrMMLike = (
   colOptions = column?.colOptions
 ) => {
   return (
-    (column.uidt === UITypes.LinkToAnotherRecord &&
-      (colOptions as LinkToAnotherRecordType)?.type ===
-        RelationTypes.MANY_TO_MANY) ||
-    ((colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2 &&
-      [RelationTypes.BELONGS_TO, RelationTypes.HAS_MANY].includes(
-        (colOptions as LinkToAnotherRecordType)?.type as RelationTypes
-      ))
+    column.uidt === UITypes.LinkToAnotherRecord &&
+    ((colOptions as LinkToAnotherRecordType)?.type ===
+      RelationTypes.MANY_TO_MANY ||
+      ((colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2 &&
+        ![RelationTypes.BELONGS_TO, RelationTypes.HAS_MANY].includes(
+          (colOptions as LinkToAnotherRecordType)?.type as RelationTypes
+        )))
   );
 };
 export const isMMOrMMLike = (
@@ -197,7 +197,7 @@ export const isMMOrMMLike = (
       (colOptions as LinkToAnotherRecordType)?.type ===
         RelationTypes.MANY_TO_MANY) ||
     ((colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2 &&
-      [RelationTypes.BELONGS_TO, RelationTypes.HAS_MANY].includes(
+      ![RelationTypes.BELONGS_TO, RelationTypes.HAS_MANY].includes(
         (colOptions as LinkToAnotherRecordType)?.type as RelationTypes
       ))
   );

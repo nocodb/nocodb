@@ -4192,13 +4192,7 @@ export class ColumnsService implements IColumnsService {
           await refTable.getColumns(refContext),
           pluralize(table.title),
         ),
-        uidt:
-          isLinks &&
-          ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
-            revType,
-          )
-            ? UITypes.Links
-            : UITypes.LinkToAnotherRecord,
+        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
         type: revType,
 
         // ref_db_alias
@@ -4230,11 +4224,7 @@ export class ColumnsService implements IColumnsService {
           param.column.title ?? pluralize(refTable.title),
         ),
 
-        uidt:
-          isLinks &&
-          ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(type)
-            ? UITypes.Links
-            : UITypes.LinkToAnotherRecord,
+        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
         type,
 
         fk_model_id: table.id,

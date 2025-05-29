@@ -218,11 +218,14 @@ export class ColumnPageObject extends BasePage {
         // kludge, fix me
         await this.rootPage.waitForTimeout(2000);
 
-        await this.get().locator('.nc-ltar-relation-type').getByTestId(relationType).click();
-        // await this.get()
-        //   .locator('.nc-ltar-relation-type >> .ant-radio')
-        //   .nth(relationType === 'Has Many' ? 1 : 0)
-        //   .click();
+        // Update to use select component instead of radio
+        await this.get().locator('.nc-ltar-relation-type .ant-select-selector').click();
+        await this.rootPage
+          .locator('.nc-dropdown-relation-type .ant-select-item', {
+            hasText: relationType,
+          })
+          .click();
+
         await this.get().locator('.ant-select-single').nth(1).click();
         await this.rootPage.locator(`.nc-ltar-child-table >> input[type="search"]`).fill(childTable);
         await this.rootPage

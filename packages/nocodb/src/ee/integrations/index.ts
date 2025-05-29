@@ -4,8 +4,6 @@
 */
 
 import AmazonBedrockAi from '@noco-local-integrations/amazon-bedrock-ai';
-import AsanaAuth from '@noco-local-integrations/asana-auth';
-import AsanaSync from '@noco-local-integrations/asana-sync';
 import AzureAi from '@noco-local-integrations/azure-ai';
 import ClaudeAi from '@noco-local-integrations/claude-ai';
 import ClickhouseAuth from '@noco-local-integrations/clickhouse-auth';
@@ -32,8 +30,6 @@ import type { IntegrationEntry } from '@noco-local-integrations/core';
 
 export default [
   AmazonBedrockAi,
-  AsanaAuth,
-  AsanaSync,
   AzureAi,
   ClaudeAi,
   ClickhouseAuth,

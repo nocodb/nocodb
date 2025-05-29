@@ -214,9 +214,11 @@ const referenceTableChildId = computed({
 })
 
 const linkType = computed({
-  get: () => (isEdit.value ? vModel.value?.colOptions?.type : vModel.value?.type) ?? null,
+  get: () =>
+    (isEdit.value && vModel.value.uidt !== UITypes.LinkToAnotherRecordV2 ? vModel.value?.colOptions?.type : vModel.value?.type) ??
+    null,
   set: (value) => {
-    if (!isEdit.value && value) {
+    if ((!isEdit.value || vModel.value.uidt === UITypes.LinkToAnotherRecordV2) && value) {
       vModel.value.type = value
 
       updateFieldName()
@@ -331,7 +333,7 @@ const toggleCrossBase = () => {
   <div class="w-full flex flex-col gap-4">
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type">
-        <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit">
+        <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit && vModel.uidt !== UITypes.LinkToAnotherRecordV2">
           <a-row :gutter="[16, 16]">
             <a-col :span="12">
               <a-radio :value="RelationTypes.MANY_TO_MANY" data-testid="Many to Many">

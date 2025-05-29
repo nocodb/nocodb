@@ -64,6 +64,7 @@ import {
   generateFkName,
   getMMColumnNames,
   getRevType,
+  getTargetTableRelColumn,
   sanitizeColumnName,
   validateLookupPayload,
   validatePayload,
@@ -789,6 +790,31 @@ export class ColumnsService implements IColumnsService {
       ].includes(colBody.uidt)
     ) {
       NcError.notImplemented(`Updating ${colBody.uidt} => ${colBody.uidt}`);
+    } else if ([UITypes.LinkToAnotherRecordV2].includes(colBody.uidt)) {
+      if (colBody.type) {
+        // allow updating type, on type update - change column in target table as well
+        const targetRelationColumn = await getTargetTableRelColumn(
+          context,
+          column,
+        );
+
+        const revType = getRevType(colBody.type);
+
+        const { refContext } = (
+          column.colOptions as LinkToAnotherRecordColumn
+        ).getRelContext(context);
+
+        await Column.update(context, param.columnId, {
+          ...column.colOptions,
+          ...column,
+          type: colBody.type,
+        });
+        await Column.update(refContext, targetRelationColumn.id, {
+          ...targetRelationColumn.colOptions,
+          ...targetRelationColumn,
+          type: revType,
+        });
+      }
     } else if (
       [
         UITypes.CreatedTime,
@@ -2900,6 +2926,7 @@ export class ColumnsService implements IColumnsService {
       // Since Links is just an extended version of LTAR, we can use the same logic
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
+      case UITypes.LinkToAnotherRecordV2:
         {
           const relationColOpt =
             await column.getColOptions<LinkToAnotherRecordColumn>(
@@ -2925,7 +2952,11 @@ export class ColumnsService implements IColumnsService {
           );
           const custom = column.meta?.custom;
 
-          switch (relationColOpt.type) {
+          const isMMLike = column.uidt === UITypes.LinkToAnotherRecordV2;
+
+          const relationType = isMMLike ? 'mm' : relationColOpt.type;
+
+          switch (relationType) {
             case 'bt':
             case 'hm':
               {
@@ -3037,7 +3068,8 @@ export class ColumnsService implements IColumnsService {
                       ncMeta,
                     );
                   if (
-                    colOpt.type === 'mm' &&
+                    (colOpt.type === 'mm' ||
+                      c.uidt === UITypes.LinkToAnotherRecordV2) &&
                     colOpt.fk_parent_column_id === childColumn.id &&
                     colOpt.fk_child_column_id === parentColumn.id &&
                     colOpt.fk_mm_model_id === relationColOpt.fk_mm_model_id &&

@@ -138,7 +138,7 @@ export const columnTypeName = (column?: ColumnType) => {
 export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.ID]: 'ID',
   [UITypes.LinkToAnotherRecord]: '{TableName}',
-  [UITypes.LinkToAnotherRecordV2]: '{TableName} (V2)',
+  [UITypes.LinkToAnotherRecordV2]: '{TableName}',
   [UITypes.ForeignKey]: 'Foreign key',
   [UITypes.Lookup]: '{FieldName} (from {TableName})',
   [UITypes.SingleLineText]: 'Text',

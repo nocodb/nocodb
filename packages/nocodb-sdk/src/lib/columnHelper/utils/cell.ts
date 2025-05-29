@@ -179,7 +179,7 @@ export const isMMOrMMLike = (column: ColumnType) => {
     (isLinksOrLTAR(column) &&
       (column.colOptions as LinkToAnotherRecordType)?.type ===
         RelationTypes.MANY_TO_ONE) ||
-    column.colOptions === LinksVersion.V2
+    (column.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2
   );
 };
 

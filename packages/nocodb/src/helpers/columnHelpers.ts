@@ -664,7 +664,7 @@ export const getTargetTableRelColumn = async (
     .then((columns) =>
       columns.find(
         (col: Column<LinkToAnotherRecordColumn>) =>
-          col.uidt === UITypes.LinkToAnotherRecordV2 &&
+          col.uidt === UITypes.LinkToAnotherRecord &&
           col.colOptions?.fk_related_model_id === relationColumn.fk_model_id &&
           col &&
           col.colOptions?.fk_child_column_id ===

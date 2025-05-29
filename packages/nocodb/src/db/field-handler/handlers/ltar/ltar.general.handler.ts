@@ -25,7 +25,7 @@ export class LtarGeneralHandler extends GenericFieldHandler {
       throwErrorIfInvalid,
       conditionParser: parseConditionV2,
     } = options;
-    const isMMLike = isMMOrMMLike(column.uidt);
+    const isMMLike = isMMOrMMLike(column);
     const colOptions = (await column.getColOptions(
       context,
     )) as LinkToAnotherRecordColumn;

@@ -7,8 +7,6 @@ import { BelongsToHelper } from './BelongsTo';
 import { HasManyHelper } from './HasMany';
 import { ManyToManyHelper } from './ManyToMany';
 import { OneToOneHelper } from './OneToOne';
-import { UITypes } from '~/lib';
-
 export class LTARHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 

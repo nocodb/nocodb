@@ -4,7 +4,6 @@ import {
   isLinkV2,
   isMMOrMMLike,
   RelationTypes,
-  UITypes,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
@@ -782,7 +781,9 @@ export class RelationManager {
       },
     );
 
-    const relationType = isMMOrMMLike(relationColumn);
+    const relationType = isMMOrMMLike(relationColumn)
+      ? RelationTypes.MANY_TO_MANY
+      : colOptions.type;
 
     switch (relationType) {
       case RelationTypes.MANY_TO_MANY:

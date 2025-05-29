@@ -325,60 +325,85 @@ const toggleCrossBase = () => {
   crossBase.value = !crossBase.value
   onCrossBaseToggle()
 }
+
+const relationOptions = computed(() => {
+  const options = [
+    {
+      value: RelationTypes.MANY_TO_MANY,
+      label: t('title.manyToMany'),
+      icon: 'mm_solid',
+      iconClass: 'nc-mm-icon',
+    },
+    {
+      value: RelationTypes.ONE_TO_ONE,
+      label: t('title.oneToOne'),
+      icon: 'oneToOneSolid',
+      iconClass: 'nc-oo-icon',
+    },
+  ]
+
+  if (vModel.value.uidt === UITypes.LinkToAnotherRecord) {
+    options.splice(1, 0, {
+      value: RelationTypes.ONE_TO_MANY,
+      label: t('title.oneToMany'),
+      icon: 'hm_solid',
+      iconClass: 'nc-om-icon',
+    })
+    options.splice(2, 0, {
+      value: RelationTypes.MANY_TO_ONE,
+      label: t('title.manyToOne'),
+      icon: 'bt_solid',
+      iconClass: 'nc-mo-icon',
+    })
+  } else {
+    options.splice(1, 0, {
+      value: RelationTypes.HAS_MANY,
+      label: t('title.hasMany'),
+      icon: 'hm_solid',
+      iconClass: 'nc-hm-icon',
+    })
+  }
+
+  return options
+})
+
+const getRelationIcon = (type: string) => {
+  const option = relationOptions.value.find((opt) => opt.value === type)
+  return option?.icon || 'mm_solid'
+}
+
+const getRelationIconClass = (type: string) => {
+  const option = relationOptions.value.find((opt) => opt.value === type)
+  return option?.iconClass || 'nc-mm-icon'
+}
 </script>
 
 <template>
   <div class="w-full flex flex-col gap-4">
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type">
-        <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit">
-          <a-row :gutter="[16, 16]">
-            <a-col :span="12">
-              <a-radio :value="RelationTypes.MANY_TO_MANY" data-testid="Many to Many">
-                <span class="nc-ltar-icon nc-mm-icon">
-                  <GeneralIcon icon="mm_solid" />
-                </span>
-                {{ $t('title.manyToMany') }}
-              </a-radio>
-            </a-col>
-            <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord">
-              <a-col :span="12">
-                <a-radio :value="RelationTypes.ONE_TO_MANY" data-testid="One to Many">
-                  <span class="nc-ltar-icon nc-om-icon">
-                    <GeneralIcon icon="hm_solid" />
-                  </span>
-                  {{ $t('title.oneToMany') }}
-                </a-radio>
-              </a-col>
-              <a-col :span="12">
-                <a-radio :value="RelationTypes.MANY_TO_ONE" data-testid="Many to One" class="nc-relation-radio">
-                  <span class="nc-ltar-icon nc-mo-icon">
-                    <GeneralIcon icon="bt_solid" />
-                  </span>
-                  {{ $t('title.manyToOne') }}
-                </a-radio>
-              </a-col>
-            </template>
-            <template v-else>
-              <a-col :span="12">
-                <a-radio :value="RelationTypes.HAS_MANY" data-testid="Has Many">
-                  <span class="nc-ltar-icon nc-hm-icon">
-                    <GeneralIcon icon="hm_solid" />
-                  </span>
-                  {{ $t('title.hasMany') }}
-                </a-radio>
-              </a-col>
-            </template>
-            <a-col :span="12">
-              <a-radio :value="RelationTypes.ONE_TO_ONE" data-testid="One to One">
-                <span class="nc-ltar-icon nc-oo-icon">
-                  <GeneralIcon icon="oneToOneSolid" />
-                </span>
-                {{ $t('title.oneToOne') }}
-              </a-radio>
-            </a-col>
-          </a-row>
-        </a-radio-group>
+        <a-select
+          v-model:value="linkType"
+          :disabled="isEdit"
+          :filter-option="filterOption"
+          dropdown-class-name="nc-dropdown-relation-type"
+        >
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
+          <a-select-option
+            v-for="option in relationOptions"
+            :key="option.value"
+            :value="option.value"
+          >
+            <div class="flex items-center gap-2">
+              <span class="nc-ltar-icon" :class="getRelationIconClass(option.value)">
+                <GeneralIcon :icon="getRelationIcon(option.value)" />
+              </span>
+              <span>{{ option.label }}</span>
+            </div>
+          </a-select-option>
+        </a-select>
       </a-form-item>
     </div>
     <div v-if="isFeatureEnabled(FEATURE_FLAG.CUSTOM_LINK) && isEeUI">

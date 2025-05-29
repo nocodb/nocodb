@@ -7,6 +7,8 @@ const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
+const { withLoading } = useLoadingTrigger()
+
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 const isPublic = inject(IsPublicInj, ref(false))
 const fields = inject(FieldsInj, ref([]))
@@ -358,11 +360,13 @@ watch(
   },
 )
 
-reloadViewDataHook?.on(async () => {
-  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
-  await syncCount()
-  calculateSlices()
-})
+reloadViewDataHook?.on(
+  withLoading(async () => {
+    clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+    await syncCount()
+    calculateSlices()
+  }),
+)
 
 const handleOpenNewRecordForm = () => {
   if (showRecordPlanLimitExceededModal()) return

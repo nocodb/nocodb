@@ -70,6 +70,8 @@ const {
   externalBaseUserRoles,
 } = useLTARStoreOrThrow()
 
+const { withLoading } = useLoadingTrigger()
+
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
@@ -161,12 +163,14 @@ const addNewRecord = () => {
   isNewRecord.value = true
 }
 
-reloadViewDataTrigger.on((params) => {
-  if (params?.isFromLinkRecord) {
-    refreshCurrentRow()
-    loadChildrenList()
-  }
-})
+reloadViewDataTrigger.on(
+  withLoading((params) => {
+    if (params?.isFromLinkRecord) {
+      refreshCurrentRow()
+      loadChildrenList()
+    }
+  }),
+)
 
 const onCreatedRecord = async (record: any) => {
   reloadTrigger?.trigger({

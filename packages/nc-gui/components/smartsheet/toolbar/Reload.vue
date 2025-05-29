@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { WatchHandle } from 'vue'
+
 const { $e, $state } = useNuxtApp()
 
 const { isPaginationLoading } = storeToRefs(useViewsStore())
@@ -8,15 +10,15 @@ const isReloading = ref(false)
 
 const onClick = () => {
   $e('a:table:reload:navbar')
-  isReloading.value = true
-  reloadHook.trigger()
-
-  const stop = watch($state.isLoading, (isLoading) => {
+  // watch first so a very fast reload is still tracked
+  const stop: WatchHandle = watch($state.isLoading, (isLoading) => {
     if (!isLoading) {
       isReloading.value = false
-      stop()
+      stop?.()
     }
   })
+  isReloading.value = true
+  reloadHook.trigger()
 }
 
 watch(isReloading, () => {

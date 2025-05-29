@@ -90,17 +90,20 @@ const {
 const { preFillFormSearchParams } = storeToRefs(useViewsStore())
 
 const reloadEventHook = inject(ReloadViewDataHookInj, createEventHook())
+const { withLoading } = useLoadingTrigger()
 
-reloadEventHook.on(async (params) => {
-  if (params?.isFormFieldFilters) {
-    setTimeout(() => {
-      checkFieldVisibility()
-    }, 100)
-  } else {
-    await Promise.all([loadFormView(), loadReleatedMetas()])
-    setFormData()
-  }
-})
+reloadEventHook.on(
+  withLoading(async (params) => {
+    if (params?.isFormFieldFilters) {
+      setTimeout(() => {
+        checkFieldVisibility()
+      }, 100)
+    } else {
+      await Promise.all([loadFormView(), loadReleatedMetas()])
+      setFormData()
+    }
+  }),
+)
 
 const { fields, showAll, hideAll } = useViewColumnsOrThrow()
 

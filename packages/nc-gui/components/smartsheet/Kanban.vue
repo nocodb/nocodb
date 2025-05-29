@@ -82,6 +82,8 @@ const { addUndo, defineViewScope } = useUndoRedo()
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
+const { withLoading } = useLoadingTrigger()
+
 provide(IsFormInj, ref(false))
 
 provide(IsGalleryInj, ref(false))
@@ -119,10 +121,12 @@ const kanbanContainerRef = ref()
 
 const selectedStackTitle = ref('')
 
-reloadViewDataHook?.on(async () => {
-  await loadKanbanMeta()
-  await loadKanbanData()
-})
+reloadViewDataHook?.on(
+  withLoading(async () => {
+    await loadKanbanMeta()
+    await loadKanbanData()
+  }),
+)
 
 const attachments = (record: any): Attachment[] => {
   if (!coverImageColumn.value?.title || !record.row[coverImageColumn.value.title]) return []

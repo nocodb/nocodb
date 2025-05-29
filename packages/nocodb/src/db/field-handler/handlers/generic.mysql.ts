@@ -6,6 +6,7 @@ import type {
   FilterOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
+import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
 export class GenericMysqlFieldHandler
@@ -13,7 +14,51 @@ export class GenericMysqlFieldHandler
   implements FieldHandlerInterface, FilterOperationHandlers
 {
   // region filter comparisons
-  innerFilterAllAnyOf(
+  override filterLike(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+      qb: Knex.QueryBuilder;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ): void {
+    const { val, qb, sourceField } = args;
+    const { knex } = rootArgs;
+
+    if (!ncIsStringHasValue(val)) {
+      qb.whereNull(sourceField as any);
+    } else {
+      qb.where(knex.raw('?? ilike ?', [sourceField, `%${val}%`]));
+    }
+  }
+
+  filterNlike(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+      qb: Knex.QueryBuilder;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    _options: FilterOptions,
+  ) {
+    const { val, qb, sourceField } = args;
+    const { knex } = rootArgs;
+
+    if (!ncIsStringHasValue(val)) {
+      qb.whereNotNull(sourceField as any);
+    } else {
+      qb.where((nestedQb) => {
+        nestedQb.where(knex.raw('?? not ilike ?', [sourceField, `%${val}%`]));
+      });
+    }
+  }
+
+  override innerFilterAllAnyOf(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;

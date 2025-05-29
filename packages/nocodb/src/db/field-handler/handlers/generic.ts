@@ -119,6 +119,10 @@ export class GenericFieldHandler
           filterOperation = this.filterLte;
           break;
 
+        case 'in':
+          filterOperation = this.filterIn;
+          break;
+
         default:
           filterOperation = unsupportedFilter;
       }
@@ -229,9 +233,12 @@ export class GenericFieldHandler
     const { knex } = rootArgs;
 
     if (!ncIsStringHasValue(val)) {
-      qb.whereNull(sourceField as any);
+      qb.where((subQb) => {
+        subQb.where(sourceField as any, '');
+        subQb.whereNull(sourceField as any);
+      });
     } else {
-      qb.where(knex.raw('??::text ilike ?', [sourceField, `%${val}%`]));
+      qb.where(knex.raw('?? like ?', [sourceField, `%${val}%`]));
     }
   }
 
@@ -255,9 +262,7 @@ export class GenericFieldHandler
       qb.whereNotNull(sourceField as any);
     } else {
       qb.where((nestedQb) => {
-        nestedQb.where(
-          knex.raw('??::text not ilike ?', [sourceField, `%${val}%`]),
-        );
+        nestedQb.where(knex.raw('?? not like ?', [sourceField, `%${val}%`]));
       });
     }
   }
@@ -448,8 +453,7 @@ export class GenericFieldHandler
     },
     _options: FilterOptions,
   ) {
-    const { val, sourceField } = args;
-    const { qb } = args;
+    const { qb, val, sourceField } = args;
     const { filter, knex } = rootArgs;
 
     // Condition for filter, without negation
@@ -482,6 +486,26 @@ export class GenericFieldHandler
         subQb.whereNot(condition).orWhereNull(sourceField as any);
       }
     });
+  }
+
+  filterIn(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+      qb: Knex.QueryBuilder;
+    },
+    _rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    _options: FilterOptions,
+  ) {
+    const { val, qb, sourceField } = args;
+    qb.whereIn(
+      sourceField as any,
+      Array.isArray(val) ? val : val?.split?.(','),
+    );
   }
 
   // to be implemented on checkbox itself

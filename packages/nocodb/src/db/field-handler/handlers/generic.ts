@@ -6,8 +6,8 @@ import type { MetaService } from 'src/meta/meta.service';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
   FieldHandlerInterface,
+  FilterOptions,
   FilterVerificationResult,
-  HandlerOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
@@ -18,7 +18,7 @@ export class GenericFieldHandler implements FieldHandlerInterface {
   async select(
     qb: Knex.QueryBuilder,
     column: Column,
-    options: HandlerOptions,
+    options: FilterOptions,
   ): Promise<void> {
     const { alias, context, baseModel, tnPath } = options;
 
@@ -43,7 +43,7 @@ export class GenericFieldHandler implements FieldHandlerInterface {
     knex: CustomKnex,
     filter: Filter,
     column: Column,
-    options: HandlerOptions,
+    options: FilterOptions,
   ) {
     const { alias } = options;
     const val = filter.value;

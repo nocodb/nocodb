@@ -279,7 +279,7 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
 
         const mapIndex = headers.value.find((h) => h.label === column.title)?.value ?? ''
 
-        acc.push({ enabled: false, mapIndex, columnId: column.id })
+        acc.push({ enabled: !!mapIndex, mapIndex, columnId: column.id })
 
         return acc
       }, [] as ImportColumnType[])

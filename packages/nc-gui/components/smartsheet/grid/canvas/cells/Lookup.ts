@@ -211,7 +211,6 @@ export const LookupCellRenderer: CellRenderer = {
           if (line + 1 > maxLines || renderOnly1Row.includes(lookupColumn.uidt)) {
             break
           }
-
           x = _x
           y += 24
           width = _width
@@ -281,6 +280,7 @@ export const LookupCellRenderer: CellRenderer = {
 
     // Restore context after clipping
     ctx.restore()
+    return { x, y }
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx

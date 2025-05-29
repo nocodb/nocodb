@@ -42,6 +42,9 @@ import { DecimalSqliteHandler } from './handlers/decimal/decimal.sqlite.handler'
 import { NumberPgHandler } from './handlers/number/number.pg.handler';
 import { NumberMysqlHandler } from './handlers/number/number.mysql.handler';
 import { NumberSqliteHandler } from './handlers/number/number.sqlite.handler';
+import { RatingMysqlHandler } from './handlers/rating/rating.mysql.handler';
+import { RatingPgHandler } from './handlers/rating/rating.pg.handler';
+import { RatingSqliteHandler } from './handlers/rating/rating.sqlite.handler';
 import type { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
@@ -139,6 +142,9 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.Rating]: {
     [CLIENT_DEFAULT]: RatingGeneralHandler,
+    [ClientType.PG]: RatingMysqlHandler,
+    [ClientType.MYSQL]: RatingPgHandler,
+    [ClientType.SQLITE]: RatingSqliteHandler,
   },
   [UITypes.Formula]: {
     [CLIENT_DEFAULT]: FormulaGeneralHandler,

@@ -634,7 +634,9 @@ export class SyncModuleSyncDataProcessor {
                   req,
                 );
 
-                logBasic(`Synced ${recordCounter} records`);
+                logBasic(
+                  `[${integration.title}]: Synced ${recordCounter} records`,
+                );
 
                 dataStream.resume();
               }

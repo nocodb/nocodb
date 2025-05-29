@@ -234,13 +234,16 @@ export class SyncModuleService {
           // Add system fields to the columns
           const columns = [...tableSchema.columns, ...syncSystemFields];
 
-          // first non-pk column is pv
-          const pvColumn = columns.find(
-            (col) => !tableSchema.systemFields.primaryKey.includes(col.title),
-          );
+          // for custom schema
+          if (tableSchema.systemFields?.primaryKey?.length) {
+            // first non-pk column is pv
+            const pvColumn = columns.find(
+              (col) => !tableSchema.systemFields.primaryKey.includes(col.title),
+            );
 
-          if (pvColumn) {
-            pvColumn.pv = true;
+            if (pvColumn) {
+              pvColumn.pv = true;
+            }
           }
 
           const model = await this.tablesService.tableCreate(context, {
@@ -444,8 +447,6 @@ export class SyncModuleService {
           await SyncMapping.delete(context, syncMapping.id);
         }
 
-        await SyncConfig.delete(context, syncConfig.id);
-
         throw e;
       }
 
@@ -464,11 +465,14 @@ export class SyncModuleService {
       };
     } catch (e) {
       for (const integration of integrationsToDelete) {
-        await this.integrationsService.integrationDelete(context, {
-          integrationId: integration.id,
-          req,
-          force: false,
-        });
+        const integrationModel = await Integration.get(context, integration.id);
+        if (integrationModel) {
+          await this.integrationsService.integrationDelete(context, {
+            integrationId: integration.id,
+            req,
+            force: false,
+          });
+        }
       }
 
       for (const syncConfig of syncConfigsToDelete) {

@@ -10,6 +10,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
+  NcApiVersion,
   ncIsNull,
   ncIsUndefined,
   partialUpdateAllowedTypes,
@@ -24,7 +25,6 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import rfdc from 'rfdc';
-import { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -40,20 +40,21 @@ import type {
   IColumnsService,
   ReusableParams,
 } from '~/services/columns.service.type';
-import { Filter, User } from '~/models';
-import { parseMetaProp } from '~/utils/modelUtils';
 import {
   BaseUser,
   CalendarRange,
   Column,
+  Filter,
   FormulaColumn,
   Hook,
   KanbanView,
   Model,
   Script,
   Source,
+  User,
   View,
 } from '~/models';
+import { parseMetaProp } from '~/utils/modelUtils';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -523,7 +524,6 @@ export class ColumnsService implements IColumnsService {
         UITypes.Lookup,
         UITypes.Rollup,
         UITypes.LinkToAnotherRecord,
-        UITypes.LinkToAnotherRecordV2,
         UITypes.Formula,
         UITypes.QrCode,
         UITypes.Barcode,
@@ -2164,6 +2164,7 @@ export class ColumnsService implements IColumnsService {
 
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
+      case UITypes.LinkToAnotherRecordV2:
         savedColumn = await this.createLTARColumn(context, {
           ...param,
           source,
@@ -3719,6 +3720,9 @@ export class ColumnsService implements IColumnsService {
 
     const reuse = param.reuse ?? {};
 
+    // in new LTAR type we treat all relation similar to mm, so check if it's new type
+    const isMMLike = param.column.uidt === UITypes.LinkToAnotherRecordV2;
+
     // get table and refTable models
     const table = await Model.getWithInfo(context, {
       id: (param.column as LinkToAnotherColumnReqType).parentId,
@@ -3784,8 +3788,9 @@ export class ColumnsService implements IColumnsService {
     }
 
     if (
-      (param.column as LinkToAnotherColumnReqType).type === 'hm' ||
-      (param.column as LinkToAnotherColumnReqType).type === 'bt'
+      ((param.column as LinkToAnotherColumnReqType).type === 'hm' ||
+        (param.column as LinkToAnotherColumnReqType).type === 'bt') &&
+      !isMMLike
     ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
@@ -3888,7 +3893,10 @@ export class ColumnsService implements IColumnsService {
         isLinks,
         param.colExtra,
       );
-    } else if ((param.column as LinkToAnotherColumnReqType).type === 'oo') {
+    } else if (
+      !isMMLike &&
+      (param.column as LinkToAnotherColumnReqType).type === 'oo'
+    ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
         await refTable.getColumns(context),
@@ -3989,7 +3997,10 @@ export class ColumnsService implements IColumnsService {
         param.column['meta'],
         param.colExtra,
       );
-    } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
+    } else if (
+      isMMLike ||
+      (param.column as LinkToAnotherColumnReqType).type === 'mm'
+    ) {
       const aTn = await getJunctionTableName(param, table, refTable);
       const aTnAlias = aTn;
 
@@ -4092,6 +4103,7 @@ export class ColumnsService implements IColumnsService {
         (c) => c.column_name === refColumnName,
       );
 
+      // todo: skip hm and bt if new type
       await createHmAndBtColumn(
         context,
         param.req,
@@ -4159,8 +4171,8 @@ export class ColumnsService implements IColumnsService {
           await refTable.getColumns(refContext),
           pluralize(table.title),
         ),
-        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
-        type: 'mm',
+        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecordV2,
+        type: (param.column as Pick<LinkToAnotherColumnReqType, 'type'>).type,
 
         // ref_db_alias
         fk_model_id: refTable.id,
@@ -4185,14 +4197,34 @@ export class ColumnsService implements IColumnsService {
         ...refCrossBaseLinkProps,
       });
 
+      const getRevType = (type: RelationTypes) => {
+        switch (type) {
+          case RelationTypes.BELONGS_TO:
+            return RelationTypes.HAS_MANY;
+          case RelationTypes.HAS_MANY:
+            return RelationTypes.BELONGS_TO;
+          case RelationTypes.MANY_TO_ONE:
+            return RelationTypes.ONE_TO_MANY;
+          case RelationTypes.ONE_TO_MANY:
+            return RelationTypes.MANY_TO_ONE;
+        }
+
+        return type;
+      };
+
+      const revType = getRevType(
+        (param.column as Pick<LinkToAnotherColumnReqType, 'type'>)
+          .type as RelationTypes,
+      );
+
       const parentRelCol = await Column.insert(context, {
         title: getUniqueColumnAliasName(
           await table.getColumns(context),
           param.column.title ?? pluralize(refTable.title),
         ),
 
-        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
-        type: 'mm',
+        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecordV2,
+        type: revType,
 
         fk_model_id: table.id,
 
@@ -4233,7 +4265,7 @@ export class ColumnsService implements IColumnsService {
         columnId: savedColumn.id,
         req: param.req,
         context: refContext,
-        columns: await refTable.getCachedColumns(context),
+        columns: await refTable.getCachedColumns(refContext),
       });
 
       // todo: create index for virtual relations as well

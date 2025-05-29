@@ -217,6 +217,7 @@ export function isVirtualCol(
     // Shouldn't be treated as virtual column (Issue with SQL View column data display)
     // UITypes.SpecificDBType,
     UITypes.LinkToAnotherRecord,
+    UITypes.LinkToAnotherRecordV2,
     UITypes.Formula,
     UITypes.QrCode,
     UITypes.Barcode,

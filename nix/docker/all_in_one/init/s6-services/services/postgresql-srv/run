@@ -8,8 +8,8 @@ importas -uD "/var/log/postgres.log" PGLOG PGLOG
 importas -sCuD "-A peer --auth-host=md5 --auth-local=peer" INITOPTS INITOPTS
 importas -sCuD "" PGOPTS PGOPTS
 
-foreground { mkdir -p /run/postgresql /var/lib/postgresql }
-foreground { chown -R postgres:postgres /run/postgresql /var/lib/postgresql }
+foreground { mkdir -p /run/postgresql /var/lib/postgres }
+foreground { chown -R postgres:postgres /run/postgresql /var/lib/postgres }
 
 foreground {
     if { test $PGROOT != /var/lib/postgres }

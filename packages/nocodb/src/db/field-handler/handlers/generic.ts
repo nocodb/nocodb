@@ -12,7 +12,10 @@ import type {
   FilterVerificationResult,
 } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
-import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
+import {
+  ncIsStringHasValue,
+  unsupportedFilter,
+} from '~/db/field-handler/utils/handlerUtils';
 import { getAs, getColumnName } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
 
@@ -51,7 +54,9 @@ export class GenericFieldHandler
   ) {
     const { alias } = options;
     const val = filter.value;
-    const field = alias ? `${alias}.${column.column_name}` : column.column_name;
+    const field =
+      options.customWhereClause ??
+      (alias ? `${alias}.${column.column_name}` : column.column_name);
 
     return (qb: Knex.QueryBuilder) => {
       let filterOperation: FilterOperation;
@@ -77,11 +82,13 @@ export class GenericFieldHandler
           break;
 
         case 'empty':
+        case 'null':
         case 'blank':
           filterOperation = this.filterBlank;
           break;
 
         case 'notempty':
+        case 'notnull':
         case 'notblank':
           filterOperation = this.filterNotblank;
           break;
@@ -113,9 +120,7 @@ export class GenericFieldHandler
           break;
 
         default:
-          throw new Error(
-            `Unsupported comparison operator for ${column.uidt}: ${filter.comparison_op}`,
-          );
+          filterOperation = unsupportedFilter;
       }
 
       filterOperation(
@@ -430,9 +435,8 @@ export class GenericFieldHandler
   filterAnyof: FilterOperation;
   filterNanyof: FilterOperation;
 
-  // to be implemented on checkbox itself
-  filterChecked(
-    _args: {
+  innerFilterAllAnyOf(
+    args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
       qb: Knex.QueryBuilder;
@@ -444,29 +448,47 @@ export class GenericFieldHandler
     },
     _options: FilterOptions,
   ) {
-    throw new Error(
-      `Unsupported comparison operator for ${rootArgs.column.uidt}: ${rootArgs.filter.comparison_op}`,
-    );
+    const { val, sourceField } = args;
+    const { qb } = args;
+    const { filter, knex } = rootArgs;
+
+    // Condition for filter, without negation
+    const condition = (builder: Knex.QueryBuilder) => {
+      const items = val?.split(',');
+      for (let i = 0; i < items?.length; i++) {
+        const bindings = [sourceField, `%,${items[i]},%`];
+        const sql = "CONCAT(',', ??, ',') like ?";
+        if (i === 0) {
+          builder = builder.where(knex.raw(sql, bindings));
+        } else {
+          if (
+            filter.comparison_op === 'allof' ||
+            filter.comparison_op === 'nallof'
+          ) {
+            builder = builder.andWhere(knex.raw(sql, bindings));
+          } else {
+            builder = builder.orWhere(knex.raw(sql, bindings));
+          }
+        }
+      }
+    };
+    qb.where((subQb) => {
+      if (
+        filter.comparison_op === 'allof' ||
+        filter.comparison_op === 'anyof'
+      ) {
+        subQb.where(condition);
+      } else {
+        subQb.whereNot(condition).orWhereNull(sourceField as any);
+      }
+    });
   }
 
   // to be implemented on checkbox itself
-  filterNotchecked(
-    _args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
-      val: any;
-      qb: Knex.QueryBuilder;
-    },
-    rootArgs: {
-      knex: CustomKnex;
-      filter: Filter;
-      column: Column;
-    },
-    _options: FilterOptions,
-  ) {
-    throw new Error(
-      `Unsupported comparison operator for ${rootArgs.column.uidt}: ${rootArgs.filter.comparison_op}`,
-    );
-  }
+  filterChecked = unsupportedFilter;
+
+  // to be implemented on checkbox itself
+  filterNotchecked = unsupportedFilter;
   // endregion filter comparisons
 
   async verifyFilter(

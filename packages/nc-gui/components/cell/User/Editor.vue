@@ -628,6 +628,6 @@ onMounted(() => {
 
 <style lang="scss">
 .ant-select-dropdown.nc-dropdown-user-select-cell-filter .ant-select-item-option-state {
-  @apply hidden;
+  @apply !hidden;
 }
 </style>

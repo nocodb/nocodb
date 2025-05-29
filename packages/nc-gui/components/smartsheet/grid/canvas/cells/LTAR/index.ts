@@ -3,10 +3,11 @@ import { BelongsToCellRenderer } from './BelongsTo'
 import { HasManyCellRenderer } from './HasMany'
 import { ManyToManyCellRenderer } from './ManyToMany'
 import { OneToOneCellRenderer } from './OneToOne'
+import {UITypes} from "nocodb-sdk";
 
 export const getLtarCellRenderer = (column: ColumnType): CellRenderer | undefined => {
   if (isHm(column)) return HasManyCellRenderer
-  if (isMm(column)) return ManyToManyCellRenderer
+  if (isMm(column) || column.uidt === UITypes.LinkToAnotherRecordV2) return ManyToManyCellRenderer
   if (isBt(column)) return BelongsToCellRenderer
   if (isOo(column)) return OneToOneCellRenderer
 }

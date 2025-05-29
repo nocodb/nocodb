@@ -49,7 +49,7 @@ dockerTools.buildLayeredImage {
     execline.bin
     minio
     nginxCustom
-    glibc.getent
+    glibc.bin
     coreutils
 
     util-linux

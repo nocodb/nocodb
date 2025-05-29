@@ -4422,11 +4422,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     await this.model.getColumns(this.context);
     const column = this.model.columnsById[colId];
 
-    if (
-      !column ||
-      ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
-    )
-      NcError.fieldNotFound(colId);
+    if (!column || !isLinksOrLTAR(column)) NcError.fieldNotFound(colId);
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       this.context,
@@ -4720,11 +4716,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }) {
     await this.model.getColumns(this.context);
     const column = this.model.columnsById[colId];
-    if (
-      !column ||
-      ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
-    )
-      NcError.fieldNotFound(colId);
+    if (!column || !isLinksOrLTAR(column.uidt)) NcError.fieldNotFound(colId);
 
     const relationManager = await RelationManager.getRelationManager(
       this,

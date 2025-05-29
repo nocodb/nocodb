@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { UITypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, UITypes } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
@@ -37,10 +37,7 @@ export class DataAliasNestedService {
 
     const column = await getColumnByIdOrName(context, param.columnName, model);
 
-    if (
-      !column ||
-      ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
-    )
+    if (!column || !isLinksOrLTAR(column))
       NcError.badRequest('Column is not LTAR');
 
     const data = await baseModel.mmList(
@@ -263,8 +260,7 @@ export class DataAliasNestedService {
 
     const column = await getColumnByIdOrName(context, param.columnName, model);
 
-    if (![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt))
-      NcError.badRequest('Column is not LTAR');
+    if (!isLinksOrLTAR(column)) NcError.badRequest('Column is not LTAR');
 
     const data = await baseModel.hmList(
       {

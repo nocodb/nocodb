@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
+import { isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   column: ColumnType

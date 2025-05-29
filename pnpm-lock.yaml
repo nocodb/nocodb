@@ -45,6 +45,8 @@ overrides:
   '@babel/helpers@<7.26.10': '>=7.26.10'
   vite@>=6.0.0 <=6.1.5: '>=6.1.6'
   vite@>=6.1.0 <6.1.4: '>=6.1.4'
+  '@75lb/deep-merge@<=1.1.1': '>=1.1.2'
+  '@babel/runtime@<7.26.10': '>=7.26.10'
 
 patchedDependencies:
   splitpanes@3.1.5:
@@ -1575,8 +1577,8 @@ importers:
 
 packages:
 
-  '@75lb/deep-merge@1.1.1':
-    resolution: {integrity: sha512-xvgv6pkMGBA6GwdyJbNAnDmfAIR/DfWhrj9jgWh3TY7gRm3KO46x/GPjRg6wJ0nOepwqrNxFfojebh0Df4h4Tw==}
+  '@75lb/deep-merge@1.1.2':
+    resolution: {integrity: sha512-08K9ou5VNbheZFxM5tDWoqjA3ImC50DiuuJ2tj1yEPRfkp8lLLg6XAaJ4On+a0yAXor/8ay5gHnAIshRM44Kpw==}
     engines: {node: '>=12.17'}
 
   '@aashutoshrathi/word-wrap@1.2.6':
@@ -3492,10 +3494,6 @@ packages:
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
-
-  '@babel/runtime@7.26.7':
-    resolution: {integrity: sha512-AOPI3D+a8dXnja+iwsUqGRjr1BbZIe771sXdapOtYI531gSqpi92vXivKcq2asu/DFpdl1ceFAKZyRzK2PCVcQ==}
-    engines: {node: '>=6.9.0'}
 
   '@babel/runtime@7.27.3':
     resolution: {integrity: sha512-7EYtGezsdiDMyY80+65EzwiGmcJqpmcZCojSXaRgdrBaGtWTgDZKq69cPIVped6MkIM78cTQ2GOiEYjwOlG4xw==}
@@ -13600,9 +13598,6 @@ packages:
   lodash-es@4.17.21:
     resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
 
-  lodash.assignwith@4.2.0:
-    resolution: {integrity: sha512-ZznplvbvtjK2gMvnQ1BR/zqPFZmS6jbK4p+6Up4xcRYA7yMIwxHCfbTcrYxXKzzqLsQ05eJPVznEW3tuwV7k1g==}
-
   lodash.camelcase@4.3.0:
     resolution: {integrity: sha512-TwuEnCnxbc3rAvhf/LbG7tJUDzhqXyFnv3dtzLOPgCG/hODL7WFnsbwktkD7yUV0RrreP/l1PALq/YSg6VvjlA==}
 
@@ -16396,9 +16391,6 @@ packages:
 
   regenerator-runtime@0.13.11:
     resolution: {integrity: sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==}
-
-  regenerator-runtime@0.14.1:
-    resolution: {integrity: sha512-dYnhHh0nJoMfnkZs6GmmhFknAGRrLznOu5nc9ML+EJxGvrx6H7teuevqVqCuPcPK//3eDrrjQhehXVx9cnkGdw==}
 
   regenerator-transform@0.15.2:
     resolution: {integrity: sha512-hfMp2BoF0qOk3uc5V20ALGDS2ddjQaLrdl7xrGXvAIow7qeWRM2VA2HuCHkUKk9slq3VwEwLNK3DFBqDfPGYtg==}
@@ -19420,9 +19412,9 @@ packages:
 
 snapshots:
 
-  '@75lb/deep-merge@1.1.1':
+  '@75lb/deep-merge@1.1.2':
     dependencies:
-      lodash.assignwith: 4.2.0
+      lodash: 4.17.21
       typical: 7.1.1
 
   '@aashutoshrathi/word-wrap@1.2.6': {}
@@ -23285,10 +23277,6 @@ snapshots:
       make-dir: 2.1.0
       pirates: 4.0.6
       source-map-support: 0.5.21
-
-  '@babel/runtime@7.26.7':
-    dependencies:
-      regenerator-runtime: 0.14.1
 
   '@babel/runtime@7.27.3': {}
 
@@ -36094,8 +36082,6 @@ snapshots:
 
   lodash-es@4.17.21: {}
 
-  lodash.assignwith@4.2.0: {}
-
   lodash.camelcase@4.3.0: {}
 
   lodash.debounce@4.0.8: {}
@@ -36539,7 +36525,7 @@ snapshots:
 
   metro-runtime@0.80.12:
     dependencies:
-      '@babel/runtime': 7.26.7
+      '@babel/runtime': 7.27.3
       flow-enums-runtime: 0.0.6
 
   metro-source-map@0.80.12:
@@ -39712,8 +39698,6 @@ snapshots:
 
   regenerator-runtime@0.13.11: {}
 
-  regenerator-runtime@0.14.1: {}
-
   regenerator-transform@0.15.2:
     dependencies:
       '@babel/runtime': 7.27.3
@@ -41191,7 +41175,7 @@ snapshots:
 
   table-layout@3.0.2:
     dependencies:
-      '@75lb/deep-merge': 1.1.1
+      '@75lb/deep-merge': 1.1.2
       array-back: 6.2.2
       command-line-args: 5.2.1
       command-line-usage: 7.0.1

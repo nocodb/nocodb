@@ -103,6 +103,7 @@ export function genMysql2AggregatedQuery({
             UITypes.Links,
             UITypes.ID,
             UITypes.LinkToAnotherRecord,
+            UITypes.LinkToAnotherRecordV2,
             UITypes.Lookup,
           ].includes(column.uidt) ||
           [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
@@ -145,6 +146,7 @@ export function genMysql2AggregatedQuery({
             UITypes.Links,
             UITypes.ID,
             UITypes.LinkToAnotherRecord,
+            UITypes.LinkToAnotherRecordV2,
             UITypes.Lookup,
           ].includes(column.uidt) ||
           [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
@@ -194,6 +196,7 @@ export function genMysql2AggregatedQuery({
             UITypes.Links,
             UITypes.ID,
             UITypes.LinkToAnotherRecord,
+            UITypes.LinkToAnotherRecordV2,
             UITypes.Lookup,
           ].includes(column.uidt) ||
           [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
@@ -237,6 +240,7 @@ export function genMysql2AggregatedQuery({
             UITypes.Links,
             UITypes.ID,
             UITypes.LinkToAnotherRecord,
+            UITypes.LinkToAnotherRecordV2,
             UITypes.Lookup,
           ].includes(column.uidt) ||
           [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(

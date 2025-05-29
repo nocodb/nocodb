@@ -2894,11 +2894,16 @@ export function useCanvasRender({
     }
 
     if (
-      [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.LinkToAnotherRecord].includes(group?.column?.uidt) &&
+      [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.LinkToAnotherRecord, UITypes.LinkToAnotherRecordV2].includes(
+        group?.column?.uidt,
+      ) &&
       !(group.value in GROUP_BY_VARS.VAR_TITLES)
     ) {
       // parse value if LTAR and extract values separated by ___
-      const parsedValue = group?.column?.uidt === UITypes.LinkToAnotherRecord ? parseKey(group) : group.value
+      const parsedValue =
+        group?.column?.uidt === UITypes.LinkToAnotherRecord || group?.column?.uidt === UITypes.LinkToAnotherRecordV2
+          ? parseKey(group)
+          : group.value
       const tags = Array.isArray(parsedValue) ? parsedValue : parsedValue.split(',')
       const colors = group.color.split(',')
       let xPosition = x

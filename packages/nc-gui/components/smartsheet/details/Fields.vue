@@ -356,6 +356,7 @@ const duplicateField = async (field: TableExplorerColumn) => {
   // construct column create payload
   switch (field.uidt) {
     case UITypes.LinkToAnotherRecord:
+    case UITypes.LinkToAnotherRecordV2:
     case UITypes.Links:
     case UITypes.Lookup:
     case UITypes.Rollup:
@@ -639,7 +640,7 @@ const isColumnValid = (column: TableExplorerColumn) => {
   if (!column.title && !isNew) {
     return false
   }
-  if ((column.uidt === UITypes.Links || column.uidt === UITypes.LinkToAnotherRecord) && isNew) {
+  if (isLinksOrLTAR(column) && isNew) {
     if (
       (!column.childColumn || !column.childTable || !column.childId) &&
       (!column.custom?.ref_model_id || !column.custom?.ref_column_id)

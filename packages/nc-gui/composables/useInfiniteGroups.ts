@@ -147,7 +147,7 @@ export const useInfiniteGroups = (
       for (const item of response.list) {
         let group: CanvasGroup = {} as any
 
-        if (groupCol.column.uidt === UITypes.LinkToAnotherRecord) {
+        if (groupCol.column.uidt === UITypes.LinkToAnotherRecord || groupCol.column.uidt === UITypes.LinkToAnotherRecordV2) {
           const relatedTableMeta = await getMeta(
             (groupCol.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
           )
@@ -176,7 +176,7 @@ export const useInfiniteGroups = (
           let finalColumn = lookupColumn
 
           // Check if the lookup column is a LinkToAnotherRecord
-          if (lookupColumn.uidt === UITypes.LinkToAnotherRecord) {
+          if (lookupColumn.uidt === UITypes.LinkToAnotherRecord || lookupColumn.uidt === UITypes.LinkToAnotherRecordV2) {
             const targetTableMeta = await getMeta(
               (lookupColumn.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
             )

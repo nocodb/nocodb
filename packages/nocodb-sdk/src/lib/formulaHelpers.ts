@@ -1975,7 +1975,8 @@ export async function validateFormulaAndExtractTreeWithType({
       } else {
         if (
           col?.uidt === UITypes.Lookup ||
-          col?.uidt === UITypes.LinkToAnotherRecord
+          col?.uidt === UITypes.LinkToAnotherRecord||
+          col?.uidt === UITypes.LinkToAnotherRecordV2
         ) {
           // check for circular reference when column is present(only available when calling root formula)
           if (column) {
@@ -2304,7 +2305,8 @@ async function checkForCircularFormulaRef(
       if (neighbours.length) res.push({ [c.id]: neighbours });
     } else if (
       c.uidt === UITypes.Lookup ||
-      c.uidt === UITypes.LinkToAnotherRecord
+      c.uidt === UITypes.LinkToAnotherRecord||
+      c.uidt === UITypes.LinkToAnotherRecordV2
     ) {
       const neighbours = await processLookupOrLTARColumn(c);
       if (neighbours?.length) res.push({ [c.id]: neighbours });
@@ -2329,7 +2331,8 @@ async function checkForCircularFormulaRef(
         neighbours.push(...(await processLookupFormula(refCol, columns)));
       } else if (
         refCol.uidt === UITypes.Lookup ||
-        refCol.uidt === UITypes.LinkToAnotherRecord
+        refCol.uidt === UITypes.LinkToAnotherRecord||
+        refCol.uidt === UITypes.LinkToAnotherRecordV2
       ) {
         neighbours.push(...(await processLookupOrLTARColumn(refCol)));
       }
@@ -2355,7 +2358,7 @@ async function checkForCircularFormulaRef(
         .fk_lookup_column_id;
       ltarColumn = columns.find((c) => c.id === relationColId);
       lookupFilterFn = (column: ColumnType) => column.id === lookupColId;
-    } else if (lookupOrLTARCol.uidt === UITypes.LinkToAnotherRecord) {
+    } else if (lookupOrLTARCol.uidt === UITypes.LinkToAnotherRecord||lookupOrLTARCol.uidt === UITypes.LinkToAnotherRecordV2) {
       ltarColumn = lookupOrLTARCol;
       lookupFilterFn = (column: ColumnType) => !!column.pv;
     }
@@ -2376,7 +2379,8 @@ async function checkForCircularFormulaRef(
           );
         } else if (
           lookupTarget.uidt === UITypes.Lookup ||
-          lookupTarget.uidt === UITypes.LinkToAnotherRecord
+          lookupTarget.uidt === UITypes.LinkToAnotherRecord||
+          lookupTarget.uidt === UITypes.LinkToAnotherRecordV2
         ) {
           neighbours.push(...(await processLookupOrLTARColumn(lookupTarget)));
         }
@@ -2389,7 +2393,7 @@ async function checkForCircularFormulaRef(
   const targetFormulaCol = columns.find(
     (c: ColumnType) =>
       c.title === (parsedTree as IdentifierNode).name &&
-      [UITypes.Formula, UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(
+      [UITypes.Formula, UITypes.LinkToAnotherRecord,UITypes.LinkToAnotherRecordV2, UITypes.Lookup].includes(
         c.uidt as UITypes
       )
   );

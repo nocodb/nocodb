@@ -157,6 +157,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         break;
       case UITypes.Lookup:
       case UITypes.LinkToAnotherRecord:
+      case UITypes.LinkToAnotherRecordV2:
         aliasToColumn[col.id] = lookupOrLtarBuilder({
           ...params,
           column: col,

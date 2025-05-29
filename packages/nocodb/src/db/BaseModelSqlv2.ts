@@ -5267,7 +5267,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       idToAliasMap[col.id] = col.title;
-      if ([UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(col.uidt)) {
+      if (
+        [
+          UITypes.LinkToAnotherRecord,
+          UITypes.LinkToAnotherRecordV2,
+          UITypes.Lookup,
+        ].includes(col.uidt)
+      ) {
         if (col.uidt === UITypes.Lookup) {
           const nestedCol = await this.getNestedColumn(col);
           if (

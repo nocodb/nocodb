@@ -325,6 +325,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
             <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
             <template
               v-if="
+                lookupColumn.uidt !== UITypes.LinkToAnotherRecordV2 ||
                 lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
                 (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
                   [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))

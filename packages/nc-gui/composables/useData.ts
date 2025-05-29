@@ -437,6 +437,7 @@ export function useData(args: {
           UITypes.Lookup,
           UITypes.Rollup,
           UITypes.LinkToAnotherRecord,
+          UITypes.LinkToAnotherRecordV2,
           UITypes.LastModifiedBy,
         ].includes(col.uidt),
       )
@@ -488,7 +489,7 @@ export function useData(args: {
   const recoverLTARRefs = async (row: Record<string, any>, { metaValue = meta.value }: { metaValue?: TableType } = {}) => {
     const id = extractPkFromRow(row, metaValue?.columns as ColumnType[])
     for (const column of metaValue?.columns ?? []) {
-      if (column.uidt !== UITypes.LinkToAnotherRecord) continue
+      if (column.uidt !== UITypes.LinkToAnotherRecord && column.uidt !== UITypes.LinkToAnotherRecordV2) continue
 
       const colOptions = column.colOptions as LinkToAnotherRecordType
 

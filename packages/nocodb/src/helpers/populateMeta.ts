@@ -1,4 +1,4 @@
-import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
+import { isLTARType, ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import { isVirtualCol, RelationTypes } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import { isLinksOrLTAR } from 'nocodb-sdk';
@@ -57,7 +57,7 @@ async function isMMRelationExist(
   const colChildOpt =
     await belongsToCol.getColOptions<LinkToAnotherRecordColumn>(context);
   for (const col of await model.getColumns(context)) {
-    if (col.uidt === UITypes.LinkToAnotherRecord) {
+    if (isLTARType(col)) {
       const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
         context,
       );

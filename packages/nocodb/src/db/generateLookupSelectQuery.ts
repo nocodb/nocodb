@@ -216,7 +216,8 @@ export default async function generateLookupSelectQuery({
       let context = refContext;
       while (
         lookupColumn.uidt === UITypes.Lookup ||
-        lookupColumn.uidt === UITypes.LinkToAnotherRecord
+        lookupColumn.uidt === UITypes.LinkToAnotherRecord ||
+        lookupColumn.uidt === UITypes.LinkToAnotherRecordV2
       ) {
         const nestedAlias = getAlias();
 

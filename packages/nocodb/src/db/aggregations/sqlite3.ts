@@ -104,6 +104,7 @@ export function genSqlite3AggregateQuery({
             UITypes.Links,
             UITypes.ID,
             UITypes.LinkToAnotherRecord,
+            UITypes.LinkToAnotherRecordV2,
             UITypes.Lookup,
           ].includes(column.uidt) ||
           [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
@@ -145,6 +146,7 @@ export function genSqlite3AggregateQuery({
             UITypes.Links,
             UITypes.ID,
             UITypes.LinkToAnotherRecord,
+            UITypes.LinkToAnotherRecordV2,
             UITypes.Lookup,
           ].includes(column.uidt) ||
           [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
@@ -194,6 +196,7 @@ export function genSqlite3AggregateQuery({
             UITypes.Links,
             UITypes.ID,
             UITypes.LinkToAnotherRecord,
+            UITypes.LinkToAnotherRecordV2,
             UITypes.Lookup,
           ].includes(column.uidt) ||
           [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
@@ -236,6 +239,7 @@ export function genSqlite3AggregateQuery({
             UITypes.Links,
             UITypes.ID,
             UITypes.LinkToAnotherRecord,
+            UITypes.LinkToAnotherRecordV2,
             UITypes.Lookup,
           ].includes(column.uidt) ||
           [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(

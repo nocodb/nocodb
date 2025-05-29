@@ -1242,7 +1242,7 @@
     "apiSnippet": "API 스니펫",
     "includeData": "데이터 포함",
     "includeRecords": "항목 포함",
-    "baseDuplicateMessage": "참고: 교차 기반 링크, 감사 로그 및 통합은 중복되지 않습니다.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "참고: 교차 기본 링크는 중복되지 않습니다.",
     "includeView": "보기 포함",
     "includeWebhook": "웹훅 포함",

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, type LinkToAnotherRecordType, isMMLike } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, isMMOrMMLike } from 'nocodb-sdk'
 import { isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -73,7 +73,7 @@ const onDelete = async () => {
       await getMeta((column.value.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
 
       // reload tables if deleted column is mm and include m2m is true
-      if (includeM2M.value && isMMLike(column.value)) {
+      if (includeM2M.value && isMMOrMMLike(column.value)) {
         loadTables().catch(() => {
           // ignore
         })

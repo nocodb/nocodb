@@ -1,13 +1,16 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
 import {
+  LinksVersion,
   RelationTypes,
   UITypes,
   dateFormats,
   isDateOrDateTimeCol,
+  isLinkV2,
   isLinksOrLTAR,
+  isMMOrMMLike,
   isSystemColumn,
   parseStringDateTime,
-  timeFormats, isMMLike,
+  timeFormats,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
@@ -107,9 +110,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const isPublic: Ref<boolean> = inject(IsPublicInj, ref(false))
 
     const colOptions = computed(() => column.value?.colOptions as LinkToAnotherRecordType)
-    const type = computed(() =>
-      column.value?.uidt === UITypes.LinkToAnotherRecordV2 ? 'ln' : (colOptions.value?.type as RelationTypes),
-    )
+    const type = computed(() => (isLinkV2(column.value) ? 'ln' : (colOptions.value?.type as RelationTypes)))
 
     const isSingleTargetRelation = computed(() => {
       return (
@@ -315,7 +316,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             break
           }
           case UITypes.Links:
-          case UITypes.LinkToAnotherRecordV2:
           case UITypes.LinkToAnotherRecord: {
             /**
              * Links/LTAR object is also big as in new record it will include while linked record data(depends on how many columns related table has)
@@ -486,7 +486,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       try {
         isChildrenLoading.value = true
         if (!column.value) return
-        if (isSingleTargetRelation.value && !isMMLike(column.value)) return
+        if (isSingleTargetRelation.value && !isMMOrMMLike(column.value)) return
         let offset = childrenListPagination.size * (childrenListPagination.page - 1) + childrenListOffsetCount.value
         if (offset < 0 || resetOffset) {
           offset = 0

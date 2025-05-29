@@ -344,7 +344,6 @@ const generateDefaultRowAttributes = ({
 }) =>
   columns.reduce((acc, column) => {
     if (
-      column.uidt === UITypes.LinkToAnotherRecordV2 ||
       column.uidt === UITypes.LinkToAnotherRecord ||
       column.uidt === UITypes.ForeignKey ||
       column.uidt === UITypes.ID ||
@@ -479,7 +478,6 @@ const generateMixedRowAttributes = ({
   columns.reduce((acc, column) => {
     if (
       column.uidt === UITypes.LinkToAnotherRecord ||
-      column.uidt === UITypes.LinkToAnotherRecordV2 ||
       column.uidt === UITypes.ForeignKey ||
       column.uidt === UITypes.ID
     ) {

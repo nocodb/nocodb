@@ -169,7 +169,6 @@ export default async function applyAggregation({
       break;
 
     case UITypes.LinkToAnotherRecord:
-    case UITypes.LinkToAnotherRecordV2:
     case UITypes.Lookup:
       column_name_query = (
         await generateLookupSelectQuery({

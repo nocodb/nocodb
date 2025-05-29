@@ -437,7 +437,6 @@ export function useData(args: {
           UITypes.Lookup,
           UITypes.Rollup,
           UITypes.LinkToAnotherRecord,
-          UITypes.LinkToAnotherRecordV2,
           UITypes.LastModifiedBy,
         ].includes(col.uidt),
       )

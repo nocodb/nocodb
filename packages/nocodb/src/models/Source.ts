@@ -434,7 +434,6 @@ export default class Source implements SourceType {
       [UITypes.Rollup]: 2,
       [UITypes.ForeignKey]: 3,
       [UITypes.LinkToAnotherRecord]: 4,
-      [UITypes.LinkToAnotherRecordV2]: 4,
     };
 
     for (const model of models) {
@@ -452,7 +451,6 @@ export default class Source implements SourceType {
             break;
           case UITypes.ForeignKey:
           case UITypes.LinkToAnotherRecord:
-          case UITypes.LinkToAnotherRecordV2:
             colOptionTableName = MetaTable.COL_RELATIONS;
             cacheScopeName = CacheScope.COL_RELATION;
             break;

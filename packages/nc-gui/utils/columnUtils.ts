@@ -52,12 +52,6 @@ const uiTypes: UiTypesType[] = [
     deprecated: 0,
   },
   {
-    name: UITypes.LinkToAnotherRecordV2,
-    icon: iconMap.cellLinks,
-    virtual: 1,
-    deprecated: 0,
-  },
-  {
     name: UITypes.Lookup,
     icon: iconMap.cellLookup,
     virtual: 1,

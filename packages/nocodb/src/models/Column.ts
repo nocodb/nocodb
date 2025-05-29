@@ -60,12 +60,6 @@ const requiredColumnsToRecreate = {
     'fk_parent_column_id',
     'fk_related_model_id',
   ],
-  [UITypes.LinkToAnotherRecordV2]: [
-    'type',
-    'fk_child_column_id',
-    'fk_parent_column_id',
-    'fk_related_model_id',
-  ],
   [UITypes.Links]: [
     'type',
     'fk_child_column_id',
@@ -318,8 +312,7 @@ export default class Column<T = any> implements ColumnType {
         break;
       }
       case UITypes.Links:
-      case UITypes.LinkToAnotherRecord:
-      case UITypes.LinkToAnotherRecordV2: {
+      case UITypes.LinkToAnotherRecord: {
         await LinkToAnotherRecordColumn.insert(
           context,
           {
@@ -563,7 +556,6 @@ export default class Column<T = any> implements ColumnType {
         res = await RollupColumn.read(context, this.id, ncMeta);
         break;
       case UITypes.LinkToAnotherRecord:
-      case UITypes.LinkToAnotherRecordV2:
         res = await LinkToAnotherRecordColumn.read(context, this.id, ncMeta);
         break;
       case UITypes.Links:
@@ -1162,7 +1154,6 @@ export default class Column<T = any> implements ColumnType {
         cacheScopeName = CacheScope.COL_LOOKUP;
         break;
       case UITypes.LinkToAnotherRecord:
-      case UITypes.LinkToAnotherRecordV2:
       case UITypes.Links:
         colOptionTableName = MetaTable.COL_RELATIONS;
         cacheScopeName = CacheScope.COL_RELATION;
@@ -1340,8 +1331,7 @@ export default class Column<T = any> implements ColumnType {
         }
 
         case UITypes.Links:
-        case UITypes.LinkToAnotherRecord:
-        case UITypes.LinkToAnotherRecordV2: {
+        case UITypes.LinkToAnotherRecord: {
           await ncMeta.metaDelete(
             context.workspace_id,
             context.base_id,
@@ -2036,8 +2026,7 @@ export default class Column<T = any> implements ColumnType {
           break;
         }
         case UITypes.Links:
-        case UITypes.LinkToAnotherRecord:
-        case UITypes.LinkToAnotherRecordV2: {
+        case UITypes.LinkToAnotherRecord: {
           insertArr.push({
             fk_column_id: column.id,
             type: column.type,
@@ -2191,7 +2180,6 @@ export default class Column<T = any> implements ColumnType {
           break;
         case UITypes.Links:
         case UITypes.LinkToAnotherRecord:
-        case UITypes.LinkToAnotherRecordV2:
           await ncMeta.bulkMetaInsert(
             context.workspace_id,
             context.base_id,

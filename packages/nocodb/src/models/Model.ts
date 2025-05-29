@@ -558,7 +558,6 @@ export default class Model implements TableType {
           break;
         case UITypes.ForeignKey:
         case UITypes.LinkToAnotherRecord:
-        case UITypes.LinkToAnotherRecordV2:
           colOptionTableName = MetaTable.COL_RELATIONS;
           cacheScopeName = CacheScope.COL_RELATION;
           break;

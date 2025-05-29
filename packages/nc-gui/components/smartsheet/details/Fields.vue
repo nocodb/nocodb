@@ -356,7 +356,6 @@ const duplicateField = async (field: TableExplorerColumn) => {
   // construct column create payload
   switch (field.uidt) {
     case UITypes.LinkToAnotherRecord:
-    case UITypes.LinkToAnotherRecordV2:
     case UITypes.Links:
     case UITypes.Lookup:
     case UITypes.Rollup:

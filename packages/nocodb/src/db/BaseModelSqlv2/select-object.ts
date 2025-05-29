@@ -149,7 +149,6 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           }
           break;
         case UITypes.LinkToAnotherRecord:
-        case UITypes.LinkToAnotherRecordV2:
         case UITypes.Lookup:
           break;
         case UITypes.QrCode: {

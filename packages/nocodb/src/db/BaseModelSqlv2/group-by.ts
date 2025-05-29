@@ -111,8 +111,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           }
           break;
         case UITypes.Lookup:
-        case UITypes.LinkToAnotherRecord:
-        case UITypes.LinkToAnotherRecordV2: {
+        case UITypes.LinkToAnotherRecord: {
           const lookupQb = await generateLookupSelectQuery({
             baseModelSqlv2: baseModel,
             column,
@@ -467,7 +466,6 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           }
           case UITypes.Lookup:
           case UITypes.LinkToAnotherRecord:
-          case UITypes.LinkToAnotherRecordV2:
             {
               const _selectQb = await generateLookupSelectQuery({
                 baseModelSqlv2: baseModel,
@@ -744,8 +742,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               }
 
               case UITypes.Lookup:
-              case UITypes.LinkToAnotherRecord:
-              case UITypes.LinkToAnotherRecordV2: {
+              case UITypes.LinkToAnotherRecord: {
                 const _selectQb = await generateLookupSelectQuery({
                   baseModelSqlv2: baseModel,
                   column,
@@ -1080,8 +1077,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               }
 
               case UITypes.Lookup:
-              case UITypes.LinkToAnotherRecord:
-              case UITypes.LinkToAnotherRecordV2: {
+              case UITypes.LinkToAnotherRecord: {
                 const _selectQb = await generateLookupSelectQuery({
                   baseModelSqlv2: baseModel,
                   column,

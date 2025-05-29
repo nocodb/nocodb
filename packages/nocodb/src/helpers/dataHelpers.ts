@@ -129,7 +129,6 @@ export async function serializeCellValue(
       }
       break;
     case UITypes.LinkToAnotherRecord:
-    case UITypes.LinkToAnotherRecordV2:
       {
         const colOptions =
           await column.getColOptions<LinkToAnotherRecordColumn>(context);

@@ -1,6 +1,6 @@
 import rfdc from 'rfdc'
 import type { ColumnReqType, ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { ButtonActionsType, UITypes, isAIPromptCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { ButtonActionsType, UITypes, isAIPromptCol, isLinksOrLTAR, isMMOrMMLike, isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
@@ -387,7 +387,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
             // if LTARv2 column update and relation type changed
             // then reload the reference table meta
-            if (column.value.uidt === UITypes.LinkToAnotherRecordV2)
+            if (isMMOrMMLike(column.value))
               getMeta((column.value?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id, true)
 
             if (oldCol && [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(oldCol.uidt)) {

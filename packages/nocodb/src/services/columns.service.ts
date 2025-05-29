@@ -7,6 +7,7 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
+  isMMOrMMLike,
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
@@ -790,34 +791,6 @@ export class ColumnsService implements IColumnsService {
       ].includes(colBody.uidt)
     ) {
       NcError.notImplemented(`Updating ${colBody.uidt} => ${colBody.uidt}`);
-    } else if ([UITypes.LinkToAnotherRecordV2].includes(colBody.uidt)) {
-      if (colBody.type) {
-        // allow updating type, on type update - change column in target table as well
-        const targetRelationColumn = await getTargetTableRelColumn(
-          context,
-          column,
-        );
-
-        const revType = getRevType(
-          (colBody as unknown as LinkToAnotherColumnReqType)
-            .type as RelationTypes,
-        );
-
-        const { refContext } = (
-          column.colOptions as LinkToAnotherRecordColumn
-        ).getRelContext(context);
-
-        await Column.update(context, param.columnId, {
-          ...column.colOptions,
-          ...column,
-          type: colBody.type,
-        });
-        await Column.update(refContext, targetRelationColumn.id, {
-          ...targetRelationColumn.colOptions,
-          ...targetRelationColumn,
-          type: revType,
-        });
-      }
     } else if (
       [
         UITypes.CreatedTime,
@@ -2194,7 +2167,6 @@ export class ColumnsService implements IColumnsService {
 
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
-      case UITypes.LinkToAnotherRecordV2:
         savedColumn = await this.createLTARColumn(context, {
           ...param,
           source,
@@ -2929,7 +2901,6 @@ export class ColumnsService implements IColumnsService {
       // Since Links is just an extended version of LTAR, we can use the same logic
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord:
-      case UITypes.LinkToAnotherRecordV2:
         {
           const relationColOpt =
             await column.getColOptions<LinkToAnotherRecordColumn>(
@@ -2955,7 +2926,7 @@ export class ColumnsService implements IColumnsService {
           );
           const custom = column.meta?.custom;
 
-          const isMMLike = column.uidt === UITypes.LinkToAnotherRecordV2;
+          const isMMLike = isMMOrMMLike(column);
 
           const relationType = isMMLike ? 'mm' : relationColOpt.type;
 
@@ -3071,8 +3042,7 @@ export class ColumnsService implements IColumnsService {
                       ncMeta,
                     );
                   if (
-                    (colOpt.type === 'mm' ||
-                      c.uidt === UITypes.LinkToAnotherRecordV2) &&
+                    isMMOrMMLike(c) &&
                     colOpt.fk_parent_column_id === childColumn.id &&
                     colOpt.fk_child_column_id === parentColumn.id &&
                     colOpt.fk_mm_model_id === relationColOpt.fk_mm_model_id &&
@@ -3626,11 +3596,7 @@ export class ColumnsService implements IColumnsService {
     const relType = RelationTypes.ONE_TO_ONE;
 
     for (const c of columnsInRelatedTable) {
-      if (
-        c.uidt !== UITypes.LinkToAnotherRecord &&
-        c.uidt !== UITypes.LinkToAnotherRecordV2
-      )
-        continue;
+      if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
       const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
         refContext,
         ncMeta,
@@ -3761,7 +3727,7 @@ export class ColumnsService implements IColumnsService {
     const reuse = param.reuse ?? {};
 
     // in new LTAR type we treat all relation similar to mm, so check if it's new type
-    const isMMLike = param.column.uidt === UITypes.LinkToAnotherRecordV2;
+    const isMMLike = isMMOrMMLike(param.column);
 
     // get table and refTable models
     const table = await Model.getWithInfo(context, {
@@ -4217,7 +4183,7 @@ export class ColumnsService implements IColumnsService {
           await refTable.getColumns(refContext),
           pluralize(table.title),
         ),
-        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecordV2,
+        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
         type: revType,
 
         // ref_db_alias
@@ -4249,7 +4215,7 @@ export class ColumnsService implements IColumnsService {
           param.column.title ?? pluralize(refTable.title),
         ),
 
-        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecordV2,
+        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
         type: (param.column as Pick<LinkToAnotherColumnReqType, 'type'>).type,
 
         fk_model_id: table.id,

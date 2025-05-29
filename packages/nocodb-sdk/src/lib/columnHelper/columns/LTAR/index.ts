@@ -18,7 +18,7 @@ export class LTARHelper extends AbstractColumnHelper {
     let columnHelper: new () => AbstractColumnHelper = DefaultColumnHelper;
 
     if (isHm(params.col)) columnHelper = HasManyHelper;
-    if (isMm(params.col) || params.col.uidt === UITypes.LinkToAnotherRecordV2)
+    if (isMm(params.col))
       columnHelper = ManyToManyHelper;
     if (isBt(params.col)) columnHelper = BelongsToHelper;
     if (isOo(params.col)) columnHelper = OneToOneHelper;

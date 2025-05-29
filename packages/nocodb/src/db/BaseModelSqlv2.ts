@@ -17,6 +17,7 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
+  isMMOrMMLike,
   isOrderCol,
   isSystemColumn,
   isVirtualCol,
@@ -1449,9 +1450,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             break;
           case UITypes.Links:
           case UITypes.LinkToAnotherRecord:
-          case UITypes.LinkToAnotherRecordV2:
             {
-              const isMMLike = column.uidt === UITypes.LinkToAnotherRecordV2;
+              const isMMLike = isMMOrMMLike(column);
               this._columns[column.title] = column;
               const colOptions = (await column.getColOptions(
                 this.context,
@@ -1459,7 +1459,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
               const { refContext } = colOptions.getRelContext(this.context);
 
-              if (colOptions?.type === 'hm' && !isMMLike) {
+              if (colOptions?.type === 'hm') {
                 const listLoader = new DataLoader(
                   async (ids: string[]) => {
                     if (ids.length > 1) {
@@ -1638,7 +1638,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
                   return await readLoader.load(this?.[cCol?.title]);
                 };
-              } else if (colOptions.type === 'oo') {
+              } else if (colOptions.type === 'oo' && !isMMLike) {
                 const isBt = column.meta?.bt;
 
                 if (isBt) {
@@ -5267,19 +5267,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       idToAliasMap[col.id] = col.title;
-      if (
-        [
-          UITypes.LinkToAnotherRecord,
-          UITypes.LinkToAnotherRecordV2,
-          UITypes.Lookup,
-        ].includes(col.uidt)
-      ) {
+      if ([UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(col.uidt)) {
         if (col.uidt === UITypes.Lookup) {
           const nestedCol = await this.getNestedColumn(col);
-          if (
-            nestedCol?.uidt !== UITypes.LinkToAnotherRecord &&
-            nestedCol?.uidt !== UITypes.LinkToAnotherRecordV2
-          ) {
+          if (nestedCol?.uidt !== UITypes.LinkToAnotherRecord) {
             continue;
           }
         }

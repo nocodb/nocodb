@@ -1,4 +1,9 @@
-import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  isMMOrMMLike,
+  NcDataErrorCodes,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
 import type { Knex } from 'knex';
 import type {
@@ -33,7 +38,7 @@ export default async function ({
   const { parentContext, childContext, mmContext, refContext } =
     await relationColumnOption.getParentChildContext(context);
 
-  const isMMLike = relationColumn.uidt === UITypes.LinkToAnotherRecordV2;
+  const isMMLike = isMMOrMMLike(relationColumn);
 
   const rollupColumn = await columnOptions.getRollupColumn(refContext);
   const childCol = await relationColumnOption.getChildColumn(childContext);

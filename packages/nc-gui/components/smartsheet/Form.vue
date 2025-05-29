@@ -242,7 +242,6 @@ const getPrefillValue = (c: ColumnType, value: any) => {
 
   switch (c.uidt) {
     case UITypes.LinkToAnotherRecord:
-    case UITypes.LinkToAnotherRecordV2:
     case UITypes.Links: {
       const values = Array.isArray(value) ? value : [value]
       const fk_related_model_id = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id

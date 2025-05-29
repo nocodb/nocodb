@@ -2,6 +2,7 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   getAvailableRollupForUiType,
+  isLinkV2,
   REGEXSTR_INTL_LETTER,
   REGEXSTR_NUMERIC_ARABIC,
   RelationTypes,
@@ -625,7 +626,6 @@ export const getMMColumnNames = (parent: Model, child: Model) => {
   };
 };
 
-
 // get the reverse type of the relation
 export const getRevType = (type: RelationTypes) => {
   switch (type) {
@@ -647,7 +647,7 @@ export const getTargetTableRelColumn = async (
   relationColumn: Column,
   _targetTable?: Model,
 ) => {
-  if (relationColumn.uidt !== UITypes.LinkToAnotherRecordV2) {
+  if (!isLinkV2(relationColumn)) {
     NcError.notImplemented();
   }
 

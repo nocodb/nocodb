@@ -2,6 +2,7 @@ import { Readable } from 'stream';
 import {
   isCrossBaseLink,
   isLinksOrLTAR,
+  isLinkV2,
   isSystemColumn,
   LongTextAiMetaProp,
   RelationTypes,
@@ -654,13 +655,13 @@ export class ExportService {
             (col) =>
               (isLinksOrLTAR(col) &&
                 col.colOptions?.type === RelationTypes.MANY_TO_MANY) ||
-              col.uidt === UITypes.LinkToAnotherRecordV2,
+              isLinkV2(col),
           )
       : model.columns.filter(
           (col) =>
             (isLinksOrLTAR(col) &&
               col.colOptions?.type === RelationTypes.MANY_TO_MANY) ||
-            col.uidt === UITypes.LinkToAnotherRecordV2,
+            isLinkV2(col),
         );
 
     const hasLink = !dataExportMode && mmColumns.length > 0;

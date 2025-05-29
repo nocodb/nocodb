@@ -6,7 +6,7 @@ import {
 } from '~/lib/Api';
 import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
 import { parseProp } from '~/lib/helperFunctions';
-import UITypes, { isLinksOrLTAR } from '~/lib/UITypes';
+import UITypes, { isLinksOrLTAR, LinksVersion } from '~/lib/UITypes';
 
 export const dataTypeLow = (column: ColumnType) => column.dt?.toLowerCase();
 
@@ -174,11 +174,19 @@ export const isNumericFieldType = (column: ColumnType, abstractType: any) => {
   );
 };
 
-export const isMMLike = (column: ColumnType) => {
+export const isMMOrMMLike = (column: ColumnType) => {
   return (
     (isLinksOrLTAR(column) &&
       (column.colOptions as LinkToAnotherRecordType)?.type ===
         RelationTypes.MANY_TO_ONE) ||
-    column.uidt === UITypes.LinkToAnotherRecordV2
+    column.colOptions === LinksVersion.V2
+  );
+};
+
+export const isLinkV2 = (column: ColumnType) => {
+  return (
+    !!column &&
+    isLinksOrLTAR(column) &&
+    (column.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2
   );
 };

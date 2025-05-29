@@ -24891,7 +24891,8 @@
             "order": "string",
             "type": "string",
             "ur": "string",
-            "virtual": true
+            "virtual": true,
+            "version": 2
           }
         ],
         "properties": {
@@ -24959,6 +24960,9 @@
           },
           "fk_mm_source_id": {
             "type": "string"
+          },
+          "version": {
+            "type": "number"
           }
         },
         "title": "LinkToAnotherRecord Model",

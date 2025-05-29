@@ -147,7 +147,7 @@ export const useInfiniteGroups = (
       for (const item of response.list) {
         let group: CanvasGroup = {} as any
 
-        if (groupCol.column.uidt === UITypes.LinkToAnotherRecord || groupCol.column.uidt === UITypes.LinkToAnotherRecordV2) {
+        if (groupCol.column.uidt === UITypes.LinkToAnotherRecord) {
           const relatedTableMeta = await getMeta(
             (groupCol.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
           )

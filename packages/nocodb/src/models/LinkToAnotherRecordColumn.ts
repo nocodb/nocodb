@@ -60,6 +60,7 @@ export default class LinkToAnotherRecordColumn {
   parentColumn?: Column;
 
   filter?: Filter;
+  version?: number;
 
   constructor(data: Partial<LinkToAnotherRecordColumn>) {
     Object.assign(this, {
@@ -177,7 +178,13 @@ export default class LinkToAnotherRecordColumn {
       'fk_mm_base_id',
       'fk_related_source_id',
       'fk_mm_source_id',
+      'version',
     ]);
+
+    // if version is not provided, default to 2
+    if (insertObj.version === undefined) {
+      insertObj.version = 2;
+    }
 
     await ncMeta.metaInsert2(
       context.workspace_id,

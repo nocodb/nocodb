@@ -149,8 +149,7 @@ const parseConditionV2 = async (
 
       if (
         column.uidt === UITypes.Lookup ||
-        column.uidt === UITypes.LinkToAnotherRecord ||
-        column.uidt === UITypes.LinkToAnotherRecordV2
+        column.uidt === UITypes.LinkToAnotherRecord
       ) {
         const model = await column.getModel(context);
         const lkQb = await generateLookupSelectQuery({
@@ -193,12 +192,9 @@ const parseConditionV2 = async (
       }
     }
     if (
-      [
-        UITypes.JSON,
-        UITypes.LinkToAnotherRecord,
-        UITypes.LinkToAnotherRecordV2,
-        UITypes.Lookup,
-      ].includes(column.uidt) ||
+      [UITypes.JSON, UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(
+        column.uidt,
+      ) ||
       ([UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
         !customWhereClause)
     ) {

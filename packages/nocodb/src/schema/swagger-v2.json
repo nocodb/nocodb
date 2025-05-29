@@ -13928,7 +13928,6 @@
               "LastModifiedTime",
               "LongText",
               "LinkToAnotherRecord",
-              "LinkToAnotherRecordV2",
               "Lookup",
               "MultiSelect",
               "Number",
@@ -16426,7 +16425,6 @@
           },
           "uidt": {
             "enum": [
-              "LinkToAnotherRecordV2",
               "LinkToAnotherRecord",
               "Links"
             ],
@@ -16469,7 +16467,8 @@
             "order": "string",
             "type": "string",
             "ur": "string",
-            "virtual": true
+            "virtual": true,
+            "version": 2
           }
         ],
         "properties": {
@@ -16519,6 +16518,9 @@
           },
           "ur": {
             "type": "string"
+          },
+          "version": {
+            "type": "number"
           },
           "virtual": {
             "$ref": "#/components/schemas/Bool"
@@ -16860,7 +16862,6 @@
           "QrCode",
           "Links",
           "LinkToAnotherRecord",
-          "LinkToAnotherRecordV2",
           "Lookup",
           "Rollup",
           "ID",

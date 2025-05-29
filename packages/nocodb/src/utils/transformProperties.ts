@@ -170,7 +170,6 @@ export function transformFieldConfig(field: Field): Field {
     }
     case UITypes.Links:
     case UITypes.LinkToAnotherRecord:
-    case UITypes.LinkToAnotherRecordV2:
       newField.options = {
         ...newField.options,
         singular: metaObj.singular,

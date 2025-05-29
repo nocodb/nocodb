@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, type LookupType, isMMOrMMLike } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 
 const { metas, getMeta } = useMetas()
@@ -325,9 +325,9 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
             <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
             <template
               v-if="
-                lookupColumn.uidt !== UITypes.LinkToAnotherRecordV2 ||
                 lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
                 (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
+                  !isMMOrMMLike(lookupColumn) &&
                   [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))
               "
             >

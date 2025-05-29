@@ -12,7 +12,6 @@ import { parseProp } from './helperFunctions';
 enum UITypes {
   ID = 'ID',
   LinkToAnotherRecord = 'LinkToAnotherRecord',
-  LinkToAnotherRecordV2 = 'LinkToAnotherRecordV2',
   ForeignKey = 'ForeignKey',
   Lookup = 'Lookup',
   SingleLineText = 'SingleLineText',
@@ -57,8 +56,7 @@ enum UITypes {
 
 export const UITypesName = {
   [UITypes.ID]: 'ID',
-  [UITypes.LinkToAnotherRecord]: 'Link to another record(Legacy)',
-  [UITypes.LinkToAnotherRecordV2]: 'Link to another record',
+  [UITypes.LinkToAnotherRecord]: 'Link to another record',
   [UITypes.ForeignKey]: 'Foreign key',
   [UITypes.Order]: 'Order',
   [UITypes.Lookup]: 'Lookup',
@@ -138,7 +136,6 @@ export const columnTypeName = (column?: ColumnType) => {
 export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.ID]: 'ID',
   [UITypes.LinkToAnotherRecord]: '{TableName}',
-  [UITypes.LinkToAnotherRecordV2]: '{TableName}',
   [UITypes.ForeignKey]: 'Foreign key',
   [UITypes.Lookup]: '{FieldName} (from {TableName})',
   [UITypes.SingleLineText]: 'Text',
@@ -217,7 +214,6 @@ export function isVirtualCol(
     // Shouldn't be treated as virtual column (Issue with SQL View column data display)
     // UITypes.SpecificDBType,
     UITypes.LinkToAnotherRecord,
-    UITypes.LinkToAnotherRecordV2,
     UITypes.Formula,
     UITypes.QrCode,
     UITypes.Barcode,
@@ -323,7 +319,6 @@ export function isLinksOrLTAR(
 ) {
   return [
     UITypes.LinkToAnotherRecord,
-    UITypes.LinkToAnotherRecordV2,
     UITypes.Links,
   ].includes(
     <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
@@ -333,7 +328,7 @@ export function isLinksOrLTAR(
 export function isLTARType(
   colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string
 ) {
-  return [UITypes.LinkToAnotherRecord, UITypes.LinkToAnotherRecordV2].includes(
+  return [UITypes.LinkToAnotherRecord].includes(
     <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
   );
 }
@@ -651,3 +646,7 @@ export const customLinkSupportedTypes: UITypes[] = [
   UITypes.ID,
   UITypes.ForeignKey,
 ];
+
+export const LinksVersion = {
+  V2: 2,
+} as const;

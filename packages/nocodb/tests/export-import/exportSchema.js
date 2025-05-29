@@ -55,7 +55,6 @@ function addColumnSpecificData(c) {
       col.formula_raw = c.colOptions.formula_raw;
       break;
     case UITypes.LinkToAnotherRecord:
-    case UITypes.LinkToAnotherRecordV2:
       col[`colOptions`] = {
         fk_model_id: c.fk_model_id,
         fk_related_model_id: c.colOptions.fk_related_model_id,

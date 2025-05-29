@@ -205,10 +205,7 @@ const getAst = async (
     const nestedFields =
       query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
     if (nestedFields && nestedFields !== '*') {
-      if (
-        col.uidt === UITypes.LinkToAnotherRecord ||
-        col.uidt === UITypes.LinkToAnotherRecordV2
-      ) {
+      if (col.uidt === UITypes.LinkToAnotherRecord) {
         const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
           context,
         );
@@ -237,10 +234,7 @@ const getAst = async (
           Array.isArray(nestedFields) ? nestedFields : nestedFields.split(',')
         ).reduce((o, f) => ({ ...o, [f]: 1 }), {});
       }
-    } else if (
-      col.uidt === UITypes.LinkToAnotherRecord ||
-      col.uidt === UITypes.LinkToAnotherRecordV2
-    ) {
+    } else if (col.uidt === UITypes.LinkToAnotherRecord) {
       const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
         context,
       );
@@ -341,7 +335,6 @@ const extractDependencies = async (
       await extractLookupDependencies(context, column, dependencyFields);
       break;
     case UITypes.LinkToAnotherRecord:
-    case UITypes.LinkToAnotherRecordV2:
       await extractRelationDependencies(context, column, dependencyFields);
       break;
     default:

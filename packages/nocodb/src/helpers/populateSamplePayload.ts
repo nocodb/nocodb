@@ -33,11 +33,7 @@ export async function populateSamplePayload(
   for (const column of columns) {
     if (
       !includeNested &&
-      [
-        UITypes.LinkToAnotherRecord,
-        UITypes.LinkToAnotherRecordV2,
-        UITypes.Lookup,
-      ].includes(column.uidt)
+      [UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(column.uidt)
     )
       continue;
 
@@ -87,11 +83,7 @@ export async function populateSamplePayloadV2(
   for (const column of columns) {
     if (
       !includeNested &&
-      [
-        UITypes.LinkToAnotherRecord,
-        UITypes.LinkToAnotherRecordV2,
-        UITypes.Lookup,
-      ].includes(column.uidt)
+      [UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(column.uidt)
     )
       continue;
 
@@ -127,7 +119,6 @@ async function getSampleColumnValue(
       }
       break;
     case UITypes.LinkToAnotherRecord:
-    case UITypes.LinkToAnotherRecordV2:
       {
         const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>(
           context,

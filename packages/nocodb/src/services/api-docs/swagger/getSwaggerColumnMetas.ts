@@ -22,7 +22,6 @@ export default async (
 
       switch (c.uidt) {
         case UITypes.LinkToAnotherRecord:
-        case UITypes.LinkToAnotherRecordV2:
           {
             const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
               context,

@@ -18,7 +18,6 @@ const columnsWithOptions = [
   UITypes.Lookup,
   UITypes.Links,
   UITypes.LinkToAnotherRecord,
-  UITypes.LinkToAnotherRecordV2,
   UITypes.Rollup,
   UITypes.Lookup,
   UITypes.Barcode,

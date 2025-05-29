@@ -1,4 +1,4 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { isMMOrMMLike, RelationTypes, UITypes } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type LookupColumn from '../models/LookupColumn';
 import type {
@@ -65,10 +65,7 @@ export default async function generateLookupSelectQuery({
 
     if (column.uidt === UITypes.Lookup) {
       lookupColOpt = await column.getColOptions<LookupColumn>(context);
-    } else if (
-      column.uidt !== UITypes.LinkToAnotherRecord &&
-      column.uidt !== UITypes.LinkToAnotherRecordV2
-    ) {
+    } else if (column.uidt !== UITypes.LinkToAnotherRecord) {
       NcError.badRequest('Invalid field type');
     }
 
@@ -81,7 +78,7 @@ export default async function generateLookupSelectQuery({
       const relation =
         await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
 
-      const isMMLike = column.uidt === UITypes.LinkToAnotherRecordV2;
+      const isMMLike = isMMOrMMLike(column);
 
       const {
         parentContext,
@@ -99,7 +96,7 @@ export default async function generateLookupSelectQuery({
           : RelationTypes.HAS_MANY;
       }
 
-      if (relationType === RelationTypes.BELONGS_TO && isMMLike) {
+      if (relationType === RelationTypes.BELONGS_TO && !isMMLike) {
         const childColumn = await relation.getChildColumn(context);
         const parentColumn = await relation.getParentColumn(context);
         const childModel = await childColumn.getModel(childContext);
@@ -216,8 +213,7 @@ export default async function generateLookupSelectQuery({
       let context = refContext;
       while (
         lookupColumn.uidt === UITypes.Lookup ||
-        lookupColumn.uidt === UITypes.LinkToAnotherRecord ||
-        lookupColumn.uidt === UITypes.LinkToAnotherRecordV2
+        lookupColumn.uidt === UITypes.LinkToAnotherRecord
       ) {
         const nestedAlias = getAlias();
 
@@ -236,7 +232,9 @@ export default async function generateLookupSelectQuery({
         const relation =
           await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
 
-        let relationType = relation.type;
+        let relationType = isMMOrMMLike(relationCol)
+          ? RelationTypes.MANY_TO_MANY
+          : relation.type;
 
         if (relationType === RelationTypes.ONE_TO_ONE) {
           relationType = relationCol.meta?.bt

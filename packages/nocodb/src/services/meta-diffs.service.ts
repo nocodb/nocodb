@@ -278,7 +278,6 @@ export class MetaDiffsService {
         if (
           [
             UITypes.LinkToAnotherRecord,
-            UITypes.LinkToAnotherRecordV2,
             UITypes.Links,
             UITypes.Rollup,
             UITypes.Lookup,
@@ -598,7 +597,6 @@ export class MetaDiffsService {
         if (
           [
             UITypes.LinkToAnotherRecord,
-            UITypes.LinkToAnotherRecordV2,
             UITypes.Rollup,
             UITypes.Lookup,
             UITypes.Formula,

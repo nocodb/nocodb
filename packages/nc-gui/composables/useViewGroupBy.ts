@@ -297,7 +297,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           return
         }
 
-        if (groupby.column.uidt === UITypes.LinkToAnotherRecord || groupby.column.uidt === UITypes.LinkToAnotherRecordV2) {
+        if (groupby.column.uidt === UITypes.LinkToAnotherRecord) {
           const relatedTableMeta = await getMeta(
             (groupby.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
           )

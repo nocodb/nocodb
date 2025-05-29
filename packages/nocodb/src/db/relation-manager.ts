@@ -1,6 +1,8 @@
 import {
   AuditOperationSubTypes,
   isLinksOrLTAR,
+  isLinkV2,
+  isMMOrMMLike,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -78,7 +80,7 @@ export class RelationManager {
     const isBelongsTo =
       colOptions.type === RelationTypes.BELONGS_TO || relationColumn.meta?.bt;
     return (
-      relationColumn.uidt === UITypes.LinkToAnotherRecordV2 ||
+      isLinkV2(relationColumn) ||
       isBelongsTo ||
       colOptions.type === RelationTypes.MANY_TO_MANY
     );
@@ -271,9 +273,7 @@ export class RelationManager {
       relationColumn,
     } = this.relationContext;
 
-    const isMMLike =
-      this.relationContext.relationColumn.uidt ===
-      UITypes.LinkToAnotherRecordV2;
+    const isMMLike = isMMOrMMLike(this.relationContext.relationColumn);
 
     const { onlyUpdateAuditLogs, req } = params;
     if (onlyUpdateAuditLogs && colOptions.type !== RelationTypes.BELONGS_TO) {
@@ -782,10 +782,7 @@ export class RelationManager {
       },
     );
 
-    const relationType =
-      relationColumn.uidt === UITypes.LinkToAnotherRecordV2
-        ? RelationTypes.MANY_TO_MANY
-        : colOptions.type;
+    const relationType = isMMOrMMLike(relationColumn);
 
     switch (relationType) {
       case RelationTypes.MANY_TO_MANY:

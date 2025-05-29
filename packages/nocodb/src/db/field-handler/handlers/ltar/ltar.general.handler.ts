@@ -1,4 +1,4 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { isMMOrMMLike, RelationTypes, UITypes } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
@@ -25,7 +25,7 @@ export class LtarGeneralHandler extends GenericFieldHandler {
       throwErrorIfInvalid,
       conditionParser: parseConditionV2,
     } = options;
-    const isMMLike = column.uidt === UITypes.LinkToAnotherRecordV2;
+    const isMMLike = isMMOrMMLike(column.uidt);
     const colOptions = (await column.getColOptions(
       context,
     )) as LinkToAnotherRecordColumn;

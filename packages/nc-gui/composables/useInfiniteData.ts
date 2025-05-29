@@ -966,7 +966,7 @@ export function useInfiniteData(args: {
     if (!id) return
 
     for (const column of metaValue?.columns ?? []) {
-      if (column.uidt !== UITypes.LinkToAnotherRecord && column.uidt !== UITypes.LinkToAnotherRecordV2) continue
+      if (column.uidt !== UITypes.LinkToAnotherRecord) continue
 
       const colOptions = column.colOptions as LinkToAnotherRecordType
 

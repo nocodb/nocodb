@@ -8,7 +8,6 @@ import CountIcon from '~icons/mdi/counter'
 export const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
   switch (column.uidt) {
     case UITypes.LinkToAnotherRecord:
-    case UITypes.LinkToAnotherRecordV2:
     case UITypes.Links:
       switch ((column.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:

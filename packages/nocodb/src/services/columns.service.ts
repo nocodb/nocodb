@@ -798,7 +798,10 @@ export class ColumnsService implements IColumnsService {
           column,
         );
 
-        const revType = getRevType(colBody.type);
+        const revType = getRevType(
+          (colBody as unknown as LinkToAnotherColumnReqType)
+            .type as RelationTypes,
+        );
 
         const { refContext } = (
           column.colOptions as LinkToAnotherRecordColumn

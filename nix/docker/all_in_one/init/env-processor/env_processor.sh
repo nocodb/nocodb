@@ -37,16 +37,16 @@ env_passthrough() {
 		case "$key" in
 		"_") continue ;;
 		# passthrough nc_aio envs
-		"$nc_aio_env_prefix"_pass_main_*)
+		"$nc_aio_env_prefix"pass_main_*)
 			echo "${key#nc_aio_pass_main_}=$(cat "$file")" >>"$nocodb_env_main_path"
 		;;
-		"$nc_aio_env_prefix"_pass_worker_*)
+		"$nc_aio_env_prefix"pass_worker_*)
 			echo "${key#nc_aio_pass_worker_}=$(cat "$file")" >>"$nocodb_env_worker_path"
 		;;
-		"$nc_aio_env_prefix"_pass_minio_*)
+		"$nc_aio_env_prefix"pass_minio_*)
 			echo "${key#nc_aio_pass_minio_}=$(cat "$file")" >>"$minio_env_path"
 		;;
-		"$nc_aio_env_prefix"_pass_acme_*)
+		"$nc_aio_env_prefix"pass_acme_*)
 			echo "${key#nc_aio_pass_acme_}=$(cat "$file")" >>"$acme_env_path"
 		;;
 		# ignore other nc_aio envs
@@ -67,10 +67,10 @@ env_aio_set() {
 		key="$(basename "$file")"
 
 		case "$key" in
-		"$nc_aio_env_prefix"_pass_main_*) continue ;;
-		"$nc_aio_env_prefix"_pass_worker_*) continue ;;
-		"$nc_aio_env_prefix"_pass_minio_*) continue ;;
-		"$nc_aio_env_prefix"_pass_acme_*) continue ;;
+		"$nc_aio_env_prefix"pass_main_*) continue ;;
+		"$nc_aio_env_prefix"pass_worker_*) continue ;;
+		"$nc_aio_env_prefix"pass_minio_*) continue ;;
+		"$nc_aio_env_prefix"pass_acme_*) continue ;;
 		"$nc_aio_env_prefix"*) : ;;
 		*) continue ;;
 		esac

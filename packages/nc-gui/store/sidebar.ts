@@ -63,7 +63,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
       return 100
     }
 
-    return leftSideBarSize.value.current ?? leftSideBarSize.value.old
+    return leftSideBarSize.value.current || leftSideBarSize.value.old
   })
 
   const nonHiddenLeftSidebarWidth = computed(() => {

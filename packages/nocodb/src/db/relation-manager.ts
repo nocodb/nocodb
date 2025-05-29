@@ -315,6 +315,7 @@ export class RelationManager {
           ) {
             // Get existing children linked to this parent
             const existingChildren = await this.getLinkV2RelatedRow();
+
             // Remove each existing child with proper audit logging
             for (const child of existingChildren) {
               // Create a new relation manager with the correct IDs for this relationship
@@ -322,8 +323,9 @@ export class RelationManager {
                 baseModel,
                 this.relationContext.relationColumn.id,
                 {
-                  rowId: parentId,
-                  childId: getCompositePkValue(childTable.primaryKeys, child),
+                  // in case of LinkToAnotherRecordV2, childId is the rowId
+                  rowId: childId,
+                  childId: getCompositePkValue(parentTable.primaryKeys, child),
                 },
               );
               await relationManager.removeChild({ req });
@@ -700,6 +702,7 @@ export class RelationManager {
 
   async removeChild(params: { req: any }) {
     const {
+      relationColumn,
       relationColOptions: colOptions,
       baseModel,
       parentBaseModel,
@@ -730,7 +733,12 @@ export class RelationManager {
       },
     );
 
-    switch (colOptions.type) {
+    const relationType =
+      relationColumn.uidt === UITypes.LinkToAnotherRecordV2
+        ? RelationTypes.MANY_TO_MANY
+        : colOptions.type;
+
+    switch (relationType) {
       case RelationTypes.MANY_TO_MANY:
         {
           const vChildCol = await colOptions.getMMChildColumn(mmContext);

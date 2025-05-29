@@ -3,7 +3,9 @@ import {
   enumColors,
   isAIPromptCol,
   isLinksOrLTAR,
+  LinksVersion,
   LongTextAiMetaProp,
+  RelationTypes,
   SqlUiFactory,
   UITypes,
 } from 'nocodb-sdk';
@@ -313,6 +315,19 @@ export default class Column<T = any> implements ColumnType {
       }
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord: {
+        let version: number = LinksVersion.V2;
+
+        // mark as v1 if hm/bt relation
+        // of if one to one and missing junction table
+        if (
+          [RelationTypes.HAS_MANY, RelationTypes.BELONGS_TO].includes(
+            column.type,
+          ) ||
+          (column.type === RelationTypes.ONE_TO_ONE && !column.fk_mm_model_id)
+        ) {
+          version = LinksVersion.V1;
+        }
+
         await LinkToAnotherRecordColumn.insert(
           context,
           {
@@ -343,6 +358,7 @@ export default class Column<T = any> implements ColumnType {
             fk_related_model_id: column.fk_related_model_id,
 
             virtual: column.virtual,
+            version,
           },
           ncMeta,
         );

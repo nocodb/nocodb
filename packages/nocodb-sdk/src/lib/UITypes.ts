@@ -648,5 +648,6 @@ export const customLinkSupportedTypes: UITypes[] = [
 ];
 
 export const LinksVersion = {
+  V1: 1,
   V2: 2,
 } as const;

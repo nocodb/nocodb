@@ -10,6 +10,7 @@ import {
   isMMOrMMLike,
   isSystemColumn,
   isVirtualCol,
+  LinksVersion,
   LongTextAiMetaProp,
   NcApiVersion,
   ncIsNull,
@@ -3727,7 +3728,8 @@ export class ColumnsService implements IColumnsService {
     const reuse = param.reuse ?? {};
 
     // in new LTAR type we treat all relation similar to mm, so check if it's new type
-    const isMMLike = isMMOrMMLike(param.column);
+    // version 1 is deprecated and will be removed in future
+    const isMMLike = (param.column as any).version !== LinksVersion.V1;
 
     // get table and refTable models
     const table = await Model.getWithInfo(context, {

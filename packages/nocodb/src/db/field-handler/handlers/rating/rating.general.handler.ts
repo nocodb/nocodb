@@ -33,57 +33,54 @@ export class RatingGeneralHandler extends DecimalGeneralHandler {
     return { value };
   }
 
-  override filterLt(
+  override async filterLt(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
     _options: FilterOptions,
-  ): void {
-    const { val, qb, sourceField } = args;
-    qb.where((subQb) => {
-      subQb.where(sourceField as any, '<', val);
+  ) {
+    const { val, sourceField } = args;
+    return (qb: Knex.QueryBuilder) => {
+      qb.where(sourceField as any, '<', val);
       if (val > 0) {
-        subQb.orWhereNull(sourceField as any);
+        qb.orWhereNull(sourceField as any);
       }
-    });
+    };
   }
 
-  override filterLte(
+  override async filterLte(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
     _options: FilterOptions,
-  ): void {
-    const { val, qb, sourceField } = args;
-    qb.where((subQb) => {
-      subQb.where(sourceField as any, '<=', val);
+  ) {
+    const { val, sourceField } = args;
+    return (qb: Knex.QueryBuilder) => {
+      qb.where(sourceField as any, '<=', val);
       if (val >= 0) {
-        subQb.orWhereNull(sourceField as any);
+        qb.orWhereNull(sourceField as any);
       }
-    });
+    };
   }
 
-  override filterGte(
+  override async filterGte(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
     _options: FilterOptions,
-  ): void {
-    const { val, qb, sourceField } = args;
-    qb.where((subQb) => {
-      subQb.where(sourceField as any, '>=', val);
+  ) {
+    const { val, sourceField } = args;
+    return (qb: Knex.QueryBuilder) => {
+      qb.where(sourceField as any, '>=', val);
       if (val <= 0) {
-        subQb.orWhereNull(sourceField as any);
+        qb.orWhereNull(sourceField as any);
       }
-    });
+    };
   }
 }

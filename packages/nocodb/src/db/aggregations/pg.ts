@@ -413,7 +413,7 @@ export function genPgAggregateQuery({
 export function replaceDelimitedWithKeyValuePg(params: {
   knex: CustomKnex;
   stack: { key: string; value: string }[];
-  needleColumn: string;
+  needleColumn: string | Knex.QueryBuilder | Knex.RawBuilder;
   delimiter?: string;
 }) {
   const delimiter = params.delimiter ?? ',';

@@ -13,11 +13,10 @@ export class GenericSqliteFieldHandler
   implements FieldHandlerInterface, FilterOperationHandlers
 {
   // region filter comparisons
-  innerFilterAllAnyOf(
+  async innerFilterAllAnyOf(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     rootArgs: {
       knex: CustomKnex;
@@ -27,7 +26,6 @@ export class GenericSqliteFieldHandler
     _options: FilterOptions,
   ) {
     const { val, sourceField } = args;
-    const { qb } = args;
     const { filter, knex, column } = rootArgs;
 
     // Condition for filter, without negation
@@ -53,16 +51,16 @@ export class GenericSqliteFieldHandler
         }
       }
     };
-    qb.where((subQb) => {
+    return (qb: Knex.QueryBuilder) => {
       if (
         filter.comparison_op === 'allof' ||
         filter.comparison_op === 'anyof'
       ) {
-        subQb.where(condition);
+        qb.where(condition);
       } else {
-        subQb.whereNot(condition).orWhereNull(sourceField as any);
+        qb.whereNot(condition).orWhereNull(sourceField as any);
       }
-    });
+    };
   }
   // endregion filter comparisons
 }

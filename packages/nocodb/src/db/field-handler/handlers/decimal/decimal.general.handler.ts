@@ -90,31 +90,33 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
     return { value: params.value };
   }
 
-  override filterBlank(
+  override async filterBlank(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
     _options: FilterOptions,
-  ): void {
-    const { qb, sourceField } = args;
+  ) {
+    const { sourceField } = args;
 
-    qb.whereNull(sourceField as any);
+    return (qb: Knex.QueryBuilder) => {
+      qb.whereNull(sourceField as any);
+    };
   }
 
-  override filterNotblank(
+  override async filterNotblank(
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
     _options: FilterOptions,
-  ): void {
-    const { qb, sourceField } = args;
+  ) {
+    const { sourceField } = args;
 
-    qb.whereNotNull(sourceField as any);
+    return (qb: Knex.QueryBuilder) => {
+      qb.whereNotNull(sourceField as any);
+    };
   }
 }

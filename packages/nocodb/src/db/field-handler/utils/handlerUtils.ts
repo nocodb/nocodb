@@ -232,11 +232,10 @@ export async function nestedConditionJoin({
   }
 }
 
-export const unsupportedFilter = (
+export const unsupportedFilter = async (
   _args: {
     sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
     val: any;
-    qb: Knex.QueryBuilder;
   },
   rootArgs: {
     knex: CustomKnex;

@@ -48,6 +48,8 @@ import { RatingSqliteHandler } from './handlers/rating/rating.sqlite.handler';
 import { PercentMysqlHandler } from './handlers/percent/percent.mysql.handler';
 import { PercentPgHandler } from './handlers/percent/percent.pg.handler';
 import { PercentSqliteHandler } from './handlers/percent/percent.sqlite.handler';
+import { UserPgHandler } from './handlers/user/user.pg.handler';
+import { UserSqliteHandler } from './handlers/user/user.sqlite.handler';
 import type { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
@@ -193,6 +195,8 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.User]: {
     [CLIENT_DEFAULT]: UserGeneralHandler,
+    [ClientType.PG]: UserPgHandler,
+    [ClientType.SQLITE]: UserSqliteHandler,
   },
   [UITypes.CreatedBy]: {
     [CLIENT_DEFAULT]: ComputedFieldHandler,

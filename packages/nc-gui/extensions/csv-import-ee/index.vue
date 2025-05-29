@@ -117,6 +117,8 @@ const fileInfo = ref({
 
 const totalRecords = ref(0)
 
+const totalRecordsBeforeUpsert = ref(0)
+
 const processedRecords = ref(0)
 
 const isImportingRecords = ref(false)
@@ -425,6 +427,8 @@ const clearImport = () => {
 // dummy row store for preview
 useProvideSmartsheetRowStore({} as any)
 
+const errorMsgs = ref<string[]>([])
+
 const onImport = async () => {
   if (!importPayload.value.tableId) {
     return message.error('Please select a table')
@@ -442,18 +446,45 @@ const onImport = async () => {
     data = data.slice(1)
   }
 
-  totalRecords.value = data.length
+  totalRecordsBeforeUpsert.value = importPayload.value.upsert ? data.length : 0
+
+  // If upsert is enabled, then we have to select only unique merge field values
+  const upsertColumnTitle = importPayload.value.upsert ? columns.value[importPayload.value.upsertColumnId!].title : null
+
+  const uniqueMergeFieldValues: Record<string, boolean> = {}
 
   // map data
-  data = data.map((row: string[]) => {
-    return importPayload.value.importColumns.reduce((acc, importMeta) => {
-      const column = columns.value[importMeta.columnId]
-      if (importMeta.enabled && importMeta.mapIndex && column.title) {
-        acc[column.title] = row[parseInt(importMeta.mapIndex)]
+  data = data
+    .map((row: string[]) => {
+      return importPayload.value.importColumns.reduce((acc, importMeta) => {
+        const column = columns.value[importMeta.columnId]
+        if (importMeta.enabled && importMeta.mapIndex && column.title) {
+          acc[column.title] = row[parseInt(importMeta.mapIndex)]
+        }
+        return acc
+      }, {} as Record<string, any>)
+    })
+    .filter((row: Record<string, any>) => {
+      if (importPayload.value.upsert) {
+        const upsertColumnValue = row[upsertColumnTitle]
+        if (uniqueMergeFieldValues[upsertColumnValue]) {
+          return false
+        }
+        uniqueMergeFieldValues[upsertColumnValue] = true
+        return true
       }
-      return acc
-    }, {} as Record<string, any>)
-  })
+    })
+
+  totalRecords.value = data.length
+
+  if (importPayload.value.upsert && totalRecordsBeforeUpsert.value !== totalRecords.value) {
+    const duplicateRowsCount = totalRecordsBeforeUpsert.value - totalRecords.value
+    errorMsgs.value.push(
+      `${duplicateRowsCount} ${
+        duplicateRowsCount === 1 ? 'row' : 'rows'
+      } have duplicate merge field values. Only the first matching row from the CSV will be used; the rest will be skipped.`,
+    )
+  }
 
   const chunks = []
 
@@ -583,13 +614,18 @@ const isAllFieldsSelected = computed(() => {
   return !!importPayload.value.importColumns.length && importPayload.value.importColumns.every((c) => c.enabled === true)
 })
 
+const isAllMappedFieldsSelected = computed(() => {
+  return (
+    !!importPayload.value.importColumns.length &&
+    importPayload.value.importColumns.filter((c) => !!c.mapIndex).every((c) => c.enabled === true)
+  )
+})
+
 const isSomeFieldsSelected = computed(() => {
   return !!importPayload.value.importColumns.length && importPayload.value.importColumns.some((c) => c.enabled === true)
 })
 
 const onClickSelectAllFields = (value: boolean) => {
-  value = value ? !isSomeFieldsSelected.value : value
-
   for (const importMeta of importPayload.value.importColumns) {
     if (!importMeta.mapIndex) continue
 
@@ -1050,8 +1086,8 @@ onMounted(async () => {
                 <template #headerCell="{ column }">
                   <template v-if="column.key === 'select'">
                     <NcCheckbox
-                      :checked="isAllFieldsSelected"
-                      :indeterminate="isSomeFieldsSelected && !isAllFieldsSelected"
+                      :checked="isAllMappedFieldsSelected"
+                      :indeterminate="isSomeFieldsSelected && !isAllMappedFieldsSelected"
                       @update:checked="onClickSelectAllFields"
                     />
                   </template>

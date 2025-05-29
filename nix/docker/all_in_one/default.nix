@@ -2,7 +2,7 @@
   lib,
   dockerTools,
   nocodb,
-  postgresql,
+  postgresql_16,
   htop,
   s6,
   execline,
@@ -43,7 +43,7 @@ dockerTools.buildLayeredImage {
     dockerTools.caCertificates
 
     nocodb
-    postgresql
+    postgresql_16
     snooze
     redis
     execline.bin

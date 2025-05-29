@@ -72,6 +72,9 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.LinkToAnotherRecord]: {
     [CLIENT_DEFAULT]: LtarGeneralHandler,
   },
+  [UITypes.LinkToAnotherRecordV2]: {
+    [CLIENT_DEFAULT]: LtarGeneralHandler,
+  },
   [UITypes.ForeignKey]: {},
   [UITypes.Lookup]: {
     [CLIENT_DEFAULT]: LookupGeneralHandler,

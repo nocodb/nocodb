@@ -1459,7 +1459,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
               const { refContext } = colOptions.getRelContext(this.context);
 
-              if (colOptions?.type === 'hm') {
+              const relType = isMMLike
+                ? RelationTypes.MANY_MANY
+                : colOptions?.type;
+
+              if (relType === RelationTypes.HAS_MANY) {
                 const listLoader = new DataLoader(
                   async (ids: string[]) => {
                     if (ids.length > 1) {
@@ -1504,7 +1508,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
                 };
-              } else if (colOptions.type === 'mm' || isMMLike) {
+              } else if (relType === RelationTypes.MANY_TO_MANY) {
                 const listLoader = new DataLoader(
                   async (ids: string[]) => {
                     if (ids?.length > 1) {
@@ -1549,7 +1553,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
                 };
-              } else if (colOptions.type === 'bt') {
+              } else if (relType === RelationTypes.BELONGS_TO) {
                 // @ts-ignore
                 const colOptions = (await column.getColOptions(
                   this.context,
@@ -1638,7 +1642,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
                   return await readLoader.load(this?.[cCol?.title]);
                 };
-              } else if (colOptions.type === 'oo' && !isMMLike) {
+              } else if (relType === RelationTypes.ONE_TO_ONE) {
                 const isBt = column.meta?.bt;
 
                 if (isBt) {

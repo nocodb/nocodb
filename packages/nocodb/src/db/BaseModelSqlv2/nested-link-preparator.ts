@@ -1,4 +1,4 @@
-import { type NcRequest, RelationTypes } from 'nocodb-sdk';
+import { isMMOrMMLike, type NcRequest, RelationTypes } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import {
   extractIdPropIfObjectOrReturn,
@@ -52,7 +52,11 @@ export class NestedLinkPreparator {
           continue;
         }
 
-        switch (colOptions.type) {
+        const relationType = isMMOrMMLike(col)
+          ? RelationTypes.MANY_TO_MANY
+          : colOptions.type;
+
+        switch (relationType) {
           case RelationTypes.BELONGS_TO:
             {
               if (Array.isArray(nestedData)) {

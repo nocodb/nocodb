@@ -66,7 +66,6 @@ import {
   generateFkName,
   getMMColumnNames,
   getRevType,
-  getTargetTableRelColumn,
   sanitizeColumnName,
   validateLookupPayload,
   validatePayload,
@@ -4174,10 +4173,9 @@ export class ColumnsService implements IColumnsService {
         };
       }
 
-      const revType = getRevType(
-        (param.column as Pick<LinkToAnotherColumnReqType, 'type'>)
-          .type as RelationTypes,
-      );
+      const type = (param.column as Pick<LinkToAnotherColumnReqType, 'type'>)
+        .type as RelationTypes;
+      const revType = getRevType(type);
 
       // create column in ref table
       savedColumn = await Column.insert(refContext, {
@@ -4185,7 +4183,13 @@ export class ColumnsService implements IColumnsService {
           await refTable.getColumns(refContext),
           pluralize(table.title),
         ),
-        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
+        uidt:
+          isLinks &&
+          ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+            revType,
+          )
+            ? UITypes.Links
+            : UITypes.LinkToAnotherRecord,
         type: revType,
 
         // ref_db_alias
@@ -4217,8 +4221,12 @@ export class ColumnsService implements IColumnsService {
           param.column.title ?? pluralize(refTable.title),
         ),
 
-        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
-        type: (param.column as Pick<LinkToAnotherColumnReqType, 'type'>).type,
+        uidt:
+          isLinks &&
+          ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(type)
+            ? UITypes.Links
+            : UITypes.LinkToAnotherRecord,
+        type,
 
         fk_model_id: table.id,
 

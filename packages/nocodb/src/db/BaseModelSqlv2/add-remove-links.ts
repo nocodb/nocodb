@@ -1,6 +1,7 @@
 import {
   AuditV1OperationTypes,
   isLinksOrLTAR,
+  isMMOrMMLike,
   RelationTypes,
 } from 'nocodb-sdk';
 import type { AuditOperationSubTypes, NcRequest } from 'nocodb-sdk';
@@ -73,7 +74,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     const childTn = childBaseModel.getTnPath(childTable);
     const parentTn = parentBaseModel.getTnPath(parentTable);
 
-    let relationType = colOptions.type;
+    const isMMLike = isMMOrMMLike(column);
+    let relationType = isMMLike ? RelationTypes.MANY_TO_MANY : colOptions.type;
     let childIds = _childIds;
 
     const relatedChildCol = getRelatedLinksColumn(

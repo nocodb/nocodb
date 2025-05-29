@@ -1244,7 +1244,7 @@
     "apiSnippet": "Сниппеты API",
     "includeData": "Включить данные",
     "includeRecords": "Включить записи",
-    "baseDuplicateMessage": "Примечание: Журналы аудита и интеграции не будут дублированы.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Включить представления",
     "includeWebhook": "Включить вебхук",

@@ -1244,7 +1244,7 @@
     "apiSnippet": "API Kod Parçacıkları",
     "includeData": "Veriyi Ekle",
     "includeRecords": "Kayıtları dahil et",
-    "baseDuplicateMessage": "Not: Denetim kayıtları ve entegrasyonlar çoğaltılmayacaktır.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Görünümleri dahil et",
     "includeWebhook": "Webhook'u dahil et",

@@ -1244,7 +1244,7 @@
     "apiSnippet": "एपीआई स्निपेट्स",
     "includeData": "डेटा शामिल करें",
     "includeRecords": "Include records",
-    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Include views",
     "includeWebhook": "Include webhook",

@@ -1244,7 +1244,7 @@
     "apiSnippet": "Extraits API",
     "includeData": "Inclure les données",
     "includeRecords": "Inclure les enregistrements",
-    "baseDuplicateMessage": "Remarque : Les journaux d'audit et les intégrations ne seront pas dupliqués.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Inclure les vues",
     "includeWebhook": "Inclure le Webhook",

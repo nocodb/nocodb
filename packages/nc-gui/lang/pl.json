@@ -1244,7 +1244,7 @@
     "apiSnippet": "Pobierz fragment API",
     "includeData": "Dołącz dane",
     "includeRecords": "Uwzględnij rekordy",
-    "baseDuplicateMessage": "Uwaga: dzienniki audytu i integracje nie zostaną zduplikowane.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Uwzględnij widoki",
     "includeWebhook": "Uwzględnij webhook",

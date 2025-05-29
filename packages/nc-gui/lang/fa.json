@@ -1244,7 +1244,7 @@
     "apiSnippet": "قطعه‌کدهای API",
     "includeData": "شامل داده",
     "includeRecords": "شامل رکوردها",
-    "baseDuplicateMessage": "توجه: لاگ‌های بازرسی و ادغام‌ها تکثیر نخواهند شد.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "شامل نماها",
     "includeWebhook": "شامل وب‌هوک",

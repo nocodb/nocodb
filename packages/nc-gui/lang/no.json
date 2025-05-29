@@ -1244,7 +1244,7 @@
     "apiSnippet": "API-utdrag",
     "includeData": "Inkluder data",
     "includeRecords": "Inkluder poster",
-    "baseDuplicateMessage": "Merk: Revisjonslogger og integrasjoner vil ikke bli duplisert.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Inkluder visninger",
     "includeWebhook": "Inkluder webhook",

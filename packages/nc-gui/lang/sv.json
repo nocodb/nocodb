@@ -1244,7 +1244,7 @@
     "apiSnippet": "API Snippets",
     "includeData": "Inkludera data",
     "includeRecords": "Inkludera poster",
-    "baseDuplicateMessage": "Obs: Granskningsloggar och integrationer dupliceras inte.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Inkludera vyer",
     "includeWebhook": "Inkludera webhook",

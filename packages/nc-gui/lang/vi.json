@@ -1244,7 +1244,7 @@
     "apiSnippet": "Đoạn mã API",
     "includeData": "Bao gồm Dữ liệu",
     "includeRecords": "Bao gồm bản ghi",
-    "baseDuplicateMessage": "Lưu ý: Nhật ký kiểm toán & tích hợp sẽ không được sao chép.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Bao gồm chế độ xem",
     "includeWebhook": "Bao gồm webhook",

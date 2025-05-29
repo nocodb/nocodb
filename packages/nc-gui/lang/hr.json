@@ -1244,7 +1244,7 @@
     "apiSnippet": "API isječci",
     "includeData": "Uključi podatke",
     "includeRecords": "Uključi zapise",
-    "baseDuplicateMessage": "Napomena: dnevnici revizije i integracije neće biti duplicirani.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Uključi prikaze",
     "includeWebhook": "Uključi webhook",

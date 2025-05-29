@@ -1244,7 +1244,7 @@
     "apiSnippet": "API Snippets",
     "includeData": "រួមបញ្ចូលទិន្នន័យ",
     "includeRecords": "រួមបញ្ចូលកំណត់ត្រា",
-    "baseDuplicateMessage": "ចំណាំ៖ កំណត់ហេតុត្រួតពិនិត្យ និងការរួមបញ្ចូល នឹងមិនត្រូវបានចម្លង។",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "រួមបញ្ចូលទិដ្ឋភាព",
     "includeWebhook": "រួមបញ្ចូល Webhook",

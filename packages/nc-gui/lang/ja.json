@@ -1244,7 +1244,7 @@
     "apiSnippet": "APIスニペット",
     "includeData": "データを含む",
     "includeRecords": "レコードを含める",
-    "baseDuplicateMessage": "注意：監査ログとインテグレーションは複製されません。",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "ビューを含める",
     "includeWebhook": "Webhookを含める",

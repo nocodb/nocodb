@@ -1244,7 +1244,7 @@
     "apiSnippet": "Snippet API",
     "includeData": "Includi Dati",
     "includeRecords": "Includi record",
-    "baseDuplicateMessage": "Nota: i log di audit e le integrazioni non verranno duplicati.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Includi viste",
     "includeWebhook": "Includi webhook",

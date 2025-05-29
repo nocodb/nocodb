@@ -1244,7 +1244,7 @@
     "apiSnippet": "קטעי קוד API",
     "includeData": "כלול נתונים",
     "includeRecords": "כלול רשומות",
-    "baseDuplicateMessage": "הערה: יומני ביקורת ואינטגרציות לא ישוכפלו.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "כלול תצוגות",
     "includeWebhook": "כלול Webhook",

@@ -1244,7 +1244,7 @@
     "apiSnippet": "API Snippets",
     "includeData": "Gegevens opnemen",
     "includeRecords": "Records opnemen",
-    "baseDuplicateMessage": "Opmerking: auditlogs en integraties worden niet gedupliceerd.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Weergaven opnemen",
     "includeWebhook": "Webhooks opnemen",

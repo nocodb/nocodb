@@ -1244,7 +1244,7 @@
     "apiSnippet": "API Pätkät",
     "includeData": "Sisällytä tiedot",
     "includeRecords": "Sisällytä tietueet",
-    "baseDuplicateMessage": "Huom: Auditointilokit ja integraatiot eivät kopioidu.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Sisällytä näkymät",
     "includeWebhook": "Sisällytä webhook",

@@ -1244,7 +1244,7 @@
     "apiSnippet": "Fragmente API",
     "includeData": "Include data",
     "includeRecords": "Include înregistrări",
-    "baseDuplicateMessage": "Notă: Jurnalele de audit și integrările nu vor fi duplicate.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Include vizualizări",
     "includeWebhook": "Include webhook",

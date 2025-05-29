@@ -22,6 +22,7 @@
   lego,
   snooze,
   redis,
+  glibcLocales,
 }:
 let
   nginxCustom = nginx.override {
@@ -51,6 +52,7 @@ dockerTools.buildLayeredImage {
     nginxCustom
     glibc.bin
     coreutils
+    glibcLocales
 
     util-linux
     gnugrep
@@ -75,11 +77,11 @@ dockerTools.buildLayeredImage {
     WorkingDir = "/usr/app/data";
 
     ExposedPorts = {
-      # proxy bypass
+      # http & acme-challenge
       "8080/tcp" = { };
-      # ssl redirect & acme-challenge
+      # https redirect & acme-challenge
       "80/tcp" = { };
-      # ssl
+      # https
       "443/tcp" = { };
       # minio
       "9000/tcp" = { };

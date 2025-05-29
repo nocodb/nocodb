@@ -30,8 +30,12 @@ stdenv.mkDerivation {
   ];
 
   installPhase = ''
+    # LOCALE_ARCHIVE is required by upstall postgres migrated db
+    # https://ryantm.github.io/nixpkgs/builders/packages/locales/#locales
+
     # patchShebangs skel
     fakeroot s6-linux-init-maker \
+      -e LOCALE_ARCHIVE=/lib/locale/locale-archive \
       -C -N -1 \
       -f ${./skel} \
       -c ${base_dir} \

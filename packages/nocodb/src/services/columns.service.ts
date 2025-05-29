@@ -168,7 +168,7 @@ export async function getJunctionTableName(
     ? child.table_name.replace(`${param.base?.prefix}_`, '')
     : child.table_name;
 
-  const tableName = `${param.base?.prefix ?? ''}_nc_m2m_${parentTable.slice(
+  const tableName = `${param.base?.prefix ?? ''}_nc_link_${parentTable.slice(
     0,
     15,
   )}_${childTable.slice(0, 15)}`;

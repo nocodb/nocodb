@@ -50,7 +50,8 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
         filter.value === null ||
         typeof filter.value === 'number' ||
         ncIsNumber(Number(filter.value)) ||
-        (filter.comparison_op === 'in' && Array.isArray(filter.value))
+        (filter.comparison_op === 'in' &&
+          (Array.isArray(filter.value) || typeof filter.value === 'string'))
       )
     ) {
       return {

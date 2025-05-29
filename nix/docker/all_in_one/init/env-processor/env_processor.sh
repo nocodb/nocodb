@@ -1,7 +1,7 @@
 #!/bin/sh
 
 envs_docker_def=' HOME  HOSTNAME  OLDPWD  PATH  PORT  PWD  SHLVL TERM '
-aio_env_prefix='aio_'
+nc_aio_env_prefix='nc_aio_'
 
 nocodb_env_common_path='/run/nocodb.common.dynamic.env'
 nocodb_env_main_path='/run/nocodb.main.dynamic.env'
@@ -9,7 +9,7 @@ nocodb_env_worker_path='/run/nocodb.worker.dynamic.env'
 acme_env_path='/run/acme.dynamic.env'
 minio_env_path='/run/minio.dynamic.env'
 
-aio_pass_dynamic="$({
+nc_aio_pass_dynamic="$({
 	tr -dc A-Za-z </dev/urandom | head -c 16
 	:
 })"
@@ -17,14 +17,14 @@ kernal_env_store_dir="/run/kernelenvs"
 s6_services_temp_path='/run/s6-service-temp'
 migrations_dir="/var/lib/migrations"
 
-_aio_worker_enable_default=false
-_aio_minio_enable_default=false
-_aio_ssl_enable_default=false
-_aio_ssl_domain_default="localhost"
+_nc_aio_worker_enable_default=false
+_nc_aio_minio_enable_default=false
+_nc_aio_ssl_enable_default=false
+_nc_aio_ssl_domain_default="localhost"
 
 # additional logic used
-# _aio_postgres_enable_default=true
-# _aio_redis_enable_default=true
+# _nc_aio_postgres_enable_default=true
+# _nc_aio_redis_enable_default=true
 
 log() {
 	echo env processor: "$@"
@@ -36,15 +36,21 @@ env_passthrough() {
 
 		case "$key" in
 		"_") continue ;;
-		# passthrough aio envs
-		"$aio_env_prefix"_pass_main_*)
-			echo "${key#aio_pass_main_}=$(cat "$file")" >>"$nocodb_env_main_path"
+		# passthrough nc_aio envs
+		"$nc_aio_env_prefix"_pass_main_*)
+			echo "${key#nc_aio_pass_main_}=$(cat "$file")" >>"$nocodb_env_main_path"
 		;;
-		"$aio_env_prefix"_pass_worker_*)
-			echo "${key#aio_pass_worker_}=$(cat "$file")" >>"$nocodb_env_worker_path"
+		"$nc_aio_env_prefix"_pass_worker_*)
+			echo "${key#nc_aio_pass_worker_}=$(cat "$file")" >>"$nocodb_env_worker_path"
 		;;
-		# ignore other aio envs
-		"$aio_env_prefix"*) continue ;;
+		"$nc_aio_env_prefix"_pass_minio_*)
+			echo "${key#nc_aio_pass_minio_}=$(cat "$file")" >>"$minio_env_path"
+		;;
+		"$nc_aio_env_prefix"_pass_acme_*)
+			echo "${key#nc_aio_pass_acme_}=$(cat "$file")" >>"$acme_env_path"
+		;;
+		# ignore other nc_aio envs
+		"$nc_aio_env_prefix"*) continue ;;
 		esac
 
 		# ignore default docker envs
@@ -61,61 +67,64 @@ env_aio_set() {
 		key="$(basename "$file")"
 
 		case "$key" in
-		"$aio_env_prefix"*) : ;;
+		"$nc_aio_env_prefix"_pass_main_*) continue ;;
+		"$nc_aio_env_prefix"_pass_worker_*) continue ;;
+		"$nc_aio_env_prefix"_pass_minio_*) continue ;;
+		"$nc_aio_env_prefix"_pass_acme_*) continue ;;
+		"$nc_aio_env_prefix"*) : ;;
 		*) continue ;;
 		esac
 		value="$(cat "$file")"
 
 		case "$key" in
-		aio_postgres_enable) aio_postgres_enable="$value" ;;
-		aio_minio_enable) aio_minio_enable="$value" ;;
-		aio_ssl_enable) aio_ssl_enable="$value" ;;
-		aio_ssl_domain) aio_ssl_domain="$value" ;;
-		aio_ssl_email) aio_ssl_email="$value" ;;
-		aio_redis_enable) aio_redis_enable="$value" ;;
-		aio_worker_enable) aio_worker_enable="$value" ;;
-		*) log ignoring unknown aio env "$key=$value" ;;
+		nc_aio_postgres_enable) nc_aio_postgres_enable="$value" ;;
+		nc_aio_minio_enable) nc_aio_minio_enable="$value" ;;
+		nc_aio_ssl_enable) nc_aio_ssl_enable="$value" ;;
+		nc_aio_ssl_domain) nc_aio_ssl_domain="$value" ;;
+		nc_aio_ssl_email) nc_aio_ssl_email="$value" ;;
+		nc_aio_redis_enable) nc_aio_redis_enable="$value" ;;
+		nc_aio_worker_enable) nc_aio_worker_enable="$value" ;;
+		*) log ignoring unknown nc_aio env "$key=$value" ;;
 		esac
 	done
 
-	if [ "${aio_postgres_enable+set}" != set ]; then
+	if [ "${nc_aio_postgres_enable+set}" != set ]; then
 		# keep backward compatiblity with legacy nocodb image
 		if [ ! -f "$migrations_dir/from_legacy_image_with_sqlite" ] &&
 			[ ! -f /"$kernal_env_store_dir"/DATABASE_URL ] &&
 			[ ! -f /"$kernal_env_store_dir"/NC_DB_JSON ] &&
 			[ ! -f /"$kernal_env_store_dir"/NC_DB ]; then
-			aio_postgres_enable=true
+			nc_aio_postgres_enable=true
 		else
-			aio_postgres_enable=false
+			nc_aio_postgres_enable=false
 		fi
 	fi
-	if [ "${aio_redis_enable+set}" != set ]; then
+	if [ "${nc_aio_redis_enable+set}" != set ]; then
 		if [ ! -f /"$kernal_env_store_dir"/NC_REDIS_URL ]; then
-			aio_redis_enable=true
+			nc_aio_redis_enable=true
 		else
-			aio_redis_enable=false
+			nc_aio_redis_enable=false
 		fi
 	fi
 
-	if [ "${aio_minio_enable+set}" != set ]; then
-		aio_minio_enable="$_aio_minio_enable_default"
+	if [ "${nc_aio_minio_enable+set}" != set ]; then
+		nc_aio_minio_enable="$_nc_aio_minio_enable_default"
 	fi
-	if [ "${aio_ssl_enable+set}" != set ]; then
-		aio_ssl_enable="$_aio_ssl_enable_default"
+	if [ "${nc_aio_ssl_enable+set}" != set ]; then
+		nc_aio_ssl_enable="$_nc_aio_ssl_enable_default"
 	fi
-	if [ "${aio_worker_enable+set}" != set ]; then
-		aio_worker_enable="$_aio_worker_enable_default"
+	if [ "${nc_aio_worker_enable+set}" != set ]; then
+		nc_aio_worker_enable="$_nc_aio_worker_enable_default"
 	fi
 
-	if [ "${aio_ssl_domain+set}" != set ]; then
-		aio_ssl_domain="$_aio_ssl_domain_default"
+	if [ "${nc_aio_ssl_domain+set}" != set ]; then
+		nc_aio_ssl_domain="$_nc_aio_ssl_domain_default"
 	fi
 }
 
 nocodb_dep_add() {
 	# $@: deps
 	
-
 	for dep in "$@"; do
 		touch "$s6_services_temp_path/nocodb-main-srv/dependencies.d/$dep"
 		touch "$s6_services_temp_path/nocodb-worker-srv/dependencies.d/$dep"
@@ -123,7 +132,7 @@ nocodb_dep_add() {
 }
 
 env_aio_act() {
-	if "$aio_postgres_enable"; then
+	if "$nc_aio_postgres_enable"; then
 		nocodb_dep_add postgresql postgresql-db-create
 
 		cat <<-EOF >>"$nocodb_env_common_path"
@@ -133,54 +142,54 @@ env_aio_act() {
 		log enabled postgresql
 	fi
 
-	if "$aio_minio_enable"; then
+	if "$nc_aio_minio_enable"; then
 		nocodb_dep_add minio
 
 		cat <<-EOF >>"$nocodb_env_common_path"
-			NC_S3_BUCKET_NAME="aiominionocodb"
+			NC_S3_BUCKET_NAME="nc_aiominionocodb"
 			NC_S3_REGION="us-east-1"
-			NC_S3_ACCESS_KEY="$aio_pass_dynamic"
-			NC_S3_ACCESS_SECRET="$aio_pass_dynamic"
+			NC_S3_ACCESS_KEY="$nc_aio_pass_dynamic"
+			NC_S3_ACCESS_SECRET="$nc_aio_pass_dynamic"
 			NC_S3_FORCE_PATH_STYLE="true"
 		EOF
 
-		if "$aio_ssl_enable"; then
+		if "$nc_aio_ssl_enable"; then
 			cat <<-EOF >>"$nocodb_env_common_path"
-				NC_S3_ENDPOINT="https://${aio_ssl_domain}"
+				NC_S3_ENDPOINT="https://${nc_aio_ssl_domain}"
 			EOF
 		else
 			cat <<-EOF >>"$nocodb_env_common_path"
-				NC_S3_ENDPOINT="http://${aio_ssl_domain}"
+				NC_S3_ENDPOINT="http://${nc_aio_ssl_domain}"
 			EOF
 		fi
 
 		cat <<-EOF >>"$minio_env_path"
-			MINIO_ROOT_USER="$aio_pass_dynamic"
-			MINIO_ROOT_PASSWORD="$aio_pass_dynamic"
+			MINIO_ROOT_USER="$nc_aio_pass_dynamic"
+			MINIO_ROOT_PASSWORD="$nc_aio_pass_dynamic"
 		EOF
 
 		log enabled minio
 	fi
 
-	if "$aio_ssl_enable"; then
-		if [ "${aio_ssl_email+set}" != set ]; then
+	if "$nc_aio_ssl_enable"; then
+		if [ "${nc_aio_ssl_email+set}" != set ]; then
 			# shellcheck disable=SC2016
-			log '$aio_ssl_email must be set with $aio_ssl_enable'
+			log '$nc_aio_ssl_email must be set with $nc_aio_ssl_enable'
 			exit 1
 		fi
 
 		nocodb_dep_add acme
 		cat <<-EOF >>"$acme_env_path"
-			aio_ssl_email="$aio_ssl_email"
+			nc_aio_ssl_email="$nc_aio_ssl_email"
 		EOF
 
 		log enabled ssl
 	fi
 	cat <<-EOF >>"$acme_env_path"
-		aio_ssl_domain="$aio_ssl_domain"
+		nc_aio_ssl_domain="$nc_aio_ssl_domain"
 	EOF
 
-	if "$aio_redis_enable"; then
+	if "$nc_aio_redis_enable"; then
 		nocodb_dep_add redis
 
 		cat <<-EOF >>"$nocodb_env_common_path"
@@ -190,7 +199,7 @@ env_aio_act() {
 		log enabled redis
 	fi
 
-	if "$aio_worker_enable"; then
+	if "$nc_aio_worker_enable"; then
 		touch "$s6_services_temp_path/nocodb/contents.d/nocodb-worker-srv"
 		nocodb_dep_add redis
 

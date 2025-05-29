@@ -428,11 +428,19 @@ export const useInfiniteGroups = (
       if (!groupCol) return
 
       totalGroups.value = isPublic.value
-        ? await $api.public.dataGroupByCount(sharedView.value!.uuid!, {
-            where: where?.value,
-            column_name: groupCol.column.title,
-            filterArrJson: JSON.stringify(nestedFilters.value),
-          })
+        ? await $api.public.dataGroupByCount(
+            sharedView.value!.uuid!,
+            {
+              where: where?.value,
+              column_name: groupCol.column.title,
+              filterArrJson: JSON.stringify(nestedFilters.value),
+            },
+            {
+              headers: {
+                'xc-password': sharedViewPassword.value,
+              },
+            },
+          )
         : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
             where: where?.value,
             column_name: groupCol.column.title,
@@ -445,11 +453,19 @@ export const useInfiniteGroups = (
       const groupWhere = buildNestedWhere(group, where?.value)
 
       group.groupCount = isPublic.value
-        ? await $api.public.dataGroupByCount(sharedView.value!.uuid!, {
-            where: groupWhere,
-            column_name: groupCol.column.title,
-            filterArrJson: JSON.stringify(nestedFilters.value),
-          })
+        ? await $api.public.dataGroupByCount(
+            sharedView.value!.uuid!,
+            {
+              where: groupWhere,
+              column_name: groupCol.column.title,
+              filterArrJson: JSON.stringify(nestedFilters.value),
+            },
+            {
+              headers: {
+                'xc-password': sharedViewPassword.value,
+              },
+            },
+          )
         : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
             where: groupWhere,
             column_name: groupCol.column.title,

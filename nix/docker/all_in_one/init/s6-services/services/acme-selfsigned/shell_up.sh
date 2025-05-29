@@ -14,13 +14,13 @@ gen_selfsigned() {
 	minica \
 		--ca-key _ca/key.pem \
 		--ca-cert _ca/cert.pem \
-		--domains "$aio_ssl_domain"
+		--domains "$nc_aio_ssl_domain"
 
-	cp _ca/cert.pem "$aio_ssl_domain"/chain.pem
-	cat "$aio_ssl_domain"/cert.pem "$aio_ssl_domain"/chain.pem > "$aio_ssl_domain"/fullchain.pem
-	cat "$aio_ssl_domain"/key.pem "$aio_ssl_domain"/fullchain.pem > "$aio_ssl_domain"/full.pem
+	cp _ca/cert.pem "$nc_aio_ssl_domain"/chain.pem
+	cat "$nc_aio_ssl_domain"/cert.pem "$nc_aio_ssl_domain"/chain.pem > "$nc_aio_ssl_domain"/fullchain.pem
+	cat "$nc_aio_ssl_domain"/key.pem "$nc_aio_ssl_domain"/fullchain.pem > "$nc_aio_ssl_domain"/full.pem
 
-	touch "$aio_ssl_domain"/selfsigned
+	touch "$nc_aio_ssl_domain"/selfsigned
 }
 
-[ -d "$aio_ssl_domain" ] || gen_selfsigned
+[ -d "$nc_aio_ssl_domain" ] || gen_selfsigned

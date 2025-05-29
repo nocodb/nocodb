@@ -1,4 +1,4 @@
-import {LinksVersion, RelationTypes} from 'nocodb-sdk';
+import { LinksVersion, RelationTypes } from 'nocodb-sdk';
 import type { BoolType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type Filter from '~/models/Filter';

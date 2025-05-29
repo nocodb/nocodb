@@ -1460,7 +1460,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               const { refContext } = colOptions.getRelContext(this.context);
 
               const relType = isMMLike
-                ? RelationTypes.MANY_MANY
+                ? RelationTypes.MANY_TO_MANY
                 : colOptions?.type;
 
               if (relType === RelationTypes.HAS_MANY) {

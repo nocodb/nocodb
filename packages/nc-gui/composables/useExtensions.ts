@@ -268,6 +268,10 @@ export const useExtensions = createSharedComposable(() => {
         }
       }
     } catch (e) {
+      baseExtensions.value[baseId] = {
+        extensions: [],
+        expanded: false,
+      }
       console.log(e)
     }
   }
@@ -405,7 +409,11 @@ export const useExtensions = createSharedComposable(() => {
   watch(
     [() => base.value?.id, isPluginsEnabled],
     ([baseId, newPluginsEnabled]) => {
-      if (!newPluginsEnabled || !baseId || baseExtensions.value[baseId]) return
+      console.log('on base change', baseId, newPluginsEnabled, baseExtensions.value[baseId])
+
+      if (!newPluginsEnabled || !baseId || !baseExtensions.value[baseId]?.extensions?.length) {
+        return
+      }
 
       loadExtensionsForBase(baseId).catch((e) => {
         console.error(e)
@@ -415,6 +423,14 @@ export const useExtensions = createSharedComposable(() => {
       immediate: true,
     },
   )
+
+  onMounted(() => {
+    if (base.value?.id) {
+      loadExtensionsForBase(base.value?.id).catch((e) => {
+        console.error(e)
+      })
+    }
+  })
 
   // Extension details modal
   const isDetailsVisible = ref(false)

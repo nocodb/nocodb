@@ -6,7 +6,7 @@ import dayjs from 'dayjs'
 
 import ImportStatus from './ImportStatus.vue'
 
-const { $e } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const CHUNK_SIZE = 200
 
@@ -119,6 +119,10 @@ const totalRecords = ref(0)
 
 const totalRecordsBeforeUpsert = ref(0)
 
+const isImportVerified = ref(false)
+
+const isVerifyImportLoading = ref(false)
+
 const processedRecords = ref(0)
 
 const isImportingRecords = ref(false)
@@ -198,12 +202,16 @@ const importPayload = computedAsync(async () => {
   return savedPayloads.value[0]
 }, importPayloadPlaceholder)
 
-const updateHistory = async () => {
+const updateHistory = async (updateImportVerified = false) => {
   // update last used
   importPayload.value.lastUsed = Date.now()
 
   // keep only last 5
   savedPayloads.value = savedPayloads.value.sort((a, b) => b.order - a.order).slice(0, 5)
+
+  if (updateImportVerified) {
+    isImportVerified.value = false
+  }
 
   await extension.value.kvStore.set('savedPayloads', savedPayloads.value)
 }
@@ -293,7 +301,7 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
     }
   }
 
-  updateHistory()
+  updateHistory(true)
 }
 
 const handleChange = (info: { file: UploadFile }) => {
@@ -338,7 +346,7 @@ const handleChange = (info: { file: UploadFile }) => {
           processingFile: false,
         }
 
-        updateHistory()
+        updateHistory(true)
 
         if (!importPayload.value.tableId && tables.value?.length) {
           importPayload.value.tableId = tables.value.find((t) => t.id === activeTableId.value)
@@ -364,7 +372,7 @@ const handleChange = (info: { file: UploadFile }) => {
         importPayload.value.file.name = ''
         importPayload.value.file.size = '0 MB'
 
-        updateHistory()
+        updateHistory(true)
 
         message.error('There was an error parsing the file. Please check the file and try again.')
       },
@@ -387,13 +395,19 @@ const onMappingField = (columnId: string, value: string) => {
     if (!value && columnMeta.enabled) columnMeta.enabled = false
   }
 
-  updateHistory()
+  updateHistory(true)
 }
 
 const onUpsertColumnChange = (columnId: string) => {
-  const columnMeta = importPayload.value.importColumns.find((m) => m.columnId === columnId)
-  if (columnMeta && !columnMeta.enabled) columnMeta.enabled = true
-  updateHistory()
+  importPayload.value.importColumns.forEach((m) => {
+    if (m.columnId === columnId && !m.enabled) {
+      m.enabled = true
+    } else if (!m.mapIndex && m.enabled) {
+      m.enabled = false
+    }
+  })
+
+  updateHistory(true)
 }
 
 const filterOption = (input = '', params: { key: string }) => {
@@ -429,17 +443,9 @@ useProvideSmartsheetRowStore({} as any)
 
 const errorMsgs = ref<string[]>([])
 
-const onImport = async () => {
-  if (!importPayload.value.tableId) {
-    return message.error('Please select a table')
-  }
+const dataToImport = ref([])
 
-  if (importPayload.value.upsert && !importPayload.value.upsertColumnId) {
-    return message.error('Please select a column for upsert')
-  }
-
-  isImportingRecords.value = true
-
+const prepareDataToImport = () => {
   // prepare data
   let data = parsedData.value.data
   if (importPayload.value.header) {
@@ -471,11 +477,39 @@ const onImport = async () => {
           return false
         }
         uniqueMergeFieldValues[upsertColumnValue] = true
-        return true
       }
+
+      return true
     })
 
   totalRecords.value = data.length
+
+  return data
+}
+
+const verifyRequiredFields = () => {
+  if (!importPayload.value.tableId) {
+    return message.error('Please select a table')
+  }
+
+  if (importPayload.value.upsert && !importPayload.value.upsertColumnId) {
+    return message.error('Please select a column for upsert')
+  }
+}
+
+const recordsToInsert = ref<Record<string, any>[]>([])
+const recordsToUpdate = ref<Record<string, any>[]>([])
+
+const onVerifyImport = async () => {
+  if (verifyRequiredFields()) return
+
+  errorMsgs.value = []
+
+  isVerifyImportLoading.value = true
+
+  let data = prepareDataToImport()
+
+  dataToImport.value = data
 
   if (importPayload.value.upsert && totalRecordsBeforeUpsert.value !== totalRecords.value) {
     const duplicateRowsCount = totalRecordsBeforeUpsert.value - totalRecords.value
@@ -486,42 +520,175 @@ const onImport = async () => {
     )
   }
 
+  const tableMeta = (await getMeta(importPayload.value.tableId))!
+
+  const upsertFieldTitle = columns.value[importPayload.value.upsertColumnId!]?.title ?? ''
+
+  const chunks = []
+
+  for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+    chunks.push(data.slice(i, i + CHUNK_SIZE))
+  }
+
+  recordsToInsert.value = []
+  recordsToUpdate.value = []
+
+  const mergeFieldValueCount: Record<string, number> = {}
+
+  for (const chunk of chunks) {
+    // select chunk of data to determine if it's an insert or update
+    let page = 1
+    let fetchRecords = true
+    let totalRecords = 0
+
+    let list = []
+
+    while (fetchRecords) {
+      const { list: _list, pageInfo } = await $api.dbDataTableRow.list(importPayload.value.tableId, {
+        where: `(${upsertFieldTitle},in,${chunk.map((record: Record<string, any>) => record[upsertFieldTitle]).join(',')})`,
+        limit: CHUNK_SIZE,
+        offset: (page - 1) * CHUNK_SIZE,
+      })
+
+      list.push(..._list)
+
+      page++
+
+      if (!totalRecords && pageInfo.totalRows) {
+        totalRecords = pageInfo.totalRows
+      }
+
+      if (pageInfo.isLastPage) {
+        fetchRecords = false
+      }
+    }
+
+    chunk.forEach((record: Record<string, any>) => {
+      const mergeFieldValue = record[upsertFieldTitle]
+
+      const existingRecordCount = list.filter(
+        (r: Record<string, any>) => `${r[upsertFieldTitle]}` === `${record[upsertFieldTitle]}`,
+      ).length
+
+      if (existingRecordCount > 0) {
+        mergeFieldValueCount[mergeFieldValue] = existingRecordCount
+      }
+    })
+
+    if (importPayload.value.importType !== 'update') {
+      recordsToInsert.value.push(
+        ...chunk.filter(
+          (record: Record<string, any>) =>
+            !list.some((r: Record<string, any>) => `${r[upsertFieldTitle]}` === `${record[upsertFieldTitle]}`),
+        ),
+      )
+    }
+
+    if (importPayload.value.importType !== 'insert') {
+      // Here we have to update all existing records with the same merge field value
+      const existingRecords = list
+        .filter((r: Record<string, any>) =>
+          chunk.some((record: Record<string, any>) => `${r[upsertFieldTitle]}` === `${record[upsertFieldTitle]}`),
+        )
+        .map((r: Record<string, any>) => {
+          const recordPayload = chunk.find(
+            (record: Record<string, any>) => `${r[upsertFieldTitle]}` === `${record[upsertFieldTitle]}`,
+          )
+
+          return {
+            ...(recordPayload || {}),
+            ...rowPkData(r, tableMeta.columns!),
+          }
+        })
+
+      recordsToUpdate.value.push(...existingRecords)
+    }
+  }
+
+  if (recordsToUpdate.value.length) {
+    for (const mergeFieldValue in mergeFieldValueCount) {
+      errorMsgs.value.push(
+        `Detected ${mergeFieldValueCount[mergeFieldValue]} ${
+          mergeFieldValueCount[mergeFieldValue] === 1 ? 'record' : 'records'
+        } with merge field value "${mergeFieldValue}". They will be overridden to match the first matching CSV row.`,
+      )
+    }
+  }
+
+  isImportVerified.value = true
+
+  isVerifyImportLoading.value = false
+}
+
+const onImport = async () => {
+  if (verifyRequiredFields()) return
+
+  isImportingRecords.value = true
+
+  // prepare data
+  let data = importPayload.value.upsert ? dataToImport.value : prepareDataToImport()
   const chunks = []
 
   while (data.length) {
     chunks.push(data.splice(0, CHUNK_SIZE))
   }
 
+  let dataToInsert = recordsToInsert.value
+  let dataToUpdate = recordsToUpdate.value
+
   try {
-    for (const chunk of chunks) {
-      if (importPayload.value.upsert) {
-        $e(`c:extension:${EXTENSION_ID}:upsert`)
-        // upsert data
-        const upsertStats = await upsertData({
-          tableId: importPayload.value.tableId,
-          upsertField: columns.value[importPayload.value.upsertColumnId!],
-          data: chunk,
-          importType: importPayload.value.importType,
-          autoInsertOption: autoInsertOption.value,
-        })
+    if (importPayload.value?.upsert) {
+      $e(`c:extension:${EXTENSION_ID}:upsert`)
+
+      const tableMeta = await getMeta(importPayload.value.tableId)
+
+      if (!tableMeta?.columns) throw new Error('Table not found')
+
+      // upsert data
+      while (dataToInsert.length) {
+        const chunk = dataToInsert.splice(0, 100)
+        await $api.dbDataTableRow.create(
+          importPayload.value.tableId,
+          chunk,
+          autoInsertOption.value ? ({ typecast: 'true' } as any) : undefined,
+        )
 
         stats.value = {
           ...stats.value,
-          inserted: (stats.value.inserted ?? 0) + upsertStats.inserted,
-          updated: (stats.value.updated ?? 0) + upsertStats.updated,
+          inserted: (stats.value.inserted ?? 0) + chunk.length,
         }
         importPayload.value.stats = {
           ...importPayload.value.stats,
-          inserted: (importPayload.value.stats.inserted ?? 0) + upsertStats.inserted,
-          updated: (importPayload.value.stats.updated ?? 0) + upsertStats.updated,
+          inserted: (importPayload.value.stats.inserted ?? 0) + chunk.length,
         }
+      }
 
-        if (autoInsertOption.value) {
-          await getMeta(importPayload.value.tableId, true)
+      while (dataToUpdate.length) {
+        const chunk = dataToUpdate.splice(0, 100)
+        await $api.dbDataTableRow.update(
+          importPayload.value.tableId,
+          chunk,
+          autoInsertOption.value ? ({ typecast: 'true' } as any) : undefined,
+        )
+
+        stats.value = {
+          ...stats.value,
+          updated: (stats.value.updated ?? 0) + chunk.length,
         }
-      } else {
+        importPayload.value.stats = {
+          ...importPayload.value.stats,
+          updated: (importPayload.value.stats.updated ?? 0) + chunk.length,
+        }
+      }
+
+      if (autoInsertOption.value) {
+        await getMeta(importPayload.value.tableId, true)
+      }
+    } else {
+      $e(`c:extension:${EXTENSION_ID}:insert`)
+      for (const chunk of chunks) {
         // insert data
-        $e(`c:extension:${EXTENSION_ID}:insert`)
+
         const insertStats = await insertData({
           tableId: importPayload.value.tableId,
           data: chunk,
@@ -540,9 +707,9 @@ const onImport = async () => {
         if (autoInsertOption.value) {
           await getMeta(importPayload.value.tableId, true)
         }
-      }
 
-      processedRecords.value += chunk.length
+        processedRecords.value += chunk.length
+      }
     }
 
     step.value = 2
@@ -592,7 +759,7 @@ const newImport = () => {
     lastUsed: Date.now(),
     order: getNextOrder(savedPayloads.value),
   })
-  updateHistory()
+  updateHistory(true)
 
   $e(`c:extension:${EXTENSION_ID}:new-import-created`)
 
@@ -609,10 +776,6 @@ const newImport = () => {
   processedRecords.value = 0
   isImportingRecords.value = false
 }
-
-const isAllFieldsSelected = computed(() => {
-  return !!importPayload.value.importColumns.length && importPayload.value.importColumns.every((c) => c.enabled === true)
-})
 
 const isAllMappedFieldsSelected = computed(() => {
   return (
@@ -634,6 +797,7 @@ const onClickSelectAllFields = (value: boolean) => {
     importMeta.enabled = value
   }
 
+  isImportVerified.value = false
   updateHistory()
 }
 
@@ -699,6 +863,7 @@ watch(
 )
 
 onMounted(async () => {
+  isImportVerified.value = false
   importConfig.value = (await extension.value.kvStore.get('importConfig')) || {}
   importConfig.value.delimiter = importConfig.value.delimiter || autoDetect
   importConfig.value.encoding = importConfig.value.encoding || SupportedExportCharset['utf-8']
@@ -721,7 +886,18 @@ onMounted(async () => {
       <template v-else-if="importPayload.step === 1">
         <NcButton :disabled="isImportingRecords" size="small" type="secondary" @click="clearImport()">Cancel</NcButton>
 
-        <NcButton size="small" :disabled="!readyForImport" :loading="isImportingRecords" @click="onImport">Import</NcButton>
+        <NcButton
+          v-if="importPayload?.upsert && !isImportVerified"
+          size="small"
+          :disabled="!readyForImport"
+          :loading="isVerifyImportLoading"
+          @click="onVerifyImport"
+        >
+          Verify Import
+        </NcButton>
+        <NcButton v-else size="small" :disabled="!readyForImport" :loading="isImportingRecords" @click="onImport">
+          Import
+        </NcButton>
       </template>
     </template>
 
@@ -955,7 +1131,7 @@ onMounted(async () => {
                 <h1>Settings</h1>
 
                 <div class="nc-import-upsert-type">
-                  <a-radio-group v-model:value="importPayload.upsert" name="upsert" @change="updateHistory()">
+                  <a-radio-group v-model:value="importPayload.upsert" name="upsert" @change="updateHistory(true)">
                     <div class="input-wrapper border-1 border-nc-border-gray-medium rounded-lg px-3 py-2 flex flex-col gap-2">
                       <a-radio :value="false">
                         <div class="flex flex-col">
@@ -981,7 +1157,7 @@ onMounted(async () => {
                               v-model:value="importPayload.importType"
                               class="w-full nc-select-shadow"
                               dropdown-class-name="w-[254px]"
-                              @change="updateHistory()"
+                              @change="updateHistory(true)"
                             >
                               <a-select-option v-for="(opt, i) of importTypeOptions" :key="i" :value="opt.type">
                                 <NcTooltip class="!w-full" placement="right">
@@ -1049,7 +1225,7 @@ onMounted(async () => {
                   </a-radio-group>
                 </div>
                 <div>
-                  <NcCheckbox v-model:checked="importPayload.header" @change="updateHistory()">
+                  <NcCheckbox v-model:checked="importPayload.header" @change="updateHistory(true)">
                     Use first record as header
                   </NcCheckbox>
                 </div>
@@ -1061,136 +1237,149 @@ onMounted(async () => {
               </section>
             </div>
 
-            <div
-              class="flex flex-col w-[calc(100%_-_420px)] gap-3 overflow-auto nc-scrollbar-thin h-full pl-2.5 pr-4 py-4 bg-nc-bg-gray-extralight"
-            >
-              <div v-for="errorMsg of errorMsgs" :key="errorMsg" class="flex items-center gap-3 text-nc-content-gray-subtle2">
-                <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-yellow-dark" />
-                <span>{{ errorMsg }}</span>
-              </div>
-              <div class="flex items-center justify-between gap-3">
-                <div class="text-sm font-weight-700 text-nc-content-gray">Select destination fields</div>
-                <div>
-                  <NcBadge class="!text-sm !h-5 bg-nc-bg-gray-medium truncate" :border="false"
-                    >{{ selectedFieldDetails.selected }}/{{ selectedFieldDetails.total }} selected
-                  </NcBadge>
-                </div>
-              </div>
-
-              <NcTable
-                :columns="fieldMappingColumns"
-                :data="importPayload.importColumns"
-                class="flex-1"
-                :bordered="false"
-                :disable-table-scroll="!!errorMsgs.length"
-                header-row-height="40px"
-                header-cell-class-name="!text-nc-content-gray-subtle2 !font-weight-700"
-                body-row-class-name="!cursor-default"
-                row-height="48px"
+            <div class="w-[calc(100%_-_420px)] flex flex-col overflow-auto nc-scrollbar-thin h-full">
+              <div
+                v-if="importPayload.upsert && isImportVerified"
+                class="flex flex-col gap-4 text-nc-content-gray p-4 border-b-1"
               >
-                <template #headerCell="{ column }">
-                  <template v-if="column.key === 'select'">
-                    <NcCheckbox
-                      :checked="isAllMappedFieldsSelected"
-                      :indeterminate="isSomeFieldsSelected && !isAllMappedFieldsSelected"
-                      @update:checked="onClickSelectAllFields"
-                    />
-                  </template>
-                  <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-3">
-                    {{ column.title }}
-
-                    <NcBadge
-                      v-if="importPayload.tableId"
-                      class="!text-sm !h-5 bg-nc-bg-gray-medium truncate font-normal"
-                      :border="false"
-                    >
-                      <LazyGeneralEmojiPicker
-                        :emoji="importPayload.tableIcon || selectedTable?.meta?.icon"
-                        readonly
-                        size="xsmall"
-                      >
-                        <template #default>
-                          <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
-                        </template>
-                      </LazyGeneralEmojiPicker>
-                      <NcTooltip class="max-w-[80px] ml-1 text-nc-content-gray-subtle2 truncate" show-on-truncate-only>
-                        <template #title>
-                          {{ importPayload.tableName || selectedTable.title }}
-                        </template>
-
-                        {{ importPayload.tableName || selectedTable.title }}
-                      </NcTooltip>
+                <template v-if="errorMsgs.length">
+                  <div v-for="errorMsg of errorMsgs" :key="errorMsg" class="flex items-center gap-3 text-nc-content-gray-subtle2">
+                    <GeneralIcon icon="ncAlertTriangle" class="h-4 w-4 flex-none text-yellow-600" />
+                    <span>{{ errorMsg }}</span>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="flex items-center gap-3 text-nc-content-gray-subtle2">
+                    <GeneralIcon icon="circleCheck2" class="h-4 w-4 flex-none text-green-600" />
+                    <span>Verification complete! CSV file ready to import</span>
+                  </div>
+                </template>
+              </div>
+              <div class="flex-1 bg-nc-bg-gray-extralight flex flex-col gap-4 p-4">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="text-sm font-weight-700 text-nc-content-gray">Select destination fields</div>
+                  <div>
+                    <NcBadge class="!text-sm !h-5 bg-nc-bg-gray-medium truncate" :border="false"
+                      >{{ selectedFieldDetails.selected }}/{{ selectedFieldDetails.total }} selected
                     </NcBadge>
                   </div>
-                  <template v-if="column.key === 'mapping'">
-                    <GeneralIcon icon="ncArrowLeft" />
-                  </template>
-                  <div v-if="column.key === 'csv-column'" class="w-full pl-3 text-left">
-                    {{ column.title }}
-                  </div>
-                </template>
+                </div>
 
-                <template #bodyCell="{ column, record: importMeta }">
-                  <template v-if="column.key === 'select'">
-                    <NcTooltip :disabled="importMeta.enabled || !!importMeta.mapIndex">
-                      <template #title>Select CSV Column to map</template>
+                <NcTable
+                  :columns="fieldMappingColumns"
+                  :data="importPayload.importColumns"
+                  class="flex-1"
+                  :bordered="false"
+                  :disable-table-scroll="!!errorMsgs.length"
+                  header-row-height="40px"
+                  header-cell-class-name="!text-nc-content-gray-subtle2 !font-weight-700"
+                  body-row-class-name="!cursor-default"
+                  row-height="48px"
+                >
+                  <template #headerCell="{ column }">
+                    <template v-if="column.key === 'select'">
                       <NcCheckbox
-                        v-model:checked="importMeta.enabled"
-                        :disabled="importPayload.upsertColumnId === importMeta.columnId || !importMeta.mapIndex"
-                        @change="updateHistory()"
+                        :checked="isAllMappedFieldsSelected"
+                        :indeterminate="isSomeFieldsSelected && !isAllMappedFieldsSelected"
+                        @update:checked="onClickSelectAllFields"
                       />
-                    </NcTooltip>
-                  </template>
-                  <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-2">
-                    <template v-if="columns[importMeta.columnId]">
-                      <component
-                        :is="getUIDTIcon(columns[importMeta.columnId].uidt!)"
-                        v-if="columns[importMeta.columnId]?.uidt"
-                        class="flex-none w-3.5 h-3.5"
-                      />
-                      <NcTooltip class="truncate max-w-[calc(100%_-_24px)]" show-on-truncate-only>
-                        <template #title> {{ columns[importMeta.columnId].title }} </template>
+                    </template>
+                    <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-3">
+                      {{ column.title }}
 
-                        {{ columns[importMeta.columnId].title }}
+                      <NcBadge
+                        v-if="importPayload.tableId"
+                        class="!text-sm !h-5 bg-nc-bg-gray-medium truncate font-normal"
+                        :border="false"
+                      >
+                        <LazyGeneralEmojiPicker
+                          :emoji="importPayload.tableIcon || selectedTable?.meta?.icon"
+                          readonly
+                          size="xsmall"
+                        >
+                          <template #default>
+                            <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
+                          </template>
+                        </LazyGeneralEmojiPicker>
+                        <NcTooltip class="max-w-[80px] ml-1 text-nc-content-gray-subtle2 truncate" show-on-truncate-only>
+                          <template #title>
+                            {{ importPayload.tableName || selectedTable.title }}
+                          </template>
+
+                          {{ importPayload.tableName || selectedTable.title }}
+                        </NcTooltip>
+                      </NcBadge>
+                    </div>
+                    <template v-if="column.key === 'mapping'">
+                      <GeneralIcon icon="ncArrowLeft" />
+                    </template>
+                    <div v-if="column.key === 'csv-column'" class="w-full pl-3 text-left">
+                      {{ column.title }}
+                    </div>
+                  </template>
+
+                  <template #bodyCell="{ column, record: importMeta }">
+                    <template v-if="column.key === 'select'">
+                      <NcTooltip :disabled="importMeta.enabled || !!importMeta.mapIndex">
+                        <template #title>Select CSV Column to map</template>
+                        <NcCheckbox
+                          v-model:checked="importMeta.enabled"
+                          :disabled="importPayload.upsertColumnId === importMeta.columnId || !importMeta.mapIndex"
+                          @change="updateHistory(true)"
+                        />
                       </NcTooltip>
                     </template>
-                  </div>
-                  <template v-if="column.key === 'mapping'">
-                    <GeneralIcon icon="ncArrowLeft" />
-                  </template>
-                  <template v-if="column.key === 'csv-column'">
-                    <a-form-item class="!my-0 w-full">
-                      <NcSelect
-                        :value="importMeta.mapIndex || null"
-                        show-search
-                        allow-clear
-                        :filter-option="(input, option) => antSelectFilterOption(input, option, 'data-label')"
-                        class="nc-field-select-input w-full nc-select-shadow !border-none"
-                        :placeholder="`-${$t('labels.multiField.selectField').toLowerCase()}-`"
-                        @update:value="(value) => (importMeta.mapIndex = value)"
-                        @change="onMappingField(importMeta.columnId, $event)"
-                      >
-                        <a-select-option v-for="(col, i) of headers" :key="i" :value="col.value" :data-label="col.label">
-                          <div class="flex items-center gap-2 w-full">
-                            <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                              <template #title>
+                    <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-2">
+                      <template v-if="columns[importMeta.columnId]">
+                        <component
+                          :is="getUIDTIcon(columns[importMeta.columnId].uidt!)"
+                          v-if="columns[importMeta.columnId]?.uidt"
+                          class="flex-none w-3.5 h-3.5"
+                        />
+                        <NcTooltip class="truncate max-w-[calc(100%_-_24px)]" show-on-truncate-only>
+                          <template #title> {{ columns[importMeta.columnId].title }} </template>
+
+                          {{ columns[importMeta.columnId].title }}
+                        </NcTooltip>
+                      </template>
+                    </div>
+                    <template v-if="column.key === 'mapping'">
+                      <GeneralIcon icon="ncArrowLeft" />
+                    </template>
+                    <template v-if="column.key === 'csv-column'">
+                      <a-form-item class="!my-0 w-full">
+                        <NcSelect
+                          :value="importMeta.mapIndex || null"
+                          show-search
+                          allow-clear
+                          :filter-option="(input, option) => antSelectFilterOption(input, option, 'data-label')"
+                          class="nc-field-select-input w-full nc-select-shadow !border-none"
+                          :placeholder="`-${$t('labels.multiField.selectField').toLowerCase()}-`"
+                          @update:value="(value) => (importMeta.mapIndex = value)"
+                          @change="onMappingField(importMeta.columnId, $event)"
+                        >
+                          <a-select-option v-for="(col, i) of headers" :key="i" :value="col.value" :data-label="col.label">
+                            <div class="flex items-center gap-2 w-full">
+                              <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                                <template #title>
+                                  {{ col.label }}
+                                </template>
                                 {{ col.label }}
-                              </template>
-                              {{ col.label }}
-                            </NcTooltip>
-                            <component
-                              :is="iconMap.check"
-                              v-if="importMeta.mapIndex === col.value"
-                              id="nc-selected-item-icon"
-                              class="flex-none text-primary w-4 h-4"
-                            />
-                          </div>
-                        </a-select-option>
-                      </NcSelect>
-                    </a-form-item>
+                              </NcTooltip>
+                              <component
+                                :is="iconMap.check"
+                                v-if="importMeta.mapIndex === col.value"
+                                id="nc-selected-item-icon"
+                                class="flex-none text-primary w-4 h-4"
+                              />
+                            </div>
+                          </a-select-option>
+                        </NcSelect>
+                      </a-form-item>
+                    </template>
                   </template>
-                </template>
-              </NcTable>
+                </NcTable>
+              </div>
             </div>
           </div>
           <general-overlay :model-value="isImportingRecords" inline transition class="!bg-opacity-15">

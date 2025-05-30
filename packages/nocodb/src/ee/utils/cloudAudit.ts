@@ -21,11 +21,14 @@ const auditClickhouseConfig = {
   url: process.env.NC_AUDIT_CLICKHOUSE_URL,
   username: process.env.NC_AUDIT_CLICKHOUSE_USER,
   password: process.env.NC_AUDIT_CLICKHOUSE_PASSWORD,
+  database: process.env.NC_AUDIT_CLICKHOUSE_DATABASE,
 };
 
-export const kinesisClient = new KinesisClient(kinesisConfig);
-export const streamName = process.env.NC_KINESIS_STREAM_NAME;
+const streamName = process.env.NC_KINESIS_STREAM_NAME;
 
+const clickhouseAuditTable = process.env.NC_AUDIT_CLICKHOUSE_TABLE;
+
+const kinesisClient = new KinesisClient(kinesisConfig);
 const clickhouseClient = createClient(auditClickhouseConfig);
 
 export async function getChRecordAudit(
@@ -66,7 +69,7 @@ export async function getChRecordAudit(
 
   const clickhouseResult = await clickhouseClient.query({
     query: `
-        SELECT * FROM nc_audit_v2
+        SELECT * FROM ${clickhouseAuditTable}
         WHERE fk_workspace_id = '${context.workspace_id}'
         AND fk_model_id = '${fk_model_id}'
         AND row_id = '${row_id}'
@@ -167,7 +170,7 @@ export async function getChWorkspaceAudit(
   const orderDirection = orderBy?.created_at === 'asc' ? 'ASC' : 'DESC';
 
   const query = `
-    SELECT * FROM nc_audit_v2
+    SELECT * FROM ${clickhouseAuditTable}
     WHERE ${whereConditions.join(' AND ')}
     ORDER BY (created_at, id) ${orderDirection}
     LIMIT ${limit}

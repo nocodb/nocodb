@@ -500,6 +500,11 @@ const verifyRequiredFields = () => {
 const recordsToInsert = ref<Record<string, any>[]>([])
 const recordsToUpdate = ref<Record<string, any>[]>([])
 
+const totalRecordsToInsert = ref(0)
+const totalRecordsToUpdate = ref(0)
+const processedRecordsToInsert = ref(0)
+const processedRecordsToUpdate = ref(0)
+
 const onVerifyImport = async () => {
   if (verifyRequiredFields()) return
 
@@ -532,6 +537,12 @@ const onVerifyImport = async () => {
 
   recordsToInsert.value = []
   recordsToUpdate.value = []
+
+  totalRecordsToInsert.value = 0
+  totalRecordsToUpdate.value = 0
+
+  processedRecordsToInsert.value = 0
+  processedRecordsToUpdate.value = 0
 
   const mergeFieldValueCount: Record<string, number> = {}
 
@@ -605,6 +616,9 @@ const onVerifyImport = async () => {
     }
   }
 
+  totalRecordsToInsert.value = recordsToInsert.value.length
+  totalRecordsToUpdate.value = recordsToUpdate.value.length
+
   if (recordsToUpdate.value.length) {
     for (const mergeFieldValue in mergeFieldValueCount) {
       errorMsgs.value.push(
@@ -647,6 +661,9 @@ const onImport = async () => {
       // upsert data
       while (dataToInsert.length) {
         const chunk = dataToInsert.splice(0, 100)
+
+        processedRecordsToInsert.value += chunk.length
+
         await $api.dbDataTableRow.create(
           importPayload.value.tableId,
           chunk,
@@ -665,6 +682,9 @@ const onImport = async () => {
 
       while (dataToUpdate.length) {
         const chunk = dataToUpdate.splice(0, 100)
+
+        processedRecordsToUpdate.value += chunk.length
+
         await $api.dbDataTableRow.update(
           importPayload.value.tableId,
           chunk,
@@ -1385,7 +1405,16 @@ onMounted(async () => {
           <general-overlay :model-value="isImportingRecords" inline transition class="!bg-opacity-15">
             <div class="flex flex-col items-center justify-center h-full w-full !bg-white !bg-opacity-55">
               <a-spin size="large" />
-              <div class="text-brand-600">Importing {{ processedRecords }}/{{ totalRecords }}</div>
+              <template v-if="importPayload?.upsert">
+                <div v-if="recordsToInsert.length" class="text-brand-600">
+                  Inserting {{ processedRecordsToInsert }}/{{ totalRecordsToInsert }}
+                </div>
+                <div v-if="recordsToUpdate.length" class="text-brand-600">
+                  Updating {{ processedRecordsToUpdate }}/{{ totalRecordsToUpdate }}
+                </div>
+              </template>
+
+              <div v-else class="text-brand-600">Importing {{ processedRecords }}/{{ totalRecords }}</div>
             </div>
           </general-overlay>
         </div>

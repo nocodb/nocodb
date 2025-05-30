@@ -278,7 +278,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <ExtensionsExtensionWrapper :style="fullscreen ? {} : { height: exportedFiles.length ? '130px' : '100%' }">
+  <ExtensionsExtensionWrapper :style="fullscreen ? {} : { height: exportedFiles.length ? width <= 325 ? '172px': '130px' : '100%' }">
     <template v-if="fullscreen" #headerExtra>
       <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
         <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>

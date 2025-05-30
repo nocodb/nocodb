@@ -424,8 +424,12 @@ export const useExtensions = createSharedComposable(() => {
     },
   )
 
-  onMounted(() => {
-    if (base.value?.id) {
+  onMounted(async () => {
+    if (!isPluginsEnabled.value) return
+
+    await until(() => !!base.value?.id).toBeTruthy({ timeout: 50000 })
+
+    if (base.value?.id && !baseExtensions.value[base.value.id]?.extensions?.length) {
       loadExtensionsForBase(base.value?.id).catch((e) => {
         console.error(e)
       })

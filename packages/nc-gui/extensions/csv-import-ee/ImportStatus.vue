@@ -44,16 +44,10 @@ const handleScroll = () => {
     }"
     @click="handleScroll"
   >
-    <div class="w-full flex items-start flex gap-3">
+    <div class="w-full flex items-start gap-3">
       <GeneralIcon :icon="statusObj.icon" class="h-5 w-5 flex-none" :class="statusObj.color" />
 
-      <div
-        class="flex-1 text-sm flex flex-col gap-1"
-        :class="{
-          'w-[calc(100%_-_60px)]': status === 'inprogress',
-          'w-[calc(100%_-_36px)]': status !== 'inprogress',
-        }"
-      >
+      <div class="flex-1 text-sm flex flex-col gap-1 w-[calc(100%_-_60px)]">
         <div class="flex flex-col gap-2.5">
           <slot name="subtitle">
             <div class="text-sm text-nc-content-gray-subtle leading-6">

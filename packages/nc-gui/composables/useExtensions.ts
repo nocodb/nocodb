@@ -115,6 +115,7 @@ export const useExtensions = createSharedComposable(() => {
 
   const addExtension = async (extension: any) => {
     if (!base.value || !base.value.id || !baseExtensions.value[base.value.id]) {
+      console.warn('No base or base id found', base.value, base.value.id, baseExtensions.value[base.value.id])
       return
     }
 

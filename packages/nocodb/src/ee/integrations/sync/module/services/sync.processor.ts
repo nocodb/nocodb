@@ -25,6 +25,8 @@ import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { ColumnsService } from '~/services/columns.service';
 
+const BATCH_SIZE = 100;
+
 @Injectable()
 export class SyncModuleSyncDataProcessor {
   private logger: Logger = new Logger(SyncModuleSyncDataProcessor.name);
@@ -67,6 +69,7 @@ export class SyncModuleSyncDataProcessor {
           },
         ]),
       },
+      // we ignore pagination bc we are using the filterArrJson to get with ids
       ignorePagination: true,
     });
 
@@ -136,6 +139,7 @@ export class SyncModuleSyncDataProcessor {
         apiVersion: NcApiVersion.V3,
         internalFlags: {
           allowSystemColumn: true,
+          skipHooks: true,
         },
       });
     }
@@ -173,6 +177,9 @@ export class SyncModuleSyncDataProcessor {
             RemoteDeleted: true,
             RemoteDeletedAt: dayjs().utc().toISOString(),
           },
+          internalFlags: {
+            skipHooks: true,
+          },
           query: {
             filterArr: [
               {
@@ -207,6 +214,9 @@ export class SyncModuleSyncDataProcessor {
           baseName: model.base_id,
           tableName: model.id,
           req,
+          internalFlags: {
+            skipHooks: true,
+          },
           query: {
             filterArr: [
               {
@@ -232,7 +242,7 @@ export class SyncModuleSyncDataProcessor {
       // For incremental we need to still clear junction table records
       // We will delete the records that are not updated in this run for updated parent records
       if (model.mm && mmColumn) {
-        // first get records that are updated in this run 500 at a time
+        // first get records that are updated in this run BATCH_SIZE at a time
         const deletedParentIds = new Map<string, boolean>();
 
         let completedRun = false;
@@ -253,7 +263,7 @@ export class SyncModuleSyncDataProcessor {
                   )?.id,
                 },
               ],
-              limit: 500,
+              limit: BATCH_SIZE,
               offset,
             },
           });
@@ -268,26 +278,26 @@ export class SyncModuleSyncDataProcessor {
             deletedParentIds.set(parentId, true);
           }
 
-          if (
-            updatedRecords.pageInfo.isLastPage ||
-            updatedRecords.list.length === 0
-          ) {
+          if (updatedRecords.list.length < BATCH_SIZE) {
             completedRun = true;
           }
 
-          offset += 500;
+          offset += BATCH_SIZE;
         }
 
         if (deletedParentIds.size > 0) {
           const deletedParentIdsArray = Array.from(deletedParentIds.keys());
 
           while (deletedParentIdsArray.length > 0) {
-            const parentIds = deletedParentIdsArray.splice(0, 100);
+            const parentIds = deletedParentIdsArray.splice(0, BATCH_SIZE);
 
             await this.bulkDataAliasService.bulkDataDeleteAll(context, {
               baseName: model.base_id,
               tableName: model.id,
               req,
+              internalFlags: {
+                skipHooks: true,
+              },
               query: {
                 filterArr: [
                   {
@@ -379,7 +389,9 @@ export class SyncModuleSyncDataProcessor {
       }
     >();
     const modelIdSyncTargetMap = new Map<string, string>();
-    const targetTableIncrementalValues: Record<string, string> = {};
+    const targetTableIncrementalValues:
+      | Record<string, string>
+      | Record<string, Record<string, string>> = {};
 
     for (const syncMap of syncMappings) {
       const model = await Model.get(context, syncMap.fk_model_id);
@@ -433,24 +445,85 @@ export class SyncModuleSyncDataProcessor {
               NcError.genericNotFound('Model', syncMap.fk_model_id);
             }
 
-            const lastRecord = await this.dataTableService.dataList(context, {
-              modelId: model.id,
-              query: {
-                limit: 1,
-                orderBy: wrapper.getIncrementalKey(
-                  syncMap.target_table as TARGET_TABLES,
-                ),
-                order: 'desc',
-              },
-            });
+            const namespaces = wrapper.getNamespaces();
 
-            if (lastRecord.list.length > 0) {
-              targetTableIncrementalValues[syncMap.target_table] =
-                lastRecord.list[0][
-                  wrapper.getIncrementalKey(
+            if (namespaces.length > 0) {
+              for (const namespace of namespaces) {
+                const lastRecord = await this.dataTableService.dataList(
+                  context,
+                  {
+                    modelId: model.id,
+                    query: {
+                      limit: 1,
+                      sort: `-${wrapper.getIncrementalKey(
+                        syncMap.target_table as TARGET_TABLES,
+                      )}`,
+                      filterArrJson: JSON.stringify([
+                        {
+                          comparison_op: 'eq',
+                          value: syncConfig.id,
+                          logical_op: 'and',
+                          fk_column_id: model.columns.find(
+                            (c) => c.title === 'SyncConfigId',
+                          )?.id,
+                        },
+                        {
+                          comparison_op: 'eq',
+                          value: namespace,
+                          logical_op: 'and',
+                          fk_column_id: model.columns.find(
+                            (c) => c.title === 'RemoteNamespace',
+                          )?.id,
+                        },
+                      ]),
+                    },
+                  },
+                );
+
+                if (lastRecord.list.length > 0) {
+                  if (!targetTableIncrementalValues[namespace]) {
+                    targetTableIncrementalValues[namespace] = {};
+                  }
+
+                  targetTableIncrementalValues[namespace][
+                    syncMap.target_table
+                  ] =
+                    lastRecord.list[0][
+                      wrapper.getIncrementalKey(
+                        syncMap.target_table as TARGET_TABLES,
+                      )
+                    ];
+                }
+              }
+            } else {
+              const lastRecord = await this.dataTableService.dataList(context, {
+                modelId: model.id,
+                query: {
+                  limit: 1,
+                  sort: `-${wrapper.getIncrementalKey(
                     syncMap.target_table as TARGET_TABLES,
-                  )
-                ];
+                  )}`,
+                  filterArrJson: JSON.stringify([
+                    {
+                      comparison_op: 'eq',
+                      value: syncConfig.id,
+                      logical_op: 'and',
+                      fk_column_id: model.columns.find(
+                        (c) => c.title === 'SyncConfigId',
+                      )?.id,
+                    },
+                  ]),
+                },
+              });
+
+              if (lastRecord.list.length > 0) {
+                targetTableIncrementalValues[syncMap.target_table] =
+                  lastRecord.list[0][
+                    wrapper.getIncrementalKey(
+                      syncMap.target_table as TARGET_TABLES,
+                    )
+                  ];
+              }
             }
           }
         }
@@ -605,7 +678,7 @@ export class SyncModuleSyncDataProcessor {
 
                   linkBuffer.push(...linkArray);
 
-                  if (linkBuffer.length >= 100) {
+                  if (linkBuffer.length >= BATCH_SIZE) {
                     dataStream.pause();
 
                     await this.pushData(
@@ -621,10 +694,11 @@ export class SyncModuleSyncDataProcessor {
                 }
               }
 
-              if (dataBuffer.length >= 100) {
+              if (dataBuffer.length >= BATCH_SIZE) {
                 dataStream.pause();
 
-                recordCounter += dataBuffer.length;
+                const syncedCount = dataBuffer.length;
+                recordCounter += syncedCount;
 
                 await this.pushData(
                   context,
@@ -635,7 +709,7 @@ export class SyncModuleSyncDataProcessor {
                 );
 
                 logBasic(
-                  `[${integration.title}]: Synced ${recordCounter} records`,
+                  `[${integration.title} / ${model.title}]: Synced ${syncedCount} records`,
                 );
 
                 dataStream.resume();
@@ -664,7 +738,8 @@ export class SyncModuleSyncDataProcessor {
                 }
 
                 if (dataBuffer.length > 0) {
-                  recordCounter += dataBuffer.length;
+                  const syncedCount = dataBuffer.length;
+                  recordCounter += syncedCount;
 
                   await this.pushData(
                     context,
@@ -674,7 +749,9 @@ export class SyncModuleSyncDataProcessor {
                     req,
                   );
 
-                  logBasic(`Synced ${recordCounter} records`);
+                  logBasic(
+                    `[${integration.title} / ${model.title}]: Synced ${syncedCount} records`,
+                  );
                 }
               }
 
@@ -862,16 +939,13 @@ export class SyncModuleSyncDataProcessor {
               baseId: model.base_id,
               modelId: model.id,
               query: {
-                limit: 100,
+                limit: BATCH_SIZE,
                 offset,
               },
             },
           );
 
-          if (
-            existingRecords.list.length === 0 ||
-            existingRecords.pageInfo?.isLastPage
-          ) {
+          if (existingRecords.list.length < BATCH_SIZE) {
             completed = true;
           }
 
@@ -904,13 +978,14 @@ export class SyncModuleSyncDataProcessor {
                   apiVersion: NcApiVersion.V3,
                   internalFlags: {
                     allowSystemColumn: true,
+                    skipHooks: true,
                   },
                 });
               }
             }
           }
 
-          offset += 100;
+          offset += BATCH_SIZE;
         }
       }
     }

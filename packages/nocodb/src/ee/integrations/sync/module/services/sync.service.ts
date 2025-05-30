@@ -601,6 +601,15 @@ export class SyncModuleService {
     let updatedSyncConfig: SyncConfig | null = null;
 
     if (integrationPayload && integrationPayload.id) {
+      const integration = await Integration.get(context, integrationPayload.id);
+
+      if (!integration) {
+        NcError.genericNotFound('Integration', integrationPayload.id);
+      }
+
+      const integrationWrapper =
+        await integration.getIntegrationWrapper<SyncIntegration>();
+
       const tempIntegrationWrapper = Integration.tempIntegrationWrapper(
         integrationPayload,
       ) as SyncIntegration;
@@ -608,6 +617,14 @@ export class SyncModuleService {
       Object.assign(integrationPayload, {
         title: tempIntegrationWrapper.getTitle(),
       });
+
+      const oldNamespaces = await integrationWrapper.getNamespaces();
+
+      const newNamespaces = await tempIntegrationWrapper.getNamespaces();
+
+      const namespacesToDelete = oldNamespaces.filter(
+        (namespace) => !newNamespaces.includes(namespace),
+      );
 
       updatedIntegration = await this.integrationsService.integrationUpdate(
         context,
@@ -617,6 +634,46 @@ export class SyncModuleService {
           req,
         },
       );
+
+      // delete the data for the missing namespaces
+      if (namespacesToDelete.length > 0) {
+        const syncMappings = await SyncMapping.list(context, {
+          fk_sync_config_id:
+            syncConfig.fk_parent_sync_config_id || syncConfig.id,
+          force: true,
+        });
+
+        for (const syncMapping of syncMappings) {
+          const model = await Model.get(context, syncMapping.fk_model_id);
+
+          if (!model) {
+            continue;
+          }
+
+          await model.getColumns(context);
+
+          await this.bulkDataAliasService.bulkDataDeleteAll(context, {
+            baseName: model.base_id,
+            tableName: model.id,
+            req,
+            query: {
+              internalFlags: {
+                skipHooks: true,
+              },
+              filterArr: [
+                {
+                  comparison_op: 'in',
+                  value: namespacesToDelete,
+                  logical_op: 'and',
+                  fk_column_id: model.columns.find(
+                    (c) => c.title === 'RemoteNamespace',
+                  )?.id,
+                },
+              ],
+            },
+          });
+        }
+      }
     } else if (
       integrationPayload &&
       integrationPayload.type === IntegrationsType.Sync
@@ -667,29 +724,68 @@ export class SyncModuleService {
 
     // TODO: transaction
     try {
-      const syncMappings = await SyncMapping.list(context, {
-        fk_sync_config_id: syncConfig.id,
-        force: true,
-      });
+      if (syncConfig.fk_parent_sync_config_id) {
+        const parentSyncMapping = await SyncMapping.list(context, {
+          fk_sync_config_id: syncConfig.fk_parent_sync_config_id,
+          force: true,
+        });
 
-      for (const syncMapping of syncMappings) {
-        const table = await Model.get(context, syncMapping.fk_model_id);
+        // if this is a child sync clear the data for this
+        for (const syncMapping of parentSyncMapping) {
+          const model = await Model.get(context, syncMapping.fk_model_id);
 
-        if (table) {
-          if (table.mm) {
-            await Model.markAsMmTable(context, table.id, false);
+          if (!model) {
+            continue;
           }
 
-          await this.tablesService.tableDelete(context, {
-            tableId: syncMapping.fk_model_id,
-            forceDeleteSyncs: true,
-            forceDeleteRelations: true,
-            user: req.user,
+          await model.getColumns(context);
+
+          await this.bulkDataAliasService.bulkDataDeleteAll(context, {
+            baseName: model.base_id,
+            tableName: model.id,
             req,
+            query: {
+              internalFlags: {
+                skipHooks: true,
+              },
+              filterArr: [
+                {
+                  comparison_op: 'eq',
+                  value: syncConfig.id,
+                  logical_op: 'and',
+                  fk_column_id: model.columns.find(
+                    (c) => c.title === 'SyncConfigId',
+                  )?.id,
+                },
+              ],
+            },
           });
         }
+      } else {
+        const syncMappings = await SyncMapping.list(context, {
+          fk_sync_config_id: syncConfig.id,
+          force: true,
+        });
 
-        await SyncMapping.delete(context, syncMapping.id);
+        for (const syncMapping of syncMappings) {
+          const table = await Model.get(context, syncMapping.fk_model_id);
+
+          if (table) {
+            if (table.mm) {
+              await Model.markAsMmTable(context, table.id, false);
+            }
+
+            await this.tablesService.tableDelete(context, {
+              tableId: syncMapping.fk_model_id,
+              forceDeleteSyncs: true,
+              forceDeleteRelations: true,
+              user: req.user,
+              req,
+            });
+          }
+
+          await SyncMapping.delete(context, syncMapping.id);
+        }
       }
 
       await SyncConfig.delete(context, syncConfigId);

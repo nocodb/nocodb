@@ -41,6 +41,11 @@ export const syncSystemFields: SyncColumnDefinition[] = [
     uidt: UITypes.DateTime,
   },
   {
+    column_name: 'remote_namespace',
+    title: 'RemoteNamespace',
+    uidt: UITypes.SingleLineText,
+  },
+  {
     column_name: 'sync_config_id',
     title: 'SyncConfigId',
     uidt: UITypes.SingleLineText,

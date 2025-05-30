@@ -25,6 +25,8 @@ import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { ColumnsService } from '~/services/columns.service';
 
+const BATCH_SIZE = 100;
+
 @Injectable()
 export class SyncModuleSyncDataProcessor {
   private logger: Logger = new Logger(SyncModuleSyncDataProcessor.name);
@@ -67,6 +69,7 @@ export class SyncModuleSyncDataProcessor {
           },
         ]),
       },
+      // we ignore pagination bc we are using the filterArrJson to get with ids
       ignorePagination: true,
     });
 
@@ -232,7 +235,7 @@ export class SyncModuleSyncDataProcessor {
       // For incremental we need to still clear junction table records
       // We will delete the records that are not updated in this run for updated parent records
       if (model.mm && mmColumn) {
-        // first get records that are updated in this run 500 at a time
+        // first get records that are updated in this run BATCH_SIZE at a time
         const deletedParentIds = new Map<string, boolean>();
 
         let completedRun = false;
@@ -253,7 +256,7 @@ export class SyncModuleSyncDataProcessor {
                   )?.id,
                 },
               ],
-              limit: 500,
+              limit: BATCH_SIZE,
               offset,
             },
           });
@@ -268,21 +271,18 @@ export class SyncModuleSyncDataProcessor {
             deletedParentIds.set(parentId, true);
           }
 
-          if (
-            updatedRecords.pageInfo.isLastPage ||
-            updatedRecords.list.length === 0
-          ) {
+          if (updatedRecords.list.length < BATCH_SIZE) {
             completedRun = true;
           }
 
-          offset += 500;
+          offset += BATCH_SIZE;
         }
 
         if (deletedParentIds.size > 0) {
           const deletedParentIdsArray = Array.from(deletedParentIds.keys());
 
           while (deletedParentIdsArray.length > 0) {
-            const parentIds = deletedParentIdsArray.splice(0, 100);
+            const parentIds = deletedParentIdsArray.splice(0, BATCH_SIZE);
 
             await this.bulkDataAliasService.bulkDataDeleteAll(context, {
               baseName: model.base_id,
@@ -437,10 +437,19 @@ export class SyncModuleSyncDataProcessor {
               modelId: model.id,
               query: {
                 limit: 1,
-                orderBy: wrapper.getIncrementalKey(
+                sort: `-${wrapper.getIncrementalKey(
                   syncMap.target_table as TARGET_TABLES,
-                ),
-                order: 'desc',
+                )}`,
+                filterArrJson: JSON.stringify([
+                  {
+                    comparison_op: 'eq',
+                    value: syncConfig.id,
+                    logical_op: 'and',
+                    fk_column_id: model.columns.find(
+                      (c) => c.title === 'SyncConfigId',
+                    )?.id,
+                  },
+                ]),
               },
             });
 
@@ -605,7 +614,7 @@ export class SyncModuleSyncDataProcessor {
 
                   linkBuffer.push(...linkArray);
 
-                  if (linkBuffer.length >= 100) {
+                  if (linkBuffer.length >= BATCH_SIZE) {
                     dataStream.pause();
 
                     await this.pushData(
@@ -621,7 +630,7 @@ export class SyncModuleSyncDataProcessor {
                 }
               }
 
-              if (dataBuffer.length >= 100) {
+              if (dataBuffer.length >= BATCH_SIZE) {
                 dataStream.pause();
 
                 recordCounter += dataBuffer.length;
@@ -862,16 +871,13 @@ export class SyncModuleSyncDataProcessor {
               baseId: model.base_id,
               modelId: model.id,
               query: {
-                limit: 100,
+                limit: BATCH_SIZE,
                 offset,
               },
             },
           );
 
-          if (
-            existingRecords.list.length === 0 ||
-            existingRecords.pageInfo?.isLastPage
-          ) {
+          if (existingRecords.list.length < BATCH_SIZE) {
             completed = true;
           }
 
@@ -910,7 +916,7 @@ export class SyncModuleSyncDataProcessor {
             }
           }
 
-          offset += 100;
+          offset += BATCH_SIZE;
         }
       }
     }

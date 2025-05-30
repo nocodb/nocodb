@@ -53,7 +53,9 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
         const ticketIncrementalValue =
           targetTableIncrementalValues?.[TARGET_TABLES.TICKETING_TICKET];
 
-        const fetchAfter = ticketIncrementalValue;
+        const fetchAfter = ticketIncrementalValue
+          ? new Date(ticketIncrementalValue).toISOString()
+          : undefined;
 
         // Fetch teams if they're in the target tables
         if (args.targetTables?.includes(TARGET_TABLES.TICKETING_TEAM)) {
@@ -146,7 +148,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
             owner,
             repo,
             per_page: 100,
-            since: fetchAfter ? `${fetchAfter}` : undefined,
+            since: fetchAfter,
             ...(!includeClosed ? {} : { state: 'all' }),
           },
         );
@@ -213,6 +215,13 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
               `[GitHub Sync] Fetching comments for repository ${owner}/${repo}`,
             );
 
+            const commentIncrementalValue =
+              targetTableIncrementalValues?.[TARGET_TABLES.TICKETING_COMMENT];
+
+            const fetchAfter = commentIncrementalValue
+              ? new Date(commentIncrementalValue).toISOString()
+              : undefined;
+
             try {
               // Fetch issue comments for the repository
               const commentsIterator = octokit.paginate.iterator(
@@ -221,7 +230,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
                   owner,
                   repo,
                   per_page: 100,
-                  // TODO incremental comments
+                  since: fetchAfter,
                 },
               );
 

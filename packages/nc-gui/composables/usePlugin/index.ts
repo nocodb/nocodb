@@ -99,6 +99,8 @@ export const usePlugin = createSharedComposable(() => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
+  const isPluginsEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))
+
   const availablePlugins = computed<PluginManifest[]>(() => [...availableExtensions.value, ...availableScripts.value])
 
   const availableExtensionIds = computed(() => availableExtensions.value.map((e) => e.id))
@@ -253,19 +255,20 @@ export const usePlugin = createSharedComposable(() => {
     }
   }
 
-  onMounted(async () => {
-    watch(
-      () => isFeatureEnabled(FEATURE_FLAG.EXTENSIONS),
-      async () => {
-        availableExtensions.value = []
-        availableScripts.value = []
-        await loadPlugins()
-      },
-      {
-        immediate: true,
-      },
-    )
-  })
+  watch(
+    isPluginsEnabled,
+    async (newValue) => {
+      availableExtensions.value = []
+      availableScripts.value = []
+
+      if (!newValue) return
+
+      await loadPlugins()
+    },
+    {
+      immediate: true,
+    },
+  )
 
   /**
    * Find a plugin by ID regardless of type
@@ -296,6 +299,7 @@ export const usePlugin = createSharedComposable(() => {
     availablePlugins,
     availableExtensionIds,
     availableScriptIds,
+    isPluginsEnabled,
 
     // Content getters
     getPluginAssetUrl,

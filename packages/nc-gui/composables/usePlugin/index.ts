@@ -86,6 +86,8 @@ export const usePlugin = createSharedComposable(() => {
   const availableExtensions = ref<ExtensionManifest[]>([])
   const availableScripts = ref<ScriptManifest[]>([])
 
+  const { appInfo } = useGlobal()
+
   const pluginCollections = {
     [PluginType.extension]: {
       available: availableExtensions,
@@ -161,7 +163,12 @@ export const usePlugin = createSharedComposable(() => {
         }
       }
 
-      if (manifest?.disabled !== true && (!manifest?.beta || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))) {
+      if (
+        manifest?.disabled !== true &&
+        // Ensure the plugin is enabled for the current environment
+        (appInfo.value?.isOnPrem || (isEeUI && !manifest?.onPrem)) &&
+        (!manifest?.beta || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))
+      ) {
         // Add to available plugins collection
         const existingPluginIndex = pluginCollections[type].available.value.findIndex((p) => p.id === manifest.id)
         if (existingPluginIndex !== -1) {

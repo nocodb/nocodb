@@ -60,7 +60,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <NcButton
           v-if="
-            (appInfo.isOnPrem || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
+            (appInfo.isOnPrem || isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
             !isSharedBase &&
             !activeAutomationId &&
             openedViewsTab === 'view' &&

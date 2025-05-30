@@ -21,5 +21,6 @@
   },
   "order": 7,
   "disabled": true,
-  "beta": true
+  "beta": true,
+  "onPrem": true
 }

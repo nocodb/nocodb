@@ -1015,7 +1015,7 @@ watch(
   >
     <div
       v-if="!isPublic && timezoneDayjs.dayjsTz().isBetween(selectedDateRange.start, selectedDateRange.end)"
-      class="absolute top-16 ml-16 pointer-events-none z-2"
+      class="absolute top-16 ml-16 pointer-events-none z-4"
       :class="{
         '!mt-38.5': isExpanded && isRangeEnabled,
         'mt-27': !isExpanded && isRangeEnabled,

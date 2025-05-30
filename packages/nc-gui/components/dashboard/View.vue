@@ -96,6 +96,8 @@ watch(isLeftSidebarOpen, () => {
       sidebarState.value = 'hiddenEnd'
     }, animationDuration)
   }
+}, {
+  immediate: true
 })
 
 function handleMouseMove(e: MouseEvent) {

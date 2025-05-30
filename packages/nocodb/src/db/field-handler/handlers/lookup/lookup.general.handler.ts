@@ -5,7 +5,7 @@ import type { NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type {
-  HandlerOptions,
+  FilterOptions,
   IFieldHandler,
 } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from '~/db/CustomKnex';
@@ -20,11 +20,22 @@ import {
 import { Model } from '~/models';
 
 export class LookupGeneralHandler extends ComputedFieldHandler {
+  /**
+   * Applies a filter condition for lookup columns based on the relation type.
+   * It constructs a subquery to find related records that match the filter criteria
+   * and then uses this subquery to filter the main query.
+   *
+   * @param knex - The Knex instance.
+   * @param filter - The filter object containing comparison operator and value.
+   * @param column - The lookup column being filtered.
+   * @param options - Additional options including base model, alias count, error handling, and condition parser.
+   * @returns A function that applies the filter condition to a query builder.
+   */
   override async filter(
     knex: CustomKnex,
     filter: Filter,
     column: Column,
-    options: HandlerOptions,
+    options: FilterOptions,
   ) {
     const {
       baseModel: baseModelSqlv2,

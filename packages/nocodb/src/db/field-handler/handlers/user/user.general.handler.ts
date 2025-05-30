@@ -1,13 +1,46 @@
 import type { Logger } from '@nestjs/common';
 import type { NcContext } from 'nocodb-sdk';
+import type CustomKnex from '~/db/CustomKnex';
+import type { Knex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { MetaService } from '~/meta/meta.service';
-import { extractProps } from '~/helpers/extractProps';
-import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
+import type { Filter } from '~/models';
+import type { FilterOptions } from '../../field-handler.interface';
+import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
+import { getColumnName } from '~/helpers/dbHelpers';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
+import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
+import { extractProps } from '~/helpers/extractProps';
 import { BaseUser, type Column } from '~/models';
 
 export class UserGeneralHandler extends GenericFieldHandler {
+  protected singleLineTextHandler: GenericFieldHandler =
+    new GenericFieldHandler();
+
+  override async filter(
+    knex: CustomKnex,
+    filter: Filter,
+    column: Column,
+    options: FilterOptions,
+  ): Promise<(qb: Knex.QueryBuilder) => void> {
+    const { alias, context } = options;
+    let val = filter.value;
+    const field =
+      options.customWhereClause ??
+      (alias ? `${alias}.${column.column_name}` : column.column_name);
+
+    handleCurrentUserFilter(context, {
+      column,
+      filter,
+      setVal: (newVal) => (val = newVal),
+    });
+    return await this.handleFilter(
+      { val, sourceField: field },
+      { knex, filter, column },
+      options,
+    );
+  }
+
   override async parseUserInput(params: {
     value: any;
     row: any;
@@ -169,5 +202,83 @@ export class UserGeneralHandler extends GenericFieldHandler {
       }
     }
     return { value: evalValue };
+  }
+
+  async filterLikeNlike(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    options: FilterOptions,
+  ) {
+    const { sourceField } = args;
+    const { val } = args;
+    const { knex, filter, column } = rootArgs;
+    const { context } = options;
+
+    // get column name for CreatedBy, LastModifiedBy
+    column.column_name = await getColumnName(context, column);
+
+    const baseUsers = await BaseUser.getUsersList(context, {
+      base_id: column.base_id,
+    });
+    const users = baseUsers.filter((user) => {
+      const filterVal = val.toLowerCase();
+
+      if (filterVal.startsWith('%') && filterVal.endsWith('%')) {
+        return (user.display_name || user.email)
+          .toLowerCase()
+          .includes(filterVal.substring(1, filterVal.length - 1));
+      } else if (filterVal.startsWith('%')) {
+        return (user.display_name || user.email)
+          .toLowerCase()
+          .endsWith(filterVal.substring(1));
+      } else if (filterVal.endsWith('%')) {
+        return (user.display_name || user.email)
+          .toLowerCase()
+          .startsWith(filterVal.substring(0, filterVal.length - 1));
+      }
+
+      return (user.display_name || user.email)
+        .toLowerCase()
+        .includes(filterVal.toLowerCase());
+    });
+
+    const finalStatement = this.replaceDelimitedWithKeyValue({
+      knex,
+      needleColumn: sourceField,
+      stack: users.map((user) => ({
+        key: user.id,
+        value: user.display_name || user.email,
+      })),
+    });
+
+    if (filter.comparison_op === 'like') {
+      return this.singleLineTextHandler.filterLike(
+        { val, sourceField: finalStatement },
+        rootArgs,
+        options,
+      );
+    } else {
+      return this.singleLineTextHandler.filterNlike(
+        { val, sourceField: finalStatement },
+        rootArgs,
+        options,
+      );
+    }
+  }
+
+  replaceDelimitedWithKeyValue(param: {
+    knex: CustomKnex;
+    stack: { key: string; value: string }[];
+    needleColumn: string | Knex.QueryBuilder | Knex.RawBuilder;
+    delimiter?: string;
+  }) {
+    const { knex, needleColumn, stack } = param;
+    return stack.reduce((acc, each) => {
+      const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [each.key, each.value]);
+      return qb.toQuery();
+    }, knex.raw(`??`, [needleColumn]).toQuery());
   }
 }

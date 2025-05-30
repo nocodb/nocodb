@@ -27,11 +27,8 @@ foreground {
     foreground { redirfd -w 1 /dev/null s6-setuidgid postgres initdb $INITOPTS -D $PGDATA }
 }
 
-# TODO: for some reason PGDATA is not being expanded here, look into it
-foreground { ln -sf /etc/postgresql/postgresql.conf /var/lib/postgres/data/postgresql.conf }
-
 fdmove -c 2 1
 
 s6-notifyoncheck
 s6-setuidgid postgres
-postgres -D $PGDATA $PGOPTS
+postgres -D $PGDATA -c config_file=/etc/postgresql/postgresql.conf $PGOPTS

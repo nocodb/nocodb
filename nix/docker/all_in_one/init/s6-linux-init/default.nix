@@ -11,6 +11,7 @@
   # needed because s6-linux-init-maker expects to be able to create setgid
   # directories, which the Nix sandbox forbids
   fakeroot,
+  glibcLocales,
   s6-linux-init,
   base_dir ? "/run/init",
 }:
@@ -27,6 +28,7 @@ stdenv.mkDerivation {
     s6-linux-init
     fakeroot
     cpio
+    glibcLocales
   ];
 
   installPhase = ''
@@ -35,7 +37,9 @@ stdenv.mkDerivation {
 
     # patchShebangs skel
     fakeroot s6-linux-init-maker \
-      -e LOCALE_ARCHIVE=/lib/locale/locale-archive \
+      -e LOCALE_ARCHIVE=${glibcLocales}/lib/locale/locale-archive \
+      -e LANG=en_US.UTF-8 \
+      -e LC_ALL=en_US.UTF-8 \
       -C -N -1 \
       -f ${./skel} \
       -c ${base_dir} \

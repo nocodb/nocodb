@@ -22,7 +22,6 @@
   lego,
   snooze,
   redis,
-  glibcLocales,
 }:
 let
   nginxCustom = nginx.override {
@@ -52,7 +51,6 @@ dockerTools.buildLayeredImage {
     nginxCustom
     glibc.bin
     coreutils
-    glibcLocales
 
     util-linux
     gnugrep

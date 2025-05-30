@@ -28,7 +28,7 @@ export class LtarGeneralHandler extends GenericFieldHandler {
     const colOptions = (await column.getColOptions(
       context,
     )) as LinkToAnotherRecordColumn;
-    let rootApply: (qb: Knex.QueryBuilder) => void = undefined;
+    let rootApply: ((qb: Knex.QueryBuilder) => void) | undefined = undefined;
 
     const { parentContext, childContext, mmContext } =
       await colOptions.getParentChildContext(context, column);

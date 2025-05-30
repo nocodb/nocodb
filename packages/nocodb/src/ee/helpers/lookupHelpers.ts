@@ -2,6 +2,7 @@ import type { Knex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import { generateRecursiveCTE } from '~/helpers/dbHelpers';
+import { RelationTypes } from 'nocodb-sdk';
 
 export async function recursiveCTEFromLookupColumn({
   baseModelSqlV2,
@@ -29,7 +30,7 @@ export async function recursiveCTEFromLookupColumn({
     await parentModel.getColumns(baseModelSqlV2.context)
   ).find((col) => col.id === lookupColOpt.fk_lookup_column_id);
 
-  if (relation.type === 'hm') {
+  if (relation.type === RelationTypes.HAS_MANY) {
     return (qb: Knex.QueryBuilder) => {
       generateRecursiveCTE({
         qb,
@@ -41,7 +42,7 @@ export async function recursiveCTEFromLookupColumn({
         sourceTable: baseModelSqlV2.getTnPath(parentModel.table_name),
       });
     };
-  } else if (relation.type === 'bt') {
+  } else if (relation.type === RelationTypes.BELONGS_TO) {
     return (qb: Knex.QueryBuilder) => {
       generateRecursiveCTE({
         qb,

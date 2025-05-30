@@ -735,17 +735,41 @@ const onImport = async () => {
     step.value = 2
     importPayload.value.step = 2
   } catch (e: any) {
-    stats.value.error = {
-      title: `Import failed for records between ${processedRecords.value} - ${processedRecords.value + CHUNK_SIZE}`,
-      message: await extractSdkResponseErrorMsg(e),
-    }
-    step.value = 3
+    if (importPayload.value?.upsert) {
+      const insertErrorTitle = totalRecordsToInsert.value
+        ? `Import failed while inserting records between ${processedRecordsToInsert.value} - ${totalRecordsToInsert.value}`
+        : ''
 
-    importPayload.value.stats.error = {
-      title: `Import failed for records between ${processedRecords.value} - ${processedRecords.value + CHUNK_SIZE}`,
-      message: await extractSdkResponseErrorMsg(e),
+      const updateErrorTitle = totalRecordsToUpdate.value
+        ? `Import failed while updating records between ${processedRecordsToUpdate.value} - ${totalRecordsToUpdate.value}`
+        : ''
+
+      stats.value.error = {
+        title: insertErrorTitle + ' ' + updateErrorTitle,
+        message: await extractSdkResponseErrorMsg(e),
+      }
+      step.value = 3
+
+      importPayload.value.stats.error = {
+        title: insertErrorTitle + ' ' + updateErrorTitle,
+        message: await extractSdkResponseErrorMsg(e),
+      }
+      importPayload.value.step = 3
+    } else {
+      const errorTitle = `Import failed for records between ${processedRecords.value} - ${processedRecords.value + CHUNK_SIZE}`
+      stats.value.error = {
+        title: errorTitle,
+        message: await extractSdkResponseErrorMsg(e),
+      }
+      step.value = 3
+
+      importPayload.value.stats.error = {
+        title: errorTitle,
+        message: await extractSdkResponseErrorMsg(e),
+      }
+
+      importPayload.value.step = 3
     }
-    importPayload.value.step = 3
   } finally {
     openImportDetailsItemIndex.value = 0
     isImportingRecords.value = false

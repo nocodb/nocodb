@@ -90,7 +90,7 @@ const importTypeOptions = [
   },
 ] as ImportType[]
 
-const { fullscreen, fullscreenModalSize, extension, tables, insertData, upsertData, getTableMeta, reloadData, activeTableId } =
+const { fullscreen, fullscreenModalSize, extension, tables, insertData, getTableMeta, reloadData, activeTableId } =
   useExtensionHelperOrThrow()
 const { getMeta } = useMetas()
 
@@ -512,7 +512,7 @@ const onVerifyImport = async () => {
 
   isVerifyImportLoading.value = true
 
-  let data = prepareDataToImport()
+  const data = prepareDataToImport()
 
   dataToImport.value = data
 
@@ -552,7 +552,7 @@ const onVerifyImport = async () => {
     let fetchRecords = true
     let totalRecords = 0
 
-    let list = []
+    const list = []
 
     while (fetchRecords) {
       const { list: _list, pageInfo } = await $api.dbDataTableRow.list(importPayload.value.tableId, {
@@ -640,15 +640,15 @@ const onImport = async () => {
   isImportingRecords.value = true
 
   // prepare data
-  let data = importPayload.value.upsert ? dataToImport.value : prepareDataToImport()
+  const data = importPayload.value.upsert ? dataToImport.value : prepareDataToImport()
   const chunks = []
 
   while (data.length) {
     chunks.push(data.splice(0, CHUNK_SIZE))
   }
 
-  let dataToInsert = recordsToInsert.value
-  let dataToUpdate = recordsToUpdate.value
+  const dataToInsert = recordsToInsert.value
+  const dataToUpdate = recordsToUpdate.value
 
   try {
     if (importPayload.value?.upsert) {

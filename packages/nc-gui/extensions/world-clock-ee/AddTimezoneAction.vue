@@ -93,7 +93,7 @@ const onSelect = (option: NcListItemType) => {
         option-value-key="value"
         variant="small"
         class="!w-full"
-        :is-multi-Select="isSidebar"
+        :is-multi-select="isSidebar"
         data-testid="nc-column-uitypes-options-list-wrapper"
         @change="onSelect"
       />

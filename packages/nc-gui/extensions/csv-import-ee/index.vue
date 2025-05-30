@@ -746,13 +746,13 @@ const onImport = async () => {
         : ''
 
       stats.value.error = {
-        title: insertErrorTitle + ' ' + updateErrorTitle,
+        title: `${insertErrorTitle} ${updateErrorTitle}`,
         message: await extractSdkResponseErrorMsg(e),
       }
       step.value = 3
 
       importPayload.value.stats.error = {
-        title: insertErrorTitle + ' ' + updateErrorTitle,
+        title: `${insertErrorTitle} ${updateErrorTitle}`,
         message: await extractSdkResponseErrorMsg(e),
       }
       importPayload.value.step = 3

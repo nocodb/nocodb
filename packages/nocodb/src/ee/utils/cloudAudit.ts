@@ -83,7 +83,9 @@ export async function getChRecordAudit(
       `,
   });
 
-  return clickhouseResult.json();
+  const result = await clickhouseResult.json();
+
+  return result.data ?? [];
 }
 
 export async function getChWorkspaceAudit(
@@ -180,7 +182,9 @@ export async function getChWorkspaceAudit(
     query,
   });
 
-  return clickhouseResult.json();
+  const result = await clickhouseResult.json();
+
+  return result.data ?? [];
 }
 
 export async function pushAuditToKinesis(audits: Audit | Audit[]) {

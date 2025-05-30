@@ -70,7 +70,7 @@ export class InternalController {
         return await this.auditsService.recordAuditList(context, {
           row_id: req.query.row_id as string,
           fk_model_id: req.query.fk_model_id as string,
-          page: req.query.page ? parseInt(req.query.page || '1') : undefined,
+          cursor: req.query.cursor as string,
         });
       default:
         return NcError.notFound('Operation');

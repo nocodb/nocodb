@@ -18,9 +18,9 @@ export class AuditsService extends AuditsServiceCE {
   async workspaceAuditList(
     context: NcContext,
     param: {
-      page?: number;
+      cursor?: string;
       baseId?: string;
-      user?: string;
+      fkUserId?: string;
       type?: string[];
       startDate?: string;
       endDate?: string;
@@ -31,9 +31,6 @@ export class AuditsService extends AuditsServiceCE {
   ) {
     return new PagedResponseImpl(
       await Audit.workspaceAuditList(context, param),
-      {
-        count: await Audit.workspaceAuditCount(context, param),
-      },
     );
   }
 }

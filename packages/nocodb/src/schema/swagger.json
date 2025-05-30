@@ -19985,11 +19985,11 @@
         },
         {
           "schema": {
-            "type": "number"
+            "type": "string"
           },
-          "name": "page",
+          "name": "cursor",
           "in": "query",
-          "description": "Page",
+          "description": "Cursor",
           "required": false
         }
       ]

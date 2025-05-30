@@ -36,7 +36,6 @@ export enum MetaTable {
   TEAM_USERS = 'nc_team_users_v2',
   VIEWS = 'nc_views_v2',
   AUDIT = 'nc_audit_v2',
-  RECORD_AUDIT = 'nc_record_audit_v2',
   HOOKS = 'nc_hooks_v2',
   HOOK_LOGS = 'nc_hook_logs_v2',
   PLUGIN = 'nc_plugins_v2',
@@ -257,7 +256,6 @@ export const RootScopeTables = {
     MetaTable.DATA_REFLECTION,
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
-    MetaTable.RECORD_AUDIT,
     MetaTable.CUSTOM_URLS,
     MetaTable.MCP_TOKENS,
   ],

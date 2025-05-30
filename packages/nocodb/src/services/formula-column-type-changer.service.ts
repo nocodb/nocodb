@@ -21,7 +21,7 @@ import {
   getBaseModelSqlFromModelId,
   isDataAuditEnabled,
 } from '~/helpers/dbHelpers';
-import { Column, RecordAudit } from '~/models';
+import { Audit, Column } from '~/models';
 import { ColumnsService } from '~/services/columns.service';
 import { MysqlDataMigration } from '~/services/formula-column-type-changer/mysql-data-migration';
 import { PgDataMigration } from '~/services/formula-column-type-changer/pg-data-migration';
@@ -213,7 +213,7 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
         );
       }
 
-      await RecordAudit.insert(auditPayloads);
+      await Audit.insert(auditPayloads);
     }
   }
 }

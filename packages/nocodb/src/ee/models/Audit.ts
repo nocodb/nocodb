@@ -4,22 +4,65 @@ import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { isOnPrem } from '~/utils';
+import { extractProps } from '~/helpers/extractProps';
+import { stringifyMetaProp } from '~/utils/modelUtils';
+import {
+  getChRecordAudit,
+  getChWorkspaceAudit,
+  pushAuditToKinesis,
+} from '~/utils/cloudAudit';
 
 export default class Audit extends AuditCE {
+  public static async recordAuditList(
+    context: NcContext,
+    {
+      fk_model_id,
+      row_id,
+      cursor,
+    }: {
+      fk_model_id: string;
+      row_id: string;
+      cursor?: string;
+    },
+  ) {
+    if (!context.workspace_id || !context.base_id || !fk_model_id || !row_id) {
+      return [];
+    }
+
+    const result = await AuditCE.recordAuditList(context, {
+      fk_model_id,
+      row_id,
+      cursor,
+    });
+
+    if (result.length > 0) {
+      return result;
+    }
+
+    const clickhouseData = (await getChRecordAudit(context, {
+      fk_model_id,
+      row_id,
+      cursor,
+      limit: this.limit,
+    })) as Partial<Audit>[];
+
+    return clickhouseData;
+  }
+
   static async workspaceAuditList(
     context: NcContext,
     {
-      page = 1,
+      cursor,
       baseId,
-      user,
+      fkUserId,
       type,
       startDate,
       endDate,
       orderBy,
     }: {
-      page?: number;
+      cursor?: string;
       baseId?: string;
-      user?: string;
+      fkUserId?: string;
       type?: string[];
       startDate?: string;
       endDate?: string;
@@ -28,9 +71,6 @@ export default class Audit extends AuditCE {
       };
     },
   ) {
-    const limit = 25;
-    const offset = (Math.max(1, page ?? 1) - 1) * limit;
-
     if (!context.workspace_id) {
       return [];
     }
@@ -39,79 +79,67 @@ export default class Audit extends AuditCE {
       baseId = undefined;
     }
 
-    if (orderBy?.created_at) {
-      orderBy.created_at = orderBy.created_at === 'asc' ? 'asc' : 'desc';
+    const query = Noco.ncAudit
+      .knex(MetaTable.AUDIT)
+      .where('fk_workspace_id', context.workspace_id)
+      .where('version', 1);
+
+    if (baseId) {
+      query.where('base_id', baseId);
     }
 
-    return await Noco.ncAudit.metaList2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.AUDIT,
-      {
-        limit,
-        offset,
-        orderBy: {
-          ...(orderBy?.created_at
-            ? { id: orderBy?.created_at }
-            : { id: 'desc' }),
-        },
-        xcCondition: {
-          _and: [
-            { fk_workspace_id: { eq: context.workspace_id } },
-            { version: { eq: 1 } },
-            ...(baseId ? [{ base_id: { eq: baseId } }] : []),
-            ...(user ? [{ user: { eq: user } }] : []),
-            ...(startDate ? [{ created_at: { ge: startDate } }] : []),
-            ...(endDate ? [{ created_at: { le: endDate } }] : []),
-            ...(type ? [{ op_type: { in: type } }] : []),
-          ],
-        },
-      },
-    );
-  }
+    if (fkUserId) {
+      query.where('fk_user_id', fkUserId);
+    }
 
-  static async workspaceAuditCount(
-    context: NcContext,
-    {
+    if (type) {
+      query.where('op_type', 'in', type);
+    }
+
+    if (startDate) {
+      query.where('created_at', '>=', startDate);
+    }
+
+    if (endDate) {
+      query.where('created_at', '<=', endDate);
+    }
+
+    if (orderBy?.created_at === 'asc') {
+      query.orderBy('id', 'asc');
+    } else {
+      query.orderBy('id', 'desc');
+    }
+
+    const [id, _created_at] = cursor?.split('|') ?? [];
+
+    if (id) {
+      if (orderBy?.created_at === 'asc') {
+        query.where('id', '>', id);
+      } else {
+        query.where('id', '<', id);
+      }
+    }
+
+    query.limit(this.limit);
+
+    const result = await query;
+
+    if (result.length > 0) {
+      return result;
+    }
+
+    const clickhouseData = (await getChWorkspaceAudit(context, {
+      cursor,
       baseId,
-      user,
+      fkUserId,
       type,
       startDate,
       endDate,
-    }: {
-      baseId?: string;
-      user?: string;
-      type?: string[];
-      startDate?: string;
-      endDate?: string;
-    },
-  ) {
-    if (!context.workspace_id) {
-      return 0;
-    }
+      orderBy,
+      limit: this.limit,
+    })) as Partial<Audit>[];
 
-    if (baseId === NO_SCOPE) {
-      baseId = undefined;
-    }
-
-    return Noco.ncAudit.metaCount(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.AUDIT,
-      {
-        xcCondition: {
-          _and: [
-            { fk_workspace_id: { eq: context.workspace_id } },
-            { version: { eq: 1 } },
-            ...(baseId ? [{ base_id: { eq: baseId } }] : []),
-            ...(user ? [{ user: { eq: user } }] : []),
-            ...(startDate ? [{ created_at: { ge: startDate } }] : []),
-            ...(endDate ? [{ created_at: { le: endDate } }] : []),
-            ...(type ? [{ op_type: { in: type } }] : []),
-          ],
-        },
-      },
-    );
+    return clickhouseData;
   }
 
   public static async insert(
@@ -135,6 +163,78 @@ export default class Audit extends AuditCE {
       return;
     }
 
-    return AuditCE.insert(audit, ncAudit, { forceAwait, catchException });
+    try {
+      if (process.env.NC_DISABLE_AUDIT === 'true') {
+        return;
+      }
+      const propsToExtract = [
+        'user',
+        'ip',
+        'source_id',
+        'fk_workspace_id',
+        'base_id',
+        'row_id',
+        'fk_model_id',
+        'op_type',
+        'op_sub_type',
+        'description',
+        'details',
+        'user_agent',
+        'version',
+        'fk_user_id',
+        'fk_ref_id',
+        'fk_parent_id',
+      ];
+
+      const insertAudit = async () => {
+        if (Array.isArray(audit)) {
+          const insertObjs = audit
+            .filter((k) => k)
+            .map((a) => ({
+              ...extractProps(a, propsToExtract),
+              details: stringifyMetaProp(a, 'details'),
+            }));
+
+          const results = await ncAudit.bulkMetaInsert(
+            RootScopes.ROOT,
+            RootScopes.ROOT,
+            MetaTable.AUDIT,
+            insertObjs,
+          );
+
+          await pushAuditToKinesis(results);
+
+          return results;
+        } else {
+          const insertObj = extractProps(audit, propsToExtract);
+
+          const result = await ncAudit.metaInsert2(
+            RootScopes.ROOT,
+            RootScopes.ROOT,
+            MetaTable.AUDIT,
+            { ...insertObj, details: stringifyMetaProp(insertObj, 'details') },
+          );
+
+          await pushAuditToKinesis(result);
+
+          return result;
+        }
+      };
+
+      if (forceAwait) {
+        return await insertAudit();
+      } else {
+        insertAudit().catch((e) => {
+          console.error('Error inserting audit', e);
+        });
+        return;
+      }
+    } catch (e) {
+      if (!catchException) {
+        console.error('Error inserting audit', e);
+      } else {
+        throw e;
+      }
+    }
   }
 }

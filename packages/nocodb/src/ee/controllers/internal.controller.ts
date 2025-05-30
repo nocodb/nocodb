@@ -100,9 +100,9 @@ export class InternalController extends InternalControllerCE {
         return await this.mcpService.get(context, req.query.tokenId as string);
       case 'workspaceAuditList':
         return await this.auditsService.workspaceAuditList(context, {
-          page: req.query.page ? parseInt(req.query.page || '1') : undefined,
+          cursor: req.query.cursor,
           baseId,
-          user: req.query.user,
+          fkUserId: req.query.fkUserId,
           type: req.query.type,
           startDate: req.query.startDate,
           endDate: req.query.endDate,

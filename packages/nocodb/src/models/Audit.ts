@@ -22,6 +22,8 @@ export default class Audit {
   version?: number;
   fk_parent_id?: string;
 
+  protected static limit = 25;
+
   constructor(audit: Partial<Audit>) {
     Object.assign(this, audit);
   }
@@ -114,6 +116,43 @@ export default class Audit {
     }
   }
 
+  public static async recordAuditList(
+    context: NcContext,
+    {
+      fk_model_id,
+      row_id,
+      cursor,
+    }: {
+      fk_model_id: string;
+      row_id: string;
+      cursor?: string;
+    },
+  ) {
+    if (!context.workspace_id || !context.base_id || !fk_model_id || !row_id) {
+      return [];
+    }
+
+    const [id, _created_at] = cursor?.split('|') ?? [];
+
+    const query = Noco.ncAudit
+      .knex(MetaTable.AUDIT)
+      .where('fk_workspace_id', context.workspace_id)
+      .where('base_id', context.base_id)
+      .where('fk_model_id', fk_model_id)
+      .where('row_id', row_id)
+      .orderBy('id', 'desc');
+
+    if (id) {
+      query.where('id', '<', id);
+    }
+
+    query.limit(this.limit);
+
+    const audits = await query;
+
+    return audits;
+  }
+
   static async baseAuditList(
     context: NcContext,
     {
@@ -134,8 +173,7 @@ export default class Audit {
       };
     },
   ) {
-    const limit = 25;
-    const offset = (Math.max(1, page ?? 1) - 1) * limit;
+    const offset = (Math.max(1, page ?? 1) - 1) * this.limit;
 
     if (!context.workspace_id || !context.base_id) {
       console.error('Invalid context for baseAuditList', context);
@@ -151,7 +189,7 @@ export default class Audit {
       RootScopes.ROOT,
       MetaTable.AUDIT,
       {
-        limit,
+        limit: this.limit,
         offset,
         orderBy: {
           ...(orderBy?.created_at

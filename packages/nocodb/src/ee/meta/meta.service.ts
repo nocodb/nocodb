@@ -47,7 +47,7 @@ export class MetaService extends MetaServiceCE {
    * @returns {string} - Generated nanoid
    * */
   public async genNanoid(target: string) {
-    if (target === MetaTable.AUDIT || target === MetaTable.RECORD_AUDIT) {
+    if (target === MetaTable.AUDIT) {
       return uuidv7();
     }
 
@@ -197,11 +197,11 @@ export class MetaService extends MetaServiceCE {
       if (base_id !== RootScopes.WORKSPACE) insertObj.base_id = base_id;
     }
 
-    const qb = this.knexConnection(target).insert({
-      ...insertObj,
-      created_at: this.now(),
-      updated_at: this.now(),
-    });
+    const at = this.now();
+    insertObj.created_at = at;
+    insertObj.updated_at = at;
+
+    const qb = this.knexConnection(target).insert(insertObj);
 
     this.logHelper(workspace_id, base_id, target, qb);
 

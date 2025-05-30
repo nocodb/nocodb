@@ -43,43 +43,7 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.RECORD_AUDIT, (table) => {
-    if (knex.client.config.client === 'pg') {
-      table.uuid('id');
-    } else {
-      table.string('id', 36);
-    }
-
-    table.string('user', 255);
-    table.string('ip', 255);
-    table.string('source_id', 20);
-    table.string('base_id', 20);
-    table.string('fk_model_id', 20);
-    table.string('row_id', 255);
-    table.string('op_type', 255);
-    table.string('op_sub_type', 255);
-    table.string('status', 255);
-    table.text('description');
-    table.text('details');
-    table.string('fk_user_id', 20);
-    table.string('fk_ref_id', 20);
-
-    if (knex.client.config.client === 'pg') {
-      table.uuid('fk_parent_id');
-    } else {
-      table.string('fk_parent_id', 36);
-    }
-
-    table.string('fk_workspace_id', 20);
-    table.string('fk_org_id', 20); // new column
-    table.text('user_agent');
-    table.specificType('version', 'smallint').defaultTo(0);
-
-    table.timestamps(true, true);
-  });
-
   // Step 3: Copy the data from the old table to the new tables with UUIDv7 generation
-  // Records with row_id go to RECORD_AUDIT, others go to AUDIT
   // Use streaming and smaller batches for memory efficiency with millions of rows
   const batchSize = 500; // Smaller batch size for better memory management
   const fallbackTimestamp = new Date('2020-01-01T00:00:00.000Z').getTime();
@@ -88,8 +52,6 @@ const up = async (knex: Knex) => {
 
   let offset = 0;
   let processedCount = 0;
-  let recordAuditCount = 0;
-  let auditCount = 0;
   let hasMoreRecords = true;
 
   while (hasMoreRecords) {
@@ -106,8 +68,6 @@ const up = async (knex: Knex) => {
       break;
     }
 
-    // Separate records based on presence of row_id
-    const recordAuditRecords = [];
     const auditRecords = [];
 
     batch.forEach((record) => {
@@ -152,23 +112,11 @@ const up = async (knex: Knex) => {
         updated_at: record.updated_at,
       };
 
-      // Check if row_id is present and not null/empty
-      if (record.row_id && record.row_id.trim() !== '') {
-        recordAuditRecords.push(newRecord);
-      } else {
-        auditRecords.push(newRecord);
-      }
+      auditRecords.push(newRecord);
     });
-
-    // Insert records into appropriate tables
-    if (recordAuditRecords.length > 0) {
-      await knex(MetaTable.RECORD_AUDIT).insert(recordAuditRecords);
-      recordAuditCount += recordAuditRecords.length;
-    }
 
     if (auditRecords.length > 0) {
       await knex(MetaTable.AUDIT).insert(auditRecords);
-      auditCount += auditRecords.length;
     }
 
     processedCount += batch.length;
@@ -186,7 +134,7 @@ const up = async (knex: Knex) => {
   }
 
   console.log(
-    `Migration completed. Processed ${processedCount} audit records total: ${recordAuditCount} to RECORD_AUDIT, ${auditCount} to AUDIT.`,
+    `Migration completed. Processed ${processedCount} audit records total.`,
   );
 
   // Step 4: Drop the old table
@@ -196,10 +144,6 @@ const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.AUDIT, (table) => {
     table.primary(['id']);
     table.index(['fk_workspace_id', 'base_id'], 'nc_audit_v2_tenant');
-  });
-
-  await knex.schema.alterTable(MetaTable.RECORD_AUDIT, (table) => {
-    table.primary(['id']);
     table.index(
       ['fk_workspace_id', 'base_id', 'fk_model_id', 'row_id'],
       'nc_record_audit_v2_tenant',

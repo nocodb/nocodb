@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
-import { RecordAudit } from '~/models';
+import { Audit } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 
@@ -17,9 +17,9 @@ export class AuditsService {
     param: {
       row_id: string;
       fk_model_id: string;
-      page?: number;
+      cursor?: string;
     },
   ) {
-    return new PagedResponseImpl(await RecordAudit.auditList(context, param));
+    return new PagedResponseImpl(await Audit.recordAuditList(context, param));
   }
 }

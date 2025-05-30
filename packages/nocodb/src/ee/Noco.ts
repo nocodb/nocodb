@@ -43,17 +43,13 @@ export default class Noco extends NocoCE {
 
   private static async migrateAuditFromMeta() {
     await this.migrateAuditTable(MetaTable.AUDIT);
-    await this.migrateAuditTable(MetaTable.RECORD_AUDIT);
 
     // This is commented out for safety - uncomment to clean up the source
     // await Noco.ncMeta.knexConnection(MetaTable.AUDIT).del();
-    // await Noco.ncMeta.knexConnection(MetaTable.RECORD_AUDIT).del();
     // console.log('Cleared audit records from ncMeta after successful migration.');
   }
 
-  private static async migrateAuditTable(
-    table: MetaTable.AUDIT | MetaTable.RECORD_AUDIT,
-  ) {
+  private static async migrateAuditTable(table: MetaTable.AUDIT) {
     // Migration configuration
     const batchSize = 500;
 

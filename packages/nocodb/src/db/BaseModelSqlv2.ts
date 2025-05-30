@@ -96,6 +96,7 @@ import { extractProps } from '~/helpers/extractProps';
 import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import {
+  Audit,
   BaseUser,
   Column,
   FileReference,
@@ -103,7 +104,6 @@ import {
   GridViewColumn,
   Model,
   PresignedUrl,
-  RecordAudit,
   Sort,
   Source,
   View,
@@ -3759,7 +3759,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // disable external source audit in cloud
     if (await this.isDataAuditEnabled()) {
-      await RecordAudit.insert(
+      await Audit.insert(
         await generateAuditV1Payload<DataInsertPayload>(
           AuditV1OperationTypes.DATA_INSERT,
           {
@@ -3792,7 +3792,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (!req.ncParentAuditId && (await this.isDataAuditEnabled())) {
       parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
-      await RecordAudit.insert(
+      await Audit.insert(
         await generateAuditV1Payload<DataBulkDeletePayload>(
           AuditV1OperationTypes.DATA_BULK_INSERT,
           {
@@ -3814,7 +3814,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // disable external source audit in cloud
     if (await this.isDataAuditEnabled()) {
       // data here is not mapped to column alias
-      await RecordAudit.insert(
+      await Audit.insert(
         await Promise.all(
           data.map((d) => {
             const data = remapWithAlias({
@@ -3862,7 +3862,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // disable external source audit in cloud
     if (await this.isDataAuditEnabled()) {
-      await RecordAudit.insert(
+      await Audit.insert(
         await generateAuditV1Payload<DataDeletePayload>(
           AuditV1OperationTypes.DATA_DELETE,
           {
@@ -3899,7 +3899,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // disable external source audit in cloud
     if (await this.isDataAuditEnabled()) {
-      await RecordAudit.insert(
+      await Audit.insert(
         await generateAuditV1Payload<DataBulkDeletePayload>(
           AuditV1OperationTypes.DATA_BULK_DELETE,
           {
@@ -3921,7 +3921,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // disable external source audit in cloud
     if (await this.isDataAuditEnabled()) {
-      await RecordAudit.insert(
+      await Audit.insert(
         await Promise.all(
           data?.map?.((d) =>
             generateAuditV1Payload<DataDeletePayload>(
@@ -3967,7 +3967,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       // disable external source audit in cloud
       if (await this.isDataAuditEnabled()) {
-        await RecordAudit.insert(
+        await Audit.insert(
           await generateAuditV1Payload<DataBulkUpdatePayload>(
             AuditV1OperationTypes.DATA_BULK_UPDATE,
             {
@@ -3985,7 +3985,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
         req.ncParentAuditId = parentAuditId;
 
-        await RecordAudit.insert(
+        await Audit.insert(
           (
             await Promise.all(
               newData.map(async (d, i) => {
@@ -4116,7 +4116,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }) as UpdatePayload;
 
       if (updateDiff) {
-        await RecordAudit.insert(
+        await Audit.insert(
           await generateAuditV1Payload<DataUpdatePayload>(
             AuditV1OperationTypes.DATA_UPDATE,
             {
@@ -4545,7 +4545,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
 
-    await RecordAudit.insert(
+    await Audit.insert(
       await generateAuditV1Payload<DataLinkPayload>(
         AuditV1OperationTypes.DATA_LINK,
         {
@@ -4712,7 +4712,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }),
     );
 
-    await RecordAudit.insert(auditPayloads);
+    await Audit.insert(auditPayloads);
   }
 
   async removeChild({
@@ -4814,7 +4814,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
 
-    await RecordAudit.insert(
+    await Audit.insert(
       await generateAuditV1Payload<DataUnlinkPayload>(
         AuditV1OperationTypes.DATA_UNLINK,
         {
@@ -6934,7 +6934,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ),
       );
     }
-    await RecordAudit.insert(auditUpdateObj);
+    await Audit.insert(auditUpdateObj);
   }
 
   protected async bulkDeleteAudit(_: {

@@ -1,6 +1,5 @@
 export { default as ApiToken } from './ApiToken';
 export { default as Audit } from './Audit';
-export { default as RecordAudit } from './RecordAudit';
 export { default as BarcodeColumn } from './BarcodeColumn';
 export { default as Source } from './Source';
 export { default as Column } from './Column';

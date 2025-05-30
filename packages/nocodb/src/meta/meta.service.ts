@@ -293,7 +293,7 @@ export class MetaService {
    * @returns {string} - Generated nanoid
    * */
   public async genNanoid(target: string) {
-    if (target === MetaTable.AUDIT || target === MetaTable.RECORD_AUDIT) {
+    if (target === MetaTable.AUDIT) {
       return uuidv7();
     }
 

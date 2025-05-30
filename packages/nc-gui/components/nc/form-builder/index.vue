@@ -167,6 +167,7 @@ watch(
                         :value="deepReference(field.model)"
                         :options="field.options"
                         :mode="selectMode(field)"
+                        show-search
                         :loading="field.fetchOptionsKey && field.options?.length === 0"
                         @update:value="setFormStateWithEmit(field.model, $event)"
                       />

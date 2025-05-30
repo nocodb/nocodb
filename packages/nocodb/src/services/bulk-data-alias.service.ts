@@ -104,12 +104,19 @@ export class BulkDataAliasService {
       body: any;
       cookie: NcRequest;
       query: any;
+      internalFlags?: {
+        skipHooks?: boolean;
+      };
     },
   ) {
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkUpdateAll',
-      options: [param.query, param.body, { cookie: param.cookie }],
+      options: [
+        param.query,
+        param.body,
+        { cookie: param.cookie, skip_hooks: param.internalFlags?.skipHooks },
+      ],
     });
   }
 
@@ -133,12 +140,18 @@ export class BulkDataAliasService {
     param: PathParams & {
       query: any;
       req: NcRequest;
+      internalFlags?: {
+        skipHooks?: boolean;
+      };
     },
   ) {
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkDeleteAll',
-      options: [param.query, { cookie: param.req }],
+      options: [
+        param.query,
+        { cookie: param.req, skip_hooks: param.internalFlags?.skipHooks },
+      ],
     });
   }
 

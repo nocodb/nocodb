@@ -61,15 +61,18 @@ export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
     auth: AuthResponse<any>,
     args: {
       targetTables?: (TARGET_TABLES | string)[];
-      targetTableIncrementalValues?: Record<
-        TARGET_TABLES | string,
-        string | number
-      >;
+      targetTableIncrementalValues?:
+        | Record<TARGET_TABLES | string, string | number>
+        | {
+            // for multiple namespaces
+            [key: string]: Record<TARGET_TABLES | string, string | number>;
+          };
     },
   ): Promise<DataObjectStream<SyncRecord>>;
   abstract formatData(
     targetTable: TARGET_TABLES | string,
     data: any,
+    namespace?: string,
   ): {
     data: SyncRecord;
     links?: Record<string, SyncLinkValue>;
@@ -77,6 +80,9 @@ export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
   abstract getIncrementalKey(
     targetTable: TARGET_TABLES | string,
   ): string | null;
+  getNamespaces(): string[] {
+    return [];
+  }
   async fetchOptions(
     _auth: AuthResponse<any>,
     _key: string,
@@ -154,6 +160,7 @@ export interface SyncRecord {
   RemoteDeleted?: SyncValue<boolean>;
   RemoteRaw: SyncValue<string>;
   RemoteSyncedAt?: SyncValue<string>;
+  RemoteNamespace?: SyncValue<string>;
 }
 
 export interface CustomSyncRecord extends SyncRecord {

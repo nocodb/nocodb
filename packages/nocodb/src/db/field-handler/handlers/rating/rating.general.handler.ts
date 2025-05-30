@@ -1,9 +1,12 @@
 import { type NcContext, parseProp } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import { DecimalGeneralHandler } from '../decimal/decimal.general.handler';
+import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
-import type { Column } from 'src/models';
+import type { Column, Filter } from 'src/models';
+import type CustomKnex from 'src/db/CustomKnex';
+import type { FilterOptions } from '../../field-handler.interface';
 
 export class RatingGeneralHandler extends DecimalGeneralHandler {
   override async parseUserInput(params: {
@@ -28,5 +31,56 @@ export class RatingGeneralHandler extends DecimalGeneralHandler {
       }
     }
     return { value };
+  }
+
+  override async filterLt(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    const { val, sourceField } = args;
+    return (qb: Knex.QueryBuilder) => {
+      qb.where(sourceField as any, '<', val);
+      if (val > 0) {
+        qb.orWhereNull(sourceField as any);
+      }
+    };
+  }
+
+  override async filterLte(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    const { val, sourceField } = args;
+    return (qb: Knex.QueryBuilder) => {
+      qb.where(sourceField as any, '<=', val);
+      if (val >= 0) {
+        qb.orWhereNull(sourceField as any);
+      }
+    };
+  }
+
+  override async filterGte(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    const { val, sourceField } = args;
+    return (qb: Knex.QueryBuilder) => {
+      qb.where(sourceField as any, '>=', val);
+      if (val <= 0) {
+        qb.orWhereNull(sourceField as any);
+      }
+    };
   }
 }

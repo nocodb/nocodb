@@ -1,7 +1,7 @@
 import { RelationTypes } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
-import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
+import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from '~/db/CustomKnex';
 import {
   getAlias,
@@ -15,7 +15,7 @@ export class LtarGeneralHandler extends GenericFieldHandler {
     knex: CustomKnex,
     filter: Filter,
     column: Column,
-    options: HandlerOptions,
+    options: FilterOptions,
   ) {
     const {
       context,

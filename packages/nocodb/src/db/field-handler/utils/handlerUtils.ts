@@ -1,7 +1,9 @@
 import { ncIsNull, ncIsUndefined, RelationTypes, UITypes } from 'nocodb-sdk';
+import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from 'knex';
-import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
+import type CustomKnex from '~/db/CustomKnex';
 import { Filter, Model } from '~/models';
 
 export function ncIsStringHasValue(val: string | undefined | null) {
@@ -229,3 +231,20 @@ export async function nestedConditionJoin({
     )(qb);
   }
 }
+
+export const unsupportedFilter = async (
+  _args: {
+    sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+    val: any;
+  },
+  rootArgs: {
+    knex: CustomKnex;
+    filter: Filter;
+    column: Column;
+  },
+  _options: FilterOptions,
+) => {
+  throw new Error(
+    `Unsupported comparison operator for ${rootArgs.column.uidt}: ${rootArgs.filter.comparison_op}`,
+  );
+};

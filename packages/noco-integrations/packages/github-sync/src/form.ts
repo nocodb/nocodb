@@ -24,35 +24,25 @@ const form: FormDefinition = [
     ],
   },
   {
-    type: FormBuilderInputType.Input,
-    label: 'Repository Owner',
-    width: 48,
-    model: 'config.owner',
-    placeholder: 'e.g., octocat',
+    type: FormBuilderInputType.Select,
+    label: 'Repositories',
+    width: 100,
+    model: 'config.repos',
     category: 'Source',
-    validators: [
+    placeholder: 'e.g., nocodb/nocodb',
+    options: [],
+    fetchOptionsKey: 'repos',
+    selectMode: 'multiple',
+    condition: [
       {
-        type: FormBuilderValidatorType.Required,
-        message: 'Repository is required',
+        model: 'config.authIntegrationId',
+        notEmpty: true,
       },
     ],
-  },
-  {
-    type: FormBuilderInputType.Space,
-    width: 4,
-    category: 'Source',
-  },
-  {
-    type: FormBuilderInputType.Input,
-    label: 'Repository Name',
-    width: 48,
-    model: 'config.repo',
-    placeholder: 'e.g., Hello-World',
-    category: 'Source',
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'Repo is required',
+        message: 'At least one repository is required',
       },
     ],
   },
@@ -63,11 +53,23 @@ const form: FormDefinition = [
     model: 'config.includeClosed',
     category: 'Source',
     defaultValue: true,
+    condition: [
+      {
+        model: 'config.authIntegrationId',
+        notEmpty: true,
+      },
+    ],
   },
   {
     type: FormBuilderInputType.Space,
     width: 4,
     category: 'Source',
+    condition: [
+      {
+        model: 'config.authIntegrationId',
+        notEmpty: true,
+      },
+    ],
   },
   {
     type: FormBuilderInputType.Switch,
@@ -76,6 +78,12 @@ const form: FormDefinition = [
     model: 'config.includePRs',
     category: 'Source',
     defaultValue: false,
+    condition: [
+      {
+        model: 'config.authIntegrationId',
+        notEmpty: true,
+      },
+    ],
   },
 ];
 

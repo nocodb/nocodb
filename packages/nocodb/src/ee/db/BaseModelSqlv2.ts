@@ -2240,6 +2240,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       isSingleRecordUpdation = false,
       allowSystemColumn = false,
       typecast = false,
+      skip_hooks = false,
       apiVersion,
     }: {
       cookie?: any;
@@ -2248,6 +2249,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       isSingleRecordUpdation?: boolean;
       allowSystemColumn?: boolean;
       typecast?: boolean;
+      skip_hooks?: boolean;
       apiVersion?: NcApiVersion;
     } = {},
   ) {
@@ -2430,7 +2432,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      if (!raw) {
+      if (!raw && !skip_hooks) {
         if (isSingleRecordUpdation) {
           await this.afterUpdate(
             prevData[0],
@@ -2809,7 +2811,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   async bulkDeleteAll(
     args: { where?: string; filterArr?: Filter[]; viewId?: string } = {},
-    { cookie }: { cookie: NcRequest },
+    { cookie, skip_hooks = false }: { cookie: NcRequest; skip_hooks?: boolean },
   ) {
     const queries: string[] = [];
     try {
@@ -3057,7 +3059,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      await this.afterBulkDelete(response, this.dbDriver, cookie, true);
+      if (!skip_hooks) {
+        await this.afterBulkDelete(response, this.dbDriver, cookie, true);
+      }
 
       await this.statsUpdate({
         count: -response.length,

@@ -16,15 +16,14 @@ import type {
 import type { Octokit } from 'octokit';
 
 export interface GithubSyncPayload {
-  owner: string;
-  repo: string;
+  repos: string[];
   includeClosed: boolean;
   includePRs: boolean;
 }
 
 export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPayload> {
   public getTitle() {
-    return `${this.config.owner}/${this.config.repo}`;
+    return `${this.config.repos[0]}${this.config.repos.length > 1 ? ` + ${this.config.repos.length - 1} more` : ''}`;
   }
 
   public async getDestinationSchema(_auth: AuthResponse<Octokit>) {
@@ -35,11 +34,13 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     auth: AuthResponse<Octokit>,
     args: {
       targetTables?: TARGET_TABLES[];
-      targetTableIncrementalValues?: Record<TARGET_TABLES, string>;
+      targetTableIncrementalValues?: {
+        [key: string]: Record<TARGET_TABLES, string>;
+      };
     },
   ): Promise<DataObjectStream<SyncRecord>> {
     const octokit = auth;
-    const { owner, repo, includeClosed, includePRs = false } = this.config;
+    const { repos, includeClosed, includePRs = false } = this.config;
     const { targetTableIncrementalValues } = args;
 
     const stream = new DataObjectStream<SyncRecord>();
@@ -50,139 +51,146 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
 
     (async () => {
       try {
-        const ticketIncrementalValue =
-          targetTableIncrementalValues?.[TARGET_TABLES.TICKETING_TICKET];
+        for (const repo of repos) {
+          const [owner, repository] = repo.split('/');
 
-        const fetchAfter = ticketIncrementalValue
-          ? new Date(ticketIncrementalValue).toISOString()
-          : undefined;
+          const ticketIncrementalValue =
+          targetTableIncrementalValues?.[repo]?.[TARGET_TABLES.TICKETING_TICKET];
 
-        // Fetch teams if they're in the target tables
-        if (args.targetTables?.includes(TARGET_TABLES.TICKETING_TEAM)) {
-          this.log(`[GitHub Sync] Fetching teams for organization ${owner}`);
+          const fetchAfter = ticketIncrementalValue
+            ? new Date(ticketIncrementalValue).toISOString()
+            : undefined;
 
-          try {
-            // Get all teams from the organization
-            const teamsIterator = octokit.paginate.iterator(
-              octokit.rest.teams.list,
-              {
-                org: owner,
-                per_page: 100,
-              },
-            );
+          // Fetch teams if they're in the target tables
+          if (args.targetTables?.includes(TARGET_TABLES.TICKETING_TEAM)) {
+            this.log(`[GitHub Sync] Fetching teams for organization ${owner}`);
 
-            for await (const { data: teams } of teamsIterator) {
-              this.log(`[GitHub Sync] Fetched ${teams.length} teams`);
+            try {
+              // Get all teams from the organization
+              const teamsIterator = octokit.paginate.iterator(
+                octokit.rest.teams.list,
+                {
+                  org: owner,
+                  per_page: 100,
+                },
+              );
 
-              for (const team of teams) {
-                if (!teamMap.has(team.id)) {
-                  teamMap.set(team.id, true);
+              for await (const { data: teams } of teamsIterator) {
+                this.log(`[GitHub Sync] Fetched ${teams.length} teams`);
 
-                  // Add team to stream
-                  stream.push({
-                    recordId: `${team.id}`,
-                    targetTable: TARGET_TABLES.TICKETING_TEAM,
-                    ...this.formatData(TARGET_TABLES.TICKETING_TEAM, team),
-                  });
+                for (const team of teams) {
+                  if (!teamMap.has(team.id)) {
+                    teamMap.set(team.id, true);
 
-                  // Fetch team members and add them to users if not already added
-                  try {
-                    const membersIterator = octokit.paginate.iterator(
-                      octokit.rest.teams.listMembersInOrg,
-                      {
-                        org: owner,
-                        team_slug: team.slug,
-                        per_page: 100,
-                      },
-                    );
+                    // Add team to stream
+                    stream.push({
+                      recordId: `${team.id}`,
+                      targetTable: TARGET_TABLES.TICKETING_TEAM,
+                      ...this.formatData(TARGET_TABLES.TICKETING_TEAM, team, repo),
+                    });
 
-                    for await (const { data: members } of membersIterator) {
-                      for (const member of members) {
-                        if (!userMap.has(member.login)) {
-                          userMap.set(member.login, true);
+                    // Fetch team members and add them to users if not already added
+                    try {
+                      const membersIterator = octokit.paginate.iterator(
+                        octokit.rest.teams.listMembersInOrg,
+                        {
+                          org: owner,
+                          team_slug: team.slug,
+                          per_page: 100,
+                        },
+                      );
 
+                      for await (const { data: members } of membersIterator) {
+                        for (const member of members) {
+                          if (!userMap.has(member.login)) {
+                            userMap.set(member.login, true);
+
+                            stream.push({
+                              recordId: `${member.id}`,
+                              targetTable: TARGET_TABLES.TICKETING_USER,
+                              ...this.formatData(
+                                TARGET_TABLES.TICKETING_USER,
+                                member,
+                                repo,
+                              ),
+                            });
+                          }
+
+                          // Add member to team relationships
                           stream.push({
-                            recordId: `${member.id}`,
-                            targetTable: TARGET_TABLES.TICKETING_USER,
-                            ...this.formatData(
-                              TARGET_TABLES.TICKETING_USER,
-                              member,
-                            ),
+                            recordId: `${team.id}`,
+                            targetTable: TARGET_TABLES.TICKETING_TEAM,
+                            links: {
+                              Members: [`${member.id}`],
+                            },
                           });
                         }
-
-                        // Add member to team relationships
-                        stream.push({
-                          recordId: `${team.id}`,
-                          targetTable: TARGET_TABLES.TICKETING_TEAM,
-                          links: {
-                            Members: [`${member.id}`],
-                          },
-                        });
                       }
+                    } catch (error) {
+                      console.error(
+                        `[GitHub Sync] Error fetching members for team ${team.name}:`,
+                        error,
+                      );
                     }
-                  } catch (error) {
-                    console.error(
-                      `[GitHub Sync] Error fetching members for team ${team.name}:`,
-                      error,
-                    );
                   }
                 }
               }
+            } catch (error) {
+              console.error(
+                '[GitHub Sync] Error fetching teams for organization:',
+                error,
+              );
             }
-          } catch (error) {
-            console.error(
-              '[GitHub Sync] Error fetching teams for organization:',
-              error,
-            );
           }
-        }
 
-        this.log(
-          `[GitHub Sync] Fetching issues for repository ${owner}/${repo}`,
-        );
+          this.log(
+            `[GitHub Sync] Fetching issues for repository ${owner}/${repository}`,
+          );
 
         const iterator = octokit.paginate.iterator(
           octokit.rest.issues.listForRepo,
           {
             owner,
-            repo,
+            repo: repository,
             per_page: 100,
             since: fetchAfter,
             ...(!includeClosed ? {} : { state: 'all' }),
           },
         );
 
-        for await (const { data } of iterator) {
-          this.log(`[GitHub Sync] Fetched ${data.length} issues`);
+          for await (const { data } of iterator) {
+            this.log(`[GitHub Sync] Fetched ${data.length} issues`);
 
-          for (const issue of data) {
-            // Skip pull requests if includePRs is false
-            if (!includePRs && issue.pull_request) {
-              continue;
-            }
+            for (const issue of data) {
+              // Skip pull requests if includePRs is false
+              if (!includePRs && issue.pull_request) {
+                continue;
+              }
 
-            // Store issue ID and number for later comment fetching
-            issueMap.set(issue.number, { id: issue.id, number: issue.number });
+              // Store issue ID and number for later comment fetching
+              issueMap.set(issue.number, {
+                id: issue.id,
+                number: issue.number,
+              });
 
-            stream.push({
-              recordId: `${issue.id}`,
-              targetTable: TARGET_TABLES.TICKETING_TICKET,
-              ...this.formatData(TARGET_TABLES.TICKETING_TICKET, issue),
-            });
+              stream.push({
+                recordId: `${issue.id}`,
+                targetTable: TARGET_TABLES.TICKETING_TICKET,
+                ...this.formatData(TARGET_TABLES.TICKETING_TICKET, issue, repo),
+              });
 
-            // extract users and stream
-            const users = [...(issue.assignees || [])];
+              // extract users and stream
+              const users = [...(issue.assignees || [])];
 
-            if (issue.user) {
-              users.push(issue.user);
-            }
+              if (issue.user) {
+                users.push(issue.user);
+              }
 
-            for (const user of users) {
-              if (!userMap.has(user.login)) {
-                userMap.set(user.login, true);
+              for (const user of users) {
+                if (!userMap.has(user.login)) {
+                  userMap.set(user.login, true);
 
-                /*
+                  /*
                 // TODO: enable for email sync
                 try {
                   // Fetch user details to get public email
@@ -199,89 +207,92 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
                   );
                 } */
 
-                stream.push({
-                  recordId: `${user.id}`,
-                  targetTable: TARGET_TABLES.TICKETING_USER,
-                  ...this.formatData(TARGET_TABLES.TICKETING_USER, user),
-                });
+                  stream.push({
+                    recordId: `${user.id}`,
+                    targetTable: TARGET_TABLES.TICKETING_USER,
+                    ...this.formatData(TARGET_TABLES.TICKETING_USER, user, repo),
+                  });
+                }
               }
             }
           }
-        }
 
-        if (issueMap.size > 0) {
-          if (args.targetTables?.includes(TARGET_TABLES.TICKETING_COMMENT)) {
-            this.log(
-              `[GitHub Sync] Fetching comments for repository ${owner}/${repo}`,
-            );
-
-            const commentIncrementalValue =
-              targetTableIncrementalValues?.[TARGET_TABLES.TICKETING_COMMENT];
-
-            const fetchAfter = commentIncrementalValue
-              ? new Date(commentIncrementalValue).toISOString()
-              : undefined;
-
-            try {
-              // Fetch issue comments for the repository
-              const commentsIterator = octokit.paginate.iterator(
-                octokit.rest.issues.listCommentsForRepo,
-                {
-                  owner,
-                  repo,
-                  per_page: 100,
-                  since: fetchAfter,
-                },
+          if (issueMap.size > 0) {
+            if (args.targetTables?.includes(TARGET_TABLES.TICKETING_COMMENT)) {
+              this.log(
+                `[GitHub Sync] Fetching comments for repository ${owner}/${repository}`,
               );
 
-              for await (const { data: comments } of commentsIterator) {
-                for (const comment of comments) {
-                  // Extract issue number from the issue_url
-                  // Format: https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}
-                  const issueUrlParts = comment.issue_url.split('/');
-                  const issueNumber = parseInt(
-                    issueUrlParts[issueUrlParts.length - 1],
-                    10,
-                  );
+              const commentIncrementalValue =
+              targetTableIncrementalValues?.[repo]?.[TARGET_TABLES.TICKETING_COMMENT];
 
-                  const issue = issueMap.get(issueNumber);
+              const fetchAfter = commentIncrementalValue
+                ? new Date(commentIncrementalValue).toISOString()
+                : undefined;
 
-                  if (issue) {
-                    Object.assign(comment, {
-                      issue,
-                    });
+              try {
+                // Fetch issue comments for the repository
+                const commentsIterator = octokit.paginate.iterator(
+                  octokit.rest.issues.listCommentsForRepo,
+                  {
+                    owner,
+                    repo: repository,
+                    per_page: 100,
+                    since: fetchAfter,
+                  },
+                );
 
-                    // Add comment to stream
-                    stream.push({
-                      recordId: `${comment.id}`,
-                      targetTable: TARGET_TABLES.TICKETING_COMMENT,
-                      ...this.formatData(
-                        TARGET_TABLES.TICKETING_COMMENT,
-                        comment,
-                      ),
-                    });
+                for await (const { data: comments } of commentsIterator) {
+                  for (const comment of comments) {
+                    // Extract issue number from the issue_url
+                    // Format: https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}
+                    const issueUrlParts = comment.issue_url.split('/');
+                    const issueNumber = parseInt(
+                      issueUrlParts[issueUrlParts.length - 1],
+                      10,
+                    );
 
-                    // Add comment author to users if not already added
-                    if (comment.user && !userMap.has(comment.user.login)) {
-                      userMap.set(comment.user.login, true);
+                    const issue = issueMap.get(issueNumber);
 
+                    if (issue) {
+                      Object.assign(comment, {
+                        issue,
+                      });
+
+                      // Add comment to stream
                       stream.push({
-                        recordId: `${comment.user.id}`,
-                        targetTable: TARGET_TABLES.TICKETING_USER,
+                        recordId: `${comment.id}`,
+                        targetTable: TARGET_TABLES.TICKETING_COMMENT,
                         ...this.formatData(
-                          TARGET_TABLES.TICKETING_USER,
-                          comment.user,
+                          TARGET_TABLES.TICKETING_COMMENT,
+                          comment,
+                          repo,
                         ),
                       });
+
+                      // Add comment author to users if not already added
+                      if (comment.user && !userMap.has(comment.user.login)) {
+                        userMap.set(comment.user.login, true);
+
+                        stream.push({
+                          recordId: `${comment.user.id}`,
+                          targetTable: TARGET_TABLES.TICKETING_USER,
+                          ...this.formatData(
+                            TARGET_TABLES.TICKETING_USER,
+                            comment.user,
+                            repo,
+                          ),
+                        });
+                      }
                     }
                   }
                 }
+              } catch (error) {
+                console.error(
+                  '[GitHub Sync] Error fetching comments for repository:',
+                  error,
+                );
               }
-            } catch (error) {
-              console.error(
-                '[GitHub Sync] Error fetching comments for repository:',
-                error,
-              );
             }
           }
         }
@@ -301,23 +312,25 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
   public formatData(
     targetTable: TARGET_TABLES,
     data: any,
+    namespace?: string,
   ): {
     data: SyncRecord;
     links?: Record<string, SyncLinkValue>;
   } {
     switch (targetTable) {
       case TARGET_TABLES.TICKETING_TICKET:
-        return this.formatTicket(data);
+        return this.formatTicket(data, namespace);
       case TARGET_TABLES.TICKETING_USER:
-        return this.formatUser(data);
+        return this.formatUser(data, namespace);
       case TARGET_TABLES.TICKETING_COMMENT:
-        return this.formatComment(data);
+        return this.formatComment(data, namespace);
       case TARGET_TABLES.TICKETING_TEAM:
-        return this.formatTeam(data);
+        return this.formatTeam(data, namespace);
       default: {
         return {
           data: {
             RemoteRaw: JSON.stringify(data),
+            RemoteNamespace: namespace,
           },
         };
       }
@@ -328,6 +341,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     issue: Awaited<
       ReturnType<Octokit['rest']['issues']['listForRepo']>
     >['data'][0],
+    namespace?: string,
   ): {
     data: TicketingTicketRecord;
     links?: Record<string, SyncLinkValue>;
@@ -353,6 +367,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
       RemoteCreatedAt: issue.created_at,
       RemoteUpdatedAt: issue.updated_at,
       RemoteRaw: JSON.stringify(issue),
+      RemoteNamespace: namespace,
     };
 
     return {
@@ -369,6 +384,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     user: Awaited<
       ReturnType<Octokit['rest']['users']['getByUsername']>
     >['data'],
+    namespace?: string,
   ): {
     data: TicketingUserRecord;
   } {
@@ -380,6 +396,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
       RemoteCreatedAt: null, // GitHub API doesn't provide user creation date
       RemoteUpdatedAt: null, // GitHub API doesn't provide user update date
       RemoteRaw: JSON.stringify(user),
+      RemoteNamespace: namespace,
     };
 
     return {
@@ -391,6 +408,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     comment: Awaited<
       ReturnType<Octokit['rest']['issues']['listCommentsForRepo']>
     >['data'][0] & { issue: { id: number; number: number } },
+    namespace?: string,
   ): {
     data: TicketingCommentRecord;
     links?: Record<string, SyncLinkValue>;
@@ -403,6 +421,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
       RemoteCreatedAt: comment.created_at,
       RemoteUpdatedAt: comment.updated_at,
       RemoteRaw: JSON.stringify(comment),
+      RemoteNamespace: namespace,
     };
 
     return {
@@ -417,6 +436,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
 
   private formatTeam(
     team: Awaited<ReturnType<Octokit['rest']['teams']['list']>>['data'][0],
+    namespace?: string,
   ): {
     data: TicketingTeamRecord;
   } {
@@ -427,6 +447,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
       RemoteCreatedAt: null, // GitHub API doesn't provide team creation date
       RemoteUpdatedAt: null, // GitHub API doesn't provide team update date
       RemoteRaw: JSON.stringify(team),
+      RemoteNamespace: namespace,
     };
 
     return {
@@ -447,5 +468,45 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
       default:
         return 'RemoteUpdatedAt';
     }
+  }
+
+  public getNamespaces(): string[] {
+    return this.config.repos;
+  }
+
+  public async fetchOptions(auth: AuthResponse<Octokit>, key: string) {
+    const octokit = auth;
+
+    if (key === 'repos') {
+      try {
+        const options: { label: string; value: string }[] = [];
+
+        // Fetch user's repositories
+        const reposIterator = octokit.paginate.iterator(
+          octokit.rest.repos.listForAuthenticatedUser,
+          {
+            per_page: 100,
+            sort: 'updated',
+            direction: 'desc',
+          },
+        );
+
+        for await (const { data: repos } of reposIterator) {
+          for (const repo of repos) {
+            options.push({
+              label: `${repo.owner.login}/${repo.name}`,
+              value: `${repo.owner.login}/${repo.name}`,
+            });
+          }
+        }
+
+        return options;
+      } catch (error) {
+        console.error('[GitHub Sync] Error fetching repositories:', error);
+        return [];
+      }
+    }
+
+    return [];
   }
 }

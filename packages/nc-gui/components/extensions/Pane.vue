@@ -14,6 +14,7 @@ const {
   extensionPanelSize,
   updateExtension,
   eventBus,
+  toggleExtensionPanel,
 } = useExtensions()
 
 const { $e } = useNuxtApp()
@@ -170,13 +171,21 @@ onMounted(() => {
           class="h-[var(--toolbar-height)] flex items-center gap-3 px-4 py-2 border-b-1 border-gray-200 bg-white"
         >
           <div
-            class="flex items-center gap-3 font-weight-700 text-gray-700 text-base"
+            class="flex"
             :class="{
               'flex-1': !isOpenSearchBox,
             }"
           >
-            <GeneralIcon icon="ncPuzzleSolid" class="h-5 w-5 text-gray-700 opacity-85" />
-            <span v-if="!isOpenSearchBox || width >= 507">{{ $t('general.extensions') }}</span>
+            <NcTooltip :title="$t('title.hideExtensions')">
+              <div
+                v-e="['c:extension-toggle']"
+                class="flex items-center gap-3 font-weight-700 text-gray-700 text-base cursor-pointer"
+                @click="toggleExtensionPanel"
+              >
+                <GeneralIcon icon="ncPuzzleSolid" class="h-5 w-5 text-gray-700 opacity-85" />
+                <span v-if="!isOpenSearchBox || width >= 507">{{ $t('general.extensions') }}</span>
+              </div>
+            </NcTooltip>
           </div>
           <div
             class="flex justify-end"

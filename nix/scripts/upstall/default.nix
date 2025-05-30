@@ -2,6 +2,7 @@
   writeShellApplication,
   coreutils,
 }:
+
 writeShellApplication {
   name = "upstall";
 

@@ -1,0 +1,18 @@
+name: Upstall Tests
+
+on:
+  push:
+    paths:
+      - 'nix/scripts/upstall'
+  workflow_dispatch:
+
+jobs:
+  aiopusher:
+    runs-on: nix
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Run Tests
+        run: nix build .#upstall -L

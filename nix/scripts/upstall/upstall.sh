@@ -208,7 +208,7 @@ menu() {
 			## 6) exit                          ##
 			######################################
 		EOF
-		prompt_oneof "option" 1 2 3 4
+		prompt_oneof "option" 1 2 3 4 5 6
 
 		case "$response" in
 		1) nocodb_run ;;

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { getEmbedURL } from './utils'
 
-const { eventBus, fullscreen } = useExtensionHelperOrThrow()
+const { showExtensionDetails } = useExtensions()
+
+const { eventBus, fullscreen, extensionManifest } = useExtensionHelperOrThrow()
 
 const embedURL = ref<string | null>(null)
 const platform = ref<string | null>(null)
@@ -68,7 +70,14 @@ const openSelectedLink = async () => {
         <GeneralIcon icon="alertTriangleSolid" class="!text-red-700 w-8 h-8 flex-none" />
         <div class="my-2 font-bold">URL not supported</div>
         <div>
-          <a target="_blank" rel="noopener" class="!no-underline"> View supported URLs </a>
+          <a
+            target="_blank"
+            rel="noopener"
+            class="!no-underline"
+            @click.prevent="showExtensionDetails(extensionManifest?.id || '', 'extension')"
+          >
+            View supported URLs
+          </a>
         </div>
       </div>
       <iframe v-else-if="embedURL" class="w-full h-full" :class="platform === 'Spotify' ? 'p-2' : ''" :src="embedURL"></iframe>

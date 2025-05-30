@@ -18,11 +18,11 @@ s6_services_temp_path='/run/s6-service-temp'
 migrations_dir="/var/lib/migrations"
 
 _nc_aio_worker_enable_default=false
-_nc_aio_minio_enable_default=false
 _nc_aio_ssl_enable_default=false
 _nc_aio_ssl_domain_default="localhost"
 
 # additional logic used
+# _nc_aio_minio_enable_default=false
 # _nc_aio_postgres_enable_default=true
 # _nc_aio_redis_enable_default=true
 
@@ -39,16 +39,16 @@ env_passthrough() {
 		# passthrough nc_aio envs
 		"$nc_aio_env_prefix"pass_main_*)
 			echo "${key#nc_aio_pass_main_}=$(cat "$file")" >>"$nocodb_env_main_path"
-		;;
+			;;
 		"$nc_aio_env_prefix"pass_worker_*)
 			echo "${key#nc_aio_pass_worker_}=$(cat "$file")" >>"$nocodb_env_worker_path"
-		;;
+			;;
 		"$nc_aio_env_prefix"pass_minio_*)
 			echo "${key#nc_aio_pass_minio_}=$(cat "$file")" >>"$minio_env_path"
-		;;
+			;;
 		"$nc_aio_env_prefix"pass_acme_*)
 			echo "${key#nc_aio_pass_acme_}=$(cat "$file")" >>"$acme_env_path"
-		;;
+			;;
 		# ignore other nc_aio envs
 		"$nc_aio_env_prefix"*) continue ;;
 		esac
@@ -89,14 +89,23 @@ env_aio_set() {
 	done
 
 	if [ "${nc_aio_postgres_enable+set}" != set ]; then
-		# keep backward compatiblity with legacy nocodb image
+		# keep backward compatiblity with legacy nocodb image && upstall
 		if [ ! -f "$migrations_dir/from_legacy_image_with_sqlite" ] &&
+			[ ! -f /"$migrations_dir/from_upstall_with_sqlite" ] &&
 			[ ! -f /"$kernal_env_store_dir"/DATABASE_URL ] &&
 			[ ! -f /"$kernal_env_store_dir"/NC_DB_JSON ] &&
 			[ ! -f /"$kernal_env_store_dir"/NC_DB ]; then
 			nc_aio_postgres_enable=true
 		else
 			nc_aio_postgres_enable=false
+		fi
+	fi
+	if [ "${nc_aio_minio_enable+set}" != set ]; then
+		# keep backward compatiblity with upstall
+		if [ ! -f /"$migrations_dir"/from_upstall_with_minio ]; then
+			nc_aio_minio_enable=false
+		else
+			nc_aio_minio_enable=true
 		fi
 	fi
 	if [ "${nc_aio_redis_enable+set}" != set ]; then
@@ -107,9 +116,6 @@ env_aio_set() {
 		fi
 	fi
 
-	if [ "${nc_aio_minio_enable+set}" != set ]; then
-		nc_aio_minio_enable="$_nc_aio_minio_enable_default"
-	fi
 	if [ "${nc_aio_ssl_enable+set}" != set ]; then
 		nc_aio_ssl_enable="$_nc_aio_ssl_enable_default"
 	fi
@@ -124,7 +130,7 @@ env_aio_set() {
 
 nocodb_dep_add() {
 	# $@: deps
-	
+
 	for dep in "$@"; do
 		touch "$s6_services_temp_path/nocodb-main-srv/dependencies.d/$dep"
 		touch "$s6_services_temp_path/nocodb-worker-srv/dependencies.d/$dep"
@@ -223,6 +229,14 @@ env_aio_act() {
 	fi
 }
 
+migrate_upstall() {
+	if [ -f "$migrations_dir"/from_upstall_with_postgres ] &&
+		[ ! -f "$migrations_dir"/from_upstall_with_postgres_reindexed ]; then
+		touch "$migrations_dir"/from_upstall_with_postgres_reindexed
+		touch "$s6_services_temp_path/postgresql-db-create/dependencies.d/postgresql-reindex"
+	fi
+}
+
 ##########
 ## MAIN ##
 ##########
@@ -235,3 +249,4 @@ s6-dumpenv "$kernal_env_store_dir"
 env_aio_set
 env_aio_act
 env_passthrough
+migrate_upstall

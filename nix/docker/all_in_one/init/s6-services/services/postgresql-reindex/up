@@ -1,0 +1,12 @@
+#!/bin/execlineb -P
+
+importas -sCuD "n3 s2000000 T" DIRECTIVES DIRECTIVES
+
+foreground { install -d -o s6log -g s6log /var/log/postgresql-reindex }
+fdmove -c 2 1
+
+pipeline -dw {
+	s6-setuidgid s6log exec -c s6-log -b -- ${DIRECTIVES} /var/log/postgresql-reindex
+}
+
+/etc/s6-services/postgresql-reindex/shell_up.sh

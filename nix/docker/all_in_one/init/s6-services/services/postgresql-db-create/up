@@ -9,7 +9,7 @@ pipeline -dw {
 	s6-setuidgid s6log exec -c s6-log -b -- ${DIRECTIVES} /var/log/postgresql-db-create
 }
 
-if -n {
+if -tn {
 	pipeline {
 		psql -U postgres -tAc SELECT\ 1\ FROM\ pg_database\ WHERE\ datname\ =\ \'nocodb\'
 	} grep -q 1

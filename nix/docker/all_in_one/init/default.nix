@@ -17,11 +17,7 @@ let
   };
   s6-services = callPackage ./s6-services { };
   env-processor = callPackage ./env-processor { };
-
-  working_dir = "/usr/app/data";
-  nocodb_run_dir = "/var/lib/nocodb";
-  migrations_dir = "/var/lib/migrations";
-  migrations_state = "${migrations_dir}/state";
+  migrator = callPackage ./migrator { };
 in
 writeShellApplication {
   name = "init";
@@ -40,20 +36,12 @@ writeShellApplication {
             echo init: "$@"
     }
 
-    migrate_state_set() {
-      mkdir -p ${migrations_dir}
-      echo "$1" > ${migrations_state}
-    }
-
     # warn if /run is not configured like normal s6 systems
     if [ ! -e /run ]; then
       # shellcheck disable=SC2016
       log 'please use docker run with `--tmpfs /run:nodev,nosuid,exec,mode=0755` flag'
       mkdir /run
     fi
-
-    # backward compatiblity with legacy nocodb image
-    ln -s ${working_dir} /var
 
     # setup basedir
     mkdir -p ${base_dir}
@@ -78,24 +66,12 @@ writeShellApplication {
       shadow:    files
     EOF
 
-    # container migrations (for future use)
-    migrate_state_set 0
-
-    # backward compatiblity with legacy nocodb image
-    # this also supports rollback to legacy image
-    # we can maybe change this after release
-    mkdir -p /var/lib/
-    if [ -f ${working_dir}/noco.db ]; then
-      touch ${migrations_dir}/from_legacy_image_with_sqlite
-    fi
-    if [ -f ${working_dir}/noco.db ] || [ -d ${working_dir}/nc ] ; then
-      [ -e ${nocodb_run_dir} ] ||
-        ln -s ${working_dir} ${nocodb_run_dir}
-    fi
+    # migrations (legacy image & upstall)
+    "${lib.getExe migrator}"
 
     # setup envs
     cp -r ${s6-services}/etc/s6-services  /run/s6-service-temp
-    ${lib.getExe env-processor}
+    "${lib.getExe env-processor}"
 
     # compile services
     s6-rc-compile ${srv_compile_dir} /run/s6-service-temp

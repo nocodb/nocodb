@@ -1,4 +1,4 @@
-import type { ColumnType, ViewType } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
 import type { ExtensionManifest, ExtensionType } from '#imports'
 
 const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(

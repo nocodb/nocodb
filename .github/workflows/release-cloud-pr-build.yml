@@ -130,8 +130,8 @@ jobs:
           pnpm run generate:ee &&
 
           # delete sourcemaps
-          find ./ee/dist/ -type f -name '*.js.map' -delete &&
-          find ./ee/dist/ -type f -name '*.css.map' -delete &&
+          # find ./ee/dist/ -type f -name '*.js.map' -delete &&
+          # find ./ee/dist/ -type f -name '*.css.map' -delete &&
 
           # # delete sourcemaps refs - enable if needed
           # find ./ee/dist/ -type f -name '*.js' -exec sed -i -E 's/sourceMappingURL=[^ ]*\.js\.map//g' {} +

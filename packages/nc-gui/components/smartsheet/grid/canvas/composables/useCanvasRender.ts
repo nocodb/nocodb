@@ -1743,7 +1743,10 @@ export function useCanvasRender({
       ctx.strokeStyle = '#ff4a3f'
       ctx.lineWidth = 2
       if (column.fixed || !isInFixedArea) {
-        roundedRect(ctx, column.fixed ? xOffset : xOffset - scrollLeft.value, yOffset, width, rowHeight.value, 2)
+        roundedRect(ctx, column.fixed ? xOffset : xOffset - scrollLeft.value, yOffset, width, rowHeight.value, 2, {
+          borderColor: '#ff4a3f',
+          borderWidth: 2,
+        })
       } else if (isInFixedArea) {
         if (xOffset + width <= fixedWidth) {
           continue
@@ -1752,7 +1755,10 @@ export function useCanvasRender({
         const adjustedX = fixedWidth
         const adjustedWidth = xOffset + width - fixedWidth - scrollLeft.value
 
-        roundedRect(ctx, adjustedX + 1, yOffset, adjustedWidth, rowHeight.value, 2)
+        roundedRect(ctx, adjustedX + 1, yOffset, adjustedWidth, rowHeight.value, 2, {
+          borderColor: '#ff4a3f',
+          borderWidth: 2,
+        })
       }
 
       ctx.lineWidth = 1
@@ -2239,6 +2245,8 @@ export function useCanvasRender({
         : width.value,
     )
 
+    const initYOffset = yOffset
+
     for (let i = startIndex; i <= endIndex; i++) {
       const row = rows?.get(i)
 
@@ -2410,6 +2418,46 @@ export function useCanvasRender({
 
     const postRenderCbk = () => {
       // render this at the end to avoid clipping
+      for (const { rowIndex, column } of renderRedBorders) {
+        if (
+          editEnabled.value?.column?.id === column.id &&
+          editEnabled.value?.rowIndex === rowIndex &&
+          !comparePath(editEnabled.value?.path, group?.path)
+        ) {
+          continue
+        }
+        const yOffset = initYOffset + rowIndex * rowHeight.value
+        const xOffset = calculateXPosition(columns.value.findIndex((c) => c.id === column.id))
+        const width = parseCellWidth(column.width)
+
+        const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 1)
+
+        const isInFixedArea = xOffset - scrollLeft.value <= fixedWidth
+
+        ctx.strokeStyle = '#ff4a3f'
+        ctx.lineWidth = 2
+        if (column.fixed || !isInFixedArea) {
+          roundedRect(ctx, column.fixed ? xOffset : xOffset - scrollLeft.value, yOffset, width, rowHeight.value, 2, {
+            borderColor: '#ff4a3f',
+            borderWidth: 2,
+          })
+        } else if (isInFixedArea) {
+          if (xOffset + width <= fixedWidth) {
+            continue
+          }
+
+          const adjustedX = fixedWidth
+          const adjustedWidth = xOffset + width - fixedWidth - scrollLeft.value
+
+          roundedRect(ctx, adjustedX + 1, yOffset, adjustedWidth, rowHeight.value, 2, {
+            borderColor: '#ff4a3f',
+            borderWidth: 2,
+          })
+        }
+
+        ctx.lineWidth = 1
+      }
+
       renderActiveState(ctx, activeState)
       renderFillHandle(ctx)
     }

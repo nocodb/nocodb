@@ -1755,7 +1755,9 @@
     "noInvoices": "គ្មានវិក្កយបត្រ",
     "noResultsFoundForYourSearch": "No results found for your search.",
     "noTables": "No tables",
-    "noAutomations": "No automations"
+    "noAutomations": "No automations",
+    "emptyTablePlaceholder": "This base is empty—for now.",
+    "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
     "urlFilter": "តម្រង URL ត្រូវបានអនុវត្តពីប៉ារ៉ាម៉ែត្រ URL និងបញ្ចូលជាមួយ តម្រងទិដ្ឋភាពដែលបានកំណត់តាមរបារ​ឧបករណ៍។",

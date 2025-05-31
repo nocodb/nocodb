@@ -1755,7 +1755,9 @@
     "noInvoices": "Sin facturas",
     "noResultsFoundForYourSearch": "No results found for your search.",
     "noTables": "No tables",
-    "noAutomations": "No automations"
+    "noAutomations": "No automations",
+    "emptyTablePlaceholder": "This base is empty—for now.",
+    "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
     "urlFilter": "Los filtros de URL se aplican a partir de los parámetros de la URL y se combinan con los filtros de vista establecidos desde la barra de herramientas.",

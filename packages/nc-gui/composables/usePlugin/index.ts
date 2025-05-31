@@ -99,6 +99,8 @@ export const usePlugin = createSharedComposable(() => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
+  const isPluginsEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))
+
   const availablePlugins = computed<PluginManifest[]>(() => [...availableExtensions.value, ...availableScripts.value])
 
   const availableExtensionIds = computed(() => availableExtensions.value.map((e) => e.id))
@@ -161,7 +163,12 @@ export const usePlugin = createSharedComposable(() => {
 
       if (manifest?.disabled !== true && (!manifest?.beta || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))) {
         // Add to available plugins collection
-        pluginCollections[type].available.value.push(manifest as any)
+        const existingPluginIndex = pluginCollections[type].available.value.findIndex((p) => p.id === manifest.id)
+        if (existingPluginIndex !== -1) {
+          pluginCollections[type].available.value.splice(existingPluginIndex, 1, manifest as any)
+        } else {
+          pluginCollections[type].available.value.push(manifest as any)
+        }
 
         // Handle plugin description markdown
         if (manifest.description && manifest.id) {
@@ -248,19 +255,20 @@ export const usePlugin = createSharedComposable(() => {
     }
   }
 
-  onMounted(async () => {
-    watch(
-      () => isFeatureEnabled(FEATURE_FLAG.EXTENSIONS),
-      async () => {
-        availableExtensions.value = []
-        availableScripts.value = []
-        await loadPlugins()
-      },
-      {
-        immediate: true,
-      },
-    )
-  })
+  watch(
+    isPluginsEnabled,
+    async (newValue) => {
+      availableExtensions.value = []
+      availableScripts.value = []
+
+      if (!newValue) return
+
+      await loadPlugins()
+    },
+    {
+      immediate: true,
+    },
+  )
 
   /**
    * Find a plugin by ID regardless of type
@@ -291,6 +299,7 @@ export const usePlugin = createSharedComposable(() => {
     availablePlugins,
     availableExtensionIds,
     availableScriptIds,
+    isPluginsEnabled,
 
     // Content getters
     getPluginAssetUrl,

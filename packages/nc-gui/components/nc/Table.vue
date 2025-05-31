@@ -12,6 +12,7 @@ interface Props {
   isDataLoading?: boolean
   stickyHeader?: boolean
   stickyFirstColumn?: boolean
+  disableTableScroll?: boolean
   headerRowClassName?: string
   bodyRowClassName?: string
   headerCellClassName?: string
@@ -30,6 +31,7 @@ const props = withDefaults(defineProps<Props>(), {
   bordered: true,
   isDataLoading: false,
   stickyHeader: true,
+  disableTableScroll: false,
   headerRowClassName: '',
   bodyRowClassName: '',
   headerCellClassName: '',
@@ -136,25 +138,27 @@ const onRowClick = (record: Record<string, any>, recordIndex: number) => {
     class="nc-table-container relative"
     :class="{
       bordered,
+      'nc-disable-table-scroll': disableTableScroll,
       'min-h-120': isDataLoading,
     }"
   >
     <div
       ref="tableWrapper"
-      class="nc-table-wrapper max-h-full relative nc-scrollbar-thin !overflow-auto"
+      class="nc-table-wrapper relative"
       :class="{
         'sticky-first-column': stickyFirstColumn,
-        'h-full': data.length,
+        'h-full': data.length && !disableTableScroll,
+        'nc-scrollbar-thin !overflow-auto max-h-full': !disableTableScroll,
       }"
       :style="{
-        maxHeight: `calc(100% - ${tableFooterHeight}px)`,
+        maxHeight: disableTableScroll ? undefined : `calc(100% - ${tableFooterHeight}px)`,
       }"
     >
       <table
         ref="tableHeader"
         class="w-full max-w-full"
         :class="{
-          '!sticky top-0 z-5': stickyHeader,
+          '!sticky top-0 z-5': stickyHeader && !disableTableScroll,
         }"
       >
         <thead>
@@ -220,7 +224,7 @@ const onRowClick = (record: Record<string, any>, recordIndex: number) => {
         <table
           class="w-full h-full"
           :style="{
-            maxHeight: `calc(100% - ${tableHeadHeight}px)`,
+            maxHeight: disableTableScroll ? undefined : `calc(100% - ${tableHeadHeight}px)`,
           }"
         >
           <tbody>
@@ -314,7 +318,7 @@ const onRowClick = (record: Record<string, any>, recordIndex: number) => {
     @apply border-1 border-gray-200 rounded-lg overflow-hidden w-full;
   }
 
-  &:not(.bordered) {
+  &:not(.bordered):not(.nc-disable-table-scroll) {
     @apply overflow-hidden w-full;
   }
 

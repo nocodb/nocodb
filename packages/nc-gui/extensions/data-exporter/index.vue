@@ -164,7 +164,7 @@ async function exportDataAsync() {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
             // Export completed successfully
-            message.info('Successfully exported data!')
+            message.toast('Successfully exported data!')
 
             const job = jobList.value.find((j) => j.id === data.id)
             if (job) {
@@ -278,17 +278,15 @@ onMounted(async () => {
 </script>
 
 <template>
-  <ExtensionsExtensionWrapper :style="fullscreen ? {} : { height: exportedFiles.length ? '130px' : '100%' }">
+  <ExtensionsExtensionWrapper
+    :style="fullscreen ? {} : { height: exportedFiles.length ? (width <= 325 ? '172px' : '130px') : '100%' }"
+  >
     <template v-if="fullscreen" #headerExtra>
       <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
         <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>
-        <NcButton
-          :disabled="!exportPayload?.viewId || isExporting"
-          :loading="isExporting"
-          size="small"
-          @click="exportDataAsync"
-          >{{ isExporting ? 'Generating' : 'Export' }}</NcButton
-        >
+        <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="small" @click="exportDataAsync">{{
+          isExporting ? 'Generating' : 'Export'
+        }}</NcButton>
       </NcTooltip>
     </template>
     <div
@@ -392,13 +390,9 @@ onMounted(async () => {
           <div class="flex-none flex justify-end">
             <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
               <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>
-              <NcButton
-                :disabled="!exportPayload?.viewId || isExporting"
-                :loading="isExporting"
-                size="small"
-                @click="exportDataAsync"
-                >{{ isExporting ? 'Generating' : 'Export' }}</NcButton
-              >
+              <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="small" @click="exportDataAsync">{{
+                isExporting ? 'Generating' : 'Export'
+              }}</NcButton>
             </NcTooltip>
           </div>
         </div>

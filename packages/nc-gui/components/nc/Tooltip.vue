@@ -3,13 +3,45 @@ import { onKeyStroke } from '@vueuse/core'
 import type { CSSProperties } from '@vue/runtime-dom'
 import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
 
-interface Props {
-  // Key to be pressed on hover to trigger the tooltip
+/**
+ * NcTooltip Component
+ *
+ * A customizable tooltip component with optional modifiers, styles, and placement.
+ *
+ * @example
+ * ### Single line `truncate`
+ *
+ * ```vue
+ *  <NcTooltip
+ *    :title="text"
+ *    show-on-truncate-only
+ *    class="truncate"
+ *  >
+ *    {{ text }}
+ *  </NcTooltip>
+ * ```
+ *
+ * ## Multi-line `line-clamp`
+ * ```vue
+ *  <NcTooltip
+ *    :title="text"
+ *    show-on-truncate-only
+ *    :line-clamp="2"
+ *    class="line-clamp-2"
+ *  >
+ *    {{ text }}
+ *  </NcTooltip>
+ * ```
+ */
+interface NcTooltipProps {
+  /**
+   * Key to be pressed on hover to trigger the tooltip
+   */
   modifierKey?: string
   tooltipStyle?: CSSProperties
   attrs?: Record<string, unknown>
-  // force disable tooltip
   color?: 'dark' | 'light'
+  // force disable tooltip
   disabled?: boolean
   placement?: TooltipPlacement | undefined
   showOnTruncateOnly?: boolean
@@ -18,10 +50,20 @@ interface Props {
   wrapChild?: keyof HTMLElementTagNameMap
   mouseLeaveDelay?: number
   overlayInnerStyle?: object
+  /**
+   * Whether to show the arrow or not
+   */
   arrow?: boolean
+  /**
+   * **Note:**
+   * Under the hood, we use the `Range#getBoundingClientRect()` technique to check if the text is truncated.
+   * This technique works best when text is not deeply nested.
+   * This method has performance overhead — avoid using it on large lists.
+   */
+  lineClamp?: number
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<NcTooltipProps>(), {
   arrow: true,
   placement: 'top',
   wrapChild: 'div',
@@ -90,7 +132,17 @@ watchDebounced(
   ([overlayHovering, hovering, key, isDisabled]) => {
     if (showOnTruncateOnly?.value) {
       const targetElement = el?.value
-      const isElementTruncated = targetElement && targetElement.scrollWidth > targetElement.clientWidth
+
+      let isElementTruncated = false
+
+      if (props.lineClamp) {
+        // Multi-line `line-clamp`
+        isElementTruncated = targetElement && isLineClamped(targetElement)
+      } else {
+        // Single line `truncate`
+        isElementTruncated = targetElement && targetElement.scrollWidth > targetElement.clientWidth
+      }
+
       if (!isElementTruncated) {
         if (overlayHovering) {
           showTooltip.value = true

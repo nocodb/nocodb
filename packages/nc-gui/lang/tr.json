@@ -1755,7 +1755,9 @@
     "noInvoices": "Fatura Yok",
     "noResultsFoundForYourSearch": "No results found for your search.",
     "noTables": "No tables",
-    "noAutomations": "No automations"
+    "noAutomations": "No automations",
+    "emptyTablePlaceholder": "This base is empty—for now.",
+    "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
     "urlFilter": "URL filtreleri, URL parametrelerinden uygulanır ve araç çubuğunda ayarlanan görünüm filtreleriyle birleşir.",

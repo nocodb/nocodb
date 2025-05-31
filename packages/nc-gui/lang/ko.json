@@ -1755,7 +1755,9 @@
     "noInvoices": "인보이스 없음",
     "noResultsFoundForYourSearch": "검색에 대한 결과를 찾을 수 없습니다.",
     "noTables": "테이블 없음",
-    "noAutomations": "자동화 없음"
+    "noAutomations": "자동화 없음",
+    "emptyTablePlaceholder": "This base is empty—for now.",
+    "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
     "urlFilter": "URL 필터는 URL 매개 변수에서 적용되며 도구 모음을 통해 설정된 보기 필터와 결합됩니다.",

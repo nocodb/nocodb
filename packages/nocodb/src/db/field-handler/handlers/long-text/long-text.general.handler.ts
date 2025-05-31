@@ -24,7 +24,10 @@ export class LongTextGeneralHandler extends GenericFieldHandler {
         type: params.column.uidt,
       });
     }
-    if (Number(params.column.dtxp) > 0 && params.value.length) {
+    if (
+      Number(params.column.dtxp) > 0 &&
+      params.value.length > Number(params.column.dtxp)
+    ) {
       NcError.invalidValueForField({
         value: params.value,
         column: params.column.title,

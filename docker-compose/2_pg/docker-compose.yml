@@ -22,7 +22,7 @@ services:
       retries: 10
       test: "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""
       timeout: 2s
-    image: postgres:16.6
+    image: postgres:16.9
     restart: always
     volumes: 
       - "db_data:/var/lib/postgresql/data"

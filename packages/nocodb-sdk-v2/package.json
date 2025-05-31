@@ -29,7 +29,7 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "swagger-typescript-api": "13.1.3",
-    "@rslib/core": "^0.7.1",
+    "@rslib/core": "^0.9.1",
     "@types/node": "^22.8.1",
     "typescript": "^5.8.3"
   },

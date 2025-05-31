@@ -914,6 +914,9 @@ export function useInfiniteData(args: {
     const rowFilters = getPlaceholderNewRow(
       [...allFilters.value, ...validFiltersFromUrlParams.value],
       metaValue?.columns as ColumnType[],
+      {
+        currentUser: user.value ?? undefined,
+      },
     )
     const newRow = {
       row: { ...rowDefaultData(metaValue?.columns), ...rowFilters, ...rowOverwrite },

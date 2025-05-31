@@ -25038,6 +25038,376 @@
           "id": "rmmtwpsofeqo5"
         }
       },
+      "Widget": {
+        "description": "Model for Widget",
+        "title": "Widget Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "layout_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Layout ID"
+          },
+          "schema_version": {
+            "type": "string",
+            "description": "Version of the schema",
+            "example": "v0.2"
+          },
+          "widget_type": {
+            "$ref": "#/components/schemas/WidgetType",
+            "description": "Type of the widget"
+          },
+          "data_source": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Source JSON"
+          },
+          "data_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Config JSON"
+          },
+          "appearance_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Appearance Config JSON"
+          },
+          "data": {
+            "type": "object",
+            "description": "The actual data for the widget"
+          }
+        },
+        "required": [
+          "id",
+          "layout_id",
+          "schema_version",
+          "widget_type"
+        ],
+        "x-stoplight": {
+          "id": "q8cxkpronjmyx"
+        }
+      },
+      "Layout": {
+        "description": "Model for Layout",
+        "title": "Layout Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "source_id": {
+            "description": "Unique Source ID",
+            "type": "string"
+          },
+          "base_id": {
+            "description": "Unique Base ID",
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "description": "Layout Title",
+            "example": "My Layout"
+          },
+          "grid_padding_horizontal": {
+            "type": "string",
+            "description": "Layout Grid's horizontal padding",
+            "example": "20px"
+          },
+          "grid_padding_vertical": {
+            "type": "string",
+            "description": "Layout Grid's vertical padding",
+            "example": "20px"
+          },
+          "grid_gap": {
+            "type": "string",
+            "description": "Layout Grid's gap",
+            "example": "20px"
+          },
+          "order": {
+            "description": "The order of this Layout in the list of Layouts",
+            "type": "number"
+          }
+        },
+        "x-stoplight": {
+          "id": "q8cxkpronjmyx"
+        }
+      },
+      "LayoutReq": {
+        "description": "Model for Layout request",
+        "x-stoplight": {
+          "id": "4zlzrppfjxrqb"
+        },
+        "title": "Layout Request Model",
+        "type": "object",
+        "properties": {
+          "source_id": {
+            "description": "Unique Source ID",
+            "type": "string"
+          },
+          "base_id": {
+            "description": "Unique Base ID",
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "description": "Layout Title",
+            "example": "My Layout"
+          },
+          "order": {
+            "description": "The order of this Layout in the list of Layouts",
+            "type": "number"
+          }
+        },
+        "required": [
+          "base_id",
+          "title"
+        ]
+      },
+      "WidgetReq": {
+        "description": "Model for Widget request",
+        "x-stoplight": {
+          "id": "4zlzrppfjxrqb"
+        },
+        "title": "Widget Request Model",
+        "type": "object",
+        "properties": {
+          "layout_id": {
+            "description": "Unique Layout ID",
+            "type": "string"
+          },
+          "schema_version": {
+            "type": "string",
+            "description": "Version of the schema",
+            "example": "v0.2"
+          },
+          "widget_type": {
+            "$ref": "#/components/schemas/WidgetType",
+            "description": "Type of the widget"
+          },
+          "data_source": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Source JSON"
+          },
+          "data_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Config JSON"
+          },
+          "appearance_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Appearance Config JSON"
+          }
+        },
+        "required": [
+          "layout_id",
+          "schema_version",
+          "widget_type"
+        ]
+      },
+      "WidgetUpdateReq": {
+        "description": "Model for Widget Update request",
+        "x-stoplight": {
+          "id": "4zlzrppfjxrqb"
+        },
+        "title": "Widget Update Request Model",
+        "type": "object",
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "description": "Version of the schema",
+            "example": "v0.2"
+          },
+          "widget_type": {
+            "$ref": "#/components/schemas/WidgetType",
+            "description": "Type of the widget"
+          },
+          "data_source": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Source JSON"
+          },
+          "data_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Data Config JSON"
+          },
+          "appearance_config": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "Appearance Config JSON"
+          }
+        }
+      },
+      "LayoutUpdateReq": {
+        "description": "Model for Layout Update request",
+        "x-stoplight": {
+          "id": "4zlzrppfjxrqb"
+        },
+        "title": "Layout Update Request Model",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Layout Title",
+            "example": "My Layout"
+          },
+          "order": {
+            "description": "The order of this Layout in the list of Layouts",
+            "type": "number"
+          }
+        }
+      },
+      "WidgetType": {
+        "description": "Type of the Widget",
+        "enum": [
+          "number",
+          "static_text",
+          "line_chart",
+          "bar_chart",
+          "pie_chart",
+          "scatter_plot",
+          "button",
+          "image",
+          "divider"
+        ],
+        "type": "string"
+      },
+      "WidgetList": {
+        "description": "Model for Widget List",
+        "title": "Widget List Model",
+        "type": "object",
+        "properties": {
+          "list": {
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true,
+            "description": "Widget objects",
+            "items": {
+              "$ref": "#/components/schemas/Widget"
+            }
+          }
+        },
+        "required": [
+          "list",
+          "pageInfo"
+        ],
+        "x-stoplight": {
+          "id": "2tsq8h6hjctju"
+        }
+      },
+      "LayoutList": {
+        "description": "Model for Layout List",
+        "title": "Layout List Model",
+        "type": "object",
+        "properties": {
+          "list": {
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true,
+            "description": "Layout objects",
+            "items": {
+              "$ref": "#/components/schemas/Layout"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        },
+        "required": [
+          "list",
+          "pageInfo"
+        ],
+        "x-stoplight": {
+          "id": "2tsq8h6hjctju"
+        }
+      },
       "Map": {
         "description": "Model for Map",
         "examples": [
@@ -26114,13 +26484,6 @@
               "dashboard"
             ]
           },
-          "linked_db_project_ids": {
-            "description": "List of Linked Database Base IDs (only used for Dashboard Projects so far)",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "meta": {
             "$ref": "#/components/schemas/Meta",
             "description": "Base Meta"
@@ -26175,13 +26538,6 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Base Status",
             "example": "locked"
-          },
-          "linked_db_project_ids": {
-            "description": "List of Linked Database Base IDs (only used for Dashboard Projects so far)",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "order": {
             "type": "number",

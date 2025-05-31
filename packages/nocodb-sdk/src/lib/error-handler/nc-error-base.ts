@@ -215,6 +215,21 @@ export class NcErrorBase {
     });
   }
 
+  valueLengthExceedLimit(
+    payload: {
+      column: string;
+      type: UITypes;
+      length: number;
+      maxLength: number;
+    },
+    args?: NcErrorArgs
+  ): never {
+    throw this.errorCodex.generateError(NcErrorType.INVALID_VALUE_FOR_FIELD, {
+      params: `Value length '${payload.length}' is exceeding allowed limit '${payload.maxLength}' for type '${payload.type}' on column '${payload.column}'`,
+      ...args,
+    });
+  }
+
   invalidSharedViewPassword(args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.INVALID_SHARED_VIEW_PASSWORD,

@@ -10,7 +10,7 @@ state_dir="${PWD:-.}/nocodb/"
 env_store="$state_dir/upstall/upstall.env"
 container_name="nocodb-aio-upstall"
 container_image="nocodb/nocodb:latest"
-version="0.1"
+version="2.0.0"
 
 err() {
 	# usage: err "message"
@@ -93,12 +93,12 @@ ensure_command() {
 		brew install "$1"
 	else
 		err "package manager not found. please install $1 manually"
-		exit 1
+		exit 127
 	fi
 }
 
-env_read() {
-	# usage: env_read
+env_set() {
+	# usage: env_set
 	mkdir -p "$(dirname "$env_store")"
 	touch "$env_store"
 	# shellcheck disable=SC1090
@@ -151,11 +151,11 @@ env_read() {
 
 	cat <<-EOF >"$env_store"
 		nc_aio_minio_enable="$nc_aio_minio_enable"
-		nc_aio_postgres_enable="$nc_aio_minio_enable"
-		nc_aio_redis_enable="$nc_aio_minio_enable"
-		nc_aio_ssl_enable="$nc_aio_minio_enable"
-		nc_aio_ssl_email="$nc_aio_minio_enable"
-		nc_aio_ssl_domain="$nc_aio_minio_enable"
+		nc_aio_postgres_enable="$nc_aio_postgres_enable"
+		nc_aio_redis_enable="$nc_aio_redis_enable"
+		nc_aio_ssl_enable="$nc_aio_ssl_enable"
+		nc_aio_ssl_email="$nc_aio_ssl_email"
+		nc_aio_ssl_domain="$nc_aio_ssl_domain"
 	EOF
 }
 
@@ -187,18 +187,19 @@ menu() {
 	while true; do
 		cat <<-EOF
 
-			######################################
-			## upstall menu (version: $version)      ##
-			######################################
-			## 1) start nocodb                  ##
-			## 2) stop nocodb                   ##
-			## 3) view logs                     ##
-			## 4) delete nocodb                 ##
-			## 5) update nocodb                 ##
-			## 6) exit                          ##
-			######################################
+			#################################
+			## upstall menu (version: $version) ##
+			#################################
+			## 1) start                    ##
+			## 2) stop                     ##
+			## 3) logs                     ##
+			## 4) delete                   ##
+			## 5) update                   ##
+			## 6) monitor                  ##
+			## 7) exit                     ##
+			#################################
 		EOF
-		prompt_oneof "option" 1 2 3 4 5 6
+		prompt_oneof "option" 1 2 3 4 5 6 7
 
 		case "$response" in
 		1) nocodb_run ;;
@@ -214,7 +215,8 @@ menu() {
 			docker stop "$container_name"
 			nocodb_run
 			;;
-		6) exit 0 ;;
+		6) docker stats "$container_name" ;;
+		7) exit 0 ;;
 		*) err "option not implemented" ;;
 		esac
 	done
@@ -226,5 +228,5 @@ menu() {
 ########
 
 ensure_command docker
-env_read
+env_set
 menu

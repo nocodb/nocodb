@@ -148,7 +148,7 @@ const newRowState = computed(() => {
 const colTitle = computed(() => injectedColumn.value?.title || '')
 
 const onClick = (row: Row) => {
-  if (readOnly.value || isForm.value) return
+  if (isPublic.value || isForm.value) return
   expandedFormRow.value = row
   expandedFormDlg.value = true
 }

@@ -50,7 +50,7 @@
     "@tiptap/extension-strike": "^2.11.5",
     "@tiptap/extension-task-list": "^2.11.5",
     "@tiptap/extension-underline": "^2.11.5",
-    "@tiptap/html": "2.11.0",
+    "@tiptap/html": "2.12.0",
     "@tiptap/pm": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.5",
     "@tiptap/vue-3": "^2.11.5",

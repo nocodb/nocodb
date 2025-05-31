@@ -61,6 +61,10 @@ export interface NcListProps {
    * The minimum number of items required in the list to enable search functionality.
    */
   minItemsForSearch?: number
+  /**
+   * Whether the list is locked and cannot be interacted with
+   */
+  isLocked?: boolean
 
   /**
    * Whether input should have border
@@ -94,6 +98,7 @@ const props = withDefaults(defineProps<NcListProps>(), {
   containerClassName: '',
   itemClassName: '',
   itemTooltipPlacement: 'right',
+  isLocked: false,
 })
 
 const emits = defineEmits<Emits>()
@@ -216,6 +221,7 @@ const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: numb
  * It updates the model value, emits a change event, and optionally closes the dropdown.
  */
 const handleSelectOption = (option: NcListItemType, index?: number) => {
+  if (props.isLocked) return
   if (!ncIsObject(option) || !(optionValueKey in option) || option.ncItemDisabled) return
   if (index !== undefined) {
     activeOptionIndex.value = index
@@ -401,7 +407,12 @@ watch(searchQuery, () => {
     </template>
 
     <slot name="listHeader"></slot>
-    <div class="nc-list-wrapper">
+    <div
+      class="nc-list-wrapper"
+      :class="{
+        'pointer-events-none cursor-not-allowed': isLocked,
+      }"
+    >
       <template v-if="list.length">
         <div class="h-auto !max-h-[247px]">
           <div

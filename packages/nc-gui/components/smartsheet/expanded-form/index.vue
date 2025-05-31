@@ -186,7 +186,7 @@ const fields = computed(() => {
 const tableTitle = computed(() => meta.value?.title)
 
 const activeViewMode = ref(
-  !isPublic.value && isEeUI ? props.view?.expanded_record_mode ?? ExpandedFormMode.FIELD : ExpandedFormMode.FIELD,
+  !isPublic.value && isEeUI && !isNew.value ? props.view?.expanded_record_mode ?? ExpandedFormMode.FIELD : ExpandedFormMode.FIELD,
 )
 
 watch(activeViewMode, async (v) => {

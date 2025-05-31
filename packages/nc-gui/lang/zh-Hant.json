@@ -1755,7 +1755,9 @@
     "noInvoices": "沒有發票",
     "noResultsFoundForYourSearch": "No results found for your search.",
     "noTables": "No tables",
-    "noAutomations": "No automations"
+    "noAutomations": "No automations",
+    "emptyTablePlaceholder": "This base is empty—for now.",
+    "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
     "urlFilter": "URL 篩選會從網址參數套用，並與工具列中設定的檢視篩選合併。",

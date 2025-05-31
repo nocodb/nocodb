@@ -186,7 +186,7 @@ const fields = computed(() => {
 const tableTitle = computed(() => meta.value?.title)
 
 const activeViewMode = ref(
-  !isPublic.value && isEeUI ? props.view?.expanded_record_mode ?? ExpandedFormMode.FIELD : ExpandedFormMode.FIELD,
+  !isPublic.value && isEeUI && !isNew.value ? props.view?.expanded_record_mode ?? ExpandedFormMode.FIELD : ExpandedFormMode.FIELD,
 )
 
 watch(activeViewMode, async (v) => {
@@ -802,7 +802,7 @@ export default {
           </div>
         </div>
         <div class="ml-auto">
-          <SmartsheetExpandedFormViewModeSelector v-model="activeViewMode" view="view" class="nc-expanded-form-mode-switch" />
+          <SmartsheetExpandedFormViewModeSelector v-model="activeViewMode" :view="view" class="nc-expanded-form-mode-switch" />
         </div>
         <div class="flex gap-2">
           <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit', baseRoles) && !isSqlView">

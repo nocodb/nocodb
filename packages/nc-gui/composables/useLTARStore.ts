@@ -122,6 +122,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const rowId = computed(() => extractPkFromRow(currentRow.value.row, meta.value.columns))
 
+    const showExtraFields = computed(() => {
+      return (!isForm.value || parseProp(column.value?.meta)?.[showExtraFieldsMetaKey]) ?? false
+    })
+
     const getRelatedTableRowId = (row: Record<string, any>) => {
       return extractPkFromRow(row, relatedTableMeta.value?.columns)
     }
@@ -836,6 +840,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       fields,
       refreshCurrentRow,
       externalBaseUserRoles,
+      showExtraFields,
     }
   },
   'ltar-store',

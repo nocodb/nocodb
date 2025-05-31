@@ -127,6 +127,8 @@ const columnSupportsScanning = (elementType: UITypes) =>
           v-else-if="isMultiSelect(activeField) || (isUser(activeField) && activeField.meta?.is_multi) || isLink(activeField)"
         />
       </div>
+
+      <SmartsheetFormFieldSettingsLinkRecordDropdownExtraFieldVisibility />
     </div>
 
     <!-- Custom Validations -->

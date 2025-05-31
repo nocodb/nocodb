@@ -1755,7 +1755,9 @@
     "noInvoices": "कुनै बिल छैन",
     "noResultsFoundForYourSearch": "No results found for your search.",
     "noTables": "No tables",
-    "noAutomations": "No automations"
+    "noAutomations": "No automations",
+    "emptyTablePlaceholder": "This base is empty—for now.",
+    "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
     "urlFilter": "URL फिल्टरहरू URL प्यारामिटरहरूबाट लागू हुन्छन् र टुलबारमार्फत सेट गरिएको दृश्य फिल्टरहरूसँग मिलेर काम गर्छन्।",

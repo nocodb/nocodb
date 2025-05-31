@@ -89,6 +89,8 @@ const columnSupportsScanning = (elementType: UITypes) =>
             @change="updateColMeta(activeField)"
           />
         </div>
+
+        <SmartsheetFormFieldSettingsLinkRecordDropdownExtraFieldVisibility />
       </div>
     </div>
 

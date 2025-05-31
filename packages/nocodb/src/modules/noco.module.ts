@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 /* Modules */
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
-// import { NotFoundHandlerModule } from './not-found-handler.module';
+import { NotFoundHandlerModule } from './not-found-handler.module';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { JobsModule } from '~/modules/jobs/jobs.module';
 
@@ -168,7 +168,7 @@ export const nocoModuleMetadata = {
 
     // put it at the bottom most since it's route not found handling
     // resorting to import to be resolved the last
-    // NotFoundHandlerModule,
+    NotFoundHandlerModule,
   ],
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true'

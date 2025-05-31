@@ -1755,7 +1755,9 @@
     "noInvoices": "Fakturarik ez",
     "noResultsFoundForYourSearch": "No results found for your search.",
     "noTables": "No tables",
-    "noAutomations": "No automations"
+    "noAutomations": "No automations",
+    "emptyTablePlaceholder": "This base is empty—for now.",
+    "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
     "urlFilter": "URL iragazkiak URL parametroetatik aplikatzen dira eta tresna-barran ezarritako ikuspegi iragazkiekin konbinatzen dira.",

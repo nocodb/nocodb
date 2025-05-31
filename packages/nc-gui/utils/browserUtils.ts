@@ -124,3 +124,25 @@ export const isExpandCellKey = (event: Event) => {
 
   return false
 }
+
+/**
+ * Check if an element is line-clamped
+ *
+ * **Note:**
+ * The `Range#getBoundingClientRect()` technique works best when text is not deeply nested.
+ * This technique has performance overhead — avoid using it on large lists.
+ *
+ * @param el - The element to check
+ * @returns True if the element is line-clamped, false otherwise
+ */
+export const isLineClamped = (el: HTMLElement): boolean => {
+  if (!el) return false
+
+  const range = document.createRange()
+  range.selectNodeContents(el)
+
+  const fullHeight = range.getBoundingClientRect().height
+  const actualHeight = el.getBoundingClientRect().height
+
+  return fullHeight > actualHeight
+}

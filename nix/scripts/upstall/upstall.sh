@@ -20,16 +20,6 @@ err() {
 		notify-send "nocodb upstall error" "$1"
 }
 
-trim() {
-	# usage: trim "string"
-	: "${1:?}"
-
-	_trimstr="${1#"${1%%[![:space:]]*}"}"
-	_trimstr="${_trimstr%"${_trimstr##*[![:space:]]}"}"
-
-	echo "$_trimstr"
-}
-
 prompt_required() {
 	# usage: prompt_required "prompt" [response_regex]
 	prompt_text="$1"
@@ -237,5 +227,4 @@ menu() {
 
 ensure_command docker
 env_read
-nocodb_run
 menu

@@ -91,7 +91,7 @@
     "markdown-it-task-lists": "^2.1.1",
     "marked": "^4.3.0",
     "monaco-editor": "^0.52.2",
-    "monaco-sql-languages": "^0.11.0",
+    "monaco-sql-languages": "^0.14.0",
     "nocodb-sdk": "workspace:^",
     "papaparse": "^5.5.2",
     "parse-github-url": "^1.0.3",

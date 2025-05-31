@@ -46,6 +46,8 @@ const { eventBus, allFilters, isExternalSource, validFiltersFromUrlParams } = us
 
 const { showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
+const { user } = useGlobal()
+
 const route = router.currentRoute
 
 const routeQuery = computed(() => route.value.query as Record<string, string>)
@@ -126,6 +128,9 @@ function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
   const rowFilters = getPlaceholderNewRow(
     [...allFilters.value, ...validFiltersFromUrlParams.value],
     metaValue?.columns as ColumnType[],
+    {
+      currentUser: user.value ?? undefined,
+    },
   )
 
   group.rows.splice(addAfter, 0, {

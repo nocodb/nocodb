@@ -993,6 +993,8 @@ const saveChanges = async () => {
 
     showSystemFields.value = showOrHideSystemFields.value
     visibilityOps.value = []
+
+    return !hasUnsavedChanges.value
   } catch (e) {
     message.error(t('msg.error.somethingWentWrong'))
   } finally {
@@ -1296,26 +1298,43 @@ const confirmUnsavedChangesBeforeLeaving = (from: RouteLocationNormalizedLoadedG
 
   const isOpen = ref(true)
 
+  const okProps = ref({ loading: false })
+
   const { close } = useDialog(resolveComponent('NcModalConfirm'), {
     'visible': isOpen,
     'title': t('msg.info.unsavedChanges'),
-    'content': t('msg.info.unsavedChangesConfirmation'),
-    'okText': t('general.yes'),
-    'okClass': '!w-20',
-    'cancelClass': '!w-20',
-    'cancelText': t('general.no'),
+    'content': t('activity.doYouWantToSaveTheChanges'),
+    'okText': t('tooltip.saveChanges'),
+    'cancelText': t('labels.discard'),
     'onCancel': closeDialog,
-    'onOk': () => {
-      closeDialog(true)
+    'onOk': async () => {
+      okProps.value.loading = true
+
+      const res = await saveChanges()
+
+      okProps.value.loading = false
+
+      if (res) {
+        next()
+      } else {
+        next(false)
+      }
+
+      closeDialog(false)
     },
+    'okProps': okProps,
     'update:visible': closeDialog,
     'showIcon': false,
     'keyboard': false,
+    'loading': loading.value,
     'maskClosable': false,
   })
 
-  function closeDialog(allow: boolean = false) {
-    next(allow)
+  function closeDialog(executeNext: boolean = true) {
+    if (executeNext) {
+      clearChanges()
+      next()
+    }
 
     isOpen.value = false
     close(1000)

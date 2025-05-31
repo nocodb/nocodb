@@ -46,7 +46,7 @@ function openExpandedForm() {
   if (isClickDisabled.value) return
 
   const rowId = extractPkFromRow(item, relatedTableMeta.value.columns as ColumnType[])
-  if (!readOnly.value && !readonlyProp && rowId) {
+  if (!isPublic.value && !readonlyProp && rowId) {
     open({
       isOpen: true,
       row: { row: item, rowMeta: {}, oldRow: { ...item } },

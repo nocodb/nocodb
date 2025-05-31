@@ -152,6 +152,7 @@ watchDebounced(
         return
       }
     }
+
     if (overlayHovering) {
       showTooltip.value = true
       return

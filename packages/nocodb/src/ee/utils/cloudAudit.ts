@@ -67,20 +67,32 @@ export async function getChRecordAudit(
     created_at = dayjs(cursorParts[1]).format('YYYY-MM-DD HH:mm:ss');
   }
 
+  const queryParams: Record<string, any> = {
+    workspace_id: context.workspace_id,
+    model_id: fk_model_id,
+    row_id: row_id,
+    limit: limit,
+  };
+
+  let query = `
+    SELECT * FROM ${clickhouseAuditTable}
+    WHERE fk_workspace_id = {workspace_id: String}
+    AND fk_model_id = {model_id: String}
+    AND row_id = {row_id: String}`;
+
+  if (id && created_at) {
+    query += ` AND (created_at, id) < ({created_at: String}, {id: String})`;
+    queryParams.created_at = created_at;
+    queryParams.id = id;
+  }
+
+  query += `
+    ORDER BY created_at DESC, id DESC
+    LIMIT {limit: UInt32}`;
+
   const clickhouseResult = await clickhouseClient.query({
-    query: `
-        SELECT * FROM ${clickhouseAuditTable}
-        WHERE fk_workspace_id = '${context.workspace_id}'
-        AND fk_model_id = '${fk_model_id}'
-        AND row_id = '${row_id}'
-        ${
-          id && created_at
-            ? `AND (created_at, id) < ('${created_at}', '${id}')`
-            : ''
-        }
-        ORDER BY (created_at, id) DESC
-        LIMIT ${limit}
-      `,
+    query,
+    query_params: queryParams,
   });
 
   const result = await clickhouseResult.json();
@@ -128,27 +140,35 @@ export async function getChWorkspaceAudit(
     baseId = undefined;
   }
 
-  const whereConditions = [`fk_workspace_id = '${context.workspace_id}'`];
+  const whereConditions = ['fk_workspace_id = {workspace_id: String}'];
+  const queryParams: Record<string, any> = {
+    workspace_id: context.workspace_id,
+    limit: limit,
+  };
 
   if (baseId) {
-    whereConditions.push(`base_id = '${baseId}'`);
+    whereConditions.push('base_id = {base_id: String}');
+    queryParams.base_id = baseId;
   }
 
   if (fkUserId) {
-    whereConditions.push(`fk_user_id = '${fkUserId}'`);
+    whereConditions.push('fk_user_id = {fk_user_id: String}');
+    queryParams.fk_user_id = fkUserId;
   }
 
   if (type && type.length > 0) {
-    const typeConditions = type.map((t) => `'${t}'`).join(', ');
-    whereConditions.push(`op_type IN (${typeConditions})`);
+    whereConditions.push('op_type IN {type_array: Array(String)}');
+    queryParams.type_array = type;
   }
 
   if (startDate) {
-    whereConditions.push(`created_at >= '${startDate}'`);
+    whereConditions.push('created_at >= {start_date: String}');
+    queryParams.start_date = startDate;
   }
 
   if (endDate) {
-    whereConditions.push(`created_at <= '${endDate}'`);
+    whereConditions.push('created_at <= {end_date: String}');
+    queryParams.end_date = endDate;
   }
 
   const cursorParts = cursor?.split('|') ?? [];
@@ -163,10 +183,16 @@ export async function getChWorkspaceAudit(
 
   if (id && created_at) {
     if (orderBy?.created_at === 'asc') {
-      whereConditions.push(`(created_at, id) > ('${created_at}', '${id}')`);
+      whereConditions.push(
+        '(created_at, id) > ({cursor_created_at: String}, {cursor_id: String})',
+      );
     } else {
-      whereConditions.push(`(created_at, id) < ('${created_at}', '${id}')`);
+      whereConditions.push(
+        '(created_at, id) < ({cursor_created_at: String}, {cursor_id: String})',
+      );
     }
+    queryParams.cursor_created_at = created_at;
+    queryParams.cursor_id = id;
   }
 
   const orderDirection = orderBy?.created_at === 'asc' ? 'ASC' : 'DESC';
@@ -174,12 +200,13 @@ export async function getChWorkspaceAudit(
   const query = `
     SELECT * FROM ${clickhouseAuditTable}
     WHERE ${whereConditions.join(' AND ')}
-    ORDER BY (created_at, id) ${orderDirection}
-    LIMIT ${limit}
+    ORDER BY created_at ${orderDirection}, id ${orderDirection}
+    LIMIT {limit: UInt32}
   `;
 
   const clickhouseResult = await clickhouseClient.query({
     query,
+    query_params: queryParams,
   });
 
   const result = await clickhouseResult.json();

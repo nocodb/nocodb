@@ -873,6 +873,20 @@ const handleRowMetaClick = ({
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
+const handleUnlockView = () => {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgLockView'), {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
 // check exact row meta region hovered and return the cursor type
 const getRowMetaCursor = ({ row, x, group }: { row: Row; x: number; group?: CanvasGroup }): CSSProperties['cursor'] => {
   const { regions } = extractHoverMetaColRegions(row, group)
@@ -1303,7 +1317,11 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   }
 
   // If the user is clicking on the Aggregation in bottom
-  if (y > height.value - 36 && !isLocked.value) {
+  if (y > height.value - 36) {
+    if (isLocked.value && isUIAllowed('fieldAdd')) {
+      handleUnlockView()
+      return
+    }
     // If the click is not normal single click, return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
 

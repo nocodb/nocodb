@@ -1855,6 +1855,19 @@ export function useCanvasRender({
         ctx.fillStyle = '#4a5268'
         ctx.fillText(column.aggregation ?? ' - ', xOffset + width - 8 - scrollLeft.value, height.value - AGGREGATION_HEIGHT / 2)
 
+        if (isLocked.value && isHovered) {
+          tryShowTooltip({
+            mousePosition,
+            text: 'Unlock this view to edit aggregation',
+            rect: {
+              x: xOffset - scrollLeft.value,
+              y: height.value - AGGREGATION_HEIGHT,
+              width,
+              height: AGGREGATION_HEIGHT,
+            },
+          })
+        }
+
         ctx.restore()
       } else if (isHovered) {
         if (!isLocked.value) {
@@ -1883,6 +1896,17 @@ export function useCanvasRender({
             color: '#6a7184',
             x: rightEdge - textLen - 18,
             y: textY - 7,
+          })
+        } else {
+          tryShowTooltip({
+            mousePosition,
+            text: 'Unlock this view to add aggregation',
+            rect: {
+              x: xOffset - scrollLeft.value,
+              y: height.value - AGGREGATION_HEIGHT,
+              width,
+              height: AGGREGATION_HEIGHT,
+            },
           })
         }
         ctx.restore()
@@ -1944,6 +1968,19 @@ export function useCanvasRender({
           ctx.fillStyle = '#4a5268'
           ctx.fillText(firstFixedCol.aggregation ?? ' - ', mergedWidth - 8, height.value - AGGREGATION_HEIGHT / 2)
 
+          if (isLocked.value && isHovered) {
+            tryShowTooltip({
+              mousePosition,
+              text: 'Unlock this view to add aggregation.',
+              rect: {
+                x: xOffset,
+                y: height.value - AGGREGATION_HEIGHT,
+                width: mergedWidth,
+                height: AGGREGATION_HEIGHT,
+              },
+            })
+          }
+
           const w = ctx.measureText(firstFixedCol.aggregation).width
           availWidth -= w
           ctx.restore()
@@ -1972,6 +2009,17 @@ export function useCanvasRender({
               color: '#6a7184',
               x: rightEdge - textLen - 18,
               y: textY - 7,
+            })
+          } else {
+            tryShowTooltip({
+              mousePosition,
+              text: 'Unlock this view to add aggregation.',
+              rect: {
+                x: xOffset,
+                y: height.value - AGGREGATION_HEIGHT,
+                width: mergedWidth,
+                height: AGGREGATION_HEIGHT,
+              },
             })
           }
           availWidth -= 18

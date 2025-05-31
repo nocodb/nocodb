@@ -15,17 +15,23 @@ const props = defineProps<{
 
 const modelValue = defineModel<string>()
 
+const { isUIAllowed } = useRoles()
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
+const { isNew, commentsDrawer, baseRoles } = useExpandedFormStoreOrThrow()
+
 const viewsStore = useViewsStore()
 
 const isViewModeEnabled = computed(() => {
   return (
-    isEeUI &&
+    !isNew.value &&
+    commentsDrawer.value &&
+    isUIAllowed('commentList', baseRoles.value) &&
     !isPublic.value &&
     (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) ||
       (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE) && !isSqlView.value))

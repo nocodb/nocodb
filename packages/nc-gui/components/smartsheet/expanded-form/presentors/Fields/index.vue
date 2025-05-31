@@ -35,7 +35,6 @@ const { isUIAllowed } = useRoles()
 const { isMobileMode } = useGlobal()
 
 /* flags */
-
 const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList') && !isSqlView.value)
 
 const canEdit = computed(() => isUIAllowed('dataEdit') && !isSqlView.value)

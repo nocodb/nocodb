@@ -1755,7 +1755,9 @@
     "noInvoices": "暂无发票",
     "noResultsFoundForYourSearch": "No results found for your search.",
     "noTables": "No tables",
-    "noAutomations": "No automations"
+    "noAutomations": "No automations",
+    "emptyTablePlaceholder": "This base is empty—for now.",
+    "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
     "urlFilter": "URL 筛选器通过 URL 参数应用，并与工具栏中设置的视图筛选器组合。",

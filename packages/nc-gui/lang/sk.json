@@ -1755,7 +1755,9 @@
     "noInvoices": "Žiadne faktúry",
     "noResultsFoundForYourSearch": "No results found for your search.",
     "noTables": "No tables",
-    "noAutomations": "No automations"
+    "noAutomations": "No automations",
+    "emptyTablePlaceholder": "This base is empty—for now.",
+    "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
     "urlFilter": "URL filtre sa aplikujú z parametrov URL a kombinujú sa s filtrami zobrazenia nastavenými na paneli nástrojov.",

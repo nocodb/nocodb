@@ -1755,7 +1755,9 @@
     "noInvoices": "ไม่มีใบแจ้งหนี้",
     "noResultsFoundForYourSearch": "No results found for your search.",
     "noTables": "No tables",
-    "noAutomations": "No automations"
+    "noAutomations": "No automations",
+    "emptyTablePlaceholder": "This base is empty—for now.",
+    "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
     "urlFilter": "ตัวกรอง URL ถูกนำมาจากพารามิเตอร์ใน URL และจะถูกรวมกับตัวกรองมุมมองที่ตั้งค่าผ่านแถบเครื่องมือ",

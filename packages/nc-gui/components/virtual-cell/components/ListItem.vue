@@ -30,6 +30,8 @@ provide(IsLinkRecordDropdownInj, ref(true))
 
 const isForm = inject(IsFormInj, ref(false))
 
+provide(IsFormInj, ref(false))
+
 const row = useVModel(props, 'row')
 
 const { isLinked, isLoading, isSelected } = toRefs(props)

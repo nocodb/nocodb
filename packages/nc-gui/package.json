@@ -40,7 +40,7 @@
     "@ckpack/vue-color": "^1.6.0",
     "@floating-ui/vue": "^1.1.6",
     "@iconify/vue": "^4.3.0",
-    "@pinia/nuxt": "^0.5.5",
+    "@pinia/nuxt": "^0.11.0",
     "@sentry/vue": "^9.2.0",
     "@tiptap/extension-hard-break": "^2.11.5",
     "@tiptap/extension-italic": "^2.11.5",

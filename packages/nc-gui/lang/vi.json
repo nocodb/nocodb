@@ -1755,7 +1755,9 @@
     "noInvoices": "Không có hóa đơn",
     "noResultsFoundForYourSearch": "No results found for your search.",
     "noTables": "No tables",
-    "noAutomations": "No automations"
+    "noAutomations": "No automations",
+    "emptyTablePlaceholder": "This base is empty—for now.",
+    "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
     "urlFilter": "Bộ lọc URL được lấy từ tham số URL và kết hợp với bộ lọc chế độ xem trên thanh công cụ.",

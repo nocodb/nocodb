@@ -1755,7 +1755,9 @@
     "noInvoices": "ഇൻവോയിസുകളൊന്നുമില്ല",
     "noResultsFoundForYourSearch": "No results found for your search.",
     "noTables": "No tables",
-    "noAutomations": "No automations"
+    "noAutomations": "No automations",
+    "emptyTablePlaceholder": "This base is empty—for now.",
+    "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
     "urlFilter": "URL പാരാമീറ്ററുകളിൽ നിന്ന് URL ഫിൽറ്ററുകൾ പ്രയോഗിക്കുകയും, ടൂൾബാറില്‍ സജ്ജീകരിച്ച കാഴ്ച ഫിൽറ്ററുകളുമായി ചേർക്കുകയും ചെയ്യുന്നു.",

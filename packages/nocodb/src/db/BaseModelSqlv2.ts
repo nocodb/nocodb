@@ -6321,9 +6321,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ): Promise<void> {
     for (const column of this.model.columns) {
       if (
-        this.context.api_version === NcApiVersion.V3 &&
         !ncIsUndefined(data[column.column_name]) &&
-        !ncIsNull(data[column.column_name])
+        !ncIsNull(data[column.column_name]) &&
+        (this.context.api_version === NcApiVersion.V3 ||
+          // partially open the parseUserInput to several UITypes
+          [
+            UITypes.LongText,
+            UITypes.SingleLineText,
+            UITypes.PhoneNumber,
+            UITypes.Email,
+            UITypes.JSON,
+          ].includes(column.uidt as UITypes))
       ) {
         data[column.column_name] = (
           await FieldHandler.fromBaseModel(this).parseUserInput({

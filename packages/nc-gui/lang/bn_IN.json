@@ -1755,7 +1755,9 @@
     "noInvoices": "কোন ইনভয়েস নেই",
     "noResultsFoundForYourSearch": "No results found for your search.",
     "noTables": "No tables",
-    "noAutomations": "No automations"
+    "noAutomations": "No automations",
+    "emptyTablePlaceholder": "This base is empty—for now.",
+    "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
     "urlFilter": "URL প্যারামিটার থেকে URL ফিল্টার প্রয়োগ হয় এবং টুলবারে সেট করা ভিউ ফিল্টারের সাথে মিলিত হয়।",

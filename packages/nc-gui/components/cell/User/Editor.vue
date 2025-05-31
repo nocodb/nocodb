@@ -538,7 +538,7 @@ onMounted(() => {
               :class="{
                 'text-gray-600': !isCollaborator(val) && val !== CURRENT_USER_TOKEN,
                 'text-nc-content-brand': val === CURRENT_USER_TOKEN,
-                'font-600': location === 'filter',
+                'font-600': isInFilter,
               }"
             >
               {{ label }}

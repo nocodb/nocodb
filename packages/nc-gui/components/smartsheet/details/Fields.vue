@@ -16,6 +16,7 @@ import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 import { AiWizardTabsType, type PredictedFieldType } from '#imports'
+import type { NavigationGuardNext, RouteLocationNormalizedLoadedGeneric } from 'vue-router'
 
 interface TableExplorerColumn extends ColumnType {
   id?: string
@@ -278,6 +279,15 @@ const changingField = ref(false)
 const addFieldMoveHook = ref<number>()
 
 const duplicateFieldHook = ref<TableExplorerColumn>()
+
+const hasUnsavedChanges = computed(() => {
+  return (
+    ops.value.length > 0 ||
+    moveOps.value.length > 0 ||
+    visibilityOps.value.length > 0 ||
+    showOrHideSystemFields.value !== showSystemFields.value
+  )
+})
 
 const setFieldMoveHook = (field: TableExplorerColumn, before = false) => {
   const index = fields.value.findIndex((f) => compareCols(f, field))
@@ -866,13 +876,7 @@ const saveChanges = async () => {
   if (!isColumnsValid.value) {
     message.error(t('msg.error.multiFieldSaveValidation'))
     return
-  } else if (
-    !loading.value &&
-    ops.value.length < 1 &&
-    moveOps.value.length < 1 &&
-    visibilityOps.value.length < 1 &&
-    showSystemFields.value === showOrHideSystemFields.value
-  ) {
+  } else if (!loading.value && !hasUnsavedChanges.value) {
     return
   }
   try {
@@ -1283,6 +1287,48 @@ const rightPanelWidth = computed(() => {
 
   return oldRightPanelWidth.value
 })
+
+const confirmUnsavedChangesBeforeLeaving = (from: RouteLocationNormalizedLoadedGeneric, next: NavigationGuardNext) => {
+  if (!hasUnsavedChanges.value || !(ncIsArray(from.params?.slugs) && from.params?.slugs?.includes('field'))) {
+    next()
+    return
+  }
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('NcModalConfirm'), {
+    'visible': isOpen,
+    'title': t('msg.info.unsavedChanges'),
+    'content': t('msg.info.unsavedChangesConfirmation'),
+    'okText': t('general.yes'),
+    'okClass': '!w-20',
+    'cancelClass': '!w-20',
+    'cancelText': t('general.no'),
+    'onCancel': closeDialog,
+    'onOk': () => {
+      closeDialog(true)
+    },
+    'update:visible': closeDialog,
+    'showIcon': false,
+    'keyboard': false,
+    'maskClosable': false,
+  })
+
+  function closeDialog(allow: boolean = false) {
+    next(allow)
+
+    isOpen.value = false
+    close(1000)
+  }
+}
+
+onBeforeRouteLeave((_to, from, next) => {
+  confirmUnsavedChangesBeforeLeaving(from, next)
+})
+
+onBeforeRouteUpdate((_to, from, next) => {
+  confirmUnsavedChangesBeforeLeaving(from, next)
+})
 </script>
 
 <template>
@@ -1429,13 +1475,7 @@ const rightPanelWidth = computed(() => {
               data-testid="nc-field-reset"
               type="secondary"
               size="small"
-              :disabled="
-                !loading &&
-                ops.length < 1 &&
-                moveOps.length < 1 &&
-                visibilityOps.length < 1 &&
-                showOrHideSystemFields === showSystemFields
-              "
+              :disabled="!loading && !hasUnsavedChanges"
               @click="clearChanges()"
             >
               {{ $t('general.reset') }}
@@ -1448,15 +1488,7 @@ const rightPanelWidth = computed(() => {
                 type="primary"
                 size="small"
                 :loading="loading"
-                :disabled="
-                  isColumnsValid
-                    ? !loading &&
-                      showOrHideSystemFields === showSystemFields &&
-                      ops.length < 1 &&
-                      moveOps.length < 1 &&
-                      visibilityOps.length < 1
-                    : true
-                "
+                :disabled="isColumnsValid ? !loading && !hasUnsavedChanges : true"
                 @click="saveChanges()"
               >
                 {{ $t('labels.multiField.saveChanges') }}

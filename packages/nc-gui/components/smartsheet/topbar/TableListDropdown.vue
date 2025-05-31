@@ -117,5 +117,3 @@ function openTableCreateDialog() {
     </template>
   </NcDropdown>
 </template>
-
-<style lang="scss" scoped></style>

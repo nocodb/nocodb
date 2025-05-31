@@ -410,7 +410,7 @@ watch(searchQuery, () => {
     <div
       class="nc-list-wrapper"
       :class="{
-        'pointer-events-none cursor-not-allowed': isLocked,
+        'cursor-not-allowed': isLocked,
       }"
     >
       <template v-if="list.length">
@@ -443,6 +443,7 @@ watch(searchQuery, () => {
                     'py-2': variant === 'default',
                     'py-[5px]': variant === 'medium',
                     'py-[3px]': variant === 'small',
+                    'pointer-events-none': isLocked,
                   },
                   `${itemClassName}`,
                 ]"

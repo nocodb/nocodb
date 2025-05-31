@@ -139,8 +139,6 @@ const filterOption = (column: ColumnType) => {
   </div>
 </template>
 
-<style lang="scss" scoped></style>
-
 <style lang="scss">
 .nc-form-field-visibility-dropdown {
   @apply rounded-2xl border-gray-200;

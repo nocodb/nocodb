@@ -97,7 +97,7 @@ ensure_command() {
 	fi
 }
 
-env_read() {
+env_set() {
 	# usage: env_read
 	mkdir -p "$(dirname "$env_store")"
 	touch "$env_store"
@@ -187,18 +187,19 @@ menu() {
 	while true; do
 		cat <<-EOF
 
-			######################################
-			## upstall menu (version: $version)      ##
-			######################################
-			## 1) start nocodb                  ##
-			## 2) stop nocodb                   ##
-			## 3) view logs                     ##
-			## 4) delete nocodb                 ##
-			## 5) update nocodb                 ##
-			## 6) exit                          ##
-			######################################
+			#################################
+			## upstall menu (version: $version) ##
+			#################################
+			## 1) start                    ##
+			## 2) stop                     ##
+			## 3) logs                     ##
+			## 4) delete                   ##
+			## 5) update                   ##
+			## 6) monitor                  ##
+			## 7) exit                     ##
+			#################################
 		EOF
-		prompt_oneof "option" 1 2 3 4 5 6
+		prompt_oneof "option" 1 2 3 4 5 6 7
 
 		case "$response" in
 		1) nocodb_run ;;
@@ -214,7 +215,8 @@ menu() {
 			docker stop "$container_name"
 			nocodb_run
 			;;
-		6) exit 0 ;;
+		6) docker stats "$container_name" ;;
+		7) exit 0 ;;
 		*) err "option not implemented" ;;
 		esac
 	done
@@ -226,5 +228,5 @@ menu() {
 ########
 
 ensure_command docker
-env_read
+env_set
 menu

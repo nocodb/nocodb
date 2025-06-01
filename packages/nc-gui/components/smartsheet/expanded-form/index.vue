@@ -479,6 +479,10 @@ onMounted(async () => {
     _row.value = props.row
   }
 
+  if (activeViewMode.value === ExpandedFormMode.DISCUSSION) {
+    await loadAudits(rowId.value, false)
+  }
+
   isLoading.value = false
 
   if (focusFirstCell && isNew.value) {

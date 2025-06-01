@@ -475,7 +475,7 @@ export default class Base implements BaseType {
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
-    await ncMeta.metaDelete(
+    await Noco.ncAudit.metaDelete(
       context.workspace_id,
       context.base_id,
       MetaTable.AUDIT,

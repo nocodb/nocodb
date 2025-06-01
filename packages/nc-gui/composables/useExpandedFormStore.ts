@@ -78,12 +78,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     }
   })
 
+  const auditToCursor = (audit: any) => {
+    return `${audit.id}|${audit.created_at}`
+  }
+
   const primaryKey = computed(() => {
     return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
   })
 
-  const auditsInAPage = 25
-  const currentAuditPages = ref(1)
+  const currentAuditCursor = ref('')
   const mightHaveMoreAudits = ref(false)
 
   const loadAudits = async (_rowId?: string, showLoading = true) => {
@@ -91,34 +94,48 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
 
     const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
-    if (!rowId) return
+    if (!rowId || !base.value.fk_workspace_id || !meta.value.base_id) return
 
     try {
       if (showLoading) {
         isAuditLoading.value = true
       }
 
-      const response = await $api.utils.auditList({
-        row_id: rowId,
-        fk_model_id: meta.value.id as string,
-        offset: 0,
-        limit: currentAuditPages.value * auditsInAPage,
-      })
+      const response = await $api.internal.getOperation(
+        base.value.fk_workspace_id,
+        (meta.value.base_id as string) ?? (base.value.id as string),
+        {
+          operation: 'recordAuditList',
+          fk_model_id: meta.value.id as string,
+          row_id: rowId,
+          cursor: currentAuditCursor.value,
+        },
+      )
+
+      const lastRecord = response.list?.[response.list.length - 1]
+
+      if (lastRecord) {
+        currentAuditCursor.value = auditToCursor(lastRecord)
+        mightHaveMoreAudits.value = true
+      } else {
+        mightHaveMoreAudits.value = false
+      }
 
       const res = response.list?.reverse?.() || []
 
-      audits.value = res.map((audit) => {
-        const user = baseUsers.value.find((u) => u.id === audit.fk_user_id || u.email === audit.user)
-        return {
-          ...audit,
-          created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
-          created_by_email: user?.email,
-          created_by_meta: user?.meta,
-        }
-      })
-
-      mightHaveMoreAudits.value = audits.value.length < (response.pageInfo?.totalRows ?? +Infinity)
+      audits.value.unshift(
+        ...res.map((audit) => {
+          const user = baseUsers.value.find((u) => u.id === audit.fk_user_id || u.email === audit.user)
+          return {
+            ...audit,
+            created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
+            created_by_email: user?.email,
+            created_by_meta: user?.meta,
+          }
+        }),
+      )
     } catch (e: any) {
+      console.error(e)
       const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
       if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
@@ -164,13 +181,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
     if (!mightHaveMoreAudits.value) {
       return
     }
-
-    currentAuditPages.value++
     await loadAudits()
   }
 
   const resetAuditPages = async () => {
-    currentAuditPages.value = 1
+    currentAuditCursor.value = ''
+    audits.value = []
+    mightHaveMoreAudits.value = false
     await loadAudits()
   }
 
@@ -313,7 +330,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
         }
 
         if (commentsDrawer.value) {
-          await Promise.all([loadComments(), loadAudits()])
+          await Promise.all([loadComments()])
         }
       } else {
         // No columns to update

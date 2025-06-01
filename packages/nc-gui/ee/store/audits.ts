@@ -1,4 +1,4 @@
-import { type AuditType, type PaginatedType, type UserType, type WorkspaceUserType, auditV1OperationsCategory } from 'nocodb-sdk'
+import { type AuditType, type UserType, type WorkspaceUserType, auditV1OperationsCategory } from 'nocodb-sdk'
 
 const defaultAuditLogsQuery = {
   type: [],
@@ -15,8 +15,6 @@ const defaultAuditLogsQuery = {
   },
 } as AuditLogsQuery
 
-const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 0 }
-
 export type CollaboratorType = User | UserType | (WorkspaceUserType & { id: string })
 
 export const useAuditsStore = defineStore('auditsStore', () => {
@@ -30,15 +28,13 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
   const loadActionWorkspaceLogsOnly = ref<boolean>(false)
 
-  const audits = ref<null | Array<AuditType>>(null)
+  const audits = ref<Array<AuditType>>([])
 
   const isRowExpanded = ref(false)
 
   const selectedAudit = ref<null | AuditType>(null)
 
   const auditLogsQuery = ref<AuditLogsQuery>(defaultAuditLogsQuery)
-
-  const auditPaginationData = ref<PaginatedType>(defaultPaginationData)
 
   const allBases = ref<Map<string, NcProject[]>>(new Map())
 
@@ -62,62 +58,51 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
   const isLoadingAudits = ref(false)
 
-  const loadAudits = async (
-    page: number = auditPaginationData.value.page!,
-    limit: number = auditPaginationData.value.pageSize!,
-    updateCurrentPage = true,
-    showLoading = true,
-  ) => {
+  const currentCursor = ref('')
+
+  const hasMoreAudits = ref(false)
+
+  const loadAudits = async (resetCursor = true, showLoading = true) => {
     if (showLoading) {
       isLoadingAudits.value = true
     }
 
     try {
-      if (updateCurrentPage) {
-        auditPaginationData.value.page = 1
+      if (resetCursor) {
+        currentCursor.value = ''
+        audits.value = []
       }
 
-      if (limit * (page - 1) > auditPaginationData.value.totalRows!) {
-        auditPaginationData.value.page = 1
-        page = 1
+      if (!activeWorkspaceId.value) return
+
+      const user = collaboratorsMap.value.get(auditLogsQuery.value.user)
+
+      const { list } = await $api.internal.getOperation(activeWorkspaceId.value, NO_SCOPE, {
+        operation: 'workspaceAuditList',
+        cursor: currentCursor.value,
+        baseId: auditLogsQuery.value.baseId,
+        fkUserId: user?.id || user?.fk_user_id,
+        type:
+          ncIsArray(auditLogsQuery.value.type) && auditLogsQuery.value.type.length
+            ? auditLogsQuery.value.type.flatMap((cat) => auditV1OperationsCategory[cat]?.types ?? [])
+            : undefined,
+        startDate: auditLogsQuery.value.startDate,
+        endDate: auditLogsQuery.value.endDate,
+        orderBy: auditLogsQuery.value.orderBy,
+      })
+
+      const lastRecord = list[list.length - 1]
+
+      if (lastRecord) {
+        currentCursor.value = `${lastRecord.id}|${lastRecord.created_at}`
       }
 
-      if (loadActionWorkspaceLogsOnly.value) {
-        if (!activeWorkspaceId.value) return
+      audits.value.push(...list)
 
-        const { list, pageInfo } = await $api.workspace.auditList(activeWorkspaceId.value, {
-          offset: limit * (page - 1),
-          limit,
-          ...auditLogsQuery.value,
-          type:
-            ncIsArray(auditLogsQuery.value.type) && auditLogsQuery.value.type.length
-              ? auditLogsQuery.value.type.flatMap((cat) => auditV1OperationsCategory[cat]?.types ?? [])
-              : undefined,
-          sourceId: undefined,
-        })
-
-        audits.value = list
-        auditPaginationData.value.totalRows = pageInfo.totalRows ?? 0
-      } else {
-        const { list, pageInfo } = await $api.audits.globalAuditList({
-          offset: limit * (page - 1),
-          limit,
-          ...auditLogsQuery.value,
-          type:
-            ncIsArray(auditLogsQuery.value.type) && auditLogsQuery.value.type.length
-              ? auditLogsQuery.value.type.flatMap((cat) => auditV1OperationsCategory[cat]?.types ?? [])
-              : undefined,
-          sourceId: undefined,
-        })
-
-        audits.value = list
-        auditPaginationData.value.totalRows = pageInfo.totalRows ?? 0
-      }
+      hasMoreAudits.value = list.length > 0
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e))
-      audits.value = []
-      auditPaginationData.value.totalRows = 0
-      auditPaginationData.value.page = 1
+      hasMoreAudits.value = false
     } finally {
       if (showLoading) {
         isLoadingAudits.value = false
@@ -175,7 +160,6 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
   const handleReset = () => {
     auditLogsQuery.value = { ...defaultAuditLogsQuery }
-    auditPaginationData.value = { ...defaultPaginationData }
 
     allBases.value.clear()
     collaboratorsMap.value.clear()
@@ -186,7 +170,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
       auditLogsQuery.value.workspaceId = activeWorkspaceId.value
     }
 
-    const promises = [loadAudits(undefined, undefined, true, false)]
+    const promises = [loadAudits(true, false)]
     isLoadingAudits.value = true
     isLoadingUsers.value = true
     if (!loadActionWorkspaceLogsOnly.value && !workspacesList.value.length) {
@@ -238,7 +222,6 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     isRowExpanded,
     selectedAudit,
     auditLogsQuery,
-    auditPaginationData,
     isLoadingAudits,
     handleReset,
     loadAudits,
@@ -249,6 +232,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     onInit,
     getUserName,
     loadActionWorkspaceLogsOnly,
+    hasMoreAudits,
   }
 })
 

@@ -9,17 +9,8 @@ const isUnsavedDuplicatedRecordExist = toRef(props, 'isUnsavedDuplicatedRecordEx
 
 /* stores */
 
-const {
-  saveComment,
-  loadAudits,
-  commentsDrawer,
-  isNew,
-  audits,
-  comments,
-  auditCommentGroups,
-  mightHaveMoreAudits,
-  loadMoreAudits,
-} = useExpandedFormStoreOrThrow()
+const { saveComment, commentsDrawer, isNew, audits, comments, auditCommentGroups, mightHaveMoreAudits, loadMoreAudits } =
+  useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -29,8 +20,7 @@ const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
 const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
 
-onMounted(async () => {
-  await loadAudits()
+onMounted(() => {
   scrollToBottom()
 })
 

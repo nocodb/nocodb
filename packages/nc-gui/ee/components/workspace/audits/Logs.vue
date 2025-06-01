@@ -16,24 +16,13 @@ const {
   bases,
   audits,
   auditLogsQuery,
-  auditPaginationData,
   collaboratorsMap,
   isLoadingAudits,
   loadActionWorkspaceLogsOnly,
+  hasMoreAudits,
 } = storeToRefs(auditsStore)
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
-
-const handleChangePage = async (page: number) => {
-  auditPaginationData.value.page = page
-  await loadAudits(undefined, undefined, false)
-}
-
-const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
-  paginationDataRef: auditPaginationData,
-  changePage: handleChangePage,
-  isViewDataLoading: isLoadingAudits,
-})
 
 const columns: NcTableColumnProps<AuditType>[] = [
   {
@@ -43,7 +32,6 @@ const columns: NcTableColumnProps<AuditType>[] = [
     minWidth: 220,
     padding: '0px 12px',
     dataIndex: 'user',
-    showOrderBy: true,
   },
   {
     key: 'created_at',
@@ -92,7 +80,7 @@ const orderBy = computed({
   set: (value) => {
     auditLogsQuery.value.orderBy = value
 
-    loadAudits(undefined, undefined, false)
+    loadAudits(false)
   },
 })
 
@@ -113,12 +101,6 @@ watch(activeWorkspaceId, () => {
 
   onInit()
 })
-
-// Keyboard shortcuts for pagination
-onKeyStroke('ArrowLeft', onLeft)
-onKeyStroke('ArrowRight', onRight)
-onKeyStroke('ArrowUp', onUp)
-onKeyStroke('ArrowDown', onDown)
 </script>
 
 <template>
@@ -199,35 +181,17 @@ onKeyStroke('ArrowDown', onDown)
             {{ audit.user_agent || '' }}
           </div>
         </template>
-
-        <template #tableFooter>
-          <div
-            v-if="auditPaginationData.totalRows"
-            class="flex flex-row justify-center items-center bg-gray-50 min-h-10"
-            :class="{
-              'pointer-events-none': isLoadingAudits,
-            }"
-          >
-            <div class="flex justify-between items-center w-full px-6">
-              <div>&nbsp;</div>
-              <NcPagination
-                v-model:current="auditPaginationData.page"
-                v-model:page-size="auditPaginationData.pageSize"
-                :total="+auditPaginationData.totalRows"
-                show-size-changer
-                :use-stored-page-size="false"
-                :prev-page-tooltip="`${renderAltOrOptlKey()}+←`"
-                :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
-                :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
-                :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
-                @update:current="loadAudits(undefined, undefined, false)"
-                @update:page-size="loadAudits(auditPaginationData.page, $event, false)"
-              />
-              <div class="text-gray-500 text-xs">
-                {{ auditPaginationData.totalRows }} {{ auditPaginationData.totalRows === 1 ? 'record' : 'records' }}
-              </div>
+        <template #extraRow>
+          <td colspan="6" class="w-full">
+            <div class="flex flex-row justify-center items-center w-full">
+              <NcButton :loading="isLoadingAudits" :disabled="!hasMoreAudits" @click="loadAudits(false)">
+                <div class="flex items-center gap-2">
+                  <component :is="iconMap.plus" />
+                  Load More
+                </div>
+              </NcButton>
             </div>
-          </div>
+          </td>
         </template>
       </NcTable>
       <WorkspaceAuditsExpandedAudit />

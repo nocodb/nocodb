@@ -1,6 +1,7 @@
 import { MetaService as MetaServiceCE } from 'src/meta/meta.service';
 import { Injectable, Optional } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
+import { v7 as uuidv7 } from 'uuid';
 import type { Condition, Knex } from '~/db/CustomKnex';
 import XcMigrationSourcev3 from '~/meta/migrations/XcMigrationSourcev3';
 import { NcConfig } from '~/utils/nc-config';
@@ -46,6 +47,10 @@ export class MetaService extends MetaServiceCE {
    * @returns {string} - Generated nanoid
    * */
   public async genNanoid(target: string) {
+    if (target === MetaTable.AUDIT) {
+      return uuidv7();
+    }
+
     const prefixMap: { [key: string]: string } = {
       [MetaTable.PROJECT]: 'p',
       [MetaTable.SOURCES]: 'b',
@@ -75,7 +80,6 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.VIEWS]: 'vw',
       [MetaTable.HOOKS]: 'hk',
       [MetaTable.HOOK_LOGS]: 'hkl',
-      [MetaTable.AUDIT]: 'adt',
       [MetaTable.API_TOKENS]: 'tkn',
       [MetaTable.WORKSPACE]: 'w',
       [MetaTable.COWRITER]: 'cw',
@@ -193,11 +197,11 @@ export class MetaService extends MetaServiceCE {
       if (base_id !== RootScopes.WORKSPACE) insertObj.base_id = base_id;
     }
 
-    const qb = this.knexConnection(target).insert({
-      ...insertObj,
-      created_at: this.now(),
-      updated_at: this.now(),
-    });
+    const at = this.now();
+    insertObj.created_at = at;
+    insertObj.updated_at = at;
+
+    const qb = this.knexConnection(target).insert(insertObj);
 
     this.logHelper(workspace_id, base_id, target, qb);
 

@@ -22,7 +22,6 @@ const {
   bases,
   basesList,
   auditLogsQuery,
-  auditPaginationData,
   isLoadingBases,
   isLoadingUsers,
   collaboratorsMap,
@@ -106,7 +105,7 @@ const handleUpdateBaseQuery = (baseId?: string, sourceId?: string) => {
 const handleUpdateEventQuery = (eventCat: string[] = []) => {
   auditLogsQuery.value.type = eventCat
 
-  loadAudits()
+  loadAudits(true)
 }
 
 const handleFilterEvent = (query: string, option: any) => {
@@ -127,9 +126,7 @@ const handleClearDateRange = () => {
 
   auditDropdowns.value.dateRange = false
 
-  auditPaginationData.value.page = 1
-  auditPaginationData.value.pageSize = 25
-  loadAudits()
+  loadAudits(true)
 }
 
 const handleUpdateDateRange = (range?: AuditLogsDateRange, label?: string) => {
@@ -163,9 +160,7 @@ const handleUpdateDateRange = (range?: AuditLogsDateRange, label?: string) => {
   }
 
   auditDropdowns.value.dateRange = false
-  auditPaginationData.value.page = 1
-  auditPaginationData.value.pageSize = 25
-  loadAudits()
+  loadAudits(true)
 }
 
 const handleCustomDateRangeClick = () => {
@@ -181,7 +176,7 @@ const handleCustomDateRangeClick = () => {
   auditLogsQuery.value.startDate = undefined
   auditLogsQuery.value.endDate = undefined
 
-  loadAudits()
+  loadAudits(true)
 }
 
 const handleUpdateCustomDateRange = (value: string | null, field: 'startDate' | 'endDate') => {
@@ -199,14 +194,14 @@ const handleUpdateCustomDateRange = (value: string | null, field: 'startDate' | 
     auditLogsQuery.value[field] = undefined
   }
 
-  loadAudits()
+  loadAudits(true)
 }
 
 const handleRefresh = () => {
   if (auditLogsQuery.value.endDate && auditLogsQuery.value.dateRange !== AuditLogsDateRange.Custom) {
     auditLogsQuery.value.endDate = dayjs(new Date()).utc().format('YYYY-MM-DD HH:mm:ssZ')
   }
-  loadAudits()
+  loadAudits(true)
 }
 
 const selectedUserFilter = computed(() => {

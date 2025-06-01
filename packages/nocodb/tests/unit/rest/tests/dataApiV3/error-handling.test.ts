@@ -419,6 +419,34 @@ describe('dataApiV3', () => {
         textBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
       });
 
+      it(`will handle update length exceed 100k`, async () => {
+        const content2500Length =
+          '01234567890123456789012345678901234567890123456789'
+            .split('')
+            .map((k) => '01234567890123456789012345678901234567890123456789')
+            .join('');
+        const content100k1Length =
+          '0123456789012345678901234567890123456789'
+            .split('')
+            .map((k) => content2500Length)
+            .join('') + '1';
+
+        const response = await ncAxiosPatch({
+          url: `${textBasedUrlPrefix}/${table.id}`,
+          body: [
+            {
+              Id: 1,
+              SingleLineText: content100k1Length,
+            },
+          ],
+          status: 422,
+        });
+        expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+        expect(response.body.message).to.eq(
+          `Value length '100001' is exceeding allowed limit '100000' for type 'SingleLineText' on column 'SingleLineText'`,
+        );
+      });
+
       it(`will handle update record not found`, async () => {
         const response = await ncAxiosPatch({
           url: `${textBasedUrlPrefix}/${table.id}`,

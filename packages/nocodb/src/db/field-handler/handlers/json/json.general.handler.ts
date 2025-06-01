@@ -1,5 +1,6 @@
 import { ncIsNull, ncIsUndefined } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
+import { NC_MAX_TEXT_LENGTH } from 'src/constants';
 import type { NcContext } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
@@ -186,6 +187,18 @@ export class JsonGeneralHandler extends GenericFieldHandler {
   }): Promise<{ value: any }> {
     if (ncIsUndefined(params.value) || ncIsNull(params.value)) {
       return { value: params.value };
+    }
+    const length =
+      (typeof params.value === 'string' && params.value.length) ??
+      (typeof params.value === 'object' && JSON.stringify(params.value).length);
+
+    if (length > NC_MAX_TEXT_LENGTH) {
+      NcError._.valueLengthExceedLimit({
+        column: params.column.title,
+        type: params.column.uidt,
+        length,
+        maxLength: NC_MAX_TEXT_LENGTH,
+      });
     }
     const parseJsonResult = this.parseJsonValue(params.value);
     if (parseJsonResult.isValidJson) {

@@ -143,10 +143,10 @@ const up = async (knex: Knex) => {
   // Step 5: Add indexes after data migration for better performance
   await knex.schema.alterTable(MetaTable.AUDIT, (table) => {
     table.primary(['id']);
-    table.index(['fk_workspace_id', 'base_id'], 'nc_audit_v2_tenant');
+    table.index(['fk_workspace_id', 'base_id'], 'nc_audit_v2_tenant_idx');
     table.index(
       ['fk_workspace_id', 'base_id', 'fk_model_id', 'row_id'],
-      'nc_record_audit_v2_tenant',
+      'nc_record_audit_v2_tenant_idx',
     );
   });
 };

@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "请向上级角色申请更高的权限，以访问 {viewName}。",
       "preventHideAllOptions": "必填项不能为空",
       "valueMustBeAtMostCharLong": "值长度不得超过 {length} 个字符",
-      "copyToClipboardLocalFileUrl": "浏览器不允许直接加载本地资源。已将 URL 复制到剪贴板。"
+      "copyToClipboardLocalFileUrl": "浏览器不允许直接加载本地资源。已将 URL 复制到剪贴板。",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

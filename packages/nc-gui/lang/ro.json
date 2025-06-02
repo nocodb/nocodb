@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Solicită permisiuni mai mari de la Administrator / Proprietarul bazei / Proprietarul spațiului de lucru pentru a obține acces la acest {viewName}",
       "preventHideAllOptions": "Nu poți ascunde toate opțiunile dacă câmpul este obligatoriu",
       "valueMustBeAtMostCharLong": "Valoarea trebuie să aibă cel mult {length} caractere",
-      "copyToClipboardLocalFileUrl": "Browserul nu permite încărcarea directă a resursei locale. URL-ul a fost copiat în clipboard."
+      "copyToClipboardLocalFileUrl": "Browserul nu permite încărcarea directă a resursei locale. URL-ul a fost copiat în clipboard.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Silakan minta izin lebih tinggi dari Admin/Pemilik Dasar/Pemilik Ruang Kerja untuk mendapatkan akses ke {viewName} ini",
       "preventHideAllOptions": "Anda tidak dapat menyembunyikan semua opsi jika kolom wajib diisi",
       "valueMustBeAtMostCharLong": "Nilai harus paling banyak {length} karakter",
-      "copyToClipboardLocalFileUrl": "Peramban tidak mengizinkan memuat sumber daya lokal secara langsung. URL disalin ke papan klip sebagai gantinya."
+      "copyToClipboardLocalFileUrl": "Peramban tidak mengizinkan memuat sumber daya lokal secara langsung. URL disalin ke papan klip sebagai gantinya.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

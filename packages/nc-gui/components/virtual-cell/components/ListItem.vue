@@ -164,10 +164,7 @@ const displayValue = computed(() => {
             </div>
           </div>
         </div>
-        <div
-          v-if="!isForm && !isPublic && !readOnly && isUIAllowed('dataEdit', externalBaseUserRoles)"
-          class="flex-none flex items-center w-7"
-        >
+        <div v-if="!isForm && !isPublic" class="flex-none flex items-center w-7">
           <NcTooltip class="flex">
             <template #title>{{ $t('title.expand') }}</template>
 

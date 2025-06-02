@@ -274,9 +274,9 @@ export const ManyToManyCellRenderer: CellRenderer = {
         ) {
           /**
            * To mimic editable cell behaviour we added return statement here
-           * If cell is readonly (stop event propagation on click chip item) `@click.stop="openExpandedForm"`
+           * If isPublic (stop event propagation on click chip item) `@click.stop="openExpandedForm"`
            */
-          if (readonly) return true
+          if (isPublic) return true
 
           const rowId = extractPkFromRow(cellItem.value, (column.relatedTableMeta?.columns || []) as ColumnType[])
           if (rowId) {

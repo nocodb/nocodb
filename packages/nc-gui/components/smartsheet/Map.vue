@@ -14,6 +14,8 @@ const router = useRouter()
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
+const { withLoading } = useLoadingTrigger()
+
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
 
 const { formattedData, loadMapData, loadMapMeta, mapMetaData, geoDataFieldColumn, addEmptyRow, paginationData } =
@@ -170,9 +172,11 @@ reloadViewMetaHook?.on(async () => {
   await loadMapMeta()
 })
 
-reloadViewDataHook?.on(async () => {
-  await loadMapData()
-})
+reloadViewDataHook?.on(
+  withLoading(async () => {
+    await loadMapData()
+  }),
+)
 
 provide(ReloadRowDataHookInj, reloadViewDataHook!)
 

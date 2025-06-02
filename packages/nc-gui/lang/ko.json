@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "이 {viewName}에 액세스하려면 관리자/프로젝트 소유자/작업공간 소유자에게 상위 권한을 요청하세요.",
       "preventHideAllOptions": "필드가 필수인 경우 모든 옵션을 숨길 수 없습니다",
       "valueMustBeAtMostCharLong": "값은 최대 {length}자여야 합니다",
-      "copyToClipboardLocalFileUrl": "브라우저는 로컬 리소스를 직접로드 할 수 없습니다. 대신 URL이 클립보드에 복사되었습니다."
+      "copyToClipboardLocalFileUrl": "브라우저는 로컬 리소스를 직접로드 할 수 없습니다. 대신 URL이 클립보드에 복사되었습니다.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "MCP 토큰을 삭제하지 못했습니다",

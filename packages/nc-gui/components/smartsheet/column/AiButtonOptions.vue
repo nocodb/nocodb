@@ -191,6 +191,9 @@ const generate = async () => {
       fk_integration_id: vModel.value.fk_integration_id,
       uidt: UITypes.Button,
       output_column_ids: outputColumnIds.value.join(','),
+      meta: {
+        allow_internet_access: vModel.value.meta.allow_internet_access,
+      },
     },
     [selectedRecordPk.value],
     false,

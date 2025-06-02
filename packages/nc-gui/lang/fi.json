@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Pyydä korkeampia oikeuksia adminilta/pohjan omistajalta/työtilan omistajalta saadaksesi pääsyn tähän {viewName} näkymään",
       "preventHideAllOptions": "Et voi piilottaa kaikkia vaihtoehtoja, jos kenttä on pakollinen",
       "valueMustBeAtMostCharLong": "Arvon pituus saa olla enintään {length} merkkiä",
-      "copyToClipboardLocalFileUrl": "Selain ei salli paikallisen resurssin lataamista suoraan. URL kopioitiin leikepöydälle."
+      "copyToClipboardLocalFileUrl": "Selain ei salli paikallisen resurssin lataamista suoraan. URL kopioitiin leikepöydälle.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

@@ -77,6 +77,7 @@ const props = defineProps<{
 const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
 
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
+const { withLoading } = useLoadingTrigger()
 
 const {
   loadData,
@@ -1827,7 +1828,7 @@ watch(activeCell, (activeCell) => {
   eventBus.emit(SmartsheetStoreEvents.CELL_SELECTED, { rowId, colId: col?.id, val, viewId })
 })
 
-const reloadViewDataHookHandler = async (param) => {
+const reloadViewDataHookHandler = withLoading(async (param) => {
   if (param?.fieldAdd) {
     gridWrapper.value?.scrollTo({ top: 0, left: 0, behavior: 'instant' })
   }
@@ -1848,7 +1849,7 @@ const reloadViewDataHookHandler = async (param) => {
     row.rowMeta.rowIndex = totalRows.value + index
     cachedRows.value.set(totalRows.value + index, row)
   })
-}
+})
 
 let requestAnimationFrameId: null | number = null
 const { eventBus: scriptEventBus } = useScriptExecutor()

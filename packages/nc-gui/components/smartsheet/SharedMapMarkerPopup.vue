@@ -9,15 +9,17 @@ const props = defineProps<{
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
-
+const { withLoading } = useLoadingTrigger()
 const { loadData } = useViewData(meta, view)
 
 provide(IsFormInj, ref(false))
 provide(IsGridInj, ref(false))
 
-reloadViewDataHook?.on(async () => {
-  await loadData()
-})
+reloadViewDataHook?.on(
+  withLoading(async () => {
+    await loadData()
+  }),
+)
 
 onMounted(async () => {
   await loadData()

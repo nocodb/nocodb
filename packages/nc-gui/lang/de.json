@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Bitte fordern Sie höhere Berechtigungen vom Admin / Projekt-Besitzer / Arbeitsbereichs-Besitzer an, um auf diese {viewName} zuzugreifen",
       "preventHideAllOptions": "Sie können nicht alle Optionen verbergen, wenn das Feld erforderlich ist",
       "valueMustBeAtMostCharLong": "Wert darf maximal {length} Zeichen lang sein.",
-      "copyToClipboardLocalFileUrl": "Der Browser erlaubt das direkte Laden lokaler Ressourcen nicht. Die URL wurde stattdessen in die Zwischenablage kopiert."
+      "copyToClipboardLocalFileUrl": "Der Browser erlaubt das direkte Laden lokaler Ressourcen nicht. Die URL wurde stattdessen in die Zwischenablage kopiert.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

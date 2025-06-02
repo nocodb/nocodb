@@ -216,46 +216,32 @@ function shouldShowRaw(key: string) {
       </template>
       <template v-else-if="['SingleLineText', 'LongText'].includes(meta[columnKey]?.type)">
         <div class="w-full">
-          <template v-if="meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai">
-            <template
-              v-for="(block, i) of diffTextBlocks(oldData[columnKey]?.value || '', newData[columnKey]?.value || '')"
-              :key="i"
+          <template
+            v-for="(block, i) of diffTextBlocks(
+              meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
+                ? oldData[columnKey]?.value || ''
+                : oldData[columnKey] || '',
+              meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
+                ? newData[columnKey]?.value || ''
+                : newData[columnKey] || '',
+            )"
+            :key="i"
+          >
+            <span
+              v-if="block.op === 'removed'"
+              class="max-w-full text-small1 text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone"
             >
-              <span
-                v-if="block.op === 'removed'"
-                class="max-w-full text-small1 text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone"
-              >
-                {{ block.text }}
-              </span>
-              <span
-                v-else-if="block.op === 'added'"
-                class="max-w-full text-small1 text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone"
-              >
-                {{ block.text }}
-              </span>
-              <span v-else>
-                {{ block.text }}
-              </span>
-            </template>
-          </template>
-          <template v-else>
-            <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
-              <span
-                v-if="block.op === 'removed'"
-                class="max-w-full text-small1 text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone"
-              >
-                {{ block.text }}
-              </span>
-              <span
-                v-else-if="block.op === 'added'"
-                class="max-w-full text-small1 text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone"
-              >
-                {{ block.text }}
-              </span>
-              <span v-else>
-                {{ block.text }}
-              </span>
-            </template>
+              {{ block.text }}
+            </span>
+            <span
+              v-else-if="block.op === 'added'"
+              class="max-w-full text-small1 text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone"
+            >
+              {{ block.text }}
+            </span>
+            <span v-else>
+              {{ block.text }}
+            </span>
           </template>
         </div>
       </template>

@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "សូមស្នើសុំការអនុញ្ញាតខ្ពស់ជាងនេះពីអ្នកគ្រប់គ្រង / ម្ចាស់មូលដ្ឋាន / ម្ចាស់កន្លែងធ្វើការ ដើម្បីទទួលបានការចូលដល់ {viewName}",
       "preventHideAllOptions": "អ្នកមិនអាចលាក់ជម្រើសទាំងអស់បានទេអាយផ្នែកនេះត្រូវមាន",
       "valueMustBeAtMostCharLong": "តម្លៃត្រូវតែវែងអតិបរមា {length} តួអក្សរ",
-      "copyToClipboardLocalFileUrl": "កម្មវិធីរុករកមិនអនុញ្ញាតផ្ទុកធនធានមូលដ្ឋានដោយផ្ទាល់ទេ។ URL ត្រូវបានចម្លងទៅក្តារតម្បៀតខ្ទាស់ជំនួស។"
+      "copyToClipboardLocalFileUrl": "កម្មវិធីរុករកមិនអនុញ្ញាតផ្ទុកធនធានមូលដ្ឋានដោយផ្ទាល់ទេ។ URL ត្រូវបានចម្លងទៅក្តារតម្បៀតខ្ទាស់ជំនួស។",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

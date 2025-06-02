@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Eskatu sarbide handiagoa Administratzaileari / Base jabea / Workspace jabea {viewName} sarbidea izateko",
       "preventHideAllOptions": "Ezin dituzu aukera guztiak ezkutatu eremua beharrezkoa bada",
       "valueMustBeAtMostCharLong": "Balioak gehienez {length} karaktere izan behar ditu",
-      "copyToClipboardLocalFileUrl": "Nabigatzaileak ez du tokiko baliabidea zuzenean kargatzen uzten. URLa arbelean kopiatu da."
+      "copyToClipboardLocalFileUrl": "Nabigatzaileak ez du tokiko baliabidea zuzenean kargatzen uzten. URLa arbelean kopiatu da.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Vui lòng yêu cầu quyền cao hơn từ Admin / Chủ sở hữu Cơ sở / Chủ sở hữu Workspace để truy cập vào {viewName} này",
       "preventHideAllOptions": "Bạn không thể ẩn tất cả tùy chọn nếu trường là bắt buộc",
       "valueMustBeAtMostCharLong": "Giá trị phải có tối đa {length} ký tự",
-      "copyToClipboardLocalFileUrl": "Trình duyệt không cho phép tải tài nguyên cục bộ trực tiếp. URL đã được sao chép vào clipboard."
+      "copyToClipboardLocalFileUrl": "Trình duyệt không cho phép tải tài nguyên cục bộ trực tiếp. URL đã được sao chép vào clipboard.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

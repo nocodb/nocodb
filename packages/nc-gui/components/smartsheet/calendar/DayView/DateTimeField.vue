@@ -1039,7 +1039,7 @@ const expandRecord = (record: Row) => {
             auto-close
           >
             <NcButton
-              class="!group-hover:block mr-12 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
+              class="!group-hover:block mr-10 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
               size="xsmall"
               type="secondary"
             >
@@ -1086,7 +1086,7 @@ const expandRecord = (record: Row) => {
               '!block': hour.isSame(selectedTime),
               '!hidden': !hour.isSame(selectedTime),
             }"
-            class="!group-hover:block mr-12 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
+            class="!group-hover:block mr-10 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
             size="xsmall"
             type="secondary"
             @click="

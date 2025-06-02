@@ -1115,7 +1115,7 @@ export function useInfiniteData(args: {
       })
 
       if (missingRequiredColumns.size) {
-        return
+        return insertObj
       }
 
       const insertedData = await $api.dbViewRow.create(

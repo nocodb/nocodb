@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Požádejte o vyšší oprávnění od správce / vlastníka základny / vlastníka pracovního prostoru, abyste získali přístup k tomuto {viewName}",
       "preventHideAllOptions": "Pokud je pole povinné, nemůžete skrýt všechny možnosti",
       "valueMustBeAtMostCharLong": "Hodnota může mít maximálně {length} znaků",
-      "copyToClipboardLocalFileUrl": "Prohlížeč neumožňuje přímo načíst místní zdroj. URL byla místo toho zkopírována do schránky."
+      "copyToClipboardLocalFileUrl": "Prohlížeč neumožňuje přímo načíst místní zdroj. URL byla místo toho zkopírována do schránky.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Nepodařilo se vymazat token MCP",

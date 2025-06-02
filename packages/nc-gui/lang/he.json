@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "אנא בקש הרשאה גבוהה יותר ממנהל / בעל הבסיס / בעל המרחב עבודה כדי לקבל גישה ל-{viewName} הזה",
       "preventHideAllOptions": "לא ניתן להסתיר את כל האפשרויות אם השדה נדרש",
       "valueMustBeAtMostCharLong": "הערך יכול להכיל לכל היותר {length} תווים",
-      "copyToClipboardLocalFileUrl": "הדפדפן אינו מאפשר לטעון משאב מקומי ישירות. ה-URL הועתק ללוח במקום זאת."
+      "copyToClipboardLocalFileUrl": "הדפדפן אינו מאפשר לטעון משאב מקומי ישירות. ה-URL הועתק ללוח במקום זאת.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

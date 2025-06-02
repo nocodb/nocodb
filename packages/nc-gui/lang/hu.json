@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Kérj magasabb jogosultságot az adminisztrátortól / Bázis tulajdonostól / Munkaterület tulajdonostól, hogy hozzáférhess ehhez a {viewName}",
       "preventHideAllOptions": "Nem rejtheted el az összes opciót, ha a mező kötelező",
       "valueMustBeAtMostCharLong": "Az érték legfeljebb {length} karakter hosszú lehet",
-      "copyToClipboardLocalFileUrl": "A böngésző nem engedélyezi a helyi erőforrás közvetlen betöltését. Az URL a vágólapra lett másolva."
+      "copyToClipboardLocalFileUrl": "A böngésző nem engedélyezi a helyi erőforrás közvetlen betöltését. Az URL a vágólapra lett másolva.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

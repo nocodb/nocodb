@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "এই {viewName} অ্যাক্সেস করতে অ্যাডমিন / বেস মালিক / ওয়ার্কস্পেস মালিক থেকে উচ্চতর অনুমতি অনুরোধ করুন",
       "preventHideAllOptions": "ক্ষেত্র প্রয়োজন হলে আপনি সমস্ত বিকল্প লুকাতে পারবেন না",
       "valueMustBeAtMostCharLong": "মান সর্বাধিক {length} অক্ষর দীর্ঘ হতে পারে",
-      "copyToClipboardLocalFileUrl": "ব্রাউজার সরাসরি স্থানীয় রিসোর্স লোড করতে দেয় না। URL কিপবোর্ডে কপি করা হয়েছে।"
+      "copyToClipboardLocalFileUrl": "ব্রাউজার সরাসরি স্থানীয় রিসোর্স লোড করতে দেয় না। URL কিপবোর্ডে কপি করা হয়েছে।",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

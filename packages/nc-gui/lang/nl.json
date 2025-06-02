@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Vraag om hogere rechten van de Admin / Base eigenaar / Werkruimte eigenaar om toegang te krijgen tot deze {viewName}",
       "preventHideAllOptions": "U kunt niet alle opties verbergen als een veld verplicht is",
       "valueMustBeAtMostCharLong": "Waarde mag maximaal {length} tekens lang zijn",
-      "copyToClipboardLocalFileUrl": "De browser staat het direct laden van lokale bronnen niet toe. URL is in plaats daarvan naar het klembord gekopieerd."
+      "copyToClipboardLocalFileUrl": "De browser staat het direct laden van lokale bronnen niet toe. URL is in plaats daarvan naar het klembord gekopieerd.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

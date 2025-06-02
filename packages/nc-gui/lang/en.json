@@ -1339,8 +1339,8 @@
     "createNew": "Create New",
     "dataApiV2": "Data APIs V2",
     "metaApiV2": "Meta APIs V2",
-    "showExtraFields": "Show extra fields",
-    "showExtraFieldsDescription": "Show extra fields along with display value field in the link record dropdown"
+    "showExtraFields": "Show additional fields",
+    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

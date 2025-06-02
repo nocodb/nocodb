@@ -87,7 +87,7 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
               isMultiSelect(activeField)
                 ? 'Limit the number of options that users can select.'
                 : isLink(activeField)
-                ? 'Limit then number of records that users can select'
+                ? 'Limit the number of records that users can select'
                 : 'Limit the number of users that can be selected.'
             }}
           </div>

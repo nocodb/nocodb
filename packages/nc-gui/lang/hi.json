@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "कृपया इस {viewName} तक पहुँच प्राप्त करने के लिए व्यवस्थापक / बेस मालिक / कार्यक्षेत्र मालिक से उच्च अनुमति का अनुरोध करें",
       "preventHideAllOptions": "यदि फ़ील्ड आवश्यक है तो सभी विकल्प छिपा नहीं सकते",
       "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
-      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

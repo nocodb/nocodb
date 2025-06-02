@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "ಈ {viewName} ಗೆ ಪ್ರವೇಶ ಪಡೆಯಲು ಆಡಳಿತಕರಿಂದ / ಬೇಸ್ ಮಾಲಕರಿಂದ / ವರ್ಕ್‌ಸ್ಪೇಸ್ ಮಾಲಕರಿಂದ ಹೆಚ್ಚಿನ ಅನುಮತಿ ಕೋರಿ",
       "preventHideAllOptions": "ಕ್ಷೇತ್ರವು ಅಗತ್ಯವಿದ್ದರೆ ಎಲ್ಲಾ ಆಯ್ಕೆಗಳ ಹೋಲಿಕೆ ಅನ್ನು ನೈವ್ಯಾಧಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ",
       "valueMustBeAtMostCharLong": "ಮೌಲ್ಯವು ಗರಿಷ್ಠ {length} ಅಕ್ಷರಗಳವರೆಗೆ ಇರಬೇಕು",
-      "copyToClipboardLocalFileUrl": "ಬ್ರೌಸರ್ ಸ್ಥಳೀಯ ಸಂಪನ್ಮೂಲವನ್ನು ನೇರವಾಗಿ ಲೋಡ್ ಮಾಡಲು ಅನುಮತಿಸುವುದಿಲ್ಲ. URL ಅನ್ನು ಕ್ಲಿಪ್‌ಬೋರ್ಡ್‌ಗೆ ಪ್ರತಿಕರಿಸಲಾಗಿದೆ."
+      "copyToClipboardLocalFileUrl": "ಬ್ರೌಸರ್ ಸ್ಥಳೀಯ ಸಂಪನ್ಮೂಲವನ್ನು ನೇರವಾಗಿ ಲೋಡ್ ಮಾಡಲು ಅನುಮತಿಸುವುದಿಲ್ಲ. URL ಅನ್ನು ಕ್ಲಿಪ್‌ಬೋರ್ಡ್‌ಗೆ ಪ್ರತಿಕರಿಸಲಾಗಿದೆ.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

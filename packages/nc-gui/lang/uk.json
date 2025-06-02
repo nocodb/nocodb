@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Будь ласка, зверніться до адміністратора / власника бази / власника робочої області для доступу до цієї {viewName}",
       "preventHideAllOptions": "Не можна приховати всі опції, якщо поле обов’язкове",
       "valueMustBeAtMostCharLong": "Значення повинно містити не більше {length} символів",
-      "copyToClipboardLocalFileUrl": "Браузер не дозволяє безпосередньо завантажувати локальний ресурс. Натомість URL скопійовано в буфер обміну."
+      "copyToClipboardLocalFileUrl": "Браузер не дозволяє безпосередньо завантажувати локальний ресурс. Натомість URL скопійовано в буфер обміну.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

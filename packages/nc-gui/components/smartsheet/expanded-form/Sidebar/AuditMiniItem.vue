@@ -216,7 +216,17 @@ function shouldShowRaw(key: string) {
       </template>
       <template v-else-if="['SingleLineText', 'LongText'].includes(meta[columnKey]?.type)">
         <div class="w-full">
-          <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
+          <template
+            v-for="(block, i) of diffTextBlocks(
+              meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
+                ? oldData[columnKey]?.value || ''
+                : oldData[columnKey] || '',
+              meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
+                ? newData[columnKey]?.value || ''
+                : newData[columnKey] || '',
+            )"
+            :key="i"
+          >
             <span
               v-if="block.op === 'removed'"
               class="max-w-full text-small1 text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone"

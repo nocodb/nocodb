@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Vennligst be om høyere tillatelser fra Admin/Basiseier/Arbeidsroms-eier for å få tilgang til denne {viewName}",
       "preventHideAllOptions": "Du kan ikke skjule alle alternativer hvis feltet er obligatorisk",
       "valueMustBeAtMostCharLong": "Verdien må være maksimalt {length} tegn lang",
-      "copyToClipboardLocalFileUrl": "Nettleseren tillater ikke å laste lokale ressurser direkte. URL kopiert til utklippstavlen i stedet."
+      "copyToClipboardLocalFileUrl": "Nettleseren tillater ikke å laste lokale ressurser direkte. URL kopiert til utklippstavlen i stedet.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

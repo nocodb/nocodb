@@ -1,5 +1,5 @@
 import { IntegrationWrapper } from '../integration';
-import type { CoreMessage } from 'ai';
+import type { CoreMessage, Tool, StepResult } from 'ai';
 
 export abstract class AiIntegration<T extends { models: string[] } = any> extends IntegrationWrapper<T> {
   abstract generateObject<T>(
@@ -13,6 +13,10 @@ export abstract class AiIntegration<T extends { models: string[] } = any> extend
       label: this.getModelAlias(model),
     }));
   }
+
+  public abstract generateText(args: AiGenerateTextArgs): Promise<AiGenerateTextResponse>;
+
+  abstract getTools(name: string[]): Record<string, Tool>;
 }
 
 export interface AiUsage {
@@ -26,9 +30,27 @@ export interface AiGenerateObjectArgs {
   messages: CoreMessage[];
   schema: any;
   customModel?: string;
+  tools?: string[];
 }
 
-interface AiGenerateObjectResponse<T> {
+export interface AiGenerateObjectResponse<T> {
   usage: AiUsage;
   data: T;
+}
+
+export interface AiGenerateTextArgs {
+  prompt?: string;
+  messages?: CoreMessage[];
+  customModel?: string;
+  tools?: string[];
+  schema?: any;
+}
+
+export interface AiGenerateTextResponse {
+  usage: AiUsage;
+  data: {
+    toolCalls: Array<any>;
+    steps: Array<StepResult<any>>;
+    text: string;
+  };
 }

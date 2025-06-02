@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "ബഹുദയാളിത്വത്തിനുള്ള അനുമതി നേടാൻ അഡ്മിന്നിൽ നിന്ന് / അടിസ്ഥാന ഉടമയിൽ നിന്ന് / വർക്ക്‌സ്പെയ്സ് ഉടമയിൽ നിന്ന് ആവശ്യം ചെയ്യുക {viewName}",
       "preventHideAllOptions": "ഫീൽഡ് ആവശ്യമാണ് എങ്കിൽ എല്ലാ ഓപ്ഷനുകളും ഒളിപ്പിക്കാൻ കഴിയില്ല",
       "valueMustBeAtMostCharLong": "മൂല്യം പരമാവധി {length} അക്ഷരങ്ങൾ നീളമുള്ളതായിരിക്കണം",
-      "copyToClipboardLocalFileUrl": "ബ്രൗസർ ലൊക്കൽ റസോഴ്‌സ് നേരിട്ട് ലോഡ് ചെയ്യാൻ അനുവദിക്കുന്നില്ല. പകരം URL ക്ലിപ്പ്ബോർഡിലേക്ക് പകർത്തി."
+      "copyToClipboardLocalFileUrl": "ബ്രൗസർ ലൊക്കൽ റസോഴ്‌സ് നേരിട്ട് ലോഡ് ചെയ്യാൻ അനുവദിക്കുന്നില്ല. പകരം URL ക്ലിപ്പ്ബോർഡിലേക്ക് പകർത്തി.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

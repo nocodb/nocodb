@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "โปรดขอสิทธิ์สูงสุดจากผู้ดูแลระบบ / เจ้าของฐาน / เจ้าของพื้นที่ทำงานเพื่อเข้าถึง {viewName} นี้",
       "preventHideAllOptions": "คุณไม่สามารถซ่อนทุกตัวเลือกหากช่องถูกกำหนดให้จำเป็น",
       "valueMustBeAtMostCharLong": "ค่าต้องมีความยาวไม่เกิน {length} อักขระ",
-      "copyToClipboardLocalFileUrl": "เบราว์เซอร์ไม่อนุญาตให้โหลดทรัพยากรภายในเครื่องโดยตรง จึงคัดลอก URL ไปยังคลิปบอร์ดแทน"
+      "copyToClipboardLocalFileUrl": "เบราว์เซอร์ไม่อนุญาตให้โหลดทรัพยากรภายในเครื่องโดยตรง จึงคัดลอก URL ไปยังคลิปบอร์ดแทน",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

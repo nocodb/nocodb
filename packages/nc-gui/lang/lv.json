@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Lūdzu, pieprasiet lielākas atļaujas no administratora / bāzes īpašnieka / darbavirsmas īpašnieka, lai iegūtu piekļuvi šim {viewName}",
       "preventHideAllOptions": "Jūs nevarat paslēpt visas opcijas, ja lauks ir nepieciešams",
       "valueMustBeAtMostCharLong": "Vērtībai jābūt ne garākai par {length} rakstzīmēm",
-      "copyToClipboardLocalFileUrl": "Pārlūks neļauj tieši ielādēt vietējo resursu. URL vietā nokopēts starpliktuvē."
+      "copyToClipboardLocalFileUrl": "Pārlūks neļauj tieši ielādēt vietējo resursu. URL vietā nokopēts starpliktuvē.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

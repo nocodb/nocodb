@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "कृपया यस {viewName} पहुँचको लागि एडमिन / बेस मालिक / वर्कस्पेस मालिकसँग उच्च अनुमति अनुरोध गर्नुहोस्",
       "preventHideAllOptions": "यदि फिल्ड आवश्यक छ भने तपाईं सबै विकल्पहरू लुकाउन सक्नुहुन्न",
       "valueMustBeAtMostCharLong": "मान अधिकतम {length} अक्षर लामो हुनुपर्छ",
-      "copyToClipboardLocalFileUrl": "ब्राउजरले स्थानीय स्रोत प्रत्यक्ष लोड गर्न अनुमति दिदैन। यसको सट्टा URL क्लिपबोर्डमा प्रतिलिपि गरियो।"
+      "copyToClipboardLocalFileUrl": "ब्राउजरले स्थानीय स्रोत प्रत्यक्ष लोड गर्न अनुमति दिदैन। यसको सट्टा URL क्लिपबोर्डमा प्रतिलिपि गरियो।",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

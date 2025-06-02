@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Bed om højere tilladelse fra administratoren/basisejeren/arbejdsområde-ejeren for at få adgang til denne {viewName}",
       "preventHideAllOptions": "Du kan ikke skjule alle muligheder, hvis feltet er obligatorisk",
       "valueMustBeAtMostCharLong": "Værdien må højst være {length} tegn lang",
-      "copyToClipboardLocalFileUrl": "Browseren tillader ikke direkte indlæsning af lokale ressourcer. URL'en er i stedet kopieret til udklipsholderen."
+      "copyToClipboardLocalFileUrl": "Browseren tillader ikke direkte indlæsning af lokale ressourcer. URL'en er i stedet kopieret til udklipsholderen.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

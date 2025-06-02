@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Bu {viewName} erişimi sağlamak için Yönetici / Veri Tabanı Sahibi / Çalışma Alanı Sahibi'nden daha yüksek izin talebinde bulunun",
       "preventHideAllOptions": "Alan zorunlu ise tüm seçenekler gizlenemez",
       "valueMustBeAtMostCharLong": "Değer en fazla {length} karakter uzunluğunda olmalıdır",
-      "copyToClipboardLocalFileUrl": "Tarayıcı yerel kaynağı doğrudan yüklemeye izin vermiyor. Bunun yerine URL panoya kopyalandı."
+      "copyToClipboardLocalFileUrl": "Tarayıcı yerel kaynağı doğrudan yüklemeye izin vermiyor. Bunun yerine URL panoya kopyalandı.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

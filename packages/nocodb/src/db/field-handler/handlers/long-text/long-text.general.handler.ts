@@ -17,23 +17,23 @@ export class LongTextGeneralHandler extends GenericFieldHandler {
       metaService?: MetaService;
     };
   }): Promise<{ value: any }> {
-    if (typeof params.value !== 'string') {
-      NcError.invalidValueForField({
-        value: params.value,
-        column: params.column.title,
-        type: params.column.uidt,
-      });
-    }
-    if (
-      Number(params.column.dtxp) > 0 &&
-      params.value.length > Number(params.column.dtxp)
-    ) {
-      NcError.invalidValueForField({
-        value: params.value,
-        column: params.column.title,
-        type: params.column.uidt,
-      });
-    }
+    // if (typeof params.value !== 'string') {
+    //   NcError.invalidValueForField({
+    //     value: params.value,
+    //     column: params.column.title,
+    //     type: params.column.uidt,
+    //   });
+    // }
+    // if (
+    //   Number(params.column.dtxp) > 0 &&
+    //   params.value.length > Number(params.column.dtxp)
+    // ) {
+    //   NcError.invalidValueForField({
+    //     value: params.value,
+    //     column: params.column.title,
+    //     type: params.column.uidt,
+    //   });
+    // }
     if (params.value.length > NC_MAX_TEXT_LENGTH) {
       NcError._.valueLengthExceedLimit({
         length: params.value.length,

@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Por favor, solicite permissão superior do Admin / Proprietário Base / Proprietário Espaço de Trabalho para acessar este {viewName}",
       "preventHideAllOptions": "Você não pode ocultar todas as opções se o campo for obrigatório",
       "valueMustBeAtMostCharLong": "O valor deve ter no máximo {length} caracteres",
-      "copyToClipboardLocalFileUrl": "O navegador não permite carregar recursos locais diretamente. URL copiada para a área de transferência."
+      "copyToClipboardLocalFileUrl": "O navegador não permite carregar recursos locais diretamente. URL copiada para a área de transferência.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

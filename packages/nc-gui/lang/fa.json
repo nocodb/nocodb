@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "لطفاً از مدیر / مالک پایگاه / مالک فضاهای کاری برای دسترسی به این {viewName} درخواست مجوز بیشتر کنید",
       "preventHideAllOptions": "نمی‌توانید تمامی گزینه‌ها را پنهان کنید اگر فیلد مورد نیاز باشد",
       "valueMustBeAtMostCharLong": "مقدار باید حداکثر {length} کاراکتر طول داشته باشد",
-      "copyToClipboardLocalFileUrl": "مرورگر اجازه بارگذاری مستقیم منبع محلی را نمی‌دهد. در عوض URL در کلیپ‌بورد کپی شد."
+      "copyToClipboardLocalFileUrl": "مرورگر اجازه بارگذاری مستقیم منبع محلی را نمی‌دهد. در عوض URL در کلیپ‌بورد کپی شد.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

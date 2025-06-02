@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Molimo zatražite veća dopuštenja od administratora / vlasnika baze / vlasnika radnog prostora kako biste dobili pristup ovom {viewName}",
       "preventHideAllOptions": "Ne možete sakriti sve opcije ako je polje obavezno",
       "valueMustBeAtMostCharLong": "Vrijednost mora imati najviše {length} znakova",
-      "copyToClipboardLocalFileUrl": "Preglednik ne dopušta izravno učitavanje lokalnog resursa. URL je umjesto toga kopiran u međuspremnik."
+      "copyToClipboardLocalFileUrl": "Preglednik ne dopušta izravno učitavanje lokalnog resursa. URL je umjesto toga kopiran u međuspremnik.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

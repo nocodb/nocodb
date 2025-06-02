@@ -2107,7 +2107,9 @@
       "pleaseRequestAccessForView": "Vänligen begär högre behörighet från Admin / Base-ägare / Arbetsytesägare för att få åtkomst till detta {viewName}",
       "preventHideAllOptions": "Du kan inte dölja alla alternativ om fältet är obligatoriskt",
       "valueMustBeAtMostCharLong": "Värdet får vara högst {length} tecken långt",
-      "copyToClipboardLocalFileUrl": "Webbläsaren tillåter inte direktladdning av lokala resurser. URL har kopierats till urklipp i stället."
+      "copyToClipboardLocalFileUrl": "Webbläsaren tillåter inte direktladdning av lokala resurser. URL har kopierats till urklipp i stället.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

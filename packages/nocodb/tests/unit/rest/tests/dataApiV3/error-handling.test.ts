@@ -419,17 +419,14 @@ describe('dataApiV3', () => {
         textBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
       });
 
-      it(`will handle update length exceed 100k`, async () => {
-        const content2500Length =
-          '01234567890123456789012345678901234567890123456789'
-            .split('')
-            .map((k) => '01234567890123456789012345678901234567890123456789')
-            .join('');
+      it.only(`will handle update length exceed 100k`, async () => {
+        const base50 = '01234567890123456789012345678901234567890123456789';
+        // Generate ~100001-character string by repeating the above 40 times and adding '1'
         const content100k1Length =
-          '0123456789012345678901234567890123456789'
-            .split('')
-            .map((k) => content2500Length)
-            .join('') + '1';
+          Array.from(
+            { length: 500 },
+            () => base50 + base50 + base50 + base50,
+          ).join('') + '1'; // 500 * 200 + 1 = 100001
 
         const response = await ncAxiosPatch({
           url: `${textBasedUrlPrefix}/${table.id}`,

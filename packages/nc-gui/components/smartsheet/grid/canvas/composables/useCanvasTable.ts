@@ -551,6 +551,49 @@ export function useCanvasTable({
     return { column: null, xOffset }
   }
 
+  function findColumnPosition(
+    columnId: string,
+    scrollLeft = 0,
+  ): { column?: CanvasGridColumn | null; xOffset: number; width: string } {
+    // First check fixed columns
+    let xOffset = 0
+
+    const fixedCols = columns.value.filter((col) => col.fixed)
+
+    for (const column of fixedCols) {
+      const width = columnWidths.value[columns.value.indexOf(column)] ?? 180
+      if (columnId === column.id) {
+        if (!column.uidt) {
+          xOffset += width
+        }
+        return { column, xOffset, width: column.width }
+      }
+      xOffset += width
+    }
+
+    // Then check scrollable columns
+    const visibleStart = colSlice.value.start
+    const visibleEnd = colSlice.value.end
+
+    const startOffset = columnWidths.value.slice(0, visibleStart).reduce((sum, width) => sum + width, 0)
+
+    xOffset = startOffset - scrollLeft
+
+    if (groupByColumns.value.length) {
+      xOffset += groupByColumns.value.length * 13
+    }
+
+    for (let i = visibleStart; i < visibleEnd; i++) {
+      const width = columnWidths.value[i] ?? 180
+      if (columns.value[i] && columnId === columns.value[i]!.id) {
+        return { column: columns.value[i], xOffset, width: columns.value[i]!.width }
+      }
+      xOffset += width
+    }
+
+    return { column: null, xOffset, width: '0px' }
+  }
+
   function getCellPosition(targetColumn: CanvasGridColumn, rowIndex: number, path: Array<number> = []) {
     const yOffset =
       calculateGroupRowTop(cachedGroups.value, path, rowIndex, rowHeight.value, isAddingEmptyRowAllowed.value) -
@@ -1249,6 +1292,7 @@ export function useCanvasTable({
     triggerRefreshCanvas,
     startDrag,
     findClickedColumn,
+    findColumnPosition,
 
     // GroupBy Related
     syncGroupCount,

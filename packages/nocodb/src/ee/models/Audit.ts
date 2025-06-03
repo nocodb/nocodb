@@ -11,6 +11,7 @@ import {
   getChWorkspaceAudit,
   pushAuditToKinesis,
 } from '~/utils/cloudAudit';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 export default class Audit extends AuditCE {
   public static async recordAuditList(
@@ -24,29 +25,57 @@ export default class Audit extends AuditCE {
       row_id: string;
       cursor?: string;
     },
-  ) {
+  ): Promise<PagedResponseImpl<Audit>> {
     if (!context.workspace_id || !context.base_id || !fk_model_id || !row_id) {
-      return [];
+      return new PagedResponseImpl([], {}, { pageInfo: { isLastPage: true } });
     }
 
-    const result = await AuditCE.recordAuditList(context, {
-      fk_model_id,
-      row_id,
-      cursor,
-    });
+    const [id, _created_at] = cursor?.split('|') ?? [];
 
-    if (result.length > 0) {
-      return result;
+    const query = Noco.ncAudit
+      .knex(MetaTable.AUDIT)
+      .where('fk_workspace_id', context.workspace_id)
+      .where('base_id', context.base_id)
+      .where('fk_model_id', fk_model_id)
+      .where('row_id', row_id)
+      .orderBy('id', 'desc');
+
+    if (id) {
+      query.where('id', '<', id);
     }
+
+    query.limit(this.limit + 1);
+
+    const audits = await query;
+
+    if (audits.length > this.limit) {
+      audits.pop();
+      return new PagedResponseImpl(audits, {}, { isLastPage: false });
+    }
+
+    const newLimit = this.limit - audits.length;
 
     const clickhouseData = (await getChRecordAudit(context, {
       fk_model_id,
       row_id,
       cursor,
-      limit: this.limit,
+      limit: newLimit + 1,
     })) as Partial<Audit>[];
 
-    return clickhouseData;
+    if (clickhouseData.length > newLimit) {
+      clickhouseData.pop();
+      return new PagedResponseImpl(
+        clickhouseData,
+        {},
+        { pageInfo: { isLastPage: false } },
+      );
+    }
+
+    return new PagedResponseImpl(
+      clickhouseData,
+      {},
+      { pageInfo: { isLastPage: true } },
+    );
   }
 
   static async workspaceAuditList(
@@ -70,9 +99,9 @@ export default class Audit extends AuditCE {
         created_at?: 'asc' | 'desc';
       };
     },
-  ) {
+  ): Promise<PagedResponseImpl<Audit>> {
     if (!context.workspace_id) {
-      return [];
+      return new PagedResponseImpl([], {}, { pageInfo: { isLastPage: true } });
     }
 
     if (baseId === NO_SCOPE) {
@@ -120,13 +149,20 @@ export default class Audit extends AuditCE {
       }
     }
 
-    query.limit(this.limit);
+    query.limit(this.limit + 1);
 
     const result = await query;
 
-    if (result.length > 0) {
-      return result;
+    if (result.length > this.limit) {
+      result.pop();
+      return new PagedResponseImpl(
+        result,
+        {},
+        { pageInfo: { isLastPage: false } },
+      );
     }
+
+    const newLimit = this.limit - result.length;
 
     const clickhouseData = (await getChWorkspaceAudit(context, {
       cursor,
@@ -136,10 +172,23 @@ export default class Audit extends AuditCE {
       startDate,
       endDate,
       orderBy,
-      limit: this.limit,
+      limit: newLimit + 1,
     })) as Partial<Audit>[];
 
-    return clickhouseData;
+    if (clickhouseData.length > newLimit) {
+      clickhouseData.pop();
+      return new PagedResponseImpl(
+        clickhouseData,
+        {},
+        { pageInfo: { isLastPage: false } },
+      );
+    }
+
+    return new PagedResponseImpl(
+      clickhouseData,
+      {},
+      { pageInfo: { isLastPage: true } },
+    );
   }
 
   public static async insert(

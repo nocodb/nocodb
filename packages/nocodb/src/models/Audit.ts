@@ -4,6 +4,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { stringifyMetaProp } from '~/utils/modelUtils';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 export default class Audit {
   id?: string;
@@ -127,9 +128,9 @@ export default class Audit {
       row_id: string;
       cursor?: string;
     },
-  ) {
+  ): Promise<PagedResponseImpl<Audit>> {
     if (!context.workspace_id || !context.base_id || !fk_model_id || !row_id) {
-      return [];
+      return new PagedResponseImpl([], {}, { pageInfo: { isLastPage: true } });
     }
 
     const [id, _created_at] = cursor?.split('|') ?? [];
@@ -146,13 +147,27 @@ export default class Audit {
       query.where('id', '<', id);
     }
 
-    query.limit(this.limit);
+    query.limit(this.limit + 1);
 
     const audits = await query;
 
-    return audits;
+    if (audits.length > this.limit) {
+      audits.pop();
+      return new PagedResponseImpl(
+        audits,
+        {},
+        { pageInfo: { isLastPage: false } },
+      );
+    }
+
+    return new PagedResponseImpl(
+      audits,
+      {},
+      { pageInfo: { isLastPage: true } },
+    );
   }
 
+  // TODO: remove this - it is deprecated and only used on unit tests
   static async baseAuditList(
     context: NcContext,
     {

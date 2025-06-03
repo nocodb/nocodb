@@ -77,7 +77,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
       const user = collaboratorsMap.value.get(auditLogsQuery.value.user)
 
-      const { list } = await $api.internal.getOperation(activeWorkspaceId.value, NO_SCOPE, {
+      const { list, pageInfo } = await $api.internal.getOperation(activeWorkspaceId.value, NO_SCOPE, {
         operation: 'workspaceAuditList',
         cursor: currentCursor.value,
         baseId: auditLogsQuery.value.baseId,
@@ -99,7 +99,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
       audits.value.push(...list)
 
-      hasMoreAudits.value = list.length > 0
+      hasMoreAudits.value = !pageInfo?.isLastPage
     } catch (e) {
       message.error(await extractSdkResponseErrorMsg(e))
       hasMoreAudits.value = false

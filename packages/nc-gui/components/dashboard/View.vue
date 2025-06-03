@@ -13,6 +13,8 @@ const { handleSidebarOpenOnMobileForNonViews } = configStore
 
 const { isMobileMode } = storeToRefs(configStore)
 
+const slots = useSlots()
+
 const {
   isLeftSidebarOpen,
   leftSidebarWidthPercent,
@@ -206,18 +208,26 @@ function onResize(widthPercent: any) {
   sideBarSize.value.old = width
   sideBarSize.value.current = sideBarSize.value.old
 }
+
+const isMiniSidebarVisible = computed(() => {
+  return (
+    isNewSidebarEnabled.value &&
+    !hideMiniSidebar.value &&
+    slots.sidebar &&
+    !isSharedBase.value &&
+    (!isMobileMode.value || isLeftSidebarOpen.value)
+  )
+})
 </script>
 
 <template>
   <div class="h-full flex items-stretch">
-    <DashboardMiniSidebar
-      v-if="isNewSidebarEnabled && !hideMiniSidebar && $slots.sidebar && !isSharedBase && (!isMobileMode || isLeftSidebarOpen)"
-    />
+    <DashboardMiniSidebar v-if="isMiniSidebarVisible" />
 
     <div
       :class="{
-        'w-[calc(100vw_-_var(--mini-sidebar-width))] flex-none': isNewSidebarEnabled && !hideMiniSidebar,
-        'w-screen flex-none': !isNewSidebarEnabled || hideMiniSidebar,
+        'w-[calc(100vw_-_var(--mini-sidebar-width))] flex-none': isMiniSidebarVisible,
+        'w-screen flex-none': !isMiniSidebarVisible,
       }"
     >
       <DashboardTopbar v-if="showTopbar" :workspace-id="workspaceId" />
@@ -225,8 +235,8 @@ function onResize(widthPercent: any) {
         class="nc-sidebar-content-resizable-wrapper h-full"
         :class="{
           'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart' || hideSidebar,
-          '!w-[calc(100vw_-_var(--mini-sidebar-width))]': isNewSidebarEnabled && !isSharedBase,
-          '!w-screen': !isNewSidebarEnabled || isSharedBase,
+          '!w-[calc(100vw_-_var(--mini-sidebar-width))]': isMiniSidebarVisible && !isSharedBase,
+          '!w-screen': !isMiniSidebarVisible || isSharedBase,
         }"
         @ready="() => onWindowResize()"
         @resize="(event: any) => onResize(event[0].size)"

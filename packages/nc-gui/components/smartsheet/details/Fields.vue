@@ -14,9 +14,9 @@ import {
 import type { ButtonType, ColumnType, FilterType, SelectOptionsType, TableType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
+import type { NavigationGuardNext, RouteLocationNormalizedLoadedGeneric } from 'vue-router'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 import { AiWizardTabsType, type PredictedFieldType } from '#imports'
-import type { NavigationGuardNext, RouteLocationNormalizedLoadedGeneric } from 'vue-router'
 
 interface TableExplorerColumn extends ColumnType {
   id?: string

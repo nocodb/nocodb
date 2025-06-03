@@ -43,23 +43,9 @@ const { copy } = useCopy()
 
 const { isMobileMode } = useGlobal()
 
-const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
-
 const { t } = useI18n()
 
-const rowId = toRef(props, 'rowId')
-
-const row = toRef(props, 'row')
-
-const state = toRef(props, 'state')
-
-const meta = toRef(props, 'meta')
-
-const islastRow = toRef(props, 'lastRow')
-
-const isFirstRow = toRef(props, 'firstRow')
-
-const maintainDefaultViewOrder = toRef(props, 'maintainDefaultViewOrder')
+const { rowId, row, state, meta, lastRow: isLastRow, firstRow: isFirstRow, maintainDefaultViewOrder } = toRefs(props)
 
 const route = useRoute()
 
@@ -105,7 +91,7 @@ const isLoading = ref(true)
 
 const isSaving = ref(false)
 
-const expandedFormStore = useProvideExpandedFormStore(meta, row)
+const expandedFormStore = useProvideExpandedFormStore(meta, row, maintainDefaultViewOrder, !!props.useMetaFields)
 
 const {
   commentsDrawer,
@@ -123,67 +109,14 @@ const {
   loadAudits,
   clearColumns,
   baseRoles,
+  fields,
+  hiddenFields,
 } = expandedFormStore
 
 const loadingEmit = (event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | 'createdRecord') => {
   emits(event)
   isLoading.value = true
 }
-
-/**
- * Injects the fields from the parent component if available.
- * Uses a ref to ensure reactivity.
- */
-const fieldsFromParent = inject<Ref<ColumnType[] | null>>(FieldsInj, ref(null))
-
-/**
- * Computes the list of fields to be used based on the given conditions.
- *
- * - Prefers `props.useMetaFields` over `fieldsFromParent` if enabled.
- * - Filters out system columns and readonly fields for new records.
- * - Maintains default view order if `maintainDefaultViewOrder` is enabled.
- *
- * @returns {ColumnType[]} The computed list of fields.
- */
-const fields = computed(() => {
-  // Give preference to props.useMetaFields instead of fieldsFromParent
-  if (props.useMetaFields) {
-    if (maintainDefaultViewOrder.value) {
-      return (meta.value.columns ?? [])
-        .filter(
-          (col) =>
-            !isSystemColumn(col) &&
-            !!col.meta?.defaultViewColVisibility &&
-            // if new record, then hide readonly fields
-            (!isNew.value || !isReadOnlyColumn(col)),
-        )
-        .sort((a, b) => {
-          return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-        })
-    }
-
-    return (meta.value.columns ?? []).filter(
-      (col) =>
-        // if new record, then hide readonly fields
-        (!isNew.value || !isReadOnlyColumn(col)) &&
-        // exclude system columns
-        !isSystemColumn(col) &&
-        // exclude hidden columns
-        !!col.meta?.defaultViewColVisibility,
-    )
-  }
-
-  // If `props.useMetaFields` is not enabled, use fields from the parent component
-  if (fieldsFromParent.value) {
-    if (isNew.value) {
-      return fieldsFromParent.value.filter((col) => !isReadOnlyColumn(col))
-    }
-
-    return fieldsFromParent.value
-  }
-
-  return []
-})
 
 const tableTitle = computed(() => meta.value?.title)
 
@@ -205,31 +138,6 @@ watch(activeViewMode, async (v) => {
 })
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)
-
-const hiddenFields = computed(() => {
-  // todo: figure out when meta.value is undefined
-  const hiddenFields = (meta.value?.columns ?? []).filter(
-    (col) =>
-      !isSystemColumn(col) &&
-      !fields.value?.includes(col) &&
-      (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true) &&
-      // exclude readonly fields from hidden fields if new record creation
-      (!isNew.value || !isReadOnlyColumn(col)),
-  )
-  if (props.useMetaFields) {
-    return maintainDefaultViewOrder.value
-      ? hiddenFields.sort((a, b) => {
-          return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-        })
-      : hiddenFields
-  }
-  // record from same view and same table (not linked)
-  else {
-    return hiddenFields.sort((a, b) => {
-      return (fieldsMap.value[a.id]?.order ?? Infinity) - (fieldsMap.value[b.id]?.order ?? Infinity)
-    })
-  }
-})
 
 reloadViewDataTrigger.on(
   withLoading(async (params) => {

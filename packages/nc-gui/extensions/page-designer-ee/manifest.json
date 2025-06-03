@@ -20,6 +20,7 @@
     "modalSize": "fullscreen",
     "contentMinHeight": "500px"
   },
+  "order": 8,
   "beta": true,
   "disabled": true
 }

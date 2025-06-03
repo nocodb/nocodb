@@ -93,7 +93,11 @@ const autoAddClock = () => {
 watch(selectedHFormat, calculateClockTimeStrings)
 
 const kvStore = extension.value.kvStore
+
 const savedData = (await kvStore.get('data')) as SavedData | undefined
+
+const selectedCities = ref<AcceptableCity[]>([])
+
 if (savedData) {
   clockInstances.value = savedData.instances
   activeInstanceId.value = savedData.instances.length ? savedData.instances[0].id : undefined
@@ -123,16 +127,26 @@ async function saveData() {
 watch([selectedClockMode, selectedHFormat, showNumbers], saveData)
 
 const displayClockInstances = computed(() => clockInstances.value.slice(0, 4))
+
+watch(
+  () => clockInstances.value.length,
+  () => {
+    selectedCities.value = clockInstances.value.map((item) => item.city)
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
   <ExtensionsExtensionWrapper>
     <div v-if="fullscreen" class="flex w-full h-full">
-      <div class="w-80 border-r flex flex-col space-y-4">
+      <div class="w-80 border-r flex flex-col space-y-4 flex-none">
         <div class="flex flex-col space-y-4 p-5 pb-1">
           <AddTimezoneAction
             :disable="clockInstances.length >= 4"
-            model-value=""
+            :model-value="selectedCities"
             is-sidebar
             disable-message="Only upto 4 clocks can be created."
             @city-selected="(city) => (activeInstanceId = addClock(city))"
@@ -142,7 +156,7 @@ const displayClockInstances = computed(() => clockInstances.value.slice(0, 4))
           <div
             v-for="(clockInstance, i) in clockInstances"
             :key="clockInstance.id"
-            class="flex w-full justify-between border-t p-3 hover:cursor-pointer text-nc-content-gray-subtle"
+            class="flex w-full justify-between border-t p-3 hover:cursor-pointer text-nc-content-gray-subtle group"
             :class="{ 'bg-[#F0F3FF]': activeInstanceId === clockInstance.id, 'border-b': i === clockInstances.length - 1 }"
             @click="activeInstanceId = clockInstance.id"
           >
@@ -155,8 +169,12 @@ const displayClockInstances = computed(() => clockInstances.value.slice(0, 4))
             </div>
             <div class="flex items-center space-x-2">
               <span class="font-bold text-base">{{ clockTimeStrings[i] }}</span>
-              <GeneralIcon v-if="activeInstanceId === clockInstance.id" icon="chevronRight" class="text-brand-600 w-4 h-4" />
-              <div v-else class="w-4"></div>
+
+              <NcButton size="xs" type="text" icon-only class="!px-0 -my-1" @click.stop="removeInstance(clockInstance.id)">
+                <template #icon>
+                  <GeneralIcon icon="delete" class="opacity-70" />
+                </template>
+              </NcButton>
             </div>
           </div>
         </div>

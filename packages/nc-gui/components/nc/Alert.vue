@@ -444,7 +444,7 @@ onUnmounted(() => {
         }
 
         &:has(.nc-alert-type-toast) {
-          @apply py-2.5 px-3 bg-gray-700;
+          @apply py-2.5 px-3 bg-gray-700 border-gray-700;
 
           .nc-alert-description {
             @apply text-white;

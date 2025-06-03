@@ -57,13 +57,13 @@ watchDebounced(
 <template>
   <div class="flex w-full h-full justify-center items-start py-8 overflow-y-scroll">
     <div class="flex flex-col w-1/2 space-y-4 pb-4">
-      <div class="flex items-center">
+      <div class="w-full flex items-center relative overflow-hidden">
         <input
           v-model="name"
           type="text"
-          class="bg-nc-bg-gray-light font-bold rounded-l-xl w-5/6 h-12 text-xl border-transparent focus:border-transparent focus:ring-0 outline-none"
+          class="flex-1 w-[calc(100%_-_24px)] bg-nc-bg-gray-light font-bold rounded-xl h-12 text-xl border-transparent focus:border-transparent focus:ring-0 outline-none truncate !pr-10"
         />
-        <div class="w-1/6 bg-nc-bg-gray-light flex items-center justify-end h-12 rounded-r-xl p-4">
+        <div class="flex items-center justify-end h-12 rounded-r-xl pr-3 absolute right-0 pointer-events-none">
           <GeneralIcon class="w-6 h-6 text-nc-content-gray-muted" icon="edit" />
         </div>
       </div>

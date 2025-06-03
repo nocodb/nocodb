@@ -139,7 +139,22 @@ export const antSelectFilterOption = (
 
   return searchCompare(optionValue, inputValue)
 }
-
+/**
+ * Returns an object with methods to manage the last visited base.
+ *
+ * @returns An object containing:
+ *   - `key`: The key used for storage.
+ *   - `get`: A function to retrieve the last visited base.
+ *   - `set`: A function to set the last visited base.
+ *
+ * @example
+ * ```typescript
+ * const lastVisitedBase = ncLastVisitedBase();
+ * lastVisitedBase.set('my-base');
+ * const lastVisited = lastVisitedBase.get();
+ * console.log(lastVisited); // Output: 'my-base'
+ * ```
+ */
 export const ncLastVisitedBase = (): {
   key: string
   get: () => string | null
@@ -160,6 +175,18 @@ export const ncLastVisitedBase = (): {
   }
 }
 
+/**
+ * Extracts the name from an email address.
+ *
+ * @param email - The email address to extract the name from.
+ * @returns The name extracted from the email address.
+ *
+ * @example
+ * ```typescript
+ * const name = extractNameFromEmail('john.doe@example.com');
+ * console.log(name); // Output: 'john.doe'
+ * ```
+ */
 export const extractNameFromEmail = (email?: string) => {
   if (!email) return ''
 

@@ -50,7 +50,7 @@ const props = withDefaults(
   }
 
   & > .ant-dropdown-menu-submenu-title {
-    @apply pl-2 py-0 w-full;
+    @apply pl-2 py-0 w-full xs:(text-base !px-3.5);
   }
 
   &:not(.nc-variant-default) {

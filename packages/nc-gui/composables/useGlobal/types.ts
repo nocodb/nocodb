@@ -65,6 +65,7 @@ export interface StoredState {
   isAddNewRecordGridMode: boolean
   syncDataUpvotes: string[]
   giftBannerDismissedCount: number
+  isLeftSidebarOpen: boolean
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {

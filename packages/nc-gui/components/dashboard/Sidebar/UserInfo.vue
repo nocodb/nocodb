@@ -88,7 +88,7 @@ const accountUrl = computed(() => {
       <NcDropdown
         v-model:visible="isMenuOpen"
         placement="topLeft"
-        :overlay-class-name="`!min-w-64 ${isMiniSidebar ? '!left-1' : ''}`"
+        :overlay-class-name="`!min-w-44 md:!min-w-64 ${isMiniSidebar ? '!left-1' : ''}`"
       >
         <NcTooltip :disabled="!isMiniSidebar" placement="right" hide-on-click :arrow="false">
           <template #title>
@@ -142,8 +142,9 @@ const accountUrl = computed(() => {
                 <span class="menu-btn"> {{ $t('general.logout') }}</span>
               </div>
             </NcMenuItem>
-            <NcDivider />
+            <NcDivider v-if="!isMiniSidebar" />
             <a
+              v-if="!isMiniSidebar"
               v-e="['c:nocodb:discord']"
               href="https://discord.gg/5RgZmkW"
               target="_blank"
@@ -156,6 +157,7 @@ const accountUrl = computed(() => {
               </NcMenuItem>
             </a>
             <a
+              v-if="!isMiniSidebar"
               v-e="['c:nocodb:reddit']"
               href="https://www.reddit.com/r/NocoDB"
               target="_blank"
@@ -186,7 +188,7 @@ const accountUrl = computed(() => {
                 key="language"
                 class="lang-menu !py-1.5"
                 placement="rightBottom"
-                overlay-class-name="nc-lang-menu-overlay"
+                overlay-class-name="nc-lang-menu-overlay !z-1050"
               >
                 <NcMenuItem>
                   <div v-e="['c:translate:open']" class="flex gap-2 items-center">

@@ -235,7 +235,6 @@ const {
   isFirstRow: pisFirstRow,
   islastRow: pisLastRow,
   getExpandedRowIndex: pGetExpandedRowIndex,
-  changePage: pChangeView,
   navigateToSiblingRow: pNavigateToSiblingRow,
 } = useViewData(meta, view, xWhere)
 

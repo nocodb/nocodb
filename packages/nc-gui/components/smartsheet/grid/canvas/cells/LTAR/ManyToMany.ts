@@ -227,7 +227,6 @@ export const ManyToManyCellRenderer: CellRenderer = {
     cellRenderStore,
     selected,
     isPublic,
-    readonly,
     isDoubleClick,
     openDetachedExpandedForm,
   }) {

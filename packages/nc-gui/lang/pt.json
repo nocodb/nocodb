@@ -817,7 +817,8 @@
     "reactivateToPlan": "Reativar plano {plan}?",
     "whatsNew": "What’s New!",
     "currentUser": "Current User",
-    "filteredByLoggedInUser": "Filtered by logged-in user"
+    "filteredByLoggedInUser": "Filtered by logged-in user",
+    "hideExtensions": "Hide Extensions"
   },
   "labels": {
     "crossBase": "Link to external base",
@@ -1338,7 +1339,9 @@
     "pastInvoices": "Faturas anteriores",
     "createNew": "Create New",
     "dataApiV2": "Data APIs V2",
-    "metaApiV2": "Meta APIs V2"
+    "metaApiV2": "Meta APIs V2",
+    "showExtraFields": "Show additional fields",
+    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records"
   },
   "activity": {
     "clickToResolve": "Clique para resolver",

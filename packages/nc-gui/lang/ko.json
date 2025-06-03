@@ -817,7 +817,8 @@
     "reactivateToPlan": "{plan} 요금제를 다시 활성화하시겠습니까?",
     "whatsNew": "새로운 기능!",
     "currentUser": "현재 사용자",
-    "filteredByLoggedInUser": "로그인한 사용자별로 필터링됨"
+    "filteredByLoggedInUser": "로그인한 사용자별로 필터링됨",
+    "hideExtensions": "Hide Extensions"
   },
   "labels": {
     "crossBase": "외부 베이스에 대한 링크",
@@ -1338,7 +1339,9 @@
     "pastInvoices": "청구서",
     "createNew": "새로 만들기",
     "dataApiV2": "데이터 API V2",
-    "metaApiV2": "메타 API V2"
+    "metaApiV2": "메타 API V2",
+    "showExtraFields": "Show additional fields",
+    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",

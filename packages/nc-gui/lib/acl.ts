@@ -121,7 +121,7 @@ const rolePermissions = {
 
       commentList: true,
       commentCount: true,
-      auditListRow: true,
+      recordAuditList: true,
       newUser: true,
     },
   },

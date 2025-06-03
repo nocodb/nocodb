@@ -1,5 +1,5 @@
 import AuditCE from 'src/models/Audit';
-import { NO_SCOPE } from 'nocodb-sdk';
+import { AuditV1OperationTypes, NO_SCOPE } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
@@ -74,14 +74,14 @@ export default class Audit extends AuditCE {
     if (clickhouseData.length > newLimit) {
       clickhouseData.pop();
       return new PagedResponseImpl(
-        clickhouseData,
+        audits.concat(clickhouseData),
         {},
         { pageInfo: { isLastPage: false } },
       );
     }
 
     return new PagedResponseImpl(
-      clickhouseData,
+      audits.concat(clickhouseData),
       {},
       { pageInfo: { isLastPage: true } },
     );
@@ -166,6 +166,20 @@ export default class Audit extends AuditCE {
       }
     }
 
+    // skip DATA_ operations
+    query.where('op_type', 'not in', [
+      AuditV1OperationTypes.DATA_INSERT,
+      AuditV1OperationTypes.DATA_DELETE,
+      AuditV1OperationTypes.DATA_UPDATE,
+      AuditV1OperationTypes.DATA_LINK,
+      AuditV1OperationTypes.DATA_UNLINK,
+      AuditV1OperationTypes.DATA_BULK_ALL_UPDATE,
+      AuditV1OperationTypes.DATA_BULK_ALL_DELETE,
+      AuditV1OperationTypes.DATA_BULK_INSERT,
+      AuditV1OperationTypes.DATA_BULK_DELETE,
+      AuditV1OperationTypes.DATA_BULK_UPDATE,
+    ]);
+
     query.limit(this.limit + 1);
 
     const result = await query;
@@ -195,14 +209,14 @@ export default class Audit extends AuditCE {
     if (clickhouseData.length > newLimit) {
       clickhouseData.pop();
       return new PagedResponseImpl(
-        clickhouseData,
+        result.concat(clickhouseData),
         {},
         { pageInfo: { isLastPage: false } },
       );
     }
 
     return new PagedResponseImpl(
-      clickhouseData,
+      result.concat(clickhouseData),
       {},
       { pageInfo: { isLastPage: true } },
     );

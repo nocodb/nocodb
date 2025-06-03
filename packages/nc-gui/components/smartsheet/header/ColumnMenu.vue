@@ -457,6 +457,9 @@ const changeTitleField = () => {
 
 const onDeleteColumn = () => {
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+  eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+  eventBus.emit(SmartsheetStoreEvents.FILTER_RELOAD)
+  eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
 }
 </script>
 

@@ -281,6 +281,7 @@ const {
   selection,
   makeCellEditable,
   findClickedColumn,
+  findColumnPosition,
   elementMap,
   // MouseSelectionHandler
   onMouseMoveSelectionHandler,
@@ -1235,6 +1236,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       // If user is clicking on an existing column
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
       const isFieldNotEditable = !isUIAllowed('fieldEdit')
+
       if (clickedColumn) {
         if (clickType === MouseClickType.RIGHT_CLICK) {
           if (isFieldNotEditable) return
@@ -1285,7 +1287,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
             // open the edit column modal as the intention is to resize the column
             if (activeCursor.value === 'col-resize') return
 
-            handleEditColumn(e, false, clickedColumn.columnObj)
+            handleEditColumn(e, false, clickedColumn.columnObj, xOffset)
 
             selection.value.startRange({ row: NaN, col: NaN })
             selection.value.endRange({ row: NaN, col: NaN })
@@ -2045,7 +2047,7 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
   }
 }
 
-function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnType) {
+function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnType, clickedXOffset?: number) {
   if (
     isUIAllowed('fieldEdit') &&
     !isMobileMode.value &&
@@ -2057,15 +2059,14 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
       isEditColumnDescription.value = true
     }
 
-    const colIndex = columns.value.findIndex((col) => col.id === column.id)
-    let xOffset = 0
-    for (let i = colSlice.value.start; i < colIndex; i++) {
-      xOffset += parseCellWidth(columns.value[i]?.width)
-    }
+    if (!column?.id) return
+
+    const { column: col, xOffset } = findColumnPosition(column.id, scrollLeft.value)
+
     overlayStyle.value = {
       top: `${rect.top}px`,
-      left: `${rect.left + xOffset}px`,
-      width: columns.value[colIndex]!.width,
+      left: `${rect.left + (clickedXOffset ?? xOffset)}px`,
+      width: col?.width ?? '180px',
       height: `32px`,
       position: 'fixed',
     }
@@ -2582,7 +2583,7 @@ defineExpose({
         :trigger="['click']"
         :visible="
           isDropdownVisible &&
-          (openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField || openAddNewRowDropdown)
+          !!(openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField || openAddNewRowDropdown)
         "
         :overlay-class-name="`!bg-transparent !min-w-[220px] ${
           !openAggregationField && !openColumnDropdownField && !openAddNewRowDropdown ? '!border-none !shadow-none' : ''

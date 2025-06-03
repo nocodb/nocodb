@@ -203,20 +203,31 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           <DashboardMiniSidebarHelp />
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
-      <DashboardMiniSidebarItemWrapper>
-        <NcTooltip v-if="appInfo.feedEnabled" :title="`${$t('title.whatsNew')}!`" placement="right" hide-on-click :arrow="false">
-          <DashboardSidebarFeed />
-        </NcTooltip>
-      </DashboardMiniSidebarItemWrapper>
+      <template v-if="!isMobileMode">
+        <DashboardMiniSidebarItemWrapper>
+          <NcTooltip
+            v-if="appInfo.feedEnabled"
+            :title="`${$t('title.whatsNew')}!`"
+            placement="right"
+            hide-on-click
+            :arrow="false"
+          >
+            <DashboardSidebarFeed />
+          </NcTooltip>
+        </DashboardMiniSidebarItemWrapper>
 
-      <div class="px-2 w-full">
+        <div class="px-2 w-full">
+          <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+        </div>
+        <DashboardMiniSidebarItemWrapper>
+          <NcTooltip v-if="!isSharedBase" :title="$t('labels.createNew')" placement="right" hide-on-click :arrow="false">
+            <DashboardMiniSidebarCreateNewActionMenu />
+          </NcTooltip>
+        </DashboardMiniSidebarItemWrapper>
+      </template>
+      <div v-else class="px-2 w-full">
         <NcDivider class="!my-0 !border-nc-border-gray-dark" />
       </div>
-      <DashboardMiniSidebarItemWrapper>
-        <NcTooltip v-if="!isSharedBase" :title="$t('labels.createNew')" placement="right" hide-on-click :arrow="false">
-          <DashboardMiniSidebarCreateNewActionMenu />
-        </NcTooltip>
-      </DashboardMiniSidebarItemWrapper>
 
       <DashboardSidebarUserInfo />
     </div>

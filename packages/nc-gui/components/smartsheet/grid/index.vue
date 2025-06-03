@@ -318,23 +318,10 @@ const pGoToNextRow = () => {
     return
   }
 
-  /* when last index of current page is reached we should move to next page */
-  if (!pPaginationData.value.isLastPage && currentIndex === pPaginationData.value.pageSize) {
-    const nextPage = pPaginationData.value?.page ? pPaginationData.value?.page + 1 : 1
-    pChangeView(nextPage)
-  }
-
   pNavigateToSiblingRow(NavigateDir.NEXT)
 }
 
 const pGoToPreviousRow = () => {
-  const currentIndex = pGetExpandedRowIndex()
-  /* when first index of current page is reached and then clicked back previos page should be loaded  */
-  if (!pPaginationData.value.isFirstPage && currentIndex === 1) {
-    const nextPage = pPaginationData.value?.page ? pPaginationData.value?.page - 1 : 1
-    pChangeView(nextPage)
-  }
-
   pNavigateToSiblingRow(NavigateDir.PREV)
 }
 

@@ -26,6 +26,7 @@ export class AuditsService extends AuditsServiceCE {
       orderBy?: {
         created_at?: 'asc' | 'desc';
       };
+      retentionLimit?: number;
     },
   ) {
     return await Audit.workspaceAuditList(context, param);

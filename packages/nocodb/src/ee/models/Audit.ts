@@ -1,5 +1,6 @@
 import AuditCE from 'src/models/Audit';
 import { NO_SCOPE } from 'nocodb-sdk';
+import dayjs from 'dayjs';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
@@ -20,17 +21,25 @@ export default class Audit extends AuditCE {
       fk_model_id,
       row_id,
       cursor,
+      retentionLimit,
     }: {
       fk_model_id: string;
       row_id: string;
       cursor?: string;
+      retentionLimit?: number;
     },
   ): Promise<PagedResponseImpl<Audit>> {
     if (!context.workspace_id || !context.base_id || !fk_model_id || !row_id) {
       return new PagedResponseImpl([], {}, { pageInfo: { isLastPage: true } });
     }
 
-    const [id, _created_at] = cursor?.split('|') ?? [];
+    const [id, created_at] = cursor?.split('|') ?? [];
+
+    const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
+
+    if (cursorDiff > retentionLimit) {
+      return new PagedResponseImpl([], {}, { pageInfo: { isLastPage: true } });
+    }
 
     const query = Noco.ncAudit
       .knex(MetaTable.AUDIT)
@@ -88,6 +97,7 @@ export default class Audit extends AuditCE {
       startDate,
       endDate,
       orderBy,
+      retentionLimit,
     }: {
       cursor?: string;
       baseId?: string;
@@ -98,6 +108,7 @@ export default class Audit extends AuditCE {
       orderBy?: {
         created_at?: 'asc' | 'desc';
       };
+      retentionLimit?: number;
     },
   ): Promise<PagedResponseImpl<Audit>> {
     if (!context.workspace_id) {
@@ -106,6 +117,14 @@ export default class Audit extends AuditCE {
 
     if (baseId === NO_SCOPE) {
       baseId = undefined;
+    }
+
+    const [id, created_at] = cursor?.split('|') ?? [];
+
+    const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
+
+    if (cursorDiff > retentionLimit) {
+      return new PagedResponseImpl([], {}, { pageInfo: { isLastPage: true } });
     }
 
     const query = Noco.ncAudit
@@ -138,8 +157,6 @@ export default class Audit extends AuditCE {
     } else {
       query.orderBy('id', 'desc');
     }
-
-    const [id, _created_at] = cursor?.split('|') ?? [];
 
     if (id) {
       if (orderBy?.created_at === 'asc') {

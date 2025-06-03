@@ -20,6 +20,7 @@ import {
 } from '~/utils/internal-type';
 import { ColumnsService } from '~/services/columns.service';
 import { AuditsService } from '~/services/audits.service';
+import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -68,6 +69,7 @@ export class InternalController extends InternalControllerCE {
       deleteScript: 'base',
       baseSchema: 'base',
       workspaceAuditList: 'workspace',
+      recordAuditList: 'workspace',
     };
   }
 
@@ -98,7 +100,9 @@ export class InternalController extends InternalControllerCE {
         return await this.mcpService.list(context, req);
       case 'mcpGet':
         return await this.mcpService.get(context, req.query.tokenId as string);
-      case 'workspaceAuditList':
+      case 'workspaceAuditList': {
+        const { limit } = await getLimit(PlanLimitTypes.LIMIT_AUDIT_RETENTION);
+
         return await this.auditsService.workspaceAuditList(context, {
           cursor: req.query.cursor,
           baseId,
@@ -107,7 +111,19 @@ export class InternalController extends InternalControllerCE {
           startDate: req.query.startDate,
           endDate: req.query.endDate,
           orderBy: req.query.orderBy,
+          retentionLimit: limit,
         });
+      }
+      case 'recordAuditList': {
+        const { limit } = await getLimit(PlanLimitTypes.LIMIT_AUDIT_RETENTION);
+
+        return await this.auditsService.recordAuditList(context, {
+          row_id: req.query.row_id as string,
+          fk_model_id: req.query.fk_model_id as string,
+          cursor: req.query.cursor as string,
+          retentionLimit: limit,
+        });
+      }
       default:
         return await super.internalAPI(
           context,

@@ -17,6 +17,7 @@ export class AuditsService {
       row_id: string;
       fk_model_id: string;
       cursor?: string;
+      retentionLimit?: number;
     },
   ) {
     return await Audit.recordAuditList(context, param);

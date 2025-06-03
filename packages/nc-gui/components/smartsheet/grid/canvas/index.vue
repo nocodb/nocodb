@@ -2016,6 +2016,7 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
   openColumnDropdownField.value = null
   if (!isAddingColumnAllowed.value) return
   $e('c:shortcut', { key: 'ALT + C' })
+
   if (renderAtCurrentPosition) {
     isDropdownVisible.value = true
     isCreateOrEditColumnDropdownOpen.value = true
@@ -2031,7 +2032,7 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
 
     overlayStyle.value = {
       top: `${rect.top}px`,
-      right: '256px',
+      right: `${256 - ADD_NEW_COLUMN_WIDTH}px`,
       width: `${ADD_NEW_COLUMN_WIDTH}px`,
       height: '32px',
       position: 'fixed',

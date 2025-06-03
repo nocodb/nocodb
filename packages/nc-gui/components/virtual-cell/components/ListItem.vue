@@ -42,9 +42,7 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const { externalBaseUserRoles, showExtraFields } = useLTARStoreOrThrow()!
-
-const { isUIAllowed } = useRoles()
+const { showExtraFields } = useLTARStoreOrThrow()!
 
 interface Attachment {
   url: string

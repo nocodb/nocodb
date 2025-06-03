@@ -45,8 +45,15 @@ abstract class ExtensionType {
 export { ExtensionType }
 
 export const useExtensions = createSharedComposable(() => {
-  const { pluginsLoaded, getPluginAssetUrl, availableExtensions, availableExtensionIds, pluginTypes, pluginDescriptionContent } =
-    usePlugin()
+  const {
+    pluginsLoaded,
+    getPluginAssetUrl,
+    availableExtensions,
+    availableExtensionIds,
+    pluginTypes,
+    pluginDescriptionContent,
+    isPluginsEnabled,
+  } = usePlugin()
 
   const { baseExtensions } = extensionsState()
 
@@ -260,6 +267,10 @@ export const useExtensions = createSharedComposable(() => {
         }
       }
     } catch (e) {
+      baseExtensions.value[baseId] = {
+        extensions: [],
+        expanded: false,
+      }
       console.log(e)
     }
   }
@@ -395,13 +406,15 @@ export const useExtensions = createSharedComposable(() => {
   }
 
   watch(
-    () => base.value?.id,
-    (baseId) => {
-      if (baseId && !baseExtensions.value[baseId]) {
-        loadExtensionsForBase(baseId).catch((e) => {
-          console.error(e)
-        })
+    [() => base.value?.id, isPluginsEnabled],
+    ([baseId, newPluginsEnabled]) => {
+      if (!newPluginsEnabled || !baseId || baseExtensions.value[baseId]?.extensions?.length) {
+        return
       }
+
+      loadExtensionsForBase(baseId).catch((e) => {
+        console.error(e)
+      })
     },
     {
       immediate: true,

@@ -1749,9 +1749,16 @@ export class ImportService {
                   const tempVal = [];
                   for (const vl of mv as any) {
                     if (vl.fk_column_id) {
-                      const id = grpCol.colOptions.options.find(
+                      // check if the option is still exists on field option
+                      // currently any modification on field option
+                      // is not reflected yet to kanban view
+                      const metaValueOption = grpCol.colOptions.options.find(
                         (el) => el.title === vl.title,
-                      ).id;
+                      );
+                      if (!metaValueOption) {
+                        continue;
+                      }
+                      const id = metaValueOption.id;
                       tempVal.push({
                         ...vl,
                         fk_column_id: idMap.get(vl.fk_column_id),
@@ -1765,6 +1772,9 @@ export class ImportService {
                       });
                     }
                   }
+                  // TODO (optional): check grpCol.colOptions.options not exists in tempVal
+                  // and generate that
+
                   meta[idMap.get(mk)] = tempVal;
                 }
                 kanbanData[k] = meta;

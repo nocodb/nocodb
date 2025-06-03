@@ -1,5 +1,6 @@
 import { Injectable, Optional } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
+import { v7 as uuidv7 } from 'uuid';
 import CryptoJS from 'crypto-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -22,8 +23,8 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 @Injectable()
 export class MetaService {
-  private _knex: knex.Knex;
-  private _config: any;
+  protected _knex: knex.Knex;
+  protected _config: any;
 
   constructor(config: NcConfig, @Optional() trx = null) {
     this._config = config;
@@ -292,6 +293,10 @@ export class MetaService {
    * @returns {string} - Generated nanoid
    * */
   public async genNanoid(target: string) {
+    if (target === MetaTable.AUDIT) {
+      return uuidv7();
+    }
+
     const prefixMap: { [key: string]: string } = {
       [MetaTable.PROJECT]: 'p',
       [MetaTable.SOURCES]: 'b',
@@ -321,7 +326,6 @@ export class MetaService {
       [MetaTable.VIEWS]: 'vw',
       [MetaTable.HOOKS]: 'hk',
       [MetaTable.HOOK_LOGS]: 'hkl',
-      [MetaTable.AUDIT]: 'adt',
       [MetaTable.API_TOKENS]: 'tkn',
       [MetaTable.EXTENSIONS]: 'ext',
       [MetaTable.COMMENTS]: 'com',
@@ -344,7 +348,7 @@ export class MetaService {
 
   // private connection: XKnex;
   // todo: need to fix
-  private trx: Knex.Transaction;
+  protected trx: Knex.Transaction;
 
   /***
    * Delete meta data

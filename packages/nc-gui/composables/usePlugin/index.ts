@@ -161,7 +161,12 @@ export const usePlugin = createSharedComposable(() => {
 
       if (manifest?.disabled !== true && (!manifest?.beta || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))) {
         // Add to available plugins collection
-        pluginCollections[type].available.value.push(manifest as any)
+        const existingPluginIndex = pluginCollections[type].available.value.findIndex((p) => p.id === manifest.id)
+        if (existingPluginIndex !== -1) {
+          pluginCollections[type].available.value.splice(existingPluginIndex, 1, manifest as any)
+        } else {
+          pluginCollections[type].available.value.push(manifest as any)
+        }
 
         // Handle plugin description markdown
         if (manifest.description && manifest.id) {

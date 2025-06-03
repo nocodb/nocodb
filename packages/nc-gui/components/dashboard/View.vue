@@ -79,24 +79,30 @@ const normalizedWidth = computed(() => {
   }
 })
 
-watch(isLeftSidebarOpen, () => {
-  sideBarSize.value.current = sideBarSize.value.old
+watch(
+  isLeftSidebarOpen,
+  () => {
+    sideBarSize.value.current = sideBarSize.value.old
 
-  if (isLeftSidebarOpen.value) {
-    setTimeout(() => (sidebarState.value = 'openStart'), 0)
+    if (isLeftSidebarOpen.value) {
+      setTimeout(() => (sidebarState.value = 'openStart'), 0)
 
-    setTimeout(() => (sidebarState.value = 'openEnd'), animationDuration)
-  } else {
-    sideBarSize.value.old = sideBarSize.value.current
-    sideBarSize.value.current = 0
+      setTimeout(() => (sidebarState.value = 'openEnd'), animationDuration)
+    } else {
+      sideBarSize.value.old = sideBarSize.value.current
+      sideBarSize.value.current = 0
 
-    sidebarState.value = 'hiddenStart'
+      sidebarState.value = 'hiddenStart'
 
-    setTimeout(() => {
-      sidebarState.value = 'hiddenEnd'
-    }, animationDuration)
-  }
-})
+      setTimeout(() => {
+        sidebarState.value = 'hiddenEnd'
+      }, animationDuration)
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 function handleMouseMove(e: MouseEvent) {
   if (isMobileMode.value) return

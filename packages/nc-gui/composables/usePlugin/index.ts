@@ -86,6 +86,8 @@ export const usePlugin = createSharedComposable(() => {
   const availableExtensions = ref<ExtensionManifest[]>([])
   const availableScripts = ref<ScriptManifest[]>([])
 
+  const { appInfo } = useGlobal()
+
   const pluginCollections = {
     [PluginType.extension]: {
       available: availableExtensions,
@@ -99,7 +101,7 @@ export const usePlugin = createSharedComposable(() => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const isPluginsEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))
+  const isPluginsEnabled = computed(() => isEeUI)
 
   const availablePlugins = computed<PluginManifest[]>(() => [...availableExtensions.value, ...availableScripts.value])
 
@@ -161,7 +163,12 @@ export const usePlugin = createSharedComposable(() => {
         }
       }
 
-      if (manifest?.disabled !== true && (!manifest?.beta || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))) {
+      if (
+        manifest?.disabled !== true &&
+        // Ensure the plugin is enabled for the current environment
+        (appInfo.value?.isOnPrem || (isEeUI && !manifest?.onPrem)) &&
+        (!manifest?.beta || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))
+      ) {
         // Add to available plugins collection
         const existingPluginIndex = pluginCollections[type].available.value.findIndex((p) => p.id === manifest.id)
         if (existingPluginIndex !== -1) {
@@ -256,8 +263,8 @@ export const usePlugin = createSharedComposable(() => {
   }
 
   watch(
-    isPluginsEnabled,
-    async (newValue) => {
+    [() => isPluginsEnabled.value, () => appInfo.value?.isOnPrem],
+    async ([newValue]) => {
       availableExtensions.value = []
       availableScripts.value = []
 
@@ -269,6 +276,18 @@ export const usePlugin = createSharedComposable(() => {
       immediate: true,
     },
   )
+  onMounted(async () => {
+    watch(
+      async () => {
+        availableExtensions.value = []
+        availableScripts.value = []
+        await loadPlugins()
+      },
+      {
+        immediate: true,
+      },
+    )
+  })
 
   /**
    * Find a plugin by ID regardless of type

@@ -413,15 +413,19 @@ watch(
     // If workspace changed, skip animation
     if (newWsId !== oldWsId) {
       transitionName.value = undefined // No animation
-      isWsSwitching.value = true
       avoidTransition.value = true
+      isWsSwitching.value = true
+
+      if (!showProjectList.value) {
+        showProjectList.value = true
+      }
     } else {
       if (isWsSwitching.value) {
         if (!showProjectList.value) {
           showProjectList.value = true
+          isWsSwitching.value = false
         }
 
-        isWsSwitching.value = false
         transitionName.value = undefined
       } else if (!avoidTransition.value) {
         transitionName.value = newShowProjectList ? 'slide-left' : 'slide-right'
@@ -481,7 +485,10 @@ watch(isWsSwitching, (newValue) => {
   }
 
   timerId = setTimeout(() => {
-    showProjectList.value = true
+    if (!showProjectList.value) {
+      showProjectList.value = true
+    }
+
     isWsSwitching.value = false
 
     clearTimeout(timerId)

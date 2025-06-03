@@ -406,9 +406,9 @@ export const useExtensions = createSharedComposable(() => {
   }
 
   watch(
-    [() => base.value?.id, isPluginsEnabled],
-    ([baseId, newPluginsEnabled]) => {
-      if (!newPluginsEnabled || !baseId || baseExtensions.value[baseId]?.extensions?.length) {
+    [() => base.value?.id, isPluginsEnabled, () => isUIAllowed('extensionList')],
+    ([baseId, newPluginsEnabled, isAllowed]) => {
+      if (!newPluginsEnabled || !baseId || !isAllowed) {
         return
       }
 

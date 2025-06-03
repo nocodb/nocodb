@@ -101,7 +101,7 @@ export const usePlugin = createSharedComposable(() => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const isPluginsEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))
+  const isPluginsEnabled = computed(() => isEeUI)
 
   const availablePlugins = computed<PluginManifest[]>(() => [...availableExtensions.value, ...availableScripts.value])
 

@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { isLinksOrLTAR } from 'nocodb-sdk'
+import { isLinksOrLTAR, hideExtraFieldsMetaKey } from 'nocodb-sdk'
 const { activeField, updateColMeta } = useFormViewStoreOrThrow()
 
 const vShowExtraFields = computed({
   get: () => {
-    return activeField.value?.meta?.[showExtraFieldsMetaKey] ?? false
+    return !activeField.value?.meta?.[hideExtraFieldsMetaKey]
   },
   set: (value) => {
     if (!activeField.value) return
@@ -13,7 +13,7 @@ const vShowExtraFields = computed({
       activeField.value.meta = {}
     }
 
-    activeField.value.meta[showExtraFieldsMetaKey] = value
+    activeField.value.meta[hideExtraFieldsMetaKey] = !value
 
     updateColMeta(activeField.value!)
   },

@@ -183,7 +183,7 @@ watch(activeWorkspaceId, () => {
         </template>
         <template #extraRow>
           <td colspan="6" class="w-full">
-            <div class="flex flex-row justify-center items-center w-full">
+            <div class="flex flex-row justify-center items-center w-full py-2">
               <NcButton :loading="isLoadingAudits" :disabled="!hasMoreAudits" @click="loadAudits(false)">
                 <div class="flex items-center gap-2">
                   <component :is="iconMap.plus" />

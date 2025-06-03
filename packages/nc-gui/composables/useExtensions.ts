@@ -115,7 +115,6 @@ export const useExtensions = createSharedComposable(() => {
 
   const addExtension = async (extension: any) => {
     if (!base.value || !base.value.id || !baseExtensions.value[base.value.id]) {
-      console.warn('No base or base id found', base.value, base.value.id, baseExtensions.value[base.value.id])
       return
     }
 
@@ -409,9 +408,7 @@ export const useExtensions = createSharedComposable(() => {
   watch(
     [() => base.value?.id, isPluginsEnabled],
     ([baseId, newPluginsEnabled]) => {
-      console.log('on base change', baseId, newPluginsEnabled, baseExtensions.value[baseId])
-
-      if (!newPluginsEnabled || !baseId || !baseExtensions.value[baseId]?.extensions?.length) {
+      if (!newPluginsEnabled || !baseId || baseExtensions.value[baseId]?.extensions?.length) {
         return
       }
 
@@ -423,18 +420,6 @@ export const useExtensions = createSharedComposable(() => {
       immediate: true,
     },
   )
-
-  onMounted(async () => {
-    if (!isPluginsEnabled.value) return
-
-    await until(() => !!base.value?.id).toBeTruthy({ timeout: 50000 })
-
-    if (base.value?.id && !baseExtensions.value[base.value.id]?.extensions?.length) {
-      loadExtensionsForBase(base.value?.id).catch((e) => {
-        console.error(e)
-      })
-    }
-  })
 
   // Extension details modal
   const isDetailsVisible = ref(false)

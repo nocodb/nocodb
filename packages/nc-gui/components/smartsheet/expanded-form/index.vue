@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { ExpandedFormMode, ViewTypes, isReadOnlyColumn, isSystemColumn } from 'nocodb-sdk'
+import { ExpandedFormMode, ViewTypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'
@@ -435,7 +435,7 @@ useActiveKeydownListener(
       loadingEmit('prev')
     } else if (e.key === 'ArrowRight') {
       e.stopPropagation()
-      if (islastRow.value) return
+      if (isLastRow.value) return
 
       onNext()
     }
@@ -684,7 +684,7 @@ export default {
             <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
               <template #title> {{ $t('labels.nextRow') }} {{ renderAltOrOptlKey() }} + →</template>
               <NcButton
-                :disabled="islastRow || isLoading"
+                :disabled="isLastRow || isLoading"
                 class="nc-next-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
                 type="text"
                 size="xsmall"

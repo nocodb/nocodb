@@ -225,7 +225,6 @@ export const HasManyCellRenderer: CellRenderer = {
     cellRenderStore,
     selected,
     isPublic,
-    readonly,
     isDoubleClick,
     openDetachedExpandedForm,
   }) {

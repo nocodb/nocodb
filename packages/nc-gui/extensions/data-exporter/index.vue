@@ -284,13 +284,9 @@ onMounted(async () => {
     <template v-if="fullscreen" #headerExtra>
       <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
         <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>
-        <NcButton
-          :disabled="!exportPayload?.viewId || isExporting"
-          :loading="isExporting"
-          size="small"
-          @click="exportDataAsync"
-          >{{ isExporting ? 'Generating' : 'Export' }}</NcButton
-        >
+        <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="small" @click="exportDataAsync">{{
+          isExporting ? 'Generating' : 'Export'
+        }}</NcButton>
       </NcTooltip>
     </template>
     <div
@@ -394,13 +390,9 @@ onMounted(async () => {
           <div class="flex-none flex justify-end">
             <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
               <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>
-              <NcButton
-                :disabled="!exportPayload?.viewId || isExporting"
-                :loading="isExporting"
-                size="small"
-                @click="exportDataAsync"
-                >{{ isExporting ? 'Generating' : 'Export' }}</NcButton
-              >
+              <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="small" @click="exportDataAsync">{{
+                isExporting ? 'Generating' : 'Export'
+              }}</NcButton>
             </NcTooltip>
           </div>
         </div>

@@ -89,6 +89,13 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const showTopbar = ref(false)
 
+  onMounted(() => {
+    if (!isViewPortMobile() || tablesStore.activeTableId) return
+
+    _isLeftSidebarOpen.value = true
+    leftSidebarState.value = 'openEnd'
+  })
+
   return {
     isLeftSidebarOpen,
     isRightSidebarOpen,

@@ -3,7 +3,6 @@ import type { NcContext } from '~/interface/config';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
 import { Audit } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 @Injectable()
 export class AuditsService {
@@ -18,8 +17,9 @@ export class AuditsService {
       row_id: string;
       fk_model_id: string;
       cursor?: string;
+      retentionLimit?: number;
     },
   ) {
-    return new PagedResponseImpl(await Audit.recordAuditList(context, param));
+    return await Audit.recordAuditList(context, param);
   }
 }

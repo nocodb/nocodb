@@ -3,7 +3,6 @@ import { AuditsService as AuditsServiceCE } from 'src/services/audits.service';
 import type { NcContext } from '~/interface/config';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Audit } from '~/models';
 
 @Injectable()
@@ -27,10 +26,9 @@ export class AuditsService extends AuditsServiceCE {
       orderBy?: {
         created_at?: 'asc' | 'desc';
       };
+      retentionLimit?: number;
     },
   ) {
-    return new PagedResponseImpl(
-      await Audit.workspaceAuditList(context, param),
-    );
+    return await Audit.workspaceAuditList(context, param);
   }
 }

@@ -22,5 +22,6 @@
     "modalSize": "lg",
     "contentMinHeight": "320px"
   },
-  "order": 6
+  "order": 6,
+  "onPrem": true
 }

@@ -460,3 +460,5 @@ export class FormFilters {
 
   validateErrors() {}
 }
+
+export const showExtraFieldsMetaKey = 'showExtraFields'

@@ -176,7 +176,7 @@ onMounted(() => {
               'flex-1': !isOpenSearchBox,
             }"
           >
-            <NcTooltip :title="$t('title.hideExtensions')">
+            <NcTooltip :title="$t('title.hideExtensions')" hide-on-click>
               <div
                 v-e="['c:extension-toggle']"
                 class="flex items-center gap-3 font-weight-700 text-gray-700 text-base cursor-pointer"

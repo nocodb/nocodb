@@ -95,7 +95,7 @@ const helpItems = computed<CategoryItemType[]>(() => {
           tooltip: t('labels.clickToCopy'),
         },
       ],
-      hidden: isEeUI,
+      hidden: !isEeUI,
     },
     {
       category: t('title.whatsNew'),

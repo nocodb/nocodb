@@ -7,7 +7,14 @@ const vShowExtraFields = computed({
     return activeField.value?.meta?.[showExtraFieldsMetaKey] ?? false
   },
   set: (value) => {
-    activeField.value!.meta![showExtraFieldsMetaKey] = value
+    if (!activeField.value) return
+
+    if (!activeField.value.meta) {
+      activeField.value.meta = {}
+    }
+
+    activeField.value.meta[showExtraFieldsMetaKey] = value
+
     updateColMeta(activeField.value!)
   },
 })

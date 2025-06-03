@@ -69,7 +69,6 @@ export class InternalController extends InternalControllerCE {
       deleteScript: 'base',
       baseSchema: 'base',
       workspaceAuditList: 'workspace',
-      recordAuditList: 'workspace',
     };
   }
 
@@ -101,7 +100,10 @@ export class InternalController extends InternalControllerCE {
       case 'mcpGet':
         return await this.mcpService.get(context, req.query.tokenId as string);
       case 'workspaceAuditList': {
-        const { limit } = await getLimit(PlanLimitTypes.LIMIT_AUDIT_RETENTION);
+        const { limit } = await getLimit(
+          PlanLimitTypes.LIMIT_AUDIT_RETENTION,
+          context.workspace_id,
+        );
 
         return await this.auditsService.workspaceAuditList(context, {
           cursor: req.query.cursor,
@@ -115,7 +117,10 @@ export class InternalController extends InternalControllerCE {
         });
       }
       case 'recordAuditList': {
-        const { limit } = await getLimit(PlanLimitTypes.LIMIT_AUDIT_RETENTION);
+        const { limit } = await getLimit(
+          PlanLimitTypes.LIMIT_AUDIT_RETENTION,
+          context.workspace_id,
+        );
 
         return await this.auditsService.recordAuditList(context, {
           row_id: req.query.row_id as string,

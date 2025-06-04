@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "Az URL-szűrők az URL paramétereiből származnak, és összevonódnak az eszköztáron beállított nézetszűrőkkel.",
     "urlFilterError": "Érvénytelen URL-szűrő. Figyelmen kívül hagyva, mivel nem alkalmazható.",
     "dropYourDocHere": "Dobja ide a dokumentumot",

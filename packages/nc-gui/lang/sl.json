@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "URL filtri se uporabijo iz parametrov URL in se združijo s filtri pogleda, nastavljenimi prek orodne vrstice.",
     "urlFilterError": "Neveljaven URL filter. Prezrt, ker ga ni bilo mogoče uporabiti.",
     "dropYourDocHere": "Spustite dokument sem",

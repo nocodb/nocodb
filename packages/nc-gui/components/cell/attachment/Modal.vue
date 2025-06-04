@@ -40,17 +40,25 @@ const { isOverDropZone } = useDropZone(dropZoneRef, onDropAction)
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()
 
+const preventExit = ref(false)
+
 onKeyDown('Escape', () => {
   modalVisible.value = false
   isOverDropZone.value = false
 })
 
 watch(modalVisible, (newVal, oldVal) => {
+  if (preventExit.value) return
+
+  setTimeout(() => {
+    preventExit.value = false
+  }, 500)
   if (oldVal && !newVal) canvasSelectCell?.trigger()
 })
 
 function onClick(item: Record<string, any>) {
   selectedFile.value = item
+  preventExit.value = true
   modalVisible.value = false
 
   const stopHandle = watch(selectedFile, (nextImage) => {

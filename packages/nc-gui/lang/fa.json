@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "فیلترهای URL از پارامترهای URL اعمال شده و با فیلترهای نما که از نوار ابزار تنظیم شده‌اند ترکیب می‌شوند.",
     "urlFilterError": "فیلتر URL نامعتبر. نادیده گرفته شد چون قابل اعمال نبود.",
     "dropYourDocHere": "سند خود را اینجا رها کنید",

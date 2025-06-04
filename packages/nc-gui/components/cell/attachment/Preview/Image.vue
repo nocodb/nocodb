@@ -26,7 +26,7 @@ const ZOOM_STEP = 0.5
 const transformStyle = computed(() => ({
   transform: `translate(${position.value.x}px, ${position.value.y}px) scale(${scale.value})`,
   transition: isDragging.value ? 'none' : 'transform 0.2s ease-out',
-  cursor: scale.value > 1 ? 'grab' : 'default',
+  cursor: scale.value > 1 ? 'grab' : '',
 }))
 
 const limitDrag = (x: number, y: number) => {

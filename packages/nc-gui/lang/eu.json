@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "URL iragazkiak URL parametroetatik aplikatzen dira eta tresna-barran ezarritako ikuspegi iragazkiekin konbinatzen dira.",
     "urlFilterError": "URL iragazki baliogabea. Baztertuta aplikatu ezin zenez.",
     "dropYourDocHere": "Arrastatu zure dokumentua hona",

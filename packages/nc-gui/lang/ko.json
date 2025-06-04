@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "URL 필터는 URL 매개 변수에서 적용되며 도구 모음을 통해 설정된 보기 필터와 결합됩니다.",
     "urlFilterError": "URL 필터가 잘못되었습니다. 적용할 수 없으므로 무시됩니다.",
     "dropYourDocHere": "여기에 문서를 놓습니다",

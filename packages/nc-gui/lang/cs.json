@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "Filtry URL jsou použity z parametrů URL a kombinují se s filtry zobrazení nastavenými na panelu nástrojů.",
     "urlFilterError": "Neplatný filtr URL. Byl ignorován, protože jej nelze použít.",
     "dropYourDocHere": "Sem přetáhněte svůj dokument",

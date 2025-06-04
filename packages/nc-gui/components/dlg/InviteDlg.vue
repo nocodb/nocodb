@@ -1,5 +1,12 @@
 <script lang="ts" setup>
-import { NON_SEAT_ROLES, type PlanLimitExceededDetailsType, ProjectRoles, type RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
+import {
+  NON_SEAT_ROLES,
+  NcErrorType,
+  type PlanLimitExceededDetailsType,
+  ProjectRoles,
+  type RoleLabels,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk'
 
 import { extractEmail } from '../../helpers/parsers/parserHelpers'
 
@@ -321,6 +328,9 @@ const inviteCollaborator = async () => {
         isAdminPanel: props.type === 'organization',
       })
     } else {
+      if (errorInfo.error === NcErrorType.UNKNOWN_ERROR) {
+        errorInfo.message = await extractSdkResponseErrorMsg(e)
+      }
       message.error(errorInfo.message)
     }
   } finally {

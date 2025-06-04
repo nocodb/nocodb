@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "URL-suodattimet haetaan URL-parametreista ja yhdistetään työkalupalkissa asetettuihin näkymäsuodattimiin.",
     "urlFilterError": "Virheellinen URL-suodatin. Ohitettiin, koska sitä ei voitu käyttää.",
     "dropYourDocHere": "Pudota dokumenttisi tähän",

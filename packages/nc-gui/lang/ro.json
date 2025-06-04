@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "Filtrele URL sunt aplicate din parametrii URL și se combină cu filtrele vizualizării setate din bara de instrumente.",
     "urlFilterError": "Filtru URL invalid. A fost ignorat deoarece nu a putut fi aplicat.",
     "dropYourDocHere": "Trage documentul aici",

@@ -291,7 +291,15 @@ const inviteCollaborator = async () => {
 
     for (const email of payloadData?.split(',')) {
       if (props.users?.some((u) => u.email === email.trim())) {
-        warningMsg.value = t('msg.userAlreadyExists', { email: email.trim(), scope: $t('labels.base').toLowerCase() })
+        let scopeLabel = 'labels.base'
+
+        if (props.type === 'workspace') {
+          scopeLabel = 'labels.workspace'
+        } else if (props.type === 'organization') {
+          scopeLabel = 'labels.organization'
+        }
+
+        warningMsg.value = t('msg.userAlreadyExists', { email: email.trim(), scope: t(scopeLabel).toLowerCase() })
         return
       }
     }
@@ -442,9 +450,9 @@ const removeEmail = (index: number) => {
           </div>
         </div>
         <!-- show warning if validation fails and warningMsg defined -->
-        <span v-if="warningMsg" class="ml-2 text-red-500">{{ warningMsg }}</span>
+        <span v-if="warningMsg" class="ml-2 text-red-500 -mt-2">{{ warningMsg }}</span>
 
-        <span v-if="emailValidation.isError && emailValidation.message" class="ml-2 text-red-500">{{
+        <span v-if="emailValidation.isError && emailValidation.message" class="ml-2 text-red-500 -mt-2">{{
           emailValidation.message
         }}</span>
 

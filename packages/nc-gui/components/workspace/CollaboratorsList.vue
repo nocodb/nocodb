@@ -479,6 +479,7 @@ const handleScroll = (e) => {
         v-model:model-value="inviteDlg"
         :workspace-id="currentWorkspace?.id"
         type="workspace"
+        :users="sortedCollaborators"
       />
     </div>
   </div>

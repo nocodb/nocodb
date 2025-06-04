@@ -815,7 +815,7 @@
     "upgradeWorkspaceToPlan": "Upgrade {workspace} to {plan} plan",
     "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
     "reactivateToPlan": "Reactivate {plan} plan?",
-    "whatsNew": "What’s New!",
+    "whatsNew": "What’s New",
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions"
@@ -1340,8 +1340,8 @@
     "createNew": "Create New",
     "dataApiV2": "Data APIs V2",
     "metaApiV2": "Meta APIs V2",
-    "showExtraFields": "Show extra fields",
-    "showExtraFieldsDescription": "Show extra fields along with display value field in the link record dropdown"
+    "showExtraFields": "Show additional fields",
+    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

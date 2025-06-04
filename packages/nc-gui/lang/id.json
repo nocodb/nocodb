@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "Filter URL diterapkan dari parameter URL dan digabungkan dengan filter tampilan yang ditetapkan melalui toolbar.",
     "urlFilterError": "Filter URL tidak valid. Diabaikan karena tidak dapat diterapkan.",
     "dropYourDocHere": "Jatuhkan dokumen Anda di sini",

@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "מסנני URL מוחלים מפרמטרי ה-URL ומשולבים עם מסנני התצוגה שהוגדרו באמצעות סרגל הכלים.",
     "urlFilterError": "מסנן URL לא תקין. ההתעלם מכיוון שלא ניתן היה ליישם אותו.",
     "dropYourDocHere": "גרור את המסמך שלך כאן",

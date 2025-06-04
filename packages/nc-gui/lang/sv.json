@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "URL-filter tillämpas från URL-parametrar och kombineras med vyfilter som ställts in via verktygsfältet.",
     "urlFilterError": "Ogiltigt URL-filter. Ignorerades eftersom det inte kunde tillämpas.",
     "dropYourDocHere": "Släpp ditt dokument här",

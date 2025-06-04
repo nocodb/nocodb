@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "Filtry URL są pobierane z parametrów adresu i łączone z filtrami widoku ustawionymi na pasku narzędzi.",
     "urlFilterError": "Nieprawidłowy filtr URL. Został zignorowany, ponieważ nie można go zastosować.",
     "dropYourDocHere": "Upuść dokument tutaj",

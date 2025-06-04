@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "يتم تطبيق فلاتر الرابط من معلمات URL وتُدمج مع فلاتر العرض المُعيّنة عبر شريط الأدوات.",
     "urlFilterError": "مُرشّح رابط غير صالح. تم تجاهله لعدم إمكانية تطبيقه.",
     "dropYourDocHere": "أسقط مستندك هنا",

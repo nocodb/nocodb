@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "URL filtri tiek piemēroti no URL parametriem un tiek apvienoti ar rīkjoslā iestatītajiem skata filtriem.",
     "urlFilterError": "Nederīgs URL filtrs. Ignorēts, jo to nevarēja piemērot.",
     "dropYourDocHere": "Nometiet dokumentu šeit",

@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "URL-filtre brukes fra URL-parametere og kombineres med visningsfiltre satt via verktøylinjen.",
     "urlFilterError": "Ugyldig URL-filter. Ignorert da det ikke kunne brukes.",
     "dropYourDocHere": "Slipp dokumentet ditt her",

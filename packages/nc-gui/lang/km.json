@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "តម្រង URL ត្រូវបានអនុវត្តពីប៉ារ៉ាម៉ែត្រ URL និងបញ្ចូលជាមួយ តម្រងទិដ្ឋភាពដែលបានកំណត់តាមរបារ​ឧបករណ៍។",
     "urlFilterError": "តម្រង URL មិនត្រឹមត្រូវ។ ត្រូវបានអធ្យាស្រ័យព្រោះមិនអាចអនុវត្តបាន។",
     "dropYourDocHere": "ទម្លាក់ឯកសាររបស់អ្នកទីនេះ",

@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "URL ಪರಾಮೀಟರ್‌ಗಳಿಂದ URL ಫಿಲ್ಟರ್‌ಗಳನ್ನು ಅನ್ವಯಿಸಲಾಗಿದ್ದು, ಟೂಲ್ಬಾರ್‌ನಲ್ಲಿ ಹೊಂದಿರುವ ದೃಶ್ಯ ಫಿಲ್ಟರ್‌ಗಳೊಂದಿಗೆ ಸಂಯೋಜಿಸಲಾಗುತ್ತದೆ.",
     "urlFilterError": "ಅಮಾನ್ಯ URL ಫಿಲ್ಟರ್. ಅನ್ವಯಿಸಲಾಗದ ಕಾರಣ ನಿರ್ಲಕ್ಷಿಸಲಾಗಿದೆ.",
     "dropYourDocHere": "ನಿಮ್ಮ ಡಾಕ್ಯುಮೆಂಟ್ ಅನ್ನು ಇಲ್ಲಿ ಬಿಡಿ",

@@ -150,7 +150,9 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
     if (
       !isSystemColumn(col) &&
       !isVirtualCol(col) &&
-      ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(col.uidt) &&
+      ![UITypes.Attachment, UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(
+        col.uidt,
+      ) &&
       isValidValue(col?.cdf) &&
       !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(col.cdf)
     ) {

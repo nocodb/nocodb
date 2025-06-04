@@ -1763,6 +1763,7 @@
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "{email} already has access to this {scope}",
     "urlFilter": "URL-Filter werden aus URL-Parametern angewendet und mit den über die Symbolleiste gesetzten Ansichtsfiltern kombiniert.",
     "urlFilterError": "Ungültiger URL-Filter. Wurde ignoriert, da er nicht angewendet werden konnte.",
     "dropYourDocHere": "Legen Sie Ihr Dokument hier ab",

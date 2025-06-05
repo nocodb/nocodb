@@ -3571,7 +3571,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
       context = await init(false, 'creator');
       base = await createProject(context);
       ctx = {
-        workspace_id: context.fk_workspace_id!,
+        workspace_id: base.fk_workspace_id!,
         base_id: base.id,
       };
       table = await createTable(context, base, {

@@ -50,12 +50,27 @@ export default class Permission {
     );
 
     if (!permission) {
-      permission = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.PERMISSIONS,
-        permissionId,
-      );
+      // Use JOIN query to fetch permission with user_ids
+      const query = ncMeta
+        .knexConnection(MetaTable.PERMISSIONS)
+        .select([
+          `${MetaTable.PERMISSIONS}.*`,
+          ncMeta.knex.raw(
+            `JSON_ARRAYAGG(CASE WHEN ${MetaTable.PERMISSION_USERS}.fk_user_id IS NOT NULL THEN ${MetaTable.PERMISSION_USERS}.fk_user_id END) as user_ids`,
+          ),
+        ])
+        .leftJoin(
+          MetaTable.PERMISSION_USERS,
+          `${MetaTable.PERMISSIONS}.id`,
+          `${MetaTable.PERMISSION_USERS}.fk_permission_id`,
+        )
+        .where(`${MetaTable.PERMISSIONS}.id`, permissionId)
+        .where(`${MetaTable.PERMISSIONS}.fk_workspace_id`, context.workspace_id)
+        .where(`${MetaTable.PERMISSIONS}.base_id`, context.base_id)
+        .groupBy(`${MetaTable.PERMISSIONS}.id`)
+        .first();
+
+      permission = await query;
 
       if (permission) {
         await NocoCache.set(
@@ -75,27 +90,14 @@ export default class Permission {
     permission: PermissionKey,
     ncMeta = Noco.ncMeta,
   ) {
-    const cacheKey = `${CacheScope.PERMISSION}:${entity}:${entityId}:${permission}`;
-    let permissionObj = await NocoCache.get(cacheKey, CacheGetType.TYPE_OBJECT);
+    const permissions = await this.list(context, context.base_id, ncMeta);
 
-    if (!permissionObj) {
-      permissionObj = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.PERMISSIONS,
-        {
-          fk_workspace_id: context.workspace_id,
-          base_id: context.base_id,
-          entity,
-          entity_id: entityId,
-          permission,
-        },
-      );
-
-      if (permissionObj) {
-        await NocoCache.set(cacheKey, permissionObj);
-      }
-    }
+    const permissionObj = permissions.find(
+      (p) =>
+        p.entity === entity &&
+        p.entity_id === entityId &&
+        p.permission === permission,
+    );
 
     return permissionObj && new Permission(permissionObj);
   }
@@ -210,10 +212,6 @@ export default class Permission {
       `${CacheScope.PERMISSION}:${permissionId}`,
       updateObj,
     );
-    await NocoCache.update(
-      `${CacheScope.PERMISSION}:${permissionObj.entity}:${permissionObj.entity_id}:${permissionObj.permission}`,
-      updateObj,
-    );
 
     return this.get(context, permissionId, ncMeta);
   }
@@ -243,45 +241,8 @@ export default class Permission {
       `${CacheScope.PERMISSION}:${permissionId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-    await NocoCache.deepDel(
-      `${CacheScope.PERMISSION}:${permission.entity}:${permission.entity_id}:${permission.permission}`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
 
     return res;
-  }
-
-  public static async listUsers(
-    context: NcContext,
-    permissionId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const cachedList = await NocoCache.getList(CacheScope.PERMISSION_USER, [
-      permissionId,
-    ]);
-
-    let { list: permissionUserList } = cachedList;
-
-    if (!cachedList.isNoneList && !permissionUserList.length) {
-      permissionUserList = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.PERMISSION_USERS,
-        {
-          condition: {
-            fk_permission_id: permissionId,
-          },
-        },
-      );
-      await NocoCache.setList(
-        CacheScope.PERMISSION_USER,
-        [permissionId],
-        permissionUserList,
-        ['fk_permission_id', 'fk_user_id'],
-      );
-    }
-
-    return permissionUserList;
   }
 
   public static async setUsers(
@@ -290,14 +251,20 @@ export default class Permission {
     userIds: string[],
     ncMeta = Noco.ncMeta,
   ) {
-    const existingUsers = await this.listUsers(context, permissionId, ncMeta);
+    const permission = await this.get(context, permissionId, ncMeta);
+
+    if (!permission) {
+      NcError.genericNotFound('Permission', permissionId);
+    }
+
+    const existingUsers = permission.user_ids;
 
     const usersToAdd = userIds.filter(
-      (userId) => !existingUsers.some((user) => user.fk_user_id === userId),
+      (userId) => !permission.user_ids?.includes(userId),
     );
 
     const usersToRemove = existingUsers.filter(
-      (user) => !userIds.includes(user.fk_user_id),
+      (userId) => !userIds.includes(userId),
     );
 
     await ncMeta.metaDelete(
@@ -309,7 +276,7 @@ export default class Permission {
         _and: [
           { fk_permission_id: { eq: permissionId } },
           {
-            fk_user_id: { in: usersToRemove.map((user) => user.fk_user_id) },
+            fk_user_id: { in: usersToRemove },
           },
         ],
       },
@@ -327,21 +294,14 @@ export default class Permission {
     );
 
     // list of final users (existing + added - removed)
-    const finalUsers = [
-      ...existingUsers.map((user) => user.fk_user_id),
-      ...usersToAdd,
-    ].filter(
-      (userId) => !usersToRemove.some((user) => user.fk_user_id === userId),
-    );
-
-    await NocoCache.deepDel(
-      `${CacheScope.PERMISSION_USER}:${permissionId}:list`,
-      CacheDelDirection.PARENT_TO_CHILD,
+    const finalUsers = [...existingUsers, ...usersToAdd].filter(
+      (userId) => !usersToRemove.includes(userId),
     );
 
     await NocoCache.update(`${CacheScope.PERMISSION}:${permissionId}`, {
       user_ids: finalUsers,
     });
+
     return finalUsers;
   }
 
@@ -357,11 +317,6 @@ export default class Permission {
       {
         fk_permission_id: permissionId,
       },
-    );
-
-    await NocoCache.deepDel(
-      `${CacheScope.PERMISSION_USER}:${permissionId}:list`,
-      CacheDelDirection.PARENT_TO_CHILD,
     );
 
     await NocoCache.update(`${CacheScope.PERMISSION}:${permissionId}`, {

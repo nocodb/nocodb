@@ -6,9 +6,9 @@ import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import { generateRecursiveCTE } from '~/helpers/dbHelpers';
 
 export async function recursiveCTEFromLookupColumn({
-  _baseModelSqlV2,
-  _lookupColumn,
-  _tableAlias,
+  baseModelSqlV2,
+  lookupColumn,
+  tableAlias,
 }: {
   baseModelSqlV2: IBaseModelSqlV2;
   lookupColumn: Column;

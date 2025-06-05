@@ -41,7 +41,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     const selectors = [];
     const groupBySelectors = [];
     const getAlias = getAliasGenerator('__nc_gb');
-    const subGroupColumn = columns.find(
+    const _subGroupColumn = columns.find(
       (c) =>
         c.title === subGroupColumnName || c.column_name === subGroupColumnName,
     );

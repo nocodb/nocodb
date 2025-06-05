@@ -321,12 +321,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     }
     // extract fk_model_id from query params only if it's audit post endpoint
     else if (
-      [
-        '/api/v1/db/meta/audits/rows/:rowId/update',
-        '/api/v2/meta/audits/rows/:rowId/update',
-        '/api/v1/db/meta/comments',
-        '/api/v2/meta/comments',
-      ].some(
+      ['/api/v1/db/meta/comments', '/api/v2/meta/comments'].some(
         (auditInsertOrUpdatePath) => req.route.path === auditInsertOrUpdatePath,
       ) &&
       req.method === 'POST' &&
@@ -354,8 +349,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         '/api/v1/db/meta/comments/count',
         '/api/v2/meta/comments',
         '/api/v1/db/meta/comments',
-        '/api/v1/db/meta/audits',
-        '/api/v2/meta/audits',
       ].some((auditReadPath) => req.route.path === auditReadPath) &&
       req.method === 'GET' &&
       req.query.fk_model_id

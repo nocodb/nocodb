@@ -170,7 +170,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     })
 
     const currentAuditCursor = ref('')
-    const mightHaveMoreAudits = ref(false)
+    const hasMoreAudits = ref(false)
 
     const loadAudits = async (_rowId?: string, showLoading = true) => {
       if (!isUIAllowed('recordAuditList') || (!row.value && !_rowId)) return
@@ -195,14 +195,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           },
         )
 
+        // Skip insert as it will be first for all
+        response.list = response.list.filter((audit) => !audit?.op_type.includes('INSERT'))
+
         const lastRecord = response.list?.[response.list.length - 1]
 
         if (lastRecord) {
           currentAuditCursor.value = auditToCursor(lastRecord)
-          mightHaveMoreAudits.value = true
-        } else {
-          mightHaveMoreAudits.value = false
         }
+
+        hasMoreAudits.value = !response.pageInfo?.isLastPage
 
         const res = response.list?.reverse?.() || []
 
@@ -261,7 +263,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     }
 
     const loadMoreAudits = async () => {
-      if (!mightHaveMoreAudits.value) {
+      if (!hasMoreAudits.value) {
         return
       }
       await loadAudits()
@@ -270,7 +272,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const resetAuditPages = async () => {
       currentAuditCursor.value = ''
       audits.value = []
-      mightHaveMoreAudits.value = false
+      hasMoreAudits.value = false
       await loadAudits()
     }
 
@@ -751,7 +753,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       clearColumns,
       auditCommentGroups,
       consolidatedAudits,
-      mightHaveMoreAudits,
+      hasMoreAudits,
       loadMoreAudits,
       resetAuditPages,
       resolveComment,

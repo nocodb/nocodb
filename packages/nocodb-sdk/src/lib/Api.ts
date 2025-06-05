@@ -7020,66 +7020,6 @@ export class Api<
         format: 'json',
         ...params,
       }),
-
-    /**
- * @description List all audit data in the given base
- * 
- * @tags Base
- * @name AuditList
- * @summary List Audits in Base
- * @request GET:/api/v1/db/meta/projects/{baseId}/audits
- * @response `200` `{
-  list: (AuditType)[],
-  \** Model for Paginated *\
-  pageInfo: PaginatedType,
-
-}` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    auditList: (
-      baseId: IdType,
-      query?: {
-        /** @min 0 */
-        offset?: number;
-        /** @min 1 */
-        limit?: number;
-        sourceId?: string;
-        orderBy?: {
-          /**
-           * Sort direction
-           * @example desc
-           */
-          created_at?: 'asc' | 'desc';
-          /**
-           * Sort direction
-           * @example desc
-           */
-          user?: 'asc' | 'desc';
-        };
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        {
-          list: AuditType[];
-          /** Model for Paginated */
-          pageInfo: PaginatedType;
-        },
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/meta/projects/${baseId}/audits`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
   };
   source = {
     /**
@@ -11780,62 +11720,6 @@ export class Api<
   };
   utils = {
     /**
- * @description List all audits
- * 
- * @tags Utils
- * @name AuditList
- * @summary List Audits
- * @request GET:/api/v1/db/meta/audits
- * @response `200` `{
-  list: (AuditType)[],
-  \** Pagination Info *\
-  pageInfo?: PaginatedType,
-
-}` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    auditList: (
-      query: {
-        /** @min 0 */
-        offset?: number;
-        /** @min 1 */
-        limit?: number;
-        /**
-         * Row ID
-         * @example 10
-         */
-        row_id: string;
-        /**
-         * Foreign Key to Model
-         * @example md_c6csq89tl37jm5
-         */
-        fk_model_id: IdType;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        {
-          list: AuditType[];
-          /** Pagination Info */
-          pageInfo?: PaginatedType;
-        },
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/meta/audits`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
  * @description List all comments
  * 
  * @tags Utils
@@ -12010,98 +11894,6 @@ export class Api<
         path: `/api/v1/db/meta/comments/count`,
         method: 'GET',
         query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
- * @description List all audit data in the given project
- * 
- * @tags Utils
- * @name ProjectAuditList
- * @summary List Audits in Project
- * @request GET:/api/v1/db/meta/projects/audits
- * @response `200` `{
-  list: (AuditType)[],
-  \** Model for Paginated *\
-  pageInfo: PaginatedType,
-
-}` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    projectAuditList: (
-      query?: {
-        /** @min 0 */
-        offset?: number;
-        /** @min 1 */
-        limit?: number;
-        orderBy?: {
-          /**
-           * Sort direction
-           * @example desc
-           */
-          created_at?: 'asc' | 'desc';
-          /**
-           * Sort direction
-           * @example desc
-           */
-          user?: 'asc' | 'desc';
-        };
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        {
-          list: AuditType[];
-          /** Model for Paginated */
-          pageInfo: PaginatedType;
-        },
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/meta/projects/audits`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
- * @description Update Audit Row
- * 
- * @tags Utils
- * @name AuditRowUpdate
- * @summary Update Audit Row
- * @request POST:/api/v1/db/meta/audits/rows/{rowId}/update
- * @response `200` `AuditType` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    auditRowUpdate: (
-      rowId: any,
-      data: AuditRowUpdateReqType,
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        AuditType,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/meta/audits/rows/${rowId}/update`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -14646,6 +14438,10 @@ export class Api<
         operation: string;
         /** Model ID */
         fk_model_id?: string;
+        /** Row ID */
+        row_id?: string;
+        /** Cursor */
+        cursor?: string;
       },
       data: Record<string, any>,
       params: RequestParams = {}
@@ -14677,6 +14473,10 @@ export class Api<
         operation: string;
         /** Model ID */
         fk_model_id?: string;
+        /** Row ID */
+        row_id?: string;
+        /** Cursor */
+        cursor?: string;
       },
       params: RequestParams = {}
     ) =>

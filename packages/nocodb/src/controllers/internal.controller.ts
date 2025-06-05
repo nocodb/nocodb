@@ -12,6 +12,7 @@ import { NcContext, NcRequest } from 'nocodb-sdk';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { McpTokenService } from '~/services/mcp.service';
+import { AuditsService } from '~/services/audits.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcError } from '~/helpers/catchError';
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -26,6 +27,7 @@ export class InternalController {
   constructor(
     protected readonly mcpService: McpTokenService,
     protected readonly aclMiddleware: AclMiddleware,
+    protected readonly auditsService: AuditsService,
   ) {}
 
   protected get operationScopes() {
@@ -34,6 +36,7 @@ export class InternalController {
       mcpCreate: 'base',
       mcpUpdate: 'base',
       mcpDelete: 'base',
+      recordAuditList: 'base',
     };
   }
 
@@ -63,6 +66,12 @@ export class InternalController {
         return await this.mcpService.list(context, req);
       case 'mcpGet':
         return await this.mcpService.get(context, req.query.tokenId as string);
+      case 'recordAuditList':
+        return await this.auditsService.recordAuditList(context, {
+          row_id: req.query.row_id as string,
+          fk_model_id: req.query.fk_model_id as string,
+          cursor: req.query.cursor as string,
+        });
       default:
         return NcError.notFound('Operation');
     }

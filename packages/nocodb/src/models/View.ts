@@ -425,7 +425,7 @@ export default class View implements ViewType {
 
       if (copyFromView) {
         // generate parent audit id and add it to req object
-        const eventId = await ncMeta.genNanoid(MetaTable.AUDIT);
+        const eventId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
         req.ncParentAuditId = eventId;
         Noco.appHooksService.emit(AppEvents.VIEW_DUPLICATE_START, {
           sourceView: copyFromView,
@@ -2332,7 +2332,7 @@ export default class View implements ViewType {
       // copy from view
       if (copyFromView) {
         // generate parent audit id and add it to req object
-        const eventId = await ncMeta.genNanoid(MetaTable.AUDIT);
+        const eventId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
         req.ncParentAuditId = eventId;
         Noco.appHooksService.emit(AppEvents.VIEW_DUPLICATE_START, {
           sourceView: copyFromView,

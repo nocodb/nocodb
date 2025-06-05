@@ -101,6 +101,8 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.SUBSCRIPTIONS]: 'sub',
       [MetaTable.ROW_COLOR_CONDITIONS]: 'rc',
       [MetaTable.DB_SERVERS]: 'db',
+      [MetaTable.PERMISSIONS]: 'perm',
+      [MetaTable.PERMISSION_USERS]: 'peru',
     };
 
     const prefix = prefixMap[target] || 'nc';

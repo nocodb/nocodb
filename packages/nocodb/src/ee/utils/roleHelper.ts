@@ -48,7 +48,7 @@ export function getProjectRolePower(user: any) {
 }
 
 export function getProjectRole(user) {
-  if (!user.base_roles) {
+  if (!user?.base_roles) {
     return null;
   }
 

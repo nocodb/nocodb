@@ -986,13 +986,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             p.permission === PermissionKey.RECORD_FIELD_EDIT,
         );
 
-        const permission = Permission.isAllowed(permissionObj, {
-          id: cookie?.user?.id,
-          role: getProjectRole(cookie?.user),
-        });
+        if (permissionObj && cookie?.user) {
+          const permission = Permission.isAllowed(permissionObj, {
+            id: cookie.user.id,
+            role: getProjectRole(cookie.user),
+          });
 
-        if (!permission) {
-          NcError.forbidden('You are not allowed to edit this field');
+          if (!permission) {
+            NcError.forbidden('You are not allowed to edit this field');
+          }
         }
       }
     }
@@ -1083,13 +1085,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         p.permission === PermissionKey.TABLE_RECORD_ADD,
     );
 
-    const permission = Permission.isAllowed(permissionObj, {
-      id: req.user.id,
-      role: getProjectRole(req.user),
-    });
+    if (permissionObj && req?.user) {
+      const permission = Permission.isAllowed(permissionObj, {
+        id: req.user.id,
+        role: getProjectRole(req.user),
+      });
 
-    if (!permission) {
-      NcError.forbidden('You are not allowed to insert into this table');
+      if (!permission) {
+        NcError.forbidden('You are not allowed to insert into this table');
+      }
     }
 
     await this.handleHooks('before.insert', null, data, req);
@@ -1144,13 +1148,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         p.permission === PermissionKey.TABLE_RECORD_ADD,
     );
 
-    const permission = Permission.isAllowed(permissionObj, {
-      id: req.user.id,
-      role: getProjectRole(req.user),
-    });
+    if (permissionObj && req?.user) {
+      const permission = Permission.isAllowed(permissionObj, {
+        id: req.user.id,
+        role: getProjectRole(req.user),
+      });
 
-    if (!permission) {
-      NcError.forbidden('You are not allowed to insert into this table');
+      if (!permission) {
+        NcError.forbidden('You are not allowed to insert into this table');
+      }
     }
 
     await this.handleHooks('before.bulkInsert', null, data, req);
@@ -3295,13 +3301,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         p.permission === PermissionKey.TABLE_RECORD_DELETE,
     );
 
-    const permission = Permission.isAllowed(permissionObj, {
-      id: req.user.id,
-      role: getProjectRole(req.user),
-    });
+    if (permissionObj && req?.user) {
+      const permission = Permission.isAllowed(permissionObj, {
+        id: req.user.id,
+        role: getProjectRole(req.user),
+      });
 
-    if (!permission) {
-      NcError.forbidden('You are not allowed to insert into this table');
+      if (!permission) {
+        NcError.forbidden('You are not allowed to insert into this table');
+      }
     }
 
     return super.beforeDelete(data, _trx, req);
@@ -3315,13 +3323,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         p.permission === PermissionKey.TABLE_RECORD_DELETE,
     );
 
-    const permission = Permission.isAllowed(permissionObj, {
-      id: req.user.id,
-      role: getProjectRole(req.user),
-    });
+    if (permissionObj && req?.user) {
+      const permission = Permission.isAllowed(permissionObj, {
+        id: req.user.id,
+        role: getProjectRole(req.user),
+      });
 
-    if (!permission) {
-      NcError.forbidden('You are not allowed to insert into this table');
+      if (!permission) {
+        NcError.forbidden('You are not allowed to insert into this table');
+      }
     }
 
     return super.beforeBulkDelete(_data, _trx, req);

@@ -70,7 +70,6 @@ const handlePermissionSave = () => {
       </div>
 
       <div class="space-y-6">
-        <!-- Edit Field Permission -->
         <PermissionsSelector :base="base" :config="editPermissionConfig" @save="handlePermissionSave" />
       </div>
     </div>

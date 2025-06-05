@@ -333,7 +333,7 @@ export default class Permission {
       role: ProjectRoles | WorkspaceUserRoles;
     },
   ) {
-    if (!permissionObj) {
+    if (!permissionObj || (!user.id && !user.role)) {
       return true;
     }
 

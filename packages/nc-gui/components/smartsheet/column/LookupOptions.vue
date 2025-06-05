@@ -72,6 +72,11 @@ const unsupportedUITypes = [UITypes.Button, UITypes.Links]
 
 // Check if recursive evaluation should be available (EE + PostgreSQL + self-referencing HM/BT relation)
 const canUseRecursiveEvaluation = computed(() => {
+  // TODO: [recursive lookup]
+  // remove this and uncomment code below
+  // when ltar v2 is ready and recursive is adjusted to it
+  return false
+  /*
   if (!selectedTable.value) return false
   const relationCol = selectedTable.value.column
   const relation = relationCol.colOptions as LinkToAnotherRecordType
@@ -81,6 +86,7 @@ const canUseRecursiveEvaluation = computed(() => {
     relationType: relation.type as any,
     dbClientType: getBaseType(meta.value?.source_id),
   })
+  */
 })
 
 const useRecursiveEvaluation = computed({

@@ -781,7 +781,9 @@ export async function extractColumn({
               const useRecursiveEvaluation = parseProp(
                 column.meta,
               )?.useRecursiveEvaluation;
-              if (useRecursiveEvaluation) {
+              // TODO: [recursive lookup]
+              // eslint-disable-next-line no-constant-condition
+              if (false && useRecursiveEvaluation) {
                 result.isArray = true;
                 const cteQB = await recursiveCTEFromLookupColumn({
                   baseModelSqlV2: parentBaseModel,
@@ -910,7 +912,9 @@ export async function extractColumn({
               const useRecursiveEvaluation = parseProp(
                 column.meta,
               )?.useRecursiveEvaluation;
-              if (useRecursiveEvaluation) {
+              // TODO: [recursive lookup]
+              // eslint-disable-next-line no-constant-condition
+              if (false && useRecursiveEvaluation) {
                 const cteQB = await recursiveCTEFromLookupColumn({
                   baseModelSqlV2: childBaseModel,
                   lookupColumn: column,

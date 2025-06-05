@@ -818,7 +818,7 @@
     "whatsNew": "새로운 기능!",
     "currentUser": "현재 사용자",
     "filteredByLoggedInUser": "로그인한 사용자별로 필터링됨",
-    "hideExtensions": "Hide Extensions"
+    "hideExtensions": "확장 프로그램 숨기기"
   },
   "labels": {
     "crossBase": "외부 베이스에 대한 링크",
@@ -1340,8 +1340,8 @@
     "createNew": "새로 만들기",
     "dataApiV2": "데이터 API V2",
     "metaApiV2": "메타 API V2",
-    "showExtraFields": "Show additional fields",
-    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records"
+    "showExtraFields": "추가 필드 표시",
+    "showExtraFieldsDescription": "연결된 레코드를 선택할 때 표시 값과 함께 추가 필드를 표시합니다"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",
@@ -1759,11 +1759,11 @@
     "noResultsFoundForYourSearch": "검색에 대한 결과를 찾을 수 없습니다.",
     "noTables": "테이블 없음",
     "noAutomations": "자동화 없음",
-    "emptyTablePlaceholder": "This base is empty—for now.",
-    "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
+    "emptyTablePlaceholder": "이 프로젝트는 지금은 비어 있습니다.",
+    "emptyTablePlaceholderSubtitle": "테이블이 아직 추가되지 않았거나 액세스 권한에 따라 숨겨졌을 수 있습니다."
   },
   "msg": {
-    "userAlreadyExists": "{email} already has access to this {scope}",
+    "userAlreadyExists": "{email} 이미 이 {scope}에 액세스할 수 있습니다.",
     "urlFilter": "URL 필터는 URL 매개 변수에서 적용되며 도구 모음을 통해 설정된 보기 필터와 결합됩니다.",
     "urlFilterError": "URL 필터가 잘못되었습니다. 적용할 수 없으므로 무시됩니다.",
     "dropYourDocHere": "여기에 문서를 놓습니다",
@@ -2112,8 +2112,8 @@
       "preventHideAllOptions": "필드가 필수인 경우 모든 옵션을 숨길 수 없습니다",
       "valueMustBeAtMostCharLong": "값은 최대 {length}자여야 합니다",
       "copyToClipboardLocalFileUrl": "브라우저는 로컬 리소스를 직접로드 할 수 없습니다. 대신 URL이 클립보드에 복사되었습니다.",
-      "unsavedChanges": "You have unsaved changes.",
-      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
+      "unsavedChanges": "변경 내용이 저장되지 않았습니다.",
+      "unsavedChangesConfirmation": "이 페이지를 떠나시겠습니까?"
     },
     "error": {
       "failedToDeleteMcpToken": "MCP 토큰을 삭제하지 못했습니다",

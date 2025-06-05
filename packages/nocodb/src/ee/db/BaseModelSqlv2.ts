@@ -13,6 +13,8 @@ import {
   isVirtualCol,
   NcErrorType,
   ncIsUndefined,
+  PermissionEntity,
+  PermissionKey,
   PlanLimitTypes,
   RelationTypes,
   UITypes,
@@ -57,6 +59,7 @@ import {
   Filter,
   Model,
   ModelStat,
+  Permission,
 } from '~/models';
 import { getSingleQueryReadFn } from '~/services/data-opt/pg-helpers';
 import { canUseOptimisedQuery, removeBlankPropsAndMask } from '~/utils';
@@ -83,6 +86,7 @@ import {
   populatePk,
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
+import { getProjectRole } from '~/utils/roleHelper';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -1054,6 +1058,21 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       });
     }
 
+    const permission = await Permission.isAllowed(
+      this.context,
+      PermissionEntity.TABLE,
+      this.model.id,
+      PermissionKey.TABLE_RECORD_ADD,
+      {
+        id: req.user.id,
+        role: getProjectRole(req.user),
+      },
+    );
+
+    if (!permission) {
+      NcError.forbidden('You are not allowed to insert into this table');
+    }
+
     await this.handleHooks('before.insert', null, data, req);
   }
 
@@ -1097,6 +1116,21 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         modelName: this.model.title,
         operation: 'insert',
       });
+    }
+
+    const permission = await Permission.isAllowed(
+      this.context,
+      PermissionEntity.TABLE,
+      this.model.id,
+      PermissionKey.TABLE_RECORD_ADD,
+      {
+        id: req.user.id,
+        role: getProjectRole(req.user),
+      },
+    );
+
+    if (!permission) {
+      NcError.forbidden('You are not allowed to insert into this table');
     }
 
     await this.handleHooks('before.bulkInsert', null, data, req);
@@ -3231,6 +3265,44 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     await this.handleRichTextMentions(prevData, newData, req);
+  }
+
+  public async beforeDelete(data: any, _trx: any, req): Promise<void> {
+    const permission = await Permission.isAllowed(
+      this.context,
+      PermissionEntity.TABLE,
+      this.model.id,
+      PermissionKey.TABLE_RECORD_DELETE,
+      {
+        id: req.user.id,
+        role: getProjectRole(req.user),
+      },
+    );
+
+    if (!permission) {
+      NcError.forbidden('You are not allowed to insert into this table');
+    }
+
+    return super.beforeDelete(data, _trx, req);
+  }
+
+  public async beforeBulkDelete(_data: any, _trx: any, req): Promise<void> {
+    const permission = await Permission.isAllowed(
+      this.context,
+      PermissionEntity.TABLE,
+      this.model.id,
+      PermissionKey.TABLE_RECORD_DELETE,
+      {
+        id: req.user.id,
+        role: getProjectRole(req.user),
+      },
+    );
+
+    if (!permission) {
+      NcError.forbidden('You are not allowed to insert into this table');
+    }
+
+    return super.beforeBulkDelete(_data, _trx, req);
   }
 
   public async bulkUpdateAudit({

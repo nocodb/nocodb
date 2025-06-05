@@ -273,7 +273,8 @@ export class MetaService extends MetaServiceCE {
     }
 
     for (const d of Array.isArray(data) ? data : [data]) {
-      const id = d?.id || (await this.genNanoid(target));
+      const id =
+        d?.id || (ignoreIdGeneration ? null : await this.genNanoid(target));
       const tempObj = {
         ...d,
         ...(ignoreIdGeneration ? {} : { id }),

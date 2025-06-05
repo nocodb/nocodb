@@ -90,6 +90,8 @@ export enum MetaTable {
   USAGE_STATS = 'nc_usage_stats',
   MCP_TOKENS = 'nc_mcp_tokens',
   DB_SERVERS = 'nc_db_servers',
+  PERMISSIONS = 'nc_permissions',
+  PERMISSION_USERS = 'nc_permission_users',
 }
 
 export const orderedMetaTables = [
@@ -235,6 +237,8 @@ export enum CacheScope {
   MCP_TOKEN = 'mcpToken',
   DB_SERVERS = 'dbServers',
   BASE_SCHEMA = 'baseSchema',
+  PERMISSION = 'permission',
+  PERMISSION_USER = 'permissionUser',
 }
 
 export const RootScopeTables = {

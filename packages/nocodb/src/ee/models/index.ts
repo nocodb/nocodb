@@ -28,3 +28,4 @@ export { default as Plan } from './Plan';
 export { default as Subscription } from './Subscription';
 export { default as UsageStat } from './UsageStat';
 export { default as DbServer } from './DbServer';
+export { default as Permission } from './Permission';

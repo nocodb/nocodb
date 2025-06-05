@@ -1,0 +1,209 @@
+import { Injectable, Logger } from '@nestjs/common';
+import {
+  PermissionEntity,
+  PermissionGrantedType,
+  PermissionKey,
+} from 'nocodb-sdk';
+import type { NcContext, NcRequest } from '~/interface/config';
+import { Model, Permission, WorkspaceUser } from '~/models';
+import Noco from '~/Noco';
+import { NcError } from '~/helpers/ncError';
+import { CacheDelDirection, CacheScope } from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+
+@Injectable()
+export class PermissionsService {
+  protected logger: Logger = new Logger(PermissionsService.name);
+
+  constructor() {}
+
+  async setPermission(
+    context: NcContext,
+    permissionObj: Pick<
+      Permission,
+      | 'entity'
+      | 'entity_id'
+      | 'permission'
+      | 'granted_type'
+      | 'granted_role'
+      | 'enforce_for_automation'
+      | 'enforce_for_form'
+    > & {
+      user_ids?: string[];
+    },
+    req: NcRequest,
+  ) {
+    const {
+      entity,
+      entity_id,
+      permission: permission_key,
+      granted_type,
+      granted_role,
+      enforce_for_automation = false,
+      enforce_for_form = true,
+    } = permissionObj;
+
+    let permission: Permission;
+
+    if (
+      granted_type === PermissionGrantedType.USER &&
+      !permissionObj.user_ids
+    ) {
+      NcError.unprocessableEntity('You need to provide at least one user_id');
+    }
+
+    const existingPermission = await Permission.getByEntity(
+      context,
+      entity,
+      entity_id,
+      permission_key,
+    );
+
+    const ncMeta = await Noco.ncMeta.startTransaction();
+
+    try {
+      const newPermissionObj: Partial<Permission> = {};
+
+      if (entity === PermissionEntity.TABLE) {
+        const table = await Model.get(context, entity_id, ncMeta);
+
+        if (!table) {
+          NcError.tableNotFound(entity_id);
+        }
+
+        if (!Object.values(PermissionKey).includes(permission_key)) {
+          NcError.genericNotFound('Permission', permission_key);
+        }
+
+        if (!Object.values(PermissionGrantedType).includes(granted_type)) {
+          NcError.genericNotFound('PermissionGrantedType', granted_type);
+        }
+
+        Object.assign(newPermissionObj, {
+          fk_workspace_id: context.workspace_id,
+          base_id: context.base_id,
+          entity,
+          entity_id,
+          permission: permission_key,
+          granted_type,
+          granted_role,
+          enforce_for_automation,
+          enforce_for_form,
+          created_by: req.user.id,
+        });
+      }
+
+      if (existingPermission) {
+        // Delete existing permission users
+        if (
+          existingPermission.granted_type === PermissionGrantedType.USER &&
+          newPermissionObj.granted_type !== PermissionGrantedType.USER
+        ) {
+          await Permission.removeAllUsers(
+            context,
+            existingPermission.id,
+            ncMeta,
+          );
+        }
+
+        permission = await Permission.update(
+          context,
+          existingPermission.id,
+          newPermissionObj,
+          ncMeta,
+        );
+      } else {
+        permission = await Permission.insert(context, newPermissionObj, ncMeta);
+      }
+
+      // Insert new permission users
+      if (permission.granted_type === PermissionGrantedType.USER) {
+        for (const userId of permissionObj.user_ids) {
+          const permissionUser = await WorkspaceUser.get(
+            context.workspace_id,
+            userId,
+            ncMeta,
+          );
+
+          if (!permissionUser) {
+            NcError.unprocessableEntity(
+              `User with id '${userId}' is not part of this workspace`,
+            );
+          }
+        }
+
+        await Permission.setUsers(
+          context,
+          permission.id,
+          permissionObj.user_ids,
+          ncMeta,
+        );
+      }
+
+      await ncMeta.commit();
+    } catch (error) {
+      await ncMeta.rollback();
+
+      // Rollback cache
+      if (existingPermission || permission) {
+        // Delete permission
+        await NocoCache.del(
+          `${CacheScope.PERMISSION}:${existingPermission?.id || permission.id}`,
+        );
+
+        // Delete permission users
+        await NocoCache.deepDel(
+          `${CacheScope.PERMISSION_USER}:${
+            existingPermission?.id || permission.id
+          }:list`,
+          CacheDelDirection.PARENT_TO_CHILD,
+        );
+      }
+
+      throw error;
+    }
+
+    return permission;
+  }
+
+  async dropPermission(context: NcContext, permissionObj: Partial<Permission>) {
+    const { entity, entity_id, permission: permission_key } = permissionObj;
+
+    const permission = await Permission.getByEntity(
+      context,
+      entity,
+      entity_id,
+      permission_key,
+    );
+
+    if (!permission) {
+      NcError.genericNotFound('Permission', permission_key);
+    }
+
+    const ncMeta = await Noco.ncMeta.startTransaction();
+
+    try {
+      await Permission.delete(context, permission.id, ncMeta);
+
+      await ncMeta.commit();
+    } catch (error) {
+      await ncMeta.rollback();
+
+      // Rollback cache
+      // Delete permission
+      await NocoCache.del(`${CacheScope.PERMISSION}:${permission.id}`);
+      // Delete permission users
+      await NocoCache.deepDel(
+        `${CacheScope.PERMISSION_USER}:${permission.id}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+      // Delete base permissions list
+      await NocoCache.deepDel(
+        `${CacheScope.PERMISSION}:${context.base_id}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+
+      throw error;
+    }
+  }
+}

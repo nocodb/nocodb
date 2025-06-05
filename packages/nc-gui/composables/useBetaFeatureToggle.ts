@@ -130,7 +130,7 @@ const FEATURES = [
     title: 'Extensions',
     description: 'Extensions allows you to add new features or functionalities to the NocoDB platform.',
     enabled: ncIsPlaywright(),
-    version: 1,
+    version: 2,
     isEngineering: true,
   },
   {

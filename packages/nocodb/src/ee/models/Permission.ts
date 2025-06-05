@@ -371,39 +371,19 @@ export default class Permission {
     return res;
   }
 
-  static async isAllowed(
-    context: NcContext,
-    entity: PermissionEntity,
-    entityId: string,
-    permission: PermissionKey,
+  static isAllowed(
+    permissionObj: Permission,
     user: {
       id: string;
       role: ProjectRoles | WorkspaceUserRoles;
     },
-    ncMeta = Noco.ncMeta,
   ) {
-    const permissionObj = await this.getByEntity(
-      context,
-      entity,
-      entityId,
-      permission,
-      ncMeta,
-    );
-
     if (!permissionObj) {
       return true;
     }
 
     if (permissionObj.granted_type === PermissionGrantedType.USER) {
-      const permissionUsers = await this.listUsers(
-        context,
-        permissionObj.id,
-        ncMeta,
-      );
-
-      return permissionUsers.some(
-        (permissionUser) => permissionUser.fk_user_id === user.id,
-      );
+      return permissionObj.user_ids?.includes(user.id);
     }
 
     if (permissionObj.granted_type === PermissionGrantedType.ROLE) {

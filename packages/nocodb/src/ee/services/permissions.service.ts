@@ -5,7 +5,7 @@ import {
   PermissionKey,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import { Model, Permission, WorkspaceUser } from '~/models';
+import { Column, Model, Permission, WorkspaceUser } from '~/models';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/ncError';
 import { CacheDelDirection, CacheScope } from '~/utils/globals';
@@ -39,7 +39,7 @@ export class PermissionsService {
       permission: permission_key,
       granted_type,
       granted_role,
-      enforce_for_automation = false,
+      enforce_for_automation = true,
       enforce_for_form = true,
     } = permissionObj;
 
@@ -59,6 +59,14 @@ export class PermissionsService {
       permission_key,
     );
 
+    if (!Object.values(PermissionKey).includes(permission_key)) {
+      NcError.genericNotFound('Permission', permission_key);
+    }
+
+    if (!Object.values(PermissionGrantedType).includes(granted_type)) {
+      NcError.genericNotFound('PermissionGrantedType', granted_type);
+    }
+
     const ncMeta = await Noco.ncMeta.startTransaction();
 
     try {
@@ -71,12 +79,25 @@ export class PermissionsService {
           NcError.tableNotFound(entity_id);
         }
 
-        if (!Object.values(PermissionKey).includes(permission_key)) {
-          NcError.genericNotFound('Permission', permission_key);
-        }
+        Object.assign(newPermissionObj, {
+          fk_workspace_id: context.workspace_id,
+          base_id: context.base_id,
+          entity,
+          entity_id,
+          permission: permission_key,
+          granted_type,
+          granted_role,
+          enforce_for_automation,
+          enforce_for_form,
+          created_by: req.user.id,
+        });
+      } else if (entity === PermissionEntity.FIELD) {
+        const column = await Column.get(context, {
+          colId: entity_id,
+        });
 
-        if (!Object.values(PermissionGrantedType).includes(granted_type)) {
-          NcError.genericNotFound('PermissionGrantedType', granted_type);
+        if (!column) {
+          NcError.fieldNotFound(entity_id);
         }
 
         Object.assign(newPermissionObj, {

@@ -58,7 +58,7 @@ const tableFooterRef = ref<HTMLDivElement>()
 
 const { height: tableHeadHeight, width: tableHeadWidth } = useElementBounding(tableHeader)
 
-const { height: tableFooterHeight } = useElementBounding(tableFooterRef)
+const { height: _tableFooterHeight } = useElementBounding(tableFooterRef)
 
 const orderBy = useVModel(props, 'orderBy', emit)
 
@@ -91,6 +91,10 @@ const paginatedData = computed(() => {
   const end = start + pageSize!
 
   return data.value.slice(start, end)
+})
+
+const tableFooterHeight = computed(() => {
+  return showPagination.value ? Math.max(40, _tableFooterHeight.value) : _tableFooterHeight.value
 })
 
 const updateOrderBy = (field: string) => {

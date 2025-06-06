@@ -403,13 +403,15 @@ export const useBases = defineStore('basesStore', () => {
    * Will have to show base home page sidebar if any base/table/view/script is active
    */
   watch(
-    [() => route.value.params.baseId, () => route.value.params.viewId, () => route.value.params.viewTitle],
-    ([newBaseId, newTableId, newViewId], [oldBaseId, oldTableId, oldViewId]) => {
-      const shouldShowProjectList = !(
-        (newBaseId && newBaseId !== oldBaseId) ||
-        newTableId !== oldTableId ||
-        newViewId !== oldViewId
-      )
+    [
+      () => route.value.params.baseId,
+      () => route.value.params.viewId,
+      () => route.value.params.viewTitle,
+      () => basesList.value.length,
+    ],
+    ([newBaseId, newTableId, newViewId, newBasesListLength], [oldBaseId, oldTableId, oldViewId, oldBasesListLength]) => {
+      const shouldShowProjectList =
+        !newBasesListLength || !((newBaseId && newBaseId !== oldBaseId) || newTableId !== oldTableId || newViewId !== oldViewId)
 
       if (!showProjectList.value && shouldShowProjectList) {
         showProjectList.value = shouldShowProjectList

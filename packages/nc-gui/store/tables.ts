@@ -102,12 +102,20 @@ export const useTablesStore = defineStore('tablesStore', () => {
     const workspaceIdOrType = workspaceId ?? workspaceStore.activeWorkspaceId
     const baseIdOrBaseId = baseId ?? basesStore.activeProjectId
 
+    let query
+
+    // Retain query params only when navigating from one table page to another.
+    // Note: `viewId` refers to `tableId` in this context.
+    if (route.value?.params?.viewId && tableId) {
+      query = route.value.query
+    }
+
     await ncNavigateTo({
       workspaceId: workspaceIdOrType,
       baseId: baseIdOrBaseId,
       tableId,
       viewId: viewTitle,
-      query: route.value.query,
+      query,
     })
   }
 

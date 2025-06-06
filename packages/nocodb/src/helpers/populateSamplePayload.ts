@@ -72,7 +72,7 @@ export async function populateSamplePayloadV2(
   await model.getViews(context);
 
   const samplePayload = {
-    type: `${scope}.after.${operation}`,
+    type: operation === 'cron' ? 'cron' : `${scope}.after.${operation}`,
     id: uuidv4(),
     data: {
       table_id: model.id,
@@ -98,7 +98,13 @@ export async function populateSamplePayloadV2(
   samplePayload.data = {
     ...samplePayload.data,
     ...(prevRows && { previous_rows: [prevRows] }),
-    ...(operation !== 'bulkInsert' && rows && { rows: [rows] }),
+    ...(operation === 'cron' &&
+      rows && {
+        records: [rows],
+      }),
+    ...(operation !== 'bulkInsert' &&
+      operation !== 'cron' &&
+      rows && { rows: [rows] }),
     ...(operation === 'bulkInsert' &&
       rows && {
         row_inserted: 10,

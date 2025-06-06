@@ -514,17 +514,14 @@ const supportedDocs = [
   },
 ]
 
-watch(
-  () => hookRef?.operation,
-  async () => {
-    await loadSampleData()
-  },
-)
+watch([() => hookRef?.operation, () => hookRef?.event], async () => {
+  await loadSampleData()
+})
 
 async function loadSampleData() {
   sampleData.value = await $api.dbTableWebhook.samplePayloadGet(
     meta?.value?.id as string,
-    hookRef?.operation || 'insert',
+    hookRef?.operation ?? hookRef?.event,
     hookRef.version!,
   )
 }

@@ -24,6 +24,10 @@ const parsedRespondePayload = computed(() => {
 })
 
 const hookType = (item: HookLogType) => {
+  if (item.event === 'cron') {
+    return 'Scheduled'
+  }
+
   if (item.operation === 'update') {
     return 'On Record Update'
   } else if (item.operation === 'insert') {

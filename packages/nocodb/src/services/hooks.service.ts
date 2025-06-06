@@ -262,7 +262,7 @@ export class HooksService {
         model: model,
         view: null,
         prevData: null,
-        newData: data.rows,
+        newData: data?.rows ?? data?.records, // Records for Cron Triggers
         user: user,
         testFilters: (hook as any)?.filters,
         throwErrorOnFailure: true,

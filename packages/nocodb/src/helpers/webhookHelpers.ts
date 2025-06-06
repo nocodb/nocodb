@@ -667,6 +667,7 @@ export async function invokeWebhook(
         testFilters,
         throwErrorOnFailure,
         notification,
+        testHook,
       });
     }
 
@@ -920,6 +921,7 @@ async function handleScheduledWebhook(
     testFilters?;
     throwErrorOnFailure?: boolean;
     notification: any;
+    testHook?: boolean;
   },
 ) {
   const {
@@ -930,6 +932,7 @@ async function handleScheduledWebhook(
     testFilters = null,
     throwErrorOnFailure = false,
     notification,
+    testHook = false,
   } = param;
 
   const logger = new Logger('ScheduledWebhook');
@@ -989,14 +992,18 @@ async function handleScheduledWebhook(
           (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
         ) {
           const hookLog = {
+            ...hook,
+            notification:
+              typeof notification === 'string'
+                ? notification
+                : JSON.stringify(notification),
             fk_hook_id: hook.id,
             type: notification.type,
             payload: JSON.stringify(requestPayload),
             response: JSON.stringify(responsePayload),
             triggered_by: user?.email,
             conditions: JSON.stringify(filters),
-            source_id: hook.source_id,
-            base_id: context.base_id,
+            test_call: testHook,
           };
 
           await HookLog.insert(context, hookLog);

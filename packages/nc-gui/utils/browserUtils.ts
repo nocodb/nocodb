@@ -1,3 +1,5 @@
+import type { Editor } from '@tiptap/vue-3'
+
 // refer - https://stackoverflow.com/a/11752084
 export const isMac = () => /Mac/i.test(navigator.platform)
 export const isDrawerExist = () => document.querySelector('.ant-drawer-open')
@@ -150,8 +152,14 @@ export const isLineClamped = (el: HTMLElement): boolean => {
   return fullHeight > actualHeight
 }
 
-export const handleOnEscRichTextEditor = (event: KeyboardEvent) => {
+export const handleOnEscRichTextEditor = (event: KeyboardEvent, editor?: Editor) => {
   if (isTiptapDropdownExistInsideEditor()) {
     event.stopPropagation()
+
+    if (editor && !editor.state.selection.empty) {
+      const pos = editor.state.selection.to
+      editor.commands.setTextSelection(pos)
+      editor.commands.focus()
+    }
   }
 }

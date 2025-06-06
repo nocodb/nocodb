@@ -290,7 +290,8 @@ export const AILongTextCellRenderer: CellRenderer = {
       actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true, path })
       return true
     }
-    if (/^[a-zA-Z0-9]$/.test(e.key)) {
+
+    if (e.key.length === 1) {
       makeCellEditable(row, column)
       return true
     }

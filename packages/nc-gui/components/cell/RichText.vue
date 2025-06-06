@@ -345,7 +345,7 @@ onClickOutside(editorDom, (e) => {
         @keydown.alt.stop
         @keydown.alt.enter.stop
         @keydown.shift.enter.stop
-        @keydown.esc="handleOnEscRichTextEditor"
+        @keydown.esc="handleOnEscRichTextEditor($event, editor)"
       />
       <div v-if="isFormField && !readOnly" class="nc-form-field-bubble-menu-wrapper overflow-hidden">
         <div

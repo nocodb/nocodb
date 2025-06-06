@@ -15,6 +15,9 @@ export const isActiveElementInsideExtension = () =>
   ['.extension-modal', '.nc-extension-pane', '.nc-modal-extension-market', '.nc-modal-share-collaborate'].some((selector) =>
     document.querySelector(selector)?.contains(document.activeElement),
   )
+export const isTiptapDropdownExistInsideEditor = () => {
+  return document.querySelector('.tippy-box')
+}
 
 export const isSidebarNodeRenameActive = () => document.querySelector('input.animate-sidebar-node-input-padding')
 export function hasAncestorWithClass(element: HTMLElement, className: string | Array<string>): boolean {
@@ -145,4 +148,10 @@ export const isLineClamped = (el: HTMLElement): boolean => {
   const actualHeight = el.getBoundingClientRect().height
 
   return fullHeight > actualHeight
+}
+
+export const handleOnEscRichTextEditor = (event: KeyboardEvent) => {
+  if (isTiptapDropdownExistInsideEditor()) {
+    event.stopPropagation()
+  }
 }

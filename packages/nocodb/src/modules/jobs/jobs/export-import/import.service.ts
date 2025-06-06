@@ -305,6 +305,7 @@ export class ImportService {
           tableId: table.id,
           hook: {
             ...hookData,
+            active: false,
           } as any,
           req: param.req,
         });

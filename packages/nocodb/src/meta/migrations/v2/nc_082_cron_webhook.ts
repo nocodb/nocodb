@@ -8,6 +8,13 @@ const up = async (knex: Knex) => {
     table.timestamp('last_execution_at');
     table.timestamp('next_execution_at');
   });
+
+  // Disable webhooks for deleted projects
+  await knex(MetaTable.HOOKS)
+    .update({ active: false })
+    .whereIn('base_id', function () {
+      this.select('id').from(MetaTable.PROJECT).where('deleted', true);
+    });
 };
 
 const down = async (knex: Knex) => {

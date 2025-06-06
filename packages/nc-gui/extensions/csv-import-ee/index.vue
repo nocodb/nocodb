@@ -1314,14 +1314,8 @@ const errorMsgsTableColumns = [
                 v-if="importPayload.upsert && isImportVerified"
                 v-model:visible="isVerifyImportDlgVisible"
                 :show-separator="false"
-                :footer="null"
-                :class="{ active: isVerifyImportDlgVisible }"
                 :size="errorMsgsTableColumns.length ? 'md' : 'small'"
                 wrap-class-name="nc-modal-csv-import-verification"
-                :ok-text="$t('general.proceedImport')"
-                :cancel-text="$t('general.cancel')"
-                height="auto"
-                @ok="onImport"
               >
                 <div class="h-full flex flex-col gap-4 text-nc-content-gray">
                   <div class="text-base text-nc-content-gray font-weight-700">CSV Import Verification complete</div>

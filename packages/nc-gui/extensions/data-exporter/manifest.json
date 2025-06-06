@@ -25,6 +25,5 @@
   "config": {
     "contentMinHeight": "110px"
   },
-  "order": 2,
-  "onPrem": true
+  "order": 2
 }

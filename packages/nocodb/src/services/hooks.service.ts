@@ -5,7 +5,6 @@ import View from '../models/View';
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import {
   populateSamplePayload,
@@ -61,7 +60,7 @@ export class HooksService {
       req: NcRequest;
     },
   ) {
-    validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+    // validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
     this.validateHookPayload(param.hook.notification);
 
@@ -131,7 +130,7 @@ export class HooksService {
       req: NcRequest;
     },
   ) {
-    validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+    // validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
     const hook = await Hook.get(context, param.hookId);
 
@@ -243,10 +242,10 @@ export class HooksService {
       req: NcRequest;
     },
   ) {
-    validatePayload(
+    /* validatePayload(
       'swagger.json#/components/schemas/HookTestReq',
       param.hookTest,
-    );
+    );*/
 
     this.validateHookPayload(param.hookTest.hook?.notification);
 

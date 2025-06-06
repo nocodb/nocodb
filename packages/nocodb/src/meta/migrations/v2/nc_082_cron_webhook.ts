@@ -9,7 +9,14 @@ const up = async (knex: Knex) => {
     table.timestamp('next_execution_at');
   });
 
-  // Disable webhooks for deleted projects
+  await knex.schema.alterTable(MetaTable.HOOKS, (table) => {
+    table.index(
+      ['event', 'active', 'next_execution_at'],
+      'idx_hooks_cron_execution',
+    );
+  });
+
+  // Disable webhooks for deleted bases
   await knex(MetaTable.HOOKS)
     .update({ active: false })
     .whereIn('base_id', function () {
@@ -19,6 +26,11 @@ const up = async (knex: Knex) => {
 
 const down = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.HOOKS, (table) => {
+    table.dropIndex(
+      ['event', 'active', 'next_execution_at'],
+      'idx_hooks_cron_execution',
+    );
+
     table.dropColumn('cron_expression');
     table.dropColumn('timezone');
     table.dropColumn('last_execution_at');

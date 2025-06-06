@@ -92,7 +92,10 @@ const importTypeOptions = [
 
 const { fullscreen, fullscreenModalSize, extension, tables, insertData, getTableMeta, reloadData, activeTableId } =
   useExtensionHelperOrThrow()
+
 const { getMeta } = useMetas()
+
+const { t } = useI18n()
 
 const EXTENSION_ID = extension.value.extensionId
 
@@ -923,7 +926,7 @@ onMounted(async () => {
 const errorMsgsTableColumns = [
   {
     key: 'title',
-    title: 'The following duplicates have been found',
+    title: t('general.details'),
     name: 'title',
     dataIndex: 'title',
     basis: '100%',
@@ -1318,7 +1321,7 @@ const errorMsgsTableColumns = [
                 wrap-class-name="nc-modal-csv-import-verification"
               >
                 <div class="h-full flex flex-col gap-4 text-nc-content-gray">
-                  <div class="text-base text-nc-content-gray font-weight-700">CSV Import Verification complete</div>
+                  <div class="text-base text-nc-content-gray font-weight-700">{{ $t('title.duplicatesFound') }}</div>
                   <template v-if="errorMsgsTableColumns.length">
                     <NcTable
                       :columns="errorMsgsTableColumns"
@@ -1476,18 +1479,20 @@ const errorMsgsTableColumns = [
             </div>
           </div>
           <general-overlay :model-value="isImportingRecords" inline transition class="!bg-opacity-15">
-            <div class="flex flex-col items-center justify-center h-full w-full !bg-white !bg-opacity-55">
+            <div
+              class="flex flex-col gap-2 items-center justify-center h-full w-full !bg-white !bg-opacity-85 font-semibold text-base text-brand-600"
+            >
               <a-spin size="large" />
               <template v-if="importPayload?.upsert">
-                <div v-if="recordsToInsert.length" class="text-brand-600">
-                  Inserting {{ processedRecordsToInsert }}/{{ totalRecordsToInsert }}
+                <div v-if="recordsToInsert.length">
+                  {{ $t('general.inserting') }} {{ processedRecordsToInsert }}/{{ totalRecordsToInsert }}
                 </div>
-                <div v-if="recordsToUpdate.length" class="text-brand-600">
-                  Updating {{ processedRecordsToUpdate }}/{{ totalRecordsToUpdate }}
+                <div v-if="recordsToUpdate.length">
+                  {{ $t('general.updating') }} {{ processedRecordsToUpdate }}/{{ totalRecordsToUpdate }}
                 </div>
               </template>
 
-              <div v-else class="text-brand-600">Importing {{ processedRecords }}/{{ totalRecords }}</div>
+              <div v-else>{{ $t('labels.importing') }} {{ processedRecords }}/{{ totalRecords }}</div>
             </div>
           </general-overlay>
         </div>
@@ -1615,7 +1620,7 @@ const errorMsgsTableColumns = [
 .nc-nc-csv-import {
   .nc-csv-file-uploader {
     &.ant-upload.ant-upload-drag {
-      @apply !rounded-lg !bg-white !hover:bg-nc-bg-gray-light !transition-colors duration-300;
+      @apply !rounded-lg !bg-nc-bg-gray-light !transition-colors duration-300;
     }
     .ant-upload-btn {
       @apply !flex flex-col items-center justify-center;

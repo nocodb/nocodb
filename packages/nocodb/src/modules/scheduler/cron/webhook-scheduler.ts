@@ -1,9 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CronJob } from 'cron';
 import type { ScheduledJobConfig } from '~/interface/Scheduler';
 import { BaseEntityScheduler } from '~/modules/scheduler/base-entity-scheduler';
 import { JobTypes } from '~/interface/Jobs';
-import { MetaTable, RootScopes } from '~/utils/globals';
+import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 
 @Injectable()
@@ -29,27 +28,19 @@ export class WebhookScheduler extends BaseEntityScheduler {
     offset = 0,
   ): Promise<ScheduledJobConfig[]> {
     try {
-      const webhooks = await Noco.ncMeta.metaList2(
-        RootScopes.ROOT,
-        RootScopes.ROOT,
-        MetaTable.HOOKS,
-        {
-          limit,
-          offset,
-          condition: {
-            event: 'cron',
-            active: true,
+      const webhooks = await Noco.ncMeta
+        .knexConnection(MetaTable.HOOKS)
+        .select('*')
+        .where({
+          event: 'cron',
+          active: true,
+          next_execution_at: {
+            lt: endTime.toISOString(),
           },
-          xcCondition: {
-            next_execution_at: {
-              lt: endTime.toISOString(),
-            },
-          },
-          orderBy: {
-            next_execution_at: 'asc',
-          },
-        },
-      );
+        })
+        .orderBy('next_execution_at', 'asc')
+        .limit(limit)
+        .offset(offset);
 
       return webhooks.map((webhook) => {
         const jobConfig: ScheduledJobConfig = {
@@ -95,16 +86,13 @@ export class WebhookScheduler extends BaseEntityScheduler {
         const batch = jobs.slice(i, i + batchSize);
 
         const updatePromises = batch.map((job) => {
-          return Noco.ncMeta.metaUpdate(
-            RootScopes.ROOT,
-            RootScopes.ROOT,
-            MetaTable.HOOKS,
-            {
+          return Noco.ncMeta
+            .knexConnection(MetaTable.HOOKS)
+            .where({ id: job.id })
+            .update({
               last_execution_at: job.lastExecutionTime.toISOString(),
               next_execution_at: job.nextExecutionTime.toISOString(),
-            },
-            job.id,
-          );
+            });
         });
 
         await Promise.all(updatePromises);

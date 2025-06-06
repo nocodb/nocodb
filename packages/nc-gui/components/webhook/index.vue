@@ -597,7 +597,7 @@ onMounted(async () => {
   await loadPluginList()
 
   if (hookRef.event === 'cron') {
-    hookRef.eventOperation = `${hookRef.event}`
+    hookRef.eventOperation = hookRef.event
   } else if (hookRef.event && hookRef.operation) {
     hookRef.eventOperation = `${hookRef.event} ${hookRef.operation}`
   } else {
@@ -800,7 +800,7 @@ onMounted(async () => {
                       </div>
                       <template #overlay>
                         <div class="p-4 bg-white rounded-lg shadow-lg" style="min-width: 400px">
-                          <NcCron v-model="hookRef.cron_expression" @error="handleCronError" />
+                          <NcCron v-model="hookRef.cron_expression" />
                         </div>
                       </template>
                     </NcDropdown>

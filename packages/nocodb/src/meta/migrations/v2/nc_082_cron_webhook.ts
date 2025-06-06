@@ -4,8 +4,8 @@ import { MetaTable } from '~/utils/globals';
 const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.HOOKS, (table) => {
     table.string('cron_expression');
-    table.string('last_execution_at');
-    table.string('next_execution_at');
+    table.timestamp('last_execution_at');
+    table.timestamp('next_execution_at');
   });
 };
 

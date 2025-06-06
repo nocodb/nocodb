@@ -2,6 +2,7 @@
 import { type HookReqType, type HookTestReqType, type HookType, PlanLimitTypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
+import cronstrue from 'cronstrue'
 
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
@@ -80,6 +81,7 @@ let hookRef = reactive<
       path: '',
     },
   },
+  cron_expression: '0 0 * * *',
   condition: false,
   active: true,
   version: 'v2',
@@ -781,8 +783,27 @@ onMounted(async () => {
               <div v-if="hookRef.event === 'cron'" class="flex w-full gap-3">
                 <a-form-item class="w-full" v-bind="validateInfos.cron_expression">
                   <div class="w-full flex flex-col gap-2">
-                    <label class="font-medium">Cron Expression</label>
-                    <a-input v-model:value="hookRef.cron_expression" class="nc-input-shadow h-9 !rounded-lg" />
+                    <label class="font-medium">Scheduled At</label>
+                    <NcDropdown
+                      overlay-class-name="nc-webhook-cron-editor-dropdown"
+                      :auto-close="false"
+                      :trigger="['click']"
+                      @click.stop
+                    >
+                      <div class="nc-webhook-cron-editor-dropdown-field">
+                        <NcTooltip class="truncate" show-on-truncate-only>
+                          <template #title>
+                            {{ cronstrue.toString(hookRef.cron_expression) }}
+                          </template>
+                          {{ cronstrue.toString(hookRef.cron_expression) }}
+                        </NcTooltip>
+                      </div>
+                      <template #overlay>
+                        <div class="p-4 bg-white rounded-lg shadow-lg" style="min-width: 400px">
+                          <NcCron v-model="hookRef.cron_expression" @error="handleCronError" />
+                        </div>
+                      </template>
+                    </NcDropdown>
                   </div>
                 </a-form-item>
               </div>
@@ -1245,5 +1266,18 @@ onMounted(async () => {
   @apply bg-white text-brand-600 hover:text-brand-600;
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+}
+
+.nc-webhook-cron-editor-dropdown-field {
+  @apply border-1 h-9 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all cursor-pointer select-none text-sm;
+
+  &.open {
+    @apply shadow-selected border-nc-content-brand;
+  }
+}
+
+.nc-webhook-cron-editor-dropdown {
+  @apply rounded-2xl border-gray-200;
+  box-shadow: 0px 20px 24px -4px rgba(0, 0, 0, 0.1), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
 }
 </style>

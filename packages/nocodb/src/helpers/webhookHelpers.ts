@@ -936,30 +936,31 @@ async function handleScheduledWebhook(
   } = param;
 
   const logger = new Logger('ScheduledWebhook');
-  const filters = testFilters || (await hook.getFilters(context));
+  let filters;
 
-  if (notification?.type !== 'URL') {
-    logger.error(
-      `Scheduled webhook supports only URL notification: ${hook.id}`,
-    );
-    return;
-  }
+  try {
+    filters = testFilters || (await hook.getFilters(context));
 
-  const source = await Source.get(context, model.source_id);
-  const baseModel = await Model.getBaseModelSQL(context, {
-    id: model.id,
-    viewId: view?.id,
-    dbDriver: await NcConnectionMgrv2.get(source),
-    source,
-  });
+    if (notification?.type !== 'URL') {
+      logger.error(
+        `Scheduled webhook supports only URL notification: ${hook.id}`,
+      );
+      return;
+    }
 
-  const BATCH_SIZE = 100;
-  let offset = 0;
-  let totalProcessed = 0;
-  let hasMoreRecords = true;
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
 
-  while (hasMoreRecords) {
-    try {
+    const BATCH_SIZE = 100;
+    let offset = 0;
+    let hasMoreRecords = true;
+
+    while (hasMoreRecords) {
       const records = await baseModel.list({
         filterArr: filters,
         limit: BATCH_SIZE,
@@ -972,44 +973,89 @@ async function handleScheduledWebhook(
       }
 
       if (records.length > 0) {
-        const reqPayload = populateAxiosReq({
-          apiMeta: notification?.payload,
-          user,
-          hook,
-          model,
-          view,
-          prevData: null,
-          newData: null,
-          data: records,
-        });
+        let response;
+        let reqPayload;
 
-        const { requestPayload, responsePayload } = await handleHttpWebHook({
-          reqPayload,
-        });
+        try {
+          reqPayload = populateAxiosReq({
+            apiMeta: notification?.payload,
+            user,
+            hook,
+            model,
+            view,
+            prevData: null,
+            newData: null,
+            data: records,
+          });
 
-        if (
-          process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
-          (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
-        ) {
-          const hookLog = {
-            ...hook,
-            notification:
-              typeof notification === 'string'
-                ? notification
-                : JSON.stringify(notification),
-            fk_hook_id: hook.id,
-            type: notification.type,
-            payload: JSON.stringify(requestPayload),
-            response: JSON.stringify(responsePayload),
-            triggered_by: user?.email,
-            conditions: JSON.stringify(filters),
-            test_call: testHook,
-          };
+          response = await handleHttpWebHook({
+            reqPayload,
+          });
 
-          await HookLog.insert(context, hookLog);
+          if (
+            process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
+            (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
+          ) {
+            const hookLog = {
+              ...hook,
+              notification:
+                typeof notification === 'string'
+                  ? notification
+                  : JSON.stringify(notification),
+              fk_hook_id: hook.id,
+              type: notification.type,
+              payload: JSON.stringify(response.requestPayload),
+              response: JSON.stringify(response.responsePayload),
+              triggered_by: user?.email,
+              conditions: JSON.stringify(filters),
+              test_call: testHook,
+            };
+
+            await HookLog.insert(context, hookLog);
+          }
+        } catch (e) {
+          logger.error(e.message, e.stack);
+
+          if (
+            ['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL) ||
+            isEE
+          ) {
+            const hookLog = {
+              ...hook,
+              notification:
+                typeof notification === 'string'
+                  ? notification
+                  : JSON.stringify(notification),
+              type: notification.type,
+              payload: JSON.stringify(
+                reqPayload
+                  ? extractReqPayloadForLog(reqPayload, e.response)
+                  : notification?.payload,
+              ),
+              fk_hook_id: hook.id,
+              error_code: e.error_code,
+              error_message: e.message,
+              error: JSON.stringify(e),
+              triggered_by: user?.email,
+              conditions: filters
+                ? JSON.stringify(
+                    addDummyRootAndNest(
+                      filterBuilder().build(flattenFilter(filters)) as Filter[],
+                    ),
+                  )
+                : null,
+              response: e.response
+                ? JSON.stringify(extractResPayloadForLog(e.response))
+                : null,
+              test_call: testHook,
+            };
+            await HookLog.insert(context, hookLog);
+          }
+
+          if (throwErrorOnFailure) {
+            throw e;
+          }
         }
-
-        totalProcessed += records.length;
       }
 
       offset += BATCH_SIZE;
@@ -1017,48 +1063,56 @@ async function handleScheduledWebhook(
       if (records.length < BATCH_SIZE) {
         hasMoreRecords = false;
       }
-    } catch (error) {
-      logger.error(
-        `Error processing scheduled webhook batch: ${error.message}`,
-        error.stack,
-      );
-
-      if (throwErrorOnFailure) {
-        throw error;
-      }
-      hasMoreRecords = false;
     }
-  }
-  return { success: true, recordsProcessed: totalProcessed };
-}
+    return { success: true };
+  } catch (rootError) {
+    logger.error(
+      `Error in scheduled webhook: ${rootError.message}`,
+      rootError.stack,
+    );
 
-export function _transformSubmittedFormDataForEmail(
-  data,
-  // @ts-ignore
-  formView,
-  // @ts-ignore
-  columns: (Column<any> & FormView<any>)[],
-) {
-  const transformedData = { ...data };
-
-  for (const col of columns) {
-    if (col.uidt === 'Attachment') {
-      if (typeof transformedData[col.title] === 'string') {
-        transformedData[col.title] = JSON.parse(transformedData[col.title]);
-      }
-      transformedData[col.title] = (transformedData[col.title] || [])
-        .map((attachment) => {
-          return attachment.title;
-        })
-        .join('<br/>');
-    } else if (
-      transformedData[col.title] &&
-      typeof transformedData[col.title] === 'object'
+    if (
+      ['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL) ||
+      isEE
     ) {
-      transformedData[col.title] = JSON.stringify(transformedData[col.title]);
+      try {
+        const hookLog = {
+          ...hook,
+          notification:
+            typeof notification === 'string'
+              ? notification
+              : JSON.stringify(notification),
+          type: notification?.type || 'URL',
+          payload: JSON.stringify(notification?.payload || {}),
+          fk_hook_id: hook.id,
+          error_code: rootError.error_code,
+          error_message: rootError.message,
+          error: JSON.stringify(rootError),
+          triggered_by: user?.email,
+          conditions: filters
+            ? JSON.stringify(
+                addDummyRootAndNest(
+                  filterBuilder().build(flattenFilter(filters)) as Filter[],
+                ),
+              )
+            : null,
+          test_call: testHook,
+        };
+        await HookLog.insert(context, hookLog);
+      } catch (logError) {
+        logger.error(
+          `Failed to log root error: ${logError.message}`,
+          logError.stack,
+        );
+      }
     }
+
+    if (throwErrorOnFailure) {
+      throw rootError;
+    }
+
+    return { success: false, error: rootError.message };
   }
-  return transformedData;
 }
 
 export function transformDataForMailRendering(

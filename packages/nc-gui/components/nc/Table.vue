@@ -105,14 +105,17 @@ const updateOrderBy = (field: string) => {
   }
 }
 
-if (props.pagination) {
-  watch(
-    () => data.value.length,
-    () => {
-      paginationData.value.totalRows = data.value.length
-    },
-  )
-}
+watch(
+  () => data.value.length,
+  () => {
+    if (!props.pagination) return
+
+    paginationData.value.totalRows = data.value.length
+  },
+  {
+    immediate: true,
+  },
+)
 
 /**
  * We are using 2 different table tag to make header sticky,
@@ -121,24 +124,29 @@ if (props.pagination) {
 const handleUpdateCellWidth = () => {
   if (!tableHeader.value || !tableHeadWidth.value) return
 
-  nextTick(() => {
-    const headerCells = tableHeader.value?.querySelectorAll('th > div')
+  ncDelay(500).then(() => [
+    nextTick(() => {
+      const headerCells = tableHeader.value?.querySelectorAll('th > div')
 
-    if (headerCells && headerCells.length) {
-      headerCells.forEach((el, i) => {
-        headerCellWidth.value[i] = el.getBoundingClientRect().width || undefined
-      })
-    }
-  })
+      if (headerCells && headerCells.length) {
+        headerCells.forEach((el, i) => {
+          headerCellWidth.value[i] = el.getBoundingClientRect().width || undefined
+        })
+      }
+    }),
+  ])
 }
 
 watch(
   [tableHeader, tableHeadWidth],
   () => {
-    handleUpdateCellWidth()
+    nextTick(() => {
+      handleUpdateCellWidth()
+    })
   },
   {
     immediate: true,
+    flush: 'post',
   },
 )
 

@@ -214,7 +214,28 @@ function shouldShowRaw(key: string) {
           {{ newData[columnKey] }}
         </div>
       </template>
-      <template v-else-if="['SingleLineText', 'LongText'].includes(meta[columnKey]?.type)">
+      <template v-else-if="meta[columnKey]?.type === 'SingleLineText'">
+        <div class="w-full">
+          <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
+            <span
+              v-if="block.op === 'removed'"
+              class="max-w-full text-small1 text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone"
+            >
+              {{ block.text }}
+            </span>
+            <span
+              v-else-if="block.op === 'added'"
+              class="max-w-full text-small1 text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone"
+            >
+              {{ block.text }}
+            </span>
+            <span v-else>
+              {{ block.text }}
+            </span>
+          </template>
+        </div>
+      </template>
+      <template v-else-if="meta[columnKey]?.type === 'LongText'">
         <div class="w-full">
           <template
             v-for="(block, i) of diffTextBlocks(
@@ -229,17 +250,29 @@ function shouldShowRaw(key: string) {
           >
             <span
               v-if="block.op === 'removed'"
-              class="max-w-full text-small1 text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone"
+              class="max-w-full text-red-700 px-1 bg-red-50 rounded-md line-through decoration-clone !leading-[18px]"
+              :class="{
+                'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+              }"
             >
               {{ block.text }}
             </span>
             <span
               v-else-if="block.op === 'added'"
-              class="max-w-full text-small1 text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone"
+              class="max-w-full text-green-700 px-1 bg-green-50 rounded-md decoration-clone !leading-[18px]"
+              :class="{
+                'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+              }"
             >
               {{ block.text }}
             </span>
-            <span v-else>
+            <span
+              v-else
+              class="max-w-full !leading-[18px]"
+              :class="{
+                'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+              }"
+            >
               {{ block.text }}
             </span>
           </template>

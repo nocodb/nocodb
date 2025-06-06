@@ -170,7 +170,6 @@ export const LongTextCellRenderer: CellRenderer = {
     if (column.readonly || columnObj?.readonly) return
 
     if (e.key.length === 1 && columnObj.title) {
-      row.row[columnObj.title] = ''
       if (row.row[columnObj.title] === '<br />' || row.row[columnObj.title] === '<br>') {
         row.row[columnObj.title] = e.key
       } else if (parseProp(columnObj.meta).richMode) {

@@ -6,6 +6,7 @@ import {
   BaseUser,
   CustomUrl,
   DataReflection,
+  Hook,
   MCPToken,
   Source,
 } from '~/models';
@@ -330,6 +331,8 @@ export default class Base implements BaseType {
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
     });
+
+    await Hook.disableBaseHooks(context, ncMeta);
 
     // set meta
     return await ncMeta.metaUpdate(

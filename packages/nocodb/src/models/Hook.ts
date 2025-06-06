@@ -252,6 +252,23 @@ export default class Hook implements HookType {
     return this.get(context, hookId, ncMeta);
   }
 
+  static async disableBaseHooks(context: NcContext, ncMeta = Noco.ncMeta) {
+    const baseHooks = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.HOOKS,
+      {
+        condition: {
+          base_id: context.base_id,
+        },
+      },
+    );
+
+    for (const hook of baseHooks) {
+      await this.update(context, hook.id, { active: false }, ncMeta);
+    }
+  }
+
   static async delete(context: NcContext, hookId: any, ncMeta = Noco.ncMeta) {
     // Delete Hook Filters
     const filterList = await ncMeta.metaList2(

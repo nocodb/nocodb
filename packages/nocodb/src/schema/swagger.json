@@ -23718,7 +23718,8 @@
             "enum": [
               "after",
               "before",
-              "manual"
+              "manual",
+              "cron"
             ],
             "type": "string",
             "description": "Event Type for the operation",
@@ -23777,6 +23778,21 @@
           "type": {
             "type": "string",
             "description": "Hook Type"
+          },
+          "cron_expression": {
+            "type": "string",
+            "description": "Cron Expression",
+            "example": "0 * * * * *"
+          },
+          "last_execution_at": {
+            "type": "string",
+            "description": "Last Execution Time",
+            "example": "2022-01-01T00:00:00.000Z"
+          },
+          "next_execution_at": {
+            "type": "string",
+            "description": "Next Execution Time",
+            "example": "2022-01-01T00:00:00.000Z"
           },
           "version": {
             "type": "string",
@@ -23840,7 +23856,8 @@
             "enum": [
               "after",
               "before",
-              "manual"
+              "manual",
+              "cron"
             ],
             "type": "string",
             "description": "Event Type for the operation",
@@ -23911,10 +23928,24 @@
             "description": "Is this hook assoicated with some filters"
           }
         },
+        "cron_expression": {
+            "type": "string",
+            "description": "Cron Expression",
+            "example": "0 * * * * *"
+        },
+        "last_execution_at": {
+          "type": "string",
+          "description": "Last Execution Time",
+          "example": "2022-01-01T00:00:00.000Z"
+        },
+        "next_execution_at": {
+          "type": "string",
+          "description": "Next Execution Time",
+          "example": "2022-01-01T00:00:00.000Z"
+        },
         "required": [
           "event",
           "notification",
-          "operation",
           "title"
         ]
       },
@@ -24055,7 +24086,8 @@
             "enum": [
               "after",
               "before",
-              "manual"
+              "manual",
+              "cron"
             ]
           },
           "execution_time": {

@@ -158,6 +158,7 @@
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
+    "cron": "Cron",
     "script": "Script",
     "supported": "Supported",
     "usage": "Usage",

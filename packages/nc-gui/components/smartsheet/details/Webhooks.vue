@@ -171,6 +171,7 @@ const eventList = ref<Record<string, any>[]>([
   { text: [t('general.onMultiple'), t('labels.recordUpdate')], value: ['after', 'bulkUpdate'] },
   { text: [t('general.onMultiple'), t('labels.recordDelete')], value: ['after', 'bulkDelete'] },
   { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
+  { text: [t('general.cron')], value: ['cron'] },
 ])
 
 const columns: NcTableColumnProps[] = [

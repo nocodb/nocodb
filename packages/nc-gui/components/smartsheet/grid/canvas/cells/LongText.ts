@@ -155,7 +155,10 @@ export const LongTextCellRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx
-    if (isAIPromptCol(column?.columnObj)) {
+
+    const columnObj = column?.columnObj
+
+    if (isAIPromptCol(columnObj)) {
       return AILongTextCellRenderer.handleKeyDown?.(ctx)
     }
 
@@ -164,8 +167,16 @@ export const LongTextCellRenderer: CellRenderer = {
       return true
     }
 
-    if (column.readonly || column.columnObj?.readonly) return
-    if (/^[a-zA-Z0-9]$/.test(e.key)) {
+    if (column.readonly || columnObj?.readonly) return
+
+    if (e.key.length === 1 && columnObj.title) {
+      row.row[columnObj.title] = ''
+      if (row.row[columnObj.title] === '<br />' || row.row[columnObj.title] === '<br>') {
+        row.row[columnObj.title] = e.key
+      } else if (parseProp(columnObj.meta).richMode) {
+        row.row[columnObj.title] = row.row[columnObj.title] ? row.row[columnObj.title] + e.key : e.key
+      }
+
       makeCellEditable(row, column)
       return true
     }

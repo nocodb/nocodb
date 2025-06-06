@@ -923,7 +923,7 @@ onMounted(async () => {
 const errorMsgsTableColumns = [
   {
     key: 'title',
-    title: 'Title',
+    title: 'The following duplicates have been found',
     name: 'title',
     dataIndex: 'title',
     basis: '100%',
@@ -1310,46 +1310,50 @@ const errorMsgsTableColumns = [
             </div>
 
             <div class="w-[calc(100%_-_420px)] flex flex-col overflow-auto nc-scrollbar-thin h-full">
-              <NcModalConfirm
+              <NcModal
                 v-if="importPayload.upsert && isImportVerified"
                 v-model:visible="isVerifyImportDlgVisible"
-                :show-icon="false"
-                size="md"
+                :show-separator="false"
+                :footer="null"
+                :class="{ active: isVerifyImportDlgVisible }"
+                :size="errorMsgsTableColumns.length ? 'md' : 'small'"
+                wrap-class-name="nc-modal-csv-import-verification"
                 :ok-text="$t('general.proceedImport')"
                 :cancel-text="$t('general.cancel')"
+                height="auto"
                 @ok="onImport"
               >
-                <template #title> CSV Import Verification complete </template>
-                <template #content>
-                  <div class="flex flex-col gap-4 text-nc-content-gray max-h-[calc(100vh_-_200px)] nc-scrollbar-thin">
-                    <template v-if="errorMsgsTableColumns.length">
-                      <!-- <div
-                        v-for="errorMsg of errorMsgs"
-                        :key="errorMsg"
-                        class="flex items-center gap-3 text-nc-content-gray-subtle2"
-                      >
-                        <GeneralIcon icon="ncAlertTriangle" class="h-4 w-4 flex-none text-yellow-600" />
-                        <span>{{ errorMsg }}</span>
-                      </div> -->
+                <div class="h-full flex flex-col gap-4 text-nc-content-gray">
+                  <div class="text-base text-nc-content-gray font-weight-700">CSV Import Verification complete</div>
+                  <template v-if="errorMsgsTableColumns.length">
+                    <NcTable
+                      :columns="errorMsgsTableColumns"
+                      :data="errorMsgsTableData"
+                      :bordered="false"
+                      class="nc-warnings-table-list flex-1 h-[calc(100%_-_200px)]"
+                      pagination
+                    >
+                      <template #bodyCell="{ column, record: errorMsg }">
+                        <div class="flex items-center gap-2">
+                          <GeneralIcon icon="ncAlertTriangle" class="h-4 w-4 flex-none text-yellow-600" />
+                          <span class="text-nc-content-gray-subtle2">{{ errorMsg.title }}</span>
+                        </div>
+                      </template>
+                    </NcTable>
+                  </template>
 
-                      <NcTable
-                        :columns="errorMsgsTableColumns"
-                        sticky-first-column
-                        :data="errorMsgsTableData"
-                        :bordered="false"
-                        class="nc-base-view-all-table-list flex-1"
-                        pagination
-                      >
-                      </NcTable>
-                    </template>
-                    <template v-else>
-                      <div class="flex items-center gap-3">
-                        <span>No issues found. The file is ready for import. </span>
-                      </div>
-                    </template>
+                  <div v-else class="flex-1 flex gap-3">
+                    <span>No issues found. The file is ready for import. </span>
                   </div>
-                </template>
-              </NcModalConfirm>
+
+                  <div class="flex flex-row w-full justify-end gap-2">
+                    <NcButton type="secondary" size="small" @click="isVerifyImportDlgVisible = false">{{
+                      $t('general.cancel')
+                    }}</NcButton>
+                    <NcButton size="small" @click="onImport">{{ $t('general.proceedImport') }}</NcButton>
+                  </div>
+                </div>
+              </NcModal>
               <div class="flex-1 bg-nc-bg-gray-extralight flex flex-col gap-4 p-4">
                 <div class="flex items-center justify-between gap-3">
                   <div class="text-sm font-weight-700 text-nc-content-gray">Select destination fields</div>

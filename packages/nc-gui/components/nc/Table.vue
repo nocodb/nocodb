@@ -1,25 +1,7 @@
 <script lang="ts" setup>
 import type { CSSProperties } from '@vue/runtime-dom'
 
-interface Props {
-  columns: NcTableColumnProps[]
-  data: Record<string, any>[]
-  headerRowHeight?: CSSProperties['height']
-  rowHeight?: CSSProperties['height']
-  orderBy?: Record<string, SordDirectionType>
-  multiFieldOrderBy?: boolean
-  bordered?: boolean
-  isDataLoading?: boolean
-  stickyHeader?: boolean
-  stickyFirstColumn?: boolean
-  disableTableScroll?: boolean
-  headerRowClassName?: string
-  bodyRowClassName?: string
-  headerCellClassName?: string
-  bodyCellClassName?: string
-  customHeaderRow?: (columns: NcTableColumnProps[]) => Record<string, any>
-  customRow?: (record: Record<string, any>, recordIndex: number) => Record<string, any>
-}
+import { type PaginatedType } from 'nocodb-sdk'
 
 const props = withDefaults(defineProps<Props>(), {
   columns: () => [] as NcTableColumnProps[],
@@ -38,9 +20,35 @@ const props = withDefaults(defineProps<Props>(), {
   bodyCellClassName: '',
   customHeaderRow: () => ({}),
   customRow: () => ({}),
+  pagination: false,
+  paginationOffset: 10,
 })
 
 const emit = defineEmits(['update:orderBy', 'rowClick'])
+
+const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 0, isLoading: true }
+
+interface Props {
+  columns: NcTableColumnProps[]
+  data: Record<string, any>[]
+  headerRowHeight?: CSSProperties['height']
+  rowHeight?: CSSProperties['height']
+  orderBy?: Record<string, SordDirectionType>
+  multiFieldOrderBy?: boolean
+  bordered?: boolean
+  isDataLoading?: boolean
+  stickyHeader?: boolean
+  stickyFirstColumn?: boolean
+  disableTableScroll?: boolean
+  headerRowClassName?: string
+  bodyRowClassName?: string
+  headerCellClassName?: string
+  bodyCellClassName?: string
+  customHeaderRow?: (columns: NcTableColumnProps[]) => Record<string, any>
+  customRow?: (record: Record<string, any>, recordIndex: number) => Record<string, any>
+  pagination?: boolean
+  paginationOffset?: number
+}
 
 const tableWrapper = ref<HTMLDivElement>()
 
@@ -50,7 +58,7 @@ const tableFooterRef = ref<HTMLDivElement>()
 
 const { height: tableHeadHeight, width: tableHeadWidth } = useElementBounding(tableHeader)
 
-const { height: tableFooterHeight } = useElementBounding(tableFooterRef)
+const { height: _tableFooterHeight } = useElementBounding(tableFooterRef)
 
 const orderBy = useVModel(props, 'orderBy', emit)
 
@@ -64,6 +72,31 @@ const slots = useSlots()
 
 const headerCellWidth = ref<(number | undefined)[]>([])
 
+const paginationData = ref<PaginatedType>(defaultPaginationData)
+
+const showPagination = computed(() => {
+  return (
+    props.pagination &&
+    !isDataLoading.value &&
+    paginationData.value.totalRows &&
+    paginationData.value.totalRows > props.paginationOffset
+  )
+})
+
+const paginatedData = computed(() => {
+  if (!showPagination.value) return data.value
+
+  const { page, pageSize } = paginationData.value
+  const start = (page! - 1) * pageSize!
+  const end = start + pageSize!
+
+  return data.value.slice(start, end)
+})
+
+const tableFooterHeight = computed(() => {
+  return showPagination.value ? Math.max(40, _tableFooterHeight.value) : _tableFooterHeight.value
+})
+
 const updateOrderBy = (field: string) => {
   if (!data.value.length || !field) return
 
@@ -76,6 +109,18 @@ const updateOrderBy = (field: string) => {
   }
 }
 
+watch(
+  () => data.value.length,
+  () => {
+    if (!props.pagination) return
+
+    paginationData.value.totalRows = data.value.length
+  },
+  {
+    immediate: true,
+  },
+)
+
 /**
  * We are using 2 different table tag to make header sticky,
  * so it's imp to keep header cell and body cell width same
@@ -83,24 +128,29 @@ const updateOrderBy = (field: string) => {
 const handleUpdateCellWidth = () => {
   if (!tableHeader.value || !tableHeadWidth.value) return
 
-  nextTick(() => {
-    const headerCells = tableHeader.value?.querySelectorAll('th > div')
+  ncDelay(500).then(() => [
+    nextTick(() => {
+      const headerCells = tableHeader.value?.querySelectorAll('th > div')
 
-    if (headerCells && headerCells.length) {
-      headerCells.forEach((el, i) => {
-        headerCellWidth.value[i] = el.getBoundingClientRect().width || undefined
-      })
-    }
-  })
+      if (headerCells && headerCells.length) {
+        headerCells.forEach((el, i) => {
+          headerCellWidth.value[i] = el.getBoundingClientRect().width || undefined
+        })
+      }
+    }),
+  ])
 }
 
 watch(
   [tableHeader, tableHeadWidth],
   () => {
-    handleUpdateCellWidth()
+    nextTick(() => {
+      handleUpdateCellWidth()
+    })
   },
   {
     immediate: true,
+    flush: 'post',
   },
 )
 
@@ -230,7 +280,7 @@ const onRowClick = (record: Record<string, any>, recordIndex: number) => {
           <tbody>
             <slot name="body-prepend" />
             <tr
-              v-for="(record, recordIndex) of data"
+              v-for="(record, recordIndex) of paginatedData"
               :key="recordIndex"
               :style="{
                 height: rowHeight,
@@ -304,9 +354,25 @@ const onRowClick = (record: Record<string, any>, recordIndex: number) => {
       </div>
     </div>
     <!-- Not scrollable footer  -->
-    <template v-if="slots.tableFooter">
+    <template v-if="slots.tableFooter || showPagination">
       <div ref="tableFooterRef">
-        <slot name="tableFooter" />
+        <slot name="tableFooter">
+          <div v-if="showPagination" class="flex flex-row justify-center items-center bg-gray-50 min-h-10">
+            <div class="flex justify-between items-center w-full px-6">
+              <div>&nbsp;</div>
+              <NcPagination
+                v-model:current="paginationData.page"
+                v-model:page-size="paginationData.pageSize"
+                :total="+(paginationData.totalRows || 0)"
+                show-size-changer
+                :use-stored-page-size="false"
+              />
+              <div class="text-gray-500 text-xs">
+                {{ paginationData.totalRows }} {{ paginationData.totalRows === 1 ? 'row' : 'rows' }}
+              </div>
+            </div>
+          </div>
+        </slot>
       </div>
     </template>
   </div>

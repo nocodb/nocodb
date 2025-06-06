@@ -92,7 +92,10 @@ const importTypeOptions = [
 
 const { fullscreen, fullscreenModalSize, extension, tables, insertData, getTableMeta, reloadData, activeTableId } =
   useExtensionHelperOrThrow()
+
 const { getMeta } = useMetas()
+
+const { t } = useI18n()
 
 const EXTENSION_ID = extension.value.extensionId
 
@@ -120,6 +123,8 @@ const totalRecords = ref(0)
 const totalRecordsBeforeUpsert = ref(0)
 
 const isImportVerified = ref(false)
+
+const isVerifyImportDlgVisible = ref(false)
 
 const isVerifyImportLoading = ref(false)
 
@@ -444,6 +449,10 @@ useProvideSmartsheetRowStore({} as any)
 
 const errorMsgs = ref<string[]>([])
 
+const mergeFieldValueCount = ref<Record<string, number>>({})
+
+const showMoreRecordsDetectedPlaceholder = ref(false)
+
 const dataToImport = ref([])
 
 const prepareDataToImport = () => {
@@ -507,9 +516,16 @@ const processedRecordsToInsert = ref(0)
 const processedRecordsToUpdate = ref(0)
 
 const onVerifyImport = async () => {
+  if (!importPayload.value?.upsert || isImportVerified.value) {
+    onImport()
+    return
+  }
+
   if (verifyRequiredFields()) return
 
   errorMsgs.value = []
+  showMoreRecordsDetectedPlaceholder.value = false
+  mergeFieldValueCount.value = {}
 
   isVerifyImportLoading.value = true
 
@@ -545,8 +561,6 @@ const onVerifyImport = async () => {
   processedRecordsToInsert.value = 0
   processedRecordsToUpdate.value = 0
 
-  const mergeFieldValueCount: Record<string, number> = {}
-
   for (const chunk of chunks) {
     // select chunk of data to determine if it's an insert or update
     let page = 1
@@ -555,14 +569,16 @@ const onVerifyImport = async () => {
 
     const list = []
 
+    const seen = new Set<string>()
+
     while (fetchRecords) {
-      const { list: _list, pageInfo } = await $api.dbDataTableRow.list(importPayload.value.tableId, {
+      const { list: existingRecordsPage, pageInfo } = await $api.dbDataTableRow.list(importPayload.value.tableId, {
         where: `(${upsertFieldTitle},in,${chunk.map((record: Record<string, any>) => record[upsertFieldTitle]).join(',')})`,
         limit: CHUNK_SIZE,
         offset: (page - 1) * CHUNK_SIZE,
       })
 
-      list.push(..._list)
+      list.push(...existingRecordsPage)
 
       page++
 
@@ -570,72 +586,74 @@ const onVerifyImport = async () => {
         totalRecords = pageInfo.totalRows
       }
 
+      for (const existingRecord of existingRecordsPage as Record<string, any>[]) {
+        const mergeVal = existingRecord[upsertFieldTitle]
+        if (!seen.has(mergeVal)) {
+          seen.add(mergeVal)
+        }
+
+        const matchingCsvRecord = chunk.find((record: Record<string, any>) => `${record[upsertFieldTitle]}` === `${mergeVal}`)
+
+        if (matchingCsvRecord) {
+          mergeFieldValueCount.value[mergeVal] = (mergeFieldValueCount.value[mergeVal] ?? 0) + 1
+
+          if (importPayload.value!.importType !== 'insert') {
+            recordsToUpdate.value.push({
+              ...matchingCsvRecord,
+              ...rowPkData(existingRecord, tableMeta.columns!),
+            })
+          }
+        }
+      }
+
       if (pageInfo.isLastPage) {
         fetchRecords = false
       }
     }
 
-    chunk.forEach((record: Record<string, any>) => {
-      const mergeFieldValue = record[upsertFieldTitle]
-
-      const existingRecordCount = list.filter(
-        (r: Record<string, any>) => `${r[upsertFieldTitle]}` === `${record[upsertFieldTitle]}`,
-      ).length
-
-      if (existingRecordCount > 0) {
-        mergeFieldValueCount[mergeFieldValue] = existingRecordCount
-      }
-    })
-
-    if (importPayload.value.importType !== 'update') {
-      recordsToInsert.value.push(
-        ...chunk.filter(
-          (record: Record<string, any>) =>
-            !list.some((r: Record<string, any>) => `${r[upsertFieldTitle]}` === `${record[upsertFieldTitle]}`),
-        ),
-      )
-    }
-
-    if (importPayload.value.importType !== 'insert') {
-      // Here we have to update all existing records with the same merge field value
-      const existingRecords = list
-        .filter((r: Record<string, any>) =>
-          chunk.some((record: Record<string, any>) => `${r[upsertFieldTitle]}` === `${record[upsertFieldTitle]}`),
-        )
-        .map((r: Record<string, any>) => {
-          const recordPayload = chunk.find(
-            (record: Record<string, any>) => `${r[upsertFieldTitle]}` === `${record[upsertFieldTitle]}`,
-          )
-
-          return {
-            ...(recordPayload || {}),
-            ...rowPkData(r, tableMeta.columns!),
-          }
-        })
-
-      recordsToUpdate.value.push(...existingRecords)
+    if (importPayload.value!.importType !== 'update') {
+      recordsToInsert.value.push(...chunk.filter((record: Record<string, any>) => !seen.has(record[upsertFieldTitle])))
     }
   }
 
   totalRecordsToInsert.value = recordsToInsert.value.length
   totalRecordsToUpdate.value = recordsToUpdate.value.length
 
-  if (recordsToUpdate.value.length) {
-    for (const mergeFieldValue in mergeFieldValueCount) {
-      errorMsgs.value.push(
-        `Detected ${mergeFieldValueCount[mergeFieldValue]} ${
-          mergeFieldValueCount[mergeFieldValue] === 1 ? 'record' : 'records'
-        } with merge field value "${mergeFieldValue}". They will be overridden to match the first matching CSV row.`,
-      )
-    }
-  }
-
   isImportVerified.value = true
+  isVerifyImportDlgVisible.value = true
 
   isVerifyImportLoading.value = false
+
+  if (!errorMsgs.value.length && ncIsEmptyObject(mergeFieldValueCount.value)) {
+    onImport()
+  }
 }
 
-const onImport = async () => {
+const errorMsgsTableData = computed(() => {
+  const data: { title: string }[] = []
+
+  errorMsgs.value.forEach((msg) => {
+    data.push({
+      title: msg,
+    })
+  })
+
+  for (const mergeFieldValue in mergeFieldValueCount.value) {
+    data.push({
+      title: `Detected ${mergeFieldValueCount.value[mergeFieldValue]} ${
+        mergeFieldValueCount.value[mergeFieldValue] === 1 ? 'record' : 'records'
+      } with merge field value "${mergeFieldValue}". They will be overridden to match the first matching CSV row.`,
+    })
+  }
+
+  return data
+})
+
+async function onImport() {
+  if (isVerifyImportDlgVisible.value) {
+    isVerifyImportDlgVisible.value = false
+  }
+
   if (verifyRequiredFields()) return
 
   isImportingRecords.value = true
@@ -913,6 +931,18 @@ onMounted(async () => {
   importConfig.value.delimiter = importConfig.value.delimiter || autoDetect
   importConfig.value.encoding = importConfig.value.encoding || SupportedExportCharset['utf-8']
 })
+
+const errorMsgsTableColumns = [
+  {
+    key: 'title',
+    title: t('general.details'),
+    name: 'title',
+    dataIndex: 'title',
+    basis: '100%',
+    minWidth: 220,
+    padding: '0px 12px',
+  },
+] as NcTableColumnProps[]
 </script>
 
 <template>
@@ -932,15 +962,11 @@ onMounted(async () => {
         <NcButton :disabled="isImportingRecords" size="small" type="secondary" @click="clearImport()">Cancel</NcButton>
 
         <NcButton
-          v-if="importPayload?.upsert && !isImportVerified"
           size="small"
           :disabled="!readyForImport"
-          :loading="isVerifyImportLoading"
+          :loading="isImportingRecords || isVerifyImportLoading"
           @click="onVerifyImport"
         >
-          Verify Import
-        </NcButton>
-        <NcButton v-else size="small" :disabled="!readyForImport" :loading="isImportingRecords" @click="onImport">
           Import
         </NcButton>
       </template>
@@ -1283,23 +1309,44 @@ onMounted(async () => {
             </div>
 
             <div class="w-[calc(100%_-_420px)] flex flex-col overflow-auto nc-scrollbar-thin h-full">
-              <div
+              <NcModal
                 v-if="importPayload.upsert && isImportVerified"
-                class="flex flex-col gap-4 text-nc-content-gray p-4 border-b-1"
+                v-model:visible="isVerifyImportDlgVisible"
+                :show-separator="false"
+                :size="errorMsgsTableColumns.length ? 'md' : 'small'"
+                wrap-class-name="nc-modal-csv-import-verification"
               >
-                <template v-if="errorMsgs.length">
-                  <div v-for="errorMsg of errorMsgs" :key="errorMsg" class="flex items-center gap-3 text-nc-content-gray-subtle2">
-                    <GeneralIcon icon="ncAlertTriangle" class="h-4 w-4 flex-none text-yellow-600" />
-                    <span>{{ errorMsg }}</span>
+                <div class="h-full flex flex-col gap-4 text-nc-content-gray">
+                  <div class="text-base text-nc-content-gray font-weight-700">{{ $t('title.duplicatesFound') }}</div>
+                  <template v-if="errorMsgsTableColumns.length">
+                    <NcTable
+                      :columns="errorMsgsTableColumns"
+                      :data="errorMsgsTableData"
+                      :bordered="false"
+                      class="nc-warnings-table-list flex-1 h-[calc(100%_-_200px)]"
+                      pagination
+                    >
+                      <template #bodyCell="{ record: errorMsg }">
+                        <div class="flex items-center gap-2">
+                          <GeneralIcon icon="ncAlertTriangle" class="h-4 w-4 flex-none text-yellow-600" />
+                          <span class="text-nc-content-gray-subtle2">{{ errorMsg.title }}</span>
+                        </div>
+                      </template>
+                    </NcTable>
+                  </template>
+
+                  <div v-else class="flex-1 flex gap-3">
+                    <span>No issues found. The file is ready for import. </span>
                   </div>
-                </template>
-                <template v-else>
-                  <div class="flex items-center gap-3 text-nc-content-gray-subtle2">
-                    <GeneralIcon icon="circleCheck2" class="h-4 w-4 flex-none text-green-600" />
-                    <span>Verification complete! CSV file ready to import</span>
+
+                  <div class="flex flex-row w-full justify-end gap-2">
+                    <NcButton type="secondary" size="small" @click="isVerifyImportDlgVisible = false">{{
+                      $t('general.cancel')
+                    }}</NcButton>
+                    <NcButton size="small" @click="onImport">{{ $t('general.proceedImport') }}</NcButton>
                   </div>
-                </template>
-              </div>
+                </div>
+              </NcModal>
               <div class="flex-1 bg-nc-bg-gray-extralight flex flex-col gap-4 p-4">
                 <div class="flex items-center justify-between gap-3">
                   <div class="text-sm font-weight-700 text-nc-content-gray">Select destination fields</div>
@@ -1428,18 +1475,20 @@ onMounted(async () => {
             </div>
           </div>
           <general-overlay :model-value="isImportingRecords" inline transition class="!bg-opacity-15">
-            <div class="flex flex-col items-center justify-center h-full w-full !bg-white !bg-opacity-55">
+            <div
+              class="flex flex-col gap-2 items-center justify-center h-full w-full !bg-white !bg-opacity-85 font-semibold text-base text-brand-600"
+            >
               <a-spin size="large" />
               <template v-if="importPayload?.upsert">
-                <div v-if="recordsToInsert.length" class="text-brand-600">
-                  Inserting {{ processedRecordsToInsert }}/{{ totalRecordsToInsert }}
+                <div v-if="recordsToInsert.length">
+                  {{ $t('general.inserting') }} {{ processedRecordsToInsert }}/{{ totalRecordsToInsert }}
                 </div>
-                <div v-if="recordsToUpdate.length" class="text-brand-600">
-                  Updating {{ processedRecordsToUpdate }}/{{ totalRecordsToUpdate }}
+                <div v-if="recordsToUpdate.length">
+                  {{ $t('general.updating') }} {{ processedRecordsToUpdate }}/{{ totalRecordsToUpdate }}
                 </div>
               </template>
 
-              <div v-else class="text-brand-600">Importing {{ processedRecords }}/{{ totalRecords }}</div>
+              <div v-else>{{ $t('labels.importing') }} {{ processedRecords }}/{{ totalRecords }}</div>
             </div>
           </general-overlay>
         </div>
@@ -1567,7 +1616,7 @@ onMounted(async () => {
 .nc-nc-csv-import {
   .nc-csv-file-uploader {
     &.ant-upload.ant-upload-drag {
-      @apply !rounded-lg !bg-white !hover:bg-nc-bg-gray-light !transition-colors duration-300;
+      @apply !rounded-lg !bg-nc-bg-gray-light !transition-colors duration-300;
     }
     .ant-upload-btn {
       @apply !flex flex-col items-center justify-center;

@@ -1,6 +1,10 @@
 <script lang="ts" setup>
 import type { CSSProperties } from '@vue/runtime-dom'
 
+import { type PaginatedType } from 'nocodb-sdk'
+
+const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 0, isLoading: true }
+
 interface Props {
   columns: NcTableColumnProps[]
   data: Record<string, any>[]
@@ -19,6 +23,8 @@ interface Props {
   bodyCellClassName?: string
   customHeaderRow?: (columns: NcTableColumnProps[]) => Record<string, any>
   customRow?: (record: Record<string, any>, recordIndex: number) => Record<string, any>
+  pagination?: boolean
+  paginationOffset?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -38,6 +44,8 @@ const props = withDefaults(defineProps<Props>(), {
   bodyCellClassName: '',
   customHeaderRow: () => ({}),
   customRow: () => ({}),
+  pagination: false,
+  paginationOffset: 10,
 })
 
 const emit = defineEmits(['update:orderBy', 'rowClick'])
@@ -64,6 +72,27 @@ const slots = useSlots()
 
 const headerCellWidth = ref<(number | undefined)[]>([])
 
+const paginationData = ref<PaginatedType>(defaultPaginationData)
+
+const showPagination = computed(() => {
+  return (
+    props.pagination &&
+    !isDataLoading.value &&
+    paginationData.value.totalRows &&
+    paginationData.value.totalRows > props.paginationOffset
+  )
+})
+
+const paginatedData = computed(() => {
+  if (!showPagination.value) return data.value
+
+  const { page, pageSize } = paginationData.value
+  const start = (page! - 1) * pageSize!
+  const end = start + pageSize!
+
+  return data.value.slice(start, end)
+})
+
 const updateOrderBy = (field: string) => {
   if (!data.value.length || !field) return
 
@@ -74,6 +103,15 @@ const updateOrderBy = (field: string) => {
   } else {
     orderBy.value = { [field]: orderCycle[`${orderBy.value[field]}`] as SordDirectionType }
   }
+}
+
+if (props.pagination) {
+  watch(
+    () => data.value.length,
+    () => {
+      paginationData.value.totalRows = data.value.length
+    },
+  )
 }
 
 /**
@@ -230,7 +268,7 @@ const onRowClick = (record: Record<string, any>, recordIndex: number) => {
           <tbody>
             <slot name="body-prepend" />
             <tr
-              v-for="(record, recordIndex) of data"
+              v-for="(record, recordIndex) of paginatedData"
               :key="recordIndex"
               :style="{
                 height: rowHeight,
@@ -304,9 +342,25 @@ const onRowClick = (record: Record<string, any>, recordIndex: number) => {
       </div>
     </div>
     <!-- Not scrollable footer  -->
-    <template v-if="slots.tableFooter">
+    <template v-if="slots.tableFooter || showPagination">
       <div ref="tableFooterRef">
-        <slot name="tableFooter" />
+        <slot name="tableFooter">
+          <div v-if="showPagination" class="flex flex-row justify-center items-center bg-gray-50 min-h-10">
+            <div class="flex justify-between items-center w-full px-6">
+              <div>&nbsp;</div>
+              <NcPagination
+                v-model:current="paginationData.page"
+                v-model:page-size="paginationData.pageSize"
+                :total="+(paginationData.totalRows || 0)"
+                show-size-changer
+                :use-stored-page-size="false"
+              />
+              <div class="text-gray-500 text-xs">
+                {{ paginationData.totalRows }} {{ paginationData.totalRows === 1 ? 'row' : 'rows' }}
+              </div>
+            </div>
+          </div>
+        </slot>
       </div>
     </template>
   </div>

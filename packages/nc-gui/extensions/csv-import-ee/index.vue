@@ -121,6 +121,8 @@ const totalRecordsBeforeUpsert = ref(0)
 
 const isImportVerified = ref(false)
 
+const isVerifyImportDlgVisible = ref(false)
+
 const isVerifyImportLoading = ref(false)
 
 const processedRecords = ref(0)
@@ -444,6 +446,10 @@ useProvideSmartsheetRowStore({} as any)
 
 const errorMsgs = ref<string[]>([])
 
+const mergeFieldValueCount = ref<Record<string, number>>({})
+
+const showMoreRecordsDetectedPlaceholder = ref(false)
+
 const dataToImport = ref([])
 
 const prepareDataToImport = () => {
@@ -510,6 +516,8 @@ const onVerifyImport = async () => {
   if (verifyRequiredFields()) return
 
   errorMsgs.value = []
+  showMoreRecordsDetectedPlaceholder.value = false
+  mergeFieldValueCount.value = {}
 
   isVerifyImportLoading.value = true
 
@@ -545,8 +553,6 @@ const onVerifyImport = async () => {
   processedRecordsToInsert.value = 0
   processedRecordsToUpdate.value = 0
 
-  const mergeFieldValueCount: Record<string, number> = {}
-
   for (const chunk of chunks) {
     // select chunk of data to determine if it's an insert or update
     let page = 1
@@ -555,14 +561,16 @@ const onVerifyImport = async () => {
 
     const list = []
 
+    const seen = new Set<string>()
+
     while (fetchRecords) {
-      const { list: _list, pageInfo } = await $api.dbDataTableRow.list(importPayload.value.tableId, {
+      const { list: existingRecordsPage, pageInfo } = await $api.dbDataTableRow.list(importPayload.value.tableId, {
         where: `(${upsertFieldTitle},in,${chunk.map((record: Record<string, any>) => record[upsertFieldTitle]).join(',')})`,
         limit: CHUNK_SIZE,
         offset: (page - 1) * CHUNK_SIZE,
       })
 
-      list.push(..._list)
+      list.push(...existingRecordsPage)
 
       page++
 
@@ -570,72 +578,70 @@ const onVerifyImport = async () => {
         totalRecords = pageInfo.totalRows
       }
 
+      for (const existingRecord of existingRecordsPage as Record<string, any>[]) {
+        const mergeVal = existingRecord[upsertFieldTitle]
+        if (!seen.has(mergeVal)) {
+          seen.add(mergeVal)
+        }
+
+        const matchingCsvRecord = chunk.find((record: Record<string, any>) => `${record[upsertFieldTitle]}` === `${mergeVal}`)
+
+        if (matchingCsvRecord) {
+          mergeFieldValueCount.value[mergeVal] = (mergeFieldValueCount.value[mergeVal] ?? 0) + 1
+
+          if (importPayload.value!.importType !== 'insert') {
+            recordsToUpdate.value.push({
+              ...matchingCsvRecord,
+              ...rowPkData(existingRecord, tableMeta.columns!),
+            })
+          }
+        }
+      }
+
       if (pageInfo.isLastPage) {
         fetchRecords = false
       }
     }
 
-    chunk.forEach((record: Record<string, any>) => {
-      const mergeFieldValue = record[upsertFieldTitle]
-
-      const existingRecordCount = list.filter(
-        (r: Record<string, any>) => `${r[upsertFieldTitle]}` === `${record[upsertFieldTitle]}`,
-      ).length
-
-      if (existingRecordCount > 0) {
-        mergeFieldValueCount[mergeFieldValue] = existingRecordCount
-      }
-    })
-
-    if (importPayload.value.importType !== 'update') {
-      recordsToInsert.value.push(
-        ...chunk.filter(
-          (record: Record<string, any>) =>
-            !list.some((r: Record<string, any>) => `${r[upsertFieldTitle]}` === `${record[upsertFieldTitle]}`),
-        ),
-      )
-    }
-
-    if (importPayload.value.importType !== 'insert') {
-      // Here we have to update all existing records with the same merge field value
-      const existingRecords = list
-        .filter((r: Record<string, any>) =>
-          chunk.some((record: Record<string, any>) => `${r[upsertFieldTitle]}` === `${record[upsertFieldTitle]}`),
-        )
-        .map((r: Record<string, any>) => {
-          const recordPayload = chunk.find(
-            (record: Record<string, any>) => `${r[upsertFieldTitle]}` === `${record[upsertFieldTitle]}`,
-          )
-
-          return {
-            ...(recordPayload || {}),
-            ...rowPkData(r, tableMeta.columns!),
-          }
-        })
-
-      recordsToUpdate.value.push(...existingRecords)
+    if (importPayload.value!.importType !== 'update') {
+      recordsToInsert.value.push(...chunk.filter((record: Record<string, any>) => !seen.has(record[upsertFieldTitle])))
     }
   }
 
   totalRecordsToInsert.value = recordsToInsert.value.length
   totalRecordsToUpdate.value = recordsToUpdate.value.length
 
-  if (recordsToUpdate.value.length) {
-    for (const mergeFieldValue in mergeFieldValueCount) {
-      errorMsgs.value.push(
-        `Detected ${mergeFieldValueCount[mergeFieldValue]} ${
-          mergeFieldValueCount[mergeFieldValue] === 1 ? 'record' : 'records'
-        } with merge field value "${mergeFieldValue}". They will be overridden to match the first matching CSV row.`,
-      )
-    }
-  }
-
   isImportVerified.value = true
+  isVerifyImportDlgVisible.value = true
 
   isVerifyImportLoading.value = false
 }
 
+const errorMsgsTableData = computed(() => {
+  const data: { title: string }[] = []
+
+  errorMsgs.value.forEach((msg) => {
+    data.push({
+      title: msg,
+    })
+  })
+
+  for (const mergeFieldValue in mergeFieldValueCount.value) {
+    data.push({
+      title: `Detected ${mergeFieldValueCount.value[mergeFieldValue]} ${
+        mergeFieldValueCount.value[mergeFieldValue] === 1 ? 'record' : 'records'
+      } with merge field value "${mergeFieldValue}". They will be overridden to match the first matching CSV row.`,
+    })
+  }
+
+  return data
+})
+
 const onImport = async () => {
+  if (isVerifyImportDlgVisible.value) {
+    isVerifyImportDlgVisible.value = false
+  }
+
   if (verifyRequiredFields()) return
 
   isImportingRecords.value = true
@@ -913,6 +919,18 @@ onMounted(async () => {
   importConfig.value.delimiter = importConfig.value.delimiter || autoDetect
   importConfig.value.encoding = importConfig.value.encoding || SupportedExportCharset['utf-8']
 })
+
+const errorMsgsTableColumns = [
+  {
+    key: 'title',
+    title: 'Title',
+    name: 'title',
+    dataIndex: 'title',
+    basis: '100%',
+    minWidth: 220,
+    padding: '0px 12px',
+  },
+] as NcTableColumnProps[]
 </script>
 
 <template>
@@ -932,15 +950,24 @@ onMounted(async () => {
         <NcButton :disabled="isImportingRecords" size="small" type="secondary" @click="clearImport()">Cancel</NcButton>
 
         <NcButton
-          v-if="importPayload?.upsert && !isImportVerified"
+          v-if="importPayload?.upsert"
           size="small"
-          :disabled="!readyForImport"
+          type="secondary"
+          :disabled="!readyForImport || isImportVerified"
           :loading="isVerifyImportLoading"
           @click="onVerifyImport"
         >
+          <template v-if="isImportVerified" #icon>
+            <GeneralIcon icon="check" />
+          </template>
           Verify Import
         </NcButton>
-        <NcButton v-else size="small" :disabled="!readyForImport" :loading="isImportingRecords" @click="onImport">
+        <NcButton
+          size="small"
+          :disabled="!readyForImport || (importPayload?.upsert && !isImportVerified)"
+          :loading="isImportingRecords"
+          @click="onImport"
+        >
           Import
         </NcButton>
       </template>
@@ -1283,23 +1310,46 @@ onMounted(async () => {
             </div>
 
             <div class="w-[calc(100%_-_420px)] flex flex-col overflow-auto nc-scrollbar-thin h-full">
-              <div
+              <NcModalConfirm
                 v-if="importPayload.upsert && isImportVerified"
-                class="flex flex-col gap-4 text-nc-content-gray p-4 border-b-1"
+                v-model:visible="isVerifyImportDlgVisible"
+                :show-icon="false"
+                size="md"
+                :ok-text="$t('general.proceedImport')"
+                :cancel-text="$t('general.cancel')"
+                @ok="onImport"
               >
-                <template v-if="errorMsgs.length">
-                  <div v-for="errorMsg of errorMsgs" :key="errorMsg" class="flex items-center gap-3 text-nc-content-gray-subtle2">
-                    <GeneralIcon icon="ncAlertTriangle" class="h-4 w-4 flex-none text-yellow-600" />
-                    <span>{{ errorMsg }}</span>
+                <template #title> CSV Import Verification complete </template>
+                <template #content>
+                  <div class="flex flex-col gap-4 text-nc-content-gray max-h-[calc(100vh_-_200px)] nc-scrollbar-thin">
+                    <template v-if="errorMsgsTableColumns.length">
+                      <!-- <div
+                        v-for="errorMsg of errorMsgs"
+                        :key="errorMsg"
+                        class="flex items-center gap-3 text-nc-content-gray-subtle2"
+                      >
+                        <GeneralIcon icon="ncAlertTriangle" class="h-4 w-4 flex-none text-yellow-600" />
+                        <span>{{ errorMsg }}</span>
+                      </div> -->
+
+                      <NcTable
+                        :columns="errorMsgsTableColumns"
+                        sticky-first-column
+                        :data="errorMsgsTableData"
+                        :bordered="false"
+                        class="nc-base-view-all-table-list flex-1"
+                        pagination
+                      >
+                      </NcTable>
+                    </template>
+                    <template v-else>
+                      <div class="flex items-center gap-3">
+                        <span>No issues found. The file is ready for import. </span>
+                      </div>
+                    </template>
                   </div>
                 </template>
-                <template v-else>
-                  <div class="flex items-center gap-3 text-nc-content-gray-subtle2">
-                    <GeneralIcon icon="circleCheck2" class="h-4 w-4 flex-none text-green-600" />
-                    <span>Verification complete! CSV file ready to import</span>
-                  </div>
-                </template>
-              </div>
+              </NcModalConfirm>
               <div class="flex-1 bg-nc-bg-gray-extralight flex flex-col gap-4 p-4">
                 <div class="flex items-center justify-between gap-3">
                   <div class="text-sm font-weight-700 text-nc-content-gray">Select destination fields</div>

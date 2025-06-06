@@ -3,6 +3,29 @@ import type { CSSProperties } from '@vue/runtime-dom'
 
 import { type PaginatedType } from 'nocodb-sdk'
 
+const props = withDefaults(defineProps<Props>(), {
+  columns: () => [] as NcTableColumnProps[],
+  data: () => [] as Record<string, any>[],
+  headerRowHeight: '54px',
+  rowHeight: '54px',
+  orderBy: () => ({} as Record<string, SordDirectionType>),
+  multiFieldOrderBy: false,
+  bordered: true,
+  isDataLoading: false,
+  stickyHeader: true,
+  disableTableScroll: false,
+  headerRowClassName: '',
+  bodyRowClassName: '',
+  headerCellClassName: '',
+  bodyCellClassName: '',
+  customHeaderRow: () => ({}),
+  customRow: () => ({}),
+  pagination: false,
+  paginationOffset: 10,
+})
+
+const emit = defineEmits(['update:orderBy', 'rowClick'])
+
 const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 0, isLoading: true }
 
 interface Props {
@@ -26,29 +49,6 @@ interface Props {
   pagination?: boolean
   paginationOffset?: number
 }
-
-const props = withDefaults(defineProps<Props>(), {
-  columns: () => [] as NcTableColumnProps[],
-  data: () => [] as Record<string, any>[],
-  headerRowHeight: '54px',
-  rowHeight: '54px',
-  orderBy: () => ({} as Record<string, SordDirectionType>),
-  multiFieldOrderBy: false,
-  bordered: true,
-  isDataLoading: false,
-  stickyHeader: true,
-  disableTableScroll: false,
-  headerRowClassName: '',
-  bodyRowClassName: '',
-  headerCellClassName: '',
-  bodyCellClassName: '',
-  customHeaderRow: () => ({}),
-  customRow: () => ({}),
-  pagination: false,
-  paginationOffset: 10,
-})
-
-const emit = defineEmits(['update:orderBy', 'rowClick'])
 
 const tableWrapper = ref<HTMLDivElement>()
 

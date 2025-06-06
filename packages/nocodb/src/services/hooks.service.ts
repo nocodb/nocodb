@@ -250,10 +250,10 @@ export class HooksService {
       req: NcRequest;
     },
   ) {
-    /* validatePayload(
+    validatePayload(
       'swagger.json#/components/schemas/HookTestReq',
       param.hookTest,
-    );*/
+    );
 
     this.validateHookPayload(param.hookTest.hook?.notification);
 

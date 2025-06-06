@@ -516,6 +516,11 @@ const processedRecordsToInsert = ref(0)
 const processedRecordsToUpdate = ref(0)
 
 const onVerifyImport = async () => {
+  if (!importPayload.value?.upsert || isImportVerified.value) {
+    onImport()
+    return
+  }
+
   if (verifyRequiredFields()) return
 
   errorMsgs.value = []
@@ -618,6 +623,10 @@ const onVerifyImport = async () => {
   isVerifyImportDlgVisible.value = true
 
   isVerifyImportLoading.value = false
+
+  if (!errorMsgs.value.length && ncIsEmptyObject(mergeFieldValueCount.value)) {
+    onImport()
+  }
 }
 
 const errorMsgsTableData = computed(() => {
@@ -640,7 +649,7 @@ const errorMsgsTableData = computed(() => {
   return data
 })
 
-const onImport = async () => {
+async function onImport() {
   if (isVerifyImportDlgVisible.value) {
     isVerifyImportDlgVisible.value = false
   }
@@ -953,23 +962,10 @@ const errorMsgsTableColumns = [
         <NcButton :disabled="isImportingRecords" size="small" type="secondary" @click="clearImport()">Cancel</NcButton>
 
         <NcButton
-          v-if="importPayload?.upsert"
           size="small"
-          type="secondary"
-          :disabled="!readyForImport || isImportVerified"
-          :loading="isVerifyImportLoading"
+          :disabled="!readyForImport"
+          :loading="isImportingRecords || isVerifyImportLoading"
           @click="onVerifyImport"
-        >
-          <template v-if="isImportVerified" #icon>
-            <GeneralIcon icon="check" />
-          </template>
-          Verify Import
-        </NcButton>
-        <NcButton
-          size="small"
-          :disabled="!readyForImport || (importPayload?.upsert && !isImportVerified)"
-          :loading="isImportingRecords"
-          @click="onImport"
         >
           Import
         </NcButton>

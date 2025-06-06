@@ -3,6 +3,7 @@ import type {
   EntityScheduler,
   ScheduledJobConfig,
 } from '~/interface/Scheduler';
+import type dayjs from '~/utils/dayjs';
 
 /**
  * Base class for entity schedulers that implements common functionality
@@ -19,8 +20,10 @@ export abstract class BaseEntityScheduler implements EntityScheduler {
    * Find jobs that are due to be executed within the given time range
    */
   abstract findDueJobs(
-    currentTime: Date,
-    endTime: Date,
+    currentTime: dayjs.Dayjs,
+    endTime: dayjs.Dayjs,
+    limit?: number,
+    offset?: number,
   ): Promise<ScheduledJobConfig[]>;
 
   /**

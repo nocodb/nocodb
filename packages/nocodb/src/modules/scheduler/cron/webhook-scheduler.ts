@@ -4,6 +4,7 @@ import { BaseEntityScheduler } from '~/modules/scheduler/base-entity-scheduler';
 import { JobTypes } from '~/interface/Jobs';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
+import dayjs from '~/utils/dayjs';
 
 @Injectable()
 export class WebhookScheduler extends BaseEntityScheduler {
@@ -22,8 +23,8 @@ export class WebhookScheduler extends BaseEntityScheduler {
    * Find webhook jobs that are due for execution
    */
   async findDueJobs(
-    currentTime: Date,
-    endTime: Date,
+    currentTime: dayjs.Dayjs,
+    endTime: dayjs.Dayjs,
     limit = 100,
     offset = 0,
   ): Promise<ScheduledJobConfig[]> {
@@ -34,15 +35,23 @@ export class WebhookScheduler extends BaseEntityScheduler {
         .where({
           event: 'cron',
           active: true,
-          next_execution_at: {
-            lt: endTime.toISOString(),
-          },
         })
+        .where('next_execution_at', '<', currentTime.toISOString())
         .orderBy('next_execution_at', 'asc')
         .limit(limit)
         .offset(offset);
 
       return webhooks.map((webhook) => {
+        const timezone = webhook.timezone || 'UTC';
+
+        const nextExecutionTime = webhook.next_execution_at
+          ? dayjs(webhook.next_execution_at).tz(timezone)
+          : undefined;
+
+        const lastExecutionTime = webhook.last_execution_at
+          ? dayjs(webhook.last_execution_at).tz(timezone)
+          : undefined;
+
         const jobConfig: ScheduledJobConfig = {
           id: webhook.id,
           entityId: webhook.id,
@@ -58,11 +67,9 @@ export class WebhookScheduler extends BaseEntityScheduler {
             modelId: webhook.fk_model_id,
             scheduledExecution: true,
           },
-          timezone: webhook.timezone,
-          nextExecutionTime: new Date(webhook.next_execution_at),
-          lastExecutionTime: webhook.last_execution_at
-            ? new Date(webhook.last_execution_at)
-            : undefined,
+          timezone,
+          nextExecutionTime,
+          lastExecutionTime,
           cronExpression: webhook.cron_expression,
           active: webhook.active,
         };
@@ -87,12 +94,22 @@ export class WebhookScheduler extends BaseEntityScheduler {
         const batch = jobs.slice(i, i + batchSize);
 
         const updatePromises = batch.map((job) => {
+          const timezone = job.timezone || 'UTC';
+
+          const lastExecutionAt = job.lastExecutionTime
+            ? job.lastExecutionTime.tz(timezone).toISOString()
+            : null;
+
+          const nextExecutionAt = job.nextExecutionTime
+            ? job.nextExecutionTime.tz(timezone).toISOString()
+            : null;
+
           return Noco.ncMeta
             .knexConnection(MetaTable.HOOKS)
             .where({ id: job.id })
             .update({
-              last_execution_at: job.lastExecutionTime.toISOString(),
-              next_execution_at: job.nextExecutionTime.toISOString(),
+              last_execution_at: lastExecutionAt,
+              next_execution_at: nextExecutionAt,
             });
         });
 

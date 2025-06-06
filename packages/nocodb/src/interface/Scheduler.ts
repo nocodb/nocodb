@@ -1,11 +1,13 @@
+import type { Dayjs } from 'dayjs';
+
 export interface ScheduledJobConfig {
   id: string;
   entityId: string;
   entityType: string;
   jobType: string;
   jobData: any;
-  nextExecutionTime: Date;
-  lastExecutionTime?: Date;
+  nextExecutionTime: Dayjs;
+  lastExecutionTime?: Dayjs;
   cronExpression?: string;
   intervalMinutes?: number;
   timezone?: string;
@@ -15,8 +17,8 @@ export interface ScheduledJobConfig {
 export interface EntityScheduler {
   getEntityType(): string;
   findDueJobs(
-    currentTime: Date,
-    endTime: Date,
+    currentTime: Dayjs,
+    endTime: Dayjs,
     limit?: number,
     offset?: number,
   ): Promise<ScheduledJobConfig[]>;

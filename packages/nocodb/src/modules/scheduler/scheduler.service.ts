@@ -7,6 +7,7 @@ import type {
   EntityScheduler,
   ScheduledJobConfig,
 } from '~/interface/Scheduler';
+import dayjs from '~/utils/dayjs';
 import { SchedulerOptions } from '~/interface/Scheduler';
 import { PubSubRedis } from '~/redis/pubsub-redis';
 
@@ -161,7 +162,7 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
     this.logger.log(`Registered entity scheduler for: ${entityType}`);
   }
 
-  @Cron(CronExpression.EVERY_MINUTE, { name: 'scheduledJobProcessor' })
+  @Cron(CronExpression.EVERY_5_SECONDS, { name: 'scheduledJobProcessor' })
   async processDueJobs() {
     if (this.isShuttingDown) return;
 
@@ -171,10 +172,10 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
     }
 
     try {
-      const currentTime = new Date();
-      const endTime = new Date(
-        currentTime.getTime() + this.options.pollingIntervalMs,
-      );
+      const currentTime = dayjs().utc();
+      const endTime = dayjs()
+        .utc()
+        .add(this.options.pollingIntervalMs, 'millisecond');
 
       this.logger.debug(
         `Processing jobs due between ${currentTime.toISOString()} and ${endTime.toISOString()}`,
@@ -207,8 +208,8 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
    */
   private async processEntitySchedulerJobs(
     scheduler: EntityScheduler,
-    currentTime: Date,
-    endTime: Date,
+    currentTime: dayjs.Dayjs,
+    endTime: dayjs.Dayjs,
   ) {
     const entityType = scheduler.getEntityType();
     let processedCount = 0;
@@ -234,7 +235,7 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
 
       const jobsWithNextExecution = dueJobs.map((job) => ({
         ...job,
-        lastExecutionTime: new Date(),
+        lastExecutionTime: dayjs().utc(),
         nextExecutionTime: this.calculateNextExecutionTime(job),
       }));
 
@@ -258,7 +259,7 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
             _entityId: job.entityId,
             _entityType: job.entityType,
             _isScheduledExecution: true,
-            _scheduledAt: new Date().toISOString(),
+            _scheduledAt: dayjs().utc().toISOString(),
             _originalExecutionTime: job.nextExecutionTime,
           })
           .catch((error) => {
@@ -281,34 +282,33 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
   /**
    * Calculate next execution time based on cron or interval
    */
-  private calculateNextExecutionTime(job: ScheduledJobConfig): Date {
-    const now = new Date();
+  private calculateNextExecutionTime(job: ScheduledJobConfig): dayjs.Dayjs {
+    const now = dayjs().utc();
+    const timezone = job.timezone || 'UTC';
 
     if (job.cronExpression) {
       try {
         const cron = CronExpressionParser.parse(job.cronExpression, {
-          currentDate: new Date(),
-          tz: job.timezone,
+          currentDate: now.toDate(),
+          tz: timezone,
         });
 
-        return cron.next().toDate();
+        return dayjs(cron.next().toDate()).tz(timezone);
       } catch (error) {
         this.logger.error(
           `Invalid cron expression for job ${job.id}: ${job.cronExpression}`,
           error,
         );
-        return new Date(
-          now.getTime() + (job.intervalMinutes || 60) * 60 * 1000,
-        );
+        return now.add(job.intervalMinutes || 60, 'minute');
       }
     }
 
     if (job.intervalMinutes) {
-      return new Date(now.getTime() + job.intervalMinutes * 60 * 1000);
+      return now.add(job.intervalMinutes, 'minute');
     }
 
     // Default to 1 hour
-    return new Date(now.getTime() + 60 * 60 * 1000);
+    return now.add(60, 'minute');
   }
 
   private delay(ms: number): Promise<void> {

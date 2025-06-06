@@ -103,11 +103,11 @@ let hookRef = reactive<
       path: '',
     },
   },
-  cron_expression: '0 0 * * *',
+  cron_expression: '*/15 * * * *',
   condition: false,
   active: true,
   version: 'v2',
-  timezone: browserTz,
+  timezone: browserTz?.name,
 })
 
 const isBodyShown = ref(hookRef.version === 'v1' || isEeUI)
@@ -842,7 +842,6 @@ onMounted(async () => {
                     <a-select
                       v-model:value="hookRef.timezone"
                       show-search
-                      allow-clear
                       :filter-option="(input, option) => antSelectFilterOption(input, option, ['key', 'data-abbreviation'])"
                       dropdown-class-name="nc-dropdown-timezone"
                       class="nc-search-timezone"

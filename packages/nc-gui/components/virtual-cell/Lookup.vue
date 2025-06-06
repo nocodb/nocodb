@@ -548,6 +548,12 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
     }
   }
 
+  .nc-cell-url {
+    & a {
+      @apply !py-0;
+    }
+  }
+
   .nc-attachment-image {
     @apply !hover:cursor-pointer;
   }

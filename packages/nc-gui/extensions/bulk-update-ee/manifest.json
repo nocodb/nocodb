@@ -21,6 +21,5 @@
     "contentMinHeight": "310px"
   },
   "order": 4,
-  "disabled": true,
-  "onPrem": true
+  "disabled": true
 }

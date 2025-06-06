@@ -597,7 +597,7 @@ describe('dataApiV3', () => {
       });
     });
 
-    describe.only('Link based', () => {
+    describe('Link based', () => {
       let tblCity: Model;
       let tblCountry: Model;
       let tblActor: Model;
@@ -662,16 +662,9 @@ describe('dataApiV3', () => {
         // links
         expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
 
-        let citiesExpectedFromListAPI = citiesExpected.map((c) => ({
-          id: c.id,
-          fields: c.fields,
-        }));
         expect(rspFromRecordAPI.body.records.length).to.be.eq(1);
         expect(rspFromRecordAPI.body.records[0].fields['Cities']).to.be.eq(5);
-        expect(rspFromLinkAPI.body.records).to.deep.equal(
-          citiesExpectedFromListAPI,
-        );
-        ///////////////////////////////////////////////////////////////////
+        expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
 
         // verify in City table
         for (let i = 1; i <= 10; i++) {
@@ -751,15 +744,9 @@ describe('dataApiV3', () => {
 
         expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
 
-        citiesExpectedFromListAPI = citiesExpected.map((c) => ({
-          id: c.id,
-          fields: c.fields,
-        }));
         expect(rspFromRecordAPI.body.records.length).to.be.eq(1);
         expect(rspFromRecordAPI.body.records[0].fields['Cities']).to.be.eq(7);
-        expect(rspFromLinkAPI.body.records).to.deep.equal(
-          citiesExpectedFromListAPI,
-        );
+        expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
 
         // verify in City table
         for (let i = 1; i <= 10; i++) {
@@ -834,15 +821,9 @@ describe('dataApiV3', () => {
         ];
         expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
 
-        citiesExpectedFromListAPI = citiesExpected.map((c) => ({
-          id: c.id,
-          fields: c.fields,
-        }));
         expect(rspFromRecordAPI.body.records.length).to.be.eq(1);
         expect(rspFromRecordAPI.body.records[0].fields['Cities']).to.be.eq(3);
-        expect(rspFromLinkAPI.body.records).to.deep.equal(
-          citiesExpectedFromListAPI,
-        );
+        expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
         // verify in City table
         for (let i = 1; i <= 10; i++) {
           rspFromLinkAPI = await ncAxiosLinkGet({
@@ -994,7 +975,12 @@ describe('dataApiV3', () => {
           },
         });
 
-        const expectedActorsFromLinkAPI = prepareRecords('Actor', 20);
+        const expectedActorsFromLinkAPI = prepareRecords('Actor', 20).map(
+          (record) => ({
+            id: record.Id,
+            fields: { Actor: record.Actor },
+          }),
+        );
 
         // Links
         expect(rspFromLinkAPI.body.records.length).to.equal(20);
@@ -1003,7 +989,7 @@ describe('dataApiV3', () => {
         );
 
         expect(rspFromRecordAPI.body.records.length).to.equal(1);
-        expect(rspFromRecordAPI.body.records[0]['Actors']).to.equal(20);
+        expect(rspFromRecordAPI.body.records[0].fields['Actors']).to.equal(20);
 
         // Update mm link between Actor and Film
         // List them for a record & verify in both tables
@@ -1017,7 +1003,12 @@ describe('dataApiV3', () => {
         });
 
         // Even though we added till 30, we need till 25 due to pagination
-        expectedFilmsFromLinkAPI.push(...prepareRecords('Film', 5, 21));
+        expectedFilmsFromLinkAPI.push(...prepareRecords('Film', 5, 21).map(
+          (record) => ({
+            id: record.Id,
+            fields: { Film: record.Film },
+          }),
+        ));
 
         // verify in Actor table
         rspFromLinkAPI = await ncAxiosLinkGet({
@@ -1061,12 +1052,14 @@ describe('dataApiV3', () => {
           });
           expect(rspFromLinkAPI.body.records.length).to.equal(1);
           expect(rspFromLinkAPI.body.records[0]).to.deep.equal({
-            Id: 1,
-            Actor: `Actor 1`,
+            id: 1,
+            fields: {
+              Actor: `Actor 1`,
+            }
           });
 
           expect(rspFromRecordAPI.body.records.length).to.equal(1);
-          expect(rspFromRecordAPI.body.records[0]['Actors']).to.equal(1);
+          expect(rspFromRecordAPI.body.records[0].fields['Actors']).to.equal(1);
         }
 
         // Delete mm link between Actor and Film
@@ -1097,7 +1090,7 @@ describe('dataApiV3', () => {
         });
 
         expectedFilmsFromLinkAPI.length = 0; // clear array
-        expectedFilmsFromRecordV3API.length = 0; // clear array
+        const expectedFilmsFromRecordV3API: { Id: number; Value: string }[] = []; // clear array
         for (let i = 2; i <= 30; i += 2) {
           expectedFilmsFromLinkAPI.push({
             id: i,
@@ -1154,16 +1147,18 @@ describe('dataApiV3', () => {
           if (i % 2 === 0) {
             expect(rspFromLinkAPI.body.records.length).to.equal(1);
             expect(rspFromLinkAPI.body.records[0]).to.deep.equal({
-              Id: 1,
-              Actor: `Actor 1`,
+              id: 1,
+              fields: {
+                Actor: `Actor 1`,
+              }
             });
 
             expect(rspFromRecordAPI.body.records.length).to.equal(1);
-            expect(rspFromRecordAPI.body.records[0]['Actors']).to.equal(1);
+            expect(rspFromRecordAPI.body.records[0].fields['Actors']).to.equal(1);
           } else {
             expect(rspFromLinkAPI.body.records.length).to.equal(0);
             expect(rspFromRecordAPI.body.records.length).to.equal(1);
-            expect(rspFromRecordAPI.body.records[0]['Actors']).to.equal(0);
+            expect(rspFromRecordAPI.body.records[0].fields['Actors']).to.equal(0);
           }
         }
       });
@@ -1208,12 +1203,12 @@ describe('dataApiV3', () => {
 
         expect(respFromLinkAPI.body.records.length).to.equal(1);
         expect(respFromLinkAPI.body.records[0]).to.deep.equal({
-          Id: 1,
-          City: 'City 1',
+          id: 1,
+          fields: { City: 'City 1' },
         });
 
         expect(respFromRecordAPI.body.records.length).to.eq(1);
-        expect(respFromRecordAPI.body.records[0]['Cities']).to.eq(1);
+        expect(respFromRecordAPI.body.records[0].fields['Cities']).to.eq(1);
 
         respFromLinkAPI = await ncAxiosLinkGet({
           urlParams: {
@@ -1232,13 +1227,13 @@ describe('dataApiV3', () => {
         expect(respFromLinkAPI.body.records.length).to.equal(2);
         expect(respFromLinkAPI.body.records.sort(idc)).to.deep.equal(
           [
-            { Id: 2, City: 'City 2' },
-            { Id: 3, City: 'City 3' },
+            { id: 2, fields: { City: 'City 2' } },
+            { id: 3, fields: { City: 'City 3' } },
           ].sort(idc),
         );
 
         expect(respFromRecordAPI.body.records.length).to.eq(1);
-        expect(respFromRecordAPI.body.records[0]['Cities']).to.eq(2);
+        expect(respFromRecordAPI.body.records[0].fields['Cities']).to.eq(2);
       });
 
       // limit & offset verification
@@ -1269,16 +1264,16 @@ describe('dataApiV3', () => {
         });
         expect(rsp.body.records.length).to.equal(10);
         expect(rsp.body.records).to.deep.equal([
-          { Id: 1, City: 'City 1' },
-          { Id: 2, City: 'City 2' },
-          { Id: 3, City: 'City 3' },
-          { Id: 4, City: 'City 4' },
-          { Id: 5, City: 'City 5' },
-          { Id: 6, City: 'City 6' },
-          { Id: 7, City: 'City 7' },
-          { Id: 8, City: 'City 8' },
-          { Id: 9, City: 'City 9' },
-          { Id: 10, City: 'City 10' },
+          { id: 1, fields: { City: 'City 1' } },
+          { id: 2, fields: { City: 'City 2' } },
+          { id: 3, fields: { City: 'City 3' } },
+          { id: 4, fields: { City: 'City 4' } },
+          { id: 5, fields: { City: 'City 5' } },
+          { id: 6, fields: { City: 'City 6' } },
+          { id: 7, fields: { City: 'City 7' } },
+          { id: 8, fields: { City: 'City 8' } },
+          { id: 9, fields: { City: 'City 9' } },
+          { id: 10, fields: { City: 'City 10' } },
         ]);
 
         rsp = await ncAxiosLinkGet({
@@ -1294,16 +1289,16 @@ describe('dataApiV3', () => {
         });
         expect(rsp.body.records.length).to.equal(10);
         expect(rsp.body.records).to.deep.equal([
-          { Id: 6, City: 'City 6' },
-          { Id: 7, City: 'City 7' },
-          { Id: 8, City: 'City 8' },
-          { Id: 9, City: 'City 9' },
-          { Id: 10, City: 'City 10' },
-          { Id: 11, City: 'City 11' },
-          { Id: 12, City: 'City 12' },
-          { Id: 13, City: 'City 13' },
-          { Id: 14, City: 'City 14' },
-          { Id: 15, City: 'City 15' },
+          { id: 6, fields: { City: 'City 6' } },
+          { id: 7, fields: { City: 'City 7' } },
+          { id: 8, fields: { City: 'City 8' } },
+          { id: 9, fields: { City: 'City 9' } },
+          { id: 10, fields: { City: 'City 10' } },
+          { id: 11, fields: { City: 'City 11' } },
+          { id: 12, fields: { City: 'City 12' } },
+          { id: 13, fields: { City: 'City 13' } },
+          { id: 14, fields: { City: 'City 14' } },
+          { id: 15, fields: { City: 'City 15' } },
         ]);
 
         rsp = await ncAxiosLinkGet({
@@ -1319,11 +1314,11 @@ describe('dataApiV3', () => {
         });
         expect(rsp.body.records.length).to.equal(5);
         expect(rsp.body.records).to.deep.equal([
-          { Id: 46, City: 'City 46' },
-          { Id: 47, City: 'City 47' },
-          { Id: 48, City: 'City 48' },
-          { Id: 49, City: 'City 49' },
-          { Id: 50, City: 'City 50' },
+          { id: 46, fields: { City: 'City 46' } },
+          { id: 47, fields: { City: 'City 47' } },
+          { id: 48, fields: { City: 'City 48' } },
+          { id: 49, fields: { City: 'City 49' } },
+          { id: 50, fields: { City: 'City 50' } },
         ]);
       });
 
@@ -1852,7 +1847,7 @@ describe('dataApiV3', () => {
         }
       });
 
-      it.only(`will handle various insert value (bulk)`, async () => {
+      it(`will handle various insert value (bulk)`, async () => {
         for (const expectedValue of [true, false]) {
           const expectedValueCases = valueCases.filter(
             (k) => k.expect === expectedValue,

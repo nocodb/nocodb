@@ -191,6 +191,7 @@
   "general": {
     "authorization": "Authorization",
     "revoke": "Revoke",
+    "marketplace": "Marketplace",
     "script": "Script",
     "dashboard": "Dashboard",
     "supported": "Supported",

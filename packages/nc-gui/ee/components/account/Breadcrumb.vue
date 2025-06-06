@@ -42,6 +42,24 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
     return payload
   }
 
+  console.log(route.name)
+
+  if (route.name?.toString().includes('index-typeOrId-marketplace')) {
+    payload.pop()
+
+    switch (route.name.toString().split('-').pop()) {
+      default: {
+        payload.push({
+          title: t('general.community'),
+          active: true,
+        })
+        break
+      }
+    }
+
+    return payload
+  }
+
   switch (route.params.page) {
     case 'profile': {
       payload.push({

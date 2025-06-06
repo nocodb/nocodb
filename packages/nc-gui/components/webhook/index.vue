@@ -4,6 +4,7 @@ import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 import cronstrue from 'cronstrue'
 
+import { type TimeZone, getTimeZones } from '@vvo/tzdb'
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
@@ -51,6 +52,27 @@ const testConnectionError = ref('')
 
 const useForm = Form.useForm
 
+const cronEditorVisible = ref(false)
+
+const timezones = getTimeZones({ includeUtc: true }).sort((a, b) => a.name.localeCompare(b.name))
+const browserTzName = Intl.DateTimeFormat().resolvedOptions().timeZone
+const browserTz = timezones.find((tz) => isSameTimezone(tz.name, browserTzName))
+const utcTz = timezones.find((tz) => tz.name === 'Etc/UTC')
+const defaultSuggestedTzs = [browserTz, utcTz].filter((k) => k) as TimeZone[]
+
+const priorityTzs = computed(() => {
+  const otherPriorityTzs = []
+  for (const tz of timezones) {
+    if (
+      browserTz?.countryCode === tz.countryCode &&
+      !defaultSuggestedTzs.find((suggestedTz) => isSameTimezone(suggestedTz?.name, tz.name))
+    ) {
+      otherPriorityTzs.push(tz)
+    }
+  }
+  return [...defaultSuggestedTzs, ...otherPriorityTzs]
+})
+
 let hookRef = reactive<
   Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation?: string; condition: boolean }
 >({
@@ -85,6 +107,7 @@ let hookRef = reactive<
   condition: false,
   active: true,
   version: 'v2',
+  timezone: browserTz,
 })
 
 const isBodyShown = ref(hookRef.version === 'v1' || isEeUI)
@@ -780,17 +803,24 @@ onMounted(async () => {
                   </a-select>
                 </a-form-item>
               </div>
-              <div v-if="hookRef.event === 'cron'" class="flex w-full gap-3">
-                <a-form-item class="w-full" v-bind="validateInfos.cron_expression">
+
+              <div v-if="hookRef.event === 'cron'" class="flex w-full gap-3 custom-select">
+                <a-form-item class="w-2/3" v-bind="validateInfos.cron_expression">
                   <div class="w-full flex flex-col gap-2">
                     <label class="font-medium">Scheduled At</label>
                     <NcDropdown
+                      v-model:visible="cronEditorVisible"
                       overlay-class-name="nc-webhook-cron-editor-dropdown"
                       :auto-close="false"
                       :trigger="['click']"
                       @click.stop
                     >
-                      <div class="nc-webhook-cron-editor-dropdown-field">
+                      <div
+                        :class="{
+                          open: cronEditorVisible,
+                        }"
+                        class="nc-webhook-cron-editor-dropdown-field"
+                      >
                         <NcTooltip class="truncate" show-on-truncate-only>
                           <template #title>
                             {{ cronstrue.toString(hookRef.cron_expression) }}
@@ -804,6 +834,70 @@ onMounted(async () => {
                         </div>
                       </template>
                     </NcDropdown>
+                  </div>
+                </a-form-item>
+                <a-form-item class="w-1/3">
+                  <div class="w-full flex flex-col gap-2">
+                    <label class="font-medium">Timezone</label>
+                    <a-select
+                      v-model:value="hookRef.timezone"
+                      show-search
+                      allow-clear
+                      :filter-option="(input, option) => antSelectFilterOption(input, option, ['key', 'data-abbreviation'])"
+                      dropdown-class-name="nc-dropdown-timezone"
+                      class="nc-search-timezone"
+                    >
+                      <template #suffixIcon>
+                        <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                      </template>
+
+                      <a-select-opt-group label="Suggested">
+                        <a-select-option
+                          v-for="timezone of priorityTzs"
+                          :key="timezone.name"
+                          :value="timezone.name"
+                          :data-abbreviation="timezone.abbreviation"
+                        >
+                          <div class="flex gap-2 w-full justify-between items-center">
+                            <span>{{ timezone.name }}</span>
+                            <div>
+                              <span class="text-nc-content-gray-muted text-[13px] mr-2">
+                                {{ timezone.abbreviation }}
+                              </span>
+                              <component
+                                :is="iconMap.check"
+                                id="nc-selected-item-icon"
+                                class="text-primary w-4 h-4"
+                                :class="{ invisible: hookRef.timezone !== timezone.name }"
+                              />
+                            </div>
+                          </div>
+                        </a-select-option>
+                      </a-select-opt-group>
+                      <a-select-opt-group label="All">
+                        <a-select-option
+                          v-for="timezone of timezones"
+                          :key="timezone.name"
+                          :value="timezone.name"
+                          :data-abbreviation="timezone.abbreviation"
+                        >
+                          <div class="flex gap-2 w-full justify-between items-center">
+                            <span>{{ timezone.name }}</span>
+                            <div>
+                              <span class="text-nc-content-gray-muted text-[13px] mr-2">
+                                {{ timezone.abbreviation }}
+                              </span>
+                              <component
+                                :is="iconMap.check"
+                                id="nc-selected-item-icon"
+                                class="text-primary w-4 h-4"
+                                :class="{ invisible: hookRef.timezone !== timezone.name }"
+                              />
+                            </div>
+                          </div>
+                        </a-select-option>
+                      </a-select-opt-group>
+                    </a-select>
                   </div>
                 </a-form-item>
               </div>

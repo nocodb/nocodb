@@ -58,6 +58,7 @@ export class WebhookScheduler extends BaseEntityScheduler {
             modelId: webhook.fk_model_id,
             scheduledExecution: true,
           },
+          timezone: webhook.timezone,
           nextExecutionTime: new Date(webhook.next_execution_at),
           lastExecutionTime: webhook.last_execution_at
             ? new Date(webhook.last_execution_at)

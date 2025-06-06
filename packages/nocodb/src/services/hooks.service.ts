@@ -65,9 +65,13 @@ export class HooksService {
     this.validateHookPayload(param.hook.notification);
 
     if (param?.hook.event === 'cron') {
+      if (!param?.hook.timezone) {
+        param.hook.timezone = 'UTC';
+      }
+
       const cron = CronExpressionParser.parse(param?.hook?.cron_expression, {
         currentDate: new Date(),
-        tz: 'UTC',
+        tz: param.hook.timezone,
       });
 
       param.hook.next_execution_at = cron.next().toISOString();
@@ -146,9 +150,12 @@ export class HooksService {
     }
 
     if (param?.hook.event === 'cron') {
+      if (!param?.hook.timezone) {
+        param.hook.timezone = 'UTC';
+      }
       const cron = CronExpressionParser.parse(param?.hook?.cron_expression, {
         currentDate: new Date(),
-        tz: 'UTC',
+        tz: param.hook.timezone,
       });
 
       param.hook.next_execution_at = cron.next().toISOString();

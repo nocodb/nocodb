@@ -23799,6 +23799,11 @@
             "x-stoplight": {
               "id": "socewqvadj91n"
             },
+            "timezone": {
+            "type": "string",
+            "description": "Timezone",
+            "example": "America/Los_Angeles"
+          },
             "example": "v2",
             "description": "Hook Version",
             "enum": [
@@ -23924,6 +23929,11 @@
             "type": "string",
             "description": "Cron Expression",
             "example": "0 * * * * *"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Timezone",
+            "example": "America/Los_Angeles"
           },
           "condition": {
             "$ref": "#/components/schemas/Bool",

@@ -153,6 +153,7 @@ export default class Hook implements HookType {
       'source_id',
       'cron_expression',
       'next_execution_at',
+      'timezone',
     ]);
 
     if (insertObj.notification && typeof insertObj.notification === 'object') {
@@ -221,6 +222,7 @@ export default class Hook implements HookType {
       'version',
       'cron_expression',
       'next_execution_at',
+      'timezone',
     ]);
 
     if (

@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { CronJob } from 'cron';
+import { CronExpressionParser } from 'cron-parser';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
   EntityScheduler,
@@ -286,14 +286,12 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
 
     if (job.cronExpression) {
       try {
-        const cronJob = new CronJob(
-          job.cronExpression,
-          () => {},
-          null,
-          false,
-          job.timezone,
-        );
-        return cronJob.nextDate().toJSDate();
+        const cron = CronExpressionParser.parse(job.cronExpression, {
+          currentDate: new Date(),
+          tz: job.timezone,
+        });
+
+        return cron.next().toDate();
       } catch (error) {
         this.logger.error(
           `Invalid cron expression for job ${job.id}: ${job.cronExpression}`,

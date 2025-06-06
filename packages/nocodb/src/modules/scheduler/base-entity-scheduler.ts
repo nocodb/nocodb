@@ -17,11 +17,10 @@ export abstract class BaseEntityScheduler implements EntityScheduler {
   abstract getEntityType(): string;
 
   /**
-   * Find jobs that are due to be executed within the given time range
+   * Find jobs that are due to be executed
    */
   abstract findDueJobs(
     currentTime: dayjs.Dayjs,
-    endTime: dayjs.Dayjs,
     limit?: number,
     offset?: number,
   ): Promise<ScheduledJobConfig[]>;

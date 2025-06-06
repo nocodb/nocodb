@@ -18,7 +18,6 @@ export interface EntityScheduler {
   getEntityType(): string;
   findDueJobs(
     currentTime: Dayjs,
-    endTime: Dayjs,
     limit?: number,
     offset?: number,
   ): Promise<ScheduledJobConfig[]>;

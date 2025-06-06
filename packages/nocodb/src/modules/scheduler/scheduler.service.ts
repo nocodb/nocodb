@@ -173,12 +173,9 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
 
     try {
       const currentTime = dayjs().utc();
-      const endTime = dayjs()
-        .utc()
-        .add(this.options.pollingIntervalMs, 'millisecond');
 
       this.logger.debug(
-        `Processing jobs due between ${currentTime.toISOString()} and ${endTime.toISOString()}`,
+        `Processing jobs due before ${currentTime.toISOString()}`,
       );
 
       // Process each entity scheduler separately
@@ -189,7 +186,6 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
           await this.processEntitySchedulerJobs(
             scheduler,
             currentTime,
-            endTime,
           );
         } catch (error) {
           this.logger.error(
@@ -209,7 +205,6 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
   private async processEntitySchedulerJobs(
     scheduler: EntityScheduler,
     currentTime: dayjs.Dayjs,
-    endTime: dayjs.Dayjs,
   ) {
     const entityType = scheduler.getEntityType();
     let processedCount = 0;
@@ -222,7 +217,6 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
 
       const dueJobs = await scheduler.findDueJobs(
         currentTime,
-        endTime,
         batchSize,
         0,
       );

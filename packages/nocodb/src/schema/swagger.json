@@ -23892,9 +23892,10 @@
               "bulkInsert",
               "bulkUpdate",
               "bulkDelete",
-              "trigger"
+              "trigger",
+              null
             ],
-            "type": "string",
+            "type": ["string", "null"],
             "description": "Hook Operation",
             "example": "insert"
           },

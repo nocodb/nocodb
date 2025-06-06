@@ -17,7 +17,7 @@ const { activeView } = storeToRefs(useViewsStore())
 
 const { t } = useI18n()
 
-const { updateStatLimit, showWebhookPlanLimitExceededModal } = useEeConfig()
+const { updateStatLimit, showWebhookPlanLimitExceededModal, blockCreateScheduleWebhook } = useEeConfig()
 
 const isWebhookModalOpen = ref(false)
 
@@ -163,16 +163,18 @@ const orderBy = computed<Record<string, SordDirectionType>>({
   },
 })
 
-const eventList = ref<Record<string, any>[]>([
-  { text: [t('general.on'), t('labels.recordInsert')], value: ['after', 'insert'] },
-  { text: [t('general.on'), t('labels.recordUpdate')], value: ['after', 'update'] },
-  { text: [t('general.on'), t('labels.recordDelete')], value: ['after', 'delete'] },
-  { text: [t('general.onMultiple'), t('labels.recordInsert')], value: ['after', 'bulkInsert'] },
-  { text: [t('general.onMultiple'), t('labels.recordUpdate')], value: ['after', 'bulkUpdate'] },
-  { text: [t('general.onMultiple'), t('labels.recordDelete')], value: ['after', 'bulkDelete'] },
-  { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
-  { text: ['Scheduled'], value: ['cron'] },
-])
+const eventList = computed(() => {
+  return [
+    { text: [t('general.on'), t('labels.recordInsert')], value: ['after', 'insert'] },
+    { text: [t('general.on'), t('labels.recordUpdate')], value: ['after', 'update'] },
+    { text: [t('general.on'), t('labels.recordDelete')], value: ['after', 'delete'] },
+    { text: [t('general.onMultiple'), t('labels.recordInsert')], value: ['after', 'bulkInsert'] },
+    { text: [t('general.onMultiple'), t('labels.recordUpdate')], value: ['after', 'bulkUpdate'] },
+    { text: [t('general.onMultiple'), t('labels.recordDelete')], value: ['after', 'bulkDelete'] },
+    { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
+    { text: ['Scheduled'], value: ['cron'], disabled: blockCreateScheduleWebhook.value, ee: true },
+  ]
+})
 
 const columns: NcTableColumnProps[] = [
   {

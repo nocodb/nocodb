@@ -162,7 +162,7 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
     this.logger.log(`Registered entity scheduler for: ${entityType}`);
   }
 
-  @Cron(CronExpression.EVERY_5_SECONDS, { name: 'scheduledJobProcessor' })
+  @Cron(CronExpression.EVERY_MINUTE, { name: 'scheduledJobProcessor' })
   async processDueJobs() {
     if (this.isShuttingDown) return;
 
@@ -183,10 +183,7 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
         if (this.isShuttingDown) break;
 
         try {
-          await this.processEntitySchedulerJobs(
-            scheduler,
-            currentTime,
-          );
+          await this.processEntitySchedulerJobs(scheduler, currentTime);
         } catch (error) {
           this.logger.error(
             `Error processing entity scheduler ${entityType}:`,
@@ -215,11 +212,7 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
     while (true) {
       if (this.isShuttingDown) break;
 
-      const dueJobs = await scheduler.findDueJobs(
-        currentTime,
-        batchSize,
-        0,
-      );
+      const dueJobs = await scheduler.findDueJobs(currentTime, batchSize, 0);
 
       if (!dueJobs.length) break;
 

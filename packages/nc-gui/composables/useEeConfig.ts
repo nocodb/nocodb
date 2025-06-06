@@ -49,6 +49,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockCurrentUserFilter = computed(() => false)
 
+  const blockCreateScheduleWebhook = computed(() => true)
+
   const getLimit = (..._args: any[]) => {}
 
   const getStatLimit = (..._args: any[]) => {}
@@ -136,5 +138,6 @@ export const useEeConfig = createSharedComposable(() => {
     cloudFeatures,
     blockCurrentUserFilter,
     showUpgradeToUseCurrentUserFilter,
+    blockCreateScheduleWebhook,
   }
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type HookReqType, type HookTestReqType, type HookType, PlanLimitTypes } from 'nocodb-sdk'
+import { type HookReqType, type HookTestReqType, type HookType, PlanFeatureTypes, PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 import cronstrue from 'cronstrue'
@@ -42,7 +42,7 @@ const { getMeta } = useMetas()
 
 const { activeTable } = toRefs(useTablesStore())
 
-const { updateStatLimit, showWebhookLogsFeatureAccessModal } = useEeConfig()
+const { updateStatLimit, showWebhookLogsFeatureAccessModal, getPlanTitle } = useEeConfig()
 
 const defaultHookName = t('labels.webhook')
 
@@ -746,28 +746,42 @@ onMounted(async () => {
                     <template #suffixIcon>
                       <GeneralIcon icon="arrowDown" class="text-gray-700" />
                     </template>
-                    <a-select-option
-                      v-for="(event, i) in eventList"
-                      :key="i"
-                      class="capitalize"
-                      :value="event.value.join(' ')"
-                      :disabled="hookRef.version === 'v1' && ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(event.value[1])"
-                    >
-                      <div class="flex items-center w-full gap-2 justify-between">
-                        <NcTooltip class="truncate" show-on-truncate-only>
-                          <template #title>
+                    <template v-for="(event, i) in eventList" :key="i">
+                      <a-select-option
+                        v-if="event.ee ? isEeUI : true"
+                        class="capitalize"
+                        :value="event.value.join(' ')"
+                        :disabled="
+                          (hookRef.version === 'v1' && ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(event.value[1])) ||
+                          event.disabled
+                        "
+                      >
+                        <div class="flex items-center w-full gap-2 justify-between">
+                          <NcTooltip class="truncate" show-on-truncate-only>
+                            <template #title>
+                              {{ event.text.join(' ') }}
+                            </template>
                             {{ event.text.join(' ') }}
-                          </template>
-                          {{ event.text.join(' ') }}
-                        </NcTooltip>
-                        <component
-                          :is="iconMap.check"
-                          v-if="hookRef.eventOperation === event.value.join(' ')"
-                          id="nc-selected-item-icon"
-                          class="text-primary w-4 h-4 flex-none"
-                        />
-                      </div>
-                    </a-select-option>
+                          </NcTooltip>
+                          <LazyPaymentUpgradeBadge
+                            v-if="event.ee && isEeUI"
+                            remove-click
+                            :feature="PlanFeatureTypes.FEATURE_WEBHOOK_SCHEDULED"
+                            :content="
+                              t('upgrade.upgradeToAddCustomValidationSubtitle', {
+                                plan: getPlanTitle(PlanTitles.TEAM),
+                              })
+                            "
+                          />
+                          <component
+                            :is="iconMap.check"
+                            v-if="hookRef.eventOperation === event.value.join(' ')"
+                            id="nc-selected-item-icon"
+                            class="text-primary w-4 h-4 flex-none"
+                          />
+                        </div>
+                      </a-select-option>
+                    </template>
                   </a-select>
                 </a-form-item>
                 <a-form-item class="w-2/3" v-bind="validateInfos['notification.type']">
@@ -811,7 +825,6 @@ onMounted(async () => {
                     <NcDropdown
                       v-model:visible="cronEditorVisible"
                       overlay-class-name="nc-webhook-cron-editor-dropdown"
-                      :auto-close="false"
                       :trigger="['click']"
                       @click.stop
                     >

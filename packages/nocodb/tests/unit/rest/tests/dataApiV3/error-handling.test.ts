@@ -419,7 +419,7 @@ describe('dataApiV3', () => {
         textBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
       });
 
-      it.only(`will handle update length exceed 100k`, async () => {
+      it(`will handle update length exceed 100k`, async () => {
         const base50 = '01234567890123456789012345678901234567890123456789';
         // Generate ~100001-character string by repeating the above 40 times and adding '1'
         const content100k1Length =

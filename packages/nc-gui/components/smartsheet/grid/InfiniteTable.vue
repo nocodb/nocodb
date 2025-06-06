@@ -2267,6 +2267,10 @@ const headerFilteredOrSortedClass = (colId: string) => {
               mobile: isMobileMode,
               desktop: !isMobileMode,
             }"
+            :style="{
+              tableLayout: 'fixed',
+            }"
+            style="table-layout: fixed"
             class="nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5"
           >
             <thead>
@@ -2489,6 +2493,10 @@ const headerFilteredOrSortedClass = (colId: string) => {
                 'desktop': !isMobileMode,
                 'w-full': visibleRows?.length === 0,
               }"
+              :style="{
+                tableLayout: 'fixed',
+              }"
+              style="table-layout: fixed"
               @contextmenu="showContextMenu"
             >
               <tbody

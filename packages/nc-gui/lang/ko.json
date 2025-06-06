@@ -400,7 +400,9 @@
     "community": "커뮤니티",
     "youtube": "유튜브",
     "changelog": "변경 기록",
-    "contactSupport": "도움 받기"
+    "contactSupport": "도움 받기",
+    "proceedImport": "Proceed Import",
+    "inserting": "Inserting"
   },
   "objects": {
     "script": "스크립트",
@@ -818,7 +820,8 @@
     "whatsNew": "새로운 기능!",
     "currentUser": "현재 사용자",
     "filteredByLoggedInUser": "로그인한 사용자별로 필터링됨",
-    "hideExtensions": "확장 프로그램 숨기기"
+    "hideExtensions": "확장 프로그램 숨기기",
+    "duplicatesFound": "Duplicates found"
   },
   "labels": {
     "crossBase": "외부 베이스에 대한 링크",

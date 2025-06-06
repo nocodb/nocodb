@@ -17,6 +17,7 @@ import { NcApiVersion } from 'nocodb-sdk';
 import type {
   DataDeleteRequest,
   DataInsertRequest,
+  DataRecord,
   DataUpdateRequest,
 } from '~/services/v3/data-v3.types';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -200,5 +201,23 @@ export class Datav3Controller {
     });
 
     res.json(countResult);
+  }
+
+  @Get([`${PREFIX_APIV3_DATA}/:modelId/records/:rowId`])
+  @Acl('dataRead')
+  async dataRead(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('modelId') modelId: string,
+    @Query('view_id') viewId: string,
+    @Param('rowId') rowId: string,
+  ): Promise<{ record: DataRecord }> {
+    return await this.dataV3Service.dataRead(context, {
+      modelId,
+      rowId: rowId,
+      query: req.query,
+      viewId,
+      req,
+    });
   }
 }

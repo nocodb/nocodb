@@ -400,7 +400,9 @@
     "community": "Community",
     "youtube": "Youtube",
     "changelog": "Changelog",
-    "contactSupport": "Contact Support"
+    "contactSupport": "Contact Support",
+    "proceedImport": "Proceed Import",
+    "inserting": "Inserting"
   },
   "objects": {
     "script": "ಸ್ಕ್ರಿಪ್ಟ್",
@@ -818,7 +820,8 @@
     "whatsNew": "What’s New!",
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user",
-    "hideExtensions": "Hide Extensions"
+    "hideExtensions": "Hide Extensions",
+    "duplicatesFound": "Duplicates found"
   },
   "labels": {
     "crossBase": "Link to external base",

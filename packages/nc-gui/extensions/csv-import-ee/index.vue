@@ -1333,7 +1333,7 @@ const errorMsgsTableColumns = [
                       class="nc-warnings-table-list flex-1 h-[calc(100%_-_200px)]"
                       pagination
                     >
-                      <template #bodyCell="{ column, record: errorMsg }">
+                      <template #bodyCell="{ record: errorMsg }">
                         <div class="flex items-center gap-2">
                           <GeneralIcon icon="ncAlertTriangle" class="h-4 w-4 flex-none text-yellow-600" />
                           <span class="text-nc-content-gray-subtle2">{{ errorMsg.title }}</span>

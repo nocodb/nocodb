@@ -23,11 +23,20 @@ interface Props {
   newRecordSubmitBtnText?: string
   expandForm?: (row: Row) => void
   maintainDefaultViewOrder?: boolean
+  onDeletedRecord?: (primaryKey?: string) => void | Promise<void>
 }
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord', 'updateRowCommentCount'])
+const emits = defineEmits([
+  'update:modelValue',
+  'cancel',
+  'next',
+  'prev',
+  'createdRecord',
+  'deletedRecord',
+  'updateRowCommentCount',
+])
 
 const viewsStore = useViewsStore()
 
@@ -518,10 +527,17 @@ const onConfirmDeleteRowClick = async () => {
   isExpanded.value = false
 
   await deleteRowById(primaryKey.value || undefined)
+  // don't know why if emits is after deleteRowById, it doesn't work
+  // at least on UnLinkedItems.vue
+  emits('deletedRecord')
+  // so as workaround, pass the event as property
+  props.onDeletedRecord?.(primaryKey.value || undefined)
+
   message.success(t('msg.rowDeleted'))
   await reloadViewDataTrigger.trigger({
     shouldShowLoading: false,
   })
+
   onClose()
   showDeleteRowModal.value = false
 }

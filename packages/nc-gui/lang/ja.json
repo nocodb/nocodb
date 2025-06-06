@@ -400,7 +400,9 @@
     "community": "コミュニティ",
     "youtube": "Youtube",
     "changelog": "変更履歴",
-    "contactSupport": "お問い合わせ"
+    "contactSupport": "お問い合わせ",
+    "proceedImport": "Proceed Import",
+    "inserting": "Inserting"
   },
   "objects": {
     "script": "スクリプト",
@@ -818,7 +820,8 @@
     "whatsNew": "What’s New!",
     "currentUser": "現在のユーザー",
     "filteredByLoggedInUser": "Filtered by logged-in user",
-    "hideExtensions": "Hide Extensions"
+    "hideExtensions": "Hide Extensions",
+    "duplicatesFound": "Duplicates found"
   },
   "labels": {
     "crossBase": "外部ベースへのリンク",

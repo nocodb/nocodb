@@ -23920,6 +23920,11 @@
             ],
             "description": "Hook Type"
           },
+          "cron_expression": {
+            "type": "string",
+            "description": "Cron Expression",
+            "example": "0 * * * * *"
+          },
           "condition": {
             "$ref": "#/components/schemas/Bool",
             "x-stoplight": {
@@ -23927,21 +23932,6 @@
             },
             "description": "Is this hook assoicated with some filters"
           }
-        },
-        "cron_expression": {
-            "type": "string",
-            "description": "Cron Expression",
-            "example": "0 * * * * *"
-        },
-        "last_execution_at": {
-          "type": "string",
-          "description": "Last Execution Time",
-          "example": "2022-01-01T00:00:00.000Z"
-        },
-        "next_execution_at": {
-          "type": "string",
-          "description": "Next Execution Time",
-          "example": "2022-01-01T00:00:00.000Z"
         },
         "required": [
           "event",

@@ -151,6 +151,8 @@ export default class Hook implements HookType {
       'active',
       'base_id',
       'source_id',
+      'cron_expression',
+      'next_execution_at',
     ]);
 
     if (insertObj.notification && typeof insertObj.notification === 'object') {
@@ -217,6 +219,8 @@ export default class Hook implements HookType {
       'timeout',
       'active',
       'version',
+      'cron_expression',
+      'next_execution_at',
     ]);
 
     if (

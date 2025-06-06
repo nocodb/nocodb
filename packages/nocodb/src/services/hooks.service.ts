@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
+import { CronExpressionParser } from 'cron-parser';
 import View from '../models/View';
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -54,13 +55,24 @@ export class HooksService {
     context: NcContext,
     param: {
       tableId: string;
-      hook: HookReqType;
+      hook: HookReqType & {
+        next_execution_at?: string;
+      };
       req: NcRequest;
     },
   ) {
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
     this.validateHookPayload(param.hook.notification);
+
+    if (param?.hook.event === 'cron') {
+      const cron = CronExpressionParser.parse(param?.hook?.cron_expression, {
+        currentDate: new Date(),
+        tz: 'UTC',
+      });
+
+      param.hook.next_execution_at = cron.next().toISOString();
+    }
 
     const hook = await Hook.insert(context, {
       ...param.hook,
@@ -113,7 +125,9 @@ export class HooksService {
     context: NcContext,
     param: {
       hookId: string;
-      hook: HookReqType;
+      hook: HookReqType & {
+        next_execution_at?: string;
+      };
       req: NcRequest;
     },
   ) {
@@ -130,6 +144,15 @@ export class HooksService {
     // If the webhook is being changed to manual trigger, set it to active
     if (param.hook.event === 'manual') {
       param.hook.active = true;
+    }
+
+    if (param?.hook.event === 'cron') {
+      const cron = CronExpressionParser.parse(param?.hook?.cron_expression, {
+        currentDate: new Date(),
+        tz: 'UTC',
+      });
+
+      param.hook.next_execution_at = cron.next().toISOString();
     }
 
     if (

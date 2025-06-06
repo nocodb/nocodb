@@ -169,6 +169,7 @@ export interface HandleWebhookJobData extends JobData {
   viewId: string;
   prevData;
   newData;
+  scheduledExecution?: boolean;
 }
 
 export interface DataExportJobData extends JobData {

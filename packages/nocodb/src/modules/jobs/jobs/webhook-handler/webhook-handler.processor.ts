@@ -1,29 +1,40 @@
 import { Logger } from '@nestjs/common';
 import type { Job } from 'bull';
-import { invokeWebhook } from '~/helpers/webhookHelpers';
+import type { HandleWebhookJobData } from '~/interface/Jobs';
 import { Hook, Model, View } from '~/models';
-import { type HandleWebhookJobData } from '~/interface/Jobs';
+import { invokeWebhook } from '~/helpers/webhookHelpers';
 
 export class WebhookHandlerProcessor {
   protected logger = new Logger(WebhookHandlerProcessor.name);
 
   async job(job: Job<HandleWebhookJobData>) {
-    const { context, hookId, modelId, viewId, prevData, newData, user } =
-      job.data;
+    const {
+      context,
+      hookId,
+      modelId,
+      viewId,
+      prevData,
+      newData,
+      user,
+      scheduledExecution,
+    } = job.data;
 
     const hook = await Hook.get(context, hookId);
     if (!hook) {
-      this.logger.error(`Hook not found for id: ${hookId}`);
+      this.logger.error(`Hook not found: ${hookId}`);
       return;
     }
 
     const model = await Model.get(context, modelId);
     if (!model) {
-      this.logger.error(`Model not found for id: ${modelId}`);
+      this.logger.error(`Model not found: ${modelId}`);
       return;
     }
 
-    const view = viewId ? await View.get(context, viewId) : null;
+    let view;
+    if (viewId) {
+      view = await View.get(context, viewId);
+    }
 
     await invokeWebhook(context, {
       hook,
@@ -32,6 +43,7 @@ export class WebhookHandlerProcessor {
       prevData,
       newData,
       user,
+      scheduledExecution,
     });
   }
 }

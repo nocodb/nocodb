@@ -21,11 +21,12 @@ import type {
   ViewType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type { Column, FormView, Hook, Model, View } from '~/models';
-import { Filter, HookLog, Source } from '~/models';
+import type { Column, FormView, Hook, View } from '~/models';
+import { Filter, HookLog, Model, Source } from '~/models';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
 import { isEE, isOnPrem } from '~/utils';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 handlebarsHelpers({ handlebars: Handlebars });
 
@@ -379,13 +380,22 @@ export async function validateCondition(
   return isValid;
 }
 
-export function constructWebHookData(hook, model, view, prevData, newData) {
+export function constructWebHookData(
+  hook,
+  model,
+  view,
+  prevData,
+  newData,
+  data,
+) {
   if (hook.version === 'v2') {
     // extend in the future - currently only support records
-    const scope = 'records';
+    const scope = hook.event === 'cron' ? '' : 'records.';
 
     return {
-      type: `${scope}.${hook.event}.${hook.operation}`,
+      type: `${scope}${hook.event}${
+        hook.operation ? `.${hook.operation}` : ''
+      }`,
       id: uuidv4(),
       data: {
         table_id: model.id,
@@ -405,6 +415,9 @@ export function constructWebHookData(hook, model, view, prevData, newData) {
             ? 1
             : 0,
         }),
+        ...(hook.event === 'cron' && {
+          records: data,
+        }),
       },
     };
   }
@@ -420,6 +433,7 @@ function populateAxiosReq({
   view,
   prevData,
   newData,
+  data,
 }: {
   apiMeta: any;
   user: UserType;
@@ -428,6 +442,7 @@ function populateAxiosReq({
   view?: ViewType;
   prevData: Record<string, unknown>;
   newData: Record<string, unknown>;
+  data?: Array<Record<string, unknown>>;
 }) {
   if (!_apiMeta) {
     _apiMeta = {};
@@ -455,6 +470,7 @@ function populateAxiosReq({
     view,
     prevData,
     newData,
+    data,
   );
   // const reqPayload = axiosRequestMake(
   //   _apiMeta,
@@ -613,6 +629,7 @@ export async function invokeWebhook(
     testFilters?;
     throwErrorOnFailure?: boolean;
     testHook?: boolean;
+    scheduledExecution?: boolean;
   },
 ) {
   const {
@@ -623,7 +640,8 @@ export async function invokeWebhook(
     user,
     testFilters = null,
     throwErrorOnFailure = false,
-    testHook = false,
+    scheduledExecution = false,
+    testHook,
   } = param;
 
   let { newData } = param;
@@ -638,6 +656,19 @@ export async function invokeWebhook(
       typeof hook.notification === 'string'
         ? JSON.parse(hook.notification)
         : hook.notification;
+
+    // If it's a scheduled execution and URL type notification, handle it differently
+    if (scheduledExecution && notification?.type === 'URL') {
+      return await handleScheduledWebhook(context, {
+        hook,
+        model,
+        view,
+        user,
+        testFilters,
+        throwErrorOnFailure,
+        notification,
+      });
+    }
 
     const isBulkOperation = Array.isArray(newData);
 
@@ -877,6 +908,121 @@ export async function invokeWebhook(
       );
     }
   }
+}
+
+async function handleScheduledWebhook(
+  context: NcContext,
+  param: {
+    hook: Hook;
+    model: Model;
+    view: View;
+    user;
+    testFilters?;
+    throwErrorOnFailure?: boolean;
+    notification: any;
+  },
+) {
+  const {
+    hook,
+    model,
+    view,
+    user,
+    testFilters = null,
+    throwErrorOnFailure = false,
+    notification,
+  } = param;
+
+  const logger = new Logger('ScheduledWebhook');
+  const filters = testFilters || (await hook.getFilters(context));
+
+  if (notification?.type !== 'URL') {
+    logger.error(
+      `Scheduled webhook supports only URL notification: ${hook.id}`,
+    );
+    return;
+  }
+
+  const source = await Source.get(context, model.source_id);
+  const baseModel = await Model.getBaseModelSQL(context, {
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: await NcConnectionMgrv2.get(source),
+    source,
+  });
+
+  const BATCH_SIZE = 100;
+  let offset = 0;
+  let totalProcessed = 0;
+  let hasMoreRecords = true;
+
+  while (hasMoreRecords) {
+    try {
+      const records = await baseModel.list({
+        filterArr: filters,
+        limit: BATCH_SIZE,
+        offset,
+      });
+
+      if (!records.length) {
+        hasMoreRecords = false;
+        break;
+      }
+
+      if (records.length > 0) {
+        const reqPayload = populateAxiosReq({
+          apiMeta: notification?.payload,
+          user,
+          hook,
+          model,
+          view,
+          prevData: null,
+          newData: null,
+          data: records,
+        });
+
+        const { requestPayload, responsePayload } = await handleHttpWebHook({
+          reqPayload,
+        });
+
+        if (
+          process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
+          (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
+        ) {
+          const hookLog = {
+            fk_hook_id: hook.id,
+            type: notification.type,
+            payload: JSON.stringify(requestPayload),
+            response: JSON.stringify(responsePayload),
+            triggered_by: user?.email,
+            conditions: JSON.stringify(filters),
+            source_id: hook.source_id,
+            base_id: context.base_id,
+          };
+
+          await HookLog.insert(context, hookLog);
+        }
+
+        totalProcessed += records.length;
+      }
+
+      offset += BATCH_SIZE;
+
+      if (records.length < BATCH_SIZE) {
+        hasMoreRecords = false;
+      }
+    } catch (error) {
+      logger.error(
+        `Error processing scheduled webhook batch: ${error.message}`,
+        error.stack,
+      );
+
+      if (throwErrorOnFailure) {
+        throw error;
+      }
+      hasMoreRecords = false;
+    }
+  }
+  return { success: true, recordsProcessed: totalProcessed };
 }
 
 export function _transformSubmittedFormDataForEmail(

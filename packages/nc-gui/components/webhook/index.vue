@@ -597,7 +597,9 @@ watch(
 onMounted(async () => {
   await loadPluginList()
 
-  if (hookRef.event && hookRef.operation) {
+  if (hookRef.event === 'cron') {
+    hookRef.eventOperation = `${hookRef.event}`
+  } else if (hookRef.event && hookRef.operation) {
     hookRef.eventOperation = `${hookRef.event} ${hookRef.operation}`
   } else {
     hookRef.eventOperation = eventList.value[0].value.join(' ')
@@ -779,6 +781,14 @@ onMounted(async () => {
                   </a-select>
                 </a-form-item>
               </div>
+              <div v-if="hookRef.event === 'cron'" class="flex w-full gap-3">
+                <a-form-item class="w-full" v-bind="validateInfos.cron_expression">
+                  <div class="w-full flex flex-col gap-2">
+                    <label class="font-medium">Cron Expression</label>
+                    <a-input v-model:value="hookRef.cron_expression" class="nc-input-shadow h-9 !rounded-lg" />
+                  </div>
+                </a-form-item>
+              </div>
 
               <div v-if="hookRef.notification.type === 'URL'" class="flex flex-col gap-8">
                 <div class="flex flex-col custom-select w-full gap-4">
@@ -926,7 +936,10 @@ onMounted(async () => {
             <div v-if="isConditionSupport">
               <div class="w-full cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
                 <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
-                  <span class="!text-gray-700 font-semibold"> {{ $t('general.trigger') }} {{ $t('activity.onCondition') }} </span>
+                  <span v-if="hookRef.event === 'cron'" class="!text-gray-700 font-semibold"> Filter Records </span>
+                  <span v-else class="!text-gray-700 font-semibold">
+                    {{ $t('general.trigger') }} {{ $t('activity.onCondition') }}
+                  </span>
                 </NcSwitch>
               </div>
 

@@ -152,6 +152,7 @@ import { ViewsV3Service } from '~/services/v3/views-v3.service';
 
 /* ACL */
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { SchedulerModule } from '~/modules/scheduler/scheduler.module';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -165,6 +166,7 @@ export const nocoModuleMetadata = {
         files: NC_MAX_ATTACHMENTS_ALLOWED,
       },
     }),
+    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [SchedulerModule] : []),
 
     // put it at the bottom most since it's route not found handling
     // resorting to import to be resolved the last

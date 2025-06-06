@@ -549,7 +549,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
   }
 
   .nc-cell-url {
-    & a {
+    a {
       @apply !py-0;
     }
   }

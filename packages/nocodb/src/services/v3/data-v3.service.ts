@@ -374,39 +374,4 @@ export class DataV3Service {
       nestedPrev: pagedResponse.pageInfo.nestedPrev,
     };
   }
-
-  async dataRead(
-    context: NcContext,
-    param: DataReadParams,
-  ): Promise<{ record: DataRecord }> {
-    // Get the model to access primary key
-    const model = await Model.get(context, param.modelId);
-    await model.getColumns(context);
-    const primaryKey = model.primaryKey.title;
-
-    const result = await this.dataTableService.dataRead(context, {
-      ...(param as Omit<DataReadParams, 'req'>),
-      apiVersion: NcApiVersion.V3,
-    });
-
-    // Transform the response to match the new format
-    if (!result || typeof result !== 'object') {
-      return { record: { id: '', fields: {} } };
-    }
-
-    const hasPrimaryKey = (obj: any): obj is Record<string, any> => {
-      return primaryKey in obj;
-    };
-
-    return {
-      record: hasPrimaryKey(result)
-        ? {
-            id: result[primaryKey],
-            fields: Object.entries(result)
-              .filter(([key]: string[]) => key !== primaryKey)
-              .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
-          }
-        : { id: '', fields: {} },
-    };
-  }
 }

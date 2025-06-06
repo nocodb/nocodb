@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { CronExpressionParser } from 'cron-parser'
 
 const props = defineProps({
   modelValue: {
@@ -9,6 +10,10 @@ const props = defineProps({
   disabled: {
     type: Boolean,
     default: false,
+  },
+  timezone: {
+    type: String,
+    default: '',
   },
 })
 
@@ -245,6 +250,19 @@ const selectAllMonthDays = () => {
   updateCronString()
 }
 
+const nextExecutionAt = computed(() => {
+  try {
+    const day = CronExpressionParser.parse(props.modelValue, {
+      currentDate: new Date(),
+      tz: props.timezone,
+    })
+
+    return dayjs(day.next().toDate()).tz(props.timezone).format('YYYY-MM-DD HH:mm Z')
+  } catch (e) {
+    return 'N/A'
+  }
+})
+
 // Watch for external changes to modelValue
 watch(
   () => props.modelValue,
@@ -423,6 +441,14 @@ watch(
           </a-select>
         </template>
       </div>
+    </div>
+    <div class="flex flex-col mt-3 gap-4">
+      <label class="text-sm text-nc-content-gray-subtle">
+        Next Execution at
+        <span class="text-nc-content-subtle2 font-semibold">
+          {{ nextExecutionAt }}
+        </span>
+      </label>
     </div>
   </div>
 </template>

@@ -843,7 +843,7 @@ onMounted(async () => {
                       </div>
                       <template #overlay>
                         <div class="p-4 bg-white rounded-lg shadow-lg" style="min-width: 400px">
-                          <NcCron v-model="hookRef.cron_expression" />
+                          <NcCron v-model="hookRef.cron_expression" :timezone="hookRef.timezone" />
                         </div>
                       </template>
                     </NcDropdown>
@@ -871,17 +871,9 @@ onMounted(async () => {
                           :data-abbreviation="timezone.abbreviation"
                         >
                           <div class="flex gap-2 w-full justify-between items-center">
-                            <span>{{ timezone.name }}</span>
-                            <div>
-                              <span class="text-nc-content-gray-muted text-[13px] mr-2">
-                                {{ timezone.abbreviation }}
-                              </span>
-                              <component
-                                :is="iconMap.check"
-                                id="nc-selected-item-icon"
-                                class="text-primary w-4 h-4"
-                                :class="{ invisible: hookRef.timezone !== timezone.name }"
-                              />
+                            <div class="max-w-[150px] truncate">{{ timezone.name }}</div>
+                            <div class="text-nc-content-gray-muted text-[13px] mr-2">
+                              {{ timezone.abbreviation }}
                             </div>
                           </div>
                         </a-select-option>
@@ -894,17 +886,9 @@ onMounted(async () => {
                           :data-abbreviation="timezone.abbreviation"
                         >
                           <div class="flex gap-2 w-full justify-between items-center">
-                            <span>{{ timezone.name }}</span>
-                            <div>
-                              <span class="text-nc-content-gray-muted text-[13px] mr-2">
-                                {{ timezone.abbreviation }}
-                              </span>
-                              <component
-                                :is="iconMap.check"
-                                id="nc-selected-item-icon"
-                                class="text-primary w-4 h-4"
-                                :class="{ invisible: hookRef.timezone !== timezone.name }"
-                              />
+                            <div class="max-w-[150px] truncate">{{ timezone.name }}</div>
+                            <div class="text-nc-content-gray-muted text-[13px] mr-2">
+                              {{ timezone.abbreviation }}
                             </div>
                           </div>
                         </a-select-option>

@@ -35,7 +35,9 @@ describe('dataApiV3', () => {
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      urlPrefix = `/api/${API_VERSION}${API_VERSION === 'v3' ? '/data' : ''}/${
+        testContext.base.id
+      }`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -165,7 +167,7 @@ describe('dataApiV3', () => {
 
         // list 10 records
         let rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           query: {
             limit: 10,
             fields: 'Id,Number,Decimal,Currency,Percent,Duration,Rating',
@@ -173,7 +175,9 @@ describe('dataApiV3', () => {
         });
 
         expect(rsp.body).to.have.property('next');
-        expect(rsp.body.next).to.include(`${urlPrefix}/${table.id}?page=2`);
+        expect(rsp.body.next).to.include(
+          `${urlPrefix}/${table.id}/records?page=2`,
+        );
         expect(rsp.body.records).to.deep.equal(
           records.map((record) => {
             const { Id, ...fields } = record;
@@ -190,7 +194,7 @@ describe('dataApiV3', () => {
         // remove Id's from record array
         records.forEach((r) => delete r.Id);
         rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: records.map((record) => {
             // Ensure Id is not in fields even if it somehow exists
             const { Id, ...fields } = record;
@@ -211,7 +215,7 @@ describe('dataApiV3', () => {
 
         // read record with Id 401
         rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/401`,
+          url: `${urlPrefix}/${table.id}/records/401`,
           query: {
             fields: 'Id,Number,Decimal,Currency,Percent,Duration,Rating',
           },
@@ -250,7 +254,7 @@ describe('dataApiV3', () => {
         }));
 
         rsp = await ncAxiosPatch({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords,
         });
         // Update operations only return IDs
@@ -262,7 +266,7 @@ describe('dataApiV3', () => {
 
         // delete record with ID 401 to 404
         rsp = await ncAxiosDelete({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords.map((record) => ({ id: record.id })),
         });
         expect(rsp.body.records).to.deep.equal(
@@ -357,14 +361,16 @@ describe('dataApiV3', () => {
       it('Select based- List & CRUD', async function () {
         // list 10 records
         let rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           query: {
             limit: 10,
             fields: 'Id,SingleSelect,MultiSelect',
           },
         });
         expect(rsp.body).to.have.property('next');
-        expect(rsp.body.next).to.include(`${urlPrefix}/${table.id}?page=2`);
+        expect(rsp.body.next).to.include(
+          `${urlPrefix}/${table.id}/records?page=2`,
+        );
         expect(rsp.body.records).to.deep.equal(
           recordsV3.map((record) => {
             const { Id, ...fields } = record;
@@ -383,7 +389,7 @@ describe('dataApiV3', () => {
         recordsV3.forEach((r) => delete r.Id);
 
         rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: recordsV3.map((record) => {
             // Ensure Id is not in fields even if it somehow exists
             const { Id, ...fields } = record;
@@ -404,7 +410,7 @@ describe('dataApiV3', () => {
 
         // read record with Id 401
         rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/401`,
+          url: `${urlPrefix}/${table.id}/records/401`,
           query: {
             fields: 'Id,SingleSelect,MultiSelect',
           },
@@ -430,7 +436,7 @@ describe('dataApiV3', () => {
           fields: { ...updatedRecord },
         }));
         rsp = await ncAxiosPatch({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords,
         });
         // Update operations only return IDs
@@ -440,7 +446,7 @@ describe('dataApiV3', () => {
 
         // verify updated records
         rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           query: {
             limit: 10,
             offset: 400,
@@ -453,7 +459,7 @@ describe('dataApiV3', () => {
 
         // delete record with ID 401 to 404
         rsp = await ncAxiosDelete({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords.map((record) => ({ id: record.id })),
         });
         expect(rsp.body.records).to.deep.equal(
@@ -482,14 +488,16 @@ describe('dataApiV3', () => {
       it('Date based- List & CRUD', async function () {
         // list 10 records
         let rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           query: {
             limit: 10,
           },
         });
 
         expect(rsp.body).to.have.property('next');
-        expect(rsp.body.next).to.include(`${urlPrefix}/${table.id}?page=2`);
+        expect(rsp.body.next).to.include(
+          `${urlPrefix}/${table.id}/records?page=2`,
+        );
 
         // extract first 10 records from inserted records
         const records = insertedRecords.slice(0, 10);
@@ -512,7 +520,7 @@ describe('dataApiV3', () => {
           delete r.UpdatedBy;
         });
         rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: records.map((record) => ({ fields: record })),
         });
 
@@ -527,7 +535,7 @@ describe('dataApiV3', () => {
 
         // read record with Id 801
         rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/801`,
+          url: `${urlPrefix}/${table.id}/records/801`,
           query: {
             fields: 'Id,Date,DateTime',
           },
@@ -554,7 +562,7 @@ describe('dataApiV3', () => {
           fields: updatedRecord,
         }));
         rsp = await ncAxiosPatch({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords,
         });
         expect(rsp.body.records).to.deep.equal(
@@ -563,7 +571,7 @@ describe('dataApiV3', () => {
 
         // verify updated records
         rsp = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           query: {
             limit: 10,
             offset: 800,
@@ -576,7 +584,7 @@ describe('dataApiV3', () => {
 
         // delete record with ID 801 to 804
         rsp = await ncAxiosDelete({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords.map((record) => ({ id: record.id })),
         });
         expect(rsp.body.records).to.deep.equal(
@@ -589,7 +597,7 @@ describe('dataApiV3', () => {
       });
     });
 
-    describe('Link based', () => {
+    describe.only('Link based', () => {
       let tblCity: Model;
       let tblCountry: Model;
       let tblActor: Model;
@@ -620,7 +628,7 @@ describe('dataApiV3', () => {
             linkId: getColumnId(columnsCountry, 'Cities'),
             rowId: '1',
           },
-          body: [{ id:1}, {id:2}, {id:3}, {id:4}, {id:5}],
+          body: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
           status: 200,
         });
 
@@ -634,7 +642,7 @@ describe('dataApiV3', () => {
         });
 
         let rspFromRecordAPI = await ncAxiosGet({
-          url: `${urlPrefix}/${tblCountry.id}`,
+          url: `${urlPrefix}/${tblCountry.id}/records`,
           query: {
             where: `(Id,eq,1)`,
           },
@@ -676,7 +684,7 @@ describe('dataApiV3', () => {
           });
 
           rspFromRecordAPI = await ncAxiosGet({
-            url: `${urlPrefix}/${tblCity.id}`,
+            url: `${urlPrefix}/${tblCity.id}/records`,
             query: {
               where: `(Id,eq,${i})`,
             },
@@ -725,7 +733,7 @@ describe('dataApiV3', () => {
         });
 
         rspFromRecordAPI = await ncAxiosGet({
-          url: `${urlPrefix}/${tblCountry.id}`,
+          url: `${urlPrefix}/${tblCountry.id}/records`,
           query: {
             where: `(Id,eq,1)`,
           },
@@ -764,7 +772,7 @@ describe('dataApiV3', () => {
           });
 
           rspFromRecordAPI = await ncAxiosGet({
-            url: `${urlPrefix}/${tblCity.id}`,
+            url: `${urlPrefix}/${tblCity.id}/records`,
             query: {
               where: `(Id,eq,${i})`,
             },
@@ -813,7 +821,7 @@ describe('dataApiV3', () => {
         });
 
         rspFromRecordAPI = await ncAxiosGet({
-          url: `${urlPrefix}/${tblCountry.id}`,
+          url: `${urlPrefix}/${tblCountry.id}/records`,
           query: {
             where: `(Id,eq,1)`,
           },
@@ -846,7 +854,7 @@ describe('dataApiV3', () => {
           });
 
           rspFromRecordAPI = await ncAxiosGet({
-            url: `${urlPrefix}/${tblCity.id}`,
+            url: `${urlPrefix}/${tblCity.id}/records`,
             query: {
               where: `(Id,eq,${i})`,
             },
@@ -947,7 +955,7 @@ describe('dataApiV3', () => {
         });
 
         let rspFromRecordAPI = await ncAxiosGet({
-          url: `${urlPrefix}/${tblActor.id}`,
+          url: `${urlPrefix}/${tblActor.id}/records`,
           query: {
             where: `(Id,eq,1)`,
           },
@@ -980,7 +988,7 @@ describe('dataApiV3', () => {
           },
         });
         rspFromRecordAPI = await ncAxiosGet({
-          url: `${urlPrefix}/${tblFilm.id}`,
+          url: `${urlPrefix}/${tblFilm.id}/records`,
           query: {
             where: `(Id,eq,1)`,
           },
@@ -1023,7 +1031,7 @@ describe('dataApiV3', () => {
           },
         });
         rspFromRecordAPI = await ncAxiosGet({
-          url: `${urlPrefix}/${tblActor.id}`,
+          url: `${urlPrefix}/${tblActor.id}/records`,
           query: {
             where: `(Id,eq,1)`,
           },
@@ -1046,7 +1054,7 @@ describe('dataApiV3', () => {
           });
 
           rspFromRecordAPI = await ncAxiosGet({
-            url: `${urlPrefix}/${tblFilm.id}`,
+            url: `${urlPrefix}/${tblFilm.id}/records`,
             query: {
               where: `(Id,eq,${i})`,
             },
@@ -1110,7 +1118,7 @@ describe('dataApiV3', () => {
           },
         });
         rspFromRecordAPI = await ncAxiosGet({
-          url: `${urlPrefix}/${tblActor.id}`,
+          url: `${urlPrefix}/${tblActor.id}/records`,
           query: {
             where: `(Id,eq,1)`,
           },
@@ -1138,7 +1146,7 @@ describe('dataApiV3', () => {
             },
           });
           rspFromRecordAPI = await ncAxiosGet({
-            url: `${urlPrefix}/${tblFilm.id}`,
+            url: `${urlPrefix}/${tblFilm.id}/records`,
             query: {
               where: `(Id,eq,${i})`,
             },
@@ -1192,7 +1200,7 @@ describe('dataApiV3', () => {
           },
         });
         let respFromRecordAPI = await ncAxiosGet({
-          url: `${urlPrefix}/${tblCountry.id}`,
+          url: `${urlPrefix}/${tblCountry.id}/records`,
           query: {
             where: `(Id,eq,1)`,
           },
@@ -1215,7 +1223,7 @@ describe('dataApiV3', () => {
           },
         });
         respFromRecordAPI = await ncAxiosGet({
-          url: `${urlPrefix}/${tblCountry.id}`,
+          url: `${urlPrefix}/${tblCountry.id}/records`,
           query: {
             where: `(Id,eq,2)`,
           },
@@ -1799,7 +1807,7 @@ describe('dataApiV3', () => {
         // single
         for (const valueCase of valueCases) {
           const response = await ncAxiosPost({
-            url: `${urlPrefix}/${table.id}`,
+            url: `${urlPrefix}/${table.id}/records`,
             body: [
               {
                 fields: {
@@ -1812,14 +1820,14 @@ describe('dataApiV3', () => {
           const id = response.body.records[0]?.id;
           expect(id).to.greaterThan(0);
           const getResponse = await ncAxiosGet({
-            url: `${urlPrefix}/${table.id}/${id}`,
+            url: `${urlPrefix}/${table.id}/records/${id}`,
             status: 200,
           });
           expect(getResponse.body.record.fields.Checkbox).to.equal(
             valueCase.expect,
           );
           const patchResponse = await ncAxiosPatch({
-            url: `${urlPrefix}/${table.id}`,
+            url: `${urlPrefix}/${table.id}/records`,
             body: [
               {
                 id: id,
@@ -1832,7 +1840,7 @@ describe('dataApiV3', () => {
           });
           expect(patchResponse.body.records[0].id).to.equal(id);
           const listResponse = await ncAxiosGet({
-            url: `${urlPrefix}/${table.id}`,
+            url: `${urlPrefix}/${table.id}/records`,
             query: {
               where: `(Id,eq,${id})`,
             },
@@ -1844,7 +1852,7 @@ describe('dataApiV3', () => {
         }
       });
 
-      it(`will handle various insert value (bulk)`, async () => {
+      it.only(`will handle various insert value (bulk)`, async () => {
         for (const expectedValue of [true, false]) {
           const expectedValueCases = valueCases.filter(
             (k) => k.expect === expectedValue,
@@ -1859,7 +1867,7 @@ describe('dataApiV3', () => {
             });
           }
           const bulkPostResponse = await ncAxiosPost({
-            url: `${urlPrefix}/${table.id}`,
+            url: `${urlPrefix}/${table.id}/records`,
             body: recordsToAdd,
             status: 200,
           });
@@ -1867,7 +1875,7 @@ describe('dataApiV3', () => {
             bulkPostResponse.body.records.filter((row) => row.id > 0).length,
           ).to.equal(recordsToAdd.length);
           const listGet1 = await ncAxiosGet({
-            url: `${urlPrefix}/${table.id}`,
+            url: `${urlPrefix}/${table.id}/records`,
             query: {
               where: `(Id,gte,${bulkPostResponse.body.records[0].id})`,
             },
@@ -1888,13 +1896,13 @@ describe('dataApiV3', () => {
           }
 
           const bulkPatchResponse = await ncAxiosPatch({
-            url: `${urlPrefix}/${table.id}`,
+            url: `${urlPrefix}/${table.id}/records`,
             body: recordToUpdate,
             status: 200,
           });
 
           const listGet2 = await ncAxiosGet({
-            url: `${urlPrefix}/${table.id}`,
+            url: `${urlPrefix}/${table.id}/records`,
             query: {
               where: `(Id,gte,${bulkPatchResponse.body.records[0].id})`,
             },

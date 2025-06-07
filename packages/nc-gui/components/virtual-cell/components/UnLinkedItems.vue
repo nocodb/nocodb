@@ -279,7 +279,7 @@ const onCreatedRecord = (record: any) => {
   isNewRecord.value = false
 }
 
-const onDeletedRecord = async (_primaryKey?: string) => {
+const onDeletedRecord = async () => {
   await loadChildrenList()
   loadChildrenExcludedList(rowState.value, true)
 }
@@ -530,7 +530,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         maintain-default-view-order
         skip-reload
         :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
-        :on-deleted-record="onDeletedRecord"
+        @deleted-record="onDeletedRecord"
         @created-record="onCreatedRecord"
       />
     </Suspense>

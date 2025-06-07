@@ -11,7 +11,8 @@ const container = ref()
 
 const { isUIAllowed } = useRoles()
 
-const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty } = useCalendarViewStoreOrThrow()
+const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty, isSyncedFromColumn } =
+  useCalendarViewStoreOrThrow()
 
 const fields = inject(FieldsInj, ref())
 
@@ -186,7 +187,7 @@ const dropEvent = (event: DragEvent) => {
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const newRecord = () => {
-  if (!isUIAllowed('dataEdit') || !calendarRange.value?.length) return
+  if (!isUIAllowed('dataEdit') || !calendarRange.value?.length || isSyncedFromColumn.value) return
   const record = {
     row: {
       [calendarRange.value[0].fk_from_col!.title!]: selectedDate.value.format('YYYY-MM-DD HH:mm:ssZ'),

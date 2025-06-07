@@ -409,7 +409,7 @@ export const useBases = defineStore('basesStore', () => {
       () => route.value.params.viewTitle,
       () => basesList.value.length,
     ],
-    ([newBaseId, newTableId, newViewId, newBasesListLength], [oldBaseId, oldTableId, oldViewId, oldBasesListLength]) => {
+    ([newBaseId, newTableId, newViewId, newBasesListLength], [oldBaseId, oldTableId, oldViewId]) => {
       const shouldShowProjectList =
         !newBasesListLength || !((newBaseId && newBaseId !== oldBaseId) || newTableId !== oldTableId || newViewId !== oldViewId)
 

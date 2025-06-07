@@ -116,4 +116,5 @@ jobs:
   #     version: ${{ needs.process-input.outputs.target_tag }}
 
   aiopusher:
+    needs: release-npm
     uses: ./.github/workflows/nix-aiopusher.yml

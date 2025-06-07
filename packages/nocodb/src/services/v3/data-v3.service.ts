@@ -13,10 +13,10 @@ import type {
   NestedDataListParams,
 } from './data-v3.types';
 import type { NcContext } from '~/interface/config';
-import type { LinkToAnotherRecordColumn } from '~/models';
+import type { LinkToAnotherRecordColumn, Model } from '~/models';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
 import { DataTableService } from '~/services/data-table.service';
-import { Column, Model } from '~/models';
+import { Column } from '~/models';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 
 const V3_INSERT_LIMIT = 10;
@@ -43,7 +43,9 @@ export class DataV3Service {
     context: NcContext,
     modelId: string,
   ): Promise<ModelInfo> {
-    const model = await Model.get(context, modelId);
+    const { model } = await this.dataTableService.getModelAndView(context, {
+      modelId,
+    });
     const columns = await model.getColumns(context);
     const primaryKey = model.primaryKey.title;
 

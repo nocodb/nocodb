@@ -248,20 +248,6 @@ const filteredScripts = computed(() => {
     :selected-keys="selected"
     class="nc-scripts-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
-    <div
-      v-if="!scripts?.length || !filteredScripts.length"
-      class="nc-project-home-section-item text-gray-500 font-normal"
-      :class="{
-        'ml-11.5 xs:(ml-12.25) ': !isNewSidebarEnabled,
-      }"
-    >
-      {{
-        scripts?.length && !filteredScripts.length
-          ? $t('placeholder.noResultsFoundForYourSearch')
-          : $t('placeholder.noAutomations')
-      }}
-    </div>
-
     <template v-if="(!isNewSidebarEnabled || !scripts?.length) && !isSharedBase && isUIAllowed('scriptCreateOrEdit')">
       <div
         :class="{
@@ -295,6 +281,19 @@ const filteredScripts = computed(() => {
         </div>
       </div>
     </template>
+    <div
+      v-if="!scripts?.length || !filteredScripts.length"
+      class="nc-project-home-section-item text-gray-500 font-normal"
+      :class="{
+        'ml-11.5 xs:(ml-12.25) ': !isNewSidebarEnabled,
+      }"
+    >
+      {{
+        scripts?.length && !filteredScripts.length
+          ? $t('placeholder.noResultsFoundForYourSearch')
+          : $t('placeholder.noAutomations')
+      }}
+    </div>
     <template v-if="filteredScripts?.length">
       <DashboardTreeViewAutomationNode
         v-for="script of filteredScripts"

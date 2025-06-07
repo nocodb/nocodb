@@ -83,7 +83,13 @@ watch(
     clearTimeout(stopTimerId)
 
     if (ncIsEmptyObject(route.value.params)) {
-      stopLoading.value = false
+      if (isProjectsLoaded.value && !basesList.value.length) {
+        stopLoading.value = true
+        showProjectList.value = true
+        return
+      } else {
+        stopLoading.value = false
+      }
     } else {
       stopLoading.value = true
       return
@@ -94,8 +100,8 @@ watch(
       clearTimeout(stopTimerId)
 
       // If their is no active project then show base list
-      if (showProjectList.value && (!activeProjectId.value || !openedBase.value?.id)) {
-        showProjectList.value = false
+      if (!showProjectList.value && (!activeProjectId.value || !openedBase.value?.id)) {
+        showProjectList.value = true
       }
     }, 5000)
   },
@@ -464,11 +470,16 @@ watch([searchInputRef, showProjectList], () => {
 watch(
   isProjectsLoaded,
   () => {
-    if (isProjectsLoaded.value && !avoidTransition.value) {
+    if (isProjectsLoaded.value && !avoidTransition.value && basesList.value.length) {
       transitionName.value = 'slide-right'
     } else {
       transitionName.value = undefined
       avoidTransition.value = false
+    }
+
+    if (isProjectsLoaded.value && !basesList.value.length) {
+      showProjectList.value = true
+      stopLoading.value = true
     }
   },
   {

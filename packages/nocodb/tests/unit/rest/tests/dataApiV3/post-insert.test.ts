@@ -66,7 +66,7 @@ describe('dataApiV3', () => {
 
       it('Create: all fields', async function () {
         const rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: newRecord,
         });
 
@@ -79,7 +79,7 @@ describe('dataApiV3', () => {
           MultiLineText: 'abc abc \n abc \r abc \t abc 1234!@#$%^&*()_+',
         };
         const rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: newRecord,
         });
 
@@ -89,7 +89,7 @@ describe('dataApiV3', () => {
 
       it('Create: bulk', async function () {
         const rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: [newRecord, newRecord, newRecord],
         });
         expect(rsp.body.sort((a, b) => a.Id - b.Id)).to.deep.equal([
@@ -109,7 +109,7 @@ describe('dataApiV3', () => {
 
         // Invalid data - create should not specify ID
         await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: { ...newRecord, Id: 300 },
           status: 422,
         });
@@ -133,12 +133,12 @@ describe('dataApiV3', () => {
           [idMap['MultiLineText']!]: 'MultiLineText',
         };
         const rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: createPayload,
         });
         expect(rsp.body).to.deep.equal({ Id: 401 });
         const rspGet = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           query: {
             where: '(Id,gte,401)',
           },
@@ -167,12 +167,12 @@ describe('dataApiV3', () => {
           },
         ];
         const rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: createPayload,
         });
         expect(rsp.body).to.deep.equal([{ Id: 401 }, { Id: 402 }]);
         const rspGet = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           query: {
             where: '(Id,gte,401)',
           },
@@ -394,13 +394,13 @@ describe('dataApiV3', () => {
           userFieldMulti: 'a@nocodb.com,b@nocodb.com',
         };
         const rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: newRecord,
         });
         expect(rsp.body).to.deep.equal({ Id: 401 });
 
         const record = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/401`,
+          url: `${urlPrefix}/${table.id}/records/401`,
         });
         expect(record.body.Id).to.equal(401);
         expect(record.body.userFieldSingle[0].email).to.equal('a@nocodb.com');
@@ -419,12 +419,12 @@ describe('dataApiV3', () => {
           userFieldMulti: `${id0},${id1}`,
         };
         const rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: newRecord,
         });
         expect(rsp.body).to.deep.equal({ Id: 401 });
         const record = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/401`,
+          url: `${urlPrefix}/${table.id}/records/401`,
         });
         expect(record.body.Id).to.equal(401);
         expect(record.body.userFieldSingle[0].email).to.equal(
@@ -456,12 +456,12 @@ describe('dataApiV3', () => {
         }
         for (let batch = 0; batch < body.length; batch += 5) {
           const response = await ncAxiosPost({
-            url: `${urlPrefix}/${table.id}`,
+            url: `${urlPrefix}/${table.id}/records`,
             body: body.slice(batch, batch + 5),
           });
 
           const list = await ncAxiosGet({
-            url: `${urlPrefix}/${table.id}`,
+            url: `${urlPrefix}/${table.id}/records`,
             query: {
               where: `(Id,gte,${response.body[0].Id})`,
             },

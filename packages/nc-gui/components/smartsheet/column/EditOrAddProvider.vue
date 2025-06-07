@@ -25,6 +25,8 @@ useProvideColumnCreateStore(meta, column, tableExplorerColumns, fromTableExplore
 
 const { isWebhookCreateModalOpen, isAiButtonConfigModalOpen } = useColumnCreateStoreOrThrow()
 
+const editOrAddRef = ref()
+
 /**
  * Determines whether the root dropdown should remain open.
  *
@@ -38,13 +40,24 @@ const shouldKeepModalOpen = (): boolean => {
   return isWebhookCreateModalOpen.value || isAiButtonConfigModalOpen.value
 }
 
+// Function to handle cancel with confirmation if needed
+const handleCancel = () => {
+  if (editOrAddRef.value) {
+    editOrAddRef.value.handleCancel()
+  } else {
+    emit('cancel')
+  }
+}
+
 defineExpose({
   shouldKeepModalOpen,
+  handleCancel,
 })
 </script>
 
 <template>
   <SmartsheetColumnEditOrAdd
+    ref="editOrAddRef"
     :preload="preload"
     :column-position="props.columnPosition"
     :edit-description="editDescription"

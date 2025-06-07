@@ -334,6 +334,11 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
   }
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
+  if (isNewSidebarEnabled.value && !cmdOrCtrl && activeProjectId.value === base.id) {
+    showProjectList.value = false
+    return
+  }
+
   if (cmdOrCtrl && !ignoreNavigation && base.type === 'database') {
     await navigateTo(
       `${cmdOrCtrl ? '#' : ''}${baseUrl({

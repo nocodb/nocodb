@@ -17,6 +17,7 @@ import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
 import { DataTableService } from '~/services/data-table.service';
 import { Model } from '~/models';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { LinkToAnotherRecordColumn } from '~/models/LinkToAnotherRecordColumn';
 
 const V3_INSERT_LIMIT = 10;
 
@@ -50,11 +51,27 @@ export class DataV3Service {
     const nestedPrevPageAvail = nestedPage > 1;
     for (const column of columns) {
       if (column.uidt === UITypes.LinkToAnotherRecord) {
-        // slice if more than limit and mark as more available
+        // Get the related model to access its primary key
+        const relatedModel = await (column.colOptions as LinkToAnotherRecordColumn).getRelatedTable(context);
+        const relatedPrimaryKey = relatedModel.primaryKey.column_name;
+
+        // Transform nested data to match the same structure
         for (const row of pagedData.list) {
           if (row[column.id]?.length > nestedLimit) {
-            row[column.id] = row[column.id].slice(0, nestedLimit);
+            row[column.id] = row[column.id].slice(0, nestedLimit).map((nestedRecord) => ({
+              id: nestedRecord[relatedPrimaryKey],
+              fields: Object.entries(nestedRecord)
+                .filter(([key]) => key !== relatedPrimaryKey)
+                .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
+            }));
             nestedNextPageAvail = true;
+          } else if (row[column.id]) {
+            row[column.id] = row[column.id].map((nestedRecord) => ({
+              id: nestedRecord[relatedPrimaryKey],
+              fields: Object.entries(nestedRecord)
+                .filter(([key]) => key !== relatedPrimaryKey)
+                .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
+            }));
           }
         }
       }
@@ -231,6 +248,11 @@ export class DataV3Service {
     const model = await Model.get(context, param.modelId);
     const primaryKey = model.primaryKey.column_name;
 
+    // Get the related model to access its primary key
+    const column = await model.getColumn(context, param.columnId);
+    const relatedModel = await (column.colOptions as LinkToAnotherRecordColumn).getRelatedTable(context);
+    const relatedPrimaryKey = relatedModel.primaryKey.column_name;
+
     // Ensure response is a PagedResponseImpl
     if (!response || !('list' in response) || !('pageInfo' in response)) {
       return {
@@ -252,9 +274,9 @@ export class DataV3Service {
     // Transform the response to match the new format
     return {
       records: pagedResponse.list.map((record) => ({
-        id: record[primaryKey],
+        id: record[relatedPrimaryKey],
         fields: Object.entries(record)
-          .filter(([key]) => key !== primaryKey)
+          .filter(([key]) => key !== relatedPrimaryKey)
           .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
       })),
       next: pagedResponse.pageInfo.next,

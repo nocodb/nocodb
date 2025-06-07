@@ -23,7 +23,6 @@ interface Props {
   newRecordSubmitBtnText?: string
   expandForm?: (row: Row) => void
   maintainDefaultViewOrder?: boolean
-  onDeletedRecord?: (primaryKey?: string) => void | Promise<void>
 }
 
 const props = defineProps<Props>()

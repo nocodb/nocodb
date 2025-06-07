@@ -16,7 +16,7 @@
     "url": "https://github.com/nocodb/nocodb/issues"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.16.0"
   },
   "license": "AGPL-3.0-or-later",
   "scripts": {
@@ -48,10 +48,10 @@
     "mail": "email dev --dir src/services/mail/templates --port 8001"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.743.0",
-    "@aws-sdk/client-ses": "^3.743.0",
-    "@aws-sdk/lib-storage": "^3.743.0",
-    "@aws-sdk/s3-request-presigner": "^3.743.0",
+    "@aws-sdk/client-s3": "^3.826.0",
+    "@aws-sdk/client-ses": "^3.826.0",
+    "@aws-sdk/lib-storage": "^3.826.0",
+    "@aws-sdk/s3-request-presigner": "^3.826.0",
     "@google-cloud/storage": "^7.15.0",
     "@modelcontextprotocol/sdk": "^1.11.1",
     "@nest-lab/throttler-storage-redis": "^1.1.0",
@@ -150,7 +150,7 @@
     "request-ip": "^3.3.0",
     "rfdc": "^1.4.1",
     "rxjs": "^7.8.1",
-    "sharp": "0.33.4",
+    "sharp": "0.34.2",
     "slash": "^3.0.0",
     "slug": "^8.2.3",
     "socket.io": "^4.8.1",
@@ -204,7 +204,7 @@
     "semver": "^7.5.4",
     "supertest": "^7.1.1",
     "ts-checker-rspack-plugin": "^1.1.1",
-    "ts-jest": "29.1.2",
+    "ts-jest": "29.3.4",
     "typescript": "^5.7.3"
   }
 }

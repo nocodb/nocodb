@@ -100,7 +100,7 @@ export class PagedResponseV3Impl<T> {
 
     const commonProps = {
       baseUrl,
-      path: `/api/v3/${context.base_id}/${tableId}`,
+      path: `/api/v3/data/${context.base_id}/${tableId}/records`,
     };
 
     const commonQueryParams = extractProps(queryParams || {}, [

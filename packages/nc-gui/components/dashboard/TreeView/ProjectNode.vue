@@ -303,6 +303,11 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
 
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
+  if (!cmdOrCtrl && activeProjectId.value === base.id) {
+    showProjectList.value = false
+    return
+  }
+
   if (!toggleIsExpanded && !cmdOrCtrl) $e('c:base:open')
 
   ignoreNavigation = isMobileMode.value || ignoreNavigation

@@ -18,7 +18,10 @@ const {
   showSideMenu,
   updateFormat,
   timezoneDayjs,
+  isSyncedFromColumn,
 } = useCalendarViewStoreOrThrow()
+
+const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
 const { $e } = useNuxtApp()
 
@@ -869,7 +872,7 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
-  if (resizeInProgress.value) return
+  if (resizeInProgress.value || isSyncedFromColumn.value) return
   let target = event.target as HTMLElement
 
   isDragging.value = false
@@ -964,7 +967,7 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const addRecord = (date: dayjs.Dayjs) => {
-  if (!isUIAllowed('dataEdit') || !calendarRange.value) return
+  if (!isUIAllowed('dataEdit') || !calendarRange.value || isSyncedTable.value) return
   const fromCol = calendarRange.value[0].fk_from_col
   if (!fromCol) return
   const newRecord = {

@@ -18,7 +18,10 @@ const {
   updateRowProperty,
   updateFormat,
   timezoneDayjs,
+  isSyncedFromColumn,
 } = useCalendarViewStoreOrThrow()
+
+const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
 const { $e } = useNuxtApp()
 
@@ -638,7 +641,7 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
-  if (resizeInProgress.value || !record.rowMeta.id) return
+  if (resizeInProgress.value || !record.rowMeta.id || isSyncedFromColumn.value) return
   let target = event.target as HTMLElement
   isDragging.value = false
 
@@ -732,7 +735,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const addRecord = (date: dayjs.Dayjs) => {
-  if (!isUIAllowed('dataEdit') || !calendarRange.value) return
+  if (!isUIAllowed('dataEdit') || !calendarRange.value || isSyncedTable.value) return
   const fromCol = calendarRange.value[0].fk_from_col
   if (!fromCol) return
   const newRecord = {
@@ -802,7 +805,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                 }"
               ></span>
 
-              <NcDropdown v-if="calendarRange.length > 1" auto-close>
+              <NcDropdown v-if="calendarRange.length > 1 && !isSyncedFromColumn" auto-close>
                 <NcButton
                   :class="{
                     '!block': isDateSelected(day.date),
@@ -846,7 +849,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                 </template>
               </NcDropdown>
               <NcButton
-                v-else-if="[UITypes.DateTime, UITypes.Date].includes(calDataType)"
+                v-else-if="[UITypes.DateTime, UITypes.Date].includes(calDataType) && !isSyncedFromColumn"
                 :class="{
                   '!block': isDateSelected(day.date),
                   '!hidden': !isDateSelected(day.date),

@@ -19,7 +19,10 @@ const {
   updateFormat,
   timezoneDayjs,
   timezone,
+  isSyncedFromColumn,
 } = useCalendarViewStoreOrThrow()
+
+const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
 const { $e } = useNuxtApp()
 
@@ -770,6 +773,8 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
+  if (isSyncedFromColumn.value) return
+
   let target = event.target as HTMLElement
 
   isDragging.value = false
@@ -944,7 +949,7 @@ const selectHour = (hour: dayjs.Dayjs) => {
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const newRecord = (hour: dayjs.Dayjs) => {
-  if (!isUIAllowed('dataEdit') || !calendarRange.value?.length) return
+  if (!isUIAllowed('dataEdit') || !calendarRange.value?.length || isSyncedTable.value) return
   const record = {
     row: {
       [calendarRange.value[0].fk_from_col!.title!]: hour.format('YYYY-MM-DD HH:mm:ssZ'),
@@ -1081,7 +1086,9 @@ const expandRecord = (record: Row) => {
             </template>
           </NcDropdown>
           <NcButton
-            v-else-if="!isPublic && isUIAllowed('dataEdit') && [UITypes.DateTime, UITypes.Date].includes(calDataType)"
+            v-else-if="
+              !isPublic && isUIAllowed('dataEdit') && [UITypes.DateTime, UITypes.Date].includes(calDataType) && !isSyncedTable
+            "
             :class="{
               '!block': hour.isSame(selectedTime),
               '!hidden': !hour.isSame(selectedTime),

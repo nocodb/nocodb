@@ -25,6 +25,8 @@ const isOpen = ref<boolean>(false)
 
 const isSqlView = computed(() => (activeTable.value as TableType)?.type === 'view')
 
+const isSyncedTable = computed(() => (activeTable.value as TableType)?.synced)
+
 const activeSource = computed(() => {
   return base.value.sources?.find((s) => s.id === activeView.value?.source_id)
 })
@@ -196,19 +198,21 @@ async function onOpenModal({
                 </a-menu-item>
 
                 <NcTooltip
-                  :title="$t('tooltip.sourceDataIsReadonly')"
-                  :disabled="!activeSource?.is_data_readonly && !isSqlView"
+                  :title="
+                    isSyncedTable ? $t('tooltip.formViewCreationNotSupportedForSyncedTable') : $t('tooltip.sourceDataIsReadonly')
+                  "
+                  :disabled="!activeSource?.is_data_readonly && !isSqlView && !isSyncedTable"
                   placement="right"
                 >
                   <a-menu-item
-                    :disabled="!!activeSource?.is_data_readonly || isSqlView"
+                    :disabled="!!activeSource?.is_data_readonly || isSqlView || isSyncedTable"
                     @click="onOpenModal({ type: ViewTypes.FORM })"
                   >
                     <div
                       class="nc-viewlist-submenu-popup-item"
                       data-testid="topbar-view-create-form"
                       :class="{
-                        'opacity-50': !!activeSource?.is_data_readonly || isSqlView,
+                        'opacity-50': !!activeSource?.is_data_readonly || isSqlView || isSyncedTable,
                       }"
                     >
                       <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />

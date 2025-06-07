@@ -14,7 +14,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 const fields = inject(FieldsInj, ref([]))
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
-const { isSqlView, xWhere, isExternalSource } = useSmartsheetStoreOrThrow()
+const { isSqlView, xWhere, isExternalSource, isSyncedTable } = useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
 const route = useRoute()
 const { getPossibleAttachmentSrc } = useAttachment()
@@ -571,7 +571,13 @@ const handleOpenNewRecordForm = () => {
       </div>
     </NcDropdown>
     <div class="sticky bottom-4">
-      <NcButton v-if="isUIAllowed('dataInsert')" size="xs" type="secondary" class="ml-4" @click="handleOpenNewRecordForm">
+      <NcButton
+        v-if="isUIAllowed('dataInsert') && !isSyncedTable"
+        size="xs"
+        type="secondary"
+        class="ml-4"
+        @click="handleOpenNewRecordForm"
+      >
         <div class="flex items-center gap-2">
           <component :is="iconMap.plus" class="" />
           {{ $t('activity.newRecord') }}

@@ -27,6 +27,8 @@ const isOpen = ref(false)
 
 const isSqlView = computed(() => (table.value as TableType)?.type === 'view')
 
+const isSyncedTable = computed(() => (table.value as TableType)?.synced)
+
 const overlayClassName = computed(() => {
   if (alignLeftLevel.value === 1) return 'nc-view-create-dropdown nc-view-create-dropdown-left-1'
 
@@ -118,14 +120,20 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
 
-        <NcTooltip :title="$t('tooltip.sourceDataIsReadonly')" :disabled="!source.is_data_readonly && !isSqlView">
-          <NcMenuItem :disabled="!!source.is_data_readonly || isSqlView" @click="onOpenModal({ type: ViewTypes.FORM })">
+        <NcTooltip
+          :title="isSyncedTable ? $t('tooltip.formViewCreationNotSupportedForSyncedTable') : $t('tooltip.sourceDataIsReadonly')"
+          :disabled="!source.is_data_readonly && !isSqlView && !isSyncedTable"
+        >
+          <NcMenuItem
+            :disabled="!!source.is_data_readonly || isSqlView || isSyncedTable"
+            @click="onOpenModal({ type: ViewTypes.FORM })"
+          >
             <div class="item" data-testid="sidebar-view-create-form">
               <div class="item-inner">
                 <GeneralViewIcon
                   :meta="{ type: ViewTypes.FORM }"
                   :class="{
-                    'opacity-50': !!source.is_data_readonly || isSqlView,
+                    '!opacity-50': !!source.is_data_readonly || isSqlView || isSyncedTable,
                   }"
                 />
                 <div>{{ $t('objects.viewType.form') }}</div>
@@ -137,7 +145,7 @@ async function onOpenModal({
                 class="plus"
                 icon="plus"
                 :class="{
-                  '!text-current': !!source.is_data_readonly,
+                  '!text-current': !!source.is_data_readonly || isSqlView || isSyncedTable,
                 }"
               />
             </div>

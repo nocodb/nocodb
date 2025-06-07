@@ -118,7 +118,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
 
-    const isSyncedTable = computed(() => (meta.value as TableType)?.synced)
+    const isSyncedTable = computed(() => !!(meta.value as TableType)?.synced)
 
     const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])

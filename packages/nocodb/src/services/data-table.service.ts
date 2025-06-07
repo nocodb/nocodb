@@ -302,7 +302,7 @@ export class DataTableService {
     return { count };
   }
 
-  protected async getModelAndView(
+  async getModelAndView(
     context: NcContext,
     param: {
       baseId?: string;

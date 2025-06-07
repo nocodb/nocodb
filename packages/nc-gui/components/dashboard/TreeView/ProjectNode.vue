@@ -303,7 +303,7 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
 
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
-  if (!cmdOrCtrl && activeProjectId.value === base.id) {
+  if (isNewSidebarEnabled.value && !cmdOrCtrl && activeProjectId.value === base.id) {
     showProjectList.value = false
     return
   }

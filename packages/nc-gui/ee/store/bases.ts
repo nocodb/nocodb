@@ -445,14 +445,20 @@ export const useBases = defineStore('basesStore', () => {
       () => route.value.params.viewId,
       () => route.value.params.viewTitle,
       () => route.value.params.automationId,
+      () => basesList.value.length,
     ],
-    ([newBaseId, newTableId, newViewId, newAutomationId], [oldBaseId, oldTableId, oldViewId, oldAutomationId]) => {
-      const shouldShowProjectList = !(
-        (newBaseId && newBaseId !== oldBaseId) ||
-        newTableId !== oldTableId ||
-        newViewId !== oldViewId ||
-        newAutomationId !== oldAutomationId
-      )
+    (
+      [newBaseId, newTableId, newViewId, newAutomationId, newBasesListLength],
+      [oldBaseId, oldTableId, oldViewId, oldAutomationId],
+    ) => {
+      const shouldShowProjectList =
+        !newBasesListLength ||
+        !(
+          (newBaseId && newBaseId !== oldBaseId) ||
+          newTableId !== oldTableId ||
+          newViewId !== oldViewId ||
+          newAutomationId !== oldAutomationId
+        )
 
       if (!showProjectList.value && shouldShowProjectList) {
         showProjectList.value = shouldShowProjectList

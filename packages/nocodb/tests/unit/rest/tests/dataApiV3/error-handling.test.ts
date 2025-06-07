@@ -41,7 +41,7 @@ describe('dataApiV3', () => {
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}/${testContext.sakilaProject.id}`;
+      urlPrefix = `/api/${API_VERSION}/data/${testContext.sakilaProject.id}`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -416,7 +416,7 @@ describe('dataApiV3', () => {
           ...columns,
         ];
         insertedRecords = initResult.insertedRecords;
-        textBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        textBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
 
       it(`will handle update length exceed 100k`, async () => {
@@ -529,7 +529,7 @@ describe('dataApiV3', () => {
           ...columns,
         ];
         insertedRecords = initResult.insertedRecords;
-        numberBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        numberBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
 
       it(`will handle insert and update zero record`, async () => {
@@ -707,7 +707,7 @@ describe('dataApiV3', () => {
         table = initResult.table;
         columns = initResult.columns;
         insertedRecords = initResult.insertedRecords;
-        dateBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        dateBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
 
       it(`will handle insert field format not valid`, async () => {
@@ -741,7 +741,7 @@ describe('dataApiV3', () => {
         table = initResult.table;
         columns = initResult.columns;
         insertedRecords = initResult.insertedRecords;
-        selectBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        selectBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
 
       it('insert with value outside of options', async () => {
@@ -782,7 +782,7 @@ describe('dataApiV3', () => {
         const initResult = await beforeEachCheckbox(testContext);
         table = initResult.table;
         columns = initResult.columns;
-        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
 
       it(`will handle insert field format not valid`, async () => {
@@ -825,7 +825,7 @@ describe('dataApiV3', () => {
         const initResult = await beforeEachJSON(testContext);
         table = initResult.table;
         columns = initResult.columns;
-        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
 
       it(`will handle insert field format not valid`, async () => {
@@ -868,7 +868,7 @@ describe('dataApiV3', () => {
       beforeEach(async () => {
         const initResult = await beforeEachUserBased(testContext);
 
-        userBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        userBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
         table = initResult.table;
         columns = initResult.columns;
       });
@@ -929,7 +929,7 @@ describe('dataApiV3', () => {
 
       beforeEach(async function () {
         const initResult = await beforeEachAttachment(testContext);
-        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
     });
   });

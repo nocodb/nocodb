@@ -141,14 +141,18 @@ async function copyComment(comment: CommentType) {
         class="w-[36px] h-[36px] !aspect-square !text-small"
       />
     </div>
-    <div class="flex-1 bg-white rounded-lg !border-gray-200 border-1 group ml-11.5"
+    <div
+      class="flex-1 bg-white rounded-lg border-1 group ml-11.5"
       :class="{
-        '!border-brand-default': isCreatedByYou
-      }">
+        'border-brand-200': isCreatedByYou,
+        'border-gray-200': !isCreatedByYou,
+      }"
+    >
       <div
-        class="flex items-center gap-2 bg-nc-bg-gray-extralight px-4 py-1 border-b border-gray-200 rounded-t-lg text-nc-content-gray min-h-[37px]"
+        class="flex items-center gap-2 bg-nc-bg-gray-extralight px-4 py-1 border-b rounded-t-lg text-nc-content-gray min-h-[37px]"
         :class="{
-          '!bg-[#F0F3FF]': isCreatedByYou,
+          '!bg-[#F0F3FF] border-brand-200': isCreatedByYou,
+          'border-gray-200': !isCreatedByYou,
         }"
       >
         <span class="font-medium text-sm" :class="{ 'text-brand-600': isCreatedByYou }">

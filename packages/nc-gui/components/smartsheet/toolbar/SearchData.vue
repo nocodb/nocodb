@@ -96,6 +96,13 @@ const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
   }
 }
 
+const handleEscapeKey = () => {
+  search.value.query = ''
+  if (!isMobileMode.value) {
+    showSearchBox.value = false
+  }
+}
+
 onClickOutside(globalSearchWrapperRef, handleClickOutside)
 
 onMounted(() => {
@@ -117,7 +124,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
     e.preventDefault()
     handleShowSearchInput()
   } else if (e.key === 'Escape') {
-    handleClickOutside(e)
+    handleEscapeKey()
   }
 })
 </script>

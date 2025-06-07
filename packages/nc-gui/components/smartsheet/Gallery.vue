@@ -572,7 +572,7 @@ const handleOpenNewRecordForm = () => {
     </NcDropdown>
     <div class="sticky bottom-4">
       <NcButton
-        v-if="isUIAllowed('dataInsert') && !isSqlView && !isSyncedTable"
+        v-if="isUIAllowed('dataInsert') && !isSyncedTable"
         size="xs"
         type="secondary"
         class="ml-4"

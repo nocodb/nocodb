@@ -225,6 +225,10 @@ const onCreatedRecord = async (record: any) => {
   isNewRecord.value = false
 }
 
+const onDeletedRecord = () => {
+  loadChildrenList(true)
+}
+
 const relation = computed(() => {
   return injectedColumn!.value?.colOptions?.type
 })
@@ -551,6 +555,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         maintain-default-view-order
         :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
         @created-record="onCreatedRecord"
+        @deleted-record="onDeletedRecord"
       />
     </Suspense>
   </div>

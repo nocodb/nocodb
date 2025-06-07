@@ -279,6 +279,11 @@ const onCreatedRecord = (record: any) => {
   isNewRecord.value = false
 }
 
+const onDeletedRecord = async () => {
+  await loadChildrenList()
+  loadChildrenExcludedList(rowState.value, true)
+}
+
 const linkedShortcuts = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
     vModel.value = false
@@ -525,6 +530,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         maintain-default-view-order
         skip-reload
         :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
+        @deleted-record="onDeletedRecord"
         @created-record="onCreatedRecord"
       />
     </Suspense>

@@ -14,6 +14,12 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { NcApiVersion } from 'nocodb-sdk';
+import type {
+  DataDeleteRequest,
+  DataInsertRequest,
+  DataRecord,
+  DataUpdateRequest,
+} from '~/services/v3/data-v3.types';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
@@ -22,11 +28,15 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { DataTableService } from '~/services/data-table.service';
-import {
-  PagedResponseImpl,
-  PagedResponseV3Impl,
-} from '~/helpers/PagedResponse';
 import { PREFIX_APIV3_DATA } from '~/constants/controllers';
+import {
+  DataListResponse,
+  DataRecordWithDeleted,
+} from '~/services/v3/data-v3.types';
+
+interface RecordField {
+  [key: string]: any;
+}
 
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
@@ -65,7 +75,7 @@ export class Datav3Controller {
     @Req() req: NcRequest,
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
-    @Body() body: any,
+    @Body() body: DataInsertRequest | DataInsertRequest[],
   ) {
     return await this.dataV3Service.dataInsert(context, {
       modelId: modelId,
@@ -82,12 +92,13 @@ export class Datav3Controller {
     @Req() req: NcRequest,
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
+    @Body() body: DataDeleteRequest | DataDeleteRequest[],
   ) {
     return await this.dataV3Service.dataDelete(context, {
       modelId: modelId,
       cookie: req,
       viewId,
-      body: req.body,
+      body,
     });
   }
 
@@ -98,10 +109,11 @@ export class Datav3Controller {
     @Req() req: NcRequest,
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
+    @Body() body: DataUpdateRequest | DataUpdateRequest[],
   ) {
     return await this.dataV3Service.dataUpdate(context, {
       modelId: modelId,
-      body: req.body,
+      body: body,
       cookie: req,
       viewId,
     });
@@ -117,23 +129,13 @@ export class Datav3Controller {
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
   ) {
-    const response = await this.dataTableService.nestedDataList(context, {
+    return await this.dataV3Service.nestedDataList(context, {
       modelId,
       rowId: rowId,
       query: req.query,
       viewId,
       columnId,
-      apiVersion: NcApiVersion.V3,
-    });
-
-    if (!(response instanceof PagedResponseImpl)) {
-      return response;
-    }
-
-    return new PagedResponseV3Impl(response as PagedResponseImpl<any>, {
-      context,
-      baseUrl: req.baseUrl,
-      tableId: modelId,
+      req,
     });
   }
 
@@ -217,13 +219,13 @@ export class Datav3Controller {
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
     @Param('rowId') rowId: string,
-  ) {
-    return await this.dataTableService.dataRead(context, {
+  ): Promise<{ record: DataRecord }> {
+    return await this.dataV3Service.dataRead(context, {
       modelId,
       rowId: rowId,
       query: req.query,
       viewId,
-      apiVersion: NcApiVersion.V3,
+      req,
     });
   }
 }

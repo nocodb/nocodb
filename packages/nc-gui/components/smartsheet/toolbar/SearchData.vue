@@ -97,6 +97,8 @@ const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
 }
 
 const handleEscapeKey = () => {
+  if (isDropdownOpen.value) return
+
   search.value.query = ''
   if (!isMobileMode.value) {
     showSearchBox.value = false

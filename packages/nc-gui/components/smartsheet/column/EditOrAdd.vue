@@ -334,6 +334,14 @@ const reloadMetaAndData = async () => {
 const saving = ref(false)
 
 const warningVisible = ref(false)
+const unsavedChangesVisible = ref(false)
+const hasChanges = ref(false)
+
+// Track if form has changes
+watch(formState, () => {
+  if (!mounted.value) return
+  hasChanges.value = true
+}, { deep: true })
 
 const saveSubmitted = async () => {
   if (readOnly.value) return
@@ -378,158 +386,49 @@ async function onSubmit() {
 
     const { close } = useDialog(resolveComponent('DlgColumnUpdateConfirm'), {
       'visible': warningVisible,
-      'onUpdate:visible': (value) => (warningVisible.value = value),
+      'onUpdate:visible': (value) => {
+        warningVisible.value = value
+      },
       'saving': saving,
       'onSubmit': async () => {
         close()
+        await onAlter()
         await saveSubmitted()
       },
+      'onCancel': () => {
+        close()
+      },
     })
-  } else await saveSubmitted()
-}
-
-// focus and select the column name field
-const antInput = ref()
-watchEffect(() => {
-  if (antInput.value && formState.value && !readOnly.value) {
-    // todo: replace setTimeout
-    setTimeout(() => {
-      // focus and select input only if active element is not an input or textarea
-      if (
-        (document.activeElement === document.body ||
-          document.activeElement === null ||
-          ['BUTTON', 'DIV'].includes(document.activeElement?.tagName)) &&
-        !props.disableTitleFocus
-      ) {
-        antInput.value?.focus()
-        antInput.value?.select()
-      }
-    }, 300)
-  }
-  advancedOptions.value = false
-})
-
-const enableDescription = ref(false)
-
-const descInputEl = ref()
-
-const removeDescription = () => {
-  formState.value.description = ''
-  enableDescription.value = false
-}
-
-onMounted(() => {
-  if (column.value?.description?.length || editDescription.value) {
-    enableDescription.value = true
-  }
-  if (!isEdit.value) {
-    generateNewColumnMeta(true)
   } else {
-    if (formState.value.pk) {
-      message.info(t('msg.info.editingPKnotSupported'))
-      emit('cancel')
-    } else if (isSystemColumn(formState.value) && !isSelfReferencingTableColumn(formState.value)) {
-      message.info(t('msg.info.editingSystemKeyNotSupported'))
-      emit('cancel')
-    }
+    await saveSubmitted()
   }
+}
 
-  if (props.preload) {
-    const { colOptions, ...others } = props.preload
-    formState.value = {
-      ...formState.value,
-      ...others,
-    }
-
-    if (colOptions) {
-      const meta = formState.value.meta || {}
-      onUidtOrIdTypeChange()
-      formState.value = {
-        ...formState.value,
-        colOptions: {
-          ...colOptions,
-        },
-        meta,
-      }
-    }
+// Function to handle cancel with unsaved changes check
+function handleCancel() {
+  if (hasChanges.value) {
+    unsavedChangesVisible.value = true
+    
+    const { close } = useDialog(resolveComponent('DlgColumnUnsavedChangesConfirm'), {
+      'visible': unsavedChangesVisible,
+      'onUpdate:visible': (value) => {
+        unsavedChangesVisible.value = value
+      },
+      'saving': saving,
+      'onSave': async () => {
+        close()
+        await onSubmit()
+      },
+      'onCancel': () => {
+        close()
+        hasChanges.value = false
+        emit('cancel')
+      },
+    })
   } else {
-    formState.value.filters = undefined
-  }
-
-  // for cases like formula
-  if (formState.value && !formState.value.column_name && !isLinksOrLTAR(formState.value)) {
-    formState.value.column_name = formState.value?.title
-  }
-
-  nextTick(() => {
-    mounted.value = true
-    emit('mounted')
-
-    handleScrollDebounce()
-
-    if (!isEdit.value) {
-      if (!formState.value?.temp_id) {
-        emit('add', formState.value)
-      }
-    }
-
-    if (isForm.value && !props.fromTableExplorer && !enableDescription.value) {
-      setTimeout(() => {
-        antInput.value?.focus()
-        antInput.value?.select()
-      }, 100)
-    } else if (props.editDescription) {
-      setTimeout(() => {
-        descInputEl.value?.focus()
-      }, 100)
-    }
-  })
-})
-
-const handleEscape = (event: KeyboardEvent): void => {
-  if (isColumnTypeOpen.value || isWebhookCreateModalOpen.value) return
-
-  if (event.key === 'Escape') emit('cancel')
-}
-
-const isFieldsTab = computed(() => {
-  return openedViewsTab.value === 'field'
-})
-
-const onDropdownChange = (value: boolean) => {
-  if (value) {
-    isColumnTypeOpen.value = value
-  } else {
-    showHoverEffectOnSelectedType.value = true
-    setTimeout(() => {
-      isColumnTypeOpen.value = value
-    }, 100)
+    emit('cancel')
   }
 }
-
-const handleResetHoverEffect = () => {
-  if (!showHoverEffectOnSelectedType.value) return
-
-  showHoverEffectOnSelectedType.value = false
-}
-
-watch(
-  formState,
-  () => {
-    if (mounted.value) {
-      if (props.fromTableExplorer) {
-        emit('update', formState.value)
-      } else if (activeSelectedField.value === formState.value.ai_temp_id) {
-        const selectedField = predicted.value.find((f) => f.ai_temp_id === activeSelectedField.value)
-
-        if (!selectedField) return
-
-        selectedField.formState = clone(formState.value)
-      }
-    }
-  },
-  { deep: true },
-)
 
 const submitBtnLabel = computed(() => {
   const aiAutoSuggestModeLabel = `${t('general.create')} ${
@@ -670,6 +569,12 @@ watch(activeAiTab, (newValue) => {
   }
   onSelectedTagClick()
 })
+
+const handleEscape = (event: KeyboardEvent): void => {
+  if (isColumnTypeOpen.value || isWebhookCreateModalOpen.value) return
+
+  if (event.key === 'Escape') handleCancel()
+}
 </script>
 
 <template>
@@ -999,7 +904,7 @@ watch(activeAiTab, (newValue) => {
           <a-form-item>
             <div class="flex gap-x-2 justify-end">
               <!-- Cancel -->
-              <NcButton size="small" html-type="button" type="secondary" :disabled="saving" @click="emit('cancel')">
+              <NcButton size="small" html-type="button" type="secondary" :disabled="saving" @click="handleCancel">
                 {{ $t('general.cancel') }}
               </NcButton>
 
@@ -1405,7 +1310,7 @@ watch(activeAiTab, (newValue) => {
                 }"
               >
                 <!-- Cancel -->
-                <NcButton size="small" html-type="button" type="secondary" :disabled="saving" @click="emit('cancel')">
+                <NcButton size="small" html-type="button" type="secondary" :disabled="saving" @click="handleCancel">
                   {{ $t('general.cancel') }}
                 </NcButton>
 

@@ -150,7 +150,7 @@ const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fie
 reloadViewDataTrigger.on(
   withLoading(async (params) => {
     // Skip loading deleted record again
-    if (params?.skipLoadingRecordId && params?.skipLoadingRecordId === primaryKey.value) {
+    if (params?.skipLoadingRowId && params?.skipLoadingRowId === primaryKey.value) {
       return
     }
 
@@ -539,7 +539,7 @@ const onConfirmDeleteRowClick = async () => {
 
   await reloadViewDataTrigger.trigger({
     shouldShowLoading: false,
-    skipLoadingRecordId: primaryKey.value || undefined,
+    skipLoadingRowId: primaryKey.value || undefined,
   })
 }
 

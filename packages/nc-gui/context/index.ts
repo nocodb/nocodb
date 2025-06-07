@@ -42,7 +42,7 @@ export const ReloadViewDataHookInj: InjectionKey<
     relatedTableMetaId?: string
     rowId?: string
     path?: Array<number>
-    skipLoadingRecordId?: string
+    skipLoadingRowId?: string
   } | void>
 > = Symbol('reload-view-data-injection')
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')

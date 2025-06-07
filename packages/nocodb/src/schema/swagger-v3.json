@@ -2394,7 +2394,7 @@
         }
       }
     },
-    "/api/v3/{baseId}/{tableId}": {
+    "/api/v3/data/{baseId}/{tableId}/records": {
       "parameters": [
         {
           "schema": {
@@ -2921,7 +2921,7 @@
         ]
       }
     },
-    "/api/v3/{baseId}/{tableId}/{recordId}": {
+    "/api/v3/data/{baseId}/{tableId}/records/{recordId}": {
       "parameters": [
         {
           "schema": {
@@ -3093,7 +3093,7 @@
         }
       }
     },
-    "/api/v3/{baseId}/{tableId}/count": {
+    "/api/v3/data/{baseId}/{tableId}/count": {
       "parameters": [
         {
           "schema": {
@@ -3175,7 +3175,7 @@
         }
       }
     },
-    "/api/v3/{baseId}/{tableId}/links/{linkFieldId}/{recordId}": {
+    "/api/v3/data/{baseId}/{tableId}/links/{linkFieldId}/{recordId}": {
       "parameters": [
         {
           "schema": {

@@ -134,8 +134,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
     </a-button>
     <div
       v-else
-      class="flex flex-row border-1 rounded-lg h-7 xs:(h-10 ml-0) ml-1 border-gray-200 overflow-hidden focus-within:border-primary"
-      :class="{ 'border-primary': search.query.length !== 0 }"
+      class="flex flex-row border-1 rounded-lg h-7 xs:(h-10 ml-0) ml-1 border-gray-200 overflow-hidden focus-within:(border-primary shadow-selected)"
+      :class="{ 'border-primary shadow-selected': search.query.length !== 0 }"
     >
       <NcDropdown
         v-model:visible="isDropdownOpen"

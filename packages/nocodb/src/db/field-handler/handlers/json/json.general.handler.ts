@@ -1,7 +1,13 @@
+import { ncIsNull, ncIsUndefined } from 'nocodb-sdk';
+import { NcError } from 'src/helpers/catchError';
+import { NC_MAX_TEXT_LENGTH } from 'src/constants';
+import type { NcContext } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
-import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
+import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
+import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
+import type { MetaService } from 'src/meta/meta.service';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
@@ -11,7 +17,7 @@ export class JsonGeneralHandler extends GenericFieldHandler {
     knex: CustomKnex,
     filter: Filter,
     column: Column,
-    options: HandlerOptions,
+    options: FilterOptions,
   ) {
     const { alias } = options;
     const field = sanitize(
@@ -20,6 +26,20 @@ export class JsonGeneralHandler extends GenericFieldHandler {
     let val = filter.value;
 
     return (qb: Knex.QueryBuilder) => {
+      const appendIsNull = () => {
+        qb.where((nestedQb) => {
+          nestedQb
+            .whereNull(field)
+            .orWhere(knex.raw("?? = '{}'", [field]))
+            .orWhere(knex.raw("?? = '[]'", [field]));
+        });
+      };
+      const appendIsNotNull = () => {
+        qb.whereNotNull(field)
+          .whereNot(knex.raw("?? = '{}'", [field]))
+          .whereNot(knex.raw("?? = '[]'", [field]));
+      };
+
       switch (filter.comparison_op) {
         case 'eq':
           if (!ncIsStringHasValue(val)) {
@@ -60,7 +80,7 @@ export class JsonGeneralHandler extends GenericFieldHandler {
           if (!val) {
             qb.whereNotNull(field);
           } else {
-            qb.where(knex.raw('?? ilike ?', [field, val]));
+            qb.where(knex.raw('?? like ?', [field, val]));
           }
           break;
 
@@ -81,18 +101,45 @@ export class JsonGeneralHandler extends GenericFieldHandler {
           break;
 
         case 'blank':
-          qb.where((nestedQb) => {
-            nestedQb
-              .whereNull(field)
-              .orWhere(knex.raw("?? = '{}'", [field]))
-              .orWhere(knex.raw("?? = '[]'", [field]));
-          });
+          appendIsNull();
           break;
 
         case 'notblank':
-          qb.whereNotNull(field)
-            .whereNot(knex.raw("?? = '{}'", [field]))
-            .whereNot(knex.raw("?? = '[]'", [field]));
+          appendIsNotNull();
+          break;
+
+        case 'is':
+          switch (val) {
+            case 'null':
+            case 'blank':
+            case 'empty': {
+              appendIsNull();
+              break;
+            }
+            case 'notnull':
+            case 'notblank':
+            case 'notempty': {
+              appendIsNotNull();
+              break;
+            }
+          }
+          break;
+
+        case 'isnot':
+          switch (val) {
+            case 'null':
+            case 'blank':
+            case 'empty': {
+              appendIsNotNull();
+              break;
+            }
+            case 'notnull':
+            case 'notblank':
+            case 'notempty': {
+              appendIsNull();
+              break;
+            }
+          }
           break;
 
         default:
@@ -126,5 +173,42 @@ export class JsonGeneralHandler extends GenericFieldHandler {
 
   override async verifyFilter(filter: Filter, column: Column) {
     return super.verifyFilter(filter, column);
+  }
+
+  override async parseUserInput(params: {
+    value: any;
+    row: any;
+    column: Column;
+    options?: {
+      baseModel?: IBaseModelSqlV2;
+      context?: NcContext;
+      metaService?: MetaService;
+    };
+  }): Promise<{ value: any }> {
+    if (ncIsUndefined(params.value) || ncIsNull(params.value)) {
+      return { value: params.value };
+    }
+    const length =
+      (typeof params.value === 'string' && params.value.length) ??
+      (typeof params.value === 'object' && JSON.stringify(params.value).length);
+
+    if (length > NC_MAX_TEXT_LENGTH) {
+      NcError._.valueLengthExceedLimit({
+        column: params.column.title,
+        type: params.column.uidt,
+        length,
+        maxLength: NC_MAX_TEXT_LENGTH,
+      });
+    }
+    const parseJsonResult = this.parseJsonValue(params.value);
+    if (parseJsonResult.isValidJson) {
+      return { value: parseJsonResult.jsonVal };
+    } else {
+      NcError.invalidValueForField({
+        value: params.value,
+        column: params.column.title,
+        type: params.column.uidt,
+      });
+    }
   }
 }

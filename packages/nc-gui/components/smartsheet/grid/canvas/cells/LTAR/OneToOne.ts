@@ -38,7 +38,7 @@ export const OneToOneCellRenderer: CellRenderer = {
     if (!ooColumn) return
     let returnData
     if (isValidValue(value)) {
-      const cellWidth = width - (isBoxHovered({ x, y, width, height }, mousePosition) ? (hasValue ? 16 : 14) : 0)
+      const cellWidth = width - (isBoxHovered({ x, y, width, height }, mousePosition) ? 16 : 0)
 
       const cellValue =
         value && !Array.isArray(value) && typeof value === 'object'
@@ -121,22 +121,17 @@ export const OneToOneCellRenderer: CellRenderer = {
       }
     }
 
-    if (isBoxHovered({ x, y, width, height }, mousePosition) && !readonly) {
-      const btnSize = hasValue ? 16 : 14
+    if (selected && !readonly) {
+      const btnSize = 16
       spriteLoader.renderIcon(ctx, {
-        x: x + width - (hasValue ? 27 : 26),
-        y: y + (hasValue ? 7 : 8),
+        x: x + width - 27,
+        y: y + 7,
         icon: hasValue ? 'maximize' : 'ncPlus',
         size: btnSize,
         color: '#374151',
       })
 
-      if (
-        isBoxHovered(
-          { x: x + width - (hasValue ? 27 : 26), y: y + (hasValue ? 7 : 8), height: btnSize, width: btnSize },
-          mousePosition,
-        )
-      ) {
+      if (isBoxHovered({ x: x + width - 27, y: y + 7, height: btnSize, width: btnSize }, mousePosition)) {
         setCursor('pointer')
       }
     }
@@ -157,10 +152,12 @@ export const OneToOneCellRenderer: CellRenderer = {
     isDoubleClick,
     openDetachedExpandedForm,
   }) {
+    if (!selected && !isDoubleClick) return false
+
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width, height } = getCellPosition(column, rowIndex)
-    const hasValue = !!row.row[column.title!]
-    const size = hasValue ? 16 : 14
+
+    const size = 16
 
     /**
      * Note: The order of click action trigger is matter here to mimic behaviour of editable cell
@@ -174,10 +171,7 @@ export const OneToOneCellRenderer: CellRenderer = {
      *    Remove item on click cross in handled in editable cell component
      */
 
-    const isClickedOnMaximizeOrPlusIcon = isBoxHovered(
-      { x: x + width - (hasValue ? 27 : 26), y: y + (hasValue ? 7 : 8), height: size, width: size },
-      mousePosition,
-    )
+    const isClickedOnMaximizeOrPlusIcon = isBoxHovered({ x: x + width - 27, y: y + 7, height: size, width: size }, mousePosition)
 
     const isClickedOnXCircleIcon =
       cellRenderStore?.x &&
@@ -209,9 +203,9 @@ export const OneToOneCellRenderer: CellRenderer = {
     ) {
       /**
        * To mimic editable cell behaviour we added return statement here
-       * If cell is readonly (stop event propagation on click chip item) `@click.stop="openExpandedForm"`
+       * If isPublic (stop event propagation on click chip item) `@click.stop="openExpandedForm"`
        */
-      if (readonly) return true
+      if (isPublic) return true
 
       const rowId = extractPkFromRow(value, (column.relatedTableMeta?.columns || []) as ColumnType[])
 

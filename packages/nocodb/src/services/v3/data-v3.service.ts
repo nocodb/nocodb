@@ -1,10 +1,13 @@
 import { NcApiVersion, UITypes } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
+import { NcError } from 'src/helpers/catchError';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
 import { DataTableService } from '~/services/data-table.service';
 import { Model } from '~/models';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+
+const V3_INSERT_LIMIT = 10;
 
 @Injectable()
 export class DataV3Service {
@@ -51,6 +54,7 @@ export class DataV3Service {
     }
 
     return new PagedResponseV3Impl(pagedData, {
+      context,
       tableId: param.modelId,
       baseUrl: param.req.ncSiteUrl,
       nestedNextPageAvail,
@@ -70,15 +74,9 @@ export class DataV3Service {
   ) {
     // todo: refactor and do within a transaction
     if (Array.isArray(param.body)) {
-      return Promise.all(
-        param.body.map((data) => {
-          return this.dataTableService.dataInsert(context, {
-            ...param,
-            body: data,
-            apiVersion: NcApiVersion.V3,
-          });
-        }),
-      );
+      if (param.body.length > V3_INSERT_LIMIT) {
+        NcError.maxInsertLimitExceeded(V3_INSERT_LIMIT);
+      }
     }
 
     return this.dataTableService.dataInsert(context, {

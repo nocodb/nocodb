@@ -12,9 +12,11 @@ export interface TooltipInfo {
   theme?: 'light' | 'dark'
 }
 
+export type TooltipTextType = string | VNode
+
 export const useTooltipStore = defineStore('tooltip', () => {
   const placement = ref<'top' | 'bottom' | 'left' | 'right'>('top')
-  const tooltipText = ref('')
+  const tooltipText = ref<TooltipTextType>('')
 
   const targetRect = ref<Omit<DOMRect, 'toJSON'>>({ x: 0, y: 0, top: 0, left: 0, bottom: 0, right: 0, width: 0, height: 0 })
 
@@ -31,7 +33,7 @@ export const useTooltipStore = defineStore('tooltip', () => {
     }
   })
 
-  function showTooltip({ text, rect }: { text: string; rect: RenderRectangleProps }) {
+  function showTooltip({ text, rect }: { text: TooltipTextType; rect: RenderRectangleProps }) {
     if (!text) return
 
     let canvasX = 0
@@ -62,7 +64,7 @@ export const useTooltipStore = defineStore('tooltip', () => {
     rect,
     mousePosition,
   }: {
-    text: string
+    text: TooltipTextType
     rect?: RenderRectangleProps
     mousePosition: {
       x: number

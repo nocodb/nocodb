@@ -111,14 +111,28 @@ const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } },
 
     if (fields.value.length < 2) return
 
-    await Promise.all(
-      fields.value.map(async (field, index) => {
-        if (field.order !== index + 1) {
-          field.order = index + 1
-          await saveOrUpdate(field, index, true, !!isDefaultView.value)
-        }
-      }),
-    )
+    const movedField = fields.value[_event.moved.newIndex]
+    if (!movedField) return
+    let newOrder
+
+    if (_event.moved.newIndex === 0) {
+      // Moving to first position
+      const nextField = fields.value[1]
+      newOrder = nextField.order / 2 // Half of next field's order
+    } else if (_event.moved.newIndex === fields.value.length - 1) {
+      // Moving to last position
+      const prevField = fields.value[fields.value.length - 2]
+      newOrder = prevField.order + 1000 // Add buffer to previous field's order
+    } else {
+      // Moving somewhere in the middle
+      const prevField = fields.value[_event.moved.newIndex - 1]
+      const nextField = fields.value[_event.moved.newIndex + 1]
+      newOrder = (prevField.order + nextField.order) / 2 // Average between neighbors
+    }
+
+    // Update only the moved field
+    movedField.order = newOrder
+    await saveOrUpdate(movedField, _event.moved.newIndex, true, !!isDefaultView.value)
 
     await loadViewColumns()
     reloadViewDataHook.trigger()
@@ -542,7 +556,7 @@ const onAddColumnDropdownVisibilityChange = () => {
             <component :is="iconMap.fields" v-else class="h-4 w-4" />
 
             <!-- Fields -->
-            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
+            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-small1 font-medium">
               <template v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY">
                 {{ $t('title.editCards') }}
               </template>
@@ -551,7 +565,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               </template>
             </span>
           </div>
-          <span v-if="numberOfHiddenFields" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">
+          <span v-if="numberOfHiddenFields" class="bg-brand-50 text-brand-500 nc-toolbar-btn-chip">
             {{ numberOfHiddenFields }}
           </span>
         </div>

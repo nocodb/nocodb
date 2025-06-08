@@ -203,7 +203,7 @@ provide(ActiveCellInj, ref(true))
 provide(IsFormInj, ref(true))
 
 const isSingleOrMultiSelect = computed(() => {
-  return filterType.value === 'isSingleSelect' || filterType.value === 'isMultiSelect'
+  return filterType.value === 'isSingleSelect' || filterType.value === 'isMultiSelect' || filterType.value === 'isUser'
 })
 </script>
 

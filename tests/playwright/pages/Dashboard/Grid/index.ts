@@ -303,7 +303,20 @@ export class GridPage extends BasePage {
 
   async openExpandedRow({ index }: { index: number }) {
     await this.row(index).locator(`td[data-testid="cell-Id-${index}"]`).hover();
-    await this.row(index).locator(`div[data-testid="nc-expand-${index}"]`).click();
+
+    const expandLocator = this.row(index).locator(`div[data-testid="nc-expand-${index}"]`);
+
+    // If commentCount is shown
+    const commentSpan = expandLocator.locator('> span');
+
+    // Otherwise, the fallback icon container
+    const iconDiv = expandLocator.locator('> div');
+
+    if (await commentSpan.isVisible()) {
+      await commentSpan.click();
+    } else {
+      await iconDiv.click();
+    }
   }
 
   async selectRow(index: number) {

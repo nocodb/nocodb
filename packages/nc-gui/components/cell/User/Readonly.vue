@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
-import type { UserFieldRecordType } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, type UserFieldRecordType } from 'nocodb-sdk'
 import { getOptions, getSelectedUsers } from './utils'
 
 interface Props {
@@ -13,9 +13,13 @@ interface Props {
 
 const { modelValue, forceMulti, options: userOptions } = defineProps<Props>()
 
+const { t } = useI18n()
+
 const meta = inject(MetaInj)!
 
 const column = inject(ColumnInj)!
+
+const isInFilter = inject(IsInFilterInj, ref(false))
 
 const basesStore = useBases()
 
@@ -31,12 +35,21 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isMultiple = computed(() => forceMulti || (column.value.meta as { is_multi: boolean; notify: boolean })?.is_multi)
 
-const rowHeight = inject(RowHeightInj, ref(undefined))
+const rowHeight = inject(RowHeightInj, ref(isInFilter.value ? 1 : undefined))
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
 const options = computed(() => {
-  return userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value)
+  const currentUserField: any[] = []
+  if (isEeUI && isInFilter.value) {
+    currentUserField.push({
+      id: CURRENT_USER_TOKEN,
+      display_name: t('title.currentUser'),
+      email: CURRENT_USER_TOKEN,
+    })
+  }
+
+  return [...currentUserField, ...(userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value))]
 })
 
 const optionsMap = computed(() => {
@@ -73,17 +86,17 @@ const isCollaborator = (userIdOrEmail) => {
       <component
         :is="isMultiple ? CheckboxGroup : RadioGroup"
         :value="selectedUsersListLayout"
-        disabled
         class="nc-field-layout-list"
+        disabled
       >
         <template v-for="op of options" :key="op.id || op.email">
           <component
             :is="isMultiple ? Checkbox : Radio"
             v-if="!op.deleted"
             :key="op.id || op.email"
-            :value="op.id"
-            :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
             :class="`nc-select-option-${column.title}-${op.email}`"
+            :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
+            :value="op.id"
           >
             <a-tag class="rounded-tag max-w-full !pl-0" color="'#ccc'">
               <span
@@ -93,27 +106,22 @@ const isCollaborator = (userIdOrEmail) => {
                 class="flex items-stretch gap-2 text-small"
               >
                 <div>
-                  <GeneralUserIcon
-                    size="auto"
-                    :user="op"
-                    class="!text-[0.65rem] !h-[16.8px]"
-                    :disabled="!isCollaborator(op.id)"
-                  />
+                  <GeneralUserIcon :disabled="!isCollaborator(op.id)" :user="op" class="!text-[0.5rem] !h-[16.8px]" size="auto" />
                 </div>
                 <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                   <template #title>
                     {{ op.display_name?.trim() || op.email }}
                   </template>
                   <span
-                    class="text-ellipsis overflow-hidden"
+                    :class="{
+                      'text-gray-600': !isCollaborator(op.id || op.email),
+                    }"
                     :style="{
                       wordBreak: 'keep-all',
                       whiteSpace: 'nowrap',
                       display: 'inline',
                     }"
-                    :class="{
-                      'text-gray-600': !isCollaborator(op.id || op.email),
-                    }"
+                    class="text-ellipsis overflow-hidden"
                   >
                     {{ op.display_name?.trim() || op.email }}
                   </span>
@@ -127,29 +135,34 @@ const isCollaborator = (userIdOrEmail) => {
 
     <div
       v-else
-      class="flex flex-wrap"
+      class="flex overflow-hidden gap-y-1"
       :style="{
-        'display': '-webkit-box',
+        'flex-wrap': !isInFilter,
         'max-width': '100%',
         '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
-        '-webkit-box-orient': 'vertical',
-        'overflow': 'hidden',
+        'maxHeight': `${rowHeightInPx[rowHeight] - 12}px`,
       }"
     >
       <template v-for="selectedOpt of selectedUsers" :key="selectedOpt.value">
         <a-tag
-          class="rounded-tag max-w-full !pl-0"
           :class="{
             '!my-0': !rowHeight || rowHeight === 1,
           }"
-          color="'#ccc'"
+          class="rounded-tag max-w-full !pl-0"
+          :color="
+            selectedOpt.value === CURRENT_USER_TOKEN
+              ? themeV4Colors.brand[50]
+              : location === 'filter'
+              ? themeV4Colors.gray[200]
+              : '#ccc'
+          "
         >
           <span
+            :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             :style="{
               color: getSelectTypeOptionTextColor('#ccc'),
             }"
             class="flex items-stretch gap-2"
-            :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
           >
             <div class="flex-none">
               <GeneralUserIcon
@@ -160,7 +173,11 @@ const isCollaborator = (userIdOrEmail) => {
                   email: selectedOpt.label,
                   meta: selectedOpt.meta,
                 }"
-                class="!text-[0.65rem] !h-[16.8px]"
+                class="!text-[0.5rem] !h-[16.8px]"
+                :class="{
+                  '!bg-white': selectedOpt.value === CURRENT_USER_TOKEN,
+                }"
+                :show-placeholder-icon="selectedOpt.value === CURRENT_USER_TOKEN"
               />
             </div>
             <NcTooltip class="truncate max-w-full" show-on-truncate-only>
@@ -168,15 +185,17 @@ const isCollaborator = (userIdOrEmail) => {
                 {{ selectedOpt.label }}
               </template>
               <span
-                class="text-ellipsis overflow-hidden"
+                :class="{
+                  'text-gray-600': !isCollaborator(selectedOpt.value) && selectedOpt.value !== CURRENT_USER_TOKEN,
+                  'text-nc-content-brand': selectedOpt.value === CURRENT_USER_TOKEN,
+                  'font-600': isInFilter,
+                }"
                 :style="{
                   wordBreak: 'keep-all',
                   whiteSpace: 'nowrap',
                   display: 'inline',
                 }"
-                :class="{
-                  'text-gray-600': !isCollaborator(selectedOpt.value),
-                }"
+                class="text-ellipsis overflow-hidden"
               >
                 {{ selectedOpt.label }}
               </span>
@@ -188,7 +207,7 @@ const isCollaborator = (userIdOrEmail) => {
   </div>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .ms-close-icon {
   color: rgba(0, 0, 0, 0.25);
   cursor: pointer;

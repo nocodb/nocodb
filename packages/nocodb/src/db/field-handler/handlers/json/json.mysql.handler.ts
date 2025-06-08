@@ -1,17 +1,17 @@
+import { JsonGeneralHandler } from './json.general.handler';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
-import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
+import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
-import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
-import { sanitize } from '~/helpers/sqlSanitize';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
+import { sanitize } from '~/helpers/sqlSanitize';
 
-export class JsonMySqlHandler extends GenericFieldHandler {
+export class JsonMySqlHandler extends JsonGeneralHandler {
   override async filter(
     knex: CustomKnex,
     filter: Filter,
     column: Column,
-    options: HandlerOptions,
+    options: FilterOptions,
   ) {
     const { alias } = options;
     const field = sanitize(
@@ -20,6 +20,19 @@ export class JsonMySqlHandler extends GenericFieldHandler {
     let val = filter.value;
 
     return (qb: Knex.QueryBuilder) => {
+      const appendIsNull = () => {
+        qb.where((nestedQb) => {
+          nestedQb
+            .whereNull(field)
+            .orWhere(knex.raw("JSON_UNQUOTE(??) = '{}'", [field]))
+            .orWhere(knex.raw("JSON_UNQUOTE(??) = '[]'", [field]));
+        });
+      };
+      const appendIsNotNull = () => {
+        qb.whereNotNull(field)
+          .whereNot(knex.raw("JSON_UNQUOTE(??) = '{}'", [field]))
+          .whereNot(knex.raw("JSON_UNQUOTE(??) = '[]'", [field]));
+      };
       switch (filter.comparison_op) {
         case 'eq':
           if (!ncIsStringHasValue(val)) {
@@ -87,18 +100,41 @@ export class JsonMySqlHandler extends GenericFieldHandler {
           break;
 
         case 'blank':
-          qb.where((nestedQb) => {
-            nestedQb
-              .whereNull(field)
-              .orWhere(knex.raw("JSON_UNQUOTE(??) = '{}'", [field]))
-              .orWhere(knex.raw("JSON_UNQUOTE(??) = '[]'", [field]));
-          });
+          appendIsNull();
           break;
 
         case 'notblank':
-          qb.whereNotNull(field)
-            .whereNot(knex.raw("JSON_UNQUOTE(??) = '{}'", [field]))
-            .whereNot(knex.raw("JSON_UNQUOTE(??) = '[]'", [field]));
+          appendIsNotNull();
+          break;
+
+        case 'is':
+          switch (val) {
+            case 'blank':
+            case 'empty': {
+              appendIsNull();
+              break;
+            }
+            case 'notblank':
+            case 'notempty': {
+              appendIsNotNull();
+              break;
+            }
+          }
+          break;
+
+        case 'isnot':
+          switch (val) {
+            case 'blank':
+            case 'empty': {
+              appendIsNotNull();
+              break;
+            }
+            case 'notblank':
+            case 'notempty': {
+              appendIsNull();
+              break;
+            }
+          }
           break;
 
         default:
@@ -107,27 +143,6 @@ export class JsonMySqlHandler extends GenericFieldHandler {
           );
       }
     };
-  }
-
-  protected parseJsonValue(val: any): {
-    jsonVal: string;
-    isValidJson: boolean;
-  } {
-    let jsonVal = val;
-    let isValidJson = false;
-    if (typeof val === 'object' && val !== null) {
-      jsonVal = JSON.stringify(val);
-      isValidJson = true;
-    } else if (typeof val === 'string') {
-      try {
-        JSON.parse(val);
-        jsonVal = val;
-        isValidJson = true;
-      } catch {
-        jsonVal = val;
-      }
-    }
-    return { jsonVal, isValidJson };
   }
 
   override async verifyFilter(filter: Filter, column: Column) {

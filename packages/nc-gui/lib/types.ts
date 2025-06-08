@@ -23,8 +23,10 @@ import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/
 import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
 import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
 import type { UseDetachedLongTextProps } from '../components/smartsheet/grid/canvas/composables/useDetachedLongText'
+import type { BaseRoleLoader } from '../components/smartsheet/grid/canvas/loaders/BaseRoleLoader'
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
+import type Record from '~icons/*'
 
 interface User {
   id: string
@@ -381,6 +383,7 @@ interface CellRendererOptions {
   relatedTableMeta?: TableType
   meta?: TableType
   metas?: { [idOrTitle: string]: TableType | any }
+  baseRoles?: Record<string, any>
   x: number
   y: number
   width: number
@@ -392,6 +395,7 @@ interface CellRendererOptions {
   spriteLoader: SpriteLoader
   actionManager: ActionManager
   tableMetaLoader: TableMetaLoader
+  baseRoleLoader: BaseRoleLoader
   isMysql: (sourceId?: string) => boolean
   isMssql: (sourceId?: string) => boolean
   isXcdbBase: (sourceId?: string) => boolean
@@ -427,11 +431,55 @@ interface CellRendererOptions {
   setCursor: SetCursorType
   cellRenderStore: CellRenderStore
   baseUsers?: (Partial<UserType> | Partial<User>)[]
+  user?: Partial<UserType> | Partial<User>
   formula?: boolean
   isPublic?: boolean
   path?: Array<number>
   renderAsPlainCell?: boolean
   fontFamily?: string
+  isRowHovered?: boolean
+  isRowChecked?: boolean
+  isCellInSelectionRange?: boolean
+  isGroupHeader?: boolean
+  rowMeta?: {
+    // Used in InfiniteScroll Grid View
+    isLastRow?: number
+    rowIndex?: number
+    isLoading?: boolean
+    isValidationFailed?: boolean
+    isRowOrderUpdated?: boolean
+    isDragging?: boolean
+    rowProgress?: {
+      message: string
+      progress: number
+    }
+
+    new?: boolean
+    selected?: boolean
+    commentCount?: number
+    changed?: boolean
+    saving?: boolean
+    ltarState?: Record<string, Record<string, any> | Record<string, any>[] | null>
+    fromExpandedForm?: boolean
+    // use in datetime picker component
+    isUpdatedFromCopyNPaste?: Record<string, boolean>
+    // Used in Calendar view
+    style?: Partial<CSSStyleDeclaration>
+    range?: {
+      fk_from_col: ColumnType
+      fk_to_col: ColumnType | null
+      is_readonly?: boolean
+    }
+    id?: string
+    position?: string
+    dayIndex?: number
+    overLapIteration?: number
+    numberOfOverlaps?: number
+    minutes?: number
+    recordIndex?: number // For week spanning records in month view
+    maxSpanning?: number
+  }
+  allowLocalUrl?: boolean
 }
 
 interface CellRenderStore {
@@ -447,7 +495,7 @@ interface CellRenderStore {
   ltar?: { oldX?: number; oldY?: number; x?: number; y?: number; width?: number; height?: number; value?: any }[]
 }
 
-type CursorType = 'auto' | 'pointer' | 'col-resize' | 'crosshair'
+type CursorType = CSSProperties['cursor']
 
 type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
 
@@ -485,6 +533,8 @@ interface CellRenderer {
     isPublic?: boolean
     openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
+    formula?: boolean
+    allowLocalUrl?: boolean
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent
@@ -506,6 +556,7 @@ interface CellRenderer {
     makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
     cellRenderStore: CellRenderStore
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
+    allowLocalUrl?: boolean
   }) => Promise<boolean | void>
   handleHover?: (options: {
     event: MouseEvent
@@ -530,6 +581,7 @@ interface CellRenderer {
     cellRenderStore: CellRenderStore
     setCursor: SetCursorType
     path: Array<number>
+    baseUsers?: (Partial<UserType> | Partial<User>)[]
   }) => Promise<void>
   [key: string]: any
 }
@@ -617,6 +669,13 @@ interface CanvasGroup {
   aggregations: Record<string, any>
 }
 
+interface CloudFeaturesType {
+  'Id'?: number
+  'Title'?: string
+  'Highlight'?: boolean
+  'Coming Soon'?: boolean
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -667,4 +726,5 @@ export type {
   CursorType,
   CanvasCellEventDataInjType,
   CanvasGroup,
+  CloudFeaturesType,
 }

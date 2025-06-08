@@ -17,9 +17,7 @@ const viewsStore = useViewsStore()
 
 const { activeView, views } = storeToRefs(viewsStore)
 
-const { loadViews, navigateToView } = viewsStore
-
-const { refreshCommandPalette } = useCommandPalette()
+const { navigateToView, onOpenViewCreateModal } = viewsStore
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -117,58 +115,21 @@ async function onOpenModal({
 
   $e('c:view:create:topbar', { view: type === 'AI' ? type : viewTypeAlias[type] })
 
-  const isDlgOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgViewCreate'), {
-    'modelValue': isDlgOpen,
+  onOpenViewCreateModal({
     title,
     type,
-    'tableId': activeTable.value.id,
-    'selectedViewId': copyViewId,
-    calendarRange,
+    copyViewId,
     groupingFieldColumnId,
+    calendarRange,
     coverImageColumnId,
-    'onUpdate:modelValue': closeDialog,
-    'baseId': base.value.id,
-    'onCreated': async (view?: ViewType) => {
-      closeDialog()
-
-      refreshCommandPalette()
-
-      await loadViews({
-        tableId: activeTable.value.id!,
-        force: true,
-      })
-
-      activeTable.value.meta = {
-        ...(activeTable.value.meta as object),
-        hasNonDefaultViews: true,
-      }
-
-      if (view) {
-        navigateToView({
-          view,
-          tableId: activeTable.value.id!,
-          baseId: base.value.id!,
-          doNotSwitchTab: true,
-        })
-      }
-
-      $e('a:view:create', { view: view?.type || type })
-    },
+    baseId: base.value.id!,
+    tableId: activeTable.value.id!,
   })
-
-  function closeDialog() {
-    isOpen.value = false
-    isDlgOpen.value = false
-
-    close(1000)
-  }
 }
 </script>
 
 <template>
-  <NcDropdown v-if="activeView" v-model:visible="isOpen">
+  <NcDropdown v-if="activeView" v-model:visible="isOpen" overlay-class-name="max-w-64">
     <slot name="default" :is-open="isOpen"></slot>
     <template #overlay>
       <LazyNcList
@@ -178,6 +139,7 @@ async function onOpenModal({
         option-value-key="id"
         option-label-key="title"
         search-input-placeholder="Search views"
+        class="min-w-64 !w-auto"
         :filter-option="filterOption"
         @change="handleNavigateToView"
       >
@@ -207,7 +169,7 @@ async function onOpenModal({
           <NcDivider class="!mt-0 !mb-2" />
           <div class="overflow-hidden mb-2">
             <a-menu class="nc-viewlist-menu">
-              <a-sub-menu popup-class-name="nc-viewlist-submenu-popup ">
+              <a-sub-menu popup-class-name="nc-viewlist-submenu-popup">
                 <template #title>
                   <div class="flex items-center justify-between gap-2 text-sm font-weight-500 !text-brand-500">
                     <div class="flex items-center gap-2">

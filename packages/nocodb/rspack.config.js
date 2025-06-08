@@ -19,7 +19,7 @@ module.exports = {
         exclude: /node_modules/,
         loader: 'builtin:swc-loader',
         options: {
-          sourceMap: false,
+          sourceMaps: false,
           jsc: {
             parser: {
               syntax: 'typescript',
@@ -73,6 +73,9 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js', '.json', '.node'],
     tsConfig: {
       configFile: resolve('tsconfig.json'),
+    },
+    alias: {
+      '@noco-local-integrations': resolve(__dirname, '../noco-integrations/packages'),
     },
   },
   mode: 'production',

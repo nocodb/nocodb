@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, NcApiVersion, type TableType, extractFilterFromXwhere } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, type ColumnType, type FilterType } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -11,36 +11,21 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const router = useRouter()
-const route = router.currentRoute
-const meta = inject(MetaInj, ref())
-
-const aliasColObjMap = computed(() => {
-  if (!meta?.value?.columns) return {}
-
-  const colObj = (meta.value as TableType)?.columns?.reduce<Record<string, ColumnType>>((acc, col: ColumnType) => {
-    acc[col.title!] = col
-    return acc
-  }, {} as Record<string, ColumnType>)
-  return colObj
-})
-
-const filtersFromUrlParams = computed(() => {
-  if (route.value.query?.where) {
-    return extractFilterFromXwhere(
-      { api_version: NcApiVersion.V1 },
-      route.value.query.where as string,
-      aliasColObjMap.value,
-      false,
-    )
-  }
-})
+const reloadViewDataEventHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const { isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
 
-const { nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
+const {
+  allFilters: smatsheetAllFilters,
+  nestedFilters,
+  eventBus,
+  filtersFromUrlParams,
+  whereQueryFromUrl,
+} = useSmartsheetStoreOrThrow()
+
+const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds } = useColumnFilteredOrSorted()
 
 // todo: avoid duplicate api call by keeping a filter store
 const { nonDeletedFilters, loadFilters } = useViewFilters(
@@ -92,6 +77,56 @@ eventBus.on(async (event, column: ColumnType) => {
 const combinedFilterLength = computed(() => {
   return filtersLength.value + (filtersFromUrlParams.value?.filters?.length || 0)
 })
+
+const isCurrentUserFilterPresent = ref(false)
+
+const checkForCurrentUserFilter = (currentFilters: FilterType[] = []) => {
+  let hasCurrentUserFilter = false
+
+  const extractFilterArray = (filters: FilterType[]) => {
+    if (hasCurrentUserFilter) return
+
+    for (const eachFilter of filters) {
+      if (eachFilter.is_group && eachFilter.children?.length) {
+        extractFilterArray(eachFilter.children)
+      } else if (
+        eachFilter.fk_column_id &&
+        userColumnIds.value.includes(eachFilter.fk_column_id) &&
+        eachFilter.value?.includes(CURRENT_USER_TOKEN)
+      ) {
+        hasCurrentUserFilter = true
+      }
+    }
+  }
+
+  extractFilterArray([
+    ...currentFilters,
+    ...(filtersFromUrlParams.value?.errors?.length ? [] : filtersFromUrlParams.value?.filters || []),
+  ])
+  return hasCurrentUserFilter
+}
+
+if (isEeUI) {
+  reloadViewDataEventHook.on(async (params) => {
+    if (params?.isFormFieldFilters) return
+    isCurrentUserFilterPresent.value = checkForCurrentUserFilter(Object.values(allFilters.value).flat(Infinity) as FilterType[])
+  })
+
+  watch(
+    [smatsheetAllFilters, nestedFilters, allFilters, filtersFromUrlParams],
+    () => {
+      isCurrentUserFilterPresent.value = checkForCurrentUserFilter(
+        !ncIsEmptyObject(allFilters.value)
+          ? (Object.values(allFilters.value).flat(Infinity) as FilterType[])
+          : [...smatsheetAllFilters.value, ...nestedFilters.value],
+      )
+    },
+    {
+      deep: true,
+      immediate: true,
+    },
+  )
+}
 </script>
 
 <template>
@@ -108,10 +143,13 @@ const combinedFilterLength = computed(() => {
 
       <NcButton
         v-e="['c:filter']"
-        class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7"
+        class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7 group"
         size="small"
         type="secondary"
         :show-as-disabled="isLocked"
+        :class="{
+          [filteredOrSortedAppearanceConfig.FILTERED.toolbarBgClass]: combinedFilterLength,
+        }"
       >
         <div class="flex items-center gap-1 min-h-5">
           <div class="flex items-center gap-2">
@@ -122,9 +160,21 @@ const combinedFilterLength = computed(() => {
             }}</span>
           </div>
 
-          <span v-if="combinedFilterLength" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{
-            combinedFilterLength
-          }}</span>
+          <NcTooltip v-if="combinedFilterLength" :disabled="!isCurrentUserFilterPresent" class="flex">
+            <template #title>
+              {{ $t('tooltip.filteredByCurrentUser') }}
+            </template>
+            <span
+              class="nc-toolbar-btn-chip inline-flex items-center"
+              :class="{
+                [filteredOrSortedAppearanceConfig.FILTERED.toolbarChipBgClass]: true,
+                [filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass]: true,
+              }"
+            >
+              {{ combinedFilterLength }}
+              <span v-if="isCurrentUserFilterPresent" class="ml-1 pb-0.6">{{ '@' }}</span>
+            </span>
+          </NcTooltip>
 
           <!--    show a warning icon with tooltip if query filter error is there -->
           <template v-if="filtersFromUrlParams?.errors?.length">
@@ -186,7 +236,7 @@ const combinedFilterLength = computed(() => {
             >
               <SmartsheetToolbarColumnFilter
                 v-if="filtersFromUrlParams.filters"
-                :key="route.query?.where"
+                :key="whereQueryFromUrl"
                 ref="filterComp"
                 v-model="filtersFromUrlParams.filters"
                 v-model:is-open="open"
@@ -200,16 +250,10 @@ const combinedFilterLength = computed(() => {
 
               <div
                 v-else-if="filtersFromUrlParams?.errors?.length"
-                class="nc-error-alert rounded p-4 mx-2 mt-0 transition-margin duration-500 mt-1"
+                class="px-2 transition-margin duration-500"
                 :class="{ 'mb-2': queryFilterOpen }"
               >
-                <div class="flex gap-3">
-                  <GeneralIcon icon="ncAlertCircleFilled" class="text-orange-500 w-5 h-5 mt-0.5" />
-                  <div class="flex flex-col">
-                    <div class="nc-error-title font-semibold">Error</div>
-                    <span class="nc-error-msg">{{ $t('msg.urlFilterError') }}</span>
-                  </div>
-                </div>
+                <NcAlert type="error" message="Error" :description="$t('msg.urlFilterError')" />
               </div>
             </div>
           </div>
@@ -230,21 +274,6 @@ const combinedFilterLength = computed(() => {
 </style>
 
 <style lang="scss" scoped>
-.nc-error-alert {
-  border: 1px solid var(--nc-border-grey-medium);
-  border-radius: var(--measurements-radius-small);
-
-  .nc-error-msg {
-    color: var(--nc-content-grey-muted);
-    line-height: 20px;
-  }
-
-  .nc-error-title {
-    font-size: 16px;
-    line-height: 24px;
-  }
-}
-
 .nc-error-icon {
   color: var(--nc-content-red-dark);
 }

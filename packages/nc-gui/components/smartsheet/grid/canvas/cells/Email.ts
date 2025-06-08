@@ -23,7 +23,7 @@ export const EmailCellRenderer: CellRenderer = {
         y,
         text,
         maxWidth: width - padding * 2,
-        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fontFamily: `${pv ? 600 : 500} 13px Inter`,
         fillStyle: (isValidEmail && selected) || pv ? '#3366FF' : textColor,
         underline: isValidEmail,
         height,
@@ -34,7 +34,7 @@ export const EmailCellRenderer: CellRenderer = {
         props.mousePosition,
       )
 
-      if (isHover && isValidEmail) {
+      if (selected && isHover && isValidEmail) {
         setCursor('pointer')
       }
 
@@ -57,8 +57,8 @@ export const EmailCellRenderer: CellRenderer = {
 
     return false
   },
-  async handleClick({ value, row, column, getCellPosition, mousePosition }) {
-    if (!row || !column) return false
+  async handleClick({ value, row, column, selected, isDoubleClick, getCellPosition, mousePosition }) {
+    if (!row || !column || (!selected && !isDoubleClick)) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10
@@ -76,7 +76,7 @@ export const EmailCellRenderer: CellRenderer = {
       y: y + padding,
       text,
       maxWidth: width - padding * 2,
-      fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+      fontFamily: `${pv ? 600 : 500} 13px Inter`,
       height,
       render: false,
     })

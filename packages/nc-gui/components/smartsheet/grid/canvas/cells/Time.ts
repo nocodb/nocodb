@@ -7,9 +7,9 @@ export const TimeCellRenderer: CellRenderer = {
 
     const timeFormat = parseProp(column?.meta)?.is12hrFormat ? 'hh:mm A' : 'HH:mm'
 
-    if (!value && selected && readonly) {
+    if (!value && selected && !readonly) {
       ctx.fillStyle = '#989FB1'
-      ctx.font = '400 13px Manrope'
+      ctx.font = '400 13px Inter'
       const truncatedFormat = truncateText(ctx, timeFormat, width - padding * 2)
       ctx.fillText(truncatedFormat, x + padding, y + 16)
       return { x, y }
@@ -32,7 +32,7 @@ export const TimeCellRenderer: CellRenderer = {
         y,
         text,
         maxWidth: width - padding * 2,
-        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fontFamily: `${pv ? 600 : 500} 13px Inter`,
         fillStyle: pv ? '#3366FF' : textColor,
         height,
       })
@@ -57,7 +57,7 @@ export const TimeCellRenderer: CellRenderer = {
     let text = ''
 
     if (value) {
-      canvasContext.font = '500 13px Manrope'
+      canvasContext.font = '500 13px Inter'
       let time = dayjs(value)
       if (!time.isValid()) {
         time = dayjs(value, 'HH:mm:ss')
@@ -70,7 +70,7 @@ export const TimeCellRenderer: CellRenderer = {
       }
     } else {
       text = timeFormat
-      canvasContext.font = '400 13px Manrope'
+      canvasContext.font = '400 13px Inter'
     }
 
     if (text) {

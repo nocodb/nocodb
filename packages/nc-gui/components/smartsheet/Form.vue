@@ -90,17 +90,20 @@ const {
 const { preFillFormSearchParams } = storeToRefs(useViewsStore())
 
 const reloadEventHook = inject(ReloadViewDataHookInj, createEventHook())
+const { withLoading } = useLoadingTrigger()
 
-reloadEventHook.on(async (params) => {
-  if (params?.isFormFieldFilters) {
-    setTimeout(() => {
-      checkFieldVisibility()
-    }, 100)
-  } else {
-    await Promise.all([loadFormView(), loadReleatedMetas()])
-    setFormData()
-  }
-})
+reloadEventHook.on(
+  withLoading(async (params) => {
+    if (params?.isFormFieldFilters) {
+      setTimeout(() => {
+        checkFieldVisibility()
+      }, 100)
+    } else {
+      await Promise.all([loadFormView(), loadReleatedMetas()])
+      setFormData()
+    }
+  }),
+)
 
 const { fields, showAll, hideAll } = useViewColumnsOrThrow()
 
@@ -300,8 +303,11 @@ const updatePreFillFormSearchParams = useDebounceFn(() => {
   preFillFormSearchParams.value = searchParams.toString()
 }, 250)
 
+const isFormSubmitting = ref(false)
+
 async function submitForm() {
   if (!isUIAllowed('dataInsert') || blockAddNewRecord.value) return
+  isFormSubmitting.value = true
 
   for (const col of localColumns.value) {
     if (col.show && col.title && isRequired(col, col.required) && formState.value[col.title] === undefined) {
@@ -326,6 +332,7 @@ async function submitForm() {
 
     if (e?.errorFields?.length) {
       message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
+      isFormSubmitting.value = false
       return
     }
   }
@@ -335,6 +342,8 @@ async function submitForm() {
     oldRow: {},
     rowMeta: { new: true },
   })
+
+  isFormSubmitting.value = false
 
   if (res) {
     submitted.value = true
@@ -1431,6 +1440,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                           type="primary"
                           size="small"
                           :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length || blockAddNewRecord"
+                          :loading="isFormSubmitting"
                           class="nc-form-submit nc-form-focus-element"
                           data-testid="nc-form-submit"
                           data-title="nc-form-submit"

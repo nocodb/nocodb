@@ -46,6 +46,8 @@ export enum PlanFeatureTypes {
   FEATURE_SCRIPTS = 'feature_scripts',
   FEATURE_SSO = 'feature_sso',
   FEATURE_WEBHOOK_CUSTOM_PAYLOAD = 'feature_webhook_custom_payload',
+  FEATURE_WORKSPACE_CUSTOM_LOGO = 'feature_workspace_custom_logo',
+  FEATURE_CURRENT_USER_FILTER = 'feature_current_user_filter',
 }
 
 export enum PlanTitles {
@@ -67,6 +69,17 @@ export const LoyaltyPriceLookupKeyMap = {
   [PlanPriceLookupKeys.TEAM_YEARLY]: 'loyalty_team_yearly',
   [PlanPriceLookupKeys.BUSINESS_MONTHLY]: 'loyalty_business_monthly',
   [PlanPriceLookupKeys.BUSINESS_YEARLY]: 'loyalty_business_yearly',
+};
+
+export const LoyaltyPriceReverseLookupKeyMap = {
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.TEAM_MONTHLY]]:
+    PlanPriceLookupKeys.TEAM_MONTHLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.TEAM_YEARLY]]:
+    PlanPriceLookupKeys.TEAM_YEARLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.BUSINESS_MONTHLY]]:
+    PlanPriceLookupKeys.BUSINESS_MONTHLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.BUSINESS_YEARLY]]:
+    PlanPriceLookupKeys.BUSINESS_YEARLY,
 };
 
 export const PlanMeta = {
@@ -135,9 +148,11 @@ export const HigherPlan = {
 
 export const GRACE_PERIOD_DURATION = 14;
 
-export const LOYALTY_END_DATE = '2025-04-15';
+export const LOYALTY_GRACE_PERIOD_END_DATE = '2025-05-30';
 
-export const LOYALTY_GRACE_PERIOD_END_DATE = '2025-04-30';
+export const SEAT_PRICE_CAP = 9;
+
+export const LOYALTY_SEAT_PRICE_CAP = 4;
 
 export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: 'to add more workspaces.',
@@ -197,6 +212,10 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_SSO]: 'to enable SSO (Single Sign-On).',
   [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]:
     'to send custom webhook payloads.',
+  [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]:
+    'to upload a custom image as workspace avatar',
+  [PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER]:
+    'to filter view by current user',
 };
 
 export const getUpgradeMessage = (

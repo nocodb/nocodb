@@ -16,7 +16,7 @@ const { value, item, column, showUnlinkButton, border = true, readonly: readonly
 
 const emit = defineEmits(['unlink'])
 
-const { relatedTableMeta } = useLTARStoreOrThrow()!
+const { relatedTableMeta, externalBaseUserRoles } = useLTARStoreOrThrow()!
 
 const { isUIAllowed } = useRoles()
 
@@ -46,7 +46,7 @@ function openExpandedForm() {
   if (isClickDisabled.value) return
 
   const rowId = extractPkFromRow(item, relatedTableMeta.value.columns as ColumnType[])
-  if (!readOnly.value && !readonlyProp && rowId) {
+  if (!isPublic.value && !readonlyProp && rowId) {
     open({
       isOpen: true,
       row: { row: item, rowMeta: {}, oldRow: { ...item } },
@@ -132,7 +132,7 @@ export default {
 
     <div
       v-show="active || isForm || isExpandedForm"
-      v-if="showUnlinkButton && !readOnly && isUIAllowed('dataEdit')"
+      v-if="showUnlinkButton && !readOnly && isUIAllowed('dataEdit', externalBaseUserRoles)"
       class="flex items-center cursor-pointer"
     >
       <component

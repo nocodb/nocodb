@@ -8,7 +8,14 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { AppEvents, ProjectStatus, readonlyMetaAllowedTypes } from 'nocodb-sdk';
+import {
+  appendToLength,
+  AppendToLengthSuffix,
+  AppEvents,
+  ProjectStatus,
+  readonlyMetaAllowedTypes,
+  SqlUiFactory,
+} from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
@@ -202,11 +209,16 @@ export class DuplicateController {
     }
 
     const models = await source.getModels(context);
-
-    const uniqueTitle = generateUniqueName(
-      body.title || `${model.title} copy`,
-      models.map((p) => p.title),
-    );
+    const tableNameLengthLimit = SqlUiFactory.create({
+      client: source.type,
+    }).tableNameLengthLimit;
+    const uniqueTitle = await appendToLength({
+      value: body.title ?? model.title,
+      appendage: body.title ? '' : ' copy',
+      isExists: async (needle) => models.some((k) => k.title === needle),
+      maxLength: tableNameLengthLimit,
+      suffix: AppendToLengthSuffix._,
+    });
 
     const job = await this.jobsService.add(JobTypes.DuplicateModel, {
       context,

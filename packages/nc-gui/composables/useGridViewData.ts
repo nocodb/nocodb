@@ -102,7 +102,7 @@ export function useGridViewData(
       getCount,
       getWhereFilter: getGroupFilter,
       reloadAggregate: triggerAggregateReload,
-      findGroupByPath: (path: Array<number>) => {
+      findGroupByPath: (path?: Array<number>) => {
         return findGroupByPath(cachedGroups.value, path)
       },
     },
@@ -227,7 +227,7 @@ export function useGridViewData(
           }
 
           if (!currentGroup.isExpanded || !currentGroup.groups) {
-            return {}
+            return ''
           }
 
           parentGroup = currentGroup
@@ -241,7 +241,7 @@ export function useGridViewData(
         group = findGroupByPath(cachedGroups.value, path)
       } catch (error) {
         console.error(`Failed to load group for path ${path}:`, error)
-        return {}
+        return ''
       }
     }
 
@@ -628,7 +628,7 @@ export function useGridViewData(
 
       const bulkUpsertedRows = await $api.dbTableRow.bulkUpsert(
         NOCO,
-        base.value?.id as string,
+        metaValue?.base_id ?? (base.value?.id as string),
         metaValue?.id as string,
         [...insertRows.map((row) => cleanRow(row.row)), ...updateRows.map((row) => cleanRow(row.row))],
         {},

@@ -1,6 +1,7 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { TableType } from 'nocodb-sdk'
 import type { SidebarTableNode } from '~/lib/types'
+import { DlgTableCreate } from '#components'
 
 export const useTablesStore = defineStore('tablesStore', () => {
   const { includeM2M, ncNavigateTo } = useGlobal()
@@ -101,12 +102,20 @@ export const useTablesStore = defineStore('tablesStore', () => {
     const workspaceIdOrType = workspaceId ?? workspaceStore.activeWorkspaceId
     const baseIdOrBaseId = baseId ?? basesStore.activeProjectId
 
+    let query
+
+    // Retain query params only when navigating from one table page to another.
+    // Note: `viewId` refers to `tableId` in this context.
+    if (route.value?.params?.viewId && tableId) {
+      query = route.value.query
+    }
+
     await ncNavigateTo({
       workspaceId: workspaceIdOrType,
       baseId: baseIdOrBaseId,
       tableId,
       viewId: viewTitle,
-      query: route.value.query,
+      query,
     })
   }
 
@@ -248,6 +257,46 @@ export const useTablesStore = defineStore('tablesStore', () => {
     await getMeta(tableId, true)
   }
 
+  function openTableCreateDialog({
+    baseId,
+    sourceId,
+    onCloseCallback,
+  }: {
+    baseId?: string
+    sourceId?: string
+    onCloseCallback?: () => void
+  }) {
+    if (!sourceId || !baseId) return
+
+    const isCreateTableOpen = ref(true)
+
+    const { close } = useDialog(DlgTableCreate, {
+      'modelValue': isCreateTableOpen,
+      sourceId,
+      'baseId': baseId,
+      'onCreate': closeDialog,
+      'onUpdate:modelValue': () => closeDialog(),
+    })
+
+    function closeDialog(table?: TableType) {
+      isCreateTableOpen.value = false
+
+      if (!table) return
+
+      onCloseCallback?.()
+
+      setTimeout(() => {
+        const newTableDom = document.querySelector(`[data-table-id="${table.id}"]`)
+        if (!newTableDom) return
+
+        // Scroll to the table node
+        newTableDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }, 1000)
+
+      close(1000)
+    }
+  }
+
   return {
     baseTables,
     loadProjectTables,
@@ -261,6 +310,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
     tableUrl,
     reloadTableMeta,
     loadTableMeta,
+    openTableCreateDialog,
   }
 })
 

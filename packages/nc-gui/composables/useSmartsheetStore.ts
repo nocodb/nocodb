@@ -1,4 +1,4 @@
-import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { SmartsheetStoreEvents } from '#imports'
@@ -57,21 +57,30 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isAlreadyShownUpgradeModal = ref(false)
 
     const aliasColObjMap = computed(() => {
-      const colObj = (meta.value as TableType)?.columns?.reduce((acc, col) => {
+      const colObj = ((meta.value as TableType)?.columns || [])?.reduce((acc, col) => {
         acc[col.title] = col
+
         return acc
-      }, {})
+      }, {} as Record<string, ColumnType>)
       return colObj
     })
 
-    const whereQueryFromUrlError = computed(() => {
+    const filtersFromUrlParams = computed(() => {
       if (route.value.query.where) {
-        return extractFilterFromXwhere({ api_version: NcApiVersion.V1 }, route.value.query.where, aliasColObjMap.value, false)
-          ?.errors
+        return extractFilterFromXwhere(
+          { api_version: NcApiVersion.V1 },
+          route.value.query.where as string,
+          aliasColObjMap.value,
+          false,
+        )
       }
     })
+    const validFiltersFromUrlParams = computed(() => {
+      return !filtersFromUrlParams.value?.errors?.length ? filtersFromUrlParams.value?.filters || [] : []
+    })
+
     const whereQueryFromUrl = computed(() => {
-      if (whereQueryFromUrlError.value?.length) {
+      if (filtersFromUrlParams.value?.errors?.length) {
         return
       }
 
@@ -189,6 +198,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       getViewColumns,
       isExternalSource,
       isAlreadyShownUpgradeModal,
+      filtersFromUrlParams,
+      whereQueryFromUrl,
+      validFiltersFromUrlParams,
     }
   },
   'smartsheet-store',

@@ -1,5 +1,5 @@
 import { extractLimitAndOffset } from '.';
-import type { PaginatedType, PaginatedV3Type } from 'nocodb-sdk';
+import type { NcContext, PaginatedType, PaginatedV3Type } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 
 // a utility function which accept baseUrl, path and query params and constructs a url
@@ -79,12 +79,14 @@ export class PagedResponseV3Impl<T> {
   constructor(
     pagedResponse: PagedResponseImpl<T>,
     {
+      context,
       baseUrl = '',
       tableId,
       nestedNextPageAvail,
       nestedPrevPageAvail,
       queryParams = {},
     }: {
+      context: NcContext;
       baseUrl?: string;
       tableId: string;
       nestedNextPageAvail?: boolean;
@@ -97,7 +99,7 @@ export class PagedResponseV3Impl<T> {
 
     const commonProps = {
       baseUrl,
-      path: `/api/v3/tables/${tableId}/records`,
+      path: `/api/v3/${context.base_id}/${tableId}`,
     };
 
     const commonQueryParams = {};

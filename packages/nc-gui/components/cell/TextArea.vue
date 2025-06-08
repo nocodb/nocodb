@@ -40,6 +40,8 @@ const isUnderFormula = inject(IsUnderFormulaInj, ref(false))
 
 const cellEventHook = inject(CellEventHookInj, null)
 
+const active = inject(ActiveCellInj, null)
+
 const readOnly = computed(() => readOnlyInj.value || column.value.readonly)
 
 const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
@@ -492,6 +494,7 @@ useResizeObserver(inputWrapperRef, () => {
             ? `${height}px`
             : `${16.5 * rowHeightTruncateLines(localRowHeight)}px`,
         }"
+        @click.stop="isExpandedFormOpen ? onExpand() : undefined"
         @dblclick="onExpand"
         @keydown.enter="onExpand"
       >
@@ -632,6 +635,7 @@ useResizeObserver(inputWrapperRef, () => {
       <div
         class="!absolute !hidden nc-text-area-expand-btn group-hover:block z-3 items-center gap-1"
         :class="{
+          'active': active && isCanvasInjected,
           'right-1': isForm,
           'right-0': !isForm,
           'top-0 right-0': isGrid && !isExpandedFormOpen && !isForm,
@@ -847,6 +851,9 @@ textarea:focus {
 .cell:hover .nc-text-area-expand-btn,
 .long-text-wrapper:hover .nc-text-area-expand-btn {
   @apply !flex cursor-pointer;
+}
+.long-text-wrapper .nc-text-area-expand-btn.active {
+  @apply !flex;
 }
 
 .nc-grid-cell {

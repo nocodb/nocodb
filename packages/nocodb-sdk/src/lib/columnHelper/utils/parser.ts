@@ -6,15 +6,15 @@ import {
   ncIsArray,
   ncIsBoolean,
   ncIsNaN,
+  ncIsNull,
   ncIsNumber,
   ncIsObject,
   ncIsString,
+  ncIsUndefined,
 } from '~/lib/is';
 import { SerializerOrParserFnProps } from '../column.interface';
-import {
-  constructDateTimeFormat,
-  constructTimeFormat,
-} from '~/lib/dateTimeHelper';
+import { constructTimeFormat } from '~/lib/dateTimeHelper';
+import { checkboxTypeMap } from '~/lib/columnHelper/utils/common';
 
 export const parseDefault = (value: any) => {
   try {
@@ -89,8 +89,10 @@ export const parseCheckboxValue = (
 
   if (ncIsString(value)) {
     const strval = value.trim().toLowerCase();
-    if (strval === 'true' || strval === '1') return true;
-    if (strval === 'false' || strval === '0' || strval === '') return false;
+    const parsedValue = checkboxTypeMap[strval];
+    if (!ncIsNull(parsedValue) && !ncIsUndefined(parsedValue)) {
+      return parsedValue;
+    }
   }
 
   if (ncIsNumber(value)) {
@@ -126,56 +128,6 @@ export const parseCurrencyValue = (value: any, col: ColumnType) => {
   } catch {
     return value;
   }
-};
-
-export const parseDateValue = (
-  value: string | null,
-  col: ColumnType,
-  isSystemCol?: boolean
-) => {
-  value = value?.toString().trim();
-  const dateFormat = !isSystemCol
-    ? parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD'
-    : 'YYYY-MM-DD HH:mm:ss';
-
-  if (!value || !dayjs(value).isValid()) {
-    return null;
-  } else {
-    value = value?.toString().trim();
-    return dayjs(/^\d+$/.test(value) ? +value : value).format(dateFormat);
-  }
-};
-
-export const parseDateTimeValue = (
-  value: any,
-  params: SerializerOrParserFnProps['params']
-) => {
-  // remove `"`
-  // e.g. "2023-05-12T08:03:53.000Z" -> 2023-05-12T08:03:53.000Z
-  value = value.replace(/["']/g, '');
-
-  const isMySQL = params.isMysql?.(params.col.source_id);
-
-  let d = dayjs(value);
-
-  if (!d.isValid()) {
-    // insert a datetime value, copy the value without refreshing
-    // e.g. value = 2023-05-12T03:49:25.000Z
-    // feed custom parse format
-    d = dayjs(value, isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
-  }
-
-  // users can change the datetime format in UI
-  // `value` would be always in YYYY-MM-DD HH:mm:ss(Z / +xx:yy) format
-  // therefore, here we reformat to the correct datetime format based on the meta
-  value = d.format(constructDateTimeFormat(params.col));
-
-  if (!d.isValid()) {
-    // return empty string for invalid datetime
-    return null;
-  }
-
-  return value;
 };
 
 export const parseTimeValue = (

@@ -167,8 +167,9 @@ export class ViewColumnsService {
 
       // iterate over view columns and update/insert accordingly
       for (const [indexOrId, column] of Object.entries(columns)) {
-        const columnId =
-          typeof param.columns === 'object' ? indexOrId : column['id'];
+        const columnId = Array.isArray(param.columns)
+          ? column['id']
+          : indexOrId;
 
         const existingCol = await ncMeta.metaGet2(
           context.workspace_id,

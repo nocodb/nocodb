@@ -143,6 +143,7 @@ export class ImportService {
     // allow existing models to be linked
     if (param.externalModels) {
       for (const model of param.externalModels) {
+        if (model.base_id !== param.baseId) continue;
         externalIdMap.set(
           `${model.base_id}::${model.source_id}::${model.id}`,
           model.id,
@@ -351,6 +352,7 @@ export class ImportService {
       const linkedColumnSet = modelData.columns.filter(
         (a) =>
           isLinksOrLTAR(a) &&
+          !(a.colOptions as LinkToAnotherRecordColumn).isCrossBaseLink() &&
           !a.system &&
           (param.importColumnIds
             ? param.importColumnIds.includes(getEntityIdentifier(a.id))
@@ -360,6 +362,13 @@ export class ImportService {
       for (const col of linkedColumnSet) {
         col.dt = col.dt ?? sqlUi.getDataTypeForUiType(col).dt;
         if (col.colOptions) {
+          if (
+            isLinksOrLTAR(col) &&
+            (col.colOptions as LinkToAnotherRecordColumn).isCrossBaseLink()
+          ) {
+            continue;
+          }
+
           const colOptions = col.colOptions as LinksColumn;
           if (idMap.has(colOptions.fk_related_model_id)) {
             if (colOptions.type === 'mm') {
@@ -1740,9 +1749,16 @@ export class ImportService {
                   const tempVal = [];
                   for (const vl of mv as any) {
                     if (vl.fk_column_id) {
-                      const id = grpCol.colOptions.options.find(
+                      // check if the option is still exists on field option
+                      // currently any modification on field option
+                      // is not reflected yet to kanban view
+                      const metaValueOption = grpCol.colOptions.options.find(
                         (el) => el.title === vl.title,
-                      ).id;
+                      );
+                      if (!metaValueOption) {
+                        continue;
+                      }
+                      const id = metaValueOption.id;
                       tempVal.push({
                         ...vl,
                         fk_column_id: idMap.get(vl.fk_column_id),
@@ -1756,6 +1772,9 @@ export class ImportService {
                       });
                     }
                   }
+                  // TODO (optional): check grpCol.colOptions.options not exists in tempVal
+                  // and generate that
+
                   meta[idMap.get(mk)] = tempVal;
                 }
                 kanbanData[k] = meta;
@@ -1915,7 +1934,7 @@ export class ImportService {
     const headers: string[] = [];
     let chunk = [];
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       papaparse.parse(dataStream, {
         newline: '\r\n',
         step: async (results, parser) => {
@@ -1965,7 +1984,11 @@ export class ImportService {
               for (let i = 0; i < headers.length; i++) {
                 if (headers[i]) {
                   if (results.data[i] !== '') {
-                    row[headers[i]] = results.data[i];
+                    if (results.data[i] === '__nc_empty_string__') {
+                      row[headers[i]] = '';
+                    } else {
+                      row[headers[i]] = results.data[i];
+                    }
                   }
                 }
               }
@@ -1983,7 +2006,10 @@ export class ImportService {
                     raw: true,
                   });
                 } catch (e) {
-                  this.logger.error(e);
+                  // stop the stream
+                  parser.abort();
+                  reject(e);
+                  return;
                 }
                 chunk = [];
                 parser.resume();
@@ -2004,7 +2030,9 @@ export class ImportService {
                 raw: true,
               });
             } catch (e) {
-              this.logger.error(e);
+              // stop the stream
+              reject(e);
+              return;
             }
             chunk = [];
           }
@@ -2045,6 +2073,7 @@ export class ImportService {
           lChunks[k] = [];
         } catch (e) {
           this.logger.error(e);
+          throw e;
         }
       }
     };
@@ -2058,7 +2087,7 @@ export class ImportService {
     const mmColumns: Record<string, Column> = {};
     const mmParentChild: any = {};
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       papaparse.parse(linkStream, {
         newline: '\r\n',
         step: async (results, parser) => {
@@ -2092,7 +2121,13 @@ export class ImportService {
                   // get column for the first time
                   parser.pause();
 
-                  await insertChunks();
+                  try {
+                    await insertChunks();
+                  } catch (e) {
+                    parser.abort();
+                    reject(e);
+                    return;
+                  }
 
                   const col = await Column.get(context, {
                     source_id: destBase.id,
@@ -2143,7 +2178,12 @@ export class ImportService {
           }
         },
         complete: async () => {
-          await insertChunks();
+          try {
+            await insertChunks();
+          } catch (e) {
+            reject(e);
+            return;
+          }
           resolve(handledLinks);
         },
       });

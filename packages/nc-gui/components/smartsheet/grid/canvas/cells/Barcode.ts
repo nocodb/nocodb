@@ -1,13 +1,12 @@
-import { renderBarcode } from '../utils/canvas'
-import { MouseClickType, getMouseClickType, validateBarcode } from '../utils/cell'
+import { isBoxHovered, renderBarcode } from '../utils/canvas'
+import { validateBarcode } from '../utils/cell'
 import { getI18n } from '../../../../../plugins/a.i18n'
 
 export const BarcodeCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, column, tag = {}, spriteLoader } = props
+    const { value, x, y, width, height, column, tag = {}, spriteLoader, cellRenderStore } = props
     const { renderAsTag } = tag
-
-    return renderBarcode(ctx, {
+    const returnValue = renderBarcode(ctx, {
       x,
       y,
       width,
@@ -17,6 +16,17 @@ export const BarcodeCellRenderer: CellRenderer = {
       renderAsTag,
       spriteLoader,
     })
+
+    if (returnValue?.startX) {
+      Object.assign(cellRenderStore, {
+        x: returnValue.startX,
+        y: returnValue.startY,
+        width: returnValue.width,
+        height: returnValue.height,
+      })
+    }
+
+    return returnValue ? { x: returnValue.x, y: returnValue.y } : undefined
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable, value } = ctx
@@ -47,8 +57,15 @@ export const BarcodeCellRenderer: CellRenderer = {
     }
   },
   async handleClick(ctx) {
-    const { event, row, column, makeCellEditable, value } = ctx
-    if (getMouseClickType(event) === MouseClickType.DOUBLE_CLICK) {
+    const { row, column, makeCellEditable, value, isDoubleClick, selected, cellRenderStore, mousePosition } = ctx
+    const { x, y, width, height } = cellRenderStore
+    let showOnSingleClick = false
+
+    if (x && y && width && height) {
+      showOnSingleClick = selected && isBoxHovered({ x, y, width, height }, mousePosition)
+    }
+
+    if (isDoubleClick || showOnSingleClick) {
       const isValidBarCode = validateBarcode(value, column.columnObj).isValid
       if (!isValidBarCode) {
         return true

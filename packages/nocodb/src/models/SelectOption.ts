@@ -159,7 +159,9 @@ export default class SelectOption implements SelectOptionType {
             .map(({ created_at, updated_at, ...c }) => new SelectOption(c))
             .sort((x, y) => x.order - y.order),
         }
-      : null;
+      : {
+          options: [],
+        };
   }
 
   public static async find(

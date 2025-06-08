@@ -1,4 +1,4 @@
-import type { ColumnType } from 'nocodb-sdk'
+import { ColumnHelper, type ColumnType, UITypes } from 'nocodb-sdk'
 import { renderTag } from '../utils/canvas'
 
 function getIconsData({
@@ -8,6 +8,10 @@ function getIconsData({
   x,
   y,
   column,
+  value,
+  selected,
+  isRowHovered,
+  readonly,
 }: {
   width: number
   height: number
@@ -15,11 +19,22 @@ function getIconsData({
   x: number
   y: number
   column?: ColumnType
+  value?: any
+  selected?: boolean
+  isRowHovered?: boolean
+  readonly?: boolean
 }) {
+  const maxRating = parseProp(column?.meta).max ?? ColumnHelper.getColumnDefaultMeta(UITypes.Rating)?.max ?? 5
+  const rating = Math.min(Math.max(0, Number(value) || 0), maxRating)
+
   const ratingMeta = {
     color: '#fcb401',
-    max: 5,
     ...parseProp(column?.meta),
+    max:
+      ((ncIsUndefined(selected) && ncIsUndefined(isRowHovered)) || selected || isRowHovered) &&
+      (ncIsUndefined(readonly) || !readonly)
+        ? maxRating
+        : rating,
     icon: extractRatingIcon(parseProp(column?.meta)),
   }
 
@@ -62,6 +77,7 @@ function getIconsData({
     maxRows,
     iconsPerRow,
     iconsToShow,
+    rating,
   }
 }
 
@@ -83,6 +99,8 @@ export const RatingCellRenderer: CellRenderer = {
       tag = {},
       setCursor,
       cellRenderStore,
+      selected,
+      isRowHovered,
     } = props
 
     const {
@@ -96,12 +114,16 @@ export const RatingCellRenderer: CellRenderer = {
       tagBorderWidth,
     } = tag
 
-    const iconsData = getIconsData({ height, width, x, y, column, padding })!
+    const iconsData = getIconsData({ height, width, x, y, column, padding, selected, isRowHovered, value, readonly })!
     if (!iconsData) return
-    const { ratingMeta, startX, startY, iconSize, rowSpacing, iconWidthWithSpacing, maxRows, iconsPerRow, iconsToShow } =
+    const { ratingMeta, startX, startY, iconSize, rowSpacing, iconWidthWithSpacing, maxRows, iconsPerRow, iconsToShow, rating } =
       iconsData
 
-    const rating = Math.min(Math.max(0, Number(value) || 0), ratingMeta.max)
+    if (!isRowHovered && !selected && !rating && !renderAsTag) {
+      return
+    } else if ((isRowHovered || selected) && !rating && readonly && !renderAsTag) {
+      return
+    }
 
     const needsEllipsis = iconsToShow < ratingMeta.max
 
@@ -193,7 +215,7 @@ export const RatingCellRenderer: CellRenderer = {
       const lastRow = Math.min(Math.floor((iconsToShow - 1) / iconsPerRow), maxRows - 1)
       const lastColInRow = (iconsToShow - 1) % iconsPerRow
 
-      ctx.font = '500 13px Manrope'
+      ctx.font = '500 13px Inter'
       ctx.fillStyle = '#4a5268'
       ctx.textBaseline = 'middle'
       ctx.fillText(
@@ -210,8 +232,20 @@ export const RatingCellRenderer: CellRenderer = {
       }
     }
   },
-  async handleClick({ mousePosition, column, row, getCellPosition, updateOrSaveRow, value, cellRenderStore, readonly, path }) {
-    if (!row || !column || readonly) return false
+
+  async handleClick({
+    mousePosition,
+    column,
+    row,
+    getCellPosition,
+    updateOrSaveRow,
+    value,
+    cellRenderStore,
+    readonly,
+    path,
+    formula,
+  }) {
+    if (!row || !column || readonly || formula) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const iconsData = getIconsData({ x, y, width, height, column: column.columnObj, padding: 10 })

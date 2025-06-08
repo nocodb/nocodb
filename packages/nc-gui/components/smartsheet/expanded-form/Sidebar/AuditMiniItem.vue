@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AttachmentType, AuditType } from 'nocodb-sdk'
+import { type AttachmentType, type AuditType, checkboxIconListMap, ratingIconListMap } from 'nocodb-sdk'
 
 const props = defineProps<{
   audit: AuditType
@@ -49,25 +49,17 @@ function normalizeColOptions(key: string) {
 function normalizeMeta(key: string) {
   const mta = meta.value?.[key] ?? {}
   const opts = normalizeColOptions(key)
-  const icn =
-    {
-      'thumbs-up': 'thumb-up',
-      'circle-filled': 'moon-full',
-    }[opts.icon as string] ?? opts.icon
+  const icn = opts.icon || (mta.type === 'Rating' ? 'star' : 'circle-check')
+
   return {
     ...opts,
     ...mta,
-    icon: !icn
-      ? undefined
-      : {
-          full: `mdi-${icn}`,
-          empty: `mdi-${icn}`,
-          checked: `mdi-${icn}`,
-          unchecked: `mdi-${icn}`,
-        },
+    icon: mta.type === 'Rating' ? ratingIconListMap[icn] : checkboxIconListMap[icn],
     duration: opts.duration_format ? durationOptions.find((it) => it.title === opts.duration_format)?.id : undefined,
     is12hrFormat: opts['12hr_format'],
     isLocaleString: opts.locale_string,
+    isDisplayTimezone: opts?.isDisplayTimezone || opts?.is_display_timezone,
+    useSameTimezoneForAll: opts?.useSameTimezoneForAll || opts?.use_same_timezone_for_all,
   }
 }
 
@@ -131,7 +123,7 @@ function shouldShowRaw(key: string) {
 
 <template>
   <div v-for="columnKey of columnKeys" :key="columnKey" class="py-2 px-3">
-    <div class="flex items-center gap-2 !text-gray-600 text-xs font-weight-500 nc-audit-mini-item-header">
+    <div class="flex items-center gap-1 !text-gray-600 text-xs font-weight-500 nc-audit-mini-item-header">
       <SmartsheetHeaderCellIcon
         :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }"
         class="!m-0"
@@ -165,7 +157,7 @@ function shouldShowRaw(key: string) {
                     <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
                   </div>
                 </div>
-                <span class="w-0 flex-1 truncate text-[13px] font-weight-500 text-gray-600">
+                <span class="w-0 flex-1 truncate text-small1 font-weight-500 text-gray-600">
                   {{ item.title }}
                 </span>
                 <span class="text-xs font-weight-500 p-2 text-gray-500">
@@ -197,7 +189,7 @@ function shouldShowRaw(key: string) {
                     <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
                   </div>
                 </div>
-                <span class="w-0 flex-1 truncate text-[13px] font-weight-500 text-gray-600">
+                <span class="w-0 flex-1 truncate text-small1 font-weight-500 text-gray-600">
                   {{ item.title }}
                 </span>
                 <span class="text-xs font-weight-500 p-2 text-gray-500">
@@ -211,33 +203,76 @@ function shouldShowRaw(key: string) {
       <template v-else-if="shouldShowRaw(columnKey)">
         <div
           v-if="isShowableValue(oldData[columnKey])"
-          class="text-[13px] text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through break-all"
+          class="text-small1 text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through break-all"
         >
           {{ oldData[columnKey] }}
         </div>
         <div
           v-if="isShowableValue(newData[columnKey])"
-          class="text-[13px] text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 break-all"
+          class="text-small1 text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 break-all"
         >
           {{ newData[columnKey] }}
         </div>
       </template>
-      <template v-else-if="['SingleLineText', 'LongText'].includes(meta[columnKey]?.type)">
-        <div>
+      <template v-else-if="meta[columnKey]?.type === 'SingleLineText'">
+        <div class="w-full">
           <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
             <span
               v-if="block.op === 'removed'"
-              class="text-[13px] text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone"
+              class="max-w-full text-small1 text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone"
             >
               {{ block.text }}
             </span>
             <span
               v-else-if="block.op === 'added'"
-              class="text-[13px] text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone"
+              class="max-w-full text-small1 text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone"
             >
               {{ block.text }}
             </span>
             <span v-else>
+              {{ block.text }}
+            </span>
+          </template>
+        </div>
+      </template>
+      <template v-else-if="meta[columnKey]?.type === 'LongText'">
+        <div class="w-full">
+          <template
+            v-for="(block, i) of diffTextBlocks(
+              meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
+                ? oldData[columnKey]?.value || ''
+                : oldData[columnKey] || '',
+              meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
+                ? newData[columnKey]?.value || ''
+                : newData[columnKey] || '',
+            )"
+            :key="i"
+          >
+            <span
+              v-if="block.op === 'removed'"
+              class="max-w-full text-red-700 px-1 bg-red-50 rounded-md line-through decoration-clone !leading-[18px]"
+              :class="{
+                'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+              }"
+            >
+              {{ block.text }}
+            </span>
+            <span
+              v-else-if="block.op === 'added'"
+              class="max-w-full text-green-700 px-1 bg-green-50 rounded-md decoration-clone !leading-[18px]"
+              :class="{
+                'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+              }"
+            >
+              {{ block.text }}
+            </span>
+            <span
+              v-else
+              class="max-w-full !leading-[18px]"
+              :class="{
+                'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+              }"
+            >
               {{ block.text }}
             </span>
           </template>
@@ -248,22 +283,22 @@ function shouldShowRaw(key: string) {
           <template v-for="(block, i) of safeJsonDiff(columnKey)" :key="i">
             <pre
               v-if="block.op === 'removed'"
-              class="text-[13px] text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone inline"
+              class="text-small1 text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone inline"
               >{{ block.text }}</pre
             >
             <pre
               v-else-if="block.op === 'added'"
-              class="text-[13px] text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 decoration-clone inline"
+              class="text-small1 text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 decoration-clone inline"
               >{{ block.text }}</pre
             >
-            <pre v-else class="inline">{{ block.text }}</pre>
+            <pre v-else class="inline text-small1">{{ block.text }}</pre>
           </template>
         </div>
       </template>
       <template v-else>
         <div
           v-if="isShowableValue(processOldDataFor(columnKey))"
-          class="nc-audit-mini-item-cell nc-audit-removal !text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through"
+          class="max-w-full nc-audit-mini-item-cell nc-audit-removal !text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through"
           :class="{
             'px-1 py-0.25': shouldUseNormalizedPadding(columnKey),
             '!p-0.25': shouldUseUniformPadding(columnKey),
@@ -357,9 +392,14 @@ function shouldShowRaw(key: string) {
 }
 .nc-audit-mini-item-cell :deep(.nc-cell-datetime) {
   .nc-date-picker {
-    @apply !inline;
+    @apply !inline !text-inherit text-small1;
+
     & > div {
       @apply !inline;
+
+      & > div {
+        @apply !inline;
+      }
     }
     & > div + div {
       @apply !ml-1;
@@ -385,18 +425,18 @@ function shouldShowRaw(key: string) {
   .nc-cell-field > div {
     display: flex !important;
     & > .ant-tag {
-      @apply !m-0 !p-0 !bg-transparent !text-inherit;
+      @apply !m-0 !text-inherit !border-1 !border-gray-300 !pr-1 !pl-0.5 !bg-gray-100 !rounded-[17px];
       & > span > div + div {
-        @apply flex items-center !text-[13px] font-weight-500;
+        @apply flex items-center !text-small1 font-weight-500 !leading-[16px];
       }
       & > span {
         @apply gap-1;
       }
     }
     .nc-user-avatar {
-      @apply border-1 border-nc-gray-medium;
-      height: 24px !important;
-      width: 24px !important;
+      @apply border-1 border-nc-border-gray-medium !text-[8px];
+      height: 16px !important;
+      width: 16px !important;
     }
   }
 }

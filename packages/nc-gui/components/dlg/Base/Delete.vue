@@ -8,8 +8,6 @@ const emits = defineEmits(['update:visible'])
 
 const visible = useVModel(props, 'visible', emits)
 
-const { closeTab } = useTabs()
-
 const basesStore = useBases()
 const { deleteProject, navigateToFirstProjectOrHome } = basesStore
 const { bases } = storeToRefs(basesStore)
@@ -30,7 +28,6 @@ const onDelete = async () => {
   isLoading.value = true
   try {
     await deleteProject(toBeDeletedProject.id!)
-    await closeTab(toBeDeletedProject.id as any)
 
     refreshCommandPalette()
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, FieldNameFromUITypes, type LinkToAnotherRecordType } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, UITypesName } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import rfdc from 'rfdc'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
@@ -15,6 +15,8 @@ const { eventBus } = useSmartsheetStoreOrThrow()
 const { sorts, saveOrUpdate, loadSorts, addSort: _addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
 const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
+
+const { appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
 const showCreateSort = ref(false)
 
@@ -41,7 +43,7 @@ const columns = computed(() =>
 
     if (isDisabled) {
       c.ncItemDisabled = true
-      c.ncItemTooltip = `Sorting is not supported for ${FieldNameFromUITypes[c.uidt]} field`
+      c.ncItemTooltip = `Sorting is not supported for ${UITypesName[c.uidt]} field`
     }
 
     return c
@@ -125,8 +127,9 @@ onMounted(() => {
         :class="{
           '!border-1 !rounded-md': isCalendar,
           '!border-0': !isCalendar,
+          [filteredOrSortedAppearanceConfig.SORTED.toolbarBgClass]: sorts?.length,
         }"
-        class="nc-sort-menu-btn nc-toolbar-btn !h-7"
+        class="nc-sort-menu-btn nc-toolbar-btn !h-7 group"
         size="small"
         type="secondary"
         :show-as-disabled="isLocked"
@@ -136,11 +139,19 @@ onMounted(() => {
             <component :is="iconMap.sort" class="h-4 w-4 text-inherit" />
 
             <!-- Sort -->
-            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
-              $t('activity.sort')
-            }}</span>
+            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
+              {{ $t('activity.sort') }}
+            </span>
           </div>
-          <span v-if="sorts?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ sorts.length }}</span>
+          <span
+            v-if="sorts?.length"
+            class="nc-toolbar-btn-chip"
+            :class="{
+              [filteredOrSortedAppearanceConfig.SORTED.toolbarChipBgClass]: true,
+              [filteredOrSortedAppearanceConfig.SORTED.toolbarTextClass]: true,
+            }"
+            >{{ sorts.length }}</span
+          >
         </div>
       </NcButton>
     </NcTooltip>
@@ -281,6 +292,10 @@ onMounted(() => {
 
     &.ant-select-focused:not(.ant-select-disabled) {
       @apply !border-r-transparent;
+    }
+
+    .field-selection-tooltip-wrapper {
+      @apply !max-w-30;
     }
   }
 }

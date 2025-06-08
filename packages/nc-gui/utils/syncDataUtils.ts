@@ -1,4 +1,4 @@
-import type { FormDefinition, IntegrationsType } from 'nocodb-sdk'
+import type { FormDefinition, IntegrationsType, SyncCategory } from 'nocodb-sdk'
 import type { VNode } from '@vue/runtime-dom'
 import type { CSSProperties, FunctionalComponent, SVGAttributes } from 'nuxt/dist/app/compat/capi'
 import { ClientType, IntegrationCategoryType, SyncDataType } from '#imports'
@@ -16,6 +16,7 @@ export interface IntegrationItemType {
   dynamic?: boolean
   hidden?: boolean
   form?: FormDefinition
+  sync_category?: SyncCategory
 }
 
 export interface IntegrationCategoryItemType {

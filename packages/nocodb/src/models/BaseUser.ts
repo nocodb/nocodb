@@ -16,6 +16,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { NcError } from '~/helpers/catchError';
 import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
+import { MCPToken } from '~/models/index';
 
 const logger = new Logger('BaseUser');
 
@@ -395,6 +396,7 @@ export default class BaseUser {
       logger.error('Error cleaning command palette cache');
     });
 
+    await MCPToken.bulkDelete({ fk_user_id: userId }, ncMeta);
     return response;
   }
 
@@ -524,6 +526,9 @@ export default class BaseUser {
         base_id: baseId,
         fk_user_id: userId,
         invited_by: baseUser.invited_by,
+        starred: baseUser.starred,
+        order: baseUser.order,
+        hidden: baseUser.hidden,
       });
     }
   }

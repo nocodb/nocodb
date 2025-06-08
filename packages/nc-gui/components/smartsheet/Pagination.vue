@@ -11,9 +11,9 @@ interface Props {
   customLabel?: string
   fixedSize?: number
   extraStyle?: string
-  showApiTiming?: boolean
   alignLeft?: boolean
   showSizeChanger?: boolean
+  isAddNewRecordGridMode?: boolean
 }
 
 const props = defineProps<Props>()
@@ -28,9 +28,7 @@ const { isMobileMode } = useGlobal()
 
 const { alignCountOnRight, customLabel, changePage } = props
 
-const fixedSize = toRef(props, 'fixedSize')
-
-const extraStyle = toRef(props, 'extraStyle')
+const { isAddNewRecordGridMode, fixedSize, extraStyle } = toRefs(props)
 
 const isGroupBy = inject(IsGroupByInj, ref(false))
 
@@ -115,7 +113,8 @@ const tempPageVal = ref(page.value)
       class="transition-all ml-2 sticky left-0 duration-350"
       :class="{
         'ml-8': alignLeft,
-        'left-[159px]': isGroupBy && $slots['add-record'],
+        'left-[159px]': isGroupBy && $slots['add-record'] && isAddNewRecordGridMode,
+        'left-[199px]': isGroupBy && $slots['add-record'] && !isAddNewRecordGridMode,
         'left-[32px]': isGroupBy && !$slots['add-record'],
       }"
     >
@@ -153,7 +152,6 @@ const tempPageVal = ref(page.value)
       </div>
     </div>
     <div v-if="!isMobileMode" class="flex-1 flex justify-end items-center">
-      <GeneralApiTiming v-if="isEeUI && props.showApiTiming" class="m-1" />
       <div class="text-right">
         <span
           v-if="alignCountOnRight && count !== Infinity"

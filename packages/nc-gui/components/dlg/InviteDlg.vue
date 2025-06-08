@@ -1,5 +1,13 @@
 <script lang="ts" setup>
-import { NON_SEAT_ROLES, type PlanLimitExceededDetailsType, ProjectRoles, type RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
+import {
+  NON_SEAT_ROLES,
+  NcErrorType,
+  type PlanLimitExceededDetailsType,
+  ProjectRoles,
+  type RoleLabels,
+  type UserType,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk'
 
 import { extractEmail } from '../../helpers/parsers/parserHelpers'
 
@@ -9,10 +17,13 @@ const props = defineProps<{
   baseId?: string
   emails?: string[]
   workspaceId?: string
+  users?: Array<Pick<UserType, 'email'>>
 }>()
 const emit = defineEmits(['update:modelValue'])
 
 const basesStore = useBases()
+
+const { appInfo } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
@@ -38,6 +49,8 @@ const inviteData = reactive({
   email: '',
   roles: orderedRoles.value.NO_ACCESS,
 })
+
+const warningMsg = ref<string>()
 
 const divRef = ref<HTMLDivElement>()
 
@@ -157,7 +170,13 @@ const isInviteButtonDisabled = computed(() => {
 })
 
 const showUserWillChargedWarning = computed(() => {
-  return isPaidPlan.value && !NON_SEAT_ROLES.includes(inviteData.roles) && !!emailBadges.value.length
+  return (
+    !appInfo.value?.isOnPrem &&
+    isPaymentEnabled.value &&
+    isPaidPlan.value &&
+    !NON_SEAT_ROLES.includes(inviteData.roles) &&
+    !!emailBadges.value.length
+  )
 })
 
 watch(inviteData, (newVal) => {
@@ -269,6 +288,22 @@ const inviteCollaborator = async () => {
         emailValidation.message = 'invalid email'
       }
     }
+
+    for (const email of payloadData?.split(',')) {
+      if (props.users?.some((u) => u.email === email.trim())) {
+        let scopeLabel = 'labels.base'
+
+        if (props.type === 'workspace') {
+          scopeLabel = 'labels.workspace'
+        } else if (props.type === 'organization') {
+          scopeLabel = 'labels.organization'
+        }
+
+        warningMsg.value = t('msg.userAlreadyExists', { email: email.trim(), scope: t(scopeLabel).toLowerCase() })
+        return
+      }
+    }
+
     if (props.type === 'base' && props.baseId) {
       await createProjectUser(props.baseId!, {
         email: payloadData,
@@ -313,6 +348,9 @@ const inviteCollaborator = async () => {
         isAdminPanel: props.type === 'organization',
       })
     } else {
+      if (errorInfo.error === NcErrorType.UNKNOWN_ERROR) {
+        errorInfo.message = await extractSdkResponseErrorMsg(e)
+      }
       message.error(errorInfo.message)
     }
   } finally {
@@ -329,6 +367,14 @@ onMounted(async () => {
   }
 })
 const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role as ProjectRoles | WorkspaceUserRoles)
+
+const removeEmail = (index: number) => {
+  warningMsg.value = null
+  emailBadges.value.splice(index, 1)
+  if (emailBadges.value.length === 0) {
+    inviteData.email = ''
+  }
+}
 </script>
 
 <template>
@@ -374,7 +420,7 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
               <component
                 :is="iconMap.close"
                 class="ml-0.5 hover:(cursor-pointer text-nc-content-gray-subtle) mt-0.5 w-4 h-4 text-nc-content-gray-subtle2"
-                @click="emailBadges.splice(index, 1)"
+                @click="removeEmail(index)"
               />
             </span>
             <input
@@ -388,6 +434,7 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
               @blur="isDivFocused = false"
               @keyup.enter="handleEnter"
               @paste.prevent="onPaste"
+              @input="warningMsg = null"
             />
           </div>
           <div class="flex items-center">
@@ -402,8 +449,10 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
             />
           </div>
         </div>
+        <!-- show warning if validation fails and warningMsg defined -->
+        <span v-if="warningMsg" class="ml-2 text-red-500 -mt-2">{{ warningMsg }}</span>
 
-        <span v-if="emailValidation.isError && emailValidation.message" class="ml-2 text-red-500 text-[10px] mt-1.5">{{
+        <span v-if="emailValidation.isError && emailValidation.message" class="ml-2 text-red-500 -mt-2">{{
           emailValidation.message
         }}</span>
 
@@ -487,9 +536,9 @@ const onRoleChange = (role: keyof typeof RoleLabels) => (inviteData.roles = role
 
     <div class="flex mt-8 justify-end">
       <div class="flex gap-2">
-        <NcButton type="secondary" @click="dialogShow = false"> {{ $t('labels.cancel') }} </NcButton>
+        <NcButton type="secondary" @click="dialogShow = false"> {{ $t('labels.cancel') }}</NcButton>
         <NcButton
-          :disabled="isInviteButtonDisabled || emailValidation.isError || isLoading"
+          :disabled="isInviteButtonDisabled || emailValidation.isError || isLoading || !!warningMsg"
           :loading="isLoading"
           size="medium"
           type="primary"

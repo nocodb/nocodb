@@ -24,7 +24,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
         y,
         text,
         maxWidth: width - padding * 2,
-        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fontFamily: `${pv ? 600 : 500} 13px Inter`,
         fillStyle: (isValid && selected) || pv ? '#3366FF' : textColor,
         height,
         underline: isValid,
@@ -35,7 +35,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
         props.mousePosition,
       )
 
-      if (isHover && isValid) {
+      if (selected && isHover && isValid) {
         setCursor('pointer')
       }
 
@@ -59,8 +59,8 @@ export const PhoneNumberCellRenderer: CellRenderer = {
 
     return false
   },
-  async handleClick({ value, row, column, getCellPosition, mousePosition }) {
-    if (!row || !column) return false
+  async handleClick({ value, row, column, selected, isDoubleClick, getCellPosition, mousePosition }) {
+    if (!row || !column || (!selected && !isDoubleClick)) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10
@@ -76,7 +76,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
       y: y + padding,
       text,
       maxWidth: width - padding * 2,
-      fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+      fontFamily: `${pv ? 600 : 500} 13px Inter`,
       height,
       render: false,
     })

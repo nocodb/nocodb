@@ -29,6 +29,13 @@ const tooManyCharsForQrCode = computed(() => qrValue?.value.length > maxNumberOf
 
 const showQrCode = computed(() => qrValue?.value?.length > 0 && !tooManyCharsForQrCode.value && qrValue?.value !== 'ERR!')
 
+const compressedQrValue = computed(() => {
+  if (qrValue.value.length > maxNumberOfAllowedCharsForQrValue) {
+    return qrValue?.value?.slice(0, maxNumberOfAllowedCharsForQrValue)
+  }
+  return qrValue.value
+})
+
 const qrCodeOptions: QRCode.QRCodeToDataURLOptions = {
   errorCorrectionLevel: 'M',
   margin: 1,
@@ -39,12 +46,12 @@ const qrCodeOptions: QRCode.QRCodeToDataURLOptions = {
 
 const rowHeight = inject(RowHeightInj, ref(undefined))
 
-const qrCode = useQRCode(qrValue, {
+const qrCode = useQRCode(compressedQrValue, {
   ...qrCodeOptions,
   width: 150,
 })
 
-const qrCodeLarge = useQRCode(qrValue, {
+const qrCodeLarge = useQRCode(compressedQrValue, {
   ...qrCodeOptions,
   width: 600,
 })

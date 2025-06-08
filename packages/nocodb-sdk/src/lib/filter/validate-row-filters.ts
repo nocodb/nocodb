@@ -10,6 +10,8 @@ import { buildFilterTree } from '~/lib/filterHelpers';
 import { parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
 import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
+import { CURRENT_USER_TOKEN } from '../globals';
+import { ColumnHelper } from '../columnHelper';
 
 extend(relativeTime);
 extend(customParseFormat);
@@ -23,6 +25,12 @@ export function validateRowFilters(params: {
   columns: ColumnType[];
   client: any;
   metas: Record<string, any>;
+  options?: {
+    currentUser?: {
+      id: string;
+      email: string;
+    };
+  };
 }) {
   const { filters: _filters, data, columns, client, metas } = params;
   if (!_filters.length) {
@@ -201,7 +209,6 @@ export function validateRowFilters(params: {
             val = +data[field];
             break;
         }
-
         if (
           [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
             column.uidt! as UITypes
@@ -221,9 +228,13 @@ export function validateRowFilters(params: {
             ? [data[field].id]
             : [];
 
-          const filterValues = (filter.value?.split(',') || []).map((v) =>
-            v.trim()
-          );
+          const filterValues = (filter.value?.split(',') || []).map((v) => {
+            let result = v.trim();
+            if (result === CURRENT_USER_TOKEN) {
+              result = params.options?.currentUser?.id ?? result;
+            }
+            return result;
+          });
 
           switch (filter.comparison_op) {
             case 'anyof':
@@ -249,6 +260,12 @@ export function validateRowFilters(params: {
             default:
               res = false; // Unsupported operation for User fields
           }
+        } else if([UITypes.JSON, UITypes.Time].includes(column.uidt as UITypes) && ['eq'].includes(filter.comparison_op)) {
+          res = ColumnHelper.getColumn(column.uidt as UITypes).equalityComparison(
+            val, filter.value, {
+              col: column,
+            }
+          );
         } else {
           switch (filter.comparison_op as any) {
             case 'eq':

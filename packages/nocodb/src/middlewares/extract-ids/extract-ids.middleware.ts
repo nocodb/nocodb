@@ -2,6 +2,7 @@ import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import {
   extractRolesObj,
+  NcApiVersion,
   OrgUserRoles,
   ProjectRoles,
   SourceRestriction,
@@ -34,7 +35,7 @@ import rolePermissions from '~/utils/acl';
 import { NcError } from '~/helpers/catchError';
 import { RootScopes } from '~/utils/globals';
 import { sourceRestrictions } from '~/utils/acl';
-import { Source } from '~/models';
+import { MCPToken, Source } from '~/models';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -61,6 +62,13 @@ export function getRolesLabels(
     .map((role) => rolesLabel[role]);
 }
 
+const getApiVersionFromUrl = (url: string) => {
+  if (url.startsWith('/api/v3')) return NcApiVersion.V3;
+  else if (url.startsWith('/api/v2')) return NcApiVersion.V2;
+  else if (url.startsWith('/api/v1')) return NcApiVersion.V1;
+  return undefined;
+};
+
 // todo: refactor name since we are using it as auth guard
 @Injectable()
 export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
@@ -70,30 +78,58 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     const context = {
       workspace_id: RootScopes.BYPASS,
       base_id: RootScopes.BYPASS,
+      api_version: getApiVersionFromUrl(req.route.path),
     };
+    req.ncApiVersion = context.api_version;
 
     // extract base id based on request path params
+
+    if (params.mcpTokenId) {
+      const mcpToken = await MCPToken.get(context, params.mcpTokenId);
+
+      if (!mcpToken) {
+        NcError.genericNotFound('MCPToken', params.mcpTokenId);
+      }
+
+      req.ncBaseId = mcpToken.base_id;
+    }
+
     if (params.baseId || params.baseName) {
+      // We allow title for backward compatibility - TODO: we should get rid of it in future
       const base = await Base.getByTitleOrId(
         context,
         params.baseId ?? params.baseName,
       );
 
       if (!base) {
-        NcError.baseNotFound(params.baseId ?? params.baseName);
+        if (context.api_version === NcApiVersion.V3) {
+          NcError.baseNotFoundV3(params.baseId ?? params.baseName);
+        } else {
+          NcError.baseNotFound(params.baseId ?? params.baseName);
+        }
       }
 
       if (base) {
         req.ncBaseId = base.id;
         if (params.tableName) {
           // extract model and then source id from model
-          const model = await Model.getByAliasOrId(context, {
-            base_id: base.id,
-            aliasOrId: params.tableName,
-          });
+          const model = await Model.getByAliasOrId(
+            {
+              workspace_id: base.fk_workspace_id,
+              base_id: base.id,
+            },
+            {
+              base_id: base.id,
+              aliasOrId: params.tableName,
+            },
+          );
 
           if (!model) {
-            NcError.tableNotFound(req.params.tableName);
+            if (context.api_version === NcApiVersion.V3) {
+              NcError.tableNotFoundV3(params.tableId || params.modelId);
+            } else {
+              NcError.tableNotFound(req.params.tableName);
+            }
           }
 
           req.ncSourceId = model?.source_id;
@@ -110,7 +146,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
 
       if (!model) {
-        NcError.tableNotFound(params.tableId || params.modelId);
+        if (context.api_version === NcApiVersion.V3) {
+          NcError.tableNotFoundV3(params.tableId || params.modelId);
+        } else {
+          NcError.tableNotFound(params.tableId || params.modelId);
+        }
       }
 
       req.ncBaseId = model.base_id;
@@ -297,7 +337,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
 
       if (!model) {
-        NcError.tableNotFound(req.body.fk_model_id);
+        if (context.api_version === NcApiVersion.V3) {
+          NcError.tableNotFoundV3(params.tableId || params.modelId);
+        } else {
+          NcError.tableNotFound(req.body.fk_model_id);
+        }
       }
 
       req.ncBaseId = model.base_id;
@@ -321,7 +365,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
 
       if (!model) {
-        NcError.tableNotFound(req.query?.fk_model_id);
+        if (context.api_version === NcApiVersion.V3) {
+          NcError.tableNotFoundV3(params.tableId || params.modelId);
+        } else {
+          NcError.tableNotFound(req.query?.fk_model_id);
+        }
       }
 
       req.ncBaseId = model.base_id;
@@ -374,6 +422,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     req.context = {
       workspace_id: null,
       base_id: req.ncBaseId,
+      api_version: context.api_version,
     };
 
     next();
@@ -401,31 +450,22 @@ function getUserRoleForScope(user: any, scope: string) {
 export class AclMiddleware implements NestInterceptor {
   constructor(private reflector: Reflector) {}
 
-  async intercept(
+  async aclFn(
+    permissionName: string,
+    {
+      scope = 'base',
+      allowedRoles,
+      blockApiTokenAccess,
+      extendedScope,
+    }: {
+      scope?: string;
+      allowedRoles?: (OrgUserRoles | string)[];
+      blockApiTokenAccess?: boolean;
+      extendedScope?: string;
+    } = {},
     context: ExecutionContext,
-    next: CallHandler,
-  ): Promise<Observable<any>> {
-    const permissionName = this.reflector.get<string>(
-      'permission',
-      context.getHandler(),
-    );
-    const allowedRoles = this.reflector.get<(OrgUserRoles | string)[]>(
-      'allowedRoles',
-      context.getHandler(),
-    );
-    const blockApiTokenAccess = this.reflector.get<boolean>(
-      'blockApiTokenAccess',
-      context.getHandler(),
-    );
-
-    const scope = this.reflector.get<string>('scope', context.getHandler());
-    const extendedScope = this.reflector.get<string>(
-      'extendedScope',
-      context.getHandler(),
-    );
-
-    const req = context.switchToHttp().getRequest();
-
+    req,
+  ) {
     if (!req.user?.isAuthorized) {
       NcError.unauthorized('Invalid token');
     }
@@ -435,7 +475,11 @@ export class AclMiddleware implements NestInterceptor {
         : getUserRoleForScope(req.user, scope);
 
     if (!userScopeRole) {
-      NcError.forbidden("You don't have permission to access this resource");
+      if (req.ncApiVersion === NcApiVersion.V3) {
+        NcError.forbidden('Unauthorized access');
+      } else {
+        NcError.forbidden("You don't have permission to access this resource");
+      }
     }
 
     // assign owner role to super admin for all bases
@@ -553,6 +597,44 @@ export class AclMiddleware implements NestInterceptor {
         NcError.sourceDataReadOnly(source.alias);
       }
     }
+  }
+
+  async intercept(
+    context: ExecutionContext,
+    next: CallHandler,
+  ): Promise<Observable<any>> {
+    const permissionName = this.reflector.get<string>(
+      'permission',
+      context.getHandler(),
+    );
+    const allowedRoles = this.reflector.get<(OrgUserRoles | string)[]>(
+      'allowedRoles',
+      context.getHandler(),
+    );
+    const blockApiTokenAccess = this.reflector.get<boolean>(
+      'blockApiTokenAccess',
+      context.getHandler(),
+    );
+
+    const scope = this.reflector.get<string>('scope', context.getHandler());
+    const extendedScope = this.reflector.get<string>(
+      'extendedScope',
+      context.getHandler(),
+    );
+
+    const req = context.switchToHttp().getRequest();
+
+    await this.aclFn(
+      permissionName,
+      {
+        scope,
+        allowedRoles,
+        blockApiTokenAccess,
+        extendedScope,
+      },
+      context,
+      req,
+    );
 
     return next.handle().pipe(
       map((data) => {

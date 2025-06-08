@@ -108,7 +108,11 @@ const isZip = (name: string, _mimetype?: string) => {
   return zipExt.some((e) => name?.toLowerCase().endsWith(`.${e}`))
 }
 
-export { isImage, imageExt, isVideo, isPdf, isOffice, isAudio, isZip, isWord, isExcel, isPresentation }
+const isPreviewSupportedFile = (name: string, mimetype?: string) => {
+  return isImage(name, mimetype) || isVideo(name, mimetype) || isAudio(name, mimetype) || isPdf(name, mimetype)
+}
+
+export { isImage, imageExt, isVideo, isPdf, isOffice, isAudio, isZip, isWord, isExcel, isPresentation, isPreviewSupportedFile }
 // Ref : https://stackoverflow.com/a/12002275
 
 // Tested in Mozilla Firefox browser, Chrome
@@ -169,5 +173,5 @@ export function extractImageSrcFromRawHtml(rawText: string) {
 
 export const getReadableFileSize = (sizeInBytes: number) => {
   const i = Math.min(Math.floor(Math.log(sizeInBytes) / Math.log(1024)), 4)
-  return `${(sizeInBytes / 1024 ** i).toFixed(2) * 1} ${['B', 'kB', 'MB', 'GB', 'TB'][i]}`
+  return `${(sizeInBytes / 1024 ** i).toFixed(2) * 1} ${['B', 'KB', 'MB', 'GB', 'TB'][i]}`
 }

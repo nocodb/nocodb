@@ -1,6 +1,8 @@
 import { Readable } from 'stream';
 import {
+  isCrossBaseLink,
   isLinksOrLTAR,
+  isSystemColumn,
   LongTextAiMetaProp,
   RelationTypes,
   UITypes,
@@ -11,6 +13,7 @@ import debug from 'debug';
 import { Injectable } from '@nestjs/common';
 import { NcApiVersion } from 'nocodb-sdk';
 import { elapsedTime, initTime } from '../../helpers';
+import type { LookupType, RollupType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
@@ -99,6 +102,9 @@ export class ExportService {
       }
 
       await model.getColumns(context);
+
+      model.columns = this.filterOutCrossBaseColumns(model);
+
       await model.getViews(context);
 
       // if views are excluded, filter all views except default
@@ -240,6 +246,15 @@ export class ExportService {
         // Link column filters
         if (isLinksOrLTAR(column)) {
           const colOptions = column.colOptions as LinkToAnotherRecordColumn;
+
+          // if cross base link skip
+          if (
+            colOptions?.fk_related_base_id &&
+            colOptions.fk_related_base_id !== colOptions.base_id
+          ) {
+            continue;
+          }
+
           colOptions.filter = (await Filter.getFilterObject(context, {
             linkColId: column.id,
           })) as any;
@@ -579,6 +594,8 @@ export class ExportService {
 
     await model.getColumns(context);
 
+    model.columns = this.filterOutCrossBaseColumns(model);
+
     const btMap = new Map<string, string>();
 
     if (!dataExportMode) {
@@ -616,12 +633,18 @@ export class ExportService {
       : model.columns.filter((c) => !isLinksOrLTAR(c)).map((c) => c.title);
 
     if (dataExportMode) {
+      const hideSystemFields = view.show_system_fields
+        ? []
+        : model.columns.filter((c) => isSystemColumn(c)).map((c) => c.id);
+
       const viewCols = await view.getColumns(context);
 
       fields = viewCols
         .sort((a, b) => a.order - b.order)
-        .filter((c) => c.show)
-        .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id).title);
+        .filter((c) => c.show && !hideSystemFields.includes(c.fk_column_id))
+        .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id)?.title)
+        // to filter out undefined values(cross base link)
+        .filter(Boolean);
     }
 
     const mmColumns = param._fieldIds
@@ -642,6 +665,7 @@ export class ExportService {
           const col = model.columns.find((c) => c.title === k);
           if (col) {
             const colId = `${col.base_id}::${col.source_id}::${col.fk_model_id}::${col.id}`;
+            let skip = false;
             switch (col.uidt) {
               case UITypes.ForeignKey:
                 {
@@ -696,6 +720,7 @@ export class ExportService {
               case UITypes.Barcode:
               case UITypes.QrCode:
                 // skip these types
+                skip = true;
                 break;
               case UITypes.JSON:
                 try {
@@ -710,6 +735,13 @@ export class ExportService {
                 break;
             }
             delete row[k];
+
+            if (!skip) {
+              // if the value is explicitly empty string preserve it
+              if (v === '') {
+                row[colId] = '__nc_empty_string__';
+              }
+            }
           }
         }
       }
@@ -772,6 +804,8 @@ export class ExportService {
         const mmModel = await Model.get(context, mm.colOptions?.fk_mm_model_id);
 
         await mmModel.getColumns(context);
+
+        mmModel.columns = this.filterOutCrossBaseColumns(mmModel);
 
         const childColumn = mmModel.columns.find(
           (col) => col.id === mm.colOptions?.fk_mm_child_column_id,
@@ -841,6 +875,21 @@ export class ExportService {
     } else {
       if (linkStream) linkStream.push(null);
     }
+  }
+
+  private filterOutCrossBaseColumns(model: Model) {
+    const crossbaseLinkIds = new Set(
+      model.columns.filter((c) => isCrossBaseLink(c)).map((c) => c.id),
+    );
+    // filter out cross base link columns and any Lookup or Rollup columns which is dependent on cross base link
+    return model.columns.filter((c) =>
+      !isCrossBaseLink(c) &&
+      ([UITypes.Lookup, UITypes.Rollup] as string[]).includes(c.uidt)
+        ? !crossbaseLinkIds.has(
+            (c.colOptions as LookupType | RollupType).fk_relation_column_id,
+          )
+        : true,
+    );
   }
 
   async recursiveRead(

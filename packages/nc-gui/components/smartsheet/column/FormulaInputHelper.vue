@@ -14,11 +14,13 @@ interface Props {
   editorHeight?: string
   suggestionHeight?: 'small' | 'medium' | 'large'
   disableSuggestionHeaders?: boolean
+  disabledFormulas: string[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
   suggestionHeight: 'large',
   disableSuggestionHeaders: false,
+  disabledFormulas: () => [],
 })
 
 const emits = defineEmits(['update:value'])
@@ -123,6 +125,7 @@ const suggestionsList = computed(() => {
         }
         return 0
       })
+      .filter((s) => !props.disabledFormulas.includes(s.text))
   )
 })
 
@@ -260,84 +263,89 @@ onMounted(async () => {
 
       const findEnclosingFunction = (text: string, offset: number) => {
         const formulaRegex = /\b(?<!['"])(\w+)\s*\(/g // Regular expression to match function names
-        const quoteRegex = /"/g // Regular expression to match quotes
 
         const functionStack = [] // Stack to keep track of functions
         let inQuote = false
+        let quoteChar = ''
+
+        // First scan the text to determine the quote state at each position
+        const quoteState = new Array(text.length).fill(false)
+        for (let i = 0; i < text.length; i++) {
+          if ((text[i] === '"' || text[i] === "'") && (i === 0 || text[i - 1] !== '\\')) {
+            if (!inQuote) {
+              inQuote = true
+              if (text[i]) {
+                quoteChar = text[i]
+              }
+            } else if (text[i] === quoteChar) {
+              inQuote = false
+            }
+          }
+          quoteState[i] = inQuote
+        }
 
         let match
         // eslint-disable-next-line no-cond-assign
         while ((match = formulaRegex.exec(text)) !== null) {
+          // Check if we're in quotes at this position
+          if (quoteState[match.index]) continue
+
           if (match.index > offset) break
 
-          if (!inQuote) {
-            const functionData = {
-              name: match[1],
-              start: match.index,
-              end: formulaRegex.lastIndex,
-            }
-
-            let parenBalance = 1
-            let childValueStart = -1
-            let childValueEnd = -1
-            for (let i = formulaRegex.lastIndex; i < text.length; i++) {
-              if (text[i] === '(') {
-                parenBalance++
-              } else if (text[i] === ')') {
-                parenBalance--
-                if (parenBalance === 0) {
-                  functionData.end = i + 1
-                  break
-                }
-              }
-
-              // Child value handling
-              if (childValueStart === -1 && ['(', ',', '{'].includes(text[i])) {
-                childValueStart = i
-              } else if (childValueStart !== -1 && ['(', ',', '{'].includes(text[i])) {
-                childValueStart = i
-              } else if (childValueStart !== -1 && ['}', ',', ')'].includes(text[i])) {
-                childValueEnd = i
-                childValueStart = -1
-              }
-
-              if (i >= offset) {
-                // If we've reached the offset and parentheses are still open, consider the current position as the end of the function
-                if (parenBalance > 0) {
-                  functionData.end = i + 1
-                  break
-                }
-
-                // Check for nested functions
-                const nestedFunction = findEnclosingFunction(
-                  text.substring(functionData.start + match[1].length + 1, i),
-                  offset - functionData.start - match[1].length - 1,
-                )
-                if (nestedFunction) {
-                  return nestedFunction
-                } else {
-                  functionStack.push(functionData)
-                  break
-                }
-              }
-            }
-
-            // If child value ended before offset, use child value end as function end
-            if (childValueEnd !== -1 && childValueEnd < offset) {
-              functionData.end = childValueEnd + 1
-            }
-
-            functionStack.push(functionData)
+          const functionData = {
+            name: match[1],
+            start: match.index,
+            end: formulaRegex.lastIndex,
           }
 
-          // Check for quotes
-          let quoteMatch
-          // eslint-disable-next-line no-cond-assign
-          while ((quoteMatch = quoteRegex.exec(text)) !== null && quoteMatch.index < match.index) {
-            inQuote = !inQuote
+          let parenBalance = 1
+          let childValueStart = -1
+
+          // Process the rest of the text to find the matching closing parenthesis
+          for (let i = formulaRegex.lastIndex; i < text.length; i++) {
+            // Check if we're in quotes at this position
+            if (quoteState[i]) continue
+
+            if (text[i] === '(') {
+              parenBalance++
+            } else if (text[i] === ')') {
+              parenBalance--
+              if (parenBalance === 0) {
+                functionData.end = i + 1
+                break
+              }
+            }
+
+            // Child value handling
+            if (childValueStart === -1 && ['('].includes(text[i])) {
+              childValueStart = i
+            } else if (childValueStart !== -1 && ['('].includes(text[i])) {
+              childValueStart = i
+            } else if (childValueStart !== -1 && [')'].includes(text[i])) {
+              childValueStart = -1
+            }
+
+            // If we've reached the end of text without finding a closing parenthesis
+            if (i === text.length - 1 && parenBalance > 0) {
+              // Consider this position as the end of the function
+              functionData.end = i + 1
+            }
+          }
+
+          // Handle the case where we reach the offset but parentheses are still unbalanced
+          if (parenBalance > 0 && offset >= formulaRegex.lastIndex) {
+            // Set the end to the last character if we didn't find a proper end
+            functionData.end = Math.max(functionData.end, text.length)
+            functionStack.push(functionData)
+          } else {
+            // Add the function to our stack if it contains the cursor position
+            if (functionData.start <= offset && functionData.end >= offset) {
+              functionStack.push(functionData)
+            }
           }
         }
 
+        // Make sure to handle the case where offset is in a quote but a function still encloses it
         const enclosingFunctions = functionStack.filter((func) => func.start <= offset && func.end >= offset)
         return enclosingFunctions.length > 0 ? enclosingFunctions[enclosingFunctions.length - 1].name : null
       }
@@ -447,6 +455,10 @@ function isCursorBetweenParenthesis() {
   return openParenthesis > closeParenthesis
 }
 
+const isItemSelected = (item: Record<string, any>) => {
+  return suggestionPreviewed.value?.text === item.text
+}
+
 function handleInput() {
   if (!editor) return
 
@@ -460,7 +472,7 @@ function handleInput() {
 
   if (text.length === 0) {
     // clear error if formula is empty
-    if (validateInfos.formula_raw.validateStatus === 'error') {
+    if (validateInfos.formula_raw?.validateStatus === 'error') {
       validateInfos.formula_raw.validateStatus = 'success'
       validateInfos.formula_raw.help = []
     }
@@ -473,7 +485,7 @@ function handleInput() {
     return
   }
 
-  if (!isCursorBetweenParenthesis()) priority.value = 1
+  priority.value = isCursorBetweenParenthesis() ? -1 : 1
 
   selected.value = 0
   suggestion.value = []
@@ -501,12 +513,14 @@ function handleInput() {
 }
 
 function selectText() {
-  if (suggestion.value && selected.value > -1 && selected.value < suggestionsList.value.length) {
+  if (suggestion.value && selected.value > -1 && selected.value < suggestion.value.length) {
     if (selected.value < suggestedFormulas.value.length) {
       if (suggestedFormulas.value[selected.value].unsupported) return
       appendText(suggestedFormulas.value[selected.value])
     } else {
-      appendText(variableList.value[selected.value + suggestedFormulas.value.length])
+      // Calculate the index in variableList by subtracting the length of suggestedFormulas
+      const variableIndex = selected.value - suggestedFormulas.value.length
+      appendText(variableList.value[variableIndex])
     }
   }
 
@@ -516,7 +530,15 @@ function selectText() {
 function suggestionListUp() {
   if (suggestion.value) {
     selected.value = --selected.value > -1 ? selected.value : suggestion.value.length - 1
-    suggestionPreviewed.value = suggestedFormulas.value[selected.value]
+
+    // Update suggestionPreviewed for both formula and field items
+    if (selected.value < suggestedFormulas.value.length) {
+      suggestionPreviewed.value = suggestedFormulas.value[selected.value]
+    } else {
+      const variableIndex = selected.value - suggestedFormulas.value.length
+      suggestionPreviewed.value = variableList.value[variableIndex]
+    }
+
     scrollToSelectedOption()
   }
 }
@@ -524,7 +546,14 @@ function suggestionListUp() {
 function suggestionListDown() {
   if (suggestion.value) {
     selected.value = ++selected.value % suggestion.value.length
-    suggestionPreviewed.value = suggestedFormulas.value[selected.value]
+
+    // Update suggestionPreviewed for both formula and field items
+    if (selected.value < suggestedFormulas.value.length) {
+      suggestionPreviewed.value = suggestedFormulas.value[selected.value]
+    } else {
+      const variableIndex = selected.value - suggestedFormulas.value.length
+      suggestionPreviewed.value = variableList.value[variableIndex]
+    }
 
     scrollToSelectedOption()
   }
@@ -535,8 +564,7 @@ function scrollToSelectedOption() {
     if (sugOptionsRef.value[selected.value]) {
       try {
         sugOptionsRef.value[selected.value].$el.scrollIntoView({
-          block: 'nearest',
-          inline: 'start',
+          block: 'center',
         })
       } catch (e) {}
     }
@@ -819,7 +847,7 @@ const enableAI = async () => {
             "
             class="cursor-pointer !overflow-hidden hover:bg-gray-50"
             :class="{
-              '!bg-gray-100': selected === index,
+              '!bg-gray-100': isItemSelected(item),
               'cursor-not-allowed': item.unsupported,
             }"
             @click.prevent.stop="!item.unsupported && appendText(item)"
@@ -865,7 +893,7 @@ const enableAI = async () => {
               }
             "
             :class="{
-              '!bg-gray-100': selected === index + suggestedFormulas.length,
+              '!bg-gray-100': isItemSelected(item),
             }"
             class="cursor-pointer hover:bg-gray-50"
             @click.prevent.stop="appendText(item)"
@@ -962,6 +990,6 @@ const enableAI = async () => {
 <style lang="scss">
 .formula-placeholder {
   @apply !text-gray-500 !text-xs !font-medium;
-  font-family: 'Manrope';
+  font-family: 'Inter';
 }
 </style>

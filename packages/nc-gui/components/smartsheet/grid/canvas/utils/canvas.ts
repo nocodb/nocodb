@@ -1,12 +1,12 @@
 import { LRUCache } from 'lru-cache'
 import JsBarcode from 'jsbarcode'
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, UserType } from 'nocodb-sdk'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import type { RenderMultiLineTextProps, RenderSingleLineTextProps, RenderTagProps } from './types'
 import { type Block, getFontForToken, parseMarkdown } from './markdownUtils'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 
-const singleLineTextCache: LRUCache<string, { text: string; width: number }> = new LRUCache({
+const singleLineTextCache: LRUCache<string, { text: string; width: number; isTruncated: boolean }> = new LRUCache({
   max: 1000,
 })
 
@@ -134,7 +134,7 @@ export function truncateText(
 }
 
 export function roundedRect(
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   x: number,
   y: number,
   width: number,
@@ -375,7 +375,7 @@ export const renderSingleLineText = (
     fillStyle,
     height,
     fontSize = 13,
-    fontFamily = '500 13px Manrope',
+    fontFamily = '500 13px Inter',
     textAlign = 'left',
     verticalAlign = 'middle',
     render = true,
@@ -582,6 +582,7 @@ export const renderMarkdownBlocks = (
     cellRenderStore,
     fontFamily,
     height,
+    selected = false,
   }: {
     blocks: Block[]
     x: number
@@ -596,6 +597,7 @@ export const renderMarkdownBlocks = (
     fontFamily?: string
     mousePosition?: { x: number; y: number }
     height?: number
+    selected?: boolean
   },
 ) => {
   if (fillStyle) {
@@ -609,11 +611,12 @@ export const renderMarkdownBlocks = (
   // Save the current font so we can restore it later
   const defaultFont = ctx.font
   const baseFontSize = 13
-  if (!fontFamily) fontFamily = 'Manrope'
+  if (!fontFamily) fontFamily = 'Inter'
   const defaultFillStyle = ctx.fillStyle
   const defaultStrokeStyle = ctx.strokeStyle
 
   const links: { x: number; y: number; width: number; height: number; url: string }[] = []
+  const mentions: { x: number; y: number; width: number; height: number; mentionData: any }[] = []
 
   maxLines = maxLines ?? blocks.length
 
@@ -649,6 +652,55 @@ export const renderMarkdownBlocks = (
       const maxLinesToRender = maxLines - renderedLineCount
 
       const isUrl = token.styles.includes('link') && !!token.url
+      const isMention = token.styles.includes('mention') && !!token.mentionData
+
+      const tokenWidth = ctx.measureText(tokenText)?.width
+
+      let mentionTextColor = '#3366FF'
+
+      // Handle mentions with background color and rounded rectangle
+      if (isMention && token.mentionData) {
+        // Check if mention will fit in current line
+        const remainingWidth = maxWidth - (cursorX - x)
+        const willFit = tokenWidth <= remainingWidth
+
+        // If mention won't fit on current line, move to next line first
+        if (!willFit && cursorX > x) {
+          cursorX = x
+          renderedLineCount++
+          cursorY = y + renderedLineCount * lineHeight
+        }
+
+        const paddingX = 4
+        const mentionBox = {
+          x: cursorX - paddingX,
+          y: cursorY - baseFontSize / 2 - 2,
+          width: tokenWidth + paddingX * 2,
+          height: baseFontSize + 4,
+        }
+
+        let bgColor
+        if (token.mentionData.isSameUser) {
+          mentionTextColor = '#17803D' // Current user text color
+          bgColor = '#D4F7E0' // Current user background
+        } else {
+          mentionTextColor = '#3366FF' // Other user text color
+          bgColor = '#EBF0FF' // Other user background
+        }
+
+        // Draw rounded rectangle background
+        ctx.fillStyle = bgColor
+        roundedRect(ctx, mentionBox.x, mentionBox.y, mentionBox.width, mentionBox.height, 6, {
+          backgroundColor: bgColor,
+          borderColor: '#ffffff00',
+        })
+
+        // Store mention data if cellRenderStore is provided
+        mentions.push({
+          ...mentionBox,
+          mentionData: token.mentionData,
+        })
+      }
 
       const multilineTextFnProps = {
         x,
@@ -658,9 +710,9 @@ export const renderMarkdownBlocks = (
         text: tokenText,
         maxWidth,
         height,
-        fillStyle: isUrl ? '#3366FF' : (defaultFillStyle as string),
+        fillStyle: isUrl && selected ? '#3366FF' : isMention ? mentionTextColor : (defaultFillStyle as string),
         fontFamily: ctx.font,
-        maxLines: maxLinesToRender,
+        maxLines: isMention ? 1 : maxLinesToRender,
         underline: token.styles.includes('underline') || isUrl,
         strikethrough: token.styles.includes('strikethrough'),
       }
@@ -688,7 +740,7 @@ export const renderMarkdownBlocks = (
 
         const isHovered = isBoxHovered(linkBox, mousePosition)
 
-        if (isHovered) {
+        if (isHovered && selected) {
           multilineTextFnProps.fillStyle = '#000'
           ctx.fillStyle = '#000'
           ctx.strokeStyle = '#000'
@@ -719,6 +771,7 @@ export const renderMarkdownBlocks = (
       if (lines.length === 1) {
         // If lines count is 1 then we just need to move cursorX as this is rendered inline
         cursorX += lastLineWidth
+        if (isMention) cursorX += 8 // Adding the padding value from your code
       } else {
         /**
          * If text is wrapped to next line then we can set cursorX to cell x + lastLineWidth
@@ -747,7 +800,9 @@ export const renderMarkdownBlocks = (
     renderedLineCount++
   }
 
-  if (cellRenderStore) cellRenderStore.links = links
+  if (cellRenderStore) {
+    cellRenderStore.links = links
+  }
 
   // Restore the original font
   ctx.font = defaultFont
@@ -776,7 +831,7 @@ export function renderMultiLineText(
     height,
     fontSize = 13, // In grid by default we have 13px font size
     lineHeight = 16, // In grid by default we have 16px line height
-    fontFamily = '500 13px Manrope',
+    fontFamily = '500 13px Inter',
     textAlign = 'left',
     verticalAlign = 'middle',
     render = true,
@@ -928,7 +983,7 @@ export function renderBarcode(
         lineColor: '#000000',
         margin: 0,
         fontSize: 12,
-        font: 'Manrope',
+        font: 'Inter',
       })
     }
 
@@ -956,9 +1011,13 @@ export function renderBarcode(
     return {
       x: xPos + finalWidth + 8,
       y: y + height - padding * 2,
+      startX: xPos,
+      startY: y + height / 2 - finalHeight / 2,
+      width: finalWidth,
+      height: finalHeight,
     }
   } catch (error) {
-    ctx.font = `500 13px Manrope`
+    ctx.font = `500 13px Inter`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
     ctx.fillStyle = '#4a5268'
@@ -972,7 +1031,7 @@ export function renderBarcode(
       maxWidth: width - padding * 2 - 28,
       height,
       fontSize: 13,
-      fontFamily: '500 13px Manrope',
+      fontFamily: '500 13px Inter',
       fillStyle: '#4a5268',
       textAlign: 'left',
     })
@@ -993,7 +1052,10 @@ export function renderBarcode(
 
 export const renderMarkdown = (
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-  params: RenderMultiLineTextProps,
+  params: RenderMultiLineTextProps & {
+    baseUsers?: (Partial<UserType> | Partial<User>)[]
+    user?: Partial<UserType> | Partial<User>
+  },
 ): {
   width: number
   x: number
@@ -1008,7 +1070,7 @@ export const renderMarkdown = (
     height,
     fontSize = 13, // In grid by default we have 13px font size
     lineHeight = 16, // In grid by default we have 16px line height
-    fontFamily = '500 13px Manrope',
+    fontFamily = '500 13px Inter',
     textAlign = 'left',
     verticalAlign = 'middle',
     render = true,
@@ -1016,6 +1078,9 @@ export const renderMarkdown = (
     mousePosition = { x: 0, y: 0 },
     cellRenderStore,
     isTagLabel = false,
+    selected = false,
+    baseUsers,
+    user,
   } = params
   let { maxWidth = Infinity, maxLines } = params
 
@@ -1054,7 +1119,10 @@ export const renderMarkdown = (
     const renderText = NcMarkdownParser.preprocessMarkdown(processText, true)
 
     width = maxWidth
-    blocks = parseMarkdown(renderText)
+    blocks = parseMarkdown(renderText, {
+      users: baseUsers,
+      currentUser: user,
+    })
 
     markdownTextCache.set(cacheKey, { blocks, width })
   }
@@ -1089,6 +1157,7 @@ export const renderMarkdown = (
       cellRenderStore,
       fontFamily,
       height,
+      selected,
     })
   } else {
     /**
@@ -1135,7 +1204,7 @@ export const renderTagLabel = (
     tagRadius = 6,
     tagBgColor = '#f4f4f0',
     tagSpacing = 4,
-    tagFontFamily = '500 13px Manrope',
+    tagFontFamily = '500 13px Inter',
     tagBorderColor,
     tagBorderWidth,
   } = props.tag || {}
@@ -1164,7 +1233,7 @@ export const renderTagLabel = (
       text,
       maxWidth,
       height: tagHeight - tagPaddingY * 2,
-      fontFamily: '500 13px Manrope',
+      fontFamily: '500 13px Inter',
       fillStyle: textColor,
       isTagLabel: true,
       mousePosition,
@@ -1181,7 +1250,7 @@ export const renderTagLabel = (
       text,
       maxWidth,
       height: tagHeight - tagPaddingY * 2,
-      fontFamily: '500 13px Manrope',
+      fontFamily: '500 13px Inter',
       fillStyle: textColor,
       isTagLabel: true,
       mousePosition,

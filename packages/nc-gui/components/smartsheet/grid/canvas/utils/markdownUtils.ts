@@ -1,9 +1,17 @@
-type MarkdownStyle = 'bold' | 'italic' | 'underline' | 'strikethrough' | 'link'
+import type { UserType } from 'nocodb-sdk'
+
+type MarkdownStyle = 'bold' | 'italic' | 'underline' | 'strikethrough' | 'link' | 'mention'
 
 interface Token {
   styles: MarkdownStyle[]
   value: string
   url?: string
+  mentionData?: {
+    id: string
+    email?: string
+    displayName?: string
+    isSameUser: boolean
+  }
 }
 
 export interface Marker {
@@ -64,11 +72,54 @@ const markers: Marker[] = [
       }
     },
   },
+  {
+    open: '@(',
+    handler: (text: string, index: number, activeStyles: MarkdownStyle[]) => {
+      let mentionContent = ''
+      let endIndex = index
+
+      // Find the closing parenthesis
+      while (endIndex < text.length && text[endIndex] !== ')') {
+        mentionContent += text[endIndex]
+        endIndex++
+      }
+
+      if (endIndex < text.length && text[endIndex] === ')') {
+        endIndex++ // Skip ')'
+      }
+
+      // Process the mention content (userId|email|displayName)
+      const parts = mentionContent.split('|')
+      const id = parts[0] || ''
+      const email = parts[1] || ''
+      const displayName = parts[2] || ''
+
+      const newStyles: MarkdownStyle[] = [...activeStyles, 'mention']
+
+      const displayValue = displayName && displayName.length > 0 ? displayName : email
+
+      return {
+        tokens: [
+          {
+            styles: newStyles,
+            value: `${displayValue}`,
+            mentionData: {
+              id,
+              email,
+              displayName,
+              isSameUser: false,
+            },
+          },
+        ],
+        newIndex: endIndex,
+      }
+    },
+  },
 ]
 
 function parseTokens(
   text: string,
-  index = 0,
+  index: number = 0,
   activeStyles: MarkdownStyle[] = [],
   expectedClosing: string | null = null,
 ): { tokens: Token[]; newIndex: number } {
@@ -120,8 +171,20 @@ function parseTokens(
   return { tokens, newIndex: index }
 }
 
-export const tokenizeLine = (text: string): Token[] => {
-  return parseTokens(text).tokens
+export const tokenizeLine = (
+  text: string,
+  options?: {
+    users?: Partial<UserType | User>[]
+    currentUser?: Partial<UserType | User> | null
+  },
+): Token[] => {
+  let tokens = parseTokens(text).tokens
+
+  if (options?.users && options.users.length > 0) {
+    tokens = updateMentionsWithUserData(tokens, options.users, options.currentUser)
+  }
+
+  return tokens
 }
 
 type BlockType = 'paragraph' | 'list-item' | 'numbered-list-item' | 'heading'
@@ -146,9 +209,16 @@ const blockMarkers: BlockMarker[] = [
   { open: /\d+\. /, type: 'numbered-list-item' },
 ]
 
-export const parseMarkdown = (text: string): Block[] => {
+export const parseMarkdown = (
+  text: string,
+  options?: {
+    users?: Partial<UserType | User>[]
+    currentUser?: Partial<UserType | User> | null
+  },
+): Block[] => {
   const lines = text.split('\n')
   const blocks: Block[] = []
+  const { users = [], currentUser = null } = options || {}
 
   for (const line of lines) {
     if (!line.trim()) continue
@@ -180,7 +250,11 @@ export const parseMarkdown = (text: string): Block[] => {
       }
     }
 
-    const tokens = tokenizeLine(content)
+    let tokens = tokenizeLine(content)
+    if (users.length > 0) {
+      tokens = updateMentionsWithUserData(tokens, users, currentUser)
+    }
+
     blocks.push({ type: blockType, tokens, ...customProps })
   }
 
@@ -211,4 +285,31 @@ export const getFontForToken = (
   fontParts.push(`${fontSize}px`)
   fontParts.push(fontFamily)
   return fontParts.join(' ')
+}
+
+function updateMentionsWithUserData(
+  tokens: Token[],
+  users: Partial<UserType | User>[],
+  currentUser?: Partial<UserType | User> | null,
+): Token[] {
+  return tokens.map((token) => {
+    if (token.mentionData && token.styles.includes('mention')) {
+      const id = token.mentionData.id
+      const foundUser = users.find((user) => user?.id && user.id === id)
+
+      if (foundUser) {
+        return {
+          ...token,
+          value: `${foundUser.display_name || foundUser.email || id}`,
+          mentionData: {
+            ...token.mentionData,
+            email: foundUser.email,
+            displayName: foundUser.display_name,
+            isSameUser: currentUser?.id === id,
+          },
+        }
+      }
+    }
+    return token as Token
+  }) as Token[]
 }

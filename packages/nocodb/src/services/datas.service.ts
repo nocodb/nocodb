@@ -1,19 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk';
-import * as XLSX from 'xlsx';
-import papaparse from 'papaparse';
+import { isLinksOrLTAR, NcSDKErrorV2 } from 'nocodb-sdk';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
 import type { Filter } from '~/models';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
-import { Base, Column, Model, Source, View } from '~/models';
-import { getDbRows, getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
-import { nocoExecute } from '~/utils';
 import { NcBaseError, NcError } from '~/helpers/catchError';
+import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { Base, Column, Model, Source, View } from '~/models';
+import { nocoExecute } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
@@ -285,7 +283,7 @@ export class DatasService {
             listArgs,
           );
         } catch (e) {
-          if (e instanceof NcBaseError) throw e;
+          if (e instanceof NcBaseError || e instanceof NcSDKErrorV2) throw e;
           this.logger.error(e);
           NcError.internalServerError(
             'Please check server log for more details',
@@ -1071,106 +1069,6 @@ export class DatasService {
       }));
     if (!model) NcError.tableNotFound(req.params.tableName);
     return { model, view };
-  }
-
-  async extractXlsxData(
-    context: NcContext,
-    param: { view: View; query: any; siteUrl: string },
-  ) {
-    const { view, query, siteUrl } = param;
-    const source = await Source.get(context, view.source_id);
-
-    await view.getModelWithInfo(context);
-    await view.getColumns(context);
-
-    view.model.columns = view.columns
-      .filter((c) => c.show)
-      .map(
-        (c) =>
-          new Column({
-            ...c,
-            ...view.model.columnsById[c.fk_column_id],
-          } as any),
-      )
-      .filter((column) => !isSystemColumn(column) || view.show_system_fields);
-
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: view.model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-      source,
-    });
-
-    const { offset, dbRows, elapsed } = await getDbRows(context, {
-      baseModel,
-      view,
-      query,
-      siteUrl,
-    });
-
-    const fields = query.fields as string[];
-
-    const data = XLSX.utils.json_to_sheet(dbRows, { header: fields });
-
-    return { offset, dbRows, elapsed, data };
-  }
-
-  async extractCsvData(context: NcContext, view: View, req) {
-    const source = await Source.get(context, view.source_id);
-    const fields = req.query.fields;
-
-    await view.getModelWithInfo(context);
-    await view.getColumns(context);
-
-    view.model.columns = view.columns
-      .filter((c) => c.show)
-      .map(
-        (c) =>
-          new Column({
-            ...c,
-            ...view.model.columnsById[c.fk_column_id],
-          } as any),
-      )
-      .filter((column) => !isSystemColumn(column) || view.show_system_fields);
-
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: view.model.id,
-      viewId: view?.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-      source,
-    });
-
-    const { offset, dbRows, elapsed } = await getDbRows(context, {
-      baseModel,
-      view,
-      query: req.query,
-      siteUrl: (req as any).ncSiteUrl,
-    });
-
-    const data = papaparse.unparse(
-      {
-        fields: view.model.columns
-          .sort((c1, c2) =>
-            Array.isArray(fields)
-              ? fields.indexOf(c1.title as any) -
-                fields.indexOf(c2.title as any)
-              : 0,
-          )
-          .filter(
-            (c) =>
-              !fields ||
-              !Array.isArray(fields) ||
-              fields.includes(c.title as any),
-          )
-          .map((c) => c.title),
-        data: dbRows,
-      },
-      {
-        escapeFormulae: true,
-      },
-    );
-
-    return { offset, dbRows, elapsed, data };
   }
 
   async getColumnByIdOrName(

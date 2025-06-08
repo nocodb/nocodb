@@ -3,28 +3,49 @@ import { isBoxHovered, renderIconButton, renderMultiLineText, renderTagLabel } f
 
 export const JsonCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, pv, padding, textColor = '#4a5268', mousePosition, spriteLoader } = props
+    const {
+      value,
+      x,
+      y,
+      width,
+      height,
+      pv,
+      padding,
+      textColor = '#4a5268',
+      mousePosition,
+      spriteLoader,
+      selected,
+      setCursor,
+    } = props
 
-    const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
+    const renderExpandIcon = () => {
+      if (!selected) return
+
+      renderIconButton(ctx, {
+        buttonX: x + width - 28,
+        buttonY: y + 7,
+        buttonSize: 20,
+        borderRadius: 6,
+        iconData: {
+          size: 12,
+          xOffset: 4,
+          yOffset: 4,
+        },
+        mousePosition,
+        spriteLoader,
+        icon: 'maximize',
+        background: 'white',
+        setCursor,
+      })
+
+      if (isBoxHovered({ x: x + width - 28, y: y + 7, width: 20, height: 20 }, mousePosition)) {
+        setCursor('pointer')
+      }
+    }
 
     // skip rendering text if undefined/null
     if (ncIsUndefined(value) || ncIsNull(value)) {
-      if (isHovered) {
-        renderIconButton(ctx, {
-          buttonX: x + width - 28,
-          buttonY: y + 7,
-          buttonSize: 18,
-          borderRadius: 3,
-          iconData: {
-            size: 13,
-            xOffset: (18 - 13) / 2,
-            yOffset: (18 - 13) / 2,
-          },
-          mousePosition,
-          spriteLoader,
-          icon: 'maximize',
-        })
-      }
+      renderExpandIcon()
 
       return {
         x,
@@ -51,27 +72,12 @@ export const JsonCellRenderer: CellRenderer = {
         y,
         text,
         maxWidth: width - padding * 2,
-        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fontFamily: `${pv ? 600 : 500} 13px Inter`,
         fillStyle: pv ? '#3366FF' : textColor,
         height,
       })
 
-      if (isHovered) {
-        renderIconButton(ctx, {
-          buttonX: x + width - 28,
-          buttonY: y + 7,
-          buttonSize: 18,
-          borderRadius: 3,
-          iconData: {
-            size: 13,
-            xOffset: (18 - 13) / 2,
-            yOffset: (18 - 13) / 2,
-          },
-          mousePosition,
-          spriteLoader,
-          icon: 'maximize',
-        })
-      }
+      renderExpandIcon()
 
       return {
         x: xOffset,
@@ -90,21 +96,21 @@ export const JsonCellRenderer: CellRenderer = {
 
     return false
   },
-  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable }) {
+  async handleClick({ row, column, getCellPosition, mousePosition, makeCellEditable, selected }) {
     const rowIndex = row?.rowMeta?.rowIndex
-    if (typeof rowIndex !== 'number') return false
+    if (typeof rowIndex !== 'number' || !selected) return false
     const { x, y, width } = getCellPosition(column, rowIndex)
-    if (isBoxHovered({ x: x + width - 28, y: y + 7, height: 18, width: 18 }, mousePosition)) {
+    if (isBoxHovered({ x: x + width - 28, y: y + 7, height: 20, width: 20 }, mousePosition)) {
       makeCellEditable(row, column)
       return true
     }
     return false
   },
 
-  async handleHover({ row, column, mousePosition, getCellPosition }) {
+  async handleHover({ row, column, mousePosition, getCellPosition, selected }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
-    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return
+    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid || !selected) return
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
     const expandIconBox = { x: x + width - 28, y: y + 7, width: 18, height: 18 }

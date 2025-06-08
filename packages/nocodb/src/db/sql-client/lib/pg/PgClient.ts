@@ -3310,11 +3310,14 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
 
-    const indexName = args.indexName || null;
+    let indexName = args.indexName || null;
 
     try {
       args.table = args.schema ? `${args.schema}.${args.tn}` : args.tn;
 
+      if (indexName) {
+        indexName = args.schema ? `${args.schema}.${indexName}` : indexName;
+      }
       // s = await this.sqlClient.schema.index(Object.keys(args.columns));
       await this.sqlClient.raw(
         this.sqlClient.schema

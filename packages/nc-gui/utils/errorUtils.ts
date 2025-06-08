@@ -38,7 +38,8 @@ export async function extractSdkResponseErrorMsgv2(e: Error & { response: any })
 }> {
   const unknownError = {
     error: NcErrorType.UNKNOWN_ERROR,
-    message: 'Something went wrong',
+    // TODO: `e.response?.data?.msg` is fallback for v1 error messages, remove after migrating all error messages to v2 format
+    message: e.response?.data?.msg || 'Something went wrong',
   }
 
   if (!e || !e.response) {
@@ -59,7 +60,6 @@ export async function extractSdkResponseErrorMsgv2(e: Error & { response: any })
     if (e.response.data.error && e.response.data.error in NcErrorType) {
       return e.response.data
     }
-
     return unknownError
   }
 }

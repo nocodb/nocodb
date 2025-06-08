@@ -238,6 +238,7 @@ import NcGoogleSheet from '~icons/nc-icons/google_sheet'
 import NcGoogleDrive from '~icons/nc-icons/google-drive'
 import NcHubspot from '~icons/nc-icons/hubspot'
 import NcJira from '~icons/nc-icons/jira'
+import NcLinear from '~icons/nc-icons-v2/linear'
 import NcMailchimp from '~icons/nc-icons/mailchimp'
 import NcMicrosoftAccess from '~icons/nc-icons/microsoft_access'
 import NcMicrosoftExcel from '~icons/nc-icons/microsoft_excel'
@@ -264,6 +265,7 @@ import NcMattermost from '~icons/nc-icons/mattermost'
 import NcTwilio from '~icons/nc-icons/twilio'
 import NcWhatsapp from '~icons/nc-icons/whatsapp'
 import NcWhatsappSolid from '~icons/nc-icons/whatsapp-solid'
+import NcMCP from '~icons/nc-icons/mcp'
 
 // View icons
 import NcViewGantt from '~icons/nc-icons/view-gantt'
@@ -362,6 +364,7 @@ import NcMaximizeIcon from '~icons/nc-icons-v2/maximize.svg'
 import NcChevronUpIcon from '~icons/nc-icons-v2/chevron-up.svg'
 import NcArrowDownLeftIcon from '~icons/nc-icons-v2/arrow-down-left.svg'
 import NcFileTextIcon from '~icons/nc-icons-v2/file-text.svg'
+import NcFileTextSolidIcon from '~icons/nc-icons-v2/file-text-solid.svg'
 import NcDropletIcon from '~icons/nc-icons-v2/droplet.svg'
 import NcZapOffIcon from '~icons/nc-icons-v2/zap-off.svg'
 import NcXIcon from '~icons/nc-icons-v2/x.svg'
@@ -475,6 +478,8 @@ import NcDollarSignIcon from '~icons/nc-icons-v2/dollar-sign.svg'
 import NcStarIcon from '~icons/nc-icons-v2/star.svg'
 import NcCloudOffIcon from '~icons/nc-icons-v2/cloud-off.svg'
 import NcMessageSquareIcon from '~icons/nc-icons-v2/message-square.svg'
+import NcMessageSquare1OutlineIcon from '~icons/nc-icons-v2/message-square1-outline.svg'
+import NcMessageSquare1SolidIcon from '~icons/nc-icons-v2/message-square1-solid.svg'
 import NcEditIcon from '~icons/nc-icons-v2/edit.svg'
 import NcAlertCircleIcon from '~icons/nc-icons-v2/alert-circle.svg'
 import NcAlertCircleFilledIcon from '~icons/nc-icons-v2/alert-circle-filled.svg'
@@ -721,6 +726,16 @@ import NcLogoZendesk from '~icons/nc-icons-v2/zendesk.svg'
 import NcLogoZohoColored from '~icons/nc-icons-v2/zoho-colored.svg'
 import NcLogoZoho from '~icons/nc-icons-v2/zoho.svg'
 import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
+import NcBaseOutline from '~icons/nc-icons-v2/base-outline.svg'
+import NcBaseOutlineDuo from '~icons/nc-icons-v2/base-outline-duo.svg'
+import NcSearchDuo from '~icons/nc-icons-v2/search-duo.svg'
+import NcSettingsDuo from '~icons/nc-icons-v2/settings-duo.svg'
+import NcIntegrationDuo from '~icons/nc-icons-v2/integration-duo.svg'
+import NcMegaPhoneDuo from '~icons/nc-icons-v2/mega-phone-duo.svg'
+import NcNotificationDuo from '~icons/nc-icons-v2/notification-duo.svg'
+import NcLayout from '~icons/nc-icons-v2/layout.svg'
+import NcPlusCircleSolid from '~icons/nc-icons-v2/plus-circle-solid.svg'
+import NcHeadphone from '~icons/nc-icons-v2/headphone'
 
 import MdiNcCheckBold from '~icons/nc-icons/mdi-check-bold'
 import MdiNcCropSquare from '~icons/nc-icons/mdi-crop-square'
@@ -738,6 +753,7 @@ import MdiNcFlag from '~icons/nc-icons/mdi-flag'
 import MdiNcFlagOutline from '~icons/nc-icons/mdi-flag-outline'
 import MdiNcAttachFile from '~icons/nc-icons/mdi-attach'
 import MdiCloudKeyOutline from '~icons/mdi/cloud-key-outline'
+import NcDiscordForum from '~icons/nc-icons/discord-forum'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -959,7 +975,7 @@ export const iconMap = {
   'bt_solid': BelongsToSolidIcon,
   'oneToOneSolid': OnetoOneIcon,
   'workspaceDefault': MsGroup,
-  'project': Project,
+  'project': h(Project, { stroke: 'transparent' }),
   'search': NcSearch,
   // calendar: Calendar,
   'checkCircle': NcCheckCircle,
@@ -1205,6 +1221,7 @@ export const iconMap = {
   'asana': NcAsana,
   'box': NcBox,
   'githubSolid': NcGithubSolid,
+  'linear': NcLinear,
   'gitlab': NcGitlab,
   'googleCalendar': NcGoogleCalendar,
   'googleSheet': NcGoogleSheet,
@@ -1334,6 +1351,7 @@ export const iconMap = {
   'ncChevronUp': NcChevronUpIcon,
   'ncArrowDownLeft': NcArrowDownLeftIcon,
   'ncFileText': NcFileTextIcon,
+  'ncFileTextSolid': NcFileTextSolidIcon,
   'ncDroplet': NcDropletIcon,
   'ncZapOff': NcZapOffIcon,
   'ncX': NcXIcon,
@@ -1447,6 +1465,8 @@ export const iconMap = {
   'ncStar': NcStarIcon,
   'ncCloudOff': NcCloudOffIcon,
   'ncMessageSquare': NcMessageSquareIcon,
+  'ncMessageSquare1Outline': NcMessageSquare1OutlineIcon,
+  'ncMessageSquare1Solid': NcMessageSquare1SolidIcon,
   'ncEDit2': NcEditIcon,
   'ncAlertCircle': NcAlertCircleIcon,
   'ncAlertCircleFilled': NcAlertCircleFilledIcon,
@@ -1655,6 +1675,7 @@ export const iconMap = {
   'ncLogoTwitchColored': h(NcLogoTwitchColored, { stroke: 'transparent' }),
   'ncLogoTwitch': h(NcLogoTwitch, { stroke: 'transparent' }),
   'ncLogoTwitterColored': h(NcLogoTwitterColored, { stroke: 'transparent' }),
+  'ncLogoTwitter': h(NcLogoTwitter, { stroke: 'transparent' }),
   'ncLogoTypeformColored': h(NcLogoTypeformColored, { stroke: 'transparent' }),
   'ncLogoTypeform': h(NcLogoTypeform, { stroke: 'transparent' }),
   'ncLogoWhatsappColored': h(NcLogoWhatsappColored, { stroke: 'transparent' }),
@@ -1682,6 +1703,18 @@ export const iconMap = {
   'mdi-flag': MdiNcFlag,
   'mdi-flag-outline': MdiNcFlagOutline,
   'sso': MdiCloudKeyOutline,
+  'mcp': NcMCP,
+  'ncBaseOutline': NcBaseOutline,
+  'ncBaseOutlineDuo': NcBaseOutlineDuo,
+  'ncSearchDuo': NcSearchDuo,
+  'ncSettingsDuo': NcSettingsDuo,
+  'ncIntegrationDuo': NcIntegrationDuo,
+  'ncMegaPhoneDuo': NcMegaPhoneDuo,
+  'ncNotificationDuo': NcNotificationDuo,
+  'ncLayout': NcLayout,
+  'ncPlusCircleSolid': h(NcPlusCircleSolid, { stroke: 'transparent' }),
+  'ncDiscordForum': NcDiscordForum,
+  'ncHeadphone': NcHeadphone,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4234,6 +4267,42 @@ export const searchableMap = {
   ncLogoZoho: {
     icon: h(NcLogoZoho, { stroke: 'transparent' }),
     keywords: ['crm', 'business apps', 'collaboration', 'productivity', 'enterprise'],
+  },
+  ncBaseOutline: {
+    icon: NcBaseOutline,
+    keywords: ['base', 'database', 'storage', 'db'],
+  },
+  ncBaseOutlineDuo: {
+    icon: NcBaseOutlineDuo,
+    keywords: ['base', 'database', 'storage', 'db'],
+  },
+  ncSearchDuo: {
+    icon: NcSearchDuo,
+    keywords: ['search'],
+  },
+  ncSettingsDuo: {
+    icon: NcSettingsDuo,
+    keywords: ['settings'],
+  },
+  ncIntegrationDuo: {
+    icon: NcIntegrationDuo,
+    keywords: ['integration', 'settings'],
+  },
+  ncMegaPhoneDuo: {
+    icon: NcMegaPhoneDuo,
+    keywords: ['megaphone', 'horn'],
+  },
+  ncNotificationDuo: {
+    icon: NcNotificationDuo,
+    keywords: ['notification', 'bell'],
+  },
+  ncLayout: {
+    icon: NcLayout,
+    keywords: ['layout', 'table'],
+  },
+  ncHeadphone: {
+    icon: NcHeadphone,
+    keywords: ['headphone', 'call'],
   },
 }
 

@@ -1134,5 +1134,8 @@ export class MssqlUi implements SqlUi {
   isParsedJsonReturnType(_col: ColumnType): boolean {
     return false;
   }
+  get tableNameLengthLimit(): number {
+    return 255;
+  }
   //#endregion methods
 }

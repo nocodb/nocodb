@@ -75,10 +75,20 @@ const accountUrl = computed(() => {
         <template #overlay>
           <NcMenu data-testid="nc-sidebar-userinfo" variant="small">
             <div
-              class="flex flex-row py-1 px-3 gap-x-2 items-center text-gray-700 rounded-lg h-8"
+              class="flex flex-col justify-center py-1 px-3 gap-x-2 text-gray-700 rounded-lg min-h-8 text-small leading-[18px]"
               data-testid="nc-sidebar-userinfo"
             >
-              {{ name ? name : user?.email }}
+              <div v-if="name?.trim()" class="capitalize text-nc-content-gray font-bold">
+                {{ name }}
+              </div>
+              <div
+                :class="{
+                  'text-xs text-nc-content-gray-muted': name?.trim(),
+                  'text-nc-content-gray font-semibold': !name?.trim(),
+                }"
+              >
+                {{ user?.email }}
+              </div>
             </div>
             <NcDivider />
             <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl" @click="auditsStore.handleReset">

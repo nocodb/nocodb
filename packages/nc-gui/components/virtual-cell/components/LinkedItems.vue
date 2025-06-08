@@ -67,7 +67,10 @@ const {
   refreshCurrentRow,
   rowId,
   relatedTableDisplayValueColumn,
+  externalBaseUserRoles,
 } = useLTARStoreOrThrow()
+
+const { withLoading } = useLoadingTrigger()
 
 const { isNew, state, removeLTARRef, addLTARRef } = useSmartsheetRowStoreOrThrow()
 
@@ -147,7 +150,7 @@ const newRowState = computed(() => {
 const colTitle = computed(() => injectedColumn.value?.title || '')
 
 const onClick = (row: Row) => {
-  if (readOnly.value || isForm.value) return
+  if (isPublic.value || isForm.value) return
   expandedFormRow.value = row
   expandedFormDlg.value = true
 }
@@ -160,12 +163,14 @@ const addNewRecord = () => {
   isNewRecord.value = true
 }
 
-reloadViewDataTrigger.on((params) => {
-  if (params?.isFromLinkRecord) {
-    refreshCurrentRow()
-    loadChildrenList()
-  }
-})
+reloadViewDataTrigger.on(
+  withLoading((params) => {
+    if (params?.isFromLinkRecord) {
+      refreshCurrentRow()
+      loadChildrenList()
+    }
+  }),
+)
 
 const onCreatedRecord = async (record: any) => {
   reloadTrigger?.trigger({
@@ -218,6 +223,10 @@ const onCreatedRecord = async (record: any) => {
   message.success(msgVNode)
 
   isNewRecord.value = false
+}
+
+const onDeletedRecord = () => {
+  loadChildrenList(true)
 }
 
 const relation = computed(() => {
@@ -475,7 +484,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
       <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between gap-3 min-h-11">
         <div class="flex items-center gap-2">
           <NcButton
-            v-if="!isPublic && !isDataReadOnly && isUIAllowed('dataEdit') && !isForm"
+            v-if="
+              !isPublic && !isDataReadOnly && isUIAllowed('dataEdit', externalBaseUserRoles) && isUIAllowed('dataEdit') && !isForm
+            "
             v-e="['c:row-expand:open']"
             size="small"
             class="!hover:(bg-white text-brand-500) !h-7 !text-small"
@@ -544,6 +555,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         maintain-default-view-order
         :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
         @created-record="onCreatedRecord"
+        @deleted-record="onDeletedRecord"
       />
     </Suspense>
   </div>

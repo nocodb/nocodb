@@ -4,6 +4,7 @@ import {
   isAIPromptCol,
   isLinksOrLTAR,
   LongTextAiMetaProp,
+  SqlUiFactory,
   UITypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
@@ -28,6 +29,7 @@ import {
   GalleryView,
   KanbanView,
   LinksColumn,
+  Source,
 } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
@@ -115,6 +117,9 @@ export default class Column<T = any> implements ColumnType {
   public asId?: string;
 
   public readonly?: boolean;
+
+  // we create custom index when custom link created using the column
+  public custom_index_name?: boolean;
 
   constructor(data: Partial<(ColumnType & { asId?: string }) | Column>) {
     Object.assign(this, data);
@@ -215,7 +220,21 @@ export default class Column<T = any> implements ColumnType {
       insertObj.source_id = model.source_id;
     }
 
-    if (!column.uidt) throw new Error('UI Datatype not found');
+    // Fallback to SingleLineText if no UI Datatype is provided
+    if (!column.uidt) {
+      if (column.dt) {
+        const source = await Source.get(
+          context,
+          column.source_id || insertObj.source_id,
+        );
+        const sqlUi = SqlUiFactory.create(await source.getConnectionConfig());
+        insertObj.uidt =
+          sqlUi.getUIType(column as ColumnType) || UITypes.SingleLineText;
+      } else {
+        insertObj.uidt = UITypes.SingleLineText;
+      }
+    }
+
     const row = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
@@ -310,6 +329,12 @@ export default class Column<T = any> implements ColumnType {
             fk_mm_model_id: column.fk_mm_model_id,
             fk_mm_child_column_id: column.fk_mm_child_column_id,
             fk_mm_parent_column_id: column.fk_mm_parent_column_id,
+
+            // cross base link props
+            fk_related_base_id: column.fk_related_base_id,
+            fk_mm_base_id: column.fk_mm_base_id,
+            fk_related_source_id: column.fk_related_source_id,
+            fk_mm_source_id: column.fk_mm_source_id,
 
             ur: column.ur,
             dr: column.dr,
@@ -832,6 +857,64 @@ export default class Column<T = any> implements ColumnType {
       }
       for (const rollup of rollups) {
         await Column.delete(context, rollup.fk_column_id, ncMeta);
+      }
+    }
+
+    // get all cross base link columns and delete any lookup/rollup columns
+    {
+      const columns = await Column.list(context, {
+        fk_model_id: col.fk_model_id,
+      });
+      // check in all cross base link lookup columns
+      for (const column of columns) {
+        if (!isLinksOrLTAR(column.uidt)) continue;
+
+        const colOptions =
+          await column.getColOptions<LinkToAnotherRecordColumn>(
+            context,
+            ncMeta,
+          );
+
+        if (
+          !colOptions.fk_related_base_id ||
+          colOptions.fk_related_base_id === col.base_id
+        )
+          continue;
+
+        // get lookup columns and delete
+        const lookupAndRollupColumns = await ncMeta.metaList2(
+          context.workspace_id,
+          colOptions.fk_related_base_id,
+          MetaTable.COL_LOOKUP,
+          {
+            condition: { fk_lookup_column_id: id },
+          },
+        );
+        for (const lookupAndRollupColumn of lookupAndRollupColumns) {
+          await Column.delete(
+            { ...context, base_id: colOptions.fk_related_base_id },
+            lookupAndRollupColumn.fk_column_id,
+            ncMeta,
+          );
+        }
+
+        // get rollup columns and delete
+        const rollupColumns = await ncMeta.metaList2(
+          context.workspace_id,
+          colOptions.fk_related_base_id,
+          MetaTable.COL_ROLLUP,
+          {
+            condition: { fk_rollup_column_id: id },
+          },
+        );
+
+        for (const rollupColumn of rollupColumns) {
+          await Column.delete(
+            { ...context, base_id: colOptions.fk_related_base_id },
+            rollupColumn.fk_column_id,
+            ncMeta,
+          );
+        }
       }
     }
 
@@ -1557,6 +1640,27 @@ export default class Column<T = any> implements ColumnType {
         );
       }
     }
+  }
+
+  static async updateCustomIndexName(
+    context: NcContext,
+    colId: string,
+    customIndexName: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COLUMNS,
+      {
+        custom_index_name: customIndexName ?? null,
+      },
+      colId,
+    );
+
+    await NocoCache.update(`${CacheScope.COLUMN}:${colId}`, {
+      custom_index_name: customIndexName,
+    });
   }
 
   static async updateFormulaColumnToNewType(

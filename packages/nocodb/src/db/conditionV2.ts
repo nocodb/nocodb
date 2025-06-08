@@ -11,7 +11,9 @@ import { FieldHandler } from './field-handler';
 import type { FilterType } from 'nocodb-sdk';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { Knex } from 'knex';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
+import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getRefColumnIfAlias } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -21,12 +23,13 @@ import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
 import Filter from '~/models/Filter';
 import { getAliasGenerator } from '~/utils';
 import { validateAndStringifyJson } from '~/utils/tsUtils';
+import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
 
 // tod: tobe fixed
 // extend(customParseFormat);
 
 export default async function conditionV2(
-  baseModelSqlv2: BaseModelSqlv2,
+  baseModelSqlv2: IBaseModelSqlV2,
   conditionObj: Filter | FilterType | FilterType[] | Filter[],
   qb: Knex.QueryBuilder,
   alias?: string,
@@ -66,7 +69,7 @@ function getLogicalOpMethod(filter: Filter) {
 }
 
 const parseConditionV2 = async (
-  baseModelSqlv2: BaseModelSqlv2,
+  baseModelSqlv2: IBaseModelSqlV2,
   _filter: Filter | FilterType | FilterType[] | Filter[],
   aliasCount = { count: 0 },
   alias?,
@@ -189,9 +192,16 @@ const parseConditionV2 = async (
       }
     }
     if (
-      [UITypes.JSON, UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(
-        column.uidt,
-      ) ||
+      [
+        UITypes.JSON,
+        UITypes.LinkToAnotherRecord,
+        UITypes.Lookup,
+        UITypes.Decimal,
+        UITypes.Number,
+        UITypes.Rating,
+        UITypes.Percent,
+        UITypes.User,
+      ].includes(column.uidt) ||
       ([UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
         !customWhereClause)
     ) {
@@ -204,6 +214,7 @@ const parseConditionV2 = async (
           depth: aliasCount,
           context,
           throwErrorIfInvalid,
+          customWhereClause,
         },
       );
     }
@@ -243,14 +254,36 @@ const parseConditionV2 = async (
             .includes(filterVal.toLowerCase());
         });
 
+        let finalStatement = '';
+
         // create nested replace statement for each user
-        const finalStatement = users.reduce((acc, user) => {
-          const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [
-            user.id,
-            user.display_name || user.email,
-          ]);
-          return qb.toQuery();
-        }, knex.raw(`??`, [column.column_name]).toQuery());
+        if (knex.clientType() === 'pg') {
+          finalStatement = `(${replaceDelimitedWithKeyValuePg({
+            knex,
+            needleColumn: column.column_name,
+            stack: users.map((user) => ({
+              key: user.id,
+              value: user.display_name || user.email,
+            })),
+          })})`;
+        } else if (knex.clientType() === 'sqlite3') {
+          finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
+            knex,
+            needleColumn: column.column_name,
+            stack: users.map((user) => ({
+              key: user.id,
+              value: user.display_name || user.email,
+            })),
+          })})`;
+        } else {
+          finalStatement = users.reduce((acc, user) => {
+            const qb = knex.raw(`REPLACE(${acc}, ?, ?)`, [
+              user.id,
+              user.display_name || user.email,
+            ]);
+            return qb.toQuery();
+          }, knex.raw(`??`, [column.column_name]).toQuery());
+        }
 
         let val = filter.value;
         if (filter.comparison_op === 'like') {
@@ -299,14 +332,25 @@ const parseConditionV2 = async (
         filter.comparison_op === 'notempty'
       )
         filter.value = '';
-      const _field = sanitize(
+      let _field = sanitize(
         customWhereClause
           ? filter.value
           : alias
           ? `${alias}.${column.column_name}`
           : column.column_name,
       );
-      const _val = customWhereClause ? customWhereClause : filter.value;
+      let _val = customWhereClause ? customWhereClause : filter.value;
+      handleCurrentUserFilter(context, {
+        column,
+        filter,
+        setVal: (val) => {
+          if (customWhereClause) {
+            _field = val;
+          } else {
+            _val = val;
+          }
+        },
+      });
 
       // get column name for CreateTime, LastModifiedTime
       column.column_name = await getColumnName(context, column);
@@ -818,7 +862,21 @@ const parseConditionV2 = async (
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  qb.where(field, gt_op, knex.raw('?::timestamptz', [val]));
+                  if (
+                    column.dt !== 'timestamp with time zone' &&
+                    column.dt !== 'timestamptz'
+                  ) {
+                    qb.where(
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
+                      gt_op,
+                      knex.raw('?::timestamptz', [val]),
+                    );
+                  } else {
+                    qb.where(field, gt_op, knex.raw('?::timestamptz', [val]));
+                  }
                 } else if (qb.client.config.client === 'sqlite3') {
                   qb.where(
                     field,
@@ -863,7 +921,21 @@ const parseConditionV2 = async (
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  qb.where(field, ge_op, knex.raw('?::timestamptz', [val]));
+                  if (
+                    column.dt !== 'timestamp with time zone' &&
+                    column.dt !== 'timestamptz'
+                  ) {
+                    qb.where(
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
+                      ge_op,
+                      knex.raw('?::timestamptz', [val]),
+                    );
+                  } else {
+                    qb.where(field, ge_op, knex.raw('?::timestamptz', [val]));
+                  }
                 } else if (qb.client.config.client === 'sqlite3') {
                   qb.where(
                     field,
@@ -907,7 +979,21 @@ const parseConditionV2 = async (
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  qb.where(field, lt_op, knex.raw('?::timestamptz', [val]));
+                  if (
+                    column.dt !== 'timestamp with time zone' &&
+                    column.dt !== 'timestamptz'
+                  ) {
+                    qb.where(
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
+                      lt_op,
+                      knex.raw('?::timestamptz', [val]),
+                    );
+                  } else {
+                    qb.where(field, lt_op, knex.raw('?::timestamptz', [val]));
+                  }
                 } else if (qb.client.config.client === 'sqlite3') {
                   qb.where(
                     field,
@@ -953,7 +1039,21 @@ const parseConditionV2 = async (
                 val.match(/[+-]\d{2}:\d{2}$/)
               ) {
                 if (qb.client.config.client === 'pg') {
-                  qb.where(field, le_op, knex.raw('?::timestamptz', [val]));
+                  if (
+                    column.dt !== 'timestamp with time zone' &&
+                    column.dt !== 'timestamptz'
+                  ) {
+                    qb.where(
+                      knex.raw(
+                        "?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'",
+                        [field],
+                      ),
+                      le_op,
+                      knex.raw('?::timestamptz', [val]),
+                    );
+                  } else {
+                    qb.where(field, le_op, knex.raw('?::timestamptz', [val]));
+                  }
                 } else if (qb.client.config.client === 'sqlite3') {
                   qb.where(
                     field,

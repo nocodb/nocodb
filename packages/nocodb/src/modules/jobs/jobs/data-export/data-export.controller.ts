@@ -55,6 +55,7 @@ export class DataExportController {
 
     return {
       id: job.id,
+      name: job.name,
     };
   }
 }

@@ -2,7 +2,7 @@
 import tinycolor from 'tinycolor2'
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
-import type { UserFieldRecordType } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, type UserFieldRecordType } from 'nocodb-sdk'
 import { getOptions, getSelectedUsers } from './utils'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -14,13 +14,17 @@ interface Props {
   options?: UserFieldRecordType[]
 }
 
-const { modelValue, forceMulti, options: userOptions } = defineProps<Props>()
+const { modelValue, forceMulti, options: userOptions, location } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
 const { isMobileMode } = useGlobal()
 
+const { t } = useI18n()
+
 const meta = inject(MetaInj)!
+
+const isInFilter = inject(IsInFilterInj, ref(false))
 
 const column = inject(ColumnInj)!
 
@@ -68,8 +72,18 @@ const searchVal = ref<string | null>()
 
 const { isUIAllowed } = useRoles()
 
+const { showUpgradeToUseCurrentUserFilter } = useEeConfig()
+
 const options = computed(() => {
-  return userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value)
+  const currentUserField: any[] = []
+  if (isEeUI && isInFilter.value) {
+    currentUserField.push({
+      id: CURRENT_USER_TOKEN,
+      display_name: t('title.currentUser'),
+      email: CURRENT_USER_TOKEN,
+    })
+  }
+  return [...currentUserField, ...(userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value))]
 })
 
 const optionsMap = computed(() => {
@@ -93,6 +107,9 @@ const vModel = computed({
     return getSelectedUsers(optionsMap.value, modelValue)
   },
   set: (val) => {
+    // @ts-expect-error antd select returns string[] instead of { label: string, value: string }[]
+    if (isEeUI && val.includes(CURRENT_USER_TOKEN) && showUpgradeToUseCurrentUserFilter()) return
+
     const value: string[] = []
     if (val && val.length) {
       val.forEach((item) => {
@@ -323,12 +340,7 @@ onMounted(() => {
                 class="flex items-stretch gap-2 text-small"
               >
                 <div>
-                  <GeneralUserIcon
-                    size="auto"
-                    :user="op"
-                    class="!text-[0.65rem] !h-[16.8px]"
-                    :disabled="!isCollaborator(op.id)"
-                  />
+                  <GeneralUserIcon size="auto" :user="op" class="!text-[0.5rem] !h-[16.8px]" :disabled="!isCollaborator(op.id)" />
                 </div>
                 <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                   <template #title>
@@ -376,7 +388,9 @@ onMounted(() => {
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
       :class="{ 'caret-transparent': !hasEditRoles }"
-      :dropdown-class-name="`nc-dropdown-user-select-cell !min-w-156px ${isOpen ? 'active' : ''}`"
+      :dropdown-class-name="`nc-dropdown-user-select-cell ${
+        isInFilter ? '!min-w-256px nc-dropdown-user-select-cell-filter' : '!min-w-156px'
+      }  ${isOpen ? 'active' : ''}`"
       :filter-option="filterOption"
       @search="search"
       @focus="onFocus"
@@ -391,10 +405,55 @@ onMounted(() => {
           v-if="!op.deleted"
           :value="op.id"
           :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
-          :class="`nc-select-option-${column.title}-${op.email}`"
+          :class="[
+            `nc-select-option-${column.title}-${op.email}`,
+            {
+              'nc-select-option-current-user mb-2': op.email === CURRENT_USER_TOKEN,
+            },
+          ]"
           @click.stop
         >
+          <div
+            v-if="op.email === CURRENT_USER_TOKEN"
+            class="absolute -bottom-1 w-[calc(100%_+_16px)] border-b-1 border-nc-border-gray-medium -ml-4"
+          ></div>
+          <div v-if="location === 'filter'" class="w-full flex gap-2 items-center">
+            <GeneralUserIcon :user="op" size="base" class="flex-none" :show-placeholder-icon="op.email === CURRENT_USER_TOKEN" />
+
+            <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
+              <div class="w-full flex gap-3">
+                <NcTooltip
+                  class="text-bodyDefaultSmBold !leading-5 capitalize truncate"
+                  :class="{
+                    'text-nc-content-brand': op.email === CURRENT_USER_TOKEN,
+                    'text-gray-800': op.email !== CURRENT_USER_TOKEN,
+                  }"
+                  show-on-truncate-only
+                  placement="bottom"
+                >
+                  <template #title>
+                    {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                  </template>
+                  {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                </NcTooltip>
+              </div>
+              <NcTooltip class="text-xs !leading-4 text-nc-content-gray-muted truncate" show-on-truncate-only placement="bottom">
+                <template #title>
+                  {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
+                </template>
+
+                {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
+              </NcTooltip>
+            </div>
+            <GeneralIcon
+              v-if="!!vModel.find((i) => i.email === op.email)"
+              id="nc-selected-item-icon"
+              icon="check"
+              class="flex-none text-primary w-4 h-4"
+            />
+          </div>
           <a-tag
+            v-else
             class="rounded-tag max-w-full !pl-0"
             :class="{
               '!my-0': !rowHeight || rowHeight === 1,
@@ -411,7 +470,7 @@ onMounted(() => {
               :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >
               <div>
-                <GeneralUserIcon size="auto" :user="op" class="!text-[0.65rem] !h-[16.8px]" />
+                <GeneralUserIcon size="auto" :user="op" class="!text-[0.5rem] !h-[16.8px]" />
               </div>
               <NcTooltip class="truncate max-w-full" show-on-truncate-only placement="right">
                 <template #title>
@@ -441,7 +500,7 @@ onMounted(() => {
             '!my-0': !rowHeight || rowHeight === 1,
           }"
           :style="{ display: 'flex', alignItems: 'center' }"
-          color="'#ccc'"
+          :color="val === CURRENT_USER_TOKEN ? themeV4Colors.brand[50] : location === 'filter' ? themeV4Colors.gray[200] : '#ccc'"
           :closable="editAllowed && ((vModel?.length ?? 0) > 1 || !column?.rqd)"
           :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
           @click="onTagClick($event, onClose)"
@@ -467,13 +526,19 @@ onMounted(() => {
                   email: label,
                   meta: options.find((el) => el.id === val)?.meta,
                 }"
-                class="!text-[0.65rem] !h-[16.8px]"
+                class="!text-[0.5rem] !h-[16.8px]"
+                :class="{
+                  '!bg-white': val === CURRENT_USER_TOKEN,
+                }"
                 :disabled="!isCollaborator(val)"
+                :show-placeholder-icon="val === CURRENT_USER_TOKEN"
               />
             </div>
             <span
               :class="{
-                'text-gray-600': !isCollaborator(val),
+                'text-gray-600': !isCollaborator(val) && val !== CURRENT_USER_TOKEN,
+                'text-nc-content-brand': val === CURRENT_USER_TOKEN,
+                'font-600': isInFilter,
               }"
             >
               {{ label }}
@@ -554,5 +619,15 @@ onMounted(() => {
 
 :deep(.nc-user-avatar) {
   @apply min-h-4.2;
+}
+
+:deep(.nc-select-option-current-user) {
+  @apply relative;
+}
+</style>
+
+<style lang="scss">
+.ant-select-dropdown.nc-dropdown-user-select-cell-filter .ant-select-item-option-state {
+  @apply !hidden;
 }
 </style>

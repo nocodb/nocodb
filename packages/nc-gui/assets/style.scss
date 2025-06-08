@@ -24,6 +24,37 @@
   }
 }
 
+.text-Heading1,
+.text-Heading2,
+.text-Heading3,
+.text-subHeading1,
+.text-subHeading2,
+.text-bodyLgBold,
+.text-bodyBold,
+.text-bodyDefaultSmBold,
+.text-bodySmBold,
+.text-captionBold,
+.text-captionSmBold,
+.text-captionXsBold {
+  @apply font-700;
+}
+
+.text-bodyLg,
+.text-body,
+.text-bodyDefaultSm,
+.text-bodySm,
+.text-caption,
+.text-captionSm,
+.text-captionXs {
+  @apply font-500;
+}
+
+.text-captionDropdownDefault,
+.text-sidebarDefault,
+.text-sidebarSelected {
+  @apply font-750; /* Original font weight 650 */
+}
+
 * {
   font-synthesis: none;
 }
@@ -45,6 +76,7 @@ body {
 }
 
 :root {
+  --mini-sidebar-width: 3rem; /* 48px */
   --toolbar-height: 2.75rem;
   --topbar-height: 3rem;
   --sidebar-bottom-height: 8.5rem;
@@ -141,7 +173,7 @@ main {
 // add border on input if it has value and it is not focused
 .ant-input-affix-wrapper.nc-input-border-on-value {
   &:not(:has(.ant-input-clear-icon-hidden)):has(.ant-input-clear-icon) {
-    @apply border-[var(--ant-primary-5)];
+    @apply !border-[var(--ant-primary-5)];
   }
 
   .ant-input::placeholder {
@@ -1359,4 +1391,10 @@ svg.nc-virtual-cell-icon {
   -webkit-box-flex: 1;
   flex-grow: 1;
   flex-shrink: 1;
+}
+
+.nc-toolbar-btn-chip {
+  @apply px-1.5 text-small !leading-5 rounded font-700 min-w-5.5;
+
+  transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
 }

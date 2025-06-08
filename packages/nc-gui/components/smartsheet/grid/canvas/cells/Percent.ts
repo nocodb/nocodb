@@ -2,7 +2,7 @@ import { renderSingleLineText, roundedRect } from '../utils/canvas'
 
 export const PercentCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, height, pv, column, padding }) => {
-    ctx.font = `${pv ? 600 : 500} 13px Manrope`
+    ctx.font = `${pv ? 600 : 500} 13px Inter`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
 
@@ -36,7 +36,7 @@ export const PercentCellRenderer: CellRenderer = {
       text: value !== null && typeof value !== 'undefined' && value !== '' ? `${value}%` : '',
       textAlign: 'right',
       maxWidth: width - padding * 2,
-      fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+      fontFamily: `${pv ? 600 : 500} 13px Inter`,
       fillStyle: pv ? '#3366FF' : '#4a5268',
       height,
     })

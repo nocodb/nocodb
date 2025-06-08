@@ -12,6 +12,7 @@ import { TableMetaLoader } from '../loaders/TableMetaLoader'
 import type { CanvasGridColumn } from '../../../../../lib/types'
 import { CanvasElement } from '../utils/CanvasElement'
 import { calculateGroupRowTop, isGroupExpanded } from '../utils/groupby'
+import { BaseRoleLoader } from '../loaders/BaseRoleLoader'
 import { useDataFetch } from './useDataFetch'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnReorder } from './useColumnReorder'
@@ -151,7 +152,8 @@ export function useCanvasTable({
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
 }) {
-  const { metas, getMeta } = useMetas()
+  const { metas, getMeta, getPartialMeta } = useMetas()
+  const { getBaseRoles } = useBases()
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref<{
@@ -173,6 +175,7 @@ export function useCanvasTable({
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas)
+  const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas)
   const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
   const elementMap = new CanvasElement([])
@@ -251,9 +254,7 @@ export function useCanvasTable({
 
   const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
 
-  const isRowDraggingEnabled = computed(
-    () => !selectedRows.value.length && isOrderColumnExists.value && !isRowReorderDisabled.value && !vSelectedAllRecords.value,
-  )
+  const isRowDraggingEnabled = computed(() => isOrderColumnExists.value && !isRowReorderDisabled.value)
 
   const isAddingEmptyRowAllowed = computed(
     () => isDataEditAllowed.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
@@ -269,7 +270,7 @@ export function useCanvasTable({
     () => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES),
   )
 
-  const fetchMetaIds = ref<string[]>([])
+  const fetchMetaIds = ref<string[][]>([])
 
   const columns = computed<CanvasGridColumn[]>(() => {
     const fetchMetaIdsLocal: string[] = []
@@ -285,7 +286,6 @@ export function useCanvasTable({
          * Add any extra computed things inside extra and use it
          */
         f.extra = {}
-
         if ([UITypes.Lookup, UITypes.Rollup].includes(f.uidt)) {
           relatedColObj = metas.value?.[f.fk_model_id!]?.columns?.find(
             (c) => c.id === f?.colOptions?.fk_relation_column_id,
@@ -293,7 +293,7 @@ export function useCanvasTable({
 
           if (relatedColObj && relatedColObj.colOptions?.fk_related_model_id) {
             if (!metas.value?.[relatedColObj.colOptions.fk_related_model_id]) {
-              fetchMetaIdsLocal.push(relatedColObj.colOptions.fk_related_model_id)
+              fetchMetaIdsLocal.push([relatedColObj.id, relatedColObj.colOptions.fk_related_model_id])
             } else {
               relatedTableMeta = metas.value?.[relatedColObj.colOptions.fk_related_model_id]
             }
@@ -301,7 +301,7 @@ export function useCanvasTable({
         } else if (isLTAR(f.uidt, f.colOptions)) {
           if (f.colOptions?.fk_related_model_id) {
             if (!metas.value?.[f.colOptions.fk_related_model_id]) {
-              fetchMetaIdsLocal.push(f.colOptions.fk_related_model_id)
+              fetchMetaIdsLocal.push([f.id, f.colOptions.fk_related_model_id])
             } else {
               relatedTableMeta = metas.value?.[f.colOptions.fk_related_model_id]
             }
@@ -349,8 +349,15 @@ export function useCanvasTable({
           title: f.title,
           uidt: f.uidt,
           width: gridViewCol.width,
-          fixed: isMobileMode.value && !isGroupBy.value ? false : !!f.pv,
-          readonly: !isAddingEmptyRowAllowed.value || isDataReadOnly.value,
+          fixed:
+            isMobileMode.value && !isGroupBy.value
+              ? false
+              : isGroupBy.value
+              ? !!f.pv
+              : parseCellWidth(gridViewCol.width) > width.value * (3 / 4)
+              ? false
+              : !!f.pv,
+          readonly: f.readonly || isDataReadOnly.value || isSqlView.value || isPublicView.value,
           isCellEditable: !isReadonly(f),
           pv: !!f.pv,
           virtual: isVirtualCol(f),
@@ -544,6 +551,49 @@ export function useCanvasTable({
     return { column: null, xOffset }
   }
 
+  function findColumnPosition(
+    columnId: string,
+    scrollLeft = 0,
+  ): { column?: CanvasGridColumn | null; xOffset: number; width: string } {
+    // First check fixed columns
+    let xOffset = 0
+
+    const fixedCols = columns.value.filter((col) => col.fixed)
+
+    for (const column of fixedCols) {
+      const width = columnWidths.value[columns.value.indexOf(column)] ?? 180
+      if (columnId === column.id) {
+        if (!column.uidt) {
+          xOffset += width
+        }
+        return { column, xOffset, width: column.width }
+      }
+      xOffset += width
+    }
+
+    // Then check scrollable columns
+    const visibleStart = colSlice.value.start
+    const visibleEnd = colSlice.value.end
+
+    const startOffset = columnWidths.value.slice(0, visibleStart).reduce((sum, width) => sum + width, 0)
+
+    xOffset = startOffset - scrollLeft
+
+    if (groupByColumns.value.length) {
+      xOffset += groupByColumns.value.length * 13
+    }
+
+    for (let i = visibleStart; i < visibleEnd; i++) {
+      const width = columnWidths.value[i] ?? 180
+      if (columns.value[i] && columnId === columns.value[i]!.id) {
+        return { column: columns.value[i], xOffset, width: columns.value[i]!.width }
+      }
+      xOffset += width
+    }
+
+    return { column: null, xOffset, width: '0px' }
+  }
+
   function getCellPosition(targetColumn: CanvasGridColumn, rowIndex: number, path: Array<number> = []) {
     const yOffset =
       calculateGroupRowTop(cachedGroups.value, path, rowIndex, rowHeight.value, isAddingEmptyRowAllowed.value) -
@@ -709,6 +759,7 @@ export function useCanvasTable({
     imageLoader,
     spriteLoader,
     tableMetaLoader,
+    baseRoleLoader,
     partialRowHeight,
     vSelectedAllRecords,
     isRowDraggingEnabled,
@@ -882,7 +933,6 @@ export function useCanvasTable({
     columns,
     colSlice,
     scrollLeft,
-    setCursor,
     (columnId, width) =>
       handleColumnWidth(columnId, width, (normalizedWidth) => (gridViewCols.value[columnId]!.width = normalizedWidth)),
     (columnId, width) =>
@@ -1199,7 +1249,16 @@ export function useCanvasTable({
     async () => {
       if (!fetchMetaIds.value.length) return
 
-      await Promise.all(fetchMetaIds.value.map(async (id) => getMeta(id, false, false, undefined, true)))
+      await Promise.all(
+        fetchMetaIds.value.map(async ([colId, tableId]) => {
+          try {
+            await getMeta(tableId, false, false, undefined, true)
+          } catch {}
+          if (!metas.value[tableId]) {
+            await getPartialMeta(colId, tableId)
+          }
+        }),
+      )
       fetchMetaIds.value = []
       triggerRefreshCanvas()
     },
@@ -1233,6 +1292,7 @@ export function useCanvasTable({
     triggerRefreshCanvas,
     startDrag,
     findClickedColumn,
+    findColumnPosition,
 
     // GroupBy Related
     syncGroupCount,
@@ -1290,6 +1350,7 @@ export function useCanvasTable({
     // Action Manager
     actionManager,
     imageLoader,
+    baseRoleLoader,
     handleCellClick,
     handleCellHover,
     renderCell,
@@ -1302,5 +1363,6 @@ export function useCanvasTable({
     isContextMenuAllowed,
     removeInlineAddRecord,
     upgradeModalInlineState,
+    isRowDraggingEnabled,
   }
 }

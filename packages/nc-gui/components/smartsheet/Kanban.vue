@@ -82,6 +82,8 @@ const { addUndo, defineViewScope } = useUndoRedo()
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
+const { withLoading } = useLoadingTrigger()
+
 provide(IsFormInj, ref(false))
 
 provide(IsGalleryInj, ref(false))
@@ -119,10 +121,12 @@ const kanbanContainerRef = ref()
 
 const selectedStackTitle = ref('')
 
-reloadViewDataHook?.on(async () => {
-  await loadKanbanMeta()
-  await loadKanbanData()
-})
+reloadViewDataHook?.on(
+  withLoading(async () => {
+    await loadKanbanMeta()
+    await loadKanbanData()
+  }),
+)
 
 const attachments = (record: any): Attachment[] => {
   if (!coverImageColumn.value?.title || !record.row[coverImageColumn.value.title]) return []
@@ -1227,15 +1231,19 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
     />
   </Suspense>
 
-  <GeneralDeleteModal v-model:visible="deleteStackVModel" entity-name="Stack" :on-delete="handleDeleteStackConfirmClick">
+  <GeneralDeleteModal
+    v-model:visible="deleteStackVModel"
+    entity-name="Stack"
+    :show-default-delete-msg="false"
+    :on-delete="handleDeleteStackConfirmClick"
+  >
     <template #entity-preview>
-      <div v-if="stackToBeDeleted" class="flex flex-row items-center py-2 px-2.25 bg-gray-100 rounded-lg text-gray-700 mb-4">
-        <div
-          class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
-          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-        >
-          {{ stackToBeDeleted }}
+      <div v-if="stackToBeDeleted" class="text-nc-content-gray flex flex-col gap-3">
+        <div>
+          This action will also remove the <b>"{{ stackToBeDeleted }}"</b> option from the
+          <b> "{{ groupingFieldColumn?.title ?? 'Grouping' }}"</b> field.
         </div>
+        <div>Records will be moved to Uncategorized stack.</div>
       </div>
     </template>
   </GeneralDeleteModal>

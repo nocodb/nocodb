@@ -39,6 +39,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
 
   const isWorkspaceLoading = ref(true)
+  const isWorkspacesLoading = ref(false)
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
   const workspaceUserCount = ref<number | undefined>(undefined)
@@ -234,13 +235,16 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const navigateToFeed = async (_?: string, cmdOrCtrl?: boolean) => {
+  const navigateToFeed = async (_?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
     if (cmdOrCtrl) {
-      await navigateTo('/nc/feed', {
-        open: navigateToBlankTargetOpenOption,
-      })
+      await navigateTo(
+        { path: '/nc/feed', query },
+        {
+          open: navigateToBlankTargetOpenOption,
+        },
+      )
     } else {
-      await navigateTo('/nc/feed')
+      await navigateTo({ path: '/nc/feed', query })
     }
   }
 
@@ -249,7 +253,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const getPlanLimit = (_arg: any) => {
-    return 9999
+    return Infinity
   }
 
   return {
@@ -295,6 +299,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     navigateToIntegrations,
     isFeedPageOpened,
     deletingWorkspace,
+    isWorkspacesLoading,
   }
 })
 

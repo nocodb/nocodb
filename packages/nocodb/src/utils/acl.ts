@@ -38,6 +38,7 @@ const permissionScopes = {
     'pluginTest',
     'pluginRead',
     'pluginUpdate',
+    'webhookPluginList',
 
     // Misc
     'commandPalette',
@@ -61,11 +62,14 @@ const permissionScopes = {
     'integrationDelete',
     'integrationUpdate',
     'integrationList',
+    'integrationStore',
+    'integrationEndpointGet',
 
     // AI
     'aiSchema',
   ],
   base: [
+    'nestedDataListCopyPasteOrDeleteAll',
     'formViewGet',
     'baseGet',
     'tableGet',
@@ -110,7 +114,7 @@ const permissionScopes = {
     'commentUpdate',
     'hideAllColumns',
     'showAllColumns',
-    'auditListRow',
+    'recordAuditList',
     'dataUpdate',
     'dataDelete',
     'dataInsert',
@@ -170,6 +174,12 @@ const permissionScopes = {
     'aiUtils',
     'aiData',
     'aiBaseSchema',
+
+    // MCP
+    'mcpList',
+    'mcpCreate',
+    'mcpUpdate',
+    'mcpDelete',
   ],
 };
 
@@ -239,9 +249,15 @@ const rolePermissions:
       jobList: true,
       commentList: true,
       commentsCount: true,
-      auditListRow: true,
+      recordAuditList: true,
 
       userInvite: true,
+
+      // MCP CRUD
+      mcpList: true,
+      mcpCreate: true,
+      mcpUpdate: true,
+      mcpDelete: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -258,6 +274,7 @@ const rolePermissions:
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
+      nestedDataListCopyPasteOrDeleteAll: true,
       viewColumnUpdate: true,
       gridViewUpdate: true,
       formViewUpdate: true,
@@ -330,6 +347,7 @@ const rolePermissions:
       userUpdate: true,
       userDelete: true,
       generateResetUrl: true,
+      webhookPluginList: true,
       userInviteResend: true,
       upload: true,
       uploadViaURL: true,
@@ -579,6 +597,8 @@ const permissionDescriptions: Record<string, string> = {
   integrationDelete: 'delete an integration',
   integrationUpdate: 'update integration details',
   integrationList: 'view list of integrations',
+  integrationStore: "get data from an integration's store",
+  integrationEndpointGet: 'call get request to an exposed integration endpoint',
 
   // base permissions
   formViewGet: 'view forms',
@@ -626,7 +646,7 @@ const permissionDescriptions: Record<string, string> = {
   commentUpdate: 'update comments',
   hideAllColumns: 'hide all columns',
   showAllColumns: 'show all columns',
-  auditListRow: 'view audit log for a row',
+  recordAuditList: 'view audit log for a row',
   dataUpdate: 'update data',
   dataDelete: 'delete data',
   dataInsert: 'insert new data',
@@ -661,33 +681,16 @@ const permissionDescriptions: Record<string, string> = {
   baseDelete: 'delete a base',
   sourceCreate: 'create a new source',
 
-  pageGet: 'view page details',
-  pageList: 'view list of pages',
-  pageSearch: 'search pages',
-  pageParents: 'view parent pages',
-  pageCreate: 'create a new page',
-  pageUpdate: 'update a page',
-  pageDelete: 'delete a page',
-  pageGpt: 'use GPT to assist with pages',
-  docsMagicCreatePages: 'use Docs Magic to create pages',
-  pagePaginate: 'paginate pages',
-  pageDirectoryImport: 'import a page directory',
-  layoutGet: 'view layout details',
-  layoutList: 'view list of layouts',
-  layoutCreate: 'create a new layout',
-  widgetsList: 'view list of widgets',
-  widgetGet: 'view widget details',
-  widgetCreate: 'create a new widget',
-  widgetUpdate: 'update a widget',
-  widgetDelete: 'delete a widget',
-  widgetFilterList: 'view list of widget filters',
-  widgetFilterCreate: 'create a new widget filter',
-
   userInvite: 'invite a user',
 
   jobList: 'view list of jobs',
 
   hookTrigger: 'trigger a webhook',
+
+  mcpList: 'view list of MCP tokens',
+  mcpCreate: 'create a new MCP token',
+  mcpUpdate: 'update an MCP token',
+  mcpDelete: 'delete an MCP token',
 };
 
 // Human-readable descriptions for roles

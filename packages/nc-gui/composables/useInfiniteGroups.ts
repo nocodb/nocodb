@@ -2,6 +2,7 @@ import {
   type ColumnType,
   CommonAggregations,
   type LinkToAnotherRecordType,
+  type LookupType,
   type TableType,
   UITypes,
   type ViewType,
@@ -157,6 +158,39 @@ export const useInfiniteGroups = (
           group.displayValueProp = col?.title
         }
 
+        if (groupCol.column.uidt === UITypes.Lookup) {
+          const relationColumn = meta.value?.columns?.find(
+            (c: ColumnType) => c.id === (groupCol.column?.colOptions as LookupType)?.fk_relation_column_id,
+          )
+          if (!relationColumn) continue
+
+          const relatedTableMeta = await getMeta(relationColumn.colOptions.fk_related_model_id as string)
+          if (!relatedTableMeta) continue
+
+          const lookupColumn = relatedTableMeta.columns?.find(
+            (c) => c.id === (groupCol.column.colOptions as LookupType)?.fk_lookup_column_id,
+          )
+          if (!lookupColumn) continue
+
+          let finalTableMeta = relatedTableMeta
+          let finalColumn = lookupColumn
+
+          // Check if the lookup column is a LinkToAnotherRecord
+          if (lookupColumn.uidt === UITypes.LinkToAnotherRecord) {
+            const targetTableMeta = await getMeta(
+              (lookupColumn.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
+            )
+            if (targetTableMeta) {
+              finalTableMeta = targetTableMeta
+              finalColumn = targetTableMeta.columns?.find((c) => c.pv) || targetTableMeta.columns?.[0]
+            }
+          }
+
+          group.relatedTableMeta = finalTableMeta
+          group.relatedColumn = finalColumn
+          group.displayValueProp = finalColumn?.title
+        }
+
         const index: number = response.list.indexOf(item)
         const value = valueToTitle(
           item[groupCol.column.title!] ?? item[groupCol.column.column_name!],
@@ -172,9 +206,7 @@ export const useInfiniteGroups = (
           groups: new Map(),
           chunkStates: [],
           count: +item.count,
-          groupCount: +(
-            item[groupByColumns.value?.[level + 1]?.column?.title] ?? item[groupByColumns.value?.[level + 1]?.column?.column_name]
-          ),
+          groupCount: +item.__sub_group_count__,
           isExpanded: false,
           color: findKeyColor(value, groupCol.column, getNextColor),
           expandedGroups: 0,
@@ -396,11 +428,19 @@ export const useInfiniteGroups = (
       if (!groupCol) return
 
       totalGroups.value = isPublic.value
-        ? await $api.public.dataGroupByCount(sharedView.value!.uuid!, {
-            where: where?.value,
-            column_name: groupCol.column.title,
-            filterArrJson: JSON.stringify(nestedFilters.value),
-          })
+        ? await $api.public.dataGroupByCount(
+            sharedView.value!.uuid!,
+            {
+              where: where?.value,
+              column_name: groupCol.column.title,
+              filterArrJson: JSON.stringify(nestedFilters.value),
+            },
+            {
+              headers: {
+                'xc-password': sharedViewPassword.value,
+              },
+            },
+          )
         : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
             where: where?.value,
             column_name: groupCol.column.title,
@@ -413,11 +453,19 @@ export const useInfiniteGroups = (
       const groupWhere = buildNestedWhere(group, where?.value)
 
       group.groupCount = isPublic.value
-        ? await $api.public.dataGroupByCount(sharedView.value!.uuid!, {
-            where: groupWhere,
-            column_name: groupCol.column.title,
-            filterArrJson: JSON.stringify(nestedFilters.value),
-          })
+        ? await $api.public.dataGroupByCount(
+            sharedView.value!.uuid!,
+            {
+              where: groupWhere,
+              column_name: groupCol.column.title,
+              filterArrJson: JSON.stringify(nestedFilters.value),
+            },
+            {
+              headers: {
+                'xc-password': sharedViewPassword.value,
+              },
+            },
+          )
         : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
             where: groupWhere,
             column_name: groupCol.column.title,

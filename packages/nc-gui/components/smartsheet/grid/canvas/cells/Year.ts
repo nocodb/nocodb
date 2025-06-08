@@ -16,7 +16,7 @@ export const YearCellRenderer: CellRenderer = {
 
     if (!value && selected && !readonly) {
       ctx.fillStyle = '#989FB1'
-      ctx.font = '400 13px Manrope'
+      ctx.font = '400 13px Inter'
       const placeholderY = Math.max(y, 36)
       const truncatedFormat = truncateText(ctx, 'YYYY', width - padding * 2, true)
       ctx.fillText(truncatedFormat.text, x + padding, placeholderY + 16)
@@ -38,7 +38,7 @@ export const YearCellRenderer: CellRenderer = {
         y,
         text,
         maxWidth: width - padding * 2,
-        fontFamily: `${pv ? 600 : 500} 13px Manrope`,
+        fontFamily: `${pv ? 600 : 500} 13px Inter`,
         fillStyle: pv ? '#3366FF' : textColor,
         height,
       })
@@ -62,11 +62,11 @@ export const YearCellRenderer: CellRenderer = {
       const year = dayjs(value.toString(), 'YYYY')
       if (year.isValid()) {
         const text = year.format('YYYY')
-        canvasContext.font = '500 13px Manrope'
+        canvasContext.font = '500 13px Inter'
         textWidth = canvasContext.measureText(text).width
       }
     } else {
-      canvasContext.font = '400 13px Manrope'
+      canvasContext.font = '400 13px Inter'
       textWidth = canvasContext.measureText('YYYY').width
     }
 

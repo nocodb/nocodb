@@ -25,6 +25,8 @@ const { $e } = useNuxtApp()
 
 const container = ref<null | HTMLElement>(null)
 
+const { width: containerWidth } = useElementSize(container)
+
 const { isUIAllowed } = useRoles()
 
 const meta = inject(MetaInj, ref())
@@ -55,11 +57,15 @@ const getFieldStyle = (field: ColumnType) => {
 
 const hours = computed(() => {
   const hours: Array<dayjs.Dayjs> = []
-  const _selectedDate = timezoneDayjs.dayjsTz(selectedDate.value)
+
+  // Force the date part only (no time), to reset time to 00:00 in target TZ
+  const baseDateStr = dayjs(selectedDate.value).format('YYYY-MM-DD')
+
+  // Parse in timezone with NO time part — this ensures it's midnight in TZ
+  const startOfDay = timezoneDayjs.dayjsTz(baseDateStr, 'YYYY-MM-DD').hour(0).minute(0).second(0)
 
   for (let i = 0; i < 24; i++) {
-    // startOf and endOf dayjs is bugged with timezone
-    hours.push(timezoneDayjs.dayjsTz(_selectedDate.clone().startOf('day').toISOString()).add(i, 'hour'))
+    hours.push(startOfDay.clone().add(i, 'hour'))
   }
   return hours
 })
@@ -166,12 +172,13 @@ const hasSlotForRecord = (
     if (!columnFromCol) return false
 
     const { startDate: columnFromDate, endDate: columnToDate } = calculateNewDates({
-      startDate: dayjs(column.row[columnFromCol.title!]),
-      endDate: columnToCol
-        ? dayjs(column.row[columnToCol.title!])
-        : dayjs(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
-      scheduleStart: timezoneDayjs.dayjsTz(timezoneDayjs.dayjsTz(selectedDate.value).startOf('day').toISOString()),
-      scheduleEnd: timezoneDayjs.dayjsTz(timezoneDayjs.dayjsTz(selectedDate.value).endOf('day').toISOString()),
+      startDate: timezoneDayjs.timezonize(column.row[columnFromCol.title!]),
+      endDate:
+        columnToCol && dayjs(column.row[columnToCol.title!])?.isValid()
+          ? timezoneDayjs.timezonize(column.row[columnToCol.title!])
+          : timezoneDayjs.timezonize(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+      scheduleStart: timezoneDayjs.dayjsTz(selectedDate.value).startOf('day'),
+      scheduleEnd: timezoneDayjs.dayjsTz(selectedDate.value).endOf('day'),
     })
 
     if (
@@ -248,6 +255,7 @@ const recordsAcrossAllRange = computed<{
     {
       count: number
       id: string[]
+      overflowRecords: Row[]
     }
   >
 }>(() => {
@@ -264,6 +272,7 @@ const recordsAcrossAllRange = computed<{
     {
       count: number
       id: string[]
+      overflowRecords: Row[]
     }
   >()
 
@@ -304,7 +313,9 @@ const recordsAcrossAllRange = computed<{
 
       if (fromCol && endCol) {
         const { endDate, startDate } = calculateNewDates({
-          endDate: timezoneDayjs.timezonize(record.row[endCol.title!]),
+          endDate: dayjs(record.row[endCol.title!])?.isValid()
+            ? timezoneDayjs.timezonize(record.row[endCol.title!])
+            : dayjs(record.row[endCol.title!]),
           startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
           scheduleStart,
           scheduleEnd,
@@ -379,9 +390,10 @@ const recordsAcrossAllRange = computed<{
 
     const { startDate, endDate } = calculateNewDates({
       startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
-      endDate: toCol
-        ? timezoneDayjs.timezonize(record.row[toCol.title!])
-        : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+      endDate:
+        toCol && dayjs(record.row[toCol.title])?.isValid()
+          ? timezoneDayjs.timezonize(record.row[toCol.title!])
+          : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
       scheduleStart,
       scheduleEnd,
     })
@@ -393,11 +405,13 @@ const recordsAcrossAllRange = computed<{
         gridTimeMap.set(gridCounter, {
           count: 1,
           id: [record.rowMeta.id!],
+          overflowRecords: [],
         })
       } else {
         gridTimeMap.set(gridCounter, {
           count: gridTimeMap.get(gridCounter)!.count + 1,
           id: [...gridTimeMap.get(gridCounter)!.id, record.rowMeta.id!],
+          overflowRecords: [],
         })
       }
     }
@@ -459,32 +473,64 @@ const recordsAcrossAllRange = computed<{
     const isRecordDraggingOrResizeState =
       record.rowMeta.id === dragRecord.value?.rowMeta.id || record.rowMeta.id === resizeRecord.value?.rowMeta.id
 
-    if (isRecordDraggingOrResizeState) {
+    if (isRecordDraggingOrResizeState || !numberOfOverlaps || numberOfOverlaps <= 0) {
       record.rowMeta.style = {
         ...record.rowMeta.style,
         zIndex: 10,
       }
-    }
-
-    if (numberOfOverlaps && numberOfOverlaps > 0 && !isRecordDraggingOrResizeState) {
-      width = 100 / Math.min(numberOfOverlaps, 8)
-
-      if (record.rowMeta.overLapIteration! - 1 > 7) {
-        display = 'none'
-      } else {
-        left = width * (record.rowMeta.overLapIteration! - 1)
-      }
-    } else {
-      width = 100
       left = 0
+      width = '100%'
+    } else {
+      const overlapIndex = record.rowMeta.overLapIteration
+
+      if (overlapIndex > 8) {
+        display = 'none'
+
+        // Add overflowing record to gridTimeMap
+        const fromCol = record.rowMeta.range?.fk_from_col
+        const toCol = record.rowMeta.range?.fk_to_col
+
+        if (fromCol) {
+          const { startDate, endDate } = calculateNewDates({
+            startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
+            endDate:
+              toCol && dayjs(record.row[toCol.title!])?.isValid()
+                ? timezoneDayjs.timezonize(record.row[toCol.title!])
+                : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+            scheduleStart,
+            scheduleEnd,
+          })
+
+          const gridTimes = getGridTimeSlots(startDate, endDate)
+
+          for (let gridCounter = gridTimes.from; gridCounter <= gridTimes.to; gridCounter++) {
+            if (gridTimeMap.has(gridCounter)) {
+              const currentSlot = gridTimeMap.get(gridCounter)!
+              if (!currentSlot.overflowRecords.some((r) => r.rowMeta.id === record.rowMeta.id)) {
+                currentSlot.overflowRecords.push(record)
+                gridTimeMap.set(gridCounter, currentSlot)
+              }
+            }
+          }
+        }
+      } else {
+        const availableWidth = containerWidth.value - 70
+        width = Math.max(availableWidth / Math.min(numberOfOverlaps, 8), 180)
+
+        const spacing = (availableWidth - width * Math.min(numberOfOverlaps, 8)) / Math.max(Math.min(numberOfOverlaps, 8) - 1, 1)
+        left = (width + spacing) * (overlapIndex - 1)
+
+        if (left + width > availableWidth) {
+          width = Math.max(availableWidth - left - 1.5, 180)
+        }
+      }
     }
 
     record.rowMeta.style = {
       ...record.rowMeta.style,
       display,
-      width: `calc(max(calc(${width.toFixed(2)}% - 4px), 180px))`,
-      left: `min(calc(${left.toFixed(2)}% + 4px), calc(100% - max(${width.toFixed(2)}%, 180px) + 4px))`,
-      minWidth: '180px',
+      width: typeof width === 'number' ? `${width}px` : width,
+      left: `${left}px`,
     }
   }
 
@@ -518,7 +564,7 @@ const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
   const hour = Math.max(Math.floor(percentY * 23), 0)
   const minutes = Math.min(Math.max(Math.round(Math.floor((percentY * 23 - hour) * 60) / 15) * 15, 0), 60)
   // We calculate the new startDate by adding the hour to the start of the selected date
-  const newStartDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day').add(hour, 'hour').add(minutes, 'minute')
+  const newStartDate = timezoneDayjs.timezonize(selectedDate.value.startOf('day')).add(hour, 'hour').add(minutes, 'minute')
   if (!newStartDate || !fromCol) return { newRow: null, updateProperty: [] }
 
   let endDate
@@ -619,7 +665,7 @@ const onResize = (event: MouseEvent) => {
 
   if (resizeDirection.value === 'right') {
     // If the user is resizing the record to the right, we calculate the new end date based on the mouse position
-    let newEndDate = timezoneDayjs.dayjsTz(selectedDate.value).startOf('day').add(minutes, 'minute')
+    let newEndDate = timezoneDayjs.timezonize(selectedDate.value.startOf('day')).add(minutes, 'minute')
 
     updateProperty = [toCol.title!]
 
@@ -862,6 +908,29 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
   return { isOverflow: overflowCount - 8 > 0, overflowCount: overflowCount - 8 }
 }
 
+const getOverflowRecords = (hour: dayjs.Dayjs) => {
+  if (!recordsAcrossAllRange.value || !recordsAcrossAllRange.value.gridTimeMap) return { isOverflow: false, overflowCount: 0 }
+  const { gridTimeMap } = recordsAcrossAllRange.value
+
+  const startMinute = hour.hour() * 60 + hour.minute()
+  const endMinute = hour.hour() * 60 + hour.minute() + 59
+
+  const uniqueRecords: Row[] = []
+  const uniqueRecordIds = new Set<string>()
+
+  for (let minute = startMinute; minute <= endMinute; minute++) {
+    const records = gridTimeMap?.get(minute)?.overflowRecords ?? []
+    for (const rec of records) {
+      if (!uniqueRecordIds.has(rec.rowMeta?.id)) {
+        uniqueRecords.push(rec)
+        uniqueRecordIds.add(rec.rowMeta?.id)
+      }
+    }
+  }
+
+  return uniqueRecords
+}
+
 const viewMore = (hour: dayjs.Dayjs) => {
   sideBarFilterOption.value = 'selectedHours'
   selectedTime.value = hour
@@ -919,19 +988,19 @@ const expandRecord = (record: Row) => {
     <div ref="container" class="w-full flex relative no-selection" data-testid="nc-calendar-day-view" @drop="dropEvent">
       <div
         v-if="shouldEnableOverlay"
-        class="absolute ml-2 pointer-events-none w-full z-4"
+        class="absolute ml-0.5 pointer-events-none w-full z-4"
         :style="{
           top: `${overlayTop}px`,
         }"
       >
         <div class="flex w-full items-center">
           <span
-            class="text-brand-500 text-xs rounded-md border-1 pointer-events-auto px-0.5 border-brand-200 cursor-pointer bg-brand-50"
+            class="text-nc-content-inverted-primary bg-nc-content-brand text-xs font-bold rounded-md pointer-events-auto leading-3.5 p-0.5 cursor-pointer"
             @click="newRecord(currTime)"
           >
             {{ currTime.format('hh:mm A') }}
           </span>
-          <div class="flex-1 border-b-1 border-brand-500"></div>
+          <div class="flex-1 relative ml-1 nc-calendar-border-line border-b-2 border-brand-500"></div>
         </div>
       </div>
 
@@ -970,7 +1039,7 @@ const expandRecord = (record: Row) => {
             auto-close
           >
             <NcButton
-              class="!group-hover:block mr-12 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
+              class="!group-hover:block mr-10 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
               size="xsmall"
               type="secondary"
             >
@@ -1017,7 +1086,7 @@ const expandRecord = (record: Row) => {
               '!block': hour.isSame(selectedTime),
               '!hidden': !hour.isSame(selectedTime),
             }"
-            class="!group-hover:block mr-12 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
+            class="!group-hover:block mr-10 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
             size="xsmall"
             type="secondary"
             @click="
@@ -1043,20 +1112,45 @@ const expandRecord = (record: Row) => {
             <component :is="iconMap.plus" class="h-4 w-4" />
           </NcButton>
 
-          <NcButton
-            v-if="isOverflowAcrossHourRange(hour).isOverflow"
-            v-e="`['c:calendar:week-view-more']`"
-            class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
-            size="xxsmall"
-            type="secondary"
-            @click="viewMore(hour)"
-          >
-            <span class="text-xs">
-              +
-              {{ isOverflowAcrossHourRange(hour).overflowCount }}
-              more
-            </span>
-          </NcButton>
+          <NcDropdown v-if="isOverflowAcrossHourRange(hour).isOverflow">
+            <NcButton
+              v-e="`['c:calendar:week-view-more']`"
+              class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
+              size="xxsmall"
+              type="secondary"
+              @click="viewMore(hour)"
+            >
+              <span class="text-xs">
+                +
+                {{ isOverflowAcrossHourRange(hour).overflowCount }}
+                more
+              </span>
+            </NcButton>
+
+            <template #overlay>
+              <div class="bg-nc-background-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
+                <LazySmartsheetCalendarSideRecordCard
+                  v-for="(record, idx) in getOverflowRecords(hour)"
+                  :key="idx"
+                  :draggable="false"
+                  class="w-64"
+                  :from-date="timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')"
+                  :invalid="false"
+                  :row="record"
+                  :to-date="record?.rowMeta?.range?.fk_to_col?.title && record.row[record.rowMeta.range!.fk_to_col.title!] ?  timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A') : null"
+                  data-testid="nc-sidebar-record-card"
+                  @click="expandRecord(record)"
+                >
+                  <template v-if="!isRowEmpty(record, displayField)">
+                    <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
+                  </template>
+                  <template v-else>
+                    <span class="text-gray-500"> - </span>
+                  </template>
+                </LazySmartsheetCalendarSideRecordCard>
+              </div>
+            </template>
+          </NcDropdown>
         </div>
       </div>
       <div class="absolute inset-0 pointer-events-none">
@@ -1128,12 +1222,14 @@ const expandRecord = (record: Row) => {
 }
 
 .selected-hour {
-  @apply relative;
-  &:after {
-    @apply rounded-sm pointer-events-none absolute inset-0 w-full h-full;
-    content: '';
-    z-index: 1;
-    box-shadow: 0 0 0 2px #3366ff !important;
-  }
+  @apply relative !bg-nc-bg-brand !border-nc-bg-brand;
+}
+
+.nc-calendar-border-line::after {
+  @apply absolute bg-nc-content-brand w-0.5 h-3;
+  content: '';
+  top: -5px;
+  bottom: -6px;
+  left: 0px;
 }
 </style>

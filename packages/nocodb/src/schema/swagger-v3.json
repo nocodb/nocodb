@@ -128,7 +128,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Base was created.",
             "content": {
               "application/json": {
@@ -497,7 +497,6 @@
                         "type": "Percent",
                         "default_value": "0.34",
                         "options": {
-                          "precision": 2,
                           "show_as_percent": true
                         }
                       },
@@ -613,7 +612,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Table created.",
             "content": {
               "application/json": {
@@ -713,7 +712,6 @@
                           "type": "Percent",
                           "default_value": "0.34",
                           "options": {
-                            "precision": 2,
                             "show_as_percent": true
                           }
                         },
@@ -824,7 +822,7 @@
                           "type": "Links",
                           "options": {
                             "relation_type": "mm",
-                            "linked_table_id": "mnkgbmqwkls36fg"
+                            "related_table_id": "mnkgbmqwkls36fg"
                           }
                         },
                         {
@@ -861,7 +859,6 @@
                         }
                       ]
                     }
-
                   }
                 }
               }
@@ -876,7 +873,7 @@
         }
       }
     },
-    "/api/v3/meta/tables/{tableId}": {
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}": {
       "get": {
         "summary": "Get table schema",
         "description": "Retrieve the details of a specific table.",
@@ -892,6 +889,15 @@
               "type": "string"
             },
             "description": "Unique identifier for the table."
+          },
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
           }
         ],
         "responses": {
@@ -995,7 +1001,6 @@
                           "type": "Percent",
                           "default_value": "0.34",
                           "options": {
-                            "precision": 2,
                             "show_as_percent": true
                           }
                         },
@@ -1106,7 +1111,7 @@
                           "type": "Links",
                           "options": {
                             "relation_type": "mm",
-                            "linked_table_id": "mnkgbmqwkls36fg"
+                            "related_table_id": "mnkgbmqwkls36fg"
                           }
                         },
                         {
@@ -1171,6 +1176,15 @@
               "type": "string"
             },
             "description": "Unique identifier for the table."
+          },
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
           }
         ],
         "requestBody": {
@@ -1281,7 +1295,65 @@
         }
       }
     },
-    "/api/v3/meta/tables/{tableId}/fields": {
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}/views": {
+      "get": {
+        "summary": "List views",
+        "tags": [
+          "Views"
+        ],
+        "description": "Retrieve a list of all views for a specific table.",
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the table."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of views retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/View"
+                      }
+                    }
+                  },
+                  "required": [
+                    "list"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Table not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}/fields": {
       "post": {
         "summary": "Create field",
         "description": "Create a new field within the specified table.",
@@ -1297,6 +1369,15 @@
               "type": "string"
             },
             "description": "Unique identifier for the table."
+          },
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
           }
         ],
         "requestBody": {
@@ -1353,7 +1434,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Field was created.",
             "content": {
               "application/json": {
@@ -1372,7 +1453,52 @@
         }
       }
     },
-    "/api/v3/meta/fields/{fieldId}": {
+    "/api/v3/meta/bases/{baseId}/fields/{fieldId}": {
+      "get": {
+        "summary": "Get field",
+        "description": "Retrieve the details of a specific field.",
+        "tags": [
+          "Fields"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "fieldId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the field being updated."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Field details are retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Field"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Field not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
       "patch": {
         "summary": "Update field",
         "description": "Update the details of a specific field.",
@@ -1380,6 +1506,15 @@
           "Fields"
         ],
         "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
           {
             "name": "fieldId",
             "in": "path",
@@ -1395,7 +1530,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateField"
+                "$ref": "#/components/schemas/FieldUpdate"
               },
               "examples": {
                 "SingleLineText / LongText": {
@@ -1477,6 +1612,15 @@
               "type": "string"
             },
             "description": "Unique identifier for the field."
+          },
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
           }
         ],
         "responses": {
@@ -1492,7 +1636,7 @@
         }
       }
     },
-    "/api/v3/meta/views/{viewId}/filters": {
+    "/api/v3/meta/bases/{baseId}/views/{viewId}/filters": {
       "get": {
         "summary": "List view filters",
         "description": "Retrieve a list of all filters and groups for a specific view.",
@@ -1500,6 +1644,15 @@
           "View Filters"
         ],
         "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
           {
             "name": "viewId",
             "in": "path",
@@ -1575,6 +1728,15 @@
         ],
         "parameters": [
           {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
             "name": "viewId",
             "in": "path",
             "required": true,
@@ -1620,6 +1782,15 @@
           "View Filters"
         ],
         "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
           {
             "name": "filterId",
             "in": "path",
@@ -1670,7 +1841,16 @@
         ],
         "parameters": [
           {
-            "name": "filterId",
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "viewId",
             "in": "path",
             "required": true,
             "schema": {
@@ -1741,7 +1921,7 @@
         }
       }
     },
-    "/api/v3/meta/views/{viewId}/sorts": {
+    "/api/v3/meta/bases/{baseId}/views/{viewId}/sorts": {
       "get": {
         "summary": "List view sorts",
         "tags": [
@@ -1749,6 +1929,15 @@
         ],
         "description": "Retrieve a list of all sorts for a specific view.",
         "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
           {
             "name": "viewId",
             "in": "path",
@@ -1804,6 +1993,15 @@
         ],
         "parameters": [
           {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
             "name": "viewId",
             "in": "path",
             "required": true,
@@ -1832,7 +2030,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Sort created successfully.",
             "content": {
               "application/json": {
@@ -1857,6 +2055,15 @@
           "View Sorts"
         ],
         "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
           {
             "name": "sortId",
             "in": "path",
@@ -1886,6 +2093,15 @@
           "View Sorts"
         ],
         "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
           {
             "name": "sortId",
             "in": "path",
@@ -2042,14 +2258,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/BaseUser"
-                    },
-                    "description": "List of successfully invited users."
-                  }
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BaseUser"
+                  },
+                  "description": "List of successfully invited users."
                 }
               }
             }
@@ -2098,14 +2311,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/BaseUser"
-                    },
-                    "description": "List of successfully updated users."
-                  }
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BaseUser"
+                  },
+                  "description": "List of successfully updated users."
                 }
               }
             }
@@ -2184,8 +2394,17 @@
         }
       }
     },
-    "/api/v3/tables/{tableId}/records": {
+    "/api/v3/{baseId}/{tableId}": {
       "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "**Base Identifier**."
+        },
         {
           "schema": {
             "type": "string"
@@ -2199,7 +2418,7 @@
       "get": {
         "summary": "List Table Records",
         "operationId": "db-data-table-row-list",
-        "description": "This API endpoint allows you to retrieve records from a specified table. You can customize the response by applying various query parameters for filtering, sorting, and formatting.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\n\n- **next**: Contains the URL to retrieve the next page of records. For example, `\"https://staging.noco.to/api/v3/tables/medhonywr18cysz/records?page=2\"` points to the next page of records.\n- If there are no more records available (you are on the last page), this attribute will be _null_.\n\nThe `pageInfo` attribute is particularly valuable when working with large datasets divided into multiple pages. It provides the necessary URL to seamlessly fetch subsequent pages, enabling efficient navigation through the dataset.",
+        "description": "This API endpoint allows you to retrieve records from a specified table. You can customize the response by applying various query parameters for filtering, sorting, and formatting.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\n\n- **next**: Contains the URL to retrieve the next page of records. For example, `\"https://staging.noco.ws/api/v3/tables/medhonywr18cysz/records?page=2\"` points to the next page of records.\n- If there are no more records available (you are on the last page), this attribute will be _null_.\n\nThe `pageInfo` attribute is particularly valuable when working with large datasets divided into multiple pages. It provides the necessary URL to seamlessly fetch subsequent pages, enabling efficient navigation through the dataset.",
         "tags": [
           "Table Records"
         ],
@@ -2210,7 +2429,7 @@
             },
             "in": "query",
             "name": "fields",
-            "description": "Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+            "description": "Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list. Alternatively, multiple `fields` query params can also works, ex: `?fields=field1&fields=field2`."
           },
           {
             "schema": {
@@ -2399,7 +2618,7 @@
                         }
                       ],
                       "pageInfo": {
-                        "next": "https://staging.noco.to/api/v3/tables/medhonywr18cysz/records?page=2"
+                        "next": "https://staging.noco.ws/api/v3/tables/medhonywr18cysz/records?page=2"
                       }
                     }
                   }
@@ -2702,8 +2921,17 @@
         ]
       }
     },
-    "/api/v3/tables/{tableId}/records/{recordId}": {
+    "/api/v3/{baseId}/{tableId}/{recordId}": {
       "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "**Base Identifier**."
+        },
         {
           "schema": {
             "type": "string"
@@ -2865,8 +3093,17 @@
         }
       }
     },
-    "/api/v3/tables/{tableId}/records/count": {
+    "/api/v3/{baseId}/{tableId}/count": {
       "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "**Base Identifier**."
+        },
         {
           "schema": {
             "type": "string"
@@ -2938,7 +3175,7 @@
         }
       }
     },
-    "/api/v3/tables/{tableId}/links/{linkFieldId}/records/{recordId}": {
+    "/api/v3/{baseId}/{tableId}/links/{linkFieldId}/{recordId}": {
       "parameters": [
         {
           "schema": {
@@ -3070,7 +3307,7 @@
                         }
                       ],
                       "pageInfo": {
-                        "next": "https://staging.noco.to/api/v3/tables/mqw22nwcc3c7tfp/links/cq0bdlyfreqoea0/records/4?page=2"
+                        "next": "https://staging.noco.ws/api/v3/tables/mqw22nwcc3c7tfp/links/cq0bdlyfreqoea0/records/4?page=2"
                       }
                     }
                   }
@@ -3758,6 +3995,9 @@
               "enum": [
                 "Barcode"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Barcode"
             }
           }
         },
@@ -3768,6 +4008,9 @@
               "enum": [
                 "QRCode"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_QRCode"
             }
           }
         },
@@ -3778,6 +4021,9 @@
               "enum": [
                 "CreatedTime"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_DateTime"
             }
           }
         },
@@ -3788,6 +4034,9 @@
               "enum": [
                 "LastModifiedTime"
               ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_DateTime"
             }
           }
         },
@@ -3956,40 +4205,6 @@
               }
             ]
           }
-        ]
-      },
-      "FieldBase": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the field.",
-            "readOnly": true,
-            "writeOnly": false
-          },
-          "title": {
-            "type": "string",
-            "description": "Title of the field."
-          },
-          "type": {
-            "type": "string",
-            "description": "Field data type."
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "description": "Description of the field."
-          },
-          "default_value": {
-            "type": "string",
-            "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
-          }
-        },
-        "required": [
-          "title",
-          "type"
         ]
       },
       "Table": {
@@ -4188,7 +4403,6 @@
               ]
             }
           ],
-
           "description": "An object representing updates for an existing user."
         },
         "description": "Array of user updates."
@@ -4721,28 +4935,69 @@
           }
         ]
       },
+      "ViewCreate": {
+        "type": "object",
+        "properties": {
+          "view_name": {
+            "type": "string",
+            "description": "Name of the view."
+          },
+          "view_type": {
+            "type": "string",
+            "enum": [
+              "GRID",
+              "GALLERY",
+              "KANBAN",
+              "CALENDAR",
+              "FORM"
+            ],
+            "description": "Type of the view."
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "COLLABARATIVE",
+              "LOCKED",
+              "PERSONAL"
+            ],
+            "description": "Lock type of the view."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the view."
+          }
+        },
+        "discriminator": {
+          "propertyName": "view_type"
+        }
+      },
       "FieldBase": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "Field identifier."
+            "description": "Unique identifier for the field.",
+            "readOnly": true,
+            "writeOnly": false
           },
           "title": {
             "type": "string",
-            "description": "Field name."
+            "description": "Title of the field."
           },
           "type": {
             "type": "string",
-            "description": "Field type."
+            "description": "Field data type."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Description of the field."
           },
           "default_value": {
             "type": "string",
             "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
-          },
-          "description": {
-            "type": "string",
-            "description": "Field description."
           }
         },
         "required": [
@@ -5012,12 +5267,6 @@
       "FieldOptions_Percent": {
         "type": "object",
         "properties": {
-          "precision": {
-            "type": "integer",
-            "description": "Number of decimal places allowed.",
-            "minimum": 0,
-            "maximum": 5
-          },
           "show_as_progress": {
             "type": "boolean",
             "description": "Display as a progress bar."
@@ -5027,7 +5276,7 @@
       "FieldOptions_Duration": {
         "type": "object",
         "properties": {
-          "format": {
+          "duration_format": {
             "type": "string",
             "description": "Duration format. Supported options are listed below\n- `h:mm`\n- `h:mm:ss`\n- `h:mm:ss.S`\n- `h:mm:ss.SS`\n- `h:mm:ss.SSS`"
           }
@@ -5047,6 +5296,18 @@
           "12hr_format": {
             "type": "boolean",
             "description": "Use 12-hour time format."
+          },
+          "display_timezone": {
+            "type": "boolean",
+            "description": "Display timezone."
+          },
+          "timezone": {
+            "type": "string",
+            "description": "Timezone. Refer to https://en.wikipedia.org/wiki/List_of_tz_database_time_zones"
+          },
+          "use_same_timezone_for_all": {
+            "type": "boolean",
+            "description": "Use same timezone for all records."
           }
         }
       },
@@ -5062,10 +5323,6 @@
       "FieldOptions_Time": {
         "type": "object",
         "properties": {
-          "time_format": {
-            "type": "string",
-            "description": "Time format. Supported options are listed below\n- `HH:mm`\n- `HH:mm:ss`\n- `HH:mm:ss.SSS`"
-          },
           "12hr_format": {
             "type": "boolean",
             "description": "Use 12-hour time format."
@@ -5155,7 +5412,16 @@
             "type": "string",
             "description": "Barcode format (e.g., CODE128)."
           },
-          "value_field_id": {
+          "barcode_value_field_id": {
+            "type": "string",
+            "description": "Field ID that contains the value."
+          }
+        }
+      },
+      "FieldOptions_QRCode": {
+        "type": "object",
+        "properties": {
+          "qrcode_value_field_id": {
             "type": "string",
             "description": "Field ID that contains the value."
           }
@@ -5182,28 +5448,28 @@
       "FieldOptions_Lookup": {
         "type": "object",
         "properties": {
-          "link_field_id": {
+          "related_field_id": {
             "type": "string",
             "description": "Linked field ID. Can be of type Links or LinkToAnotherRecord"
           },
-          "linked_table_lookup_field_id": {
+          "related_table_lookup_field_id": {
             "type": "string",
             "description": "Lookup field ID in the linked table."
           }
         },
         "required": [
-          "link_field_id",
-          "linked_table_lookup_field_id"
+          "related_field_id",
+          "related_table_lookup_field_id"
         ]
       },
       "FieldOptions_Rollup": {
         "type": "object",
         "properties": {
-          "link_field_id": {
+          "related_field_id": {
             "type": "string",
             "description": "Linked field ID."
           },
-          "linked_table_rollup_field_id": {
+          "related_table_rollup_field_id": {
             "type": "string",
             "description": "Rollup field ID in the linked table."
           },
@@ -5223,12 +5489,93 @@
           }
         },
         "required": [
-          "link_field_id",
-          "linked_table_rollup_field_id",
+          "related_field_id",
+          "related_table_rollup_field_id",
           "rollup_function"
         ]
       },
-      "FieldOptions_Button": {},
+      "FieldOptions_Button": {
+        "type": "object",
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["formula"],
+                "description": "Button type: formula"
+              },
+              "formula": {
+                "type": "string",
+                "description": "Formula to execute"
+              }
+            },
+            "required": ["type", "formula"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["webhook"],
+                "description": "Button type: webhook"
+              },
+              "button_hook_id": {
+                "type": "string",
+                "description": "ID of the webhook to trigger"
+              }
+            },
+            "required": ["type", "button_hook_id"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["ai"],
+                "description": "Button type: AI"
+              },
+              "prompt": {
+                "type": "string",
+                "description": "AI prompt to execute"
+              },
+              "integration_id": {
+                "type": "string",
+                "description": "Integration ID for AI service"
+              },
+              "theme": {
+                "type": "string",
+                "description": "Theme of the button"
+              },
+              "output_column_ids": {
+                "type": "string",
+                "description": "IDs of columns where AI output should be stored"
+              },
+              "label": {
+                "type": "string",
+                "description": "Label of the button"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon of the button"
+              },
+              "color": {
+                "type": "string",
+                "description": "Color of the button"
+              }
+            },
+            "required": ["type", "prompt", "integration_id"]
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "formula": "#/components/schemas/FieldOptions_Button/oneOf/0",
+            "webhook": "#/components/schemas/FieldOptions_Button/oneOf/1",
+            "ai": "#/components/schemas/FieldOptions_Button/oneOf/2"
+          }
+        }
+      },
       "FieldOptions_Links": {
         "type": "object",
         "properties": {
@@ -5236,14 +5583,14 @@
             "type": "string",
             "description": "Type of relationship.\n\nSupported options are listed below\n- `mm` many-to-many\n- `hm` has-many\n- `oo` one-to-one"
           },
-          "linked_table_id": {
+          "related_table_id": {
             "type": "string",
             "description": "Identifier of the linked table."
           }
         },
         "required": [
           "relation_type",
-          "linked_table_id"
+          "related_table_id"
         ]
       },
       "FieldOptions_LinkToAnotherRecord": {
@@ -5253,14 +5600,14 @@
             "type": "string",
             "description": "Type of relationship.\n\nSupported options are listed below\n- `mm` many-to-many\n- `hm` has-many\n- `oo` one-to-one"
           },
-          "linked_table_id": {
+          "related_table_id": {
             "type": "string",
             "description": "Identifier of the linked table."
           }
         },
         "required": [
           "relation_type",
-          "linked_table_id"
+          "related_table_id"
         ]
       },
       "Field": {
@@ -5270,6 +5617,15 @@
           },
           {
             "oneOf": [
+              {
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "SingleLineText"
+                    ]
+                  }
+                }
+              },
               {
                 "properties": {
                   "type": {

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type dayjs from 'dayjs'
+import dayjs from 'dayjs'
 import type { Row } from '~/lib/types'
 
 const emits = defineEmits(['expandRecord', 'newRecord'])
@@ -96,7 +96,7 @@ onMounted(() => {
 // Since it is a datetime Week view, we need to create a 2D array of dayjs objects to represent the hours in a day for each day in the week
 const datesHours = computed(() => {
   // startOf and endOf dayjs is bugged with timezone
-  const start = timezoneDayjs.dayjsTz(timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('week').toISOString())
+  const start = timezoneDayjs.timezonize(selectedDateRange.value.start)
   return Array.from({ length: maxVisibleDays.value }, (_, i) =>
     Array.from({ length: 24 }, (_, h) => start.add(i, 'day').hour(h).minute(0).second(0)),
   )
@@ -196,11 +196,12 @@ const hasSlotForRecord = (
 
     const { startDate: columnFromDate, endDate: columnToDate } = calculateNewDates({
       startDate: timezoneDayjs.timezonize(column.row[columnFromCol.title!]),
-      endDate: columnToCol
-        ? timezoneDayjs.timezonize(column.row[columnToCol.title!])
-        : timezoneDayjs.timezonize(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
-      scheduleStart: timezoneDayjs.dayjsTz(timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day').toISOString()),
-      scheduleEnd: timezoneDayjs.dayjsTz(timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('day').toISOString()),
+      endDate:
+        columnToCol && dayjs(column.row[columnToCol.title!])?.isValid()
+          ? timezoneDayjs.timezonize(column.row[columnToCol.title!])
+          : timezoneDayjs.timezonize(column.row[columnFromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+      scheduleStart: timezoneDayjs.dayjsTz(selectedDateRange.value.start).startOf('day'),
+      scheduleEnd: timezoneDayjs.dayjsTz(selectedDateRange.value.end).endOf('day'),
     })
 
     if (
@@ -285,6 +286,7 @@ const recordsAcrossAllRange = computed<{
       {
         count: number
         id: string[]
+        overflowRecords: Row[]
       }
     >
   >
@@ -314,6 +316,7 @@ const recordsAcrossAllRange = computed<{
       {
         count: number
         id: string[]
+        overflowRecords: Row[]
       }
     >
   >()
@@ -434,9 +437,10 @@ const recordsAcrossAllRange = computed<{
       if (!fromCol) continue
       const { startDate, endDate } = calculateNewDates({
         startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
-        endDate: toCol
-          ? timezoneDayjs.timezonize(record.row[toCol.title!])
-          : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+        endDate:
+          toCol && dayjs(record.row[toCol.title!])?.isValid()
+            ? timezoneDayjs.timezonize(record.row[toCol.title!])
+            : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
         scheduleStart,
         scheduleEnd,
       })
@@ -454,20 +458,31 @@ const recordsAcrossAllRange = computed<{
               {
                 count: number
                 id: string[]
+                overflowRecords: Row[]
               }
             >(),
           )
         }
 
         if (!gridTimeMap.get(dayIndex)?.has(gridCounter)) {
-          gridTimeMap.set(dayIndex, (gridTimeMap.get(dayIndex) ?? new Map()).set(gridCounter, { count: 0, id: [] }))
+          gridTimeMap.set(
+            dayIndex,
+            (gridTimeMap.get(dayIndex) ?? new Map()).set(gridCounter, { count: 0, id: [], overflowRecords: [] }),
+          )
         }
 
         const idArray = gridTimeMap.get(dayIndex)!.get(gridCounter)!.id
         idArray.push(record.rowMeta.id!)
         const count = gridTimeMap.get(dayIndex)!.get(gridCounter)!.count + 1
 
-        gridTimeMap.set(dayIndex, (gridTimeMap.get(dayIndex) ?? new Map()).set(gridCounter, { count, id: idArray }))
+        gridTimeMap.set(
+          dayIndex,
+          (gridTimeMap.get(dayIndex) ?? new Map()).set(gridCounter, {
+            count,
+            id: idArray,
+            overflowRecords: gridTimeMap.get(dayIndex)!.get(gridCounter)!.overflowRecords,
+          }),
+        )
       }
 
       let foundAColumn = false
@@ -550,19 +565,54 @@ const recordsAcrossAllRange = computed<{
         record.rowMeta.id === dragRecord.value?.rowMeta.id || record.rowMeta.id === resizeRecord.value?.rowMeta.id
 
       if (!isRecordDraggingOrResizeState) {
-        if (record.rowMeta.overLapIteration! - 1 > 2) {
+        if (record.rowMeta.overLapIteration! > 3) {
           display = 'none'
+          // Add overflowing record to gridTimeMap
+          const fromCol = record.rowMeta.range?.fk_from_col
+          const toCol = record.rowMeta.range?.fk_to_col
+
+          if (fromCol) {
+            const { startDate, endDate } = calculateNewDates({
+              startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
+              endDate:
+                toCol && dayjs(record.row[toCol.title!])?.isValid()
+                  ? timezoneDayjs.timezonize(record.row[toCol.title!])
+                  : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour').subtract(1, 'minute'),
+              scheduleStart,
+              scheduleEnd,
+            })
+
+            const gridTimes = getGridTimeSlots(startDate, endDate)
+
+            for (let gridCounter = gridTimes.from; gridCounter <= gridTimes.to; gridCounter++) {
+              if (gridTimeMap.has(dayIndex) && gridTimeMap.get(dayIndex)?.has(gridCounter)) {
+                const currentSlot = gridTimeMap.get(dayIndex)!.get(gridCounter)!
+                if (!currentSlot.overflowRecords.some((r) => r.rowMeta.id === record.rowMeta.id)) {
+                  currentSlot.overflowRecords.push(record)
+                  gridTimeMap.get(dayIndex)!.set(gridCounter, currentSlot)
+                }
+              }
+            }
+          }
         } else {
-          width = 100 / Math.min(maxOverlaps, 3) / maxVisibleDays.value
+          // Calculate the available width for each day
+          const availableWidth = perWidth - 3 // Account for padding/margins
 
-          left = width * (overlapIndex - 1)
+          // Calculate the width of each record based on the number of overlaps (up to 3)
+          // Ensure minimum width of 72px
+          width = Math.max(availableWidth / Math.min(maxOverlaps, 3), 72)
 
-          width = Math.max((width / 100) * containerWidth.value + 1, 72) - 3
+          // Calculate the spacing between records
+          const spacing = (availableWidth - width * Math.min(maxOverlaps, 3)) / Math.max(Math.min(maxOverlaps, 3) - 1, 1)
 
-          left = majorLeft + (left / 100) * containerWidth.value + 1.5
+          // Calculate the left position based on the day index and overlap index
+          // This ensures uniform distribution of records within the day container
+          left = majorLeft + 1.5 + (overlapIndex - 1) * (width + spacing)
 
-          if (majorLeft + perWidth < left + width) {
-            left = majorLeft + (perWidth - width) - 4.5 * overlapIndex
+          // Safety check to ensure the record stays within its day container
+          if (left + width > majorLeft + perWidth) {
+            // Adjust the width if needed to fit within the container
+            width = Math.max(majorLeft + perWidth - left - 1.5, 72)
           }
         }
       } else {
@@ -620,7 +670,7 @@ const onResize = (event: MouseEvent) => {
   const day = Math.floor(percentX * maxVisibleDays.value)
   const minutes = Math.round((percentY * 24 * 60) / 15) * 15 // Round to nearest 15 minutes
 
-  const baseDate = timezoneDayjs.dayjsTz(selectedDateRange.value.start).add(day, 'day').add(minutes, 'minute')
+  const baseDate = timezoneDayjs.timezonize(selectedDateRange.value.start).add(day, 'day').add(minutes, 'minute')
 
   let newDate: dayjs.Dayjs
   let updateProperty: string
@@ -648,9 +698,10 @@ const onResize = (event: MouseEvent) => {
     updateProperty = fromCol.title
   } else {
     isValid = false
+    newDate = null
   }
 
-  if (!isValid || !newDate.isValid()) return
+  if (!isValid || !newDate?.isValid()) return
 
   const newRow = {
     ...resizeRecord.value,
@@ -716,7 +767,7 @@ const calculateNewRow = (
   const minutes = Math.round(((percentY * 24 * 60) % 60) / 15) * 15
 
   const newStartDate = timezoneDayjs
-    .dayjsTz(selectedDateRange.value.start)
+    .timezonize(selectedDateRange.value.start)
     .add(day, 'day')
     .add(hour, 'hour')
     .add(minutes, 'minute')
@@ -882,19 +933,33 @@ const viewMore = (hour: dayjs.Dayjs) => {
 }
 
 const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
-  if (!recordsAcrossAllRange.value || !recordsAcrossAllRange.value.gridTimeMap) return { isOverflow: false, overflowCount: 0 }
+  if (!recordsAcrossAllRange.value || !recordsAcrossAllRange.value.gridTimeMap)
+    return {
+      isOverflow: false,
+      overflowCount: 0,
+      overflowRecords: [],
+    }
   const { gridTimeMap } = recordsAcrossAllRange.value
   const dayIndex = getDayIndex(hour)
+
   const startMinute = hour.hour() * 60 + hour.minute()
   const endMinute = hour.hour() * 60 + hour.minute() + 59
-  let overflowCount = 0
+  const dayMap = gridTimeMap.get(dayIndex)
+
+  const uniqueRecords: Row[] = []
+  const uniqueRecordIds = new Set<string>()
 
   for (let minute = startMinute; minute <= endMinute; minute++) {
-    const recordCount = gridTimeMap.get(dayIndex)?.get(minute)?.count ?? 0
-    overflowCount = Math.max(overflowCount, recordCount)
+    const records = dayMap?.get(minute)?.overflowRecords ?? []
+    for (const rec of records) {
+      if (!uniqueRecordIds.has(rec.rowMeta?.id)) {
+        uniqueRecords.push(rec)
+        uniqueRecordIds.add(rec.rowMeta?.id)
+      }
+    }
   }
 
-  return { isOverflow: overflowCount - 3 > 0, overflowCount: overflowCount - 3 }
+  return { isOverflow: uniqueRecords?.length, overflowCount: uniqueRecords?.length, overflowRecords: uniqueRecords }
 }
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
@@ -950,7 +1015,7 @@ watch(
   >
     <div
       v-if="!isPublic && timezoneDayjs.dayjsTz().isBetween(selectedDateRange.start, selectedDateRange.end)"
-      class="absolute top-16 ml-16 pointer-events-none z-2"
+      class="absolute top-16 ml-16 pointer-events-none z-4"
       :class="{
         '!mt-38.5': isExpanded && isRangeEnabled,
         'mt-27': !isExpanded && isRangeEnabled,
@@ -960,12 +1025,12 @@ watch(
     >
       <div class="flex w-full items-center">
         <span
-          class="text-brand-500 rounded-md text-xs border-1 pointer-events-auto px-0.5 border-brand-200 cursor-pointer bg-brand-50"
+          class="text-nc-content-inverted-primary bg-nc-content-brand rounded-md leading-3.5 font-bold text-xs pointer-events-auto p-0.5 cursor-pointer"
           @click="addRecord(timezoneDayjs.dayjsTz())"
         >
           {{ currTime.format('hh:mm A') }}
         </span>
-        <div class="flex-1 border-b-1 border-brand-500"></div>
+        <div class="flex-1 relative ml-1 nc-calendar-border-line border-b-2 border-brand-500"></div>
       </div>
     </div>
     <div class="flex sticky h-6 z-4 top-0 pl-16 bg-gray-50 w-full">
@@ -1048,20 +1113,44 @@ watch(
             }
           "
         >
-          <NcButton
-            v-if="isOverflowAcrossHourRange(hour).isOverflow"
-            v-e="`['c:calendar:week-view-more']`"
-            class="!absolute bottom-1 text-center w-15 ml-auto inset-x-0 z-3 text-gray-500"
-            size="xxsmall"
-            type="secondary"
-            @click="viewMore(hour)"
-          >
-            <span class="text-xs">
-              +
-              {{ isOverflowAcrossHourRange(hour).overflowCount }}
-              more
-            </span>
-          </NcButton>
+          <NcDropdown v-if="isOverflowAcrossHourRange(hour).isOverflow" :trigger="['click']">
+            <NcButton
+              v-e="`['c:calendar:week-view-more']`"
+              class="!absolute bottom-1 text-center w-15 ml-auto inset-x-0 z-3 text-gray-500"
+              size="xxsmall"
+              type="secondary"
+              @click="viewMore(hour)"
+            >
+              <span class="text-xs">
+                +
+                {{ isOverflowAcrossHourRange(hour).overflowCount }}
+                more
+              </span>
+            </NcButton>
+            <template #overlay>
+              <div class="bg-nc-background-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
+                <LazySmartsheetCalendarSideRecordCard
+                  v-for="record in isOverflowAcrossHourRange(hour).overflowRecords"
+                  :key="record?.rowMeta?.id"
+                  :draggable="false"
+                  class="w-64"
+                  :from-date="timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')"
+                  :invalid="false"
+                  :row="record"
+                  :to-date="record?.rowMeta?.range?.fk_to_col?.title && record.row[record.rowMeta.range!.fk_to_col.title!] ?  timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A') : null"
+                  data-testid="nc-sidebar-record-card"
+                  @click="expandRecord(record)"
+                >
+                  <template v-if="!isRowEmpty(record, displayField)">
+                    <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
+                  </template>
+                  <template v-else>
+                    <span class="text-gray-500"> - </span>
+                  </template>
+                </LazySmartsheetCalendarSideRecordCard>
+              </div>
+            </template>
+          </NcDropdown>
         </div>
       </div>
 
@@ -1136,12 +1225,14 @@ watch(
 }
 
 .selected-hour {
-  @apply relative;
-  &:after {
-    @apply rounded-sm pointer-events-none absolute inset-0 w-full h-full;
-    content: '';
-    z-index: 1;
-    box-shadow: 0 0 0 2px #3366ff !important;
-  }
+  @apply relative !bg-nc-bg-brand;
+}
+
+.nc-calendar-border-line::after {
+  @apply absolute bg-nc-content-brand w-0.5 h-3;
+  content: '';
+  top: -5px;
+  bottom: -6px;
+  left: 0px;
 }
 </style>

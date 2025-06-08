@@ -1,4 +1,4 @@
-import type { ButtonType } from 'nocodb-sdk'
+import { ButtonActionsType, type ButtonType } from 'nocodb-sdk'
 import { getI18n } from '../../../../../plugins/a.i18n'
 import { defaultOffscreen2DContext, renderSpinner, truncateText } from '../utils/canvas'
 
@@ -201,22 +201,12 @@ const getButtonColors = (
 ) => {
   const themeColors = buttonColorMap[theme]?.[color]
   if (!themeColors) {
-    if (isDisabled) {
-      return { background: '#F4F4F5', text: '#9AA2AF', loader: '#9AA2AF' }
-    }
-    return isHovered
+    return isHovered && !isDisabled
       ? { background: '#2952CC', text: '#FFFFFF', loader: '#3366FF' }
       : { background: '#3366FF', text: '#FFFFFF', loader: '#3366FF' }
   }
 
-  if (isDisabled) {
-    return {
-      ...themeColors.disabled,
-      loader: '#9AA2AF',
-    }
-  }
-
-  const state = isHovered ? 'hover' : 'base'
+  const state = isHovered && !isDisabled ? 'hover' : 'base'
   const colors = themeColors[state]
 
   return {
@@ -234,10 +224,10 @@ const iconSpacing = 6
 
 export const ButtonCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props: CellRendererOptions) => {
-    const { x, y, width, column, spriteLoader, mousePosition, actionManager, pk, disabled } = props
+    const { x, y, width, column, spriteLoader, mousePosition, actionManager, pk, disabled, value, allowLocalUrl } = props
     const isLoading = actionManager.isLoading(pk, column.id!)
 
-    const disabledState = isLoading || disabled?.isInvalid
+    let disabledState = isLoading || disabled?.isInvalid
     ctx.textAlign = 'left'
 
     const colOptions = column.colOptions as ButtonType
@@ -251,6 +241,16 @@ export const ButtonCellRenderer: CellRenderer = {
       type: colOptions.type,
     }
 
+    if (buttonMeta.type === ButtonActionsType.Url) {
+      const url = addMissingUrlSchma(value?.url?.toString() ?? '')
+      disabledState = !(
+        url &&
+        isValidURL(url, {
+          require_tld: !allowLocalUrl,
+        })
+      )
+    }
+
     const hasIcon = !!buttonMeta.icon
     const hasLabel = !!buttonMeta.label
 
@@ -261,7 +261,7 @@ export const ButtonCellRenderer: CellRenderer = {
     let truncatedLabel = buttonMeta.label
 
     if (hasLabel) {
-      ctx.font = '550 13px Manrope'
+      ctx.font = '550 13px Inter'
       const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
 
       const truncatedInfo = truncateText(ctx, buttonMeta.label, maxTextWidth, true)
@@ -292,6 +292,10 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (isHovered) props.setCursor('pointer')
 
+    if (disabledState) {
+      ctx.globalAlpha = buttonMeta.theme === 'solid' ? 0.3 : 0.5
+    }
+
     ctx.beginPath()
     ctx.roundRect(startX, startY, buttonWidth, buttonHeight, 6)
     ctx.fillStyle = colors.background
@@ -299,6 +303,10 @@ export const ButtonCellRenderer: CellRenderer = {
 
     let contentX = startX + (buttonWidth - contentWidth) / 2
     const contentY = startY + (buttonHeight - iconSize) / 2
+
+    if (!!disabledState && colors.text === '#FFFFFF') {
+      ctx.globalAlpha = 1
+    }
 
     if (isLoading) {
       const loadingStartTime = actionManager.getLoadingStartTime(pk, column.id!)
@@ -322,8 +330,12 @@ export const ButtonCellRenderer: CellRenderer = {
       ctx.textBaseline = 'middle'
       ctx.fillText(truncatedLabel, contentX, startY + 13)
     }
+
+    if (disabledState) {
+      ctx.globalAlpha = 1
+    }
   },
-  async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition, path }) {
+  async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition, path, allowLocalUrl }) {
     if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
@@ -350,7 +362,7 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (hasLabel) {
       const ctx = defaultOffscreen2DContext
-      ctx.font = '550 13px Manrope'
+      ctx.font = '550 13px Inter'
 
       const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
 
@@ -377,7 +389,7 @@ export const ButtonCellRenderer: CellRenderer = {
       mousePosition.y <= startY + buttonHeight
 
     if (!isHovered) return false
-    await actionManager.executeButtonAction([pk], column, { row: [row], path })
+    await actionManager.executeButtonAction([pk], column, { row: [row], path, allowLocalUrl })
     return true
   },
 
@@ -414,7 +426,7 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (hasLabel) {
       const ctx = defaultOffscreen2DContext
-      ctx.font = '500 13px Manrope'
+      ctx.font = '550 13px Inter'
 
       const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
 
@@ -438,7 +450,7 @@ export const ButtonCellRenderer: CellRenderer = {
     const { e, row, column, actionManager, pk, path } = ctx
     if (e.key === 'Enter') {
       if (column.readonly || column.columnObj?.readonly) return false
-      await actionManager.executeButtonAction([pk], column, { row: [row], path })
+      await actionManager.executeButtonAction([pk], column, { row: [row], path, allowLocalUrl })
       return true
     }
 

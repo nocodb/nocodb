@@ -35,6 +35,7 @@ export enum JobTypes {
   HandleWebhook = 'handle-webhook',
   CleanUp = 'clean-up',
   DataExport = 'data-export',
+  DataExportCleanUp = 'data-export-clean-up',
   ThumbnailGenerator = 'thumbnail-generator',
   AttachmentCleanUp = 'attachment-clean-up',
   InitMigrationJobs = 'init-migration-jobs',
@@ -43,7 +44,7 @@ export enum JobTypes {
   RestoreSnapshot = 'restore-snapshot',
   ListenImport = 'listen-import',
   SyncModuleSyncData = 'sync-module-sync-data',
-  SubscriptionSchedule = 'subscription-schedule',
+  SyncModuleMigrateSync = 'sync-module-migrate-sync',
   UpdateUsageStats = 'update-usage-stats',
 }
 
@@ -56,7 +57,6 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.UpdateModelStat,
   JobTypes.UpdateWsStat,
   JobTypes.UpdateSrcStat,
-  JobTypes.SubscriptionSchedule,
 ];
 
 export enum JobStatus {
@@ -208,6 +208,8 @@ export interface RestoreSnapshotJobData extends JobData {
 
 export interface SyncDataSyncModuleJobData extends JobData {
   syncConfigId: string;
+  targetTables?: string[];
   trigger: SyncTrigger;
+  bulk?: boolean;
   req: NcRequest;
 }

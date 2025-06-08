@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AttachmentType, AuditType } from 'nocodb-sdk'
+import { checkboxIconListMap, ratingIconListMap } from 'nocodb-sdk'
 
 /* interface */
 
@@ -51,27 +52,17 @@ function normalizeColOptions(key: string) {
 function normalizeMeta(key: string) {
   const mta = meta.value?.[key] ?? {}
   const opts = normalizeColOptions(key)
-  const icn =
-    {
-      'thumbs-up': 'thumb-up',
-      'circle-filled': 'moon-full',
-      'circle-check': 'check-circle-outline',
-    }[opts.icon as string] ??
-    (opts.icon || (mta.type === 'Rating' ? 'star' : 'check-circle'))
+  const icn = opts.icon || (mta.type === 'Rating' ? 'star' : 'circle-check')
+
   return {
     ...opts,
     ...mta,
-    icon: !icn
-      ? undefined
-      : {
-          full: `mdi-${icn}`,
-          empty: `mdi-${icn}`,
-          checked: `mdi-${icn}`,
-          unchecked: `mdi-${icn}`,
-        },
+    icon: mta.type === 'Rating' ? ratingIconListMap[icn] : checkboxIconListMap[icn],
     duration: opts.duration_format ? durationOptions.find((it) => it.title === opts.duration_format)?.id : undefined,
     is12hrFormat: opts['12hr_format'],
     isLocaleString: opts.locale_string,
+    isDisplayTimezone: opts?.isDisplayTimezone || opts?.is_display_timezone,
+    useSameTimezoneForAll: opts?.useSameTimezoneForAll || opts?.use_same_timezone_for_all,
   }
 }
 
@@ -130,19 +121,28 @@ function isShowableValue(value: any) {
       ]"
     />
     <div class="ml-6.5">
-      <div class="text-[13px] font-weight-500 inline-flex items-center flex-wrap">
+      <div class="text-small1 font-weight-500 inline-flex items-center flex-wrap gap-1 w-full max-w-full">
         <span class="text-gray-600 text-xs"> changed </span>
-        <span class="rounded-md px-1 !h-[20px] bg-gray-200 inline-flex items-center gap-1 mx-1">
+        <span
+          class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 text-nc-content-gray-emphasis border-1 border-nc-border-gray-medium"
+        >
           <SmartsheetHeaderCellIcon
             :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }"
-            class="!w-[16px] !h-[16px] !m-0 !text-gray-600"
+            class="!w-[16px] !h-[16px] !m-0 !text-nc-content-gray-emphasis"
           />
-          <span class="text-[13px] font-weight-500 text-gray-600">
-            {{ columnKey }}
-          </span>
+
+          <NcTooltip class="truncate" show-on-truncate-only>
+            <template #title>
+              {{ columnKey }}
+            </template>
+
+            <span class="text-small1 font-weight-500">
+              {{ columnKey }}
+            </span>
+          </NcTooltip>
         </span>
         <template v-if="meta[columnKey]?.type === 'Attachment'">
-          <div v-if="processOldDataFor(columnKey)?.length > 0" class="w-full mt-1">
+          <div v-if="processOldDataFor(columnKey)?.length > 0" class="w-full">
             <div class="border-1 border-red-200 rounded-md bg-red-50 p-0.5 flex flex-col items-start gap-0.5 w-[284px]">
               <div
                 v-for="(item, i) of processOldDataFor(columnKey)"
@@ -161,7 +161,7 @@ function isShowableValue(value: any) {
                       <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
                     </div>
                   </div>
-                  <span class="w-0 flex-1 truncate text-[13px] font-weight-500 text-gray-600">
+                  <span class="w-0 flex-1 truncate text-small1 font-weight-500 text-gray-600">
                     {{ item.title }}
                   </span>
                   <span class="text-xs font-weight-500 p-2 text-gray-500">
@@ -171,7 +171,7 @@ function isShowableValue(value: any) {
               </div>
             </div>
           </div>
-          <div v-if="processNewDataFor(columnKey)?.length > 0" class="w-full mt-1">
+          <div v-if="processNewDataFor(columnKey)?.length > 0" class="w-full">
             <div class="border-1 border-green-200 rounded-md bg-green-50 p-0.5 flex flex-col items-start gap-0.5 w-[284px]">
               <div
                 v-for="(item, i) of processNewDataFor(columnKey)"
@@ -190,7 +190,7 @@ function isShowableValue(value: any) {
                       <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
                     </div>
                   </div>
-                  <span class="w-0 flex-1 truncate text-[13px] font-weight-500 text-gray-600">
+                  <span class="w-0 flex-1 truncate text-small1 font-weight-500 text-gray-600">
                     {{ item.title }}
                   </span>
                   <span class="text-xs font-weight-500 p-2 text-gray-500">
@@ -201,37 +201,80 @@ function isShowableValue(value: any) {
             </div>
           </div>
         </template>
-        <template v-else-if="['SingleLineText', 'LongText'].includes(meta[columnKey]?.type)">
+        <template v-else-if="meta[columnKey]?.type === 'SingleLineText'">
           <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
             <span
               v-if="block.op === 'removed'"
-              class="text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone !leading-[18px] my-0.5"
+              class="max-w-full text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone !leading-[18px]"
             >
               {{ block.text }}
             </span>
             <span
               v-else-if="block.op === 'added'"
-              class="text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone !leading-[18px] my-0.5"
+              class="max-w-full text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 decoration-clone !leading-[18px]"
             >
               {{ block.text }}
             </span>
-            <span v-else class="mr-1 !leading-[18px] my-0.5">
+            <span v-else class="max-w-full !leading-[18px]">
               {{ block.text }}
             </span>
           </template>
+        </template>
+        <template v-else-if="meta[columnKey]?.type === 'LongText'">
+          <div class="w-full border-1 rounded-md p-1">
+            <template
+              v-for="(block, i) of diffTextBlocks(
+                meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
+                  ? oldData[columnKey]?.value || ''
+                  : oldData[columnKey] || '',
+                meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
+                  ? newData[columnKey]?.value || ''
+                  : newData[columnKey] || '',
+              )"
+              :key="i"
+            >
+              <span
+                v-if="block.op === 'removed'"
+                class="max-w-full text-red-700 px-1 bg-red-50 rounded-md line-through decoration-clone !leading-[18px]"
+                :class="{
+                  'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+                }"
+              >
+                {{ block.text }}
+              </span>
+              <span
+                v-else-if="block.op === 'added'"
+                class="max-w-full text-green-700 px-1 bg-green-50 rounded-md decoration-clone !leading-[18px]"
+                :class="{
+                  'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+                }"
+              >
+                {{ block.text }}
+              </span>
+              <span
+                v-else
+                class="max-w-full !leading-[18px]"
+                :class="{
+                  'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+                }"
+              >
+                {{ block.text }}
+              </span>
+            </template>
+          </div>
         </template>
         <template v-else-if="meta[columnKey]?.type === 'JSON'">
           <div class="w-full flex justify-start">
             <pre
               v-if="isShowableValue(processOldDataFor(columnKey))"
-              class="!text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through !mb-0 mt-1 p-1 max-w-2/5"
+              class="!text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through !mb-0 mt-1 p-1 max-w-full nc-scrollbar-thin"
               >{{ processOldDataFor(columnKey) }}</pre
             >
           </div>
           <div class="w-full flex justify-start">
             <pre
               v-if="isShowableValue(processNewDataFor(columnKey))"
-              class="!text-green-700 border-1 border-green-200 rounded-md bg-green-50 !mb-0 mt-1 p-1 max-w-2/5"
+              class="!text-green-700 border-1 border-green-200 rounded-md bg-green-50 !mb-0 mt-1 p-1 max-w-full nc-scrollbar-thin"
               >{{ processNewDataFor(columnKey) }}</pre
             >
           </div>
@@ -239,7 +282,8 @@ function isShowableValue(value: any) {
         <template v-else>
           <div
             v-if="isShowableValue(processOldDataFor(columnKey))"
-            class="nc-expressive-mini-item-cell nc-audit-removal !text-red-700 border-1 mr-1 border-red-200 rounded-md bg-red-50 line-through"
+            :data-label="processOldDataFor(columnKey)"
+            class="max-w-full nc-expressive-mini-item-cell nc-audit-removal !text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through"
             :class="{
               'px-1 py-0': shouldUseNormalizedPadding(columnKey),
               '!px-0.25 !py-0.25': shouldUseUniformPadding(columnKey),
@@ -263,7 +307,8 @@ function isShowableValue(value: any) {
           </div>
           <div
             v-if="isShowableValue(processNewDataFor(columnKey))"
-            class="nc-expressive-mini-item-cell nc-audit-addition border-1 border-green-200 rounded-md bg-green-50"
+            :data-label="processNewDataFor(columnKey)"
+            class="max-w-full nc-expressive-mini-item-cell nc-audit-addition border-1 border-green-200 rounded-md bg-green-50"
             :class="{
               'px-1 py-0': shouldUseNormalizedPadding(columnKey),
               '!px-0.25 !py-0.25': shouldUseUniformPadding(columnKey),
@@ -337,7 +382,11 @@ function isShowableValue(value: any) {
   .nc-date-picker {
     @apply !inline;
     & > div {
-      @apply !inline;
+      @apply !inline !text-inherit text-small1;
+
+      & > div {
+        @apply !inline;
+      }
     }
     & > div + div {
       @apply !ml-1;
@@ -365,14 +414,14 @@ function isShowableValue(value: any) {
     & > .ant-tag {
       @apply !m-0 !text-inherit !border-1 !border-gray-300 !pr-1 !pl-0.5 !bg-gray-100 !rounded-[17px];
       & > span > div + div {
-        @apply flex items-center !text-[13px] font-weight-500 !leading-[16px];
+        @apply flex items-center !text-small1 font-weight-500 !leading-[16px];
       }
       & > span {
         @apply gap-1;
       }
     }
     .nc-user-avatar {
-      @apply border-1 border-nc-gray-medium;
+      @apply border-1 border-nc-border-gray-medium !text-[8px];
       height: 16px !important;
       width: 16px !important;
     }
@@ -415,7 +464,7 @@ function isShowableValue(value: any) {
   @apply !h-[20px];
 }
 .nc-expressive-mini-item-cell :where(.nc-cell-email, .nc-cell-url, .nc-cell-phonenumber) span {
-  @apply !text-[13px] !leading-[16px];
+  @apply !text-small1 !leading-[16px];
 }
 .nc-expressive-mini-item-cell .nc-cell-url > div > span {
   width: auto !important;
@@ -427,7 +476,7 @@ function isShowableValue(value: any) {
   @apply !line-through;
 }
 .nc-expressive-mini-item-cell :where(.nc-cell-year, .nc-cell-time, .nc-cell-datetime, .nc-cell-date) span {
-  @apply !text-[13px] !leading-[16px];
+  @apply !text-small1 !leading-[16px];
 }
 .nc-expressive-mini-item-cell.nc-expressive-mini-item-cell.nc-expressive-mini-item-cell.nc-expressive-mini-item-cell
   :where(

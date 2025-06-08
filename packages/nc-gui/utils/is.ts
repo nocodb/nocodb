@@ -19,7 +19,8 @@ const ncIsPlaywright = () => {
 }
 
 const ncIsSharedViewOrBase = () => {
-  return localStorage.getItem('ncIsSharedViewOrBase') === 'true'
+  // Use sessionStorage instead of localStorage to make it tab-specific
+  return sessionStorage.getItem('ncIsSharedViewOrBase') === 'true'
 }
 
 export {

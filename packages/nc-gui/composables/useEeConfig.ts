@@ -1,5 +1,17 @@
+import type { CloudFeaturesType } from '~/lib/types'
+
+const eeConfigState = createGlobalState(() => {
+  const cloudFeatures = ref<CloudFeaturesType[]>([])
+
+  return { cloudFeatures }
+})
+
 export const useEeConfig = createSharedComposable(() => {
-  const isPaidPlan = computed(() => undefined)
+  const { cloudFeatures } = eeConfigState()
+
+  const isSideBannerExpanded = ref(false)
+
+  const isPaidPlan = computed(() => false)
 
   const activePlan = computed(() => undefined)
 
@@ -7,9 +19,9 @@ export const useEeConfig = createSharedComposable(() => {
 
   const activeSubscription = computed(() => undefined)
 
-  const isLoyaltyWorkspace = computed(() => undefined)
+  const isLoyaltyDiscountAvailable = computed(() => false)
 
-  const isPaymentEnabled = computed(() => undefined)
+  const isPaymentEnabled = computed(() => false)
 
   const blockAddNewRecord = computed(() => false)
 
@@ -32,6 +44,10 @@ export const useEeConfig = createSharedComposable(() => {
   const blockAddNewWebhook = computed(() => false)
 
   const isTopBannerVisible = computed(() => false)
+
+  const blockWsImageLogoUpload = computed(() => true)
+
+  const blockCurrentUserFilter = computed(() => false)
 
   const getLimit = (..._args: any[]) => {}
 
@@ -73,6 +89,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToSeeMoreRecordsModal = (..._args: any[]) => {}
 
+  const showUpgradeToUploadWsImage = (..._args: any[]) => {}
+
+  const showUpgradeToUseCurrentUserFilter = (..._args: any[]) => {}
+
   return {
     getLimit,
     getStatLimit,
@@ -107,8 +127,14 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToSeeMoreRecordsModal,
     navigateToPricing,
     navigateToCheckout,
-    isLoyaltyWorkspace,
+    isLoyaltyDiscountAvailable,
     gracePeriodEndDate,
     isTopBannerVisible,
+    showUpgradeToUploadWsImage,
+    blockWsImageLogoUpload,
+    isSideBannerExpanded,
+    cloudFeatures,
+    blockCurrentUserFilter,
+    showUpgradeToUseCurrentUserFilter,
   }
 })

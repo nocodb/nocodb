@@ -21,7 +21,7 @@ const supportedDocs = [
 <template>
   <div>
     <div class="w-full flex flex-col gap-3">
-      <div class="text-sm text-gray-800 font-semibold">Supported Docs</div>
+      <div class="text-sm text-gray-800 font-semibold">Relevant documentation</div>
 
       <div>
         <div v-for="(doc, idx) of supportedDocs" :key="idx" class="flex items-center gap-1">

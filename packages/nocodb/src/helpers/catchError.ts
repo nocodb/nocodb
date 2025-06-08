@@ -1,13 +1,22 @@
-import { HigherPlan, NcErrorType } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
-import { generateReadablePermissionErr } from 'src/utils/acl';
-import type {
-  BaseType,
-  PlanLimitExceededDetailsType,
-  SourceType,
+import { NcErrorType } from 'nocodb-sdk';
+export {
+  NcBaseError,
+  NcBaseErrorv2,
+  NcErrorArgs,
+  OptionsNotExistsError,
+  BadRequestV2 as BadRequest,
+  MetaError,
+  SsoError,
+  NotFound,
+  UnprocessableEntity,
+  Unauthorized,
+  TestConnectionError,
+  Forbidden,
+  ExternalError,
+  ExternalTimeout,
 } from 'nocodb-sdk';
-import type { ErrorObject } from 'ajv';
-import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
+export { AjvError, NcError } from '~/helpers/ncError';
 
 const dbErrorLogger = new Logger('MissingDBError');
 
@@ -28,18 +37,21 @@ export function extractDBError(error): {
   error: string;
   details?: any;
   code?: string;
+  httpStatus: number;
 } | void {
   if (!error.code) return;
 
   let message: string;
   let _extra: Record<string, any>;
   let _type: DBError;
+  let httpStatus = 422;
 
   // todo: handle not null constraint error for all databases
   switch (error.code) {
     // sqlite errors
     case 'SQLITE_BUSY':
       message = 'The database is locked by another process or transaction.';
+      httpStatus = 500;
       break;
     case 'SQLITE_CONSTRAINT':
       {
@@ -54,6 +66,7 @@ export function extractDBError(error): {
       break;
     case 'SQLITE_CORRUPT':
       message = 'The database file is corrupt.';
+      httpStatus = 500;
       break;
 
     case 'SQLITE_MISMATCH':
@@ -249,9 +262,11 @@ export function extractDBError(error): {
       break;
     case 'ER_ACCESS_DENIED_ERROR':
       message = 'You do not have permission to perform this action.';
+      httpStatus = 403;
       break;
     case 'ER_LOCK_WAIT_TIMEOUT':
       message = 'A timeout occurred while waiting for a table lock.';
+      httpStatus = 500;
       break;
     case 'ER_NO_REFERENCED_ROW':
       message = 'The referenced record does not exist.';
@@ -271,7 +286,8 @@ export function extractDBError(error): {
       message = 'A value is required for this field.';
       break;
     case '23503':
-      message = 'The referenced record does not exist.';
+      message =
+        'Cannot delete this record because other records depend on it. Please remove the dependent records first.';
       break;
     case '23514':
       message = 'A null value is not allowed for this field.';
@@ -284,9 +300,11 @@ export function extractDBError(error): {
       break;
     case '28000':
       message = 'You do not have permission to perform this action.';
+      httpStatus = 401;
       break;
     case '40P01':
       message = 'A timeout occurred while waiting for a table lock.';
+      httpStatus = 500;
       break;
     case '23506':
       message = 'This record is being referenced by other records.';
@@ -323,9 +341,13 @@ export function extractDBError(error): {
           if (pgTypeMismatchMatch) {
             const dataType = pgTypeMismatchMatch[1];
             const invalidValue = pgTypeMismatchMatch[2];
-            const columnName = pgTypeMismatchMatch[3] || 'unknown';
+            const columnName = pgTypeMismatchMatch[3];
 
-            message = `Invalid ${dataType} value '${invalidValue}' for column '${columnName}'`;
+            if (columnName) {
+              message = `Invalid ${dataType} value '${invalidValue}' for column '${columnName}'`;
+            } else {
+              message = `Invalid value '${invalidValue}' for type '${dataType}'`;
+            }
             _type = DBError.DATA_TYPE_MISMATCH;
             _extra = { dataType, column: columnName, value: invalidValue };
             matched = true;
@@ -373,6 +395,18 @@ export function extractDBError(error): {
           _type = DBError.TABLE_NOT_EXIST;
           _extra = {
             table: extractTableNameMatch[1],
+          };
+        }
+
+        const extractColumnNameMatch = error.message.match(
+          / column "(\w+)" does not exist/i,
+        );
+
+        if (extractColumnNameMatch && extractColumnNameMatch[1]) {
+          message = `The column '${extractColumnNameMatch[1]}' does not exist.`;
+          _type = DBError.COLUMN_NOT_EXIST;
+          _extra = {
+            table: extractColumnNameMatch[1],
           };
         }
       }
@@ -438,21 +472,27 @@ export function extractDBError(error): {
       break;
     case 'ELOGIN':
       message = 'You do not have permission to perform this action.';
+      httpStatus = 403;
       break;
     case 'ETIMEOUT':
       message = 'A timeout occurred while waiting for a table lock.';
+      httpStatus = 500;
       break;
     case 'ECONNRESET':
       message = 'The connection was reset.';
+      httpStatus = 500;
       break;
     case 'ECONNREFUSED':
       message = 'The connection was refused.';
+      httpStatus = 500;
       break;
     case 'EHOSTUNREACH':
       message = 'The host is unreachable.';
+      httpStatus = 500;
       break;
     case 'EHOSTDOWN':
       message = 'The host is down.';
+      httpStatus = 500;
       break;
     default:
       // log error for unknown error code
@@ -470,684 +510,7 @@ export function extractDBError(error): {
       error: NcErrorType.DATABASE_ERROR,
       message,
       code: error.code,
+      httpStatus,
     };
-  }
-}
-
-export class NcBaseError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
-
-export class BadRequest extends NcBaseError {}
-
-export class NotAllowed extends NcBaseError {}
-
-export class Unauthorized extends NcBaseError {}
-
-export class Forbidden extends NcBaseError {}
-
-export class NotFound extends NcBaseError {}
-
-export class SsoError extends NcBaseError {}
-
-export class MetaError extends NcBaseError {
-  constructor(param: { message: string; sql: string }) {
-    super(param.message);
-    Object.assign(this, param);
-  }
-}
-
-export class ExternalError extends NcBaseError {
-  constructor(error: Error) {
-    super(error.message);
-    Object.assign(this, error);
-  }
-}
-
-export class ExternalTimeout extends ExternalError {}
-
-export class UnprocessableEntity extends NcBaseError {}
-
-export class OptionsNotExistsError extends BadRequest {
-  constructor({
-    columnTitle,
-    options,
-    validOptions,
-  }: {
-    columnTitle: string;
-    options: string[];
-    validOptions: string[];
-  }) {
-    super(
-      `Invalid option(s) "${options.join(
-        ', ',
-      )}" provided for column "${columnTitle}". Valid options are "${validOptions.join(
-        ', ',
-      )}"`,
-    );
-    this.columnTitle = columnTitle;
-    this.options = options;
-    this.validOptions = validOptions;
-  }
-  columnTitle: string;
-  options: string[];
-  validOptions: string[];
-}
-
-export class TestConnectionError extends NcBaseError {
-  public sql_code?: string;
-
-  constructor(message: string, sql_code?: string) {
-    super(message);
-    this.sql_code = sql_code;
-  }
-}
-
-export class AjvError extends NcBaseError {
-  humanReadableError: boolean;
-  constructor(param: {
-    message: string;
-    errors: ErrorObject[];
-    humanReadableError?: boolean;
-  }) {
-    super(param.message);
-    this.errors = param.errors;
-    this.humanReadableError = param.humanReadableError || false;
-  }
-
-  errors: ErrorObject[];
-}
-
-const errorHelpers: {
-  [key in NcErrorType]: {
-    message: string | ((...params: string[]) => string);
-    code: number;
-  };
-} = {
-  [NcErrorType.UNKNOWN_ERROR]: {
-    message: 'Something went wrong',
-    code: 500,
-  },
-  [NcErrorType.INTERNAL_SERVER_ERROR]: {
-    message: (message: string) => message || `Internal server error`,
-    code: 500,
-  },
-  [NcErrorType.DATABASE_ERROR]: {
-    message: (message: string) =>
-      message || `There was an error while running the query`,
-    code: 500,
-  },
-  [NcErrorType.AUTHENTICATION_REQUIRED]: {
-    message: 'Authentication required to access this resource',
-    code: 401,
-  },
-  [NcErrorType.API_TOKEN_NOT_ALLOWED]: {
-    message: 'This request is not allowed with API token',
-    code: 401,
-  },
-  [NcErrorType.WORKSPACE_NOT_FOUND]: {
-    message: (id: string) => `Workspace '${id}' not found`,
-    code: 404,
-  },
-  [NcErrorType.BASE_NOT_FOUND]: {
-    message: (id: string) => `Base '${id}' not found`,
-    code: 404,
-  },
-  [NcErrorType.SOURCE_NOT_FOUND]: {
-    message: (id: string) => `Source '${id}' not found`,
-    code: 404,
-  },
-  [NcErrorType.INTEGRATION_NOT_FOUND]: {
-    message: (id: string) => `Connection '${id}' not found`,
-    code: 404,
-  },
-  [NcErrorType.INTEGRATION_LINKED_WITH_BASES]: {
-    message: (bases) => `Connection linked with following bases '${bases}'`,
-    code: 404,
-  },
-  [NcErrorType.TABLE_NOT_FOUND]: {
-    message: (id: string) => `Table '${id}' not found`,
-    code: 404,
-  },
-  [NcErrorType.VIEW_NOT_FOUND]: {
-    message: (id: string) => `View '${id}' not found`,
-    code: 404,
-  },
-  [NcErrorType.FIELD_NOT_FOUND]: {
-    message: (id: string) => `Field '${id}' not found`,
-    code: 404,
-  },
-  [NcErrorType.HOOK_NOT_FOUND]: {
-    message: (id: string) => `Hook '${id}' not found`,
-    code: 404,
-  },
-  [NcErrorType.RECORD_NOT_FOUND]: {
-    message: (...ids: string[]) => {
-      const isMultiple = Array.isArray(ids) && ids.length > 1;
-      return `Record${isMultiple ? 's' : ''} '${ids.join(', ')}' not found`;
-    },
-    code: 404,
-  },
-  [NcErrorType.GENERIC_NOT_FOUND]: {
-    message: (resource: string, id: string) => `${resource} '${id}' not found`,
-    code: 404,
-  },
-  [NcErrorType.REQUIRED_FIELD_MISSING]: {
-    message: (field: string) => `Field '${field}' is required`,
-    code: 422,
-  },
-  [NcErrorType.ERROR_DUPLICATE_RECORD]: {
-    message: (...ids: string[]) => {
-      const isMultiple = Array.isArray(ids) && ids.length > 1;
-      return `Record${isMultiple ? 's' : ''} '${ids.join(
-        ', ',
-      )}' already exists`;
-    },
-    code: 422,
-  },
-  [NcErrorType.USER_NOT_FOUND]: {
-    message: (idOrEmail: string) => {
-      const isEmail = idOrEmail.includes('@');
-      return `User ${
-        isEmail ? 'with email' : 'with id'
-      } '${idOrEmail}' not found`;
-    },
-    code: 404,
-  },
-  [NcErrorType.INVALID_OFFSET_VALUE]: {
-    message: (offset: string) => `Offset value '${offset}' is invalid`,
-    code: 422,
-  },
-  [NcErrorType.INVALID_PAGE_VALUE]: {
-    message: (page: string) => `Page value '${page}' is invalid`,
-    code: 422,
-  },
-  [NcErrorType.INVALID_PK_VALUE]: {
-    message: (value: any, pkColumn: string) =>
-      `Primary key value '${value}' is invalid for column '${pkColumn}'`,
-    code: 422,
-  },
-  [NcErrorType.INVALID_LIMIT_VALUE]: {
-    message: `Limit value should be between ${defaultLimitConfig.limitMin} and ${defaultLimitConfig.limitMax}`,
-    code: 422,
-  },
-  [NcErrorType.INVALID_FILTER]: {
-    message: (filter: string) => `Filter '${filter}' is invalid`,
-    code: 422,
-  },
-  [NcErrorType.INVALID_SHARED_VIEW_PASSWORD]: {
-    message: 'Invalid shared view password',
-    code: 403,
-  },
-  [NcErrorType.INVALID_ATTACHMENT_JSON]: {
-    message: (payload: string) =>
-      `Invalid JSON for attachment field: ${payload}`,
-    code: 400,
-  },
-  [NcErrorType.NOT_IMPLEMENTED]: {
-    message: (feature: string) => `${feature} is not implemented`,
-    code: 501,
-  },
-  [NcErrorType.BAD_JSON]: {
-    message: 'Invalid JSON in request body',
-    code: 400,
-  },
-  [NcErrorType.COLUMN_ASSOCIATED_WITH_LINK]: {
-    message: 'Column is associated with a link, please remove the link first',
-    code: 400,
-  },
-  [NcErrorType.TABLE_ASSOCIATED_WITH_LINK]: {
-    message: 'Table is associated with a link, please remove the link first',
-    code: 400,
-  },
-  [NcErrorType.FORMULA_ERROR]: {
-    message: (message: string) => {
-      // try to extract db error - Experimental
-      if (message.includes(' - ')) {
-        const [_, dbError] = message.split(' - ');
-        return `Formula error: ${dbError}`;
-      }
-      return `Formula error: ${message}`;
-    },
-    code: 400,
-  },
-  [NcErrorType.FORMULA_CIRCULAR_REF_ERROR]: {
-    message: 'Circular reference detected in formula',
-    code: 400,
-  },
-  [NcErrorType.PERMISSION_DENIED]: {
-    message: 'Permission denied',
-    code: 403,
-  },
-  [NcErrorType.INVALID_ATTACHMENT_UPLOAD_SCOPE]: {
-    message: 'Invalid attachment upload scope',
-    code: 400,
-  },
-  [NcErrorType.REORDER_FAILED]: {
-    message: 'Reorder failed',
-    code: 400,
-  },
-  [NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER]: {
-    message: 'Cannot calculate intermediate order',
-    code: 400,
-  },
-  [NcErrorType.PLAN_LIMIT_EXCEEDED]: {
-    message: (message: string) => message || 'Plan limit exceeded',
-    code: 403,
-  },
-};
-
-function generateError(
-  type: NcErrorType,
-  args?: NcErrorArgs,
-): {
-  message: string;
-  code: number;
-  details?: any;
-} {
-  const errorHelper = errorHelpers[type];
-  const { params, customMessage, details } = args || {};
-
-  if (!errorHelper) {
-    return {
-      message: 'An error occurred',
-      code: 500,
-      details: details,
-    };
-  }
-
-  let message: string;
-  const messageHelper = customMessage || errorHelper.message;
-
-  if (typeof messageHelper === 'function') {
-    message = messageHelper(...(Array.isArray(params) ? params : [params]));
-  } else {
-    message = messageHelper;
-  }
-
-  return {
-    message,
-    code: errorHelper.code,
-    details: details,
-  };
-}
-
-type NcErrorArgs = {
-  params?: string | string[];
-  customMessage?: string | ((...args: string[]) => string);
-  details?: any;
-};
-
-export class NcBaseErrorv2 extends NcBaseError {
-  error: NcErrorType;
-  code: number;
-  details?: any;
-
-  constructor(error: NcErrorType, args?: NcErrorArgs) {
-    const errorHelper = generateError(error, args);
-    super(errorHelper.message);
-    this.error = error;
-    this.code = errorHelper.code;
-    this.details = args?.details;
-  }
-}
-
-export class NcError {
-  static permissionDenied(
-    permissionName: string,
-    roles: Record<string, boolean>,
-    extendedScopeRoles: any,
-  ) {
-    throw new NcBaseErrorv2(NcErrorType.PERMISSION_DENIED, {
-      customMessage: generateReadablePermissionErr(
-        permissionName,
-        roles,
-        extendedScopeRoles,
-      ),
-      details: {
-        permissionName,
-        roles,
-        extendedScopeRoles,
-      },
-    });
-  }
-
-  static authenticationRequired(args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.AUTHENTICATION_REQUIRED, args);
-  }
-
-  static apiTokenNotAllowed(args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.API_TOKEN_NOT_ALLOWED, args);
-  }
-
-  static workspaceNotFound(id: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.WORKSPACE_NOT_FOUND, {
-      params: id,
-      ...args,
-    });
-  }
-
-  static columnAssociatedWithLink(_id: string, args: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.COLUMN_ASSOCIATED_WITH_LINK, args);
-  }
-
-  static tableAssociatedWithLink(_id: string, args: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.TABLE_ASSOCIATED_WITH_LINK, args);
-  }
-
-  static baseNotFound(id: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.BASE_NOT_FOUND, {
-      params: id,
-      ...args,
-    });
-  }
-
-  static sourceNotFound(id: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.SOURCE_NOT_FOUND, {
-      params: id,
-      ...args,
-    });
-  }
-
-  static tableNotFound(id: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.TABLE_NOT_FOUND, {
-      params: id,
-      ...args,
-    });
-  }
-
-  static userNotFound(id: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.USER_NOT_FOUND, {
-      params: id,
-      ...args,
-    });
-  }
-
-  static viewNotFound(id: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.VIEW_NOT_FOUND, {
-      params: id,
-      ...args,
-    });
-  }
-
-  static hookNotFound(id: string, args?: NcErrorArgs): never {
-    throw new NcBaseErrorv2(NcErrorType.HOOK_NOT_FOUND, {
-      params: id,
-      ...args,
-    });
-  }
-
-  static recordNotFound(
-    id: string | string[] | Record<string, string> | Record<string, string>[],
-    args?: NcErrorArgs,
-  ) {
-    let formatedId: string | string[] = '';
-    if (!id) {
-      formatedId = 'unknown';
-    } else if (typeof id === 'string') {
-      formatedId = [id];
-    } else if (Array.isArray(id)) {
-      if (id.every((i) => typeof i === 'string')) {
-        formatedId = id as string[];
-      } else {
-        formatedId = id.map((val) => {
-          const idsArr = Object.values(val);
-          if (idsArr.length > 1) {
-            return idsArr
-              .map((idVal) => idVal?.toString?.().replaceAll('_', '\\_'))
-              .join('___');
-          } else if (idsArr.length) {
-            return idsArr[0] as any;
-          } else {
-            return 'unknown';
-          }
-        });
-      }
-    } else {
-      const idsArr = Object.values(id);
-      if (idsArr.length > 1) {
-        formatedId = idsArr
-          .map((idVal) => idVal?.toString?.().replaceAll('_', '\\_'))
-          .join('___');
-      } else if (idsArr.length) {
-        formatedId = idsArr[0] as any;
-      } else {
-        formatedId = 'unknown';
-      }
-    }
-
-    throw new NcBaseErrorv2(NcErrorType.RECORD_NOT_FOUND, {
-      params: formatedId,
-      ...args,
-    });
-  }
-
-  static genericNotFound(resource: string, id: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.GENERIC_NOT_FOUND, {
-      params: [resource, id],
-      ...args,
-    });
-  }
-
-  static requiredFieldMissing(field: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.REQUIRED_FIELD_MISSING, {
-      params: field,
-      ...args,
-    });
-  }
-
-  static duplicateRecord(id: string | string[], args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.ERROR_DUPLICATE_RECORD, {
-      params: id,
-      ...args,
-    });
-  }
-
-  static fieldNotFound(id: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.FIELD_NOT_FOUND, {
-      params: id,
-      ...args,
-    });
-  }
-
-  static invalidOffsetValue(offset: string | number, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.INVALID_OFFSET_VALUE, {
-      params: `${offset}`,
-      ...args,
-    });
-  }
-  static invalidPageValue(page: string | number, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.INVALID_PAGE_VALUE, {
-      params: `${page}`,
-      ...args,
-    });
-  }
-
-  static invalidPrimaryKey(value: any, pkColumn: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.INVALID_PK_VALUE, {
-      params: [value, pkColumn],
-      ...args,
-    });
-  }
-
-  static invalidLimitValue(args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.INVALID_LIMIT_VALUE, {
-      ...args,
-    });
-  }
-
-  static invalidFilter(filter: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.INVALID_FILTER, {
-      params: filter,
-      ...args,
-    });
-  }
-
-  static invalidSharedViewPassword(args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.INVALID_SHARED_VIEW_PASSWORD, {
-      ...args,
-    });
-  }
-
-  static invalidAttachmentJson(payload: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.INVALID_ATTACHMENT_JSON, {
-      params: payload,
-      ...args,
-    });
-  }
-
-  static notImplemented(feature: string = 'Feature', args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.NOT_IMPLEMENTED, {
-      params: feature,
-      ...args,
-    });
-  }
-
-  static internalServerError(message: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.INTERNAL_SERVER_ERROR, {
-      params: message,
-      ...args,
-    });
-  }
-
-  static formulaError(message: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.FORMULA_ERROR, {
-      params: message,
-      ...args,
-    });
-  }
-
-  static formulaCircularRefError(message: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.FORMULA_CIRCULAR_REF_ERROR, {
-      params: message,
-      ...args,
-    });
-  }
-
-  static notFound(message = 'Not found') {
-    throw new NotFound(message);
-  }
-
-  static badRequest(message) {
-    throw new BadRequest(message);
-  }
-
-  static unauthorized(message) {
-    throw new Unauthorized(message);
-  }
-
-  static forbidden(message) {
-    throw new Forbidden(message);
-  }
-
-  static ajvValidationError(param: {
-    message: string;
-    errors: ErrorObject[];
-    humanReadableError: boolean;
-  }) {
-    throw new AjvError(param);
-  }
-
-  static unprocessableEntity(message = 'Unprocessable entity') {
-    throw new UnprocessableEntity(message);
-  }
-
-  static testConnectionError(message = 'Unprocessable entity', code?: string) {
-    throw new TestConnectionError(message, code);
-  }
-
-  static notAllowed(message = 'Not allowed') {
-    throw new NotAllowed(message);
-  }
-
-  static emailDomainNotAllowed(domain: string) {
-    throw new SsoError(
-      `Email domain ${domain} is not allowed for this organization`,
-    );
-  }
-
-  static metaError(param: { message: string; sql: string }) {
-    throw new MetaError(param);
-  }
-
-  static sourceDataReadOnly(name: string) {
-    NcError.forbidden(`Source '${name}' is read-only`);
-  }
-
-  static sourceMetaReadOnly(name: string) {
-    NcError.forbidden(`Source '${name}' schema is read-only`);
-  }
-
-  static integrationNotFound(id: string, args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.INTEGRATION_NOT_FOUND, {
-      params: id,
-      ...(args || {}),
-    });
-  }
-
-  static cannotCalculateIntermediateOrderError() {
-    throw new NcBaseErrorv2(
-      NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER,
-      {},
-    );
-  }
-
-  static reorderFailed() {
-    throw new NcBaseErrorv2(NcErrorType.REORDER_FAILED, {});
-  }
-
-  static integrationLinkedWithMultiple(
-    bases: BaseType[],
-    sources: SourceType[],
-    args?: NcErrorArgs,
-  ) {
-    throw new NcBaseErrorv2(NcErrorType.INTEGRATION_LINKED_WITH_BASES, {
-      params: bases.map((s) => s.title).join(', '),
-      details: {
-        bases: bases.map((b) => {
-          return {
-            id: b.id,
-            title: b.title,
-          };
-        }),
-        sources: sources.map((s) => {
-          return {
-            id: s.id,
-            base_id: s.base_id,
-            title: s.alias,
-          };
-        }),
-      },
-      ...(args || {}),
-    });
-  }
-
-  static invalidAttachmentUploadScope(args?: NcErrorArgs) {
-    throw new NcBaseErrorv2(NcErrorType.INVALID_ATTACHMENT_UPLOAD_SCOPE, args);
-  }
-
-  static optionsNotExists(props: {
-    columnTitle: string;
-    options: string[];
-    validOptions: string[];
-  }) {
-    throw new OptionsNotExistsError(props);
-  }
-
-  static planLimitExceeded(
-    message: string,
-    details: Omit<PlanLimitExceededDetailsType, 'higherPlan'>,
-    args?: NcErrorArgs,
-  ) {
-    throw new NcBaseErrorv2(NcErrorType.PLAN_LIMIT_EXCEEDED, {
-      params: message,
-      ...args,
-      details: {
-        ...details,
-        ...(details?.plan ? { higherPlan: HigherPlan[details.plan] } : {}),
-      },
-    });
   }
 }

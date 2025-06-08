@@ -1,8 +1,8 @@
 import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
-import init from '../../../init';
 import { isEE } from 'playwright/setup/db';
+import init from '../../../init';
 
 interface CreateBaseArgs {
   title: string;
@@ -24,7 +24,7 @@ export default function () {
         .post(`/api/v3/meta/workspaces/${workspaceId}/bases`)
         .set('xc-token', context.xc_token)
         .send(args)
-        .expect(201);
+        .expect(200);
 
       return base.body;
     }
@@ -38,8 +38,7 @@ export default function () {
         'meta',
         'created_at',
         'updated_at',
-        ...(isEE()?
-        ['workspace_id'] :[])
+        ...(isEE() ? ['workspace_id'] : []),
       ]);
 
       // Optionally check for 'description' if it exists
@@ -66,8 +65,7 @@ export default function () {
       });
       expect(new Date(created_at)).to.be.a('date');
       expect(new Date(updated_at)).to.be.a('date');
-      if(isEE())
-      expect(workspace_id).to.equal(context.fk_workspace_id);
+      if (isEE()) expect(workspace_id).to.equal(context.fk_workspace_id);
     }
 
     // Sample reference for base data
@@ -104,7 +102,7 @@ export default function () {
       // There is one default base created for the workspace
       expect(bases).to.have.lengthOf(4);
 
-      if(isEE()) {
+      if (isEE()) {
         // ensure all the bases have same WS ID (=workspaceId)
         bases.forEach((base) => {
           expect(base).to.have.property('workspace_id', workspaceId);
@@ -121,7 +119,7 @@ export default function () {
         expect(base).to.have.property('title', 'Test Base');
         expect(base).to.have.property('description', 'Test Description');
         expect(base.meta).to.have.property('icon_color', '#123456');
-        if(isEE()) {
+        if (isEE()) {
           expect(base).to.have.property('workspace_id', workspaceId);
         }
         expect(new Date(base.created_at)).to.be.a('date');
@@ -139,7 +137,7 @@ export default function () {
       const baseObjMinimal = await _createBase(baseDataMinimal);
       await _verifyBase(baseObjMinimal, baseDataMinimal);
 
-      if(isEE()) {
+      if (isEE()) {
         // Invalid Workspace ID
         const err = await request(context.app)
           .post(`/api/v3/meta/workspaces/invalidId/bases`)
@@ -147,10 +145,10 @@ export default function () {
           .send(baseDataMinimal)
           .expect(404);
 
-      // validate error response
-      expect(Object.keys(err.body)).to.include.members(['error', 'message']);
-      expect(err.body.error).to.equal('WORKSPACE_NOT_FOUND');
-      expect(err.body.message).to.equal("Workspace 'invalidId' not found");
+        // validate error response
+        expect(Object.keys(err.body)).to.include.members(['error', 'message']);
+        expect(err.body.error).to.equal('WORKSPACE_NOT_FOUND');
+        expect(err.body.message).to.equal("Workspace 'invalidId' not found");
       }
 
       // base name exceeds 255 characters
@@ -222,7 +220,7 @@ export default function () {
       await request(context.app)
         .get(`/api/v3/meta/bases/${baseObj.id}`)
         .set('xc-token', context.xc_token)
-        .expect(404);
+        .expect(422);
     });
   });
 }

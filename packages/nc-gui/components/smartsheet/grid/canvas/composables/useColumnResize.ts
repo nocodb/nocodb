@@ -1,5 +1,4 @@
 import { type ColumnType, UITypes } from 'nocodb-sdk'
-import type { SetCursorType } from '../../../../../lib/types'
 import { parseCellWidth } from '../utils/cell'
 
 export function useColumnResize(
@@ -7,7 +6,6 @@ export function useColumnResize(
   columns: ComputedRef<CanvasGridColumn[]>,
   colSlice: Ref<{ start: number; end: number }>,
   scrollLeft: Ref<number>,
-  setCursor: SetCursorType,
   onResize?: (columnId: string, width: number) => void,
   onResizeEnd?: (columnId: string, width: number) => void,
 ) {
@@ -160,7 +158,7 @@ export const columnWidthLimit = {
 
 const getColumnWidthLimit = (uidt: keyof typeof columnWidthLimit) => {
   if (uidt in columnWidthLimit) return columnWidthLimit[uidt]
-  return { minWidth: 80, maxWidth: Number.POSITIVE_INFINITY }
+  return { minWidth: 50, maxWidth: Number.POSITIVE_INFINITY }
 }
 
 export const normalizeWidth = (col: ColumnType, width: number): number => {

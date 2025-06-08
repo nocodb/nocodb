@@ -18,8 +18,6 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
 
   const { getMeta, removeMeta } = useMetas()
 
-  const { closeTab } = useTabs()
-
   const { refreshCommandPalette } = useCommandPalette()
 
   const router = useRouter()
@@ -230,12 +228,6 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
           }
 
           await $api.dbTable.delete(table?.id as string)
-
-          await closeTab({
-            type: TabType.TABLE,
-            id: table.id,
-            title: table.title,
-          })
 
           await loadTables()
 

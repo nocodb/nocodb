@@ -78,13 +78,17 @@ const submitDuration = () => {
 const focus: VNodeRef = (el) => {
   if (!isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
     inputRef.value = el as HTMLInputElement
-    inputRef.value?.focus()
+    nextTick(() => {
+      inputRef.value?.focus()
+    })
   }
 }
 
 onMounted(() => {
   if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
-    inputRef.value?.focus()
+    nextTick(() => {
+      inputRef.value?.focus()
+    })
   }
 })
 </script>

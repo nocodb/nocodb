@@ -15,16 +15,19 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { xWhere, eventBus } = useSmartsheetStoreOrThrow()
+const { xWhere, eventBus, isExternalSource } = useSmartsheetStoreOrThrow()
 
 const { t } = useI18n()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
+
 const bulkUpdateDlg = ref(false)
 
 const routeQuery = computed(() => route.value.query as Record<string, string>)
 
+const expandedFormRef = ref()
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
@@ -205,7 +208,9 @@ const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.
 
 const isCanvasTableEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CANVAS_GRID_VIEW))
 
-const isCanvasGroupByTableEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CANVAS_GROUP_GRID_VIEW))
+const isCanvasGroupByTableEnabled = computed(
+  () => isFeatureEnabled(FEATURE_FLAG.CANVAS_GROUP_GRID_VIEW) && !blockExternalSourceRecordVisibility(isExternalSource.value),
+)
 
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
@@ -230,7 +235,6 @@ const {
   isFirstRow: pisFirstRow,
   islastRow: pisLastRow,
   getExpandedRowIndex: pGetExpandedRowIndex,
-  changePage: pChangeView,
   navigateToSiblingRow: pNavigateToSiblingRow,
 } = useViewData(meta, view, xWhere)
 
@@ -244,6 +248,7 @@ const {
   loadGroupAggregation,
   groupBy,
   redistributeRows,
+  loadDisallowedLookups,
 } = useViewGroupByOrThrow()
 
 const baseColor = computed(() => {
@@ -288,23 +293,34 @@ const updateRowCommentCount = (count: number) => {
     pData.value[currentRowIndex].rowMeta.commentCount = count
   }
 }
-const pGoToNextRow = () => {
-  const currentIndex = pGetExpandedRowIndex()
-  /* when last index of current page is reached we should move to next page */
-  if (!pPaginationData.value.isLastPage && currentIndex === pPaginationData.value.pageSize) {
-    const nextPage = pPaginationData.value?.page ? pPaginationData.value?.page + 1 : 1
-    pChangeView(nextPage)
-  }
-  pNavigateToSiblingRow(NavigateDir.NEXT)
-}
-const pGoToPreviousRow = () => {
-  const currentIndex = pGetExpandedRowIndex()
-  /* when first index of current page is reached and then clicked back previos page should be loaded  */
-  if (!pPaginationData.value.isFirstPage && currentIndex === 1) {
-    const nextPage = pPaginationData.value?.page ? pPaginationData.value?.page - 1 : 1
-    pChangeView(nextPage)
+
+const validateExternalSourceRecordVisibility = (page: number, callback?: () => void) => {
+  if (
+    (pPaginationData.value?.pageSize ?? 25) * page > 100 &&
+    showUpgradeToSeeMoreRecordsModal({ isExternalSource: isExternalSource.value })
+  ) {
+    return true
   }
 
+  callback?.()
+}
+
+const pGoToNextRow = () => {
+  const currentIndex = pGetExpandedRowIndex()
+
+  if (
+    !pPaginationData.value.isLastPage &&
+    currentIndex === (pPaginationData.value.pageSize ?? 25) - 1 &&
+    validateExternalSourceRecordVisibility(pPaginationData.value?.page ? pPaginationData.value?.page + 1 : 1)
+  ) {
+    expandedFormRef.value?.stopLoading?.()
+    return
+  }
+
+  pNavigateToSiblingRow(NavigateDir.NEXT)
+}
+
+const pGoToPreviousRow = () => {
   pNavigateToSiblingRow(NavigateDir.PREV)
 }
 
@@ -319,6 +335,10 @@ const bulkUpdateTrigger = (path: Array<number>) => {
   groupPath.value = path
   bulkUpdateDlg.value = true
 }
+
+watch([() => view.value?.id, () => meta.value?.columns], async () => {
+  await loadDisallowedLookups()
+})
 </script>
 
 <template>
@@ -334,7 +354,7 @@ const bulkUpdateTrigger = (path: Array<number>) => {
       :data="pData"
       :pagination-data="pPaginationData"
       :load-data="pLoadData"
-      :change-page="pChangePage"
+      :change-page="(p: number) => validateExternalSourceRecordVisibility(p, ()=> pChangePage(p))"
       :call-add-empty-row="pAddEmptyRow"
       :delete-row="pDeleteRow"
       :update-or-save-row="pUpdateOrSaveRow"
@@ -455,6 +475,7 @@ const bulkUpdateTrigger = (path: Array<number>) => {
     </Suspense>
     <SmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg && meta?.id"
+      ref="expandedFormRef"
       v-model="expandedFormOnRowIdDlg"
       :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"

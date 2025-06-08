@@ -1,5 +1,4 @@
 import {
-  BINARY_LOGICAL_OPERATOR,
   NOT_OPERATOR,
   QUERY_FILTER_TOKENS,
   QueryFilterLexer,
@@ -35,7 +34,7 @@ export class QueryFilterParser extends CommonCstParser {
       });
     });
     $.RULE('and_or_clause', () => {
-      $.CONSUME(BINARY_LOGICAL_OPERATOR, { LABEL: 'operator' });
+      $.CONSUME(COMMON_TOKEN.IDENTIFIER, { LABEL: 'operator' });
       $.SUBRULE($['paren_clause'], { LABEL: 'clause' });
     });
     $.RULE('not_clause', () => {
@@ -45,8 +44,8 @@ export class QueryFilterParser extends CommonCstParser {
     $.RULE('paren_clause', () => {
       $.CONSUME(COMMON_TOKEN.PAREN_START);
       $.OR([
-        { ALT: () => $.SUBRULE($['call_expression'], { LABEL: 'clause' }) },
         { ALT: () => $.SUBRULE($['multi_clause'], { LABEL: 'clause' }) },
+        { ALT: () => $.SUBRULE($['call_expression'], { LABEL: 'clause' }) },
       ]);
       $.CONSUME(COMMON_TOKEN.PAREN_END);
     });

@@ -1,10 +1,20 @@
+import { isBoxHovered, renderMultiLineText } from '../utils/canvas'
+
 export const QRCodeCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, column, imageLoader, padding, tag = {} }) => {
+  render: (ctx, { value, x, y, width, height, column, imageLoader, padding, tag = {}, cellRenderStore }) => {
     const { renderAsTag } = tag
     padding = 4
     if (!value || value === 'ERR!') {
       if (value === 'ERR!') {
-        imageLoader.renderError(ctx, 'ERR!', x, y, width, height)
+        renderMultiLineText(ctx, {
+          x: x + padding,
+          y,
+          text: 'ERR!',
+          maxWidth: width - padding * 2,
+          fontFamily: '500 13px Inter',
+          fillStyle: '#e65100',
+          height,
+        })
       }
       return
     }
@@ -13,13 +23,21 @@ export const QRCodeCellRenderer: CellRenderer = {
     const maxChars = 2000
 
     if (qrValue.length > maxChars) {
-      imageLoader.renderError(ctx, 'QR Code value too long', x, y, width, height)
+      renderMultiLineText(ctx, {
+        x: x + padding,
+        y,
+        text: 'Too many characters for a QR Code',
+        maxWidth: width - padding * 2,
+        fontFamily: '500 13px Inter',
+        fillStyle: '#e65100',
+        height,
+      })
       return
     }
 
     const meta = parseProp(column?.meta)
 
-    let maxHeight = height - padding * 2
+    let maxHeight
 
     if (pxToRowHeight[height] === 1) {
       maxHeight = height - 4
@@ -39,6 +57,15 @@ export const QRCodeCellRenderer: CellRenderer = {
       const yPos = y + (height - size) / 2
       imageLoader.renderQRCode(ctx, qrCanvas, xPos, yPos, size)
 
+      if (!renderAsTag) {
+        Object.assign(cellRenderStore, {
+          x: xPos,
+          y: yPos,
+          width: size,
+          height: size,
+        })
+      }
+
       return {
         x: x + padding + size,
         y: yPos * 2,
@@ -57,6 +84,22 @@ export const QRCodeCellRenderer: CellRenderer = {
 
     if (e.key === 'Enter') {
       makeCellEditable(row, column)
+      return true
+    }
+
+    return false
+  },
+
+  async handleClick({ row, column, mousePosition, makeCellEditable, cellRenderStore, selected, isDoubleClick }) {
+    if (!selected || isDoubleClick) return false
+
+    const { x, y, width, height } = cellRenderStore
+
+    if (!x || !y || !width || !height) return false
+
+    if (isBoxHovered({ x, y, width, height }, mousePosition)) {
+      makeCellEditable(row, column)
+
       return true
     }
 

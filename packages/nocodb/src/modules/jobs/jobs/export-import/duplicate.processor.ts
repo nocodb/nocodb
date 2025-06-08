@@ -29,6 +29,8 @@ import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
 import { ImportService } from '~/modules/jobs/jobs/export-import/import.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { TablesService } from '~/services/tables.service';
+import { TelemetryService } from '~/services/telemetry.service';
 
 @Injectable()
 export class DuplicateProcessor {
@@ -41,6 +43,8 @@ export class DuplicateProcessor {
     protected readonly bulkDataService: BulkDataAliasService,
     protected readonly columnsService: ColumnsService,
     protected readonly appHooksService: AppHooksService,
+    protected readonly tablesService: TablesService,
+    protected readonly telemetryService: TelemetryService,
   ) {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -93,22 +97,24 @@ export class DuplicateProcessor {
       base_id: targetBase.id,
     };
 
-    if (
-      [JobTypes.DuplicateBase, JobTypes.RestoreSnapshot].includes(operation) &&
-      targetContext.workspace_id !== sourceBase.fk_workspace_id
-    ) {
-      await this.handleDuplicateDifferentWs({
-        sourceBase,
-        targetBase,
-        dataSource,
-        req,
-        context,
-        targetContext,
-        options,
-      });
-    }
-
     try {
+      if (
+        [JobTypes.DuplicateBase, JobTypes.RestoreSnapshot].includes(
+          operation,
+        ) &&
+        targetContext.workspace_id !== sourceBase.fk_workspace_id
+      ) {
+        await this.handleDuplicateDifferentWs({
+          sourceBase,
+          targetBase,
+          dataSource,
+          req,
+          context,
+          targetContext,
+          options,
+        });
+      }
+
       if (!sourceBase || !targetBase || !dataSource) {
         throw new Error(`Base or source not found!`);
       }
@@ -159,6 +165,7 @@ export class DuplicateProcessor {
           sourceModels: models,
           destProject: targetBase,
           destBase: targetBaseSource,
+          options,
           hrTime,
           req,
         });
@@ -195,6 +202,20 @@ export class DuplicateProcessor {
         req,
         context: targetContext,
         error: err.message,
+      });
+
+      this.telemetryService.sendSystemEvent({
+        event_type: 'priority_error',
+        error_trigger: 'duplicateBase',
+        error_type: err?.name,
+        message: err?.message,
+        error_details: err?.stack,
+        affected_resources: [
+          req?.user?.email,
+          req?.user?.id,
+          context.base_id,
+          context.workspace_id,
+        ],
       });
 
       throw err;
@@ -267,6 +288,8 @@ export class DuplicateProcessor {
 
     const sourceModel = models.find((m) => m.id === modelId);
 
+    const createdModels: string[] = [];
+
     try {
       await sourceModel.getColumns(context);
 
@@ -316,6 +339,8 @@ export class DuplicateProcessor {
       if (!idMap) {
         throw new Error(`Import failed for model '${modelId}'`);
       }
+
+      createdModels.push(findWithIdentifier(idMap, sourceModel.id));
 
       if (!excludeData) {
         const fields: Record<string, string[]> = {};
@@ -373,6 +398,31 @@ export class DuplicateProcessor {
         req,
         context,
         error: e.message,
+      });
+
+      if (createdModels.length > 0) {
+        for (const modelId of createdModels) {
+          await this.tablesService.tableDelete(context, {
+            tableId: modelId,
+            user: req.user,
+            forceDeleteRelations: true,
+            req,
+          });
+        }
+      }
+
+      this.telemetryService.sendSystemEvent({
+        event_type: 'priority_error',
+        error_trigger: 'duplicateModel',
+        error_type: e?.name,
+        message: e?.message,
+        error_details: e?.stack,
+        affected_resources: [
+          req?.user?.email,
+          req?.user?.id,
+          context.base_id,
+          context.workspace_id,
+        ],
       });
 
       throw e;
@@ -447,12 +497,18 @@ export class DuplicateProcessor {
     try {
       // save old default value
       const oldCdf = replacedColumn.cdf;
+      const oldRequired = replacedColumn.rqd;
 
       replacedColumn.title = title;
       replacedColumn.column_name = title.toLowerCase().replace(/ /g, '_');
 
       // remove default value to avoid filling existing empty rows
       replacedColumn.cdf = null;
+
+      // remove required to avoid filling existing empty rows
+      if (oldRequired) {
+        replacedColumn.rqd = false;
+      }
 
       Object.assign(replacedColumn, extra);
 
@@ -520,13 +576,14 @@ export class DuplicateProcessor {
         colId: findWithIdentifier(idMap, sourceColumn.id),
       });
 
-      // update cdf
+      // update cdf and rqd
       if (!isVirtualCol(destColumn) && !isAIPromptCol(destColumn)) {
         await this.columnsService.columnUpdate(context, {
           columnId: findWithIdentifier(idMap, sourceColumn.id),
           column: {
             ...destColumn,
             cdf: oldCdf,
+            ...(oldRequired ? { rqd: oldRequired } : {}),
           },
           user: req.user,
           req,
@@ -748,7 +805,11 @@ export class DuplicateProcessor {
                   for (let i = 0; i < headers.length; i++) {
                     if (headers[i]) {
                       if (results.data[i] !== '') {
-                        row[headers[i]] = results.data[i];
+                        if (results.data[i] === '__nc_empty_string__') {
+                          row[headers[i]] = '';
+                        } else {
+                          row[headers[i]] = results.data[i];
+                        }
                       }
                     }
                   }

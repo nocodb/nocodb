@@ -103,13 +103,13 @@ export const BelongsToCellRenderer: CellRenderer = {
           x: returnData.x + 2,
           y: y + (rowHeightInPx['1'] === height ? 8 : 10),
           icon: 'ncXCircle',
-          size: 14,
+          size: 16,
           color: '#AFB3C2',
         })
 
         if (
           isBoxHovered(
-            { x: returnData.x + 2, y: y + (rowHeightInPx['1'] === height ? 8 : 10), height: 14, width: 14 },
+            { x: returnData.x + 2, y: y + (rowHeightInPx['1'] === height ? 8 : 10), height: 16, width: 16 },
             mousePosition,
           )
         ) {
@@ -118,16 +118,16 @@ export const BelongsToCellRenderer: CellRenderer = {
       }
     }
 
-    if (isBoxHovered({ x, y, width, height }, mousePosition) && !readonly) {
+    if (selected && !readonly) {
       spriteLoader.renderIcon(ctx, {
         x: x + width - 26,
-        y: y + 8,
+        y: y + 7,
         icon: 'ncPlus',
-        size: 14,
+        size: 16,
         color: '#374151',
       })
 
-      if (isBoxHovered({ x: x + width - 26, y: y + 8, width: 14, height: 14 }, mousePosition)) {
+      if (isBoxHovered({ x: x + width - 26, y: y + 7, width: 16, height: 16 }, mousePosition)) {
         setCursor('pointer')
       }
     }
@@ -148,9 +148,11 @@ export const BelongsToCellRenderer: CellRenderer = {
     isDoubleClick,
     openDetachedExpandedForm,
   }) {
+    if (!selected && !isDoubleClick) return false
+
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width, height } = getCellPosition(column, rowIndex)
-    const size = 14
+    const size = 16
 
     /**
      * Note: The order of click action trigger is matter here to mimic behaviour of editable cell
@@ -168,7 +170,7 @@ export const BelongsToCellRenderer: CellRenderer = {
     const isClickedOnXCircleIcon =
       cellRenderStore?.x &&
       selected &&
-      isBoxHovered({ x: cellRenderStore.x + 2, y: y + 8, height: size, width: size }, mousePosition)
+      isBoxHovered({ x: cellRenderStore.x + 2, y: y + 7, height: size, width: size }, mousePosition)
 
     if (isClickedOnPlusIcon || isClickedOnXCircleIcon) {
       makeCellEditable(row, column)
@@ -195,9 +197,9 @@ export const BelongsToCellRenderer: CellRenderer = {
     ) {
       /**
        * To mimic editable cell behaviour we added return statement here
-       * If cell is readonly (stop event propagation on click chip item) `@click.stop="openExpandedForm"`
+       * If isPublic (stop event propagation on click chip item) `@click.stop="openExpandedForm"`
        */
-      if (readonly) return true
+      if (isPublic) return true
 
       const rowId = extractPkFromRow(value, (column.relatedTableMeta?.columns || []) as ColumnType[])
 

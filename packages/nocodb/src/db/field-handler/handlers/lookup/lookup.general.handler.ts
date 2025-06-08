@@ -1,22 +1,41 @@
 import { RelationTypes } from 'nocodb-sdk';
+import { ComputedFieldHandler } from '../computed';
+import type { Logger } from '@nestjs/common';
+import type { NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
-import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
+import type {
+  FilterOptions,
+  IFieldHandler,
+} from '~/db/field-handler/field-handler.interface';
 import type { Knex } from '~/db/CustomKnex';
 import type { Filter } from '~/models';
+import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
+import type { MetaService } from 'src/meta/meta.service';
 import {
   getAlias,
   negatedMapping,
   nestedConditionJoin,
 } from '~/db/field-handler/utils/handlerUtils';
-import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
+import { Model } from '~/models';
 
-export class LookupGeneralHandler extends GenericFieldHandler {
+export class LookupGeneralHandler extends ComputedFieldHandler {
+  /**
+   * Applies a filter condition for lookup columns based on the relation type.
+   * It constructs a subquery to find related records that match the filter criteria
+   * and then uses this subquery to filter the main query.
+   *
+   * @param knex - The Knex instance.
+   * @param filter - The filter object containing comparison operator and value.
+   * @param column - The lookup column being filtered.
+   * @param options - Additional options including base model, alias count, error handling, and condition parser.
+   * @returns A function that applies the filter condition to a query builder.
+   */
   override async filter(
     knex: CustomKnex,
     filter: Filter,
     column: Column,
-    options: HandlerOptions,
+    options: FilterOptions,
   ) {
     const {
       baseModel: baseModelSqlv2,
@@ -32,16 +51,32 @@ export class LookupGeneralHandler extends GenericFieldHandler {
     const relationColumnOptions =
       await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
     // const relationModel = await relationColumn.getModel();
-    const lookupColumn = await colOptions.getLookupColumn(context);
+    const { refContext, parentContext, childContext, mmContext } =
+      await relationColumnOptions.getParentChildContext(context);
+    const lookupColumn = await colOptions.getLookupColumn(refContext);
     const alias = getAlias(aliasCount);
     let qb;
     {
-      const childColumn = await relationColumnOptions.getChildColumn(context);
-      const parentColumn = await relationColumnOptions.getParentColumn(context);
-      const childModel = await childColumn.getModel(context);
-      await childModel.getColumns(context);
-      const parentModel = await parentColumn.getModel(context);
-      await parentModel.getColumns(context);
+      const childColumn = await relationColumnOptions.getChildColumn(
+        childContext,
+      );
+      const parentColumn = await relationColumnOptions.getParentColumn(
+        parentContext,
+      );
+      const childModel = await childColumn.getModel(childContext);
+      await childModel.getColumns(childContext);
+      const parentModel = await parentColumn.getModel(parentContext);
+      await parentModel.getColumns(parentContext);
+
+      const childBaseModel = await Model.getBaseModelSQL(childContext, {
+        model: childModel,
+        dbDriver: baseModelSqlv2.dbDriver,
+      });
+
+      const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
+        model: parentModel,
+        dbDriver: baseModelSqlv2.dbDriver,
+      });
 
       let relationType = relationColumnOptions.type;
 
@@ -54,7 +89,7 @@ export class LookupGeneralHandler extends GenericFieldHandler {
       if (relationType === RelationTypes.HAS_MANY) {
         qb = knex(
           knex.raw(`?? as ??`, [
-            baseModelSqlv2.getTnPath(childModel.table_name),
+            childBaseModel.getTnPath(childModel.table_name),
             alias,
           ]),
         );
@@ -62,7 +97,7 @@ export class LookupGeneralHandler extends GenericFieldHandler {
         qb.select(`${alias}.${childColumn.column_name}`);
 
         await nestedConditionJoin({
-          baseModelSqlv2,
+          baseModelSqlv2: childBaseModel,
           filter: {
             ...filter,
             ...(filter.comparison_op in negatedMapping
@@ -86,14 +121,14 @@ export class LookupGeneralHandler extends GenericFieldHandler {
       } else if (relationType === RelationTypes.BELONGS_TO) {
         qb = knex(
           knex.raw(`?? as ??`, [
-            baseModelSqlv2.getTnPath(parentModel.table_name),
+            parentBaseModel.getTnPath(parentModel.table_name),
             alias,
           ]),
         );
         qb.select(`${alias}.${parentColumn.column_name}`);
 
         await nestedConditionJoin({
-          baseModelSqlv2,
+          baseModelSqlv2: parentBaseModel,
           filter: {
             ...filter,
             ...(filter.comparison_op in negatedMapping
@@ -119,26 +154,31 @@ export class LookupGeneralHandler extends GenericFieldHandler {
           else qbP.whereIn(childColumn.column_name, qb);
         };
       } else if (relationType === RelationTypes.MANY_TO_MANY) {
-        const mmModel = await relationColumnOptions.getMMModel(context);
+        const mmModel = await relationColumnOptions.getMMModel(mmContext);
         const mmParentColumn = await relationColumnOptions.getMMParentColumn(
-          context,
+          mmContext,
         );
         const mmChildColumn = await relationColumnOptions.getMMChildColumn(
-          context,
+          mmContext,
         );
+
+        const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+          model: mmModel,
+          dbDriver: baseModelSqlv2.dbDriver,
+        });
 
         const childAlias = `__nc${aliasCount.count++}`;
 
         qb = knex(
           knex.raw(`?? as ??`, [
-            baseModelSqlv2.getTnPath(mmModel.table_name),
+            mmBaseModel.getTnPath(mmModel.table_name),
             alias,
           ]),
         )
           .select(`${alias}.${mmChildColumn.column_name}`)
           .join(
             knex.raw(`?? as ??`, [
-              baseModelSqlv2.getTnPath(parentModel.table_name),
+              parentBaseModel.getTnPath(parentModel.table_name),
               childAlias,
             ]),
             `${alias}.${mmParentColumn.column_name}`,
@@ -146,7 +186,7 @@ export class LookupGeneralHandler extends GenericFieldHandler {
           );
 
         await nestedConditionJoin({
-          baseModelSqlv2,
+          baseModelSqlv2: parentBaseModel,
           filter: {
             ...filter,
             ...(filter.comparison_op in negatedMapping
@@ -173,5 +213,35 @@ export class LookupGeneralHandler extends GenericFieldHandler {
         };
       }
     }
+  }
+
+  override async parseDbValue(params: {
+    value: any;
+    row: any;
+    column: Column;
+    options?: {
+      baseModel?: IBaseModelSqlV2;
+      context?: NcContext;
+      metaService?: MetaService;
+      logger?: Logger;
+      fieldHandler?: IFieldHandler;
+    };
+  }): Promise<{ value: any }> {
+    // const lookupNestedCol = await params.baseModel.getNestedColumn(
+    //   params.column,
+    // );
+    // if (lookupNestedCol) {
+    //   return await params.options.fieldHandler.parseDbValue({
+    //     ...params,
+    //     value:
+    //       params.row[lookupNestedCol.id] ??
+    //       params.row[lookupNestedCol.column_name] ??
+    //       params.row[lookupNestedCol.title],
+    //     column: lookupNestedCol,
+    //   });
+    // }
+    return {
+      value: params.value,
+    };
   }
 }

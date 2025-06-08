@@ -1,4 +1,5 @@
-import { IconType } from 'nocodb-sdk'
+import type { WorkspaceUserRoles } from 'nocodb-sdk'
+import { IconType, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTag, roundedRect } from '../utils/canvas'
 import type { RenderRectangleProps } from '../utils/types'
 import { getSelectedUsers } from '../../../../cell/User/utils'
@@ -102,7 +103,7 @@ export const UserFieldCellRenderer: CellRenderer = {
             maxWidth: ellipsisWidth,
             textAlign: 'right',
             verticalAlign: 'middle',
-            fontFamily: '500 13px Manrope',
+            fontFamily: '500 13px Inter',
             fillStyle: isDeleted ? '#4a5268' : '#0b1d05',
             height,
           })
@@ -174,7 +175,7 @@ export const UserFieldCellRenderer: CellRenderer = {
           x: x + circleRadius,
           y,
           text: initials.toLocaleUpperCase(),
-          fontFamily: '600 10px Manrope',
+          fontFamily: '600 10px Inter',
           textAlign: 'center',
           verticalAlign: 'middle',
           fillStyle: textColor,
@@ -199,7 +200,7 @@ export const UserFieldCellRenderer: CellRenderer = {
         maxWidth: width - tagPadding * 2,
         textAlign: 'left',
         verticalAlign: 'middle',
-        fontFamily: '500 13px Manrope',
+        fontFamily: '500 13px Inter',
         fillStyle: '#0b1d05',
         height,
       })
@@ -216,9 +217,23 @@ export const UserFieldCellRenderer: CellRenderer = {
     }
   },
 
-  async handleHover({ column, getCellPosition, row, mousePosition, value }) {
+  async handleHover({ column, getCellPosition, row, mousePosition, value, selected, baseUsers }) {
     const { hideTooltip, tryShowTooltip } = useTooltipStore()
     hideTooltip()
+
+    if (!selected) return
+
+    const getUserRole = (email: string) => {
+      const user = (baseUsers || []).find((user) => user.email === email)
+      if (!user) return ProjectRoles.NO_ACCESS
+
+      return (
+        user.roles ??
+        (user.workspace_roles
+          ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
+          : ProjectRoles.NO_ACCESS)
+      )
+    }
 
     const { x: _x, y: _y, width: _width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10
@@ -233,14 +248,14 @@ export const UserFieldCellRenderer: CellRenderer = {
 
     if (!users.length) return
 
-    const boxes: (RenderRectangleProps & { text: string })[] = []
+    const boxes: (RenderRectangleProps & { display_name?: string; email: string })[] = []
     const ctx = defaultOffscreen2DContext
 
     let line = 1
     for (const user of users) {
       const displayName = user.display_name?.trim() || user.email!
 
-      const { text: truncatedText, width: textWidth } = renderSingleLineText(ctx, {
+      const { width: textWidth } = renderSingleLineText(ctx, {
         text: displayName,
         maxWidth: width - tagPadding * 2 - iconSize - 8,
         render: false,
@@ -257,15 +272,14 @@ export const UserFieldCellRenderer: CellRenderer = {
         line += 1
       }
 
-      if (displayName !== truncatedText) {
-        boxes.push({
-          x,
-          y: y + 6,
-          width: minTagWidth,
-          height: tagHeight,
-          text: displayName,
-        })
-      }
+      boxes.push({
+        x,
+        y: y + 6,
+        width: minTagWidth,
+        height: tagHeight,
+        display_name: user.display_name?.trim(),
+        email: user.email,
+      })
 
       x = x + minTagWidth + tagSpacingX
 
@@ -276,7 +290,17 @@ export const UserFieldCellRenderer: CellRenderer = {
 
     const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
     if (!hoveredBox) return
-    tryShowTooltip({ text: hoveredBox.text, rect: hoveredBox, mousePosition })
+    tryShowTooltip({
+      rect: hoveredBox,
+      text: h('div', { class: 'flex flex-col gap-2' }, [
+        h('div', { class: 'flex flex-col' }, [
+          h('div', { class: !hoveredBox.display_name ? 'hidden' : 'text-small' }, hoveredBox.display_name),
+          h('div', { class: ` ${!hoveredBox.display_name ? 'text-small' : 'text-tiny text-gray-200'}` }, hoveredBox.email),
+        ]),
+        h('div', { class: 'text-tiny text-gray-200' }, `Has ${getUserRole(hoveredBox.email)} role in base`),
+      ]),
+      mousePosition,
+    })
   },
 
   async handleClick({ row, column, mousePosition, getCellPosition, makeCellEditable }) {

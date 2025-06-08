@@ -2,26 +2,22 @@
 import { type FormBuilderElement, type IntegrationType } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType, iconMap } from '#imports'
 
-const { form, formState, formSchema, formElementsCategorized, isLoading, validateInfos, deepReference, checkCondition } =
-  useFormBuilderHelperOrThrow()
+const emit = defineEmits(['change'])
+
+const {
+  form,
+  formState,
+  formSchema,
+  formElementsCategorized,
+  isLoading,
+  validateInfos,
+  deepReference,
+  setFormState,
+  loadOptions,
+  changeKey,
+} = useFormBuilderHelperOrThrow()
 
 const { loadIntegrations, integrations, eventBus, pageMode, IntegrationsPageMode } = useProvideIntegrationViewStore()
-
-const setFormState = (path: string, value: any) => {
-  // update nested prop in formState
-  const keys = path.split('.')
-  const lastKey = keys.pop()
-
-  if (!lastKey) return
-
-  const target = keys.reduce((acc, key) => {
-    if (!acc[key]) {
-      acc[key] = {}
-    }
-    return acc[key]
-  }, formState.value)
-  target[lastKey] = value
-}
 
 const selectMode = (field: FormBuilderElement) => {
   return field.selectMode === 'multipleWithInput' ? 'tags' : field.selectMode === 'multiple' ? 'multiple' : undefined
@@ -87,9 +83,14 @@ const filterIntegration = computed(() => {
   }
 })
 
+const setFormStateWithEmit = (path: string, value: any) => {
+  setFormState(path, value)
+  emit('change', path, value)
+}
+
 eventBus.on((event, payload) => {
   if (event === IntegrationStoreEvents.INTEGRATION_ADD && payload?.id && activeModel.value) {
-    setFormState(activeModel.value, payload.id)
+    setFormStateWithEmit(activeModel.value, payload.id)
     activeModel.value = null
   }
 })
@@ -121,16 +122,16 @@ watch(
                   class="w-full"
                 ></div>
                 <a-form-item
-                  v-else-if="checkCondition(field.condition)"
+                  v-else
                   v-bind="validateInfos[field.model]"
                   class="nc-form-item"
                   :style="`width:${+field.width || 100}%`"
                   :required="false"
                   :data-testid="`nc-form-input-${field.model}`"
                 >
-                  <template v-if="![FormBuilderInputType.Switch].includes(field.type)" #label>
+                  <template #label>
                     <div class="flex items-center gap-1">
-                      <span>{{ field.label }}</span>
+                      <span v-if="![FormBuilderInputType.Switch].includes(field.type)">{{ field.label }}</span>
                       <span v-if="field.required" class="text-red-500">*</span>
                       <NcTooltip v-if="field.helpText && field.showHintAsTooltip">
                         <template #title>
@@ -147,7 +148,7 @@ watch(
                       autocomplete="off"
                       class="!w-full"
                       :value="deepReference(field.model)"
-                      @update:value="setFormState(field.model, $event)"
+                      @update:value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Password">
@@ -157,21 +158,28 @@ watch(
                       onblur="this.setAttribute('readonly', true);"
                       autocomplete="off"
                       :value="deepReference(field.model)"
-                      @update:value="setFormState(field.model, $event)"
+                      @update:value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Select">
-                    <NcSelect
-                      :value="deepReference(field.model)"
-                      :options="field.options"
-                      :mode="selectMode(field)"
-                      @update:value="setFormState(field.model, $event)"
-                    />
+                    <NcFormBuilderInputMountedWrapper :key="changeKey" @mounted="loadOptions(field)">
+                      <NcSelect
+                        :value="deepReference(field.model)"
+                        :options="field.options"
+                        :mode="selectMode(field)"
+                        show-search
+                        :loading="field.fetchOptionsKey && field.options?.length === 0"
+                        @update:value="setFormStateWithEmit(field.model, $event)"
+                      />
+                    </NcFormBuilderInputMountedWrapper>
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Switch">
-                    <div class="flex flex-col p-2" :class="field.border ? 'border-1 rounded-lg shadow' : ''">
-                      <div class="flex items-center">
-                        <NcSwitch :checked="!!deepReference(field.model)" @update:checked="setFormState(field.model, $event)" />
+                    <div class="flex flex-col px-2" :class="field.border ? 'border-1 rounded-lg shadow' : ''">
+                      <div class="flex items-center aa">
+                        <NcSwitch
+                          :checked="!!deepReference(field.model)"
+                          @update:checked="setFormStateWithEmit(field.model, $event)"
+                        />
                         <span class="ml-[6px] font-bold">{{ field.label }}</span>
                         <NcTooltip v-if="field.helpText">
                           <template #title>
@@ -196,7 +204,7 @@ watch(
                       placeholder="Select Integration"
                       allow-clear
                       show-search
-                      @update:value="setFormState(field.model, $event)"
+                      @update:value="setFormStateWithEmit(field.model, $event)"
                     >
                       <a-select-option
                         v-for="integration in filteredIntegrations[field.model]"
@@ -239,7 +247,7 @@ watch(
                   <template v-else-if="field.type === FormBuilderInputType.SelectBase">
                     <NcFormBuilderInputSelectBase
                       :value="deepReference(field.model)"
-                      @update:value="setFormState(field.model, $event)"
+                      @update:value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.OAuth">
@@ -247,7 +255,7 @@ watch(
                       :value="deepReference(field.model)"
                       :element="field"
                       :have-value="!!deepReference(field.model)"
-                      @update:value="setFormState(field.model, $event)"
+                      @update:value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>
                   <div

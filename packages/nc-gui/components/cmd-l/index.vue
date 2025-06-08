@@ -207,7 +207,7 @@ onMounted(() => {
                 <div class="flex w-1/2 items-center">
                   <div class="flex gap-2">
                     <GeneralViewIcon :meta="{ type: cmdOption.viewType }" class="mt-0.5 w-4 !min-h-4" />
-                    <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+                    <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg" :tooltip-style="{ zIndex: 1100 }">
                       <template #title>
                         {{ cmdOption.viewName }}
                       </template>
@@ -219,8 +219,8 @@ onMounted(() => {
                 </div>
                 <div class="flex w-1/2 justify-end text-gray-600">
                   <div class="flex gap-2 px-2 py-1 rounded-md items-center">
-                    <component :is="iconMap.project" class="w-3 h-3" />
-                    <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+                    <component :is="iconMap.project" class="w-4 h-4" />
+                    <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg" :tooltip-style="{ zIndex: 1100 }">
                       <template #title>
                         {{ cmdOption.baseName }}
                       </template>
@@ -231,7 +231,7 @@ onMounted(() => {
                     <span class="text-bold"> / </span>
 
                     <component :is="iconMap.table" class="w-3 h-3" />
-                    <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+                    <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg" :tooltip-style="{ zIndex: 1100 }">
                       <template #title>
                         {{ cmdOption.tableName }}
                       </template>

@@ -1,8 +1,10 @@
 import { ncIsNull, ncIsUndefined, RelationTypes, UITypes } from 'nocodb-sdk';
+import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from 'knex';
-import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
-import { Filter } from '~/models';
+import type CustomKnex from '~/db/CustomKnex';
+import { Filter, Model } from '~/models';
 
 export function ncIsStringHasValue(val: string | undefined | null) {
   return val !== '' && !ncIsUndefined(val) && !ncIsNull(val);
@@ -56,19 +58,34 @@ export async function nestedConditionJoin({
       await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
     const relAlias = `__nc${aliasCount.count++}`;
 
-    const childColumn = await relationColOptions.getChildColumn(context);
-    const parentColumn = await relationColOptions.getParentColumn(context);
-    const childModel = await childColumn.getModel(context);
-    await childModel.getColumns(context);
-    const parentModel = await parentColumn.getModel(context);
-    await parentModel.getColumns(context);
+    const { parentContext, childContext, mmContext, refContext } =
+      await relationColOptions.getParentChildContext(context);
+
+    const childColumn = await relationColOptions.getChildColumn(childContext);
+    const parentColumn = await relationColOptions.getParentColumn(
+      parentContext,
+    );
+    const childModel = await childColumn.getModel(childContext);
+    await childModel.getColumns(childContext);
+    const parentModel = await parentColumn.getModel(parentContext);
+    await parentModel.getColumns(parentContext);
+
+    const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
+      model: parentModel,
+      dbDriver: baseModelSqlv2.dbDriver,
+    });
+    const childBaseModel = await Model.getBaseModelSQL(childContext, {
+      model: childModel,
+      dbDriver: baseModelSqlv2.dbDriver,
+    });
+
     {
       switch (relationColOptions.type) {
         case RelationTypes.HAS_MANY:
           {
             qb.join(
               knex.raw(`?? as ??`, [
-                baseModelSqlv2.getTnPath(childModel.table_name),
+                childBaseModel.getTnPath(childModel.table_name),
                 relAlias,
               ]),
               `${alias}.${parentColumn.column_name}`,
@@ -80,7 +97,7 @@ export async function nestedConditionJoin({
           {
             qb.join(
               knex.raw(`?? as ??`, [
-                baseModelSqlv2.getTnPath(parentModel.table_name),
+                parentBaseModel.getTnPath(parentModel.table_name),
                 relAlias,
               ]),
               `${alias}.${childColumn.column_name}`,
@@ -90,26 +107,31 @@ export async function nestedConditionJoin({
           break;
         case 'mm':
           {
-            const mmModel = await relationColOptions.getMMModel(context);
+            const mmModel = await relationColOptions.getMMModel(mmContext);
             const mmParentColumn = await relationColOptions.getMMParentColumn(
-              context,
+              mmContext,
             );
             const mmChildColumn = await relationColOptions.getMMChildColumn(
-              context,
+              mmContext,
             );
+
+            const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+              model: mmModel,
+              dbDriver: baseModelSqlv2.dbDriver,
+            });
 
             const assocAlias = `__nc${aliasCount.count++}`;
 
             qb.join(
               knex.raw(`?? as ??`, [
-                baseModelSqlv2.getTnPath(mmModel.table_name),
+                mmBaseModel.getTnPath(mmModel.table_name),
                 assocAlias,
               ]),
               `${assocAlias}.${mmChildColumn.column_name}`,
               `${alias}.${childColumn.column_name}`,
             ).join(
               knex.raw(`?? as ??`, [
-                baseModelSqlv2.getTnPath(parentModel.table_name),
+                parentBaseModel.getTnPath(parentModel.table_name),
                 relAlias,
               ]),
               `${relAlias}.${parentColumn.column_name}`,
@@ -126,7 +148,7 @@ export async function nestedConditionJoin({
         filter,
         lookupColumn: await (
           await lookupColumn.getColOptions<LookupColumn>(context)
-        ).getLookupColumn(context),
+        ).getLookupColumn(refContext),
         qb,
         knex,
         alias: relAlias,
@@ -140,7 +162,7 @@ export async function nestedConditionJoin({
           {
             (
               await parseConditionV2(
-                baseModelSqlv2,
+                childBaseModel,
                 new Filter({
                   ...filter,
                   fk_model_id: childModel.id,
@@ -158,7 +180,7 @@ export async function nestedConditionJoin({
           {
             (
               await parseConditionV2(
-                baseModelSqlv2,
+                parentBaseModel,
                 new Filter({
                   ...filter,
                   fk_model_id: parentModel.id,
@@ -176,7 +198,7 @@ export async function nestedConditionJoin({
           {
             (
               await parseConditionV2(
-                baseModelSqlv2,
+                parentBaseModel,
                 new Filter({
                   ...filter,
                   fk_model_id: parentModel.id,
@@ -209,3 +231,20 @@ export async function nestedConditionJoin({
     )(qb);
   }
 }
+
+export const unsupportedFilter = async (
+  _args: {
+    sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+    val: any;
+  },
+  rootArgs: {
+    knex: CustomKnex;
+    filter: Filter;
+    column: Column;
+  },
+  _options: FilterOptions,
+) => {
+  throw new Error(
+    `Unsupported comparison operator for ${rootArgs.column.uidt}: ${rootArgs.filter.comparison_op}`,
+  );
+};

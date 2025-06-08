@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { ViewTypes, isReadOnlyColumn, isSystemColumn } from 'nocodb-sdk'
+import { ExpandedFormMode, ViewTypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'
@@ -27,9 +27,19 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord', 'updateRowCommentCount'])
+const emits = defineEmits([
+  'update:modelValue',
+  'cancel',
+  'next',
+  'prev',
+  'createdRecord',
+  'deletedRecord',
+  'updateRowCommentCount',
+])
 
-const { activeView } = storeToRefs(useViewsStore())
+const viewsStore = useViewsStore()
+
+const { activeView } = storeToRefs(viewsStore)
 
 const key = ref(0)
 
@@ -41,25 +51,9 @@ const { copy } = useCopy()
 
 const { isMobileMode } = useGlobal()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
-
 const { t } = useI18n()
 
-const rowId = toRef(props, 'rowId')
-
-const row = toRef(props, 'row')
-
-const state = toRef(props, 'state')
-
-const meta = toRef(props, 'meta')
-
-const islastRow = toRef(props, 'lastRow')
-
-const isFirstRow = toRef(props, 'firstRow')
-
-const maintainDefaultViewOrder = toRef(props, 'maintainDefaultViewOrder')
+const { rowId, row, state, meta, lastRow: isLastRow, firstRow: isFirstRow, maintainDefaultViewOrder } = toRefs(props)
 
 const route = useRoute()
 
@@ -86,10 +80,14 @@ const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
+const { withLoading } = useLoadingTrigger()
+
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, undefined)
 
 const isKanban = inject(IsKanbanInj, ref(false))
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 provide(MetaInj, meta)
 
@@ -101,7 +99,7 @@ const isLoading = ref(true)
 
 const isSaving = ref(false)
 
-const expandedFormStore = useProvideExpandedFormStore(meta, row)
+const expandedFormStore = useProvideExpandedFormStore(meta, row, maintainDefaultViewOrder, !!props.useMetaFields)
 
 const {
   commentsDrawer,
@@ -118,6 +116,9 @@ const {
   loadComments,
   loadAudits,
   clearColumns,
+  baseRoles,
+  fields,
+  hiddenFields,
 } = expandedFormStore
 
 const loadingEmit = (event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | 'createdRecord') => {
@@ -125,125 +126,54 @@ const loadingEmit = (event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | '
   isLoading.value = true
 }
 
-/**
- * Injects the fields from the parent component if available.
- * Uses a ref to ensure reactivity.
- */
-const fieldsFromParent = inject<Ref<ColumnType[] | null>>(FieldsInj, ref(null))
-
-/**
- * Computes the list of fields to be used based on the given conditions.
- *
- * - Prefers `props.useMetaFields` over `fieldsFromParent` if enabled.
- * - Filters out system columns and readonly fields for new records.
- * - Maintains default view order if `maintainDefaultViewOrder` is enabled.
- *
- * @returns {ColumnType[]} The computed list of fields.
- */
-const fields = computed(() => {
-  // Give preference to props.useMetaFields instead of fieldsFromParent
-  if (props.useMetaFields) {
-    if (maintainDefaultViewOrder.value) {
-      return (meta.value.columns ?? [])
-        .filter(
-          (col) =>
-            !isSystemColumn(col) &&
-            !!col.meta?.defaultViewColVisibility &&
-            // if new record, then hide readonly fields
-            (!isNew.value || !isReadOnlyColumn(col)),
-        )
-        .sort((a, b) => {
-          return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-        })
-    }
-
-    return (meta.value.columns ?? []).filter(
-      (col) =>
-        // if new record, then hide readonly fields
-        (!isNew.value || !isReadOnlyColumn(col)) &&
-        // exclude system columns
-        !isSystemColumn(col) &&
-        // exclude hidden columns
-        !!col.meta?.defaultViewColVisibility,
-    )
-  }
-
-  // If `props.useMetaFields` is not enabled, use fields from the parent component
-  if (fieldsFromParent.value) {
-    if (isNew.value) {
-      return fieldsFromParent.value.filter((col) => !isReadOnlyColumn(col))
-    }
-
-    return fieldsFromParent.value
-  }
-
-  return []
-})
-
 const tableTitle = computed(() => meta.value?.title)
 
-const { setCurrentViewExpandedFormMode } = useSharedView()
-
-const activeViewMode = ref(props.view?.expanded_record_mode ?? 'field')
+const activeViewMode = ref(
+  !isPublic.value && isEeUI && !isNew.value ? props.view?.expanded_record_mode ?? ExpandedFormMode.FIELD : ExpandedFormMode.FIELD,
+)
 
 watch(activeViewMode, async (v) => {
   const viewId = props.view?.id
   if (!viewId) return
-  if (v === 'field') {
-    await setCurrentViewExpandedFormMode(viewId, v)
-  } else if (v === 'attachment') {
+
+  if (v === ExpandedFormMode.FIELD || v === ExpandedFormMode.DISCUSSION) {
+    await viewsStore.setCurrentViewExpandedFormMode(viewId, v)
+  } else if (v === ExpandedFormMode.ATTACHMENT) {
     const firstAttachmentField = fields.value?.find((f) => f.uidt === 'Attachment')
-    await setCurrentViewExpandedFormMode(viewId, v, props.view?.attachment_mode_column_id ?? firstAttachmentField?.id)
+
+    await viewsStore.setCurrentViewExpandedFormMode(viewId, v, props.view?.attachment_mode_column_id ?? firstAttachmentField?.id)
   }
-  // else if (v === 'discussion') {
-  //   await setCurrentViewExpandedFormMode(viewId, v)
-  // }
 })
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)
 
-const hiddenFields = computed(() => {
-  // todo: figure out when meta.value is undefined
-  const hiddenFields = (meta.value?.columns ?? []).filter(
-    (col) =>
-      !isSystemColumn(col) &&
-      !fields.value?.includes(col) &&
-      (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true) &&
-      // exclude readonly fields from hidden fields if new record creation
-      (!isNew.value || !isReadOnlyColumn(col)),
-  )
-  if (props.useMetaFields) {
-    return maintainDefaultViewOrder.value
-      ? hiddenFields.sort((a, b) => {
-          return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-        })
-      : hiddenFields
-  }
-  // record from same view and same table (not linked)
-  else {
-    return hiddenFields.sort((a, b) => {
-      return (fieldsMap.value[a.id]?.order ?? Infinity) - (fieldsMap.value[b.id]?.order ?? Infinity)
-    })
-  }
-})
+reloadViewDataTrigger.on(
+  withLoading(async (params) => {
+    // Skip loading deleted record again
+    if (params?.skipLoadingRowId && params?.skipLoadingRowId === primaryKey.value) {
+      return
+    }
 
-reloadViewDataTrigger.on(async (params) => {
-  const isSameRecordUpdated =
-    params?.relatedTableMetaId && params?.rowId && params?.relatedTableMetaId === meta.value?.id && params?.rowId === rowId.value
+    const isSameRecordUpdated =
+      params?.relatedTableMetaId &&
+      params?.rowId &&
+      params?.relatedTableMetaId === meta.value?.id &&
+      params?.rowId === rowId.value
 
-  // If relatedTableMetaId & rowId is present that means some nested record is updated
+    // If relatedTableMetaId & rowId is present that means some nested record is updated
 
-  // If same nested record udpated then udpate whole row
-  if (isSameRecordUpdated) {
-    await _loadRow(rowId.value)
-  } else if (params?.relatedTableMetaId && params?.rowId) {
-    // If it is not same record updated but it has relatedTableMetaId & rowId then update only virtual columns
-    await _loadRow(rowId.value, true)
-  } else {
-    // Else update only new/duplicated/renamed columns
-    await _loadRow(rowId.value, false, true)
-  }
-})
+    // If same nested record udpated then udpate whole row
+    if (isSameRecordUpdated) {
+      await _loadRow(rowId.value)
+    } else if (params?.relatedTableMetaId && params?.rowId) {
+      // If it is not same record updated but it has relatedTableMetaId & rowId then update only virtual columns
+      await _loadRow(rowId.value, true)
+    } else {
+      // Else update only new/duplicated/renamed columns
+      await _loadRow(rowId.value, false, true)
+    }
+  }),
+)
 
 const duplicatingRowInProgress = ref(false)
 
@@ -267,8 +197,10 @@ const isExpanded = useVModel(props, 'modelValue', emits, {
   defaultValue: false,
 })
 
-const onClose = () => {
-  if (!isUIAllowed('dataEdit')) {
+const onClose = (force = false) => {
+  if (force) {
+    isExpanded.value = false
+  } else if (!isUIAllowed('dataEdit', baseRoles.value)) {
     isExpanded.value = false
   } else if (changedColumns.value.size > 0) {
     isCloseModalOpen.value = true
@@ -514,7 +446,7 @@ useActiveKeydownListener(
       loadingEmit('prev')
     } else if (e.key === 'ArrowRight') {
       e.stopPropagation()
-      if (islastRow.value) return
+      if (isLastRow.value) return
 
       onNext()
     }
@@ -592,17 +524,19 @@ const onDeleteRowClick = () => {
 }
 
 const onConfirmDeleteRowClick = async () => {
-  showDeleteRowModal.value = false
-  // Close expanded form
-  isExpanded.value = false
-
   await deleteRowById(primaryKey.value || undefined)
+
+  emits('deletedRecord')
+
   message.success(t('msg.rowDeleted'))
+
+  showDeleteRowModal.value = false
+  onClose(true)
+
   await reloadViewDataTrigger.trigger({
     shouldShowLoading: false,
+    skipLoadingRowId: primaryKey.value || undefined,
   })
-  onClose()
-  showDeleteRowModal.value = false
 }
 
 watch(rowId, async (nRow) => {
@@ -629,7 +563,7 @@ const onIsExpandedUpdate = (v: boolean) => {
     if (isKanban.value) {
       emits('cancel')
     }
-  } else if (!v && isUIAllowed('dataEdit')) {
+  } else if (!v && isUIAllowed('dataEdit', baseRoles.value)) {
     preventModalStatus.value = true
   } else {
     isExpanded.value = v
@@ -705,6 +639,16 @@ function scrollToColumn(columnId: string) {
     })
   }
 }
+
+const stopLoading = () => {
+  nextTick(() => {
+    isLoading.value = false
+  })
+}
+
+defineExpose({
+  stopLoading,
+})
 </script>
 
 <script lang="ts">
@@ -721,7 +665,7 @@ export default {
     :closable="false"
     :footer="null"
     :visible="isExpanded"
-    :width="commentsDrawer && isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
+    :width="commentsDrawer && isUIAllowed('commentList', baseRoles) ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
     class="nc-drawer-expanded-form"
     :size="isMobileMode ? 'medium' : 'small'"
     v-bind="modalProps"
@@ -739,7 +683,7 @@ export default {
         <div class="flex gap-2 min-w-0 min-h-8">
           <div class="flex gap-2">
             <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
-              <template #title> {{ renderAltOrOptlKey() }} + ←</template>
+              <template #title> {{ $t('labels.prevRow') }} {{ renderAltOrOptlKey() }} + ←</template>
               <NcButton
                 :disabled="isFirstRow || isLoading"
                 class="nc-prev-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
@@ -751,9 +695,9 @@ export default {
               </NcButton>
             </NcTooltip>
             <NcTooltip v-if="props.showNextPrevIcons" class="flex items-center">
-              <template #title> {{ renderAltOrOptlKey() }} + →</template>
+              <template #title> {{ $t('labels.nextRow') }} {{ renderAltOrOptlKey() }} + →</template>
               <NcButton
-                :disabled="islastRow || isLoading"
+                :disabled="isLastRow || isLoading"
                 class="nc-next-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
                 type="text"
                 size="xsmall"
@@ -768,8 +712,8 @@ export default {
           </div>
           <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end) min-w-0">
             <div v-if="!props.showNextPrevIcons" class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
-              <GeneralIcon icon="table" class="text-gray-700" />
-              <span class="nc-expanded-form-table-name">
+              <GeneralIcon icon="table" class="text-gray-700 flex-none" />
+              <span class="nc-expanded-form-table-name whitespace-nowrap">
                 {{ tableTitle }}
               </span>
             </div>
@@ -784,47 +728,16 @@ export default {
               class="flex items-center font-bold text-gray-800 text-2xl overflow-hidden"
             >
               <span class="min-w-[120px] md:min-w-[300px]">
-                <NcTooltip class="truncate" show-on-truncate-only>
-                  <template #title>
-                    {{ displayValue }}
-                  </template>
-
-                  <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
-                </NcTooltip>
+                <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" show-tooltip />
               </span>
             </div>
           </div>
         </div>
         <div class="ml-auto">
-          <NcSelectTab
-            v-if="
-              isEeUI &&
-              (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) ||
-                isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE))
-            "
-            v-model="activeViewMode"
-            class="nc-expanded-form-mode-switch"
-            :disabled="!isUIAllowed('viewCreateOrEdit')"
-            :tooltip="!isUIAllowed('viewCreateOrEdit') ? 'You do not have permission to change view mode.' : undefined"
-            :items="[
-              { icon: 'fields', value: 'field', tooltip: 'Fields' },
-              {
-                icon: 'file',
-                value: 'attachment',
-                tooltip: 'File Preview',
-                hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE),
-              },
-              {
-                icon: 'ncMessageSquare',
-                value: 'discussion',
-                tooltip: 'Discussion',
-                hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE) || isSqlView,
-              },
-            ]"
-          />
+          <SmartsheetExpandedFormViewModeSelector v-model="activeViewMode" :view="view" class="nc-expanded-form-mode-switch" />
         </div>
         <div class="flex gap-2">
-          <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit') && !isSqlView">
+          <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit', baseRoles) && !isSqlView">
             <template #title> {{ renderAltOrOptlKey() }} + S</template>
             <NcButton
               v-e="['c:row-expand:save']"
@@ -885,7 +798,7 @@ export default {
                     {{ $t('labels.copyRecordURL') }}
                   </div>
                 </NcMenuItem>
-                <NcMenuItem v-if="isUIAllowed('dataEdit') && !isSqlView" @click="!isNew ? onDuplicateRow() : () => {}">
+                <NcMenuItem v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView" @click="!isNew ? onDuplicateRow() : () => {}">
                   <div v-e="['c:row-expand:duplicate']" class="flex gap-2 items-center" data-testid="nc-expanded-form-duplicate">
                     <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
                     <span class="-ml-0.25">
@@ -893,9 +806,15 @@ export default {
                     </span>
                   </div>
                 </NcMenuItem>
-                <NcDivider v-if="isUIAllowed('dataEdit') && !isSqlView" />
+                <NcDivider
+                  v-if="
+                    isUIAllowed('dataEdit', {
+                      roles: baseRoles,
+                    }) && !isSqlView
+                  "
+                />
                 <NcMenuItem
-                  v-if="isUIAllowed('dataEdit') && !isSqlView"
+                  v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
                   class="!text-red-500 !hover:bg-red-50"
                   @click="!isNew && onDeleteRowClick()"
                 >
@@ -926,7 +845,7 @@ export default {
         </div>
       </div>
       <div ref="wrapper" class="flex-grow h-[calc(100%_-_4rem)] w-full">
-        <template v-if="activeViewMode === 'field'">
+        <template v-if="activeViewMode === ExpandedFormMode.FIELD">
           <SmartsheetExpandedFormPresentorsFields
             :row-id="rowId"
             :fields="fields ?? []"
@@ -944,7 +863,7 @@ export default {
             @update-row-comment-count="emits('updateRowCommentCount', $event)"
           />
         </template>
-        <template v-else-if="activeViewMode === 'attachment'">
+        <template v-else-if="activeViewMode === ExpandedFormMode.ATTACHMENT">
           <SmartsheetExpandedFormPresentorsAttachments
             :row-id="rowId"
             :view="props.view"
@@ -963,14 +882,14 @@ export default {
             @update-row-comment-count="emits('updateRowCommentCount', $event)"
           />
         </template>
-        <template v-else-if="activeViewMode === 'discussion'">
+        <template v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION">
           <SmartsheetExpandedFormPresentorsDiscussion :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist" />
         </template>
       </div>
     </div>
   </component>
 
-  <GeneralDeleteModal v-model:visible="showDeleteRowModal" entity-name="Record" :on-delete="() => onConfirmDeleteRowClick()">
+  <GeneralDeleteModal v-model:visible="showDeleteRowModal" entity-name="Record" :on-delete="onConfirmDeleteRowClick">
     <template #entity-preview>
       <span>
         <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700">

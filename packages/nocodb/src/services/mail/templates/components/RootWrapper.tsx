@@ -8,6 +8,7 @@ export const RootWrapper = ({ children }: { children: React.ReactNode }) => {
         theme: {
           fontFamily: {
             sans: ['Manrope', 'sans-serif'],
+            inter: ['Inter', 'Manrope', 'sans-serif'],
           },
           fontSize: {
             xs: ['12px', { lineHeight: '16px' }],

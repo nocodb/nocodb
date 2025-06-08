@@ -1,4 +1,4 @@
-import { isAIPromptCol, UITypes } from 'nocodb-sdk';
+import { isAIPromptCol, NcApiVersion, UITypes } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Knex } from 'knex';
 import type { ButtonColumn, FormulaColumn, RollupColumn } from '~/models';
@@ -38,7 +38,11 @@ export default async function sortV2(
     );
     if (!column) {
       if (throwErrorIfInvalid) {
-        NcError.fieldNotFound(sort.fk_column_id);
+        if (context.api_version === NcApiVersion.V3) {
+          NcError.fieldNotFoundV3(sort.fk_column_id);
+        } else {
+          NcError.fieldNotFound(sort.fk_column_id);
+        }
       }
       continue;
     }

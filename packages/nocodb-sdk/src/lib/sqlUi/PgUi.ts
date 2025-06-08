@@ -2181,6 +2181,9 @@ export class PgUi implements SqlUi {
   isParsedJsonReturnType(col: ColumnType): boolean {
     return ['json', 'jsond'].includes(col.dt?.toLowerCase());
   }
+  get tableNameLengthLimit(): number {
+    return 63;
+  }
   //#endregion methods
 }
 

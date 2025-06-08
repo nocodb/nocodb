@@ -31,6 +31,10 @@ export class NumberHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string | number | null {
+    // Return empty string for null/undefined values to prevent "null" text when pasting
+    if (value === null || value === undefined) {
+      return '';
+    }
     return parseIntValue(value, params.col);
   }
 

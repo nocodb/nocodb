@@ -23,12 +23,6 @@ const tabs = [
     icon: 'ncPuzzleOutline',
   },
   {
-    title: 'Scripts',
-    tabKey: 'scripts',
-    icon: 'ncScript',
-    isDisabled: true,
-  },
-  {
     title: 'Build an extension',
     tabKey: 'build-an-extension',
     icon: 'ncSpanner',

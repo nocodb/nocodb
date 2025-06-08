@@ -92,3 +92,24 @@ export async function isURLExpired(url?: string) {
     }
   }
 }
+
+export function formatFileSize(bytes?: number, decimals = 2): string {
+  if (!ncIsNumber(bytes) || !bytes) return '0 Bytes'
+
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+  const size = parseFloat((bytes / k ** i).toFixed(decimals))
+
+  return `${size} ${sizes[i]}`
+}
+
+export function getReadableFileType(mimeType?: string): string {
+  if (!mimeType || !ncIsString(mimeType)) return ''
+
+  const parts = mimeType.split('/')
+  const subtype = parts[1] || ''
+
+  return subtype.toUpperCase()
+}

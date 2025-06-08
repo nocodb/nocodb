@@ -61,6 +61,10 @@ export interface NcListProps {
    * The minimum number of items required in the list to enable search functionality.
    */
   minItemsForSearch?: number
+  /**
+   * Whether the list is locked and cannot be interacted with
+   */
+  isLocked?: boolean
 
   /**
    * Whether input should have border
@@ -94,6 +98,7 @@ const props = withDefaults(defineProps<NcListProps>(), {
   containerClassName: '',
   itemClassName: '',
   itemTooltipPlacement: 'right',
+  isLocked: false,
 })
 
 const emits = defineEmits<Emits>()
@@ -155,7 +160,7 @@ const list = computed(() => {
     if (props?.filterOption) {
       return props.filterOption(query, item, i)
     } else {
-      return item[optionLabelKey]?.toLowerCase()?.includes(query)
+      return searchCompare(item[optionLabelKey], query)
     }
   })
 })
@@ -216,6 +221,7 @@ const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: numb
  * It updates the model value, emits a change event, and optionally closes the dropdown.
  */
 const handleSelectOption = (option: NcListItemType, index?: number) => {
+  if (props.isLocked) return
   if (!ncIsObject(option) || !(optionValueKey in option) || option.ncItemDisabled) return
   if (index !== undefined) {
     activeOptionIndex.value = index
@@ -351,6 +357,14 @@ watch(
     immediate: true,
   },
 )
+
+watch(searchQuery, () => {
+  if (activeOptionIndex.value === -1) return
+
+  nextTick(() => {
+    handleAutoScrollOption()
+  })
+})
 </script>
 
 <template>
@@ -393,7 +407,12 @@ watch(
     </template>
 
     <slot name="listHeader"></slot>
-    <div class="nc-list-wrapper">
+    <div
+      class="nc-list-wrapper"
+      :class="{
+        'cursor-not-allowed': isLocked,
+      }"
+    >
       <template v-if="list.length">
         <div class="h-auto !max-h-[247px]">
           <div
@@ -424,6 +443,7 @@ watch(
                     'py-2': variant === 'default',
                     'py-[5px]': variant === 'medium',
                     'py-[3px]': variant === 'small',
+                    'pointer-events-none': isLocked,
                   },
                   `${itemClassName}`,
                 ]"

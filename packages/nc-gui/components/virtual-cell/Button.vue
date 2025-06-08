@@ -14,6 +14,8 @@ const { currentRow } = useSmartsheetRowStoreOrThrow()
 
 const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
+const { appInfo } = useGlobal()
+
 const meta = inject(MetaInj, ref())
 
 const isGrid = inject(IsGridInj, ref(false))
@@ -108,7 +110,9 @@ const componentProps = computed(() => {
     return {
       href: url,
       target: '_blank',
-      ...(column.value?.colOptions.error ? { disabled: true } : {}),
+      ...(column.value?.colOptions.error || !isValidURL(url, { require_tld: !appInfo.value?.allowLocalUrl })
+        ? { disabled: true }
+        : {}),
     }
   } else if (column.value.colOptions.type === ButtonActionsType.Webhook) {
     return {
@@ -142,7 +146,7 @@ const triggerAction = async () => {
   const colOptions = column.value.colOptions
 
   if (colOptions.type === ButtonActionsType.Url) {
-    confirmPageLeavingRedirect(componentProps.value?.href, componentProps.value?.target)
+    confirmPageLeavingRedirect(componentProps.value?.href, componentProps.value?.target, appInfo.value?.allowLocalUrl)
   } else if (colOptions.type === ButtonActionsType.Webhook) {
     try {
       isLoading.value = true
@@ -195,7 +199,7 @@ const triggerAction = async () => {
         data-testid="nc-button-cell"
         :class="[
           `${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`,
-          { '!w-6': !column.colOptions.label },
+          { '!w-6': !column.colOptions.label, 'disabled': componentProps.disabled },
         ]"
         class="nc-cell-button nc-button-cell-link btn-cell-colors truncate flex items-center h-6"
         @click.prevent="triggerAction"
@@ -260,7 +264,7 @@ const triggerAction = async () => {
     box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
   }
   &[disabled] {
-    @apply !bg-gray-100 text-gray-400;
+    @apply opacity-50;
   }
 }
 
@@ -269,70 +273,70 @@ const triggerAction = async () => {
     @apply text-white;
 
     &.brand {
-      @apply bg-brand-500 hover:bg-brand-600;
+      @apply bg-brand-500 hover:not(.disabled):bg-brand-600;
       .nc-loader {
         @apply !text-brand-500;
       }
     }
 
     &.red {
-      @apply bg-red-600 hover:bg-red-700;
+      @apply bg-red-600 hover:not(.disabled):bg-red-700;
       .nc-loader {
         @apply !text-red-600;
       }
     }
 
     &.green {
-      @apply bg-green-600 hover:bg-green-700;
+      @apply bg-green-600 hover:not(.disabled):bg-green-700;
       .nc-loader {
         @apply !text-green-600;
       }
     }
 
     &.maroon {
-      @apply bg-maroon-600 hover:bg-maroon-700;
+      @apply bg-maroon-600 hover:not(.disabled):bg-maroon-700;
       .nc-loader {
         @apply !text-maroon-600;
       }
     }
 
     &.blue {
-      @apply bg-blue-600 hover:bg-blue-700;
+      @apply bg-blue-600 hover:not(.disabled):bg-blue-700;
       .nc-loader {
         @apply !text-blue-600;
       }
     }
 
     &.orange {
-      @apply bg-orange-600 hover:bg-orange-700;
+      @apply bg-orange-600 hover:not(.disabled):bg-orange-700;
       .nc-loader {
         @apply !text-orange-600;
       }
     }
 
     &.pink {
-      @apply bg-pink-600 hover:bg-pink-700;
+      @apply bg-pink-600 hover:not(.disabled):bg-pink-700;
       .nc-loader {
         @apply !text-pink-600;
       }
     }
 
     &.purple {
-      @apply bg-purple-500 hover:bg-purple-700;
+      @apply bg-purple-500 hover:not(.disabled):bg-purple-700;
       .nc-loader {
         @apply !text-purple-600;
       }
     }
 
     &.yellow {
-      @apply bg-yellow-600 hover:bg-yellow-700;
+      @apply bg-yellow-600 hover:not(.disabled):bg-yellow-700;
       .nc-loader {
         @apply !text-yellow-600;
       }
     }
 
     &.gray {
-      @apply bg-gray-600 hover:bg-gray-700;
+      @apply bg-gray-600 hover:not(.disabled):bg-gray-700;
       .nc-loader {
         @apply !text-gray-600;
       }
@@ -343,48 +347,48 @@ const triggerAction = async () => {
     box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 
     &.brand {
-      @apply bg-brand-50 hover:bg-brand-100 !text-brand-600;
+      @apply bg-brand-50 hover:not(.disabled):bg-brand-100 !text-brand-600;
     }
 
     &.red {
-      @apply bg-red-50 hover:bg-red-100 !text-red-600;
+      @apply bg-red-50 hover:not(.disabled):bg-red-100 !text-red-600;
     }
 
     &.green {
-      @apply bg-green-50 hover:bg-green-100 !text-green-600;
+      @apply bg-green-50 hover:not(.disabled):bg-green-100 !text-green-600;
     }
 
     &.maroon {
-      @apply bg-maroon-50 hover:bg-maroon-100 !text-maroon-600;
+      @apply bg-maroon-50 hover:not(.disabled):bg-maroon-100 !text-maroon-600;
     }
 
     &.blue {
-      @apply bg-blue-50 hover:bg-blue-100 !text-blue-600;
+      @apply bg-blue-50 hover:not(.disabled):bg-blue-100 !text-blue-600;
     }
 
     &.orange {
-      @apply bg-orange-50 hover:bg-orange-100 !text-orange-600;
+      @apply bg-orange-50 hover:not(.disabled):bg-orange-100 !text-orange-600;
     }
 
     &.pink {
-      @apply bg-pink-50 hover:bg-pink-100 !text-pink-600;
+      @apply bg-pink-50 hover:not(.disabled):bg-pink-100 !text-pink-600;
     }
 
     &.purple {
-      @apply bg-purple-50 hover:bg-purple-100 !text-purple-600;
+      @apply bg-purple-50 hover:not(.disabled):bg-purple-100 !text-purple-600;
     }
 
     &.yellow {
-      @apply bg-yellow-50 hover:bg-yellow-100 !text-yellow-600;
+      @apply bg-yellow-50 hover:not(.disabled):bg-yellow-100 !text-yellow-600;
     }
 
     &.gray {
-      @apply bg-gray-50 hover:bg-gray-100 !text-gray-600;
+      @apply bg-gray-50 hover:not(.disabled):bg-gray-100 !text-gray-600;
     }
   }
 
   &.text {
-    &:hover {
+    &:hover:not(.disabled) {
       @apply bg-gray-200;
     }
     &:focus {

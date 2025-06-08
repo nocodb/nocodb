@@ -48,7 +48,7 @@ const handleNavigateToProject = async (base: NcProject) => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpen">
+  <NcDropdown v-model:visible="isOpen" overlay-class-name="max-w-64">
     <slot name="default" :is-open="isOpen"></slot>
     <template #overlay>
       <LazyNcList
@@ -59,6 +59,7 @@ const handleNavigateToProject = async (base: NcProject) => {
         option-value-key="id"
         option-label-key="title"
         search-input-placeholder="Search bases"
+        class="min-w-64 !w-auto"
         @change="handleNavigateToProject"
       >
         <template #listItem="{ option }">
@@ -81,5 +82,3 @@ const handleNavigateToProject = async (base: NcProject) => {
     </template>
   </NcDropdown>
 </template>
-
-<style lang="scss" scoped></style>

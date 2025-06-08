@@ -514,8 +514,7 @@ const minimizeMaxWidth = computed(() => {
           :class="{
             'py-0': isForm,
             'py-0.5': !isForm && !isColDisabled,
-            'bg-gray-100': isDatePicker && isOpen,
-            'hover:bg-gray-100 px-1': !isColDisabled,
+            'px-1': !isColDisabled,
           }"
         >
           <input
@@ -544,8 +543,7 @@ const minimizeMaxWidth = computed(() => {
             {
               'py-0': isForm,
               'py-0.5': !isForm && !isColDisabled,
-              'bg-gray-100': !isDatePicker && isOpen,
-              'hover:bg-gray-100 px-1': !isColDisabled,
+              'px-1': !isColDisabled,
             },
           ]"
         >

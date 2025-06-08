@@ -19,8 +19,20 @@ export default defineConfig({
   extract: {
     include: [
       ...(isEE
-        ? ['../**/*.{vue,html,jsx,tsx,css,scss}', '../extensions/**/*.md']
-        : ['**/*.{vue,html,jsx,tsx,css,scss}', 'extensions/**/*.md']),
+        ? [
+            '../**/*.{vue,html,jsx,tsx,css,scss}',
+            '../extensions/**/*.md',
+            '../composables/useColumnFilteredOrSorted.ts',
+            '../components/smartsheet/grid/canvas/cells/*.ts',
+            '../components/smartsheet/grid/canvas/cells/**/*.ts',
+          ]
+        : [
+            '**/*.{vue,html,jsx,tsx,css,scss}',
+            'extensions/**/*.md',
+            'composables/useColumnFilteredOrSorted.ts',
+            'components/smartsheet/grid/canvas/cells/*.ts',
+            'components/smartsheet/grid/canvas/cells/**/*.ts',
+          ]),
     ],
     exclude: ['node_modules', '.git'],
   },
@@ -67,9 +79,11 @@ export default defineConfig({
 
   theme: {
     fontFamily: {
+      inter: ['Inter', 'Manrope', 'sans-serif'],
       sans: ['Vazirmatn', 'sans-serif'],
       serif: ['Vazirmatn', 'serif'],
       mono: ['Inter', 'mono'],
+      default: ['Inter', 'Manrope', 'sans-serif'],
     },
     extend: {
       screens: {
@@ -90,16 +104,57 @@ export default defineConfig({
         tiny: ['11px', '14px'],
         small: ['13px', '16px'],
         small1: ['13px', '18px'],
+        heading1: ['64px', { lineHeight: '92px', letterSpacing: '-2%' }],
+        heading2: ['40px', { lineHeight: '64px', letterSpacing: '-2%' }],
+        heading3: ['24px', { lineHeight: '36px', letterSpacing: '-2%' }],
+        subHeading1: ['20px', { lineHeight: '32px', letterSpacing: '-2%' }],
+        subHeading2: ['16px', { lineHeight: '24px', letterSpacing: '-2%' }],
+        bodyLg: ['16px', { lineHeight: '28px', letterSpacing: '-2%' }],
+        bodyLgBold: ['16px', { lineHeight: '28px', letterSpacing: '-2%' }],
+        body: ['14px', { lineHeight: '24px', letterSpacing: '0%' }],
+        bodyBold: ['14px', { lineHeight: '24px', letterSpacing: '0%' }],
+        bodyDefaultSm: ['13px', { lineHeight: '18px', letterSpacing: '0%' }],
+        bodyDefaultSmBold: ['13px', { lineHeight: '18px', letterSpacing: '0%' }],
+        bodySm: ['12px', { lineHeight: '18px', letterSpacing: '0%' }],
+        bodySmBold: ['12px', { lineHeight: '18px', letterSpacing: '0%' }],
+        caption: ['14px', { lineHeight: '20px', letterSpacing: '0%' }],
+        captionBold: ['14px', { lineHeight: '20px', letterSpacing: '0%' }],
+        captionSm: ['12px', { lineHeight: '14px', letterSpacing: '0%' }],
+        captionSmBold: ['12px', { lineHeight: '14px', letterSpacing: '0%' }],
+        captionXs: ['10px', { lineHeight: '14px', letterSpacing: '0%' }],
+        captionXsBold: ['10px', { lineHeight: '14px', letterSpacing: '0%' }],
+        captionDropdownDefault: ['13px', { lineHeight: '20px', letterSpacing: '0%' }],
+        sidebarDefault: ['14px', { lineHeight: '20px', letterSpacing: '0%' }],
+        sidebarSelected: ['14px', { lineHeight: '20px', letterSpacing: '0%' }],
       },
       fontWeight: {
-        thin: 150,
-        extraLight: 250,
-        light: 350,
-        normal: 450,
-        default: 500,
-        medium: 550,
-        bold: 650,
-        black: 750,
+        /**
+         * In `Inter` font multiple of 100 will point to -100
+         * @example
+         * 1. 500 is equal to 400
+         * 2. 600 is equal to 500
+         * 3. 700 is equal to 600
+         * 4. 800 is equal to 700
+         * 5. 900 is equal to 800
+         *
+         * But if it is multiples of 100 plus 50 (350,450,550,650,750) then it be standard one
+         * So while using it we have to use it like `Weight - 100`
+         */
+        thin: 200, // original 200
+        extraLight: 300, // original 300
+        light: 400, // original 400
+        normal: 500, // original 400
+        default: 500, // original 400
+        medium: 600, // original 500
+        semibold: 550, // original 550
+        bold: 700, // original 600
+        black: 800, // original 700
+        450: 400,
+        550: 450,
+        650: 550,
+        750: 650,
+        850: 750,
+        950: 850,
       },
       textColor: {
         primary: 'rgba(var(--color-primary), var(--tw-text-opacity))',

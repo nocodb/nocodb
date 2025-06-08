@@ -16,14 +16,17 @@ export class SingleLineTextHelper extends AbstractColumnHelper {
   parseValue(
     value: any,
     _params: SerializerOrParserFnProps['params']
-  ): string | null {
-    return value?.toString()?.trim() ?? null;
+  ): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    return value.toString();
   }
 
   parsePlainCellValue(
     value: any,
     _params: SerializerOrParserFnProps['params']
   ): string {
-    return value?.toString()?.trim() ?? '';
+    return value?.toString() ?? '';
   }
 }

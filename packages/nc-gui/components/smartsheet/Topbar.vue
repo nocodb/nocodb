@@ -2,6 +2,8 @@
 const router = useRouter()
 const route = router.currentRoute
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
 
 const { isAutomationActive, activeAutomationId } = storeToRefs(useAutomationStore())
@@ -39,7 +41,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
     </template>
     <template v-else>
       <div
-        class="flex items-center gap-3 min-w-[300px]"
+        class="flex items-center gap-3 min-w-[calc(100%_-_62px)] md:min-w-[300px]"
         :style="{
           width: topbarBreadcrumbItemWidth,
         }"
@@ -58,9 +60,9 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <NcButton
           v-if="
+            (appInfo.isOnPrem || isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
             !isSharedBase &&
             !activeAutomationId &&
-            isFeatureEnabled(FEATURE_FLAG.EXTENSIONS) &&
             openedViewsTab === 'view' &&
             !isMobileMode
           "
@@ -87,8 +89,8 @@ const topbarBreadcrumbItemWidth = computed(() => {
           </div>
         </NcButton>
 
-        <div v-if="!isSharedBase" class="flex gap-2 items-center">
-          <LazySmartsheetTopbarCmdK />
+        <div v-if="!isSharedBase" class="flex gap-2 items-center empty:hidden">
+          <LazySmartsheetTopbarCmdK v-if="!isNewSidebarEnabled" />
           <LazySmartsheetTopbarScriptAction v-if="activeAutomationId && appInfo.ee" />
         </div>
         <LazySmartsheetTopbarShareProject v-if="!activeAutomationId" />

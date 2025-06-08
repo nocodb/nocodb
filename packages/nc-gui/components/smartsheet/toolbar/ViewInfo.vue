@@ -126,7 +126,7 @@ const viewModeInfo = computed(() => {
             class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-900) flex items-center gap-1 cursor-pointer"
             :class="{
               'max-w-full': isMobileMode,
-              'max-w-1/2': activeView?.is_default,
+              'max-w-1/2': activeView?.is_default && !isMobileMode,
               'max-w-1/4': !isSharedBase && !isMobileMode && !activeView?.is_default,
               'max-w-none': isSharedBase && !isMobileMode,
             }"

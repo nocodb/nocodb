@@ -1,22 +1,22 @@
-import { FormulaDataTypes, parseProp } from 'nocodb-sdk';
-import { UITypes } from 'nocodb-sdk';
+import { FormulaDataTypes, parseProp, UITypes } from 'nocodb-sdk';
+import { ComputedFieldHandler } from '../computed';
 import type { Knex } from 'knex';
+import type { ColumnType } from 'nocodb-sdk';
+import type CustomKnex from 'src/db/CustomKnex';
 import type {
+  FilterOptions,
   FilterVerificationResult,
-  HandlerOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { FormulaColumn } from '~/models';
-import type CustomKnex from 'src/db/CustomKnex';
-import { type Column, Filter } from '~/models';
-import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import { Column, Filter } from '~/models';
 
-export class FormulaGeneralHandler extends GenericFieldHandler {
+export class FormulaGeneralHandler extends ComputedFieldHandler {
   override async filter(
     knex: CustomKnex,
     filter: Filter,
     column: Column,
-    options: HandlerOptions,
+    options: FilterOptions,
   ): Promise<(qb: Knex.QueryBuilder) => void> {
     const {
       context,
@@ -57,40 +57,45 @@ export class FormulaGeneralHandler extends GenericFieldHandler {
   override async verifyFilter(
     filter: Filter,
     column: Column,
-    options: HandlerOptions = {},
+    options: FilterOptions = {},
   ) {
     const uidt = parseProp(column.meta).display_type;
     if (uidt) {
-      column.uidt = uidt;
-      return options.fieldHandler.verifyFilter(filter, column, options);
+      const updatedColumn = new Column({
+        ...column,
+        uidt: uidt,
+      } as ColumnType);
+      return options.fieldHandler.verifyFilter(filter, updatedColumn, options);
     } else {
       const formulaCol = await column.getColOptions<FormulaColumn>(
         options.context,
       );
       const parsedTree = await formulaCol.getParsedTree();
       const dataType = parsedTree.dataType;
+      const setColumnTypeAndVerify = (type: UITypes) => {
+        const updatedColumn = new Column({
+          ...column,
+          uidt: type,
+        } as ColumnType);
+        return options.fieldHandler.verifyFilter(
+          filter,
+          updatedColumn,
+          options,
+        );
+      };
+
       switch (dataType) {
-        case FormulaDataTypes.BOOLEAN: {
-          column.uidt = UITypes.Checkbox;
-          return options.fieldHandler.verifyFilter(filter, column, options);
-        }
-        case FormulaDataTypes.DATE: {
-          column.uidt = UITypes.DateTime;
-          return options.fieldHandler.verifyFilter(filter, column, options);
-        }
-        case FormulaDataTypes.INTERVAL: {
-          column.uidt = UITypes.Time;
-          return options.fieldHandler.verifyFilter(filter, column, options);
-        }
-        case FormulaDataTypes.NUMERIC: {
-          column.uidt = UITypes.Decimal;
-          return options.fieldHandler.verifyFilter(filter, column, options);
-        }
+        case FormulaDataTypes.BOOLEAN:
+          return setColumnTypeAndVerify(UITypes.Checkbox);
+        case FormulaDataTypes.DATE:
+          return setColumnTypeAndVerify(UITypes.DateTime);
+        case FormulaDataTypes.INTERVAL:
+          return setColumnTypeAndVerify(UITypes.Time);
+        case FormulaDataTypes.NUMERIC:
+          return setColumnTypeAndVerify(UITypes.Decimal);
         case FormulaDataTypes.STRING:
-        default: {
-          column.uidt = UITypes.SingleLineText;
-          return options.fieldHandler.verifyFilter(filter, column, options);
-        }
+        default:
+          return setColumnTypeAndVerify(UITypes.SingleLineText);
       }
     }
 

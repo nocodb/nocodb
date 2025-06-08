@@ -194,9 +194,9 @@ const cellType = computed(() => {
   if (isCurrency(column.value)) return 'currency'
   if (isUser(column.value)) return 'user'
   if (isDecimal(column.value)) return 'decimal'
+  if (isInt(column.value, abstractType.value)) return 'integer'
   if (isFloat(column.value, abstractType.value)) return 'float'
   if (isString(column.value, abstractType.value)) return 'text'
-  if (isInt(column.value, abstractType.value)) return 'integer'
   if (isJSON(column.value)) return 'json'
   return 'text'
 })

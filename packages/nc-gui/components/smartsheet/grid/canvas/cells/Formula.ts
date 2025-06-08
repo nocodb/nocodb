@@ -58,10 +58,9 @@ export const FormulaCellRenderer: CellRenderer = {
       mousePosition,
       setCursor,
       spriteLoader,
+      selected,
     } = props
     const colMeta = parseProp(column.meta)
-
-    const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
 
     if (parseProp(column.colOptions)?.error) {
       renderSingleLineText(ctx, {
@@ -106,7 +105,7 @@ export const FormulaCellRenderer: CellRenderer = {
       const maxWidth = width - padding * 2
       // If the field uses URL formula render it as a clickable link
       if (typeof urls === 'string') {
-        ctx.font = `${pv ? 600 : 500} 13px Manrope`
+        ctx.font = `${pv ? 600 : 500} 13px Inter`
         ctx.fillStyle = pv ? '#3366FF' : textColor
         const boxes = renderFormulaURL(ctx, {
           htmlText: urls,
@@ -117,7 +116,7 @@ export const FormulaCellRenderer: CellRenderer = {
           lineHeight: 16,
         })
         const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
-        if (hoveredBox) {
+        if (hoveredBox && selected) {
           setCursor('pointer')
         }
       } else {
@@ -129,16 +128,16 @@ export const FormulaCellRenderer: CellRenderer = {
         })
       }
 
-      if (isHovered) {
+      if (selected) {
         renderIconButton(ctx, {
           buttonX: x + width - 28,
           buttonY: y + 7,
           buttonSize: 20,
           borderRadius: 6,
           iconData: {
-            size: 13,
-            xOffset: (20 - 13) / 2,
-            yOffset: (20 - 13) / 2,
+            size: 12,
+            xOffset: 4,
+            yOffset: 4,
           },
           mousePosition,
           spriteLoader,
@@ -157,7 +156,8 @@ export const FormulaCellRenderer: CellRenderer = {
     }
   },
   handleClick: async (props) => {
-    const { column, getCellPosition, value, openDetachedLongText, selected, mousePosition } = props
+    const { column, getCellPosition, value, openDetachedLongText, selected, isDoubleClick, mousePosition } = props
+    if (!selected && !isDoubleClick) return false
 
     const colObj = column.columnObj
     const colMeta = parseProp(colObj.meta)
@@ -182,6 +182,7 @@ export const FormulaCellRenderer: CellRenderer = {
               ...colMeta.display_column_meta,
             },
           },
+          formula: true,
         })
       }
     }
@@ -202,7 +203,7 @@ export const FormulaCellRenderer: CellRenderer = {
 
       if (typeof urls === 'string') {
         const ctx = defaultOffscreen2DContext
-        ctx.font = `${pv ? 600 : 500} 13px Manrope`
+        ctx.font = `${pv ? 600 : 500} 13px Inter`
         const boxes = renderFormulaURL(ctx, {
           htmlText: urls,
           height,
@@ -254,7 +255,7 @@ export const FormulaCellRenderer: CellRenderer = {
     }
   },
   async handleHover(props) {
-    const { mousePosition, getCellPosition, column, row } = props
+    const { mousePosition, getCellPosition, column, row, selected } = props
     const colObj = column.columnObj
     const colMeta = parseProp(colObj.meta)
     const error = parseProp(colObj.colOptions)?.error ?? ''
@@ -274,18 +275,21 @@ export const FormulaCellRenderer: CellRenderer = {
         },
       })
     }
+
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
-    tryShowTooltip({
-      rect: {
-        x: x + width - 28,
-        y: y + 7,
-        width: 18,
-        height: 18,
-      },
-      mousePosition,
-      text: getI18n().global.t('tooltip.expandShiftSpace'),
-    })
+    if (selected && colObj?.colOptions?.parsed_tree?.dataType === FormulaDataTypes.STRING) {
+      tryShowTooltip({
+        rect: {
+          x: x + width - 28,
+          y: y + 7,
+          width: 18,
+          height: 18,
+        },
+        mousePosition,
+        text: getI18n().global.t('tooltip.expandShiftSpace'),
+      })
+    }
 
     tryShowTooltip({ rect: { x: x + 10, y, height: 25, width: 45 }, mousePosition, text: error })
   },

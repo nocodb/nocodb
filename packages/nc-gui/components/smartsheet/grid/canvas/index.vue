@@ -11,13 +11,13 @@ import {
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import axios from 'axios'
-import type { ComputedRef, Ref } from 'vue'
+import type { CSSProperties, ComputedRef, Ref } from 'vue'
 import type { CellRange } from '../../../../composables/useMultiSelect/cellRange'
 import { hasAncestorWithClass, isGeneralOverlayActive } from '../../../../utils/browserUtils'
 import type { CanvasGroup } from '../../../../lib/types'
 import { useCanvasTable } from './composables/useCanvasTable'
 import Aggregation from './context/Aggregation.vue'
-import { clearTextCache, defaultOffscreen2DContext, isBoxHovered } from './utils/canvas'
+import { clearTextCache, defaultOffscreen2DContext, isBoxHovered, renderSingleLineText } from './utils/canvas'
 import Tooltip from './components/Tooltip.vue'
 import Scroller from './components/Scroller.vue'
 import { columnTypeName } from './utils/headerUtils'
@@ -31,7 +31,7 @@ import {
   MAX_SELECTED_ROWS,
   ROW_META_COLUMN_WIDTH,
 } from './utils/constants'
-import { calculateGroupRowTop, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
+import { calculateGroupRowTop, comparePath, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
 import { CanvasElement, ElementTypes } from './utils/CanvasElement'
 import AddNewRowMenu from './components/AddNewRowMenu.vue'
 import type { Row } from '#imports'
@@ -159,6 +159,8 @@ const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
 const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
 
+const { withLoading } = useLoadingTrigger()
+
 const { showRecordPlanLimitExceededModal, navigateToPricing } = useEeConfig()
 
 // Props to Refs
@@ -250,6 +252,11 @@ const { floatingStyles } = useFloating(targetReference, tooltipRef, {
 })
 const { tryShowTooltip, hideTooltip } = tooltipStore
 
+let selectedRowInfo: { index: number | null | undefined; path: Array<number> } = {
+  index: null,
+  path: [],
+}
+
 const {
   isGroupBy,
 
@@ -274,6 +281,7 @@ const {
   selection,
   makeCellEditable,
   findClickedColumn,
+  findColumnPosition,
   elementMap,
   // MouseSelectionHandler
   onMouseMoveSelectionHandler,
@@ -320,6 +328,7 @@ const {
   actionManager,
   imageLoader,
   readOnly,
+  baseRoleLoader,
 
   // column resize related refs
   colResizeHoveredColIds,
@@ -330,6 +339,7 @@ const {
   isDataEditAllowed,
   removeInlineAddRecord,
   upgradeModalInlineState,
+  isRowDraggingEnabled,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -371,6 +381,14 @@ const activeCursor = ref<CursorType>('auto')
 
 function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) {
   if (customCondition && !customCondition(activeCursor.value)) return
+
+  /**
+   * Their might be the that while dragging row we hover over another element, at that cursor type will be different
+   * So we have set cursor again
+   */
+  if (isRowReorderActive.value) {
+    cursor = 'grabbing'
+  }
 
   if (activeCursor.value !== cursor) {
     activeCursor.value = cursor
@@ -508,6 +526,19 @@ const isContextMenuOpen = computed({
     _isContextMenuOpen.value = val
   },
 })
+
+function resetRowSelection() {
+  if (!selectedRows.value.length && !vSelectedAllRecords.value) return
+
+  const dataCache = getDataCache()
+  dataCache.cachedRows.value.forEach((row) => {
+    if (row.rowMeta.selected) {
+      row.rowMeta.selected = false
+    }
+  })
+
+  vSelectedAllRecords.value = false
+}
 
 watch(vSelectedAllRecords, (val) => {
   const dataCache = getDataCache()
@@ -711,6 +742,8 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
   const path = group ? generateGroupPath(group) : []
 
   const isHover = hoverRow.value?.rowIndex === row.rowMeta.rowIndex && (hoverRow.value?.path ?? []).join() === path.join()
+  const isRowCellSelected = activeCell.value.row === row.rowMeta.rowIndex && activeCell.value.path?.join() === path.join()
+
   const regions = []
   let currentX = 4
 
@@ -718,48 +751,32 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
     currentX += groupByColumns.value?.length * 13
   }
 
-  let isCheckboxRendered = false
-  if (isChecked || (selectedRows.value.length && isHover) || (isHover && !isRowReOrderEnabled.value && !readOnly.value)) {
-    if (isChecked || isHover) {
-      regions.push({
-        x: currentX + 6,
-        width: 24,
-        action: isCheckboxDisabled ? 'none' : 'select',
-      })
-      isCheckboxRendered = true
-      currentX += 30
-    }
-  } else {
-    if (isHover && isRowReOrderEnabled.value && !readOnly.value) {
-      regions.push({
-        x: currentX,
-        width: 24,
-        action: 'reorder',
-      })
-      currentX += 24
-    } else if (isHover) {
-      regions.push({
-        x: currentX + 8,
-        width: 24,
-        action: 'comment',
-      })
-    } else if (!isHover) {
-      regions.push({
-        x: currentX + 8,
-        width: 24,
-        action: 'none',
-      })
-      currentX += 24
-    } else {
-      // add 6px padding to the left of the row meta column if the row number is not rendered
-      currentX += 6
-    }
-  }
+  const initialX = currentX
 
-  if (isHover && !isCheckboxRendered && !isPublicView.value) {
+  if (readOnly.value || !(isHover || isChecked || isRowCellSelected)) {
     regions.push({
       x: currentX,
-      width: 24,
+      width: ROW_META_COLUMN_WIDTH / 2 - 8,
+      action: 'none',
+    })
+
+    currentX += ROW_META_COLUMN_WIDTH / 2 - 8 + 16
+  } else if ((isHover || isChecked || isRowCellSelected) && isRowDraggingEnabled.value) {
+    regions.push({
+      x: currentX,
+      width: 26,
+      action: !selectedRows.value.length ? 'reorder' : 'none',
+    })
+    currentX += 26
+  } else {
+    // add 6px padding to the left of the row meta column if the row number is not rendered
+    currentX += 6
+  }
+
+  if (!readOnly.value && (isChecked || isHover || isRowCellSelected) && !isPublicView.value) {
+    regions.push({
+      x: currentX,
+      width: 20,
       action: isCheckboxDisabled ? 'none' : 'select',
     })
     currentX += 24
@@ -767,13 +784,37 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
 
   // Comment/maximize icon region
 
-  if (!regions.find((region) => region.action === 'comment')) {
+  if (row.rowMeta?.commentCount) {
+    const reduceFontSize = row.rowMeta.commentCount > 99
+    const commentCount = reduceFontSize ? '99+' : row.rowMeta.commentCount.toString()
+
+    const ctx = defaultOffscreen2DContext
+
+    const { width: commentCountWidth } = renderSingleLineText(ctx, {
+      x: initialX + ROW_META_COLUMN_WIDTH / 2 - 4,
+      y: 0,
+      render: false,
+      text: commentCount,
+      maxWidth: ROW_META_COLUMN_WIDTH / 2,
+      fontFamily: `600 ${reduceFontSize ? '10px' : '12px'} Inter`,
+      textAlign: 'center',
+      isTagLabel: true,
+      fillStyle: '#3366FF',
+    })
+
     regions.push({
-      x: currentX,
-      width: 24,
+      x: initialX + ROW_META_COLUMN_WIDTH - 4 - Math.max(20, commentCountWidth + 8),
+      width: Math.max(20, commentCountWidth + 8),
+      action: 'comment',
+    })
+  } else {
+    regions.push({
+      x: initialX + ROW_META_COLUMN_WIDTH - 4 - 20,
+      width: 20,
       action: 'comment',
     })
   }
+
   return { isAtMaxSelection, isCheckboxDisabled, regions, currentX }
 }
 
@@ -796,15 +837,27 @@ const handleRowMetaClick = ({
 
   if (!clickedRegion) return
 
-  if (onlyDrag && clickedRegion.action !== 'reorder') return
+  if (onlyDrag && clickedRegion.action !== 'reorder' && clickedRegion.action !== 'select') return
 
   switch (clickedRegion.action) {
     case 'select':
       if (!isCheckboxDisabled && (row.rowMeta?.selected || !isAtMaxSelection)) {
-        row.rowMeta.selected = !row.rowMeta?.selected
-        const path = generateGroupPath(group)
-        const dataCache = getDataCache(path)
-        dataCache?.cachedRows.value.set(row?.rowMeta.rowIndex, row)
+        resetActiveCell()
+
+        if (onlyDrag) {
+          row.rowMeta.selected = !row.rowMeta?.selected
+
+          const path = generateGroupPath(group)
+          if (row.rowMeta?.selected && ncIsNumber(row.rowMeta.rowIndex)) {
+            selectedRowInfo = {
+              index: row.rowMeta.rowIndex,
+              path,
+            }
+          }
+
+          const dataCache = getDataCache(path)
+          dataCache?.cachedRows.value.set(row?.rowMeta.rowIndex, row)
+        }
       }
       break
 
@@ -823,8 +876,22 @@ const handleRowMetaClick = ({
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
+const handleUnlockView = () => {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgLockView'), {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
 // check exact row meta region hovered and return the cursor type
-const getRowMetaCursor = ({ row, x, group }: { row: Row; x: number; group?: CanvasGroup }) => {
+const getRowMetaCursor = ({ row, x, group }: { row: Row; x: number; group?: CanvasGroup }): CSSProperties['cursor'] => {
   const { regions } = extractHoverMetaColRegions(row, group)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
@@ -835,7 +902,7 @@ const getRowMetaCursor = ({ row, x, group }: { row: Row; x: number; group?: Canv
       return 'pointer'
     case 'reorder':
       if (isRowReOrderEnabled.value) {
-        return 'move'
+        return isRowReorderActive.value ? 'grabbing' : 'grab'
       }
       break
     case 'comment':
@@ -849,7 +916,7 @@ let prevMenuState: {
   openColumnDropdownField?: unknown
   editEnabled?: boolean | null
   openAggregationFieldId?: string
-  openAddNewRowDropdown?: boolean | null
+  openAddNewRowDropdown?: Array<number> | null
   isDropdownVisible?: boolean
   editColumn?: unknown
   columnOrder?: unknown
@@ -897,7 +964,7 @@ async function handleMouseDown(e: MouseEvent) {
   // Handle all Column Header Operations
   if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
     // If x less than 80px, use is hovering over the row meta column
-    if (x > 80) {
+    if (x > ROW_META_COLUMN_WIDTH) {
       // If the user is trying to resize the column
       // If the user is trying to resize column, we will set the resizeableColumn to column object
       // The below operation will not interfere with other column operations
@@ -940,7 +1007,7 @@ async function handleMouseDown(e: MouseEvent) {
   if (!row) return
   // onMouseDown event, we only handle the fillHandler and selectionHandler
   // and rowReorder. Other events should be handled in onMouseUp
-  if (x < 80 + groupByColumns.value.length * 13) {
+  if (x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13) {
     if (clickType !== MouseClickType.SINGLE_CLICK) return
     handleRowMetaClick({ e, row, x, onlyDrag: true, group })
     return
@@ -962,8 +1029,15 @@ async function handleMouseDown(e: MouseEvent) {
 
   // If the new cell user clicked is not the active cell
   // call onActiveCellChanged to clear invalid rows and reorder records locally if required
-  if (rowIndex !== activeCell.value?.row || groupPath.map((v) => `${v}`).join('-') !== activeCell.value?.path?.join('-')) {
+  if (
+    rowIndex !== activeCell.value?.row ||
+    !comparePath(
+      groupPath.map((v) => `${v}`),
+      activeCell.value?.path,
+    )
+  ) {
     onActiveCellChanged()
+    resetRowSelection()
   }
 
   // If the user is trying to open the context menu
@@ -996,6 +1070,7 @@ async function handleMouseDown(e: MouseEvent) {
     // If the cell is not double-clicked, continue to onMouseDownSelectionHandler
     onMouseDownSelectionHandler(e)
   }
+
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
@@ -1074,7 +1149,10 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   e.preventDefault()
   if (mouseUpListener) {
     document.removeEventListener('mouseup', mouseUpListener)
+    mouseUpListener = null
+    selectedRowInfo = { index: null, path: [] }
   }
+
   await onMouseUpFillHandlerEnd()
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
@@ -1119,12 +1197,14 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   // Handle all Column Header Operations
   if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
     // If x less than 80px, use is hovering over the row meta column
-    if (x < 80 + groupByColumns.value.length * 13) {
+    if (x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13) {
       // If the click is not normal single click, return
       if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value || isGroupBy.value) return
-      if (isBoxHovered({ x: 10, y: 8, height: 16, width: 16 }, mousePosition)) {
+      if (isBoxHovered({ x: isRowDraggingEnabled.value ? 4 + 26 : 10, y: 8, height: 16, width: 16 }, mousePosition)) {
         vSelectedAllRecords.value = !vSelectedAllRecords.value
+        resetActiveCell()
       }
+
       requestAnimationFrame(triggerRefreshCanvas)
       return
     } else {
@@ -1155,7 +1235,8 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
 
       // If user is clicking on an existing column
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
-      const isFieldNotEditable = !isUIAllowed('fieldEdit') || clickedColumn.columnObj?.readonly
+      const isFieldNotEditable = !isUIAllowed('fieldEdit')
+
       if (clickedColumn) {
         if (clickType === MouseClickType.RIGHT_CLICK) {
           if (isFieldNotEditable) return
@@ -1206,9 +1287,31 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
             // open the edit column modal as the intention is to resize the column
             if (activeCursor.value === 'col-resize') return
 
-            handleEditColumn(e, false, clickedColumn.columnObj)
+            handleEditColumn(e, false, clickedColumn.columnObj, xOffset)
+
+            selection.value.startRange({ row: NaN, col: NaN })
+            selection.value.endRange({ row: NaN, col: NaN })
+
+            activeCell.value = { row: -1, column: -1, path: activeCell.value?.path ?? [] }
+
             requestAnimationFrame(triggerRefreshCanvas)
             return
+          } else if (!isGroupBy.value && x < xOffset + columnWidth - 20 - (clickedColumn.columnObj?.description ? 24 : 0)) {
+            const colIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
+
+            const dataCache = getDataCache()
+
+            // Calculate the 0-based index of the last row to select.
+            // This is the minimum of the total number of rows - 1 (for 0-based index) or 99 (limiting to 100 rows).
+            const endRowIndex = Math.min(dataCache.totalRows.value - 1, 99)
+            selection.value.startRange({ row: 0, col: colIndex })
+            selection.value.endRange({ row: endRowIndex, col: colIndex })
+
+            resetRowSelection()
+
+            activeCell.value = { row: 0, column: colIndex, path: [] }
+            onActiveCellChanged()
+            requestAnimationFrame(triggerRefreshCanvas)
           }
         }
       }
@@ -1218,7 +1321,11 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   }
 
   // If the user is clicking on the Aggregation in bottom
-  if (y > height.value - 36 && !isLocked.value) {
+  if (y > height.value - 36) {
+    if (isLocked.value && isUIAllowed('fieldAdd')) {
+      handleUnlockView()
+      return
+    }
     // If the click is not normal single click, return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
 
@@ -1310,7 +1417,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
         const elem = _elementMap.findElementAtWithX(x, y, ElementTypes.EDIT_NEW_ROW_METHOD)
 
         if (elem) {
-          if (prevMenuState.openAddNewRowDropdown?.join('-') === groupPath?.join('-')) {
+          if (comparePath(prevMenuState.openAddNewRowDropdown, groupPath)) {
             isDropdownVisible.value = true
             openAddNewRowDropdown.value = []
             requestAnimationFrame(triggerRefreshCanvas)
@@ -1357,7 +1464,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     return
   }
 
-  if (x < 80 + groupByColumns.value.length * 13) {
+  if (x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13) {
     if (!row) return
     if (![MouseClickType.SINGLE_CLICK, MouseClickType.RIGHT_CLICK].includes(clickType)) return
 
@@ -1429,11 +1536,10 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     mousePosition: { x, y },
     pk,
     selected:
-      prevActiveCell?.row === rowIndex &&
-      prevActiveCell?.column === colIndex &&
-      prevActiveCell?.path?.join('-') === groupPath.join('-'),
+      prevActiveCell?.row === rowIndex && prevActiveCell?.column === colIndex && comparePath(prevActiveCell?.path, groupPath),
     imageLoader,
     path: groupPath,
+    baseRoleLoader,
   })
   // Set the active cell to the clicked cell
   activeCell.value.row = rowIndex
@@ -1447,7 +1553,9 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     requestAnimationFrame(triggerRefreshCanvas)
     return
   }
-  scrollToCell()
+  if (!clickedColumn?.fixed) {
+    scrollToCell()
+  }
   requestAnimationFrame(triggerRefreshCanvas)
   const columnUIType = clickedColumn.columnObj.uidt as UITypes
 
@@ -1487,7 +1595,7 @@ const getHeaderTooltipRegions = (
 
   const ctx = defaultOffscreen2DContext
   ctx.save()
-  ctx.font = '550 12px Manrope'
+  ctx.font = '550 12px Inter'
   columns.value.slice(startColIndex, endColIndex).forEach((column) => {
     const width = parseCellWidth(column.width)
 
@@ -1524,7 +1632,7 @@ const getHeaderTooltipRegions = (
     const isTruncated = measuredTextWidth > availableTextWidth
 
     regions.push({
-      x: xOffset + (column.uidt ? 26 : 8) - scrollLeftValue,
+      x: xOffset + (column.uidt ? 26 : isRowDraggingEnabled.value ? 26 + 4 : 10) - scrollLeftValue,
       // 16px is for checkbox and it's not renders on load
       width: Math.max(column.uidt ? 0 : 16, isTruncated ? availableTextWidth : measuredTextWidth),
       type: 'title',
@@ -1692,7 +1800,6 @@ const handleMouseMove = (e: MouseEvent) => {
       return
     } else {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
-
       if (element) {
         if (
           removeInlineAddRecord.value &&
@@ -1707,6 +1814,7 @@ const handleMouseMove = (e: MouseEvent) => {
           path: generateGroupPath(element?.group),
         }
       }
+
       onMouseMoveSelectionHandler(e)
     }
     requestAnimationFrame(triggerRefreshCanvas)
@@ -1741,20 +1849,63 @@ const handleMouseMove = (e: MouseEvent) => {
     })
   }
 
+  if (cursor) setCursor(cursor)
+
   // check if hovering row meta column and set cursor
-  if (mousePosition.x < 80 + groupByColumns.value.length * 13 && mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX) {
+  if (
+    mousePosition.x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13 &&
+    mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX
+  ) {
     // handle hovering on the aggregation dropdown
     if (mousePosition.y <= height.value - 36) {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
       const row = element?.row
       cursor = getRowMetaCursor({ row, x: mousePosition.x, group: element?.group }) || cursor
+
+      if (cursor) setCursor(cursor)
+
+      if (
+        !row ||
+        ncIsUndefined(row.rowMeta.rowIndex) ||
+        !ncIsNumber(selectedRowInfo.index) ||
+        (isGroupBy.value ? !comparePath(selectedRowInfo.path, element.groupPath) : false)
+      ) {
+        return
+      }
+
+      const { isAtMaxSelection, isCheckboxDisabled, regions } = extractHoverMetaColRegions(row, element?.group)
+
+      if (isAtMaxSelection || isCheckboxDisabled) return
+
+      const clickedRegion = regions.find((region) => mousePosition.x >= region.x && mousePosition.x < region.x + region.width)
+
+      if (!clickedRegion || clickedRegion.action !== 'select') return
+
+      const selectionStart = Math.min(selectedRowInfo.index, row.rowMeta.rowIndex)
+
+      const selectionEnd = Math.min(selectionStart + MAX_SELECTED_ROWS, Math.max(selectedRowInfo.index, row.rowMeta.rowIndex))
+
+      const dataCache = getDataCache(element.groupPath)
+
+      dataCache.cachedRows.value.forEach((row) => {
+        if (row.rowMeta.rowIndex >= selectionStart && row.rowMeta.rowIndex <= selectionEnd) {
+          row.rowMeta.selected = true
+        } else {
+          row.rowMeta.selected = false
+        }
+      })
+
+      requestAnimationFrame(triggerRefreshCanvas)
     }
   }
-
-  if (cursor) setCursor(cursor)
 }
 
-const reloadViewDataHookHandler = async (params) => {
+const handleMouseLeave = () => {
+  activeCursor.value = 'auto'
+  hideTooltip()
+}
+
+const reloadViewDataHookHandler = withLoading(async (params) => {
   if (isGroupBy.value) {
     if (params?.path?.length) {
       clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, params?.path)
@@ -1781,7 +1932,7 @@ const reloadViewDataHookHandler = async (params) => {
   calculateSlices()
 
   requestAnimationFrame(triggerRefreshCanvas)
-}
+})
 
 let rafId: number | null = null
 let scrollTimeout: number | null = null
@@ -1867,6 +2018,7 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
   openColumnDropdownField.value = null
   if (!isAddingColumnAllowed.value) return
   $e('c:shortcut', { key: 'ALT + C' })
+
   if (renderAtCurrentPosition) {
     isDropdownVisible.value = true
     isCreateOrEditColumnDropdownOpen.value = true
@@ -1882,7 +2034,7 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
 
     overlayStyle.value = {
       top: `${rect.top}px`,
-      right: '256px',
+      right: `${256 - ADD_NEW_COLUMN_WIDTH}px`,
       width: `${ADD_NEW_COLUMN_WIDTH}px`,
       height: '32px',
       position: 'fixed',
@@ -1895,12 +2047,11 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
   }
 }
 
-function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnType) {
+function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnType, clickedXOffset?: number) {
   if (
     isUIAllowed('fieldEdit') &&
     !isMobileMode.value &&
     (isDescription ? true : !isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.uidt)) &&
-    !column.readonly &&
     !isSqlView.value
   ) {
     const rect = canvasRef.value?.getBoundingClientRect()
@@ -1908,15 +2059,14 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
       isEditColumnDescription.value = true
     }
 
-    const colIndex = columns.value.findIndex((col) => col.id === column.id)
-    let xOffset = 0
-    for (let i = colSlice.value.start; i < colIndex; i++) {
-      xOffset += parseCellWidth(columns.value[i]?.width)
-    }
+    if (!column?.id) return
+
+    const { column: col, xOffset } = findColumnPosition(column.id, scrollLeft.value)
+
     overlayStyle.value = {
       top: `${rect.top}px`,
-      left: `${rect.left + xOffset}px`,
-      width: columns.value[colIndex]!.width,
+      left: `${rect.left + (clickedXOffset ?? xOffset)}px`,
+      width: col?.width ?? '180px',
       height: `32px`,
       position: 'fixed',
     }
@@ -2069,6 +2219,14 @@ watch([height, width, windowWidth, windowHeight], () => {
   })
 })
 
+watch(totalHeight, (newHeight) => {
+  if (scrollTop.value > newHeight - height.value) {
+    scroller.value?.scrollTo({
+      top: Math.max(newHeight - height.value - 256, 0),
+    })
+  }
+})
+
 // Watch for Rowheight Changes
 watch(rowHeight, () => {
   calculateSlices()
@@ -2169,6 +2327,19 @@ eventBus.on(async (event, payload) => {
   }
 })
 
+function resetActiveCell(path?: Array<number>, force = false) {
+  if (!activeCell.value) return
+
+  if (activeCell.value.row >= 0 || activeCell.value.column >= 0 || force) {
+    activeCell.value = { row: -1, column: -1, path: path ?? [] }
+    editEnabled.value = null
+    isFillHandlerActive.value = false
+    selection.value.clear()
+    onActiveCellChanged()
+    requestAnimationFrame(triggerRefreshCanvas)
+  }
+}
+
 onClickOutside(
   wrapperRef,
   (e: MouseEvent) => {
@@ -2192,11 +2363,7 @@ onClickOutside(
     openAggregationField.value = null
     openAddNewRowDropdown.value = null
     if (activeCell.value.row >= 0 || activeCell.value.column >= 0 || editEnabled.value) {
-      activeCell.value = { row: -1, column: -1, path: activeCell.value.path }
-      editEnabled.value = null
-      isFillHandlerActive.value = false
-      selection.value.clear()
-      requestAnimationFrame(triggerRefreshCanvas)
+      resetActiveCell(activeCell.value.path, true)
     }
   },
   {
@@ -2302,6 +2469,7 @@ defineExpose({
             oncontextmenu="return false"
             @mousedown="handleMouseDown"
             @mousemove="handleMouseMove"
+            @mouseleave="handleMouseLeave"
           >
           </canvas>
           <template #overlay>
@@ -2415,7 +2583,7 @@ defineExpose({
         :trigger="['click']"
         :visible="
           isDropdownVisible &&
-          (openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField || openAddNewRowDropdown)
+          !!(openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField || openAddNewRowDropdown)
         "
         :overlay-class-name="`!bg-transparent !min-w-[220px] ${
           !openAggregationField && !openColumnDropdownField && !openAddNewRowDropdown ? '!border-none !shadow-none' : ''
@@ -2660,6 +2828,15 @@ defineExpose({
 
       &:not(.ant-select-selection-search-input) {
         @apply !text-small leading-[18px];
+      }
+    }
+  }
+
+  :deep(.nc-cell),
+  :deep(.nc-virtual-cell) {
+    &:not(.nc-cell-date):not(.nc-cell-datetime):not(.nc-cell-year):not(.nc-cell-time) {
+      input {
+        @apply min-h-[26px] !important;
       }
     }
   }

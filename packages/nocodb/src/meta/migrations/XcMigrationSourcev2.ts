@@ -63,6 +63,10 @@ import * as nc_073_file_reference_indexes from '~/meta/migrations/v2/nc_073_file
 import * as nc_074_missing_context_indexes from '~/meta/migrations/v2/nc_074_missing_context_indexes';
 import * as nc_075_audit_refactor from '~/meta/migrations/v2/nc_075_audit_refactor';
 import * as nc_076_sync_configs from '~/meta/migrations/v2/nc_076_sync_configs';
+import * as nc_077_column_index_name from '~/meta/migrations/v2/nc_077_column_index_name';
+import * as nc_078_mcp_tokens from '~/meta/migrations/v2/nc_078_mcp_tokens';
+import * as nc_079_cross_base_link from '~/meta/migrations/v2/nc_079_cross_base_link';
+import * as nc_080_sync_mappings from '~/meta/migrations/v2/nc_080_sync_mappings';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -137,6 +141,10 @@ export default class XcMigrationSourcev2 {
       'nc_074_missing_context_indexes',
       'nc_075_audit_refactor',
       'nc_076_sync_configs',
+      'nc_077_column_index_name',
+      'nc_078_mcp_tokens',
+      'nc_079_cross_base_link',
+      'nc_080_sync_mappings',
     ]);
   }
 
@@ -276,6 +284,14 @@ export default class XcMigrationSourcev2 {
         return nc_075_audit_refactor;
       case 'nc_076_sync_configs':
         return nc_076_sync_configs;
+      case 'nc_077_column_index_name':
+        return nc_077_column_index_name;
+      case 'nc_078_mcp_tokens':
+        return nc_078_mcp_tokens;
+      case 'nc_079_cross_base_link':
+        return nc_079_cross_base_link;
+      case 'nc_080_sync_mappings':
+        return nc_080_sync_mappings;
     }
   }
 }

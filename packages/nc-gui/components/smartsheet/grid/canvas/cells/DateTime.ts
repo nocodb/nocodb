@@ -8,15 +8,15 @@ dayjs.extend(utc)
 
 export const DateTimeCellRenderer: CellRenderer = {
   render: (ctx, { value, x, y, width, selected, pv, column, padding, readonly }) => {
-    ctx.font = `${pv ? 600 : 500} 13px Manrope`
+    ctx.font = `${pv ? 600 : 500} 13px Inter`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
 
     const columnMeta = parseProp(column?.meta)
     const dateFormat = columnMeta?.date_format ?? 'YYYY-MM-DD'
     const timeFormat = columnMeta?.time_format ?? 'HH:mm'
-    const timezone = column.extra.timezone as TimeZone
-    const isDisplayTimezone = column.extra.isDisplayTimezone as TimeZone
+    const timezone = column?.extra?.timezone as TimeZone
+    const isDisplayTimezone = column?.extra?.isDisplayTimezone as TimeZone
 
     const is12hrFormat = columnMeta?.is12hrFormat
     const isValueValid = value && dayjs(value).isValid()
@@ -30,7 +30,7 @@ export const DateTimeCellRenderer: CellRenderer = {
 
     if (!value && selected && !readonly) {
       ctx.fillStyle = '#989FB1'
-      ctx.font = '400 13px Manrope'
+      ctx.font = '400 13px Inter'
 
       const truncatedDateFormat = truncateText(ctx, dateFormat, dateWidth - padding)
       ctx.fillText(truncatedDateFormat, x + padding, textY)
@@ -65,7 +65,7 @@ export const DateTimeCellRenderer: CellRenderer = {
       const gray400 = '#6A7184'
       const oldFillStyle = ctx.fillStyle
       const oldFont = ctx.font
-      ctx.font = ctx.font = `500 11px Manrope`
+      ctx.font = ctx.font = `500 11px Inter`
       ctx.fillStyle = gray400
       ctx.fillText(timezone!.abbreviation, x + dateTimeWidth + padding * 3.5, textY)
       ctx.font = oldFont
@@ -81,7 +81,7 @@ export const DateTimeCellRenderer: CellRenderer = {
 
     const canvasContext = defaultOffscreen2DContext
 
-    canvasContext.font = '500 13px Manrope'
+    canvasContext.font = '500 13px Inter'
 
     const columnMeta = parseProp(column?.columnObj?.meta)
     const dateFormat = columnMeta?.date_format ?? 'YYYY-MM-DD'
@@ -99,7 +99,7 @@ export const DateTimeCellRenderer: CellRenderer = {
     } else {
       dateText = dateFormat
       timeText = timeFormat
-      canvasContext.font = '400 13px Manrope'
+      canvasContext.font = '400 13px Inter'
     }
 
     if (dateText) {

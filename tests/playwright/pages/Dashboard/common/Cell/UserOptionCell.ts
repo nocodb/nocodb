@@ -39,6 +39,9 @@ export class UserOptionCellPageObject extends BasePage {
 
     await this.rootPage.locator('.nc-dropdown-user-select-cell.active').waitFor({ state: 'visible' });
 
+    // add 500ms wait to ensure dropdown is open
+    await this.rootPage.waitForTimeout(100);
+
     if (index === -1) {
       const selectOption = this.rootPage.getByTestId(`select-option-${columnHeader}-undefined`).getByText(option);
       await selectOption.scrollIntoViewIfNeeded();

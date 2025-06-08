@@ -1,13 +1,17 @@
 <script setup lang="ts">
 const { isUIAllowed } = useRoles()
 
-const hasPermissionForSnapshots = computed(() => isUIAllowed('manageSnapshot'))
+const hasPermissionForSnapshots = computed(() => isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot'))
 
-const hasPermissionForMigrate = computed(() => isUIAllowed('migrateBase'))
+const hasPermissionForMigrate = computed(() => isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
 
 const router = useRouter()
 
 const activeMenu = ref(isEeUI && hasPermissionForSnapshots.value ? 'snapshots' : 'visibility')
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isMCPEnabled = computed(() => isUIAllowed('baseMiscSettings') && isFeatureEnabled(FEATURE_FLAG.MODEL_CONTEXT_PROTOCOL))
 
 const selectMenu = (option: string) => {
   if (!hasPermissionForSnapshots.value && option === 'snapshots') {
@@ -24,7 +28,7 @@ const selectMenu = (option: string) => {
 
 onMounted(() => {
   const query = router.currentRoute.value.query
-  if (query && query.tab && ['snapshots', 'visibility'].includes(query.tab as string)) {
+  if (query && query.tab && ['snapshots', 'visibility', 'mcp'].includes(query.tab as string)) {
     selectMenu(query.tab as string)
   }
 })
@@ -52,6 +56,7 @@ onMounted(() => {
         </div>
 
         <div
+          v-if="isUIAllowed('baseMiscSettings')"
           :class="{
             'active-menu': activeMenu === 'visibility',
           }"
@@ -62,6 +67,20 @@ onMounted(() => {
           <GeneralIcon icon="ncEye" />
           <span>
             {{ $t('labels.visibilityAndDataHandling') }}
+          </span>
+        </div>
+        <div
+          v-if="isMCPEnabled"
+          :class="{
+            'active-menu': activeMenu === 'mcp',
+          }"
+          class="gap-3 hover:bg-gray-100 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          data-testid="mcp-tab"
+          @click="selectMenu('mcp')"
+        >
+          <GeneralIcon icon="mcp" />
+          <span>
+            {{ $t('labels.modelContextProtocol') }}
           </span>
         </div>
 
@@ -85,6 +104,7 @@ onMounted(() => {
       <DashboardSettingsBaseSnapshots v-if="activeMenu === 'snapshots'" />
       <DashboardSettingsBaseVisibility v-if="activeMenu === 'visibility'" />
       <DashboardSettingsBaseMigrate v-if="activeMenu === 'migrate'" />
+      <DashboardSettingsBaseMCP v-if="activeMenu === 'mcp'" />
     </div>
   </div>
 </template>

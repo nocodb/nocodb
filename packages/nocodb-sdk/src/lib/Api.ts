@@ -187,6 +187,9 @@ export type FilterCreateUpdateV3Type = FilterV3Type | FilterGroupV3Type;
 export type FieldV3Type = FieldBaseV3Type &
   (
     | {
+        type?: 'SingleLineText';
+      }
+    | {
         type?: 'LongText';
         options?: FieldOptionsLongTextV3Type;
       }
@@ -263,7 +266,7 @@ export interface FieldOptionsLinkToAnotherRecordV3Type {
    */
   relation_type: string;
   /** Identifier of the linked table. */
-  linked_table_id: string;
+  related_table_id: string;
 }
 
 export interface FieldOptionsLinksV3Type {
@@ -277,16 +280,46 @@ export interface FieldOptionsLinksV3Type {
    */
   relation_type: string;
   /** Identifier of the linked table. */
-  linked_table_id: string;
+  related_table_id: string;
 }
 
-export type FieldOptionsButtonV3Type = any;
+export type FieldOptionsButtonV3Type =
+  | {
+      /** Button type: formula */
+      type: 'formula';
+      /** Formula to execute */
+      formula: string;
+    }
+  | {
+      /** Button type: webhook */
+      type: 'webhook';
+      /** ID of the webhook to trigger */
+      button_hook_id: string;
+    }
+  | {
+      /** Button type: AI */
+      type: 'ai';
+      /** AI prompt to execute */
+      prompt: string;
+      /** Integration ID for AI service */
+      integration_id: string;
+      /** Theme of the button */
+      theme?: string;
+      /** IDs of columns where AI output should be stored */
+      output_column_ids?: string;
+      /** Label of the button */
+      label?: string;
+      /** Icon of the button */
+      icon?: string;
+      /** Color of the button */
+      color?: string;
+    };
 
 export interface FieldOptionsRollupV3Type {
   /** Linked field ID. */
-  link_field_id: string;
+  related_field_id: string;
   /** Rollup field ID in the linked table. */
-  linked_table_rollup_field_id: string;
+  related_table_rollup_field_id: string;
   /** Rollup function. */
   rollup_function:
     | 'count'
@@ -301,9 +334,9 @@ export interface FieldOptionsRollupV3Type {
 
 export interface FieldOptionsLookupV3Type {
   /** Linked field ID. Can be of type Links or LinkToAnotherRecord */
-  link_field_id: string;
+  related_field_id: string;
   /** Lookup field ID in the linked table. */
-  linked_table_lookup_field_id: string;
+  related_table_lookup_field_id: string;
 }
 
 export interface FieldOptionsUserV3Type {
@@ -316,11 +349,16 @@ export interface FieldOptionsFormulaV3Type {
   formula?: string;
 }
 
+export interface FieldOptionsQRCodeV3Type {
+  /** Field ID that contains the value. */
+  qrcode_value_field_id?: string;
+}
+
 export interface FieldOptionsBarcodeV3Type {
   /** Barcode format (e.g., CODE128). */
   format?: string;
   /** Field ID that contains the value. */
-  value_field_id?: string;
+  barcode_value_field_id?: string;
 }
 
 export interface FieldOptionsCheckboxV3Type {
@@ -385,13 +423,6 @@ export interface FieldOptionsSelectV3Type {
 }
 
 export interface FieldOptionsTimeV3Type {
-  /**
-   * Time format. Supported options are listed below
-   * - `HH:mm`
-   * - `HH:mm:ss`
-   * - `HH:mm:ss.SSS`
-   */
-  time_format?: string;
   /** Use 12-hour time format. */
   '12hr_format'?: boolean;
 }
@@ -439,6 +470,12 @@ export interface FieldOptionsDateTimeV3Type {
   time_format?: string;
   /** Use 12-hour time format. */
   '12hr_format'?: boolean;
+  /** Display timezone. */
+  display_timezone?: boolean;
+  /** Timezone. Refer to https://en.wikipedia.org/wiki/List_of_tz_database_time_zones */
+  timezone?: string;
+  /** Use same timezone for all records. */
+  use_same_timezone_for_all?: boolean;
 }
 
 export interface FieldOptionsDurationV3Type {
@@ -450,16 +487,10 @@ export interface FieldOptionsDurationV3Type {
    * - `h:mm:ss.SS`
    * - `h:mm:ss.SSS`
    */
-  format?: string;
+  duration_format?: string;
 }
 
 export interface FieldOptionsPercentV3Type {
-  /**
-   * Number of decimal places allowed.
-   * @min 0
-   * @max 5
-   */
-  precision?: number;
   /** Display as a progress bar. */
   show_as_progress?: boolean;
 }
@@ -691,6 +722,30 @@ export interface FieldOptionsLongTextV3Type {
   rich_text?: boolean;
   /** Enable text generation for this field using NocoAI. */
   generate_text_using_ai?: boolean;
+}
+
+export interface FieldBaseV3Type {
+  /** Unique identifier for the field. */
+  id?: string;
+  /** Title of the field. */
+  title: string;
+  /** Field data type. */
+  type: string;
+  /** Description of the field. */
+  description?: string | null;
+  /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
+  default_value?: string;
+}
+
+export interface ViewCreateV3Type {
+  /** Name of the view. */
+  view_name?: string;
+  /** Type of the view. */
+  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
+  /** Lock type of the view. */
+  lock_type?: 'COLLABARATIVE' | 'LOCKED' | 'PERSONAL';
+  /** Description of the view. */
+  description?: string;
 }
 
 /**
@@ -1037,19 +1092,6 @@ export interface TableV3Type {
   fields: CreateFieldV3Type[];
   /** List of views associated with this table. */
   views: ViewSummaryV3Type[];
-}
-
-export interface FieldBaseV3Type {
-  /** Field identifier. */
-  id?: string;
-  /** Field name. */
-  title: string;
-  /** Field type. */
-  type: string;
-  /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
-  default_value?: string;
-  /** Field description. */
-  description?: string;
 }
 
 export type CreateFieldV3Type = FieldBaseV3Type;
@@ -2907,6 +2949,30 @@ export interface KanbanUpdateReqType {
 }
 
 /**
+ * Model for MCP Token
+ */
+export interface MCPTokenType {
+  /** Unique ID */
+  id?: string;
+  /** Title of the MCP Token */
+  title?: string;
+  /** Order of the Script */
+  order?: number;
+  /** MCP Token */
+  token?: string;
+  /** Workspace ID */
+  fk_workspace_id?: IdType;
+  /** Base ID */
+  base_id?: IdType;
+  /** User ID of the creator */
+  fk_user_id?: IdType;
+  /** Last updated time */
+  updated_at?: string;
+  /** Creation time */
+  created_at?: string;
+}
+
+/**
  * Model for Calendar
  */
 export interface CalendarType {
@@ -3046,6 +3112,11 @@ export interface LinkToAnotherRecordType {
   ur?: string;
   /** Model for Bool */
   virtual?: BoolType;
+  fk_related_base_id?: string;
+  fk_mm_base_id?: string;
+  base_id?: string;
+  fk_related_source_id?: string;
+  fk_mm_source_id?: string;
 }
 
 /**
@@ -6929,7 +7000,7 @@ export class Api<
  * @name HasEmptyOrNullFilters
  * @summary List Empty & Null Filter
  * @request GET:/api/v1/db/meta/projects/{baseId}/has-empty-or-null-filters
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -6938,7 +7009,7 @@ export class Api<
  */
     hasEmptyOrNullFilters: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -7109,7 +7180,7 @@ export class Api<
  * @name List
  * @summary List Sources
  * @request GET:/api/v1/db/meta/projects/{baseId}/bases/
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -7118,7 +7189,7 @@ export class Api<
  */
     list: (baseId: IdType, params: RequestParams = {}) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -7700,6 +7771,39 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
+  dbLinks = {
+    /**
+ * @description Read the table metadata by linked column ID and  table ID
+ * 
+ * @tags DB Links
+ * @name TableRead
+ * @summary Read Partial Linked Table
+ * @request GET:/api/v1/db/internal/links/{linkColumnId}/tables/{tableId}
+ * @response `200` `TableType` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    tableRead: (
+      linkColumnId: IdType,
+      tableId: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        TableType,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/internal/links/${linkColumnId}/tables/${tableId}`,
+        method: 'GET',
         format: 'json',
         ...params,
       }),
@@ -9465,7 +9569,7 @@ export class Api<
  * @name Create
  * @summary Create Table Row
  * @request POST:/api/v1/db/data/{orgs}/{baseName}/{tableName}
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9484,7 +9588,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9545,7 +9649,7 @@ export class Api<
      * @name GroupBy
      * @summary Group By Table Row
      * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/groupby
-     * @response `200` `FieldOptionsButtonV3Type` OK
+     * @response `200` `BaseUserDeleteRequestV3Type` OK
      */
     groupBy: (
       orgs: string,
@@ -9563,7 +9667,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<FieldOptionsButtonV3Type, any>({
+      this.request<BaseUserDeleteRequestV3Type, any>({
         path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/groupby`,
         method: 'GET',
         query: query,
@@ -9578,7 +9682,7 @@ export class Api<
      * @name GroupByCount
      * @summary Group By Table Row Count
      * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/groupby/count
-     * @response `200` `FieldOptionsButtonV3Type` OK
+     * @response `200` `BaseUserDeleteRequestV3Type` OK
      */
     groupByCount: (
       orgs: string,
@@ -9594,7 +9698,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<FieldOptionsButtonV3Type, any>({
+      this.request<BaseUserDeleteRequestV3Type, any>({
         path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/groupby/count`,
         method: 'GET',
         query: query,
@@ -9958,7 +10062,7 @@ export class Api<
  * @name BulkUpdateAll
  * @summary Bulk Update Table Rows with Conditions
  * @request PATCH:/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/all
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9977,7 +10081,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -10031,47 +10135,13 @@ export class Api<
       }),
 
     /**
- * @description Export Table View Rows by CSV or Excel
- * 
- * @tags DB Table Row
- * @name CsvExport
- * @summary Export Table View Rows
- * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/export/{type}
- * @response `200` `FieldOptionsButtonV3Type` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    csvExport: (
-      orgs: string,
-      baseName: string,
-      tableName: string,
-      type: 'csv' | 'excel',
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        FieldOptionsButtonV3Type,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/export/${type}`,
-        method: 'GET',
-        wrapped: true,
-        ...params,
-      }),
-
-    /**
  * @description List all nested relations rows
  * 
  * @tags DB Table Row
  * @name NestedList
  * @summary List Nested Relations Rows
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -10095,7 +10165,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -10226,7 +10296,7 @@ export class Api<
  * @name NestedChildrenExcludedList
  * @summary Referenced Table Rows Excluding Current Record's Children / Parent
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/{rowId}/{relationType}/{columnName}/exclude
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -10250,7 +10320,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -10453,7 +10523,7 @@ export class Api<
  * @name GroupBy
  * @summary Group By Table View Row
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -10478,7 +10548,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -10498,7 +10568,7 @@ export class Api<
  * @name GroupByCount
  * @summary Count of Group By Table View Row
  * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/groupby/count
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -10521,7 +10591,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -10713,41 +10783,6 @@ export class Api<
         format: 'json',
         ...params,
       }),
-
-    /**
- * @description Export Table View Rows by CSV or Excel
- * 
- * @tags DB View Row
- * @name Export
- * @summary Export Table View Rows
- * @request GET:/api/v1/db/data/{orgs}/{baseName}/{tableName}/views/{viewName}/export/{type}
- * @response `200` `FieldOptionsButtonV3Type` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    export: (
-      orgs: string,
-      baseName: string,
-      tableName: string,
-      viewName: string,
-      type: 'csv' | 'excel',
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        FieldOptionsButtonV3Type,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/data/${orgs}/${baseName}/${tableName}/views/${viewName}/export/${type}`,
-        method: 'GET',
-        wrapped: true,
-        ...params,
-      }),
   };
   dbCalendarViewRow = {
     /**
@@ -10765,6 +10800,8 @@ export class Api<
       viewName: string,
       query: {
         from_date: string;
+        prev_date: string;
+        next_date: string;
         to_date: string;
         fields?: any[];
         sort?: any[];
@@ -10795,6 +10832,8 @@ export class Api<
       query: {
         from_date: string;
         to_date: string;
+        prev_date: string;
+        next_date: string;
         fields?: any[];
         sort?: any[];
         where?: string;
@@ -10854,7 +10893,7 @@ export class Api<
  * @name DbCalendarViewRowCount
  * @summary Count of Records in Dates in Calendar View
  * @request GET:/api/v1/db/calendar-data/{orgs}/{baseName}/{tableName}/views/{viewName}/countByDate/
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -10869,6 +10908,8 @@ export class Api<
       query: {
         from_date: string;
         to_date: string;
+        prev_date: string;
+        next_date: string;
         sort?: any[];
         where?: string;
         /** @min 1 */
@@ -10879,7 +10920,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -10900,7 +10941,7 @@ export class Api<
  * @name DataCalendarRowCount
  * @summary Count of Records in Dates in Calendar View
  * @request GET:/api/v1/db/public/calendar-view/{sharedViewUuid}/countByDate
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -10911,6 +10952,8 @@ export class Api<
       sharedViewUuid: string,
       query: {
         from_date: string;
+        prev_date: string;
+        next_date: string;
         to_date: string;
         sort?: any[];
         where?: string;
@@ -10922,7 +10965,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -11366,7 +11409,7 @@ export class Api<
  * @name DataGroupByCount
  * @summary Group By Table Row Count
  * @request GET:/api/v2/public/shared-view/{sharedViewUuid}/groupby/count
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -11388,7 +11431,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -11470,45 +11513,13 @@ export class Api<
       }),
 
     /**
- * @description Export all rows in Share View in a CSV / Excel Format
- * 
- * @tags Public
- * @name CsvExport
- * @summary Export Rows in Share View
- * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type}
- * @response `200` `FieldOptionsButtonV3Type` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    csvExport: (
-      sharedViewUuid: string,
-      type: 'csv' | 'excel',
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        FieldOptionsButtonV3Type,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/public/shared-view/${sharedViewUuid}/rows/export/${type}`,
-        method: 'GET',
-        wrapped: true,
-        ...params,
-      }),
-
-    /**
  * @description List Nested Data Relation
  * 
  * @tags Public
  * @name DataRelationList
  * @summary List Nested Data Relation
  * @request GET:/api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName}
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -11543,7 +11554,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -11660,6 +11671,28 @@ export class Api<
       this.request<any, any>({
         path: `/api/v1/db/public/shared-erd/${sharedErdUuid}/meta`,
         method: 'GET',
+        ...params,
+      }),
+
+    /**
+     * @description Trigger export as job
+     *
+     * @tags Public
+     * @name ExportData
+     * @summary Trigger export as job
+     * @request POST:/api/v2/public/export/{publicDataUuid}/{exportAs}
+     */
+    exportData: (
+      publicDataUuid: IdType,
+      exportAs: 'csv',
+      data: object,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v2/public/export/${publicDataUuid}/${exportAs}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
   };
@@ -12490,6 +12523,45 @@ export class Api<
       }),
 
     /**
+ * No description
+ * 
+ * @tags Utils
+ * @name CloudFeatures
+ * @summary Get Cloud Features
+ * @request GET:/api/v2/cloud-features
+ * @response `200` `({
+  Id?: number,
+  Title?: string,
+  Highlight?: boolean,
+  "Coming Soon"?: boolean,
+
+})[]` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    cloudFeatures: (params: RequestParams = {}) =>
+      this.request<
+        {
+          Id?: number;
+          Title?: string;
+          Highlight?: boolean;
+          'Coming Soon'?: boolean;
+        }[],
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/cloud-features`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Get Aggregated Meta Info such as tableCount, dbViewCount, viewCount and etc.
  * 
  * @tags Utils
@@ -12684,10 +12756,10 @@ export class Api<
      * @name CommandPalette
      * @summary Get command palette suggestions
      * @request POST:/api/v1/command_palette
-     * @response `200` `FieldOptionsButtonV3Type` OK
+     * @response `200` `BaseUserDeleteRequestV3Type` OK
      */
     commandPalette: (data: any, params: RequestParams = {}) =>
-      this.request<FieldOptionsButtonV3Type, any>({
+      this.request<BaseUserDeleteRequestV3Type, any>({
         path: `/api/v1/command_palette`,
         method: 'POST',
         body: data,
@@ -13037,7 +13109,7 @@ export class Api<
  * @name Test
  * @summary Test Plugin
  * @request POST:/api/v1/db/meta/plugins/test
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -13046,7 +13118,7 @@ export class Api<
  */
     test: (data: PluginTestReqType, params: RequestParams = {}) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -13067,7 +13139,7 @@ export class Api<
  * @name Update
  * @summary Update Plugin
  * @request PATCH:/api/v1/db/meta/plugins/{pluginId}
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -13080,7 +13152,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -13499,7 +13571,7 @@ export class Api<
  * @name Create
  * @summary Create Table Rows
  * @request POST:/api/v2/tables/{tableId}/records
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -13518,7 +13590,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -13540,7 +13612,7 @@ export class Api<
  * @name Update
  * @summary Update Table Rows
  * @request PATCH:/api/v2/tables/{tableId}/records
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -13557,7 +13629,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -13579,7 +13651,7 @@ export class Api<
  * @name Delete
  * @summary Delete Table Rows
  * @request DELETE:/api/v2/tables/{tableId}/records
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -13596,7 +13668,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -13815,7 +13887,7 @@ export class Api<
  * @name NestedLink
  * @summary Create Nested Relations Rows
  * @request POST:/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -13834,7 +13906,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -13856,7 +13928,7 @@ export class Api<
  * @name NestedUnlink
  * @summary Delete Nested Relations Rows
  * @request DELETE:/api/v2/tables/{tableId}/links/{columnId}/records/{rowId}
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -13875,7 +13947,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -13938,7 +14010,7 @@ export class Api<
  * @name NestedListCopyPasteOrDeleteAll
  * @summary Copy paste or deleteAll nested link
  * @request POST:/api/v2/tables/{tableId}/links/{columnId}/records
- * @response `200` `FieldOptionsButtonV3Type` OK
+ * @response `200` `BaseUserDeleteRequestV3Type` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -13956,7 +14028,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        FieldOptionsButtonV3Type,
+        BaseUserDeleteRequestV3Type,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -14004,10 +14076,10 @@ export class Api<
      * @name Create
      * @summary Create Extension
      * @request POST:/api/v2/extensions/{baseId}
-     * @response `200` `FieldOptionsButtonV3Type` OK
+     * @response `200` `BaseUserDeleteRequestV3Type` OK
      */
     create: (baseId: IdType, data: object, params: RequestParams = {}) =>
-      this.request<FieldOptionsButtonV3Type, any>({
+      this.request<BaseUserDeleteRequestV3Type, any>({
         path: `/api/v2/extensions/${baseId}`,
         method: 'POST',
         body: data,
@@ -14040,10 +14112,10 @@ export class Api<
      * @name Update
      * @summary Update Extension
      * @request PATCH:/api/v2/extensions/{extensionId}
-     * @response `200` `FieldOptionsButtonV3Type` OK
+     * @response `200` `BaseUserDeleteRequestV3Type` OK
      */
     update: (extensionId: IdType, data: object, params: RequestParams = {}) =>
-      this.request<FieldOptionsButtonV3Type, any>({
+      this.request<BaseUserDeleteRequestV3Type, any>({
         path: `/api/v2/extensions/${extensionId}`,
         method: 'PATCH',
         body: data,
@@ -14059,10 +14131,10 @@ export class Api<
      * @name Delete
      * @summary Delete Extension
      * @request DELETE:/api/v2/extensions/{extensionId}
-     * @response `200` `FieldOptionsButtonV3Type` OK
+     * @response `200` `BaseUserDeleteRequestV3Type` OK
      */
     delete: (extensionId: IdType, params: RequestParams = {}) =>
-      this.request<FieldOptionsButtonV3Type, any>({
+      this.request<BaseUserDeleteRequestV3Type, any>({
         path: `/api/v2/extensions/${extensionId}`,
         method: 'DELETE',
         format: 'json',
@@ -14142,7 +14214,7 @@ export class Api<
      * @name Utils
      * @summary AI Utils
      * @request POST:/api/v2/ai/bases/{baseId}/utils
-     * @response `200` `FieldOptionsButtonV3Type` OK
+     * @response `200` `BaseUserDeleteRequestV3Type` OK
      */
     utils: (
       baseId: IdType,
@@ -14152,7 +14224,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<FieldOptionsButtonV3Type, any>({
+      this.request<BaseUserDeleteRequestV3Type, any>({
         path: `/api/v2/ai/bases/${baseId}/utils`,
         method: 'POST',
         body: data,
@@ -14168,7 +14240,7 @@ export class Api<
      * @name Schema
      * @summary AI Schema
      * @request POST:/api/v2/ai/bases/{baseId}/schema
-     * @response `200` `FieldOptionsButtonV3Type` OK
+     * @response `200` `BaseUserDeleteRequestV3Type` OK
      */
     schema: (
       baseId: IdType,
@@ -14178,7 +14250,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<FieldOptionsButtonV3Type, any>({
+      this.request<BaseUserDeleteRequestV3Type, any>({
         path: `/api/v2/ai/bases/${baseId}/schema`,
         method: 'POST',
         body: data,
@@ -14194,7 +14266,7 @@ export class Api<
      * @name SchemaCreate
      * @summary AI Schema
      * @request POST:/api/v2/ai/workspaces/{workspaceId}/bases
-     * @response `200` `FieldOptionsButtonV3Type` OK
+     * @response `200` `BaseUserDeleteRequestV3Type` OK
      */
     schemaCreate: (
       workspaceId: IdType,
@@ -14204,7 +14276,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<FieldOptionsButtonV3Type, any>({
+      this.request<BaseUserDeleteRequestV3Type, any>({
         path: `/api/v2/ai/workspaces/${workspaceId}/bases`,
         method: 'POST',
         body: data,
@@ -14309,7 +14381,7 @@ export class Api<
      * @name List
      * @summary List integrations
      * @request GET:/api/v2/meta/integrations
-     * @response `200` `FieldOptionsButtonV3Type` OK
+     * @response `200` `BaseUserDeleteRequestV3Type` OK
      */
     list: (
       query?: {
@@ -14323,7 +14395,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<FieldOptionsButtonV3Type, any>({
+      this.request<BaseUserDeleteRequestV3Type, any>({
         path: `/api/v2/meta/integrations`,
         method: 'GET',
         query: query,

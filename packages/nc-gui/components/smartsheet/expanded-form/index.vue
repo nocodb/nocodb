@@ -27,7 +27,15 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue', 'cancel', 'next', 'prev', 'createdRecord', 'updateRowCommentCount'])
+const emits = defineEmits([
+  'update:modelValue',
+  'cancel',
+  'next',
+  'prev',
+  'createdRecord',
+  'deletedRecord',
+  'updateRowCommentCount',
+])
 
 const viewsStore = useViewsStore()
 
@@ -141,6 +149,11 @@ const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fie
 
 reloadViewDataTrigger.on(
   withLoading(async (params) => {
+    // Skip loading deleted record again
+    if (params?.skipLoadingRowId && params?.skipLoadingRowId === primaryKey.value) {
+      return
+    }
+
     const isSameRecordUpdated =
       params?.relatedTableMetaId &&
       params?.rowId &&
@@ -184,8 +197,10 @@ const isExpanded = useVModel(props, 'modelValue', emits, {
   defaultValue: false,
 })
 
-const onClose = () => {
-  if (!isUIAllowed('dataEdit', baseRoles.value)) {
+const onClose = (force = false) => {
+  if (force) {
+    isExpanded.value = false
+  } else if (!isUIAllowed('dataEdit', baseRoles.value)) {
     isExpanded.value = false
   } else if (changedColumns.value.size > 0) {
     isCloseModalOpen.value = true
@@ -509,17 +524,19 @@ const onDeleteRowClick = () => {
 }
 
 const onConfirmDeleteRowClick = async () => {
-  showDeleteRowModal.value = false
-  // Close expanded form
-  isExpanded.value = false
-
   await deleteRowById(primaryKey.value || undefined)
+
+  emits('deletedRecord')
+
   message.success(t('msg.rowDeleted'))
+
+  showDeleteRowModal.value = false
+  onClose(true)
+
   await reloadViewDataTrigger.trigger({
     shouldShowLoading: false,
+    skipLoadingRowId: primaryKey.value || undefined,
   })
-  onClose()
-  showDeleteRowModal.value = false
 }
 
 watch(rowId, async (nRow) => {
@@ -872,7 +889,7 @@ export default {
     </div>
   </component>
 
-  <GeneralDeleteModal v-model:visible="showDeleteRowModal" entity-name="Record" :on-delete="() => onConfirmDeleteRowClick()">
+  <GeneralDeleteModal v-model:visible="showDeleteRowModal" entity-name="Record" :on-delete="onConfirmDeleteRowClick">
     <template #entity-preview>
       <span>
         <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700">

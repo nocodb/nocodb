@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} already has access to this {scope}",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "URL-фільтри застосовуються з параметрів URL і комбінуються з фільтрами вигляду, встановленими через панель інструментів.",
     "urlFilterError": "Неправильний фільтр URL. Проігноровано, оскільки його не можна застосувати.",
     "dropYourDocHere": "Перетягніть ваш документ сюди",

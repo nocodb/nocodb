@@ -454,7 +454,6 @@ export default async function generateLookupSelectQuery({
             break;
         }
       }
-      console.log(selectQb.toQuery());
       // if all relation are belongs to then we don't need to do the aggregation
       if (isBtLookup) {
         return {
@@ -466,11 +465,6 @@ export default async function generateLookupSelectQuery({
       const subQueryAlias = getAlias();
 
       if (baseModelSqlv2.isPg) {
-        console.log(
-          knex
-            .select(knex.raw('json_agg(??)::text', [lookupColumn.id]))
-            .from(selectQb.as(subQueryAlias)),
-        );
         // alternate approach with array_agg
         return {
           builder: knex

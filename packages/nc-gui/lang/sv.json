@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} already has access to this {scope}",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "URL-filter tillämpas från URL-parametrar och kombineras med vyfilter som ställts in via verktygsfältet.",
     "urlFilterError": "Ogiltigt URL-filter. Ignorerades eftersom det inte kunde tillämpas.",
     "dropYourDocHere": "Släpp ditt dokument här",

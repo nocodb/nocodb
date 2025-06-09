@@ -74,10 +74,6 @@ const {
   uncategorizedStackId,
 } = useKanbanViewStoreOrThrow()
 
-watchEffect(() => {
-  console.log('groupingField', groupingFieldColumn.value?.readonly)
-})
-
 const { isViewDataLoading } = storeToRefs(useViewsStore())
 
 const { isUIAllowed } = useRoles()

@@ -1,6 +1,8 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type LookupColumn from '../models/LookupColumn';
+import type { QueryWithCte } from '~/helpers/dbHelpers';
+import type { NcContext } from '~/interface/config';
 import type {
   BarcodeColumn,
   Column,
@@ -10,13 +12,13 @@ import type {
   QrCodeColumn,
   RollupColumn,
 } from '~/models';
-import type { NcContext } from '~/interface/config';
-import { Model } from '~/models';
+import type LookupColumn from '../models/LookupColumn';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
-import { getAliasGenerator } from '~/utils';
 import { NcError } from '~/helpers/catchError';
 import { getAs } from '~/helpers/dbHelpers';
+import { Model } from '~/models';
+import { getAliasGenerator } from '~/utils';
 
 const LOOKUP_VAL_SEPARATOR = '___';
 
@@ -50,7 +52,7 @@ export default async function generateLookupSelectQuery({
   model: Model;
   getAlias?: ReturnType<typeof getAliasGenerator>;
   isAggregation?: boolean;
-}): Promise<any> {
+}): Promise<QueryWithCte> {
   const knex = baseModelSqlv2.dbDriver;
 
   const context = baseModelSqlv2.context;
@@ -58,10 +60,12 @@ export default async function generateLookupSelectQuery({
   const rootAlias = alias;
 
   {
-    let selectQb;
+    let selectQb: Knex.QueryBuilder;
     const alias = getAlias();
     let lookupColOpt: LookupColumn;
     let isBtLookup = true;
+
+    const applyCte = (_qb: Knex.QueryBuilder) => {};
 
     if (column.uidt === UITypes.Lookup) {
       lookupColOpt = await column.getColOptions<LookupColumn>(context);
@@ -181,9 +185,9 @@ export default async function generateLookupSelectQuery({
         selectQb
           .innerJoin(
             associatedBaseModel.getTnPath(mmModel.table_name, mmTableAlias),
-            knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`),
+            knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`) as any,
             '=',
-            knex.ref(`${alias}.${parentColumn.column_name}`),
+            knex.ref(`${alias}.${parentColumn.column_name}`) as any,
           )
           .where(
             knex.ref(`${mmTableAlias}.${mmChildCol.column_name}`),
@@ -314,18 +318,18 @@ export default async function generateLookupSelectQuery({
           selectQb
             .innerJoin(
               associatedBaseModel.getTnPath(mmModel.table_name, mmTableAlias),
-              knex.ref(`${mmTableAlias}.${mmChildCol.column_name}`),
+              knex.ref(`${mmTableAlias}.${mmChildCol.column_name}`) as any,
               '=',
-              knex.ref(`${prevAlias}.${childColumn.column_name}`),
+              knex.ref(`${prevAlias}.${childColumn.column_name}`) as any,
             )
             .innerJoin(
               knex.raw('?? as ??', [
                 parentBaseModel.getTnPath(parentModel.table_name),
                 nestedAlias,
               ]),
-              knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`),
+              knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`) as any,
               '=',
-              knex.ref(`${nestedAlias}.${parentColumn.column_name}`),
+              knex.ref(`${nestedAlias}.${parentColumn.column_name}`) as any,
             )
             .where(
               knex.ref(`${mmTableAlias}.${mmChildCol.column_name}`),
@@ -429,6 +433,7 @@ export default async function generateLookupSelectQuery({
       if (isBtLookup) {
         return {
           builder: selectQb,
+          applyCte,
         };
       }
 
@@ -440,6 +445,7 @@ export default async function generateLookupSelectQuery({
           builder: knex
             .select(knex.raw('json_agg(??)::text', [lookupColumn.id]))
             .from(selectQb.as(subQueryAlias)),
+          applyCte,
         };
         /*
         // alternate approach with array_agg
@@ -466,6 +472,7 @@ export default async function generateLookupSelectQuery({
               knex.raw('cast(JSON_ARRAYAGG(??) as NCHAR)', [lookupColumn.id]),
             )
             .from(selectQb.as(subQueryAlias)),
+          applyCte,
         };
 
         // return {
@@ -491,6 +498,7 @@ export default async function generateLookupSelectQuery({
               ]),
             )
             .from(selectQb.as(subQueryAlias)),
+          applyCte,
         };
       } else if (baseModelSqlv2.isMssql) {
         // ref: https://stackoverflow.com/questions/13382856/sqlite3-join-group-concat-using-distinct-with-custom-separator
@@ -504,6 +512,7 @@ export default async function generateLookupSelectQuery({
               ]),
             )
             .from(selectQb.as(subQueryAlias)),
+          applyCte,
         };
       }
 

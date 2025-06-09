@@ -6,6 +6,17 @@ import type { FilterType, NcContext } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { Column, Filter } from '~/models';
 
+export interface ConditionParser {
+  (
+    baseModelSqlv2: IBaseModelSqlV2,
+    _filter: Filter | FilterType | FilterType[] | Filter[],
+    aliasCount: { count: number },
+    alias?: string,
+    customWhereClause?: string,
+    throwErrorIfInvalid?: boolean,
+  ): Promise<FilterOperationResult>;
+}
+
 export interface FilterOptions {
   alias?: string;
   throwErrorIfInvalid?: boolean; // required by formula and lookup
@@ -17,15 +28,13 @@ export interface FilterOptions {
   fieldHandler?: IFieldHandler;
   depth?: { count: number }; // required by formula and lookup for alias
   customWhereClause?: Knex.QueryBuilder | string; // used by rollup and formula since their source is computed
-  conditionParser?: (
-    baseModelSqlv2: IBaseModelSqlV2,
-    _filter: Filter | FilterType | FilterType[] | Filter[],
-    aliasCount: { count: number },
-    alias?: string,
-    customWhereClause?: string,
-    throwErrorIfInvalid?: boolean,
-  ) => Promise<(qbP: Knex.QueryBuilder) => void>; // backward compatibility aimed to conditionV2.parseConditionV2
+  conditionParser?: ConditionParser; // backward compatibility aimed to conditionV2.parseConditionV2
 }
+
+export type FilterOperationResult = {
+  clause: (qb: Knex.QueryBuilder) => void;
+  rootApply?: (qb: Knex.QueryBuilder) => void;
+};
 
 export interface FilterOperation {
   (
@@ -39,7 +48,7 @@ export interface FilterOperation {
       column: Column;
     },
     options: FilterOptions,
-  ): Promise<(qb: Knex.QueryBuilder) => void>;
+  ): Promise<FilterOperationResult>;
 }
 
 export interface FilterOperationHandlers {
@@ -76,7 +85,7 @@ export interface FieldHandlerInterface {
     filter: Filter,
     column: Column,
     options?: FilterOptions,
-  ): Promise<(qb: Knex.QueryBuilder) => void>;
+  ): Promise<FilterOperationResult>;
   verifyFilter(
     filter: Filter,
     column: Column,
@@ -120,12 +129,12 @@ export interface IFieldHandler {
     filter: Filter,
     column?: Column,
     options?: FilterOptions,
-  ): Promise<(qb: Knex.QueryBuilder) => void>;
+  ): Promise<FilterOperationResult>;
 
   applyFilters(
     filters: Filter[],
     options?: FilterOptions,
-  ): Promise<(qb: Knex.QueryBuilder) => void>;
+  ): Promise<FilterOperationResult>;
 
   applySelect(
     qb: Knex.QueryBuilder,

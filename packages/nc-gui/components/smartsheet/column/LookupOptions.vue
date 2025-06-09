@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol, lookupCanHaveRecursiveEvaluation } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -21,6 +21,8 @@ const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disab
 const baseStore = useBase()
 
 const { tables } = storeToRefs(baseStore)
+
+const { getBaseType } = baseStore
 
 const { metas, getMeta } = useMetas()
 
@@ -67,6 +69,35 @@ const selectedTable = computed(() => {
 
 // Todo: Add backend api level validation for unsupported fields
 const unsupportedUITypes = [UITypes.Button, UITypes.Links]
+
+// Check if recursive evaluation should be available (EE + PostgreSQL + self-referencing HM/BT relation)
+const canUseRecursiveEvaluation = computed(() => {
+  // TODO: [recursive lookup]
+  // remove this and uncomment code below
+  // when ltar v2 is ready and recursive is adjusted to it
+  return false
+  /*
+  if (!selectedTable.value) return false
+  const relationCol = selectedTable.value.column
+  const relation = relationCol.colOptions as LinkToAnotherRecordType
+  return lookupCanHaveRecursiveEvaluation({
+    isEeUI,
+    relationCol,
+    relationType: relation.type as any,
+    dbClientType: getBaseType(meta.value?.source_id),
+  })
+  */
+})
+
+const useRecursiveEvaluation = computed({
+  get: () => {
+    return vModel.value.meta?.useRecursiveEvaluation ?? false
+  },
+  set: (value: boolean) => {
+    vModel.value.meta = vModel.value.meta ?? {}
+    vModel.value.meta.useRecursiveEvaluation = value
+  },
+})
 
 const columns = computed<ColumnType[]>(() => {
   if (!selectedTable.value?.id) {
@@ -143,85 +174,102 @@ watch(
 </script>
 
 <template>
-  <div v-if="refTables.length" class="w-full flex flex-row space-x-2">
-    <a-form-item
-      class="flex w-1/2 !max-w-[calc(50%_-_4px)]"
-      :label="`${$t('general.link')} ${$t('objects.field')}`"
-      v-bind="validateInfos.fk_relation_column_id"
-    >
-      <a-select
-        v-model:value="vModel.fk_relation_column_id"
-        placeholder="-select-"
-        dropdown-class-name="!w-64 !rounded-md nc-dropdown-relation-table"
-        @change="onRelationColChange"
+  <div v-if="refTables.length" class="w-full flex flex-col gap-2">
+    <div class="w-full flex flex-row space-x-2">
+      <a-form-item
+        class="flex w-1/2 !max-w-[calc(50%_-_4px)]"
+        :label="`${$t('general.link')} ${$t('objects.field')}`"
+        v-bind="validateInfos.fk_relation_column_id"
       >
-        <template #suffixIcon>
-          <GeneralIcon icon="arrowDown" class="text-gray-700" />
-        </template>
-        <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
-          <div class="flex gap-2 w-full justify-between truncate items-center">
-            <div class="min-w-1/2 flex items-center gap-2">
-              <component :is="cellIcon(table.column)" :column-meta="table.column" class="!mx-0" />
+        <a-select
+          v-model:value="vModel.fk_relation_column_id"
+          placeholder="-select-"
+          dropdown-class-name="!w-64 !rounded-md nc-dropdown-relation-table"
+          @change="onRelationColChange"
+        >
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
+          <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
+            <div class="flex gap-2 w-full justify-between truncate items-center">
+              <div class="min-w-1/2 flex items-center gap-2">
+                <component :is="cellIcon(table.column)" :column-meta="table.column" class="!mx-0" />
 
-              <NcTooltip class="truncate min-w-[calc(100%_-_24px)]" show-on-truncate-only>
-                <template #title>{{ table.column.title }}</template>
-                {{ table.column.title }}
-              </NcTooltip>
-            </div>
-            <div class="inline-flex items-center truncate gap-2">
-              <div class="text-[0.65rem] leading-4 flex-1 truncate text-gray-600 nc-relation-details">
-                <NcTooltip class="truncate" show-on-truncate-only>
-                  <template #title>{{ table.title || table.table_name }}</template>
-                  {{ table.title || table.table_name }}
+                <NcTooltip class="truncate min-w-[calc(100%_-_24px)]" show-on-truncate-only>
+                  <template #title>{{ table.column.title }}</template>
+                  {{ table.column.title }}
                 </NcTooltip>
               </div>
+              <div class="inline-flex items-center truncate gap-2">
+                <div class="text-[0.65rem] leading-4 flex-1 truncate text-gray-600 nc-relation-details">
+                  <NcTooltip class="truncate" show-on-truncate-only>
+                    <template #title>{{ table.title || table.table_name }}</template>
+                    {{ table.title || table.table_name }}
+                  </NcTooltip>
+                </div>
+                <component
+                  :is="iconMap.check"
+                  v-if="vModel.fk_relation_column_id === table.col.fk_column_id"
+                  id="nc-selected-item-icon"
+                  class="text-primary w-4 h-4"
+                />
+              </div>
+            </div>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+
+      <a-form-item
+        class="flex w-1/2"
+        :label="`${$t('datatype.Lookup')} ${$t('objects.field')}`"
+        v-bind="vModel.fk_relation_column_id ? validateInfos.fk_lookup_column_id : undefined"
+      >
+        <a-select
+          v-model:value="vModel.fk_lookup_column_id"
+          name="fk_lookup_column_id"
+          placeholder="-select-"
+          :disabled="!vModel.fk_relation_column_id"
+          show-search
+          :filter-option="antSelectFilterOption"
+          dropdown-class-name="nc-dropdown-relation-column !rounded-md"
+          @change="onDataTypeChange"
+        >
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
+          <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
+            <div class="w-full flex gap-2 truncate items-center justify-between">
+              <div class="inline-flex items-center gap-2 flex-1 truncate">
+                <component :is="cellIcon(column)" :column-meta="column" class="!mx-0" />
+                <div class="truncate flex-1">{{ column.title }}</div>
+              </div>
+
               <component
                 :is="iconMap.check"
-                v-if="vModel.fk_relation_column_id === table.col.fk_column_id"
+                v-if="vModel.fk_lookup_column_id === column.id"
                 id="nc-selected-item-icon"
                 class="text-primary w-4 h-4"
               />
             </div>
-          </div>
-        </a-select-option>
-      </a-select>
-    </a-form-item>
-
-    <a-form-item
-      class="flex w-1/2"
-      :label="`${$t('datatype.Lookup')} ${$t('objects.field')}`"
-      v-bind="vModel.fk_relation_column_id ? validateInfos.fk_lookup_column_id : undefined"
-    >
-      <a-select
-        v-model:value="vModel.fk_lookup_column_id"
-        name="fk_lookup_column_id"
-        placeholder="-select-"
-        :disabled="!vModel.fk_relation_column_id"
-        show-search
-        :filter-option="antSelectFilterOption"
-        dropdown-class-name="nc-dropdown-relation-column !rounded-md"
-        @change="onDataTypeChange"
-      >
-        <template #suffixIcon>
-          <GeneralIcon icon="arrowDown" class="text-gray-700" />
-        </template>
-        <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
-          <div class="w-full flex gap-2 truncate items-center justify-between">
-            <div class="inline-flex items-center gap-2 flex-1 truncate">
-              <component :is="cellIcon(column)" :column-meta="column" class="!mx-0" />
-              <div class="truncate flex-1">{{ column.title }}</div>
-            </div>
-
-            <component
-              :is="iconMap.check"
-              v-if="vModel.fk_lookup_column_id === column.id"
-              id="nc-selected-item-icon"
-              class="text-primary w-4 h-4"
-            />
-          </div>
-        </a-select-option>
-      </a-select>
-    </a-form-item>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+    </div>
+    <div class="w-full flex flex-row space-x-2">
+      <a-form-item v-if="canUseRecursiveEvaluation" class="w-full">
+        <div class="flex items-center gap-2">
+          <NcSwitch v-model:checked="useRecursiveEvaluation">
+            <NcTooltip>
+              <template #title>
+                {{ $t('msg.evaluateRecursivelyTooltip') }}
+              </template>
+              {{ $t('msg.evaluateRecursively') }}
+              <GeneralIcon icon="info" class="h-4 w-4 text-gray-400" />
+            </NcTooltip>
+          </NcSwitch>
+        </div>
+      </a-form-item>
+    </div>
   </div>
   <div v-else>
     <a-alert type="warning" show-icon>

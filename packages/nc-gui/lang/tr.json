@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} already has access to this {scope}",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "URL filtreleri, URL parametrelerinden uygulanır ve araç çubuğunda ayarlanan görünüm filtreleriyle birleşir.",
     "urlFilterError": "Geçersiz URL filtresi. Uygulanamadığı için yoksayıldı.",
     "dropYourDocHere": "Belgenizi buraya bırakın",

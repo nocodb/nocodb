@@ -30,9 +30,11 @@ export const verifyColumnsInRsp = (
   row: Record<string, any>,
   columns: ColumnType[],
 ) => {
-  const responseColumnsListStr = Object.keys(row).sort().join(',');
+  // For v3 API, fields are nested under the 'fields' property
+  const fieldsObject = row.fields || row;
+  const responseColumnsListStr = Object.keys(fieldsObject).sort().join(',');
   const expectedColumnsListStr = columns
-    .filter((c) => !c.system || c.pk)
+    .filter((c) => !c.system && !c.pk)  // Exclude both system columns and primary key
     .map((c) => c.title)
     .sort()
     .join(',');

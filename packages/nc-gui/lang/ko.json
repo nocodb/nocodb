@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} 이미 이 {scope}에 액세스할 수 있습니다.",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "URL 필터는 URL 매개 변수에서 적용되며 도구 모음을 통해 설정된 보기 필터와 결합됩니다.",
     "urlFilterError": "URL 필터가 잘못되었습니다. 적용할 수 없으므로 무시됩니다.",
     "dropYourDocHere": "여기에 문서를 놓습니다",

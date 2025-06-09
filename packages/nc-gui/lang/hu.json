@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} already has access to this {scope}",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "Az URL-szűrők az URL paramétereiből származnak, és összevonódnak az eszköztáron beállított nézetszűrőkkel.",
     "urlFilterError": "Érvénytelen URL-szűrő. Figyelmen kívül hagyva, mivel nem alkalmazható.",
     "dropYourDocHere": "Dobja ide a dokumentumot",

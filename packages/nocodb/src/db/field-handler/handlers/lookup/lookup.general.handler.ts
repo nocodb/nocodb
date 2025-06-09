@@ -93,7 +93,9 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         const useRecursiveEvaluation = parseProp(
           column.meta,
         )?.useRecursiveEvaluation;
-        if (useRecursiveEvaluation) {
+        // TODO: [recursive lookup]
+        // eslint-disable-next-line no-constant-condition
+        if (false && useRecursiveEvaluation) {
           rootApply = await recursiveCTEFromLookupColumn({
             baseModelSqlV2: childBaseModel,
             lookupColumn: column,
@@ -150,7 +152,9 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         const useRecursiveEvaluation = parseProp(
           column.meta,
         )?.useRecursiveEvaluation;
-        if (useRecursiveEvaluation) {
+        // TODO: [recursive lookup]
+        // eslint-disable-next-line no-constant-condition
+        if (false && useRecursiveEvaluation) {
           comparisonColumnName = parentColumn.column_name;
           rootApply = await recursiveCTEFromLookupColumn({
             baseModelSqlV2: childBaseModel,

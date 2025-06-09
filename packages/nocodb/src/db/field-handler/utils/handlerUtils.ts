@@ -98,7 +98,9 @@ export async function nestedConditionJoin({
             const useRecursiveEvaluation = parseProp(
               lookupColumn.meta,
             )?.useRecursiveEvaluation;
-            if (useRecursiveEvaluation) {
+            // TODO: [recursive lookup]
+            // eslint-disable-next-line no-constant-condition
+            if (false && useRecursiveEvaluation) {
               rootAppliances.push(
                 await recursiveCTEFromLookupColumn({
                   baseModelSqlV2: childBaseModel,
@@ -138,7 +140,9 @@ export async function nestedConditionJoin({
             const useRecursiveEvaluation = parseProp(
               lookupColumn.meta,
             )?.useRecursiveEvaluation;
-            if (useRecursiveEvaluation) {
+            // TODO: [recursive lookup]
+            // eslint-disable-next-line no-constant-condition
+            if (false && useRecursiveEvaluation) {
               rootAppliances.push(
                 await recursiveCTEFromLookupColumn({
                   baseModelSqlV2: childBaseModel,

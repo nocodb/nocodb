@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} already has access to this {scope}",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "מסנני URL מוחלים מפרמטרי ה-URL ומשולבים עם מסנני התצוגה שהוגדרו באמצעות סרגל הכלים.",
     "urlFilterError": "מסנן URL לא תקין. ההתעלם מכיוון שלא ניתן היה ליישם אותו.",
     "dropYourDocHere": "גרור את המסמך שלך כאן",

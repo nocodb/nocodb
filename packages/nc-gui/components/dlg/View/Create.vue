@@ -327,7 +327,8 @@ async function onSubmit() {
         emits('created', data)
       }
     } catch (e: any) {
-      message.error(e.message)
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       await refreshCommandPalette()
     }

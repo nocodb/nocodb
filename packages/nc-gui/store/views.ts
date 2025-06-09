@@ -489,7 +489,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
           return await $api.dbView.calendarCreate(view.fk_model_id, payload)
       }
     } catch (e: any) {
-      message.error(e.message)
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 

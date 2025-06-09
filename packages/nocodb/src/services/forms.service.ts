@@ -39,6 +39,12 @@ export class FormsService {
 
     const model = await Model.get(context, param.tableId);
 
+    if (model.synced) {
+      NcError.badRequest(
+        'Form view creation is not supported for synced table',
+      );
+    }
+
     const source = await Source.get(context, model.source_id);
 
     if (source.is_data_readonly) {

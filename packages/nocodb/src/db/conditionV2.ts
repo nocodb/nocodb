@@ -103,7 +103,7 @@ const parseConditionV2 = async (
 
     return {
       rootApply: (qbP) => {
-        for (const [_i, qb1] of Object.entries(qbs)) {
+        for (const qb1 of qbs) {
           qb1.rootApply?.(qbP);
         }
       },
@@ -133,7 +133,7 @@ const parseConditionV2 = async (
 
     return {
       rootApply: (qbP) => {
-        for (const [_i, qb1] of Object.entries(qbs)) {
+        for (const qb1 of qbs) {
           qb1.rootApply?.(qbP);
         }
       },

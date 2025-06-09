@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} already has access to this {scope}",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "URL filtre sa aplikujú z parametrov URL a kombinujú sa s filtrami zobrazenia nastavenými na paneli nástrojov.",
     "urlFilterError": "Neplatný URL filter. Bol ignorovaný, pretože ho nebolo možné aplikovať.",
     "dropYourDocHere": "Sem presuňte svoj dokument",

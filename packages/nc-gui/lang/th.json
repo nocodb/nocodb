@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} already has access to this {scope}",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "ตัวกรอง URL ถูกนำมาจากพารามิเตอร์ใน URL และจะถูกรวมกับตัวกรองมุมมองที่ตั้งค่าผ่านแถบเครื่องมือ",
     "urlFilterError": "ตัวกรอง URL ไม่ถูกต้อง ถูกละเว้นเนื่องจากไม่สามารถใช้งานได้",
     "dropYourDocHere": "วางเอกสารของคุณที่นี่",

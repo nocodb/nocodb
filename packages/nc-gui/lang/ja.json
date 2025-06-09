@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} already has access to this {scope}",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "URLフィルターはURLパラメーターから適用され、ツールバーで設定したビューフィルターと組み合わされます。",
     "urlFilterError": "無効なURLフィルターです。適用できないため無視されました。",
     "dropYourDocHere": "ここにドキュメントをドロップしてください",

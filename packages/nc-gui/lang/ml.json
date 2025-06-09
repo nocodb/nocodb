@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} already has access to this {scope}",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "URL പാരാമീറ്ററുകളിൽ നിന്ന് URL ഫിൽറ്ററുകൾ പ്രയോഗിക്കുകയും, ടൂൾബാറില്‍ സജ്ജീകരിച്ച കാഴ്ച ഫിൽറ്ററുകളുമായി ചേർക്കുകയും ചെയ്യുന്നു.",
     "urlFilterError": "അസാധുവായ URL ഫിൽറ്റർ. പ്രയോഗിക്കാൻ കഴിയാത്തതിനാൽ അവഗണിച്ചു.",
     "dropYourDocHere": "നിങ്ങളുടെ ഡോക്യുമെന്റ്这里? Need Malayalam: നിങ്ങളുടെ ഡോക്യുമെന്റ് ഇവിടെ ഇടുക",

@@ -296,6 +296,7 @@ const { message: templatedMessage } = useTemplatedMessage(
               <LazyCellAttachmentPreviewImage
                 :srcs="getPossibleAttachmentSrc(parseProp(sharedFormView.logo_url))"
                 class="flex-none nc-shared-form-logo !object-contain object-left max-h-full max-w-full !m-0"
+                :is-cell-preview="false"
               />
             </div>
 

@@ -131,6 +131,7 @@ const usernameInitials = computed(() => {
       v-else-if="userIcon.icon && userIcon.iconType === IconType.IMAGE"
       :srcs="userIcon.icon"
       class="flex-none !object-contain max-h-full max-w-full !m-0"
+      :is-cell-preview="false"
     />
 
     <div

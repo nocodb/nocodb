@@ -1,5 +1,5 @@
 import type { ColumnType, TableType, UITypes, ViewType } from 'nocodb-sdk'
-import { ComputedTypePasteError, TypeConversionError } from 'nocodb-sdk'
+import { ColumnHelper, ComputedTypePasteError, TypeConversionError } from 'nocodb-sdk'
 import type { Row } from '../../../../../lib/types'
 import convertCellData from '../../../../../composables/useMultiSelect/convertCellData'
 import { serializeRange } from '../../../../../utils/pasteUtils'
@@ -151,99 +151,226 @@ export function useFillHandler({
     triggerReRender()
   }
 
+  const v2HandleFillValue = async ({
+    rawMatrix,
+    cpCols,
+    rowToPaste,
+  }: {
+    rawMatrix: string[][]
+    cpCols: (ColumnType & {
+      extra?: any | never
+    })[]
+    rowToPaste: { start: number; end: number }
+  }) => {
+    if (rawMatrix.length === 0) return
+    const direction = rowToPaste.end - rowToPaste.start > 0 ? 1 : -1
+    // reverse if going up
+    const rawMatrixFromDirection = direction === -1 ? rawMatrix.reverse() : rawMatrix
+    // we transform from rows to cols based
+    const rawMatrixTransposed = rawMatrixFromDirection[0]!.map((_, colIndex) =>
+      rawMatrixFromDirection.map((row) => row[colIndex]),
+    )
+    const fillValuesByCols: any[][] = []
+    const numberOfRows = Math.abs(rowToPaste.end - rowToPaste.start) + 1
+
+    for (const [i, rowsOfCol] of rawMatrixTransposed.entries()) {
+      const cpCol = cpCols[i]
+      const populatedFillHandle = ColumnHelper.populateFillHandle({
+        column: cpCol!,
+        highlightedData: rowsOfCol,
+        numberOfRows,
+      })
+      if (populatedFillHandle) {
+        fillValuesByCols.push(populatedFillHandle)
+      }
+      // TODO: else, but should not happen
+    }
+
+    // apply the populated fill handle to rows
+    // maybe TODO: extract to other function
+    const rowsToPaste: Row[] = []
+    const groupPath = activeCell.value?.path
+    const { cachedRows } = getDataCache(groupPath)
+    let incrementIndex = 0;
+    console.log(rowToPaste.start, direction * rawMatrix.length)
+    for (
+      let rowIndex = rowToPaste.start + direction * rawMatrix.length;
+      direction === 1 ? rowIndex <= rowToPaste.end : rowIndex >= rowToPaste.end;
+      // Increment/decrement row counter based on fill direction
+      rowIndex += direction
+    ) {
+      const rowObj = (unref(cachedRows) as Map<number, Row>).get(rowIndex)
+      if (rowObj) {
+        for (const [colIndex, cpCol] of cpCols.entries()) {
+          console.log(fillValuesByCols[colIndex!]![incrementIndex]);
+
+          rowObj.row[cpCol.title] = fillValuesByCols[colIndex!]![incrementIndex++]
+        }
+        rowsToPaste.push(rowObj)
+      }
+    }
+
+    // If not in AI fill mode, perform a regular bulk update
+    await bulkUpdateRows?.(
+      rowsToPaste,
+      cpCols.map((k) => k.title!),
+      undefined,
+      undefined,
+      groupPath,
+    )
+  }
+
   const handleFillEnd = async () => {
+    // Check if fill mode is currently active
     if (isFillMode.value) {
       try {
+        // Indicate that the fill operation has ended
         isFillEnded.value = true
+        // Determine if AI fill mode is enabled
         const localAiMode = Boolean(isAiFillMode.value)
 
+        // Get the current group path from the active cell
         const groupPath = activeCell.value?.path
 
+        // Retrieve cached rows for the current group path
         const { cachedRows } = getDataCache(groupPath)
 
+        // If the fill start range is null, exit the function
         if (fillStartRange.value === null) return
 
+        // Check if both start and end points of the selection are defined
         if (selection.value._start !== null && selection.value._end !== null) {
+          // Store the active cell's position temporarily
           const tempActiveCell = { row: selection.value._start.row, col: selection.value._start.col }
 
           let startRow, endRow
 
+          // Determine the actual start and end rows for the fill operation
           if (fillStartRange.value) {
             startRow = Math.min(fillStartRange.value.start.row, selection.value._start!.row)
             endRow = Math.max(fillStartRange.value.end.row, selection.value._start!.row)
           } else {
+            // Fallback to normal selection range if fillStartRange is not set
             startRow = selection.value.start.row
             endRow = selection.value.end.row
           }
 
+          // Fetch the rows within the determined range
           const cprows = await getRows(startRow, endRow, groupPath)
 
-          const _cpcols = unref(columns).slice(selection.value.start.col, selection.value.end.col + 1) // slice the selected cols for copy
+          // Slice the selected columns for copying
+          const _cpcols = unref(columns).slice(selection.value.start.col, selection.value.end.col + 1)
 
+          // Map to column objects
           const cpcols = _cpcols.map((col) => col.columnObj)
-
+          // Serialize the range into a raw matrix (JSON format)
           const rawMatrix = serializeRange(cprows, cpcols, {
             isPg,
             isMysql,
             meta: unref(meta),
           }).json
 
+          // Determine the direction of the fill operation (1 for downwards, -1 for upwards)
           const fillDirection = selection.value._start.row <= selection.value._end.row ? 1 : -1
 
+          const startRangeBottomMost = Math.max(fillStartRange.value.start.row, fillStartRange.value.end.row)
+          const startRangeTopMost = Math.min(fillStartRange.value.start.row, fillStartRange.value.end.row)
+          await v2HandleFillValue({
+            rawMatrix,
+            cpCols: cpcols,
+            rowToPaste: {
+              start:
+                fillDirection === 1
+                  ? Math.min(startRangeTopMost, selection.value._start.row)
+                  : Math.max(startRangeBottomMost, selection.value._start.row),
+              end:
+                fillDirection === 1
+                  ? Math.max(startRangeBottomMost, selection.value._end.row)
+                  : Math.min(startRangeTopMost, selection.value._end.row),
+            },
+          })
+
+          // Reset active cell, fill range, and fill mode after successful update
+          activeCell.value.column = tempActiveCell.col
+          activeCell.value.row = tempActiveCell.row
+          activeCell.value.path = groupPath
+          fillStartRange.value = null
+          isFillMode.value = false
+          return
+
+          // Initialize the fill index based on the fill direction
           let fillIndex = fillDirection === 1 ? 0 : rawMatrix.length - 1
 
+          // Arrays to store rows and properties for pasting and AI filling
           const rowsToPaste: Row[] = []
           const rowsToFill: Row[] = []
           const propsToPaste: string[] = []
           const propsToFill: string[] = []
 
+          console.log('selection.value._end.row', selection.value._start.row, selection.value._end.row)
+          // Loop through the selected rows based on fill direction
           for (
+            // Initialize row counter
             let row = selection.value._start.row;
+            // Condition for continuing the loop based on fill direction
             fillDirection === 1 ? row <= selection.value._end.row : row >= selection.value._end.row;
+            // Increment/decrement row counter based on fill direction
             row += fillDirection
           ) {
+            // Get the row object from cached rows
             const rowObj = (unref(cachedRows) as Map<number, Row>).get(row)
 
+            // Skip if row object is not found
             if (!rowObj) {
               continue
             }
 
+            // Initialize paste index for the current row
             let pasteIndex = 0
 
+            // If the current cell is not part of the initial selection range, add the row to rowsToPaste
             if (!selectRangeMap.value[`${row}-${selection.value.start.col}`]) {
               rowsToPaste.push(rowObj)
             }
 
+            // Loop through the selected columns
             for (let col = selection.value.start.col; col <= selection.value.end.col; col++) {
+              // Get the column object
               const _col = unref(columns)[col]
               const colObj = _col?.columnObj
 
+              // Skip if column object is not found
               if (!colObj) {
                 pasteIndex++
                 continue
               }
 
+              // Skip if the cell is not pasteable
               if (!isPasteable(rowObj, colObj)) {
                 pasteIndex++
                 continue
               }
 
               // if the column is added only for the fill operation, don't paste the value
+              // Check if the current column is within the selection range
               if (
                 selection.value._start &&
                 selection.value._end &&
                 selection.value._start.col <= col &&
                 col <= selection.value._end.col
               ) {
+                // If column is not found in copied columns, add its title to propsToPaste if not already present in propsToFill
                 if (cpcols.findIndex((c) => c.id === colObj.id) === -1) {
                   if (!propsToFill.includes(colObj.title!)) propsToPaste.push(colObj.title!)
                 }
 
+                // Add column title to propsToPaste if not already present in propsToPaste or propsToFill
                 if (!propsToPaste.includes(colObj.title!) && !propsToFill.includes(colObj.title!))
                   propsToPaste.push(colObj.title!)
                 let pasteValue
 
                 try {
+                  // Convert cell data for pasting
                   pasteValue = convertCellData(
                     {
                       value: rawMatrix[fillIndex]?.[pasteIndex],
@@ -255,20 +382,26 @@ export function useFillHandler({
                     true,
                   )
                 } catch (ex) {
+                  // Re-throw if it's a ComputedTypePasteError
                   if (ex instanceof ComputedTypePasteError) {
                     throw ex
                   }
 
+                  // Set paste value to null for other errors
                   pasteValue = null
                 }
 
+                // If a valid paste value exists and not in AI mode, assign it to the row object
                 if (pasteValue !== undefined) {
                   if (!localAiMode) rowObj.row[colObj.title!] = pasteValue
                 }
               } else {
+                // If in AI fill mode and column is outside selection range
                 if (localAiMode) {
+                  // Add column title to propsToFill
                   propsToFill.push(colObj.title!)
 
+                  // Add row to rowsToFill if not already present
                   if (
                     !rowsToFill.find(
                       (r) =>
@@ -281,9 +414,11 @@ export function useFillHandler({
                 }
               }
 
+              // Increment paste index
               pasteIndex++
             }
 
+            // Update fill index based on fill direction (cycle through rawMatrix)
             if (fillDirection === 1) {
               fillIndex = fillIndex < rawMatrix.length - 1 ? fillIndex + 1 : 0
             } else {
@@ -291,16 +426,20 @@ export function useFillHandler({
             }
           }
 
+          // If in AI fill mode, perform AI data filling
           if (localAiMode) {
+            // Prepare sample rows for AI data fill API
             const sampleRows = cprows.map((row) => {
               const sampleRow: Record<string, any> = {
                 Id: extractPkFromRow(row.row, meta.value?.columns as ColumnType[]),
               }
 
+              // Add properties to paste from the original row
               for (const prop of propsToPaste) {
                 sampleRow[prop] = row.row[prop]
               }
 
+              // Mark properties to fill as 'FILL'
               for (const prop of propsToFill) {
                 sampleRow[prop] = 'FILL'
               }
@@ -308,8 +447,10 @@ export function useFillHandler({
               return sampleRow
             })
 
+            // Generate IDs for rows to paste
             const generateIds = rowsToPaste.map((row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
 
+            // Call the AI data fill API
             $api.ai
               .dataFill(meta.value?.id, {
                 rows: sampleRows,
@@ -317,22 +458,28 @@ export function useFillHandler({
                 numRows: generateIds.length,
               })
               .then((r: Record<string, any>[]) => {
+                // If selection start or end is null, exit
                 if (selection.value._start === null || selection.value._end === null) return
 
+                // Iterate through rows to paste and fill
                 for (const row of rowsToPaste.concat(rowsToFill)) {
+                  // Find the generated row from the API response
                   const generatedRow = r.find(
                     (genRow) =>
                       extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) ===
                       extractPkFromRow(genRow, meta.value?.columns as ColumnType[]),
                   )
 
+                  // Skip if no generated row is found
                   if (!generatedRow) continue
 
+                  // Update row properties with generated values
                   for (const prop of propsToPaste.concat(propsToFill)) {
                     row.row[prop] = generatedRow[prop]
                   }
                 }
 
+                // Perform bulk update of rows with generated data
                 bulkUpdateRows?.(
                   rowsToPaste.concat(rowsToFill),
                   propsToPaste.concat(propsToFill),
@@ -340,6 +487,7 @@ export function useFillHandler({
                   undefined,
                   groupPath,
                 ).then(() => {
+                  // Reset active cell, fill range, and fill mode after successful update
                   activeCell.value.column = tempActiveCell.col
                   activeCell.value.row = tempActiveCell.row
                   fillStartRange.value = null
@@ -347,6 +495,7 @@ export function useFillHandler({
                 })
               })
               .catch((_e) => {
+                // Clear selection, fill range, and fill mode on error
                 selection.value.clear()
                 fillStartRange.value = null
                 isFillMode.value = false
@@ -354,7 +503,9 @@ export function useFillHandler({
             return
           }
 
+          // If not in AI fill mode, perform a regular bulk update
           bulkUpdateRows?.(rowsToPaste, propsToPaste, undefined, undefined, groupPath).then(() => {
+            // Reset active cell, fill range, and fill mode after successful update
             activeCell.value.column = tempActiveCell.col
             activeCell.value.row = tempActiveCell.row
             activeCell.value.path = groupPath
@@ -362,10 +513,13 @@ export function useFillHandler({
             isFillMode.value = false
           })
         } else {
+          // If selection is invalid, reset fill range and fill mode
           fillStartRange.value = null
           isFillMode.value = false
         }
       } catch (error) {
+        // Handle errors during the fill operation
+        // If the error is not a suppressed TypeConversionError, log it and show a message
         if (error instanceof TypeConversionError !== true || !(error as SuppressedError).isErrorSuppressed) {
           console.error(error, (error as SuppressedError).isErrorSuppressed)
           message.error(error?.message || 'Something went wrong')

@@ -4,6 +4,8 @@ import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
 import { parseProp } from '~/lib/helperFunctions';
+import { ColumnType } from '~/lib/Api';
+import { populateFillHandleStrictCopy } from '../utils/fill-handler';
 
 export class RatingHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -49,5 +51,14 @@ export class RatingHelper extends AbstractColumnHelper {
     params: SerializerOrParserFnProps['params']
   ): string {
     return `${parseIntValue(value, params.col) ?? ''}`;
+  }
+
+  // simply copy highlighted rows
+  override populateFillHandle(params: {
+    column: ColumnType;
+    highlightedData: any[];
+    numberOfRows: number;
+  }): any[] {
+    return populateFillHandleStrictCopy(params);
   }
 }

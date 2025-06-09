@@ -3,6 +3,8 @@ import { parseDurationValue, serializeDurationValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
+import { populateFillHandleStrictCopy } from '../utils/fill-handler';
+import { ColumnType } from '~/lib/Api';
 
 export class DurationHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -38,5 +40,14 @@ export class DurationHelper extends AbstractColumnHelper {
     params: SerializerOrParserFnProps['params']
   ): string {
     return parseDurationValue(value, params.col) ?? '';
+  }
+
+  // simply copy highlighted rows
+  override populateFillHandle(params: {
+    column: ColumnType;
+    highlightedData: any[];
+    numberOfRows: number;
+  }): any[] {
+    return populateFillHandleStrictCopy(params);
   }
 }

@@ -178,7 +178,7 @@ export default async function applyAggregation({
           model,
           isAggregation: true,
         })
-      ).builder;
+      ).builder as string;
       break;
   }
 

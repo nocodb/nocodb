@@ -22,7 +22,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
     filter: Filter,
     column: Column,
     options: FilterOptions,
-  ): Promise<(qb: Knex.QueryBuilder) => void> {
+  ) {
     const { alias, context } = options;
     let val = filter.value;
     const field =

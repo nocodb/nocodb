@@ -35,6 +35,11 @@ import {
 import { excludeAttachmentProps } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
+export type QueryWithCte = {
+  builder: string | Knex.QueryBuilder;
+  applyCte: (qb: Knex.QueryBuilder) => void;
+};
+
 export function concatKnexRaw(knex: CustomKnex, raws: Knex.Raw[]) {
   return knex.raw(raws.map(() => '?').join(' '), raws);
 }
@@ -612,3 +617,18 @@ export const isFilterValueConsistOf = (
   }
   return { exists: false };
 };
+
+export function generateRecursiveCTE(_params: {
+  knex: CustomKnex;
+  idColumnName: string;
+  linkIdColumnName: string;
+  selectingColumnName: string;
+  cteTableName: string;
+  // sourceTable can be a subquery, another CTE, or physical table
+  sourceTable: string | Knex.QueryInterface | Knex.Raw;
+  tableAlias?: string;
+  direction?: 'id_to_link' | 'link_to_id';
+  qb: Knex.QueryBuilder;
+}) {
+  return false;
+}

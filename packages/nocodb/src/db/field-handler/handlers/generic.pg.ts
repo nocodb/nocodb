@@ -65,7 +65,7 @@ export class GenericPgFieldHandler
       clause: (qb: Knex.QueryBuilder) => {
         if (!ncIsStringHasValue(val)) {
           // val is empty -> all values including NULL but empty strings
-          qb.whereNot(knex.raw(`??::text != ''`, [sourceField]));
+          qb.whereNot(knex.raw(`??::text = ''`, [sourceField]));
           qb.orWhereNull(sourceField as any);
         } else {
           val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;

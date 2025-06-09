@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} already has access to this {scope}",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "Os filtros de URL são aplicados a partir dos parâmetros do URL e combinam-se com os filtros da vista definidos na barra de ferramentas.",
     "urlFilterError": "Filtro de URL inválido. Ignorado pois não pôde ser aplicado.",
     "dropYourDocHere": "Solte o seu documento aqui",

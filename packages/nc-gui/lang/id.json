@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} already has access to this {scope}",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "Filter URL diterapkan dari parameter URL dan digabungkan dengan filter tampilan yang ditetapkan melalui toolbar.",
     "urlFilterError": "Filter URL tidak valid. Diabaikan karena tidak dapat diterapkan.",
     "dropYourDocHere": "Jatuhkan dokumen Anda di sini",

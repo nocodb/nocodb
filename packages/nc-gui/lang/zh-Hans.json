@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} already has access to this {scope}",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "URL 筛选器通过 URL 参数应用，并与工具栏中设置的视图筛选器组合。",
     "urlFilterError": "无效的 URL 筛选器，已忽略，因为无法应用。",
     "dropYourDocHere": "将文档拖放到这里",

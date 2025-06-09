@@ -324,7 +324,11 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
     return
   }
 
-  ignoreNavigation = isMobileMode.value || ignoreNavigation
+  if (!isNewSidebarEnabled.value) {
+    ignoreNavigation = isMobileMode.value || ignoreNavigation
+  }
+
+  ignoreNavigation = isNewSidebarEnabled.value ? ignoreNavigation : isMobileMode.value || ignoreNavigation
   toggleIsExpanded = isMobileMode.value || toggleIsExpanded
 
   let isSharedBase = false

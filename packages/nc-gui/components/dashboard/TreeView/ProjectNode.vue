@@ -310,7 +310,10 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
 
   if (!toggleIsExpanded && !cmdOrCtrl) $e('c:base:open')
 
-  ignoreNavigation = isMobileMode.value || ignoreNavigation
+  if (!isNewSidebarEnabled.value) {
+    ignoreNavigation = isMobileMode.value || ignoreNavigation
+  }
+
   toggleIsExpanded = isMobileMode.value || toggleIsExpanded
 
   if (cmdOrCtrl && !ignoreNavigation) {

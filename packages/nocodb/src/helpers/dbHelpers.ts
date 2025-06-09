@@ -627,6 +627,7 @@ export function generateRecursiveCTE(_params: {
   // sourceTable can be a subquery, another CTE, or physical table
   sourceTable: string | Knex.QueryInterface | Knex.Raw;
   tableAlias?: string;
+  direction?: 'id_to_link' | 'link_to_id';
   qb: Knex.QueryBuilder;
 }) {
   return false;

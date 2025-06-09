@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} already has access to this {scope}",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "URL filtri tiek piemēroti no URL parametriem un tiek apvienoti ar rīkjoslā iestatītajiem skata filtriem.",
     "urlFilterError": "Nederīgs URL filtrs. Ignorēts, jo to nevarēja piemērot.",
     "dropYourDocHere": "Nometiet dokumentu šeit",

@@ -117,6 +117,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const actionPaneSize = ref(40)
 
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
+
+    const isSyncedTable = computed(() => (meta.value as TableType)?.synced)
+
     const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
 
@@ -201,6 +204,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       filtersFromUrlParams,
       whereQueryFromUrl,
       validFiltersFromUrlParams,
+      isSyncedTable,
     }
   },
   'smartsheet-store',

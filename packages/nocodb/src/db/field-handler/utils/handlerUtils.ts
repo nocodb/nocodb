@@ -1,10 +1,18 @@
 import { ncIsNull, ncIsUndefined, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  ncIsNull,
+  ncIsUndefined,
+  parseProp,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import { Filter, Model } from '~/models';
+import { recursiveCTEFromLookupColumnHM } from '~/helpers/lookupHelpers';
 
 export function ncIsStringHasValue(val: string | undefined | null) {
   return val !== '' && !ncIsUndefined(val) && !ncIsNull(val);
@@ -83,14 +91,39 @@ export async function nestedConditionJoin({
       switch (relationColOptions.type) {
         case RelationTypes.HAS_MANY:
           {
-            qb.join(
-              knex.raw(`?? as ??`, [
-                childBaseModel.getTnPath(childModel.table_name),
-                relAlias,
-              ]),
-              `${alias}.${parentColumn.column_name}`,
-              `${relAlias}.${childColumn.column_name}`,
-            );
+            const useRecursiveEvaluation = parseProp(
+              lookupColumn.meta,
+            )?.useRecursiveEvaluation;
+            if (useRecursiveEvaluation) {
+              const cteQB = await recursiveCTEFromLookupColumnHM({
+                baseModelSqlV2: childBaseModel,
+                lookupColumn,
+                tableAlias: relAlias,
+              });
+              // applying CTE
+              cteQB(qb);
+
+              qb.join(
+                knex(`${relAlias} as ${relAlias}`)
+                  .where(
+                    `${relAlias}.root_id`,
+                    '<>',
+                    baseModelSqlv2.dbDriver.raw('??.??', [relAlias, 'id']),
+                  )
+                  .as(relAlias),
+                `${relAlias}.root_id`,
+                `${alias}.${parentColumn.column_name}`,
+              );
+            } else {
+              qb.join(
+                knex.raw(`?? as ??`, [
+                  childBaseModel.getTnPath(childModel.table_name),
+                  relAlias,
+                ]),
+                `${alias}.${parentColumn.column_name}`,
+                `${relAlias}.${childColumn.column_name}`,
+              );
+            }
           }
           break;
         case RelationTypes.BELONGS_TO:

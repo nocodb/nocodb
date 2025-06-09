@@ -229,7 +229,9 @@ watch(
           <div class="text-nc-content-gray text-bodySmBold">
             {{ totalRowsWithSearchQuery }} of {{ totalRowsWithoutSearchQuery }}
           </div>
-          <div class="text-nc-content-gray-muted text-bodySm">Matching results in {{ totalRowsWithSearchQuery }} records</div>
+          <div class="text-nc-content-gray-muted text-bodySm">
+            {{ $t('title.matchingResultsInRecords', { count: totalRowsWithSearchQuery }) }}
+          </div>
         </div>
       </div>
     </LazySmartsheetToolbarSearchDataWrapperDropdown>

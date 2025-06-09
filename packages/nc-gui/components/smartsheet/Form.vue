@@ -1106,6 +1106,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               :key="formViewData.logo_url?.path"
                               :srcs="getFormLogoSrc"
                               class="flex-none nc-form-logo !object-contain object-left max-h-full max-w-full !m-0"
+                              :is-cell-preview="false"
                             />
                             <div
                               class="items-center space-x-1 flex-nowrap m-3"

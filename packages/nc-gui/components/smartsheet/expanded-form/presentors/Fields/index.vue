@@ -100,6 +100,9 @@ export default {
             </template>
           </NcDropdown>
         </div>
+        <div v-else>
+          <!-- For spacing only -->
+        </div>
         <div v-if="isMobileMode && !isSqlView" class="p-2">
           <NcButton
             v-e="['c:row-expand:save']"

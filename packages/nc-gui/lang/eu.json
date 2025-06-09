@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} already has access to this {scope}",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "URL iragazkiak URL parametroetatik aplikatzen dira eta tresna-barran ezarritako ikuspegi iragazkiekin konbinatzen dira.",
     "urlFilterError": "URL iragazki baliogabea. Baztertuta aplikatu ezin zenez.",
     "dropYourDocHere": "Arrastatu zure dokumentua hona",

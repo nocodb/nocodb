@@ -6,9 +6,12 @@ interface Props {
   alt?: string
   objectFit?: string
   controls?: boolean
+  isCellPreview?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  isCellPreview: true,
+})
 const emit = defineEmits(['error'])
 
 const index = ref(0)
@@ -65,7 +68,7 @@ const zoom = (direction: 'in' | 'out') => {
 }
 
 const startDrag = (clientX: number, clientY: number) => {
-  if (scale.value <= 1) return
+  if (scale.value <= 1 || !props.isCellPreview) return
   isDragging.value = true
   startPos.value = {
     x: clientX - position.value.x,
@@ -74,7 +77,7 @@ const startDrag = (clientX: number, clientY: number) => {
 }
 
 const drag = (clientX: number, clientY: number) => {
-  if (!isDragging.value) return
+  if (!isDragging.value || !props.isCellPreview) return
   const newPosition = {
     x: clientX - startPos.value.x,
     y: clientY - startPos.value.y,
@@ -87,7 +90,7 @@ const stopDrag = () => {
 }
 
 const stopPropagationIfScaled = (e: MouseEvent | TouchEvent) => {
-  if (scale.value <= 1) return
+  if (scale.value <= 1 || !props.isCellPreview) return
   e.preventDefault()
   e.stopPropagation()
 }
@@ -102,6 +105,10 @@ const onMouseDown = (e: MouseEvent) => {
   startDrag(e.clientX, e.clientY)
 }
 const onTouchStart = (e: TouchEvent) => {
+  if (props.isCellPreview) {
+    e.preventDefault()
+  }
+
   stopPropagationIfScaled(e)
   startDrag(e.touches[0].clientX, e.touches[0].clientY)
 }
@@ -116,7 +123,7 @@ const onTouchStart = (e: TouchEvent) => {
         'flex items-center justify-center': index >= props.srcs?.length,
       }"
       @mousedown="onMouseDown"
-      @touchstart.prevent="onTouchStart"
+      @touchstart="onTouchStart"
     >
       <img
         v-if="index < props.srcs?.length"

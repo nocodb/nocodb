@@ -19,7 +19,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const router = useRouter()
     const route = router.currentRoute
 
-    const { user } = useGlobal()
+    const { user, isMobileMode } = useGlobal()
 
     const { activeView: view, activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
 
@@ -85,6 +85,14 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       }
 
       return route.value.query.where
+    })
+
+    const totalRowsWithSearchQuery = ref(0)
+
+    const totalRowsWithoutSearchQuery = ref(0)
+
+    const fetchTotalRowsWithSearchQuery = computed(() => {
+      return search.value.query?.trim() && !isMobileMode.value && (isGrid.value || isGallery.value)
     })
 
     const xWhere = computed(() => {
@@ -205,6 +213,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       whereQueryFromUrl,
       validFiltersFromUrlParams,
       isSyncedTable,
+      totalRowsWithSearchQuery,
+      totalRowsWithoutSearchQuery,
+      fetchTotalRowsWithSearchQuery,
     }
   },
   'smartsheet-store',

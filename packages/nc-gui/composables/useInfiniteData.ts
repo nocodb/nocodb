@@ -102,16 +102,30 @@ export function useInfiniteData(args: {
 
   const { fetchSharedViewData, fetchCount } = useSharedView()
 
-  const { nestedFilters, allFilters, sorts, isExternalSource, isAlreadyShownUpgradeModal, validFiltersFromUrlParams } =
-    disableSmartsheet
-      ? {
-          nestedFilters: ref([]),
-          allFilters: ref([]),
-          sorts: ref([]),
-          isExternalSource: computed(() => false),
-          isAlreadyShownUpgradeModal: ref(false),
-        }
-      : useSmartsheetStoreOrThrow()
+  const {
+    nestedFilters,
+    allFilters,
+    sorts,
+    isExternalSource,
+    isAlreadyShownUpgradeModal,
+    validFiltersFromUrlParams,
+    totalRowsWithSearchQuery,
+    totalRowsWithoutSearchQuery,
+    fetchTotalRowsWithSearchQuery,
+    whereQueryFromUrl,
+  } = disableSmartsheet
+    ? {
+        nestedFilters: ref([]),
+        allFilters: ref([]),
+        sorts: ref([]),
+        isExternalSource: computed(() => false),
+        isAlreadyShownUpgradeModal: ref(false),
+        totalRowsWithSearchQuery: ref(0),
+        totalRowsWithoutSearchQuery: ref(0),
+        fetchTotalRowsWithSearchQuery: computed(() => false),
+        whereQueryFromUrl: computed(() => ''),
+      }
+    : useSmartsheetStoreOrThrow()
 
   const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
@@ -1635,6 +1649,24 @@ export function useInfiniteData(args: {
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           })
 
+      if (fetchTotalRowsWithSearchQuery.value) {
+        const { count: _count } = isPublic?.value
+          ? await fetchCount({
+              filtersArr: nestedFilters.value,
+              where: whereQueryFromUrl.value as string,
+            })
+          : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
+              where: whereQueryFromUrl.value as string,
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            })
+
+        if (!path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+          totalRowsWithoutSearchQuery.value = Math.max(Math.min(200, _count as number), _count as number)
+        } else {
+          totalRowsWithoutSearchQuery.value = _count as number
+        }
+      }
+
       if (!path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
         dataCache.totalRows.value = Math.min(200, count as number)
       } else {
@@ -1642,6 +1674,9 @@ export function useInfiniteData(args: {
       }
 
       dataCache.actualTotalRows.value = count as number
+
+      totalRowsWithSearchQuery.value = Math.max(dataCache.totalRows.value, dataCache.actualTotalRows.value)
+
       callbacks?.syncVisibleData?.()
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)

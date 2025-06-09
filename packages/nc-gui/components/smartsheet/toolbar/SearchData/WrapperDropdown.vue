@@ -12,10 +12,10 @@ const { isMobileMode } = useGlobal()
     v-else
     :visible="visible"
     :trigger="['click']"
-    placement="bottomLeft"
-    overlay-class-name="nc-dropdown-toolbar-search !border-primary !shadow-selected overflow-hidden"
+    placement="bottomRight"
+    overlay-class-name="nc-dropdown-toolbar-search !border-primary !shadow-selected overflow-hidden !z-1000"
   >
-    <div class="absolute -right-1 -top-4"></div>
+    <div class="absolute -right-1 -top-5"></div>
     <template #overlay>
       <slot />
     </template>

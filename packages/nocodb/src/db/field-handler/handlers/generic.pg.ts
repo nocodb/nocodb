@@ -34,8 +34,8 @@ export class GenericPgFieldHandler
       clause: (qb: Knex.QueryBuilder) => {
         if (!ncIsStringHasValue(val)) {
           qb.where((subQb) => {
-            subQb.where(sourceField as any, '');
-            subQb.whereNull(sourceField as any);
+            subQb.where(knex.raw(`??::text = ''`, [sourceField]));
+            subQb.orWhereNull(sourceField as any);
           });
         } else {
           qb.where(knex.raw('??::text ilike ?', [sourceField, `%${val}%`]));
@@ -65,15 +65,15 @@ export class GenericPgFieldHandler
       clause: (qb: Knex.QueryBuilder) => {
         if (!ncIsStringHasValue(val)) {
           // val is empty -> all values including NULL but empty strings
-          qb.whereNot(sourceField as any, '');
+          qb.whereNot(knex.raw(`??::text != ''`, [sourceField]));
           qb.orWhereNull(sourceField as any);
         } else {
           val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
 
-          qb.whereNot(knex.raw(`?? ilike ?`, [sourceField, val]));
+          qb.whereNot(knex.raw(`??::text ilike ?`, [sourceField, val]));
           if (val !== '%%') {
             // if value is not empty, empty or null should be included
-            qb.orWhere(sourceField as any, '');
+            qb.orWhere(knex.raw(`??::text != ''`, [sourceField]));
             qb.orWhereNull(sourceField as any);
           } else {
             // if value is empty, then only null is included

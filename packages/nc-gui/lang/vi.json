@@ -1767,6 +1767,8 @@
   },
   "msg": {
     "userAlreadyExists": "{email} already has access to this {scope}",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "Bộ lọc URL được lấy từ tham số URL và kết hợp với bộ lọc chế độ xem trên thanh công cụ.",
     "urlFilterError": "Bộ lọc URL không hợp lệ. Bỏ qua vì không thể áp dụng.",
     "dropYourDocHere": "Thả tài liệu của bạn vào đây",

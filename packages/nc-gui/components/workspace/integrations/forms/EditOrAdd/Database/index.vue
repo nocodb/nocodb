@@ -940,10 +940,7 @@ watch(
                       <a-col :span="12">
                         <!-- Schema name -->
                         <a-form-item
-                          v-if="
-                            [ClientType.PG].includes(formState.dataSource.client) &&
-                            formState.dataSource.searchPath
-                          "
+                          v-if="[ClientType.PG].includes(formState.dataSource.client) && formState.dataSource.searchPath"
                           :label="$t('labels.schemaName')"
                           v-bind="validateInfos['dataSource.searchPath.0']"
                         >

@@ -21,7 +21,6 @@ import { MetaTable } from '~/utils/globals';
 // hence, this upgrader is to revert back these corrupted values
 
 function getTnPath(knex: XKnex, tb: Model) {
-  const schema = (knex as any).searchPath?.();
   const clientType = knex.clientType();
   if (clientType === 'snowflake') {
     return [

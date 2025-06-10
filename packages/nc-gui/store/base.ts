@@ -90,7 +90,6 @@ export const useBase = defineStore('baseStore', () => {
     return getBaseType(sourceId) === ClientType.SQLITE
   }
 
-
   function isPg(sourceId?: string) {
     return getBaseType(sourceId) === 'pg'
   }

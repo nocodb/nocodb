@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol, lookupCanHaveRecursiveEvaluation } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -21,8 +21,6 @@ const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disab
 const baseStore = useBase()
 
 const { tables } = storeToRefs(baseStore)
-
-const { getBaseType } = baseStore
 
 const { metas, getMeta } = useMetas()
 

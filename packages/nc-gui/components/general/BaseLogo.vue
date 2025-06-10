@@ -2,7 +2,6 @@
 import LogosMysqlIcon from '~icons/logos/mysql-icon'
 import LogosPostgresql from '~icons/nc-icons/postgresql'
 import VscodeIconsFileTypeSqlite from '~icons/vscode-icons/file-type-sqlite'
-import SimpleIconsMicrosoftsqlserver from '~icons/simple-icons/microsoftsqlserver'
 import LogosSnowflakeIcon from '~icons/logos/snowflake-icon'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
 

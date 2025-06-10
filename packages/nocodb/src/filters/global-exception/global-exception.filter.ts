@@ -1,5 +1,6 @@
-import { Catch, Logger, NotFoundException, Optional } from '@nestjs/common';
-import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
+import { Catch, Logger, NotFoundException } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
+
 import { ThrottlerException } from '@nestjs/throttler';
 import hash from 'object-hash';
 import {
@@ -33,9 +34,7 @@ import {
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-  constructor(
-    @Optional() @InjectSentry() protected readonly sentryClient: SentryService,
-  ) {}
+  constructor() {}
 
   protected logger = new Logger(GlobalExceptionFilter.name);
 
@@ -261,7 +260,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   }
 
   protected captureException(exception: any, _request: any) {
-    this.sentryClient?.instance().captureException(exception);
+    Sentry.captureException(exception);
   }
 
   protected logError(exception: any, _request: any) {

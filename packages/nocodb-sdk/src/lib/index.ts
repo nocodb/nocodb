@@ -62,4 +62,5 @@ export * from '~/lib/columnHelper';
 export * from '~/lib/error';
 export * from '~/lib/error-handler';
 export * from '~/lib/geoDataUtils';
+export * from '~/lib/stringHelpers';
 export * from '~/lib/filter';

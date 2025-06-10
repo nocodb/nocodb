@@ -5,6 +5,7 @@ import {
   ncIsObject,
   RelationTypes,
   UITypes,
+  ViewLockType,
   ViewTypes,
 } from 'nocodb-sdk';
 import type {
@@ -43,6 +44,8 @@ export class PublicMetasService {
     if (view.password && view.password !== param.password) {
       NcError.invalidSharedViewPassword();
     }
+
+    view.lock_type = ViewLockType.Collaborative;
 
     await view.getFilters(context);
     await view.getSorts(context);

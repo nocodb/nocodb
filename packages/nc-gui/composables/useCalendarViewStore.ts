@@ -128,7 +128,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
 
-    const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+    const { sorts, nestedFilters, isSyncedTable } = useSmartsheetStoreOrThrow()
 
     const { sharedView, fetchSharedViewData, fetchSharedViewActiveDate, fetchSharedCalendarViewData } = useSharedView()
 
@@ -497,6 +497,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         console.log(e)
       }
     }
+
+    const isSyncedFromColumn = computed(() => {
+      return (
+        isSyncedTable.value &&
+        calendarRange.value.some((range) => {
+          return !!range.fk_from_col?.readonly
+        })
+      )
+    })
 
     async function loadCalendarMeta() {
       if (!viewMeta?.value?.id || !meta?.value?.columns) return
@@ -998,6 +1007,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       updateFormat,
       timezoneDayjs,
       timezone,
+      isSyncedFromColumn,
     }
   },
 )

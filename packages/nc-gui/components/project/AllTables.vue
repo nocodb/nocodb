@@ -402,12 +402,21 @@ const sourceIdToIconMap = computed(() => {
         </template>
       </NcTable>
     </div>
-    <div v-else class="py-3 flex items-center gap-6 <lg:flex-col">
+    <div v-else-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })" class="py-3 flex items-center gap-6 <lg:flex-col">
       <img src="~assets/img/placeholder/table.png" class="!w-[23rem] flex-none" />
       <div class="text-center lg:text-left">
         <div class="text-2xl text-gray-800 font-bold">{{ $t('placeholder.createTable') }}</div>
         <div class="text-sm text-gray-700 pt-6">
           {{ $t('placeholder.createTableLabel') }}
+        </div>
+      </div>
+    </div>
+    <div v-else class="py-3 flex items-center gap-6 flex-col">
+      <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[240px] !h-[187px] flex-none" />
+      <div class="text-center">
+        <div class="text-2xl text-nc-content-gray font-bold">{{ $t('placeholder.emptyTablePlaceholder') }}</div>
+        <div class="text-sm text-nc-content-gray-subtle2 pt-3">
+          {{ $t('placeholder.emptyTablePlaceholderSubtitle') }}
         </div>
       </div>
     </div>

@@ -205,6 +205,7 @@ export class DataTableService {
       apiVersion?: NcApiVersion;
       internalFlags?: {
         allowSystemColumn?: boolean;
+        skipHooks?: boolean;
       };
     },
   ) {
@@ -229,6 +230,7 @@ export class DataTableService {
         isSingleRecordUpdation: !Array.isArray(param.body),
         apiVersion: param.apiVersion,
         allowSystemColumn: param.internalFlags?.allowSystemColumn,
+        skip_hooks: param.internalFlags?.skipHooks,
       },
     );
 

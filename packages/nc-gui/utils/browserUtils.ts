@@ -1,3 +1,5 @@
+import type { Editor } from '@tiptap/vue-3'
+
 // refer - https://stackoverflow.com/a/11752084
 export const isMac = () => /Mac/i.test(navigator.platform)
 export const isDrawerExist = () => document.querySelector('.ant-drawer-open')
@@ -15,6 +17,9 @@ export const isActiveElementInsideExtension = () =>
   ['.extension-modal', '.nc-extension-pane', '.nc-modal-extension-market', '.nc-modal-share-collaborate'].some((selector) =>
     document.querySelector(selector)?.contains(document.activeElement),
   )
+export const isTiptapDropdownExistInsideEditor = () => {
+  return document.querySelector('.tippy-box')
+}
 
 export const isSidebarNodeRenameActive = () => document.querySelector('input.animate-sidebar-node-input-padding')
 export function hasAncestorWithClass(element: HTMLElement, className: string | Array<string>): boolean {
@@ -123,4 +128,38 @@ export const isExpandCellKey = (event: Event) => {
   }
 
   return false
+}
+
+/**
+ * Check if an element is line-clamped
+ *
+ * **Note:**
+ * The `Range#getBoundingClientRect()` technique works best when text is not deeply nested.
+ * This technique has performance overhead — avoid using it on large lists.
+ *
+ * @param el - The element to check
+ * @returns True if the element is line-clamped, false otherwise
+ */
+export const isLineClamped = (el: HTMLElement): boolean => {
+  if (!el) return false
+
+  const range = document.createRange()
+  range.selectNodeContents(el)
+
+  const fullHeight = range.getBoundingClientRect().height
+  const actualHeight = el.getBoundingClientRect().height
+
+  return fullHeight > actualHeight
+}
+
+export const handleOnEscRichTextEditor = (event: KeyboardEvent, editor?: Editor) => {
+  if (isTiptapDropdownExistInsideEditor()) {
+    event.stopPropagation()
+
+    if (editor && !editor.state.selection.empty) {
+      const pos = editor.state.selection.to
+      editor.commands.setTextSelection(pos)
+      editor.commands.focus()
+    }
+  }
 }

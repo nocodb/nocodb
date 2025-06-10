@@ -30,6 +30,8 @@ provide(IsLinkRecordDropdownInj, ref(true))
 
 const isForm = inject(IsFormInj, ref(false))
 
+provide(IsFormInj, ref(false))
+
 const row = useVModel(props, 'row')
 
 const { isLinked, isLoading, isSelected } = toRefs(props)
@@ -40,9 +42,7 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const { externalBaseUserRoles } = useLTARStoreOrThrow()!
-
-const { isUIAllowed } = useRoles()
+const { showExtraFields } = useLTARStoreOrThrow()!
 
 interface Attachment {
   url: string
@@ -123,7 +123,10 @@ const displayValue = computed(() => {
             </span>
           </div>
 
-          <div v-if="fields.length > 0" class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5">
+          <div
+            v-if="fields.length > 0 && showExtraFields"
+            class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5"
+          >
             <div v-for="field in fields" :key="field.id" class="sm:(w-1/3 max-w-1/3 overflow-hidden)">
               <div v-if="!isRowEmpty({ row }, field)" class="flex flex-col gap-[-1]">
                 <NcTooltip class="z-10 flex" placement="bottomLeft" :arrow-point-at-center="false">
@@ -164,10 +167,7 @@ const displayValue = computed(() => {
             </div>
           </div>
         </div>
-        <div
-          v-if="!isForm && !isPublic && !readOnly && isUIAllowed('dataEdit', externalBaseUserRoles)"
-          class="flex-none flex items-center w-7"
-        >
+        <div v-if="!isForm && !isPublic" class="flex-none flex items-center w-7">
           <NcTooltip class="flex">
             <template #title>{{ $t('title.expand') }}</template>
 

@@ -6,7 +6,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const isViewPortMobile = () => {
     return width.value < MAX_WIDTH_FOR_MOBILE_MODE
   }
-  const { isMobileMode, leftSidebarSize: _leftSidebarSize } = useGlobal()
+  const { isMobileMode, leftSidebarSize: _leftSidebarSize, isLeftSidebarOpen: _isLeftSidebarOpen } = useGlobal()
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -19,7 +19,6 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   })
 
   const tablesStore = useTablesStore()
-  const _isLeftSidebarOpen = ref(!isViewPortMobile())
   const isLeftSidebarOpen = computed({
     get() {
       return (isMobileMode.value && !tablesStore.activeTableId) || _isLeftSidebarOpen.value
@@ -63,7 +62,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
       return 100
     }
 
-    return leftSideBarSize.value.current ?? leftSideBarSize.value.old
+    return leftSideBarSize.value.current || leftSideBarSize.value.old
   })
 
   const nonHiddenLeftSidebarWidth = computed(() => {
@@ -88,6 +87,13 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const hideSidebar = ref(false)
 
   const showTopbar = ref(false)
+
+  onMounted(() => {
+    if (!isViewPortMobile() || tablesStore.activeTableId) return
+
+    _isLeftSidebarOpen.value = true
+    leftSidebarState.value = 'openEnd'
+  })
 
   return {
     isLeftSidebarOpen,

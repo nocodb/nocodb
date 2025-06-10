@@ -205,7 +205,7 @@ const onClick = (e: Event) => {
       <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
       <GeneralIcon
-        v-if="isExpandedForm && !isExpandedBulkUpdateForm && !isMobileMode && isUIAllowed('fieldEdit')"
+        v-if="isExpandedForm && !isExpandedBulkUpdateForm && !isMobileMode && isUIAllowed('fieldEdit') && !hideMenu"
         icon="arrowDown"
         class="nc-column-context-menu flex-none cursor-pointer ml-1 group-hover:visible w-4 h-4"
         :class="{

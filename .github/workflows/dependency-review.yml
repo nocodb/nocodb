@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   dependency-review:
-    runs-on: [self-hosted, v4, generic]
+    runs-on: [self-hosted, v3, aws]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

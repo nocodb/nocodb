@@ -7,12 +7,14 @@ const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
+const { withLoading } = useLoadingTrigger()
+
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 const isPublic = inject(IsPublicInj, ref(false))
 const fields = inject(FieldsInj, ref([]))
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
-const { isSqlView, xWhere, isExternalSource } = useSmartsheetStoreOrThrow()
+const { isSqlView, xWhere, isExternalSource, isSyncedTable } = useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
 const route = useRoute()
 const { getPossibleAttachmentSrc } = useAttachment()
@@ -358,11 +360,13 @@ watch(
   },
 )
 
-reloadViewDataHook?.on(async () => {
-  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
-  await syncCount()
-  calculateSlices()
-})
+reloadViewDataHook?.on(
+  withLoading(async () => {
+    clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+    await syncCount()
+    calculateSlices()
+  }),
+)
 
 const handleOpenNewRecordForm = () => {
   if (showRecordPlanLimitExceededModal()) return
@@ -567,7 +571,13 @@ const handleOpenNewRecordForm = () => {
       </div>
     </NcDropdown>
     <div class="sticky bottom-4">
-      <NcButton v-if="isUIAllowed('dataInsert')" size="xs" type="secondary" class="ml-4" @click="handleOpenNewRecordForm">
+      <NcButton
+        v-if="isUIAllowed('dataInsert') && !isSyncedTable"
+        size="xs"
+        type="secondary"
+        class="ml-4"
+        @click="handleOpenNewRecordForm"
+      >
         <div class="flex items-center gap-2">
           <component :is="iconMap.plus" class="" />
           {{ $t('activity.newRecord') }}

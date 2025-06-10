@@ -140,26 +140,18 @@ export const antSelectFilterOption = (
   return searchCompare(optionValue, inputValue)
 }
 
-export const ncLastVisitedBase = (): {
-  key: string
-  get: () => string | null
-  set: (value: string | null | undefined) => void
-} => {
-  const key = 'ncLastVisitedBase'
-
-  return {
-    key,
-    get: () => {
-      return sessionStorage.getItem(key)
-    },
-    set: (value: string | null | undefined) => {
-      if (!value) return
-
-      sessionStorage.setItem(key, value)
-    },
-  }
-}
-
+/**
+ * Extracts the name from an email address.
+ *
+ * @param email - The email address to extract the name from.
+ * @returns The name extracted from the email address.
+ *
+ * @example
+ * ```typescript
+ * const name = extractNameFromEmail('john.doe@example.com');
+ * console.log(name); // Output: 'john.doe'
+ * ```
+ */
 export const extractNameFromEmail = (email?: string) => {
   if (!email) return ''
 

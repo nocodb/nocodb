@@ -7,51 +7,68 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { ClientType } from 'nocodb-sdk';
-import { NcError } from 'src/helpers/catchError';
-import { JsonGeneralHandler } from './handlers/json/json.general.handler';
-import { GenericFieldHandler } from './handlers/generic';
-import { CheckboxGeneralHandler } from './handlers/checkbox/checkbox.general.handler';
-import { DateTimeGeneralHandler } from './handlers/date-time/date-time.general.handler';
-import { DateGeneralHandler } from './handlers/date/date.general.handler';
-import { MultiSelectGeneralHandler } from './handlers/multi-select/multi-select.general.handler';
-import { SingleSelectGeneralHandler } from './handlers/single-select/single-select.general.handler';
-import { DecimalGeneralHandler } from './handlers/decimal/decimal.general.handler';
-import { NumberGeneralHandler } from './handlers/number/number.general.handler';
 import { FilterVerificationError } from './error/filter-verification.error';
-import { FormulaGeneralHandler } from './handlers/formula/formula.general.handler';
-import { JsonMySqlHandler } from './handlers/json/json.mysql.handler';
-import { LtarGeneralHandler } from './handlers/ltar/ltar.general.handler';
-import { LookupGeneralHandler } from './handlers/lookup/lookup.general.handler';
-import { LinksGeneralHandler } from './handlers/links/links.general.handler';
-import { RollupGeneralHandler } from './handlers/rollup/rollup.general.handler';
-import { PercentGeneralHandler } from './handlers/percent/percent.general.handler';
-import { RatingGeneralHandler } from './handlers/rating/rating.general.handler';
-import { YearGeneralHandler } from './handlers/year/year.general.handler';
-import { UserGeneralHandler } from './handlers/user/user.general.handler';
-import { DurationGeneralHandler } from './handlers/duration/duration.general.handler';
-import { CheckboxSqliteHandler } from './handlers/checkbox/checkbox.sqlite.handler';
-import { LongTextGeneralHandler } from './handlers/long-text/long-text.general.handler';
-import { SingleLineTextGeneralHandler } from './handlers/single-line-text/single-line-text.general.handler';
-import { ComputedFieldHandler } from './handlers/computed';
-import { DateTimeMsSQLHandler } from './handlers/date-time/date-time.mssql.handler';
-import { DateTimeSQLiteHandler } from './handlers/date-time/date-time.sqlite.handler';
-import { DateTimeMySQLHandler } from './handlers/date-time/date-time.mysql.handler';
-import { DateTimePGHandler } from './handlers/date-time/date-time.pg.handler';
 import type { Logger } from '@nestjs/common';
-import type { MetaService } from 'src/meta/meta.service';
+import type { MetaService } from '~/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 import type {
+  FilterOperationResult,
+  FilterOptions,
   FilterVerificationResult,
-  HandlerOptions,
   IFieldHandler,
 } from './field-handler.interface';
 import type { Knex } from 'knex';
 import type { Filter } from '~/models';
 import type { FieldHandlerInterface } from '~/db/field-handler/field-handler.interface';
+import { NcError } from '~/helpers/catchError';
+import { JsonGeneralHandler } from '~/db/field-handler/handlers/json/json.general.handler';
+import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
+import { CheckboxGeneralHandler } from '~/db/field-handler/handlers/checkbox/checkbox.general.handler';
+import { DateTimeGeneralHandler } from '~/db/field-handler/handlers/date-time/date-time.general.handler';
+import { DateGeneralHandler } from '~/db/field-handler/handlers/date/date.general.handler';
+import { MultiSelectGeneralHandler } from '~/db/field-handler/handlers/multi-select/multi-select.general.handler';
+import { SingleSelectGeneralHandler } from '~/db/field-handler/handlers/single-select/single-select.general.handler';
+import { DecimalGeneralHandler } from '~/db/field-handler/handlers/decimal/decimal.general.handler';
+import { NumberGeneralHandler } from '~/db/field-handler/handlers/number/number.general.handler';
+import { FormulaGeneralHandler } from '~/db/field-handler/handlers/formula/formula.general.handler';
+import { JsonMySqlHandler } from '~/db/field-handler/handlers/json/json.mysql.handler';
+import { LtarGeneralHandler } from '~/db/field-handler/handlers/ltar/ltar.general.handler';
+import { LookupGeneralHandler } from '~/db/field-handler/handlers/lookup/lookup.general.handler';
+import { LinksGeneralHandler } from '~/db/field-handler/handlers/links/links.general.handler';
+import { RollupGeneralHandler } from '~/db/field-handler/handlers/rollup/rollup.general.handler';
+import { PercentGeneralHandler } from '~/db/field-handler/handlers/percent/percent.general.handler';
+import { RatingGeneralHandler } from '~/db/field-handler/handlers/rating/rating.general.handler';
+import { YearGeneralHandler } from '~/db/field-handler/handlers/year/year.general.handler';
+import { UserGeneralHandler } from '~/db/field-handler/handlers/user/user.general.handler';
+import { DurationGeneralHandler } from '~/db/field-handler/handlers/duration/duration.general.handler';
+import { CheckboxSqliteHandler } from '~/db/field-handler/handlers/checkbox/checkbox.sqlite.handler';
+import { LongTextGeneralHandler } from '~/db/field-handler/handlers/long-text/long-text.general.handler';
+import { SingleLineTextGeneralHandler } from '~/db/field-handler/handlers/single-line-text/single-line-text.general.handler';
+import { ComputedFieldHandler } from '~/db/field-handler/handlers/computed';
+import { DateTimeMsSQLHandler } from '~/db/field-handler/handlers/date-time/date-time.mssql.handler';
+import { DateTimeSQLiteHandler } from '~/db/field-handler/handlers/date-time/date-time.sqlite.handler';
+import { DateTimeMySQLHandler } from '~/db/field-handler/handlers/date-time/date-time.mysql.handler';
+import { DateTimePGHandler } from '~/db/field-handler/handlers/date-time/date-time.pg.handler';
+import { DecimalMysqlHandler } from '~/db/field-handler/handlers/decimal/decimal.mysql.handler';
+import { DecimalSqliteHandler } from '~/db/field-handler/handlers/decimal/decimal.sqlite.handler';
+import { NumberPgHandler } from '~/db/field-handler/handlers/number/number.pg.handler';
+import { NumberMysqlHandler } from '~/db/field-handler/handlers/number/number.mysql.handler';
+import { NumberSqliteHandler } from '~/db/field-handler/handlers/number/number.sqlite.handler';
+import { RatingMysqlHandler } from '~/db/field-handler/handlers/rating/rating.mysql.handler';
+import { RatingPgHandler } from '~/db/field-handler/handlers/rating/rating.pg.handler';
+import { RatingSqliteHandler } from '~/db/field-handler/handlers/rating/rating.sqlite.handler';
+import { PercentMysqlHandler } from '~/db/field-handler/handlers/percent/percent.mysql.handler';
+import { PercentPgHandler } from '~/db/field-handler/handlers/percent/percent.pg.handler';
+import { PercentSqliteHandler } from '~/db/field-handler/handlers/percent/percent.sqlite.handler';
+import { UserPgHandler } from '~/db/field-handler/handlers/user/user.pg.handler';
+import { UserSqliteHandler } from '~/db/field-handler/handlers/user/user.sqlite.handler';
+import { PhoneNumberGeneralHandler } from '~/db/field-handler/handlers/phone-number/phone-number.general.handler';
 import { Column } from '~/models';
 import { JsonPgHandler } from '~/db/field-handler/handlers/json/json.pg.handler';
+import { DecimalPgHandler } from '~/db/field-handler/handlers/decimal/decimal.pg.handler';
+import { EmailGeneralHandler } from '~/db/field-handler/handlers/email/email.general.handler';
 
 const CLIENT_DEFAULT = '_default';
 
@@ -101,32 +118,44 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.Time]: {},
   [UITypes.PhoneNumber]: {
-    [CLIENT_DEFAULT]: GenericFieldHandler,
+    [CLIENT_DEFAULT]: PhoneNumberGeneralHandler,
   },
   [UITypes.GeoData]: {},
   [UITypes.Email]: {
-    [CLIENT_DEFAULT]: GenericFieldHandler,
+    [CLIENT_DEFAULT]: EmailGeneralHandler,
   },
   [UITypes.URL]: {
     [CLIENT_DEFAULT]: GenericFieldHandler,
   },
   [UITypes.Number]: {
     [CLIENT_DEFAULT]: NumberGeneralHandler,
+    [ClientType.PG]: NumberPgHandler,
+    [ClientType.MYSQL]: NumberMysqlHandler,
+    [ClientType.SQLITE]: NumberSqliteHandler,
   },
   [UITypes.Decimal]: {
     [CLIENT_DEFAULT]: DecimalGeneralHandler,
+    [ClientType.PG]: DecimalPgHandler,
+    [ClientType.MYSQL]: DecimalMysqlHandler,
+    [ClientType.SQLITE]: DecimalSqliteHandler,
   },
   [UITypes.Currency]: {
     [CLIENT_DEFAULT]: DecimalGeneralHandler,
   },
   [UITypes.Percent]: {
     [CLIENT_DEFAULT]: PercentGeneralHandler,
+    [ClientType.PG]: PercentMysqlHandler,
+    [ClientType.MYSQL]: PercentPgHandler,
+    [ClientType.SQLITE]: PercentSqliteHandler,
   },
   [UITypes.Duration]: {
     [CLIENT_DEFAULT]: DurationGeneralHandler,
   },
   [UITypes.Rating]: {
     [CLIENT_DEFAULT]: RatingGeneralHandler,
+    [ClientType.PG]: RatingMysqlHandler,
+    [ClientType.MYSQL]: RatingPgHandler,
+    [ClientType.SQLITE]: RatingSqliteHandler,
   },
   [UITypes.Formula]: {
     [CLIENT_DEFAULT]: FormulaGeneralHandler,
@@ -169,6 +198,8 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.User]: {
     [CLIENT_DEFAULT]: UserGeneralHandler,
+    [ClientType.PG]: UserPgHandler,
+    [ClientType.SQLITE]: UserSqliteHandler,
   },
   [UITypes.CreatedBy]: {
     [CLIENT_DEFAULT]: ComputedFieldHandler,
@@ -237,8 +268,8 @@ export class FieldHandler implements IFieldHandler {
   async applyFilter(
     filter: Filter,
     column?: Column,
-    options: HandlerOptions = {},
-  ): Promise<(qb: Knex.QueryBuilder) => void> {
+    options: FilterOptions = {},
+  ) {
     const knex = options.knex ?? this.info.knex;
     const dbClient = (knex.clientType?.() ??
       knex.client.config.client) as ClientType;
@@ -254,20 +285,17 @@ export class FieldHandler implements IFieldHandler {
     });
   }
 
-  async applyFilterGroup(filter: Filter, options: HandlerOptions = {}) {
+  async applyFilterGroup(filter: Filter, options: FilterOptions = {}) {
     return this.applyFilters(filter.children, options);
   }
 
-  async applyFilters(
-    filters: Filter[],
-    options: HandlerOptions = {},
-  ): Promise<(qb: Knex.QueryBuilder) => void> {
+  async applyFilters(filters: Filter[], options: FilterOptions = {}) {
     const model = options.baseModel?.model ?? this.info.baseModel.model;
     if (!model.columns) {
       await model.getColumns(options.context ?? this.info.context);
     }
     const qbHandlers: {
-      handler: (qb: Knex.QueryBuilder) => void;
+      handler: FilterOperationResult;
       index: number;
       logicalOps?: string;
     }[] = [];
@@ -296,10 +324,17 @@ export class FieldHandler implements IFieldHandler {
         });
       }
     }
-    return (qb: Knex.QueryBuilder) => {
-      for (const handler of qbHandlers.sort((a, b) => a.index - b.index)) {
-        qb[getLogicalOpMethod(handler.logicalOps)](qb);
-      }
+    return {
+      clause: (qb: Knex.QueryBuilder) => {
+        for (const handler of qbHandlers.sort((a, b) => a.index - b.index)) {
+          qb[getLogicalOpMethod(handler.logicalOps)](handler.handler.clause);
+        }
+      },
+      rootApply: (qb: Knex.QueryBuilder) => {
+        for (const handler of qbHandlers.sort((a, b) => a.index - b.index)) {
+          handler.handler.rootApply?.(qb);
+        }
+      },
     };
   }
 
@@ -313,7 +348,7 @@ export class FieldHandler implements IFieldHandler {
   async applySelect(
     qb: Knex.QueryBuilder,
     column: Column,
-    options: HandlerOptions = {},
+    options: FilterOptions = {},
   ): Promise<void> {
     const knex = options.knex ?? this.info.knex;
     const dbClient = (knex.clientType?.() ??
@@ -330,7 +365,7 @@ export class FieldHandler implements IFieldHandler {
   async verifyFilter(
     filter: Filter,
     column: Column,
-    options: HandlerOptions = {},
+    options: FilterOptions = {},
   ) {
     const knex = options.knex ?? this.info.knex;
     return (
@@ -342,7 +377,7 @@ export class FieldHandler implements IFieldHandler {
     });
   }
 
-  async verifyFiltersSafe(filters: Filter[], options: HandlerOptions = {}) {
+  async verifyFiltersSafe(filters: Filter[], options: FilterOptions = {}) {
     const baseModel = options.baseModel ?? this.info.baseModel;
     const context = options.context ?? this.info.context;
     const model = baseModel.model;
@@ -378,7 +413,7 @@ export class FieldHandler implements IFieldHandler {
     }
   }
 
-  async verifyFilters(filters: Filter[], options: HandlerOptions = {}) {
+  async verifyFilters(filters: Filter[], options: FilterOptions = {}) {
     const verificationResult = await this.verifyFiltersSafe(filters, options);
     if (!verificationResult.isValid) {
       if (this.info.context.api_version === NcApiVersion.V3) {

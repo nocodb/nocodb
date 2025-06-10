@@ -35,7 +35,6 @@ const { isUIAllowed } = useRoles()
 const { isMobileMode } = useGlobal()
 
 /* flags */
-
 const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList') && !isSqlView.value)
 
 const canEdit = computed(() => isUIAllowed('dataEdit') && !isSqlView.value)
@@ -100,6 +99,9 @@ export default {
               </NcMenu>
             </template>
           </NcDropdown>
+        </div>
+        <div v-else>
+          <!-- For spacing only -->
         </div>
         <div v-if="isMobileMode && !isSqlView" class="p-2">
           <NcButton

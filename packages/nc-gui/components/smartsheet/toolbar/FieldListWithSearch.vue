@@ -80,6 +80,8 @@ const handleSelect = (c: ColumnType) => {
     $e(configByToolbarMenu.value.selectOptionEvent)
   }
 }
+
+const isLocked = inject(IsLockedInj)
 </script>
 
 <template>
@@ -91,6 +93,7 @@ const handleSelect = (c: ColumnType) => {
     option-value-key="id"
     :input-bordered="true"
     :open="isParentOpen"
+    :is-locked="isLocked"
     show-search-always
     :item-class-name="configByToolbarMenu.optionClassName"
     :list="options"

@@ -46,6 +46,10 @@ const { eventBus, allFilters, isExternalSource, validFiltersFromUrlParams } = us
 
 const { showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
+const { user } = useGlobal()
+
+const { withLoading } = useLoadingTrigger()
+
 const route = router.currentRoute
 
 const routeQuery = computed(() => route.value.query as Record<string, string>)
@@ -126,6 +130,9 @@ function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
   const rowFilters = getPlaceholderNewRow(
     [...allFilters.value, ...validFiltersFromUrlParams.value],
     metaValue?.columns as ColumnType[],
+    {
+      currentUser: user.value ?? undefined,
+    },
   )
 
   group.rows.splice(addAfter, 0, {
@@ -173,11 +180,13 @@ const deleteRow = async (rowIndex: number) => {
   await _deleteRow(rowIndex)
 }
 
-const reloadTableData = async (params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) => {
-  await props.loadGroupData(vGroup.value, true, {
-    ...(params?.offset !== undefined ? { offset: params.offset } : {}),
-  })
-}
+const reloadTableData = withLoading(
+  async (params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) => {
+    await props.loadGroupData(vGroup.value, true, {
+      ...(params?.offset !== undefined ? { offset: params.offset } : {}),
+    })
+  },
+)
 
 provide(IsGroupByInj, ref(true))
 

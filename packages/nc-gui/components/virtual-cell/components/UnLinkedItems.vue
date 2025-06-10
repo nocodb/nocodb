@@ -279,6 +279,11 @@ const onCreatedRecord = (record: any) => {
   isNewRecord.value = false
 }
 
+const onDeletedRecord = async () => {
+  await loadChildrenList()
+  loadChildrenExcludedList(rowState.value, true)
+}
+
 const linkedShortcuts = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
     vModel.value = false
@@ -461,7 +466,13 @@ const handleKeyDown = (e: KeyboardEvent) => {
       <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between min-h-11">
         <div class="flex">
           <NcButton
-            v-if="!isPublic && !isDataReadOnly && isUIAllowed('dataEdit', externalBaseUserRoles) && !isForm"
+            v-if="
+              !isPublic &&
+              !isDataReadOnly &&
+              isUIAllowed('dataEdit', externalBaseUserRoles) &&
+              !isForm &&
+              !relatedTableMeta?.synced
+            "
             v-e="['c:row-expand:open']"
             size="small"
             class="!hover:(bg-white text-brand-500) !h-7 !text-small"
@@ -525,6 +536,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         maintain-default-view-order
         skip-reload
         :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
+        @deleted-record="onDeletedRecord"
         @created-record="onCreatedRecord"
       />
     </Suspense>

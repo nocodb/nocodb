@@ -1,11 +1,10 @@
 import { FormulaDataTypes, parseProp, UITypes } from 'nocodb-sdk';
 import { ComputedFieldHandler } from '../computed';
-import type { Knex } from 'knex';
 import type { ColumnType } from 'nocodb-sdk';
 import type CustomKnex from 'src/db/CustomKnex';
 import type {
+  FilterOptions,
   FilterVerificationResult,
-  HandlerOptions,
 } from '~/db/field-handler/field-handler.interface';
 import type { FormulaColumn } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
@@ -16,8 +15,8 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
     knex: CustomKnex,
     filter: Filter,
     column: Column,
-    options: HandlerOptions,
-  ): Promise<(qb: Knex.QueryBuilder) => void> {
+    options: FilterOptions,
+  ) {
     const {
       context,
       conditionParser: parseConditionV2,
@@ -57,7 +56,7 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
   override async verifyFilter(
     filter: Filter,
     column: Column,
-    options: HandlerOptions = {},
+    options: FilterOptions = {},
   ) {
     const uidt = parseProp(column.meta).display_type;
     if (uidt) {

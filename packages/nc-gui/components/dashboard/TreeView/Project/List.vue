@@ -70,7 +70,14 @@ watch(
     clearTimeout(stopTimerId)
 
     if (ncIsEmptyObject(route.value.params)) {
-      stopLoading.value = false
+      if (isProjectsLoaded.value && !basesList.value.length) {
+        stopLoading.value = true
+        showProjectList.value = true
+
+        return
+      } else {
+        stopLoading.value = false
+      }
     } else {
       stopLoading.value = true
       return
@@ -81,8 +88,8 @@ watch(
       clearTimeout(stopTimerId)
 
       // If their is no active project then show base list
-      if (showProjectList.value && (!activeProjectId.value || !openedBase.value?.id)) {
-        showProjectList.value = false
+      if (!showProjectList.value && (!activeProjectId.value || !openedBase.value?.id)) {
+        showProjectList.value = true
       }
     }, 5000)
   },
@@ -413,19 +420,18 @@ watch([searchInputRef, showProjectList], () => {
   })
 })
 
-watch(
-  isProjectsLoaded,
-  () => {
-    if (isProjectsLoaded.value) {
-      transitionName.value = showProjectList.value ? 'slide-left' : 'slide-right'
-    } else {
-      transitionName.value = undefined
-    }
-  },
-  {
-    immediate: true,
-  },
-)
+watch(isProjectsLoaded, () => {
+  if (isProjectsLoaded.value && basesList.value.length) {
+    transitionName.value = showProjectList.value ? 'slide-left' : 'slide-right'
+  } else {
+    transitionName.value = undefined
+  }
+
+  if (isProjectsLoaded.value && !basesList.value.length) {
+    stopLoading.value = true
+    showProjectList.value = true
+  }
+})
 </script>
 
 <template>

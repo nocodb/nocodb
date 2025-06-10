@@ -214,7 +214,7 @@ function shouldShowRaw(key: string) {
           {{ newData[columnKey] }}
         </div>
       </template>
-      <template v-else-if="['SingleLineText', 'LongText'].includes(meta[columnKey]?.type)">
+      <template v-else-if="meta[columnKey]?.type === 'SingleLineText'">
         <div class="w-full">
           <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
             <span
@@ -230,6 +230,49 @@ function shouldShowRaw(key: string) {
               {{ block.text }}
             </span>
             <span v-else>
+              {{ block.text }}
+            </span>
+          </template>
+        </div>
+      </template>
+      <template v-else-if="meta[columnKey]?.type === 'LongText'">
+        <div class="w-full">
+          <template
+            v-for="(block, i) of diffTextBlocks(
+              meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
+                ? oldData[columnKey]?.value || ''
+                : oldData[columnKey] || '',
+              meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
+                ? newData[columnKey]?.value || ''
+                : newData[columnKey] || '',
+            )"
+            :key="i"
+          >
+            <span
+              v-if="block.op === 'removed'"
+              class="max-w-full text-red-700 px-1 bg-red-50 rounded-md line-through decoration-clone !leading-[18px]"
+              :class="{
+                'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+              }"
+            >
+              {{ block.text }}
+            </span>
+            <span
+              v-else-if="block.op === 'added'"
+              class="max-w-full text-green-700 px-1 bg-green-50 rounded-md decoration-clone !leading-[18px]"
+              :class="{
+                'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+              }"
+            >
+              {{ block.text }}
+            </span>
+            <span
+              v-else
+              class="max-w-full !leading-[18px]"
+              :class="{
+                'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+              }"
+            >
               {{ block.text }}
             </span>
           </template>

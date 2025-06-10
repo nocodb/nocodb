@@ -86,6 +86,8 @@ export const usePlugin = createSharedComposable(() => {
   const availableExtensions = ref<ExtensionManifest[]>([])
   const availableScripts = ref<ScriptManifest[]>([])
 
+  const { appInfo } = useGlobal()
+
   const pluginCollections = {
     [PluginType.extension]: {
       available: availableExtensions,
@@ -98,6 +100,8 @@ export const usePlugin = createSharedComposable(() => {
   }
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const isPluginsEnabled = computed(() => isEeUI)
 
   const availablePlugins = computed<PluginManifest[]>(() => [...availableExtensions.value, ...availableScripts.value])
 
@@ -159,9 +163,19 @@ export const usePlugin = createSharedComposable(() => {
         }
       }
 
-      if (manifest?.disabled !== true && (!manifest?.beta || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))) {
+      if (
+        manifest?.disabled !== true &&
+        // Ensure the plugin is enabled for the current environment
+        (appInfo.value?.isOnPrem || (isEeUI && !manifest?.onPrem)) &&
+        (!manifest?.beta || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))
+      ) {
         // Add to available plugins collection
-        pluginCollections[type].available.value.push(manifest as any)
+        const existingPluginIndex = pluginCollections[type].available.value.findIndex((p) => p.id === manifest.id)
+        if (existingPluginIndex !== -1) {
+          pluginCollections[type].available.value.splice(existingPluginIndex, 1, manifest as any)
+        } else {
+          pluginCollections[type].available.value.push(manifest as any)
+        }
 
         // Handle plugin description markdown
         if (manifest.description && manifest.id) {
@@ -248,9 +262,22 @@ export const usePlugin = createSharedComposable(() => {
     }
   }
 
+  watch(
+    [() => isPluginsEnabled.value, () => appInfo.value?.isOnPrem],
+    async ([newValue]) => {
+      availableExtensions.value = []
+      availableScripts.value = []
+
+      if (!newValue) return
+
+      await loadPlugins()
+    },
+    {
+      immediate: true,
+    },
+  )
   onMounted(async () => {
     watch(
-      () => isFeatureEnabled(FEATURE_FLAG.EXTENSIONS),
       async () => {
         availableExtensions.value = []
         availableScripts.value = []
@@ -291,6 +318,7 @@ export const usePlugin = createSharedComposable(() => {
     availablePlugins,
     availableExtensionIds,
     availableScriptIds,
+    isPluginsEnabled,
 
     // Content getters
     getPluginAssetUrl,

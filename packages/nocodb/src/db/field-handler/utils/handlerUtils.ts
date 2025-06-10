@@ -1,8 +1,21 @@
-import { ncIsNull, ncIsUndefined, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  ncIsNull,
+  ncIsUndefined,
+  parseProp,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
+import type {
+  ConditionParser,
+  FilterOperationResult,
+  FilterOptions,
+} from '~/db/field-handler/field-handler.interface';
 import type { Knex } from 'knex';
-import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
+import type CustomKnex from '~/db/CustomKnex';
 import { Filter, Model } from '~/models';
+import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
 
 export function ncIsStringHasValue(val: string | undefined | null) {
   return val !== '' && !ncIsUndefined(val) && !ncIsNull(val);
@@ -23,7 +36,6 @@ export async function nestedConditionJoin({
   baseModelSqlv2,
   filter,
   lookupColumn,
-  qb,
   knex,
   alias,
   aliasCount,
@@ -33,14 +45,16 @@ export async function nestedConditionJoin({
   baseModelSqlv2: IBaseModelSqlV2;
   filter: Filter;
   lookupColumn: Column;
-  qb: Knex.QueryBuilder;
   knex;
   alias: string;
   aliasCount: { count: number };
   throwErrorIfInvalid: boolean;
-  parseConditionV2;
-}) {
+  parseConditionV2: ConditionParser;
+}): Promise<FilterOperationResult> {
   const context = baseModelSqlv2.context;
+
+  const clauses: ((qb: Knex.QueryBuilder) => void)[] = [];
+  const rootAppliances: ((qb: Knex.QueryBuilder) => void)[] = [];
 
   if (
     lookupColumn.uidt === UITypes.Lookup ||
@@ -81,26 +95,80 @@ export async function nestedConditionJoin({
       switch (relationColOptions.type) {
         case RelationTypes.HAS_MANY:
           {
-            qb.join(
-              knex.raw(`?? as ??`, [
-                childBaseModel.getTnPath(childModel.table_name),
-                relAlias,
-              ]),
-              `${alias}.${parentColumn.column_name}`,
-              `${relAlias}.${childColumn.column_name}`,
-            );
+            const useRecursiveEvaluation = parseProp(
+              lookupColumn.meta,
+            )?.useRecursiveEvaluation;
+            // TODO: [recursive lookup]
+            // eslint-disable-next-line no-constant-condition
+            if (false && useRecursiveEvaluation) {
+              rootAppliances.push(
+                await recursiveCTEFromLookupColumn({
+                  baseModelSqlV2: childBaseModel,
+                  lookupColumn,
+                  tableAlias: relAlias,
+                }),
+              );
+              clauses.push((qb) => {
+                qb.join(
+                  knex(`${relAlias} as ${relAlias}`)
+                    .where(
+                      `${relAlias}.root_id`,
+                      '<>',
+                      baseModelSqlv2.dbDriver.raw('??.??', [relAlias, 'id']),
+                    )
+                    .as(relAlias),
+                  `${relAlias}.root_id`,
+                  `${alias}.${parentColumn.column_name}`,
+                );
+              });
+            } else {
+              clauses.push((qb) => {
+                qb.join(
+                  knex.raw(`?? as ??`, [
+                    childBaseModel.getTnPath(childModel.table_name),
+                    relAlias,
+                  ]),
+                  `${alias}.${parentColumn.column_name}`,
+                  `${relAlias}.${childColumn.column_name}`,
+                );
+              });
+            }
           }
           break;
         case RelationTypes.BELONGS_TO:
           {
-            qb.join(
-              knex.raw(`?? as ??`, [
-                parentBaseModel.getTnPath(parentModel.table_name),
-                relAlias,
-              ]),
-              `${alias}.${childColumn.column_name}`,
-              `${relAlias}.${parentColumn.column_name}`,
-            );
+            const useRecursiveEvaluation = parseProp(
+              lookupColumn.meta,
+            )?.useRecursiveEvaluation;
+            // TODO: [recursive lookup]
+            // eslint-disable-next-line no-constant-condition
+            if (false && useRecursiveEvaluation) {
+              rootAppliances.push(
+                await recursiveCTEFromLookupColumn({
+                  baseModelSqlV2: childBaseModel,
+                  lookupColumn,
+                  tableAlias: relAlias,
+                }),
+              );
+              clauses.push((qb) => {
+                qb.join(
+                  knex.raw(`?? as ??`, [relAlias, relAlias]),
+                  `${alias}.${parentColumn.column_name}`,
+                  `${relAlias}.root_id`,
+                );
+              });
+            } else {
+              clauses.push((qb) => {
+                qb.join(
+                  knex.raw(`?? as ??`, [
+                    parentBaseModel.getTnPath(parentModel.table_name),
+                    relAlias,
+                  ]),
+                  `${alias}.${childColumn.column_name}`,
+                  `${relAlias}.${parentColumn.column_name}`,
+                );
+              });
+            }
           }
           break;
         case 'mm':
@@ -120,112 +188,141 @@ export async function nestedConditionJoin({
 
             const assocAlias = `__nc${aliasCount.count++}`;
 
-            qb.join(
-              knex.raw(`?? as ??`, [
-                mmBaseModel.getTnPath(mmModel.table_name),
-                assocAlias,
-              ]),
-              `${assocAlias}.${mmChildColumn.column_name}`,
-              `${alias}.${childColumn.column_name}`,
-            ).join(
-              knex.raw(`?? as ??`, [
-                parentBaseModel.getTnPath(parentModel.table_name),
-                relAlias,
-              ]),
-              `${relAlias}.${parentColumn.column_name}`,
-              `${assocAlias}.${mmParentColumn.column_name}`,
-            );
+            clauses.push((qb) => {
+              qb.join(
+                knex.raw(`?? as ??`, [
+                  mmBaseModel.getTnPath(mmModel.table_name),
+                  assocAlias,
+                ]),
+                `${assocAlias}.${mmChildColumn.column_name}`,
+                `${alias}.${childColumn.column_name}`,
+              ).join(
+                knex.raw(`?? as ??`, [
+                  parentBaseModel.getTnPath(parentModel.table_name),
+                  relAlias,
+                ]),
+                `${relAlias}.${parentColumn.column_name}`,
+                `${assocAlias}.${mmParentColumn.column_name}`,
+              );
+            });
           }
           break;
       }
     }
 
     if (lookupColumn.uidt === UITypes.Lookup) {
-      await nestedConditionJoin({
+      const filterOperationResult = await nestedConditionJoin({
         baseModelSqlv2,
         filter,
         lookupColumn: await (
           await lookupColumn.getColOptions<LookupColumn>(context)
         ).getLookupColumn(refContext),
-        qb,
         knex,
         alias: relAlias,
         aliasCount,
         throwErrorIfInvalid,
         parseConditionV2,
       });
+      clauses.push(filterOperationResult.clause);
+      rootAppliances.push(filterOperationResult.rootApply);
     } else {
       switch (relationColOptions.type) {
-        case RelationTypes.HAS_MANY:
-          {
-            (
-              await parseConditionV2(
-                childBaseModel,
-                new Filter({
-                  ...filter,
-                  fk_model_id: childModel.id,
-                  fk_column_id: childModel.displayValue?.id,
-                }),
-                aliasCount,
-                relAlias,
-                undefined,
-                throwErrorIfInvalid,
-              )
-            )(qb);
-          }
+        case RelationTypes.HAS_MANY: {
+          const filterOperationResult = await parseConditionV2(
+            childBaseModel,
+            new Filter({
+              ...filter,
+              fk_model_id: childModel.id,
+              fk_column_id: childModel.displayValue?.id,
+            }),
+            aliasCount,
+            relAlias,
+            undefined,
+            throwErrorIfInvalid,
+          );
+          clauses.push(filterOperationResult.clause);
+          rootAppliances.push(filterOperationResult.rootApply);
           break;
-        case RelationTypes.BELONGS_TO:
-          {
-            (
-              await parseConditionV2(
-                parentBaseModel,
-                new Filter({
-                  ...filter,
-                  fk_model_id: parentModel.id,
-                  fk_column_id: parentModel?.displayValue?.id,
-                }),
-                aliasCount,
-                relAlias,
-                undefined,
-                throwErrorIfInvalid,
-              )
-            )(qb);
-          }
+        }
+        case RelationTypes.BELONGS_TO: {
+          const filterOperationResult = await parseConditionV2(
+            parentBaseModel,
+            new Filter({
+              ...filter,
+              fk_model_id: parentModel.id,
+              fk_column_id: parentModel?.displayValue?.id,
+            }),
+            aliasCount,
+            relAlias,
+            undefined,
+            throwErrorIfInvalid,
+          );
+          clauses.push(filterOperationResult.clause);
+          rootAppliances.push(filterOperationResult.rootApply);
           break;
-        case 'mm':
-          {
-            (
-              await parseConditionV2(
-                parentBaseModel,
-                new Filter({
-                  ...filter,
-                  fk_model_id: parentModel.id,
-                  fk_column_id: parentModel.displayValue?.id,
-                }),
-                aliasCount,
-                relAlias,
-                undefined,
-                throwErrorIfInvalid,
-              )
-            )(qb);
-          }
+        }
+        case 'mm': {
+          const filterOperationResult = await parseConditionV2(
+            parentBaseModel,
+            new Filter({
+              ...filter,
+              fk_model_id: parentModel.id,
+              fk_column_id: parentModel.displayValue?.id,
+            }),
+            aliasCount,
+            relAlias,
+            undefined,
+            throwErrorIfInvalid,
+          );
+          clauses.push(filterOperationResult.clause);
+          rootAppliances.push(filterOperationResult.rootApply);
           break;
+        }
       }
     }
   } else {
-    (
-      await parseConditionV2(
-        baseModelSqlv2,
-        new Filter({
-          ...filter,
-          fk_model_id: (await lookupColumn.getModel(context)).id,
-          fk_column_id: lookupColumn?.id,
-        }),
-        aliasCount,
-        alias,
-        undefined,
-        throwErrorIfInvalid,
-      )
-    )(qb);
+    const filterOperationResult = await parseConditionV2(
+      baseModelSqlv2,
+      new Filter({
+        ...filter,
+        fk_model_id: (await lookupColumn.getModel(context)).id,
+        fk_column_id: lookupColumn?.id,
+      }),
+      aliasCount,
+      alias,
+      undefined,
+      throwErrorIfInvalid,
+    );
+    clauses.push(filterOperationResult.clause);
+    rootAppliances.push(filterOperationResult.rootApply);
   }
+  return {
+    clause: (qb) => {
+      for (const each of clauses) {
+        each(qb);
+      }
+    },
+    rootApply: (qb) => {
+      for (const each of rootAppliances) {
+        each?.(qb);
+      }
+    },
+  };
 }
+
+export const unsupportedFilter = async (
+  _args: {
+    sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+    val: any;
+  },
+  rootArgs: {
+    knex: CustomKnex;
+    filter: Filter;
+    column: Column;
+  },
+  _options: FilterOptions,
+) => {
+  throw new Error(
+    `Unsupported comparison operator for ${rootArgs.column.uidt}: ${rootArgs.filter.comparison_op}`,
+  );
+};

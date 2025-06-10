@@ -487,7 +487,16 @@ export const comparisonSubOpList = (
   ]
 }
 
-export const getPlaceholderNewRow = (filters: Filter[], columns: ColumnType[]) => {
+export const getPlaceholderNewRow = (
+  filters: Filter[],
+  columns: ColumnType[],
+  option?: {
+    currentUser?: {
+      email: string
+      id: string
+    }
+  },
+) => {
   if (filters.some((filter) => filter.logical_op === 'or')) {
     return {}
   }
@@ -531,7 +540,12 @@ export const getPlaceholderNewRow = (filters: Filter[], columns: ColumnType[]) =
         } else if ([UITypes.User].includes(column.uidt as UITypes) && ['allof'].includes(eachFilter.comparison_op)) {
           const isMulti = parseProp(column.meta)?.is_multi
           if (isMulti || eachFilter.value?.indexOf?.(',') < 0) {
-            placeholderNewRow[column.title!] = eachFilter.value
+            const assignedValue = eachFilter.value
+              .split(',')
+              .map((k) => (k === '@me' ? option?.currentUser?.id : k))
+              .filter((k) => k)
+              .join(',')
+            placeholderNewRow[column.title!] = assignedValue
           }
         }
       }

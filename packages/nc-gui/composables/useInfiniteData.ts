@@ -914,6 +914,9 @@ export function useInfiniteData(args: {
     const rowFilters = getPlaceholderNewRow(
       [...allFilters.value, ...validFiltersFromUrlParams.value],
       metaValue?.columns as ColumnType[],
+      {
+        currentUser: user.value ?? undefined,
+      },
     )
     const newRow = {
       row: { ...rowDefaultData(metaValue?.columns), ...rowFilters, ...rowOverwrite },
@@ -1115,7 +1118,7 @@ export function useInfiniteData(args: {
       })
 
       if (missingRequiredColumns.size) {
-        return
+        return insertObj
       }
 
       const insertedData = await $api.dbViewRow.create(

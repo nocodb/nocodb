@@ -105,6 +105,7 @@ const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
         v-if="workspaceIcon.icon && workspaceIcon.iconType === IconType.IMAGE"
         :srcs="workspaceIcon.icon"
         class="flex-none !object-contain max-h-full max-w-full !m-0"
+        :is-cell-preview="false"
       />
       <div
         v-else-if="workspaceIcon.icon && workspaceIcon.iconType === IconType.EMOJI"

@@ -60,7 +60,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <NcButton
           v-if="
-            (appInfo.isOnPrem || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
+            (appInfo.isOnPrem || isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
             !isSharedBase &&
             !activeAutomationId &&
             openedViewsTab === 'view' &&
@@ -89,7 +89,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
           </div>
         </NcButton>
 
-        <div v-if="!isSharedBase" class="flex gap-2 items-center">
+        <div v-if="!isSharedBase" class="flex gap-2 items-center empty:hidden">
           <LazySmartsheetTopbarCmdK v-if="!isNewSidebarEnabled" />
           <LazySmartsheetTopbarScriptAction v-if="activeAutomationId && appInfo.ee" />
         </div>

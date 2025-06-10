@@ -1,9 +1,10 @@
 import { ncIsNull, ncIsUndefined } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
+import { NC_MAX_TEXT_LENGTH } from 'src/constants';
 import type { NcContext } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
-import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
+import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
 import type { Column, Filter } from '~/models';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
@@ -16,7 +17,7 @@ export class JsonGeneralHandler extends GenericFieldHandler {
     knex: CustomKnex,
     filter: Filter,
     column: Column,
-    options: HandlerOptions,
+    options: FilterOptions,
   ) {
     const { alias } = options;
     const field = sanitize(
@@ -24,128 +25,131 @@ export class JsonGeneralHandler extends GenericFieldHandler {
     );
     let val = filter.value;
 
-    return (qb: Knex.QueryBuilder) => {
-      const appendIsNull = () => {
-        qb.where((nestedQb) => {
-          nestedQb
-            .whereNull(field)
-            .orWhere(knex.raw("?? = '{}'", [field]))
-            .orWhere(knex.raw("?? = '[]'", [field]));
-        });
-      };
-      const appendIsNotNull = () => {
-        qb.whereNotNull(field)
-          .whereNot(knex.raw("?? = '{}'", [field]))
-          .whereNot(knex.raw("?? = '[]'", [field]));
-      };
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        const appendIsNull = () => {
+          qb.where((nestedQb) => {
+            nestedQb
+              .whereNull(field)
+              .orWhere(knex.raw("?? = '{}'", [field]))
+              .orWhere(knex.raw("?? = '[]'", [field]));
+          });
+        };
+        const appendIsNotNull = () => {
+          qb.whereNotNull(field)
+            .whereNot(knex.raw("?? = '{}'", [field]))
+            .whereNot(knex.raw("?? = '[]'", [field]));
+        };
 
-      switch (filter.comparison_op) {
-        case 'eq':
-          if (!ncIsStringHasValue(val)) {
-            qb.where((nestedQb) => {
-              nestedQb.whereNull(field);
-            });
-          } else {
-            const { jsonVal, isValidJson } = this.parseJsonValue(val);
-            if (isValidJson) {
-              qb.where(knex.raw('?? = ?', [field, jsonVal]));
+        switch (filter.comparison_op) {
+          case 'eq':
+            if (!ncIsStringHasValue(val)) {
+              qb.where((nestedQb) => {
+                nestedQb.whereNull(field);
+              });
             } else {
-              qb.where(knex.raw('?? = ?', [field, jsonVal]));
-            }
-          }
-          break;
-
-        case 'neq':
-        case 'not':
-          if (!ncIsStringHasValue(val)) {
-            qb.where((nestedQb) => {
-              nestedQb.whereNotNull(field);
-            });
-          } else {
-            const { jsonVal, isValidJson } = this.parseJsonValue(val);
-            qb.where((nestedQb) => {
+              const { jsonVal, isValidJson } = this.parseJsonValue(val);
               if (isValidJson) {
-                nestedQb.where(knex.raw('?? != ?', [field, jsonVal]));
+                qb.where(knex.raw('?? = ?', [field, jsonVal]));
               } else {
-                nestedQb.where(knex.raw('?? != ?', [field, jsonVal]));
+                qb.where(knex.raw('?? = ?', [field, jsonVal]));
               }
-              nestedQb.orWhereNull(field);
-            });
-          }
-          break;
+            }
+            break;
 
-        case 'like':
-          val = val ? `%${val}%` : val;
-          if (!val) {
-            qb.whereNotNull(field);
-          } else {
-            qb.where(knex.raw('?? like ?', [field, val]));
-          }
-          break;
-
-        case 'nlike':
-          if (!ncIsStringHasValue(val)) {
-            qb.whereNotNull(field);
-          } else {
-            val = `%${val}%`;
-            qb.where((nestedQb) => {
-              nestedQb.where(knex.raw('?? not like ?', [field, val]));
-              if (val !== '%%') {
-                nestedQb.orWhere(field, '').orWhereNull(field);
-              } else {
+          case 'neq':
+          case 'not':
+            if (!ncIsStringHasValue(val)) {
+              qb.where((nestedQb) => {
+                nestedQb.whereNotNull(field);
+              });
+            } else {
+              const { jsonVal, isValidJson } = this.parseJsonValue(val);
+              qb.where((nestedQb) => {
+                if (isValidJson) {
+                  nestedQb.where(knex.raw('?? != ?', [field, jsonVal]));
+                } else {
+                  nestedQb.where(knex.raw('?? != ?', [field, jsonVal]));
+                }
                 nestedQb.orWhereNull(field);
+              });
+            }
+            break;
+
+          case 'like':
+            val = val ? `%${val}%` : val;
+            if (!val) {
+              qb.whereNotNull(field);
+            } else {
+              qb.where(knex.raw('?? like ?', [field, val]));
+            }
+            break;
+
+          case 'nlike':
+            if (!ncIsStringHasValue(val)) {
+              qb.whereNotNull(field);
+            } else {
+              val = `%${val}%`;
+              qb.where((nestedQb) => {
+                nestedQb.where(knex.raw('?? not like ?', [field, val]));
+                if (val !== '%%') {
+                  nestedQb.orWhere(field, '').orWhereNull(field);
+                } else {
+                  nestedQb.orWhereNull(field);
+                }
+              });
+            }
+            break;
+
+          case 'blank':
+            appendIsNull();
+            break;
+
+          case 'notblank':
+            appendIsNotNull();
+            break;
+
+          case 'is':
+            switch (val) {
+              case 'null':
+              case 'blank':
+              case 'empty': {
+                appendIsNull();
+                break;
               }
-            });
-          }
-          break;
-
-        case 'blank':
-          appendIsNull();
-          break;
-
-        case 'notblank':
-          appendIsNotNull();
-          break;
-
-        case 'is':
-          switch (val) {
-            case 'null':
-            case 'blank':
-            case 'empty': {
-              appendIsNull();
-              break;
+              case 'notnull':
+              case 'notblank':
+              case 'notempty': {
+                appendIsNotNull();
+                break;
+              }
             }
-            case 'notnull':
-            case 'notblank':
-            case 'notempty': {
-              appendIsNotNull();
-              break;
-            }
-          }
-          break;
+            break;
 
-        case 'isnot':
-          switch (val) {
-            case 'null':
-            case 'blank':
-            case 'empty': {
-              appendIsNotNull();
-              break;
+          case 'isnot':
+            switch (val) {
+              case 'null':
+              case 'blank':
+              case 'empty': {
+                appendIsNotNull();
+                break;
+              }
+              case 'notnull':
+              case 'notblank':
+              case 'notempty': {
+                appendIsNull();
+                break;
+              }
             }
-            case 'notnull':
-            case 'notblank':
-            case 'notempty': {
-              appendIsNull();
-              break;
-            }
-          }
-          break;
+            break;
 
-        default:
-          throw new Error(
-            `Unsupported comparison operator for JSON: ${filter.comparison_op}`,
-          );
-      }
+          default:
+            throw new Error(
+              `Unsupported comparison operator for JSON: ${filter.comparison_op}`,
+            );
+        }
+      },
     };
   }
 
@@ -186,6 +190,18 @@ export class JsonGeneralHandler extends GenericFieldHandler {
   }): Promise<{ value: any }> {
     if (ncIsUndefined(params.value) || ncIsNull(params.value)) {
       return { value: params.value };
+    }
+    const length =
+      (typeof params.value === 'string' && params.value.length) ??
+      (typeof params.value === 'object' && JSON.stringify(params.value).length);
+
+    if (length > NC_MAX_TEXT_LENGTH) {
+      NcError._.valueLengthExceedLimit({
+        column: params.column.title,
+        type: params.column.uidt,
+        length,
+        maxLength: NC_MAX_TEXT_LENGTH,
+      });
     }
     const parseJsonResult = this.parseJsonValue(params.value);
     if (parseJsonResult.isValidJson) {

@@ -2887,6 +2887,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       allowSystemColumn = false,
       typecast = false,
       apiVersion,
+      skip_hooks = false,
     }: {
       cookie?: any;
       raw?: boolean;
@@ -2895,6 +2896,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       allowSystemColumn?: boolean;
       typecast?: boolean;
       apiVersion?: NcApiVersion;
+      skip_hooks?: boolean;
     } = {},
   ) {
     let transaction;
@@ -3033,7 +3035,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      if (!raw) {
+      if (!raw && !skip_hooks) {
         if (isSingleRecordUpdation) {
           await this.afterUpdate(
             prevData[0],
@@ -3150,7 +3152,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skipValidationAndHooks?: boolean;
     } = {},
     data,
-    { cookie }: { cookie: NcRequest },
+    { cookie, skip_hooks = false }: { cookie: NcRequest; skip_hooks?: boolean },
   ) {
     try {
       let count = 0;
@@ -3245,7 +3247,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.execAndParse(qb, null, { raw: true });
       }
 
-      if (!args.skipValidationAndHooks)
+      if (!args.skipValidationAndHooks && !skip_hooks)
         await this.afterBulkUpdate(null, count, this.dbDriver, cookie, true);
 
       return count;
@@ -3437,7 +3439,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async bulkDeleteAll(
     args: { where?: string; filterArr?: Filter[]; viewId?: string } = {},
-    { cookie }: { cookie: NcRequest },
+    { cookie, skip_hooks = false }: { cookie: NcRequest; skip_hooks?: boolean },
   ) {
     let trx: Knex.Transaction;
     try {
@@ -3677,7 +3679,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       await trx.commit();
 
-      await this.afterBulkDelete(response, this.dbDriver, cookie, true);
+      if (!skip_hooks) {
+        await this.afterBulkDelete(response, this.dbDriver, cookie, true);
+      }
 
       return response;
     } catch (e) {
@@ -6317,9 +6321,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ): Promise<void> {
     for (const column of this.model.columns) {
       if (
-        this.context.api_version === NcApiVersion.V3 &&
         !ncIsUndefined(data[column.column_name]) &&
-        !ncIsNull(data[column.column_name])
+        !ncIsNull(data[column.column_name]) &&
+        (this.context.api_version === NcApiVersion.V3 ||
+          // partially open the parseUserInput to several UITypes
+          [
+            UITypes.LongText,
+            UITypes.SingleLineText,
+            UITypes.PhoneNumber,
+            UITypes.Email,
+            UITypes.JSON,
+          ].includes(column.uidt as UITypes))
       ) {
         data[column.column_name] = (
           await FieldHandler.fromBaseModel(this).parseUserInput({

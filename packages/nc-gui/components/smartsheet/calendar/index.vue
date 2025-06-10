@@ -43,6 +43,8 @@ const router = useRouter()
 
 const route = useRoute()
 
+const { withLoading } = useLoadingTrigger()
+
 const expandedFormOnRowIdDlg = computed({
   get() {
     return !!route.query.rowId
@@ -111,13 +113,15 @@ reloadViewMetaHook?.on(async () => {
   await loadCalendarMeta()
 })
 
-reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) => {
-  await Promise.all([
-    loadCalendarData(params?.shouldShowLoading ?? false),
-    loadSidebarData(params?.shouldShowLoading ?? false),
-    fetchActiveDates(),
-  ])
-})
+reloadViewDataHook?.on(
+  withLoading(async (params: void | { shouldShowLoading?: boolean }) => {
+    await Promise.all([
+      loadCalendarData(params?.shouldShowLoading ?? false),
+      loadSidebarData(params?.shouldShowLoading ?? false),
+      fetchActiveDates(),
+    ])
+  }),
+)
 </script>
 
 <template>

@@ -159,6 +159,8 @@ const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
 const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
 
+const { withLoading } = useLoadingTrigger()
+
 const { showRecordPlanLimitExceededModal, navigateToPricing } = useEeConfig()
 
 // Props to Refs
@@ -279,6 +281,7 @@ const {
   selection,
   makeCellEditable,
   findClickedColumn,
+  findColumnPosition,
   elementMap,
   // MouseSelectionHandler
   onMouseMoveSelectionHandler,
@@ -873,6 +876,20 @@ const handleRowMetaClick = ({
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
+const handleUnlockView = () => {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgLockView'), {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
 // check exact row meta region hovered and return the cursor type
 const getRowMetaCursor = ({ row, x, group }: { row: Row; x: number; group?: CanvasGroup }): CSSProperties['cursor'] => {
   const { regions } = extractHoverMetaColRegions(row, group)
@@ -1219,6 +1236,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       // If user is clicking on an existing column
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
       const isFieldNotEditable = !isUIAllowed('fieldEdit')
+
       if (clickedColumn) {
         if (clickType === MouseClickType.RIGHT_CLICK) {
           if (isFieldNotEditable) return
@@ -1269,7 +1287,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
             // open the edit column modal as the intention is to resize the column
             if (activeCursor.value === 'col-resize') return
 
-            handleEditColumn(e, false, clickedColumn.columnObj)
+            handleEditColumn(e, false, clickedColumn.columnObj, xOffset)
 
             selection.value.startRange({ row: NaN, col: NaN })
             selection.value.endRange({ row: NaN, col: NaN })
@@ -1303,7 +1321,11 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   }
 
   // If the user is clicking on the Aggregation in bottom
-  if (y > height.value - 36 && !isLocked.value) {
+  if (y > height.value - 36) {
+    if (isLocked.value && isUIAllowed('fieldAdd')) {
+      handleUnlockView()
+      return
+    }
     // If the click is not normal single click, return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
 
@@ -1883,7 +1905,7 @@ const handleMouseLeave = () => {
   hideTooltip()
 }
 
-const reloadViewDataHookHandler = async (params) => {
+const reloadViewDataHookHandler = withLoading(async (params) => {
   if (isGroupBy.value) {
     if (params?.path?.length) {
       clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, params?.path)
@@ -1910,7 +1932,7 @@ const reloadViewDataHookHandler = async (params) => {
   calculateSlices()
 
   requestAnimationFrame(triggerRefreshCanvas)
-}
+})
 
 let rafId: number | null = null
 let scrollTimeout: number | null = null
@@ -1996,6 +2018,7 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
   openColumnDropdownField.value = null
   if (!isAddingColumnAllowed.value) return
   $e('c:shortcut', { key: 'ALT + C' })
+
   if (renderAtCurrentPosition) {
     isDropdownVisible.value = true
     isCreateOrEditColumnDropdownOpen.value = true
@@ -2011,7 +2034,7 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
 
     overlayStyle.value = {
       top: `${rect.top}px`,
-      right: '256px',
+      right: `${256 - ADD_NEW_COLUMN_WIDTH}px`,
       width: `${ADD_NEW_COLUMN_WIDTH}px`,
       height: '32px',
       position: 'fixed',
@@ -2024,7 +2047,7 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
   }
 }
 
-function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnType) {
+function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnType, clickedXOffset?: number) {
   if (
     isUIAllowed('fieldEdit') &&
     !isMobileMode.value &&
@@ -2036,15 +2059,14 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
       isEditColumnDescription.value = true
     }
 
-    const colIndex = columns.value.findIndex((col) => col.id === column.id)
-    let xOffset = 0
-    for (let i = colSlice.value.start; i < colIndex; i++) {
-      xOffset += parseCellWidth(columns.value[i]?.width)
-    }
+    if (!column?.id) return
+
+    const { column: col, xOffset } = findColumnPosition(column.id, scrollLeft.value)
+
     overlayStyle.value = {
       top: `${rect.top}px`,
-      left: `${rect.left + xOffset}px`,
-      width: columns.value[colIndex]!.width,
+      left: `${rect.left + (clickedXOffset ?? xOffset)}px`,
+      width: col?.width ?? '180px',
       height: `32px`,
       position: 'fixed',
     }
@@ -2561,7 +2583,7 @@ defineExpose({
         :trigger="['click']"
         :visible="
           isDropdownVisible &&
-          (openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField || openAddNewRowDropdown)
+          !!(openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField || openAddNewRowDropdown)
         "
         :overlay-class-name="`!bg-transparent !min-w-[220px] ${
           !openAggregationField && !openColumnDropdownField && !openAddNewRowDropdown ? '!border-none !shadow-none' : ''

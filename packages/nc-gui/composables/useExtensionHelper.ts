@@ -1,4 +1,4 @@
-import type { ColumnType, ViewType } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
 import type { ExtensionManifest, ExtensionType } from '#imports'
 
 const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
@@ -131,12 +131,11 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
     const upsertData = async (params: {
       tableId: string
-      data: Record<string, any>[]
-      upsertField: ColumnType
-      importType: 'insert' | 'update' | 'insertAndUpdate'
       autoInsertOption?: boolean
+      insert: Record<string, any>[]
+      update: Record<string, any>[]
     }) => {
-      const { tableId, data, upsertField } = params
+      const { tableId, insert, update } = params
 
       const chunkSize = 100
 
@@ -144,56 +143,8 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
       if (!tableMeta?.columns) throw new Error('Table not found')
 
-      const chunks = []
-
-      for (let i = 0; i < data.length; i += chunkSize) {
-        chunks.push(data.slice(i, i + chunkSize))
-      }
-
-      const insert = []
-      const update = []
-
       let insertCounter = 0
       let updateCounter = 0
-
-      for (const chunk of chunks) {
-        // select chunk of data to determine if it's an insert or update
-        const { list } = await $api.dbDataTableRow.list(tableId, {
-          where: `(${upsertField.title},in,${chunk.map((record: Record<string, any>) => record[upsertField.title!]).join(',')})`,
-          limit: chunkSize,
-        })
-
-        if (params.importType !== 'update') {
-          insert.push(
-            ...chunk.filter(
-              (record: Record<string, any>) =>
-                !list.some((r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`),
-            ),
-          )
-        }
-
-        if (params.importType !== 'insert') {
-          update.push(
-            ...chunk
-              .filter((record: Record<string, any>) =>
-                list.some((r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`),
-              )
-              .map((record: Record<string, any>) => {
-                const existingRecord = list.find(
-                  (r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`,
-                )
-
-                // return record without upsert field
-                const { [upsertField.title!]: _, ...rest } = record
-
-                return {
-                  ...rowPkData(existingRecord!, tableMeta.columns!),
-                  ...rest,
-                }
-              }),
-          )
-        }
-      }
 
       if (insert.length) {
         insertCounter += insert.length

@@ -12,8 +12,8 @@ import { getPathFromUrl, isPreviewAllowed } from '~/helpers/attachmentHelpers';
 import { parseMetaProp } from '~/utils/modelUtils';
 
 function roundExpiry(date) {
-  const msInHour = 10 * 60 * 1000;
-  return new Date(Math.ceil(date.getTime() / msInHour) * msInHour);
+  const msInTenMinutes = 10 * 60 * 1000;
+  return new Date(Math.ceil(date.getTime() / msInTenMinutes) * msInTenMinutes);
 }
 const logger = new Logger('Presigned URL');
 
@@ -135,7 +135,9 @@ export default class PresignedUrl {
 
     const pathParameters: {
       [key: string]: string;
-    } = {};
+    } = {
+      expireAt: expireAt.toISOString(),
+    };
 
     if (preview) {
       pathParameters.ResponseContentDisposition = `inline;`;

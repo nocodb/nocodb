@@ -201,7 +201,17 @@ export function useFillHandler({
       const rowObj = (unref(cachedRows) as Map<number, Row>).get(rowIndex)
       if (rowObj) {
         for (const [colIndex, cpCol] of cpCols.entries()) {
-          rowObj.row[cpCol.title] = fillValuesByCols[colIndex!]![incrementIndex]
+          const pasteValue = convertCellData(
+            {
+              value: fillValuesByCols[colIndex!]![incrementIndex],
+              to: cpCol.uidt as UITypes,
+              column: cpCol,
+              appInfo: unref(appInfo),
+            },
+            isMysql(meta.value?.source_id),
+            true,
+          )
+          rowObj.row[cpCol.title] = pasteValue
         }
         rowsToPaste.push(rowObj)
       }
@@ -247,14 +257,14 @@ export function useFillHandler({
           const startRangeLeftMost = Math.min(
             fillStartRange.value.start.col,
             fillStartRange.value.end.col,
-            selection.value._start.row,
-            selection.value._end.row,
+            selection.value._start.col,
+            selection.value._end.col,
           )
           const startRangeRightMost = Math.max(
             fillStartRange.value.start.col,
             fillStartRange.value.end.col,
-            selection.value._start.row,
-            selection.value._end.row,
+            selection.value._start.col,
+            selection.value._end.col,
           )
           // Determine the actual start and end rows for the fill operation
           if (fillStartRange.value) {

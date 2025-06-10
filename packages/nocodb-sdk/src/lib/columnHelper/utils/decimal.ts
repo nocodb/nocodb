@@ -35,3 +35,16 @@ export const composeNewDecimalValue = (props: {
     ].join('')
   );
 };
+
+export const floatAddDumb = (a: number, b: number) => {
+  return Math.round(a * 100 + b * 100) / 100;
+};
+export const floatSubDumb = (a: number, b: number) => {
+  return Math.round(a * 100 - b * 100) / 100;
+};
+export const floatMultDumb = (a: number, b: number) => {
+  return Math.round(a * b * 100) / 100;
+};
+export const floatDivDumb = (a: number, b: number) => {
+  return Math.round((a / b) * 100) / 100;
+};

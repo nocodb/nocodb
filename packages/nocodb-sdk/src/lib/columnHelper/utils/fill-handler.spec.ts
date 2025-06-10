@@ -5,6 +5,15 @@ import {
 
 describe('fill-handler.utils', () => {
   describe('populateFillHandleStringNumber', () => {
+    it('will populate single number value', () => {
+      const data = [33];
+      const result = populateFillHandleStringNumber({
+        highlightedData: data,
+        column: {} as any,
+        numberOfRows: 3,
+      });
+      expect(result).toEqual(['33', '33']);
+    });
     it('will populate number value', () => {
       const data = ['2', '4', '6', 8];
       const result = populateFillHandleStringNumber({
@@ -76,7 +85,7 @@ describe('fill-handler.utils', () => {
         null,
       ]);
     });
-    it.only('will populate descending combined string value', () => {
+    it('will populate descending combined string value', () => {
       const data = ['1A4', '4', '3', '1A3', '2', 1, '1A2'];
       const result = populateFillHandleStringNumber({
         highlightedData: data,
@@ -93,6 +102,27 @@ describe('fill-handler.utils', () => {
         '1A1',
         '1A2',
         '4',
+      ]);
+    });
+    it('will populate decimal value', () => {
+      const data = ['33.11', '33.12', '33.13'];
+      const result = populateFillHandleStringNumber({
+        highlightedData: data,
+        column: {} as any,
+        numberOfRows: 14,
+      });
+      expect(result).toEqual([
+        '33.14',
+        '33.15',
+        '33.16',
+        '33.17',
+        '33.18',
+        '33.19',
+        '33.2',
+        '33.21',
+        '33.22',
+        '33.23',
+        '33.24',
       ]);
     });
   });

@@ -815,7 +815,7 @@ export class ColumnsService implements IColumnsService {
       );
 
       if (colBody.colOptions?.options) {
-        const supportedDrivers = ['mysql', 'mysql2', 'pg', 'mssql', 'sqlite3'];
+        const supportedDrivers = ['mysql', 'mysql2', 'pg', 'sqlite3'];
         const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
           NcConnectionMgrv2.get(source),
         );
@@ -856,17 +856,6 @@ export class ColumnsService implements IColumnsService {
               column.column_name,
               column.column_name,
             ]);
-          } else if (driverType === 'mssql') {
-            await sqlClient.raw(
-              `UPDATE ?? SET ?? = LEFT(cast(?? as varchar(max)), CHARINDEX(',', ??) - 1) WHERE CHARINDEX(',', ??) > 0;`,
-              [
-                baseModel.getTnPath(table.table_name),
-                column.column_name,
-                column.column_name,
-                column.column_name,
-                column.column_name,
-              ],
-            );
           } else if (driverType === 'sqlite3') {
             await sqlClient.raw(
               `UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`,
@@ -1077,23 +1066,14 @@ export class ColumnsService implements IColumnsService {
               );
             }
             if (column.uidt === UITypes.SingleSelect) {
-              if (driverType === 'mssql') {
-                await sqlClient.raw(`UPDATE ?? SET ?? = NULL WHERE ?? LIKE ?`, [
-                  baseModel.getTnPath(table.table_name),
-                  column.column_name,
-                  column.column_name,
-                  option.title,
-                ]);
-              } else {
-                await baseModel.bulkUpdateAll(
-                  {
-                    where: `(${column.title},eq,${option.title})`,
-                    skipValidationAndHooks: true,
-                  },
-                  { [column.column_name]: null },
-                  { cookie: req },
-                );
-              }
+              await baseModel.bulkUpdateAll(
+                {
+                  where: `(${column.title},eq,${option.title})`,
+                  skipValidationAndHooks: true,
+                },
+                { [column.column_name]: null },
+                { cookie: req },
+              );
             } else if (column.uidt === UITypes.MultiSelect) {
               if (driverType === 'mysql' || driverType === 'mysql2') {
                 if (colBody.dt === 'set') {
@@ -1125,18 +1105,6 @@ export class ColumnsService implements IColumnsService {
                   [
                     baseModel.getTnPath(table.table_name),
                     column.column_name,
-                    column.column_name,
-                    option.title,
-                  ],
-                );
-              } else if (driverType === 'mssql') {
-                await sqlClient.raw(
-                  `UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), ','), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), ',')) - 2)`,
-                  [
-                    baseModel.getTnPath(table.table_name),
-                    column.column_name,
-                    column.column_name,
-                    option.title,
                     column.column_name,
                     option.title,
                   ],
@@ -1250,24 +1218,14 @@ export class ColumnsService implements IColumnsService {
             }
 
             if (column.uidt === UITypes.SingleSelect) {
-              if (driverType === 'mssql') {
-                await sqlClient.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [
-                  baseModel.getTnPath(table.table_name),
-                  column.column_name,
-                  newOp.title,
-                  column.column_name,
-                  option.title,
-                ]);
-              } else {
-                await baseModel.bulkUpdateAll(
-                  {
-                    where: `(${column.title},eq,${option.title})`,
-                    skipValidationAndHooks: true,
-                  },
-                  { [column.column_name]: newOp.title },
-                  { cookie: req },
-                );
-              }
+              await baseModel.bulkUpdateAll(
+                {
+                  where: `(${column.title},eq,${option.title})`,
+                  skipValidationAndHooks: true,
+                },
+                { [column.column_name]: newOp.title },
+                { cookie: req },
+              );
             } else if (column.uidt === UITypes.MultiSelect) {
               if (driverType === 'mysql' || driverType === 'mysql2') {
                 if (colBody.dt === 'set') {
@@ -1306,20 +1264,6 @@ export class ColumnsService implements IColumnsService {
                     newOp.title,
                   ],
                 );
-              } else if (driverType === 'mssql') {
-                await sqlClient.raw(
-                  `UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`,
-                  [
-                    baseModel.getTnPath(table.table_name),
-                    column.column_name,
-                    column.column_name,
-                    option.title,
-                    newOp.title,
-                    column.column_name,
-                    option.title,
-                    newOp.title,
-                  ],
-                );
               } else if (driverType === 'sqlite3') {
                 await sqlClient.raw(
                   `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
@@ -1340,24 +1284,14 @@ export class ColumnsService implements IColumnsService {
         for (const ch of interchange) {
           const newOp = ch.def_option;
           if (column.uidt === UITypes.SingleSelect) {
-            if (driverType === 'mssql') {
-              await sqlClient.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [
-                baseModel.getTnPath(table.table_name),
-                column.column_name,
-                newOp.title,
-                column.column_name,
-                ch.temp_title,
-              ]);
-            } else {
-              await baseModel.bulkUpdateAll(
-                {
-                  where: `(${column.title},eq,${ch.temp_title})`,
-                  skipValidationAndHooks: true,
-                },
-                { [column.column_name]: newOp.title },
-                { cookie: req },
-              );
-            }
+            await baseModel.bulkUpdateAll(
+              {
+                where: `(${column.title},eq,${ch.temp_title})`,
+                skipValidationAndHooks: true,
+              },
+              { [column.column_name]: newOp.title },
+              { cookie: req },
+            );
           } else if (column.uidt === UITypes.MultiSelect) {
             if (driverType === 'mysql' || driverType === 'mysql2') {
               if (colBody.dt === 'set') {
@@ -1398,20 +1332,6 @@ export class ColumnsService implements IColumnsService {
                   newOp.title,
                 ],
               );
-            } else if (driverType === 'mssql') {
-              await sqlClient.raw(
-                `UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`,
-                [
-                  baseModel.getTnPath(table.table_name),
-                  column.column_name,
-                  column.column_name,
-                  ch.temp_title,
-                  newOp.title,
-                  column.column_name,
-                  ch.temp_title,
-                  newOp.title,
-                ],
-              );
             } else if (driverType === 'sqlite3') {
               await sqlClient.raw(
                 `UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`,
@@ -1432,33 +1352,18 @@ export class ColumnsService implements IColumnsService {
           column.uidt === UITypes.SingleLineText &&
           colBody.uidt === UITypes.SingleSelect
         ) {
-          if (driverType === 'mssql') {
-            await sqlClient.raw(
-              `UPDATE ??
-               SET ?? = LTRIM(RTRIM(??))
-               WHERE ?? <> LTRIM(RTRIM(??))`,
-              [
-                baseModel.getTnPath(table.table_name),
-                column.column_name,
-                column.column_name,
-                column.column_name,
-                column.column_name,
-              ],
-            );
-          } else {
-            await sqlClient.raw(
-              `UPDATE ??
+          await sqlClient.raw(
+            `UPDATE ??
                SET ?? = TRIM(??)
                WHERE ?? <> TRIM(??)`,
-              [
-                baseModel.getTnPath(table.table_name),
-                column.column_name,
-                column.column_name,
-                column.column_name,
-                column.column_name,
-              ],
-            );
-          }
+            [
+              baseModel.getTnPath(table.table_name),
+              column.column_name,
+              column.column_name,
+              column.column_name,
+              column.column_name,
+            ],
+          );
         }
 
         // Update value in filters that reference this column
@@ -1597,17 +1502,6 @@ export class ColumnsService implements IColumnsService {
               column.column_name,
               column.column_name,
             ]);
-          } else if (driverType === 'mssql') {
-            await sqlClient.raw(
-              `UPDATE ?? SET ?? = LEFT(cast(?? as varchar(max)), CHARINDEX(',', ??) - 1) WHERE CHARINDEX(',', ??) > 0;`,
-              [
-                baseModel.getTnPath(table.table_name),
-                column.column_name,
-                column.column_name,
-                column.column_name,
-                column.column_name,
-              ],
-            );
           } else if (driverType === 'sqlite3') {
             await sqlClient.raw(
               `UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`,
@@ -1693,8 +1587,6 @@ export class ColumnsService implements IColumnsService {
             trimColumn = `TRIM(BOTH ' ' FROM ??)`;
           } else if (driverType === 'pg') {
             trimColumn = `BTRIM(??)`;
-          } else if (driverType === 'mssql') {
-            trimColumn = `LTRIM(RTRIM(??))`;
           } else if (driverType === 'sqlite3') {
             trimColumn = `TRIM(??)`;
           }

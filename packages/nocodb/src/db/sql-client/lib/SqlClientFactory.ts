@@ -1,7 +1,6 @@
 import fs from 'fs';
 import { promisify } from 'util';
 import MySqlClient from '~/db/sql-client/lib/mysql/MysqlClient';
-import MssqlClient from '~/db/sql-client/lib/mssql/MssqlClient';
 import OracleClient from '~/db/sql-client/lib/oracle/OracleClient';
 import SqliteClient from '~/db/sql-client/lib/sqlite/SqliteClient';
 import PgClient from '~/db/sql-client/lib/pg/PgClient';
@@ -25,8 +24,6 @@ export class SqlClientFactory {
       return new MySqlClient(connectionConfig);
     } else if (connectionConfig.client === 'sqlite3') {
       return new SqliteClient(connectionConfig);
-    } else if (connectionConfig.client === 'mssql') {
-      return new MssqlClient(connectionConfig);
     } else if (connectionConfig.client === 'oracledb') {
       return new OracleClient(connectionConfig);
     } else if (connectionConfig.client === 'pg') {

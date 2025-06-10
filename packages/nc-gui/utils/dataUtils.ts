@@ -255,7 +255,7 @@ export const getYearValue = (modelValue: string | null) => {
 }
 
 export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCellValueProps['params']) => {
-  const { col, isMssql, isXcdbBase } = params
+  const { col, isXcdbBase } = params
 
   if (!modelValue || !dayjs(modelValue).isValid()) {
     return ''
@@ -275,12 +275,7 @@ export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCe
     return timezonize(dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue))?.format(dateTimeFormat) + displayTimezone
   }
 
-  if (isMssql(col.source_id)) {
-    // e.g. 2023-04-29T11:41:53.000Z
-    return timezonize(dayjs(modelValue, dateTimeFormat))?.format(dateTimeFormat) + displayTimezone
-  } else {
-    return timezonize(dayjs(modelValue))?.format(dateTimeFormat) + displayTimezone
-  }
+  return timezonize(dayjs(modelValue))?.format(dateTimeFormat) + displayTimezone
 }
 
 export const getTimeValue = (modelValue: string | null, col: ColumnType) => {

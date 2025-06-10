@@ -70,10 +70,6 @@ export const clientTypes = [
     value: ClientType.MYSQL,
   },
   {
-    text: 'MSSQL',
-    value: ClientType.MSSQL,
-  },
-  {
     text: 'PostgreSQL',
     value: ClientType.PG,
   },
@@ -129,13 +125,6 @@ const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection }
     port: '15306',
     user: 'root',
     password: 'password',
-    database: '_test',
-  },
-  [ClientType.MSSQL]: {
-    host: defaultHost,
-    port: 1433,
-    user: 'sa',
-    password: 'Password123.',
     database: '_test',
   },
   [ClientType.SQLITE]: {
@@ -209,11 +198,7 @@ export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateFor
   return {
     client,
     connection: sampleConnectionData[client],
-    searchPath: [ClientType.PG, ClientType.MSSQL].includes(client)
-      ? client === ClientType.PG
-        ? ['public']
-        : ['dbo']
-      : undefined,
+    searchPath: [ClientType.PG].includes(client) ? (client === ClientType.PG ? ['public'] : ['dbo']) : undefined,
   }
 }
 

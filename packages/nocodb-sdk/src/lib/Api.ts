@@ -1490,7 +1490,6 @@ export interface SourceType {
    * @example mysql2
    */
   type?:
-    | 'mssql'
     | 'mysql'
     | 'mysql2'
     | 'oracledb'
@@ -1580,7 +1579,6 @@ export interface BaseReqType {
   is_data_readonly?: BoolType;
   /** DB Type */
   type?:
-    | 'mssql'
     | 'mysql'
     | 'mysql2'
     | 'oracledb'
@@ -12132,7 +12130,6 @@ export class Api<
          * @example mysql2
          */
         client?:
-          | 'mssql'
           | 'mysql'
           | 'mysql2'
           | 'oracledb'
@@ -12182,7 +12179,7 @@ export class Api<
    * DB Type
    * @example mysql2
    *\
-  client?: "mssql" | "mysql" | "mysql2" | "oracledb" | "pg" | "snowflake" | "sqlite3" | "databricks",
+  client?: "mysql" | "mysql2" | "oracledb" | "pg" | "snowflake" | "sqlite3" | "databricks",
   \** Connection Config *\
   connection?: {
   \** DB User *\
@@ -12222,7 +12219,6 @@ export class Api<
            * @example mysql2
            */
           client?:
-            | 'mssql'
             | 'mysql'
             | 'mysql2'
             | 'oracledb'

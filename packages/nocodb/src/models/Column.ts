@@ -1835,8 +1835,6 @@ export default class Column<T = any> implements ColumnType {
       fieldLengthLimit = 64;
     } else if (sqlClientType === 'pg') {
       fieldLengthLimit = 59;
-    } else if (sqlClientType === 'mssql') {
-      fieldLengthLimit = 128;
     }
     return fieldLengthLimit;
   }

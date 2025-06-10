@@ -2,7 +2,6 @@ import type { TAliasToColumn } from './formulav2/formula-query-builder.types';
 import type { XKnex } from '~/db/CustomKnex';
 import type { Knex } from 'knex';
 import type { Model } from '~/models';
-import mssql from '~/db/functionMappings/mssql';
 import mysql from '~/db/functionMappings/mysql';
 import pg from '~/db/functionMappings/pg';
 import sqlite from '~/db/functionMappings/sqlite';
@@ -30,9 +29,6 @@ const mapFunctionName = async (args: MapFnArgs): Promise<any> => {
     case 'pg':
     case 'postgre':
       val = pg[name] || name;
-      break;
-    case 'mssql':
-      val = mssql[name] || name;
       break;
     case 'sqlite':
     case 'sqlite3':

@@ -47,7 +47,6 @@ import { CheckboxSqliteHandler } from '~/db/field-handler/handlers/checkbox/chec
 import { LongTextGeneralHandler } from '~/db/field-handler/handlers/long-text/long-text.general.handler';
 import { SingleLineTextGeneralHandler } from '~/db/field-handler/handlers/single-line-text/single-line-text.general.handler';
 import { ComputedFieldHandler } from '~/db/field-handler/handlers/computed';
-import { DateTimeMsSQLHandler } from '~/db/field-handler/handlers/date-time/date-time.mssql.handler';
 import { DateTimeSQLiteHandler } from '~/db/field-handler/handlers/date-time/date-time.sqlite.handler';
 import { DateTimeMySQLHandler } from '~/db/field-handler/handlers/date-time/date-time.mysql.handler';
 import { DateTimePGHandler } from '~/db/field-handler/handlers/date-time/date-time.pg.handler';
@@ -168,7 +167,6 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.PG]: DateTimePGHandler,
     [ClientType.MYSQL]: DateTimeMySQLHandler,
     [ClientType.SQLITE]: DateTimeSQLiteHandler,
-    [ClientType.MSSQL]: DateTimeMsSQLHandler,
   },
   [UITypes.CreatedTime]: {
     [CLIENT_DEFAULT]: ComputedFieldHandler,

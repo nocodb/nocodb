@@ -14,9 +14,7 @@ export default class NcHelp {
   ): Promise<any> {
     const queue = new PQueue({
       concurrency:
-        dbType === 'oracledb' || dbType === 'mssql'
-          ? 1
-          : NC_EXECUTE_OPERATIONS_CONCURRENCY,
+        dbType === 'oracledb' ? 1 : NC_EXECUTE_OPERATIONS_CONCURRENCY,
     });
 
     const errors = [];

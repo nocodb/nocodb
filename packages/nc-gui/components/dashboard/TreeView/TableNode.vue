@@ -28,7 +28,7 @@ const { isMobileMode } = useGlobal()
 
 const { $e, $api } = useNuxtApp()
 
-const { isMysql, isMssql, isPg } = useBase()
+const { isMysql, isPg } = useBase()
 
 useTableNew({
   baseId: base.value.id!,
@@ -97,8 +97,6 @@ const validators = computed(() => {
               tableNameLengthLimit = 64
             } else if (isPg(source.value?.id)) {
               tableNameLengthLimit = 63
-            } else if (isMssql(source.value?.id)) {
-              tableNameLengthLimit = 128
             }
             const basePrefix = base?.value?.prefix || ''
             if ((basePrefix + value).length > tableNameLengthLimit) {
@@ -243,11 +241,6 @@ const duplicateTable = (table: SidebarTableNode) => {
   if (showRecordPlanLimitExceededModal()) return
 
   _duplicateTable(table)
-}
-
-const onSyncOptions = () => {
-  isOptionsOpen.value = false
-  isSyncModalOpen.value = true
 }
 
 const focusInput = () => {

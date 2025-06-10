@@ -92,10 +92,7 @@ export default class NcUpgrader {
       } else {
         this.log(`upgrade : Inserting config to meta database`);
         const configObj: any = {};
-        const isOld =
-          process.env.NC_CLOUD !== 'true' &&
-          (await ctx.ncMeta.baseList())?.length;
-        configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
+        configObj.version = process.env.NC_VERSION;
         await ctx.ncMeta.metaInsert2(
           RootScopes.ROOT,
           RootScopes.ROOT,
@@ -106,9 +103,6 @@ export default class NcUpgrader {
           },
           true,
         );
-        if (isOld) {
-          await this.upgrade(ctx);
-        }
       }
       await ctx.ncMeta.commit();
       T.emit('evt', {

@@ -444,6 +444,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       rest?.sort,
       aliasColObjMap,
       throwErrorIfInvalidParams,
+      args?.apiVersion,
     );
     const { filters: filterObj } = extractFilterFromXwhere(
       this.context,

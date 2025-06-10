@@ -13,7 +13,7 @@ export interface DataRecordId {
   id: string | number;
 }
 
-export interface DataRecordWithDeleted extends DataRecord {
+export interface DataRecordWithDeleted extends DataRecordId {
   deleted: boolean;
 }
 
@@ -69,7 +69,8 @@ export interface DataDeleteParams {
   modelId: string;
   viewId?: string;
   cookie: any;
-  body: DataDeleteRequest | DataDeleteRequest[];
+  body?: DataDeleteRequest | DataDeleteRequest[];
+  queryRecords?: string | string[];
 }
 
 export interface NestedDataListParams {

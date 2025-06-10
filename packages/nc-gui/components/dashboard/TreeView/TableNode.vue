@@ -243,11 +243,6 @@ const duplicateTable = (table: SidebarTableNode) => {
   _duplicateTable(table)
 }
 
-const onSyncOptions = () => {
-  isOptionsOpen.value = false
-  isSyncModalOpen.value = true
-}
-
 const focusInput = () => {
   setTimeout(() => {
     input.value?.focus()

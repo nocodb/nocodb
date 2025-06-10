@@ -112,8 +112,7 @@ const validators = computed(() => {
       : {
           'dataSource.connection.database':
             selectedIntegration.value && getDataSourceValue('database') ? [] : [fieldRequiredValidator()],
-          ...([ClientType.PG].includes(formState.value.dataSource.client) &&
-          formState.value.dataSource.searchPath
+          ...([ClientType.PG].includes(formState.value.dataSource.client) && formState.value.dataSource.searchPath
             ? {
                 'dataSource.searchPath.0':
                   selectedIntegration.value && getDataSourceValue('schema') ? [] : [fieldRequiredValidator()],

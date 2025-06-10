@@ -49,6 +49,8 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 const { metaColumnById } = useViewColumnsOrThrow(view, meta)
 
+const { isSyncedTable } = useSmartsheetStoreOrThrow()
+
 const {
   loadKanbanData,
   loadMoreKanbanData,
@@ -92,7 +94,9 @@ provide(IsGridInj, ref(false))
 
 provide(IsKanbanInj, ref(true))
 
-const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
+const hasEditPermission = computed(
+  () => isUIAllowed('dataEdit') && (!isSyncedTable.value || !groupingFieldColumn.value?.readonly),
+)
 
 const fields = inject(FieldsInj, ref([]))
 
@@ -665,7 +669,7 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                           <template #overlay>
                             <NcMenu variant="small">
                               <NcMenuItem
-                                v-if="hasEditPermission && !isPublic"
+                                v-if="hasEditPermission && !isPublic && !isSyncedTable"
                                 v-e="['c:kanban:add-new-record']"
                                 data-testid="nc-kanban-context-menu-add-new-record"
                                 @click="
@@ -952,7 +956,7 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                                 </span>
                               </div>
                               <NcButton
-                                v-if="isUIAllowed('dataInsert')"
+                                v-if="isUIAllowed('dataInsert') && !isSyncedTable"
                                 size="xs"
                                 type="secondary"
                                 @click="
@@ -976,7 +980,7 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                     <a-layout-footer v-if="formattedData.get(stack.title)" class="border-t-1 border-gray-100">
                       <div class="flex items-center justify-between">
                         <NcButton
-                          v-if="isUIAllowed('dataInsert')"
+                          v-if="isUIAllowed('dataInsert') && !isSyncedTable"
                           size="xs"
                           type="secondary"
                           @click="

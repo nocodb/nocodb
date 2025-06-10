@@ -43,6 +43,8 @@ const {
   timezoneDayjs,
 } = useCalendarViewStoreOrThrow()
 
+const { isSyncedTable } = useSmartsheetStoreOrThrow()
+
 const sideBarListRef = ref<VNodeRef | null>(null)
 
 const pushToArray = (arr: Array<Row>, record: Row, range) => {
@@ -458,7 +460,7 @@ const selectOption = (option) => {
         <div class="flex-1" />
 
         <NcButton
-          v-if="isUIAllowed('dataEdit') && props.visible"
+          v-if="isUIAllowed('dataEdit') && props.visible && !isSyncedTable"
           v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
           data-testid="nc-calendar-side-menu-new-btn"
           class="!h-7 !rounded-md"

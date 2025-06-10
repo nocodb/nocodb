@@ -87,6 +87,8 @@ const {
   checkFieldVisibility,
 } = useProvideFormViewStore(meta, view, formViewData, updateFormView, isEditable)
 
+const { isSyncedTable } = useSmartsheetStoreOrThrow()
+
 const { preFillFormSearchParams } = storeToRefs(useViewsStore())
 
 const reloadEventHook = inject(ReloadViewDataHookInj, createEventHook())
@@ -1428,7 +1430,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                         <NcButton
                           type="secondary"
                           size="small"
-                          :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length"
+                          :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length || isSyncedTable"
                           class="nc-form-clear nc-form-focus-element"
                           data-testid="nc-form-clear"
                           data-title="nc-form-clear"
@@ -1440,7 +1442,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                         <NcButton
                           type="primary"
                           size="small"
-                          :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length || blockAddNewRecord"
+                          :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length || blockAddNewRecord || isSyncedTable"
                           :loading="isFormSubmitting"
                           class="nc-form-submit nc-form-focus-element"
                           data-testid="nc-form-submit"

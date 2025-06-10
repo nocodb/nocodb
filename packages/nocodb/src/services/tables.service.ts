@@ -174,8 +174,6 @@ export class TablesService {
       tableNameLengthLimit = 64;
     } else if (sqlClientType === 'pg') {
       tableNameLengthLimit = 63;
-    } else if (sqlClientType === 'mssql') {
-      tableNameLengthLimit = 128;
     }
 
     if (param.table.table_name.length > tableNameLengthLimit) {
@@ -765,8 +763,6 @@ export class TablesService {
       tableNameLengthLimit = 64;
     } else if (sqlClientType === 'pg') {
       tableNameLengthLimit = 63;
-    } else if (sqlClientType === 'mssql') {
-      tableNameLengthLimit = 128;
     }
 
     if (tableCreatePayLoad.table_name.length > tableNameLengthLimit) {

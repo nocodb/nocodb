@@ -2,7 +2,6 @@
 import {
   type LinkToAnotherRecordType,
   ModelTypes,
-  MssqlUi,
   PlanFeatureTypes,
   PlanTitles,
   ProjectRoles,
@@ -53,8 +52,7 @@ if (!isEdit.value) {
   })
 }
 
-const onUpdateDeleteOptions =
-  sqlUi instanceof MssqlUi ? ['NO ACTION'] : ['NO ACTION', 'CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT']
+const onUpdateDeleteOptions = ['NO ACTION', 'CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT']
 
 if (!isEdit.value) {
   if (!vModel.value.parentId) vModel.value.parentId = meta.value?.id

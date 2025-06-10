@@ -30,7 +30,7 @@ const aiPromptInputRef = ref<HTMLElement>()
 
 const workspaceStore = useWorkspace()
 
-const { isMysql, isMssql, isPg, isSnowflake } = useBase()
+const { isMysql, isPg, isSnowflake } = useBase()
 
 const { loadProjectTables, addTable } = useTablesStore()
 
@@ -294,8 +294,6 @@ const validators = computed(() => {
               tableNameLengthLimit = 64
             } else if (isPg(props.sourceId)) {
               tableNameLengthLimit = 63
-            } else if (isMssql(props.sourceId)) {
-              tableNameLengthLimit = 128
             }
             const basePrefix = base?.value?.prefix || ''
             if ((basePrefix + value).length > tableNameLengthLimit) {

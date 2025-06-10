@@ -151,7 +151,6 @@ export const fieldLengthValidator = () => {
 
       /// mysql allows 64 characters for column_name
       // postgres allows 59 characters for column_name
-      // mssql allows 128 characters for column_name
       // sqlite allows any number of characters for column_name
       // We allow 255 for all databases, truncate will be handled by backend for column_name
       const fieldLengthLimit = 255

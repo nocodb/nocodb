@@ -1,13 +1,8 @@
-export function convertUnits(
-  unit: string,
-  type: 'mysql' | 'mssql' | 'pg' | 'sqlite',
-) {
+export function convertUnits(unit: string, type: 'mysql' | 'pg' | 'sqlite') {
   switch (unit) {
     case 'milliseconds':
     case 'ms': {
       switch (type) {
-        case 'mssql':
-          return 'millisecond';
         case 'mysql':
           // MySQL doesn't support millisecond
           // hence change from MICROSECOND to millisecond manually
@@ -22,7 +17,6 @@ export function convertUnits(
     case 'seconds':
     case 's': {
       switch (type) {
-        case 'mssql':
         case 'pg':
           return 'second';
         case 'mysql':
@@ -36,7 +30,6 @@ export function convertUnits(
     case 'minutes':
     case 'm': {
       switch (type) {
-        case 'mssql':
         case 'pg':
           return 'minute';
         case 'mysql':
@@ -50,7 +43,6 @@ export function convertUnits(
     case 'hours':
     case 'h': {
       switch (type) {
-        case 'mssql':
         case 'pg':
           return 'hour';
         case 'mysql':
@@ -64,7 +56,6 @@ export function convertUnits(
     case 'days':
     case 'd': {
       switch (type) {
-        case 'mssql':
         case 'pg':
           return 'day';
         case 'mysql':
@@ -78,7 +69,6 @@ export function convertUnits(
     case 'weeks':
     case 'w': {
       switch (type) {
-        case 'mssql':
         case 'pg':
           return 'week';
         case 'mysql':
@@ -92,7 +82,6 @@ export function convertUnits(
     case 'months':
     case 'M': {
       switch (type) {
-        case 'mssql':
         case 'pg':
           return 'month';
         case 'mysql':
@@ -106,7 +95,6 @@ export function convertUnits(
     case 'quarters':
     case 'Q': {
       switch (type) {
-        case 'mssql':
         case 'pg':
           return 'quarter';
         case 'mysql':
@@ -120,7 +108,6 @@ export function convertUnits(
     case 'years':
     case 'y': {
       switch (type) {
-        case 'mssql':
         case 'pg':
           return 'year';
         case 'mysql':

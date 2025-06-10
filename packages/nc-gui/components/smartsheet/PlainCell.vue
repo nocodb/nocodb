@@ -26,7 +26,7 @@ const basesStore = useBases()
 
 const { basesUser } = storeToRefs(basesStore)
 
-const { isXcdbBase, isMssql, isMysql } = useBase()
+const { isXcdbBase, isMysql } = useBase()
 
 const sqlUi = ref(
   column.value?.source_id && sqlUis.value[column.value?.source_id]
@@ -45,7 +45,6 @@ const parsedValue = computed(() => {
     meta: meta.value,
     metas: metas.value,
     baseUsers: basesUser.value,
-    isMssql,
     isMysql,
     isXcdbBase,
     t,

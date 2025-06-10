@@ -500,20 +500,6 @@ export default async function generateLookupSelectQuery({
             .from(selectQb.as(subQueryAlias)),
           applyCte,
         };
-      } else if (baseModelSqlv2.isMssql) {
-        // ref: https://stackoverflow.com/questions/13382856/sqlite3-join-group-concat-using-distinct-with-custom-separator
-        // selectQb.orderBy(`${lookupColumn.id}`, 'asc');
-        return {
-          builder: knex
-            .select(
-              knex.raw(`STRING_AGG(??, ?)`, [
-                lookupColumn.id,
-                LOOKUP_VAL_SEPARATOR,
-              ]),
-            )
-            .from(selectQb.as(subQueryAlias)),
-          applyCte,
-        };
       }
 
       NcError.notImplemented('This operation on Lookup/LTAR for this database');

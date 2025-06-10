@@ -927,7 +927,6 @@ export function transformDataForMailRendering(
     try {
       serializedValue = ColumnHelper.serializeValue(data[col.title], {
         col,
-        isMssql: () => source.type === 'mssql',
         isMysql: () => source.type.startsWith('mysql'),
         isPg: () => source.type === 'pg',
         isXcdbBase: () => !!source.isMeta(),

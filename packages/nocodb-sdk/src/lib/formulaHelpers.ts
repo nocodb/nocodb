@@ -18,7 +18,6 @@ type ClientTypeOrSqlUI =
   | 'mysql'
   | 'pg'
   | 'sqlite3'
-  | 'mssql'
   | 'mysql2'
   | 'oracledb'
   | 'mariadb'

@@ -138,7 +138,7 @@ export function populateFillHandleStringNumber({
           groupOfIndex.group.prefix === nullPrefix
             ? ''
             : (groupOfIndex.group.prefix as string)
-        }${groupOfIndex.group.lastIndex}`
+        }${Math.abs(groupOfIndex.group.lastIndex)}`
       );
     }
   }
@@ -161,4 +161,3 @@ export function populateFillHandleStrictCopy({
   }
   return result;
 }
-

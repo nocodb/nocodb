@@ -418,6 +418,71 @@ export function useMultiSelect(
     return true
   }
 
+  const v2HandleFillValue = async ({
+    rawMatrix,
+    cpCols,
+    rowToPaste,
+    data,
+  }: {
+    rawMatrix: string[][]
+    cpCols: (ColumnType & {
+      extra?: any | never
+    })[]
+    rowToPaste: { start: number; end: number }
+    data: Row[]
+  }) => {
+    if (rawMatrix.length === 0) return
+    const direction = rowToPaste.end - rowToPaste.start > 0 ? 1 : -1
+    // reverse if going up
+    const rawMatrixFromDirection = direction === -1 ? rawMatrix.reverse() : rawMatrix
+    // we transform from rows to cols based
+    const rawMatrixTransposed = rawMatrixFromDirection[0]!.map((_, colIndex) =>
+      rawMatrixFromDirection.map((row) => row[colIndex]),
+    )
+    const fillValuesByCols: any[][] = []
+    const numberOfRows = Math.abs(rowToPaste.end - rowToPaste.start) + 1
+    console.log(rawMatrix, rawMatrixTransposed, numberOfRows)
+
+    for (const [i, rowsOfCol] of rawMatrixTransposed.entries()) {
+      const cpCol = cpCols[i]
+      const populatedFillHandle = ColumnHelper.populateFillHandle({
+        column: cpCol!,
+        highlightedData: rowsOfCol,
+        numberOfRows,
+      })
+      if (populatedFillHandle) {
+        fillValuesByCols.push(populatedFillHandle)
+      }
+      // TODO: else, but should not happen
+    }
+    console.log(fillValuesByCols)
+    // apply the populated fill handle to rows
+    // maybe TODO: extract to other function
+    const rowsToPaste: Row[] = []
+    let incrementIndex = 0
+    for (
+      let rowIndex = rowToPaste.start + direction * rawMatrix.length;
+      direction === 1 ? rowIndex <= rowToPaste.end : rowIndex >= rowToPaste.end;
+      // Increment/decrement row counter based on fill direction
+      rowIndex += direction
+    ) {
+      const rowObj = data[rowIndex]
+      if (rowObj) {
+        for (const [colIndex, cpCol] of cpCols.entries()) {
+          rowObj.row[cpCol.title] = fillValuesByCols[colIndex!]![incrementIndex]
+        }
+        rowsToPaste.push(rowObj)
+      }
+      incrementIndex++
+    }
+
+    // If not in AI fill mode, perform a regular bulk update
+    await bulkUpdateRows?.(
+      rowsToPaste,
+      cpCols.map((k) => k.title!),
+    )
+  }
+
   const handleMouseUp = (_event: MouseEvent) => {
     if (isFillMode.value) {
       try {
@@ -446,6 +511,45 @@ export function useMultiSelect(
           const rawMatrix = serializeRange(cprows, cpcols).json
 
           const fillDirection = fillRange._start.row <= fillRange._end.row ? 1 : -1
+          const startRangeBottomMost = Math.max(
+            selectedRange.start.row,
+            selectedRange.end.row,
+            fillRange._start.row,
+            fillRange._end.row,
+          )
+          const startRangeTopMost = Math.min(
+            selectedRange.start.row,
+            selectedRange.end.row,
+            fillRange._start.row,
+            fillRange._end.row,
+          )
+          console.log({
+            startRangeTopMost,
+            startRangeBottomMost,
+          })
+          // if not localAiMode, use the new v2 handle fill logic
+          if (!localAiMode) {
+            const dataArray: Row[] = isArrayStructure
+              ? (unref(data) as Row[])
+              : unref(data) instanceof Map
+              ? Array.from(unref(data) as Map<number, Row>, ([_name, value]) => value)
+              : (unref(data) as Row[])
+            return v2HandleFillValue({
+              data: dataArray,
+              rawMatrix,
+              cpCols: cpcols,
+              rowToPaste: {
+                start: fillDirection === 1 ? startRangeTopMost : startRangeBottomMost,
+                end: fillDirection === 1 ? startRangeBottomMost : startRangeTopMost,
+              },
+            }).then(() => {
+              if (fillRange._start === null || fillRange._end === null) return
+              selectedRange.startRange(tempActiveCell)
+              selectedRange.endRange(fillRange._end)
+              makeActive(tempActiveCell.row, tempActiveCell.col)
+              fillRange.clear()
+            })
+          }
 
           let fillIndex = fillDirection === 1 ? 0 : rawMatrix.length - 1
 

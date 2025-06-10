@@ -8,6 +8,8 @@ const activeView = inject(ActiveViewInj, ref())
 
 const { meta, eventBus, isGrid, isGallery, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery } = useSmartsheetStoreOrThrow()
 
+const { lastOpenedViewId } = storeToRefs(useViewsStore())
+
 const { isGroupBy } = useViewGroupByOrThrow()
 
 const router = useRouter()
@@ -31,7 +33,12 @@ const isSearchButtonVisible = computed(() => {
 })
 
 const isSearchResultVisible = computed(() => {
-  return search.value.query?.trim() && !isMobileMode.value && ((isGrid.value && !isGroupBy.value) || isGallery.value)
+  return (
+    !isDropdownOpen.value &&
+    search.value.query?.trim() &&
+    !isMobileMode.value &&
+    ((isGrid.value && !isGroupBy.value) || isGallery.value)
+  )
 })
 
 const columns = computed(
@@ -46,7 +53,14 @@ watch(
   () => activeView.value?.id,
   (n, o) => {
     if (n !== o) {
-      loadFieldQuery(activeView.value?.id)
+      let reset = false
+
+      if (n !== lastOpenedViewId.value) {
+        lastOpenedViewId.value = n
+        reset = true
+      }
+
+      loadFieldQuery(activeView.value?.id, reset)
     }
   },
   { immediate: true },
@@ -89,6 +103,10 @@ const onSelectOption = (column: ColumnType) => {
   if (search.value.query?.length) {
     onPressEnter()
   }
+
+  nextTick(() => {
+    globalSearchRef.value?.focus()
+  })
 }
 
 const handleShowSearchInput = () => {
@@ -186,22 +204,26 @@ watch(
           'border-primary shadow-selected': isMobileMode && search.query.length !== 0,
         }"
       >
-        <div class="flex flex-row h-8 py-1">
+        <div class="flex flex-row h-8">
           <NcDropdown
             v-model:visible="isDropdownOpen"
             :trigger="['click']"
             overlay-class-name="nc-dropdown-toolbar-search-field-option"
           >
             <div class="flex items-center gap-2 group px-2 cursor-pointer" @click="isDropdownOpen = !isDropdownOpen">
-              <GeneralIcon icon="search" class="h-4 w-4 text-nc-gray-subtle" />
+              <GeneralIcon icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
               <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand">
                 <SmartsheetHeaderIcon :column="displayColumn" class="!w-3.5 !h-3.5 !mx-0" />
-                <div v-if="!isMobileMode" class="w-16 text-caption font-medium truncate">
+                <div v-if="!isMobileMode" class="w-16 text-bodyDefaultSm font-medium truncate">
                   {{ displayColumnLabel ?? '' }}
                 </div>
 
                 <div class="flex items-center justify-center px-1">
-                  <component :is="iconMap.chevronDown" class="text-sm text-inherit flex-none !w-4 !h-4" />
+                  <GeneralIcon
+                    icon="chevronDown"
+                    class="!text-current flex-none transform transition-transform duration-25 w-3.5 h-3.5"
+                    :class="{ '!rotate-180': isDropdownOpen }"
+                  />
                 </div>
               </div>
             </div>
@@ -211,6 +233,7 @@ watch(
                 :selected-option-id="search.field"
                 show-selected-option
                 :options="columns"
+                :input-bordered="false"
                 :search-input-placeholder="$t('placeholder.searchFields')"
                 toolbar-menu="globalSearch"
                 @selected="onSelectOption"
@@ -225,9 +248,10 @@ watch(
               v-model:value="search.query"
               name="globalSearchQuery"
               size="small"
-              class="!text-sm !w-40 h-full nc-view-search-data"
+              class="!text-bodyDefaultSm !w-40 h-full nc-view-search-data !pl-0"
               :placeholder="`${$t('general.searchIn')} ${displayColumnLabel ?? ''}`"
               :bordered="false"
+              autocomplete="off"
               data-testid="search-data-input"
               @press-enter="onPressEnter"
             >

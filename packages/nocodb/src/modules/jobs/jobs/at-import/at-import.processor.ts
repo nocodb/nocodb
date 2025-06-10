@@ -130,7 +130,7 @@ export class AtImportProcessor {
 
     const syncDB = job.data;
 
-    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
     const req = {
       user: {
         id: syncDB.user.id,

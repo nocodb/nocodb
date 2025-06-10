@@ -186,7 +186,7 @@ export class DuplicateController {
       throw new Error(`Model not found!`);
     }
 
-    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
     this.appHooksService.emit(AppEvents.TABLE_DUPLICATE_START, {
       sourceTable: model,
       user: req.user,
@@ -279,7 +279,7 @@ export class DuplicateController {
       throw new Error(`Model not found!`);
     }
 
-    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
     this.appHooksService.emit(AppEvents.COLUMN_DUPLICATE_START, {
       table: model,
       sourceColumn: column,

@@ -33,10 +33,39 @@ export default class Permission {
   granted_type: PermissionGrantedType;
   granted_role: PermissionRole;
 
-  user_ids?: string[];
+  subjects?: {
+    type: 'user' | 'group';
+    id: string;
+  }[];
 
   constructor(permission: Permission) {
     Object.assign(this, permission);
+  }
+
+  private static getJsonObjectExpression(
+    ncMeta,
+    subjectTypeField: string,
+    subjectIdField: string,
+  ) {
+    switch (ncMeta.knexConnection.client.config.client) {
+      case 'pg':
+        return ncMeta.knex.raw(
+          `json_build_object('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
+        );
+      case 'mysql2':
+        return ncMeta.knex.raw(
+          `JSON_OBJECT('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
+        );
+      case 'sqlite3':
+        return ncMeta.knex.raw(
+          `json_object('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
+        );
+      default:
+        // Fallback to MySQL syntax
+        return ncMeta.knex.raw(
+          `JSON_OBJECT('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
+        );
+    }
   }
 
   public static async get(
@@ -50,19 +79,30 @@ export default class Permission {
     );
 
     if (!permission) {
-      // Use JOIN query to fetch permission with user_ids
+      // Use JOIN query to fetch permission with subjects
+      const jsonObjectExpr = this.getJsonObjectExpression(
+        ncMeta,
+        `${MetaTable.PERMISSION_SUBJECTS}.subject_type`,
+        `${MetaTable.PERMISSION_SUBJECTS}.subject_id`,
+      );
+
       const query = ncMeta
         .knexConnection(MetaTable.PERMISSIONS)
         .select([
           `${MetaTable.PERMISSIONS}.*`,
           ncMeta.knex.raw(
-            `JSON_ARRAYAGG(CASE WHEN ${MetaTable.PERMISSION_USERS}.fk_user_id IS NOT NULL THEN ${MetaTable.PERMISSION_USERS}.fk_user_id END) as user_ids`,
+            `JSON_ARRAYAGG(
+              CASE 
+                WHEN ${MetaTable.PERMISSION_SUBJECTS}.subject_id IS NOT NULL 
+                THEN ${jsonObjectExpr.toQuery()}
+              END
+            ) as subjects`,
           ),
         ])
         .leftJoin(
-          MetaTable.PERMISSION_USERS,
+          MetaTable.PERMISSION_SUBJECTS,
           `${MetaTable.PERMISSIONS}.id`,
-          `${MetaTable.PERMISSION_USERS}.fk_permission_id`,
+          `${MetaTable.PERMISSION_SUBJECTS}.fk_permission_id`,
         )
         .where(`${MetaTable.PERMISSIONS}.id`, permissionId)
         .where(`${MetaTable.PERMISSIONS}.fk_workspace_id`, context.workspace_id)
@@ -73,6 +113,20 @@ export default class Permission {
       permission = await query;
 
       if (permission) {
+        // Parse subjects JSON if it exists and filter out null values
+        if (permission.subjects) {
+          try {
+            const subjects = JSON.parse(permission.subjects);
+            permission.subjects = subjects.filter(
+              (subject) => subject !== null,
+            );
+          } catch (e) {
+            permission.subjects = [];
+          }
+        } else {
+          permission.subjects = [];
+        }
+
         await NocoCache.set(
           `${CacheScope.PERMISSION}:${permissionId}`,
           permission,
@@ -112,33 +166,61 @@ export default class Permission {
     const { list: permissionList } = cachedList;
 
     if (!cachedList.isNoneList && !permissionList.length) {
-      // Use single query with JOIN to fetch permissions and user_ids
+      // Use single query with JOIN to fetch permissions and subjects
+      const jsonObjectExpr = this.getJsonObjectExpression(
+        ncMeta,
+        `${MetaTable.PERMISSION_SUBJECTS}.subject_type`,
+        `${MetaTable.PERMISSION_SUBJECTS}.subject_id`,
+      );
+
       const query = ncMeta
         .knexConnection(MetaTable.PERMISSIONS)
         .select([
           `${MetaTable.PERMISSIONS}.*`,
           ncMeta.knex.raw(
-            `JSON_ARRAYAGG(CASE WHEN ${MetaTable.PERMISSION_USERS}.fk_user_id IS NOT NULL THEN ${MetaTable.PERMISSION_USERS}.fk_user_id END) as user_ids`,
+            `JSON_ARRAYAGG(
+              CASE 
+                WHEN ${MetaTable.PERMISSION_SUBJECTS}.subject_id IS NOT NULL 
+                THEN ${jsonObjectExpr.toQuery()}
+              END
+            ) as subjects`,
           ),
         ])
         .leftJoin(
-          MetaTable.PERMISSION_USERS,
+          MetaTable.PERMISSION_SUBJECTS,
           `${MetaTable.PERMISSIONS}.id`,
-          `${MetaTable.PERMISSION_USERS}.fk_permission_id`,
+          `${MetaTable.PERMISSION_SUBJECTS}.fk_permission_id`,
         )
         .where(`${MetaTable.PERMISSIONS}.fk_workspace_id`, context.workspace_id)
         .where(`${MetaTable.PERMISSIONS}.base_id`, context.base_id)
         .groupBy(`${MetaTable.PERMISSIONS}.id`)
         .orderBy(`${MetaTable.PERMISSIONS}.created_at`, 'asc');
 
-      const permissionsWithUserIds = await query;
+      const permissionsWithSubjects = await query;
+
+      // Process subjects for each permission
+      const processedPermissions = permissionsWithSubjects.map((permission) => {
+        if (permission.subjects) {
+          try {
+            const subjects = JSON.parse(permission.subjects);
+            permission.subjects = subjects.filter(
+              (subject) => subject !== null,
+            );
+          } catch (e) {
+            permission.subjects = [];
+          }
+        } else {
+          permission.subjects = [];
+        }
+        return permission;
+      });
 
       await NocoCache.setList(
         CacheScope.PERMISSION,
         [baseId],
-        permissionsWithUserIds,
+        processedPermissions,
       );
-      return permissionsWithUserIds.map(
+      return processedPermissions.map(
         (permission) => new Permission(permission),
       );
     }
@@ -227,8 +309,8 @@ export default class Permission {
       NcError.genericNotFound('Permission', permissionId);
     }
 
-    // Delete all associated permission users first
-    await this.removeAllUsers(context, permissionId, ncMeta);
+    // Delete all associated permission subjects first
+    await this.removeAllSubjects(context, permissionId, ncMeta);
 
     const res = await ncMeta.metaDelete(
       context.workspace_id,
@@ -245,10 +327,10 @@ export default class Permission {
     return res;
   }
 
-  public static async setUsers(
+  public static async setSubjects(
     context: NcContext,
     permissionId: string,
-    userIds: string[],
+    subjects: { type: 'user' | 'group'; id: string }[],
     ncMeta = Noco.ncMeta,
   ) {
     const permission = await this.get(context, permissionId, ncMeta);
@@ -257,55 +339,74 @@ export default class Permission {
       NcError.genericNotFound('Permission', permissionId);
     }
 
-    const existingUsers = permission.user_ids;
+    // Get existing subjects
+    const existingSubjects = permission.subjects || [];
 
-    const usersToAdd = userIds.filter(
-      (userId) => !permission.user_ids?.includes(userId),
+    // Find subjects to add and remove
+    const subjectsToAdd = subjects.filter(
+      (subject) =>
+        !existingSubjects.some(
+          (existing) =>
+            existing.type === subject.type && existing.id === subject.id,
+        ),
     );
 
-    const usersToRemove = existingUsers.filter(
-      (userId) => !userIds.includes(userId),
+    const subjectsToRemove = existingSubjects.filter(
+      (existing) =>
+        !subjects.some(
+          (subject) =>
+            subject.type === existing.type && subject.id === existing.id,
+        ),
     );
 
-    await ncMeta.metaDelete(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.PERMISSION_USERS,
-      null,
-      {
-        _and: [
-          { fk_permission_id: { eq: permissionId } },
-          {
-            fk_user_id: { in: usersToRemove },
-          },
-        ],
-      },
-    );
+    // Remove subjects that are no longer needed
+    if (subjectsToRemove.length > 0) {
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.PERMISSION_SUBJECTS,
+        null,
+        {
+          _and: [
+            { fk_permission_id: { eq: permissionId } },
+            {
+              _or: subjectsToRemove.map((subject) => ({
+                _and: [
+                  { subject_type: { eq: subject.type } },
+                  { subject_id: { eq: subject.id } },
+                ],
+              })),
+            },
+          ],
+        },
+      );
+    }
 
-    await ncMeta.bulkMetaInsert(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.PERMISSION_USERS,
-      usersToAdd.map((userId) => ({
-        fk_permission_id: permissionId,
-        fk_user_id: userId,
-      })),
-      true,
-    );
-
-    // list of final users (existing + added - removed)
-    const finalUsers = [...existingUsers, ...usersToAdd].filter(
-      (userId) => !usersToRemove.includes(userId),
-    );
+    // Add new subjects
+    if (subjectsToAdd.length > 0) {
+      await ncMeta.bulkMetaInsert(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.PERMISSION_SUBJECTS,
+        subjectsToAdd.map((subject) => ({
+          fk_permission_id: permissionId,
+          subject_type: subject.type,
+          subject_id: subject.id,
+          fk_workspace_id: context.workspace_id,
+          base_id: context.base_id,
+        })),
+        true,
+      );
+    }
 
     await NocoCache.update(`${CacheScope.PERMISSION}:${permissionId}`, {
-      user_ids: finalUsers,
+      subjects: subjects,
     });
 
-    return finalUsers;
+    return subjects;
   }
 
-  public static async removeAllUsers(
+  public static async removeAllSubjects(
     context: NcContext,
     permissionId: string,
     ncMeta = Noco.ncMeta,
@@ -313,14 +414,14 @@ export default class Permission {
     const res = await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
-      MetaTable.PERMISSION_USERS,
+      MetaTable.PERMISSION_SUBJECTS,
       {
         fk_permission_id: permissionId,
       },
     );
 
     await NocoCache.update(`${CacheScope.PERMISSION}:${permissionId}`, {
-      user_ids: [],
+      subjects: [],
     });
 
     return res;
@@ -338,7 +439,12 @@ export default class Permission {
     }
 
     if (permissionObj.granted_type === PermissionGrantedType.USER) {
-      return permissionObj.user_ids?.includes(user.id);
+      // Check if user exists in subjects array
+      return (
+        permissionObj.subjects?.some(
+          (subject) => subject.type === 'user' && subject.id === user.id,
+        ) || false
+      );
     }
 
     if (permissionObj.granted_type === PermissionGrantedType.ROLE) {

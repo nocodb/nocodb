@@ -91,7 +91,7 @@ export enum MetaTable {
   MCP_TOKENS = 'nc_mcp_tokens',
   DB_SERVERS = 'nc_db_servers',
   PERMISSIONS = 'nc_permissions',
-  PERMISSION_USERS = 'nc_permission_users',
+  PERMISSION_SUBJECTS = 'nc_permission_subjects',
 }
 
 export const orderedMetaTables = [

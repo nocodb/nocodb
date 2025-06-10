@@ -28,9 +28,8 @@ export class PermissionsService {
       | 'granted_role'
       | 'enforce_for_automation'
       | 'enforce_for_form'
-    > & {
-      user_ids?: string[];
-    },
+      | 'subjects'
+    >,
     req: NcRequest,
   ) {
     const {
@@ -47,9 +46,9 @@ export class PermissionsService {
 
     if (
       granted_type === PermissionGrantedType.USER &&
-      !permissionObj.user_ids
+      !permissionObj.subjects?.length
     ) {
-      NcError.unprocessableEntity('You need to provide at least one user_id');
+      NcError.unprocessableEntity('You need to provide at least one subject');
     }
 
     const existingPermission = await Permission.getByEntity(
@@ -120,7 +119,7 @@ export class PermissionsService {
           existingPermission.granted_type === PermissionGrantedType.USER &&
           newPermissionObj.granted_type !== PermissionGrantedType.USER
         ) {
-          await Permission.removeAllUsers(
+          await Permission.removeAllSubjects(
             context,
             existingPermission.id,
             ncMeta,
@@ -139,24 +138,29 @@ export class PermissionsService {
 
       // Insert new permission users
       if (permission.granted_type === PermissionGrantedType.USER) {
-        for (const userId of permissionObj.user_ids) {
-          const permissionUser = await WorkspaceUser.get(
-            context.workspace_id,
-            userId,
-            ncMeta,
-          );
-
-          if (!permissionUser) {
-            NcError.unprocessableEntity(
-              `User with id '${userId}' is not part of this workspace`,
+        for (const subject of permissionObj.subjects) {
+          if (subject.type === 'user') {
+            const permissionUser = await WorkspaceUser.get(
+              context.workspace_id,
+              subject.id,
+              ncMeta,
             );
+
+            if (!permissionUser) {
+              NcError.unprocessableEntity(
+                `User with id '${subject.id}' is not part of this workspace`,
+              );
+            }
+          } else if (subject.type === 'group') {
+            // TODO implement
+            NcError.notImplemented('Group permissions are not implemented yet');
           }
         }
 
-        await Permission.setUsers(
+        await Permission.setSubjects(
           context,
           permission.id,
-          permissionObj.user_ids,
+          permissionObj.subjects,
           ncMeta,
         );
       }

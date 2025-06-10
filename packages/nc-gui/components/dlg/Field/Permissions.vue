@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type BaseType, PermissionEntity, type PermissionGrantedType, PermissionKey, type PermissionRole } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -14,20 +14,7 @@ const visible = useVModel(props, 'visible', emits)
 const { $e } = useNuxtApp()
 
 const baseStore = useBase()
-const { base: _base } = storeToRefs(baseStore)
-
-const base = computed<
-  BaseType & {
-    permissions: {
-      entity: PermissionEntity
-      entity_id: string
-      permission: PermissionKey
-      granted_type: PermissionGrantedType
-      granted_role?: PermissionRole
-      user_ids?: string[]
-    }[]
-  }
->(() => _base.value)
+const { base } = storeToRefs(baseStore)
 
 // Permission configuration for field edit
 const editPermissionConfig: PermissionConfig = {

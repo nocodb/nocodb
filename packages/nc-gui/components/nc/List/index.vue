@@ -76,6 +76,11 @@ export interface NcListProps {
   itemClassName?: string
 
   itemTooltipPlacement?: TooltipPlacement
+
+  /**
+   * Whether to hide the top divider
+   */
+  hideTopDivider?: boolean
 }
 
 interface Emits {
@@ -99,6 +104,7 @@ const props = withDefaults(defineProps<NcListProps>(), {
   itemClassName: '',
   itemTooltipPlacement: 'right',
   isLocked: false,
+  hideTopDivider: false,
 })
 
 const emits = defineEmits<Emits>()
@@ -403,7 +409,7 @@ watch(searchQuery, () => {
         ></a-input>
         <slot name="headerExtraRight"> </slot>
       </div>
-      <NcDivider />
+      <NcDivider v-if="!hideTopDivider" />
     </template>
 
     <slot name="listHeader"></slot>

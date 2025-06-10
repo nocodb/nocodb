@@ -594,9 +594,6 @@ knex.QueryBuilder.extend('concat', function (cn: any) {
     case 'mysql2':
       this.select(this.client.raw(`GROUP_CONCAT(?? SEPARATOR ',')`, [cn]));
       break;
-    case 'mssql':
-      this.select(this.client.raw(`STRING_AGG(??, ',')`, [cn]));
-      break;
     case 'sqlite3':
       this.select(this.client.raw(`GROUP_CONCAT(?? , ',')`, [cn]));
       break;

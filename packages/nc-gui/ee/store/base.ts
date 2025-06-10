@@ -95,10 +95,6 @@ export const useBase = defineStore('baseStore', () => {
     return getBaseType(sourceId) === ClientType.SQLITE
   }
 
-  function isMssql(sourceId?: string) {
-    return getBaseType(sourceId) === 'mssql'
-  }
-
   function isPg(sourceId?: string) {
     return getBaseType(sourceId) === 'pg'
   }
@@ -313,7 +309,6 @@ export const useBase = defineStore('baseStore', () => {
     updateProject,
     loadTables,
     isMysql,
-    isMssql,
     isPg,
     isSqlite,
     isSnowflake,

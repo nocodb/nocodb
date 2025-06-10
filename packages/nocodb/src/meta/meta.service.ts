@@ -802,28 +802,16 @@ export class MetaService {
     );
   }
 
-  private isMssql(): boolean {
-    return this.connection.clientType() === 'mssql';
-  }
-
   public now(): any {
     return dayjs()
       .utc()
-      .format(
-        this.isMySQL() || this.isMssql()
-          ? 'YYYY-MM-DD HH:mm:ss'
-          : 'YYYY-MM-DD HH:mm:ssZ',
-      );
+      .format(this.isMySQL() ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
   }
 
   public formatDateTime(date: string): string {
     return dayjs(date)
       .utc()
-      .format(
-        this.isMySQL() || this.isMssql()
-          ? 'YYYY-MM-DD HH:mm:ss'
-          : 'YYYY-MM-DD HH:mm:ssZ',
-      );
+      .format(this.isMySQL() ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
   }
 
   public async init(): Promise<boolean> {

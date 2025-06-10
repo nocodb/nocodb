@@ -397,7 +397,6 @@ interface CellRendererOptions {
   tableMetaLoader: TableMetaLoader
   baseRoleLoader: BaseRoleLoader
   isMysql: (sourceId?: string) => boolean
-  isMssql: (sourceId?: string) => boolean
   isXcdbBase: (sourceId?: string) => boolean
   isPg: (sourceId?: string) => boolean
   t: Composer['t']
@@ -629,7 +628,6 @@ interface ParsePlainCellValueProps {
     metas: { [idOrTitle: string]: TableType | any }
     baseUsers?: Map<string, User[]>
     isMysql: (sourceId?: string) => boolean
-    isMssql: (sourceId?: string) => boolean
     isXcdbBase: (sourceId?: string) => boolean
     t: Composer['t']
     isUnderLookup?: boolean

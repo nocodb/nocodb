@@ -15749,7 +15749,6 @@
                   "client": {
                     "description": "DB Type",
                     "enum": [
-                      "mssql",
                       "mysql",
                       "mysql2",
                       "oracledb",
@@ -15869,7 +15868,6 @@
                     "client": {
                       "description": "DB Type",
                       "enum": [
-                        "mssql",
                         "mysql",
                         "mysql2",
                         "oracledb",
@@ -20565,7 +20563,6 @@
           "type": {
             "description": "DB Type",
             "enum": [
-              "mssql",
               "mysql",
               "mysql2",
               "oracledb",
@@ -20806,7 +20803,6 @@
           "type": {
             "description": "DB Type",
             "enum": [
-              "mssql",
               "mysql",
               "mysql2",
               "oracledb",

@@ -119,9 +119,6 @@ async function execAndGetRows(kn: Knex, config: any, query: string) {
 
   if (client === 'pg' || client === 'snowflake') {
     return (await kn.raw(query))?.rows;
-  } else if (isSelect && client !== 'mssql') {
-    // Wrap select queries (some dialects require this)
-    return await kn.from(kn.raw(query).wrap('(', ') __nc_alias'));
   } else if (isInsert && (client === 'mysql' || client === 'mysql2')) {
     const res = await kn.raw(query);
     if (res && res[0] && res[0].insertId) return res[0].insertId;

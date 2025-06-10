@@ -227,7 +227,6 @@ export const DB_TYPES = <const>[
   'mysql2',
   'sqlite3',
   'mysql',
-  'mssql',
   'snowflake',
   'oracledb',
   'pg',

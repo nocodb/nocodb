@@ -48,7 +48,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       // const driver = trx ? trx : baseModel.dbDriver;
 
       const query = baseModel.dbDriver(baseModel.tnPath).insert(insertObj);
-      if ((baseModel.isPg || baseModel.isMssql) && baseModel.model.primaryKey) {
+      if (baseModel.isPg && baseModel.model.primaryKey) {
         query.returning(
           `${baseModel.model.primaryKey.column_name} as ${baseModel.model.primaryKey.id}`,
         );
@@ -310,7 +310,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         }
 
         responses =
-          !raw && (baseModel.isPg || baseModel.isMssql)
+          !raw && baseModel.isPg
             ? await trx
                 .batchInsert(baseModel.tnPath, insertDatas, chunkSize)
                 .returning(

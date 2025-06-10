@@ -23,6 +23,6 @@ export function convertDateFormat(date_format: string, type: string) {
     if (type === 'mysql2' || type === 'sqlite3') return '%d %b %y';
   }
 
-  // pg / mssql
+  // pg
   return date_format;
 }

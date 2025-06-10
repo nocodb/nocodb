@@ -16,8 +16,6 @@ const baseIcon = computed(() => {
       return LogosPostgresql
     case ClientType.SQLITE:
       return VscodeIconsFileTypeSqlite
-    case ClientType.MSSQL:
-      return SimpleIconsMicrosoftsqlserver
     case ClientType.SNOWFLAKE:
       return LogosSnowflakeIcon
     default:

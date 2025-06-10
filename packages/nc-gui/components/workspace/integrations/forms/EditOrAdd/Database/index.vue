@@ -155,7 +155,6 @@ const validators = computed(() => {
       }
       break
     case ClientType.PG:
-    case ClientType.MSSQL:
       clientValidations['dataSource.searchPath.0'] = [fieldRequiredValidator()]
       break
   }
@@ -942,7 +941,7 @@ watch(
                         <!-- Schema name -->
                         <a-form-item
                           v-if="
-                            [ClientType.MSSQL, ClientType.PG].includes(formState.dataSource.client) &&
+                            [ClientType.PG].includes(formState.dataSource.client) &&
                             formState.dataSource.searchPath
                           "
                           :label="$t('labels.schemaName')"

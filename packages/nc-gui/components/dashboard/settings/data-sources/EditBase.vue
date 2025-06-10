@@ -112,7 +112,7 @@ const validators = computed(() => {
       : {
           'dataSource.connection.database':
             selectedIntegration.value && getDataSourceValue('database') ? [] : [fieldRequiredValidator()],
-          ...([ClientType.PG, ClientType.MSSQL].includes(formState.value.dataSource.client) &&
+          ...([ClientType.PG].includes(formState.value.dataSource.client) &&
           formState.value.dataSource.searchPath
             ? {
                 'dataSource.searchPath.0':
@@ -319,7 +319,7 @@ onMounted(async () => {
 watch(
   () => formState.value.dataSource.searchPath,
   (val) => {
-    if ([ClientType.PG, ClientType.MSSQL].includes(formState.value.dataSource.client) && !val) {
+    if ([ClientType.PG].includes(formState.value.dataSource.client) && !val) {
       formState.value.dataSource.searchPath = []
     }
   },
@@ -511,8 +511,8 @@ function handleAutoScroll(scroll: boolean, className: string) {
                       <!-- Schema name -->
                       <a-form-item
                         v-if="
-                          ([ClientType.MSSQL, ClientType.PG].includes(formState.dataSource.client) ||
-                            [ClientType.MSSQL, ClientType.PG].includes(selectedIntegration?.sub_type)) &&
+                          ([ClientType.PG].includes(formState.dataSource.client) ||
+                            [ClientType.PG].includes(selectedIntegration?.sub_type)) &&
                           formState.dataSource.searchPath
                         "
                         :label="$t('labels.schemaName')"

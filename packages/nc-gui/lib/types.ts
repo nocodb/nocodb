@@ -702,8 +702,6 @@ interface PermissionConfig {
   entity: PermissionEntity
   entityId: string
   permission: PermissionKey
-  label: string
-  description?: string
 }
 
 interface PermissionSelectorUser {

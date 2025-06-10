@@ -46,8 +46,20 @@ export const PermissionRoleMap = {
   [WorkspaceUserRoles.VIEWER]: PermissionRole.VIEWER,
 };
 
-export const PermissionMinimumRole = {
-  [PermissionKey.TABLE_RECORD_ADD]: PermissionRole.EDITOR,
-  [PermissionKey.TABLE_RECORD_DELETE]: PermissionRole.EDITOR,
-  [PermissionKey.RECORD_FIELD_EDIT]: PermissionRole.EDITOR,
+export const PermissionMeta = {
+  [PermissionKey.TABLE_RECORD_ADD]: {
+    minimumRole: PermissionRole.EDITOR,
+    label: 'Who can create records?',
+    description: 'can create records',
+  },
+  [PermissionKey.TABLE_RECORD_DELETE]: {
+    minimumRole: PermissionRole.EDITOR,
+    label: 'Who can delete records?',
+    description: 'can delete records',
+  },
+  [PermissionKey.RECORD_FIELD_EDIT]: {
+    minimumRole: PermissionRole.EDITOR,
+    label: 'Who can edit this field?',
+    description: 'can edit this field',
+  },
 }

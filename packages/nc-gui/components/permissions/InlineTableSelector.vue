@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type BaseType, PermissionEntity, PermissionKey } from 'nocodb-sdk'
+import { type BaseType, PermissionEntity, type PermissionKey } from 'nocodb-sdk'
 
 const props = defineProps<{
   base: BaseType
@@ -8,13 +8,10 @@ const props = defineProps<{
   currentValue: string
 }>()
 
-// Create permission config for the unified Selector
 const permissionConfig = computed<PermissionConfig>(() => ({
   entity: PermissionEntity.TABLE,
   entityId: props.tableId,
   permission: props.permissionType,
-  label: props.permissionType === PermissionKey.TABLE_RECORD_ADD ? 'Who can create records?' : 'Who can delete records?',
-  description: props.permissionType === PermissionKey.TABLE_RECORD_ADD ? 'can create records' : 'can delete records',
 }))
 </script>
 

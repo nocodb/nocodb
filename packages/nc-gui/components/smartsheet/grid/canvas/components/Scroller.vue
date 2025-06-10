@@ -153,12 +153,12 @@ const updateScroll = (vertical?: number, horizontal?: number) => {
   }
 }
 
-const isWindows = ref(false)
+const isWindowsOrLinux = ref(false)
 
 const handleWheel = (e: WheelEvent) => {
   e.preventDefault()
 
-  if (isWindows.value && e.shiftKey) {
+  if (isWindowsOrLinux.value && e.shiftKey) {
     // When Shift is pressed on Windows, treat vertical wheel movement as horizontal scroll
     updateScroll(scrollTop.value, scrollLeft.value + e.deltaY)
   } else {
@@ -385,7 +385,8 @@ const scrollTo = ({ left, top }: { left?: number; top?: number }) => {
 
 onMounted(() => {
   showScrollbars()
-  isWindows.value = navigator.userAgent.toLowerCase().includes('windows')
+  isWindowsOrLinux.value =
+    navigator.userAgent.toLowerCase().includes('windows') || navigator.userAgent.toLowerCase().includes('linux')
   scrollbarsAlwaysVisible.value = isScrollbarAlwaysVisible()
 })
 

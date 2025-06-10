@@ -6,7 +6,9 @@ const reloadData = inject(ReloadViewDataHookInj)!
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { meta, eventBus } = useSmartsheetStoreOrThrow()
+const { meta, eventBus, isGrid, isGallery, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery } = useSmartsheetStoreOrThrow()
+
+const { isGroupBy } = useViewGroupByOrThrow()
 
 const router = useRouter()
 
@@ -26,6 +28,10 @@ const globalSearchWrapperRef = ref<HTMLInputElement>()
 
 const isSearchButtonVisible = computed(() => {
   return !search.value.query && !showSearchBox.value
+})
+
+const isSearchResultVisible = computed(() => {
+  return search.value.query?.trim() && !isMobileMode.value && ((isGrid.value && !isGroupBy.value) || isGallery.value)
 })
 
 const columns = computed(
@@ -219,7 +225,7 @@ watch(
               v-model:value="search.query"
               name="globalSearchQuery"
               size="small"
-              class="!text-sm w-40 h-full nc-view-search-data"
+              class="!text-sm !w-40 h-full nc-view-search-data"
               :placeholder="`${$t('general.searchIn')} ${displayColumnLabel ?? ''}`"
               :bordered="false"
               data-testid="search-data-input"
@@ -228,9 +234,11 @@ watch(
             </a-input>
           </form>
         </div>
-        <div v-if="search.query && !isMobileMode" class="border-t-1 border-nc-border-gray-medium py-1 px-3 flex gap-3">
-          <div class="text-nc-content-gray text-bodySmBold">42 of 136</div>
-          <div class="text-nc-content-gray-muted text-bodySm">Matching results in 42 records</div>
+        <div v-if="isSearchResultVisible" class="border-t-1 border-nc-border-gray-medium py-1 px-3 flex gap-3">
+          <div class="text-nc-content-gray text-bodySmBold">
+            {{ totalRowsWithSearchQuery }} of {{ totalRowsWithoutSearchQuery }}
+          </div>
+          <div class="text-nc-content-gray-muted text-bodySm">Matching results in {{ totalRowsWithSearchQuery }} records</div>
         </div>
       </div>
     </LazySmartsheetToolbarSearchDataWrapperDropdown>

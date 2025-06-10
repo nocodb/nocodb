@@ -45,7 +45,8 @@ const columns = computed(
   () =>
     (meta.value as TableType)?.columns?.filter(
       (column) =>
-        !isSystemColumn(column) && ![UITypes.Links, UITypes.Rollup, UITypes.DateTime, UITypes.Date].includes(column?.uidt),
+        !isSystemColumn(column) &&
+        ![UITypes.Links, UITypes.Rollup, UITypes.DateTime, UITypes.Date, UITypes.Button].includes(column?.uidt as UITypes),
     ) ?? [],
 )
 

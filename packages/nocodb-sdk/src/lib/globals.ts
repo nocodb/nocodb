@@ -194,6 +194,7 @@ export enum NcErrorType {
   INVALID_VALUE_FOR_FIELD = 'INVALID_VALUE_FOR_FIELD',
   MAX_WORKSPACE_LIMIT_REACHED = 'MAX_WORKSPACE_LIMIT_REACHED',
   BASE_USER_ERROR = 'BASE_USER_ERROR',
+  PROHIBITED_SYNC_TABLE_OPERATION = 'PROHIBITED_SYNC_TABLE_OPERATION',
 }
 
 export const NcErrorTypeMap = {
@@ -227,9 +228,9 @@ export const DURATION_TYPE_MAP = {
   'h:mm:ss.s': 2,
   'h:mm:ss.ss': 3,
   'h:mm:ss.sss': 4,
-}
+};
 
-export const CURRENT_USER_TOKEN = '@me'
+export const CURRENT_USER_TOKEN = '@me';
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
 

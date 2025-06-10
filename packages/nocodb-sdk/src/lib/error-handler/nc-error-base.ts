@@ -395,6 +395,33 @@ export class NcErrorBase {
     );
   }
 
+  prohibitedSyncTableOperation(
+    param: {
+      modelName: string;
+      operation: 'insert' | 'update' | 'delete' | 'create_form_view';
+    },
+    args?: NcErrorArgs
+  ): never {
+    let message = '';
+    switch (param.operation) {
+      case 'insert':
+      case 'update':
+      case 'delete':
+        message = `Prohibited data insert / update / delete operation on synced table ${param.modelName}`;
+        break;
+      case 'create_form_view':
+        message = `Form view creation is not supported for synced table ${param.modelName}`;
+        break;
+    }
+    throw this.errorCodex.generateError(
+      NcErrorType.PROHIBITED_SYNC_TABLE_OPERATION,
+      {
+        params: message,
+        ...args,
+      }
+    );
+  }
+
   unprocessableEntity(message = 'Unprocessable entity'): never {
     throw new UnprocessableEntity(message);
   }

@@ -235,4 +235,10 @@ export const presetErrorCodexMap: Partial<
     message: (message: string) => message || 'Something went wrong',
     code: 422,
   },
+  [NcErrorType.PROHIBITED_SYNC_TABLE_OPERATION]: {
+    message: (message: string) =>
+      message ||
+      `Prohibited data insert / update / delete operation on synced table`,
+    code: 422,
+  },
 };

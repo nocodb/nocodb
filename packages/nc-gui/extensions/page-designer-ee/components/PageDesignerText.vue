@@ -19,7 +19,7 @@ const basesStore = useBases()
 
 const { basesUser } = storeToRefs(basesStore)
 
-const { isXcdbBase, isMssql, isMysql } = useBase()
+const { isXcdbBase, isMysql } = useBase()
 
 const widget = ref() as Ref<PageDesignerTextWidget>
 watch(
@@ -119,7 +119,6 @@ function getTextualRepresentationForColumn(column: string, record: Record<string
     meta: meta.value,
     metas: metas.value,
     baseUsers: basesUser.value,
-    isMssql,
     isMysql,
     isXcdbBase,
     t,

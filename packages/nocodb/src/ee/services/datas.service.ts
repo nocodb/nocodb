@@ -1,6 +1,5 @@
-import { Injectable, Optional } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { DatasService as DatasServiceCE } from 'src/services/datas.service';
-import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import canUseOptimisedQuery from '../utils/canUseOptimisedQuery';
 import type { NcApiVersion } from 'nocodb-sdk';
@@ -18,10 +17,7 @@ import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
 
 @Injectable()
 export class DatasService extends DatasServiceCE {
-  constructor(
-    private readonly dataOptService: DataOptService,
-    @Optional() @InjectSentry() private readonly sentryClient: SentryService,
-  ) {
+  constructor(private readonly dataOptService: DataOptService) {
     super();
   }
 

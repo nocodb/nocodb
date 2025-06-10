@@ -401,10 +401,6 @@ const parseConditionV2 = async (
               field = knex.raw(`json_extract(??, '$.value')`, [
                 column.column_name,
               ]);
-            } else if (knex.clientType() === 'mssql') {
-              field = knex.raw(`JSON_VALUE(??, '$.value')`, [
-                column.column_name,
-              ]);
             }
           }
 

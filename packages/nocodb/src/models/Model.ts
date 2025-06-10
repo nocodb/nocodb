@@ -672,7 +672,6 @@ export default class Model implements TableType {
     clientMeta = {
       isMySQL: false,
       isSqlite: false,
-      isMssql: false,
       isPg: false,
     },
     knex,
@@ -695,7 +694,7 @@ export default class Model implements TableType {
           col.uidt === UITypes.DateTime &&
           dayjs(val).isValid()
         ) {
-          const { isMySQL, isSqlite, isMssql, isPg } = clientMeta;
+          const { isMySQL, isSqlite, isPg } = clientMeta;
           if (
             val.indexOf('-') < 0 &&
             val.indexOf('+') < 0 &&
@@ -732,14 +731,6 @@ export default class Model implements TableType {
             val = knex.raw(`? AT TIME ZONE CURRENT_SETTING('timezone')`, [
               dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'),
             ]);
-          } else if (isMssql) {
-            // convert ot UTC
-            // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
-            // then convert to db timezone
-            val = knex.raw(
-              `SWITCHOFFSET(CONVERT(datetimeoffset, ?), DATENAME(TzOffset, SYSDATETIMEOFFSET()))`,
-              [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')],
-            );
           } else {
             // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
             val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');

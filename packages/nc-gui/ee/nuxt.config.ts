@@ -278,7 +278,7 @@ export default defineNuxtConfig({
         'fflate',
         'file-saver',
         'fuse.js',
-        'httpsnippet',
+        '@readme/httpsnippet',
         'isomorphic-dompurify',
         'jsbarcode',
         'locale-codes',

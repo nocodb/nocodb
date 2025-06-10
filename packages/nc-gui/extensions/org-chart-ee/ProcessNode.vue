@@ -39,7 +39,7 @@ const basesStore = useBases()
 const { basesUser } = storeToRefs(basesStore)
 
 const baseStore = useBase()
-const { isXcdbBase, isMssql, isMysql } = baseStore
+const { isXcdbBase, isMysql } = baseStore
 const { sqlUis } = storeToRefs(baseStore)
 
 const plainCellValue = computed(() => {
@@ -58,7 +58,6 @@ const plainCellValue = computed(() => {
     meta: meta.value,
     metas: metas.value,
     baseUsers: basesUser.value,
-    isMssql,
     isMysql,
     isXcdbBase,
     t,

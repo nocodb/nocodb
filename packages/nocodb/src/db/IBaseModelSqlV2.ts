@@ -289,7 +289,6 @@ export interface IBaseModelSqlV2 {
   get viewId(): string;
   get dbDriver(): CustomKnex;
   get isSqlite(): boolean;
-  get isMssql(): boolean;
   get isPg(): boolean;
   get isMySQL(): boolean;
   get isSnowflake(): boolean;
@@ -297,7 +296,6 @@ export interface IBaseModelSqlV2 {
   get clientType(): string;
   get clientMeta(): {
     isSqlite: boolean;
-    isMssql: boolean;
     isPg: boolean;
     isMySQL: boolean;
   };

@@ -67,7 +67,7 @@ const { bases } = storeToRefs(basesStore)
 
 const baseStore = useBase()
 
-const { isMysql, isMssql, isPg } = baseStore
+const { isMysql, isPg } = baseStore
 
 const { base: activeBase } = storeToRefs(baseStore)
 
@@ -154,8 +154,6 @@ const validators = computed(() =>
               tableNameLengthLimit = 64
             } else if (isPg(sourceId)) {
               tableNameLengthLimit = 63
-            } else if (isMssql(sourceId)) {
-              tableNameLengthLimit = 128
             }
 
             const basePrefix = base?.value?.prefix || ''

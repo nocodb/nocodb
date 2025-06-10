@@ -2616,27 +2616,6 @@ export class AtImportProcessor {
                   ]),
                 ],
               );
-            } else if (source.type === 'mssql') {
-              const baseModel = await Model.getBaseModelSQL(context, {
-                id: ncTblList.list[i].id,
-                viewId: null,
-                dbDriver: await NcConnectionMgrv2.get(source),
-              });
-              const res = await baseModel.execAndGetRows(
-                baseModel.dbDriver
-                  .raw(`SELECT MAX(id) as mx FROM ??`, [
-                    baseModel.getTnPath(ncTblList.list[i].table_name),
-                  ])
-                  .toQuery(),
-              );
-
-              await baseModel.dbDriver.raw(
-                `DBCC CHECKIDENT ('??', RESEED, ?)`,
-                [
-                  baseModel.getTnPath(ncTblList.list[i].table_name),
-                  res?.[0]?.mx || 1,
-                ],
-              );
             }
 
             rtc.data.records += importStats.importedCount;

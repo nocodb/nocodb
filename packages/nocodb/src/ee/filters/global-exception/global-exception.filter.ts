@@ -1,25 +1,22 @@
-import { Catch, Optional } from '@nestjs/common';
-import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
+import { Catch } from '@nestjs/common';
 import { GlobalExceptionFilter as GlobalExceptionFilterCE } from 'src/filters/global-exception/global-exception.filter';
+import * as Sentry from '@sentry/nestjs';
 
 @Catch()
 export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
-  constructor(
-    @Optional() @InjectSentry() protected readonly sentryClient: SentryService,
-  ) {
-    super(sentryClient);
+  constructor() {
+    super();
 
     process.on('uncaughtExceptionMonitor', (err, origin) => {
       console.error('### UNCAUGHT EXCEPTION ###');
       console.error(origin);
       console.error(err);
-
-      this.sentryClient?.instance()?.captureException(err);
+      Sentry.captureException(err);
     });
   }
 
   protected captureException(exception: any, request: any) {
-    this.sentryClient?.instance()?.captureException(exception, {
+    Sentry.captureException(exception, {
       extra: {
         workspaceId: (request as any).ncWorkspaceId,
         projectId: (request as any).ncBaseId,

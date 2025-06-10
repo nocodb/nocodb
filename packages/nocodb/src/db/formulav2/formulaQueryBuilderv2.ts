@@ -72,7 +72,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         | 'mysql'
         | 'pg'
         | 'sqlite3'
-        | 'mssql'
         | 'mysql2'
         | 'oracledb'
         | 'mariadb'
@@ -215,19 +214,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                   .wrap('(', ')'),
               };
             };
-          } else if (
-            knex.clientType() === 'mssql' &&
-            refCol.dt !== 'datetimeoffset'
-          ) {
-            // convert from DB timezone to UTC
-            aliasToColumn[col.id] = async (): Promise<any> => {
-              return {
-                builder: knex.raw(
-                  `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
-                  [refCol.column_name],
-                ),
-              };
-            };
           } else {
             aliasToColumn[col.id] = () =>
               Promise.resolve({ builder: refCol.column_name });
@@ -309,14 +295,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             aliasToColumn[col.id] = async (): Promise<any> => {
               return {
                 builder: knex.raw(`json_extract(??, '$.value')`, [
-                  col.column_name,
-                ]),
-              };
-            };
-          } else if (knex.clientType() === 'mssql') {
-            aliasToColumn[col.id] = async (): Promise<any> => {
-              return {
-                builder: knex.raw(`JSON_VALUE(??, '$.value')`, [
                   col.column_name,
                 ]),
               };

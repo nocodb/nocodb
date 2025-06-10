@@ -130,18 +130,6 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                   .wrap('(', ')');
                 break;
               }
-            } else if (baseModel.isMssql) {
-              // if there is no timezone info,
-              // convert to database timezone,
-              // then convert to UTC
-              if (column.dt !== 'datetimeoffset') {
-                res[sanitize(getAs(column) || columnName)] =
-                  baseModel.dbDriver.raw(
-                    `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
-                    [`${sanitize(alias || baseModel.tnPath)}.${columnName}`],
-                  );
-                break;
-              }
             }
             res[sanitize(getAs(column) || columnName)] = sanitize(
               `${alias || baseModel.tnPath}.${columnName}`,

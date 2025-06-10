@@ -174,15 +174,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public getTnPath(tb: { table_name: string } | string, alias?: string) {
     const tn = typeof tb === 'string' ? tb : tb.table_name;
-    const schema = (this.dbDriver as any).searchPath?.();
     if (this.isPg && this.schema) {
       return `${this.schema}.${tn}${alias ? ` as ${alias}` : ``}`;
-    } else if (this.isMssql && schema) {
-      return this.dbDriver.raw(`??.??${alias ? ' as ??' : ''}`, [
-        schema,
-        tn,
-        ...(alias ? [alias] : []),
-      ]);
     } else if (this.isSnowflake) {
       return `${[
         this.dbDriver.extDb?.connection?.database ||
@@ -430,7 +423,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // const driver = trx ? trx : this.dbDriver;
 
       const query = this.dbDriver(this.tnPath).insert(insertObj);
-      if ((this.isPg || this.isMssql) && this.model.primaryKey) {
+      if (this.isPg && this.model.primaryKey) {
         query.returning(
           `${this.model.primaryKey.column_name} as ${this.model.primaryKey.id}`,
         );
@@ -1573,7 +1566,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   col.uidt === UITypes.DateTime &&
                   dayjs(val).isValid()
                 ) {
-                  const { isMySQL, isSqlite, isMssql, isPg } = this.clientMeta;
+                  const { isMySQL, isSqlite, isPg } = this.clientMeta;
                   if (
                     val.indexOf('-') < 0 &&
                     val.indexOf('+') < 0 &&
@@ -1610,14 +1603,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                     // then convert to db timezone
                     val = this.dbDriver.raw(
                       `? AT TIME ZONE CURRENT_SETTING('timezone')`,
-                      [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')],
-                    );
-                  } else if (isMssql) {
-                    // convert ot UTC
-                    // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
-                    // then convert to db timezone
-                    val = this.dbDriver.raw(
-                      `SWITCHOFFSET(CONVERT(datetimeoffset, ?), DATENAME(TzOffset, SYSDATETIMEOFFSET()))`,
                       [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')],
                     );
                   } else {
@@ -1793,7 +1778,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
 
         for (const batch of batches) {
-          if (this.isPg || this.isMssql) {
+          if (this.isPg) {
             queries.push(
               this.dbDriver(this.tnPath)
                 .insert(batch)
@@ -2066,7 +2051,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }
 
           for (const batch of batches) {
-            if (this.isPg || this.isMssql) {
+            if (this.isPg) {
               insertQueries.push(
                 this.dbDriver(this.tnPath)
                   .insert(batch)

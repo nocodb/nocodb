@@ -156,12 +156,6 @@ export const allIntegrations: IntegrationItemType[] = [
     type: IntegrationCategoryType.DATABASE,
   },
   {
-    title: 'objects.syncData.mssqlServer',
-    sub_type: ClientType.MSSQL,
-    icon: iconMap.mssqlServer,
-    type: IntegrationCategoryType.DATABASE,
-  },
-  {
     title: 'objects.syncData.oracle',
     sub_type: SyncDataType.ORACLE,
     icon: iconMap.oracle,

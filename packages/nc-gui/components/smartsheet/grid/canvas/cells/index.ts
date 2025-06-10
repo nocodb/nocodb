@@ -70,7 +70,7 @@ export function useGridCellHandler(params: {
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const baseStore = useBase()
   const { showNull, appInfo } = useGlobal()
-  const { isMssql, isMysql, isXcdbBase, isPg } = baseStore
+  const { isMysql, isXcdbBase, isPg } = baseStore
   const { sqlUis } = storeToRefs(baseStore)
 
   const { basesUser, baseRoles } = storeToRefs(useBases())
@@ -178,7 +178,7 @@ export function useGridCellHandler(params: {
       isCellInSelectionRange = false,
       isGroupHeader = false,
       rowMeta = {},
-    }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
+    }: Omit<CellRendererOptions, 'metas' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
     if (!isGroupHeader) {
@@ -256,7 +256,6 @@ export function useGridCellHandler(params: {
         imageLoader,
         actionManager,
         tableMetaLoader,
-        isMssql,
         isMysql,
         isPg,
         isXcdbBase,

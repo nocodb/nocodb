@@ -157,7 +157,6 @@ const isWindowsOrLinux = ref(false)
 
 const handleWheel = (e: WheelEvent) => {
   e.preventDefault()
-
   // for debugging purpose only
   console.log({
     deltaX: e.deltaX,
@@ -165,6 +164,7 @@ const handleWheel = (e: WheelEvent) => {
     shiftKey: e.shiftKey,
     platform: navigator.userAgent,
   })
+  console.log('e', e)
 
   if (isWindowsOrLinux.value && e.shiftKey) {
     // When Shift is pressed on Windows, treat vertical wheel movement as horizontal scroll

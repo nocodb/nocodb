@@ -6,19 +6,17 @@ const props = defineProps<{
   base: BaseType
   fieldId: string
   fieldTitle: string
-  permissionType: string
+  permissionType: PermissionKey
   currentValue: string
-  minimumRole?: 'viewer' | 'editor' | 'creator'
 }>()
 
 // Create permission config for the unified Selector
 const permissionConfig = computed<PermissionConfig>(() => ({
   entity: PermissionEntity.FIELD,
   entityId: props.fieldId,
-  permission: props.permissionType as PermissionKey,
-  label: props.permissionType === 'RECORD_FIELD_VIEW' ? 'Who can view this field?' : 'Who can edit this field?',
-  description: props.permissionType === 'RECORD_FIELD_VIEW' ? 'can view this field' : 'can edit this field',
-  minimumRole: props.minimumRole,
+  permission: props.permissionType,
+  label: 'Who can edit this field?',
+  description: 'can edit this field',
 }))
 </script>
 

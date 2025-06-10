@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { BaseType } from 'nocodb-sdk'
+import { PermissionMinimumRole, PermissionRolePower } from 'nocodb-sdk'
 
 const props = defineProps<{
   base: BaseType
@@ -21,7 +22,6 @@ const permissionSelectorConfig = computed<PermissionSelectorConfig>(() => ({
   permission: props.config.permission,
   label: props.config.label,
   description: props.config.description || 'have this permission',
-  minimumRole: props.config.minimumRole,
 }))
 
 // Create a dummy currentValue ref since Selector doesn't use display values
@@ -30,7 +30,7 @@ const currentValue = ref('')
 // Use the permission selector composable
 const {
   currentOption,
-  permissionOptions,
+  permissionOptions: allPermissionOptions,
   isLoading,
   showUserSelector,
   userSelectorSelectedUsers,
@@ -38,6 +38,42 @@ const {
   onPermissionChange: handlePermissionChange,
   handleUserSelectorSave: handleUserSave,
 } = usePermissionSelector(baseRef, permissionSelectorConfig, currentValue)
+
+// Filter permission options based on minimum role requirement
+const permissionOptions = computed(() => {
+  if (!props.config.permission) return allPermissionOptions.value
+
+  const minimumRole = PermissionMinimumRole[props.config.permission]
+  if (!minimumRole) return allPermissionOptions.value
+
+  const minimumRolePower = PermissionRolePower[minimumRole]
+  if (!minimumRolePower) return allPermissionOptions.value
+
+  // Filter options to only show roles that meet or exceed the minimum requirement
+  return allPermissionOptions.value.filter((option) => {
+    // Always allow 'specific_users' and 'nobody' options
+    if (option.value === 'specific_users' || option.value === 'nobody') return true
+
+    // Map option values to PermissionRole enum values for comparison
+    let optionRole: string | undefined
+    switch (option.value) {
+      case 'viewers_and_up':
+        optionRole = 'viewer'
+        break
+      case 'editors_and_up':
+        optionRole = 'editor'
+        break
+      case 'creators_and_up':
+        optionRole = 'creator'
+        break
+      default:
+        return false
+    }
+
+    const optionRolePower = PermissionRolePower[optionRole as keyof typeof PermissionRolePower]
+    return optionRolePower && optionRolePower >= minimumRolePower
+  })
+})
 
 const { getPermissionTextColor } = usePermissions()
 
@@ -49,8 +85,7 @@ const selectedUserNames = computed(() => {
 const isDropdownOpen = ref(false)
 const dropdownRef = ref(null)
 
-// Handle permission change and emit save event
-const onPermissionChange = (value: string) => {
+const onPermissionChange = (value: any) => {
   handlePermissionChange(value)
   emits('save')
   isDropdownOpen.value = false
@@ -95,9 +130,9 @@ const mode = computed(() => props.mode || 'full')
       >
         <div
           class="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 border text-sm w-full"
-          :class="getPermissionTextColor(currentOption?.value)"
+          :class="getPermissionTextColor(currentOption?.value || 'editors_and_up')"
         >
-          <GeneralIcon :icon="currentOption?.icon || 'role_editor'" class="flex-none h-4 w-4" />
+          <GeneralIcon :icon="(currentOption?.icon || 'role_editor') as any" class="flex-none h-4 w-4" />
           <span class="font-medium text-sm">{{ currentOption?.label || 'Editors & up' }}</span>
           <span v-if="currentOption?.isDefault" class="text-xs text-gray-500">(DEFAULT)</span>
           <span class="flex-1"></span>
@@ -160,9 +195,9 @@ const mode = computed(() => props.mode || 'full')
     >
       <div
         class="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 border text-sm w-full"
-        :class="getPermissionTextColor(currentOption?.value)"
+        :class="getPermissionTextColor(currentOption?.value || 'editors_and_up')"
       >
-        <GeneralIcon :icon="currentOption?.icon || 'role_editor'" class="flex-none h-3.5 w-3.5" />
+        <GeneralIcon :icon="(currentOption?.icon || 'role_editor') as any" class="flex-none h-3.5 w-3.5" />
         <span class="font-medium">{{ currentOption?.label || 'Editors & up' }}</span>
         <span class="flex-1"></span>
         <GeneralIcon icon="arrowDown" class="flex-none h-3 w-3 text-gray-400" />
@@ -186,7 +221,7 @@ const mode = computed(() => props.mode || 'full')
           <div class="flex flex-col gap-1 py-1">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <GeneralIcon :icon="option.icon" class="flex-none h-4 w-4" :class="getPermissionTextColor(option.value)" />
+                <GeneralIcon :icon="option.icon as any" class="flex-none h-4 w-4" :class="getPermissionTextColor(option.value)" />
                 <span class="font-medium" :class="getPermissionTextColor(option.value)">{{ option.label }}</span>
                 <span v-if="option.isDefault" class="text-xs text-gray-500">(DEFAULT)</span>
               </div>
@@ -227,7 +262,7 @@ const mode = computed(() => props.mode || 'full')
     :base-id="base.id"
     :permission-label="config.label"
     :permission-description="config.description"
-    :minimum-role="config.minimumRole"
+    :permission="config.permission"
     @save="handleUserSelectorSave"
   />
 </template>

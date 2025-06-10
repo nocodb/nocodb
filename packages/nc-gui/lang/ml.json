@@ -505,7 +505,6 @@
       "postgreSQL": "PostgreSQL",
       "sqlite": "SQLite",
       "dataBricks": "DataBricks",
-      "mssqlServer": "MSSQL സെർവർ",
       "oracle": "Oracle",
       "telegram": "Telegram",
       "whatsapp": "Whatsapp",

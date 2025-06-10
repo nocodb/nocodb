@@ -60,7 +60,7 @@ const fieldPermissionsData = computed(() => {
 <template>
   <div class="border-t border-gray-200 pt-6">
     <div class="flex items-center justify-between mb-4">
-      <h3 class="text-base font-semibold">Field Permissions</h3>
+      <h3 class="text-lg text-nc-content-gray-subtle2 leading-6 font-bold">Field Permissions</h3>
       <div class="flex items-center gap-4">
         <span class="text-sm text-blue-600">
           {{ customFieldPermissionsCount }}/{{ visibleFields.length }} fields have custom permissions
@@ -70,7 +70,7 @@ const fieldPermissionsData = computed(() => {
     </div>
 
     <!-- Field Permissions Table -->
-    <div class="border border-gray-200 rounded-lg overflow-hidden">
+    <div class="border border-gray-200 rounded-lg overflow-hidden px-4">
       <NcTable
         :is-data-loading="false"
         :columns="fieldPermissionsColumns"
@@ -81,7 +81,6 @@ const fieldPermissionsData = computed(() => {
         class="nc-field-permissions-table"
       >
         <template #bodyCell="{ column, record }">
-          <!-- Field Name Column -->
           <template v-if="column.key === 'field_name'">
             <div class="flex items-center gap-3">
               <component :is="getUIDTIcon(record.field_icon || '')" class="flex-none h-4 w-4 text-nc-content-gray-subtle" />
@@ -91,7 +90,6 @@ const fieldPermissionsData = computed(() => {
             </div>
           </template>
 
-          <!-- Edit Permission Column -->
           <template v-if="column.key === 'edit_permission'">
             <PermissionsInlineFieldSelector
               :base="base!"

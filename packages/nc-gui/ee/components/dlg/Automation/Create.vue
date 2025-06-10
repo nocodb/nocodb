@@ -75,10 +75,10 @@ const _createScript = async () => {
     await validate()
     const createdScript = await createScript()
     dialogShow.value = false
-    emits('created', createdScript)
+    emits('created', createdScript as ScriptType)
   } catch (e: any) {
     console.error(e)
-    message.error(e.message)
+    message.error(await extractSdkResponseErrorMsg(e))
     if (e.errorFields.length) return
   } finally {
     setTimeout(() => {

@@ -206,9 +206,9 @@ export const useBases = defineStore('basesStore', () => {
       }
 
       return _projects
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
-      message.error(e.message)
+      message.error(await extractSdkResponseErrorMsg(e))
       throw e
     } finally {
       isProjectsLoading.value = false

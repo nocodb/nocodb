@@ -776,7 +776,7 @@ export function useCopyPaste({
       }
       return newAttachments
     } catch (e: any) {
-      message.error(e.message || t('msg.error.internalError'))
+      message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.internalError'))
     }
   }
 

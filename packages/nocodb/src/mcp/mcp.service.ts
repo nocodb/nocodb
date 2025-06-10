@@ -6,6 +6,11 @@ import { z } from 'zod';
 import { extractRolesObj, NcApiVersion, ProjectRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest, UserType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
+import type {
+  DataDeleteRequest,
+  DataInsertRequest,
+  DataUpdateRequest,
+} from '~/services/v3/data-v3.types';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
@@ -454,14 +459,14 @@ export class McpService {
           tableId: z.string().describe('Table ID'),
           records: z
             .array(
-              z.record(
-                z.string().describe('Field name/title'),
-                z.any().describe('Field value'),
-              ),
+              z.object({
+                fields: z.record(
+                  z.string().describe('Field name/title'),
+                  z.any().describe('Field value'),
+                ),
+              }),
             )
-            .describe(
-              'Array of records as key-value pairs of field titles and values',
-            ),
+            .describe('Array of records with fields as key-value pairs'),
         },
         async ({ tableId, records }) => {
           try {
@@ -470,7 +475,7 @@ export class McpService {
             const result = await this.datasV3Service.dataInsert(context, {
               modelId: tableId,
               baseId: context.base_id,
-              body: recordsArray,
+              body: recordsArray as DataInsertRequest[],
               cookie: req,
             });
 
@@ -495,14 +500,15 @@ export class McpService {
           tableId: z.string().describe('Table ID'),
           records: z
             .array(
-              z.record(
-                z.string().describe('Field name/title'),
-                z.any().describe('Field value'),
-              ),
+              z.object({
+                id: z.union([z.string(), z.number()]).describe('Record ID'),
+                fields: z.record(
+                  z.string().describe('Field name/title'),
+                  z.any().describe('Field value'),
+                ),
+              }),
             )
-            .describe(
-              'Array of records as key-value pairs of field titles and values',
-            ),
+            .describe('Array of records with ID and fields to update'),
         },
         async ({ tableId, records }) => {
           try {
@@ -511,7 +517,7 @@ export class McpService {
             const result = await this.datasV3Service.dataUpdate(context, {
               modelId: tableId,
               baseId: context.base_id,
-              body: recordsArray,
+              body: recordsArray as DataUpdateRequest[],
               cookie: req,
             });
 
@@ -536,14 +542,11 @@ export class McpService {
           tableId: z.string().describe('Table ID'),
           records: z
             .array(
-              z.record(
-                z.string().describe('Field name/title'),
-                z.any().describe('Field value'),
-              ),
+              z.object({
+                id: z.union([z.string(), z.number()]).describe('Record ID'),
+              }),
             )
-            .describe(
-              'Array of records as key-value pairs of primary key titles and values',
-            ),
+            .describe('Array of records with IDs to delete'),
         },
         async ({ tableId, records }) => {
           try {
@@ -551,7 +554,7 @@ export class McpService {
             const result = await this.datasV3Service.dataDelete(context, {
               modelId: tableId,
               baseId: context.base_id,
-              body: recordsArray,
+              body: recordsArray as DataDeleteRequest[],
               cookie: req,
             });
 

@@ -485,7 +485,12 @@ const handleKeyDown = (e: KeyboardEvent) => {
         <div class="flex items-center gap-2">
           <NcButton
             v-if="
-              !isPublic && !isDataReadOnly && isUIAllowed('dataEdit', externalBaseUserRoles) && isUIAllowed('dataEdit') && !isForm
+              !isPublic &&
+              !isDataReadOnly &&
+              isUIAllowed('dataEdit', externalBaseUserRoles) &&
+              isUIAllowed('dataEdit') &&
+              !isForm &&
+              !relatedTableMeta?.synced
             "
             v-e="['c:row-expand:open']"
             size="small"

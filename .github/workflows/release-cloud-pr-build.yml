@@ -8,11 +8,6 @@ on:
         description: 'PR number'
         required: false
         type: string
-      private_branch:
-        description: 'Private branch'
-        required: false
-        type: string
-        default: 'main'
   pull_request:
     types: [labeled, synchronize]
     paths:
@@ -77,7 +72,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: nocodb/ee-private
-          ref: ${{ github.event.inputs.private_branch }}
           token: ${{ secrets.GH_TOKEN_PRIVATE_REPO }}
           fetch-depth: 1
           path: ./ee-private

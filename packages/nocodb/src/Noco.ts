@@ -1,3 +1,4 @@
+import '~/instrument';
 import path from 'path';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';

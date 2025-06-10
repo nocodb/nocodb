@@ -383,6 +383,10 @@ export class DataV3Service {
   ): Promise<DataListResponse> {
     const response = await this.dataTableService.nestedDataList(context, {
       ...(param as Omit<NestedDataListParams, 'req'>),
+      query: {
+        ...param.query,
+        limit: +param.query?.pageSize,
+      },
       apiVersion: NcApiVersion.V3,
     });
 

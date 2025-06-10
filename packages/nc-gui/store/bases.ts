@@ -179,9 +179,9 @@ export const useBases = defineStore('basesStore', () => {
       await updateIfBaseOrderIsNullOrDuplicate()
 
       return _projects
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
-      message.error(e.message)
+      message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       isProjectsLoading.value = false
       isProjectsLoaded.value = true

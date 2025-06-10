@@ -212,7 +212,7 @@ watch(
           >
             <div class="flex items-center gap-2 group px-2 cursor-pointer" @click="isDropdownOpen = !isDropdownOpen">
               <GeneralIcon icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
-              <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand">
+              <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand select-none">
                 <SmartsheetHeaderIcon :column="displayColumn" class="!w-3.5 !h-3.5 !mx-0" />
                 <div v-if="!isMobileMode" class="w-16 text-bodyDefaultSm font-medium truncate">
                   {{ displayColumnLabel ?? '' }}

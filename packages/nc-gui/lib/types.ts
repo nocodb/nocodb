@@ -1,13 +1,13 @@
 import type { CSSProperties } from '@vue/runtime-dom'
 
 import {
-  type PermissionEntity,
-  type PermissionKey,
   type BaseType,
   type ColumnType,
   type FilterType,
   type MetaType,
   type PaginatedType,
+  type PermissionEntity,
+  type PermissionKey,
   type PublicAttachmentScope,
   type Roles,
   type RolesObj,
@@ -704,6 +704,7 @@ interface PermissionConfig {
   permission: PermissionKey
   label: string
   description?: string
+  minimumRole?: 'viewer' | 'editor' | 'creator'
 }
 
 interface PermissionSelectorUser {

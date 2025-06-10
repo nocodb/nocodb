@@ -1697,7 +1697,8 @@
     "navigateToTableToCreateView": "테이블로 이동하여 뷰를 생성합니다",
     "youDontHaveAccessToCreateNewTable": "새 테이블을 만들 수 있는 액세스 권한이 없습니다.",
     "youDontHaveAccessToCreateNewView": "새 보기를 만들 수 있는 액세스 권한이 없습니다.",
-    "youDontHaveAccessToCreateNewAutomation": "새 자동화를 만들 수 있는 액세스 권한이 없습니다."
+    "youDontHaveAccessToCreateNewAutomation": "새 자동화를 만들 수 있는 액세스 권한이 없습니다.",
+    "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",

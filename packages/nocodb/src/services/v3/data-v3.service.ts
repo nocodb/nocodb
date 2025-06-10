@@ -484,7 +484,7 @@ export class DataV3Service {
   async dataRead(
     context: NcContext,
     param: DataReadParams,
-  ): Promise<{ record: DataRecord }> {
+  ): Promise<DataRecord> {
     const { primaryKey } = await this.getModelInfo(context, param.modelId);
 
     const result = await this.dataTableService.dataRead(context, {
@@ -494,17 +494,15 @@ export class DataV3Service {
 
     // Transform the response to match the new format
     if (!result || typeof result !== 'object') {
-      return { record: { id: '', fields: {} } };
+      return { id: '', fields: {} };
     }
 
     const hasPrimaryKey = (obj: any): obj is Record<string, any> => {
       return primaryKey in obj;
     };
 
-    return {
-      record: hasPrimaryKey(result)
-        ? this.transformRecordToV3Format(result, primaryKey)
-        : { id: '', fields: {} },
-    };
+    return hasPrimaryKey(result)
+      ? this.transformRecordToV3Format(result, primaryKey)
+      : { id: '', fields: {} };
   }
 }

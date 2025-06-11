@@ -921,12 +921,14 @@ const triggerSubType = computed(() => {
                   </NcDropdown>
                 </div>
               </div>
-              <div class="border-1 border-nc-border-gray-medium rounded-b-2xl p-4">
-                <WebhookTriggerByField
-                  v-model:trigger-fields="hookRef.trigger_fields"
-                  v-model:trigger-field="hookRef.trigger_field"
-                  :columns="triggerByFieldColumns"
-                />
+              <div class="border-1 border-nc-border-gray-medium rounded-b-2xl px-4 pt-4">
+                <div class="mb-2">
+                  <WebhookTriggerByField
+                    v-model:trigger-fields="hookRef.trigger_fields"
+                    v-model:trigger-field="hookRef.trigger_field"
+                    :columns="triggerByFieldColumns"
+                  />
+                </div>
                 <div class="w-full flex items-center justify-between h-[32px]">
                   <label class="cursor-pointer" @click.prevent="hookRef.condition = !hookRef.condition">
                     <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
@@ -967,7 +969,7 @@ const triggerSubType = computed(() => {
                   </div>
                 </div>
 
-                <div>
+                <div class="mb-2">
                   <LazySmartsheetToolbarColumnFilter
                     v-if="hookRef.condition"
                     ref="filterRef"

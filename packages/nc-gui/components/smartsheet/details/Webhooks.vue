@@ -313,7 +313,11 @@ const getHookTypeText = (hook: HookType) => {
           </NcButton>
         </div>
 
-        <div style="height: calc(100vh - (var(--topbar-height) * 3.5))" class="">
+        <div
+          :style="{
+            height: `calc(100vh - var(--topbar-height) - var(--toolbar-height) - 104px - ${hasV2Webhooks ? '82px' : '0px'})`,
+          }"
+        >
           <div
             v-if="!hooks.length"
             class="flex-col flex items-center gap-6 justify-center w-full h-full py-12 px-4 border-1 rounded-xl border-gray-200"

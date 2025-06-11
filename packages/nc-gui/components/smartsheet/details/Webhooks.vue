@@ -79,6 +79,8 @@ const openDeleteModal = (hookId: string) => {
 
 const webHookSearch = ref('')
 
+const isOpenContextMenu = ref<Record<string, boolean>>({})
+
 const filteredHooks = computed(() =>
   hooks.value.filter((hook) => hook.title?.toLowerCase().includes(webHookSearch.value.toLowerCase())),
 )
@@ -342,7 +344,7 @@ const getHookTypeText = (hook: HookType) => {
             :data="sortedHooks"
             :custom-row="customRow"
             class="h-full"
-            body-row-class-name="nc-view-sidebar-webhook-item"
+            body-row-class-name="nc-view-sidebar-webhook-item group"
           >
             <template #bodyCell="{ column, record: hook }">
               <NcTooltip :disabled="hook.event !== 'manual'">
@@ -382,12 +384,23 @@ const getHookTypeText = (hook: HookType) => {
               </template>
               <template v-if="column.key === 'action'">
                 <!-- TODO: disable edit for v2 and add migration -->
-                <NcDropdown overlay-class-name="nc-webhook-item-action-dropdown">
-                  <NcButton type="secondary" size="small" class="!w-8 !h-8" data-testid="nc-webhook-item-action" @click.stop>
-                    <component :is="iconMap.threeDotVertical" class="text-gray-700" />
-                  </NcButton>
+                <NcDropdown v-model:visible="isOpenContextMenu[hook.id]" overlay-class-name="nc-webhook-item-action-dropdown">
+                  <template #default="{ visible }">
+                    <NcButton
+                      type="secondary"
+                      size="small"
+                      class="!w-8 !h-8 invisible group-hover:visible"
+                      :class="{
+                        '!visible': visible,
+                      }"
+                      data-testid="nc-webhook-item-action"
+                      @click.stop
+                    >
+                      <component :is="iconMap.threeDotVertical" class="text-gray-700" />
+                    </NcButton>
+                  </template>
                   <template #overlay>
-                    <NcMenu class="w-48" variant="small">
+                    <NcMenu class="w-48" variant="small" @click="isOpenContextMenu[hook.id] = false">
                       <NcMenuItem key="edit" data-testid="nc-webhook-item-action-edit" @click="editHook(hook)">
                         <GeneralIcon icon="edit" />
                         <span>{{ $t('general.edit') }}</span>

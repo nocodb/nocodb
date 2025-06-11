@@ -7,6 +7,8 @@ import {
   isDateOrDateTimeCol,
   isLinksOrLTAR,
   isSystemColumn,
+  isVirtualCol,
+  ncIsNaN,
   parseStringDateTime,
   timeFormats,
 } from 'nocodb-sdk'
@@ -120,6 +122,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const relatedTableMeta = computed<TableType>(() => {
       return metas.value?.[colOptions.value?.fk_related_model_id as string]
     })
+
+    const { sqlUis } = storeToRefs(useBase())
+
+    const sqlUi = computed(() =>
+      (relatedTableMeta.value as TableType)?.source_id
+        ? sqlUis.value[(relatedTableMeta.value as TableType).source_id!]
+        : Object.values(sqlUis.value)[0],
+    )
 
     const rowId = computed(() => extractPkFromRow(currentRow.value.row, meta.value.columns))
 
@@ -330,6 +340,39 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return sanitizedRow
     }
 
+    const whereClause = computed(() => {
+      if (!childrenExcludedListPagination.query) return
+
+      const fieldQuery = [relatedTableDisplayValueColumn.value || [], ...(fields.value || [])]
+        .filter((col) => {
+          return !isVirtualCol(col)
+        })
+        .map((field: ColumnType): string => {
+          let operator = 'like'
+          let query = childrenExcludedListPagination.query.trim()
+
+          if (isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) && isDateOrDateTimeCol(field)) {
+            operator = 'eq,exactDate'
+          } else if (sqlUi.value && ['text', 'string'].includes(sqlUi.value.getAbstractType(field)) && field.dt !== 'bigint') {
+            operator = 'like'
+            if (!query) return ''
+
+            query = `%${query}%`
+          } else {
+            operator = 'eq'
+            query = !ncIsNaN(query) ? query : ''
+          }
+
+          if (!query) return ''
+
+          return `(${field.title},${operator},${query})`
+        })
+        .filter(Boolean)
+        .join('~or')
+
+      return fieldQuery
+    })
+
     const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
       if (activeState) newRowState.state = activeState
       try {
@@ -342,11 +385,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           childrenExcludedListPagination.page = 1
         }
         isChildrenExcludedLoading.value = true
-        const where = childrenExcludedListPagination.query
-          ? `(${relatedTableDisplayValueProp.value},${
-              isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq,exactDate' : 'like'
-            },${childrenExcludedListPagination.query})`
-          : undefined
+        const where = whereClause.value
 
         if (isPublic.value) {
           const router = useRouter()

@@ -490,7 +490,7 @@ async function loadPluginList() {
 }
 
 const isConditionSupport = computed(() => {
-  return hookRef.eventOperation && !(hookRef.eventOperation.includes('bulk') || hookRef.eventOperation.includes('manual'))
+  return hookRef.event && hookRef.event !== 'manual'
 })
 
 async function saveHooks() {
@@ -854,7 +854,13 @@ const triggerSubType = computed(() => {
               <div class="text-nc-content-gray text-base font-bold leading-6">
                 {{ $t('general.trigger') }}
               </div>
-              <div class="mt-3 border-1 border-nc-border-gray-medium p-4 border-b-0 rounded-t-2xl">
+              <div
+                class="mt-3 p-4 border-1 border-nc-border-gray-medium"
+                :class="{
+                  'border-b-0 rounded-t-2xl': isConditionSupport,
+                  'rounded-2xl': !isConditionSupport,
+                }"
+              >
                 <div class="w-full flex gap-3">
                   <a-form-item class="w-full !my-0">
                     <NcSelect
@@ -932,7 +938,7 @@ const triggerSubType = computed(() => {
                   </NcDropdown>
                 </div>
               </div>
-              <div class="border-1 border-nc-border-gray-medium rounded-b-2xl px-4 pt-4">
+              <div v-if="isConditionSupport" class="border-1 border-nc-border-gray-medium rounded-b-2xl px-4 pt-4">
                 <div class="w-full flex items-center justify-between h-[28px]">
                   <label class="cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
                     <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">

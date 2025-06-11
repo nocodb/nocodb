@@ -9,6 +9,23 @@ import {
 import { parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
 
+export const DATE_SCALE_LABEL_TO_DIFF_MAP = {
+  Y: 'year',
+  M: 'month',
+  D: 'day',
+  H: 'hour',
+  m: 'minute',
+  s: 'second',
+};
+export const DATE_DIFF_TO_SCALE_LABEL_MAP = {
+  year: 'Y',
+  month: 'M',
+  day: 'D',
+  hour: 'H',
+  minute: 'm',
+  second: 's',
+};
+
 export const parseDateValue = (
   value: string | null,
   col: ColumnType,

@@ -36,6 +36,10 @@ export const composeNewDecimalValue = (props: {
   );
 };
 
+export const isNumberRound = (a: number) => {
+  return a - Math.floor(a) === 0;
+};
+
 export const floatAddDumb = (a: number, b: number) => {
   return Math.round(a * 100 + b * 100) / 100;
 };

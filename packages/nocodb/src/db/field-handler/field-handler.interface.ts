@@ -39,7 +39,7 @@ export type FilterOperationResult = {
 export interface FilterOperation {
   (
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: {

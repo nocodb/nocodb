@@ -256,13 +256,13 @@ export class UserGeneralHandler extends GenericFieldHandler {
 
     if (filter.comparison_op === 'like') {
       return this.singleLineTextHandler.filterLike(
-        { val, sourceField: finalStatement },
+        { val, sourceField: knex.raw(finalStatement) },
         rootArgs,
         options,
       );
     } else {
       return this.singleLineTextHandler.filterNlike(
-        { val, sourceField: finalStatement },
+        { val, sourceField: knex.raw(finalStatement) },
         rootArgs,
         options,
       );

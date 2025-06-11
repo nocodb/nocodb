@@ -229,7 +229,7 @@ export const useScriptExecutor = createSharedComposable(() => {
             body: message.payload?.options?.body || null,
             url: message.payload.url,
           })
-          .then((c) => {
+          .then((c: any) => {
             worker.postMessage({
               type: ActionType.REMOTE_FETCH,
               payload: {
@@ -395,7 +395,7 @@ export const useScriptExecutor = createSharedComposable(() => {
       }
 
       try {
-        await scriptQueue.add(executeScript, {
+        scriptQueue.add(executeScript, {
           id: scriptId,
           priority: extra?.priority || 1,
           timeout: 120000, // 2 minutes timeout per script execution

@@ -831,7 +831,7 @@ const triggerSubType = computed(() => {
         ref="containerElem"
         class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-12 py-6 mx-auto"
       >
-        <div style="max-width: 700px; min-width: 640px" class="mx-auto gap-8 flex flex-col">
+        <div class="max-w-[640px] min-w-[564px] w-full mx-auto gap-8 flex flex-col">
           <a-form-item v-bind="validateInfos.title">
             <div
               class="flex flex-grow px-2 py-1 title-input items-center border-b-1 rounded-t-md border-gray-200 bg-gray-100"
@@ -933,7 +933,15 @@ const triggerSubType = computed(() => {
                 </div>
               </div>
               <div class="border-1 border-nc-border-gray-medium rounded-b-2xl px-4 pt-4">
-                <div class="w-full flex items-center justify-between h-[32px]">
+                <div v-if="hookRef.event === 'after' && hookRef.operation?.includes('update')" class="mb-2">
+                  <WebhookTriggerByField
+                    v-model:trigger-fields="hookRef.trigger_fields"
+                    v-model:trigger-field="hookRef.trigger_field"
+                    :columns="triggerByFieldColumns"
+                  />
+                </div>
+
+                <div class="w-full flex items-center justify-between h-[28px] mt-4">
                   <label class="cursor-pointer" @click.prevent="hookRef.condition = !hookRef.condition">
                     <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
                       <span class="!text-gray-700 font-semibold">
@@ -944,7 +952,7 @@ const triggerSubType = computed(() => {
 
                   <div v-if="hookRef.condition" class="flex gap-2">
                     <NcButton
-                      size="small"
+                      size="xs"
                       type="secondary"
                       class="nc-btn-focus"
                       data-testid="add-filter"
@@ -960,7 +968,7 @@ const triggerSubType = computed(() => {
                     <NcButton
                       class="nc-btn-focus"
                       type="secondary"
-                      size="small"
+                      size="xs"
                       data-testid="add-filter-group"
                       @click.stop="filterRef.addFilterGroup()"
                     >
@@ -973,7 +981,12 @@ const triggerSubType = computed(() => {
                   </div>
                 </div>
 
-                <div class="mb-2">
+                <div
+                  class="mb-4"
+                  :class="{
+                    'nc-filter-ref-wrapper': hookRef.condition,
+                  }"
+                >
                   <LazySmartsheetToolbarColumnFilter
                     v-if="hookRef.condition"
                     ref="filterRef"
@@ -985,14 +998,6 @@ const triggerSubType = computed(() => {
                     :web-hook="true"
                     action-btn-type="secondary"
                     @update:filters-length="hookRef.condition = $event > 0"
-                  />
-                </div>
-
-                <div v-if="hookRef.event === 'after' && hookRef.operation?.includes('update')" class="mb-2">
-                  <WebhookTriggerByField
-                    v-model:trigger-fields="hookRef.trigger_fields"
-                    v-model:trigger-field="hookRef.trigger_field"
-                    :columns="triggerByFieldColumns"
                   />
                 </div>
               </div>
@@ -1451,6 +1456,14 @@ const triggerSubType = computed(() => {
   @apply bg-white text-brand-600 hover:text-brand-600;
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+}
+
+.nc-filter-ref-wrapper {
+  @apply mb-4;
+
+  &:has(.nc-filter-top-wrapper) {
+    @apply mb-1;
+  }
 }
 </style>
 

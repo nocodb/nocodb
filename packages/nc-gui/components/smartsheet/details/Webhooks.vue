@@ -361,12 +361,14 @@ const getHookTypeText = (hook: HookType) => {
                   </template>
                 </NcTooltip>
 
-                <NcBadge v-if="hook.version === 'v2'" color="orange" :border="false">
-                  <div class="flex items-center gap-1 text-nc-content-orange-dark">
-                    <GeneralIcon icon="ncAlertTriangle" />
-                    Update
-                  </div>
-                </NcBadge>
+                <NcTooltip class="-mr-2">
+                  <NcBadge v-if="hook.version === 'v2'" color="orange" :border="false">
+                    <div class="flex items-center gap-1 text-nc-content-orange-dark">
+                      <GeneralIcon icon="ncAlertTriangle" />
+                    </div>
+                  </NcBadge>
+                  <template #title> Port this webhook from v2 to v3 </template>
+                </NcTooltip>
               </template>
               <template v-if="column.key === 'type'">
                 <div class="flex items-center text-nc-content-gray-subtle2 text-[13px] font-default leading-4.5">

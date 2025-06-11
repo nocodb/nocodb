@@ -148,21 +148,6 @@ declare interface RecordQueryResult {
   readonly hasMoreRecords: boolean
 
   /**
-   * Total number of records matching the query
-   */
-  readonly totalRecords: number
-
-  /**
-   * Current page number (0-based)
-   */
-  readonly currentPage: number
-
-  /**
-   * Number of records per page
-   */
-  readonly pageSize: number
-
-  /**
    * Get a specific record from the result set by ID
    *
    * @param recordId - ID of the record to retrieve
@@ -637,7 +622,18 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
        * Relation field to use
        */
       related_field_id: string
-    }
+    
+      /**
+       * Whether to show thousands separator
+       */
+      locale_string: boolean
+    
+      /**
+       * Number of decimal places to display
+       * Possible values 0 - 8
+       */
+     precision: number
+  }
   : FieldTypeT extends UITypes.Links
   ? {
       /**
@@ -1886,13 +1882,13 @@ declare interface View {
      */
     recordIds?: ReadonlyArray<string>
     /**
-     * Maximum records to return (default: 500)
+     * Maximum records to return (default: 50)
      */
-    limit?: number
+    pageSize?: number
     /**
-     * Number of records to skip
+     * Page number (default: 1)
      */
-    offset?: number
+    page?: number
   }): Promise<RecordQueryResult>
 
   /**
@@ -2000,13 +1996,13 @@ declare interface Table {
      */
     recordIds?: ReadonlyArray<string>
     /**
-     * Maximum records to return (default: 500)
+     * Maximum records to return (default: 50)
      */
-    limit?: number
+    pageSize?: number
     /**
-     * Number of records to skip
+     * Page number (default: 1)
      */
-    offset?: number
+    page?: number
   }): Promise<RecordQueryResult>
 
   /**
@@ -2045,10 +2041,10 @@ declare interface Table {
    * Field values can be referenced by either field name or ID.
    * This action is asynchronous.
    *
-   * @param recordId - ID of record to update
+   * @param recordOrRecordId - ID of record to update
    * @param data - New field values
    */
-  updateRecordAsync(recordId: NocoDBRecord | any, data: { [key: string]: unknown }): Promise<void>
+  updateRecordAsync(recordOrRecordId: NocoDBRecord | any, data: { [key: string]: unknown }): Promise<void>
 
   /**
    * Updates field values for multiple records.
@@ -2071,9 +2067,9 @@ declare interface Table {
    * Delete a record.
    * This action is asynchronous.
    *
-   * @param recordIdorRecord - Id or Record
+   * @param recordIdOrRecord - Id or Record
    */
-  deleteRecordAsync(recordIdorRecord: string | NocoDBRecord): Promise<void>;
+  deleteRecordAsync(recordIdOrRecord: string | NocoDBRecord): Promise<void>;
 }
 
 /**
@@ -3334,6 +3330,7 @@ declare interface ConfigItem {}
     this.write()
 
     // input.buttonAsync
+
     this.formatJSDoc([
       `Prompts the user to choose from a list of string options.`,
       `@param label - A label explaining what the user is choosing`,
@@ -3403,8 +3400,8 @@ declare interface ConfigItem {}
       `@param label - A label explaining what file being requested`,
       `@param options - Options for file import`,
       `@param options.allowedFileTypes - Which file types can be imported (e.g. '.xlsx', 'application/json', 'image/*')`,
-      `@param options.hasHeaderRow - For csv files, whether first row contains headers`,
-      `@param options.useRawValues - For csv files, whether to return raw string values`,
+      `@param options.hasHeaderRow - For spreadsheets, whether first row contains headers`,
+      `@param options.useRawValues - For csv, whether to return raw string values`,
     ])
     this.write(`fileAsync(label: string, options?: {
  /** If provided, restricts allowed file types (e.g. '.xlsx', 'application/json', 'image/*') */

@@ -859,7 +859,7 @@ Object.freeze(UITypes);
     }
     
     async selectRecordsAsync(options = {}) {
-      const { sorts = [], fields = [], recordIds = [], limit = 50, page = 1 } = options
+      const { sorts = [], fields = [], recordIds = [], pageSize = 50, page = 1 } = options
            
       const pvAndPk = this.fields.filter(f => f.primary_value || f.primary_key).map(f => f.name)
       
@@ -890,7 +890,7 @@ Object.freeze(UITypes);
       
       const requestOptions = {
         page,
-        pageSize: limit,
+        pageSize,
         ...(fieldsToSelect && { fields: fieldsToSelect }),
         ...(sortArray.length && { sort: sortArray }),
   };

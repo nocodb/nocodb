@@ -262,7 +262,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
       );
     } else {
       return this.singleLineTextHandler.filterNlike(
-        { val, sourceField: finalStatement },
+        { val, sourceField: knex.raw(finalStatement) },
         rootArgs,
         options,
       );

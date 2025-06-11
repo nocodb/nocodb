@@ -1064,19 +1064,51 @@ const api = new Proxy({}, {
           payload: { id, method: prop.toString(), args },
         };
         self.postMessage(message);
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
           function handleMessage(e) {
             const responseMessage = e.data;
             if (responseMessage.type === '${ActionType.RESPONSE}' && responseMessage.payload.id === id) {
-              if (typeof responseMessage.payload.payload?.error === 'string') {
-                try {
-                  responseMessage.payload.payload.error = JSON.parse(responseMessage.payload.payload.error);
-                } catch (e) {
-                  // Do nothing
+              self.removeEventListener('message', handleMessage);
+              
+              const response = responseMessage.payload.payload;
+              
+              // Enhanced error handling
+              if (response && typeof response === 'object') {
+                // Check for error property in response
+                if (response.error) {
+                  // Try to parse stringified error objects
+                  if (typeof response.error === 'string') {
+                    try {
+                      response.error = JSON.parse(response.error);
+                    } catch (e) {
+                      // Keep as string if not valid JSON
+                    }
+                  }
+                  
+                  // Check for common error indicators
+                  if (response.error.name === 'AxiosError' || 
+                      response.error.isAxiosError || 
+                      response.error.status >= 400) {
+                    reject(new Error(response.error.message || 'API request failed'));
+                    return;
+                  }
+                }
+                
+                // Check for HTTP error status codes directly on response
+                if (response.status >= 400) {
+                  reject(new Error(\`HTTP Error: \${response.status} - \${response.statusText || 'Unknown error'}\`));
+                  return;
+                }
+                
+                // Check for NocoDB specific error patterns
+                if (response.msg && response.msg.includes('Error')) {
+                  reject(new Error(response.msg));
+                  return;
                 }
               }
-              resolve(responseMessage.payload.payload);
-              self.removeEventListener('message', handleMessage);
+              
+              // Success case
+              resolve(response);
             }
           }
           self.addEventListener('message', handleMessage);

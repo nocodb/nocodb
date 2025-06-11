@@ -126,7 +126,7 @@ export const useScriptExecutor = createSharedComposable(() => {
     try {
       const api = internalApi as any
       if (!api[method]) {
-        throw new Error(`API method not found: ${method}}`)
+        throw new Error(`API method not found: ${method}`)
       }
       const response = await api[method](...args)
 
@@ -138,7 +138,7 @@ export const useScriptExecutor = createSharedComposable(() => {
       console.error(`Error in API call: ${error}`)
       worker.postMessage({
         type: ActionType.RESPONSE,
-        payload: { id, payload: { error: JSON.stringify(error) } },
+        payload: { id, payload: { error: error instanceof Error ? error.message : JSON.stringify(error) } },
       })
     }
   }
@@ -252,13 +252,6 @@ export const useScriptExecutor = createSharedComposable(() => {
     maxConcurrent: 10,
     autoStart: true,
     priorityLevels: 3,
-    retryOptions: {
-      maxRetries: 2,
-      retryDelay: 1000,
-      retryCondition: (error: any) => {
-        return error && (error.message?.includes('network') || error.message?.includes('timeout'))
-      },
-    },
     timeout: 60000,
     rateLimit: {
       enabled: true,
@@ -276,38 +269,39 @@ export const useScriptExecutor = createSharedComposable(() => {
       priority?: number
     },
   ) => {
-    if (typeof script === 'string') {
-      script = (await loadAutomation(script)) as ScriptType
-    }
+    try {
+      if (typeof script === 'string') {
+        script = (await loadAutomation(script)) as ScriptType
+      }
 
-    const code = replaceConfigValues(script.script ?? '', script.config ?? {})
-    const scriptId = `${script.id}-${Date.now()}-${generateRandomNumber()}`
+      const code = replaceConfigValues(script.script ?? '', script.config ?? {})
+      const scriptId = `${script.id}-${Date.now()}-${generateRandomNumber()}`
 
-    activeExecutions.value.set(scriptId, {
-      worker: null,
-      status: 'running',
-      result: null,
-      error: null,
-      fieldId: extra?.fieldId,
-      pk: extra?.pk,
-      playground: [],
-    })
+      activeExecutions.value.set(scriptId, {
+        worker: null,
+        status: 'running',
+        result: null,
+        error: null,
+        fieldId: extra?.fieldId,
+        pk: extra?.pk,
+        playground: [],
+      })
 
-    const executeScript = async () => {
-      try {
-        isFinished.value = false
-        isRunning.value = true
+      const executeScript = async () => {
+        try {
+          isFinished.value = false
+          isRunning.value = true
 
-        let runCustomCode = customCode.value
+          let runCustomCode = customCode.value
 
-        for (const integration of aiIntegrations.value) {
-          runCustomCode = runCustomCode.replace(
-            new RegExp(`integrations.${integration.type}.${integration.title}`, 'g'),
-            `integrations.${integration.type}.${integration.id}`,
-          )
-        }
+          for (const integration of aiIntegrations.value) {
+            runCustomCode = runCustomCode.replace(
+              new RegExp(`integrations.${integration.type}.${integration.title}`, 'g'),
+              `integrations.${integration.type}.${integration.id}`,
+            )
+          }
 
-        runCustomCode = `${runCustomCode}
+          runCustomCode = `${runCustomCode}
     
     const cursor = {
       activeBaseId: '${activeProjectId.value}',
@@ -316,34 +310,53 @@ export const useScriptExecutor = createSharedComposable(() => {
     }
     `
 
-        if (row) {
-          runCustomCode = `
+          if (row) {
+            runCustomCode = `
       ${runCustomCode}
     cursor.row = (${JSON.stringify(row)})
     `
-        }
+          }
 
-        const workerCode = createWorkerCode(code ?? '', runCustomCode)
-        const minCode = await transform(workerCode)
+          const workerCode = createWorkerCode(code ?? '', runCustomCode)
+          const minCode = await transform(workerCode)
 
-        if (minCode.error || !minCode.code) {
-          throw new Error(minCode.error)
-        }
+          if (minCode.error || !minCode.code) {
+            throw new Error(minCode.error)
+          }
 
-        await new Promise<void>((resolve, reject) => {
-          const blob = new Blob([minCode.code], { type: 'application/javascript' })
-          const workerUrl = URL.createObjectURL(blob)
-          const worker = new Worker(workerUrl, { type: 'module' })
+          await new Promise<void>((resolve, reject) => {
+            const blob = new Blob([minCode.code], { type: 'application/javascript' })
+            const workerUrl = URL.createObjectURL(blob)
+            const worker = new Worker(workerUrl, { type: 'module' })
 
-          activeExecutions.value.set(scriptId, {
-            ...activeExecutions.value.get(scriptId)!,
-            worker,
-          })
+            activeExecutions.value.set(scriptId, {
+              ...activeExecutions.value.get(scriptId)!,
+              worker,
+            })
 
-          worker.postMessage({ type: 'run', scriptId })
+            worker.postMessage({ type: 'run', scriptId })
 
-          worker.onmessage = (e) => {
-            handleWorkerMessage(scriptId, e.data, worker, () => {
+            worker.onmessage = (e) => {
+              handleWorkerMessage(scriptId, e.data, worker, () => {
+                worker.terminate()
+                URL.revokeObjectURL(workerUrl)
+
+                const execution = activeExecutions.value.get(scriptId)
+                if (execution) {
+                  activeExecutions.value.set(scriptId, {
+                    ...execution,
+                    status: 'finished',
+                    worker: null,
+                  })
+                }
+
+                isRunning.value = false
+                isFinished.value = true
+                resolve()
+              })
+            }
+
+            worker.onerror = (error) => {
               worker.terminate()
               URL.revokeObjectURL(workerUrl)
 
@@ -351,38 +364,45 @@ export const useScriptExecutor = createSharedComposable(() => {
               if (execution) {
                 activeExecutions.value.set(scriptId, {
                   ...execution,
-                  status: 'finished',
+                  status: 'error',
+                  error,
                   worker: null,
                 })
               }
 
               isRunning.value = false
               isFinished.value = true
-              resolve()
+              reject(error)
+            }
+          })
+        } catch (error) {
+          console.error('Script execution failed:', error)
+
+          const execution = activeExecutions.value.get(scriptId)
+          if (execution) {
+            activeExecutions.value.set(scriptId, {
+              ...execution,
+              status: 'error',
+              error,
+              worker: null,
             })
           }
 
-          worker.onerror = (error) => {
-            worker.terminate()
-            URL.revokeObjectURL(workerUrl)
+          isRunning.value = false
+          isFinished.value = true
+          throw error
+        }
+      }
 
-            const execution = activeExecutions.value.get(scriptId)
-            if (execution) {
-              activeExecutions.value.set(scriptId, {
-                ...execution,
-                status: 'error',
-                error,
-                worker: null,
-              })
-            }
-
-            isRunning.value = false
-            isFinished.value = true
-            reject(error)
-          }
+      try {
+        await scriptQueue.add(executeScript, {
+          id: scriptId,
+          priority: extra?.priority || 1,
+          timeout: 120000, // 2 minutes timeout per script execution
         })
+        return scriptId
       } catch (error) {
-        console.error('Script execution failed:', error)
+        console.error('Failed to queue script execution:', error)
 
         const execution = activeExecutions.value.get(scriptId)
         if (execution) {
@@ -394,32 +414,10 @@ export const useScriptExecutor = createSharedComposable(() => {
           })
         }
 
-        isRunning.value = false
-        isFinished.value = true
         throw error
       }
-    }
-
-    try {
-      await scriptQueue.add(executeScript, {
-        id: scriptId,
-        priority: extra?.priority || 1,
-        timeout: 120000, // 2 minutes timeout per script execution
-      })
-      return scriptId
     } catch (error) {
-      console.error('Failed to queue script execution:', error)
-
-      const execution = activeExecutions.value.get(scriptId)
-      if (execution) {
-        activeExecutions.value.set(scriptId, {
-          ...execution,
-          status: 'error',
-          error,
-          worker: null,
-        })
-      }
-
+      console.error('Failed to run script:', error)
       throw error
     }
   }

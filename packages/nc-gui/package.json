@@ -49,7 +49,7 @@
     "@floating-ui/vue": "^1.1.6",
     "@iconify/vue": "^4.3.0",
     "@pinia/nuxt": "^0.5.5",
-    "@readme/httpsnippet": "^2.5.1",
+    "@readme/httpsnippet": "^11.0.0",
     "@sentry/vue": "^9.2.0",
     "@stripe/stripe-js": "^5.7.0",
     "@tiptap/extension-blockquote": "^2.11.5",

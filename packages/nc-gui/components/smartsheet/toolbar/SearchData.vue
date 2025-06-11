@@ -121,14 +121,6 @@ const handleShowSearchInput = () => {
   }, 300)
 }
 
-const handleEscapeKey = () => {
-  if (isDropdownOpen.value) return
-  search.value.query = ''
-  if (!isMobileMode.value) {
-    showSearchBox.value = false
-  }
-}
-
 const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
   const targetEl = e.target as HTMLElement
   if (search.value.query || targetEl.closest('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) {

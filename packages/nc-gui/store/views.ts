@@ -67,6 +67,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const { activeTable } = storeToRefs(useTablesStore())
 
+  const lastOpenedViewId = ref<string | undefined>(undefined)
+
   const activeViewTitleOrId = computed(() => {
     if (!route.value.params.viewTitle?.length) {
       // find the default view and navigate to it, if not found navigate to the first one
@@ -644,6 +646,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     setCurrentViewExpandedFormMode,
     setCurrentViewExpandedFormAttachmentColumn,
     onOpenViewCreateModal,
+    lastOpenedViewId,
   }
 })
 

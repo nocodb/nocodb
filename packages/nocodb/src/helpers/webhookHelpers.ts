@@ -403,6 +403,7 @@ export function constructWebHookData(
     return {
       type: `${scope}.${hook.event}.${hook.operation}`,
       id: uuidv4(),
+      version: hook.version,
       data: {
         table_id: model.id,
         table_name: model.title,
@@ -410,10 +411,19 @@ export function constructWebHookData(
         // view_id: view?.id,
         // view_name: view?.title,
         ...(prevData && {
-          previous_rows: Array.isArray(prevData) ? prevData : [prevData],
+          previous_rows: Array.isArray(prevData)
+            ? prevData.map((prev) => ({ ...prev, nc_order: undefined }))
+            : [{ ...prevData, nc_order: undefined }],
         }),
         ...(!isBulkInsert &&
-          newData && { rows: Array.isArray(newData) ? newData : [newData] }),
+          newData && {
+            rows: Array.isArray(newData)
+              ? newData.map((each) => ({
+                  ...each,
+                  nc_order: undefined,
+                }))
+              : [{ ...newData, nc_order: undefined }],
+          }),
         ...(isBulkInsert && {
           rows_inserted: Array.isArray(newData)
             ? newData.length
@@ -652,9 +662,9 @@ export async function invokeWebhook(
     hook,
     model,
     view,
-    prevData,
     user,
     hookName,
+    prevData,
     testFilters = null,
     throwErrorOnFailure = false,
     testHook = false,

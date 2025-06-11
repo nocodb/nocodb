@@ -820,7 +820,8 @@
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
-    "duplicatesFound": "Duplicates found"
+    "duplicatesFound": "Duplicates found",
+    "matchingResultsInRecords": "Matching results in {count} records"
   },
   "labels": {
     "crossBase": "Link to external base",

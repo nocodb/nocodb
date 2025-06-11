@@ -261,7 +261,7 @@ const getHookTypeText = (hook: HookType) => {
             <div class="text-nc-content-gray font-bold text-base leading-6">
               {{ $t('msg.webhookV2Deprecated') }}
             </div>
-            <div class="text-nc-content-gray-muted mt-1 font-medium leading-5">
+            <div class="text-nc-content-gray-muted mt-1 font-default leading-5">
               {{ $t('msg.webhookV2DeprecatedDesc') }}
             </div>
           </div>
@@ -353,26 +353,24 @@ const getHookTypeText = (hook: HookType) => {
               </NcTooltip>
 
               <template v-if="column.key === 'name'">
-                <NcTooltip class="truncate max-w-full text-gray-800 font-semibold text-sm" show-on-truncate-only>
+                <NcTooltip class="truncate max-w-full flex-1 text-gray-800 font-semibold text-sm" show-on-truncate-only>
                   {{ hook.title }}
 
                   <template #title>
                     {{ hook.title }}
                   </template>
                 </NcTooltip>
+
+                <NcBadge v-if="hook.version === 'v2'" color="orange" :border="false">
+                  <div class="flex items-center gap-1 text-nc-content-orange-dark">
+                    <GeneralIcon icon="ncAlertTriangle" />
+                    Update
+                  </div>
+                </NcBadge>
               </template>
               <template v-if="column.key === 'type'">
-                <div class="flex items-center">
-                  <NcTooltip v-if="hook.version === 'v2'" class="-ml-21 absolute">
-                    <template #title> Port this webhook from v2 to v3 </template>
-                    <a-tag color="orange">
-                      <GeneralIcon icon="alertTriangle" class="w-4 h-4 flex-none" />
-                      update
-                    </a-tag>
-                  </NcTooltip>
-                  <div>
-                    {{ getHookTypeText(hook) }}
-                  </div>
+                <div class="flex items-center text-nc-content-gray-subtle2 text-[13px] font-default leading-4.5">
+                  {{ getHookTypeText(hook) }}
                 </div>
               </template>
               <template v-if="column.key === 'created_at'">

@@ -63,6 +63,11 @@ export class HooksService {
     if (!SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)) {
       NcError.badRequest('hook version is deprecated / not supported anymore');
     }
+
+    if (!param.hook?.trigger_field) {
+      param.hook.trigger_field = false;
+    }
+
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
     this.validateHookPayload(param.hook.notification);
 
@@ -124,6 +129,11 @@ export class HooksService {
     if (!SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)) {
       NcError.badRequest('hook version is deprecated / not supported anymore');
     }
+
+    if (!param.hook?.trigger_field) {
+      param.hook.trigger_field = false;
+    }
+
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
     const hook = await Hook.get(context, param.hookId);

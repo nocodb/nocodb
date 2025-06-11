@@ -347,7 +347,7 @@ export default class Hook implements HookType {
         context.workspace_id,
         context.base_id,
         MetaTable.HOOK_TRIGGER_FIELDS,
-        hook.trigger_fields.map((colId) => {
+        (hook.trigger_fields || []).map((colId) => {
           return {
             fk_hook_id: hookId,
             fk_column_id: colId,

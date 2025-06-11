@@ -146,9 +146,29 @@ export const serializeJsonValue = (value: any) => {
   }
 };
 
-export const serializeCurrencyValue = (value: any) => {
+export const serializeCurrencyValue = (value: any, col: ColumnType) => {
   return serializeDecimalValue(value, (value) => {
-    return value?.replace(/[^0-9.]/g, '')?.trim();
+    const columnMeta = parseProp(col.meta);
+
+    // Create a number formatter for the target locale (e.g., 'de-DE', 'en-US')
+    const formatter = new Intl.NumberFormat(
+      columnMeta.currency_locale || 'en-US'
+    );
+
+    // Use formatToParts to extract the characters used for grouping (thousands) and decimal
+    const parts = formatter.formatToParts(12345.6);
+
+    // Extract group separator (e.g., '.' in 'de-DE', ',' in 'en-US')
+    const group = parts.find((p) => p.type === 'group')?.value || ',';
+
+    // Extract decimal separator (e.g., ',' in 'de-DE', '.' in 'en-US')
+    const decimal = parts.find((p) => p.type === 'decimal')?.value || '.';
+
+    return value
+      .replace(new RegExp('\\' + group, 'g'), '') // 1. Remove all group (thousands) separators
+      .replace(new RegExp('\\' + decimal), '.') // 2. Replace the locale-specific decimal separator with a dot (.)
+      .replace(/[^\d.-]/g, '') // 3. Remove any non-digit, non-dot, non-minus characters (e.g., currency symbols, spaces)
+      .trim(); // 4. Trim whitespace from both ends of the string
   });
 };
 

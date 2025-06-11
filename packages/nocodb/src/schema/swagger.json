@@ -23737,16 +23737,16 @@
             ]
           },
           "operation": {
-            "enum": [
-              "insert",
-              "update",
-              "delete",
-              "bulkInsert",
-              "bulkUpdate",
-              "bulkDelete",
-              "trigger"
-            ],
-            "type": "string",
+            "type": "array",
+            "items": {
+              "enum": [
+                "insert",
+                "update",
+                "delete",
+                "trigger"
+              ],
+              "type": "string"
+            },
             "description": "Hook Operation",
             "example": "insert"
           },
@@ -23779,11 +23779,12 @@
             "x-stoplight": {
               "id": "socewqvadj91n"
             },
-            "example": "v2",
+            "example": "v3",
             "description": "Hook Version",
             "enum": [
               "v1",
-              "v2"
+              "v2",
+              "v3"
             ]
           }
         }
@@ -23859,14 +23860,17 @@
             ]
           },
           "operation": {
-            "enum": [
-              "insert",
-              "update",
-              "delete",
-              "any",
-              "trigger"
-            ],
-            "type": "string",
+            "type": "array",
+            "items" : {
+              "enum": [
+                "insert",
+                "update",
+                "delete",
+                "any",
+                "trigger"
+              ],
+              "type": "string"
+            },
             "description": "Hook Operation",
             "example": "insert"
           },
@@ -24076,9 +24080,6 @@
               "insert",
               "update",
               "delete",
-              "bulkInsert",
-              "bulkUpdate",
-              "bulkDelete",
               "trigger"
             ],
             "example": "insert"

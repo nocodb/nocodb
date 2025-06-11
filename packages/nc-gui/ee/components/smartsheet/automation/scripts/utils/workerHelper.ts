@@ -4,7 +4,7 @@ export function generateIntegrationsCode(integrations: any[]): string {
   let code = 'const integrations = {'
   for (const integration of integrations) {
     const integrationMeta = allIntegrations.find(
-      (item) => item.type === integration.type && item.subType === integration.sub_type,
+      (item: any) => item.type === integration.type && item.subType === integration.sub_type,
     )!
     let propsCode = ''
     if (integrationMeta?.meta?.configSchema) {
@@ -357,25 +357,27 @@ Object.freeze(UITypes);
     #view;
     #pageInfo;
     #rawData;
-    #nextUrl;
+    #nextToken;
+    #prevToken;
     
     constructor(data, table, view, options) {
       this.#table = table;
       this.#view = view;
       this.#options = options;
-      this.#pageInfo = data.pageInfo;
+      
       this.#pageInfo = {
-        page: data.pageInfo?.next ? this.extractPageFromUrl(data.pageInfo.next) - 1 : 1,
-        pageSize: options.limit || 25,
-        isLastPage: !data.pageInfo?.next,
+        hasNext: !!data.next,
+        hasPrev: !!data.prev,
+        isLastPage: !data.next,
       };
-      this.#nextUrl = data.pageInfo?.next || null;
+      this.#nextToken = data.next || null;
+      this.#prevToken = data.prev || null;
 
       const records = []
       
-      this.#rawData = data.list;
+      this.#rawData = data.records || [];
       
-      this.recordIds = Object.freeze(data.list.map(row => {
+      this.recordIds = Object.freeze(data.records.map(row => {
         const record = new NocoDBRecord(row, table);
         records.push(record);
         this.#recordsById.set(record.id, record);
@@ -392,20 +394,7 @@ Object.freeze(UITypes);
     get table() {
       return this.#table;
     }
-    
-    extractPageFromUrl(url) {
-      try {
-        const urlObj = new URL(url);
-        const pageParam = urlObj.searchParams.get('page');
-        return pageParam ? parseInt(pageParam, 10) : 1;
-      } catch (e) {
-        // If URL parsing fails, try regex
-        const pageMatch = url.match(/page=(\\d+)/);
-        return pageMatch ? parseInt(pageMatch[1], 10) : 1;
-      }
-    }
 
-    
     getRecord(recordId) {
       const record = this.#recordsById.get(recordId);
       if (!record) {
@@ -415,78 +404,74 @@ Object.freeze(UITypes);
     }
     
     async loadMoreRecords() {
-      if (!this.#nextUrl) {
+      if (!this.#nextToken) {
         return null;
       }
-      const nextPage = this.#pageInfo.page + 1;
       
+      const url = new URL(this.#nextToken);
+      const page = parseInt(url.searchParams.get('page') || '1');
+    
       const response = await api.dbDataTableRowList(
         this.#table.base.id,
         this.#table.id,
         {
           ...this.#options,
-          offset: this.#pageInfo.page * this.#pageInfo.pageSize,
+          page,
           ...(this.#view ? { viewId: this.#view.id } : {})
         }
       );
-      
-      this.#rawData = [...this.#rawData, ...response.list];
-      
+      this.#rawData = [...this.#rawData, ...(response.records || [])];
       const records = [...this.records];
       
-      this.recordIds = Object.freeze([...this.recordIds, ...response.list.map(row => {
+      const newRecordIds = (response.records || []).map(row => {
         const record = new NocoDBRecord(row, this.#table);
         records.push(record);
         this.#recordsById.set(record.id, record);
         return record.id;
-      })]);
+      });
       
+      this.recordIds = Object.freeze([...this.recordIds, ...newRecordIds]);
       this.records = Object.freeze(records);
-      this.#nextUrl = response.pageInfo?.next || null;
       
+      this.#nextToken = response.next || null;
+      this.#prevToken = response.prev || null;
+    
       this.#pageInfo = {
-        page: nextPage,
-        pageSize: this.#options.limit || 25,
-        isLastPage: !response.pageInfo?.next,
-        totalRows: response.pageInfo?.totalRows || (this.#pageInfo.totalRows + response.list.length)
+        hasNext: !!response.next,
+        hasPrev: !!response.prev,
+        isLastPage: !response.next,
       };
+      
       return this;
     }
     
     get hasMoreRecords() {
-      return !!this.#nextUrl;
+      return !!this.#nextToken;
     }
-
-    get currentPage() {
-      return this.#pageInfo.page;
+    
+    get nextToken() {
+      return this.#nextToken;
     }
-
-    get pageSize() {
-      return this.#pageInfo.pageSize;
-    }
-    get nextUrl() {
-      return this.#nextUrl;
+  
+    get prevToken() {
+      return this.#prevToken;
     }
   }
   
   class NocoDBRecord {
     #table
-    #data
+    #recordData
   
-    constructor(data, table) {
+    constructor(recordData, table) {
       this.#table = table;
-      this.#data = data;
-      this.id = extractPk(data, table.fields);
+      this.#recordData = recordData;
+      this.id = recordData.id;
       const displayField = this.#table.fields.find(f => f.primary_value)
-      this.name  = this.#data[displayField.name] ?? this.id
+      this.name = displayField ? recordData.fields?.[displayField.name] ?? this.id : this.id;
     }
     
-    get raw_data() {
-      return this.#data;
-    }
-    
-    get table() {
-      return this.#table;
+    get rawData() {
+      return this.#recordData;
     }
     
     getCellValue(fieldOrFieldIdOrName) {
@@ -496,8 +481,8 @@ Object.freeze(UITypes);
         throw new Error(\`Field \${fieldOrFieldIdOrName?.name ?? fieldOrFieldIdOrName} not found\`)
       }
       
-      if (field.name in this.#data) {
-        const data = this.#data[field.name];
+      if (field.name in this.#recordData.fields) {
+        const data = this.#recordData.fields?.[field.name];
         
         switch(field.type) {
           case 'MultiSelect':
@@ -765,7 +750,7 @@ Object.freeze(UITypes);
     }
     
     async selectRecordsAsync(options = {}) {
-      const { sorts = [], fields = [], recordIds = [], limit = 500, offset = 0 } = options
+      const { sorts = [], fields = [], recordIds = [], pageSize = 50, page = 1 } = options
            
       const pvAndPk = this.#table.fields.filter(f => f.primary_value || f.primary_key).map(f => f.name)
       
@@ -782,7 +767,7 @@ Object.freeze(UITypes);
             
       const fieldsToSelect = fields.length ? Array.from(new Set([..._fieldsToSelect, ...pvAndPk])) : null
       
-      const sortStr = sorts.map(sort => {
+      const sortArray = sorts.map(sort => {
         if (typeof sort.field === 'string') {
           const field = this.#table.getField(sort.field)
           
@@ -790,17 +775,17 @@ Object.freeze(UITypes);
             throw new Error(\`Field \${sort.field} not found in table \${this.#table.name}\`)
           }
           
-          return sort.direction === 'desc' ? \`-\${field.name}\` : field.name; 
+          return { direction: sort.direction, field: field.name };          
         }
-      }).join(',');
+      }).filter(Boolean)
       
       const requestOptions = {
         viewId: this.id,
-        limit,
-        offset,
+        page,
+        pageSize,
         ...(recordIds?.length && { pks: recordIds.join(',') }),
         ...(fieldsToSelect && { fields: fieldsToSelect }),
-        ...(sortStr && { sort: sortStr }),
+        ...(sortArray.length && { sort: sortArray }),
       };
       const data = await api.dbDataTableRowList(this.#table.base.id, this.#table.id, requestOptions)
       
@@ -874,7 +859,7 @@ Object.freeze(UITypes);
     }
     
     async selectRecordsAsync(options = {}) {
-      const { sorts = [], fields = [], recordIds = [], limit = 500, offset = 0 } = options
+      const { sorts = [], fields = [], recordIds = [], limit = 50, page = 1 } = options
            
       const pvAndPk = this.fields.filter(f => f.primary_value || f.primary_key).map(f => f.name)
       
@@ -891,7 +876,7 @@ Object.freeze(UITypes);
             
       const fieldsToSelect = fields.length ? Array.from(new Set([..._fieldsToSelect, ...pvAndPk])) : null
       
-      const sortStr = sorts.map(sort => {
+      const sortArray = sorts.map(sort => {
         if (typeof sort.field === 'string') {
           const field = this.getField(sort.field)
           
@@ -899,17 +884,16 @@ Object.freeze(UITypes);
             throw new Error(\`Field \${sort.field} not found in table \${this.name}\`)
           }
           
-          return sort.direction === 'desc' ? \`-\${field.name}\` : field.name; 
+          return { direction: sort.direction, field: field.name };
         }
-      }).join(',');
+      }).filter(Boolean)
       
       const requestOptions = {
-        limit,
-        offset,
-        ...(recordIds?.length && { pks: recordIds.join(',') }),
+        page,
+        pageSize: limit,
         ...(fieldsToSelect && { fields: fieldsToSelect }),
-        ...(sortStr && { sort: sortStr }),
-      };
+        ...(sortArray.length && { sort: sortArray }),
+  };
       
       const data = await api.dbDataTableRowList(this.#base.id, this.id, requestOptions)
      
@@ -926,8 +910,8 @@ Object.freeze(UITypes);
         }
       }
       
-      const response = await api.dbDataTableRowCreate(this.base.id, this.id, recordData);   
-      return new NocoDBRecord(response, this).id;
+      const response = await api.dbDataTableRowCreate(this.base.id, this.id, { fields: recordData });   
+      return new NocoDBRecord(response?.records?.[0], this).id;
     }
     
     async createRecordsAsync(data) {
@@ -942,12 +926,11 @@ Object.freeze(UITypes);
             recordData[field.name] = record[field.id];
           }
         }
-        insertObjs.push(recordData)
+        insertObjs.push({ fields: recordData });
       }
-      
       const response = await api.dbDataTableRowCreate(this.base.id, this.id, insertObjs);
       
-      return response.map(r => new NocoDBRecord(r, this).id);
+      return (response.records || []).map(r => new NocoDBRecord(r, this).id);
     }
     
     async updateRecordAsync(recordId, data) { 
@@ -959,12 +942,8 @@ Object.freeze(UITypes);
         } else if (data[field.id]) {
           recordData[field.name] = data[field.id];
         }
-      }
-      const recordObj = extractObjFromPk(recordID, this.fields)
-      
-      Object.assign(recordData, recordObj)
-            
-      await api.dbDataTableRowUpdate(this.base.id, this.id, recordData);
+      }     
+      await api.dbDataTableRowUpdate(this.base.id, this.id, { fields: recordData, id: recordID });
     }
     
     async updateRecordsAsync(records) {
@@ -982,9 +961,7 @@ Object.freeze(UITypes);
             recordData[field.name] = fieldData[field.id];
           }
         }
-        const recordObj = extractObjFromPk(recordID, this.fields);
-        Object.assign(recordData, recordObj);    
-        updateObjs.push(recordData);
+        updateObjs.push({ fields: recordData, id: recordID });
       }
 
       await api.dbDataTableRowUpdate(this.base.id, this.id, updateObjs); 
@@ -992,8 +969,7 @@ Object.freeze(UITypes);
     
     async deleteRecordAsync(recordIdOrRecord) {
       const recordID = (recordIdOrRecord instanceof NocoDBRecord) ? recordIdOrRecord.id: recordIdOrRecord
-      const recordObj = extractObjFromPk(recordID, this.fields);
-      await api.dbDataTableRowDelete(this.base.id, this.id, recordObj);
+      await api.dbDataTableRowDelete(this.base.id, this.id, { id: recordID });
       
       return true
     }
@@ -1001,8 +977,7 @@ Object.freeze(UITypes);
     async deleteRecordsAsync(recordIds) {
       const deleteObjs = []
       for (const recordId of recordIds) {
-        const recordObj = extractObjFromPk(recordId, this.fields);
-        deleteObjs.push(recordObj);
+        deleteObjs.push({ id: recordId });
       }
       await api.dbDataTableRowDelete(this.base.id, this.id, deleteObjs);
       return true
@@ -1426,6 +1401,9 @@ function generateRestrictGlobals(): string {
       Object.defineProperty(self, name, {
         get: () => {
           throw new ReferenceError(name + " is not defined");
+        },
+        set: () => {
+          throw new Error(\`Cannot modify '${name}' in this environment\`);
         },
         configurable: false,
       });

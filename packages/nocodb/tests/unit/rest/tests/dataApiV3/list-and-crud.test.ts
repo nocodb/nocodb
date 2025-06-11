@@ -228,10 +228,8 @@ describe.only('dataApiV3', () => {
         }
 
         expect(rsp.body).to.deep.equal({
-          record: {
-            id: 401,
-            fields: firstRecordFields,
-          },
+          id: 401,
+          fields: firstRecordFields,
         });
 
         ///////////////////////////////////////////////////////////////////////////
@@ -418,10 +416,8 @@ describe.only('dataApiV3', () => {
         const firstRecordV3 = recordsV3[0] || {};
         const { Id: firstId, ...firstRecordFields } = firstRecordV3;
         expect(rsp.body).to.deep.equal({
-          record: {
-            id: 401,
-            fields: firstRecordFields,
-          },
+          id: 401,
+          fields: firstRecordFields,
         });
 
         ///////////////////////////////////////////////////////////////////////////
@@ -562,12 +558,10 @@ describe.only('dataApiV3', () => {
           },
         });
         expect(rsp.body).to.deep.equal({
-          record: {
-            id: 801,
-            fields: {
-              Date: records[0].Date,
-              DateTime: records[0].DateTime,
-            },
+          id: 801,
+          fields: {
+            Date: records[0].Date,
+            DateTime: records[0].DateTime,
           },
         });
 
@@ -1847,9 +1841,7 @@ describe.only('dataApiV3', () => {
             url: `${urlPrefix}/${table.id}/records/${id}`,
             status: 200,
           });
-          expect(getResponse.body.record.fields.Checkbox).to.equal(
-            valueCase.expect,
-          );
+          expect(getResponse.body.fields.Checkbox).to.equal(valueCase.expect);
           const patchResponse = await ncAxiosPatch({
             url: `${urlPrefix}/${table.id}/records`,
             body: [

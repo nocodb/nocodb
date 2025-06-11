@@ -111,7 +111,7 @@ export class LtarGeneralHandler extends GenericFieldHandler {
       );
       parseOperationResult.clause(selectQb);
       rootApply = (qb: Knex.QueryBuilder) => {
-        parseOperationResult.rootApply(qb);
+        parseOperationResult.rootApply?.(qb);
       };
 
       return {
@@ -208,7 +208,7 @@ export class LtarGeneralHandler extends GenericFieldHandler {
       parseOperationResult.clause(selectQb);
 
       rootApply = (qb: Knex.QueryBuilder) => {
-        parseOperationResult.rootApply(qb);
+        parseOperationResult.rootApply?.(qb);
       };
 
       return {
@@ -333,7 +333,7 @@ export class LtarGeneralHandler extends GenericFieldHandler {
       parseOperationResult.clause(selectQb);
 
       rootApply = (qb: Knex.QueryBuilder) => {
-        parseOperationResult.rootApply(qb);
+        parseOperationResult.rootApply?.(qb);
       };
 
       return {

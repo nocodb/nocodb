@@ -168,9 +168,10 @@ export const serializeCurrencyValue = (value: any, col: ColumnType) => {
     }
 
     // Use formatToParts to extract the characters used for grouping (thousands) and decimal
-    const parts = (formatter as any).formatToParts(
-      12345.6
-    ) as Intl.NumberFormatPart[];
+    const parts = (formatter as any).formatToParts(12345.6) as Array<{
+      type: string;
+      value: string;
+    }>;
 
     // Extract group separator (e.g., '.' in 'de-DE', ',' in 'en-US')
     group = parts.find((p) => p.type === 'group')?.value || group;

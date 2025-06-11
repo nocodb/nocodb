@@ -265,8 +265,8 @@ const getHookTypeText = (hook: HookType) => {
         <NcAlert
           v-if="hasV2Webhooks"
           type="warning"
-          :message="$t('msg.webhookV2Deprecated')"
-          :description="$t('msg.webhookV2DeprecatedDesc')"
+          :message="$t('msg.webhookV2DeprecationAlertTitle')"
+          :description="$t('msg.webhookV2DeprecationAlertDesc')"
           class="bg-nc-bg-orange-light"
         >
           <template #action>

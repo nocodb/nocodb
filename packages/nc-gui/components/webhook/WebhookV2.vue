@@ -586,14 +586,15 @@ onMounted(async () => {
 
           <NcAlert
             type="warning"
-            message="This webhook will be deprecated"
-            description="This version of webhooks will be discontinued soon. Upgrade to v3 to retain your webhook settings and avoid
-                  disruptions."
+            :message="$t('msg.webhookV2DeprecationAlertTitle')"
+            :description="$t('msg.webhookV2DeprecationAlertDesc')"
           >
             <template #action>
-              <NcButton type="link" size="xsmall" class="!font-bold" @click="isV3ModalOpen = true">
-                {{ $t('general.upgrade') }}
-              </NcButton>
+              <NcTooltip :title="$t('general.reviewAndUpgrade')">
+                <NcButton type="link" size="xsmall" class="!font-bold" @click="isV3ModalOpen = true">
+                  {{ $t('general.upgrade') }}
+                </NcButton>
+              </NcTooltip>
             </template>
           </NcAlert>
 

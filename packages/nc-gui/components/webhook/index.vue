@@ -1028,7 +1028,7 @@ const triggerSubType = computed(() => {
                 </template>
               </div>
 
-              <div v-if="hookRef.notification.type === 'URL'" class="border-1 border-nc-border-gray-medium rounded-b-2xl p-4">
+              <div v-if="hookRef.notification.type === 'URL'" class="border-1 border-nc-border-gray-medium rounded-b-2xl pt-4 px-4 pb-2">
                 <NcTabs v-model:activeKey="urlTabKey">
                   <a-tab-pane key="params" :tab="$t('title.parameter')" force-render>
                     <LazyApiClientParams v-model="hookRef.notification.payload.parameters" />

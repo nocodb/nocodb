@@ -1077,7 +1077,7 @@ async function handleMouseDown(e: MouseEvent) {
 const PADDING_BOTTOM = 96
 const FIXED_COLUMN_PADDING = 128
 
-function scrollToCell(row?: number, column?: number, path?: Array<number>): void {
+function scrollToCell(row?: number, column?: number, path?: Array<number>, horizontalScroll: boolean = true): void {
   const currentRow = row ?? activeCell.value.row ?? -1
   const currentColumn = column ?? activeCell.value.column ?? -1
   const currentPath = path ?? activeCell.value.path ?? []
@@ -1105,6 +1105,8 @@ function scrollToCell(row?: number, column?: number, path?: Array<number>): void
       top: cellBottom - viewportHeight,
     })
   }
+
+  if (!horizontalScroll) return
 
   const fixedWidth =
     columns.value

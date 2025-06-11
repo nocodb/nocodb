@@ -70,7 +70,7 @@ export function useCanvasTable({
   scrollTop: Ref<number>
   width: Ref<number>
   height: Ref<number>
-  scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
+  scrollToCell: CanvasScrollToCellFn
   aggregations: Ref<Record<string, any>>
   vSelectedAllRecords: WritableComputedRef<boolean>
   selectedRows: Ref<Row[]>

@@ -108,7 +108,7 @@ const hookType = (item: HookLogType) => {
 
 <style scoped lang="scss">
 .container {
-  @apply p-6 h-full overflow-auto flex-col flex gap-6;
+  @apply p-6 h-full overflow-auto nc-scrollbar-thin flex-col flex gap-6;
   .log-details {
     @apply grid grid-cols-2 gap-2;
 

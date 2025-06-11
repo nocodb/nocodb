@@ -2,6 +2,8 @@
 import {
   type ColumnReqType,
   type ColumnType,
+  PermissionEntity,
+  PermissionKey,
   PlanLimitTypes,
   type TableType,
   UITypes,
@@ -2654,61 +2656,63 @@ defineExpose({
       </NcDropdown>
     </template>
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
-      <NcDropdown v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord">
-        <div class="flex shadow-nc-sm rounded-lg">
-          <NcButton
-            v-if="isMobileMode"
-            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="nc-grid-add-new-row"
-            size="small"
-            type="secondary"
-            :shadow="false"
-            @click.stop="onNewRecordToFormClick()"
-          >
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="plus" />
-              New Record
-            </div>
-          </NcButton>
-          <NcButton
-            v-else
-            v-e="[isAddNewRecordGridMode && !isGroupBy ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="nc-grid-add-new-row"
-            size="small"
-            :class="{
-              '!rounded-r-none !border-r-0': !isGroupBy,
-            }"
-            type="secondary"
-            :shadow="false"
-            @click.stop="isAddNewRecordGridMode && !isGroupBy ? addEmptyRow() : onNewRecordToFormClick()"
-          >
-            <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
-              <GeneralIcon icon="plus" />
-              <template v-if="isAddNewRecordGridMode || isGroupBy">
-                {{ $t('activity.newRecord') }}
-              </template>
-              <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}</template>
-            </div>
-          </NcButton>
-          <NcButton
-            v-if="!isMobileMode && !isGroupBy"
-            size="small"
-            class="!rounded-l-none nc-add-record-more-info"
-            type="secondary"
-            :shadow="false"
-          >
-            <GeneralIcon icon="arrowUp" />
-          </NcButton>
-        </div>
+      <PermissionsTooltip :entity="PermissionEntity.TABLE" :entity-id="meta?.id" :permission="PermissionKey.TABLE_RECORD_ADD">
+        <NcDropdown v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord">
+          <div class="flex shadow-nc-sm rounded-lg">
+            <NcButton
+              v-if="isMobileMode"
+              v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
+              class="nc-grid-add-new-row"
+              size="small"
+              type="secondary"
+              :shadow="false"
+              @click.stop="onNewRecordToFormClick()"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="plus" />
+                New Record
+              </div>
+            </NcButton>
+            <NcButton
+              v-else
+              v-e="[isAddNewRecordGridMode && !isGroupBy ? 'c:row:add:grid' : 'c:row:add:form']"
+              class="nc-grid-add-new-row"
+              size="small"
+              :class="{
+                '!rounded-r-none !border-r-0': !isGroupBy,
+              }"
+              type="secondary"
+              :shadow="false"
+              @click.stop="isAddNewRecordGridMode && !isGroupBy ? addEmptyRow() : onNewRecordToFormClick()"
+            >
+              <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
+                <GeneralIcon icon="plus" />
+                <template v-if="isAddNewRecordGridMode || isGroupBy">
+                  {{ $t('activity.newRecord') }}
+                </template>
+                <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}</template>
+              </div>
+            </NcButton>
+            <NcButton
+              v-if="!isMobileMode && !isGroupBy"
+              size="small"
+              class="!rounded-l-none nc-add-record-more-info"
+              type="secondary"
+              :shadow="false"
+            >
+              <GeneralIcon icon="arrowUp" />
+            </NcButton>
+          </div>
 
-        <template #overlay>
-          <AddNewRowMenu
-            :path="openAddNewRowDropdown"
-            :on-new-record-to-grid-click="onNewRecordToGridClick"
-            :on-new-record-to-form-click="onNewRecordToFormClick"
-          />
-        </template>
-      </NcDropdown>
+          <template #overlay>
+            <AddNewRowMenu
+              :path="openAddNewRowDropdown"
+              :on-new-record-to-grid-click="onNewRecordToGridClick"
+              :on-new-record-to-form-click="onNewRecordToFormClick"
+            />
+          </template>
+        </NcDropdown>
+      </PermissionsTooltip>
     </div>
   </div>
 </template>

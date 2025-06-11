@@ -1,5 +1,13 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { AllAggregations, type ColumnType, type TableType, UITypes, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
+import {
+  AllAggregations,
+  type ColumnType,
+  PermissionEntity,
+  PermissionKey,
+  type TableType,
+  UITypes,
+  isCreatedOrLastModifiedByCol,
+} from 'nocodb-sdk'
 import type { Composer } from 'vue-i18n'
 import tinycolor from 'tinycolor2'
 import {
@@ -66,6 +74,7 @@ export function useCanvasRender({
   isRowDraggingEnabled,
   isAddingColumnAllowed,
   isAddingEmptyRowAllowed,
+  isAddingEmptyRowPermitted,
   selectedRows,
   isDragging,
   draggedRowIndex,
@@ -121,6 +130,7 @@ export function useCanvasRender({
   isRowDraggingEnabled: ComputedRef<boolean>
   isAddingColumnAllowed: ComputedRef<boolean>
   isAddingEmptyRowAllowed: ComputedRef<boolean>
+  isAddingEmptyRowPermitted: ComputedRef<boolean>
   isFillMode: Ref<boolean>
   getFillHandlerPosition: () => FillHandlerPosition | null
   imageLoader: ImageWindowLoader
@@ -183,6 +193,8 @@ export function useCanvasRender({
   const isLocked = inject(IsLockedInj, ref(false))
 
   const { isRowColouringEnabled } = useViewRowColorRender()
+
+  const { isAllowed } = usePermissions()
 
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
 
@@ -716,9 +728,15 @@ export function useCanvasRender({
     const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 0)
     const isInFixedArea = activeState.x <= fixedWidth
 
+    let borderColor = '#3366ff'
+
+    if (!isAllowed(PermissionEntity.FIELD, activeState.col.id, PermissionKey.RECORD_FIELD_EDIT)) {
+      borderColor = '#9AA2AF'
+    }
+
     if (activeState.col.fixed || !isInFixedArea) {
       roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height, 2, {
-        borderColor: '#3366ff',
+        borderColor,
         borderWidth: 2,
       })
       ctx.lineWidth = 1
@@ -738,7 +756,7 @@ export function useCanvasRender({
       }
       // add extra 1px offset to x, since there is an additional border separating fixed and non-fixed columns
       roundedRect(ctx, adjustedState.x + 1, adjustedState.y, adjustedState.width, adjustedState.height, 2, {
-        borderColor: '#3366ff',
+        borderColor,
         borderWidth: 2,
       })
       ctx.lineWidth = 1
@@ -1710,7 +1728,7 @@ export function useCanvasRender({
     }
 
     // Add New Row
-    if (isAddingEmptyRowAllowed.value && !isMobileMode.value && !removeInlineAddRecord.value) {
+    if (isAddingEmptyRowAllowed.value && !isMobileMode.value && !removeInlineAddRecord.value && isAddingEmptyRowPermitted.value) {
       const isNewRowHovered = isBoxHovered(
         {
           x: 0,

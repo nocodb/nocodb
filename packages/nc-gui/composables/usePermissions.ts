@@ -1,6 +1,9 @@
 import {
+  PermissionGrantedType,
   PermissionOptionValue,
   PermissionOptions,
+  PermissionRoleMap,
+  PermissionRolePower,
   ProjectRoles,
   RoleColors,
   getPermissionIcon,
@@ -13,6 +16,8 @@ import {
 export type { PermissionOption } from 'nocodb-sdk'
 
 export const usePermissions = () => {
+  const { user } = useGlobal()
+
   const baseStore = useBase()
   const { base } = storeToRefs(baseStore)
 
@@ -35,10 +40,14 @@ export const usePermissions = () => {
     return grouped
   })
 
+  const getPermission = (entity: string, entityId: string, permissionType: string) => {
+    const permissions = permissionsByEntity.value[`${entity}_${entityId}`] || []
+    return permissions.find((p) => p.permission === permissionType)
+  }
+
   // Get permission summary for an entity (returns internal value)
   const getPermissionSummary = (entity: string, entityId: string, permissionType: string) => {
-    const permissions = permissionsByEntity.value[`${entity}_${entityId}`] || []
-    const permission = permissions.find((p) => p.permission === permissionType)
+    const permission = getPermission(entity, entityId, permissionType)
 
     if (!permission) {
       return PermissionOptionValue.EDITORS_AND_UP
@@ -51,6 +60,53 @@ export const usePermissions = () => {
   const getPermissionSummaryLabel = (entity: string, entityId: string, permissionType: string) => {
     const internalValue = getPermissionSummary(entity, entityId, permissionType)
     return getPermissionLabel(internalValue)
+  }
+
+  const isAllowed = (
+    entity: string,
+    entityId: string,
+    permissionType: string,
+    options?: {
+      userRole?: string
+    },
+  ) => {
+    let currentUserRole = options?.userRole
+
+    if (!currentUserRole) {
+      if (typeof user.value?.base_roles === 'string') {
+        currentUserRole = user.value?.base_roles
+      } else {
+        const roles = Object.keys(user.value?.base_roles ?? {})
+        if (roles.length) {
+          currentUserRole = PermissionRoleMap[roles[0] as keyof typeof PermissionRoleMap]
+        } else {
+          currentUserRole = PermissionRoleMap[ProjectRoles.VIEWER]
+        }
+      }
+    }
+
+    const permissionObj = getPermission(entity, entityId, permissionType)
+
+    if (!permissionObj) {
+      return true
+    }
+
+    if (permissionObj.granted_type === PermissionGrantedType.USER) {
+      // Check if user exists in subjects array
+      return (
+        permissionObj.subjects?.some(
+          (subject: { type: string; id: string }) => subject.type === 'user' && subject.id === user.value?.id,
+        ) || false
+      )
+    }
+
+    if (permissionObj.granted_type === PermissionGrantedType.ROLE) {
+      const rolePower = PermissionRolePower[currentUserRole as keyof typeof PermissionRolePower]
+
+      return rolePower >= PermissionRolePower[permissionObj.granted_role as keyof typeof PermissionRolePower]
+    }
+
+    return false
   }
 
   const getPermissionColor = (value: string): string => {
@@ -102,5 +158,6 @@ export const usePermissions = () => {
     getPermissionTextColor,
     getPermissionSummary,
     getPermissionSummaryLabel,
+    isAllowed,
   }
 }

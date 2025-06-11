@@ -1165,7 +1165,7 @@ const triggerSubType = computed(() => {
             <div>
               <NcDivider />
               <div class="flex items-center justify-between -ml-1.5">
-                <NcButton type="text" class="mb-3" size="small" @click="toggleSamplePayload()">
+                <NcButton type="text" class="mb-3 !pt-[32px]" size="small" @click="toggleSamplePayload()">
                   <div class="flex items-center gap-3">
                     Sample Payload
 

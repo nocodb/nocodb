@@ -168,7 +168,8 @@ const toggleOperation = (operation: string) => {
     ops?.push(operation)
   }
   hookRef.operation = ops // this will trigger hookRef.operation watch
-  sendMeEverythingChecked.value = ops?.length === operationsEnum.value?.length
+  // event other than 'after' has no 'send me everything'
+  sendMeEverythingChecked.value = hookRef.event === 'after' && ops?.length === operationsEnum.value?.length
 }
 
 const toggleSendMeEverythingChecked = (evt: Event) => {
@@ -637,7 +638,6 @@ async function loadSampleData() {
     ((hookRef?.operation && hookRef?.operation[0]) as any) || 'insert',
     hookRef.version!,
   )
-  console.log('samplePayload', samplePayload)
   // if non-URL based hook and version is v2, then return the newRowData as payload
   // this is for backward compatibility
   if (hookRef.notification.type !== 'URL' && ['v2', 'v3'].includes(hookRef.version)) {
@@ -845,7 +845,13 @@ const triggerSubType = computed(() => {
               </div>
               <div class="mt-3 border-1 border-nc-border-gray-medium p-4 border-b-0 rounded-t-2xl">
                 <div class="w-full flex gap-3">
-                  <NcSelect v-model:value="hookRef.event" class="w-full" @change="handleEventChange">
+                  <NcSelect
+                    v-model:value="hookRef.event"
+                    class="w-full"
+                    data-testid="nc-dropdown-hook-event"
+                    dropdown-class-name="nc-modal-hook-event"
+                    @change="handleEventChange"
+                  >
                     <a-select-option v-for="event of eventsEnum" :key="event.value"> {{ event.text }}</a-select-option>
                   </NcSelect>
 
@@ -853,6 +859,7 @@ const triggerSubType = computed(() => {
                     <div
                       class="rounded-lg border-1 w-full transition-all cursor-pointer flex items-center border-nc-border-grey-medium h-8 py-1 gap-2 px-4 py-2"
                       style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+                      data-testid="nc-dropdown-hook-operation"
                       :class="{
                         '!border-brand-500 !shadow-selected': isDropdownOpen,
                       }"
@@ -871,9 +878,14 @@ const triggerSubType = computed(() => {
                     </div>
 
                     <template #overlay>
-                      <NcMenu class="webhook-trigger-selection" variant="small">
+                      <NcMenu
+                        class="webhook-trigger-selection"
+                        variant="small"
+                        data-testid="nc-dropdown-hook-operation-modal"
+                        data-testvalue="send_everything"
+                      >
                         <template v-if="hookRef.event === 'after'">
-                          <NcMenuItem @click.stop="toggleSendMeEverythingChecked">
+                          <NcMenuItem data-testid="nc-dropdown-hook-operation-option" @click.stop="toggleSendMeEverythingChecked">
                             <div class="flex-1 w-full">
                               {{ $t('labels.sendMeEverything') }}
                             </div>
@@ -886,6 +898,8 @@ const triggerSubType = computed(() => {
                         <NcMenuItem
                           v-for="operation of operationsEnum"
                           :key="operation.value"
+                          data-testid="nc-dropdown-hook-operation-option"
+                          :data-testvalue="operation.value"
                           @click.prevent="toggleOperation(operation.value)"
                         >
                           <div class="flex-1 w-full">

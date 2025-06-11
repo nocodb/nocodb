@@ -129,8 +129,8 @@ const filteredTables = computed(() =>
 )
 
 const currentSource = computed(() => {
-  return sources.value?.find((source: SourceType) => 
-    props?.sourceId 
+  return sources.value?.find((source: SourceType) =>
+    props?.sourceId
       ? source.id === props.sourceId
       : source.enabled
   )

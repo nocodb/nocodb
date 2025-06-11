@@ -42,7 +42,7 @@ const removeColumnId = (colId: string) => {
       <NcButton size="small" type="secondary">
         <div class="flex items-center justify-center gap-2">
           <GeneralIcon icon="plus" />
-          Add
+          {{ $t('activity.addFieldFromFormView') }}
         </div>
       </NcButton>
       <template #overlay>

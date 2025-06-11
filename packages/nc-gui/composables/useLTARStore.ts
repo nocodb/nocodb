@@ -340,16 +340,19 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return sanitizedRow
     }
 
-    const whereClause = computed(() => {
-      if (!childrenExcludedListPagination.query) return
+    const getWhereClause = (searchQuery?: string) => {
+      if (!searchQuery) return
 
-      const fieldQuery = [relatedTableDisplayValueColumn.value || [], ...(fields.value || [])]
+      const fieldQuery = [
+        ...(relatedTableDisplayValueColumn.value ? [relatedTableDisplayValueColumn.value] : []),
+        ...(fields.value || []),
+      ]
         .filter((col) => {
           return !isVirtualCol(col)
         })
         .map((field: ColumnType): string => {
           let operator = 'like'
-          let query = childrenExcludedListPagination.query.trim()
+          let query = searchQuery.trim()
 
           if (isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) && isDateOrDateTimeCol(field)) {
             operator = 'eq,exactDate'
@@ -371,7 +374,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         .join('~or')
 
       return fieldQuery
-    })
+    }
 
     const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
       if (activeState) newRowState.state = activeState
@@ -385,7 +388,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           childrenExcludedListPagination.page = 1
         }
         isChildrenExcludedLoading.value = true
-        const where = whereClause.value
+        const where = getWhereClause(childrenExcludedListPagination.query)
 
         if (isPublic.value) {
           const router = useRouter()
@@ -550,15 +553,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             },
           }
         } else {
-          let where: string | undefined
-
-          if (childrenListPagination.query) {
-            where = childrenListPagination.query
-              ? `(${relatedTableDisplayValueProp.value},${
-                  isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq,exactDate' : 'like'
-                },${childrenListPagination.query})`
-              : undefined
-          }
+          const where = getWhereClause(childrenListPagination.query)
 
           if (isPublic.value) {
             childrenList.value = await $api.public.dataNestedList(

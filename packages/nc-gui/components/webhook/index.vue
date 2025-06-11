@@ -848,7 +848,7 @@ const triggerSubType = computed(() => {
                 <div class="w-full flex gap-3">
                   <NcSelect
                     v-model:value="hookRef.event"
-                    class="w-full"
+                    class="w-full webhook-event-select"
                     data-testid="nc-dropdown-hook-event"
                     dropdown-class-name="nc-modal-hook-event"
                     @change="handleEventChange"
@@ -858,7 +858,7 @@ const triggerSubType = computed(() => {
 
                   <NcDropdown v-model:visible="isDropdownOpen">
                     <div
-                      class="rounded-lg border-1 w-full transition-all cursor-pointer flex items-center border-nc-border-grey-medium h-8 py-1 gap-2 px-4 py-2"
+                      class="rounded-lg border-1 w-full transition-all cursor-pointer flex items-center border-nc-border-grey-medium h-8 py-1 gap-2 px-4 py-2 h-[36px]"
                       style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
                       data-testid="nc-dropdown-hook-operation"
                       :class="{
@@ -1028,7 +1028,10 @@ const triggerSubType = computed(() => {
                 </template>
               </div>
 
-              <div v-if="hookRef.notification.type === 'URL'" class="border-1 border-nc-border-gray-medium rounded-b-2xl pt-4 px-4 pb-2">
+              <div
+                v-if="hookRef.notification.type === 'URL'"
+                class="border-1 border-nc-border-gray-medium rounded-b-2xl pt-4 px-4 pb-2"
+              >
                 <NcTabs v-model:activeKey="urlTabKey">
                   <a-tab-pane key="params" :tab="$t('title.parameter')" force-render>
                     <LazyApiClientParams v-model="hookRef.notification.payload.parameters" />
@@ -1432,5 +1435,11 @@ const triggerSubType = computed(() => {
   @apply bg-white text-brand-600 hover:text-brand-600;
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+}
+</style>
+
+<style lang="scss">
+.webhook-event-select div.ant-select-selector {
+  height: 36px !important;
 }
 </style>

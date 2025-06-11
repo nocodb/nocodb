@@ -674,6 +674,8 @@ interface CloudFeaturesType {
   'Coming Soon'?: boolean
 }
 
+type CanvasScrollToCellFn = (row?: number, column?: number, path?: Array<number>, horizontalScroll?: boolean) => void
+
 export type {
   User,
   ProjectMetaInfo,
@@ -725,4 +727,5 @@ export type {
   CanvasCellEventDataInjType,
   CanvasGroup,
   CloudFeaturesType,
+  CanvasScrollToCellFn,
 }

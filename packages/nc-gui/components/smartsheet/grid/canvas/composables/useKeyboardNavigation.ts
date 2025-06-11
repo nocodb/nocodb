@@ -34,7 +34,7 @@ export function useKeyboardNavigation({
   activeCell: Ref<{ row: number; column: number; path?: Array<number> }>
   triggerReRender: () => void
   columns: ComputedRef<CanvasGridColumn[]>
-  scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
+  scrollToCell: CanvasScrollToCellFn
   selection: Ref<CellRange>
   editEnabled: Ref<{
     rowIndex: number
@@ -274,7 +274,7 @@ export function useKeyboardNavigation({
               col: selection.value._end?.col ?? activeCell.value.column,
             }
             selection.value.endRange(newEnd)
-            scrollToCell(newEnd.row, newEnd.col, groupPath)
+            scrollToCell(newEnd.row, newEnd.col, groupPath, false)
             movedSelection = true
           } else {
             activeCell.value.row = newRow
@@ -384,10 +384,12 @@ export function useKeyboardNavigation({
         selection.value.endRange({ row: activeCell.value.row, col: activeCell.value.column })
       }
 
+      const horizontalScroll = e.key !== 'ArrowUp' && e.key !== 'ArrowDown'
+
       if (moved) {
-        scrollToCell(activeCell.value.row, activeCell.value.column, groupPath)
+        scrollToCell(activeCell.value.row, activeCell.value.column, groupPath, horizontalScroll)
       } else if (movedSelection) {
-        scrollToCell(selection.value._end!.row, selection.value._end!.col, groupPath)
+        scrollToCell(selection.value._end!.row, selection.value._end!.col, groupPath, horizontalScroll)
       }
     }
     triggerReRender()

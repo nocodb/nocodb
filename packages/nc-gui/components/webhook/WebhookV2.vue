@@ -816,7 +816,7 @@ onMounted(async () => {
             </div>
 
             <div v-if="isConditionSupport">
-              <div class="w-full cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
+              <div class="w-full cursor-not-allowed flex items-center">
                 <NcSwitch :checked="Boolean(hookRef.condition)" :disabled="true" class="nc-check-box-hook-condition">
                   <span class="!text-gray-700 font-semibold"> {{ $t('general.trigger') }} {{ $t('activity.onCondition') }} </span>
                 </NcSwitch>

@@ -920,7 +920,7 @@ const triggerSubType = computed(() => {
                   class="w-full cursor-pointer flex items-center"
                   @click.prevent="hookRef.trigger_field = !hookRef.trigger_field"
                 >
-                  <NcSwitch :checked="Boolean(hookRef.trigger_field)" class="nc-check-box-hook-condition">
+                  <NcSwitch :checked="Boolean(hookRef.trigger_field)" class="nc-check-box-trigger-field">
                     <span class="!text-gray-700 font-semibold">
                       {{ $t('general.trigger') }} {{ $t('activity.forUpdatesInSpecificFields').toLowerCase() }}
                     </span>

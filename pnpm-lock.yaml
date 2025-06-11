@@ -91,8 +91,8 @@ importers:
         specifier: ^0.5.5
         version: 0.5.5(magicast@0.3.5)(typescript@5.8.3)(vue@3.5.14(typescript@5.8.3))
       '@readme/httpsnippet':
-        specifier: ^2.0.0
-        version: 2.5.1
+        specifier: ^11.0.0
+        version: 11.0.0
       '@sentry/vue':
         specifier: ^9.2.0
         version: 9.2.0(pinia@2.3.1(typescript@5.8.3)(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))
@@ -1336,7 +1336,7 @@ importers:
         version: 2.8.8
       react-email:
         specifier: 4.0.15
-        version: 4.0.15(@babel/core@7.27.1)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.84.0)
+        version: 4.0.15(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.84.0)
       run-script-webpack-plugin:
         specifier: 0.2.2
         version: 0.2.2
@@ -1351,7 +1351,7 @@ importers:
         version: 1.1.4(@rspack/core@1.3.15(@swc/helpers@0.5.17))(typescript@5.8.3)
       ts-jest:
         specifier: 29.1.2
-        version: 29.1.2(@babel/core@7.27.1)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.27.1))(jest@29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(@types/node@22.13.1)(typescript@5.8.3)))(typescript@5.8.3)
+        version: 29.1.2(@babel/core@7.26.7)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.7))(jest@29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(@types/node@22.13.1)(typescript@5.8.3)))(typescript@5.8.3)
       typescript:
         specifier: 5.8.3
         version: 5.8.3
@@ -1427,7 +1427,7 @@ importers:
         version: 5.0.10
       ts-jest:
         specifier: ^29.2.5
-        version: 29.2.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.7))(jest@29.7.0(@types/node@22.15.21)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.15.21)(typescript@5.8.3)))(typescript@5.8.3)
+        version: 29.2.5(@babel/core@7.27.1)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.27.1))(jest@29.7.0(@types/node@22.15.21)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.15.21)(typescript@5.8.3)))(typescript@5.8.3)
       tsc-alias:
         specifier: ^1.8.10
         version: 1.8.10
@@ -6244,9 +6244,9 @@ packages:
     peerDependencies:
       react-native: '*'
 
-  '@readme/httpsnippet@2.5.1':
-    resolution: {integrity: sha512-FyvsCWDcyDvBgy6Fb3RvHEWZIqWMdwjvBI7j4r0BnuOHfCuwJdL6h3YMZcJsA1h3IOQMUDd0gLIMmZsNPykwSQ==}
-    engines: {node: '>=10'}
+  '@readme/httpsnippet@11.0.0':
+    resolution: {integrity: sha512-XSyaAsJkZfmMO9R4WDlVJARZgd4wlImftSkMkKclidniXA1h6DTya9iTqJenQo9mHQLh3u6kAC3CDRaIV+LbLw==}
+    engines: {node: '>=18'}
 
   '@remirror/core-constants@3.0.0':
     resolution: {integrity: sha512-42aWfPrimMfDKDi4YegyS7x+/0tlzaqwPQCULLanv3DMIlu96KTJR0fM5isWX2UViOqlGnX6YFgqWepcX+XMNg==}
@@ -8138,7 +8138,7 @@ packages:
     resolution: {integrity: sha512-7Yx/SXSOcQq5HiiV3orevHUFn+pmMB4cgbEkDYgnkUWb0WfeQ/wa2yFv6D5ICiCQOVpjA7vYDXrC7AGO8yjDHA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
-      vite: '>=6.1.6'
+      vite: '>=6.1.4'
       vue: 3.5.14
 
   '@vitest/expect@3.1.4':
@@ -11230,9 +11230,6 @@ packages:
     resolution: {integrity: sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==}
     engines: {node: '>= 0.6'}
 
-  event-stream@4.0.1:
-    resolution: {integrity: sha512-qACXdu/9VHPBzcyhdOWR5/IahhGMf0roTeZJfzz077GwylcDd90yOHLouhmv7GJ5XzPi6ekaQWd8AvPP2nOvpA==}
-
   event-target-shim@5.0.1:
     resolution: {integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==}
     engines: {node: '>=6'}
@@ -11633,10 +11630,6 @@ packages:
     resolution: {integrity: sha512-m21N3WOmEEURgk6B9GLOE4RuWOFf28Lhh9qGYeNlGq4VDXUlJy2th2slBNU8Gp8EzloYZOibZJ7t5ecIrFSjVA==}
     engines: {node: '>= 0.12'}
 
-  form-data@3.0.0:
-    resolution: {integrity: sha512-CKMFDglpbMi6PyN+brwB9Q/GOw0eAnsrEZDgcsH5Krhz5Od/haKHAX0NmQfha2zPPz0JpWzA7GJHGSnvCRLWsg==}
-    engines: {node: '>= 6'}
-
   form-data@3.0.1:
     resolution: {integrity: sha512-RHkBKtLWUVwd7SqRIvCZMEvAMoGUp0XU+seQiZejj0COz3RI3hWP4sCv3gZWWLjJTd7rGwcsF5eKZGii0r/hbg==}
     engines: {node: '>= 6'}
@@ -11683,9 +11676,6 @@ packages:
 
   from2@2.3.0:
     resolution: {integrity: sha512-OMcX/4IC/uqEPVgGeyfN22LJk6AZrMkRZHxcHBMBvHScDGgwTm2GT2Wkgtocyd3JfZffjj2kYUDXXII0Fk9W0g==}
-
-  from@0.1.7:
-    resolution: {integrity: sha512-twe20eF1OxVxp/ML/kq2p1uc6KvFK/+vs8WjEbeKmV2He22MKm7YF2ANIt+EOqhJ5L3K/SuuPhk0hWQDjOM23g==}
 
   front-matter@4.0.2:
     resolution: {integrity: sha512-I8ZuJ/qG92NWX8i5x1Y8qyj3vizhXS31OxjKDu3LKP+7/qBgfIKValiZIEwoVoJKUHlhWtYrktkxV1XsX+pPlg==}
@@ -12076,15 +12066,6 @@ packages:
   happy-dom@17.4.7:
     resolution: {integrity: sha512-NZypxadhCiV5NT4A+Y86aQVVKQ05KDmueja3sz008uJfDRwz028wd0aTiJPwo4RQlvlz0fznkEEBBCHVNWc08g==}
     engines: {node: '>=18.0.0'}
-
-  har-schema@2.0.0:
-    resolution: {integrity: sha512-Oqluz6zhGX8cyRaTQlFMPw80bSJVG2x/cFb8ZPhUILGgHka9SsokCCOQgpveePerqidZOrT14ipqfJb7ILcW5Q==}
-    engines: {node: '>=4'}
-
-  har-validator@5.1.5:
-    resolution: {integrity: sha512-nmT2T0lljbxdQZfspsno9hgrG3Uir6Ks5afism62poxqBM6sDnMEuPmzTq8XN0OEwqKLLdh1jQI3qyE66Nzb3w==}
-    engines: {node: '>=6'}
-    deprecated: this library is no longer supported
 
   hard-rejection@2.1.0:
     resolution: {integrity: sha512-VIZB+ibDhx7ObhAe7OVtoEbuP4h/MuOTHJ+J8h/eBXotJYl0fBgR72xDFCKgIh22OJZIOVNxBMWuhAr10r8HdA==}
@@ -13843,9 +13824,6 @@ packages:
     resolution: {integrity: sha512-hdN1wVrZbb29eBGiGjJbeP8JbKjq1urkHJ/LIP/NY48MZ1QVXUsQBV1G1zvYFHn1XE06cwjBsOI2K3Ulnj1YXQ==}
     engines: {node: '>=8'}
 
-  map-stream@0.0.7:
-    resolution: {integrity: sha512-C0X0KQmGm3N2ftbTGBhSyuydQ+vV1LC3f3zPvT3RXHXNZrvfPZcoXp/N5DOa8vedX/rTMm2CjTtivFg2STJMRQ==}
-
   markdown-it-regexp@0.4.0:
     resolution: {integrity: sha512-0XQmr46K/rMKnI93Y3CLXsHj4jIioRETTAiVnJnjrZCEkGaDOmUxTbZj/aZ17G5NlRcVpWBYjqpwSlQ9lj+Kxw==}
 
@@ -15416,9 +15394,6 @@ packages:
   pathval@2.0.0:
     resolution: {integrity: sha512-vE7JKRyES09KiunauX7nd2Q9/L7lhok4smP9RZTDeD4MVs72Dp2qNFVz39Nz5a0FVEW0BJR6C0DYrq6unoziZA==}
     engines: {node: '>= 14.16'}
-
-  pause-stream@0.0.11:
-    resolution: {integrity: sha512-e3FBlXLmN/D1S+zHzanP4E/4Z60oFAa3O051qt1pxa7DEJWKAyil6upYVXCWadEnuoqa4Pkc9oUx9zsxYeRv8A==}
 
   pause@0.0.1:
     resolution: {integrity: sha512-KG8UEiEVkR3wGEb4m5yZkVCzigAD+cVEJck2CzYZO37ZGJfctvVptVO192MwrtPhzONn6go8ylnOdMhKqi4nfg==}
@@ -17227,9 +17202,6 @@ packages:
 
   stream-chain@2.2.5:
     resolution: {integrity: sha512-1TJmBx6aSWqZ4tx7aTpBDXK0/e2hhcNSTV8+CbFJtDjbb+I1mZ8lHit0Grw9GRT+6JbIrrDd8esncgBi8aBXGA==}
-
-  stream-combiner@0.2.2:
-    resolution: {integrity: sha512-6yHMqgLYDzQDcAkL+tjJDC5nSNuNIx0vZtRZeiPh7Saef7VHX9H5Ijn9l2VIol2zaNYlYEX6KyuT/237A58qEQ==}
 
   stream-events@1.0.5:
     resolution: {integrity: sha512-E1GUzBSgvct8Jsb3v2X15pjzN1tYebtbLaMg+eBOUOAxgbLoSbT2NS91ckc5lJD1KfLjId+jXJRgo0qnV5Nerg==}
@@ -26935,11 +26907,8 @@ snapshots:
       nullthrows: 1.1.1
       react-native: 0.73.5(@babel/core@7.27.1)(@babel/preset-env@7.24.0(@babel/core@7.27.1))(encoding@0.1.13)(react@19.0.0)
 
-  '@readme/httpsnippet@2.5.1':
+  '@readme/httpsnippet@11.0.0':
     dependencies:
-      event-stream: 4.0.1
-      form-data: 3.0.0
-      har-validator: 5.1.5
       qs: 6.14.0
       stringify-object: 3.3.0
 
@@ -33094,16 +33063,6 @@ snapshots:
 
   etag@1.8.1: {}
 
-  event-stream@4.0.1:
-    dependencies:
-      duplexer: 0.1.2
-      from: 0.1.7
-      map-stream: 0.0.7
-      pause-stream: 0.0.11
-      split: 1.0.1
-      stream-combiner: 0.2.2
-      through: 2.3.8
-
   event-target-shim@5.0.1: {}
 
   eventemitter2@6.4.9: {}
@@ -33625,12 +33584,6 @@ snapshots:
       combined-stream: 1.0.8
       mime-types: 2.1.35
 
-  form-data@3.0.0:
-    dependencies:
-      asynckit: 0.4.0
-      combined-stream: 1.0.8
-      mime-types: 2.1.35
-
   form-data@3.0.1:
     dependencies:
       asynckit: 0.4.0
@@ -33678,8 +33631,6 @@ snapshots:
     dependencies:
       inherits: 2.0.4
       readable-stream: 2.3.8
-
-  from@0.1.7: {}
 
   front-matter@4.0.2:
     dependencies:
@@ -34201,13 +34152,6 @@ snapshots:
     dependencies:
       webidl-conversions: 7.0.0
       whatwg-mimetype: 3.0.0
-
-  har-schema@2.0.0: {}
-
-  har-validator@5.1.5:
-    dependencies:
-      ajv: 6.12.6
-      har-schema: 2.0.0
 
   hard-rejection@2.1.0: {}
 
@@ -36561,8 +36505,6 @@ snapshots:
 
   map-obj@4.3.0: {}
 
-  map-stream@0.0.7: {}
-
   markdown-it-regexp@0.4.0: {}
 
   markdown-it-task-lists@2.1.1: {}
@@ -37437,7 +37379,7 @@ snapshots:
 
   netmask@2.0.2: {}
 
-  next@15.3.2(@babel/core@7.27.1)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.84.0):
+  next@15.3.2(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.84.0):
     dependencies:
       '@next/env': 15.3.2
       '@swc/counter': 0.1.3
@@ -37447,7 +37389,7 @@ snapshots:
       postcss: 8.4.31
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
-      styled-jsx: 5.1.6(@babel/core@7.27.1)(react@19.0.0)
+      styled-jsx: 5.1.6(@babel/core@7.26.7)(react@19.0.0)
     optionalDependencies:
       '@next/swc-darwin-arm64': 15.3.2
       '@next/swc-darwin-x64': 15.3.2
@@ -38726,10 +38668,6 @@ snapshots:
 
   pathval@2.0.0: {}
 
-  pause-stream@0.0.11:
-    dependencies:
-      through: 2.3.8
-
   pause@0.0.1: {}
 
   pdf-lib@1.17.1:
@@ -39607,7 +39545,7 @@ snapshots:
       react: 19.0.0
       scheduler: 0.25.0
 
-  react-email@4.0.15(@babel/core@7.27.1)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.84.0):
+  react-email@4.0.15(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.84.0):
     dependencies:
       '@babel/parser': 7.27.2
       '@babel/traverse': 7.27.1
@@ -39619,7 +39557,7 @@ snapshots:
       glob: 11.0.2
       log-symbols: 7.0.1
       mime-types: 3.0.1
-      next: 15.3.2(@babel/core@7.27.1)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.84.0)
+      next: 15.3.2(@babel/core@7.26.7)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sass@1.84.0)
       normalize-path: 3.0.0
       ora: 8.2.0
       socket.io: 4.8.1
@@ -40999,11 +40937,6 @@ snapshots:
 
   stream-chain@2.2.5: {}
 
-  stream-combiner@0.2.2:
-    dependencies:
-      duplexer: 0.1.2
-      through: 2.3.8
-
   stream-events@1.0.5:
     dependencies:
       stubs: 3.0.0
@@ -41214,12 +41147,12 @@ snapshots:
       hey-listen: 1.0.8
       tslib: 2.4.0
 
-  styled-jsx@5.1.6(@babel/core@7.27.1)(react@19.0.0):
+  styled-jsx@5.1.6(@babel/core@7.26.7)(react@19.0.0):
     dependencies:
       client-only: 0.0.1
       react: 19.0.0
     optionalDependencies:
-      '@babel/core': 7.27.1
+      '@babel/core': 7.26.7
 
   stylehacks@7.0.5(postcss@8.5.3):
     dependencies:
@@ -41650,7 +41583,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.8.3
 
-  ts-jest@29.1.2(@babel/core@7.27.1)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.27.1))(jest@29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(@types/node@22.13.1)(typescript@5.8.3)))(typescript@5.8.3):
+  ts-jest@29.1.2(@babel/core@7.26.7)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.7))(jest@29.7.0(@types/node@22.13.1)(ts-node@10.9.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(@types/node@22.13.1)(typescript@5.8.3)))(typescript@5.8.3):
     dependencies:
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
@@ -41663,11 +41596,11 @@ snapshots:
       typescript: 5.8.3
       yargs-parser: 21.1.1
     optionalDependencies:
-      '@babel/core': 7.27.1
+      '@babel/core': 7.26.7
       '@jest/types': 29.6.3
-      babel-jest: 29.7.0(@babel/core@7.27.1)
+      babel-jest: 29.7.0(@babel/core@7.26.7)
 
-  ts-jest@29.2.5(@babel/core@7.26.7)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.7))(jest@29.7.0(@types/node@22.15.21)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.15.21)(typescript@5.8.3)))(typescript@5.8.3):
+  ts-jest@29.2.5(@babel/core@7.27.1)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.27.1))(jest@29.7.0(@types/node@22.15.21)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.15.21)(typescript@5.8.3)))(typescript@5.8.3):
     dependencies:
       bs-logger: 0.2.6
       ejs: 3.1.10
@@ -41681,10 +41614,10 @@ snapshots:
       typescript: 5.8.3
       yargs-parser: 21.1.1
     optionalDependencies:
-      '@babel/core': 7.26.7
+      '@babel/core': 7.27.1
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
-      babel-jest: 29.7.0(@babel/core@7.26.7)
+      babel-jest: 29.7.0(@babel/core@7.27.1)
 
   ts-loader@9.5.2(typescript@5.8.3)(webpack@5.99.6(@swc/core@1.10.0)(esbuild@0.25.4)):
     dependencies:

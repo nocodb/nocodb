@@ -28,9 +28,18 @@ const { layout, elements } = useErdElements(aiBaseSchema, config)
 const showSkeleton = computed(() => viewport.value.zoom < 0.15)
 
 async function init() {
-  // TODO fit view after first render
-  fitView({ duration: 0, minZoom: 0.2 })
-  layout(showSkeleton.value)
+  await layout(showSkeleton.value)
+  // Center elements without changing zoom level
+  await nextTick()
+  setTimeout(() => {
+    fitView({ 
+      duration: 200, 
+      padding: 0.1,
+      // Don't change zoom - keep current zoom level but center the content
+      minZoom: viewport.value.zoom || 1,
+      maxZoom: viewport.value.zoom || 1
+    })
+  }, 100)
 }
 
 function zoomIn(nodeId?: string) {
@@ -50,10 +59,12 @@ watch(aiBaseSchema, init, { flush: 'post', immediate: true })
 watch(showSkeleton, async (isSkeleton) => {
   layout(isSkeleton).then(() => {
     if (!isSkeleton) return
+    // Center content without changing zoom level
     fitView({
       duration: 300,
-      minZoom: isSkeleton ? undefined : viewport.value.zoom,
-      maxZoom: isSkeleton ? viewport.value.zoom : undefined,
+      padding: 0.1,
+      minZoom: viewport.value.zoom,
+      maxZoom: viewport.value.zoom,
     })
   })
 })
@@ -70,7 +81,7 @@ onScopeDispose($destroy)
 </script>
 
 <template>
-  <VueFlow v-model="elements">
+  <VueFlow v-model="elements" class="nc-erd-flow">
     <Controls
       class="bg-transparent rounded-lg shadow-md border-1 border-gray-200 !right-13 flex items-center"
       :position="PanelPosition.TopRight"
@@ -121,5 +132,16 @@ onScopeDispose($destroy)
 
 .nc-erd-zoom-btn {
   @apply bg-white px-1.5 py-1 hover:(bg-gray-100 text-gray-800) cursor-pointer text-gray-600;
+}
+
+.nc-erd-flow {
+  width: 100%;
+  height: 100%;
+}
+
+.nc-erd-flow .vue-flow__viewport {
+  /* Ensure the viewport uses the full space for proper centering */
+  width: 100%;
+  height: 100%;
 }
 </style>

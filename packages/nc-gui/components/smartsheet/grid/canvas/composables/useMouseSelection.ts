@@ -119,7 +119,8 @@ export function useMouseSelection({
       }
 
       selection.value.endRange(cell)
-      scrollToCell(cell.row, cell.col, cell.path)
+
+      scrollToCell(cell.row, cell.col, cell.path, selection.value.isDifferentColSelection())
       triggerReRender()
     }
   }

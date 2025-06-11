@@ -989,14 +989,13 @@ defineExpose({
     <template v-if="!nested">
       <template v-if="isEeUI && !isPublic">
         <div
-          v-if="!readOnly && filtersCount < getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW)"
+          v-if="!readOnly && filtersCount < getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW) && !hiddenAddNewFilter"
           class="flex gap-2"
           :class="{
             'mt-1 mb-2': filters.length,
           }"
         >
           <NcButton
-            v-if="!hiddenAddNewFilter"
             size="small"
             :type="actionBtnType"
             :disabled="disableAddNewFilter || isLockedView || readOnly"
@@ -1012,7 +1011,7 @@ defineExpose({
           </NcButton>
 
           <NcButton
-            v-if="nestedLevel < 5 && !readOnly && !hiddenAddNewFilter"
+            v-if="nestedLevel < 5 && !readOnly"
             class="nc-btn-focus"
             :disabled="disableAddNewFilter || isLockedView"
             :type="actionBtnType"
@@ -1029,7 +1028,7 @@ defineExpose({
         </div>
       </template>
 
-      <template v-else-if="!readOnly">
+      <template v-else-if="!readOnly && !hiddenAddNewFilter">
         <div
           ref="addFiltersRowDomRef"
           class="flex gap-2"

@@ -1091,7 +1091,10 @@ const triggerSubType = computed(() => {
               </div>
             </div>
 
-            <div class="flex flex-col gap-4">
+            <div
+              v-if="['Slack', 'Microsoft Teams', 'Discord', 'Mattermost'].includes(hookRef.notification.type)"
+              class="flex flex-col gap-4"
+            >
               <div v-if="hookRef.notification.type === 'Slack'" class="flex flex-col w-full gap-3">
                 <a-form-item v-bind="validateInfos['notification.payload.channels']">
                   <LazyWebhookChannelMultiSelect

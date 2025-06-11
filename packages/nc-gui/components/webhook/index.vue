@@ -885,7 +885,11 @@ const triggerSubType = computed(() => {
                         data-testvalue="send_everything"
                       >
                         <template v-if="hookRef.event === 'after'">
-                          <NcMenuItem data-testid="nc-dropdown-hook-operation-option" @click.stop="toggleSendMeEverythingChecked">
+                          <NcMenuItem
+                            data-testid="nc-dropdown-hook-operation-option"
+                            data-testvalue="sendMeEverything"
+                            @click.stop="toggleSendMeEverythingChecked"
+                          >
                             <div class="flex-1 w-full">
                               {{ $t('labels.sendMeEverything') }}
                             </div>

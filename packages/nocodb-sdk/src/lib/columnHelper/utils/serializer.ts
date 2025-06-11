@@ -155,22 +155,28 @@ export const serializeCurrencyValue = (value: any, col: ColumnType) => {
 
     // Create a number formatter for the target locale (e.g., 'de-DE', 'en-US')
     const formatter = new Intl.NumberFormat(
-      columnMeta.currency_locale || 'en-US'
+      columnMeta?.currency_locale || 'en-US'
     );
 
-    if (typeof (formatter as any).formatToParts === 'function') {
-      // Use formatToParts to extract the characters used for grouping (thousands) and decimal
-
-      const parts = (formatter as any).formatToParts(
-        12345.6
-      ) as Intl.NumberFormatPart[];
-
-      // Extract group separator (e.g., '.' in 'de-DE', ',' in 'en-US')
-      group = parts.find((p) => p.type === 'group')?.value || group;
-
-      // Extract decimal separator (e.g., ',' in 'de-DE', '.' in 'en-US')
-      decimal = parts.find((p) => p.type === 'decimal')?.value || decimal;
+    // If the locale is not set or is 'en-US', or the formatter does not support formatToParts, use the default behavior
+    if (
+      !columnMeta?.currency_locale ||
+      columnMeta.currency_locale === 'en-US' ||
+      typeof (formatter as any).formatToParts !== 'function'
+    ) {
+      return value?.replace(/[^0-9.]/g, '')?.trim();
     }
+
+    // Use formatToParts to extract the characters used for grouping (thousands) and decimal
+    const parts = (formatter as any).formatToParts(
+      12345.6
+    ) as Intl.NumberFormatPart[];
+
+    // Extract group separator (e.g., '.' in 'de-DE', ',' in 'en-US')
+    group = parts.find((p) => p.type === 'group')?.value || group;
+
+    // Extract decimal separator (e.g., ',' in 'de-DE', '.' in 'en-US')
+    decimal = parts.find((p) => p.type === 'decimal')?.value || decimal;
 
     return value
       .replace(new RegExp('\\' + group, 'g'), '') // 1. Remove all group (thousands) separators

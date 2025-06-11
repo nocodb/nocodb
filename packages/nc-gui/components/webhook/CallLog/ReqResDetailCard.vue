@@ -70,6 +70,10 @@ const formattedPayload = computed(() => {
           read-only
           :monaco-config="{
             lineNumbers: 'on',
+            scrollbar: {
+              verticalScrollbarSize: 6,
+              horizontalScrollbarSize: 6,
+            },
           }"
           :monaco-custom-theme="{
             base: 'vs',

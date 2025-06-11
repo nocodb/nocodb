@@ -2206,7 +2206,7 @@ const onNavigate = async (dir: NavigateDir) => {
   requestAnimationFrame(triggerRefreshCanvas)
 
   nextTick(() => {
-    scrollToCell()
+    scrollToCell(undefined, undefined, undefined, false)
   })
 }
 

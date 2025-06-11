@@ -630,6 +630,7 @@ watch(
   async () => {
     await loadSampleData()
   },
+  { immediate: true },
 )
 
 async function loadSampleData() {

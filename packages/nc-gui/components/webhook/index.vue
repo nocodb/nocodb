@@ -410,9 +410,8 @@ function setHook(newHook: HookType) {
   } else {
     sendMeEverythingChecked.value = false
   }
-  if (hookRef?.trigger_fields?.length) {
-    hookRef.trigger_field = true
-  }
+
+  hookRef.trigger_field = !!hookRef?.trigger_field
 }
 
 function onEventChange() {

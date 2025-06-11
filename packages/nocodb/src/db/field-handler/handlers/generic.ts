@@ -251,7 +251,7 @@ export class GenericFieldHandler
 
   async filterLike(
     args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder | Knex.Raw;
       val: any;
     },
     rootArgs: {

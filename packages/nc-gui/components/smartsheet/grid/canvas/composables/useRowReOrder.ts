@@ -32,7 +32,7 @@ export function useRowReorder({
     path?: Array<number> | null,
   ) => Promise<void>
   triggerRefreshCanvas: () => void
-  scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
+  scrollToCell: CanvasScrollToCellFn
   elementMap: CanvasElement
   getDataCache: (path?: Array<number> | null) => {
     cachedRows: Ref<Map<number, Row>>

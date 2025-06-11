@@ -15,6 +15,10 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
   const { getMeta } = useMetas()
   const { activeTable } = toRefs(useTablesStore())
 
+  const hasV2Webhooks = computed(() => {
+    return hooks.value.some((hook) => hook.version === 'v2')
+  })
+
   const createWebhookUrl = computed(() => {
     return navigateToWebhookRoute({
       openCreatePage: true,
@@ -229,6 +233,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     webhookMainUrl,
     isHooksLoading,
     navigateToWebhookRoute,
+    hasV2Webhooks,
   }
 })
 

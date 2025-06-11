@@ -91,7 +91,7 @@ importers:
         specifier: ^0.5.5
         version: 0.5.5(magicast@0.3.5)(typescript@5.8.3)(vue@3.5.14(typescript@5.8.3))
       '@readme/httpsnippet':
-        specifier: ^2.0.0
+        specifier: ^2.5.1
         version: 2.5.1
       '@sentry/vue':
         specifier: ^9.2.0

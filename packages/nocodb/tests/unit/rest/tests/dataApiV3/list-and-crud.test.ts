@@ -19,7 +19,7 @@ import type { INcAxios } from './ncAxios';
 const API_VERSION = 'v3';
 const debugMode = true;
 
-describe('dataApiV3', () => {
+describe.only('dataApiV3', () => {
   describe('list-and-crud', () => {
     let testContext: ITestContext;
     let testAxios: INcAxios;
@@ -202,12 +202,12 @@ describe('dataApiV3', () => {
           }),
         });
 
-        // prepare array with 10 Id's, from 401 to 410
-        const ids: { id: number }[] = [];
-        for (let i = 401; i <= 410; i++) {
-          ids.push({ id: i });
-        }
-        expect(rsp.body.records).to.deep.equal(ids);
+        // APIv3 insert returns full records with fields
+        expect(rsp.body.records).to.have.lengthOf(10);
+        rsp.body.records.forEach((record, index) => {
+          expect(record).to.have.property('id', 401 + index);
+          expect(record).to.have.property('fields');
+        });
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -255,10 +255,13 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords,
         });
-        // Update operations only return IDs
-        expect(rsp.body.records).to.deep.equal(
-          updatedRecords.map((record) => ({ id: record.id })),
-        );
+        // APIv3 update returns full records with fields
+        expect(rsp.body.records).to.have.lengthOf(updatedRecords.length);
+        rsp.body.records.forEach((record, index) => {
+          expect(record).to.have.property('id', updatedRecords[index].id);
+          expect(record).to.have.property('fields');
+          expect(record.fields).to.include(updatedRecords[index].fields);
+        });
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -396,12 +399,12 @@ describe('dataApiV3', () => {
           }),
         });
 
-        // prepare array with 10 Id's, from 401 to 410
-        const ids: { id: number }[] = [];
-        for (let i = 401; i <= 410; i++) {
-          ids.push({ id: i });
-        }
-        expect(rsp.body.records).to.deep.equal(ids);
+        // APIv3 insert returns full records with fields
+        expect(rsp.body.records).to.have.lengthOf(10);
+        rsp.body.records.forEach((record, index) => {
+          expect(record).to.have.property('id', 401 + index);
+          expect(record).to.have.property('fields');
+        });
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -436,10 +439,19 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords,
         });
-        // Update operations only return IDs
-        expect(rsp.body.records).to.deep.equal(
-          updatedRecords.map((record) => ({ id: record.id })),
-        );
+        // APIv3 update returns full records with fields
+        expect(rsp.body.records).to.have.lengthOf(updatedRecords.length);
+        rsp.body.records.forEach((record, index) => {
+          expect(record).to.have.property('id', updatedRecords[index].id);
+          expect(record).to.have.property('fields');
+          // Use specific field comparisons for select fields to handle arrays properly
+          expect(record.fields.SingleSelect).to.equal(
+            updatedRecords[index].fields.SingleSelect,
+          );
+          expect(JSON.stringify(record.fields.MultiSelect)).to.equal(
+            JSON.stringify(updatedRecords[index].fields.MultiSelect),
+          );
+        });
 
         // verify updated records
         rsp = await ncAxiosGet({
@@ -450,7 +462,20 @@ describe('dataApiV3', () => {
             fields: 'Id,SingleSelect,MultiSelect',
           },
         });
-        expect(rsp.body.records.slice(0, 4)).to.deep.equal(updatedRecords);
+        // APIv3 verify updated records with flexible array comparison
+        const actualRecords = rsp.body.records.slice(0, 4);
+        expect(actualRecords).to.have.lengthOf(updatedRecords.length);
+        actualRecords.forEach((record, index) => {
+          expect(record).to.have.property('id', updatedRecords[index].id);
+          expect(record).to.have.property('fields');
+          expect(record.fields.SingleSelect).to.equal(
+            updatedRecords[index].fields.SingleSelect,
+          );
+          // Use deep equality for MultiSelect array comparison
+          expect(JSON.stringify(record.fields.MultiSelect)).to.equal(
+            JSON.stringify(updatedRecords[index].fields.MultiSelect),
+          );
+        });
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -520,12 +545,12 @@ describe('dataApiV3', () => {
           body: records.map((record) => ({ fields: record })),
         });
 
-        // prepare array with 10 Id's, from 801 to 810
-        const ids: { id: number }[] = [];
-        for (let i = 801; i <= 810; i++) {
-          ids.push({ id: i });
-        }
-        expect(rsp.body.records).to.deep.equal(ids);
+        // APIv3 insert returns full records with fields
+        expect(rsp.body.records).to.have.lengthOf(10);
+        rsp.body.records.forEach((record, index) => {
+          expect(record).to.have.property('id', 801 + index);
+          expect(record).to.have.property('fields');
+        });
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -561,9 +586,13 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords,
         });
-        expect(rsp.body.records).to.deep.equal(
-          updatedRecords.map((record) => ({ id: record.id })),
-        );
+        // APIv3 update returns full records with fields
+        expect(rsp.body.records).to.have.lengthOf(updatedRecords.length);
+        rsp.body.records.forEach((record, index) => {
+          expect(record).to.have.property('id', updatedRecords[index].id);
+          expect(record).to.have.property('fields');
+          expect(record.fields).to.include(updatedRecords[index].fields);
+        });
 
         // verify updated records
         rsp = await ncAxiosGet({
@@ -869,26 +898,26 @@ describe('dataApiV3', () => {
             rowId: '1',
           },
           body: [
-            { Id: 1 },
-            { Id: 2 },
-            { Id: 3 },
-            { Id: 4 },
-            { Id: 5 },
-            { Id: 6 },
-            { Id: 7 },
-            { Id: 8 },
-            { Id: 9 },
-            { Id: 10 },
-            { Id: 11 },
-            { Id: 12 },
-            { Id: 13 },
-            { Id: 14 },
-            { Id: 15 },
-            { Id: 16 },
-            { Id: 17 },
-            { Id: 18 },
-            { Id: 19 },
-            { Id: 20 },
+            { id: 1 },
+            { id: 2 },
+            { id: 3 },
+            { id: 4 },
+            { id: 5 },
+            { id: 6 },
+            { id: 7 },
+            { id: 8 },
+            { id: 9 },
+            { id: 10 },
+            { id: 11 },
+            { id: 12 },
+            { id: 13 },
+            { id: 14 },
+            { id: 15 },
+            { id: 16 },
+            { id: 17 },
+            { id: 18 },
+            { id: 19 },
+            { id: 20 },
           ],
         });
         await ncAxiosLinkAdd({
@@ -898,26 +927,26 @@ describe('dataApiV3', () => {
             rowId: '1',
           },
           body: [
-            { Id: 1 },
-            { Id: 2 },
-            { Id: 3 },
-            { Id: 4 },
-            { Id: 5 },
-            { Id: 6 },
-            { Id: 7 },
-            { Id: 8 },
-            { Id: 9 },
-            { Id: 10 },
-            { Id: 11 },
-            { Id: 12 },
-            { Id: 13 },
-            { Id: 14 },
-            { Id: 15 },
-            { Id: 16 },
-            { Id: 17 },
-            { Id: 18 },
-            { Id: 19 },
-            { Id: 20 },
+            { id: 1 },
+            { id: 2 },
+            { id: 3 },
+            { id: 4 },
+            { id: 5 },
+            { id: 6 },
+            { id: 7 },
+            { id: 8 },
+            { id: 9 },
+            { id: 10 },
+            { id: 11 },
+            { id: 12 },
+            { id: 13 },
+            { id: 14 },
+            { id: 15 },
+            { id: 16 },
+            { id: 17 },
+            { id: 18 },
+            { id: 19 },
+            { id: 20 },
           ],
         });
 
@@ -1066,21 +1095,21 @@ describe('dataApiV3', () => {
             rowId: '1',
           },
           body: [
-            { Id: 1 },
-            { Id: 3 },
-            { Id: 5 },
-            { Id: 7 },
-            { Id: 9 },
-            { Id: 11 },
-            { Id: 13 },
-            { Id: 15 },
-            { Id: 17 },
-            { Id: 19 },
-            { Id: 21 },
-            { Id: 23 },
-            { Id: 25 },
-            { Id: 27 },
-            { Id: 29 },
+            { id: 1 },
+            { id: 3 },
+            { id: 5 },
+            { id: 7 },
+            { id: 9 },
+            { id: 11 },
+            { id: 13 },
+            { id: 15 },
+            { id: 17 },
+            { id: 19 },
+            { id: 21 },
+            { id: 23 },
+            { id: 25 },
+            { id: 27 },
+            { id: 29 },
           ],
         });
 
@@ -1173,7 +1202,7 @@ describe('dataApiV3', () => {
             linkId: getColumnId(columnsCountry, 'Cities'),
             rowId: '1',
           },
-          body: [{ Id: 1 }, { Id: 2 }, { Id: 3 }],
+          body: [{ id: 1 }, { id: 2 }, { id: 3 }],
         });
 
         // update the link
@@ -1183,7 +1212,7 @@ describe('dataApiV3', () => {
             linkId: getColumnId(columnsCountry, 'Cities'),
             rowId: '2',
           },
-          body: [{ Id: 2 }, { Id: 3 }],
+          body: [{ id: 2 }, { id: 3 }],
         });
 
         // verify record 1

@@ -6,8 +6,6 @@ import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import Handlebars from 'handlebars';
 import handlebarsHelpers from 'handlebars-helpers-v2';
-import { v4 as uuidv4 } from 'uuid';
-import axios from 'axios';
 import {
   ColumnHelper,
   HookOperationCode,

@@ -150,19 +150,27 @@ export const serializeCurrencyValue = (value: any, col: ColumnType) => {
   return serializeDecimalValue(value, (value) => {
     const columnMeta = parseProp(col.meta);
 
+    let group = ',';
+    let decimal = '.';
+
     // Create a number formatter for the target locale (e.g., 'de-DE', 'en-US')
     const formatter = new Intl.NumberFormat(
       columnMeta.currency_locale || 'en-US'
     );
 
-    // Use formatToParts to extract the characters used for grouping (thousands) and decimal
-    const parts = formatter.formatToParts(12345.6);
+    if (typeof (formatter as any).formatToParts === 'function') {
+      // Use formatToParts to extract the characters used for grouping (thousands) and decimal
 
-    // Extract group separator (e.g., '.' in 'de-DE', ',' in 'en-US')
-    const group = parts.find((p) => p.type === 'group')?.value || ',';
+      const parts = (formatter as any).formatToParts(
+        12345.6
+      ) as Intl.NumberFormatPart[];
 
-    // Extract decimal separator (e.g., ',' in 'de-DE', '.' in 'en-US')
-    const decimal = parts.find((p) => p.type === 'decimal')?.value || '.';
+      // Extract group separator (e.g., '.' in 'de-DE', ',' in 'en-US')
+      group = parts.find((p) => p.type === 'group')?.value || group;
+
+      // Extract decimal separator (e.g., ',' in 'de-DE', '.' in 'en-US')
+      decimal = parts.find((p) => p.type === 'decimal')?.value || decimal;
+    }
 
     return value
       .replace(new RegExp('\\' + group, 'g'), '') // 1. Remove all group (thousands) separators

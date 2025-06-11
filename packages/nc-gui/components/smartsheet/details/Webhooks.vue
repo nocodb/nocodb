@@ -243,8 +243,7 @@ const getHookTypeText = (hook: HookType) => {
       return `${prefix}${operations[0]}`
     }
 
-    const lastOperation = operations.pop()
-    return `${prefix}${operations.join(', ')} ${t('general.or').toLowerCase()} ${lastOperation}`
+    return t('labels.sendAllEvents')
   }
   return (
     v2EventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text?.join(' ') ||
@@ -375,9 +374,7 @@ const getHookTypeText = (hook: HookType) => {
                 </NcTooltip>
               </template>
               <template v-if="column.key === 'type'">
-                <div class="flex items-center text-nc-content-gray-subtle2 text-[13px] font-default leading-4.5">
-                  {{ getHookTypeText(hook) }}
-                </div>
+                {{ getHookTypeText(hook) }}
               </template>
               <template v-if="column.key === 'created_at'">
                 {{ dayjs(hook.created_at).format('DD MMM YYYY') }}
@@ -391,7 +388,7 @@ const getHookTypeText = (hook: HookType) => {
                   <template #overlay>
                     <NcMenu class="w-48" variant="small">
                       <NcMenuItem key="edit" data-testid="nc-webhook-item-action-edit" @click="editHook(hook)">
-                        <GeneralIcon icon="edit" class="text-gray-800" />
+                        <GeneralIcon icon="edit" />
                         <span>{{ $t('general.edit') }}</span>
                       </NcMenuItem>
                       <NcMenuItem
@@ -400,7 +397,7 @@ const getHookTypeText = (hook: HookType) => {
                         :disabled="hook.version !== 'v3'"
                         @click="copyWebhook(hook)"
                       >
-                        <GeneralIcon icon="duplicate" class="text-gray-800" />
+                        <GeneralIcon icon="duplicate" />
                         <span>{{ $t('general.duplicate') }}</span>
                       </NcMenuItem>
 
@@ -408,14 +405,12 @@ const getHookTypeText = (hook: HookType) => {
 
                       <NcMenuItem
                         key="delete"
-                        class="!hover:bg-red-50"
+                        class="!text-red-500 !hover:bg-red-50"
                         data-testid="nc-webhook-item-action-delete"
                         @click="openDeleteModal(hook.id)"
                       >
-                        <div class="text-red-500">
-                          <GeneralIcon icon="delete" class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" />
-                          {{ $t('general.delete') }}
-                        </div>
+                        <GeneralIcon icon="delete" />
+                        {{ $t('general.delete') }}
                       </NcMenuItem>
                     </NcMenu>
                   </template>

@@ -1347,7 +1347,8 @@
     "dataApiV2": "Data APIs V2",
     "metaApiV2": "Meta APIs V2",
     "showExtraFields": "Show additional fields",
-    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records"
+    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

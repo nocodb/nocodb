@@ -736,7 +736,7 @@ onMounted(async () => {
 
 const triggerSubType = computed(() => {
   if (sendMeEverythingChecked.value) {
-    return 'Send me everything'
+    return t('labels.sendAllEvents')
   }
 
   if (!hookRef.operation?.length) {
@@ -764,7 +764,7 @@ const triggerSubType = computed(() => {
           <GeneralIcon class="text-gray-900 h-5 w-5" icon="ncWebhook" />
           <span class="text-gray-900 font-semibold text-xl">
             <template v-if="activeTab === HookTab.Configuration">
-              {{ !hook ? $t('activity.newWebhook') : $t('activity.webhookDetails') }}
+              {{ !hook ? $t('activity.newWebhook') : 'Webhook Settings' }}
             </template>
             <template v-else>
               {{ $t('activity.webhookLogs') }}
@@ -904,7 +904,7 @@ const triggerSubType = computed(() => {
                             @click.stop="toggleSendMeEverythingChecked"
                           >
                             <div class="flex-1 w-full text-sm">
-                              {{ $t('labels.sendMeEverything') }}
+                              {{ $t('labels.sendAllEvents') }}
                             </div>
                             <NcCheckbox :checked="sendMeEverythingChecked" />
                           </NcMenuItem>
@@ -936,9 +936,7 @@ const triggerSubType = computed(() => {
                 <div class="w-full flex items-center justify-between h-[28px]">
                   <label class="cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
                     <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
-                      <span class="!text-gray-700 font-semibold">
-                        {{ $t('general.trigger') }} {{ $t('activity.basedOnConditions').toLowerCase() }}
-                      </span>
+                      <span class="!text-gray-700 font-semibold"> Trigger only when conditions match </span>
                     </NcSwitch>
                   </label>
 

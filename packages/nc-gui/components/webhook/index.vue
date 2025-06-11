@@ -50,13 +50,15 @@ const testConnectionError = ref('')
 
 const useForm = Form.useForm
 
+const eventTriggerOption = ref(0)
+
 let hookRef = reactive<
   Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation?: string; condition: boolean }
 >({
   id: '',
   title: defaultHookName,
   event: undefined,
-  operation: undefined,
+  operation: [],
   eventOperation: undefined,
   notification: {
     type: 'URL',
@@ -82,7 +84,7 @@ let hookRef = reactive<
   },
   condition: false,
   active: true,
-  version: 'v2',
+  version: 'v3',
 })
 
 const isBodyShown = ref(hookRef.version === 'v1' || isEeUI)
@@ -102,6 +104,14 @@ const mattermostChannels = ref<Record<string, any>[]>([])
 const filterRef = ref()
 
 const titleDomRef = ref<HTMLInputElement | undefined>()
+
+const toggleOperation = (operation: string) => {
+  if (hookRef.operation?.includes(operation as any)) {
+    hookRef.operation!.splice(hookRef.operation!.indexOf(operation as any), 1)
+  } else {
+    hookRef.operation!.push(operation as any)
+  }
+}
 
 const formInput = ref({
   'Email': [
@@ -224,7 +234,6 @@ const methodList = [
 const validators = computed(() => {
   return {
     'title': [fieldRequiredValidator()],
-    'eventOperation': [fieldRequiredValidator()],
     'notification.type': [fieldRequiredValidator()],
     ...(hookRef.notification.type === 'URL' && {
       'notification.payload.method': [fieldRequiredValidator()],
@@ -302,6 +311,11 @@ function setHook(newHook: HookType) {
       payload: notification.payload,
     },
   })
+  if (newHook.operation && newHook.operation.length === eventList.value.length) {
+    eventTriggerOption.value = 0
+  } else {
+    eventTriggerOption.value = 1
+  }
 }
 
 function onEventChange() {
@@ -386,12 +400,20 @@ async function saveHooks() {
   loading.value = true
   try {
     await validate()
-  } catch (error: any) {
-    console.error('validation error', error)
+    if (hookRef.operation?.length === 0 && eventTriggerOption.value === 1) {
+      throw new Error('At least one operation need to be selected')
+    }
+  } catch (_: any) {
+    message.error(t('msg.error.invalidForm'))
 
     loading.value = false
 
     return
+  }
+
+  let operations = [...(hookRef.operation ?? [])]
+  if (eventTriggerOption.value === 0) {
+    operations = eventList.value.map((k) => k.value[1])
   }
 
   try {
@@ -399,6 +421,8 @@ async function saveHooks() {
     if (hookRef.id) {
       res = await api.dbTableWebhook.update(hookRef.id, {
         ...hookRef,
+        operation: operations,
+        event: 'after',
         notification: {
           ...hookRef.notification,
           payload: hookRef.notification.payload,
@@ -407,6 +431,8 @@ async function saveHooks() {
     } else {
       res = await api.dbTableWebhook.create(meta.value!.id!, {
         ...hookRef,
+        operation: operations,
+        event: 'after',
         notification: {
           ...hookRef.notification,
           payload: hookRef.notification.payload,
@@ -572,11 +598,6 @@ watch(
     const [event, operation] = hookRef.eventOperation.split(' ')
     hookRef.event = event as HookType['event']
     hookRef.operation = operation as HookType['operation']
-
-    // Automatically set active to true when event type is manual
-    if (event === 'manual') {
-      hookRef.active = true
-    }
   },
 )
 
@@ -596,12 +617,6 @@ watch(
 
 onMounted(async () => {
   await loadPluginList()
-
-  if (hookRef.event && hookRef.operation) {
-    hookRef.eventOperation = `${hookRef.event} ${hookRef.operation}`
-  } else {
-    hookRef.eventOperation = eventList.value[0].value.join(' ')
-  }
 
   onNotificationTypeChange()
 
@@ -709,75 +724,33 @@ onMounted(async () => {
 
           <a-form class="flex flex-col gap-8" :model="hookRef" name="create-or-edit-webhook">
             <div class="flex flex-col gap-4">
-              <div class="flex w-full gap-3 custom-select">
-                <a-form-item class="w-1/3" v-bind="validateInfos.eventOperation">
-                  <a-select
-                    v-model:value="hookRef.eventOperation"
-                    size="medium"
-                    :disabled="eventList.length === 1"
-                    :placeholder="$t('general.event')"
-                    class="nc-text-field-hook-event !h-9 capitalize"
-                    dropdown-class-name="nc-dropdown-webhook-event"
-                  >
-                    <template #suffixIcon>
-                      <GeneralIcon icon="arrowDown" class="text-gray-700" />
-                    </template>
-                    <a-select-option
-                      v-for="(event, i) in eventList"
-                      :key="i"
-                      class="capitalize"
-                      :value="event.value.join(' ')"
-                      :disabled="hookRef.version === 'v1' && ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(event.value[1])"
-                    >
-                      <div class="flex items-center w-full gap-2 justify-between">
-                        <NcTooltip class="truncate" show-on-truncate-only>
-                          <template #title>
-                            {{ event.text.join(' ') }}
-                          </template>
-                          {{ event.text.join(' ') }}
-                        </NcTooltip>
-                        <component
-                          :is="iconMap.check"
-                          v-if="hookRef.eventOperation === event.value.join(' ')"
-                          id="nc-selected-item-icon"
-                          class="text-primary w-4 h-4 flex-none"
-                        />
+              <div class="flex flex-col">
+                <div class="flex flex-col">
+                  <div>Which events should trigger this webhook?</div>
+                  <div>
+                    <a-radio-group v-model:value="eventTriggerOption" class="flex flex-col w-full">
+                      <div>
+                        <!-- need to use style because windiclass not overriding -->
+                        <a-radio style="display: block; box-shadow: none" :value="0">Send me everything</a-radio>
                       </div>
-                    </a-select-option>
-                  </a-select>
-                </a-form-item>
-                <a-form-item class="w-2/3" v-bind="validateInfos['notification.type']">
-                  <a-select
-                    v-model:value="hookRef.notification.type"
-                    size="medium"
-                    :disabled="isEeUI"
-                    class="nc-select-hook-notification-type !h-9"
-                    :placeholder="$t('general.notification')"
-                    dropdown-class-name="nc-dropdown-webhook-notification"
-                    @change="onNotificationTypeChange(true)"
-                  >
-                    <template #suffixIcon>
-                      <GeneralIcon icon="arrowDown" class="text-gray-700" />
-                    </template>
-                    <a-select-option
-                      v-for="(notificationOption, i) in notificationList"
-                      :key="i"
-                      :value="notificationOption.type"
-                    >
-                      <div class="flex items-center w-full gap-2">
-                        <GeneralIcon :icon="getNotificationIconName(notificationOption.type)" class="mr-2 stroke-transparent" />
-
-                        <div class="flex-1">{{ notificationOption.text }}</div>
-                        <component
-                          :is="iconMap.check"
-                          v-if="hookRef.notification.type === notificationOption.type"
-                          id="nc-selected-item-icon"
-                          class="text-primary w-4 h-4 flex-none"
-                        />
+                      <div>
+                        <a-radio style="display: block; box-shadow: none" :value="1">Let me select individual events</a-radio>
                       </div>
-                    </a-select-option>
-                  </a-select>
-                </a-form-item>
+                    </a-radio-group>
+                  </div>
+                  <div v-if="eventTriggerOption === 1" class="flex flex-col ml-2">
+                    <div v-for="event of eventList" :key="event.value[1]">
+                      <NcCheckbox
+                        :checked="hookRef.operation?.includes(event.value[1]) ?? false"
+                        class="nc-checkbox"
+                        :value="event.value[1]"
+                        @change="toggleOperation(event.value[1])"
+                      >
+                        {{ event.text[1] }}
+                      </NcCheckbox>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div v-if="hookRef.notification.type === 'URL'" class="flex flex-col gap-8">

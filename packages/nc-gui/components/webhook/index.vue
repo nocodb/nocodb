@@ -833,8 +833,8 @@ onMounted(async () => {
                           @click="toggleSendMeEverythingChecked"
                           @mousedown.prevent
                         >
-                          <div class="w-full flex gap-2">
-                            <div class="flex-grow">Send me everything</div>
+                          <div class="w-full flex justify-between gap-2">
+                            <div class="flex-grow text-left">Send me everything</div>
                             <div class="flex flex-shrink max-w-[18px]">
                               <a-checkbox v-model:checked="sendMeEverythingChecked" :readonly="true"></a-checkbox>
                             </div>
@@ -858,8 +858,8 @@ onMounted(async () => {
                             "
                             @mousedown.prevent
                           >
-                            <div class="w-full flex gap-2">
-                              <div class="flex-grow">
+                            <div class="w-full flex justify-between gap-2">
+                              <div class="flex-grow text-left">
                                 <span v-if="hookRef.event === 'after'">{{ $t('general.after') }}&nbsp;</span>
                                 {{ operation.text }}
                               </div>

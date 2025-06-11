@@ -419,6 +419,10 @@ export function replaceDelimitedWithKeyValuePg(params: {
   const delimiter = params.delimiter ?? ',';
   const knex = params.knex;
 
+  if (!params.stack || params.stack.length === 0) {
+    return knex.raw(`??`, [params.needleColumn]).toQuery();
+  }
+
   // create union replace statement for each user
   const mapUnion = params.stack
     .map((row) => {

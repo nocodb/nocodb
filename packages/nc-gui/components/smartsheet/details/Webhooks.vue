@@ -241,7 +241,7 @@ const getHookTypeText = (hook: HookType) => {
 
     if (operations.length === 1) {
       if (operations[0] === 'trigger') {
-        return t('general.trigger')
+        return 'Manual trigger'
       }
 
       return `${prefix}${operations[0]}`

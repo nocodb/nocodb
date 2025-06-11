@@ -1086,7 +1086,7 @@ const webhookV2AndV3Diff = computed(() => {
                     />
                   </div>
 
-                  <div v-if="hookRef.event === 'after' && hookRef.operation?.includes('update')" class="mb-4">
+                  <div v-if="isEeUI && hookRef.event === 'after' && hookRef.operation?.includes('update')" class="mb-4">
                     <WebhookTriggerByField
                       v-model:trigger-fields="hookRef.trigger_fields"
                       v-model:trigger-field="hookRef.trigger_field"

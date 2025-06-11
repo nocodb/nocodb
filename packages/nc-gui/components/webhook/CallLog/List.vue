@@ -52,11 +52,11 @@ const emit = defineEmits<Emit>()
       />
     </template>
     <div class="flex flex-col items-center gap-2 flex-1 justify-end pt-2">
-      <NcPagination
+      <NcPaginationV2
         :current="logPaginationData.page"
         :page-size="logPaginationData.pageSize"
         :total="+logPaginationData.totalRows"
-        show-less-items
+        variant="v2"
         @update:page-size="emit('page-size-change', $event)"
         @update:current="emit('page-change', $event)"
       />

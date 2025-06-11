@@ -154,25 +154,27 @@ const sendMeEverythingChecked = ref(false)
 
 const filterRef = ref()
 
+const isDropdownOpen = ref()
+
 const titleDomRef = ref<HTMLInputElement | undefined>()
 
 const toggleOperation = (operation: string) => {
-  if (hookRef.operation?.includes(operation as any)) {
-    hookRef.operation!.splice(hookRef.operation!.indexOf(operation as any), 1)
+  const ops = hookRef.operation
+  const index = ops?.indexOf(operation) ?? -1
+
+  if (index >= 0) {
+    ops?.splice(index, 1)
   } else {
-    hookRef.operation!.push(operation as any)
+    ops?.push(operation)
   }
-}
-const toggleSendMeEverythingChecked = (evt: Event) => {
-  sendMeEverythingChecked.value = !sendMeEverythingChecked.value
-  if (sendMeEverythingChecked.value) {
-    hookRef.operation = operationsEnum.value.map((k) => k.value) as any[]
-  } else {
-    evt.stopPropagation()
-    evt.preventDefault()
-  }
+
+  sendMeEverythingChecked.value = ops?.length === operationsEnum.value?.length
 }
 
+const toggleSendMeEverythingChecked = (evt: Event) => {
+  sendMeEverythingChecked.value = !sendMeEverythingChecked.value
+  hookRef.operation = sendMeEverythingChecked.value ? [...operationsEnum.value.map((k) => k.value)] : []
+}
 const handleEventChange = (e: string) => {
   sendMeEverythingChecked.value = false
   hookRef.operation = []
@@ -396,6 +398,9 @@ function setHook(newHook: HookType) {
     sendMeEverythingChecked.value = true
   } else {
     sendMeEverythingChecked.value = false
+  }
+  if (hookRef?.trigger_fields?.length) {
+    hookRef.trigger_field = true
   }
 }
 
@@ -717,6 +722,27 @@ onMounted(async () => {
       titleDomRef.value?.select()
     })
 })
+
+const triggerSubType = computed(() => {
+  if (sendMeEverythingChecked.value) {
+    return 'Send me everything'
+  }
+
+  if (!hookRef.operation?.length) {
+    return 'Select operation'
+  }
+
+  const operations = hookRef.operation.map((o) => eventsLabelMap.value[hookRef.event]?.[o]?.text[1])
+
+  if (operations.length === 1) {
+    return `${hookRef.event === 'after' ? `${t('general.after')} ` : ''}${operations[0]}`
+  }
+
+  const lastOperation = operations.pop()
+  return `${hookRef.event === 'after' ? `${t('general.after')} ` : ''}${operations.join(', ')} ${t(
+    'general.or',
+  ).toLowerCase()} ${lastOperation}`
+})
 </script>
 
 <template>
@@ -814,83 +840,70 @@ onMounted(async () => {
 
           <a-form class="flex flex-col gap-8" :model="hookRef" name="create-or-edit-webhook">
             <div class="flex flex-col">
-              <a-typography-title :level="3">Trigger</a-typography-title>
-              <a-card>
-                <div class="w-full flex gap-3 px-3 my-2">
+              <div class="text-nc-content-gray text-base font-bold leading-6">
+                {{ $t('general.trigger') }}
+              </div>
+              <div class="mt-3 border-1 border-nc-border-gray-medium p-4 border-b-0 rounded-t-2xl">
+                <div class="w-full flex gap-3">
                   <NcSelect v-model:value="hookRef.event" class="w-full" @change="handleEventChange">
                     <a-select-option v-for="event of eventsEnum" :key="event.value"> {{ event.text }}</a-select-option>
                   </NcSelect>
 
-                  <a-dropdown class="w-full" :trigger="['click']">
-                    <a-input
-                      :readonly="true"
-                      :value="
-                        sendMeEverythingChecked
-                          ? 'Send me everything'
-                          : (hookRef.event === 'after' && hookRef.operation?.length ? `${$t('general.after')} ` : '') +
-                            hookRef.operation!
-                              .map((o) => eventsLabelMap[hookRef.event!]?.[o]?.text[1])
-                              .join(` ${t('general.or').toLowerCase()} `)
-                      "
-                      placeholder="Choose trigger"
-                    ></a-input>
+                  <NcDropdown v-model:visible="isDropdownOpen">
+                    <div
+                      class="rounded-lg border-1 w-full transition-all cursor-pointer flex items-center border-nc-border-grey-medium h-8 py-1 gap-2 px-4 py-2"
+                      style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+                      :class="{
+                        '!border-brand-500 !shadow-selected': isDropdownOpen,
+                      }"
+                    >
+                      <div class="text-nc-content-gray flex-1">
+                        {{ triggerSubType }}
+                      </div>
+
+                      <GeneralIcon
+                        :class="{
+                          'transform rotate-180': isDropdownOpen,
+                        }"
+                        class="text-nc-content-gray transition-all w-4 h-4"
+                        icon="ncChevronDown"
+                      />
+                    </div>
+
                     <template #overlay>
-                      <a-card>
-                        <NcButton
-                          v-if="hookRef.event === 'after'"
-                          type="text"
-                          class="w-full"
-                          style="box-shadow: none"
-                          @click="toggleSendMeEverythingChecked"
-                          @mousedown.prevent
-                        >
-                          <div class="w-full flex justify-between gap-2">
-                            <div class="flex-grow text-left">Send me everything</div>
-                            <div class="flex flex-shrink max-w-[18px]">
-                              <a-checkbox v-model:checked="sendMeEverythingChecked" :readonly="true"></a-checkbox>
+                      <NcMenu class="webhook-trigger-selection" variant="small">
+                        <template v-if="hookRef.event === 'after'">
+                          <NcMenuItem @click.stop="toggleSendMeEverythingChecked">
+                            <div class="flex-1 w-full">
+                              {{ $t('labels.sendMeEverything') }}
                             </div>
-                          </div>
-                        </NcButton>
-                        <a-divider v-if="hookRef.event === 'after' && !sendMeEverythingChecked" style="margin: 4px 0" />
-                        <template v-if="hookRef.event !== 'after' || !sendMeEverythingChecked">
-                          <NcButton
-                            v-for="operation of operationsEnum"
-                            :key="operation.value"
-                            type="text"
-                            class="w-full"
-                            style="box-shadow: none"
-                            @click="
-                              // eslint-disable-next-line prettier/prettier
-                              toggleOperation(operation.value);
-                              // eslint-disable-next-line prettier/prettier
-                              $event.preventDefault();
-                              // eslint-disable-next-line prettier/prettier
-                              $event.stopPropagation();
-                            "
-                            @mousedown.prevent
-                          >
-                            <div class="w-full flex justify-between gap-2">
-                              <div class="flex-grow text-left">
-                                <span v-if="hookRef.event === 'after'">{{ $t('general.after') }}&nbsp;</span>
-                                {{ operation.text }}
-                              </div>
-                              <div class="flex flex-shrink max-w-[18px]">
-                                <a-checkbox
-                                  :checked="hookRef.operation!.includes(operation.value as any)"
-                                  :readonly="true"
-                                ></a-checkbox>
-                              </div>
-                            </div>
-                          </NcButton>
+                            <NcCheckbox :checked="sendMeEverythingChecked" />
+                          </NcMenuItem>
+
+                          <NcDivider />
                         </template>
-                      </a-card>
+
+                        <NcMenuItem
+                          v-for="operation of operationsEnum"
+                          :key="operation.value"
+                          @click.prevent="toggleOperation(operation.value)"
+                        >
+                          <div class="flex-1 w-full">
+                            <template v-if="hookRef.event === 'after'">
+                              {{ $t('general.after') }}
+                            </template>
+                            {{ operation.text }}
+                          </div>
+                          <NcCheckbox :checked="hookRef.operation!.includes(operation.value as any)" />
+                        </NcMenuItem>
+                      </NcMenu>
                     </template>
-                  </a-dropdown>
+                  </NcDropdown>
                 </div>
-              </a-card>
-              <a-card>
+              </div>
+              <div class="border-1 border-nc-border-gray-medium rounded-b-2xl p-4">
                 <div
-                  class="w-full cursor-pointer flex items-center px-3 my-2"
+                  class="w-full cursor-pointer flex items-center"
                   @click.prevent="hookRef.trigger_field = !hookRef.trigger_field"
                 >
                   <NcSwitch :checked="Boolean(hookRef.trigger_field)" class="nc-check-box-hook-condition">
@@ -900,21 +913,10 @@ onMounted(async () => {
                   </NcSwitch>
                 </div>
 
-                <div v-if="hookRef.trigger_field" class="px-3">
-                  <WebhookTriggerByField
-                    :columns="triggerByFieldColumns"
-                    :selected-columns="hookRef.trigger_fields ?? []"
-                    @change="
-                      (columns) => {
-                        hookRef.trigger_fields = columns
-                      }
-                    "
-                  ></WebhookTriggerByField>
+                <div v-if="Boolean(hookRef.trigger_field)">
+                  <WebhookTriggerByField v-model:trigger-fields="hookRef.trigger_fields" :columns="triggerByFieldColumns" />
                 </div>
-                <div
-                  class="w-full cursor-pointer flex items-center px-3 my-2"
-                  @click.prevent="hookRef.condition = !hookRef.condition"
-                >
+                <div class="w-full cursor-pointer flex items-center my-4" @click.prevent="hookRef.condition = !hookRef.condition">
                   <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
                     <span class="!text-gray-700 font-semibold">
                       {{ $t('general.trigger') }} {{ $t('activity.basedOnConditions').toLowerCase() }}
@@ -922,11 +924,11 @@ onMounted(async () => {
                   </NcSwitch>
                 </div>
 
-                <div class="px-3">
+                <div>
                   <LazySmartsheetToolbarColumnFilter
                     v-if="hookRef.condition"
                     ref="filterRef"
-                    class="w-full"
+                    class="w-full !py-0"
                     :auto-save="false"
                     :show-loading="false"
                     :hook-id="hookRef.id"
@@ -935,7 +937,7 @@ onMounted(async () => {
                     @update:filters-length="hookRef.condition = $event > 0"
                   />
                 </div>
-              </a-card>
+              </div>
             </div>
             <div class="flex flex-col gap-4">
               <div v-if="hookRef.notification.type === 'URL'" class="flex flex-col gap-8">
@@ -1219,6 +1221,12 @@ onMounted(async () => {
 </style>
 
 <style scoped lang="scss">
+.webhook-trigger-selection {
+  :deep(.nc-menu-item-inner) {
+    @apply !w-full;
+  }
+}
+
 .nc-button :not(.nc-icon):not(.material-symbols) {
   @apply !w-full;
 }

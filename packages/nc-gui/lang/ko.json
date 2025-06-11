@@ -820,7 +820,8 @@
     "currentUser": "현재 사용자",
     "filteredByLoggedInUser": "로그인한 사용자별로 필터링됨",
     "hideExtensions": "확장 프로그램 숨기기",
-    "duplicatesFound": "중복이 발견되었습니다."
+    "duplicatesFound": "중복이 발견되었습니다.",
+    "matchingResultsInRecords": "Matching results in {count} records"
   },
   "labels": {
     "crossBase": "외부 베이스에 대한 링크",

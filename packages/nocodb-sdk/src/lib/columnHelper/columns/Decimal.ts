@@ -3,6 +3,8 @@ import { parseDecimalValue, precisionFormats, serializeDecimalValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
+import { populateFillHandleStringNumber } from '../utils/fill-handler';
+import { ColumnType } from '~/lib/Api';
 
 export class DecimalHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -43,5 +45,14 @@ export class DecimalHelper extends AbstractColumnHelper {
     params: SerializerOrParserFnProps['params']
   ): string {
     return `${parseDecimalValue(value, params.col) ?? ''}`;
+  }
+
+  // using string number fill handler
+  override populateFillHandle(params: {
+    column: ColumnType;
+    highlightedData: any[];
+    numberOfRows: number;
+  }): any[] {
+    return populateFillHandleStringNumber(params);
   }
 }

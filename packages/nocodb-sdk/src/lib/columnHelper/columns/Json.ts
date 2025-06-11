@@ -1,10 +1,8 @@
-import { SilentTypeConversionError } from '~/lib/error';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '~/lib/columnHelper/column.interface';
+import { SilentTypeConversionError } from '~/lib/error';
 import { parseJsonValue, serializeJsonValue } from '../utils';
-import { ColumnType } from '~/lib/Api';
-import { populateFillHandleStrictCopy } from '../utils/fill-handler';
 
 export class JsonHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -45,14 +43,5 @@ export class JsonHelper extends AbstractColumnHelper {
         ? b
         : b.toString();
     return aStr === bStr;
-  }
-
-  // simply copy highlighted rows
-  override populateFillHandle(params: {
-    column: ColumnType;
-    highlightedData: any[];
-    numberOfRows: number;
-  }): any[] {
-    return populateFillHandleStrictCopy(params);
   }
 }

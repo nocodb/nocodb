@@ -1,12 +1,10 @@
+import { SilentTypeConversionError } from '~/lib/error';
 import { parseProp } from '~/lib/helperFunctions';
+import { ncIsArray, ncIsEmptyObject, ncIsObject } from '~/lib/is';
 import { parseDefault } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
-import { ncIsArray, ncIsEmptyObject, ncIsObject } from '~/lib/is';
-import { SilentTypeConversionError } from '~/lib/error';
-import { ColumnType } from '~/lib/Api';
-import { populateFillHandleStrictCopy } from '../utils/fill-handler';
 
 export class AttachmentHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -45,14 +43,5 @@ export class AttachmentHelper extends AbstractColumnHelper {
 
   parsePlainCellValue(value: any): string {
     return parseDefault(value) ?? '';
-  }
-
-  // simply copy highlighted rows
-  override populateFillHandle(params: {
-    column: ColumnType;
-    highlightedData: any[];
-    numberOfRows: number;
-  }): any[] {
-    return populateFillHandleStrictCopy(params);
   }
 }

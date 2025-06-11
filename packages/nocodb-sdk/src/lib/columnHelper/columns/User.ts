@@ -1,13 +1,11 @@
+import { SilentTypeConversionError } from '~/lib/error';
+import { parseProp } from '~/lib/helperFunctions';
 import { ncIsArray, ncIsObject, ncIsString } from '~/lib/is';
+import { NcRecord } from '~/lib/ncTypes';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
 import { parseUserValue, serializeEmail } from '../utils';
-import { SilentTypeConversionError } from '~/lib/error';
-import { NcRecord } from '~/lib/ncTypes';
-import { parseProp } from '~/lib/helperFunctions';
-import { ColumnType } from '~/lib/Api';
-import { populateFillHandleStrictCopy } from '../utils/fill-handler';
 
 export class UserHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -73,14 +71,5 @@ export class UserHelper extends AbstractColumnHelper {
 
   parsePlainCellValue(value: any): string {
     return parseUserValue(value) ?? '';
-  }
-
-  // simply copy highlighted rows
-  override populateFillHandle(params: {
-    column: ColumnType;
-    highlightedData: any[];
-    numberOfRows: number;
-  }): any[] {
-    return populateFillHandleStrictCopy(params);
   }
 }

@@ -3,6 +3,8 @@ import { parseCurrencyValue, serializeCurrencyValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
+import { populateFillHandleStringNumber } from '../utils/fill-handler';
+import { ColumnType } from '~/lib/Api';
 
 export class CurrencyHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -43,5 +45,14 @@ export class CurrencyHelper extends AbstractColumnHelper {
     params: SerializerOrParserFnProps['params']
   ): string {
     return `${this.parseValue(value, params) ?? ''}`;
+  }
+
+  // using string number fill handler
+  override populateFillHandle(params: {
+    column: ColumnType;
+    highlightedData: any[];
+    numberOfRows: number;
+  }): any[] {
+    return populateFillHandleStringNumber(params);
   }
 }

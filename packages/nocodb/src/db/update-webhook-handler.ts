@@ -49,9 +49,7 @@ export class UpdateWebhookHandler {
   // }
 
   async sendBeforeUpdateWebhook() {
-    const hookName = `before.${
-      this.webhookContext.isSingleUpdate === false ? 'bulkUpdate' : 'update'
-    }`;
+    const hookName = `before.update`;
     this.prevData = await this.webhookContext.baseModel.readByPk(
       this.rowId,
       false,
@@ -63,9 +61,7 @@ export class UpdateWebhookHandler {
     }
   }
   async finishUpdate() {
-    const hookName = `after.${
-      this.webhookContext.isSingleUpdate === false ? 'bulkUpdate' : 'update'
-    }`;
+    const hookName = `after.update`;
     this.nextData = await this.webhookContext.baseModel.readByPk(
       this.rowId,
       false,

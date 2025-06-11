@@ -25,6 +25,7 @@
             { system, pkgs }:
             {
               workflows = pkgs.callPackage ./nix/workflows { inherit self; };
+              upstall = pkgs.callPackage ./nix/scripts/upstall { };
               nocodb = pkgs.callPackage ./nix/package.nix {
                 version =
                   if self ? shortRev then

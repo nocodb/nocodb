@@ -1,10 +1,10 @@
+import { SilentTypeConversionError } from '~/lib/error';
 import { parseProp } from '~/lib/helperFunctions';
+import { ncIsArray, ncIsEmptyObject, ncIsObject } from '~/lib/is';
 import { parseDefault } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
-import { ncIsArray, ncIsEmptyObject, ncIsObject } from '~/lib/is';
-import { SilentTypeConversionError } from '~/lib/error';
 
 export class AttachmentHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};

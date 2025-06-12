@@ -515,7 +515,7 @@ const getRowColorStyle = (row) => {
                           : {}),
                       }"
                     ></div>
-                    <div class="flex flex-col gap-3 !children:pointer-events-none">
+                    <div class="flex-1 flex flex-col gap-3 !children:pointer-events-none">
                       <h2
                         v-if="displayField"
                         class="nc-card-display-value-wrapper"

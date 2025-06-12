@@ -31,7 +31,7 @@ async function setupMonacoEditor() {
 
   monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
     noSemanticValidation: false,
-    diagnosticCodesToIgnore: [1375, 1378, 2451, 6385],
+    diagnosticCodesToIgnore: [1375, 1378, 2451, 6385, 1108],
     noSyntaxValidation: false,
   })
 

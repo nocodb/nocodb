@@ -796,7 +796,6 @@ Object.freeze(UITypes);
     }
     
     async updateOptionsAsync(options) {
-      output.warn("This is not Production Ready. The api may change")
       await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, { id: this.id, type: this.type, title: this.name, options: options });
     }
     
@@ -929,7 +928,6 @@ Object.freeze(UITypes);
       if (this.getField(field.name)) throw new Error(\`Field \${field.name} already exists in table \${this.name}\`)
       field.title = field.name
       delete field.name
-      output.warn('This is not production ready. Some types may be incorrect')
       const data = await api.v3MetaBasesTablesFieldsCreate(this.id, this.#base.id, field);
       const newField = new Field({id: data.id, name: data.title, type: data.type, description: data.description, options: data.options, primary_key: false, primary_value: false, is_system_field: false}, this);
       this.#all_fields.push(newField);
@@ -1114,7 +1112,6 @@ Object.freeze(UITypes);
     }
     
     async createTableAsync(name, fields) {
-      throw new Error("Not Production Ready")
       fields = fields.map((f) => {
          f.title = f.name
          delete f.name
@@ -1125,6 +1122,14 @@ Object.freeze(UITypes);
         title: name,
         fields: fields
       })
+      
+      if(!res) return null;
+      
+      const newT = new Table({id: res.id, name: res.title, description: res.description, views: res.views, fields: res.fields }, this);
+      
+      this.tables.push(newT);
+      
+      return newT
     }
   }
   `
@@ -1611,7 +1616,7 @@ function generateMessageHandler(userCode: string): string {
             ${userCode}
           })();
         } catch (e) {
-          output.text(\`Error: \${e}\`, 'error');
+          output.text(\`\${e}\`, 'error');
         } finally {
           const doneMessage = { type: '${ActionType.DONE}', payload: undefined };
           self.postMessage(doneMessage);

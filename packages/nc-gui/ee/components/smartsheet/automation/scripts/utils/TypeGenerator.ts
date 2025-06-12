@@ -140,7 +140,7 @@ declare interface RecordQueryResult {
   /**
    * Array of records in this result set
    */
-  readonly records: ReadonlyArray<Record<string, unknown>>
+  readonly records: ReadonlyArray<NocoDBRecord>
 
   /**
    * Whether there are more records available to load
@@ -490,7 +490,7 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
       /**
        * Timezone string
        */
-      timezone: string
+      timezone: string | null
       /**
        * display_timezone boolean
        */
@@ -799,7 +799,7 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
       /**
        * Timezone string
        */
-      timezone: string
+      timezone: string | null
       /**
        * display_timezone boolean
        */
@@ -826,7 +826,7 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
       /**
        * Timezone string
        */
-      timezone: string
+      timezone: string | null
       /**
        * display_timezone boolean
        */
@@ -1056,7 +1056,7 @@ declare interface DateTimeField extends BaseField {
     /**
      * Timezone string
      */
-    timezone: string
+    timezone: string | null
     /**
      * display_timezone boolean
      */
@@ -1577,7 +1577,7 @@ declare interface CreatedTimeField extends BaseField {
     /**
      * Timezone string
      */
-    timezone: string
+    timezone: string | null
     /**
      * display_timezone boolean
      */
@@ -1609,7 +1609,7 @@ declare interface LastModifiedTimeField extends BaseField {
     /**
      * Timezone string
      */
-    timezone: string
+    timezone: string | null
     /**
      * display_timezone boolean
      */
@@ -2554,7 +2554,7 @@ declare interface ConfigItem {}
         date_format: '${field.options?.date_format || ''}',
         time_format: '${field.options?.time_format || ''}',
         ['12hr_format']: ${Boolean(field.options?.['12hr_format'])},
-        timezone: ${Boolean(field.options?.timezone) || 'null'},
+        timezone: ${field.options?.timezone || 'null'},
         display_timezone: ${Boolean(field.options?.display_timezone)},
         use_same_timezone_for_all: ${Boolean(field.options?.use_same_timezone_for_all)}
       }`
@@ -2859,10 +2859,7 @@ declare interface ConfigItem {}
 
     // Records array
     this.formatJSDoc(['Array of records in this result set'])
-    this.write(`readonly records: ReadonlyArray<{
-      id: string;
-      ${fields.map((field) => `'${field.name}'?: ${this.getFieldValueType(field)}`).join(';\n      ')}
-    }>`)
+    this.write(`readonly records: ReadonlyArray<${recordType}>`)
 
     // getRecord method
     this.formatJSDoc(["Get a specific record in the query result, or throw if that record doesn't exist or was filtered", 'out.'])

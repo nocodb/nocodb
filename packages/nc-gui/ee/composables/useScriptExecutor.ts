@@ -305,8 +305,8 @@ export const useScriptExecutor = createSharedComposable(() => {
     
     const cursor = {
       activeBaseId: '${activeProjectId.value}',
-      activeViewId: '${activeViewTitleOrId.value}',
-      activeTableId: '${activeTableId.value}',
+      activeViewId: ${activeViewTitleOrId.value},
+      activeTableId: ${activeTableId.value},
     }
     `
 

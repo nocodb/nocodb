@@ -45,7 +45,7 @@ export function useEsbuild() {
       throw new Error('esbuild initialization failed')
     }
     try {
-      const result = await esbuild.transform(code, { loader: 'js', minify: true, platform: 'browser', target: 'chrome64' })
+      const result = await esbuild.transform(code, { loader: 'ts', minify: true, platform: 'browser', target: 'chrome64' })
       return {
         code: result.code,
         map: result.map,

@@ -76,6 +76,25 @@ describe('fill-handler.utils', () => {
         null,
       ]);
     });
+    it.only('will populate descending combined string value', () => {
+      const data = ['1A4', '4', '3', '1A3', '2', 1, '1A2'];
+      const result = populateFillHandleStringNumber({
+        highlightedData: data,
+        column: {} as any,
+        numberOfRows: 16,
+      });
+      expect(result).toEqual([
+        '1A1',
+        '0',
+        '1',
+        '1A0',
+        '2',
+        '3',
+        '1A1',
+        '1A2',
+        '4',
+      ]);
+    });
   });
 
   describe('populateFillHandleStrictCopy', () => {

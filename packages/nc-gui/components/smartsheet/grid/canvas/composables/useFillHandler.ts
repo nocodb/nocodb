@@ -191,8 +191,7 @@ export function useFillHandler({
     const rowsToPaste: Row[] = []
     const groupPath = activeCell.value?.path
     const { cachedRows } = getDataCache(groupPath)
-    let incrementIndex = 0;
-    console.log(rowToPaste.start, direction * rawMatrix.length)
+    let incrementIndex = 0
     for (
       let rowIndex = rowToPaste.start + direction * rawMatrix.length;
       direction === 1 ? rowIndex <= rowToPaste.end : rowIndex >= rowToPaste.end;
@@ -202,12 +201,11 @@ export function useFillHandler({
       const rowObj = (unref(cachedRows) as Map<number, Row>).get(rowIndex)
       if (rowObj) {
         for (const [colIndex, cpCol] of cpCols.entries()) {
-          console.log(fillValuesByCols[colIndex!]![incrementIndex]);
-
-          rowObj.row[cpCol.title] = fillValuesByCols[colIndex!]![incrementIndex++]
+          rowObj.row[cpCol.title] = fillValuesByCols[colIndex!]![incrementIndex]
         }
         rowsToPaste.push(rowObj)
       }
+      incrementIndex++
     }
 
     // If not in AI fill mode, perform a regular bulk update
@@ -245,6 +243,19 @@ export function useFillHandler({
 
           let startRow, endRow
 
+          // need to handle cols not covered by selection too
+          const startRangeLeftMost = Math.min(
+            fillStartRange.value.start.col,
+            fillStartRange.value.end.col,
+            selection.value._start.row,
+            selection.value._end.row,
+          )
+          const startRangeRightMost = Math.max(
+            fillStartRange.value.start.col,
+            fillStartRange.value.end.col,
+            selection.value._start.row,
+            selection.value._end.row,
+          )
           // Determine the actual start and end rows for the fill operation
           if (fillStartRange.value) {
             startRow = Math.min(fillStartRange.value.start.row, selection.value._start!.row)
@@ -259,7 +270,7 @@ export function useFillHandler({
           const cprows = await getRows(startRow, endRow, groupPath)
 
           // Slice the selected columns for copying
-          const _cpcols = unref(columns).slice(selection.value.start.col, selection.value.end.col + 1)
+          const _cpcols = unref(columns).slice(startRangeLeftMost, startRangeRightMost + 1)
 
           // Map to column objects
           const cpcols = _cpcols.map((col) => col.columnObj)
@@ -275,29 +286,34 @@ export function useFillHandler({
 
           const startRangeBottomMost = Math.max(fillStartRange.value.start.row, fillStartRange.value.end.row)
           const startRangeTopMost = Math.min(fillStartRange.value.start.row, fillStartRange.value.end.row)
-          await v2HandleFillValue({
-            rawMatrix,
-            cpCols: cpcols,
-            rowToPaste: {
-              start:
-                fillDirection === 1
-                  ? Math.min(startRangeTopMost, selection.value._start.row)
-                  : Math.max(startRangeBottomMost, selection.value._start.row),
-              end:
-                fillDirection === 1
-                  ? Math.max(startRangeBottomMost, selection.value._end.row)
-                  : Math.min(startRangeTopMost, selection.value._end.row),
-            },
-          })
 
-          // Reset active cell, fill range, and fill mode after successful update
-          activeCell.value.column = tempActiveCell.col
-          activeCell.value.row = tempActiveCell.row
-          activeCell.value.path = groupPath
-          fillStartRange.value = null
-          isFillMode.value = false
-          return
+          // if not localAiMode, use the new v2 handle fill logic
+          if (!localAiMode) {
+            await v2HandleFillValue({
+              rawMatrix,
+              cpCols: cpcols,
+              rowToPaste: {
+                start:
+                  fillDirection === 1
+                    ? Math.min(startRangeTopMost, selection.value._start.row)
+                    : Math.max(startRangeBottomMost, selection.value._start.row),
+                end:
+                  fillDirection === 1
+                    ? Math.max(startRangeBottomMost, selection.value._end.row)
+                    : Math.min(startRangeTopMost, selection.value._end.row),
+              },
+            })
 
+            // Reset active cell, fill range, and fill mode after successful update
+            activeCell.value.column = tempActiveCell.col
+            activeCell.value.row = tempActiveCell.row
+            activeCell.value.path = groupPath
+            fillStartRange.value = null
+            isFillMode.value = false
+            return
+          }
+
+          // TODO: remove non-localAiMode logic
           // Initialize the fill index based on the fill direction
           let fillIndex = fillDirection === 1 ? 0 : rawMatrix.length - 1
 
@@ -307,7 +323,6 @@ export function useFillHandler({
           const propsToPaste: string[] = []
           const propsToFill: string[] = []
 
-          console.log('selection.value._end.row', selection.value._start.row, selection.value._end.row)
           // Loop through the selected rows based on fill direction
           for (
             // Initialize row counter

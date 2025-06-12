@@ -69,7 +69,11 @@ const rowColoringMode = computed({
       </NcButton>
     </NcTooltip>
     <template #overlay>
-      <SmartsheetToolbarRowColorFilterTypeOption v-model:row-coloring-mode="rowColoringMode" @change="onChangeRowColoringMode">
+      <SmartsheetToolbarRowColorFilterTypeOption
+        v-model:row-coloring-mode="rowColoringMode"
+        @change="onChangeRowColoringMode"
+        v-model:is-open="open"
+      >
         <template #select>
           <SmartsheetToolbarRowColorFilterUsingSingleSelectPanel
             v-model="rowColorInfo"

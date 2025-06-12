@@ -3,6 +3,7 @@ import { ROW_COLORING_MODE } from 'nocodb-sdk'
 
 interface Props {
   rowColoringMode?: ROW_COLORING_MODE
+  isOpen?: boolean
 }
 
 interface Emits {
@@ -12,45 +13,67 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
+
 const rowColoringModeVModel = useVModel(props, 'rowColoringMode', emits)
+
+const isOpenVModel = useVModel(props, 'isOpen', emits)
+
+const { t } = useI18n()
 
 const buttonClass = 'flex-grow !inline-flex !border-none !shadow-none !rounded-[0px] !text-left content-top !py-2 !px-4'
 const chooseOption = (option: ROW_COLORING_MODE) => {
   rowColoringModeVModel.value = option
   emits('change', option)
 }
+
+const listOptions: { label: string; description: string; icon: IconMapKey; value: ROW_COLORING_MODE }[] = [
+  {
+    label: t('objects.coloring.usingSingleSelectField'),
+    description: t('objects.coloring.usingSingleSelectFieldDescription'),
+    icon: 'singleSelect',
+    value: ROW_COLORING_MODE.SELECT,
+  },
+
+  {
+    label: t('objects.coloring.usingConditions'),
+    description: t('objects.coloring.usingConditionsDescription'),
+    icon: 'ncConditions',
+    value: ROW_COLORING_MODE.FILTER,
+  },
+]
 </script>
 
 <template>
   <template v-if="!rowColoringModeVModel">
     <div
-      class="bg-white w-[320px] h-[132px] flex flex-col overflow-hidden py-2 animate-animated animate-fadeIn"
+      class="bg-white w-[320px] flex flex-col overflow-hidden animate-animated animate-fadeIn"
       style="animation-duration: 0.3s"
     >
-      <a-button :class="[buttonClass]" type="text" @click.stop="chooseOption(ROW_COLORING_MODE.SELECT)">
-        <div class="flex flex-col gap-1">
-          <div class="flex gap-2 items-center">
-            <GeneralIcon class="w-4 h-4 flex-none" icon="singleSelect" />
-            <span>Using Single select field</span>
+      <LazyNcList
+        :open="isOpenVModel"
+        :value="rowColoringModeVModel"
+        :list="listOptions"
+        option-value-key="value"
+        option-label-key="label"
+        class="min-w-80 !w-auto"
+        :item-height="60"
+        item-full-width
+        :close-on-select="false"
+        stop-propagation-on-item-click
+        @update:value="chooseOption"
+      >
+        <template #listItem="{ option }">
+          <div class="flex items-start gap-2 text-nc-content-gray">
+            <div class="h-5 flex items-center">
+              <component :is="iconMap[option.icon]" class="h-4 w-4 flex-none" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <span class="text-caption">{{ option.label }}</span>
+              <span class="text-bodyDefaultSm text-nc-content-gray-muted">{{ option.description }}</span>
+            </div>
           </div>
-          <div>
-            <span class="text-nc-content-gray-muted ml-[24px]" style="font-size: 13px"
-              >Colour records based on single select field</span
-            >
-          </div>
-        </div>
-      </a-button>
-      <a-button :class="[buttonClass]" type="text" @click.stop="chooseOption(ROW_COLORING_MODE.FILTER)">
-        <div class="flex flex-col gap-1">
-          <div class="flex gap-2 items-center">
-            <GeneralIcon class="w-4 h-4 flex-none" icon="ncConditions" />
-            <span>Using Conditions</span>
-          </div>
-          <div>
-            <span class="text-nc-content-gray-muted ml-[24px]" style="font-size: 13px">Colour records based on conditions</span>
-          </div>
-        </div>
-      </a-button>
+        </template>
+      </LazyNcList>
     </div>
   </template>
   <template v-else-if="rowColoringModeVModel === ROW_COLORING_MODE.FILTER">

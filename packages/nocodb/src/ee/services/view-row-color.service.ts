@@ -142,8 +142,10 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         'Cannot directly change row coloring mode, remove it first',
       );
     }
+
+    const transaction = await ncMeta.startTransaction();
+
     try {
-      await ncMeta.startTransaction();
       const rowColoringCondition = await ncMeta.metaInsert2(
         params.context.workspace_id,
         params.context.base_id,
@@ -183,13 +185,13 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         );
         await this.clearCache(view);
       }
-      await ncMeta.commit();
+      await transaction.commit();
       return {
         id: rowColoringCondition.id,
         info: await this.getByViewId({ ...params }),
       };
     } catch (e) {
-      await ncMeta.rollback(e);
+      await transaction.rollback(e);
       throw e;
     }
   }
@@ -333,8 +335,10 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         params.context,
         view.id,
       );
+
+      const transaction = await ncMeta.startTransaction();
+
       try {
-        await ncMeta.startTransaction();
         for (const rowColorCondition of rowColorConditions) {
           await ncMeta.metaDelete(
             params.context.workspace_id,
@@ -360,9 +364,9 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           },
           view.id,
         );
-        await ncMeta.commit();
+        await transaction.commit();
       } catch (e) {
-        await ncMeta.rollback(e);
+        await transaction.rollback(e);
         throw e;
       }
     } else if (view.row_coloring_mode === ROW_COLORING_MODE.SELECT) {

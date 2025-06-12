@@ -179,6 +179,12 @@ export function useCanvasRender({
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const isLocked = inject(IsLockedInj, ref(false))
 
+  const { getLeftBorderColor, getRowColor } = useViewRowColorRender({
+    meta,
+    rows: computed(() => []),
+    isGridCanvas: true,
+  })
+
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
 
   const fixedColsWidth = computed(() => fixedCols.value.reduce((sum, col) => sum + parseCellWidth(col.width), 1))
@@ -843,7 +849,9 @@ export function useCanvasRender({
       activeCell.value.row === row.rowMeta.rowIndex && comparePath(activeCell.value.path, row?.rowMeta?.path)
     const isDisabled = (!row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS) || vSelectedAllRecords.value
 
-    ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : '#ffffff'
+    const rowColor = getRowColor(row.row)
+
+    ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : rowColor ? rowColor : '#ffffff'
     if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
 

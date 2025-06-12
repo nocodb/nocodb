@@ -1,11 +1,18 @@
 import { type ColumnType, ROW_COLORING_MODE, type RowColoringInfo, type TableType, type ViewType } from 'nocodb-sdk'
 import { validateRowFilters } from '~/utils/dataUtils'
+import { rowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
 
 export function useViewRowColorRender(params: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
+  /**
+   * If it is grid canvas then rows value will be empty array as we evaluate result on canvas render and store it in rowColouringCache
+   */
   rows: Ref<Ref<Record<string, any>>[]>
+  /**
+   * If it is grid canvas then we will use rowColouringCache to store the evaluated result
+   */
+  isGridCanvas?: boolean
 }) {
-  const { $api } = useNuxtApp()
   const baseStore = useBase()
   const { getBaseType } = baseStore
 
@@ -72,21 +79,56 @@ export function useViewRowColorRender(params: {
       }, {})
   })
 
+  const getCachedEvaluatedResult = (rowHash: string, row: any) => {
+    const cachedEvaluatedResult = rowColouringCache.get(rowHash)
+
+    if (!cachedEvaluatedResult) {
+      const evaluatedResult = evaluateRowColor(row)
+      if (evaluatedResult) {
+        rowColouringCache.set(rowHash, evaluatedResult)
+      }
+
+      return evaluatedResult
+    }
+
+    return cachedEvaluatedResult
+  }
+
   const getLeftBorderColor = (row: any) => {
-    if (!row || !evaluatedRowsColor.value) return null
-    const evaluatedResult = evaluatedRowsColor.value[getRowHash(row)]
-    // if (evaluatedResult?.is_set_as_background === false) {
-    //   return evaluatedResult.color
-    // }
-    return evaluatedResult?.rawColor ?? null
+    if (!row || (!params.isGridCanvas && !evaluatedRowsColor.value)) return null
+
+    const rowHash = getRowHash(row)
+
+    if (params.isGridCanvas) {
+      const cachedEvaluatedResult = getCachedEvaluatedResult(rowHash, row)
+
+      return cachedEvaluatedResult?.rawColor ?? null
+    } else {
+      const evaluatedResult = evaluatedRowsColor.value[rowHash]
+
+      return evaluatedResult?.rawColor ?? null
+    }
   }
 
   const getRowColor = (row: any) => {
-    if (!row || !evaluatedRowsColor.value) return null
-    const evaluatedResult = evaluatedRowsColor.value[getRowHash(row)]
-    if (evaluatedResult?.is_set_as_background) {
-      return evaluatedResult.color
+    if (!row || (!params.isGridCanvas && !evaluatedRowsColor.value)) return null
+
+    const rowHash = getRowHash(row)
+
+    if (params.isGridCanvas) {
+      const cachedEvaluatedResult = getCachedEvaluatedResult(rowHash, row)
+
+      if (cachedEvaluatedResult?.is_set_as_background) {
+        return cachedEvaluatedResult.color
+      }
+    } else {
+      const evaluatedResult = evaluatedRowsColor.value[rowHash]
+
+      if (evaluatedResult?.is_set_as_background) {
+        return evaluatedResult.color
+      }
     }
+
     return null
   }
 

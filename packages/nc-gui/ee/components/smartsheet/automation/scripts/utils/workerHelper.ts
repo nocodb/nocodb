@@ -445,6 +445,10 @@ Object.freeze(UITypes);
             ...(this.#view ? { viewId: this.#view.id } : {})
           }
         );
+        
+        if (response?.error) {
+          throw new Error(response?.error);
+        }
       }
       
       this.#rawData = [...this.#rawData, ...(response.records || [])];
@@ -933,8 +937,8 @@ Object.freeze(UITypes);
       delete field.name
       const data = await api.v3MetaBasesTablesFieldsCreate(this.id, this.#base.id, field);
       
-      if(!data || data.msg) {
-       throw new Error(\`Failed to create field \${field.name} in table \${this.name}\`)
+      if(!data || data.msg || data.error) {
+       throw new Error(\`Failed to create field \${field.title} in table \${this.name}\`)
       }
       
       const newField = new Field({id: data.id, name: data.title, type: data.type, description: data.description, options: data.options, primary_key: false, primary_value: false, is_system_field: false}, this);
@@ -1011,6 +1015,10 @@ Object.freeze(UITypes);
   };
       
       const data = await api.dbDataTableRowList(this.#base.id, this.id, requestOptions)
+      
+      if (data?.error) {
+        throw new Error(data?.error);
+      }
      
       return new RecordQueryResult(data, this, null, requestOptions);
     }
@@ -1044,6 +1052,10 @@ Object.freeze(UITypes);
         insertObjs.push({ fields: recordData });
       }
       const response = await api.dbDataTableRowCreate(this.base.id, this.id, insertObjs);
+      
+      if (response?.error) {
+        throw new Error(response?.error);
+      }
       
       return (response.records || []).map(r => new NocoDBRecord(r, this).id);
     }

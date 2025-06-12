@@ -622,17 +622,6 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
        * Relation field to use
        */
       related_field_id: string
-    
-      /**
-       * Whether to show thousands separator
-       */
-      locale_string: boolean
-    
-      /**
-       * Number of decimal places to display
-       * Possible values 0 - 8
-       */
-     precision: number
   }
   : FieldTypeT extends UITypes.Links
   ? {
@@ -777,10 +766,6 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
        * Whether multiple users can be selected
        */
       allow_multiple_users: boolean
-      /**
-       * Whether to notify users when added
-       */
-      notify_user_when_added: boolean
     }
     : FieldTypeT extends UITypes.CreatedTime 
     ? {
@@ -1083,10 +1068,6 @@ declare interface DateField extends BaseField {
 declare interface TimeField extends BaseField {
   readonly type: UITypes.Time
   readonly options: {
-    /**
-     * Time format string
-     */
-    time_format: string
     /**
      * Whether to use 12-hour format
      */
@@ -1644,10 +1625,6 @@ declare interface UserField extends BaseField {
      * Whether multiple users can be selected
      */
     allow_multiple_users: boolean
-    /**
-     * Whether to notify users when added
-     */
-    notify_user_when_added: boolean
   }
 
   updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.User>): Promise<void>
@@ -2432,13 +2409,13 @@ declare interface ConfigItem {}
 
       case UITypes.SingleSelect:
         if (field.options?.choices) {
-          return field.options.choices.map((choice: any) => `'${choice.name}'`).join(' | ')
+          return `${field.options.choices.map((choice: any) => `'${choice.title}'`).join(' | ')} | string | null`
         }
         return 'string | null'
 
       case UITypes.MultiSelect:
         if (field.options?.choices) {
-          const choiceType = field.options.choices.map((choice: any) => `'${choice.name}'`).join(' | ')
+          const choiceType = field.options.choices.map((choice: any) => `'${choice.title}'`).join(' | ')
           return `Array<${choiceType}>`
         }
         return 'Array<string>'
@@ -2666,8 +2643,7 @@ declare interface ConfigItem {}
 
       case UITypes.User:
         return `{
-        allow_multiple_users: ${Boolean(field.options?.allow_multiple_users)},
-        notify_user_when_added: ${Boolean(field.options?.notify_user_when_added)}
+        allow_multiple_users: ${Boolean(field.options?.allow_multiple_users)}
       }`
       case UITypes.Button: {
         const baseOptions = `{

@@ -497,7 +497,7 @@
                         "type": "Percent",
                         "default_value": "0.34",
                         "options": {
-                          "show_as_percent": true
+                          "show_as_progress": true
                         }
                       },
                       {
@@ -712,7 +712,7 @@
                           "type": "Percent",
                           "default_value": "0.34",
                           "options": {
-                            "show_as_percent": true
+                            "show_as_progress": true
                           }
                         },
                         {
@@ -1001,7 +1001,7 @@
                           "type": "Percent",
                           "default_value": "0.34",
                           "options": {
-                            "show_as_percent": true
+                            "show_as_progress": true
                           }
                         },
                         {
@@ -6402,7 +6402,7 @@
         ]
       },
       "DataUpdateRequestV3": {
-        "type": "object", 
+        "type": "object",
         "description": "V3 Data Update Request format",
         "properties": {
           "id": {

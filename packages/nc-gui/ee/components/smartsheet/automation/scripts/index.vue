@@ -36,7 +36,7 @@ async function setupMonacoEditor() {
   })
 
   monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-    target: monaco.languages.typescript.ScriptTarget.ES2016,
+    target: monaco.languages.typescript.ScriptTarget.ESNext,
     allowNonTsExtensions: true,
     noLib: false,
     strictFunctionTypes: true,

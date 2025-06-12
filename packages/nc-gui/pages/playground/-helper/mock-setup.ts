@@ -61,7 +61,7 @@ export const mockSetupInit = () => {
 
   return {
     metas,
-    meta: metas.value['mtWA9ZXvsuh'],
+    meta: metas.value.mtWA9ZXvsuh,
     rootMetaId: 'mtWA9ZXvsuh',
     bases: basesStore.bases,
     baseId: baseStore.forcedProjectId,

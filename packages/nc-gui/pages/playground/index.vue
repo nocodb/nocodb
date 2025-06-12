@@ -4,6 +4,4 @@ const router = useRouter()
 const route = router.currentRoute
 </script>
 
-<template>
-
-</template>
+<template></template>

@@ -45,10 +45,7 @@ const listOptions: { label: string; description: string; icon: IconMapKey; value
 
 <template>
   <template v-if="!rowColoringModeVModel">
-    <div
-      class="bg-white w-[320px] flex flex-col overflow-hidden animate-animated animate-fadeIn"
-      style="animation-duration: 0.3s"
-    >
+    <div class="bg-white flex flex-col overflow-hidden animate-animated animate-fadeIn" style="animation-duration: 0.3s">
       <LazyNcList
         :open="isOpenVModel"
         :value="rowColoringModeVModel"
@@ -60,6 +57,7 @@ const listOptions: { label: string; description: string; icon: IconMapKey; value
         item-full-width
         :close-on-select="false"
         stop-propagation-on-item-click
+        item-class-name="!px-4"
         @update:value="chooseOption"
       >
         <template #listItem="{ option }">

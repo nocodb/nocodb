@@ -38,25 +38,52 @@ const vModel = useVModel(props, 'modelValue', emits)
 </script>
 
 <template>
-  <div class="bg-white w-[420px] p-5 rounded-2xl gap-3 flex flex-col">
-    <div class="flex items-center gap-2">
+  <div class="w-[420px] p-4 flex flex-col gap-4">
+    <a-form-item class="!my-0">
       <NcSelect
         v-model:value="vModel.fk_column_id"
-        class="w-full"
+        class="nc-colouring-field-select w-full nc-select-shadow"
         :dropdown-match-select-width="false"
         @change="emits('change', vModel)"
       >
         <a-select-option v-for="(column, idx) of columns" :key="idx" :value="column.id">
-          <SmartsheetHeaderIcon :column="column" /> {{ column.title }}
+          <div class="w-full flex gap-2 items-center">
+            <SmartsheetHeaderIcon :column="column" class="!mx-0" />
+            <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+              <template #title>
+                {{ column.title }}
+              </template>
+              {{ column.title }}
+            </NcTooltip>
+            <component
+              :is="iconMap.check"
+              v-if="vModel.fk_column_id === column.id"
+              id="nc-selected-item-icon"
+              class="text-primary w-4 h-4"
+            />
+          </div>
         </a-select-option>
       </NcSelect>
-      <NcButton size="small" type="text" @click="emits('remove')"><GeneralIcon icon="ncTrash"></GeneralIcon></NcButton>
-    </div>
-    <div>
-      <label class="w-full block cursor-pointer flex content-center items-center gap-2">
-        <NcSwitch v-model:checked="vModel.is_set_as_background" @change="emits('change', vModel)"> </NcSwitch>
-        <span class="text-nc-content-gray font-semibold flex-1"> Add background color </span>
-      </label>
+    </a-form-item>
+
+    <div class="flex items-center gap-2 justify-between">
+      <NcButton type="text" size="small" @click="emits('remove')">
+        {{ $t('labels.removeColouring') }}
+      </NcButton>
+
+      <div class="flex items-center cursor-pointer select-none">
+        <NcSwitch v-model:checked="vModel.is_set_as_background" @change="emits('change', vModel)" placement="right">
+          {{ $t('labels.backgroundColour') }}
+        </NcSwitch>
+      </div>
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+:deep(.nc-colouring-field-select.nc-select.ant-select) {
+  .ant-select-selector {
+    @apply !rounded-lg;
+  }
+}
+</style>

@@ -54,7 +54,7 @@ const rowColoringMode = computed({
   >
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode">
       <template #title>
-        {{ $t('activity.coloring') }}
+        {{ $t('general.colour') }}
       </template>
       <NcButton v-e="['c:coloring']" type="secondary" size="small" class="nc-coloring-menu-btn nc-toolbar-btn !border-0 !h-7">
         <div class="flex items-center gap-1 min-h-5">
@@ -62,7 +62,7 @@ const rowColoringMode = computed({
             <component :is="iconMap.ncPaintRoller" class="h-4 w-4" />
 
             <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
-              {{ $t('activity.coloring') }}
+              {{ $t('general.colour') }}
             </span>
           </div>
         </div>

@@ -18,6 +18,10 @@ export function useViewRowColorRender(params: {
 
   const rowColorInfo: Ref<RowColoringInfo> = inject(ViewRowColorInj)
 
+  const isRowColouringEnabled = computed(() => {
+    return rowColorInfo.value && !!rowColorInfo.value?.mode
+  })
+
   const evaluateRowColor = (row: any) => {
     if (rowColorInfo.value && rowColorInfo.value.mode === ROW_COLORING_MODE.SELECT) {
       const selectRowColorInfo = rowColorInfo.value
@@ -132,5 +136,5 @@ export function useViewRowColorRender(params: {
     return null
   }
 
-  return { rowColorInfo, evaluateRowColor, getLeftBorderColor, getRowColor }
+  return { rowColorInfo, evaluateRowColor, getLeftBorderColor, getRowColor, isRowColouringEnabled }
 }

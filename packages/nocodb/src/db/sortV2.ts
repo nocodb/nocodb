@@ -38,11 +38,7 @@ export default async function sortV2(
     );
     if (!column) {
       if (throwErrorIfInvalid) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.fieldNotFoundV3(sort.fk_column_id);
-        } else {
-          NcError.fieldNotFound(sort.fk_column_id);
-        }
+        NcError.get(context).fieldNotFound(sort.fk_column_id);
       }
       continue;
     }

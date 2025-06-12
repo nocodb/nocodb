@@ -48,10 +48,6 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Base '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.BASE_NOT_FOUNDV3]: {
-    message: (id: string) => `Base '${id}' not found`,
-    code: 422,
-  },
   [NcErrorType.SOURCE_NOT_FOUND]: {
     message: (id: string) => `Source '${id}' not found`,
     code: 404,
@@ -68,25 +64,13 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Table '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.TABLE_NOT_FOUNDV3]: {
-    message: (id: string) => `Table '${id}' not found`,
-    code: 422,
-  },
   [NcErrorType.VIEW_NOT_FOUND]: {
     message: (id: string) => `View '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.VIEW_NOT_FOUNDV3]: {
-    message: (id: string) => `View '${id}' not found`,
-    code: 422,
-  },
   [NcErrorType.FIELD_NOT_FOUND]: {
     message: (id: string) => `Field '${id}' not found`,
     code: 404,
-  },
-  [NcErrorType.FIELD_NOT_FOUNDV3]: {
-    message: (id: string) => `Field '${id}' not found`,
-    code: 422,
   },
   [NcErrorType.HOOK_NOT_FOUND]: {
     message: (id: string) => `Hook '${id}' not found`,
@@ -148,10 +132,6 @@ export const presetErrorCodexMap: Partial<
   },
   [NcErrorType.INVALID_FILTER]: {
     message: (filter: string) => `Filter '${filter}' is invalid`,
-    code: 422,
-  },
-  [NcErrorType.INVALID_FILTERV3]: {
-    message: (message: string) => `Invalid filter expression: ${message}`,
     code: 422,
   },
   [NcErrorType.INVALID_SHARED_VIEW_PASSWORD]: {

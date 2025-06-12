@@ -1,4 +1,4 @@
-import type { ColumnType, TableType, UITypes, ViewType } from 'nocodb-sdk'
+import { type ColumnType, type TableType, UITypes, type ViewType } from 'nocodb-sdk'
 import { ColumnHelper, ComputedTypePasteError, TypeConversionError } from 'nocodb-sdk'
 import type { Row } from '../../../../../lib/types'
 import convertCellData from '../../../../../composables/useMultiSelect/convertCellData'
@@ -285,11 +285,18 @@ export function useFillHandler({
           // Map to column objects
           const cpcols = _cpcols.map((col) => col.columnObj)
           // Serialize the range into a raw matrix (JSON format)
-          const rawMatrix = serializeRange(cprows, cpcols, {
-            isPg,
-            isMysql,
-            meta: unref(meta),
-          }).json
+          const rawMatrix = serializeRange(
+            cprows,
+            cpcols,
+            {
+              isPg,
+              isMysql,
+              meta: unref(meta),
+            },
+            {
+              skipUidt: [UITypes.Percent, UITypes.Currency],
+            },
+          ).json
 
           // Determine the direction of the fill operation (1 for downwards, -1 for upwards)
           const fillDirection = selection.value._start.row <= selection.value._end.row ? 1 : -1

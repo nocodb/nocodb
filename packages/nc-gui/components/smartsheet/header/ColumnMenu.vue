@@ -563,7 +563,7 @@ const onDeleteColumn = () => {
     >
       <div class="nc-column-edit-description nc-header-menu-item">
         <GeneralIcon icon="ncAlignLeft" class="opacity-80 !w-4.25 !h-4.25" />
-        {{ $t('labels.editDescription') }}
+        {{ $t('labels.editFieldDescription') }}
       </div>
     </NcMenuItem>
 

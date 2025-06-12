@@ -1889,6 +1889,10 @@ declare interface View {
      * Page number (default: 1)
      */
     page?: number
+    /**
+     * where filter expression
+     */
+    where?: string
   }): Promise<RecordQueryResult>
 
   /**
@@ -2003,6 +2007,10 @@ declare interface Table {
      * Page number (default: 1)
      */
     page?: number
+    /**
+     * where filter expression
+     */
+    where?: string
   }): Promise<RecordQueryResult>
 
   /**
@@ -2921,13 +2929,13 @@ declare interface ConfigItem {}
      */
     recordIds?: ReadonlyArray<string>
     /**
-     * Maximum records to return (default: 500)
+     * Maximum records to return (default: 50)
      */
-    limit?: number
+    pageSize?: number
     /**
-     * Number of records to skip
+     * Page Number (default: 1)
      */
-    offset?: number
+    page?: number
   }): Promise<${this.pascalCase(tableName, 'table')}Table_RecordQueryResult>`)
 
     // selectRecordAsync
@@ -2987,6 +2995,9 @@ declare interface ConfigItem {}
     }>
     recordIds?: ReadonlyArray<string>
     fields?: ReadonlyArray<Field | string | null | undefined>
+    pageSize?: number
+    page?: number
+    where?: string
   }): Promise<${this.pascalCase(tableName, 'table')}Table_RecordQueryResult>`)
 
     // selectRecordAsync

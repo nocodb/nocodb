@@ -849,13 +849,15 @@ Object.freeze(UITypes);
         ...(fields?.length && { fields: fieldsToSelect })
       })
       
-      if(data?.error?.name === 'AxiosError' && data?.error?.status) return null;
+      if(!data || data?.error) {
+        throw new Error(\`Record \${recordId} not found in view \${this.name}\`)
+      }
 
       return new NocoDBRecord(data, this.#table);    
     }
     
     async selectRecordsAsync(options = {}) {
-      const { sorts = [], fields = [], recordIds = [], pageSize = 50, page = 1 } = options
+      const { sorts = [], fields = [], recordIds = [], pageSize = 50, page = 1, where = '' } = options
            
       const pvAndPk = this.#table.fields.filter(f => f.primary_value || f.primary_key).map(f => f.name)
       
@@ -887,6 +889,7 @@ Object.freeze(UITypes);
       const requestOptions = {
         viewId: this.id,
         page,
+        where,
         pageSize,
         ...(recordIds?.length && { pks: recordIds.join(',') }),
         ...(fieldsToSelect && { fields: fieldsToSelect }),
@@ -929,6 +932,11 @@ Object.freeze(UITypes);
       field.title = field.name
       delete field.name
       const data = await api.v3MetaBasesTablesFieldsCreate(this.id, this.#base.id, field);
+      
+      if(!data || data.msg) {
+       throw new Error(\`Failed to create field \${field.name} in table \${this.name}\`)
+      }
+      
       const newField = new Field({id: data.id, name: data.title, type: data.type, description: data.description, options: data.options, primary_key: false, primary_value: false, is_system_field: false}, this);
       this.#all_fields.push(newField);
       this.fields = this.#all_fields.filter(f => !f.is_system_field);
@@ -956,14 +964,16 @@ Object.freeze(UITypes);
       const data = await api.dbDataTableRowRead(this.base.id, this.id, recordId, {
         ...(fields?.length && { fields: fieldsToSelect })
       })
-                 
-      if(data?.error?.name === 'AxiosError' && data?.error?.status) return null;
+            
+      if(!data || data?.error) {
+        throw new Error(\`Record \${recordId} not found in table \${this.name}\`)
+      }
       
       return new NocoDBRecord(data, this);    
     }
     
     async selectRecordsAsync(options = {}) {
-      const { sorts = [], fields = [], recordIds = [], pageSize = 50, page = 1 } = options
+      const { sorts = [], fields = [], recordIds = [], pageSize = 50, page = 1, where = '' } = options
            
       const pvAndPk = this.fields.filter(f => f.primary_value || f.primary_key).map(f => f.name)
       
@@ -994,6 +1004,7 @@ Object.freeze(UITypes);
       
       const requestOptions = {
         page,
+        where,
         pageSize,
         ...(fieldsToSelect && { fields: fieldsToSelect }),
         ...(sortArray.length && { sort: sortArray }),

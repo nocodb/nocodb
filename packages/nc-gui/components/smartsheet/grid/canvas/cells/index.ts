@@ -69,6 +69,12 @@ export function useGridCellHandler(params: {
 
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
+  const { getLeftBorderColor, getRowColor } = useViewRowColorRender({
+    meta: params.meta!,
+    rows: computed(() => []),
+    isGridCanvas: true,
+  })
+
   const baseStore = useBase()
   const { showNull, appInfo } = useGlobal()
   const { isMysql, isXcdbBase, isPg } = baseStore
@@ -179,6 +185,7 @@ export function useGridCellHandler(params: {
       isCellInSelectionRange = false,
       isGroupHeader = false,
       rowMeta = {},
+      isRootCell = false,
     }: Omit<CellRendererOptions, 'metas' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
@@ -206,6 +213,26 @@ export function useGridCellHandler(params: {
             left: true,
           },
         })
+      } else if (
+        !rowMeta?.isValidationFailed &&
+        isRootCell &&
+        !(selected || isRowHovered || isRowChecked || isCellInSelectionRange)
+      ) {
+        const rowColor = getRowColor(row)
+
+        if (rowColor) {
+          roundedRect(ctx, x, y, width, height, 0, {
+            backgroundColor: rowColor,
+            borderColor: themeV3Colors.gray['200'],
+            borderWidth: 0.4,
+            borders: {
+              top: rowMeta.rowIndex !== 0,
+              right: true,
+              bottom: true,
+              left: true,
+            },
+          })
+        }
       }
     }
     const cellType = cellTypesRegistry.get(column.uidt)

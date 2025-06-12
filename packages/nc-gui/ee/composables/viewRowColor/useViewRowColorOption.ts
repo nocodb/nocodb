@@ -17,13 +17,14 @@ export function useViewRowColorOption(params: {
   const view = params.view
   const rowColorInfo: Ref<RowColoringInfo> = inject(ViewRowColorInj)
 
-  const eventBus = useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore)
+  const { eventBus } = useSmartsheetStoreOrThrow()
+
   const meta = inject(MetaInj, ref())
   const { metas } = useMetas()
   const { getPlanLimit } = useWorkspace()
 
   const baseStore = useBase()
-  const { getBaseType, baseMeta } = baseStore
+  const { baseMeta } = baseStore
 
   // newly added condition is not saved directly to server until another action is taken
   // this is to handle that
@@ -60,6 +61,7 @@ export function useViewRowColorOption(params: {
     await $api.dbView.deleteViewRowColor(params.view.value.id)
     rowColorInfo.value = { mode: null, conditions: [] }
     eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
   const onRowColorSelectChange = async () => {
@@ -67,6 +69,7 @@ export function useViewRowColorOption(params: {
       await $api.dbView.viewRowColorSelectAdd(params.view.value.id, rowColorInfo.value)
       eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
     }
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
   const onRowColorConditionAdd = async () => {
@@ -111,6 +114,8 @@ export function useViewRowColorOption(params: {
         conditionToAdd.conditions[0].fk_row_color_condition_id = conditionToAdd.id
       }
     })
+
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
   const onChangeRowColoringMode = async (mode: string) => {
@@ -125,6 +130,8 @@ export function useViewRowColorOption(params: {
     } else if (mode === ROW_COLORING_MODE.FILTER) {
       onRowColorConditionAdd()
     }
+
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
   const onRowColorConditionDelete = async (index: number) => {
@@ -142,6 +149,8 @@ export function useViewRowColorOption(params: {
         eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
       }
     }
+
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
   const onRowColorConditionUpdate = async (params: { index: number; color: string; is_set_as_background: boolean }) => {
@@ -155,6 +164,7 @@ export function useViewRowColorOption(params: {
       is_set_as_background: params.is_set_as_background,
       nc_order: conditionToUpdate.nc_order,
     })
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
   const onRowColorConditionFilterAdd = async (colorIndex: number, params: FilterGroupChangeEvent) => {
@@ -193,6 +203,7 @@ export function useViewRowColorOption(params: {
       const result = await $api.rowColorConditions.rowColorConditionsFilterCreate(conditionToAdd.id, toInsert)
       filter.id = result.id
     })
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
   const onRowColorConditionFilterAddGroup = async (colorIndex: number, params: FilterGroupChangeEvent) => {
@@ -225,6 +236,7 @@ export function useViewRowColorOption(params: {
       const result = await $api.rowColorConditions.rowColorConditionsFilterCreate(conditionToAdd.id, toInsert)
       filter.id = result.id
     })
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
   const onRowColorConditionFilterUpdate = async (colorIndex: number, params: FilterRowChangeEvent) => {
@@ -258,6 +270,7 @@ export function useViewRowColorOption(params: {
     const updateObj = { ...filter }
     delete updateObj.children
     await $api.dbTableFilter.update(filter!.id, updateObj)
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
   const onRowColorConditionFilterDelete = async (colorIndex: number, params: FilterGroupChangeEvent) => {
@@ -275,6 +288,7 @@ export function useViewRowColorOption(params: {
       conditionToDelete.nestedConditions = conditionToDelete.nestedConditions.filter((f) => f.id !== filterToDelete.id)
     }
     conditionToDelete.conditions = conditionToDelete.conditions.filter((fil) => !deletedFilterIds.includes(fil.id))
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
   const filterPerViewLimit = computed(() => getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW))

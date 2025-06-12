@@ -1,4 +1,7 @@
 import { ROW_COLORING_MODE, type RowColoringInfo, type ViewType, arrayToNested } from 'nocodb-sdk'
+import { clearRowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
+import type { UseEventBusReturn } from '@vueuse/core'
+import { SmartsheetStoreEvents } from '#imports'
 
 const defaultRowColorInfo: RowColoringInfo = {
   mode: null,
@@ -8,13 +11,17 @@ const defaultRowColorInfo: RowColoringInfo = {
   is_set_as_background: null,
 }
 
-export function useViewRowColorProvider(params: { view: Ref<ViewType> }) {
+export function useViewRowColorProvider(params: {
+  view: Ref<ViewType>
+  eventBus: UseEventBusReturn<SmartsheetStoreEvents, SmartsheetStoreEvents>
+}) {
   const { $api } = useNuxtApp()
-  const eventBus = useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore)
 
   const rowColorInfo: Ref<RowColoringInfo> = ref(defaultRowColorInfo)
 
   const reloadRowColorInfo = async () => {
+    clearRowColouringCache()
+
     if (params.view.value?.id) {
       const rowColorInfoResponse = await $api.dbView.getViewRowColor(params.view.value?.id)
       if (rowColorInfoResponse) {
@@ -48,7 +55,7 @@ export function useViewRowColorProvider(params: { view: Ref<ViewType> }) {
   const setRowColorInfo = (value: RowColoringInfo) => {
     rowColorInfo.value = value
   }
-  eventBus.on((event) => {
+  params.eventBus.on((event) => {
     if ([SmartsheetStoreEvents.ROW_COLOR_UPDATE, SmartsheetStoreEvents.FIELD_UPDATE].includes(event)) {
       reloadRowColorInfo()
     }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 import { SmartsheetToolbarRowColorFilterUsingFilterPanel } from '#components'
+import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
 
 const meta = inject(MetaInj, ref())
 const activeView = inject(ActiveViewInj, ref())
@@ -35,6 +36,9 @@ const {
   meta,
   view: activeView,
 })
+
+const open = ref(false)
+
 const rowColoringMode = computed({
   set: (value) => {
     rowColorInfo.value.mode = value
@@ -42,6 +46,12 @@ const rowColoringMode = computed({
   get: () => {
     return rowColorInfo.value.mode
   },
+})
+
+watch(open, (value) => {
+  if (!value) {
+    clearRowColouringCache()
+  }
 })
 </script>
 

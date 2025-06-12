@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ROW_COLORING_MODE } from 'nocodb-sdk'
+import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
 
 interface Props {
   rowColoringMode?: ROW_COLORING_MODE
@@ -20,9 +21,11 @@ const isOpenVModel = useVModel(props, 'isOpen', emits)
 
 const { t } = useI18n()
 
-const buttonClass = 'flex-grow !inline-flex !border-none !shadow-none !rounded-[0px] !text-left content-top !py-2 !px-4'
 const chooseOption = (option: ROW_COLORING_MODE) => {
+  clearRowColouringCache()
+
   rowColoringModeVModel.value = option
+
   emits('change', option)
 }
 

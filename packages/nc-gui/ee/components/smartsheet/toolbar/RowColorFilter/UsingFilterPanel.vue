@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ClientType, RowColoringInfoFilter } from 'nocodb-sdk'
 import { useDebounceFn } from '@vueuse/core'
-import type { GroupHandler } from '../Filter/types'
+import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
 
 interface Props {
   modelValue?: RowColoringInfoFilter
@@ -56,6 +56,7 @@ const removeColor = (index: number) => {
   } else {
     props.handler.conditionDelete(index)
   }
+  clearRowColouringCache()
 }
 
 const updateColorPendingPayload = ref({})
@@ -75,6 +76,7 @@ const updateColor = (index: number, field: string, value: string) => {
       [field]: value,
     } as any)
   }
+  clearRowColouringCache()
 }
 </script>
 

@@ -1607,6 +1607,7 @@ export class PgUi implements SqlUi {
       case 'jsonb':
         return 'json';
     }
+    return 'string';
   }
 
   static getUIType(col): any {

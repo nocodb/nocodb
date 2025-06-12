@@ -1,9 +1,7 @@
-import { ncIsNaN, ncIsString } from '~/lib/is';
-import AbstractColumnHelper from '../column.interface';
 import { SilentTypeConversionError } from '~/lib/error';
 import { convertGeoNumberToString } from '~/lib/geoDataUtils';
-import { ColumnType } from '~/lib/Api';
-import { populateFillHandleStrictCopy } from '../utils/fill-handler';
+import { ncIsNaN, ncIsString } from '~/lib/is';
+import AbstractColumnHelper from '../column.interface';
 
 export class GeoDataHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -39,14 +37,5 @@ export class GeoDataHelper extends AbstractColumnHelper {
 
   parsePlainCellValue(value: any): string {
     return this.parseValue(value) ?? '';
-  }
-
-  // simply copy highlighted rows
-  override populateFillHandle(params: {
-    column: ColumnType;
-    highlightedData: any[];
-    numberOfRows: number;
-  }): any[] {
-    return populateFillHandleStrictCopy(params);
   }
 }

@@ -1,12 +1,11 @@
-import { AIRecordType, ColumnType } from '~/lib/Api';
-import { parseProp } from '~/lib/helperFunctions';
+import { AIRecordType } from '~/lib/Api';
 import { LongTextAiMetaProp } from '~/lib/globals';
+import { parseProp } from '~/lib/helperFunctions';
 import { ncIsObject } from '~/lib/is';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
 import { serializeStringValue } from '../utils';
-import { populateFillHandleStrictCopy } from '../utils/fill-handler';
 
 export class LongTextHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -36,14 +35,5 @@ export class LongTextHelper extends AbstractColumnHelper {
   parsePlainCellValue(value: any): string {
     // Remove trim() to preserve leading and trailing spaces
     return value?.toString() ?? '';
-  }
-
-  // simply copy highlighted rows
-  override populateFillHandle(params: {
-    column: ColumnType;
-    highlightedData: any[];
-    numberOfRows: number;
-  }): any[] {
-    return populateFillHandleStrictCopy(params);
   }
 }

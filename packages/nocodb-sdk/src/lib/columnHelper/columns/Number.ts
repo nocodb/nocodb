@@ -4,6 +4,8 @@ import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
 import { toSafeInteger } from '~/lib/helperFunctions';
+import { ColumnType } from '~/lib/Api';
+import { populateFillHandleStringNumber } from '../utils/fill-handler';
 
 export class NumberHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -43,5 +45,14 @@ export class NumberHelper extends AbstractColumnHelper {
     params: SerializerOrParserFnProps['params']
   ): string {
     return `${parseIntValue(value, params.col) ?? ''}`;
+  }
+
+  // using string number fill handler
+  override populateFillHandle(params: {
+    column: ColumnType;
+    highlightedData: any[];
+    numberOfRows: number;
+  }): any[] {
+    return populateFillHandleStringNumber(params);
   }
 }

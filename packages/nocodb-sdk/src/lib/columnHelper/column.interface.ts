@@ -1,5 +1,5 @@
 import { ColumnType, TableType, UserType } from '../Api';
-import { populateFillHandleStringNumber } from './utils/fill-handler';
+import { populateFillHandleStrictCopy } from './utils/fill-handler';
 
 export default abstract class AbstractColumnHelper {
   public columnDefaultMeta?: Record<string, any> = {};
@@ -64,7 +64,7 @@ export default abstract class AbstractColumnHelper {
     highlightedData: any[];
     numberOfRows: number;
   }) {
-    return populateFillHandleStringNumber(params);
+    return populateFillHandleStrictCopy(params);
   }
 }
 

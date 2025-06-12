@@ -1,12 +1,10 @@
+import dayjs from 'dayjs';
+import { constructTimeFormat } from '~/lib/dateTimeHelper';
 import { SilentTypeConversionError } from '~/lib/error';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
 import { parseTimeValue, serializeTimeValue } from '../utils';
-import dayjs from 'dayjs';
-import { constructTimeFormat } from '~/lib/dateTimeHelper';
-import { ColumnType } from '~/lib/Api';
-import { populateFillHandleStrictCopy } from '../utils/fill-handler';
 
 export class TimeHelper extends AbstractColumnHelper {
   public columnDefaultMeta = {
@@ -58,14 +56,5 @@ export class TimeHelper extends AbstractColumnHelper {
       aDayjs.format(constructTimeFormat(param.col)) ===
       bDayjs.format(constructTimeFormat(param.col))
     );
-  }
-
-  // simply copy highlighted rows
-  override populateFillHandle(params: {
-    column: ColumnType;
-    highlightedData: any[];
-    numberOfRows: number;
-  }): any[] {
-    return populateFillHandleStrictCopy(params);
   }
 }

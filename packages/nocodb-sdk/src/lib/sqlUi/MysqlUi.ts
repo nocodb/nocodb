@@ -1013,6 +1013,7 @@ export class MysqlUi implements SqlUi {
       case 'json':
         return 'json';
     }
+    return 'string';
   }
 
   static getDataTypeForUiType(

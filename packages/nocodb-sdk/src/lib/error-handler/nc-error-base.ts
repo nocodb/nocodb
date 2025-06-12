@@ -65,13 +65,6 @@ export class NcErrorBase {
       ...args,
     });
   }
-  baseNotFoundV3(id: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.BASE_NOT_FOUNDV3, {
-      params: id,
-      ...args,
-    });
-  }
-
   sourceNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.SOURCE_NOT_FOUND, {
       params: id,
@@ -86,13 +79,6 @@ export class NcErrorBase {
     });
   }
 
-  tableNotFoundV3(id: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.TABLE_NOT_FOUNDV3, {
-      params: id,
-      ...args,
-    });
-  }
-
   userNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.USER_NOT_FOUND, {
       params: id,
@@ -102,13 +88,6 @@ export class NcErrorBase {
 
   viewNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.VIEW_NOT_FOUND, {
-      params: id,
-      ...args,
-    });
-  }
-
-  viewNotFoundV3(id: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.VIEW_NOT_FOUNDV3, {
       params: id,
       ...args,
     });
@@ -149,13 +128,6 @@ export class NcErrorBase {
     });
   }
 
-  fieldNotFoundV3(id: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.FIELD_NOT_FOUNDV3, {
-      params: id,
-      ...args,
-    });
-  }
-
   invalidOffsetValue(offset: string | number, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.INVALID_OFFSET_VALUE, {
       params: `${offset}`,
@@ -185,13 +157,6 @@ export class NcErrorBase {
   invalidFilter(filter: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.INVALID_FILTER, {
       params: filter,
-      ...args,
-    });
-  }
-
-  invalidFilterV3(message: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.INVALID_FILTERV3, {
-      params: message,
       ...args,
     });
   }

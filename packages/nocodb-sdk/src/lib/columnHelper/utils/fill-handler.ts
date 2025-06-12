@@ -68,6 +68,7 @@ export function populateFillHandleStringNumber({
     return [];
   }
   let highLightIndex = 0;
+  // group row values by prefix / suffix
   for (const highlightedRow of highlightedData) {
     let index;
     let groupKey;
@@ -128,7 +129,7 @@ export function populateFillHandleStringNumber({
     };
   }
 
-  // loop once more to set modifier
+  // loop once per group to calculate / set modifier
   for (const [_prefix, groupRecord] of Object.entries(group)) {
     if (groupRecord.data.length > 1) {
       let lastData = Number(groupRecord.data[1]);

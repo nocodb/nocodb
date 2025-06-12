@@ -4,6 +4,8 @@ import AbstractColumnHelper, {
 } from '../column.interface';
 import { parseDateTimeValue, serializeDateOrDateTimeValue } from '../utils';
 import { SilentTypeConversionError } from '~/lib/error';
+import { populateFillHandleStrictCopy } from '../utils/fill-handler';
+import { ColumnType } from '~/lib/Api';
 
 export class DateTimeHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -41,5 +43,15 @@ export class DateTimeHelper extends AbstractColumnHelper {
     params: SerializerOrParserFnProps['params']
   ): string | null {
     return parseDateTimeValue(value, params) ?? '';
+  }
+
+  // simply copy highlighted rows for now,
+  // since timezone may pose as a significant issue
+  override populateFillHandle(params: {
+    column: ColumnType;
+    highlightedData: any[];
+    numberOfRows: number;
+  }): any[] {
+    return populateFillHandleStrictCopy(params);
   }
 }

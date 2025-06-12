@@ -5,6 +5,8 @@ import AbstractColumnHelper, {
 import { parseTimeValue, serializeTimeValue } from '../utils';
 import dayjs from 'dayjs';
 import { constructTimeFormat } from '~/lib/dateTimeHelper';
+import { ColumnType } from '~/lib/Api';
+import { populateFillHandleStrictCopy } from '../utils/fill-handler';
 
 export class TimeHelper extends AbstractColumnHelper {
   public columnDefaultMeta = {
@@ -42,10 +44,28 @@ export class TimeHelper extends AbstractColumnHelper {
     return parseTimeValue(value, params) ?? '';
   }
 
-  override equalityComparison(a: any, b:any, param: SerializerOrParserFnProps['params']): boolean {
-    const aDayjs = typeof a === 'string' ? dayjs(serializeTimeValue(a, param)) : dayjs(a);
-    const bDayjs = typeof b === 'string' ? dayjs(serializeTimeValue(b, param)) : dayjs(b);
+  override equalityComparison(
+    a: any,
+    b: any,
+    param: SerializerOrParserFnProps['params']
+  ): boolean {
+    const aDayjs =
+      typeof a === 'string' ? dayjs(serializeTimeValue(a, param)) : dayjs(a);
+    const bDayjs =
+      typeof b === 'string' ? dayjs(serializeTimeValue(b, param)) : dayjs(b);
 
-    return aDayjs.format(constructTimeFormat(param.col)) === bDayjs.format(constructTimeFormat(param.col));
+    return (
+      aDayjs.format(constructTimeFormat(param.col)) ===
+      bDayjs.format(constructTimeFormat(param.col))
+    );
+  }
+
+  // simply copy highlighted rows
+  override populateFillHandle(params: {
+    column: ColumnType;
+    highlightedData: any[];
+    numberOfRows: number;
+  }): any[] {
+    return populateFillHandleStrictCopy(params);
   }
 }

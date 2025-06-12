@@ -3,6 +3,8 @@ import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
 import { serializeSelectValue } from '../utils';
+import { ColumnType } from '~/lib/Api';
+import { populateFillHandleStrictCopy } from '../utils/fill-handler';
 
 export class MultiSelectHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -26,5 +28,14 @@ export class MultiSelectHelper extends AbstractColumnHelper {
 
   parsePlainCellValue(value: any): string {
     return this.parseValue(value) ?? '';
+  }
+
+  // simply copy highlighted rows
+  override populateFillHandle(params: {
+    column: ColumnType;
+    highlightedData: any[];
+    numberOfRows: number;
+  }): any[] {
+    return populateFillHandleStrictCopy(params);
   }
 }

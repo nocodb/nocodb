@@ -2,6 +2,7 @@ import { ColumnType } from '~/lib/Api';
 import { ncIsNullOrUndefined, ncIsUndefined } from '~/lib/is';
 const fillHandlerSuffixRegex = /(.*)(\d+)$/;
 
+// follow google sheet behavior
 export function populateFillHandleStringNumber({
   highlightedData,
   numberOfRows,
@@ -143,3 +144,21 @@ export function populateFillHandleStringNumber({
   }
   return result;
 }
+
+// simply copy the value repeatedly
+export function populateFillHandleStrictCopy({
+  highlightedData,
+  numberOfRows,
+}: {
+  column: ColumnType;
+  highlightedData: any[];
+  numberOfRows: number;
+}): any[] {
+  const result: any[] = [];
+
+  for (let i = 0; i < numberOfRows - highlightedData.length; i++) {
+    result.push(highlightedData[i % highlightedData.length]);
+  }
+  return result;
+}
+

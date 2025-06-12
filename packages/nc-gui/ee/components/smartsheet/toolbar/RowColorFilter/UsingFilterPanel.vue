@@ -81,103 +81,106 @@ const updateColor = (index: number, field: string, value: string) => {
 <template>
   <div class="min-w-[640px] w-auto inline-block h-auto rounded-2xl bg-white p-4">
     <div class="flex flex-col gap-3">
-      <template v-for="(rowColorConfig, i) in vModel?.conditions" :key="i">
-        <div>
-          <!-- index here is 0, since we evaluate the logic op individually per color -->
-          <SmartsheetToolbarFilterGroup
-            v-model="rowColorConfig.nestedConditions"
-            :index="0"
-            :nested-level="0"
-            :columns="columns"
-            :disabled="disabled || isLockedView"
-            :is-locked-view="false"
-            :is-logical-op-change-allowed="false"
-            :web-hook="false"
-            :link="false"
-            :is-form="true"
-            :is-public="false"
-            :is-full-width="true"
-            :filter-per-view-limit="filterPerViewLimit"
-            :disable-add-new-filter="false"
-            action-btn-type="text"
-            :filters-count="filtersCount"
-            :db-client-type="dbClientType"
-            :handler="{
-              addFilter: ($event) => handler.filters.addFilter(i, $event),
-              addFilterGroup: ($event) => handler.filters.addFilterGroup(i, $event),
-              deleteFilter: ($event) => handler.filters.deleteFilter(i, $event),
-              rowChange: ($event) => handler.filters.rowChange(i, $event),
-            }"
-            :query-filter="false"
-          >
-            <template #root-header>
-              <div class="flex justify-between w-full pb-2">
-                <div class="flex-grow">
-                  <template v-if="!disabled && !isLockedView">
-                    <GeneralAdvanceColorPickerDropdown v-model="rowColorConfig.color" @change="updateColor(i, 'color', $event)">
+      <div class="border-1 border-nc-border-gray-medium rounded-lg bg-[#FCFCFC]">
+        <template v-for="(rowColorConfig, i) in vModel?.conditions" :key="i">
+          <div class="px-2 border-b-1 border-nc-border-gray-medium last-of-type:border-b-0">
+            <!-- index here is 0, since we evaluate the logic op individually per color -->
+            <SmartsheetToolbarFilterGroup
+              v-model="rowColorConfig.nestedConditions"
+              :index="0"
+              :nested-level="0"
+              :columns="columns"
+              :disabled="disabled || isLockedView"
+              :is-locked-view="false"
+              :is-logical-op-change-allowed="false"
+              :web-hook="false"
+              :link="false"
+              :is-form="true"
+              :is-public="false"
+              :is-full-width="true"
+              :filter-per-view-limit="filterPerViewLimit"
+              :disable-add-new-filter="false"
+              action-btn-type="text"
+              :filters-count="filtersCount"
+              :db-client-type="dbClientType"
+              :handler="{
+                addFilter: ($event) => handler.filters.addFilter(i, $event),
+                addFilterGroup: ($event) => handler.filters.addFilterGroup(i, $event),
+                deleteFilter: ($event) => handler.filters.deleteFilter(i, $event),
+                rowChange: ($event) => handler.filters.rowChange(i, $event),
+              }"
+              :query-filter="false"
+            >
+              <template #root-header>
+                <div class="flex justify-between w-full pb-2">
+                  <div class="flex-grow">
+                    <template v-if="!disabled && !isLockedView">
+                      <GeneralAdvanceColorPickerDropdown v-model="rowColorConfig.color" @change="updateColor(i, 'color', $event)">
+                        <NcButton
+                          type="text"
+                          size="small"
+                          :style="{
+                            'background-color': rowColorConfig.color,
+                          }"
+                        >
+                          <span
+                            :style="{
+                              color: getOppositeColorOfBackground(rowColorConfig.color),
+                            }"
+                          >
+                            <component :is="iconMap.chevronDown" />
+                          </span>
+                        </NcButton>
+                      </GeneralAdvanceColorPickerDropdown>
+                    </template>
+                    <template v-else>
                       <NcButton
                         type="text"
                         size="small"
                         :style="{
-                          'background-color': rowColorConfig.color,
+                          'background-color': getLighterTint(rowColorConfig.color, { saturationMod: 15 }),
                         }"
+                        :disabled="true"
                       >
-                        <span
-                          :style="{
-                            color: getOppositeColorOfBackground(rowColorConfig.color),
-                          }"
-                        >
-                          <component :is="iconMap.chevronDown" />
-                        </span>
                       </NcButton>
-                    </GeneralAdvanceColorPickerDropdown>
-                  </template>
-                  <template v-else>
+                    </template>
+                  </div>
+                  <div class="justify-end">
                     <NcButton
+                      v-if="!disabled"
                       type="text"
                       size="small"
-                      :style="{
-                        'background-color': getLighterTint(rowColorConfig.color, { saturationMod: 15 }),
-                      }"
-                      :disabled="true"
+                      class="nc-filter-item-remove-btn cursor-pointer"
+                      :disabled="isLockedView"
+                      @click="removeColor(i)"
                     >
+                      <component :is="iconMap.deleteListItem" />
                     </NcButton>
-                  </template>
+                  </div>
                 </div>
-                <div class="justify-end">
-                  <NcButton
-                    v-if="!disabled"
-                    type="text"
-                    size="small"
-                    class="nc-filter-item-remove-btn cursor-pointer"
-                    :disabled="isLockedView"
-                    @click="removeColor(i)"
-                  >
-                    <component :is="iconMap.deleteListItem" />
-                  </NcButton>
-                </div>
-              </div>
-            </template>
+              </template>
 
-            <template #root-add-filter-row>
-              <div class="flex-grow flex justify-end items-center">
-                <NcSwitch
-                  v-model:checked="rowColorConfig.is_set_as_background"
-                  @change="updateColor(i, 'is_set_as_background', $event)"
-                >
-                  Background color
-                </NcSwitch>
-              </div>
-            </template>
-          </SmartsheetToolbarFilterGroup>
-        </div>
-      </template>
+              <template #root-add-filter-row>
+                <div class="flex-grow flex justify-end items-center cursor-pointer select-none text-nc-content-gray">
+                  <NcSwitch
+                    v-model:checked="rowColorConfig.is_set_as_background"
+                    @change="updateColor(i, 'is_set_as_background', $event)"
+                    placement="right"
+                  >
+                    {{ $t('labels.backgroundColour') }}
+                  </NcSwitch>
+                </div>
+              </template>
+            </SmartsheetToolbarFilterGroup>
+          </div>
+        </template>
+      </div>
       <div>
         <NcButton type="text" size="small" class="hover:!text-brand-500 hover:!bg-transparent" @click="addColor">
           <template #icon>
             <component :is="iconMap.plus" />
           </template>
-          Add Color
+          {{ $t('labels.addColour') }}
         </NcButton>
       </div>
     </div>

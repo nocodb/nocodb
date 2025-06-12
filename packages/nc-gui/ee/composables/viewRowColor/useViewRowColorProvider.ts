@@ -33,8 +33,6 @@ export function useViewRowColorProvider(params: { view: Ref<ViewType> }) {
             })
           }
         }
-      } else {
-        rowColorInfo.value = defaultRowColorInfo
       }
     }
   }

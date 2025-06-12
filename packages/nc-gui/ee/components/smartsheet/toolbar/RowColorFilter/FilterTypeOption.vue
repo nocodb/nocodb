@@ -22,15 +22,15 @@ const chooseOption = (option: ROW_COLORING_MODE) => {
 </script>
 
 <template>
-  <template v-if="!rowColoringMode">
+  <template v-if="!rowColoringModeVModel">
     <div
-      class="bg-white w-[320px] h-[132px] flex flex-col rounded-[8px] overflow-hidden py-2 animate-animated animate-fadeIn"
+      class="bg-white w-[320px] h-[132px] flex flex-col overflow-hidden py-2 animate-animated animate-fadeIn"
       style="animation-duration: 0.3s"
     >
       <a-button :class="[buttonClass]" type="text" @click.stop="chooseOption(ROW_COLORING_MODE.SELECT)">
         <div class="flex flex-col gap-1">
           <div class="flex gap-2 items-center">
-            <GeneralIcon class="w-[16px] h-[16px]" icon="singleSelect" />
+            <GeneralIcon class="w-4 h-4 flex-none" icon="singleSelect" />
             <span>Using Single select field</span>
           </div>
           <div>
@@ -43,7 +43,7 @@ const chooseOption = (option: ROW_COLORING_MODE) => {
       <a-button :class="[buttonClass]" type="text" @click.stop="chooseOption(ROW_COLORING_MODE.FILTER)">
         <div class="flex flex-col gap-1">
           <div class="flex gap-2 items-center">
-            <GeneralIcon class="w-[16px] h-[16px]" icon="ncConditions" />
+            <GeneralIcon class="w-4 h-4 flex-none" icon="ncConditions" />
             <span>Using Conditions</span>
           </div>
           <div>
@@ -53,10 +53,10 @@ const chooseOption = (option: ROW_COLORING_MODE) => {
       </a-button>
     </div>
   </template>
-  <template v-else-if="rowColoringMode === ROW_COLORING_MODE.FILTER">
+  <template v-else-if="rowColoringModeVModel === ROW_COLORING_MODE.FILTER">
     <slot name="filter"></slot>
   </template>
-  <template v-else-if="rowColoringMode === ROW_COLORING_MODE.SELECT">
+  <template v-else-if="rowColoringModeVModel === ROW_COLORING_MODE.SELECT">
     <slot name="select"></slot>
   </template>
 </template>

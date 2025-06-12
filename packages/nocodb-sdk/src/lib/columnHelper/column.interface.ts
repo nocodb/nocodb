@@ -1,4 +1,5 @@
 import { ColumnType, TableType, UserType } from '../Api';
+import { populateFillHandleStringNumber } from './utils/fill-handler';
 
 export default abstract class AbstractColumnHelper {
   public columnDefaultMeta?: Record<string, any> = {};
@@ -50,8 +51,20 @@ export default abstract class AbstractColumnHelper {
     params: SerializerOrParserFnProps['params']
   ): string;
 
-  public equalityComparison(a: any, b:any, _param: SerializerOrParserFnProps['params']): boolean {
-    return a == b
+  public equalityComparison(
+    a: any,
+    b: any,
+    _param: SerializerOrParserFnProps['params']
+  ): boolean {
+    return a == b;
+  }
+
+  public populateFillHandle(params: {
+    column: ColumnType;
+    highlightedData: any[];
+    numberOfRows: number;
+  }) {
+    return populateFillHandleStringNumber(params);
   }
 }
 

@@ -13,10 +13,7 @@ export class SingleLineTextHelper extends AbstractColumnHelper {
     return serializeStringValue(value);
   }
 
-  parseValue(
-    value: any,
-    _params: SerializerOrParserFnProps['params']
-  ): string {
+  parseValue(value: any, _params: SerializerOrParserFnProps['params']): string {
     if (value === null || value === undefined) {
       return '';
     }

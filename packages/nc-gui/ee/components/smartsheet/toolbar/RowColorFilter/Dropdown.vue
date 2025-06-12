@@ -46,20 +46,28 @@ const rowColoringMode = computed({
 </script>
 
 <template>
-  <NcDropdown @update:visible="onDropdownOpen">
-    <NcButton type="text" size="small" class="nc-toolbar-btn !border-0 !h-7">
-      <div class="flex items-center gap-1 min-h-5">
-        <div class="flex items-center gap-2">
-          <component :is="iconMap.ncPaintRoller" class="h-4 w-4" />
+  <NcDropdown
+    @update:visible="onDropdownOpen"
+    v-model:visible="open"
+    overlay-class-name="nc-dropdown-coloring-menu nc-toolbar-dropdown overflow-hidden"
+    class="!xs:hidden"
+  >
+    <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode">
+      <template #title>
+        {{ $t('activity.coloring') }}
+      </template>
+      <NcButton v-e="['c:coloring']" type="secondary" size="small" class="nc-coloring-menu-btn nc-toolbar-btn !border-0 !h-7">
+        <div class="flex items-center gap-1 min-h-5">
+          <div class="flex items-center gap-2">
+            <component :is="iconMap.ncPaintRoller" class="h-4 w-4" />
 
-          <!-- Group By -->
-          <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">Coloring</span>
+            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
+              {{ $t('activity.coloring') }}
+            </span>
+          </div>
         </div>
-        <!-- <span v-if="groupedByColumnIds?.length" class="bg-brand-50 text-brand-500 nc-toolbar-btn-chip">{{
-          groupedByColumnIds.length
-        }}</span> -->
-      </div>
-    </NcButton>
+      </NcButton>
+    </NcTooltip>
     <template #overlay>
       <SmartsheetToolbarRowColorFilterTypeOption v-model:row-coloring-mode="rowColoringMode" @change="onChangeRowColoringMode">
         <template #select>

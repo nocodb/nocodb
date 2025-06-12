@@ -1,16 +1,18 @@
 import { ROW_COLORING_MODE, type RowColoringInfo, type ViewType, arrayToNested } from 'nocodb-sdk'
 
+const defaultRowColorInfo: RowColoringInfo = {
+  mode: null,
+  conditions: [],
+  fk_column_id: null,
+  color: null,
+  is_set_as_background: null,
+}
+
 export function useViewRowColorProvider(params: { view: Ref<ViewType> }) {
   const { $api } = useNuxtApp()
   const eventBus = useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore)
 
-  const rowColorInfo: Ref<RowColoringInfo> = ref({
-    mode: null,
-    conditions: [],
-    fk_column_id: null,
-    color: null,
-    is_set_as_background: null,
-  })
+  const rowColorInfo: Ref<RowColoringInfo> = ref(defaultRowColorInfo)
 
   const reloadRowColorInfo = async () => {
     if (params.view.value?.id) {
@@ -31,6 +33,8 @@ export function useViewRowColorProvider(params: { view: Ref<ViewType> }) {
             })
           }
         }
+      } else {
+        rowColorInfo.value = defaultRowColorInfo
       }
     }
   }

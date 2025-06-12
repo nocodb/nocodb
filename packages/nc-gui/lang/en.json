@@ -1630,7 +1630,8 @@
     "addConditionGroup": "Add condition group",
     "pending": "Pending",
     "goToPage": "Go to Page",
-    "changePlan": "ChangePlan"
+    "changePlan": "ChangePlan",
+    "coloring": "Coloring"
   },
   "tooltip": {
     "crossBase": "Link records from a table in a different base",

@@ -9,6 +9,7 @@ import {
   type WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type { Knex } from 'knex';
 import { extractProps } from '~/helpers/extractProps';
 import {
   CacheDelDirection,
@@ -43,29 +44,58 @@ export default class Permission {
   }
 
   private static getJsonObjectExpression(
-    ncMeta,
+    ncMeta = Noco.ncMeta,
     subjectTypeField: string,
     subjectIdField: string,
   ) {
-    switch (ncMeta.knexConnection.client.config.client) {
-      case 'pg':
-        return ncMeta.knex.raw(
-          `json_build_object('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
-        );
-      case 'mysql2':
-        return ncMeta.knex.raw(
-          `JSON_OBJECT('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
-        );
-      case 'sqlite3':
-        return ncMeta.knex.raw(
-          `json_object('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
-        );
-      default:
-        // Fallback to MySQL syntax
-        return ncMeta.knex.raw(
-          `JSON_OBJECT('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
-        );
-    }
+    const { knex, knexConnection } = ncMeta;
+    const client = knexConnection.client.config.client;
+
+    const exprMap = {
+      pg: `json_build_object('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
+      mysql2: `JSON_OBJECT('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
+      sqlite3: `json_object('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
+    };
+
+    // fallback to mysql2 query
+    return knex.raw(exprMap[client] || exprMap.mysql2);
+  }
+
+  private static getJsonArrayAggExpression(
+    ncMeta = Noco.ncMeta,
+    jsonObjectExpr: Knex.QueryBuilder,
+    subjectIdField: string,
+  ) {
+    const { knex, knexConnection } = ncMeta;
+    const client = knexConnection.client.config.client;
+    const query = jsonObjectExpr.toQuery();
+
+    const exprMap = {
+      pg: `
+        COALESCE(
+          json_agg(${query}) FILTER (WHERE ${subjectIdField} IS NOT NULL),
+          '[]'::json
+        )
+      `,
+      mysql2: `
+        COALESCE(
+          JSON_ARRAYAGG(
+            CASE WHEN ${subjectIdField} IS NOT NULL THEN ${query} END
+          ),
+          JSON_ARRAY()
+        )
+      `,
+      sqlite3: `
+        CASE 
+          WHEN COUNT(${subjectIdField}) = 0 
+          THEN '[]' 
+          ELSE json_group_array(${query})
+        END
+      `,
+    };
+
+    // fallback to mysql2 query
+    return knex.raw(exprMap[client] || exprMap.mysql2);
   }
 
   public static async get(
@@ -86,18 +116,17 @@ export default class Permission {
         `${MetaTable.PERMISSION_SUBJECTS}.subject_id`,
       );
 
+      const jsonArrayAggExpr = this.getJsonArrayAggExpression(
+        ncMeta,
+        jsonObjectExpr,
+        `${MetaTable.PERMISSION_SUBJECTS}.subject_id`,
+      );
+
       const query = ncMeta
         .knexConnection(MetaTable.PERMISSIONS)
         .select([
           `${MetaTable.PERMISSIONS}.*`,
-          ncMeta.knex.raw(
-            `JSON_ARRAYAGG(
-              CASE 
-                WHEN ${MetaTable.PERMISSION_SUBJECTS}.subject_id IS NOT NULL 
-                THEN ${jsonObjectExpr.toQuery()}
-              END
-            ) as subjects`,
-          ),
+          ncMeta.knex.raw(`${jsonArrayAggExpr.toQuery()} as subjects`),
         ])
         .leftJoin(
           MetaTable.PERMISSION_SUBJECTS,
@@ -113,17 +142,9 @@ export default class Permission {
       permission = await query;
 
       if (permission) {
-        // Parse subjects JSON if it exists and filter out null values
-        if (permission.subjects) {
-          try {
-            const subjects = JSON.parse(permission.subjects);
-            permission.subjects = subjects.filter(
-              (subject) => subject !== null,
-            );
-          } catch (e) {
-            permission.subjects = [];
-          }
-        } else {
+        // Subjects are already JSON objects from the aggregation function
+        // Ensure subjects is always an array
+        if (!permission.subjects || !Array.isArray(permission.subjects)) {
           permission.subjects = [];
         }
 
@@ -173,18 +194,17 @@ export default class Permission {
         `${MetaTable.PERMISSION_SUBJECTS}.subject_id`,
       );
 
+      const jsonArrayAggExpr = this.getJsonArrayAggExpression(
+        ncMeta,
+        jsonObjectExpr,
+        `${MetaTable.PERMISSION_SUBJECTS}.subject_id`,
+      );
+
       const query = ncMeta
         .knexConnection(MetaTable.PERMISSIONS)
         .select([
           `${MetaTable.PERMISSIONS}.*`,
-          ncMeta.knex.raw(
-            `JSON_ARRAYAGG(
-              CASE 
-                WHEN ${MetaTable.PERMISSION_SUBJECTS}.subject_id IS NOT NULL 
-                THEN ${jsonObjectExpr.toQuery()}
-              END
-            ) as subjects`,
-          ),
+          ncMeta.knex.raw(`${jsonArrayAggExpr.toQuery()} as subjects`),
         ])
         .leftJoin(
           MetaTable.PERMISSION_SUBJECTS,
@@ -198,18 +218,10 @@ export default class Permission {
 
       const permissionsWithSubjects = await query;
 
-      // Process subjects for each permission
+      // Ensure subjects is always an array for each permission
       const processedPermissions = permissionsWithSubjects.map((permission) => {
-        if (permission.subjects) {
-          try {
-            const subjects = JSON.parse(permission.subjects);
-            permission.subjects = subjects.filter(
-              (subject) => subject !== null,
-            );
-          } catch (e) {
-            permission.subjects = [];
-          }
-        } else {
+        // Subjects are already JSON objects from the aggregation function
+        if (!permission.subjects || !Array.isArray(permission.subjects)) {
           permission.subjects = [];
         }
         return permission;

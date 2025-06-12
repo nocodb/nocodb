@@ -209,6 +209,8 @@ export const usePermissionSelector = (
             email: user.email,
             display_name: user.display_name,
           }))
+
+        userSelectorSelectedUsers.value = new Set(permission.subjects?.map((subject) => subject.id) || [])
       }
     } else {
       currentPermission.value = getInternalValue(currentValue.value)

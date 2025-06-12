@@ -114,18 +114,6 @@ export class PermissionsService {
       }
 
       if (existingPermission) {
-        // Delete existing permission users
-        if (
-          existingPermission.granted_type === PermissionGrantedType.USER &&
-          newPermissionObj.granted_type !== PermissionGrantedType.USER
-        ) {
-          await Permission.removeAllSubjects(
-            context,
-            existingPermission.id,
-            ncMeta,
-          );
-        }
-
         permission = await Permission.update(
           context,
           existingPermission.id,
@@ -138,6 +126,12 @@ export class PermissionsService {
 
       // Insert new permission users
       if (permission.granted_type === PermissionGrantedType.USER) {
+        if (permissionObj.subjects.length === 0) {
+          NcError.unprocessableEntity(
+            'You need to provide at least one subject',
+          );
+        }
+
         for (const subject of permissionObj.subjects) {
           if (subject.type === 'user') {
             const permissionUser = await WorkspaceUser.get(
@@ -184,6 +178,8 @@ export class PermissionsService {
           CacheDelDirection.PARENT_TO_CHILD,
         );
       }
+
+      this.logger.error(error);
 
       throw error;
     }

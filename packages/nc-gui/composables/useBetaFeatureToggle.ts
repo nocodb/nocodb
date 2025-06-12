@@ -68,7 +68,7 @@ const FEATURES = [
   },
   {
     id: 'nocodb_scripts',
-    title: 'NocoDB Scripts (Beta)',
+    title: 'NocoDB Scripts',
     description: 'Enable NocoDB Scripts to automate repetitive workflow',
     enabled: false,
     version: 1,

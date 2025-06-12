@@ -360,10 +360,16 @@ Object.freeze(UITypes);
     #nextToken;
     #prevToken;
     
-    constructor(data, table, view, options) {
+    #linkFieldId; // For LTAR-specific pagination
+    #parentRecordId; // For LTAR-specific pagination
+    
+    constructor(data, table, view, options, linkFieldId = null, parentRecordId = null) {
       this.#table = table;
       this.#view = view;
       this.#options = options;
+      
+      this.#linkFieldId = linkFieldId;
+      this.#parentRecordId = parentRecordId;
       
       this.#pageInfo = {
         hasNext: !!data.next,
@@ -408,18 +414,39 @@ Object.freeze(UITypes);
         return null;
       }
       
-      const url = new URL(this.#nextToken);
-      const page = parseInt(url.searchParams.get('page') || '1');
-    
-      const response = await api.dbDataTableRowList(
-        this.#table.base.id,
-        this.#table.id,
-        {
-          ...this.#options,
-          page,
-          ...(this.#view ? { viewId: this.#view.id } : {})
-        }
-      );
+      let response;
+      
+      if (this.#linkFieldId && this.#parentRecordId) {
+        // For LTAR fields, use the nested list API
+        const url = new URL(this.#nextToken);
+        const page = parseInt(url.searchParams.get('page') || '1');
+        
+        response = await api.dbDataTableRowNestedList(
+          this.#table.id,
+          this.#linkFieldId,
+          this.#parentRecordId,
+          this.#table.base.id,
+          {
+            ...this.#options,
+            page,
+          }
+        );
+      } else {
+        // For regular table queries
+        const url = new URL(this.#nextToken);
+        const page = parseInt(url.searchParams.get('page') || '1');
+      
+        response = await api.dbDataTableRowList(
+          this.#table.base.id,
+          this.#table.id,
+          {
+            ...this.#options,
+            page,
+            ...(this.#view ? { viewId: this.#view.id } : {})
+          }
+        );
+      }
+      
       this.#rawData = [...this.#rawData, ...(response.records || [])];
       const records = [...this.records];
       
@@ -455,6 +482,80 @@ Object.freeze(UITypes);
   
     get prevToken() {
       return this.#prevToken;
+    }
+  }
+  
+  class LazyRecordQueryResult extends RecordQueryResult {
+    #parentTable;
+    #linkField;
+    #parentRecordId;
+    #isFullyLoaded = false;
+    
+    constructor(initialData, relatedTable, parentTable, linkField, parentRecordId) {
+      // Initialize with embedded data (first 1000 records or whatever was included)
+      super({ 
+        records: initialData, 
+        next: initialData.length >= 1000 ? 'has_more' : null, // Assume more if we got 1000
+        prev: null 
+      }, relatedTable, null, {});
+      
+      this.#parentTable = parentTable;
+      this.#linkField = linkField;
+      this.#parentRecordId = parentRecordId;
+      this.#isFullyLoaded = initialData.length < 1000;
+    }
+    
+    async loadMoreRecords() {
+      if (this.#isFullyLoaded || !this.hasMoreRecords) {
+        return null;
+      }
+      
+      // Calculate next page based on current record count
+      const currentPage = Math.floor(this.records.length / 1000) + 1;
+      
+      const response = await api.dbDataTableRowNestedList(
+        this.#parentTable.id,
+        this.#linkField.id,
+        this.#parentRecordId,
+        this.#parentTable.base.id,
+        {
+          page: currentPage,
+          pageSize: 1000
+        }
+      );
+      
+      if (!response.records || response.records.length === 0) {
+        this.#isFullyLoaded = true;
+        return this;
+      }
+      
+      // Append new records
+      this._appendRecords(response.records);
+      
+      // Check if we're done
+      if (response.records.length < 1000) {
+        this.#isFullyLoaded = true;
+      }
+      
+      return this;
+    }
+    
+    _appendRecords(newRecords) {
+      const records = [...this.records];
+      const recordsById = this._getRecordsById();
+      const newRecordIds = newRecords.map(row => {
+        const record = new NocoDBRecord(row, this.table);
+        records.push(record);
+        recordsById.set(record.id, record);
+        return record.id;
+      });
+      
+      this.recordIds = Object.freeze([...this.recordIds, ...newRecordIds]);
+      this.records = Object.freeze(records);
+    }
+    
+    get hasMoreRecords() {
+      return !this.#isFullyLoaded;
     }
   }
   
@@ -507,7 +608,7 @@ Object.freeze(UITypes);
             const relatedTable = base.getTable(field?.options?.related_table_id)
             
             if (['hm', 'mm'].includes(field?.options?.relation_type)) {
-              return (data ?? []).map(v => new NocoDBRecord(v, relatedTable))
+              return new LazyRecordQueryResult(data || [], relatedTable, this.#table, field, this.id)
             }
             if (['bt', 'oo'].includes(field?.options?.relation_type)) {
               if(!data) return null;
@@ -590,7 +691,12 @@ Object.freeze(UITypes);
         }
         case 'LinkToAnotherRecord': {
           if (['hm', 'mm'].includes(field?.options?.relation_type)) {
-            return value?.map((v) => v.name || v.id).join(', ')
+            if (value instanceof LazyRecordQueryResult || value instanceof RecordQueryResult) {
+              const count = value.records.length;
+              const hasMore = value.hasMoreRecords ? '+' : '';
+              return \`\${count}\${hasMore} linked record\${count !== 1 ? 's' : ''}\`;
+            }
+            return value?.map?.((v) => v.name || v.id).join(', ') || '';
           } else if (['bt', 'oo'].includes(field?.options?.relation_type)) {
             return value?.name || value?.id
           }

@@ -1,6 +1,35 @@
 import { ColumnType } from '~/lib/Api';
-import { ncIsNullOrUndefined, ncIsUndefined } from '~/lib/is';
+import { ncIsNullOrUndefined, ncIsNumber, ncIsUndefined } from '~/lib/is';
+import { floatAddDumb, floatDivDumb, floatSubDumb } from './decimal';
 const fillHandlerSuffixRegex = /(.*)(\d+)$/;
+
+const getModifierForNumber = ({
+  group,
+  nullPrefix,
+}: {
+  group: Record<
+    string | symbol,
+    {
+      prefix: string | symbol;
+      data: number[];
+      modifier: number;
+      lastIndex: number | undefined;
+    }
+  >;
+  nullPrefix: symbol;
+}) => {
+  let sumOfModifier = 0;
+  let lastData = Number(group[nullPrefix].data[1]);
+  sumOfModifier = floatSubDumb(lastData, Number(group[nullPrefix].data[0]));
+  for (const current of group[nullPrefix].data.slice(2)) {
+    sumOfModifier += floatSubDumb(Number(current), lastData);
+    lastData = Number(current);
+  }
+  return {
+    modifier: floatDivDumb(sumOfModifier, group[nullPrefix]?.data?.length - 1),
+    lastData,
+  };
+};
 
 // follow google sheet behavior
 export function populateFillHandleStringNumber({
@@ -43,17 +72,27 @@ export function populateFillHandleStringNumber({
     let index;
     let groupKey;
     if (typeof highlightedRow === 'string') {
-      const regexResult = highlightedRow.match(fillHandlerSuffixRegex);
-      if (!regexResult) {
-        if (highlightedRow !== '') {
-          groupKey = highlightedRow;
-        }
+      // check if number
+      if (
+        !ncIsNullOrUndefined(highlightedRow) &&
+        highlightedRow !== '' &&
+        ncIsNumber(Number(highlightedRow))
+      ) {
+        groupKey = nullPrefix;
+        index = highlightedRow;
       } else {
-        const [_match, ...rest] = regexResult;
-        groupKey = rest[0];
-        index = rest[1];
-        if (groupKey === '') {
-          groupKey = nullPrefix;
+        const regexResult = highlightedRow.match(fillHandlerSuffixRegex);
+        if (!regexResult) {
+          if (highlightedRow !== '') {
+            groupKey = highlightedRow;
+          }
+        } else {
+          const [_match, ...rest] = regexResult;
+          groupKey = rest[0];
+          index = rest[1];
+          if (groupKey === '') {
+            groupKey = nullPrefix;
+          }
         }
       }
     } else if (typeof highlightedRow === 'number') {
@@ -77,7 +116,7 @@ export function populateFillHandleStringNumber({
         prefix: groupKey ?? nullPrefix,
         data: [],
         modifier: 0,
-        lastIndex: 0,
+        lastIndex: index,
       };
     }
     const groupData = group[groupKey ?? nullPrefix].data;
@@ -108,16 +147,11 @@ export function populateFillHandleStringNumber({
 
   // for pure number, the logic is different following google sheet
   if (group[nullPrefix]?.data?.length > 1) {
-    let sumOfModifier = 0;
-    let lastData = Number(group[nullPrefix].data[1]);
-    sumOfModifier = lastData - Number(group[nullPrefix].data[0]);
-
-    for (const current of group[nullPrefix].data.slice(2)) {
-      sumOfModifier += Number(current) - lastData;
-      lastData = Number(current);
-    }
-    group[nullPrefix].modifier =
-      sumOfModifier / (group[nullPrefix]?.data?.length - 1);
+    const { lastData, modifier } = getModifierForNumber({
+      group,
+      nullPrefix,
+    });
+    group[nullPrefix].modifier = modifier;
     group[nullPrefix].lastIndex = lastData;
   }
   const result: any[] = [];
@@ -132,7 +166,18 @@ export function populateFillHandleStringNumber({
       const rowStr = ncIsUndefined(groupOfIndex.row) ? '' : groupOfIndex.row;
       result.push(`${groupOfIndex.group.prefix}${rowStr}`);
     } else {
-      groupOfIndex.group.lastIndex += groupOfIndex.group.modifier;
+      // if the modifier has decimal, round to nearest decimal
+      if (
+        groupOfIndex.group.modifier - Math.floor(groupOfIndex.group.modifier) >
+        0
+      ) {
+        groupOfIndex.group.lastIndex = floatAddDumb(
+          groupOfIndex.group.lastIndex,
+          groupOfIndex.group.modifier
+        );
+      } else {
+        groupOfIndex.group.lastIndex += groupOfIndex.group.modifier;
+      }
       result.push(
         `${
           groupOfIndex.group.prefix === nullPrefix

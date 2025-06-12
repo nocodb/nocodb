@@ -441,7 +441,6 @@ export function useMultiSelect(
     )
     const fillValuesByCols: any[][] = []
     const numberOfRows = Math.abs(rowToPaste.end - rowToPaste.start) + 1
-    console.log(rawMatrix, rawMatrixTransposed, numberOfRows)
 
     for (const [i, rowsOfCol] of rawMatrixTransposed.entries()) {
       const cpCol = cpCols[i]
@@ -455,7 +454,7 @@ export function useMultiSelect(
       }
       // TODO: else, but should not happen
     }
-    console.log(fillValuesByCols)
+
     // apply the populated fill handle to rows
     // maybe TODO: extract to other function
     const rowsToPaste: Row[] = []
@@ -469,7 +468,17 @@ export function useMultiSelect(
       const rowObj = data[rowIndex]
       if (rowObj) {
         for (const [colIndex, cpCol] of cpCols.entries()) {
-          rowObj.row[cpCol.title] = fillValuesByCols[colIndex!]![incrementIndex]
+          const pasteValue = convertCellData(
+            {
+              value: fillValuesByCols[colIndex!]![incrementIndex],
+              to: cpCol.uidt as UITypes,
+              column: cpCol,
+              appInfo: unref(appInfo),
+            },
+            isMysql(meta.value?.source_id),
+            true,
+          )
+          rowObj.row[cpCol.title] = pasteValue
         }
         rowsToPaste.push(rowObj)
       }
@@ -523,10 +532,6 @@ export function useMultiSelect(
             fillRange._start.row,
             fillRange._end.row,
           )
-          console.log({
-            startRangeTopMost,
-            startRangeBottomMost,
-          })
           // if not localAiMode, use the new v2 handle fill logic
           if (!localAiMode) {
             const dataArray: Row[] = isArrayStructure

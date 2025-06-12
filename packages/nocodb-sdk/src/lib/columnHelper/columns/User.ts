@@ -1,11 +1,11 @@
+import { SilentTypeConversionError } from '~/lib/error';
+import { parseProp } from '~/lib/helperFunctions';
 import { ncIsArray, ncIsObject, ncIsString } from '~/lib/is';
+import { NcRecord } from '~/lib/ncTypes';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
 import { parseUserValue, serializeEmail } from '../utils';
-import { SilentTypeConversionError } from '~/lib/error';
-import { NcRecord } from '~/lib/ncTypes';
-import { parseProp } from '~/lib/helperFunctions';
 
 export class UserHelper extends AbstractColumnHelper {
   columnDefaultMeta = {

@@ -3,6 +3,8 @@ import { parsePercentValue, serializePercentValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
+import { ColumnType } from '~/lib/Api';
+import { populateFillHandleStringNumber } from '../utils/fill-handler';
 
 export class PercentHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -32,5 +34,14 @@ export class PercentHelper extends AbstractColumnHelper {
 
   parsePlainCellValue(value: any): string {
     return `${parsePercentValue(value) ?? ''}`;
+  }
+
+  // using string number fill handler
+  override populateFillHandle(params: {
+    column: ColumnType;
+    highlightedData: any[];
+    numberOfRows: number;
+  }): any[] {
+    return populateFillHandleStringNumber(params);
   }
 }

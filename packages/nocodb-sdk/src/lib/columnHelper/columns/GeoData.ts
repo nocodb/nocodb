@@ -1,7 +1,7 @@
-import { ncIsNaN, ncIsString } from '~/lib/is';
-import AbstractColumnHelper from '../column.interface';
 import { SilentTypeConversionError } from '~/lib/error';
 import { convertGeoNumberToString } from '~/lib/geoDataUtils';
+import { ncIsNaN, ncIsString } from '~/lib/is';
+import AbstractColumnHelper from '../column.interface';
 
 export class GeoDataHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};

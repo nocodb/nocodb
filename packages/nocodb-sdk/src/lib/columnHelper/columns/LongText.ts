@@ -1,6 +1,6 @@
 import { AIRecordType } from '~/lib/Api';
-import { parseProp } from '~/lib/helperFunctions';
 import { LongTextAiMetaProp } from '~/lib/globals';
+import { parseProp } from '~/lib/helperFunctions';
 import { ncIsObject } from '~/lib/is';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,

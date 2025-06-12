@@ -30,9 +30,9 @@ export const dateFormats = [
   'DD MM YYYY',
   'MM DD YYYY',
   'YYYY MM DD',
-///added 2 new format#9652   
+  ///added 2 new format#9652
   'DD MMM YYYY',
-  "DD MMM YY" 
+  'DD MMM YY',
 ];
 
 export const isDateMonthFormat = (format: string) =>
@@ -169,9 +169,10 @@ export function constructDateFormat(column: ColumnType) {
 
 export function constructTimeFormat(column: ColumnType) {
   const columnMeta = parseProp(column?.meta);
+  const metaTimeFormat = columnMeta.time_format ?? timeFormats[0];
   return columnMeta?.is12hrFormat
-    ? 'hh:mm A'
-    : columnMeta.time_format ?? timeFormats[0];
+    ? metaTimeFormat.replace('HH', 'hh') + ' A' // if 12h, replace HH and add AM/PM at the end
+    : metaTimeFormat;
 }
 
 export function workerWithTimezone(isEeUI: boolean, timezone?: string) {

@@ -612,19 +612,6 @@ async function onRename() {
                   </NcMenuItem>
 
                   <NcMenuItem
-                    v-if="isUIAllowed('tableDescriptionEdit', { roles: baseRole, source })"
-                    :data-testid="`sidebar-table-description-${table.title}`"
-                    class="nc-table-description"
-                    @click="openTableDescriptionDialog(table)"
-                  >
-                    <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
-                      <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
-                      <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
-                      {{ $t('labels.editDescription') }}
-                    </div>
-                  </NcMenuItem>
-
-                  <NcMenuItem
                     v-if="
                       isUIAllowed('tableDuplicate', {
                         source,
@@ -643,6 +630,18 @@ async function onRename() {
                   <NcDivider />
 
                   <NcMenuItem
+                    v-if="isUIAllowed('tableDescriptionEdit', { roles: baseRole, source })"
+                    :data-testid="`sidebar-table-description-${table.title}`"
+                    class="nc-table-description"
+                    @click="openTableDescriptionDialog(table)"
+                  >
+                    <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
+                      <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
+                      <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
+                      {{ $t('labels.editDescription') }}
+                    </div>
+                  </NcMenuItem>
+                  <NcMenuItem
                     v-if="
                       isUIAllowed('tableDuplicate', {
                         source,
@@ -655,7 +654,7 @@ async function onRename() {
                   >
                     <div v-e="['c:table:permissions']" class="flex gap-2 items-center">
                       <GeneralIcon icon="lock" class="opacity-80" />
-                      Edit Table Permissions
+                      {{ $t('title.editTablePermissions') }}
                     </div>
                   </NcMenuItem>
                   <NcDivider />

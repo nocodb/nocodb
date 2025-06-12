@@ -34,6 +34,8 @@ const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
+const wrapperDomRef = ref<HTMLElement>()
+
 const filtersCount = computed(() => {
   const execContext = { count: 0 }
   for (const rowColor of vModel.value?.conditions) {
@@ -46,8 +48,18 @@ const filtersCount = computed(() => {
   return execContext.count
 })
 
+const scrollToBottom = () => {
+  wrapperDomRef.value?.scrollTo({
+    top: wrapperDomRef.value.scrollHeight,
+    behavior: 'smooth',
+  })
+}
+
 const addColor = () => {
   props.handler.conditionAdd()
+  nextTick(() => {
+    scrollToBottom()
+  })
 }
 
 const removeColor = (index: number) => {
@@ -83,7 +95,10 @@ const updateColor = (index: number, field: string, value: string) => {
 <template>
   <div class="min-w-[640px] w-auto inline-block h-auto rounded-2xl bg-white p-4">
     <div class="flex flex-col gap-3">
-      <div class="border-1 border-nc-border-gray-medium rounded-lg bg-[#FCFCFC]">
+      <div
+        ref="wrapperDomRef"
+        class="border-1 border-nc-border-gray-medium rounded-lg bg-[#FCFCFC] max-h-[60vh] nc-scrollbar-thin"
+      >
         <template v-for="(rowColorConfig, i) in vModel?.conditions" :key="i">
           <div class="px-2 border-b-1 border-nc-border-gray-medium last-of-type:border-b-0">
             <!-- index here is 0, since we evaluate the logic op individually per color -->
@@ -112,6 +127,7 @@ const updateColor = (index: number, field: string, value: string) => {
                 rowChange: ($event) => handler.filters.rowChange(i, $event),
               }"
               :query-filter="false"
+              is-colour-filter
             >
               <template #root-header>
                 <div class="flex justify-between w-full pb-2">
@@ -163,14 +179,16 @@ const updateColor = (index: number, field: string, value: string) => {
               </template>
 
               <template #root-add-filter-row>
-                <div class="flex-grow flex justify-end items-center cursor-pointer select-none text-nc-content-gray">
-                  <NcSwitch
-                    v-model:checked="rowColorConfig.is_set_as_background"
-                    @change="updateColor(i, 'is_set_as_background', $event)"
-                    placement="right"
-                  >
-                    {{ $t('labels.backgroundColour') }}
-                  </NcSwitch>
+                <div class="flex-grow flex justify-end items-center">
+                  <div class="flex items-center cursor-pointer select-none text-nc-content-gray">
+                    <NcSwitch
+                      v-model:checked="rowColorConfig.is_set_as_background"
+                      @change="updateColor(i, 'is_set_as_background', $event)"
+                      placement="right"
+                    >
+                      {{ $t('labels.backgroundColour') }}
+                    </NcSwitch>
+                  </div>
                 </div>
               </template>
             </SmartsheetToolbarFilterGroup>

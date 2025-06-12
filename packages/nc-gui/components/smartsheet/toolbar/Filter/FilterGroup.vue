@@ -6,7 +6,6 @@ const props = defineProps<GroupProps>()
 const emits = defineEmits<GroupEmits>()
 const vModel = useVModel(props, 'modelValue', emits)
 
-const { t } = useI18n()
 const { $e } = useNuxtApp()
 
 const wrapperDomRef = ref<HTMLElement>()
@@ -31,11 +30,13 @@ const scrollToBottom = () => {
 }
 
 const scrollDownIfNeeded = () => {
-  if (nested.value) {
-    addFiltersRowDomRef?.value?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'end',
-      inline: 'nearest',
+  if (nested.value || props.isColourFilter) {
+    nextTick(() => {
+      addFiltersRowDomRef?.value?.scrollIntoView({
+        behavior: 'smooth',
+        block: !props.isColourFilter ? 'end' : undefined,
+        inline: 'nearest',
+      })
     })
   }
 }
@@ -174,6 +175,7 @@ const innerAdd = async (isGroup: boolean) => {
   if (!nested.value) {
     // if nested, scroll to bottom
     scrollToBottom()
+    scrollDownIfNeeded()
   } else {
     scrollDownIfNeeded()
   }
@@ -338,6 +340,7 @@ const onFilterDelete = async (
                 :filters-count="filtersCount"
                 :query-filter="queryFilter"
                 :handler="handler"
+                :is-colour-filter="isColourFilter"
                 @change="onFilterRowChange($event, i)"
                 @delete="onFilterDelete($event, i)"
               />
@@ -358,6 +361,7 @@ const onFilterDelete = async (
                 :web-hook="webHook"
                 :link="link"
                 :handler="handler"
+                :is-colour-filter="isColourFilter"
                 @change="onFilterRowChange($event, i)"
                 @delete="onFilterDelete($event, i)"
               />
@@ -370,6 +374,7 @@ const onFilterDelete = async (
     <template v-if="!nested">
       <template v-if="isEeUI && !isPublic">
         <div
+          ref="addFiltersRowDomRef"
           v-if="!disabled && filtersCount < filterPerViewLimit"
           class="flex gap-2"
           :class="{

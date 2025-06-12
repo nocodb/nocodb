@@ -79,7 +79,6 @@ const getAst = async (
   dependencyFields: DependantFields;
   parsedQuery: DependantFields;
 }> => {
-  console.log(';includeRowColorColumns', includeRowColorColumns);
   // set default values of dependencyFields and nested
   dependencyFields.nested = dependencyFields.nested || {};
   dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();

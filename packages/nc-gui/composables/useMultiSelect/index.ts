@@ -156,9 +156,18 @@ export function useMultiSelect(
     activeCell.col = col
   }
 
-  const valueToCopy = (rowObj: Row, columnObj: ColumnType) => {
+  const valueToCopy = (
+    rowObj: Row,
+    columnObj: ColumnType,
+    option?: {
+      skipUidt?: UITypes[]
+    },
+  ) => {
     const textToCopy = (columnObj.title && rowObj.row[columnObj.title]) ?? ''
 
+    if (option?.skipUidt?.includes(columnObj.uidt as UITypes)) {
+      return textToCopy
+    }
     return ColumnHelper.parseValue(textToCopy, {
       col: columnObj,
       isMysql,
@@ -169,7 +178,13 @@ export function useMultiSelect(
     })
   }
 
-  const serializeRange = (rows: Row[], cols: ColumnType[]) => {
+  const serializeRange = (
+    rows: Row[],
+    cols: ColumnType[],
+    option?: {
+      skipUidt?: UITypes[]
+    },
+  ) => {
     let html = '<table>'
     let text = ''
     const json: string[][] = []
@@ -178,7 +193,7 @@ export function useMultiSelect(
       let copyRow = '<tr>'
       const jsonRow: string[] = []
       cols.forEach((col, i) => {
-        const value = valueToCopy(row, col)
+        const value = valueToCopy(row, col, option)
         copyRow += `<td>${value}</td>`
         text = `${text}${value}${cols.length - 1 !== i ? '\t' : ''}`
         jsonRow.push(value)

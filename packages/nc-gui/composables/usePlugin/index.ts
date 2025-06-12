@@ -61,7 +61,7 @@ export const usePlugin = createSharedComposable(() => {
         query: '?raw',
         import: 'default',
       }),
-      [PluginLib.scripts]: import.meta.glob('../../scripts/*/index.js', {
+      [PluginLib.scripts]: import.meta.glob('../../scripts/*/index.txt', {
         query: '?raw',
         import: 'default',
       }),

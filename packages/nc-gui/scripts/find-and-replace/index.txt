@@ -12,7 +12,12 @@ const findText = await input.textAsync('Enter text to find:')
 const replaceText = await input.textAsync('Enter to replace matches with:')
 
 // Load all of the records in the table
-const result = await table.selectRecordsAsync()
+let result = await table.selectRecordsAsync()
+
+// Fetch all records using a while loop
+while (result.hasMoreRecords) {
+  await result.loadMoreRecords()
+}
 
 // Find every record we need to update
 const replacements = []

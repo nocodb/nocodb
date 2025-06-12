@@ -15,6 +15,12 @@ const vModel = useVModel(props, 'modelValue', emit)
 
 const automationStore = useAutomationStore()
 
+const { ncNavigateTo } = useGlobal()
+
+const workspaceStore = useWorkspace()
+
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
+
 const bases = useBases()
 const { openedProject } = storeToRefs(bases)
 
@@ -34,10 +40,20 @@ const scriptContent = computed(() => {
 })
 
 const onAddScript = async (scr: any) => {
-  await createAutomation(openedProject.value?.id, {
+  const script = await createAutomation(openedProject.value?.id, {
     title: scr.title,
     script: scriptContent.value,
     description: scr.subTitle,
+  })
+
+  if (!script) {
+    return
+  }
+
+  ncNavigateTo({
+    workspaceId: activeWorkspaceId.value,
+    baseId: openedProject.value?.id,
+    automationId: script.id,
   })
   vModel.value = false
 }

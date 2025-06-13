@@ -5110,6 +5110,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (this.isPg || this.isSnowflake) {
       return (await trx.raw(query))?.rows;
+    } else if (/^(\(|)select/i.test(query)) {
+      return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
     } else if (this.isMySQL && /^(\(|)insert/i.test(query)) {
       const res = await trx.raw(query);
       if (res && res[0] && res[0].insertId) {

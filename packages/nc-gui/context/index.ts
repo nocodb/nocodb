@@ -1,4 +1,4 @@
-import type { ColumnType, FilterType, SourceType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FilterType, RowColoringInfo, SourceType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Reactive, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { PageSidebarNode } from '#imports'
@@ -32,6 +32,8 @@ export const ReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('readonly-injectio
 export const RawReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('raw-readonly-injection')
 export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
+export const ViewRowColorInj: InjectionKey<Ref<RowColoringInfo>> = Symbol('view-row-color')
+
 /** when shouldShowLoading bool is passed, it indicates if a loading spinner should be visible while reloading */
 export const ReloadViewDataHookInj: InjectionKey<
   EventHook<{

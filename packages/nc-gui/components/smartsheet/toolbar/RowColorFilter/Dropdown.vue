@@ -1,15 +1,10 @@
 <script setup lang="ts">
-import {
-  NcButton,
-  NcDropdown,
-  SmartsheetToolbarRowColorFilterTypeOption,
-  SmartsheetToolbarRowColorFilterUsingSingleSelectPanel,
-} from '#components'
+import { UITypes } from 'nocodb-sdk'
 
 const meta = inject(MetaInj, ref())
 const activeView = inject(ActiveViewInj, ref())
 
-const { rowColorInfo } = useViewRowColorOption({
+const { rowColorInfo, onDropdownOpen, onRemoveRowColoringMode } = useViewRowColorOption({
   meta,
   view: activeView,
 })
@@ -22,20 +17,18 @@ const rowColoringMode = computed({
     return rowColorInfo.value.mode
   },
 })
-const onRemoveRowColoringMode = () => {
-  rowColorInfo.value.mode = null
-}
 </script>
 
 <template>
-  <NcDropdown :auto-close="false">
+  <NcDropdown @open="onDropdownOpen">
     <NcButton> Coloring </NcButton>
     <template #overlay>
       <SmartsheetToolbarRowColorFilterTypeOption v-model:row-coloring-mode="rowColoringMode">
         <template #select>
           <SmartsheetToolbarRowColorFilterUsingSingleSelectPanel
             v-model="rowColorInfo"
-            :columns="meta?.columns"
+            @update:modelValue=""
+            :columns="meta?.columns.filter((k) => k.uidt === UITypes.SingleSelect)"
             @remove="onRemoveRowColoringMode"
           />
         </template>

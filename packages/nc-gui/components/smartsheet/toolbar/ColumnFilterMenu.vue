@@ -132,7 +132,6 @@ if (isEeUI) {
 <template>
   <NcDropdown
     v-model:visible="open"
-    :trigger="['click']"
     overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown overflow-hidden"
     class="!xs:hidden"
   >

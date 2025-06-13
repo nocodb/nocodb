@@ -446,8 +446,8 @@ const getRowColorStyle = (row) => {
             >
               <LazySmartsheetRow :row="record">
                 <a-card
-                  class="!rounded-xl h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer"
-                  :body-style="{ padding: '16px !important' }"
+                  class="!rounded-xl h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
+                  :body-style="{ padding: '12px !important', flex: 1, display: 'flex' }"
                   :data-testid="`nc-gallery-card-${record.rowMeta.rowIndex}`"
                   :style="{
                     ...getRowColorStyle(record.row),
@@ -458,7 +458,7 @@ const getRowColorStyle = (row) => {
                   <template v-if="galleryData?.fk_cover_image_col_id" #cover>
                     <a-carousel
                       v-if="!reloadAttachments && attachments(record).length"
-                      class="gallery-carousel !border-b-1 !border-gray-200 min-h-52"
+                      class="gallery-carousel !border-b-1 !border-gray-200 min-h-52 !bg-white"
                       arrows
                     >
                       <template #customPaging>
@@ -501,14 +501,17 @@ const getRowColorStyle = (row) => {
                         />
                       </template>
                     </a-carousel>
-                    <div v-else class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center">
+                    <div
+                      v-else
+                      class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center !bg-white"
+                    >
                       <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                     </div>
                   </template>
 
-                  <div class="flex content-stretch">
+                  <div class="flex-1 flex content-stretch gap-3">
                     <div
-                      class="w-[4px] min-h-4 min-w-[4px] ml-[-8px] mr-[8px] rounded-sm"
+                      class="w-1 flex-none min-h-4 rounded-sm"
                       :style="{
                         ...(getLeftBorderColor(record.row)
                           ? { 'background-color': `${getLeftBorderColor(record.row)} !important` }

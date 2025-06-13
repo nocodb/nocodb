@@ -47,13 +47,11 @@ onUnmounted(() => {
         <template #footer>
           <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
             <PaymentUpgradeSidebarBanner v-if="isEeUI" />
+            <LazyGeneralMaintenanceAlert />
 
             <GeneralGift v-if="!isEeUI" />
 
             <DashboardSidebarBeforeUserInfo />
-
-            <LazyGeneralMaintenanceAlert />
-
             <div v-if="!isMobileMode && !appInfo.ee" class="flex flex-row w-full justify-between pt-0.5 truncate">
               <GeneralJoinCloud />
             </div>
@@ -100,7 +98,9 @@ onUnmounted(() => {
 .nc-sidebar-bottom-section {
   @apply flex-none overflow-auto p-1 empty:hidden;
 
-  &:not(:has(.nc-upgrade-sidebar-banner)) {
+  &:not(:has(.nc-maintenance-sidebar-banner))
+  &:not(:has(.nc-upgrade-sidebar-banner))
+  {
     @apply border-t-1;
   }
   &:has(.nc-upgrade-sidebar-banner) {

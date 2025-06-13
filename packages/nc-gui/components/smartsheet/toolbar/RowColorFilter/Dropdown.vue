@@ -27,6 +27,8 @@ const {
   onRowColorConditionUpdate,
   onRowColorConditionFilterAdd,
   onRowColorConditionFilterUpdate,
+  onRowColorConditionFilterAddGroup,
+  onRowColorConditionFilterDelete,
   filterColumns,
 } = useViewRowColorOption({
   meta,
@@ -72,6 +74,7 @@ const rowColoringMode = computed({
           <SmartsheetToolbarRowColorFilterUsingFilterPanel
             v-model="rowColorInfo"
             :columns="filterColumns"
+            :filter-per-view-limit="filterPerViewLimit"
             :handler="{
               conditionAdd: onRowColorConditionAdd,
               conditionDelete: onRowColorConditionDelete,
@@ -79,6 +82,8 @@ const rowColoringMode = computed({
               allConditionDeleted: onRemoveRowColoringMode,
               filters: {
                 addFilter: onRowColorConditionFilterAdd,
+                addFilterGroup: onRowColorConditionFilterAddGroup,
+                deleteFilter: onRowColorConditionFilterDelete,
                 rowChange: onRowColorConditionFilterUpdate,
               },
             }"

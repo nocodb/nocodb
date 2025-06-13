@@ -44,6 +44,9 @@ provide(EditModeInj, readonly(editEnabled))
 
 provide(ReadonlyInj, readOnly)
 
+const view = inject(ActiveViewInj)
+const isPublic = inject(IsPublicInj)
+
 const checkTypeFunctions: Record<string, (column: ColumnType, abstractType?: string) => boolean> = {
   isSingleSelect,
   isMultiSelect,

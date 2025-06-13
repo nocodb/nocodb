@@ -837,7 +837,6 @@ const handleRowMetaClick = ({
   const { isAtMaxSelection, isCheckboxDisabled, regions } = extractHoverMetaColRegions(row, group)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
-  console.log('clickedRegion', clickedRegion)
 
   if (!clickedRegion) return
 

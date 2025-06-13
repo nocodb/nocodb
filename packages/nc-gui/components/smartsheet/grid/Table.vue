@@ -1452,6 +1452,16 @@ const visibleData = computed(() => {
   }))
 })
 
+const visibleRowsRowOnly = computed(() => {
+  return visibleData.value?.map((k) => k.row.row) ?? []
+})
+
+const { getLeftBorderColor, getRowColor } = useViewRowColor({
+  meta,
+  view,
+  rows: visibleRowsRowOnly,
+})
+
 const totalMaxPlaceholderRows = computed(() => {
   if (!gridWrapper.value || rowSlice.value.start <= 1) {
     return 0
@@ -1884,6 +1894,16 @@ onKeyStroke('ArrowLeft', onLeft)
 onKeyStroke('ArrowRight', onRight)
 onKeyStroke('ArrowUp', onUp)
 onKeyStroke('ArrowDown', onDown)
+
+const getRowColorStyle = (row) => {
+  const rowColor = getRowColor(row)
+  if (rowColor) {
+    return {
+      'background-color': `${rowColor} !important`,
+    }
+  }
+  return {}
+}
 </script>
 
 <template>
@@ -2257,11 +2277,14 @@ onKeyStroke('ArrowDown', onDown)
                         key="row-index"
                         class="caption nc-grid-cell w-[64px] min-w-[64px]"
                         :data-testid="`cell-Id-${rowIndex}`"
+                        :style="{
+                          ...getRowColorStyle(row.row),
+                        }"
                         @contextmenu="contextMenuTarget = null"
                       >
-                        <div class="w-[64px] pl-2 pr-1 items-center flex gap-0.5">
+                        <div class="w-[64px] pl-2 pr-1 items-center w-full flex items-center gap-0.5">
                           <div
-                            class="nc-row-no sm:min-w-4 text-gray-500"
+                            class="nc-row-no sm:min-w-4 text-gray-500 flex items-center justify-between h-4 w-full"
                             :class="{
                               'toggle': !readOnly,
                               'hidden': row.rowMeta.selected,
@@ -2274,7 +2297,17 @@ onKeyStroke('ArrowDown', onDown)
                                 ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 < 1000,
                             }"
                           >
-                            {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
+                            <span>
+                              {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
+                            </span>
+                            <div
+                              class="inline-block min-w-[4px] h-full rounded-full"
+                              :style="{
+                                ...(getLeftBorderColor(row.row)
+                                  ? { 'background-color': `${getLeftBorderColor(row.row)} !important` }
+                                  : {}),
+                              }"
+                            ></div>
                           </div>
                           <div
                             v-if="!readOnly"

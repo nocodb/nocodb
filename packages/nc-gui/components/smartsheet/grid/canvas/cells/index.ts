@@ -72,7 +72,7 @@ export function useGridCellHandler(params: {
   const { getLeftBorderColor, getRowColor } = useViewRowColorRender({
     meta: params.meta!,
     rows: computed(() => []),
-    isGridCanvas: true,
+    useCachedResult: true,
   })
 
   const baseStore = useBase()

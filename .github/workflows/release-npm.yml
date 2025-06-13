@@ -72,6 +72,8 @@ jobs:
           echo "$(date)" &&
           sleep 300 &&
           echo "$(date)" &&
+          # Build nocodb integrations
+          pnpm run integrations:build && pnpm run registerIntegrations &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js && cd packages/nocodb && pnpm run obfuscate:build:publish --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

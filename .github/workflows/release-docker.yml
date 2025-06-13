@@ -102,7 +102,14 @@ jobs:
       - name: Build nocodb integrations
         working-directory: ${{ env.working-directory }}
         run: |
-          cd ../..
+          cd ../noco-integrations/core
+          # extract nocodb-sdk or nocodbsdk-daily package name based on env
+          NOCODB_SDK_PKG_NAME=nocodb-sdk
+          if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
+            NOCODB_SDK_PKG_NAME=nocodb-sdk-daily
+          fi
+          pnpm install ${NOCODB_SDK_PKG_NAME}@${{ github.event.inputs.tag || inputs.tag }}
+          cd ../../..
           pnpm run integrations:build && pnpm run registerIntegrations
 
       - name: Build nocodb and docker files

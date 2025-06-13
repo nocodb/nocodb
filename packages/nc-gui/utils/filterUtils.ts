@@ -30,6 +30,7 @@ export interface FilterGroupChangeEvent {
   filters: ColumnFilterType[]
   filter: ColumnFilterType
   type: 'row_changed' | 'add' | 'delete'
+  fk_parent_id?: string
   prevValue?: any
   value: any
   index: number

@@ -983,87 +983,89 @@ eventBus.on(async (event) => {
     </div>
 
     <template v-if="!nested">
-      <template v-if="isEeUI && !isPublic">
-        <div
-          v-if="!readOnly && filtersCount < getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW)"
-          class="flex gap-2"
-          :class="{
-            'mt-1 mb-2': filters.length,
-          }"
-        >
-          <NcButton
-            size="small"
-            :type="actionBtnType"
-            :disabled="disableAddNewFilter || isLockedView || readOnly"
-            class="nc-btn-focus"
-            data-testid="add-filter"
-            @click.stop="addFilter()"
+      <div class = "flex">
+        <template v-if="isEeUI && !isPublic">
+          <div
+            v-if="!readOnly && filtersCount < getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW)"
+            class="flex gap-2"
+            :class="{
+              'mt-1 mb-2': filters.length,
+            }"
           >
-            <div class="flex items-center gap-1">
-              <component :is="iconMap.plus" />
-              <!-- Add Filter -->
-              {{ isForm && !webHook ? $t('activity.addCondition') : $t('activity.addFilter') }}
-            </div>
-          </NcButton>
-
-          <NcButton
-            v-if="nestedLevel < 5 && !readOnly"
-            class="nc-btn-focus"
-            :disabled="disableAddNewFilter || isLockedView"
-            :type="actionBtnType"
-            size="small"
-            data-testid="add-filter-group"
-            @click.stop="addFilterGroup()"
+            <NcButton
+              size="small"
+              :type="actionBtnType"
+              :disabled="disableAddNewFilter || isLockedView || readOnly"
+              class="nc-btn-focus"
+              data-testid="add-filter"
+              @click.stop="addFilter()"
+            >
+              <div class="flex items-center gap-1">
+                <component :is="iconMap.plus" />
+                <!-- Add Filter -->
+                {{ isForm && !webHook ? $t('activity.addCondition') : $t('activity.addFilter') }}
+              </div>
+            </NcButton>
+  
+            <NcButton
+              v-if="nestedLevel < 5 && !readOnly"
+              class="nc-btn-focus"
+              :disabled="disableAddNewFilter || isLockedView"
+              :type="actionBtnType"
+              size="small"
+              data-testid="add-filter-group"
+              @click.stop="addFilterGroup()"
+            >
+              <div class="flex items-center gap-1">
+                <!-- Add Filter Group -->
+                <component :is="iconMap.plus" />
+                {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
+              </div>
+            </NcButton>
+          </div>
+        </template>
+  
+        <template v-else-if="!readOnly">
+          <div
+            ref="addFiltersRowDomRef"
+            class="flex gap-2"
+            :class="{
+              'mt-1 mb-2': filters.length,
+            }"
           >
-            <div class="flex items-center gap-1">
-              <!-- Add Filter Group -->
-              <component :is="iconMap.plus" />
-              {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
-            </div>
-          </NcButton>
-        </div>
-      </template>
-
-      <template v-else-if="!readOnly">
-        <div
-          ref="addFiltersRowDomRef"
-          class="flex gap-2"
-          :class="{
-            'mt-1 mb-2': filters.length,
-          }"
-        >
-          <NcButton
-            class="nc-btn-focus"
-            size="small"
-            :type="actionBtnType"
-            data-testid="add-filter"
-            :disabled="isLockedView"
-            @click.stop="addFilter()"
-          >
-            <div class="flex items-center gap-1">
-              <component :is="iconMap.plus" />
-              <!-- Add Filter -->
-              {{ isForm && !webHook ? $t('activity.addCondition') : $t('activity.addFilter') }}
-            </div>
-          </NcButton>
-
-          <NcButton
-            v-if="!link && !webHook && nestedLevel < 5"
-            class="nc-btn-focus"
-            :type="actionBtnType"
-            size="small"
-            :disabled="isLockedView"
-            data-testid="add-filter-group"
-            @click.stop="addFilterGroup()"
-          >
-            <div class="flex items-center gap-1">
-              <!-- Add Filter Group -->
-              <component :is="iconMap.plus" />
-              {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
-            </div>
-          </NcButton>
-        </div>
-      </template>
+            <NcButton
+              class="nc-btn-focus"
+              size="small"
+              :type="actionBtnType"
+              data-testid="add-filter"
+              :disabled="isLockedView"
+              @click.stop="addFilter()"
+            >
+              <div class="flex items-center gap-1">
+                <component :is="iconMap.plus" />
+                <!-- Add Filter -->
+                {{ isForm && !webHook ? $t('activity.addCondition') : $t('activity.addFilter') }}
+              </div>
+            </NcButton>
+  
+            <NcButton
+              v-if="!link && !webHook && nestedLevel < 5"
+              class="nc-btn-focus"
+              :type="actionBtnType"
+              size="small"
+              :disabled="isLockedView"
+              data-testid="add-filter-group"
+              @click.stop="addFilterGroup()"
+            >
+              <div class="flex items-center gap-1">
+                <!-- Add Filter Group -->
+                <component :is="iconMap.plus" />
+                {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
+              </div>
+            </NcButton>
+          </div>
+        </template>
+      </div>
     </template>
     <div
       v-if="!visibleFilters || !visibleFilters.length"

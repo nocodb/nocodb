@@ -15,6 +15,7 @@ const options1 = ref({
   nestedLevel: 0,
   disabled: false,
   isLockedView: false,
+  isFullWidth: false,
   isLogicalOpChangeAllowed: false,
   showNullAndEmptyInFilter: false,
   dbClientType: ClientType.PG,
@@ -59,6 +60,7 @@ onMounted(async () => {
             <div><NcSwitch v-model:checked="options1.isLogicalOpChangeAllowed">isLogicalOpChangeAllowed</NcSwitch><br /></div>
             <div><NcSwitch v-model:checked="options1.isLockedView">isLockedView</NcSwitch></div>
             <div><NcSwitch v-model:checked="options1.showNullAndEmptyInFilter">showNullAndEmptyInFilter</NcSwitch></div>
+            <div><NcSwitch v-model:checked="options1.isFullWidth">isFullWidth</NcSwitch></div>
             <div><NcSwitch v-model:checked="options1.webHook">webHook</NcSwitch></div>
             <div><NcSwitch v-model:checked="options1.link">link</NcSwitch></div>
             <div><NcSwitch v-model:checked="options1.isForm">isForm</NcSwitch></div>
@@ -67,19 +69,15 @@ onMounted(async () => {
             <div><NcSwitch v-model:checked="options1.disableAddNewFilter">disableAddNewFilter</NcSwitch></div>
           </div>
           <div class="flex-col gap-2">
-            <div class="flex">
-              <NcSelect v-model:value="column1Id" @change="filter1.fk_column_id = column1Id">
-                <a-select-option v-for="col of columns" :key="col.id" :value="col.id">
-                  {{ col.id }} - {{ col.uidt }}
-                </a-select-option>
-              </NcSelect>
-              <div class="w-[300px] overflow-wrap">
-                {{ column1 }}
-              </div>
-            </div>
             <div class="flex-col space-y-2">
               <div>dbClientType: <NcSelect v-model:value="options1.dbClientType"></NcSelect></div>
-              <div>actionBtnType: <NcSelect v-model:value="options1.actionBtnType"></NcSelect></div>
+              <div>
+                actionBtnType:
+                <NcSelect v-model:value="options1.actionBtnType">
+                  <a-select-option value="text"> Text </a-select-option>
+                  <a-select-option value="secondary"> Secondary </a-select-option>
+                </NcSelect>
+              </div>
 
               <div>Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-gray-200" /><br /></div>
               <div>
@@ -94,13 +92,13 @@ onMounted(async () => {
               </div>
             </div>
           </div>
-          <div class="flex-col space-y-2">
+          <div class="flex-col flex-grow space-y-2">
             Last event:
-            <div class="w-[300px] max-h-[100px] overflow-wrap bg-gray-300 overflow-y-scroll">
-              {{ lastRowChangeEvent1 }}
+            <div class="min-w-[300px] max-h-[200px] overflow-wrap bg-gray-300 overflow-y-scroll">
+              <pre>{{ JSON.stringify(lastRowChangeEvent1, null, 2) }}</pre>
             </div>
-            <div class="w-[300px] max-h-[100px] overflow-wrap bg-gray-300 overflow-y-scroll">
-              {{ lastChangeEvent1 }}
+            <div class="min-w-[300px] max-h-[200px] overflow-wrap bg-gray-300 overflow-y-scroll">
+              <pre>{{ JSON.stringify(lastChangeEvent1, null, 2) }}</pre>
             </div>
           </div>
         </div>
@@ -114,6 +112,7 @@ onMounted(async () => {
           :disabled="options1.disabled"
           :is-locked-view="options1.isLockedView"
           :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"
+          :is-full-width="options1.isFullWidth"
           :action-btn-type="options1.actionBtnType"
           :web-hook="options1.webHook"
           :link="options1.link"
@@ -139,6 +138,7 @@ onMounted(async () => {
           :disabled="options1.disabled"
           :is-locked-view="options1.isLockedView"
           :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"
+          :is-full-width="options1.isFullWidth"
           :action-btn-type="options1.actionBtnType"
           :web-hook="options1.webHook"
           :link="options1.link"

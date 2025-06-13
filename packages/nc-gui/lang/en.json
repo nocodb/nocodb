@@ -1352,7 +1352,8 @@
     "showExtraFields": "Show additional fields",
     "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records",
     "removeColouring": "Remove colouring",
-    "backgroundColour": "Background colour"
+    "backgroundColour": "Background colour",
+    "addColour": "Add Colour"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

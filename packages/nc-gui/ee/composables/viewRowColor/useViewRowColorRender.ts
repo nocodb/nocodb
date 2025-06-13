@@ -1,6 +1,7 @@
 import { type ColumnType, ROW_COLORING_MODE, type RowColoringInfo, type TableType, type ViewType } from 'nocodb-sdk'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { rowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
+import { defaultRowColorInfo } from './useViewRowColorProvider'
 
 export function useViewRowColorRender(params: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
@@ -16,7 +17,7 @@ export function useViewRowColorRender(params: {
   const baseStore = useBase()
   const { getBaseType } = baseStore
 
-  const rowColorInfo: Ref<RowColoringInfo> = inject(ViewRowColorInj)
+  const rowColorInfo: Ref<RowColoringInfo> = inject(ViewRowColorInj, ref(defaultRowColorInfo))
 
   const isRowColouringEnabled = computed(() => {
     return rowColorInfo.value && !!rowColorInfo.value?.mode

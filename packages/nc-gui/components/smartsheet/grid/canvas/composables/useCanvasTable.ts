@@ -5,7 +5,13 @@ import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
 import { clearRowColouringCache, clearTextCache } from '../utils/canvas'
-import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX, EDIT_INTERACTABLE } from '../utils/constants'
+import {
+  CELL_BOTTOM_BORDER_IN_PX,
+  COLUMN_HEADER_HEIGHT_IN_PX,
+  EDIT_INTERACTABLE,
+  ROW_COLOR_BORDER_WIDTH,
+  ROW_META_COLUMN_WIDTH,
+} from '../utils/constants'
 import { ActionManager } from '../loaders/ActionManager'
 import { useGridCellHandler } from '../cells'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
@@ -216,12 +222,25 @@ export function useCanvasTable({
   const automationStore = useAutomationStore()
   const tooltipStore = useTooltipStore()
   const { blockExternalSourceRecordVisibility } = useEeConfig()
+  const { isRowColouringEnabled } = useViewRowColorRender({
+    meta: meta as Ref<TableType>,
+    rows: computed(() => []),
+    isGridCanvas: true,
+  })
 
   const fields = inject(FieldsInj, ref([]))
 
   const { sqlUis } = storeToRefs(useBase())
 
   const { basesUser } = storeToRefs(useBases())
+
+  const rowMetaColumnWidth = computed<number>(() => {
+    return isRowColouringEnabled.value ? ROW_META_COLUMN_WIDTH + ROW_COLOR_BORDER_WIDTH + 4 : ROW_META_COLUMN_WIDTH
+  })
+
+  const rowColouringBorderWidth = computed<number>(() => {
+    return isRowColouringEnabled.value ? ROW_COLOR_BORDER_WIDTH : 0
+  })
 
   const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
     meta.value?.base_id ? basesUser.value.get(meta.value?.base_id) || [] : [],
@@ -385,7 +404,7 @@ export function useCanvasTable({
       grid_column_id: 'row_number',
       uidt: null,
       title: '#',
-      width: `${80 + groupByColumns.value?.length * 13}px`,
+      width: `${rowMetaColumnWidth.value + groupByColumns.value?.length * 13}px`,
       fixed: true,
       pv: false,
       columnObj: {
@@ -792,6 +811,8 @@ export function useCanvasTable({
     isAddingEmptyRowAllowed,
     removeInlineAddRecord,
     upgradeModalInlineState,
+    rowMetaColumnWidth,
+    rowColouringBorderWidth,
   })
 
   const { handleDragStart } = useRowReorder({
@@ -1378,5 +1399,8 @@ export function useCanvasTable({
     removeInlineAddRecord,
     upgradeModalInlineState,
     isRowDraggingEnabled,
+    rowMetaColumnWidth,
+    isRowColouringEnabled,
+    rowColouringBorderWidth,
   }
 }

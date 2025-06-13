@@ -40,7 +40,8 @@ const useServerConfig = createSharedComposable(() => {
 
   const checkMaintenance = async () => {
     let maintenance = (await getConfig(CONFIG_KEYS.MAINTENANCE)) as {
-      date: string
+      endDate: string
+      startDate: string
       description: string
       title: string
       url?: string
@@ -54,7 +55,7 @@ const useServerConfig = createSharedComposable(() => {
 
     const now = new Date()
 
-    if (new Date(maintenance.date) > now) {
+    if (new Date(maintenance.endDate) > now) {
       const lastDismissedDate = localStorage.getItem('lastMaintenanceDismissed')
       const todayString = now.toISOString().split('T')[0]
 

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+
 const { checkMaintenance, dismissMaintenance } = useServerConfig()
 
 const maintenance = ref<
   | {
-      date: string
+      startDate: string
+      endDate: string
       description: string
       title: string
       url?: string
@@ -26,10 +28,13 @@ function renderEjsTemplate(template: string, data: Record<string, string>) {
 
 const compiledMessage = computed(() => {
   if (!maintenance.value) return ''
-  const date = maintenance.value.date
+  const startDate = maintenance.value.startDate
+  const endDate = maintenance.value.endDate
   return renderEjsTemplate(maintenance.value.description, {
-    date: dayjs(date).format('YYYY-MM-DD HH:mm z'),
-    ptTime: dayjs(date).tz('America/Los_Angeles').format('HH:mm z'),
+    startDate: dayjs(startDate).format('Do MMMM YYYY'),
+    endDate: dayjs(endDate).format('Do MMMM YYYY'),
+    startTime: dayjs(startDate).format('hh:mm a'),
+    endTime: dayjs(endDate).format('hh:mm a'),
   })
 })
 
@@ -40,20 +45,26 @@ const dismiss = async () => {
 </script>
 
 <template>
-  <div v-if="maintenance" class="bg-orange-100 flex flex-col gap-2 rounded-xl relative p-3">
-    <NcButton size="xsmall" type="text" class="!absolute z-10 !hover:bg-transparent cursor-pointer right-2" @click="dismiss">
-      <GeneralIcon icon="close" />
-    </NcButton>
-
-    <div class="text-lg flex gap-3 relative items-center font-semibold text-gray-800">
-      <img width="24" alt="NocoDB" src="~/assets/img/brand/nocodb-logo.svg" class="flex-none" />
-      {{ maintenance.title }}
+  <div
+    v-if="maintenance"
+    class="bg-nc-bg-orange-light border-orange-200 border-1 nc-maintenance-sidebar-banner flex flex-col gap-2 rounded-xl relative p-3"
+  >
+    <div class="flex gap-3 relative items-center">
+      <GeneralIcon icon="alertTriangleSolid" class="w-5 h-5 text-nc-content-orange-medium fill-nc-orange-medium" />
+      <div class="text-bodyBold text-nc-content-gray">
+        {{ maintenance.title }}
+      </div>
     </div>
 
-    <div class="text-gray-700 text-md font-medium leading-5" v-html="compiledMessage"></div>
+    <div class="text-nc-content-gray-subtle2 text-bodyDefaultSm" v-html="compiledMessage"></div>
 
-    <NuxtLink v-if="maintenance.url" target="_blank" :href="maintenance.url">
-      <NcButton size="small"> Learn More </NcButton>
-    </NuxtLink>
+    <div class="flex items-center gap-3 justify-between">
+      <NuxtLink v-if="maintenance.url" class="!text-nc-content-brand !text-bodyDefaultSm" target="_blank" :href="maintenance.url">
+        Learn More
+      </NuxtLink>
+      <NcButton size="small" class="!text-nc-content-gray-subtle text-bodyDefaultSm" type="link" @click="dismiss">
+        Dismiss
+      </NcButton>
+    </div>
   </div>
 </template>

@@ -1,5 +1,18 @@
-import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isDateMonthFormat, isNumericCol, numericUITypes } from 'nocodb-sdk'
+import { type ColumnType } from 'nocodb-sdk'
+
+export interface ComparisonOpUiType {
+  text: string
+  value: string
+  ignoreVal: boolean
+  includedTypes?: UITypes[]
+  excludedTypes?: UITypes[]
+}
+
+export type ColumnTypeForFilter = ColumnType & {
+  filterTitle?: string
+  filterUidt?: UITypes
+}
 
 const getEqText = (fieldUiType: UITypes) => {
   if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
@@ -79,14 +92,6 @@ const getLteText = (fieldUiType: UITypes) => {
     return 'is on or before'
   }
   return '<='
-}
-
-export interface ComparisonOpUiType {
-  text: string
-  value: string
-  ignoreVal: boolean
-  includedTypes?: UITypes[]
-  excludedTypes?: UITypes[]
 }
 
 export const comparisonOpList = (

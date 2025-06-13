@@ -102,7 +102,7 @@ jobs:
       - name: Build nocodb integrations
         working-directory: ${{ env.working-directory }}
         run: |
-          cd ../nocodb-integrations/core
+          cd ../noco-integrations/core
           # extract nocodb-sdk or nocodbsdk-daily package name based on env
           NOCODB_SDK_PKG_NAME=nocodb-sdk
           if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then

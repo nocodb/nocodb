@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { isCreatedOrLastModifiedTimeCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { isVirtualCol } from 'nocodb-sdk'
 import type { ClientType, UITypes } from 'nocodb-sdk'
 
 interface Props {
@@ -66,7 +66,7 @@ const column = computed(() => {
 
 const comparisonOps = computed(() => {
   const evalColumn = column.value
-  const evalUidt = evalColumn?.filterUidt ?? evalColumn?.uidt
+  const evalUidt = (evalColumn?.filterUidt ?? evalColumn?.uidt) as UITypes
   const list = comparisonOpList(evalUidt).filter((compOp) =>
     isComparisonOpAllowed(vModel.value, compOp, evalUidt, props.showNullAndEmptyInFilter),
   )
@@ -75,7 +75,7 @@ const comparisonOps = computed(() => {
 
 const comparisonSubOps = computed(() => {
   const evalColumn = column.value
-  const evalUidt = evalColumn?.filterUidt ?? evalColumn?.uidt
+  const evalUidt = (evalColumn?.filterUidt ?? evalColumn?.uidt) as UITypes
   return comparisonSubOpList(vModel.value.comparison_op!, parseProp(evalColumn?.meta)?.date_format).filter((compSubOp) =>
     isComparisonSubOpAllowed(vModel.value, compSubOp, evalUidt),
   )

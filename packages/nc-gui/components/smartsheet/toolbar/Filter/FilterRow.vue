@@ -24,16 +24,7 @@ interface Props {
 }
 interface Emits {
   (event: 'update:modelValue', model: string): void
-  (
-    event: 'change',
-    model: {
-      filter: ColumnFilterType
-      type: 'logical_op' | 'fk_column_id' | 'comparison_op' | 'comparison_sub_op' | 'value'
-      prevValue: any
-      value: any
-      index: number
-    },
-  ): void
+  (event: 'change', model: FilterRowChangeEvent): void
   (
     event: 'delete',
     model: {

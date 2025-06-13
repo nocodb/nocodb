@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import type { ClientType } from 'nocodb-sdk'
 import type { RowHandler } from './types'
 

@@ -125,8 +125,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { base } = storeToRefs(useBase())
 
-    const { activeViewRowColorInfo } = storeToRefs(useViewsStore())
-
     const { $api, $e } = useNuxtApp()
 
     const { t } = useI18n()

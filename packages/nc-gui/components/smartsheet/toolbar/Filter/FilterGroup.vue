@@ -46,7 +46,7 @@ const getColumn = (filter: FilterType) => {
   return props.columns?.find((col: ColumnTypeForFilter) => col.id === filter.fk_column_id)
 }
 
-const handleFilterChange = async (filter, index) => {
+const handleFilterChange = async (filter) => {
   const col = getColumn(filter)
   if (!col) return
   if (
@@ -374,8 +374,8 @@ const onFilterDelete = async (
     <template v-if="!nested">
       <template v-if="isEeUI && !isPublic">
         <div
-          ref="addFiltersRowDomRef"
           v-if="!disabled && filtersCount < filterPerViewLimit"
+          ref="addFiltersRowDomRef"
           class="flex gap-2"
           :class="{
             'mt-1 mb-2': vModel.length,

@@ -1048,7 +1048,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     });
 
     if (!allowSystemColumn && this.model.synced) {
-      NcError.badRequest('Cannot insert into synced table');
+      NcError._.prohibitedSyncTableOperation({
+        modelName: this.model.title,
+        operation: 'insert',
+      });
     }
 
     await this.handleHooks('before.insert', null, data, req);
@@ -1090,7 +1093,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     });
 
     if (!allowSystemColumn && this.model.synced) {
-      NcError.badRequest('Cannot insert into synced table');
+      NcError._.prohibitedSyncTableOperation({
+        modelName: this.model.title,
+        operation: 'insert',
+      });
     }
 
     await this.handleHooks('before.bulkInsert', null, data, req);

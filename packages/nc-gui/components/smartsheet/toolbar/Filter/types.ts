@@ -30,6 +30,7 @@ export interface StatefulGroupProps {
 
   handler?: GroupHandler
   isColourFilter?: boolean
+  readOnly?: boolean
 }
 export interface GroupProps extends StatefulGroupProps {
   index: number

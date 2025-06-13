@@ -1,4 +1,14 @@
-import type { CalendarType, FilterType, GalleryType, KanbanType, MapType, SortType, ViewType, ViewTypes } from 'nocodb-sdk'
+import type {
+  CalendarType,
+  FilterType,
+  GalleryType,
+  KanbanType,
+  MapType,
+  RowColoringInfo,
+  SortType,
+  ViewType,
+  ViewTypes,
+} from 'nocodb-sdk'
 import { ViewTypes as _ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useTitle } from '@vueuse/core'
@@ -135,6 +145,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const preFillFormSearchParams = ref('')
 
   const refreshViewTabTitle = createEventHook<void>()
+
+  const activeViewRowColorInfo = ref<RowColoringInfo>(defaultRowColorInfo)
 
   const loadViews = async ({
     tableId,
@@ -647,6 +659,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     setCurrentViewExpandedFormAttachmentColumn,
     onOpenViewCreateModal,
     lastOpenedViewId,
+    activeViewRowColorInfo,
   }
 })
 

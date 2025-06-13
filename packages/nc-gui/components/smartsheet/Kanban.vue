@@ -809,8 +809,8 @@ const getRowColorStyle = (row) => {
                               <LazySmartsheetRow :row="record">
                                 <a-card
                                   :key="`${getRowId(record)}-${index}`"
-                                  class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer"
-                                  :body-style="{ padding: '16px !important' }"
+                                  class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
+                                  :body-style="{ padding: '12px !important', flex: 1, display: 'flex' }"
                                   :data-stack="stack.title"
                                   :data-testid="`nc-gallery-card-${record.row.id}`"
                                   :class="{
@@ -818,7 +818,7 @@ const getRowColorStyle = (row) => {
                                     '!cursor-default': !hasEditPermission || isPublic,
                                   }"
                                   :style="{
-                                    ...(getRowColorStyle(record.row) ?? {}),
+                                    ...getRowColorStyle(record.row),
                                   }"
                                   @click="expandFormClick($event, record)"
                                   @contextmenu="showContextMenu($event, record)"
@@ -831,7 +831,7 @@ const getRowColorStyle = (row) => {
                                     <template v-if="!reloadAttachments && attachments(record).length">
                                       <a-carousel
                                         :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
-                                        class="gallery-carousel !border-b-1 !border-gray-200"
+                                        class="gallery-carousel !border-b-1 !border-gray-200 !bg-white"
                                         arrows
                                       >
                                         <template #customPaging>
@@ -879,14 +879,14 @@ const getRowColorStyle = (row) => {
                                     </template>
                                     <div
                                       v-else
-                                      class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center"
+                                      class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center bg-white"
                                     >
                                       <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                                     </div>
                                   </template>
-                                  <div class="flex content-stretch">
+                                  <div class="flex-1 flex content-stretch gap-3">
                                     <div
-                                      class="w-[4px] min-h-4 min-w-[4px] ml-[-8px] mr-[8px] rounded-sm"
+                                      class="w-1 flex-none min-h-4 rounded-sm"
                                       :style="{
                                         ...(getLeftBorderColor(record.row)
                                           ? { 'background-color': `${getLeftBorderColor(record.row)} !important` }

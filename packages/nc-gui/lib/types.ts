@@ -676,6 +676,12 @@ interface CloudFeaturesType {
 
 type CanvasScrollToCellFn = (row?: number, column?: number, path?: Array<number>, horizontalScroll?: boolean) => void
 
+interface RowColouringEvaluatedResultType {
+  is_set_as_background: boolean
+  color: string
+  rawColor: string | undefined
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -728,4 +734,5 @@ export type {
   CanvasGroup,
   CloudFeaturesType,
   CanvasScrollToCellFn,
+  RowColouringEvaluatedResultType,
 }

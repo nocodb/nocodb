@@ -68,6 +68,7 @@ export function useGridCellHandler(params: {
   provide(CanvasCellEventDataInj, canvasCellEvents)
 
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
+
   const baseStore = useBase()
   const { showNull, appInfo } = useGlobal()
   const { isMysql, isXcdbBase, isPg } = baseStore

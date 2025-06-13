@@ -29,6 +29,7 @@ export interface StatefulGroupProps {
   queryFilter?: boolean
 
   handler?: GroupHandler
+  isColourFilter?: boolean
 }
 export interface GroupProps extends StatefulGroupProps {
   index: number

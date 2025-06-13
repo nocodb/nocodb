@@ -24,6 +24,7 @@ interface Props {
   comparisonSubOpsProps?: any
   inputValueProps?: any
   deleteButtonProps?: any
+  isColourFilter?: boolean
 }
 interface Emits {
   (event: 'update:modelValue', model: string): void

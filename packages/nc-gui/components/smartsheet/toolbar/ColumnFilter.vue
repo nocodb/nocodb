@@ -24,6 +24,7 @@ interface Props {
   isViewFilter?: boolean
   readOnly?: boolean
   queryFilter?: boolean
+  isColourFilter?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -41,6 +42,7 @@ const props = withDefaults(defineProps<Props>(), {
   disableAddNewFilter: false,
   isViewFilter: false,
   readOnly: false,
+  isColourFilter: false,
 })
 
 const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:modelValue', 'update:isOpen'])

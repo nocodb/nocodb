@@ -32,6 +32,7 @@ interface Props {
   queryFilter?: boolean
 
   handler?: GroupHandler
+  isColourFilter?: boolean
 }
 interface Emits {
   (event: 'update:modelValue', model: string): void
@@ -152,6 +153,7 @@ const onDelete = () => {
         :parent-filter="vModel"
         :is-full-width="isFullWidth"
         :handler="handler"
+        :is-colour-filter="isColourFilter"
         @change="onFilterChange"
         @row-change="onFilterRowChange"
       >

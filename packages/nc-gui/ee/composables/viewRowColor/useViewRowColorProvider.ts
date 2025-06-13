@@ -13,11 +13,11 @@ export const defaultRowColorInfo: RowColoringInfo = {
 
 export function useViewRowColorProvider(params: {
   shared?: boolean
-  eventBus: UseEventBusReturn<SmartsheetStoreEvents, SmartsheetStoreEvents>
+  eventBus?: UseEventBusReturn<SmartsheetStoreEvents, SmartsheetStoreEvents>
 }) {
   const { $api } = useNuxtApp()
 
-  const { activeView, activeViewTitleOrId } = storeToRefs(useViewsStore())
+  const { activeView } = storeToRefs(useViewsStore())
 
   const viewId = computed(() => {
     if (params.shared) {
@@ -25,10 +25,6 @@ export function useViewRowColorProvider(params: {
     }
 
     return activeView.value?.id
-  })
-
-  watchEffect(() => {
-    console.log('activeView', viewId.value, activeViewTitleOrId.value, activeView.value)
   })
 
   const rowColorInfo: Ref<RowColoringInfo> = ref(defaultRowColorInfo)
@@ -63,7 +59,6 @@ export function useViewRowColorProvider(params: {
     }
   }
 
-  // need to use watch here due to how ref params view work
   watch(
     () => viewId.value,
     () => {
@@ -71,14 +66,20 @@ export function useViewRowColorProvider(params: {
     },
     { immediate: true },
   )
+
   const setRowColorInfo = (value: RowColoringInfo) => {
     rowColorInfo.value = value
   }
-  params.eventBus.on((event) => {
-    if ([SmartsheetStoreEvents.ROW_COLOR_UPDATE, SmartsheetStoreEvents.FIELD_UPDATE].includes(event)) {
-      reloadRowColorInfo()
-    }
-  })
+
+  if (params.eventBus) {
+    params.eventBus.on((event) => {
+      if ([SmartsheetStoreEvents.ROW_COLOR_UPDATE, SmartsheetStoreEvents.FIELD_UPDATE].includes(event)) {
+        reloadRowColorInfo()
+      }
+    })
+  }
+
   provide(ViewRowColorInj, rowColorInfo)
+
   return { rowColorInfo, reloadRowColorInfo, setRowColorInfo }
 }

@@ -20,6 +20,8 @@ useProvideSmartsheetLtarHelpers(meta)
 useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
 
 useProvideMapViewStore(meta, sharedView, true)
+
+useViewRowColorProvider({ shared: true })
 </script>
 
 <template>

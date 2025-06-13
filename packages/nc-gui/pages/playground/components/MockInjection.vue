@@ -39,6 +39,8 @@ useProvideSmartsheetStore(mockRef.view, mockRef.meta, true, ref([]), mockRef.fil
 useProvideMapViewStore(mockRef.meta, mockRef.view)
 useProvideViewColumns(mockRef.view, mockRef.meta, () => reloadEventHook?.trigger(), mockRef.isPublic.value)
 
+useViewRowColorProvider({ shared: true })
+
 onMounted(async () => {
   const { meta, bases, baseId, view } = mockSetupInit()
   mockRef.meta.value = meta

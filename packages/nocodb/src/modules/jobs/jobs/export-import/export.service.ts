@@ -679,7 +679,8 @@ export class ExportService {
                 try {
                   row[colId] = JSON.stringify(v);
                 } catch (e) {
-                  row[colId] = v;
+                  // skip wrong values
+                  row[colId] = null;
                 }
                 break;
               case UITypes.LongText:
@@ -727,6 +728,14 @@ export class ExportService {
                   row[colId] = JSON.stringify(v);
                 } catch (e) {
                   // avoid exporting invalid JSON
+                  row[colId] = null;
+                }
+                break;
+              case UITypes.JSON:
+                try {
+                  row[colId] = JSON.stringify(v);
+                } catch (e) {
+                  // skip wrong values
                   row[colId] = null;
                 }
                 break;

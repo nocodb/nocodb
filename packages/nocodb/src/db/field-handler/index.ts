@@ -8,6 +8,10 @@ import {
 } from 'nocodb-sdk';
 import { ClientType } from 'nocodb-sdk';
 import { FilterVerificationError } from './error/filter-verification.error';
+import { CurrencyGeneralHandler } from './handlers/currency/currency.general.handler';
+import { CurrencyPgHandler } from './handlers/currency/currency.pg.handler';
+import { CurrencyMysqlHandler } from './handlers/currency/currency.mysql.handler';
+import { CurrencySqliteHandler } from './handlers/currency/currency.sqlite.handler';
 import type { Logger } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
@@ -139,7 +143,10 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.SQLITE]: DecimalSqliteHandler,
   },
   [UITypes.Currency]: {
-    [CLIENT_DEFAULT]: DecimalGeneralHandler,
+    [CLIENT_DEFAULT]: CurrencyGeneralHandler,
+    [ClientType.PG]: CurrencyPgHandler,
+    [ClientType.MYSQL]: CurrencyMysqlHandler,
+    [ClientType.SQLITE]: CurrencySqliteHandler,
   },
   [UITypes.Percent]: {
     [CLIENT_DEFAULT]: PercentGeneralHandler,

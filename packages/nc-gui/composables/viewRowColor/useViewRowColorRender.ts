@@ -9,7 +9,7 @@ export function useViewRowColorRender(params: {
   const baseStore = useBase()
   const { getBaseType } = baseStore
 
-  const rowColorInfo: Ref<RowColoringInfo> = inject(ViewRowColorInj, ref({}))
+  const rowColorInfo: Ref<RowColoringInfo> = inject(ViewRowColorInj)
 
   const evaluateRowColor = (row: any) => {
     if (rowColorInfo.value && rowColorInfo.value.mode === ROW_COLORING_MODE.SELECT) {
@@ -55,6 +55,7 @@ export function useViewRowColorRender(params: {
   }
 
   const evaluatedRowsColor = computed(() => {
+    console.log('rowColorInfo.value.__id', rowColorInfo.value.__id)
     return params.rows.value
       .map((row) => {
         const evaluateResult = evaluateRowColor(toRaw(row))
@@ -65,6 +66,9 @@ export function useViewRowColorRender(params: {
       })
       .reduce((obj, cur) => {
         obj[cur.hash] = cur
+        if(cur && rowColorInfo.value) {
+          cur.__eval_id = rowColorInfo.value.__id
+        }
         return obj
       }, {})
   })

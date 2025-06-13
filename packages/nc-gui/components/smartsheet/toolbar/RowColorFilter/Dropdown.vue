@@ -25,6 +25,8 @@ const {
   onRowColorConditionAdd,
   onRowColorConditionDelete,
   onRowColorConditionUpdate,
+  onRowColorConditionFilterAdd,
+  onRowColorConditionFilterUpdate,
   filterColumns,
 } = useViewRowColorOption({
   meta,
@@ -41,7 +43,7 @@ const rowColoringMode = computed({
 </script>
 
 <template>
-  <NcDropdown @open="onDropdownOpen">
+  <NcDropdown @update:visible="onDropdownOpen">
     <NcButton type="text" size="small" class="nc-toolbar-btn !border-0 !h-7">
       <div class="flex items-center gap-1 min-h-5">
         <div class="flex items-center gap-2">
@@ -75,6 +77,10 @@ const rowColoringMode = computed({
               conditionDelete: onRowColorConditionDelete,
               conditionUpdate: onRowColorConditionUpdate,
               allConditionDeleted: onRemoveRowColoringMode,
+              filters: {
+                addFilter: onRowColorConditionFilterAdd,
+                rowChange: onRowColorConditionFilterUpdate,
+              },
             }"
           />
         </template>

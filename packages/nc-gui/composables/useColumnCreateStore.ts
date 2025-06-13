@@ -387,6 +387,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
               viewsStore.loadViews({ tableId: oldCol?.fk_model_id, ignoreLoading: true, force: true })
             }
             eventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
+            eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
           } catch (e: any) {
             if (!validateInfos.formula_raw) validateInfos.formula_raw = {}
             validateInfos.formula_raw!.validateStatus = 'error'

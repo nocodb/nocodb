@@ -65,15 +65,6 @@ const migrateDataWithJoin = async (
         )
       `);
       break;
-    case 'mssql':
-      await knex.raw(`
-        UPDATE ${table}
-        SET ${destinationColumn} = ${joinTable}.${sourceColumn}
-        FROM ${table}
-        JOIN ${joinTable}
-        ON ${table}.${column} = ${joinTable}.${joinColumn}
-      `);
-      break;
     default:
       throw new Error(`Unsupported database: ${sourceType}`);
   }
@@ -146,32 +137,6 @@ const listIndexesOnColumn = async (
             name.includes(column) ||
             (column === 'base_id' && name.includes('project_id')),
         );
-    }
-    case 'mssql': {
-      const indexes = await knex.raw(
-        `
-        SELECT
-          i.name AS index_name
-        FROM
-          sys.indexes i
-        JOIN
-          sys.index_columns ic
-        ON
-          i.object_id = ic.object_id
-          AND i.index_id = ic.index_id
-        JOIN
-          sys.columns c
-        ON
-          ic.object_id = c.object_id
-          AND ic.column_id = c.column_id
-        WHERE
-          i.object_id = OBJECT_ID(?)
-          AND c.name = ?
-        `,
-        [table, column],
-      );
-
-      return indexes.map((row: any) => row.index_name);
     }
 
     default:

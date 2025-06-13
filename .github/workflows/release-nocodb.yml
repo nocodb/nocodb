@@ -115,12 +115,5 @@ jobs:
   #     issue_label: '🚀 Status: Ready for Next Release'
   #     version: ${{ needs.process-input.outputs.target_tag }}
 
-  # Publish Docs
-  publish-docs:
-    needs: release-docker
-    uses: ./.github/workflows/publish-docs.yml
-    secrets:
-      GH_TOKEN: "${{ secrets.GH_TOKEN }}"
-
   aiopusher:
     uses: ./.github/workflows/nix-aiopusher.yml

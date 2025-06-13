@@ -6,6 +6,8 @@ interface Props {
   modelValue?: string | undefined
   rowIndex?: number
   showReadonlyField?: boolean
+  location?: 'cell' | 'filter'
+  forceMulti?: boolean
 }
 
 const props = defineProps<Props>()
@@ -40,6 +42,20 @@ const showReadonlyField = computed(() => {
 </script>
 
 <template>
-  <LazyCellUserReadonly v-if="showReadonlyField" :model-value="vModel" :row-index="rowIndex" :options="options" />
-  <LazyCellUserEditor v-else v-model="vModel" :row-index="rowIndex" :options="options" />
+  <LazyCellUserReadonly
+    v-if="showReadonlyField"
+    :model-value="vModel"
+    :row-index="rowIndex"
+    :options="options"
+    :location="location"
+    :force-multi="forceMulti"
+  />
+  <LazyCellUserEditor
+    v-else
+    v-model="vModel"
+    :row-index="rowIndex"
+    :options="options"
+    :location="location"
+    :force-multi="forceMulti"
+  />
 </template>

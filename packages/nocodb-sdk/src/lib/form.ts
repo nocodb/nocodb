@@ -81,3 +81,5 @@ export const oppositeValidationTypeMap = {
   [TimeValidationType.MaxTime]: TimeValidationType.MinTime,
   [SelectValidationType.MaxSelected]: SelectValidationType.MinSelected,
 };
+
+export const hideExtraFieldsMetaKey = 'hideExtraFields';

@@ -11,10 +11,21 @@ const emit = defineEmits(['update:open'])
 
 const vOpen = useVModel(props, 'open', emit)
 
-const { pageMode, IntegrationsPageMode, activeIntegration, activeIntegrationItem, saveIntegration, updateIntegration } =
-  useIntegrationStore()
+const {
+  pageMode,
+  IntegrationsPageMode,
+  activeIntegration,
+  activeIntegrationItem,
+  saveIntegration,
+  updateIntegration,
+  testConnection,
+} = useIntegrationStore()
 
 const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
+
+const testConnectionResult = ref<{ success: boolean; message?: string } | null>(null)
+
+const testConnectionLoading = ref(false)
 
 const initState = ref({
   type: props.integrationType,
@@ -44,6 +55,9 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
     } finally {
       isLoading.value = false
     }
+  },
+  onChange: () => {
+    testConnectionResult.value = null
   },
 })
 
@@ -76,6 +90,14 @@ onMounted(async () => {
 
   isLoading.value = false
 })
+
+const onTestConnection = async () => {
+  testConnectionLoading.value = true
+
+  testConnectionResult.value = (await testConnection(formState.value)) || null
+
+  testConnectionLoading.value = false
+}
 </script>
 
 <template>
@@ -86,9 +108,31 @@ onMounted(async () => {
   >
     <template #headerRight>
       <NcButton
+        v-if="activeIntegrationItem.type === 'auth'"
+        size="small"
+        :type="!testConnectionResult?.success ? 'primary' : 'ghost'"
+        :disabled="testConnectionLoading"
+        :loading="testConnectionLoading"
+        class="nc-extdb-btn-test-connection"
+        @click="onTestConnection"
+      >
+        <div class="flex items-center gap-2">
+          <GeneralIcon
+            v-if="testConnectionResult?.success === true"
+            icon="circleCheckSolid"
+            class="text-success w-4 h-4 bg-white-500"
+          />
+          <NcTooltip v-if="testConnectionResult?.success === false" placement="top">
+            <template #title>{{ testConnectionResult?.message }}</template>
+            <GeneralIcon icon="alertTriangleSolid" class="text-warning w-4 h-4 bg-white-500" />
+          </NcTooltip>
+          Test connection
+        </div>
+      </NcButton>
+      <NcButton
         size="small"
         type="primary"
-        :disabled="isLoading"
+        :disabled="isLoading || (!testConnectionResult?.success && activeIntegrationItem.type === 'auth')"
         :loading="isLoading"
         class="nc-extdb-btn-submit"
         @click="submit"

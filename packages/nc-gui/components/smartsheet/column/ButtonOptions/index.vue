@@ -519,6 +519,7 @@ const handleUpdateActionType = () => {
         v-model:value="vModel.formula_raw"
         suggestion-height="medium"
         editor-height="50px"
+        :disabled-formulas="['URL()', 'URLENCODE()']"
         disable-suggestion-headers
         :label="$t('labels.urlFormula')"
         :error="validateInfos.formula_raw?.validateStatus === 'error'"

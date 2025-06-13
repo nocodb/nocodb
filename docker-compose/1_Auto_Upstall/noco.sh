@@ -988,7 +988,7 @@ EOF
 	if [ "${CONFIG_MINIO_ENABLED}" = "Y" ]; then
 		cat >>"$compose_file" <<EOF
   minio:
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2025-05-24T17-08-30Z-cpuv1
     restart: unless-stopped
     env_file: docker.env
     entrypoint: /bin/sh

@@ -148,7 +148,6 @@ class Tele {
               procedure_count: data.proceduresCount || 0,
               mysql: data.dbType === 'mysql2' ? 1 : 0,
               pg: data.dbType === 'pg' ? 1 : 0,
-              mssql: data.dbType === 'mssql' ? 1 : 0,
               sqlite3: data.dbType === 'sqlite3' ? 1 : 0,
               oracledb: data.dbType === 'oracledb' ? 1 : 0,
               rest: data.type === 'rest' ? 1 : 0,

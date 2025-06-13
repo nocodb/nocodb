@@ -5,7 +5,7 @@ import { formulaTextSegmentsCache, replaceUrlsWithLinkCache } from '../component
 import { getI18n } from '../plugins/a.i18n'
 export { isValidURL }
 
-const _replaceUrlsWithLink = (text: string): boolean | string => {
+const _replaceUrlsWithLink = (text: string, plainCellValue = false): boolean | string => {
   if (!text) {
     return false
   }
@@ -54,7 +54,7 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
 
       const anchorLabel = label || url || ''
 
-      if (!isUrl) return anchorLabel
+      if (!isUrl || plainCellValue) return anchorLabel
 
       const a = document.createElement('a')
       a.textContent = anchorLabel
@@ -70,12 +70,12 @@ const _replaceUrlsWithLink = (text: string): boolean | string => {
   return isUrlPatternFound ? out : false // Return false if no URL found
 }
 
-export const replaceUrlsWithLink = (text: string) => {
-  if (replaceUrlsWithLinkCache.has(text)) {
-    return replaceUrlsWithLinkCache.get(text)!
+export const replaceUrlsWithLink = (text: string, plainCellValue = false) => {
+  if (replaceUrlsWithLinkCache.has(`${text}-${plainCellValue}`)) {
+    return replaceUrlsWithLinkCache.get(`${text}-${plainCellValue}`)!
   }
-  const result = _replaceUrlsWithLink(text)
-  replaceUrlsWithLinkCache.set(text, result)
+  const result = _replaceUrlsWithLink(text, plainCellValue)
+  replaceUrlsWithLinkCache.set(`${text}-${plainCellValue}`, result)
   return result
 }
 
@@ -156,6 +156,20 @@ const handleCopyToClipboard = async (text: string) => {
   }
 }
 
+export const openLinkUsingATag = (url: string, target?: '_blank') => {
+  const link = document.createElement('a')
+  link.href = url
+  if (target) {
+    link.target = target
+    link.rel = 'noopener noreferrer nofollow' // Prevents opener access & prefetching
+  }
+  link.style.display = 'none' // Hide the link
+  document.body.appendChild(link)
+
+  link.click()
+  document.body.removeChild(link)
+}
+
 export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allowLocalUrl?: boolean) => {
   url = addMissingUrlSchma(url)
 
@@ -170,16 +184,7 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allow
       return handleCopyToClipboard(url)
     }
 
-    const link = document.createElement('a')
-    link.href = url
-    if (target) {
-      link.target = target
-      link.rel = 'noopener noreferrer nofollow' // Prevents opener access & prefetching
-    }
-    link.style.display = 'none' // Hide the link
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    openLinkUsingATag(url, target)
 
     return
   }

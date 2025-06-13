@@ -13,7 +13,6 @@ const emits = defineEmits(['update:visible'])
 const visible = useVModel(props, 'visible', emits)
 
 const { $e, $api } = useNuxtApp()
-const { closeTab } = useTabs()
 
 const { getMeta, removeMeta } = useMetas()
 
@@ -61,12 +60,6 @@ const onDelete = async () => {
     }
 
     await $api.dbTable.delete(toBeDeletedTable.id as string)
-
-    await closeTab({
-      type: TabType.TABLE,
-      id: toBeDeletedTable.id,
-      title: toBeDeletedTable.title,
-    })
 
     await loadTables()
 

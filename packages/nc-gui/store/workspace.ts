@@ -235,13 +235,16 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const navigateToFeed = async (_?: string, cmdOrCtrl?: boolean) => {
+  const navigateToFeed = async (_?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
     if (cmdOrCtrl) {
-      await navigateTo('/nc/feed', {
-        open: navigateToBlankTargetOpenOption,
-      })
+      await navigateTo(
+        { path: '/nc/feed', query },
+        {
+          open: navigateToBlankTargetOpenOption,
+        },
+      )
     } else {
-      await navigateTo('/nc/feed')
+      await navigateTo({ path: '/nc/feed', query })
     }
   }
 

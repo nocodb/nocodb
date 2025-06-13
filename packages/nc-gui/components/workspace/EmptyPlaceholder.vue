@@ -4,10 +4,8 @@ const props = defineProps<{
 }>()
 
 const baseCreateDlg = ref(false)
-const baseType = ref()
 
-const openCreateProjectDlg = (type: NcProjectType) => {
-  baseType.value = type
+const openCreateProjectDlg = () => {
   baseCreateDlg.value = true
 }
 </script>
@@ -20,15 +18,15 @@ const openCreateProjectDlg = (type: NcProjectType) => {
       <template v-if="props.buttons">
         <div class="text-xs">Create Base</div>
         <div class="flex gap-2 justify mt-1">
-          <a-button class="flex-1 nc-btn" @click="openCreateProjectDlg(NcProjectType.DB)">
+          <a-button class="flex-1 nc-btn" @click="openCreateProjectDlg()">
             <div class="flex gap-2 items-center justify-center text-xs">
-              <GeneralProjectIcon :type="NcProjectType.DB" class="text-[#2824FB] text-lg" />
+              <GeneralProjectIcon class="text-[#2824FB] text-lg" />
               New Database Base
             </div>
           </a-button>
         </div>
 
-        <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :type="baseType" />
+        <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
       </template>
     </div>
   </div>

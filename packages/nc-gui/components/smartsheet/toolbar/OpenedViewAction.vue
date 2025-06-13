@@ -13,7 +13,7 @@ const { $api, $e } = useNuxtApp()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { activeView, views, viewsByTable } = storeToRefs(useViewsStore())
+const { activeView, views } = storeToRefs(useViewsStore())
 const { loadViews, removeFromRecentViews } = useViewsStore()
 
 const { navigateToTable } = useTablesStore()
@@ -143,13 +143,6 @@ function openDeleteDialog() {
         tableId: activeTable.value!.id!,
         force: true,
       })
-
-      const activeNonDefaultViews = viewsByTable.value.get(activeTable!.value!.id!)?.filter((v) => !v.is_default) ?? []
-
-      activeTable!.value!.meta = {
-        ...(activeTable!.value!.meta as object),
-        hasNonDefaultViews: activeNonDefaultViews.length > 1,
-      }
     },
   })
 

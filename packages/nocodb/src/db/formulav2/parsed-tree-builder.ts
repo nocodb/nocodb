@@ -286,7 +286,7 @@ export const callExpressionBuilder = async ({
             return `IFNULL(${query}, '')`;
           } else {
             // do nothing
-            // pg / mssql: Concatenate all arguments. NULL arguments are ignored.
+            // pg: Concatenate all arguments. NULL arguments are ignored.
             // sqlite3: special handling - See BinaryExpression
           }
         }
@@ -541,11 +541,7 @@ export const binaryExpressionBuilder = async ({
           : (pt.right as any).value === ''
         : 0
     })`;
-  } else if (
-    knex.clientType() === 'sqlite3' ||
-    knex.clientType() === 'pg' ||
-    knex.clientType() === 'mssql'
-  ) {
+  } else if (knex.clientType() === 'sqlite3' || knex.clientType() === 'pg') {
     if (pt.operator === '=') {
       if (pt.left.type === 'Literal' && pt.left.value === '') {
         sql = `${right} IS NULL OR CAST(${right} AS TEXT) = ''`;

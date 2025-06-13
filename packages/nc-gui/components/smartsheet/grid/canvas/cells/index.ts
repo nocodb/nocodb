@@ -70,10 +70,10 @@ export function useGridCellHandler(params: {
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const baseStore = useBase()
   const { showNull, appInfo } = useGlobal()
-  const { isMssql, isMysql, isXcdbBase, isPg } = baseStore
+  const { isMysql, isXcdbBase, isPg } = baseStore
   const { sqlUis } = storeToRefs(baseStore)
 
-  const { basesUser } = storeToRefs(useBases())
+  const { basesUser, baseRoles } = storeToRefs(useBases())
 
   const { open: openDetachedExpandedForm } = useExpandedFormDetached()
   const { open: openDetachedLongText } = useDetachedLongText()
@@ -178,7 +178,7 @@ export function useGridCellHandler(params: {
       isCellInSelectionRange = false,
       isGroupHeader = false,
       rowMeta = {},
-    }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
+    }: Omit<CellRendererOptions, 'metas' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
     if (!isGroupHeader) {
@@ -256,7 +256,6 @@ export function useGridCellHandler(params: {
         imageLoader,
         actionManager,
         tableMetaLoader,
-        isMssql,
         isMysql,
         isPg,
         isXcdbBase,
@@ -335,6 +334,7 @@ export function useGridCellHandler(params: {
         openDetachedLongText,
         path: ctx.path ?? [],
         allowLocalUrl: appInfo.value?.allowLocalUrl,
+        baseRoles: baseRoles.value,
       })
     }
     return false

@@ -16,7 +16,11 @@ if (!NC_REFRESH_TOKEN_EXP_IN_DAYS || NC_REFRESH_TOKEN_EXP_IN_DAYS <= 0) {
   throw new Error('NC_REFRESH_TOKEN_EXP_IN_DAYS must be a positive number');
 }
 
+export const NC_MAX_TEXT_LENGTH = 100000;
+
 export const NC_EMAIL_ASSETS_BASE_URL = 'https://cdn.nocodb.com/emails/v2';
+
+export const NC_RECURSIVE_MAX_DEPTH = 7;
 
 export const S3_PATCH_KEYS = [
   'uploads',

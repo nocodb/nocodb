@@ -1,9 +1,9 @@
 import { SilentTypeConversionError } from '~/lib/error';
+import { parseProp } from '~/lib/helperFunctions';
 import { parseIntValue, serializeIntValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
-import { parseProp } from '~/lib/helperFunctions';
 
 export class RatingHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -50,4 +50,8 @@ export class RatingHelper extends AbstractColumnHelper {
   ): string {
     return `${parseIntValue(value, params.col) ?? ''}`;
   }
+
+  // simply copy highlighted rows
+  // since rating doesn't need increment
+  // override populateFillHandle
 }

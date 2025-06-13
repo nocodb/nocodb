@@ -15,7 +15,6 @@ export const PlainCellRenderer: CellRenderer = {
       meta,
       metas,
       sqlUis,
-      isMssql,
       isMysql,
       isXcdbBase,
       t,
@@ -32,11 +31,11 @@ export const PlainCellRenderer: CellRenderer = {
       meta,
       metas,
       isMysql,
-      isMssql,
       isXcdbBase,
       t,
       isUnderLookup,
     })
+
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
     } else if (!text) {

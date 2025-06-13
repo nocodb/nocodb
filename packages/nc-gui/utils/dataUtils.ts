@@ -150,7 +150,9 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
     if (
       !isSystemColumn(col) &&
       !isVirtualCol(col) &&
-      ![UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(col.uidt) &&
+      ![UITypes.Attachment, UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(
+        col.uidt,
+      ) &&
       isValidValue(col?.cdf) &&
       !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(col.cdf)
     ) {
@@ -175,6 +177,12 @@ export function validateRowFilters(
   columns: ColumnType[],
   client: any,
   metas: Record<string, any>,
+  options?: {
+    currentUser?: {
+      id: string
+      email: string
+    }
+  },
 ) {
   return sdkValidateRowFilters({
     filters: _filters,
@@ -182,6 +190,7 @@ export function validateRowFilters(
     columns,
     client,
     metas,
+    options,
   })
 }
 
@@ -246,7 +255,7 @@ export const getYearValue = (modelValue: string | null) => {
 }
 
 export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCellValueProps['params']) => {
-  const { col, isMssql, isXcdbBase } = params
+  const { col, isXcdbBase } = params
 
   if (!modelValue || !dayjs(modelValue).isValid()) {
     return ''
@@ -266,12 +275,7 @@ export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCe
     return timezonize(dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue))?.format(dateTimeFormat) + displayTimezone
   }
 
-  if (isMssql(col.source_id)) {
-    // e.g. 2023-04-29T11:41:53.000Z
-    return timezonize(dayjs(modelValue, dateTimeFormat))?.format(dateTimeFormat) + displayTimezone
-  } else {
-    return timezonize(dayjs(modelValue))?.format(dateTimeFormat) + displayTimezone
-  }
+  return timezonize(dayjs(modelValue))?.format(dateTimeFormat) + displayTimezone
 }
 
 export const getTimeValue = (modelValue: string | null, col: ColumnType) => {
@@ -355,7 +359,7 @@ export const getUserValue = (modelValue: string | string[] | null | Array<any>, 
 }
 
 export const getDecimalValue = (modelValue: string | null | number, col: ColumnType) => {
-  if (!modelValue || isNaN(Number(modelValue))) {
+  if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
     return ''
   }
   const columnMeta = parseProp(col.meta)
@@ -364,10 +368,10 @@ export const getDecimalValue = (modelValue: string | null | number, col: ColumnT
 }
 
 export const getIntValue = (modelValue: string | null | number) => {
-  if (!modelValue || isNaN(Number(modelValue))) {
+  if ((!ncIsNumber(modelValue) && !modelValue) || isNaN(Number(modelValue))) {
     return ''
   }
-  return Number(modelValue) as unknown as string
+  return Number(modelValue).toString()
 }
 
 export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => {
@@ -564,12 +568,21 @@ export const parsePlainCellValue = (
     return getAttachmentValue(value)
   }
 
-  if (isFormula(col) && col?.meta?.display_type) {
-    const childColumn = {
-      uidt: col?.meta?.display_type,
-      ...col?.meta?.display_column_meta,
+  if (isFormula(col)) {
+    if (col?.meta?.display_type) {
+      const childColumn = {
+        uidt: col?.meta?.display_type,
+        ...col?.meta?.display_column_meta,
+      }
+
+      return parsePlainCellValue(value, { ...params, col: childColumn })
+    } else {
+      const url = replaceUrlsWithLink(value, true)
+
+      if (url && ncIsString(url)) {
+        return url
+      }
     }
-    return parsePlainCellValue(value, { ...params, col: childColumn })
   }
 
   if (isButton(col)) {

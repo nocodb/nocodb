@@ -66,8 +66,13 @@ export default class Minio implements IStorageAdapterV2 {
 
   public async test(): Promise<boolean> {
     try {
-      const createStream = Readable.from(['Hello from Minio, NocoDB']);
-      await this.fileCreateByStream('nc-test-file.txt', createStream);
+      const stream = new Readable({
+        read() {
+          this.push("Hello from Minio, NocoDB");
+          this.push(null);
+        }
+      });
+      await this.fileCreateByStream('nc-test-file.txt', stream);
       return true;
     } catch (e) {
       throw e;

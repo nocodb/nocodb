@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type TableType, type ViewType, viewTypeAlias } from 'nocodb-sdk'
+import { type TableType, viewTypeAlias } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -12,9 +12,8 @@ const { $e } = useNuxtApp()
 
 const alignLeftLevel = toRef(props, 'alignLeftLevel')
 
-const { refreshCommandPalette } = useCommandPalette()
 const viewsStore = useViewsStore()
-const { loadViews, navigateToView } = viewsStore
+const { loadViews, onOpenViewCreateModal } = viewsStore
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -27,6 +26,8 @@ const toBeCreateType = ref<ViewTypes | 'AI'>()
 const isOpen = ref(false)
 
 const isSqlView = computed(() => (table.value as TableType)?.type === 'view')
+
+const isSyncedTable = computed(() => (table.value as TableType)?.synced)
 
 const overlayClassName = computed(() => {
   if (alignLeftLevel.value === 1) return 'nc-view-create-dropdown nc-view-create-dropdown-left-1'
@@ -89,53 +90,16 @@ async function onOpenModal({
   isOpen.value = false
   isViewListLoading.value = false
 
-  const isDlgOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgViewCreate'), {
-    'modelValue': isDlgOpen,
+  onOpenViewCreateModal({
     title,
     type,
-    'tableId': table.value.id,
-    'selectedViewId': copyViewId,
-    calendarRange,
+    copyViewId,
     groupingFieldColumnId,
+    calendarRange,
     coverImageColumnId,
-    'baseId': base.value.id,
-    'onUpdate:modelValue': closeDialog,
-    'onCreated': async (view?: ViewType) => {
-      closeDialog()
-
-      refreshCommandPalette()
-
-      await loadViews({
-        tableId: table.value.id!,
-        force: true,
-      })
-
-      table.value.meta = {
-        ...(table.value.meta as object),
-        hasNonDefaultViews: true,
-      }
-
-      if (view) {
-        navigateToView({
-          view,
-          tableId: table.value.id!,
-          baseId: base.value.id!,
-          doNotSwitchTab: true,
-        })
-      }
-
-      $e('a:view:create', { view: view?.type || type })
-    },
+    baseId: base.value.id!,
+    tableId: table.value.id!,
   })
-
-  function closeDialog() {
-    isOpen.value = false
-    isDlgOpen.value = false
-
-    close(1000)
-  }
 }
 </script>
 
@@ -156,14 +120,20 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
 
-        <NcTooltip :title="$t('tooltip.sourceDataIsReadonly')" :disabled="!source.is_data_readonly && !isSqlView">
-          <NcMenuItem :disabled="!!source.is_data_readonly || isSqlView" @click="onOpenModal({ type: ViewTypes.FORM })">
+        <NcTooltip
+          :title="isSyncedTable ? $t('tooltip.formViewCreationNotSupportedForSyncedTable') : $t('tooltip.sourceDataIsReadonly')"
+          :disabled="!source.is_data_readonly && !isSqlView && !isSyncedTable"
+        >
+          <NcMenuItem
+            :disabled="!!source.is_data_readonly || isSqlView || isSyncedTable"
+            @click="onOpenModal({ type: ViewTypes.FORM })"
+          >
             <div class="item" data-testid="sidebar-view-create-form">
               <div class="item-inner">
                 <GeneralViewIcon
                   :meta="{ type: ViewTypes.FORM }"
                   :class="{
-                    'opacity-50': !!source.is_data_readonly || isSqlView,
+                    '!opacity-50': !!source.is_data_readonly || isSqlView || isSyncedTable,
                   }"
                 />
                 <div>{{ $t('objects.viewType.form') }}</div>
@@ -175,7 +145,7 @@ async function onOpenModal({
                 class="plus"
                 icon="plus"
                 :class="{
-                  '!text-current': !!source.is_data_readonly,
+                  '!text-current': !!source.is_data_readonly || isSqlView || isSyncedTable,
                 }"
               />
             </div>

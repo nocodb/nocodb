@@ -2,7 +2,7 @@
 
 envfile /etc/s6-confs/postgresql.conf
 
-importas -sCuD "n3 s2000000 T" DIRECTIVES DIRECTIVES
+importas -sCuD "n3 s2000000 1 T" DIRECTIVES DIRECTIVES
 
 ifelse { test -w /var/log } {
 	foreground { install -d -o s6log -g s6log /var/log/postgresql }

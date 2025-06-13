@@ -247,7 +247,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
             })
           }
         } catch (e: any) {
-          message.error(e.message || t('msg.error.internalError'))
+          message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.internalError'))
         }
       } else if (imageUrls.length) {
         const data = uploadViaUrl(imageUrls)

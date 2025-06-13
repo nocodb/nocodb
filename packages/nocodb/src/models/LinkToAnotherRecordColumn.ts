@@ -1,3 +1,4 @@
+import { RelationTypes } from 'nocodb-sdk';
 import type { BoolType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type Filter from '~/models/Filter';
@@ -10,6 +11,17 @@ import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { View } from '~/models/index';
 
 export default class LinkToAnotherRecordColumn {
+  protected _context: {
+    refContext: NcContext;
+    mmContext: NcContext;
+  };
+  protected _parentChildContext: {
+    parentContext: NcContext;
+    childContext: NcContext;
+    refContext: NcContext;
+    mmContext: NcContext;
+  };
+
   id: string;
 
   fk_workspace_id?: string;
@@ -22,6 +34,12 @@ export default class LinkToAnotherRecordColumn {
   fk_mm_child_column_id?: string;
   fk_mm_parent_column_id?: string;
   fk_related_model_id?: string;
+
+  // following columns will be only used for cross base link and for normal link, these will be null
+  fk_related_base_id?: string;
+  fk_mm_base_id?: string;
+  fk_related_source_id?: string;
+  fk_mm_source_id?: string;
 
   fk_target_view_id?: string | null;
 
@@ -54,8 +72,9 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
+    const { childContext } = await this.getParentChildContext(context);
     return (this.childColumn = await Column.get(
-      context,
+      childContext,
       {
         colId: this.fk_child_column_id,
       },
@@ -67,8 +86,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
+    const { mmContext } = this.getRelContext(context);
+
     return (this.mmChildColumn = await Column.get(
-      context,
+      mmContext,
       {
         colId: this.fk_mm_child_column_id,
       },
@@ -80,44 +101,52 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
+    const { parentContext } = await this.getParentChildContext(context);
+
     return (this.parentColumn = await Column.get(
-      context,
+      parentContext,
       {
         colId: this.fk_parent_column_id,
       },
       ncMeta,
     ));
   }
+
   public async getMMParentColumn(
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
+    const { mmContext } = this.getRelContext(context);
     return (this.mmParentColumn = await Column.get(
-      context,
+      mmContext,
       {
         colId: this.fk_mm_parent_column_id,
       },
       ncMeta,
     ));
   }
+
   public async getMMModel(
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
+    const { mmContext } = this.getRelContext(context);
     return (this.mmModel = await Model.getByIdOrName(
-      context,
+      mmContext,
       {
         id: this.fk_mm_model_id,
       },
       ncMeta,
     ));
   }
+
   public async getRelatedTable(
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
+    const { refContext } = this.getRelContext(context);
     return (this.relatedTable = await Model.getByIdOrName(
-      context,
+      refContext,
       {
         id: this.fk_related_model_id,
       },
@@ -144,6 +173,10 @@ export default class LinkToAnotherRecordColumn {
       'fk_index_name',
       'fk_related_model_id',
       'virtual',
+      'fk_related_base_id',
+      'fk_mm_base_id',
+      'fk_related_source_id',
+      'fk_mm_source_id',
     ]);
 
     await ncMeta.metaInsert2(
@@ -195,5 +228,98 @@ export default class LinkToAnotherRecordColumn {
     _param: { fk_target_view_id: string | null },
   ) {
     // placeholder method
+  }
+
+  getRelContext(context: NcContext) {
+    if (this._context) {
+      return this._context;
+    }
+
+    let refContext = context;
+    let mmContext = context;
+
+    // if the related table is in different base
+    if (
+      this.fk_related_base_id &&
+      this.fk_related_base_id !== context.base_id
+    ) {
+      refContext = {
+        ...context,
+        base_id: this.fk_related_base_id,
+      };
+    }
+
+    // if the junction table is in different base
+    if (this.fk_mm_base_id && this.fk_mm_base_id !== context.base_id) {
+      mmContext = {
+        ...context,
+        base_id: this.fk_mm_base_id,
+      };
+    }
+
+    return (this._context = {
+      refContext,
+      mmContext,
+    });
+  }
+
+  async getParentChildContext(
+    context: NcContext,
+    column?: Column,
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (this._parentChildContext) {
+      return this._parentChildContext;
+    }
+
+    const { refContext, mmContext } = this.getRelContext(context);
+    let childContext = context;
+    let parentContext = context;
+
+    // if hm then child belongs to the related table
+    // if oo(hm) then child belongs to the related table
+    // in these scenario overwrite context if fk_related_base_id is present
+    if (
+      this.fk_related_base_id &&
+      (this.type === RelationTypes.HAS_MANY ||
+        (this.type === RelationTypes.ONE_TO_ONE &&
+          !(
+            column ||
+            (await Column.get(context, { colId: this.fk_column_id }, ncMeta))
+          )?.meta?.bt))
+    ) {
+      childContext = refContext;
+    }
+
+    // if mm link parent present in related table
+    // if bt then parent belongs to the related table
+    // if oo(bt) then parent belongs to the related table
+    // in these scenario overwrite context if fk_related_base_id is present
+    if (
+      this.fk_related_base_id &&
+      (this.type === RelationTypes.MANY_TO_MANY ||
+        this.type === RelationTypes.BELONGS_TO ||
+        (this.type === RelationTypes.ONE_TO_ONE &&
+          (
+            column ||
+            (await Column.get(context, { colId: this.fk_column_id }, ncMeta))
+          )?.meta?.bt))
+    ) {
+      parentContext = refContext;
+    }
+
+    return (this._parentChildContext = {
+      childContext,
+      parentContext,
+      mmContext,
+      refContext,
+    });
+  }
+
+  isCrossBaseLink() {
+    return !!(
+      (this.fk_related_base_id && this.fk_related_base_id !== this.base_id) ||
+      (this.fk_mm_base_id && this.fk_mm_base_id !== this.base_id)
+    );
   }
 }

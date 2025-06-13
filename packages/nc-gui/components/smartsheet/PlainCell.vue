@@ -7,6 +7,7 @@ interface Props {
   bold?: BoolType
   italic?: BoolType
   underline?: BoolType
+  showTooltip?: boolean
 }
 
 const props = defineProps<Props>()
@@ -25,7 +26,7 @@ const basesStore = useBases()
 
 const { basesUser } = storeToRefs(basesStore)
 
-const { isXcdbBase, isMssql, isMysql } = useBase()
+const { isXcdbBase, isMysql } = useBase()
 
 const sqlUi = ref(
   column.value?.source_id && sqlUis.value[column.value?.source_id]
@@ -44,7 +45,6 @@ const parsedValue = computed(() => {
     meta: meta.value,
     metas: metas.value,
     baseUsers: basesUser.value,
-    isMssql,
     isMysql,
     isXcdbBase,
     t,
@@ -53,7 +53,25 @@ const parsedValue = computed(() => {
 </script>
 
 <template>
+  <NcTooltip v-if="showTooltip" class="truncate" show-on-truncate-only>
+    <template #title>
+      {{ parsedValue }}
+    </template>
+
+    <span
+      class="plain-cell before:px-1"
+      :class="{
+        '!font-bold': bold,
+        '!italic': italic,
+        'underline': underline,
+      }"
+      data-testid="nc-plain-cell"
+    >
+      {{ parsedValue }}
+    </span>
+  </NcTooltip>
   <span
+    v-else
     class="plain-cell before:px-1"
     :class="{
       '!font-bold': bold,

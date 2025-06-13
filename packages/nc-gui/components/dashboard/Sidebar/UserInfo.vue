@@ -71,50 +71,68 @@ const accountUrl = computed(() => {
 </script>
 
 <template>
-  <div class="flex w-full flex-col border-gray-200 gap-y-1">
+  <div
+    class="flex w-full flex-col border-gray-200 gap-y-1"
+    :class="{
+      'sticky bottom-0 bg-[var(--mini-sidebar-bg-color)]': isMiniSidebar,
+    }"
+  >
     <LazyGeneralMaintenanceAlert v-if="!isMiniSidebar" />
     <div
       class="flex items-center"
       :class="{
-        'justify-center': isMiniSidebar,
+        'justify-center h-[var(--mini-sidebar-width)]': isMiniSidebar,
         'justify-between': !isMiniSidebar,
       }"
     >
-      <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
-        <div
-          class="flex"
-          :class="{
-            'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg h-8 cursor-pointer':
-              !isMiniSidebar,
-            'nc-mini-sidebar-ws-item': isMiniSidebar,
-          }"
-          data-testid="nc-sidebar-userinfo"
-        >
-          <div
-            v-if="isMiniSidebar"
-            class="nc-user-icon-wrapper border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300"
-            :class="{
-              'border-nc-gray-medium': !isMenuOpen,
-              'active border-primary shadow-selected': isMenuOpen,
-            }"
-          >
-            <GeneralUserIcon :user="user" size="medium" class="!w-full !h-full !min-w-full cursor-pointer" />
-          </div>
-
-          <template v-else>
-            <GeneralUserIcon :user="user" size="medium" />
-
-            <NcTooltip class="max-w-32 truncate" show-on-truncate-only>
-              <template #title>
-                {{ name ? name : user?.email }}
-              </template>
-
-              {{ name ? name : user?.email }}
-            </NcTooltip>
-
-            <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-gray-500" />
+      <NcDropdown
+        v-model:visible="isMenuOpen"
+        placement="topLeft"
+        :overlay-class-name="`!min-w-44 md:!min-w-64 ${isMiniSidebar ? '!left-1' : ''}`"
+      >
+        <NcTooltip :disabled="!isMiniSidebar" placement="right" hide-on-click :arrow="false">
+          <template #title>
+            <div>
+              <div v-if="name">{{ name }}</div>
+              <div>
+                {{ user?.email }}
+              </div>
+            </div>
           </template>
-        </div>
+          <div
+            class="flex"
+            :class="{
+              'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg cursor-pointer': !isMiniSidebar,
+              'nc-mini-sidebar-ws-item !w-[var(--mini-sidebar-width)] flex-none': isMiniSidebar,
+            }"
+            data-testid="nc-sidebar-userinfo"
+          >
+            <div
+              v-if="isMiniSidebar"
+              class="nc-user-icon-wrapper border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300"
+              :class="{
+                'border-nc-gray-medium': !isMenuOpen,
+                'active border-primary shadow-selected': isMenuOpen,
+              }"
+            >
+              <GeneralUserIcon :user="user" size="medium" class="!w-full !h-full !min-w-full cursor-pointer" />
+            </div>
+
+            <template v-else>
+              <GeneralUserIcon :user="user" size="medium" />
+
+              <NcTooltip class="max-w-32 truncate" show-on-truncate-only>
+                <template #title>
+                  {{ name ? name : user?.email }}
+                </template>
+
+                {{ name ? name : user?.email }}
+              </NcTooltip>
+
+              <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-gray-500" />
+            </template>
+          </div>
+        </NcTooltip>
         <template #overlay>
           <NcMenu data-testid="nc-sidebar-userinfo" variant="small">
             <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
@@ -124,8 +142,9 @@ const accountUrl = computed(() => {
                 <span class="menu-btn"> {{ $t('general.logout') }}</span>
               </div>
             </NcMenuItem>
-            <NcDivider />
+            <NcDivider v-if="!isMiniSidebar" />
             <a
+              v-if="!isMiniSidebar"
               v-e="['c:nocodb:discord']"
               href="https://discord.gg/5RgZmkW"
               target="_blank"
@@ -138,6 +157,7 @@ const accountUrl = computed(() => {
               </NcMenuItem>
             </a>
             <a
+              v-if="!isMiniSidebar"
               v-e="['c:nocodb:reddit']"
               href="https://www.reddit.com/r/NocoDB"
               target="_blank"
@@ -150,6 +170,7 @@ const accountUrl = computed(() => {
               </NcMenuItem>
             </a>
             <a
+              v-if="!isMiniSidebar"
               v-e="['c:nocodb:twitter']"
               href="https://twitter.com/nocodb"
               target="_blank"
@@ -167,7 +188,7 @@ const accountUrl = computed(() => {
                 key="language"
                 class="lang-menu !py-1.5"
                 placement="rightBottom"
-                overlay-class-name="nc-lang-menu-overlay"
+                overlay-class-name="nc-lang-menu-overlay !z-1050"
               >
                 <NcMenuItem>
                   <div v-e="['c:translate:open']" class="flex gap-2 items-center">
@@ -193,33 +214,35 @@ const accountUrl = computed(() => {
             <template v-if="!isMobileMode">
               <NcDivider />
 
-              <a
-                v-e="['c:nocodb:forum-open']"
-                href="https://community.nocodb.com"
-                target="_blank"
-                class="!underline-transparent"
-                rel="noopener"
-              >
-                <NcMenuItem>
-                  <GeneralIcon icon="ncHelp" class="menu-icon mt-0.5" />
-                  <span class="menu-btn"> {{ $t('title.forum') }} </span>
-                </NcMenuItem>
-              </a>
+              <template v-if="!isMiniSidebar">
+                <a
+                  v-e="['c:nocodb:forum-open']"
+                  href="https://community.nocodb.com"
+                  target="_blank"
+                  class="!underline-transparent"
+                  rel="noopener"
+                >
+                  <NcMenuItem>
+                    <GeneralIcon icon="ncHelp" class="menu-icon mt-0.5" />
+                    <span class="menu-btn"> {{ $t('title.forum') }} </span>
+                  </NcMenuItem>
+                </a>
 
-              <a
-                v-e="['c:nocodb:docs-open']"
-                href="https://docs.nocodb.com"
-                target="_blank"
-                class="!underline-transparent"
-                rel="noopener"
-              >
-                <NcMenuItem>
-                  <GeneralIcon icon="file" class="menu-icon mt-0.5" />
-                  <span class="menu-btn"> {{ $t('title.docs') }} </span>
-                </NcMenuItem>
-              </a>
+                <a
+                  v-e="['c:nocodb:docs-open']"
+                  href="https://docs.nocodb.com"
+                  target="_blank"
+                  class="!underline-transparent"
+                  rel="noopener"
+                >
+                  <NcMenuItem>
+                    <GeneralIcon icon="file" class="menu-icon mt-0.5" />
+                    <span class="menu-btn"> {{ $t('title.docs') }} </span>
+                  </NcMenuItem>
+                </a>
 
-              <NcDivider />
+                <NcDivider />
+              </template>
 
               <DashboardSidebarEEMenuOption v-if="isEeUI" />
               <NcMenuItem @click="openExperimentationMenu">

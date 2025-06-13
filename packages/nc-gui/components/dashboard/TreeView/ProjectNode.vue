@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
 import { ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
-import type { BaseType, SourceType, TableType, WorkspaceUserRoles } from 'nocodb-sdk'
+import type { BaseType, SourceType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 
 interface Props {
@@ -58,13 +58,11 @@ const currentUserRole = computed(() => {
   return collaborators.value.find((coll) => coll.id === user.value?.id)?.roles as keyof typeof RoleLabels
 })
 
-const { loadProjectTables } = useTablesStore()
+const { loadProjectTables, openTableCreateDialog: _openTableCreateDialog } = useTablesStore()
 
 const { activeTable } = storeToRefs(useTablesStore())
 
 const { isUIAllowed } = useRoles()
-
-useTabs()
 
 const { meta: metaKey, control } = useMagicKeys()
 
@@ -126,7 +124,11 @@ const showBaseOption = (source: SourceType) => {
   return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
 }
 
-const enableEditMode = () => {
+const enableEditMode = (fromProjectHeader = false) => {
+  if (fromProjectHeader) {
+    isProjectNodeContextMenuOpen.value = false
+  }
+
   if (!isUIAllowed('baseRename') || isProjectNodeContextMenuOpen.value) return
 
   editMode.value = true
@@ -253,57 +255,23 @@ const setColor = async (color: string, base: BaseType) => {
   }
 }
 
-/**
- * Opens a dialog to create a new table.
- *
- * @returns {void}
- *
- * @remarks
- * This function is triggered when the user initiates the table creation process.
- * It opens a dialog for table creation, handles the dialog closure,
- * and potentially scrolls to the newly created table.
- *
- * @see {@link packages/nc-gui/components/smartsheet/topbar/TableListDropdown.vue} for a similar implementation
- * of table creation dialog. If this function is updated, consider updating the other implementation as well.
- */
 function openTableCreateDialog(sourceIndex?: number | undefined) {
-  const isOpen = ref(true)
   let sourceId = base.value!.sources?.[0].id
   if (typeof sourceIndex === 'number') {
     sourceId = base.value!.sources?.[sourceIndex].id
   }
 
-  if (!sourceId || !base.value?.id) return
-
-  const { close } = useDialog(resolveComponent('DlgTableCreate'), {
-    'modelValue': isOpen,
+  _openTableCreateDialog({
+    baseId: base.value?.id,
     sourceId,
-    'baseId': base.value!.id,
-    'onCreate': closeDialog,
-    'onUpdate:modelValue': () => closeDialog(),
+    onCloseCallback: () => {
+      base.value.isExpanded = true
+
+      if (!activeKey.value || !activeKey.value.includes(`collapse-${sourceId}`)) {
+        activeKey.value.push(`collapse-${sourceId}`)
+      }
+    },
   })
-
-  function closeDialog(table?: TableType) {
-    isOpen.value = false
-
-    if (!table) return
-
-    base.value.isExpanded = true
-
-    if (!activeKey.value || !activeKey.value.includes(`collapse-${sourceId}`)) {
-      activeKey.value.push(`collapse-${sourceId}`)
-    }
-
-    // TODO: Better way to know when the table node dom is available
-    setTimeout(() => {
-      const newTableDom = document.querySelector(`[data-table-id="${table.id}"]`)
-      if (!newTableDom) return
-
-      newTableDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    }, 1000)
-
-    close(1000)
-  }
 }
 
 const isAddNewProjectChildEntityLoading = ref(false)
@@ -314,7 +282,7 @@ async function addNewProjectChildEntity() {
   isAddNewProjectChildEntityLoading.value = true
 
   const isProjectPopulated = basesStore.isProjectPopulated(base.value.id!)
-  if (!isProjectPopulated && base.value.type === NcProjectType.DB) {
+  if (!isProjectPopulated) {
     // We do not wait for tables api, so that add new table is seamless.
     // Only con would be while saving table duplicate table name FE validation might not work
     // If the table list api takes time to load before the table name validation
@@ -323,10 +291,6 @@ async function addNewProjectChildEntity() {
 
   try {
     openTableCreateDialog()
-
-    if (!base.value.isExpanded && base.value.type !== NcProjectType.DB) {
-      base.value.isExpanded = true
-    }
   } finally {
     isAddNewProjectChildEntityLoading.value = false
   }
@@ -339,9 +303,17 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
 
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
+  if (isNewSidebarEnabled.value && !cmdOrCtrl && activeProjectId.value === base.id) {
+    showProjectList.value = false
+    return
+  }
+
   if (!toggleIsExpanded && !cmdOrCtrl) $e('c:base:open')
 
-  ignoreNavigation = isMobileMode.value || ignoreNavigation
+  if (!isNewSidebarEnabled.value) {
+    ignoreNavigation = isMobileMode.value || ignoreNavigation
+  }
+
   toggleIsExpanded = isMobileMode.value || toggleIsExpanded
 
   if (cmdOrCtrl && !ignoreNavigation) {
@@ -664,7 +636,7 @@ defineExpose({
               @click="onProjectClick(base)"
             >
               <template #title>{{ base.title }}</template>
-              <span @dblclick.stop="enableEditMode">
+              <span @dblclick.stop="enableEditMode()">
                 {{ base.title }}
               </span>
             </NcTooltip>
@@ -698,7 +670,7 @@ defineExpose({
                     <DashboardTreeViewProjectActionMenu
                       :show-base-option="(source) => showBaseOption(source)"
                       @click-menu="onClickMenu"
-                      @rename="enableEditMode"
+                      @rename="enableEditMode()"
                       @duplicate-project="duplicateProject($event)"
                       @copy-project-info="copyProjectInfo()"
                       @open-erd-view="openErdView($event)"
@@ -967,7 +939,7 @@ defineExpose({
         v-if="isProjectHeader"
         :show-base-option="(source) => showBaseOption(source)"
         @click-menu="onClickMenu"
-        @rename="enableEditMode"
+        @rename="enableEditMode(true)"
         @duplicate-project="duplicateProject($event)"
         @copy-project-info="copyProjectInfo()"
         @open-erd-view="openErdView($event)"

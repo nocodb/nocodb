@@ -9,6 +9,8 @@ const { isLoading } = toRefs(props)
 
 const { baseHomeSearchQuery } = storeToRefs(useBases())
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const { commandPalette } = useCommandPalette()
 
 const { isMobileMode } = useGlobal()
@@ -21,7 +23,7 @@ const handleClick = () => {
 </script>
 
 <template>
-  <div v-if="!isMobileMode" class="px-2 h-11 flex items-center">
+  <div v-if="!isMobileMode && !isSharedBase" class="px-2 h-11 flex items-center">
     <div class="w-full" @click="handleClick">
       <a-input
         v-model:value="baseHomeSearchQuery"

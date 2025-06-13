@@ -1,7 +1,7 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
 import { ColumnType } from '~/lib';
-import {SqlUi} from "~/lib/sqlUi/SqlUI.types";
+import { SqlUi } from '~/lib/sqlUi/SqlUI.types';
 
 const dbTypes = [
   'int',
@@ -1066,6 +1066,9 @@ export class SqliteUi implements SqlUi {
   ) {}
   isParsedJsonReturnType(_col: ColumnType): boolean {
     return false;
+  }
+  get tableNameLengthLimit(): number {
+    return 255;
   }
   //#endregion methods
 }

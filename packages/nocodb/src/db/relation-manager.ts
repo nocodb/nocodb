@@ -1,5 +1,5 @@
 import { AuditOperationSubTypes, RelationTypes, UITypes } from 'nocodb-sdk';
-import type { NcRequest } from 'nocodb-sdk';
+import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Knex } from 'knex';
@@ -48,6 +48,10 @@ export class RelationManager {
       parentBaseModel: IBaseModelSqlV2;
       childId: any;
       parentId: any;
+      parentContext: NcContext;
+      childContext: NcContext;
+      mmContext: NcContext;
+      refContext: NcContext;
     },
   ) {}
 
@@ -89,19 +93,24 @@ export class RelationManager {
       baseModel.context,
     );
 
-    const childColumn = await colOptions.getChildColumn(baseModel.context);
-    const parentColumn = await colOptions.getParentColumn(baseModel.context);
-    const parentTable = await parentColumn.getModel(baseModel.context);
-    const childTable = await childColumn.getModel(baseModel.context);
-    await childTable.getColumns(baseModel.context);
-    await parentTable.getColumns(baseModel.context);
+    const { parentContext, childContext, refContext, mmContext } =
+      await colOptions.getParentChildContext(baseModel.context);
 
-    const parentBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+    const childColumn = await colOptions.getChildColumn(childContext);
+    const parentColumn = await colOptions.getParentColumn(parentContext);
+
+    const parentTable = await parentColumn.getModel(parentContext);
+    const childTable = await childColumn.getModel(childContext);
+
+    await childTable.getColumns(childContext);
+    await parentTable.getColumns(parentContext);
+
+    const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
       model: parentTable,
       dbDriver: baseModel.dbDriver,
     });
 
-    const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+    const childBaseModel = await Model.getBaseModelSQL(childContext, {
       dbDriver: baseModel.dbDriver,
       model: childTable,
     });
@@ -127,12 +136,21 @@ export class RelationManager {
       parentId: RelationManager.isRelationReversed(column, colOptions)
         ? id.childId
         : id.rowId,
+      parentContext,
+      childContext,
+      refContext,
+      mmContext,
     });
   }
 
   async getHmOrOoChildRow() {
-    const { baseModel, childTn, childColumn, childTable, childId } =
-      this.relationContext;
+    const {
+      childBaseModel: baseModel,
+      childTn,
+      childColumn,
+      childTable,
+      childId,
+    } = this.relationContext;
     return await baseModel.execAndParse(
       baseModel
         .dbDriver(childTn)
@@ -151,7 +169,7 @@ export class RelationManager {
 
   async getHmOrOoChildLinkedWithParent() {
     const {
-      baseModel,
+      childBaseModel: baseModel,
       childTn,
       parentTn,
       childColumn,
@@ -194,6 +212,7 @@ export class RelationManager {
 
       childId,
       parentId,
+      mmContext,
     } = this.relationContext;
     const { onlyUpdateAuditLogs, req } = params;
     if (onlyUpdateAuditLogs && colOptions.type !== RelationTypes.BELONGS_TO) {
@@ -202,7 +221,6 @@ export class RelationManager {
 
     const webhookHandler = await RelationUpdateWebhookHandler.beginUpdate(
       {
-        context: baseModel.context,
         childBaseModel,
         parentBaseModel,
         user: req.user,
@@ -216,21 +234,14 @@ export class RelationManager {
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
         {
-          const vChildCol = await colOptions.getMMChildColumn(
-            baseModel.context,
-          );
-          const vParentCol = await colOptions.getMMParentColumn(
-            baseModel.context,
-          );
+          const vChildCol = await colOptions.getMMChildColumn(mmContext);
+          const vParentCol = await colOptions.getMMParentColumn(mmContext);
           const vTable = await colOptions.getMMModel(baseModel.context);
 
-          const assocBaseModel = await Model.getBaseModelSQL(
-            baseModel.context,
-            {
-              model: vTable,
-              dbDriver: baseModel.dbDriver,
-            },
-          );
+          const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+            model: vTable,
+            dbDriver: baseModel.dbDriver,
+          });
 
           const vTn = assocBaseModel.getTnPath(vTable);
 
@@ -256,7 +267,7 @@ export class RelationManager {
               { raw: true },
             );
           } else {
-            await baseModel.execAndParse(
+            await assocBaseModel.execAndParse(
               baseModel.dbDriver(vTn).insert({
                 [vParentCol.column_name]: baseModel
                   .dbDriver(parentTn)
@@ -274,13 +285,13 @@ export class RelationManager {
             );
           }
 
-          await baseModel.updateLastModified({
+          await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
           });
-          await baseModel.updateLastModified({
+          await childBaseModel.updateLastModified({
             baseModel: childBaseModel,
             model: childTable,
             rowIds: [childId],
@@ -323,7 +334,7 @@ export class RelationManager {
               direction: 'child_parent',
               type: getOppositeRelationType(colOptions.type),
             });
-            await baseModel.updateLastModified({
+            await parentBaseModel.updateLastModified({
               baseModel: parentBaseModel,
               model: parentTable,
               rowIds: [oldRowId],
@@ -331,7 +342,7 @@ export class RelationManager {
             });
           }
 
-          await baseModel.execAndParse(
+          await childBaseModel.execAndParse(
             baseModel
               .dbDriver(childTn)
               .update({
@@ -350,13 +361,14 @@ export class RelationManager {
           );
           // await triggerAfterRemoveChild();
 
-          await baseModel.updateLastModified({
+          await childBaseModel.updateLastModified({
             baseModel: childBaseModel,
             model: childTable,
             rowIds: [childId],
             cookie: req,
           });
-          await baseModel.updateLastModified({
+
+          await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
@@ -398,7 +410,7 @@ export class RelationManager {
               direction: 'child_parent',
               type: getOppositeRelationType(colOptions.type),
             });
-            await baseModel.updateLastModified({
+            await parentBaseModel.updateLastModified({
               baseModel: parentBaseModel,
               model: parentTable,
               rowIds: [oldParentRowId],
@@ -406,8 +418,8 @@ export class RelationManager {
             });
           }
 
-          await baseModel.execAndParse(
-            baseModel
+          await childBaseModel.execAndParse(
+            childBaseModel
               .dbDriver(childTn)
               .update({
                 [childColumn.column_name]: baseModel.dbDriver.from(
@@ -425,14 +437,14 @@ export class RelationManager {
           );
 
           // await triggerAfterRemoveChild();
-
-          await baseModel.updateLastModified({
+          await childBaseModel.updateLastModified({
             baseModel: childBaseModel,
             model: childTable,
             rowIds: [childId],
             cookie: req,
           });
-          await baseModel.updateLastModified({
+
+          await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
@@ -479,7 +491,7 @@ export class RelationManager {
                 direction: 'child_parent',
                 type: getOppositeRelationType(colOptions.type),
               });
-              await baseModel.updateLastModified({
+              await childBaseModel.updateLastModified({
                 baseModel: childBaseModel,
                 model: childTable,
                 rowIds: [oldChildRowId],
@@ -521,7 +533,7 @@ export class RelationManager {
               direction: 'child_parent',
               type: getOppositeRelationType(colOptions.type),
             });
-            await baseModel.updateLastModified({
+            await parentBaseModel.updateLastModified({
               baseModel: parentBaseModel,
               model: parentTable,
               rowIds: [oldRowId],
@@ -530,7 +542,7 @@ export class RelationManager {
           }
           // todo: unlink if it's already mapped
           // unlink already mapped record if any
-          await baseModel.execAndParse(
+          await childBaseModel.execAndParse(
             baseModel
               .dbDriver(childTn)
               .where({
@@ -548,7 +560,7 @@ export class RelationManager {
             { raw: true },
           );
 
-          await baseModel.execAndParse(
+          await childBaseModel.execAndParse(
             baseModel
               .dbDriver(childTn)
               .update({
@@ -566,13 +578,13 @@ export class RelationManager {
             { raw: true },
           );
 
-          await baseModel.updateLastModified({
+          await childBaseModel.updateLastModified({
             baseModel: childBaseModel,
             model: childTable,
             rowIds: [childId],
             cookie: req,
           });
-          await baseModel.updateLastModified({
+          await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: parentId,
@@ -616,12 +628,12 @@ export class RelationManager {
 
       childId,
       parentId,
+      mmContext,
     } = this.relationContext;
     const { req } = params;
 
     const webhookHandler = await RelationUpdateWebhookHandler.beginUpdate(
       {
-        context: baseModel.context,
         childBaseModel,
         parentBaseModel,
         user: req.user,
@@ -636,23 +648,16 @@ export class RelationManager {
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
         {
-          const vChildCol = await colOptions.getMMChildColumn(
-            baseModel.context,
-          );
-          const vParentCol = await colOptions.getMMParentColumn(
-            baseModel.context,
-          );
-          const vTable = await colOptions.getMMModel(baseModel.context);
-          const assocBaseModel = await Model.getBaseModelSQL(
-            baseModel.context,
-            {
-              model: vTable,
-              dbDriver: baseModel.dbDriver,
-            },
-          );
+          const vChildCol = await colOptions.getMMChildColumn(mmContext);
+          const vParentCol = await colOptions.getMMParentColumn(mmContext);
+          const vTable = await colOptions.getMMModel(mmContext);
+          const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+            model: vTable,
+            dbDriver: baseModel.dbDriver,
+          });
           const vTn = assocBaseModel.getTnPath(vTable);
 
-          await baseModel.execAndParse(
+          await assocBaseModel.execAndParse(
             baseModel
               .dbDriver(vTn)
               .where({
@@ -672,13 +677,13 @@ export class RelationManager {
             { raw: true },
           );
 
-          await baseModel.updateLastModified({
+          await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
           });
-          await baseModel.updateLastModified({
+          await childBaseModel.updateLastModified({
             baseModel: childBaseModel,
             model: childTable,
             rowIds: [childId],
@@ -688,7 +693,7 @@ export class RelationManager {
         break;
       case RelationTypes.HAS_MANY:
         {
-          await baseModel.execAndParse(
+          await childBaseModel.execAndParse(
             baseModel
               .dbDriver(childTn)
               // .where({
@@ -702,14 +707,13 @@ export class RelationManager {
             null,
             { raw: true },
           );
-
-          await baseModel.updateLastModified({
+          await childBaseModel.updateLastModified({
             baseModel: childBaseModel,
             model: childTable,
             rowIds: [childId],
             cookie: req,
           });
-          await baseModel.updateLastModified({
+          await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
@@ -719,7 +723,7 @@ export class RelationManager {
         break;
       case RelationTypes.BELONGS_TO:
         {
-          await baseModel.execAndParse(
+          await childBaseModel.execAndParse(
             baseModel
               .dbDriver(childTn)
               // .where({
@@ -734,13 +738,13 @@ export class RelationManager {
             { raw: true },
           );
 
-          await baseModel.updateLastModified({
+          await childBaseModel.updateLastModified({
             baseModel: childBaseModel,
             model: childTable,
             rowIds: [childId],
             cookie: req,
           });
-          await baseModel.updateLastModified({
+          await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [childId],
@@ -750,7 +754,7 @@ export class RelationManager {
         break;
       case RelationTypes.ONE_TO_ONE:
         {
-          await baseModel.execAndParse(
+          await childBaseModel.execAndParse(
             baseModel
               .dbDriver(childTn)
               .where(_wherePk(childTable.primaryKeys, childId))
@@ -759,13 +763,13 @@ export class RelationManager {
             { raw: true },
           );
 
-          await baseModel.updateLastModified({
+          await childBaseModel.updateLastModified({
             baseModel: childBaseModel,
             model: childTable,
             rowIds: [childId],
             cookie: req,
           });
-          await baseModel.updateLastModified({
+          await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [childId],

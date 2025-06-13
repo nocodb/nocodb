@@ -3,7 +3,6 @@ import tinycolor from 'tinycolor2'
 
 const props = withDefaults(
   defineProps<{
-    type?: string
     hoverable?: boolean
     color?: string
   }>(),

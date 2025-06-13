@@ -272,18 +272,25 @@ onUnmounted(() => {
         <slot name="message">{{ message }}</slot>
       </div>
 
-      <div
+      <NcTooltip
         v-if="description || $slots.description"
-        class="nc-alert-description"
-        :class="[
-          descriptionClass,
-          {
-            'nc-only-description': isDescriptionAvailable && !isMessageAvailable,
-          },
-        ]"
+        :title="description"
+        :line-clamp="isNotification ? 2 : 3"
+        show-on-truncate-only
+        :disabled="!description"
       >
-        <slot name="description">{{ description }}</slot>
-      </div>
+        <div
+          class="nc-alert-description"
+          :class="[
+            descriptionClass,
+            {
+              'nc-only-description': isDescriptionAvailable && !isMessageAvailable,
+            },
+          ]"
+        >
+          <slot name="description">{{ description }}</slot>
+        </div>
+      </NcTooltip>
     </div>
 
     <div v-if="$slots.action || copyText || closable" class="nc-alert-action">
@@ -437,7 +444,7 @@ onUnmounted(() => {
         }
 
         &:has(.nc-alert-type-toast) {
-          @apply py-2.5 px-3 bg-gray-700;
+          @apply py-2.5 px-3 bg-gray-700 border-gray-700;
 
           .nc-alert-description {
             @apply text-white;

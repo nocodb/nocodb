@@ -212,6 +212,7 @@ useEventListener(el, 'focusPromptWithFields', () => {
       @keydown="$emit('keydown', $event)"
       @keydown.alt.enter.stop
       @keydown.shift.enter.stop
+      @keydown.esc="handleOnEscRichTextEditor"
     />
 
     <NcButton

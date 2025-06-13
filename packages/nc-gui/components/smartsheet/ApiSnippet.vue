@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import HTTPSnippet from 'httpsnippet'
+import { HTTPSnippet } from '@readme/httpsnippet'
 
 const props = defineProps<{
   modelValue: boolean
@@ -85,7 +85,7 @@ const snippet = computed(
           value: String(value),
         }
       }),
-    }),
+    } as any),
 )
 
 const activeLang = computed(() => langs.find((lang) => lang.name === selectedLangName.value))
@@ -112,11 +112,16 @@ api.dbViewRow.list(
     `
   }
 
-  return snippet.value.convert(
+  const result = snippet.value.convert(
     activeLang.value?.name,
     selectedClient.value || (activeLang.value?.clients && activeLang.value?.clients[0]),
-    {},
+    { indent: '\t' },
   )
+
+  if (result && result[0]) {
+    return result[0]
+  }
+  return ''
 })
 
 const onCopyToClipboard = async () => {
@@ -151,7 +156,7 @@ watch(activeLang, (newLang) => {
       <!--      Code Snippet -->
       <a-typography-title :level="4" class="pb-1">{{ $t('title.codeSnippet') }}</a-typography-title>
 
-      <a-tabs v-model:activeKey="selectedLangName" class="!h-full">
+      <a-tabs v-model:active-key="selectedLangName" class="!h-full">
         <a-tab-pane v-for="item in langs" :key="item.name" class="!h-full">
           <template #tab>
             <div class="uppercase !text-xs select-none">

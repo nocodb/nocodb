@@ -1,4 +1,5 @@
 import {
+  ButtonActionsType,
   checkboxIconList,
   durationOptions,
   ratingIconList,
@@ -30,7 +31,7 @@ export function transformFieldConfig(field: Field): Field {
       newField.options = {
         ...newField.options,
         rich_text: metaObj.richMode || false,
-        generate_text_using_ai: metaObj.ai || false,
+        ai: metaObj.ai || false,
       };
       break;
 
@@ -46,7 +47,7 @@ export function transformFieldConfig(field: Field): Field {
     case UITypes.Number:
       newField.options = {
         ...newField.options,
-        thousands_separator: metaObj.isLocaleString || false,
+        locale_string: metaObj.isLocaleString || false,
       };
       break;
 
@@ -55,7 +56,7 @@ export function transformFieldConfig(field: Field): Field {
       newField.options = {
         ...newField.options,
         precision: metaObj.precision || 1,
-        thousands_separator: metaObj.isLocaleString || false,
+        locale_string: metaObj.isLocaleString || false,
       };
       break;
     case UITypes.Currency:
@@ -158,6 +159,15 @@ export function transformFieldConfig(field: Field): Field {
         };
       }
       break;
+    case UITypes.Button: {
+      if (newField.options.type === ButtonActionsType.Ai) {
+        newField.options = {
+          ...newField.options,
+          prompt: newField.options.formula || '',
+        };
+      }
+      break;
+    }
     case UITypes.Links:
     case UITypes.LinkToAnotherRecord:
       newField.options = {

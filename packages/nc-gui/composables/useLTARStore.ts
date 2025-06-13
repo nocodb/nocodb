@@ -3,9 +3,12 @@ import {
   RelationTypes,
   UITypes,
   dateFormats,
+  hideExtraFieldsMetaKey,
   isDateOrDateTimeCol,
   isLinksOrLTAR,
   isSystemColumn,
+  isVirtualCol,
+  ncIsNaN,
   parseStringDateTime,
   timeFormats,
 } from 'nocodb-sdk'
@@ -36,6 +39,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const { metas, getMeta } = useMetas()
 
     const { base } = storeToRefs(useBase())
+
+    const { getBaseRoles } = useBases()
 
     const { $api, $e } = useNuxtApp()
 
@@ -118,7 +123,19 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return metas.value?.[colOptions.value?.fk_related_model_id as string]
     })
 
+    const { sqlUis } = storeToRefs(useBase())
+
+    const sqlUi = computed(() =>
+      (relatedTableMeta.value as TableType)?.source_id
+        ? sqlUis.value[(relatedTableMeta.value as TableType).source_id!]
+        : Object.values(sqlUis.value)[0],
+    )
+
     const rowId = computed(() => extractPkFromRow(currentRow.value.row, meta.value.columns))
+
+    const showExtraFields = computed(() => {
+      return !isForm.value || !parseProp(column.value?.meta)?.[hideExtraFieldsMetaKey]
+    })
 
     const getRelatedTableRowId = (row: Record<string, any>) => {
       return extractPkFromRow(row, relatedTableMeta.value?.columns)
@@ -226,6 +243,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       )
     })
 
+    // extract external base roles if cross base link
+    const externalBaseUserRoles = computedAsync(async () => {
+      if (base.value?.id && base.value?.id === relatedTableMeta.value?.base_id) return
+
+      return await getBaseRoles(relatedTableMeta.value?.base_id, {
+        skipUpdatingUser: true,
+      })
+    })
+
     /**
      * Extract only primary key(pk) and primary value(pv) column data
      */
@@ -314,6 +340,42 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return sanitizedRow
     }
 
+    const getWhereClause = (searchQuery?: string) => {
+      if (!searchQuery) return
+
+      const fieldQuery = [
+        ...(relatedTableDisplayValueColumn.value ? [relatedTableDisplayValueColumn.value] : []),
+        ...(fields.value || []),
+      ]
+        .filter((col) => {
+          return !isVirtualCol(col)
+        })
+        .map((field: ColumnType): string => {
+          let operator = 'like'
+          let query = searchQuery.trim()
+
+          if (isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) && isDateOrDateTimeCol(field)) {
+            operator = 'eq,exactDate'
+          } else if (sqlUi.value && ['text', 'string'].includes(sqlUi.value.getAbstractType(field)) && field.dt !== 'bigint') {
+            operator = 'like'
+            if (!query) return ''
+
+            query = `%${query}%`
+          } else {
+            operator = 'eq'
+            query = !ncIsNaN(query) ? query : ''
+          }
+
+          if (!query) return ''
+
+          return `(${field.title},${operator},${query})`
+        })
+        .filter(Boolean)
+        .join('~or')
+
+      return fieldQuery
+    }
+
     const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
       if (activeState) newRowState.state = activeState
       try {
@@ -326,11 +388,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           childrenExcludedListPagination.page = 1
         }
         isChildrenExcludedLoading.value = true
-        const where = childrenExcludedListPagination.query
-          ? `(${relatedTableDisplayValueProp.value},${
-              isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq,exactDate' : 'like'
-            },${childrenExcludedListPagination.query})`
-          : undefined
+        const where = getWhereClause(childrenExcludedListPagination.query)
 
         if (isPublic.value) {
           const router = useRouter()
@@ -370,7 +428,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
           childrenExcludedList.value = await $api.dbTableRow.list(
             NOCO,
-            baseId,
+            relatedTableMeta?.value?.base_id ?? baseId,
             relatedTableMeta?.value?.id as string,
             {
               limit: childrenExcludedListPagination.size,
@@ -401,7 +459,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
           childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
             NOCO,
-            baseId,
+            meta.value.base_id ?? baseId,
             meta.value.id,
             encodeURIComponent(rowId.value),
             colOptions.value.type as RelationTypes,
@@ -495,15 +553,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             },
           }
         } else {
-          let where: string | undefined
-
-          if (childrenListPagination.query) {
-            where = childrenListPagination.query
-              ? `(${relatedTableDisplayValueProp.value},${
-                  isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) ? 'eq,exactDate' : 'like'
-                },${childrenListPagination.query})`
-              : undefined
-          }
+          const where = getWhereClause(childrenListPagination.query)
 
           if (isPublic.value) {
             childrenList.value = await $api.public.dataNestedList(
@@ -525,7 +575,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           } else {
             childrenList.value = await $api.dbTableRow.nestedList(
               NOCO,
-              (base?.value?.id || (sharedView.value?.view as any)?.base_id) as string,
+              meta.value?.base_id ?? ((base?.value?.id || (sharedView.value?.view as any)?.base_id) as string),
               meta.value.id,
               encodeURIComponent(rowId.value),
               colOptions.value.type as RelationTypes,
@@ -563,7 +613,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           try {
             const res: { message?: string[] } | number = await $api.dbTableRow.delete(
               NOCO,
-              baseId,
+              relatedTableMeta.value?.base_id ?? baseId,
               relatedTableMeta.value.id as string,
               encodeURIComponent(id as string),
             )
@@ -622,7 +672,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLoading.value[index] = true
         await $api.dbTableRow.nestedRemove(
           NOCO,
-          base.value.id as string,
+          metaValue?.base_id ?? (base.value.id as string),
           metaValue.id!,
           encodeURIComponent(rowId.value),
           colOptions.value.type as RelationTypes,
@@ -693,7 +743,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
         await $api.dbTableRow.nestedAdd(
           NOCO,
-          base.value.id as string,
+          metaValue?.base_id ?? (base.value.id as string),
           metaValue.id as string,
           encodeURIComponent(rowId.value),
           colOptions.value.type as RelationTypes,
@@ -824,6 +874,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       attachmentCol,
       fields,
       refreshCurrentRow,
+      externalBaseUserRoles,
+      showExtraFields,
     }
   },
   'ltar-store',

@@ -36,7 +36,7 @@ const dataExporterRef = ref<HTMLDivElement>()
 const { width } = useElementSize(dataExporterRef)
 
 const exportedFiles = computed(() => {
-  return jobList.value
+  const list = jobList.value
     .filter(
       (job) =>
         (job.job === 'data-export' || job.name === 'data-export') &&
@@ -58,6 +58,12 @@ const exportedFiles = computed(() => {
       }
     })
     .sort((a, b) => dayjs(b.created_at).unix() - dayjs(a.created_at).unix())
+
+  if (fullscreen.value) {
+    return list
+  }
+
+  return list.slice(0, 1)
 })
 
 const exportPayload = ref<{
@@ -140,7 +146,7 @@ async function exportDataAsync() {
       delimiter: exportPayload.value.delimiter,
       encoding: exportPayload.value.encoding,
     })
-    jobList.value.unshift(jobData)
+    jobList.value.unshift({ ...jobData, name: 'data-export' })
 
     $poller.subscribe(
       { id: jobData.id },
@@ -158,7 +164,7 @@ async function exportDataAsync() {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
             // Export completed successfully
-            message.info('Successfully exported data!')
+            message.toast('Successfully exported data!')
 
             const job = jobList.value.find((j) => j.id === data.id)
             if (job) {
@@ -272,17 +278,15 @@ onMounted(async () => {
 </script>
 
 <template>
-  <ExtensionsExtensionWrapper :style="fullscreen ? {} : { height: exportedFiles.length ? '130px' : '100%' }">
+  <ExtensionsExtensionWrapper
+    :style="fullscreen ? {} : { height: exportedFiles.length ? (width <= 325 ? '172px' : '130px') : '100%' }"
+  >
     <template v-if="fullscreen" #headerExtra>
       <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
         <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>
-        <NcButton
-          :disabled="!exportPayload?.viewId || isExporting"
-          :loading="isExporting"
-          size="small"
-          @click="exportDataAsync"
-          >{{ isExporting ? 'Generating' : 'Export' }}</NcButton
-        >
+        <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="small" @click="exportDataAsync">{{
+          isExporting ? 'Generating' : 'Export'
+        }}</NcButton>
       </NcTooltip>
     </template>
     <div
@@ -386,13 +390,9 @@ onMounted(async () => {
           <div class="flex-none flex justify-end">
             <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
               <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>
-              <NcButton
-                :disabled="!exportPayload?.viewId || isExporting"
-                :loading="isExporting"
-                size="small"
-                @click="exportDataAsync"
-                >{{ isExporting ? 'Generating' : 'Export' }}</NcButton
-              >
+              <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="small" @click="exportDataAsync">{{
+                isExporting ? 'Generating' : 'Export'
+              }}</NcButton>
             </NcTooltip>
           </div>
         </div>
@@ -537,7 +537,7 @@ onMounted(async () => {
         <div class="flex flex-col flex-1 nc-scrollbar-thin">
           <div v-if="fullscreen" class="data-exporter-header sticky top-0 z-100">Recent Exports</div>
           <div v-if="exportedFiles.length" class="flex-1 flex flex-col max-h-[calc(100%_-_25px)]">
-            <template v-for="exp of exportedFiles.slice(0, fullscreen ? undefined : 1)">
+            <template v-for="exp of exportedFiles">
               <div
                 v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"
                 :key="exp.id"

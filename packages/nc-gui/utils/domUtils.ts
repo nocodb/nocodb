@@ -41,4 +41,25 @@ const waitForScrollEnd = (element: HTMLElement | Window = window) => {
   })
 }
 
-export { isElementInvisible, waitForScrollEnd }
+function isScrollbarAlwaysVisible() {
+  const testElement = document.createElement('div')
+  testElement.style.width = '100px'
+  testElement.style.height = '100px'
+  testElement.style.overflow = 'scroll'
+  testElement.style.position = 'absolute'
+  testElement.style.top = '-9999px'
+
+  // Add to DOM temporarily
+  document.body.appendChild(testElement)
+
+  // Check if scrollbar width exists when not hovering/scrolling
+  const scrollbarWidth = testElement.offsetWidth - testElement.clientWidth
+
+  // Clean up
+  document.body.removeChild(testElement)
+
+  // If scrollbar width > 0, scrollbars are likely always visible
+  return scrollbarWidth > 0
+}
+
+export { isElementInvisible, waitForScrollEnd, isScrollbarAlwaysVisible }

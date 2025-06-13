@@ -28,6 +28,18 @@ export class JobsService implements OnModuleInit {
       await this.jobsQueue.pause(true);
     }
 
+    await this.jobsQueue.add(
+      {
+        jobName: JobTypes.DataExportCleanUp,
+        context: {},
+      },
+      {
+        jobId: JobTypes.DataExportCleanUp,
+        // run every 5 hours
+        repeat: { cron: '0 */5 * * *' },
+      },
+    );
+
     await this.toggleQueue();
 
     JobsRedis.workerCallbacks[InstanceCommands.RESUME_LOCAL] = async () => {

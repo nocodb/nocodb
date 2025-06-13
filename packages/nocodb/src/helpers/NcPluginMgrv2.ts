@@ -176,7 +176,8 @@ class NcPluginMgrv2 {
           password: process.env.NC_SMTP_PASSWORD,
           secure: process.env.NC_SMTP_SECURE === 'true',
           ignoreTLS: process.env.NC_SMTP_IGNORE_TLS === 'true',
-          rejectUnauthorized: process.env.NC_SMTP_REJECT_UNAUTHORIZED === 'true',
+          rejectUnauthorized:
+            process.env.NC_SMTP_REJECT_UNAUTHORIZED === 'true',
         }),
       });
     }

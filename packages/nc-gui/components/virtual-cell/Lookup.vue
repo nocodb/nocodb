@@ -541,6 +541,19 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
     height: auto !important;
   }
 
+  .nc-cell-checkbox {
+    @apply children:pl-0;
+    & > div {
+      @apply !h-auto;
+    }
+  }
+
+  .nc-cell-url {
+    a {
+      @apply !py-0;
+    }
+  }
+
   .nc-attachment-image {
     @apply !hover:cursor-pointer;
   }

@@ -205,7 +205,7 @@ const onClick = (e: Event) => {
       <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
       <GeneralIcon
-        v-if="isExpandedForm && !isExpandedBulkUpdateForm && !isMobileMode && isUIAllowed('fieldEdit')"
+        v-if="isExpandedForm && !isExpandedBulkUpdateForm && !isMobileMode && isUIAllowed('fieldEdit') && !hideMenu"
         icon="arrowDown"
         class="nc-column-context-menu flex-none cursor-pointer ml-1 group-hover:visible w-4 h-4"
         :class="{
@@ -226,7 +226,7 @@ const onClick = (e: Event) => {
       <div v-if="!isExpandedForm && meta?.synced && column.readonly">
         <NcTooltip class="flex items-center" placement="bottom">
           <template #title> This field is synced </template>
-          <GeneralIcon icon="sync" class="flex-none !w-4 !h-4 !text-gray-500" />
+          <GeneralIcon icon="ncZap" class="flex-none !w-4 !h-4 !text-gray-500" />
         </NcTooltip>
       </div>
       <LazySmartsheetHeaderMenu

@@ -1,3 +1,4 @@
+import { ColumnType } from '../Api';
 import { ncIsString } from '../is';
 import UITypes from '../UITypes';
 import AbstractColumnHelper, {
@@ -144,6 +145,20 @@ export class ColumnHelperClass {
     if (columnInstance) {
       return columnInstance.serializeValue(value, params);
     }
+  }
+
+  populateFillHandle(params: {
+    column: ColumnType;
+    highlightedData: any[];
+    numberOfRows: number;
+  }) {
+    const columnInstance = this.getColumn({
+      col: params.column,
+    });
+    if (columnInstance) {
+      return columnInstance.populateFillHandle(params);
+    }
+    return undefined;
   }
 }
 

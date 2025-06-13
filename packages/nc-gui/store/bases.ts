@@ -2,6 +2,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { BaseType, OracleUi, ProjectUserReqType, RequestParams, SourceType } from 'nocodb-sdk'
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
+import type Record from '~icons/*'
 
 // todo: merge with base store
 export const useBases = defineStore('basesStore', () => {
@@ -12,6 +13,8 @@ export const useBases = defineStore('basesStore', () => {
   const { loadRoles } = useRoles()
 
   const { isUIAllowed } = useRoles()
+
+  const baseRoles = ref<Record<string, any>>({})
 
   const bases = ref<Map<string, NcProject>>(new Map())
 
@@ -141,6 +144,8 @@ export const useBases = defineStore('basesStore', () => {
           return router.push('/error/404')
         }
         throw e
+      } finally {
+        isProjectsLoaded.value = true
       }
     }
 
@@ -174,9 +179,9 @@ export const useBases = defineStore('basesStore', () => {
       await updateIfBaseOrderIsNullOrDuplicate()
 
       return _projects
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
-      message.error(e.message)
+      message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       isProjectsLoading.value = false
       isProjectsLoaded.value = true
@@ -265,7 +270,6 @@ export const useBases = defineStore('basesStore', () => {
   const createProject = async (basePayload: {
     title: string
     workspaceId?: string
-    type: string
     linkedDbProjectIds?: string[]
     meta?: Record<string, unknown>
   }) => {
@@ -399,13 +403,15 @@ export const useBases = defineStore('basesStore', () => {
    * Will have to show base home page sidebar if any base/table/view/script is active
    */
   watch(
-    [() => route.value.params.baseId, () => route.value.params.viewId, () => route.value.params.viewTitle],
-    ([newBaseId, newTableId, newViewId], [oldBaseId, oldTableId, oldViewId]) => {
-      const shouldShowProjectList = !(
-        (newBaseId && newBaseId !== oldBaseId) ||
-        newTableId !== oldTableId ||
-        newViewId !== oldViewId
-      )
+    [
+      () => route.value.params.baseId,
+      () => route.value.params.viewId,
+      () => route.value.params.viewTitle,
+      () => basesList.value.length,
+    ],
+    ([newBaseId, newTableId, newViewId, newBasesListLength], [oldBaseId, oldTableId, oldViewId]) => {
+      const shouldShowProjectList =
+        !newBasesListLength || !((newBaseId && newBaseId !== oldBaseId) || newTableId !== oldTableId || newViewId !== oldViewId)
 
       if (!showProjectList.value && shouldShowProjectList) {
         showProjectList.value = shouldShowProjectList
@@ -419,6 +425,10 @@ export const useBases = defineStore('basesStore', () => {
   watch(activeProjectId, () => {
     ncLastVisitedBase().set(activeProjectId.value)
   })
+
+  const getBaseRoles = async (_baseId: string) => {
+    // this is a placeholder function
+  }
 
   return {
     bases,
@@ -452,6 +462,8 @@ export const useBases = defineStore('basesStore', () => {
     isDataSourceLimitReached,
     showProjectList,
     baseHomeSearchQuery,
+    getBaseRoles,
+    baseRoles,
   }
 })
 

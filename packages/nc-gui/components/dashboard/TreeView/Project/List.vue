@@ -35,8 +35,6 @@ const { loadTables } = baseStore
 
 const { isSharedBase, base } = storeToRefs(baseStore)
 
-const { updateTab } = useTabs()
-
 const tablesStore = useTablesStore()
 
 const { loadProjectTables } = tablesStore
@@ -72,7 +70,14 @@ watch(
     clearTimeout(stopTimerId)
 
     if (ncIsEmptyObject(route.value.params)) {
-      stopLoading.value = false
+      if (isProjectsLoaded.value && !basesList.value.length) {
+        stopLoading.value = true
+        showProjectList.value = true
+
+        return
+      } else {
+        stopLoading.value = false
+      }
     } else {
       stopLoading.value = true
       return
@@ -83,8 +88,8 @@ watch(
       clearTimeout(stopTimerId)
 
       // If their is no active project then show base list
-      if (showProjectList.value && (!activeProjectId.value || !openedBase.value?.id)) {
-        showProjectList.value = false
+      if (!showProjectList.value && (!activeProjectId.value || !openedBase.value?.id)) {
+        showProjectList.value = true
       }
     }, 5000)
   },
@@ -206,9 +211,6 @@ async function handleTableRename(
     // update metas
     const newMeta = await $api.dbTable.read(table.id as string)
     await setMeta(newMeta)
-
-    updateTab({ id: table.id }, { title: newMeta.title })
-
     refreshCommandPalette()
 
     $e('a:table:rename')
@@ -418,19 +420,18 @@ watch([searchInputRef, showProjectList], () => {
   })
 })
 
-watch(
-  isProjectsLoaded,
-  () => {
-    if (isProjectsLoaded.value) {
-      transitionName.value = showProjectList.value ? 'slide-left' : 'slide-right'
-    } else {
-      transitionName.value = undefined
-    }
-  },
-  {
-    immediate: true,
-  },
-)
+watch(isProjectsLoaded, () => {
+  if (isProjectsLoaded.value && basesList.value.length) {
+    transitionName.value = showProjectList.value ? 'slide-left' : 'slide-right'
+  } else {
+    transitionName.value = undefined
+  }
+
+  if (isProjectsLoaded.value && !basesList.value.length) {
+    stopLoading.value = true
+    showProjectList.value = true
+  }
+})
 </script>
 
 <template>
@@ -489,21 +490,28 @@ watch(
               <div v-else class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No Bases</div>
             </div>
           </div>
-          <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
         </div>
       </Transition>
       <!-- Slide in Project Home -->
       <Transition name="layout" mode="out-in" :duration="400" appear>
-        <div v-if="!showProjectList" key="project-home" class="absolute w-full h-full top-0 left-0 z-5 flex flex-col">
-          <ProjectWrapper v-if="activeProjectId && openedBase?.id" :base-role="openedBase?.project_role" :base="openedBase">
-            <DashboardTreeViewProjectHome>
-              <template #footer>
-                <slot name="footer"></slot>
-              </template>
-            </DashboardTreeViewProjectHome>
-          </ProjectWrapper>
-        </div>
+        <template v-if="!showProjectList">
+          <div
+            v-if="activeProjectId && openedBase?.id && !openedBase.isLoading"
+            key="project-home"
+            class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
+          >
+            <ProjectWrapper :base-role="openedBase?.project_role" :base="openedBase">
+              <DashboardTreeViewProjectHome>
+                <template #footer>
+                  <slot name="footer"></slot>
+                </template>
+              </DashboardTreeViewProjectHome>
+            </ProjectWrapper>
+          </div>
+          <DashboardTreeViewProjectListSkeleton v-else />
+        </template>
       </Transition>
+      <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
     </template>
   </div>
 </template>
@@ -557,5 +565,9 @@ watch(
 }
 .ghost {
   @apply bg-primary-selected;
+}
+
+:deep(.nc-sidebar-create-base-btn.nc-button.ant-btn-text.theme-default) {
+  @apply hover:bg-brand-50 pl-[15px];
 }
 </style>

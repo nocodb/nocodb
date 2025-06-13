@@ -1,4 +1,4 @@
-import type { FormDefinition, IntegrationsType } from 'nocodb-sdk'
+import type { FormDefinition, IntegrationsType, SyncCategory } from 'nocodb-sdk'
 import type { VNode } from '@vue/runtime-dom'
 import type { CSSProperties, FunctionalComponent, SVGAttributes } from 'nuxt/dist/app/compat/capi'
 import { ClientType, IntegrationCategoryType, SyncDataType } from '#imports'
@@ -16,6 +16,7 @@ export interface IntegrationItemType {
   dynamic?: boolean
   hidden?: boolean
   form?: FormDefinition
+  sync_category?: SyncCategory
 }
 
 export interface IntegrationCategoryItemType {
@@ -152,12 +153,6 @@ export const allIntegrations: IntegrationItemType[] = [
     title: 'objects.syncData.dataBricks',
     sub_type: ClientType.DATABRICKS,
     icon: iconMap.dataBricks,
-    type: IntegrationCategoryType.DATABASE,
-  },
-  {
-    title: 'objects.syncData.mssqlServer',
-    sub_type: ClientType.MSSQL,
-    icon: iconMap.mssqlServer,
     type: IntegrationCategoryType.DATABASE,
   },
   {

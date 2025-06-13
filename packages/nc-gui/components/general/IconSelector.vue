@@ -324,6 +324,7 @@ watch(isOpen, (newValue) => {
                     <CellAttachmentPreviewImage
                       :srcs="getWorkspaceLogoSrc"
                       class="flex-none !object-contain max-h-full max-w-full !m-0 rounded-lg"
+                      :is-cell-preview="false"
                     />
                   </div>
                   <div class="flex-1 w-[calc(100%_-_108px)]">

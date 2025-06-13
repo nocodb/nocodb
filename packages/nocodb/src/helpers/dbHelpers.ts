@@ -35,6 +35,11 @@ import {
 import { excludeAttachmentProps } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
+export type QueryWithCte = {
+  builder: string | Knex.QueryBuilder;
+  applyCte: (qb: Knex.QueryBuilder) => void;
+};
+
 export function concatKnexRaw(knex: CustomKnex, raws: Knex.Raw[]) {
   return knex.raw(raws.map(() => '?').join(' '), raws);
 }
@@ -399,12 +404,14 @@ export function shouldSkipField(
   view,
   column,
   extractPkAndPv,
+  pkAndPvOnly = false,
 ) {
-  if (fieldsSet) {
+  if (fieldsSet && !pkAndPvOnly) {
     return !fieldsSet.has(column.title);
   } else {
-    if (column.system && isCreatedOrLastModifiedByCol(column)) return true;
-    if (column.system && isOrderCol(column)) return true;
+    if (!pkAndPvOnly && column.system && isCreatedOrLastModifiedByCol(column))
+      return true;
+    if (!pkAndPvOnly && column.system && isOrderCol(column)) return true;
     if (!extractPkAndPv) {
       if (!(viewOrTableColumn instanceof Column)) {
         if (
@@ -579,3 +586,49 @@ export const validateFuncOnColumn = async ({
     }
   }
 };
+
+export const isFilterValueConsistOf = (
+  filterValue: any,
+  needle: string,
+  option?: {
+    replace?: string;
+  },
+) => {
+  const evalNeedle = needle.toLowerCase().trim();
+  if (Array.isArray(filterValue)) {
+    const result = filterValue.find(
+      (k) => k.toLowerCase().trim() === evalNeedle,
+    );
+    if (result && option?.replace) {
+      filterValue.map((k) => k.replace(evalNeedle, option.replace));
+    }
+    return { exists: result, value: filterValue };
+  } else if (typeof filterValue === 'string') {
+    const result = filterValue
+      .split(',')
+      .find((k) => k.toLowerCase().trim() === evalNeedle);
+    if (result && option?.replace) {
+      filterValue = filterValue
+        .split(',')
+        .map((k) => k.replace(evalNeedle, option.replace))
+        .join(',');
+    }
+    return { exists: result, value: filterValue };
+  }
+  return { exists: false };
+};
+
+export function generateRecursiveCTE(_params: {
+  knex: CustomKnex;
+  idColumnName: string;
+  linkIdColumnName: string;
+  selectingColumnName: string;
+  cteTableName: string;
+  // sourceTable can be a subquery, another CTE, or physical table
+  sourceTable: string | Knex.QueryInterface | Knex.Raw;
+  tableAlias?: string;
+  direction?: 'id_to_link' | 'link_to_id';
+  qb: Knex.QueryBuilder;
+}) {
+  return false;
+}

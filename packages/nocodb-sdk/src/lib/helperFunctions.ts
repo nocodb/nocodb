@@ -1,7 +1,12 @@
-import UITypes, { isNumericCol } from './UITypes';
-import { RolesObj, RolesType } from './globals';
+import UITypes, { isLinksOrLTAR, isNumericCol } from './UITypes';
+import { RelationTypes, RolesObj, RolesType } from './globals';
 import { ClientType } from './enums';
-import { ColumnType, FormulaType, IntegrationsType } from './Api';
+import {
+  ColumnType,
+  FormulaType,
+  IntegrationsType,
+  LinkToAnotherRecordType,
+} from './Api';
 import { FormulaDataTypes } from './formulaHelpers';
 import { ncIsNull, ncIsUndefined } from '~/lib/is';
 
@@ -254,7 +259,6 @@ const testDataBaseNames = {
   mysql: null,
   [ClientType.PG]: 'postgres',
   oracledb: 'xe',
-  [ClientType.MSSQL]: undefined,
   [ClientType.SQLITE]: 'a.sqlite',
 };
 
@@ -309,5 +313,30 @@ export function toSafeInteger(value: number) {
   return Math.max(
     Number.MIN_SAFE_INTEGER,
     Math.min(value, Number.MAX_SAFE_INTEGER)
+  );
+}
+
+export function isCrossBaseLink(col: ColumnType) {
+  return (
+    col &&
+    isLinksOrLTAR(col) &&
+    (col.colOptions as LinkToAnotherRecordType)?.fk_related_base_id &&
+    (col.colOptions as LinkToAnotherRecordType)?.fk_related_base_id !==
+      (col.colOptions as LinkToAnotherRecordType)?.base_id
+  );
+}
+
+export function lookupCanHaveRecursiveEvaluation(param: {
+  isEeUI: boolean;
+  relationCol: ColumnType;
+  relationType: RelationTypes;
+  dbClientType: ClientType;
+}) {
+  const { isEeUI, dbClientType, relationType, relationCol } = param;
+  return (
+    isEeUI &&
+    dbClientType === ClientType.PG &&
+    isSelfReferencingTableColumn(relationCol) &&
+    [RelationTypes.HAS_MANY, RelationTypes.BELONGS_TO].includes(relationType)
   );
 }

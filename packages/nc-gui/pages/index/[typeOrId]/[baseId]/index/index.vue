@@ -1,10 +1,5 @@
 <script setup lang="ts">
-const tabStore = useTabs()
-const { activeTab } = storeToRefs(tabStore)
-
 useProjectsShortcuts()
-
-provide(TabMetaInj, activeTab)
 
 useSidebar('nc-left-sidebar')
 </script>

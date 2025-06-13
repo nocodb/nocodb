@@ -18,10 +18,6 @@ export function addAxiosInterceptors(api: Api<any>) {
       config.headers['xc-auth'] = state.token.value
     }
 
-    if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles') && state.previewAs?.value) {
-      config.headers['xc-preview'] = state.previewAs.value
-    }
-
     if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles')) {
       if (route.value && route.value.params && route.value.params.typeOrId === 'base') {
         config.headers['xc-shared-base-id'] = route.value.params.baseId

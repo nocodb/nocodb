@@ -3,6 +3,7 @@ import {
   type ColumnReqType,
   type ColumnType,
   columnTypeName,
+  isCrossBaseLink,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
@@ -20,7 +21,7 @@ const isOpen = useVModel(props, 'isOpen', emit)
 const column = toRef(props, 'column')
 provide(ColumnInj, column)
 
-const { eventBus, allFilters, isSqlView } = useSmartsheetStoreOrThrow()
+const { eventBus, allFilters, isSqlView, sorts } = useSmartsheetStoreOrThrow()
 
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
@@ -375,7 +376,8 @@ const isDuplicateAllowed = computed(() => {
     ((!isMetaReadOnly.value && !isDataReadOnly.value) || readonlyMetaAllowedTypes.includes(column.value?.uidt)) &&
     !column.value.meta?.custom &&
     column.value.uidt !== UITypes.ForeignKey &&
-    (!meta.value?.synced || !column.value?.readonly)
+    (!meta.value?.synced || !column.value?.readonly) &&
+    !isCrossBaseLink(column.value)
   )
 })
 const isFilterSupported = computed(
@@ -455,6 +457,16 @@ const changeTitleField = () => {
 
 const onDeleteColumn = () => {
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+
+  const isFilterRemoved = allFilters.value?.some((f) => f.fk_column_id === column.value.id)
+  const isSortRemoved = sorts.value?.some((f) => f.fk_column_id === column.value.id)
+
+  // check if column used in sort list, if used then reload sort list
+  if (isSortRemoved) eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+
+  // skipping filter reload here since we reload filters on columns count change with in useViewFilter
+  // if any of the above events are emitted, then reload the data
+  if (isFilterRemoved || isSortRemoved) eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
 }
 </script>
 

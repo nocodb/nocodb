@@ -226,7 +226,7 @@ abstract class BaseModel {
 
       const query = this.$db.insert(data);
 
-      if (this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql') {
+      if (this.dbDriver.client === 'pg') {
         query.returning('*');
         response = await this._run(query);
       } else {
@@ -268,7 +268,7 @@ abstract class BaseModel {
 
       const query = this.$db.insert(data);
 
-      if (this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql') {
+      if (this.dbDriver.client === 'pg') {
         query.returning('*');
         response = await this._run(query);
       } else {
@@ -304,7 +304,7 @@ abstract class BaseModel {
       }
 
       const response =
-        this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql'
+        this.dbDriver.client === 'pg'
           ? this.dbDriver
               .batchInsert(this.tn, data, 50)
               .returning(this.pks?.[0]?.cn || '*')

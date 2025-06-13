@@ -47,6 +47,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockWsImageLogoUpload = computed(() => true)
 
+  const blockCurrentUserFilter = computed(() => false)
+
   const getLimit = (..._args: any[]) => {}
 
   const getStatLimit = (..._args: any[]) => {}
@@ -89,6 +91,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUploadWsImage = (..._args: any[]) => {}
 
+  const showUpgradeToUseCurrentUserFilter = (..._args: any[]) => {}
+
   return {
     getLimit,
     getStatLimit,
@@ -130,5 +134,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockWsImageLogoUpload,
     isSideBannerExpanded,
     cloudFeatures,
+    blockCurrentUserFilter,
+    showUpgradeToUseCurrentUserFilter,
   }
 })

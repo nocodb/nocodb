@@ -13,11 +13,13 @@ export function useFieldQuery() {
 
   // retrieve the fieldQueryObj of the given view id
   // if it is not found in `searchMap`, init with emptyFieldQueryObj
-  const loadFieldQuery = (id?: string) => {
+  const loadFieldQuery = (id?: string, reset = false) => {
     if (!id) return
-    if (!(id in searchMap.value)) {
+
+    if (reset || !(id in searchMap.value)) {
       searchMap.value[id] = { ...emptyFieldQueryObj }
     }
+
     search.value = searchMap.value[id]
   }
 

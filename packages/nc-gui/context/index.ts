@@ -8,6 +8,7 @@ export type ExtractInjectedReactive<T> = T extends InjectionKey<Reactive<infer U
 
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
+export const IsInFilterInj: InjectionKey<Ref<boolean>> = Symbol('is-in-filter')
 export const RowInj: InjectionKey<Ref<Row>> = Symbol('row')
 export const ColumnInj: InjectionKey<Ref<ColumnType>> = Symbol('column-injection')
 export const GroupPathInj: InjectionKey<Ref<ColumnType>> = Symbol('group-path-injection')
@@ -41,6 +42,7 @@ export const ReloadViewDataHookInj: InjectionKey<
     relatedTableMetaId?: string
     rowId?: string
     path?: Array<number>
+    skipLoadingRowId?: string
   } | void>
 > = Symbol('reload-view-data-injection')
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')

@@ -1,6 +1,8 @@
 import {
   checkboxIconList,
   durationOptions,
+  isLinksOrLTAR,
+  LongTextAiMetaProp,
   ratingIconList,
   UITypes,
 } from 'nocodb-sdk';
@@ -309,22 +311,24 @@ export const colOptionBuilder = builderGenerator({
     'fk_rollup_column_id',
     'fk_lookup_column_id',
     'rollup_function',
+    'fk_webhook_id',
   ],
   mappings: {
     formula_raw: 'formula',
-    fk_qr_value_column_id: 'qr_value_field_id',
+    fk_qr_value_column_id: 'qrcode_value_field_id',
     fk_barcode_value_column_id: 'barcode_value_field_id',
 
-    type: 'relation_type',
-    fk_related_model_id: 'linked_table_id',
+    fk_related_model_id: 'related_table_id',
 
-    fk_relation_column_id: 'link_field_id',
-    fk_rollup_column_id: 'linked_table_rollup_field_id',
-    fk_lookup_column_id: 'linked_table_lookup_field_id',
-    linked_table_rollup_field_id: 'fk_rollup_column_id',
+    fk_relation_column_id: 'related_field_id',
+    fk_rollup_column_id: 'related_table_rollup_field_id',
+    fk_lookup_column_id: 'related_table_lookup_field_id',
+    related_table_rollup_field_id: 'fk_rollup_column_id',
+
+    fk_webhook_id: 'button_hook_id',
 
     // todo: extract this
-    // inverse_link_field_id: 'inverse_link_field_id',
+    // inverse_related_field_id: 'inverse_related_field_id',
   },
 });
 
@@ -352,7 +356,9 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
         is12hrFormat: '12hr_format',
         isLocaleString: 'locale_string',
         richMode: 'rich_text',
-        // duration: 'duration_format',
+        [LongTextAiMetaProp]: 'generate_text_using_ai',
+        // isLocaleString : 'thousand_separator',
+        isDisplayTimezone: 'display_timezone',
       },
       excluded: [
         'defaultViewColOrder',
@@ -388,7 +394,6 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
             break;
           default:
             {
-              console.log(data.colOptions);
               const additionalOptions =
                 colOptionBuilder().build(data.colOptions) || {};
               Object.assign(options, additionalOptions);
@@ -435,8 +440,47 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
         if (durationFormat !== undefined && durationFormat !== null) {
           options.duration_format = durationOptions[durationFormat]?.title;
         }
-      }
+      } else if (data.type === UITypes.Button) {
+        const { type, ...rest } = data.options as Record<string, any>;
 
+        // Transform button properties based on type
+        if (type === 'formula') {
+          options = {
+            type,
+            formula: rest.formula,
+            label: rest.label,
+            color: rest.color,
+            theme: rest.theme,
+            icon: rest.icon,
+          };
+        } else if (type === 'webhook') {
+          options = {
+            type,
+            webhook_id: rest.button_hook_id,
+            label: rest.label,
+            color: rest.color,
+            theme: rest.theme,
+            icon: rest.icon,
+          };
+        } else if (type === 'ai') {
+          options = {
+            type,
+            prompt: rest.prompt,
+            integration_id: rest.integration_id,
+            output_column_ids: rest.output_column_ids,
+            label: rest.label,
+            color: rest.color,
+            theme: rest.theme,
+            icon: rest.icon,
+          };
+        } else {
+          // Fallback to original transformation
+          options = { ...rest, button_type: type };
+        }
+      } else if (isLinksOrLTAR(data.type)) {
+        const { type, ...rest } = data.options as Record<string, any>;
+        options = { ...rest, relation_type: type };
+      }
       options = options || data.options;
 
       // exclude rollup function if Links
@@ -459,25 +503,55 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
     'qr_value_field_id',
     'barcode_value_field_id',
     'relation_type',
-    'linked_table_id',
-    'link_field_id',
-    'linked_table_rollup_field_id',
-    'linked_table_lookup_field_id',
+    'related_table_id',
+    'related_field_id',
+    'related_table_rollup_field_id',
+    'related_table_lookup_field_id',
     'rollup_function',
+    'button_hook_id',
+    'webhook_id',
+    'type',
+    'prompt',
+    'integration_id',
+    'output_column_ids',
+    'label',
+    'color',
+    'theme',
+    'icon',
   ],
   mappings: {
     formula: 'formula_raw',
-    qr_value_field_id: 'fk_qr_value_column_id',
+    qrcode_value_field_id: 'fk_qr_value_column_id',
     barcode_value_field_id: 'fk_barcode_value_column_id',
 
     relation_type: 'type',
 
-    // parent id we need to extract from the url
-    linked_table_id: 'childId',
+    button_hook_id: 'fk_webhook_id',
+    webhook_id: 'fk_webhook_id',
 
-    link_field_id: 'fk_relation_column_id',
-    linked_table_rollup_field_id: 'fk_rollup_column_id',
-    linked_table_lookup_field_id: 'fk_lookup_column_id',
+    // parent id we need to extract from the url
+    related_table_id: 'childId',
+
+    related_field_id: 'fk_relation_column_id',
+    related_table_rollup_field_id: 'fk_rollup_column_id',
+    related_table_lookup_field_id: 'fk_lookup_column_id',
+  },
+  transformFn: (data) => {
+    // Handle button specific transformations
+    if (data.type) {
+      // For button columns, convert type-specific structure to the V2 format
+      if (
+        data.type === 'formula' ||
+        data.type === 'webhook' ||
+        data.type === 'ai'
+      ) {
+        return {
+          ...data,
+          type: data.type,
+        };
+      }
+    }
+    return data;
   },
 });
 
@@ -496,6 +570,12 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       '12hr_format': 'is12hrFormat',
       locale_string: 'isLocaleString',
       rich_text: 'richMode',
+
+      display_timezone: 'display_timezone',
+
+      // LingText
+      generate_text_using_ai: LongTextAiMetaProp,
+
       // duration_format: 'duration',
     },
     skipfn: (data) => columnsWithOptions.includes(data.uidt || data.type),
@@ -568,6 +648,32 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       if (durationIdx > -1) {
         meta.duration = durationIdx;
       }
+    } else if (data.uidt === UITypes.Button) {
+      // Convert the V3 oneOf schema format to the V2 format for buttons
+      const {
+        type,
+        formula,
+        webhook_id,
+        prompt,
+        integration_id,
+        output_column_ids,
+        ...commonProps
+      } = data.meta as Record<string, any>;
+
+      // Set base meta properties
+      Object.assign(meta, commonProps);
+      meta.type = type;
+
+      // Add type-specific properties
+      if (type === 'formula' && formula) {
+        meta.formula = formula;
+      } else if (type === 'webhook' && webhook_id) {
+        meta.fk_webhook_id = webhook_id;
+      } else if (type === 'ai') {
+        if (prompt) meta.prompt = prompt;
+        if (integration_id) meta.integration_id = integration_id;
+        if (output_column_ids) meta.output_column_ids = output_column_ids;
+      }
     }
     // if multi select then accept array of default values
     else if (data.uidt === UITypes.MultiSelect) {
@@ -610,14 +716,14 @@ export const filterBuilder = builderGenerator<FilterType | Filter>({
     'comparison_sub_op',
     'value',
     'is_group',
-    'fk_link_col_id',
+    'fk_related_col_id',
     'fk_value_col_id',
   ],
   mappings: {
     fk_column_id: 'field_id',
     fk_parent_id: 'parent_id',
     // fk_hook_id: 'hook_id',
-    // fk_link_col_id: 'link_field_id',
+    // fk_related_col_id: 'related_field_id',
     fk_value_col_id: 'value_field_id',
     comparison_op: 'operator',
     comparison_sub_op: 'sub_operator',

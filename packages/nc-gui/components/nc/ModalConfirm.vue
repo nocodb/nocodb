@@ -41,7 +41,7 @@ export interface NcConfirmModalProps extends NcModalProps {
   showIcon?: boolean
 
   /** Title of the modal */
-  title: string
+  title?: string
 
   /** Additional class for title styling */
   titleClass?: string

@@ -173,5 +173,5 @@ export function extractImageSrcFromRawHtml(rawText: string) {
 
 export const getReadableFileSize = (sizeInBytes: number) => {
   const i = Math.min(Math.floor(Math.log(sizeInBytes) / Math.log(1024)), 4)
-  return `${(sizeInBytes / 1024 ** i).toFixed(2) * 1} ${['B', 'kB', 'MB', 'GB', 'TB'][i]}`
+  return `${(sizeInBytes / 1024 ** i).toFixed(2) * 1} ${['B', 'KB', 'MB', 'GB', 'TB'][i]}`
 }

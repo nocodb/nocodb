@@ -39,7 +39,9 @@ export function useViewRowColorProvider(params: {
     if (!viewId.value) return
 
     // Todo: Extract row color info from shared view
-    const rowColorInfoResponse = !params.shared ? await $api.dbView.getViewRowColor(viewId.value) : null
+    const rowColorInfoResponse = !params.shared
+      ? await $api.dbView.getViewRowColor(viewId.value)
+      : (activeView.value as ViewType & { viewRowColorInfo: RowColoringInfo | null })?.viewRowColorInfo
 
     if (!rowColorInfoResponse) return
 

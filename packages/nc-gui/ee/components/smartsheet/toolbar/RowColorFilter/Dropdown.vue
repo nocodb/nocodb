@@ -4,7 +4,14 @@ import { clearRowColouringCache } from '../../../../../components/smartsheet/gri
 import { SmartsheetToolbarRowColorFilterUsingFilterPanel } from '#components'
 
 const meta = inject(MetaInj, ref())
+
 const activeView = inject(ActiveViewInj, ref())
+
+const isLocked = inject(IsLockedInj, ref(false))
+
+const { isUIAllowed } = useRoles()
+
+const hasPermission = computed(() => !isLocked.value && isUIAllowed('rowColourUpdate'))
 
 const { isMobileMode } = useGlobal()
 
@@ -62,7 +69,13 @@ watch(open, (value) => {
       <template #title>
         {{ $t('general.colour') }}
       </template>
-      <NcButton v-e="['c:coloring']" type="secondary" size="small" class="nc-coloring-menu-btn nc-toolbar-btn !border-0 !h-7">
+      <NcButton
+        v-e="['c:coloring']"
+        type="secondary"
+        size="small"
+        class="nc-coloring-menu-btn nc-toolbar-btn !border-0 !h-7"
+        :show-as-disabled="isLocked"
+      >
         <div class="flex items-center gap-1 min-h-5">
           <div class="flex items-center gap-2">
             <component :is="iconMap.ncPaintRoller" class="h-4 w-4" />
@@ -106,6 +119,8 @@ watch(open, (value) => {
                 rowChange: onRowColorConditionFilterUpdate,
               },
             }"
+            :disabled="!hasPermission"
+            :is-locked-view="isLocked"
           />
         </template>
       </SmartsheetToolbarRowColorFilterTypeOption>

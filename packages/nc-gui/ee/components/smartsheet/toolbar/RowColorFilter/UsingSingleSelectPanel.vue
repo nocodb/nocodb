@@ -35,6 +35,12 @@ const props = defineProps({
 
 const emits = defineEmits<Emits>()
 const vModel = useVModel(props, 'modelValue', emits)
+
+const isLocked = inject(IsLockedInj, ref(false))
+
+const { isUIAllowed } = useRoles()
+
+const hasPermission = computed(() => !isLocked.value && isUIAllowed('rowColourUpdate'))
 </script>
 
 <template>
@@ -44,6 +50,7 @@ const vModel = useVModel(props, 'modelValue', emits)
         v-model:value="vModel.fk_column_id"
         class="nc-colouring-field-select w-full nc-select-shadow"
         :dropdown-match-select-width="false"
+        :disabled="!hasPermission"
         @change="emits('change', vModel)"
       >
         <a-select-option v-for="(column, idx) of columns" :key="idx" :value="column.id">
@@ -67,12 +74,17 @@ const vModel = useVModel(props, 'modelValue', emits)
     </a-form-item>
 
     <div class="flex items-center gap-2 justify-between">
-      <NcButton type="text" size="small" @click="emits('remove')">
+      <NcButton type="text" size="small" :disabled="!hasPermission" @click="emits('remove')">
         {{ $t('labels.removeColouring') }}
       </NcButton>
 
       <div class="flex items-center cursor-pointer select-none text-nc-content-gray">
-        <NcSwitch v-model:checked="vModel.is_set_as_background" placement="right" @change="emits('change', vModel)">
+        <NcSwitch
+          v-model:checked="vModel.is_set_as_background"
+          placement="right"
+          :disabled="!hasPermission"
+          @change="emits('change', vModel)"
+        >
           {{ $t('labels.backgroundColour') }}
         </NcSwitch>
       </div>

@@ -34,6 +34,8 @@ const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
+const readOnlyFilter = computed(() => props.isLockedView || props.disabled)
+
 const wrapperDomRef = ref<HTMLElement>()
 
 const filtersCount = computed(() => {
@@ -128,18 +130,24 @@ const updateColor = (index: number, field: string, value: string) => {
               }"
               :query-filter="false"
               is-colour-filter
+              :read-only="isLockedView || disabled"
             >
               <template #root-header>
                 <div class="flex justify-between w-full pb-2">
                   <div class="flex-grow">
                     <template v-if="!disabled && !isLockedView">
-                      <GeneralAdvanceColorPickerDropdown v-model="rowColorConfig.color" @change="updateColor(i, 'color', $event)">
+                      <GeneralAdvanceColorPickerDropdown
+                        v-model="rowColorConfig.color"
+                        :disabled="readOnlyFilter"
+                        @change="updateColor(i, 'color', $event)"
+                      >
                         <NcButton
                           type="text"
                           size="small"
                           :style="{
                             'background-color': rowColorConfig.color,
                           }"
+                          :disabled="readOnlyFilter"
                         >
                           <span
                             :style="{
@@ -169,7 +177,7 @@ const updateColor = (index: number, field: string, value: string) => {
                       type="text"
                       size="small"
                       class="nc-filter-item-remove-btn cursor-pointer"
-                      :disabled="isLockedView"
+                      :disabled="readOnlyFilter"
                       @click="removeColor(i)"
                     >
                       <component :is="iconMap.deleteListItem" />
@@ -195,7 +203,7 @@ const updateColor = (index: number, field: string, value: string) => {
           </div>
         </template>
       </div>
-      <div>
+      <div v-if="!readOnlyFilter">
         <NcButton type="text" size="small" class="hover:!text-brand-500 hover:!bg-transparent" @click="addColor">
           <template #icon>
             <component :is="iconMap.plus" />

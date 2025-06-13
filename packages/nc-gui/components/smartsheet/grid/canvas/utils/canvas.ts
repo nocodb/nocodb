@@ -52,6 +52,10 @@ export const clearTextCache = () => {
   rowColouringCache.clear()
 }
 
+export const clearRowColouringCache = () => {
+  rowColouringCache.clear()
+}
+
 interface TruncateTextWithInfoType {
   text: string
   width: number

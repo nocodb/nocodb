@@ -983,7 +983,7 @@ eventBus.on(async (event) => {
     </div>
 
     <template v-if="!nested">
-      <div class = "flex">
+      <div class="flex">
         <template v-if="isEeUI && !isPublic">
           <div
             v-if="!readOnly && filtersCount < getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW)"
@@ -1006,7 +1006,7 @@ eventBus.on(async (event) => {
                 {{ isForm && !webHook ? $t('activity.addCondition') : $t('activity.addFilter') }}
               </div>
             </NcButton>
-  
+
             <NcButton
               v-if="nestedLevel < 5 && !readOnly"
               class="nc-btn-focus"
@@ -1024,7 +1024,7 @@ eventBus.on(async (event) => {
             </NcButton>
           </div>
         </template>
-  
+
         <template v-else-if="!readOnly">
           <div
             ref="addFiltersRowDomRef"
@@ -1047,7 +1047,7 @@ eventBus.on(async (event) => {
                 {{ isForm && !webHook ? $t('activity.addCondition') : $t('activity.addFilter') }}
               </div>
             </NcButton>
-  
+
             <NcButton
               v-if="!link && !webHook && nestedLevel < 5"
               class="nc-btn-focus"

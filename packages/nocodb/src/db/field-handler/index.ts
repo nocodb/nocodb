@@ -415,7 +415,9 @@ export class FieldHandler implements IFieldHandler {
     const verificationResult = await this.verifyFiltersSafe(filters, options);
     if (!verificationResult.isValid) {
       if (this.info.context.api_version === NcApiVersion.V3) {
-        NcError.invalidFilterV3(verificationResult.errors.join(', '));
+        NcError.get(this.info.context).invalidFilter(
+          verificationResult.errors.join(', '),
+        );
       } else {
         throw new FilterVerificationError(verificationResult.errors!);
       }

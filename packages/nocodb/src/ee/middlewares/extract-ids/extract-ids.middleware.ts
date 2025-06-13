@@ -128,11 +128,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const base = await Base.get(context, params.baseId ?? params.baseName);
 
       if (!base) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.baseNotFoundV3(params.baseId ?? params.baseName);
-        } else {
-          NcError.baseNotFound(params.baseId ?? params.baseName);
-        }
+        NcError.get(context).baseNotFound(params.baseId ?? params.baseName);
       }
 
       if (params.tableId || params.modelId) {
@@ -147,11 +143,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           },
         );
         if (!model) {
-          if (context.api_version === NcApiVersion.V3) {
-            NcError.tableNotFoundV3(params.tableId || params.modelId);
-          } else {
-            NcError.tableNotFound(params.tableId || params.modelId);
-          }
+          NcError.get(context).tableNotFound(params.tableId || params.modelId);
         }
       }
     }
@@ -178,11 +170,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
 
       if (!model) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.tableNotFoundV3(params.tableId || params.modelId);
-        } else {
-          NcError.tableNotFound(params.tableId || params.modelId);
-        }
+        NcError.get(context).tableNotFound(params.tableId || params.modelId);
       }
 
       req.ncBaseId = model.base_id;
@@ -193,11 +181,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         (await Model.get(context, params.viewId));
 
       if (!view) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.viewNotFoundV3(params.viewId);
-        } else {
-          NcError.viewNotFound(params.viewId);
-        }
+        NcError.get(context).viewNotFound(params.viewId);
       }
 
       req.ncBaseId = view.base_id;
@@ -219,23 +203,13 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       );
 
       if (!view) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.viewNotFoundV3(
-            params.formViewId ||
-              params.gridViewId ||
-              params.kanbanViewId ||
-              params.galleryViewId ||
-              params.calendarViewId,
-          );
-        } else {
-          NcError.viewNotFound(
-            params.formViewId ||
-              params.gridViewId ||
-              params.kanbanViewId ||
-              params.galleryViewId ||
-              params.calendarViewId,
-          );
-        }
+        NcError.get(context).viewNotFound(
+          params.formViewId ||
+            params.gridViewId ||
+            params.kanbanViewId ||
+            params.galleryViewId ||
+            params.calendarViewId,
+        );
       }
 
       req.ncBaseId = view.base_id;
@@ -244,11 +218,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const view = await View.getByUUID(context, req.params.publicDataUuid);
 
       if (!view) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.viewNotFoundV3(req.params.publicDataUuid);
-        } else {
-          NcError.viewNotFound(req.params.publicDataUuid);
-        }
+        NcError.get(context).viewNotFound(req.params.publicDataUuid);
       }
 
       req.ncBaseId = view?.base_id;
@@ -257,11 +227,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const view = await View.getByUUID(context, req.params.sharedViewUuid);
 
       if (!view) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.viewNotFoundV3(req.params.sharedViewUuid);
-        } else {
-          NcError.viewNotFound(req.params.sharedViewUuid);
-        }
+        NcError.get(context).viewNotFound(req.params.sharedViewUuid);
       }
 
       req.ncBaseId = view.base_id;
@@ -409,11 +375,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
 
       if (!model) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.tableNotFoundV3(req.body.fk_model_id);
-        } else {
-          NcError.tableNotFound(req.body.fk_model_id);
-        }
+        NcError.get(context).tableNotFound(req.body.fk_model_id);
       }
 
       req.ncBaseId = model.base_id;
@@ -433,11 +395,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
 
       if (!model) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.tableNotFoundV3(req.query?.fk_model_id);
-        } else {
-          NcError.tableNotFound(req.query?.fk_model_id);
-        }
+        NcError.get(context).tableNotFound(req.query?.fk_model_id);
       }
 
       req.ncBaseId = model.base_id;
@@ -500,11 +458,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           });
 
           if (!model) {
-            if (context.api_version === NcApiVersion.V3) {
-              NcError.tableNotFoundV3(req.params.tableName);
-            } else {
-              NcError.tableNotFound(req.params.tableName);
-            }
+            NcError.get(context).tableNotFound(req.params.tableName);
           }
 
           req.ncSourceId = model?.source_id;

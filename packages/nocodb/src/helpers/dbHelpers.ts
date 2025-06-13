@@ -372,10 +372,7 @@ export function extractSortsObject(
 
     if (throwErrorIfInvalid && !sort.fk_column_id) {
       const fieldNameOrId = s.replace(/^~?[+-]/, '');
-      if (context.api_version === NcApiVersion.V3) {
-        NcError.fieldNotFoundV3(fieldNameOrId);
-      }
-      NcError.fieldNotFound(fieldNameOrId);
+      NcError.get(context).fieldNotFound(fieldNameOrId);
     }
     return new Sort(sort);
   });

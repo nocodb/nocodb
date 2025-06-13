@@ -1,4 +1,4 @@
-import type { ColumnType, FilterType, RowColoringInfo, SourceType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FilterType, SourceType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Reactive, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { PageSidebarNode } from '#imports'

@@ -94,7 +94,7 @@ const handleFilterChange = async (filter) => {
 // #region event handling
 const onFilterRowChange = (event: FilterRowChangeEvent, index: number) => {
   handleFilterChange(event.filter, index)
-  emits('row-change', event)
+  emits('rowChange', event)
   emits('change', {
     filters: [...vModel.value],
     value: [...vModel.value],

@@ -49,7 +49,7 @@ export interface GroupProps extends StatefulGroupProps {
 export interface GroupEmits {
   (event: 'update:modelValue', model: string): void
   (event: 'change', model: FilterGroupChangeEvent): void
-  (event: 'row-change', model: FilterRowChangeEvent): void
+  (event: 'rowChange', model: FilterRowChangeEvent): void
   (
     event: 'delete',
     model: {

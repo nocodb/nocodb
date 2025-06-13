@@ -3,7 +3,7 @@ import { clearRowColouringCache } from '../../../components/smartsheet/grid/canv
 import type { UseEventBusReturn } from '@vueuse/core'
 import { SmartsheetStoreEvents } from '#imports'
 
-const defaultRowColorInfo: RowColoringInfo = {
+export const defaultRowColorInfo: RowColoringInfo = {
   mode: null,
   conditions: [],
   fk_column_id: null,
@@ -12,41 +12,58 @@ const defaultRowColorInfo: RowColoringInfo = {
 }
 
 export function useViewRowColorProvider(params: {
-  view: Ref<ViewType>
+  shared?: boolean
   eventBus: UseEventBusReturn<SmartsheetStoreEvents, SmartsheetStoreEvents>
 }) {
   const { $api } = useNuxtApp()
+
+  const { activeView, activeViewTitleOrId } = storeToRefs(useViewsStore())
+
+  const viewId = computed(() => {
+    if (params.shared) {
+      return activeView.value?.view?.fk_view_id
+    }
+
+    return activeView.value?.id
+  })
+
+  watchEffect(() => {
+    console.log('activeView', viewId.value, activeViewTitleOrId.value, activeView.value)
+  })
 
   const rowColorInfo: Ref<RowColoringInfo> = ref(defaultRowColorInfo)
 
   const reloadRowColorInfo = async () => {
     clearRowColouringCache()
 
-    if (params.view.value?.id) {
-      const rowColorInfoResponse = await $api.dbView.getViewRowColor(params.view.value?.id)
-      if (rowColorInfoResponse) {
-        rowColorInfo.value = rowColorInfoResponse
-        if (rowColorInfo.value!.mode === ROW_COLORING_MODE.FILTER) {
-          for (const condition of rowColorInfo.value.conditions) {
-            condition.conditions = condition.conditions.sort((a, b) => a.order - b.order)
-            condition.nestedConditions = arrayToNested({
-              data: condition.conditions,
-              childAssignHandler: (row, children) => {
-                row.children = children
-              },
-              getFkHandler: (row) => row.fk_parent_id,
-              getIdHandler: (row) => row.id,
-              maxLevel: 999,
-            })
-          }
-        }
+    if (!viewId.value) return
+
+    // Todo: Extract row color info from shared view
+    const rowColorInfoResponse = !params.shared ? await $api.dbView.getViewRowColor(viewId.value) : null
+
+    if (!rowColorInfoResponse) return
+
+    rowColorInfo.value = rowColorInfoResponse
+
+    if (rowColorInfo.value!.mode === ROW_COLORING_MODE.FILTER) {
+      for (const condition of rowColorInfo.value.conditions) {
+        condition.conditions = condition.conditions.sort((a, b) => a.order - b.order)
+        condition.nestedConditions = arrayToNested({
+          data: condition.conditions,
+          childAssignHandler: (row, children) => {
+            row.children = children
+          },
+          getFkHandler: (row) => row.fk_parent_id,
+          getIdHandler: (row) => row.id,
+          maxLevel: 999,
+        })
       }
     }
   }
 
   // need to use watch here due to how ref params view work
   watch(
-    () => params.view.value?.id,
+    () => viewId.value,
     () => {
       reloadRowColorInfo()
     },

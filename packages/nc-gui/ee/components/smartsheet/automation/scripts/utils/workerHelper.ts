@@ -933,6 +933,15 @@ Object.freeze(UITypes);
     
     async createFieldAsync(field) {
       if (this.getField(field.name)) throw new Error(\`Field \${field.name} already exists in table \${this.name}\`)
+      
+      if (field.type === 'Button') {
+        throw new Error('Button field creation is not supported at the moment')
+      }
+      
+      if (!field.name || !field.type) {
+        throw new Error('Field name and type are required')
+      }
+      
       field.title = field.name
       delete field.name
       const data = await api.v3MetaBasesTablesFieldsCreate(this.id, this.#base.id, field);

@@ -185,7 +185,7 @@ export function useCanvasRender({
   const { getLeftBorderColor, getRowColor, isRowColouringEnabled } = useViewRowColorRender({
     meta,
     rows: computed(() => []),
-    isGridCanvas: true,
+    useCachedResult: true,
   })
 
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))

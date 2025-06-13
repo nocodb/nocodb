@@ -6,13 +6,13 @@ import { defaultRowColorInfo } from './useViewRowColorProvider'
 export function useViewRowColorRender(params: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
   /**
-   * If it is grid canvas then rows value will be empty array as we evaluate result on canvas render and store it in rowColouringCache
+   * If useCachedResult is true then rows value will be empty array as we evaluate result on canvas render and store it in rowColouringCache
    */
   rows: Ref<Ref<Record<string, any>>[]>
   /**
-   * If it is grid canvas then we will use rowColouringCache to store the evaluated result
+   * If useCachedResult is true then we will use rowColouringCache to store the evaluated result
    */
-  isGridCanvas?: boolean
+  useCachedResult?: boolean
 }) {
   const baseStore = useBase()
   const { getBaseType } = baseStore
@@ -100,11 +100,11 @@ export function useViewRowColorRender(params: {
   }
 
   const getLeftBorderColor = (row: any) => {
-    if (!row || (!params.isGridCanvas && !evaluatedRowsColor.value)) return null
+    if (!row || (!params.useCachedResult && !evaluatedRowsColor.value)) return null
 
     const rowHash = getRowHash(row)
 
-    if (params.isGridCanvas) {
+    if (params.useCachedResult) {
       const cachedEvaluatedResult = getCachedEvaluatedResult(rowHash, row)
 
       return cachedEvaluatedResult?.rawColor ?? null
@@ -116,11 +116,11 @@ export function useViewRowColorRender(params: {
   }
 
   const getRowColor = (row: any) => {
-    if (!row || (!params.isGridCanvas && !evaluatedRowsColor.value)) return null
+    if (!row || (!params.useCachedResult && !evaluatedRowsColor.value)) return null
 
     const rowHash = getRowHash(row)
 
-    if (params.isGridCanvas) {
+    if (params.useCachedResult) {
       const cachedEvaluatedResult = getCachedEvaluatedResult(rowHash, row)
 
       if (cachedEvaluatedResult?.is_set_as_background) {

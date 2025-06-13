@@ -845,14 +845,13 @@ export function useCanvasRender({
       yOffset: number
       width: number
     },
+    rowColor?: string,
   ) => {
     const isHover = hoverRow.value?.rowIndex === row.rowMeta.rowIndex && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
     const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
     const isRowCellSelected =
       activeCell.value.row === row.rowMeta.rowIndex && comparePath(activeCell.value.path, row?.rowMeta?.path)
     const isDisabled = (!row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS) || vSelectedAllRecords.value
-
-    const rowColor = getRowColor(row.row)
 
     ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : rowColor ? rowColor : '#ffffff'
     if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
@@ -1373,9 +1372,11 @@ export function useCanvasRender({
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
 
+          const rowColor = getRowColor(row.row)
+
           if (column.id === 'row_number') {
             if (isGroupBy.value) width -= initialXOffset
-            renderRowMeta(ctx, row, { xOffset, yOffset, width })
+            renderRowMeta(ctx, row, { xOffset, yOffset, width }, rowColor)
           } else {
             const value = row.row[column.title]
 
@@ -1431,7 +1432,7 @@ export function useCanvasRender({
             isActiveCellInCurrentGroup
 
           ctx.strokeStyle =
-            idx !== 0 && (isHovered || row.rowMeta.selected || isColumnInSelection || isRowCellSelected)
+            idx !== 0 && (isHovered || row.rowMeta.selected || isColumnInSelection || isRowCellSelected || rowColor)
               ? themeV3Colors.gray['200']
               : themeV3Colors.gray['100']
           ctx.lineWidth = 1
@@ -1545,9 +1546,11 @@ export function useCanvasRender({
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
 
+          const rowColor = getRowColor(row.row)
+
           if (column.id === 'row_number') {
             if (isGroupBy.value) width -= initialXOffset
-            renderRowMeta(ctx, row!, { xOffset, yOffset, width })
+            renderRowMeta(ctx, row!, { xOffset, yOffset, width }, rowColor)
           } else {
             const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
 
@@ -1636,6 +1639,7 @@ export function useCanvasRender({
 
         const isRowHovered = hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
         const isRowCellSelected = activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path)
+        const rowColor = getRowColor(row?.row)
 
         const isNextRowHovered = hoverRow.value?.rowIndex === rowIdx + 1 && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
         const isNextRowCellSelected =
@@ -1673,7 +1677,8 @@ export function useCanvasRender({
           isRowCellSelected ||
           isNextRowHovered ||
           isNextRowCellSelected ||
-          isNextRowSelected
+          isNextRowSelected ||
+          rowColor
             ? themeV3Colors.gray['300']
             : themeV3Colors.gray['200']
         ctx.lineWidth = 1

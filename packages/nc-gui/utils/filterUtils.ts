@@ -14,6 +14,10 @@ export type ColumnTypeForFilter = ColumnType & {
   filterUidt?: UITypes
 }
 
+export function isDateType(uidt: UITypes) {
+  return [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(uidt)
+}
+
 const getEqText = (fieldUiType: UITypes) => {
   if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
     return '='

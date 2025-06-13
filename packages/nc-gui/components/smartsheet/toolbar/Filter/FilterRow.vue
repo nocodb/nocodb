@@ -1,13 +1,13 @@
 <script lang="ts" setup>
+import { isCreatedOrLastModifiedTimeCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { ClientType, UITypes } from 'nocodb-sdk'
 
 interface Props {
   modelValue: ColumnFilterType
   index: number
-  columns: ColumnFilterType[]
+  columns: ColumnTypeForFilter[]
   dbClientType?: ClientType
-  comparisonOps?: ComparisonOpUiType[]
-  comparisonSubOps?: ComparisonOpUiType[]
+  showNullAndEmptyInFilter?: boolean
 
   renderMode?: null | string
   disabled?: boolean
@@ -60,6 +60,23 @@ const column = computed(() => {
   return props.columns.find((col) => col.id === fk_column_id)
 })
 
+const comparisonOps = computed(() => {
+  const evalColumn = column.value
+  const evalUidt = evalColumn?.filterUidt ?? evalColumn?.uidt
+  const list = comparisonOpList(evalUidt).filter((compOp) =>
+    isComparisonOpAllowed(vModel.value, compOp, evalUidt, props.showNullAndEmptyInFilter),
+  )
+  return list
+})
+
+const comparisonSubOps = computed(() => {
+  const evalColumn = column.value
+  const evalUidt = evalColumn?.filterUidt ?? evalColumn?.uidt
+  return comparisonSubOpList(vModel.value.comparison_op!, parseProp(evalColumn?.meta)?.date_format).filter((compSubOp) =>
+    isComparisonSubOpAllowed(vModel.value, compSubOp, evalUidt),
+  )
+})
+
 const showFilterInput = computed(() => {
   const filter = vModel.value
   if (!filter.comparison_op) return false
@@ -81,6 +98,32 @@ const showFilterInput = computed(() => {
 const onColumnChange = (fk_column_id: string) => {
   const prevValue = vModel.value.fk_column_id
   vModel.value.fk_column_id = fk_column_id
+  // adjust comparison ops and sub ops
+  const evalColumn = props.columns.find((col) => col.id === fk_column_id)
+  if (evalColumn) {
+    const evalUidt: UITypes = evalColumn.filterUidt ?? evalColumn.uidt
+    if (isVirtualCol(evalColumn)) {
+      vModel.value.dynamic = false
+      vModel.value.fk_value_col_id = null
+    } else {
+      vModel.value.fk_value_col_id = null
+    }
+    vModel.value.comparison_op = comparisonOpList(evalUidt, parseProp(evalColumn.meta)?.date_format).find((compOp) =>
+      isComparisonOpAllowed(vModel.value, compOp),
+    )?.value
+
+    if (isDateType(evalUidt) && !['blank', 'notblank'].includes(vModel.value.comparison_op!)) {
+      if (vModel.value.comparison_op === 'isWithin') {
+        vModel.value.comparison_sub_op = 'pastNumberOfDays'
+      } else {
+        vModel.value.comparison_sub_op = 'exactDate'
+      }
+    } else {
+      // reset
+      vModel.value.comparison_sub_op = null
+    }
+  }
+
   emits('change', {
     filter: { ...vModel.value },
     type: 'fk_column_id',
@@ -219,7 +262,7 @@ const onDelete = () => {
       </NcSelect>
       <template v-if="comparisonSubOps && comparisonSubOps.length > 0">
         <NcSelect
-          v-model:value="vModel"
+          v-model:value="vModel.comparison_sub_op"
           v-e="['c:filter:sub-comparison-op:select']"
           :dropdown-match-select-width="false"
           class="caption nc-filter-sub_operation-select min-w-28"

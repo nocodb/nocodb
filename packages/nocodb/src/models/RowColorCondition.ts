@@ -55,9 +55,9 @@ export default class RowColorCondition implements IRowColorCondition {
   }
 
   static async delete(context: NcContext, id: string, ncMeta = Noco.ncMeta) {
-    try {
-      await ncMeta.startTransaction();
+    const transaction = await ncMeta.startTransaction();
 
+    try {
       await ncMeta.metaDelete(
         context.workspace_id,
         context.base_id,
@@ -75,9 +75,9 @@ export default class RowColorCondition implements IRowColorCondition {
           fk_row_color_condition_id: id,
         },
       );
-      await ncMeta.commit();
+      await transaction.commit();
     } catch (ex) {
-      await ncMeta.rollback();
+      await transaction.rollback();
       throw ex;
     }
   }

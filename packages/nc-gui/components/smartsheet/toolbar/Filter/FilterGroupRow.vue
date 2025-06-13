@@ -100,14 +100,24 @@ const onFilterRowChange = (event: FilterRowChangeEvent) => {
 }
 const onLogicalOpChange = (logical_op: string) => {
   const prevValue = vModel.value.logical_op
-  vModel.value.logical_op = logical_op as any
-  emits('change', {
-    filter: { ...vModel.value },
-    type: 'logical_op',
-    prevValue,
-    value: logical_op,
-    index: props.index,
-  })
+  if (props.handler?.rowChange) {
+    props.handler?.rowChange({
+      filter: vModel.value,
+      type: 'logical_op',
+      prevValue,
+      value: logical_op,
+      index: props.index,
+    })
+  } else {
+    vModel.value.logical_op = logical_op as any
+    emits('change', {
+      filter: { ...vModel.value },
+      type: 'logical_op',
+      prevValue,
+      value: logical_op,
+      index: props.index,
+    })
+  }
 }
 const onDelete = () => {
   emits('delete', {

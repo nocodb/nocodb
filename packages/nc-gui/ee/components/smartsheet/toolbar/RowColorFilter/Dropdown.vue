@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { ROW_COLORING_MODE, UITypes } from 'nocodb-sdk'
 import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
 import { SmartsheetToolbarRowColorFilterUsingFilterPanel } from '#components'
 
@@ -51,6 +51,13 @@ const rowColoringMode = computed({
   },
 })
 
+const rowColoringCount = computed(() => {
+  if (rowColoringMode.value === ROW_COLORING_MODE.SELECT) {
+    return 1
+  }
+  return rowColorInfo.value?.conditions?.length || 0
+})
+
 watch(open, (value) => {
   if (!value) {
     clearRowColouringCache()
@@ -83,6 +90,7 @@ watch(open, (value) => {
             <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
               {{ $t('general.colour') }}
             </span>
+            <span v-if="rowColoringCount" class="bg-brand-50 text-brand-500 nc-toolbar-btn-chip">{{ rowColoringCount }}</span>
           </div>
         </div>
       </NcButton>

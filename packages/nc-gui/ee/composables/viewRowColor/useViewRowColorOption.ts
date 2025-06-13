@@ -15,7 +15,7 @@ export function useViewRowColorOption(params: {
 }) {
   const { $api } = useNuxtApp()
   const view = params.view
-  const rowColorInfo: Ref<RowColoringInfo> = inject(ViewRowColorInj)
+  const { activeViewRowColorInfo: rowColorInfo } = storeToRefs(useViewsStore())
 
   const { eventBus } = useSmartsheetStoreOrThrow()
 

@@ -72,7 +72,7 @@ const vModel = useVModel(props, 'modelValue', emits)
       </NcButton>
 
       <div class="flex items-center cursor-pointer select-none text-nc-content-gray">
-        <NcSwitch v-model:checked="vModel.is_set_as_background" @change="emits('change', vModel)" placement="right">
+        <NcSwitch v-model:checked="vModel.is_set_as_background" placement="right" @change="emits('change', vModel)">
           {{ $t('labels.backgroundColour') }}
         </NcSwitch>
       </div>

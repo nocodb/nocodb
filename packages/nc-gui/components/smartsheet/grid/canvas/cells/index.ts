@@ -69,7 +69,7 @@ export function useGridCellHandler(params: {
 
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
-  const { getLeftBorderColor, getRowColor } = useViewRowColorRender({
+  const { getRowColor } = useViewRowColorRender({
     meta: params.meta!,
     rows: computed(() => []),
     useCachedResult: true,

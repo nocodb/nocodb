@@ -183,8 +183,8 @@ const updateColor = (index: number, field: string, value: string) => {
                   <div class="flex items-center cursor-pointer select-none text-nc-content-gray">
                     <NcSwitch
                       v-model:checked="rowColorConfig.is_set_as_background"
-                      @change="updateColor(i, 'is_set_as_background', $event)"
                       placement="right"
+                      @change="updateColor(i, 'is_set_as_background', $event)"
                     >
                       {{ $t('labels.backgroundColour') }}
                     </NcSwitch>

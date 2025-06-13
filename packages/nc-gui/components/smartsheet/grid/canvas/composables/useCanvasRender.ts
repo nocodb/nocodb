@@ -853,7 +853,7 @@ export function useCanvasRender({
       activeCell.value.row === row.rowMeta.rowIndex && comparePath(activeCell.value.path, row?.rowMeta?.path)
     const isDisabled = (!row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS) || vSelectedAllRecords.value
 
-    ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : rowColor ? rowColor : '#ffffff'
+    ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : rowColor || '#ffffff'
     if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
 

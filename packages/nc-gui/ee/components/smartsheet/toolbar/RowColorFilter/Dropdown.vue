@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
-import { SmartsheetToolbarRowColorFilterUsingFilterPanel } from '#components'
+import { UITypes } from 'nocodb-sdk'
 import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
+import { SmartsheetToolbarRowColorFilterUsingFilterPanel } from '#components'
 
 const meta = inject(MetaInj, ref())
 const activeView = inject(ActiveViewInj, ref())
 
 const { isMobileMode } = useGlobal()
-
-const baseStore = useBase()
-const { getBaseType, baseMeta } = baseStore
 
 const isToolbarIconMode = inject(
   IsToolbarIconMode,
@@ -56,10 +53,10 @@ watch(open, (value) => {
 
 <template>
   <NcDropdown
-    @update:visible="onDropdownOpen"
     v-model:visible="open"
     overlay-class-name="nc-dropdown-coloring-menu nc-toolbar-dropdown overflow-hidden"
     class="!xs:hidden"
+    @update:visible="onDropdownOpen"
   >
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode">
       <template #title>
@@ -80,8 +77,8 @@ watch(open, (value) => {
     <template #overlay>
       <SmartsheetToolbarRowColorFilterTypeOption
         v-model:row-coloring-mode="rowColoringMode"
-        @change="onChangeRowColoringMode"
         v-model:is-open="open"
+        @change="onChangeRowColoringMode"
       >
         <template #select>
           <SmartsheetToolbarRowColorFilterUsingSingleSelectPanel

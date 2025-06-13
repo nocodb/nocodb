@@ -1,6 +1,5 @@
 import { ROW_COLORING_MODE, type RowColoringInfo, type ViewType, arrayToNested } from 'nocodb-sdk'
 import { clearRowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
-import type { UseEventBusReturn } from '@vueuse/core'
 import { SmartsheetStoreEvents } from '#imports'
 
 export function useViewRowColorProvider(params: { shared?: boolean }) {

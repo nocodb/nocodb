@@ -1,6 +1,6 @@
-import { type ColumnType, ROW_COLORING_MODE, type RowColoringInfo, type TableType, type ViewType } from 'nocodb-sdk'
-import { validateRowFilters } from '~/utils/dataUtils'
+import { type ColumnType, ROW_COLORING_MODE, type TableType } from 'nocodb-sdk'
 import { rowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
+import { validateRowFilters } from '~/utils/dataUtils'
 
 export function useViewRowColorRender(params: {
   meta?: Ref<TableType | undefined> | ComputedRef<TableType | undefined>

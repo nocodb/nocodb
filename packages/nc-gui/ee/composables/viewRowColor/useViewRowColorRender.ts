@@ -7,7 +7,7 @@ export function useViewRowColorRender(params: {
   /**
    * If useCachedResult is true then rows value will be empty array as we evaluate result on canvas render and store it in rowColouringCache
    */
-  rows?: Ref<Record<string, any>>[] | ComputedRef<Record<string, any>>[]
+  rows?: Ref<Record<string, any>[]> | ComputedRef<Record<string, any>[]>
   /**
    * If useCachedResult is true then we will use rowColouringCache to store the evaluated result
    */
@@ -23,7 +23,7 @@ export function useViewRowColorRender(params: {
   })
 
   const rows = computed(() => {
-    return params.rows ?? []
+    return ncIsArray(params.rows?.value) ? params.rows?.value : []
   })
 
   const { activeViewRowColorInfo } = storeToRefs(useViewsStore())

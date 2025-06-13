@@ -53,21 +53,12 @@ const wrapperDomRef = ref<HTMLElement>()
 const addFiltersRowDomRef = ref<HTMLElement>()
 const filterPrevComparisonOp = ref<Record<string, string>>({})
 
-const logicalOps = [
-  { value: 'and', text: t('general.and') },
-  { value: 'or', text: t('general.or') },
-]
-
 // #region utils & computed
 const slots = useSlots()
 
 const slotHasChildren = (name?: string) => {
   return (slots[name ?? 'default']?.()?.length ?? 0) > 0
 }
-
-const isDisabled = computed(() => {
-  return vModel.value.readOnly || props.disabled || props.isLockedView
-})
 
 const nested = computed(() => props.nestedLevel > 0)
 const visibleFilters = computed(() => vModel.value.filter((filter) => filter.status !== 'delete'))

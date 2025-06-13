@@ -5,7 +5,6 @@ import { clearRowColouringCache } from '../../../../../components/smartsheet/gri
 
 const meta = inject(MetaInj, ref())
 const activeView = inject(ActiveViewInj, ref())
-const { getPlanLimit } = useWorkspace()
 
 const { isMobileMode } = useGlobal()
 

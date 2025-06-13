@@ -12,7 +12,7 @@ interface Props {
   dragging?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   resize: true,
   hover: false,
   color: 'gray',
@@ -22,6 +22,10 @@ withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits(['resize-start'])
+
+const rowColorInfo = computed(() => {
+  return extractRowBackgroundColorStyle(props.record as Row)
+})
 </script>
 
 <template>
@@ -47,6 +51,8 @@ const emit = defineEmits(['resize-start'])
         hover || dragging
           ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
           : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)',
+
+      ...rowColorInfo.rowBgColor,
     }"
     class="relative transition-all border-1 flex items-center gap-2 group"
   >
@@ -62,6 +68,7 @@ const emit = defineEmits(['resize-start'])
         'bg-gray-900': color === 'gray',
       }"
       class="w-1 min-h-6.5 rounded-l-[4px] bg-blue-500"
+      :style="rowColorInfo.rowLeftBorderColor"
     ></div>
 
     <div

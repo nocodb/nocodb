@@ -81,6 +81,11 @@ interface ThemeConfig extends AntTheme {
   accentColor: string
 }
 
+interface RowMetaRowColorInfo {
+  rowBgColor?: string | null
+  rowLeftBorderColor?: string | null
+}
+
 interface Row {
   row: Record<string, any>
   oldRow: Record<string, any>
@@ -124,7 +129,7 @@ interface Row {
     minutes?: number
     recordIndex?: number // For week spanning records in month view
     maxSpanning?: number
-  }
+  } & RowMetaRowColorInfo
 }
 
 interface Attachment {
@@ -694,6 +699,7 @@ export type {
   Filter,
   NocoI18n,
   ThemeConfig,
+  RowMetaRowColorInfo,
   Row,
   RolePermissions,
   Permission,

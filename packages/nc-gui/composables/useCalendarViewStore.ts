@@ -14,13 +14,18 @@ import {
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
-const formatData = (list: Record<string, any>[]) =>
+const formatData = (
+  list: Record<string, any>[],
+  getRowMetaRowColorInfoCallback?: (row: Record<string, any>) => RowMetaRowColorInfo,
+) =>
   list.map(
     (row) =>
       ({
         row: { ...row },
         oldRow: { ...row },
-        rowMeta: {},
+        rowMeta: {
+          ...(getRowMetaRowColorInfoCallback?.(row) ?? {}),
+        },
       } as Row),
   )
 
@@ -120,6 +125,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { base } = storeToRefs(useBase())
 
+    const { activeViewRowColorInfo } = storeToRefs(useViewsStore())
+
     const { $api, $e } = useNuxtApp()
 
     const { t } = useI18n()
@@ -128,9 +135,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
 
-    const { sorts, nestedFilters, isSyncedTable } = useSmartsheetStoreOrThrow()
+    const { sorts, nestedFilters, isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
 
     const { sharedView, fetchSharedViewData, fetchSharedViewActiveDate, fetchSharedCalendarViewData } = useSharedView()
+
+    const { getRowMetaRowColorInfo } = useViewRowColorRender({
+      useCachedResult: true,
+    })
 
     const calendarMetaData = ref<CalendarType>({})
 
@@ -395,7 +406,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               filtersArr: [...nestedFilters.value, ...sideBarFilter.value],
               offset: params.offset,
             })
-        formattedSideBarData.value = [...formattedSideBarData.value, ...formatData(response!.list)]
+        formattedSideBarData.value = [...formattedSideBarData.value, ...formatData(response!.list, getRowMetaRowColorInfo)]
       } catch (e) {
         console.log(e)
       }
@@ -649,7 +660,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               from_date: fromDate,
               filtersArr: nestedFilters.value,
             })
-        formattedData.value = formatData(res!.list)
+        formattedData.value = formatData(res!.list, getRowMetaRowColorInfo)
       } catch (e) {
         message.error(
           `${t('msg.error.fetchingCalendarData')} ${await extractSdkResponseErrorMsg(
@@ -758,7 +769,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               filtersArr: [...nestedFilters.value, ...sideBarFilter.value],
             })
 
-        formattedSideBarData.value = formatData(res!.list)
+        formattedSideBarData.value = formatData(res!.list, getRowMetaRowColorInfo)
       } catch (e) {
         message.error(
           `${t('msg.error.fetchingCalendarData')} ${await extractSdkResponseErrorMsg(
@@ -844,6 +855,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             Object.assign(row.row, updatedRowData)
             Object.assign(row.oldRow, updatedRowData)
           }
+          Object.assign(row.rowMeta, getRowMetaRowColorInfo(row.row))
           return row
         })
 
@@ -972,6 +984,25 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         }
       },
     )
+
+    /**
+     * This is used to update the rowMeta color info when the row colour info is updated
+     */
+    eventBus.on((event) => {
+      if (![SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
+        return
+      }
+
+      formattedData.value = formattedData.value.map((row) => {
+        Object.assign(row.rowMeta, getRowMetaRowColorInfo(row.row))
+        return row
+      })
+
+      formattedSideBarData.value = formattedSideBarData.value.map((row) => {
+        Object.assign(row.rowMeta, getRowMetaRowColorInfo(row.row))
+        return row
+      })
+    })
 
     return {
       fetchActiveDates,

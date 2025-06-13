@@ -3,21 +3,12 @@ import { clearRowColouringCache } from '../../../components/smartsheet/grid/canv
 import type { UseEventBusReturn } from '@vueuse/core'
 import { SmartsheetStoreEvents } from '#imports'
 
-export const defaultRowColorInfo: RowColoringInfo = {
-  mode: null,
-  conditions: [],
-  fk_column_id: null,
-  color: null,
-  is_set_as_background: null,
-}
-
-export function useViewRowColorProvider(params: {
-  shared?: boolean
-  eventBus?: UseEventBusReturn<SmartsheetStoreEvents, SmartsheetStoreEvents>
-}) {
+export function useViewRowColorProvider(params: { shared?: boolean }) {
   const { $api } = useNuxtApp()
 
-  const { activeView } = storeToRefs(useViewsStore())
+  const { activeView, activeViewRowColorInfo } = storeToRefs(useViewsStore())
+
+  const { eventBus } = useSmartsheetStoreOrThrow()
 
   const viewId = computed(() => {
     if (params.shared) {
@@ -26,8 +17,6 @@ export function useViewRowColorProvider(params: {
 
     return activeView.value?.id
   })
-
-  const rowColorInfo: Ref<RowColoringInfo> = ref(defaultRowColorInfo)
 
   const reloadRowColorInfo = async () => {
     clearRowColouringCache()
@@ -39,12 +28,14 @@ export function useViewRowColorProvider(params: {
       ? await $api.dbView.getViewRowColor(viewId.value)
       : (activeView.value as ViewType & { viewRowColorInfo: RowColoringInfo | null })?.viewRowColorInfo
 
+    eventBus.emit(SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE)
+
     if (!rowColorInfoResponse) return
 
-    rowColorInfo.value = rowColorInfoResponse
+    activeViewRowColorInfo.value = rowColorInfoResponse
 
-    if (rowColorInfo.value!.mode === ROW_COLORING_MODE.FILTER) {
-      for (const condition of rowColorInfo.value.conditions) {
+    if (activeViewRowColorInfo.value!.mode === ROW_COLORING_MODE.FILTER) {
+      for (const condition of activeViewRowColorInfo.value.conditions) {
         condition.conditions = condition.conditions.sort((a, b) => a.order - b.order)
         condition.nestedConditions = arrayToNested({
           data: condition.conditions,
@@ -57,6 +48,8 @@ export function useViewRowColorProvider(params: {
         })
       }
     }
+
+    eventBus.emit(SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE)
   }
 
   watch(
@@ -68,18 +61,16 @@ export function useViewRowColorProvider(params: {
   )
 
   const setRowColorInfo = (value: RowColoringInfo) => {
-    rowColorInfo.value = value
+    activeViewRowColorInfo.value = value
   }
 
-  if (params.eventBus) {
-    params.eventBus.on((event) => {
-      if ([SmartsheetStoreEvents.ROW_COLOR_UPDATE, SmartsheetStoreEvents.FIELD_UPDATE].includes(event)) {
-        reloadRowColorInfo()
-      }
-    })
-  }
+  eventBus.on((event) => {
+    if ([SmartsheetStoreEvents.ROW_COLOR_UPDATE, SmartsheetStoreEvents.FIELD_UPDATE].includes(event)) {
+      reloadRowColorInfo()
+    }
+  })
 
-  provide(ViewRowColorInj, rowColorInfo)
+  provide(ViewRowColorInj, activeViewRowColorInfo)
 
-  return { rowColorInfo, reloadRowColorInfo, setRowColorInfo }
+  return { rowColorInfo: activeViewRowColorInfo, reloadRowColorInfo, setRowColorInfo }
 }

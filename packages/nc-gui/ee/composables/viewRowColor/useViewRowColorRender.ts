@@ -1,14 +1,13 @@
 import { type ColumnType, ROW_COLORING_MODE, type RowColoringInfo, type TableType, type ViewType } from 'nocodb-sdk'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { rowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
-import { defaultRowColorInfo } from './useViewRowColorProvider'
 
 export function useViewRowColorRender(params: {
-  meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
+  meta?: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
   /**
    * If useCachedResult is true then rows value will be empty array as we evaluate result on canvas render and store it in rowColouringCache
    */
-  rows: Ref<Ref<Record<string, any>>[]>
+  rows?: Ref<Record<string, any>>[] | ComputedRef<Record<string, any>>[]
   /**
    * If useCachedResult is true then we will use rowColouringCache to store the evaluated result
    */
@@ -17,21 +16,36 @@ export function useViewRowColorRender(params: {
   const baseStore = useBase()
   const { getBaseType } = baseStore
 
-  const rowColorInfo: Ref<RowColoringInfo> = inject(ViewRowColorInj, ref(defaultRowColorInfo))
+  const { meta: activeTableMeta } = useSmartsheetStoreOrThrow()
+
+  const meta = computed(() => {
+    return params.meta?.value ?? activeTableMeta.value
+  })
+
+  const rows = computed(() => {
+    return params.rows ?? []
+  })
+
+  const { activeViewRowColorInfo } = storeToRefs(useViewsStore())
 
   const isRowColouringEnabled = computed(() => {
-    return rowColorInfo.value && !!rowColorInfo.value?.mode
+    return activeViewRowColorInfo.value && !!activeViewRowColorInfo.value?.mode
   })
 
   const evaluateRowColor = (row: any) => {
-    if (rowColorInfo.value && rowColorInfo.value.mode === ROW_COLORING_MODE.SELECT) {
-      const selectRowColorInfo = rowColorInfo.value
+    if (!activeViewRowColorInfo.value) return null
+
+    if (activeViewRowColorInfo.value.mode === ROW_COLORING_MODE.SELECT) {
+      const selectRowColorInfo = activeViewRowColorInfo.value
+
       if (!selectRowColorInfo || !selectRowColorInfo.selectColumn) {
         return null
       }
+
       const value = row[selectRowColorInfo.selectColumn.title]
       const rawColor: string | null | undefined = selectRowColorInfo.options.find((k) => k.title === value)?.color
       const color = rawColor ? getLighterTint(rawColor) : null
+
       return color
         ? {
             is_set_as_background: selectRowColorInfo.is_set_as_background,
@@ -39,22 +53,27 @@ export function useViewRowColorRender(params: {
             rawColor,
           }
         : null
-    } else if (rowColorInfo.value && rowColorInfo.value.mode === ROW_COLORING_MODE.FILTER) {
-      const filterRowColorInfo = rowColorInfo.value
+    }
+
+    if (activeViewRowColorInfo.value.mode === ROW_COLORING_MODE.FILTER) {
+      const filterRowColorInfo = activeViewRowColorInfo.value
+
       if (!filterRowColorInfo || !filterRowColorInfo.conditions) {
         return null
       }
+
       for (const eachCondition of filterRowColorInfo.conditions) {
         const isFilterValid = validateRowFilters(
           eachCondition.conditions,
           row,
-          params.meta.value!.columns as ColumnType[],
-          getBaseType(params.meta.value!.source_id),
-          params.meta.value!,
+          meta.value!.columns as ColumnType[],
+          getBaseType(meta.value!.source_id),
+          meta.value!,
         )
 
         if (isFilterValid) {
           const color: string | null | undefined = getLighterTint(eachCondition.color)
+
           return {
             is_set_as_background: eachCondition.is_set_as_background,
             color,
@@ -63,11 +82,12 @@ export function useViewRowColorRender(params: {
         }
       }
     }
+
     return null
   }
 
   const evaluatedRowsColor = computed(() => {
-    return params.rows.value
+    return rows.value
       .map((row) => {
         const evaluateResult = evaluateRowColor(toRaw(row))
         return {
@@ -77,8 +97,8 @@ export function useViewRowColorRender(params: {
       })
       .reduce((obj, cur) => {
         obj[cur.hash] = cur
-        if (cur && rowColorInfo.value) {
-          cur.__eval_id = rowColorInfo.value.__id
+        if (cur && activeViewRowColorInfo.value) {
+          cur.__eval_id = activeViewRowColorInfo.value.__id
         }
         return obj
       }, {})
@@ -137,5 +157,30 @@ export function useViewRowColorRender(params: {
     return null
   }
 
-  return { rowColorInfo, evaluateRowColor, getLeftBorderColor, getRowColor, isRowColouringEnabled }
+  const getRowMetaRowColorInfo = (row: any) => {
+    const result = {
+      rowBgColor: null,
+      rowLeftBorderColor: null,
+    }
+
+    if (!row) return result
+
+    const evaluatedResult = evaluateRowColor(row)
+
+    if (!evaluatedResult) return result
+
+    return {
+      rowBgColor: evaluatedResult?.is_set_as_background ? evaluatedResult?.color ?? null : null,
+      rowLeftBorderColor: evaluatedResult?.rawColor ?? null,
+    }
+  }
+
+  return {
+    rowColorInfo: activeViewRowColorInfo,
+    evaluateRowColor,
+    getLeftBorderColor,
+    getRowColor,
+    isRowColouringEnabled,
+    getRowMetaRowColorInfo,
+  }
 }

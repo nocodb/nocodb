@@ -1,6 +1,7 @@
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 
 export class TypeGenerator {
+  public tables = []
   private initialCode = `
 declare let console: {
   log(...args: Array<unknown>): void
@@ -2364,8 +2365,17 @@ declare interface ConfigItem {}
       case UITypes.ID:
         return 'number'
 
-      case UITypes.LinkToAnotherRecord:
-        return 'Record<string, unknown>[] | Record<string, unknown>'
+      case UITypes.LinkToAnotherRecord: {
+        const targetTable = this.tables.find((t: any) => t.id === field.options.related_table_id)
+        if (!targetTable) {
+          return 'NocoDBRecord | RecordQueryResult'
+        }
+        if (['oo', 'bt'].includes(field.options.type)) {
+          return `${this.pascalCase((targetTable as any).name, 'table')}Table_Record`
+        } else {
+          return `${this.pascalCase((targetTable as any).name, 'table')}Table_RecordQueryResult`
+        }
+      }
 
       case UITypes.ForeignKey:
         return 'string'
@@ -3567,6 +3577,7 @@ declare interface ConfigItem {}
   }
 
   generateTypes(schema: any): string {
+    this.tables = schema.tables
     for (const table of schema.tables) {
       this.write(`// Field interfaces for table: ${table.name}`)
       for (const field of table.fields) {

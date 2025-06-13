@@ -11,6 +11,8 @@ interface Props {
 
   renderMode?: null | string
   disabled?: boolean
+  // some view is different when locked view but not disabled
+  isLockedView?: boolean
   isLogicalOpChangeAllowed?: boolean
 }
 interface Emits {
@@ -22,6 +24,14 @@ interface Emits {
       type: 'logical_op' | 'fk_column_id' | 'comparison_op' | 'comparison_sub_op' | 'value'
       prevValue: any
       value: any
+      index: number
+    },
+  ): void
+  (
+    event: 'delete',
+    model: {
+      filter: ColumnFilterType
+      index: number
     },
   ): void
 }
@@ -38,6 +48,10 @@ const logicalOps = [
 ]
 
 // #region utils & computed
+const isDisabled = computed(() => {
+  return vModel.value.readOnly || props.disabled || props.isLockedView
+})
+
 const column = computed(() => {
   const fk_column_id = vModel.value.fk_column_id
   if (!vModel.value.fk_column_id) {
@@ -68,50 +82,61 @@ const onColumnChange = (fk_column_id: string) => {
   const prevValue = vModel.value.fk_column_id
   vModel.value.fk_column_id = fk_column_id
   emits('change', {
-    filter: vModel.value,
+    filter: { ...vModel.value },
     type: 'fk_column_id',
     prevValue,
     value: fk_column_id,
+    index: props.index,
   })
 }
 const onLogicalOpChange = (logical_op: string) => {
   const prevValue = vModel.value.logical_op
   vModel.value.logical_op = logical_op as any
   emits('change', {
-    filter: vModel.value,
+    filter: { ...vModel.value },
     type: 'logical_op',
     prevValue,
     value: logical_op,
+    index: props.index,
   })
 }
 const onComparisonOpChange = (comparison_op: string) => {
   const prevValue = vModel.value.comparison_op
   vModel.value.comparison_op = comparison_op as any
   emits('change', {
-    filter: vModel.value,
+    filter: { ...vModel.value },
     type: 'comparison_op',
     prevValue,
     value: comparison_op,
+    index: props.index,
   })
 }
 const onComparisonSubOpChange = (comparison_sub_op: string) => {
   const prevValue = vModel.value.comparison_sub_op
   vModel.value.comparison_sub_op = comparison_sub_op as any
   emits('change', {
-    filter: vModel.value,
+    filter: { ...vModel.value },
     type: 'comparison_sub_op',
     prevValue,
     value: comparison_sub_op,
+    index: props.index,
   })
 }
 const onValueChange = (value: string) => {
   const prevValue = vModel.value.value
   vModel.value.value = value as any
   emits('change', {
-    filter: vModel.value,
+    filter: { ...vModel.value },
     type: 'value',
     prevValue,
     value,
+    index: props.index,
+  })
+}
+const onDelete = () => {
+  emits('delete', {
+    filter: { ...vModel.value },
+    index: props.index,
   })
 }
 // #endregion
@@ -133,10 +158,10 @@ const onValueChange = (value: string) => {
           :dropdown-match-select-width="false"
           class="h-full !max-w-18 !min-w-18 capitalize"
           hide-details
-          :disabled="vModel.readOnly || (index > 1 && !isLogicalOpChangeAllowed) || disabled"
+          :disabled="isDisabled || (index > 1 && !isLogicalOpChangeAllowed)"
           dropdown-class-name="nc-dropdown-filter-logical-op"
           :class="{
-            'nc-disabled-logical-op': vModel.readOnly || (index > 1 && !isLogicalOpChangeAllowed) || disabled,
+            'nc-disabled-logical-op': isDisabled || (index > 1 && !isLogicalOpChangeAllowed),
           }"
           @change="onLogicalOpChange($event)"
           @click.stop
@@ -155,47 +180,43 @@ const onValueChange = (value: string) => {
         </NcSelect>
       </tempalte>
       <!-- #endregion logical op -->
-      <div>
-        <SmartsheetToolbarFilterFieldListDropdownLite
-          v-model="vModel.fk_column_id"
-          class="nc-filter-field-select min-w-32 max-h-8"
-          :columns="columns"
-          :disabled="vModel.readOnly || disabled"
-          @click.stop
-          @change="onColumnChange($event)"
-        />
-      </div>
-      <div>
-        <NcSelect
-          v-if="comparisonOps && comparisonOps.length > 0"
-          v-e="['c:filter:comparison-op:select']"
-          :value="vModel.comparison_op"
-          :dropdown-match-select-width="false"
-          class="caption nc-filter-operation-select !min-w-26.75 max-h-8"
-          :placeholder="$t('labels.operation')"
-          density="compact"
-          variant="solo"
-          :disabled="vModel.readOnly || disabled"
-          hide-details
-          dropdown-class-name="nc-dropdown-filter-comp-op !max-w-80"
-          @change="onComparisonOpChange($event)"
-        >
-          <template v-for="compOp of comparisonOps" :key="compOp.value">
-            <a-select-option :value="compOp.value">
-              <div class="flex items-center w-full justify-between w-full gap-2">
-                <div class="truncate flex-1">{{ compOp.text }}</div>
-                <component
-                  :is="iconMap.check"
-                  v-if="vModel.comparison_op === compOp.value"
-                  id="nc-selected-item-icon"
-                  class="text-primary w-4 h-4"
-                />
-              </div>
-            </a-select-option>
-          </template>
-        </NcSelect>
-      </div>
-      <div v-if="comparisonSubOps && comparisonSubOps.length > 0">
+      <SmartsheetToolbarFilterFieldListDropdownLite
+        v-model="vModel.fk_column_id"
+        class="nc-filter-field-select min-w-32 max-h-8"
+        :columns="columns"
+        :disabled="isDisabled"
+        @click.stop
+        @change="onColumnChange($event)"
+      />
+      <NcSelect
+        v-if="comparisonOps && comparisonOps.length > 0"
+        v-e="['c:filter:comparison-op:select']"
+        :value="vModel.comparison_op"
+        :dropdown-match-select-width="false"
+        class="caption nc-filter-operation-select !min-w-26.75 max-h-8"
+        :placeholder="$t('labels.operation')"
+        density="compact"
+        variant="solo"
+        :disabled="isDisabled"
+        hide-details
+        dropdown-class-name="nc-dropdown-filter-comp-op !max-w-80"
+        @change="onComparisonOpChange($event)"
+      >
+        <template v-for="compOp of comparisonOps" :key="compOp.value">
+          <a-select-option :value="compOp.value">
+            <div class="flex items-center w-full justify-between w-full gap-2">
+              <div class="truncate flex-1">{{ compOp.text }}</div>
+              <component
+                :is="iconMap.check"
+                v-if="vModel.comparison_op === compOp.value"
+                id="nc-selected-item-icon"
+                class="text-primary w-4 h-4"
+              />
+            </div>
+          </a-select-option>
+        </template>
+      </NcSelect>
+      <template v-if="comparisonSubOps && comparisonSubOps.length > 0">
         <NcSelect
           v-model:value="vModel"
           v-e="['c:filter:sub-comparison-op:select']"
@@ -208,10 +229,10 @@ const onValueChange = (value: string) => {
           :placeholder="$t('labels.operationSub')"
           density="compact"
           variant="solo"
-          :disabled="vModel.readOnly || disabled"
+          :disabled="isDisabled"
           hide-details
           dropdown-class-name="nc-dropdown-filter-comp-sub-op"
-          @change="onChange"
+          @change="onComparisonSubOpChange($event)"
         >
           <template v-for="compSubOp of comparisonSubOps" :key="compSubOp.value">
             <a-select-option :value="compSubOp.value">
@@ -230,19 +251,32 @@ const onValueChange = (value: string) => {
             </a-select-option>
           </template>
         </NcSelect>
-      </div>
+      </template>
       <div>
         <SmartsheetToolbarFilterInputLite
           v-if="showFilterInput"
           class="nc-filter-value-select rounded-md min-w-34"
           :column="column"
           :filter="vModel"
-          :disabled="vModel.readOnly || disabled"
+          :disabled="isDisabled"
           @update-filter-value="(value) => onValueChange(value)"
           @click.stop
         />
       </div>
-      <div>delete</div>
+      <div>
+        <!-- if locked view, do not hide the button -->
+        <NcButton
+          v-if="!vModel.readOnly && !disabled"
+          v-e="['c:filter:delete']"
+          type="text"
+          size="small"
+          :disabled="isLockedView"
+          class="nc-filter-item-remove-btn self-center"
+          @click.stop="onDelete()"
+        >
+          <component :is="iconMap.deleteListItem" />
+        </NcButton>
+      </div>
     </div>
   </div>
 </template>

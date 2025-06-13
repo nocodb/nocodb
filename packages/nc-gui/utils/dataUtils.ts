@@ -70,6 +70,10 @@ export const rowPkData = (row: Record<string, any>, columns: ColumnType[]) => {
   return pkData
 }
 
+export const getRowHash = (row: Record<string, any>) => {
+  return MD5(JSON.stringify(row))
+}
+
 export const extractPk = (columns: ColumnType[]) => {
   if (!columns && !Array.isArray(columns)) return null
   return columns

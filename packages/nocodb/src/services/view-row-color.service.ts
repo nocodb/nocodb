@@ -1,21 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { parseProp, ROW_COLORING_MODE } from 'nocodb-sdk';
-import { MetaTable } from 'src/cli';
-import { NcError } from 'src/helpers/catchError';
-import { getBaseModelSqlFromModelId } from 'src/helpers/dbHelpers';
-import { View } from 'src/models';
-import RowColorCondition from 'src/models/RowColorCondition';
-import Noco from 'src/Noco';
-import { arrayToNested } from 'src/utils/recursive.utils';
-import type { MetaService } from 'src/meta/meta.service';
-import type { SelectOption } from 'src/models';
-import type { ViewMetaRowColoring } from 'src/models/View';
+import type { MetaService } from '~/meta/meta.service';
+import type { SelectOption } from '~/models';
+import type { ViewMetaRowColoring } from '~/models/View';
 import type {
   NcContext,
   RowColoringInfo,
   RowColoringInfoFilter,
   RowColoringInfoFilterRow,
 } from 'nocodb-sdk';
+import { MetaTable } from '~/cli';
+import { NcError } from '~/helpers/catchError';
+import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
+import { View } from '~/models';
+import RowColorCondition from '~/models/RowColorCondition';
+import Noco from '~/Noco';
+import { arrayToNested } from '~/utils/recursive.utils';
 
 @Injectable()
 export class ViewRowColorService {

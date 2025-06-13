@@ -26,7 +26,6 @@ import {
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
-  ROW_META_COLUMN_WIDTH,
 } from '../utils/constants'
 import { parseCellWidth } from '../utils/cell'
 import {
@@ -94,6 +93,8 @@ export function useCanvasRender({
   draggedRowGroupPath,
   removeInlineAddRecord,
   upgradeModalInlineState,
+  rowMetaColumnWidth,
+  rowColouringBorderWidth,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -170,6 +171,8 @@ export function useCanvasRender({
     isHoveredLearnMore: boolean
     isHoveredUpgrade: boolean
   }>
+  rowMetaColumnWidth: ComputedRef<number>
+  rowColouringBorderWidth: ComputedRef<number>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -179,7 +182,7 @@ export function useCanvasRender({
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const isLocked = inject(IsLockedInj, ref(false))
 
-  const { getLeftBorderColor, getRowColor } = useViewRowColorRender({
+  const { getLeftBorderColor, getRowColor, isRowColouringEnabled } = useViewRowColorRender({
     meta,
     rows: computed(() => []),
     isGridCanvas: true,
@@ -877,7 +880,7 @@ export function useCanvasRender({
         x: currentX + 8,
         y: yOffset,
         text: (row.rowMeta.rowIndex! + 1).toString(),
-        maxWidth: ROW_META_COLUMN_WIDTH - 28,
+        maxWidth: rowMetaColumnWidth.value - 28 - rowColouringBorderWidth.value - 4,
         fontFamily: `500 ${rowIndexFontSize} Inter`,
         isTagLabel: true,
         fillStyle: '#6B7280',
@@ -956,7 +959,7 @@ export function useCanvasRender({
           y,
           render,
           text: commentCount,
-          maxWidth: ROW_META_COLUMN_WIDTH / 2,
+          maxWidth: rowMetaColumnWidth.value / 2 - rowColouringBorderWidth.value - 4,
           fontFamily: `${reduceFontSize ? '600 10px' : '500 13px'} Inter`,
           textAlign: 'center',
           isTagLabel: true,
@@ -969,7 +972,7 @@ export function useCanvasRender({
 
       const bubbleWidth = Math.max(20, commentCountWidth + (reduceFontSize ? 6 : 8))
 
-      const x = xOffset + width - 4 - bubbleWidth
+      const x = xOffset + width - 4 - bubbleWidth - rowColouringBorderWidth.value - 4
 
       const isExpandHovered = isBoxHovered(
         {
@@ -1014,7 +1017,12 @@ export function useCanvasRender({
         })
       }
     } else if (isHover || isRowCellSelected) {
-      const box = { x: xOffset + width - 4 - 20, y: yOffset + (rowHeight.value - 20) / 2, height: 20, width: 20 }
+      const box = {
+        x: xOffset + width - 4 - 20 - rowColouringBorderWidth.value - 4,
+        y: yOffset + (rowHeight.value - 20) / 2,
+        height: 20,
+        width: 20,
+      }
 
       const isExpandHovered = isBoxHovered(box, mousePosition)
       renderIconButton(ctx, {
@@ -1033,6 +1041,23 @@ export function useCanvasRender({
         borderColor: !isExpandHovered ? 'transparent' : undefined,
         background: !isExpandHovered ? 'transparent' : undefined,
         setCursor,
+      })
+    }
+
+    const rowColorBorderHeight = rowHeight.value - 8
+
+    const leftBorderColor = getLeftBorderColor(row.row)
+
+    if (isRowColouringEnabled) {
+      renderTag(ctx, {
+        x: xOffset + width - 8,
+        radius: 8,
+        y: yOffset + (rowHeight.value - rowColorBorderHeight) / 2,
+        height: rowColorBorderHeight,
+        width: 4,
+        fillStyle: leftBorderColor ?? 'transparent',
+        borderColor: leftBorderColor ?? 'transparent',
+        borderWidth: 0,
       })
     }
   }

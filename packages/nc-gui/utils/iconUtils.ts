@@ -4308,6 +4308,10 @@ export const searchableMap = {
     icon: NcHeadphone,
     keywords: ['headphone', 'call'],
   },
+  ncPaintRoller: {
+    icon: NcPaintRoller,
+    keywords: ['paint', 'roller', 'color', 'paintbrush'],
+  },
 }
 
 export const searchIcons = (searchTerm: string) => {

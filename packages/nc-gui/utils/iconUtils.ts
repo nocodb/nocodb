@@ -4312,6 +4312,10 @@ export const searchableMap = {
     icon: NcPaintRoller,
     keywords: ['paint', 'roller', 'color', 'paintbrush'],
   },
+  ncConditions: {
+    icon: NcConditions,
+    keywords: ['conditions', 'filter', 'rule'],
+  },
 }
 
 export const searchIcons = (searchTerm: string) => {

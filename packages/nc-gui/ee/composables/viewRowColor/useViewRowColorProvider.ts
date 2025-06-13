@@ -17,12 +17,15 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
     return activeView.value?.id
   })
 
+  /**
+   * Reload row color info
+   * @returns void
+   */
   const reloadRowColorInfo = async () => {
     clearRowColouringCache()
 
     if (!viewId.value) return
 
-    // Todo: Extract row color info from shared view
     const rowColorInfoResponse = !params.shared
       ? await $api.dbView.getViewRowColor(viewId.value)
       : (activeView.value as ViewType & { viewRowColorInfo: RowColoringInfo | null })?.viewRowColorInfo
@@ -51,6 +54,9 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
     eventBus.emit(SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE)
   }
 
+  /**
+   * Watch viewId and reload row color info
+   */
   watch(
     () => viewId.value,
     () => {
@@ -59,17 +65,14 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
     { immediate: true },
   )
 
-  const setRowColorInfo = (value: RowColoringInfo) => {
-    activeViewRowColorInfo.value = value
-  }
-
+  /**
+   * Watch row color update and field update events and reload row color info
+   */
   eventBus.on((event) => {
     if ([SmartsheetStoreEvents.ROW_COLOR_UPDATE, SmartsheetStoreEvents.FIELD_UPDATE].includes(event)) {
       reloadRowColorInfo()
     }
   })
 
-  provide(ViewRowColorInj, activeViewRowColorInfo)
-
-  return { rowColorInfo: activeViewRowColorInfo, reloadRowColorInfo, setRowColorInfo }
+  return { reloadRowColorInfo }
 }

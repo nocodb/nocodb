@@ -28,11 +28,12 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     ncMeta?: MetaService;
   }) {
     const ncMeta = params.ncMeta ?? Noco.ncMeta;
+
     let view: View;
     if (params.fk_view_id) {
       view = await View.get(params.context, params.fk_view_id);
       if (!view) {
-        NcError.viewNotFoundV3(params.fk_view_id);
+        NcError.get(params.context).viewNotFound(params.fk_view_id);
       }
     } else {
       NcError.requiredFieldMissing('view_id');
@@ -129,7 +130,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     if (params.fk_view_id) {
       view = await View.get(params.context, params.fk_view_id);
       if (!view) {
-        NcError.viewNotFoundV3(params.fk_view_id);
+        NcError.get(params.context).viewNotFound(params.fk_view_id);
       }
     } else {
       NcError.requiredFieldMissing('view_id');
@@ -210,7 +211,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     if (params.fk_view_id) {
       view = await View.get(params.context, params.fk_view_id);
       if (!view) {
-        NcError.viewNotFoundV3(params.fk_view_id);
+        NcError.get(params.context).viewNotFound(params.fk_view_id);
       }
     } else {
       NcError.requiredFieldMissing('view_id');
@@ -251,7 +252,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     if (params.fk_view_id) {
       view = await View.get(params.context, params.fk_view_id);
       if (!view) {
-        NcError.viewNotFoundV3(params.fk_view_id);
+        NcError.get(params.context).viewNotFound(params.fk_view_id);
       }
     } else {
       NcError.requiredFieldMissing('view_id');
@@ -291,7 +292,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     if (params.fk_view_id) {
       view = await View.get(params.context, params.fk_view_id);
       if (!view) {
-        NcError.viewNotFoundV3(params.fk_view_id);
+        NcError.get(params.context).viewNotFound(params.fk_view_id);
       }
     } else {
       NcError.requiredFieldMissing('view_id');
@@ -324,7 +325,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     if (params.fk_view_id) {
       view = await View.get(params.context, params.fk_view_id);
       if (!view) {
-        NcError.viewNotFoundV3(params.fk_view_id);
+        NcError.get(params.context).viewNotFound(params.fk_view_id);
       }
     } else {
       NcError.requiredFieldMissing('view_id');

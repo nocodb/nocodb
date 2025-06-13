@@ -106,6 +106,7 @@ const onLockedViewFooterOpen = () => {}
 
 const innerAdd = async (isGroup: boolean) => {
   const prevValue = [...vModel.value]
+  console.log('props.parentFilter', props.parentFilter)
   if (isGroup && props.handler?.addFilterGroup) {
     await props.handler.addFilterGroup({
       type: 'add',
@@ -113,7 +114,7 @@ const innerAdd = async (isGroup: boolean) => {
       filters: vModel.value,
       index: props.index,
       value: [...vModel.value],
-      tmp_fk_parent_id: props.tmpFkParentId,
+      parentFilter: props.parentFilter,
       fk_parent_id: props.fkParentId,
       prevValue,
     })
@@ -124,7 +125,7 @@ const innerAdd = async (isGroup: boolean) => {
       filters: vModel.value,
       index: props.index,
       value: [...vModel.value],
-      tmp_fk_parent_id: props.tmpFkParentId,
+      parentFilter: props.parentFilter,
       fk_parent_id: props.fkParentId,
       prevValue,
     })
@@ -136,7 +137,7 @@ const innerAdd = async (isGroup: boolean) => {
           logical_op: vModel.value[0]?.logical_op ?? 'and',
           children: [],
           fk_parent_id: props.fkParentId,
-          tmp_fk_parent_id: props.tmpFkParentId,
+          parentFilter: props.parentFilter,
           order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
         }
       : {
@@ -146,7 +147,7 @@ const innerAdd = async (isGroup: boolean) => {
           fk_column_id: props.columns[0].id,
           comparison_op: null,
           fk_parent_id: props.fkParentId,
-          tmp_fk_parent_id: props.tmpFkParentId,
+          parentFilter: props.parentFilter,
           order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
         }
     if (!newFilter.is_group) {
@@ -165,7 +166,7 @@ const innerAdd = async (isGroup: boolean) => {
       filters: [...vModel.value],
       index: props.index,
       value: [...vModel.value],
-      tmp_fk_parent_id: props.tmpFkParentId,
+      parentFilter: props.parentFilter,
       fk_parent_id: props.fkParentId,
       prevValue,
     })
@@ -201,7 +202,7 @@ const onFilterDelete = async (
       filters: vModel.value,
       index: props.index,
       value: [...vModel.value],
-      tmp_fk_parent_id: props.tmpFkParentId,
+      parentFilter: props.parentFilter,
       fk_parent_id: props.fkParentId,
       prevValue,
     })
@@ -214,7 +215,7 @@ const onFilterDelete = async (
       filters: [...vModel.value],
       index: props.index,
       value: [...vModel.value],
-      tmp_fk_parent_id: props.tmpFkParentId,
+      parentFilter: props.parentFilter,
       fk_parent_id: props.fkParentId,
       prevValue,
     })

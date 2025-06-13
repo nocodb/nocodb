@@ -69,7 +69,11 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
    * Watch row color update and field update events and reload row color info
    */
   eventBus.on((event) => {
-    if ([SmartsheetStoreEvents.ROW_COLOR_UPDATE, SmartsheetStoreEvents.FIELD_UPDATE].includes(event)) {
+    if (
+      [SmartsheetStoreEvents.ROW_COLOR_UPDATE, SmartsheetStoreEvents.FIELD_UPDATE, SmartsheetStoreEvents.FIELD_RELOAD].includes(
+        event,
+      )
+    ) {
       reloadRowColorInfo()
     }
   })

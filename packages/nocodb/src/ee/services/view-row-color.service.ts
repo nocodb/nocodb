@@ -49,6 +49,20 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       const selectColumn = baseModel.model.columns.find(
         (k) => k.id === meta.rowColoringInfo.fk_column_id,
       );
+
+      // If select column is not found that means the column is deleted
+      if (!selectColumn) {
+        return {
+          mode: null,
+          conditions: [],
+          fk_column_id: null,
+          color: null,
+          is_set_as_background: null,
+          fk_model_id: baseModel.model.id,
+          fk_view_id: view.id,
+        };
+      }
+
       const selectOptions = await selectColumn.getColOptions<SelectOption>(
         params.context,
       );

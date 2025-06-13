@@ -1,9 +1,12 @@
 export const CONFIG_KEYS = {
   MAINTENANCE: 'maintenance',
+  MAINTENANCE_STAGING: 'maintenance_staging',
 }
 
 const useServerConfig = createSharedComposable(() => {
   const config = new Map<string, unknown>()
+
+  const { appInfo } = useGlobal()
 
   const runtimeConfig = useRuntimeConfig()
 
@@ -39,7 +42,13 @@ const useServerConfig = createSharedComposable(() => {
   }
 
   const checkMaintenance = async () => {
-    let maintenance = (await getConfig(CONFIG_KEYS.MAINTENANCE)) as {
+    let key = CONFIG_KEYS.MAINTENANCE_STAGING
+
+    if (appInfo.value.ncSiteUrl === 'https://app.nocodb.com') {
+      key = CONFIG_KEYS.MAINTENANCE
+    }
+
+    let maintenance = (await getConfig(key)) as {
       endDate: string
       startDate: string
       description: string

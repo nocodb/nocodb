@@ -8,10 +8,10 @@ import type {
   DataListResponse,
   DataReadParams,
   DataRecord,
+  DataRecordId,
   DataRecordWithDeleted,
   DataUpdateParams,
   NestedDataListParams,
-  DataRecordId,
 } from './data-v3.types';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn, Model } from '~/models';
@@ -110,10 +110,8 @@ export class DataV3Service {
 
     for (const column of ltarColumns) {
       if (fields[column.title]) {
-        const { primaryKey: relatedPrimaryKey } = await this.getRelatedModelInfo(
-          context,
-          column,
-        );
+        const { primaryKey: relatedPrimaryKey } =
+          await this.getRelatedModelInfo(context, column);
 
         if (Array.isArray(fields[column.title])) {
           // Handle array of linked records
@@ -124,14 +122,16 @@ export class DataV3Service {
                 return { [relatedPrimaryKey]: nestedRecord.id };
               }
               return nestedRecord;
-            }
+            },
           );
         } else if (typeof fields[column.title] === 'object') {
           // Handle single linked record
           const nestedRecord = fields[column.title];
           if (nestedRecord.id) {
             // Transform from API format { id: 1 } to internal format { Id: 1 }
-            transformedFields[column.title] = { [relatedPrimaryKey]: nestedRecord.id };
+            transformedFields[column.title] = {
+              [relatedPrimaryKey]: nestedRecord.id,
+            };
           }
         }
       }
@@ -182,6 +182,10 @@ export class DataV3Service {
   ): Promise<DataListResponse> {
     const pagedData = await this.dataTableService.dataList(context, {
       ...(param as Omit<DataListParams, 'req'>),
+      query: {
+        ...param.query,
+        limit: +param.query?.pageSize,
+      },
       apiVersion: NcApiVersion.V3,
     });
 
@@ -288,12 +292,24 @@ export class DataV3Service {
     context: NcContext,
     param: DataDeleteParams,
   ): Promise<{ records: DataRecordWithDeleted[] }> {
+    // Merge the request body with the records in query params
+    param.body = [
+      ...(Array.isArray(param.body)
+        ? param.body
+        : param.body
+        ? [param.body]
+        : []),
+      ...(param.queryRecords
+        ? Array.isArray(param.queryRecords)
+          ? param.queryRecords.map((id) => ({ id }))
+          : [{ id: param.queryRecords }]
+        : []),
+    ];
+
     const { primaryKey } = await this.getModelInfo(context, param.modelId);
 
     // Transform the request body to match internal format
-    const recordIds = Array.isArray(param.body)
-      ? param.body.map((record) => ({ [primaryKey]: record.id }))
-      : [{ [primaryKey]: param.body.id }];
+    const recordIds = param.body.map((record) => ({ [primaryKey]: record.id }));
 
     await this.dataTableService.dataDelete(context, {
       ...param,
@@ -302,13 +318,10 @@ export class DataV3Service {
 
     // Transform the response to match the new format
     return {
-      records: (Array.isArray(param.body) ? param.body : [param.body]).map(
-        (record) => ({
-          id: record.id,
-          fields: undefined,
-          deleted: true,
-        }),
-      ),
+      records: param.body.map((record) => ({
+        id: record.id,
+        deleted: true,
+      })),
     };
   }
 

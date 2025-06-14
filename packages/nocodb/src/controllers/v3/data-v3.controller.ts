@@ -88,12 +88,14 @@ export class Datav3Controller {
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
     @Body() body: DataDeleteRequest | DataDeleteRequest[],
+    @Query('records') records: string | string[],
   ) {
     return await this.dataV3Service.dataDelete(context, {
       modelId: modelId,
       cookie: req,
       viewId,
       body,
+      queryRecords: records,
     });
   }
 

@@ -2425,11 +2425,21 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
             },
             "in": "query",
             "name": "fields",
-            "description": "Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list. Alternatively, multiple `fields` query params can also works, ex: `?fields=field1&fields=field2`."
+            "description": "Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=[\"field1\",\"field2\"]` or `fields=field1,field2` will include only 'field1' and 'field2' in the API response."
           },
           {
             "schema": {
@@ -2904,11 +2914,21 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
             },
             "in": "query",
             "name": "fields",
-            "description": "Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+            "description": "Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=[\"field1\",\"field2\"]` or `fields=field1,field2` will include only 'field1' and 'field2' in the API response."
           },
           {
             "required": true,
@@ -2926,46 +2946,44 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "record": {
-                        "id": 1,
-                        "fields": {
-                          "SingleLineText": "record #1",
-                          "MultiLineText": "sample long text",
-                          "Email": "user@nocodb.com",
-                          "PhoneNumber": "1234567890",
-                          "URL": "www.google.com",
-                          "Number": 1234,
-                          "Decimal": 100.88,
-                          "Currency": 100,
-                          "Percent": 10,
-                          "Duration": 1010,
-                          "Rating": 3,
-                          "Year": 2020,
-                          "Time": "20:20:00",
-                          "Checkbox": true,
-                          "Date": "2020-01-01",
-                          "SingleSelect": "Jan",
-                          "MultiSelect": [
-                            "Jan",
-                            "Feb",
-                            "Mar"
-                          ],
-                          "DateTime": "2022-02-02 00:00:00+00:00",
-                          "LTAR": [
-                            {
-                              "id": 1,
-                              "fields": {
-                                "SingleLineText": "record #1"
-                              }
-                            },
-                            {
-                              "id": 2,
-                              "fields": {
-                                "SingleLineText": "record #2"
-                              }
+                      "id": 1,
+                      "fields": {
+                        "SingleLineText": "record #1",
+                        "MultiLineText": "sample long text",
+                        "Email": "user@nocodb.com",
+                        "PhoneNumber": "1234567890",
+                        "URL": "www.google.com",
+                        "Number": 1234,
+                        "Decimal": 100.88,
+                        "Currency": 100,
+                        "Percent": 10,
+                        "Duration": 1010,
+                        "Rating": 3,
+                        "Year": 2020,
+                        "Time": "20:20:00",
+                        "Checkbox": true,
+                        "Date": "2020-01-01",
+                        "SingleSelect": "Jan",
+                        "MultiSelect": [
+                          "Jan",
+                          "Feb",
+                          "Mar"
+                        ],
+                        "DateTime": "2022-02-02 00:00:00+00:00",
+                        "LTAR": [
+                          {
+                            "id": 1,
+                            "fields": {
+                              "SingleLineText": "record #1"
                             }
-                          ]
-                        }
+                          },
+                          {
+                            "id": 2,
+                            "fields": {
+                              "SingleLineText": "record #2"
+                            }
+                          }
+                        ]
                       }
                     }
                   }
@@ -3039,11 +3057,7 @@
                     "count": {
                       "type": "number"
                     }
-                  },
-                  "required": [
-                    "list",
-                    "pageInfo"
-                  ]
+                  }
                 },
                 "examples": {
                   "Example 1": {
@@ -3101,11 +3115,21 @@
           },
           {
             "schema": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
             },
             "in": "query",
             "name": "fields",
-            "description": "Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+            "description": "Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=[\"field1\",\"field2\"]` or `fields=field1,field2` will include only 'field1' and 'field2' in the API response."
           },
           {
             "schema": {
@@ -3182,49 +3206,55 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "list": {
-                      "type": "array",
-                      "description": "List of data objects",
-                      "items": {
-                        "type": "object"
-                      }
-                    },
-                    "pageInfo": {
-                      "$ref": "#/components/schemas/Paginated",
-                      "description": "Paginated Info"
-                    }
-                  },
-                  "required": [
-                    "list",
-                    "pageInfo"
-                  ]
+                  "$ref": "#/components/schemas/DataListResponseV3"
                 },
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "list": [
+                      "records": [
                         {
-                          "Id": 5,
-                          "SingleLineText": "London"
-                        },
-                        {
-                          "Id": 6,
-                          "SingleLineText": "Manchester"
-                        },
-                        {
-                          "Id": 7,
-                          "SingleLineText": "Poole"
-                        },
-                        {
-                          "Id": 8,
-                          "SingleLineText": "Bristol"
+                          "id": 1,
+                          "fields": {
+                            "SingleLineText": "record #1",
+                            "MultiLineText": "sample long text",
+                            "Email": "user@nocodb.com",
+                            "PhoneNumber": "1234567890",
+                            "URL": "www.google.com",
+                            "Number": 1234,
+                            "Decimal": 100.88,
+                            "Currency": 100,
+                            "Percent": 10,
+                            "Duration": 1010,
+                            "Rating": 3,
+                            "Year": 2020,
+                            "Time": "20:20:00",
+                            "Checkbox": true,
+                            "Date": "2020-01-01",
+                            "SingleSelect": "Jan",
+                            "MultiSelect": [
+                              "Jan",
+                              "Feb",
+                              "Mar"
+                            ],
+                            "DateTime": "2022-02-02 00:00:00+00:00",
+                            "LTAR": [
+                              {
+                                "id": 1,
+                                "fields": {
+                                  "SingleLineText": "record #1"
+                                }
+                              },
+                              {
+                                "id": 2,
+                                "fields": {
+                                  "SingleLineText": "record #2"
+                                }
+                              }
+                            ]
+                          }
                         }
                       ],
-                      "pageInfo": {
-                        "next": "https://staging.noco.ws/api/v3/tables/mqw22nwcc3c7tfp/links/cq0bdlyfreqoea0/records/4?page=2"
-                      }
+                      "next": "https://staging.noco.ws/api/v3/data/baseId/tableId/records?page=2"
                     }
                   }
                 }
@@ -3241,13 +3271,27 @@
         "operationId": "db-data-table-row-nested-link",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Records successfully linked",
             "content": {
               "application/json": {
-                "schema": {},
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates whether the linking operation was successful",
+                      "example": true
+                    }
+                  },
+                  "required": ["success"],
+                  "additionalProperties": false
+                },
                 "examples": {
-                  "Example 1": {
-                    "value": true
+                  "Success Response": {
+                    "summary": "Successful linking operation",
+                    "value": {
+                      "success": true
+                    }
                   }
                 }
               }
@@ -3261,29 +3305,58 @@
           "Linked Records"
         ],
         "requestBody": {
+          "required": true,
+          "description": "Array of record objects to be linked, each containing an id field",
           "content": {
             "application/json": {
               "schema": {
                 "oneOf": [
                   {
-                    "type": "object"
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Unique identifier for the record",
+                        "example": "33"
+                      }
+                    },
+                    "required": ["id"],
+                    "additionalProperties": false
                   },
                   {
                     "type": "array",
                     "items": {
-                      "type": "object"
-                    }
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "Unique identifier for the record",
+                          "example": "22"
+                        }
+                      },
+                      "required": ["id"],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1,
+                    "maxItems": 1000
                   }
                 ]
               },
               "examples": {
-                "Example 1": {
+                "Single Record": {
+                  "summary": "Link a single record",
+                  "value": {
+                    "id": "22"
+                  }
+                },
+                "Multiple Records": {
+                  "summary": "Link multiple records",
                   "value": [
                     {
-                      "Id": 4
+                      "id": "43"
                     },
                     {
-                      "Id": 5
+                      "id": "01"
                     }
                   ]
                 }
@@ -3313,13 +3386,27 @@
         "operationId": "db-data-table-row-nested-unlink",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Records successfully unlinked",
             "content": {
               "application/json": {
-                "schema": {},
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates whether the unlink operation was successful",
+                      "example": true
+                    }
+                  },
+                  "required": ["success"],
+                  "additionalProperties": false
+                },
                 "examples": {
-                  "Example 1": {
-                    "value": true
+                  "Success Response": {
+                    "summary": "Successful unlinking operation",
+                    "value": {
+                      "success": true
+                    }
                   }
                 }
               }
@@ -3333,26 +3420,58 @@
           "Linked Records"
         ],
         "requestBody": {
+          "required": true,
+          "description": "Array of record objects to be unlinked, each containing an id field",
           "content": {
             "application/json": {
               "schema": {
                 "oneOf": [
                   {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Unique identifier for the record",
+                        "example": "33"
+                      }
+                    },
+                    "required": ["id"],
+                    "additionalProperties": false
+                  },
+                  {
                     "type": "array",
                     "items": {
-                      "type": "object"
-                    }
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "Unique identifier for the record",
+                          "example": "33"
+                        }
+                      },
+                      "required": ["id"],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1,
+                    "maxItems": 1000
                   }
                 ]
               },
               "examples": {
-                "Example 1": {
+                "Single Record": {
+                  "summary": "UnLink a single record",
+                  "value": {
+                    "id": "32"
+                  }
+                },
+                "Multiple Records": {
+                  "summary": "UnLink multiple records",
                   "value": [
                     {
-                      "Id": 1
+                      "id": "1"
                     },
                     {
-                      "Id": 2
+                      "id": "22"
                     }
                   ]
                 }

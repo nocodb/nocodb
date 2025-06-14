@@ -6440,7 +6440,7 @@
                 "type": "number"
               }
             ],
-            "description": "Record identifier",
+            "description": "Record identifier"
           }
         },
         "required": ["id"]

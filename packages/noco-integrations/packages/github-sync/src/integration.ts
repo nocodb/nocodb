@@ -55,7 +55,9 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
           const [owner, repository] = repo.split('/');
 
           const ticketIncrementalValue =
-          targetTableIncrementalValues?.[repo]?.[TARGET_TABLES.TICKETING_TICKET];
+            targetTableIncrementalValues?.[repo]?.[
+              TARGET_TABLES.TICKETING_TICKET
+            ];
 
           const fetchAfter = ticketIncrementalValue
             ? new Date(ticketIncrementalValue).toISOString()
@@ -86,7 +88,11 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
                     stream.push({
                       recordId: `${team.id}`,
                       targetTable: TARGET_TABLES.TICKETING_TEAM,
-                      ...this.formatData(TARGET_TABLES.TICKETING_TEAM, team, repo),
+                      ...this.formatData(
+                        TARGET_TABLES.TICKETING_TEAM,
+                        team,
+                        repo,
+                      ),
                     });
 
                     // Fetch team members and add them to users if not already added
@@ -147,16 +153,16 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
             `[GitHub Sync] Fetching issues for repository ${owner}/${repository}`,
           );
 
-        const iterator = octokit.paginate.iterator(
-          octokit.rest.issues.listForRepo,
-          {
-            owner,
-            repo: repository,
-            per_page: 100,
-            since: fetchAfter,
-            ...(!includeClosed ? {} : { state: 'all' }),
-          },
-        );
+          const iterator = octokit.paginate.iterator(
+            octokit.rest.issues.listForRepo,
+            {
+              owner,
+              repo: repository,
+              per_page: 100,
+              since: fetchAfter,
+              ...(!includeClosed ? {} : { state: 'all' }),
+            },
+          );
 
           for await (const { data } of iterator) {
             this.log(`[GitHub Sync] Fetched ${data.length} issues`);
@@ -210,7 +216,11 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
                   stream.push({
                     recordId: `${user.id}`,
                     targetTable: TARGET_TABLES.TICKETING_USER,
-                    ...this.formatData(TARGET_TABLES.TICKETING_USER, user, repo),
+                    ...this.formatData(
+                      TARGET_TABLES.TICKETING_USER,
+                      user,
+                      repo,
+                    ),
                   });
                 }
               }
@@ -224,7 +234,9 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
               );
 
               const commentIncrementalValue =
-              targetTableIncrementalValues?.[repo]?.[TARGET_TABLES.TICKETING_COMMENT];
+                targetTableIncrementalValues?.[repo]?.[
+                  TARGET_TABLES.TICKETING_COMMENT
+                ];
 
               const fetchAfter = commentIncrementalValue
                 ? new Date(commentIncrementalValue).toISOString()

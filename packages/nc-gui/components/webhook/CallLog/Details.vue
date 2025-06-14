@@ -56,7 +56,7 @@ const hookType = (item: HookLogType) => {
           <span class="value">{{ item.execution_time }} ms</span>
         </div>
         <div class="log-detail-item">
-          <span class="label">Webhook Type</span>
+          <span class="label">Trigger type</span>
           <span class="value">{{ hookType(item) }}</span>
         </div>
         <div class="log-detail-item">
@@ -64,24 +64,26 @@ const hookType = (item: HookLogType) => {
           <span class="value">{{ hookLogFormatter(item.created_at) }}</span>
         </div>
         <div class="log-detail-item">
-          <span class="label">ID</span>
-          <span class="value">{{ item.id }}</span>
-        </div>
-        <div class="log-detail-item">
-          <span class="label">Triggered By</span>
-          <span class="value">{{ item.triggered_by }}</span>
-        </div>
-        <div class="log-detail-item">
           <span class="label">Test call</span>
           <span class="value">{{ !!item.test_call }}</span>
         </div>
+        <div class="log-detail-item">
+          <span class="label">ID</span>
+          <span class="value">{{ item.id }}</span>
+        </div>
+
         <div v-if="item.error_code" class="log-detail-item">
           <span class="label">Error code</span>
           <span class="value">{{ item.error_code }}</span>
         </div>
+
         <div v-if="item.error_message" class="log-detail-item">
           <span class="label">Error message</span>
           <span class="value">{{ item.error_message }}</span>
+        </div>
+        <div class="log-detail-item">
+          <span class="label">Triggered By</span>
+          <span class="value">{{ item.triggered_by }}</span>
         </div>
       </div>
 
@@ -108,24 +110,24 @@ const hookType = (item: HookLogType) => {
 
 <style scoped lang="scss">
 .container {
-  @apply p-6 h-full overflow-auto flex-col flex gap-6;
+  @apply p-6 h-full overflow-auto nc-scrollbar-thin flex-col flex gap-6;
   .log-details {
     @apply grid grid-cols-2 gap-2;
 
     .log-detail-item {
       @apply flex flex-row;
       .label {
-        @apply w-30 font-bold  text-small1;
+        @apply w-30 font-bold text-small1 text-nc-content-gray-emphasis;
       }
 
       .value {
-        @apply text-gray-500  text-small1;
+        @apply text-nc-content-gray-subtle2 font-500 text-small1;
       }
     }
   }
 
   .request-response-wrapper {
-    @apply flex flex-row gap-3.5 w-full items-stretch;
+    @apply flex-1 flex flex-row gap-3.5 w-full items-stretch;
     .request-wrapper,
     .response-wrapper {
       @apply flex flex-col flex-1 gap-2 min-w-10 flex-1 min-w-10;

@@ -14,7 +14,8 @@ export interface DataRecordWithDeleted extends DataRecord {
 }
 
 export interface DataListResponse {
-  records: DataRecord[];
+  records?: DataRecord[];
+  record?: DataRecord | null;
   next?: string;
   prev?: string;
   nestedNext?: string;

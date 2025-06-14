@@ -35,9 +35,7 @@ describe('dataApiV3', () => {
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}${API_VERSION === 'v3' ? '/data' : ''}/${
-        testContext.base.id
-      }`;
+      urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -1003,12 +1001,12 @@ describe('dataApiV3', () => {
         });
 
         // Even though we added till 30, we need till 25 due to pagination
-        expectedFilmsFromLinkAPI.push(...prepareRecords('Film', 5, 21).map(
-          (record) => ({
+        expectedFilmsFromLinkAPI.push(
+          ...prepareRecords('Film', 5, 21).map((record) => ({
             id: record.Id,
             fields: { Film: record.Film },
-          }),
-        ));
+          })),
+        );
 
         // verify in Actor table
         rspFromLinkAPI = await ncAxiosLinkGet({
@@ -1055,7 +1053,7 @@ describe('dataApiV3', () => {
             id: 1,
             fields: {
               Actor: `Actor 1`,
-            }
+            },
           });
 
           expect(rspFromRecordAPI.body.records.length).to.equal(1);
@@ -1090,7 +1088,8 @@ describe('dataApiV3', () => {
         });
 
         expectedFilmsFromLinkAPI.length = 0; // clear array
-        const expectedFilmsFromRecordV3API: { Id: number; Value: string }[] = []; // clear array
+        const expectedFilmsFromRecordV3API: { Id: number; Value: string }[] =
+          []; // clear array
         for (let i = 2; i <= 30; i += 2) {
           expectedFilmsFromLinkAPI.push({
             id: i,
@@ -1150,15 +1149,19 @@ describe('dataApiV3', () => {
               id: 1,
               fields: {
                 Actor: `Actor 1`,
-              }
+              },
             });
 
             expect(rspFromRecordAPI.body.records.length).to.equal(1);
-            expect(rspFromRecordAPI.body.records[0].fields['Actors']).to.equal(1);
+            expect(rspFromRecordAPI.body.records[0].fields['Actors']).to.equal(
+              1,
+            );
           } else {
             expect(rspFromLinkAPI.body.records.length).to.equal(0);
             expect(rspFromRecordAPI.body.records.length).to.equal(1);
-            expect(rspFromRecordAPI.body.records[0].fields['Actors']).to.equal(0);
+            expect(rspFromRecordAPI.body.records[0].fields['Actors']).to.equal(
+              0,
+            );
           }
         }
       });
@@ -1774,7 +1777,7 @@ describe('dataApiV3', () => {
         const initResult = await beforeEachCheckbox(testContext);
         table = initResult.table;
         columns = initResult.columns;
-        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
 
       const valueCases = [
@@ -1905,7 +1908,7 @@ describe('dataApiV3', () => {
           });
           expect(listGet2.body.records.length).to.equal(recordToUpdate.length);
           for (let i = 0; i < expectedValueCases.length; i++) {
-            expect(listGet1.body.records[i].Checkbox).to.equal(
+            expect(listGet1.body.records[i].fields.Checkbox).to.equal(
               expectedValueCases[i].expect,
             );
           }

@@ -13,11 +13,11 @@ import type {
   NestedDataListParams,
 } from './data-v3.types';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { LinkToAnotherRecordColumn } from '~/models/LinkToAnotherRecordColumn';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
 import { DataTableService } from '~/services/data-table.service';
 import { Model } from '~/models';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import { LinkToAnotherRecordColumn } from '~/models/LinkToAnotherRecordColumn';
 
 const V3_INSERT_LIMIT = 10;
 
@@ -52,18 +52,25 @@ export class DataV3Service {
     for (const column of columns) {
       if (column.uidt === UITypes.LinkToAnotherRecord) {
         // Get the related model to access its primary key
-        const relatedModel = await (column.colOptions as LinkToAnotherRecordColumn).getRelatedTable(context);
+        const relatedModel = await (
+          column.colOptions as LinkToAnotherRecordColumn
+        ).getRelatedTable(context);
         const relatedPrimaryKey = relatedModel.primaryKey.column_name;
 
         // Transform nested data to match the same structure
         for (const row of pagedData.list) {
           if (row[column.id]?.length > nestedLimit) {
-            row[column.id] = row[column.id].slice(0, nestedLimit).map((nestedRecord) => ({
-              id: nestedRecord[relatedPrimaryKey],
-              fields: Object.entries(nestedRecord)
-                .filter(([key]) => key !== relatedPrimaryKey)
-                .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
-            }));
+            row[column.id] = row[column.id]
+              .slice(0, nestedLimit)
+              .map((nestedRecord) => ({
+                id: nestedRecord[relatedPrimaryKey],
+                fields: Object.entries(nestedRecord)
+                  .filter(([key]) => key !== relatedPrimaryKey)
+                  .reduce(
+                    (acc, [key, value]) => ({ ...acc, [key]: value }),
+                    {},
+                  ),
+              }));
             nestedNextPageAvail = true;
           } else if (row[column.id]) {
             row[column.id] = row[column.id].map((nestedRecord) => ({
@@ -109,9 +116,44 @@ export class DataV3Service {
     const model = await Model.get(context, param.modelId);
     const primaryKey = model.primaryKey.column_name;
 
+    // Get all columns to check for LinkToAnotherRecord fields
+    const columns = await model.getColumns(context);
+    const ltarColumns = columns.filter(
+      (col) => col.uidt === UITypes.LinkToAnotherRecord,
+    );
+
     // Transform the request body to match internal format
     const transformedBody = Array.isArray(param.body)
-      ? param.body.map((record) => record.fields)
+      ? param.body.map((record) => {
+          const fields = { ...record.fields };
+
+          // Transform LinkToAnotherRecord fields
+          for (const col of ltarColumns) {
+            if (fields[col.id]) {
+              const relatedModel = (
+                col.colOptions as LinkToAnotherRecordColumn
+              ).getRelatedTable(context);
+              const relatedPrimaryKey = relatedModel.primaryKey.column_name;
+
+              // If it's an array of records, transform each one
+              if (Array.isArray(fields[col.id])) {
+                fields[col.id] = fields[col.id].map((nestedRecord) => ({
+                  [relatedPrimaryKey]: nestedRecord.id,
+                  ...nestedRecord.fields,
+                }));
+              }
+              // If it's a single record, transform it
+              else if (fields[col.id].id) {
+                fields[col.id] = {
+                  [relatedPrimaryKey]: fields[col.id].id,
+                  ...fields[col.id].fields,
+                };
+              }
+            }
+          }
+
+          return fields;
+        })
       : [param.body.fields];
 
     if (transformedBody.length > V3_INSERT_LIMIT) {
@@ -186,12 +228,47 @@ export class DataV3Service {
     const model = await Model.get(context, param.modelId);
     const primaryKey = model.primaryKey.column_name;
 
+    // Get all columns to check for LinkToAnotherRecord fields
+    const columns = await model.getColumns(context);
+    const ltarColumns = columns.filter(
+      (col) => col.uidt === UITypes.LinkToAnotherRecord,
+    );
+
     // Transform the request body to match internal format
     const transformedBody = Array.isArray(param.body)
-      ? param.body.map((record) => ({
-          [primaryKey]: record.id,
-          ...record.fields,
-        }))
+      ? param.body.map((record) => {
+          const fields = { ...record.fields };
+
+          // Transform LinkToAnotherRecord fields
+          for (const col of ltarColumns) {
+            if (fields[col.id]) {
+              const relatedModel = (
+                col.colOptions as LinkToAnotherRecordColumn
+              ).getRelatedTable(context);
+              const relatedPrimaryKey = relatedModel.primaryKey.column_name;
+
+              // If it's an array of records, transform each one
+              if (Array.isArray(fields[col.id])) {
+                fields[col.id] = fields[col.id].map((nestedRecord) => ({
+                  [relatedPrimaryKey]: nestedRecord.id,
+                  ...nestedRecord.fields,
+                }));
+              }
+              // If it's a single record, transform it
+              else if (fields[col.id].id) {
+                fields[col.id] = {
+                  [relatedPrimaryKey]: fields[col.id].id,
+                  ...fields[col.id].fields,
+                };
+              }
+            }
+          }
+
+          return {
+            [primaryKey]: record.id,
+            ...fields,
+          };
+        })
       : [
           {
             [primaryKey]: param.body.id,
@@ -250,7 +327,9 @@ export class DataV3Service {
 
     // Get the related model to access its primary key
     const column = await model.getColumn(context, param.columnId);
-    const relatedModel = await (column.colOptions as LinkToAnotherRecordColumn).getRelatedTable(context);
+    const relatedModel = await (
+      column.colOptions as LinkToAnotherRecordColumn
+    ).getRelatedTable(context);
     const relatedPrimaryKey = relatedModel.primaryKey.column_name;
 
     // Ensure response is a PagedResponseImpl

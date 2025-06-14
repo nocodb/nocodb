@@ -186,11 +186,10 @@ export class DataV3Service {
       : record[primaryKey];
 
     const result: DataRecord = {
+      // Always include the 'id' property for APIv3
+      id: recordPrimaryKeyValue,
       fields: transformedFields,
     };
-
-    // Always include the 'id' property for APIv3
-    result.id = recordPrimaryKeyValue;
 
     return result;
   }

@@ -17,7 +17,6 @@ import { NcApiVersion } from 'nocodb-sdk';
 import type {
   DataDeleteRequest,
   DataInsertRequest,
-  DataRecord,
   DataUpdateRequest,
 } from '~/services/v3/data-v3.types';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -29,14 +28,6 @@ import { NcContext, NcRequest } from '~/interface/config';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { DataTableService } from '~/services/data-table.service';
 import { PREFIX_APIV3_DATA } from '~/constants/controllers';
-import {
-  DataListResponse,
-  DataRecordWithDeleted,
-} from '~/services/v3/data-v3.types';
-
-interface RecordField {
-  [key: string]: any;
-}
 
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
@@ -46,7 +37,7 @@ export class Datav3Controller {
     protected readonly dataTableService: DataTableService,
   ) {}
 
-  @Get(`${PREFIX_APIV3_DATA}/:modelId`)
+  @Get(`${PREFIX_APIV3_DATA}/:modelId/records`)
   @Acl('dataList')
   async dataList(
     @TenantContext() context: NcContext,
@@ -67,7 +58,7 @@ export class Datav3Controller {
     res.json(responseData);
   }
 
-  @Post([`${PREFIX_APIV3_DATA}/:modelId`])
+  @Post([`${PREFIX_APIV3_DATA}/:modelId/records`])
   @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
@@ -85,7 +76,7 @@ export class Datav3Controller {
     });
   }
 
-  @Delete([`${PREFIX_APIV3_DATA}/:modelId`])
+  @Delete([`${PREFIX_APIV3_DATA}/:modelId/records`])
   @Acl('dataDelete')
   async dataDelete(
     @TenantContext() context: NcContext,
@@ -102,7 +93,7 @@ export class Datav3Controller {
     });
   }
 
-  @Patch([`${PREFIX_APIV3_DATA}/:modelId`])
+  @Patch([`${PREFIX_APIV3_DATA}/:modelId/records`])
   @Acl('dataUpdate')
   async dataUpdate(
     @TenantContext() context: NcContext,
@@ -209,23 +200,5 @@ export class Datav3Controller {
     });
 
     res.json(countResult);
-  }
-
-  @Get([`${PREFIX_APIV3_DATA}/:modelId/:rowId`])
-  @Acl('dataRead')
-  async dataRead(
-    @TenantContext() context: NcContext,
-    @Req() req: NcRequest,
-    @Param('modelId') modelId: string,
-    @Query('view_id') viewId: string,
-    @Param('rowId') rowId: string,
-  ): Promise<{ record: DataRecord }> {
-    return await this.dataV3Service.dataRead(context, {
-      modelId,
-      rowId: rowId,
-      query: req.query,
-      viewId,
-      req,
-    });
   }
 }

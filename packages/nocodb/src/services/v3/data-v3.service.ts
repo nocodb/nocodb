@@ -285,8 +285,8 @@ export class DataV3Service {
     const { primaryKey } = await this.getModelInfo(context, param.modelId);
 
     // Transform the request body to match internal format
-    const recordIds = Array.isArray(param.body)
-      ? param.body.map((record) => ({ [primaryKey]: record.id }))
+    const recordIds = Array.isArray(param.body.records)
+      ? param.body.records.map((record) => ({ [primaryKey]: record.id }))
       : [{ [primaryKey]: param.body.id }];
 
     await this.dataTableService.dataDelete(context, {
@@ -296,7 +296,7 @@ export class DataV3Service {
 
     // Transform the response to match the new format
     return {
-      records: (Array.isArray(param.body) ? param.body : [param.body]).map(
+      records: (param.body.records || [{ id: param.body.id }]).map(
         (record) => ({
           id: record.id,
           fields: undefined,

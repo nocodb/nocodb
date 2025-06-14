@@ -149,7 +149,14 @@ export class Datav3Controller {
     @Query('view_id') viewId: string,
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
-    @Body() body: Array<{ id: string }>,
+    @Body()
+    refRowIds:
+      | string
+      | string[]
+      | number
+      | number[]
+      | Record<string, any>
+      | Record<string, any>[],
   ) {
     return await this.dataV3Service.nestedLink(context, {
       modelId,
@@ -157,7 +164,7 @@ export class Datav3Controller {
       query: req.query,
       viewId,
       columnId,
-      refRowIds: body,
+      refRowIds,
       cookie: req,
     });
   }
@@ -172,7 +179,14 @@ export class Datav3Controller {
     @Query('view_id') viewId: string,
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
-    @Body() body: Array<{ id: string }>,
+    @Body()
+    refRowIds:
+      | string
+      | string[]
+      | number
+      | number[]
+      | Record<string, any>
+      | Record<string, any>[],
   ) {
     return await this.dataV3Service.nestedUnlink(context, {
       modelId,
@@ -180,7 +194,7 @@ export class Datav3Controller {
       query: req.query,
       viewId,
       columnId,
-      refRowIds: body,
+      refRowIds,
       cookie: req,
     });
   }

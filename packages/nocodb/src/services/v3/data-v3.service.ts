@@ -9,16 +9,15 @@ import type {
   DataListResponse,
   DataReadParams,
   DataRecord,
-  DataRecordId,
   DataRecordWithDeleted,
   DataUpdateParams,
   NestedDataListParams,
 } from './data-v3.types';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
+import { Column, Model, Source } from '~/models';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
 import { DataTableService } from '~/services/data-table.service';
-import { Column, Model, Source } from '~/models';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
@@ -675,7 +674,7 @@ export class DataV3Service {
   async dataRead(
     context: NcContext,
     param: DataReadParams,
-  ): Promise<{ record: DataRecord }> {
+  ): Promise<DataRecord> {
     const { primaryKey, primaryKeys } = await this.getModelInfo(
       context,
       param.modelId,
@@ -691,14 +690,14 @@ export class DataV3Service {
 
     // Transform the response to match the new format
     if (!result || typeof result !== 'object') {
-      return { record: { id: '', fields: {} } };
+      return { id: '', fields: {} };
     }
 
     const hasPrimaryKey = (obj: any): obj is Record<string, any> => {
       return primaryKey in obj;
     };
 
-    const transformedRecord = hasPrimaryKey(result)
+    return hasPrimaryKey(result)
       ? this.transformRecordToV3Format(
           result,
           primaryKey,
@@ -706,8 +705,6 @@ export class DataV3Service {
           requestedFields,
         )
       : { id: '', fields: {} };
-
-    return { record: transformedRecord };
   }
 
   /**

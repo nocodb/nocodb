@@ -984,6 +984,7 @@ onMounted(async () => {
               <div v-show="isVisible">
                 <LazyMonacoEditor
                   v-model="sampleData"
+                  read-only
                   :monaco-config="{
                     minimap: {
                       enabled: false,
@@ -994,10 +995,9 @@ onMounted(async () => {
                     hideCursorInOverviewRuler: true,
                     lineDecorationsWidth: 12,
                     lineNumbersMinChars: 0,
-                    roundedSelection: false,
-                    selectOnLineNumbers: false,
                     scrollBeyondLastLine: false,
-                    contextmenu: false,
+                    renderLineHighlight: 'none',
+                    lineNumbers: 'off',
                     glyphMargin: false,
                     folding: false,
                     bracketPairColorization: { enabled: false },
@@ -1009,6 +1009,7 @@ onMounted(async () => {
                     wrappingStrategy: 'advanced',
                     renderLineHighlight: 'none',
                     tabSize: 4,
+                    readOnly: true,
                   }"
                   :monaco-custom-theme="{
                     base: 'vs',

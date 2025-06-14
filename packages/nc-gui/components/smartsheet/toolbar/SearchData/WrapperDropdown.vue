@@ -14,6 +14,7 @@ const { isMobileMode } = useGlobal()
     :trigger="['click']"
     placement="bottomRight"
     overlay-class-name="nc-dropdown-toolbar-search !border-primary !shadow-selected overflow-hidden !z-1000"
+    non-nc-dropdown
   >
     <div class="absolute -right-1 -top-5"></div>
     <template #overlay>

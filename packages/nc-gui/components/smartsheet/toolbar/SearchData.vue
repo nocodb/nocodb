@@ -6,7 +6,8 @@ const reloadData = inject(ReloadViewDataHookInj)!
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { meta, eventBus, isGrid, isGallery, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery } = useSmartsheetStoreOrThrow()
+const { meta, eventBus, isGrid, isGallery, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery, gridEditEnabled } =
+  useSmartsheetStoreOrThrow()
 
 const { lastOpenedViewId } = storeToRefs(useViewsStore())
 
@@ -118,12 +119,14 @@ const handleShowSearchInput = () => {
       if (isSearchButtonVisible.value) return
 
       globalSearchRef.value?.focus()
+      globalSearchRef.value?.select()
     })
   }, 300)
 }
 
 const handleEscapeKey = () => {
-  if (isDropdownOpen.value) return
+  if (isDropdownOpen.value || gridEditEnabled.value) return
+
   search.value.query = ''
   if (!isMobileMode.value) {
     showSearchBox.value = false

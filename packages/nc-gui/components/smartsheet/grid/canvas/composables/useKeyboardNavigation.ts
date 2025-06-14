@@ -118,6 +118,10 @@ export function useKeyboardNavigation({
       defaultData = getDefaultGroupData(group)
     }
 
+    if (cmdOrCtrl && e.key === 'f' && editEnabled.value) {
+      editEnabled.value = null
+    }
+
     const dataCache = getDataCache(groupPath)
 
     const { cachedRows, totalRows } = dataCache

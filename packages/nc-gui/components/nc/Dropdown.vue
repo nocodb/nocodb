@@ -8,6 +8,8 @@ const props = withDefaults(
     disabled?: boolean
     placement?: 'bottom' | 'top' | 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight' | 'topCenter' | 'bottomCenter' | 'right'
     autoClose?: boolean
+    // if true, the dropdown will not have the nc-dropdown class (used for blocking keyboard events)
+    nonNcDropdown?: boolean
   }>(),
   {
     trigger: () => ['click'],
@@ -17,6 +19,7 @@ const props = withDefaults(
     overlayClassName: undefined,
     autoClose: true,
     overlayStyle: () => ({}),
+    nonNcDropdown: false,
   },
 )
 
@@ -37,7 +40,7 @@ const visible = useVModel(props, 'visible', emits)
 const localIsVisible = ref<boolean | undefined>(props.visible)
 
 const overlayClassNameComputed = computed(() => {
-  let className = 'nc-dropdown bg-white rounded-lg border-1 border-gray-200 shadow-lg'
+  let className = `${props.nonNcDropdown ? '' : 'nc-dropdown '}bg-white rounded-lg border-1 border-gray-200 shadow-lg`
   if (overlayClassName.value) {
     className += ` ${overlayClassName.value}`
   }

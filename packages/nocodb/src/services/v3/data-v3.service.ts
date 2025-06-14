@@ -226,10 +226,10 @@ export class DataV3Service {
   ): Promise<{ records: DataRecord[] }> {
     // Get the model to access primary key
     const model = await Model.get(context, param.modelId);
-    const primaryKey = model.primaryKey.column_name;
-
     // Get all columns to check for LinkToAnotherRecord fields
     const columns = await model.getColumns(context);
+    const primaryKey = model.primaryKey.column_name;
+
     const ltarColumns = columns.filter(
       (col) => col.uidt === UITypes.LinkToAnotherRecord,
     );

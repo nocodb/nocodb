@@ -36,7 +36,8 @@ export class DataV3Service {
 
     // Get the model to access primary key
     const model = await Model.get(context, param.modelId);
-    const primaryKey = model.primaryKey.column_name;
+    await model.getColumns(context);
+    const primaryKey = model.primaryKey.title;
 
     // extract nested page limit
     const nestedLimit =
@@ -55,7 +56,8 @@ export class DataV3Service {
         const relatedModel = await (
           column.colOptions as LinkToAnotherRecordColumn
         ).getRelatedTable(context);
-        const relatedPrimaryKey = relatedModel.primaryKey.column_name;
+        await model.getColumns(context);
+        const relatedPrimaryKey = relatedModel.primaryKey.title;
 
         // Transform nested data to match the same structure
         for (const row of pagedData.list) {
@@ -114,10 +116,10 @@ export class DataV3Service {
   ): Promise<{ records: DataRecord[] }> {
     // Get the model to access primary key
     const model = await Model.get(context, param.modelId);
-    const primaryKey = model.primaryKey.column_name;
-
     // Get all columns to check for LinkToAnotherRecord fields
     const columns = await model.getColumns(context);
+    const primaryKey = model.primaryKey.title;
+
     const ltarColumns = columns.filter(
       (col) => col.uidt === UITypes.LinkToAnotherRecord,
     );
@@ -133,7 +135,8 @@ export class DataV3Service {
               const relatedModel = (
                 col.colOptions as LinkToAnotherRecordColumn
               ).getRelatedTable(context);
-              const relatedPrimaryKey = relatedModel.primaryKey.column_name;
+              await relatedModel.getColumns(context);
+              const relatedPrimaryKey = relatedModel.primaryKey.title;
 
               // If it's an array of records, transform each one
               if (Array.isArray(fields[col.id])) {
@@ -228,7 +231,7 @@ export class DataV3Service {
     const model = await Model.get(context, param.modelId);
     // Get all columns to check for LinkToAnotherRecord fields
     const columns = await model.getColumns(context);
-    const primaryKey = model.primaryKey.column_name;
+    const primaryKey = model.primaryKey.title;
 
     const ltarColumns = columns.filter(
       (col) => col.uidt === UITypes.LinkToAnotherRecord,
@@ -245,7 +248,8 @@ export class DataV3Service {
               const relatedModel = (
                 col.colOptions as LinkToAnotherRecordColumn
               ).getRelatedTable(context);
-              const relatedPrimaryKey = relatedModel.primaryKey.column_name;
+              await relatedModel.getColumns(context);
+              const relatedPrimaryKey = relatedModel.primaryKey.title;
 
               // If it's an array of records, transform each one
               if (Array.isArray(fields[col.id])) {
@@ -323,14 +327,14 @@ export class DataV3Service {
 
     // Get the model to access primary key
     const model = await Model.get(context, param.modelId);
-    const primaryKey = model.primaryKey.column_name;
-
     // Get the related model to access its primary key
-    const column = await model.getColumn(context, param.columnId);
+    await model.getColumns(context);
+
     const relatedModel = await (
       column.colOptions as LinkToAnotherRecordColumn
     ).getRelatedTable(context);
-    const relatedPrimaryKey = relatedModel.primaryKey.column_name;
+    await relatedModel.getColumns(context);
+    const relatedPrimaryKey = relatedModel.primaryKey.title;
 
     // Ensure response is a PagedResponseImpl
     if (!response || !('list' in response) || !('pageInfo' in response)) {
@@ -371,7 +375,8 @@ export class DataV3Service {
   ): Promise<{ record: DataRecord }> {
     // Get the model to access primary key
     const model = await Model.get(context, param.modelId);
-    const primaryKey = model.primaryKey.column_name;
+    await model.getColumns(context);
+    const primaryKey = model.primaryKey.title;
 
     const result = await this.dataTableService.dataRead(context, {
       ...param,

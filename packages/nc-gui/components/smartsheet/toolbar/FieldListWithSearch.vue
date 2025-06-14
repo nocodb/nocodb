@@ -103,7 +103,7 @@ const isLocked = inject(IsLockedInj)
     :input-bordered="inputBordered"
     :hide-top-divider="inputBordered"
     :open="isParentOpen"
-    :is-locked="isLocked"
+    :is-locked="isLocked && toolbarMenu !== 'globalSearch'"
     show-search-always
     :item-class-name="configByToolbarMenu.optionClassName"
     :list="options"

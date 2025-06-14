@@ -2,6 +2,26 @@ import { DateTimeHelper } from './DateTime';
 
 describe('Date', () => {
   describe('populateFillHandle', () => {
+    it('will populate with strict copy for 1 highlighted row only', () => {
+      const highlightedData = ['2025-01-01 00:00:00'];
+      const column = {
+        meta: { date_format: 'YYYY-MM-DD', time_format: 'HH:mm:ss' },
+      };
+      const result = new DateTimeHelper().populateFillHandle({
+        column: column as any,
+        highlightedData,
+        numberOfRows: 8,
+      });
+      expect(result).toEqual([
+        '2025-01-01 00:00:00',
+        '2025-01-01 00:00:00',
+        '2025-01-01 00:00:00',
+        '2025-01-01 00:00:00',
+        '2025-01-01 00:00:00',
+        '2025-01-01 00:00:00',
+        '2025-01-01 00:00:00',
+      ]);
+    });
     it('will populate with strict copy because some is empty', () => {
       const highlightedData = [
         '2025-01-01 00:00:00',

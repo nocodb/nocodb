@@ -3690,7 +3690,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const { allowSystemColumn = false } = params || {};
 
     if (!allowSystemColumn && this.model.synced) {
-      NcError.badRequest('Cannot insert into synced table');
+      NcError._.prohibitedSyncTableOperation({
+        modelName: this.model.title,
+        operation: 'insert',
+      });
     }
 
     await this.handleHooks('before.insert', null, data, req);
@@ -3707,7 +3710,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const { allowSystemColumn = false } = params || {};
 
     if (!allowSystemColumn && this.model.synced) {
-      NcError.badRequest('Cannot insert into synced table');
+      NcError._.prohibitedSyncTableOperation({
+        modelName: this.model.title,
+        operation: 'insert',
+      });
     }
 
     await this.handleHooks('before.bulkInsert', null, data, req);
@@ -4136,7 +4142,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeDelete(data: any, _trx: any, req): Promise<void> {
     if (this.model.synced) {
-      NcError.badRequest('Cannot delete from synced table');
+      NcError._.prohibitedSyncTableOperation({
+        modelName: this.model.title,
+        operation: 'delete',
+      });
     }
 
     await this.handleHooks('before.delete', null, data, req);
@@ -4144,7 +4153,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeBulkDelete(_data: any, _trx: any, _req): Promise<void> {
     if (this.model.synced) {
-      NcError.badRequest('Cannot delete from synced table');
+      NcError._.prohibitedSyncTableOperation({
+        modelName: this.model.title,
+        operation: 'delete',
+      });
     }
   }
 

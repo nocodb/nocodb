@@ -302,7 +302,7 @@ export class DataV3Service {
       : [param.body.id];
 
     return {
-      records: recordIds.map((id) => ({ id, fields: {} })),
+      records: recordIds.map((id) => ({ id })),
     };
   }
 

@@ -65,7 +65,9 @@ export const getNumericValue = (value: string, locale?: string) => {
 
   const valueToParse = value
     .replace(new RegExp(`\\${group}`, 'g'), '')
-    .replace(new RegExp(`\\${decimal}`, 'g'), '.');
+    .replace(new RegExp(`\\${decimal}`, 'g'), '.')
+    .replace(/[^\d.-]/g, '') // 3. Remove any non-digit, non-dot, non-minus characters (e.g., currency symbols, spaces)
+    .trim();
   const numericValue = parseFloat(valueToParse);
   const isValid = ncIsNumber(numericValue);
   return {

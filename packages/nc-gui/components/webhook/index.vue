@@ -51,7 +51,13 @@ const testConnectionError = ref('')
 const useForm = Form.useForm
 
 let hookRef = reactive<
-  Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation?: string; condition: boolean }
+  Omit<HookType, 'notification'> & {
+    notification: Record<string, any> & {
+      include_user: boolean
+    }
+    eventOperation?: string
+    condition: boolean
+  }
 >({
   id: '',
   title: defaultHookName,
@@ -60,6 +66,7 @@ let hookRef = reactive<
   eventOperation: undefined,
   notification: {
     type: 'URL',
+    include_user: false,
     payload: {
       method: 'POST',
       body: '{{ json event }}',
@@ -299,6 +306,7 @@ function setHook(newHook: HookType) {
     ...newHook,
     notification: {
       ...notification,
+      include_user: notification?.include_user ?? false,
       payload: notification.payload,
     },
   })
@@ -310,6 +318,7 @@ function onEventChange() {
   Object.assign(hookRef, {
     ...hookRef,
     notification: {
+      ...hookRef.notification,
       type,
       payload,
     },
@@ -526,6 +535,11 @@ async function loadSampleData() {
     meta?.value?.id as string,
     hookRef?.operation || 'insert',
     hookRef.version!,
+    {
+      query: {
+        includeUser: (!!hookRef.notification?.include_user).toString(),
+      },
+    },
   )
 }
 
@@ -612,6 +626,11 @@ onMounted(async () => {
       titleDomRef.value?.select()
     })
 })
+
+const toggleIncludeUser = async () => {
+  hookRef.notification.include_user = !hookRef.notification.include_user
+  await loadSampleData()
+}
 </script>
 
 <template>
@@ -870,6 +889,9 @@ onMounted(async () => {
                             wrappingStrategy: 'advanced',
                             renderLineHighlight: 'none',
                             tabSize: 4,
+                            stickyScroll: {
+                              enabled: props.stickyScroll,
+                            },
                           }"
                         />
                       </div>
@@ -943,6 +965,19 @@ onMounted(async () => {
               />
             </div>
 
+            <div v-if="isEeUI">
+              <div>
+                <div class="w-full cursor-pointer flex items-center" @click.prevent="toggleIncludeUser">
+                  <NcSwitch :checked="Boolean(hookRef.notification.include_user)" class="nc-check-box-include-user">
+                    <span class="text-sm text-gray-700 font-medium">Include user information in webhook payload</span>
+                  </NcSwitch>
+                </div>
+                <div v-if="hookRef.notification.include_user" class="mt-2 text-xs text-gray-500 pl-8">
+                  The user who triggered the webhook will be included in the payload as a 'user' object.
+                </div>
+              </div>
+            </div>
+
             <a-form-item v-if="formInput[hookRef.notification.type] && hookRef.notification.payload">
               <div class="flex flex-col gap-4">
                 <div v-for="(input, i) in formInput[hookRef.notification.type]" :key="i">
@@ -1007,7 +1042,6 @@ onMounted(async () => {
                       verticalScrollbarSize: 6,
                     },
                     wrappingStrategy: 'advanced',
-                    renderLineHighlight: 'none',
                     tabSize: 4,
                     readOnly: true,
                   }"

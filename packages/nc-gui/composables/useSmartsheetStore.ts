@@ -49,6 +49,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isMap = computed(() => view.value?.type === ViewTypes.MAP)
     const isSharedForm = computed(() => isForm.value && shared)
     const isDefaultView = computed(() => view.value?.is_default)
+    const gridEditEnabled = ref(true)
 
     const isExternalSource = computed(
       () => !!base.value?.sources?.some((s) => s.id === (meta.value as TableType)?.source_id && !s.is_meta && !s.is_local),
@@ -216,6 +217,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       totalRowsWithSearchQuery,
       totalRowsWithoutSearchQuery,
       fetchTotalRowsWithSearchQuery,
+      gridEditEnabled,
     }
   },
   'smartsheet-store',

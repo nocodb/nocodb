@@ -1,6 +1,7 @@
 import { extractLimitAndOffset } from '.';
 import type { NcContext, PaginatedType, PaginatedV3Type } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
+import { extractProps } from '~/helpers/extractProps';
 
 // a utility function which accept baseUrl, path and query params and constructs a url
 export function constructUrl({

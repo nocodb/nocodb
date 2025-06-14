@@ -114,28 +114,40 @@ export default class Audit {
     }
   }
 
-  public static async auditList({
-    limit: _limit = 25,
-    offset: _offset = 0,
-    fk_model_id,
-    row_id,
-  }: {
-    limit?: number | string;
-    offset?: number | string;
-    fk_model_id: string;
-    row_id: string;
-  }) {
-    const limit = Math.max(1, Math.min(+_limit || 25, 1000));
-    const offset = Math.max(0, +_offset || 0);
+  public static async recordAuditList(
+    context: NcContext,
+    {
+      fk_model_id,
+      row_id,
+      cursor,
+    }: {
+      fk_model_id: string;
+      row_id: string;
+      cursor?: string;
+    },
+  ): Promise<PagedResponseImpl<Audit>> {
+    if (!context.base_id || !fk_model_id || !row_id) {
+      return new PagedResponseImpl([], {}, { pageInfo: { isLastPage: true } });
+    }
 
     const query = Noco.ncMeta
       .knex(MetaTable.AUDIT)
-      .where('row_id', row_id)
+      .where('base_id', context.base_id)
       .where('fk_model_id', fk_model_id)
-      .where('op_type', '!=', AuditOperationTypes.COMMENT)
-      .orderBy('created_at', 'desc')
-      .limit(limit)
-      .offset(offset);
+      .where('row_id', row_id)
+      .orderBy('id', 'desc');
+
+    if (context.workspace_id) {
+      query.where('fk_workspace_id', context.workspace_id);
+    } else {
+      query.whereNull('fk_workspace_id');
+    }
+
+    if (id) {
+      query.where('id', '<', id);
+    }
+
+    query.limit(this.limit + 1);
 
     const audits = await query;
 

@@ -276,18 +276,6 @@ export const usePlugin = createSharedComposable(() => {
       immediate: true,
     },
   )
-  onMounted(async () => {
-    watch(
-      async () => {
-        availableExtensions.value = []
-        availableScripts.value = []
-        await loadPlugins()
-      },
-      {
-        immediate: true,
-      },
-    )
-  })
 
   /**
    * Find a plugin by ID regardless of type

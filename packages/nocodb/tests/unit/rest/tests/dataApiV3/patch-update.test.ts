@@ -67,7 +67,7 @@ describe('dataApiV3', () => {
             },
           ],
         });
-        expect(rsp.body).to.deep.equal([{ id: 1 }]);
+        expect(rsp.body).to.deep.equal({ records: [{ id: 1 }] });
       });
 
       it('Update: partial', async function () {
@@ -90,7 +90,7 @@ describe('dataApiV3', () => {
             },
           ],
         });
-        expect(rsp.body).to.deep.equal({records: [{ id: 1 }]});
+        expect(rsp.body).to.deep.equal({ records: [{ id: 1 }] });
 
         const recordAfterUpdate = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/records/1`,
@@ -99,12 +99,13 @@ describe('dataApiV3', () => {
           },
         });
         expect(recordAfterUpdate.body).to.deep.equal({
-          id: 1,
-          fields: {
-            ...recordBeforeUpdate.body,
-            SingleLineText: 'some text',
-            MultiLineText: 'some more text',
-            Id: undefined,
+          record: {
+            id: 1,
+            fields: {
+              ...recordBeforeUpdate.body.record.fields,
+              SingleLineText: 'some text',
+              MultiLineText: 'some more text',
+            },
           },
         });
       });
@@ -174,24 +175,22 @@ describe('dataApiV3', () => {
             ?.id,
         };
 
-        const createPayload = {
-          records: [
-            {
-              id: 1,
-              fields: {
-                [idMap['SingleLineText']!]: 'SingleLineText',
-                [idMap['MultiLineText']!]: 'MultiLineText',
-              },
+        const createPayload = [
+          {
+            id: 1,
+            fields: {
+              [idMap['SingleLineText']!]: 'SingleLineText',
+              [idMap['MultiLineText']!]: 'MultiLineText',
             },
-            {
-              id: 2,
-              fields: {
-                [idMap['SingleLineText']!]: 'SingleLineText2',
-                [idMap['MultiLineText']!]: 'MultiLineText2',
-              },
+          },
+          {
+            id: 2,
+            fields: {
+              [idMap['SingleLineText']!]: 'SingleLineText2',
+              [idMap['MultiLineText']!]: 'MultiLineText2',
             },
-          ],
-        };
+          },
+        ];
         const rsp = await ncAxiosPatch({
           url: `${urlPrefix}/${table.id}/records`,
           body: createPayload,

@@ -10,7 +10,7 @@ import NcConnectionMgrv2 from '../../../src/utils/common/NcConnectionMgrv2';
 import type { ColumnType, NcApiVersion } from 'nocodb-sdk';
 import type Column from '../../../src/models/Column';
 import type Filter from '../../../src/models/Filter';
-import type { Base, View, Sort } from '../../../src/models';
+import type { Base, Sort, View } from '../../../src/models';
 
 const rowValue = (column: ColumnType, index: number) => {
   switch (column.uidt) {
@@ -416,10 +416,13 @@ const createBulkRowsV3 = async (
     values: any[];
   },
 ) => {
+  // Transform values to v3 format with fields wrapper
+  const v3Values = values.map((value) => ({ fields: value }));
+
   const res = await request(context.app)
-    .post(`/api/v3/${base.id}/${table.id}`)
+    .post(`/api/v3/data/${base.id}/${table.id}/records`)
     .set('xc-auth', context.token)
-    .send(values)
+    .send(v3Values)
     .expect(200);
 };
 

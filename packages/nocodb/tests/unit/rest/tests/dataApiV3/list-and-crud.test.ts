@@ -203,11 +203,11 @@ describe('dataApiV3', () => {
         });
 
         // prepare array with 10 Id's, from 401 to 410
-        const ids: { id: number; fields: Record<string, any> }[] = [];
+        const ids: { id: number }[] = [];
         for (let i = 401; i <= 410; i++) {
           ids.push({ id: i });
         }
-        expect(rsp.body.records.sort((a, b) => a.id - b.id)).to.deep.equal(ids);
+        expect(rsp.body.records).to.deep.equal(ids);
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -397,7 +397,7 @@ describe('dataApiV3', () => {
         });
 
         // prepare array with 10 Id's, from 401 to 410
-        const ids: { id: number; fields: Record<string, any> }[] = [];
+        const ids: { id: number }[] = [];
         for (let i = 401; i <= 410; i++) {
           ids.push({ id: i });
         }
@@ -521,7 +521,7 @@ describe('dataApiV3', () => {
         });
 
         // prepare array with 10 Id's, from 801 to 810
-        const ids: { id: number; fields: Record<string, any> }[] = [];
+        const ids: { id: number }[] = [];
         for (let i = 801; i <= 810; i++) {
           ids.push({ id: i });
         }

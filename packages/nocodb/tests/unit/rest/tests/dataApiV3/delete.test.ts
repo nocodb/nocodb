@@ -67,7 +67,7 @@ describe('dataApiV3', () => {
       it('Delete: bulk', async function () {
         const rsp = await ncAxiosDelete({
           url: `${urlPrefix}/${table.id}/records`,
-          body: { records: [{ id: 1 }, { id: 2 }] },
+          body: [{ id: 1 }, { id: 2 }],
         });
         expect(rsp.body).to.deep.equal({
           records: [

@@ -11,6 +11,7 @@ import type {
   DataRecordWithDeleted,
   DataUpdateParams,
   NestedDataListParams,
+  DataRecordId,
 } from './data-v3.types';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn, Model } from '~/models';
@@ -81,7 +82,7 @@ export class DataV3Service {
 
     return {
       id: record[primaryKey],
-      fields: Object.keys(fields).length === 0 ? undefined : fields,
+      fields,
     };
   }
 
@@ -107,26 +108,31 @@ export class DataV3Service {
   ): Promise<any> {
     const transformedFields = { ...fields };
 
-    for (const col of ltarColumns) {
-      if (transformedFields[col.title]) {
-        const { primaryKey: relatedPrimaryKey } =
-          await this.getRelatedModelInfo(context, col);
+    for (const column of ltarColumns) {
+      if (fields[column.title]) {
+        const { primaryKey: relatedPrimaryKey } = await this.getRelatedModelInfo(
+          context,
+          column,
+        );
 
-        // Handle array of records
-        if (Array.isArray(transformedFields[col.title])) {
-          transformedFields[col.title] = transformedFields[col.title].map(
-            (nestedRecord) => ({
-              [relatedPrimaryKey]: nestedRecord.id,
-              ...nestedRecord.fields,
-            }),
+        if (Array.isArray(fields[column.title])) {
+          // Handle array of linked records
+          transformedFields[column.title] = fields[column.title].map(
+            (nestedRecord: any) => {
+              if (typeof nestedRecord === 'object' && nestedRecord.id) {
+                // Transform from API format { id: 1 } to internal format { Id: 1 }
+                return { [relatedPrimaryKey]: nestedRecord.id };
+              }
+              return nestedRecord;
+            }
           );
-        }
-        // Handle single record
-        else if (transformedFields[col.title].id) {
-          transformedFields[col.title] = {
-            [relatedPrimaryKey]: transformedFields[col.title].id,
-            ...transformedFields[col.title].fields,
-          };
+        } else if (typeof fields[column.title] === 'object') {
+          // Handle single linked record
+          const nestedRecord = fields[column.title];
+          if (nestedRecord.id) {
+            // Transform from API format { id: 1 } to internal format { Id: 1 }
+            transformedFields[column.title] = { [relatedPrimaryKey]: nestedRecord.id };
+          }
         }
       }
     }
@@ -221,7 +227,7 @@ export class DataV3Service {
   async dataInsert(
     context: NcContext,
     param: DataInsertParams,
-  ): Promise<{ records: DataRecord[] }> {
+  ): Promise<{ records: DataRecordId[] }> {
     const { primaryKey, columns } = await this.getModelInfo(
       context,
       param.modelId,
@@ -271,9 +277,9 @@ export class DataV3Service {
 
     return {
       records: Array.isArray(result)
-        ? this.transformRecordsToV3Format(result, primaryKey)
+        ? result.map((record) => ({ id: record[primaryKey] }))
         : hasPrimaryKey(result)
-        ? [this.transformRecordToV3Format(result, primaryKey)]
+        ? [{ id: result[primaryKey] }]
         : [],
     };
   }
@@ -285,8 +291,8 @@ export class DataV3Service {
     const { primaryKey } = await this.getModelInfo(context, param.modelId);
 
     // Transform the request body to match internal format
-    const recordIds = Array.isArray(param.body.records)
-      ? param.body.records.map((record) => ({ [primaryKey]: record.id }))
+    const recordIds = Array.isArray(param.body)
+      ? param.body.map((record) => ({ [primaryKey]: record.id }))
       : [{ [primaryKey]: param.body.id }];
 
     await this.dataTableService.dataDelete(context, {
@@ -296,7 +302,7 @@ export class DataV3Service {
 
     // Transform the response to match the new format
     return {
-      records: (param.body.records || [{ id: param.body.id }]).map(
+      records: (Array.isArray(param.body) ? param.body : [param.body]).map(
         (record) => ({
           id: record.id,
           fields: undefined,
@@ -309,7 +315,7 @@ export class DataV3Service {
   async dataUpdate(
     context: NcContext,
     param: DataUpdateParams,
-  ): Promise<{ records: DataRecord[] }> {
+  ): Promise<{ records: DataRecordId[] }> {
     const { primaryKey, columns } = await this.getModelInfo(
       context,
       param.modelId,
@@ -348,10 +354,10 @@ export class DataV3Service {
       apiVersion: NcApiVersion.V3,
     });
 
-    // For update operations, return the IDs with undefined fields
+    // For update operations, return just the IDs
     const recordIds = Array.isArray(param.body)
-      ? param.body.map((record) => ({ id: record.id, fields: undefined }))
-      : [{ id: param.body.id, fields: undefined }];
+      ? param.body.map((record) => ({ id: record.id }))
+      : [{ id: param.body.id }];
 
     return {
       records: recordIds,

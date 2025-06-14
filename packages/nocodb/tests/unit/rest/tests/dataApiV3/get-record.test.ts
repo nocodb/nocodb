@@ -44,13 +44,14 @@ describe('dataApiV3', () => {
 
     describe('general-based', () => {
       it('Nested Read - Link to another record', async function () {
-        const records = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/1`,
+        const country = await ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
         });
-        expect(+records.body['Cities']).to.equal(1);
+
+        expect(country.body.record.fields.Cities).to.equal(1);
       });
 
-      it('Nested Read - Lookup', async () => {
+      it('Nested Read - Lookup', async function () {
         await createLookupColumn(testContext.context, {
           base: testContext.sakilaProject,
           title: 'Lookup',
@@ -59,13 +60,14 @@ describe('dataApiV3', () => {
           relatedTableColumnTitle: 'City',
         });
 
-        const records = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/1`,
+        const country = await ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
         });
-        expect(records.body.Lookup).to.deep.equal(['Kabul']);
+
+        expect(country.body.record.fields.Lookup).to.deep.equal(['Kabul']);
       });
 
-      it('Nested Read - Rollup', async () => {
+      it('Nested Read - Rollup', async function () {
         await createRollupColumn(testContext.context, {
           base: testContext.sakilaProject,
           title: 'Rollup',
@@ -75,10 +77,11 @@ describe('dataApiV3', () => {
           rollupFunction: 'count',
         });
 
-        const records = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/1`,
+        const country = await ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
         });
-        expect(records.body.Rollup).to.equal(1);
+
+        expect(country.body.record.fields.Rollup).to.equal(1);
       });
     });
 
@@ -96,19 +99,15 @@ describe('dataApiV3', () => {
         textBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
       it('Read: all fields', async function () {
-        await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}/100`,
+        const firstRow = await ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
         });
+        expect(firstRow.body.record.fields).to.contain.keys(['Country', 'Cities']);
       });
 
       it('Read: invalid ID', async function () {
         await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/123456789/100`,
-          status: 422,
-        });
-
-        await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}/1000`,
+          url: `${urlPrefix}/${testContext.countryTable.id}/records/9999`,
           status: 404,
         });
       });

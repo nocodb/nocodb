@@ -44,6 +44,7 @@ export class Datav3Controller {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Res() res: Response,
+    @Param('baseName') baseName: string,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
   ) {
@@ -65,6 +66,7 @@ export class Datav3Controller {
   async dataInsert(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
+    @Param('baseName') baseName: string,
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
     @Body() body: DataInsertRequest | DataInsertRequest[],
@@ -82,6 +84,7 @@ export class Datav3Controller {
   async dataDelete(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
+    @Param('baseName') baseName: string,
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
     @Body() body: DataDeleteRequest | DataDeleteRequest[],
@@ -99,6 +102,7 @@ export class Datav3Controller {
   async dataUpdate(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
+    @Param('baseName') baseName: string,
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
     @Body() body: DataUpdateRequest | DataUpdateRequest[],
@@ -116,6 +120,7 @@ export class Datav3Controller {
   async nestedDataList(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
+    @Param('baseName') baseName: string,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
     @Param('columnId') columnId: string,
@@ -137,6 +142,7 @@ export class Datav3Controller {
   async nestedLink(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
+    @Param('baseName') baseName: string,
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
     @Param('columnId') columnId: string,
@@ -166,6 +172,7 @@ export class Datav3Controller {
   async nestedUnlink(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
+    @Param('baseName') baseName: string,
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
     @Param('columnId') columnId: string,
@@ -190,6 +197,7 @@ export class Datav3Controller {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Res() res: Response,
+    @Param('baseName') baseName: string,
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
   ) {
@@ -208,6 +216,7 @@ export class Datav3Controller {
   async dataRead(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
+    @Param('baseName') baseName: string,
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
     @Param('rowId') rowId: string,

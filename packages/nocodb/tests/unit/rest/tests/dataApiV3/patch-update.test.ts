@@ -72,7 +72,7 @@ describe('dataApiV3', () => {
 
       it('Update: partial', async function () {
         const recordBeforeUpdate = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/1`,
+          url: `${urlPrefix}/${table.id}/records/1`,
           query: {
             fields: 'Id,SingleLineText,MultiLineText',
           },
@@ -91,7 +91,7 @@ describe('dataApiV3', () => {
         expect(rsp.body).to.deep.equal([{ Id: 1 }]);
 
         const recordAfterUpdate = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/1`,
+          url: `${urlPrefix}/${table.id}/records/1`,
           query: {
             fields: 'Id,SingleLineText,MultiLineText',
           },

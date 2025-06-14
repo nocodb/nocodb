@@ -205,6 +205,7 @@ export function useCanvasTable({
     isSqlView,
     isExternalSource,
     isAlreadyShownUpgradeModal,
+    gridEditEnabled,
   } = useSmartsheetStoreOrThrow()
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
@@ -1116,6 +1117,10 @@ export function useCanvasTable({
     },
     { deep: true },
   )
+
+  watch(editEnabled, (value) => {
+    gridEditEnabled.value = value
+  })
 
   function generateRows(columnId: string, rowIds: string[]) {
     return _generateRows(meta.value?.id, columnId, rowIds)

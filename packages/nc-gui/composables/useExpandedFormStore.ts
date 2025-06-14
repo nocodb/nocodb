@@ -161,64 +161,47 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       }
     })
 
-    const auditToCursor = (audit: any) => {
-      return `${audit.id}|${audit.created_at}`
-    }
-
     const primaryKey = computed(() => {
       return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
     })
 
-    const currentAuditCursor = ref('')
+    const auditsInAPage = 25
+    const currentAuditPages = ref(1)
     const mightHaveMoreAudits = ref(false)
 
     const loadAudits = async (_rowId?: string, showLoading = true) => {
-      if (!isUIAllowed('recordAuditList') || (!row.value && !_rowId)) return
+      if (!isUIAllowed('auditListRow') || (!row.value && !_rowId)) return
 
       const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
-      if (!rowId || !base.value.fk_workspace_id || !meta.value.base_id) return
+      if (!rowId) return
 
       try {
         if (showLoading) {
           isAuditLoading.value = true
         }
 
-        const response = await $api.internal.getOperation(
-          base.value.fk_workspace_id,
-          (meta.value.base_id as string) ?? (base.value.id as string),
-          {
-            operation: 'recordAuditList',
-            fk_model_id: meta.value.id as string,
-            row_id: rowId,
-            cursor: currentAuditCursor.value,
-          },
-        )
-
-        const lastRecord = response.list?.[response.list.length - 1]
-
-        if (lastRecord) {
-          currentAuditCursor.value = auditToCursor(lastRecord)
-          mightHaveMoreAudits.value = true
-        } else {
-          mightHaveMoreAudits.value = false
-        }
+        const response = await $api.utils.auditList({
+          row_id: rowId,
+          fk_model_id: meta.value.id as string,
+          offset: 0,
+          limit: currentAuditPages.value * auditsInAPage,
+        })
 
         const res = response.list?.reverse?.() || []
 
-        audits.value.unshift(
-          ...res.map((audit) => {
-            const user = baseUsers.value.find((u) => u.id === audit.fk_user_id || u.email === audit.user)
-            return {
-              ...audit,
-              created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
-              created_by_email: user?.email,
-              created_by_meta: user?.meta,
-            }
-          }),
-        )
+        audits.value = res.map((audit) => {
+          const user = baseUsers.value.find((u) => u.id === audit.fk_user_id || u.email === audit.user)
+          return {
+            ...audit,
+            created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
+            created_by_email: user?.email,
+            created_by_meta: user?.meta,
+          }
+        })
+
+        mightHaveMoreAudits.value = audits.value.length < (response.pageInfo?.totalRows ?? +Infinity)
       } catch (e: any) {
-        console.error(e)
         const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
         if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
@@ -264,13 +247,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       if (!mightHaveMoreAudits.value) {
         return
       }
+
+      currentAuditPages.value++
       await loadAudits()
     }
 
     const resetAuditPages = async () => {
-      currentAuditCursor.value = ''
-      audits.value = []
-      mightHaveMoreAudits.value = false
+      currentAuditPages.value = 1
       await loadAudits()
     }
 

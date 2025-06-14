@@ -119,6 +119,7 @@ const handleShowSearchInput = () => {
       if (isSearchButtonVisible.value) return
 
       globalSearchRef.value?.focus()
+      globalSearchRef.value?.select()
     })
   }, 300)
 }

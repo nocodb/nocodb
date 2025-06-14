@@ -727,12 +727,6 @@ export interface FieldOptionsCurrency {
 }
 
 export interface FieldOptionsPercent {
-  /**
-   * Number of decimal places allowed.
-   * @min 0
-   * @max 5
-   */
-  precision?: number;
   /** Display as a progress bar. */
   show_as_progress?: boolean;
 }
@@ -746,7 +740,7 @@ export interface FieldOptionsDuration {
    * - `h:mm:ss.SS`
    * - `h:mm:ss.SSS`
    */
-  format?: string;
+  duration_format?: string;
 }
 
 export interface FieldOptionsDateTime {
@@ -774,6 +768,12 @@ export interface FieldOptionsDateTime {
   time_format?: string;
   /** Use 12-hour time format. */
   "12hr_format"?: boolean;
+  /** Display timezone. */
+  display_timezone?: boolean;
+  /** Timezone. Refer to https://en.wikipedia.org/wiki/List_of_tz_database_time_zones */
+  timezone?: string;
+  /** Use same timezone for all records. */
+  use_same_timezone_for_all?: boolean;
 }
 
 export interface FieldOptionsDate {
@@ -795,13 +795,6 @@ export interface FieldOptionsDate {
 }
 
 export interface FieldOptionsTime {
-  /**
-   * Time format. Supported options are listed below
-   * - `HH:mm`
-   * - `HH:mm:ss`
-   * - `HH:mm:ss.SSS`
-   */
-  time_format?: string;
   /** Use 12-hour time format. */
   "12hr_format"?: boolean;
 }
@@ -872,7 +865,12 @@ export interface FieldOptionsBarcode {
   /** Barcode format (e.g., CODE128). */
   format?: string;
   /** Field ID that contains the value. */
-  value_field_id?: string;
+  barcode_value_field_id?: string;
+}
+
+export interface FieldOptionsQRCode {
+  /** Field ID that contains the value. */
+  qrcode_value_field_id?: string;
 }
 
 export interface FieldOptionsFormula {
@@ -887,16 +885,16 @@ export interface FieldOptionsUser {
 
 export interface FieldOptionsLookup {
   /** Linked field ID. Can be of type Links or LinkToAnotherRecord */
-  link_field_id: string;
+  related_field_id: string;
   /** Lookup field ID in the linked table. */
-  linked_table_lookup_field_id: string;
+  related_table_lookup_field_id: string;
 }
 
 export interface FieldOptionsRollup {
   /** Linked field ID. */
-  link_field_id: string;
+  related_field_id: string;
   /** Rollup field ID in the linked table. */
-  linked_table_rollup_field_id: string;
+  related_table_rollup_field_id: string;
   /** Rollup function. */
   rollup_function:
     | "count"
@@ -909,7 +907,12 @@ export interface FieldOptionsRollup {
     | "avgDistinct";
 }
 
-export type FieldOptionsButton = any;
+export type FieldOptionsButton = BaseFieldOptionsButton &
+  (
+    | BaseFieldOptionsButtonTypeMapping<"formula", any>
+    | BaseFieldOptionsButtonTypeMapping<"webhook", any>
+    | BaseFieldOptionsButtonTypeMapping<"ai", any>
+  );
 
 export interface FieldOptionsLinks {
   /**
@@ -922,7 +925,7 @@ export interface FieldOptionsLinks {
    */
   relation_type: string;
   /** Identifier of the linked table. */
-  linked_table_id: string;
+  related_table_id: string;
 }
 
 export interface FieldOptionsLinkToAnotherRecord {
@@ -936,7 +939,7 @@ export interface FieldOptionsLinkToAnotherRecord {
    */
   relation_type: string;
   /** Identifier of the linked table. */
-  linked_table_id: string;
+  related_table_id: string;
 }
 
 export type Field = FieldBase &
@@ -1143,6 +1146,94 @@ export interface SortListResponse {
   list: Sort[];
 }
 
+/** V3 Data Record format with id and fields separation */
+export interface DataRecordV3 {
+  /** Record identifier (primary key value) */
+  id: string | number;
+  /** Record fields data (excluding primary key). Undefined when empty. */
+  fields?: Record<string, any>;
+}
+
+export type DataRecordWithDeletedV3 = DataRecordV3 & {
+  /** Indicates if the record was deleted */
+  deleted: boolean;
+};
+
+/** V3 Data List Response format */
+export interface DataListResponseV3 {
+  /** Array of records for has-many and many-to-many relationships */
+  records?: DataRecordV3[];
+  /** Single record for belongs-to and one-to-one relationships */
+  record?: DataRecordV3 | null;
+  /** Pagination token for next page */
+  next?: string | null;
+  /** Pagination token for previous page */
+  prev?: string | null;
+  /** Nested pagination token for next page */
+  nestedNext?: string | null;
+  /** Nested pagination token for previous page */
+  nestedPrev?: string | null;
+}
+
+/** V3 Data Insert Request format */
+export interface DataInsertRequestV3 {
+  /** Record fields data */
+  fields: Record<string, any>;
+}
+
+/** V3 Data Update Request format */
+export interface DataUpdateRequestV3 {
+  /** Record identifier */
+  id: string | number;
+  /** Record fields data to update */
+  fields: Record<string, any>;
+}
+
+/** V3 Data Delete Request format */
+export interface DataDeleteRequestV3 {
+  /** Record identifier */
+  id: string | number;
+}
+
+/** V3 Data Insert Response format */
+export interface DataInsertResponseV3 {
+  /** Array of created records */
+  records: DataRecordV3[];
+}
+
+/** V3 Data Update Response format */
+export interface DataUpdateResponseV3 {
+  /** Array of updated record identifiers */
+  records: {
+    /** Updated record identifier */
+    id: string | number;
+  }[];
+}
+
+/** V3 Data Delete Response format */
+export interface DataDeleteResponseV3 {
+  /** Array of deleted records */
+  records: DataRecordWithDeletedV3[];
+}
+
+/** V3 Data Read Response format */
+export interface DataReadResponseV3 {
+  /** V3 Data Record format with id and fields separation */
+  record: DataRecordV3;
+}
+
+/** V3 Nested Data List Response format - supports both single record and array responses */
+export interface DataNestedListResponseV3 {
+  /** Array of records for has-many and many-to-many relationships */
+  records?: DataRecordV3[];
+  /** Single record for belongs-to and one-to-one relationships */
+  record?: DataRecordV3 | null;
+  /** Pagination token for next page */
+  next?: string | null;
+  /** Pagination token for previous page */
+  prev?: string | null;
+}
+
 /**
  * Paginated Model
  * Model for Paginated
@@ -1157,6 +1248,12 @@ export interface Paginated {
   /** URL to access current page data with previous set of nested fields data */
   nestedPrev?: string;
 }
+
+type BaseFieldOptionsButton = object;
+
+type BaseFieldOptionsButtonTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;
 
 import type {
   AxiosInstance,
@@ -1939,7 +2036,7 @@ export class InternalApi<
      * @tags Table Records
      * @name DbDataTableRowList
      * @summary List Table Records
-     * @request GET:/api/v3/{baseId}/{tableId}
+     * @request GET:/api/v3/data/{baseId}/{tableId}/records
      */
     dbDataTableRowList: (
       baseId: string,
@@ -1954,15 +2051,23 @@ export class InternalApi<
          */
         fields?: string;
         /**
-         * Allows you to specify the fields by which you want to sort the records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.
+         * Allows you to specify the fields by which you want to sort the records in your API response. Accepts either an array of sort objects or a single sort object.
          *
-         * Example: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.
+         * Each sort object must have a 'field' property specifying the field name and a 'direction' property with value 'asc' or 'desc'.
+         *
+         * Example: `sort=[{"direction":"asc","field":"field_name"},{"direction":"desc","field":"another_field"}]` or `sort={"direction":"asc","field":"field_name"}`
          *
          * If `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view.
-         *
-         * Please note that it's essential not to include spaces between field names in the comma-separated list.
          */
-        sort?: string;
+        sort?:
+          | {
+              direction: "asc" | "desc";
+              field: string;
+            }[]
+          | {
+              direction: "asc" | "desc";
+              field: string;
+            };
         /**
          * Enables you to define specific conditions for filtering records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.
          *
@@ -1992,10 +2097,10 @@ export class InternalApi<
         /**
          * Enables you to set a limit on the number of records you want to retrieve in your API response. By default, your response includes all the available records, but by using this parameter, you can control the quantity you receive.
          *
-         * Example: `limit=100` will constrain your response to the first 100 records in the dataset.
+         * Example: `pageSize=100` will constrain your response to the first 100 records in the dataset.
          * @min 1
          */
-        limit?: number;
+        pageSize?: number;
         /**
          * ***View Identifier***. Allows you to fetch records that are currently visible within a specific view. API retrieves records in the order they are displayed if the SORT option is enabled within that view.
          *
@@ -2008,18 +2113,13 @@ export class InternalApi<
       params: RequestParams = {},
     ) =>
       this.request<
-        {
-          /** List of data objects */
-          list: object[];
-          /** Paginated Info */
-          pageInfo: Paginated;
-        },
+        DataListResponseV3,
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}`,
+        path: `/api/v3/data/${baseId}/${tableId}/records`,
         method: "GET",
         query: query,
         format: "json",
@@ -2032,22 +2132,22 @@ export class InternalApi<
      * @tags Table Records
      * @name DbDataTableRowCreate
      * @summary Create Table Records
-     * @request POST:/api/v3/{baseId}/{tableId}
+     * @request POST:/api/v3/data/{baseId}/{tableId}/records
      */
     dbDataTableRowCreate: (
       baseId: string,
       tableId: string,
-      data: object | object[],
+      data: DataInsertRequestV3 | DataInsertRequestV3[],
       params: RequestParams = {},
     ) =>
       this.request<
-        FieldOptions,
+        DataInsertResponseV3,
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}`,
+        path: `/api/v3/data/${baseId}/${tableId}/records`,
         method: "POST",
         body: data,
         type: ContentType.Json,
@@ -2056,27 +2156,27 @@ export class InternalApi<
       }),
 
     /**
-     * @description This API endpoint allows updating existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be updated are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. Certain read-only field types will be disregarded if included in the request. These field types include Look Up, Roll Up, Formula, Created By, Updated By, Created At, Updated At, Button, Barcode and QR Code. For **Link to another record** field type if specified, all the existing links will be removed & the one's specified in this payload will be inserted. For **Attachment** field types, this API cannot be used. Instead, utilize the storage APIs for managing attachments. Support for attachment fields in the record insert API will be added soon. Note that a PATCH request only updates the specified fields while leaving other fields unaffected. Currently, PUT requests are not supported by this endpoint.
+     * @description This API endpoint allows you to update records within a specified table by their Record ID. The request payload should contain the Record ID and the fields that need to be updated. Certain read-only field types will be disregarded if included in the request. These field types include Look Up, Roll Up, Formula, Created By, Updated By, Created At, Updated At, Button, Barcode and QR Code. For **Attachment** field types, this API cannot be used. Instead, utilize the storage APIs for managing attachments. Support for attachment fields in the record update API will be added soon.
      *
      * @tags Table Records
      * @name DbDataTableRowUpdate
      * @summary Update Table Records
-     * @request PATCH:/api/v3/{baseId}/{tableId}
+     * @request PATCH:/api/v3/data/{baseId}/{tableId}/records
      */
     dbDataTableRowUpdate: (
       baseId: string,
       tableId: string,
-      data: object | object[],
+      data: DataUpdateRequestV3 | DataUpdateRequestV3[],
       params: RequestParams = {},
     ) =>
       this.request<
-        FieldOptions,
+        DataUpdateResponseV3,
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}`,
+        path: `/api/v3/data/${baseId}/${tableId}/records`,
         method: "PATCH",
         body: data,
         type: ContentType.Json,
@@ -2085,27 +2185,27 @@ export class InternalApi<
       }),
 
     /**
-     * @description This API endpoint allows deleting existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be deleted are input as an array of record-identifiers.
+     * @description This API endpoint allows the deletion of records within a specified table by Record ID. The request should include the Record ID of the record(s) to be deleted.
      *
      * @tags Table Records
      * @name DbDataTableRowDelete
      * @summary Delete Table Records
-     * @request DELETE:/api/v3/{baseId}/{tableId}
+     * @request DELETE:/api/v3/data/{baseId}/{tableId}/records
      */
     dbDataTableRowDelete: (
       baseId: string,
       tableId: string,
-      data: object | object[],
+      data: DataDeleteRequestV3 | DataDeleteRequestV3[],
       params: RequestParams = {},
     ) =>
       this.request<
-        FieldOptions,
+        DataDeleteResponseV3,
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}`,
+        path: `/api/v3/data/${baseId}/${tableId}/records`,
         method: "DELETE",
         body: data,
         type: ContentType.Json,
@@ -2119,7 +2219,7 @@ export class InternalApi<
      * @tags Table Records
      * @name DbDataTableRowRead
      * @summary Read Table Record
-     * @request GET:/api/v3/{baseId}/{tableId}/{recordId}
+     * @request GET:/api/v3/data/{baseId}/{tableId}/records/{recordId}
      */
     dbDataTableRowRead: (
       baseId: string,
@@ -2138,13 +2238,13 @@ export class InternalApi<
       params: RequestParams = {},
     ) =>
       this.request<
-        object,
+        DataReadResponseV3,
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}/${recordId}`,
+        path: `/api/v3/data/${baseId}/${tableId}/records/${recordId}`,
         method: "GET",
         query: query,
         format: "json",
@@ -2157,7 +2257,7 @@ export class InternalApi<
      * @tags Table Records
      * @name DbDataTableRowCount
      * @summary Count Table Records
-     * @request GET:/api/v3/{baseId}/{tableId}/count
+     * @request GET:/api/v3/data/{baseId}/{tableId}/count
      */
     dbDataTableRowCount: (
       baseId: string,
@@ -2189,7 +2289,7 @@ export class InternalApi<
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}/count`,
+        path: `/api/v3/data/${baseId}/${tableId}/count`,
         method: "GET",
         query: query,
         format: "json",
@@ -2202,7 +2302,7 @@ export class InternalApi<
      * @tags Linked Records
      * @name DbDataTableRowNestedList
      * @summary List Linked Records
-     * @request GET:/api/v3/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
+     * @request GET:/api/v3/data/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
      */
     dbDataTableRowNestedList: (
       tableId: string,
@@ -2219,13 +2319,23 @@ export class InternalApi<
          */
         fields?: string;
         /**
-         * Allows you to specify the fields by which you want to sort linked records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.
+         * Allows you to specify the fields by which you want to sort the records in your API response. Accepts either an array of sort objects or a single sort object.
          *
-         * Example: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.
+         * Each sort object must have a 'field' property specifying the field name and a 'direction' property with value 'asc' or 'desc'.
          *
-         * Please note that it's essential not to include spaces between field names in the comma-separated list.
+         * Example: `sort=[{"direction":"asc","field":"field_name"},{"direction":"desc","field":"another_field"}]` or `sort={"direction":"asc","field":"field_name"}`
+         *
+         * If `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view.
          */
-        sort?: string;
+        sort?:
+          | {
+              direction: "asc" | "desc";
+              field: string;
+            }[]
+          | {
+              direction: "asc" | "desc";
+              field: string;
+            };
         /**
          * Enables you to define specific conditions for filtering linked records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.
          *
@@ -2246,10 +2356,10 @@ export class InternalApi<
         /**
          * Enables you to set a limit on the number of linked records you want to retrieve in your API response. By default, your response includes all the available linked records, but by using this parameter, you can control the quantity you receive.
          *
-         * Example: `limit=100` will constrain your response to the first 100 linked records in the dataset.
+         * Example: `pageSize=100` will constrain your response to the first 100 linked records in the dataset.
          * @min 1
          */
-        limit?: number;
+        pageSize?: number;
       },
       params: RequestParams = {},
     ) =>
@@ -2265,7 +2375,7 @@ export class InternalApi<
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
+        path: `/api/v3/data/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
         method: "GET",
         query: query,
         format: "json",
@@ -2278,7 +2388,7 @@ export class InternalApi<
      * @tags Linked Records
      * @name DbDataTableRowNestedLink
      * @summary Link Records
-     * @request POST:/api/v3/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
+     * @request POST:/api/v3/data/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
      */
     dbDataTableRowNestedLink: (
       tableId: string,
@@ -2295,7 +2405,7 @@ export class InternalApi<
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
+        path: `/api/v3/data/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
         method: "POST",
         body: data,
         type: ContentType.Json,
@@ -2309,7 +2419,7 @@ export class InternalApi<
      * @tags Linked Records
      * @name DbDataTableRowNestedUnlink
      * @summary Unlink Records
-     * @request DELETE:/api/v3/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
+     * @request DELETE:/api/v3/data/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
      */
     dbDataTableRowNestedUnlink: (
       tableId: string,
@@ -2326,7 +2436,7 @@ export class InternalApi<
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
+        path: `/api/v3/data/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
         method: "DELETE",
         body: data,
         type: ContentType.Json,

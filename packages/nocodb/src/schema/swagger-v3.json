@@ -2433,11 +2433,41 @@
           },
           {
             "schema": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "direction": {
+                        "type": "string",
+                        "enum": ["asc", "desc"]
+                      },
+                      "field": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["field", "direction"]
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "direction": {
+                      "type": "string",
+                      "enum": ["asc", "desc"]
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["field", "direction"]
+                }
+              ]
             },
             "in": "query",
             "name": "sort",
-            "description": "Allows you to specify the fields by which you want to sort the records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.\n\nExample: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.\n\nIf `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view.\n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+            "description": "Allows you to specify the fields by which you want to sort the records in your API response. Accepts either an array of sort objects or a single sort object.\n\nEach sort object must have a 'field' property specifying the field name and a 'direction' property with value 'asc' or 'desc'.\n\nExample: `sort=[{\"direction\":\"asc\",\"field\":\"field_name\"},{\"direction\":\"desc\",\"field\":\"another_field\"}]` or `sort={\"direction\":\"asc\",\"field\":\"field_name\"}`\n\nIf `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view."
           },
           {
             "schema": {
@@ -2471,8 +2501,8 @@
               "minimum": 1
             },
             "in": "query",
-            "name": "limit",
-            "description": "Enables you to set a limit on the number of records you want to retrieve in your API response. By default, your response includes all the available records, but by using this parameter, you can control the quantity you receive.\n\nExample: `limit=100` will constrain your response to the first 100 records in the dataset."
+            "name": "pageSize",
+            "description": "Enables you to set a limit on the number of records you want to retrieve in your API response. By default, your response includes all the available records, but by using this parameter, you can control the quantity you receive.\n\nExample: `pageSize=100` will constrain your response to the first 100 records in the dataset."
           },
           {
             "schema": {
@@ -3079,11 +3109,41 @@
           },
           {
             "schema": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "direction": {
+                        "type": "string",
+                        "enum": ["asc", "desc"]
+                      },
+                      "field": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["field", "direction"]
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "direction": {
+                      "type": "string",
+                      "enum": ["asc", "desc"]
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["field", "direction"]
+                }
+              ]
             },
             "in": "query",
             "name": "sort",
-            "description": "Allows you to specify the fields by which you want to sort linked records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.\n\nExample: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.\n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+            "description": "Allows you to specify the fields by which you want to sort the records in your API response. Accepts either an array of sort objects or a single sort object.\n\nEach sort object must have a 'field' property specifying the field name and a 'direction' property with value 'asc' or 'desc'.\n\nExample: `sort=[{\"direction\":\"asc\",\"field\":\"field_name\"},{\"direction\":\"desc\",\"field\":\"another_field\"}]` or `sort={\"direction\":\"asc\",\"field\":\"field_name\"}`\n\nIf `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view."
           },
           {
             "schema": {
@@ -3108,8 +3168,8 @@
               "minimum": 1
             },
             "in": "query",
-            "name": "limit",
-            "description": "Enables you to set a limit on the number of linked records you want to retrieve in your API response. By default, your response includes all the available linked records, but by using this parameter, you can control the quantity you receive.\n\nExample: `limit=100` will constrain your response to the first 100 linked records in the dataset."
+            "name": "pageSize",
+            "description": "Enables you to set a limit on the number of linked records you want to retrieve in your API response. By default, your response includes all the available linked records, but by using this parameter, you can control the quantity you receive.\n\nExample: `pageSize=100` will constrain your response to the first 100 linked records in the dataset."
           },
           {
             "required": true,

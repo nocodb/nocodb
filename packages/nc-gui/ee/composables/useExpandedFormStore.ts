@@ -1,3 +1,5 @@
+// TODO: Remove this file after migration is complete to unify with OSS
+
 import type { AuditType, ColumnType, MetaType, PlanLimitExceededDetailsType, TableType } from 'nocodb-sdk'
 import { PlanLimitTypes, ViewTypes, isReadOnlyColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
@@ -161,47 +163,66 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       }
     })
 
+    const auditToCursor = (audit: any) => {
+      return `${audit.id}|${audit.created_at}`
+    }
+
     const primaryKey = computed(() => {
       return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
     })
 
-    const auditsInAPage = 25
-    const currentAuditPages = ref(1)
-    const mightHaveMoreAudits = ref(false)
+    const currentAuditCursor = ref('')
+    const hasMoreAudits = ref(false)
 
     const loadAudits = async (_rowId?: string, showLoading = true) => {
-      if (!isUIAllowed('auditListRow') || (!row.value && !_rowId)) return
+      if (!isUIAllowed('recordAuditList') || (!row.value && !_rowId)) return
 
       const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
-      if (!rowId) return
+      if (!rowId || !base.value.fk_workspace_id || !meta.value.base_id) return
 
       try {
         if (showLoading) {
           isAuditLoading.value = true
         }
 
-        const response = await $api.utils.auditList({
-          row_id: rowId,
-          fk_model_id: meta.value.id as string,
-          offset: 0,
-          limit: currentAuditPages.value * auditsInAPage,
-        })
+        const response = await $api.internal.getOperation(
+          base.value.fk_workspace_id,
+          (meta.value.base_id as string) ?? (base.value.id as string),
+          {
+            operation: 'recordAuditList',
+            fk_model_id: meta.value.id as string,
+            row_id: rowId,
+            cursor: currentAuditCursor.value,
+          },
+        )
+
+        // Skip insert as it will be first for all
+        response.list = response.list.filter((audit) => !audit?.op_type.includes('INSERT'))
+
+        const lastRecord = response.list?.[response.list.length - 1]
+
+        if (lastRecord) {
+          currentAuditCursor.value = auditToCursor(lastRecord)
+        }
+
+        hasMoreAudits.value = !response.pageInfo?.isLastPage
 
         const res = response.list?.reverse?.() || []
 
-        audits.value = res.map((audit) => {
-          const user = baseUsers.value.find((u) => u.id === audit.fk_user_id || u.email === audit.user)
-          return {
-            ...audit,
-            created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
-            created_by_email: user?.email,
-            created_by_meta: user?.meta,
-          }
-        })
-
-        mightHaveMoreAudits.value = audits.value.length < (response.pageInfo?.totalRows ?? +Infinity)
+        audits.value.unshift(
+          ...res.map((audit) => {
+            const user = baseUsers.value.find((u) => u.id === audit.fk_user_id || u.email === audit.user)
+            return {
+              ...audit,
+              created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
+              created_by_email: user?.email,
+              created_by_meta: user?.meta,
+            }
+          }),
+        )
       } catch (e: any) {
+        console.error(e)
         const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
         if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
@@ -244,16 +265,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     }
 
     const loadMoreAudits = async () => {
-      if (!mightHaveMoreAudits.value) {
+      if (!hasMoreAudits.value) {
         return
       }
-
-      currentAuditPages.value++
       await loadAudits()
     }
 
     const resetAuditPages = async () => {
-      currentAuditPages.value = 1
+      currentAuditCursor.value = ''
+      audits.value = []
+      hasMoreAudits.value = false
       await loadAudits()
     }
 
@@ -734,7 +755,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       clearColumns,
       auditCommentGroups,
       consolidatedAudits,
-      mightHaveMoreAudits,
+      hasMoreAudits,
       loadMoreAudits,
       resetAuditPages,
       resolveComment,

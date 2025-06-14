@@ -102,7 +102,12 @@ export class PagedResponseV3Impl<T> {
       path: `/api/v3/${context.base_id}/${tableId}`,
     };
 
-    const commonQueryParams = {};
+    const commonQueryParams = extractProps(param.query || {}, [
+      'sort',
+      'where',
+      's',
+      'w',
+    ]);
 
     if (!pagedResponse.pageInfo.isFirstPage && pagedResponse.pageInfo.page) {
       pageInfo.prev = constructUrl({

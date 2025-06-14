@@ -60,11 +60,11 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
 
   const dagreGraph = new dagre.graphlib.Graph()
   dagreGraph.setDefaultEdgeLabel(() => ({}))
-  dagreGraph.setGraph({ 
+  dagreGraph.setGraph({
     rankdir: 'LR',
     align: 'UL',
     nodesep: 50,
-    ranksep: 100
+    ranksep: 100,
   })
 
   const { metasWithIdAsKey } = useMetas()
@@ -296,14 +296,23 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
       dagre.layout(dagreGraph)
 
       // Calculate bounds to center the layout
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
-      
+      let minX = Infinity
+      let minY = Infinity
+      let maxX = -Infinity
+      let maxY = -Infinity
+
       for (const el of elements.value) {
         if (isNode(el)) {
           const nodeWithPosition = dagreGraph.node(el.id)
           const width = skeleton ? nodeWidth * 3 : nodeWidth
-          const height = nodeHeight.value + (skeleton ? 250 : (el as Node<NodeData>).data!.columnLength > 0 ? nodeHeight.value * (el as Node<NodeData>).data!.columnLength : nodeHeight.value)
-          
+          const height =
+            nodeHeight.value +
+            (skeleton
+              ? 250
+              : (el as Node<NodeData>).data!.columnLength > 0
+              ? nodeHeight.value * (el as Node<NodeData>).data!.columnLength
+              : nodeHeight.value)
+
           minX = Math.min(minX, nodeWithPosition.x - width / 2)
           minY = Math.min(minY, nodeWithPosition.y - height / 2)
           maxX = Math.max(maxX, nodeWithPosition.x + width / 2)
@@ -324,9 +333,9 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
           el.targetPosition = Position.Left
           el.sourcePosition = Position.Right
           // Apply center offset to position nodes around the origin
-          el.position = { 
-            x: nodeWithPosition.x + centerOffsetX, 
-            y: nodeWithPosition.y + centerOffsetY 
+          el.position = {
+            x: nodeWithPosition.x + centerOffsetX,
+            y: nodeWithPosition.y + centerOffsetY,
           }
           el.class = ['rounded-lg border-1 border-gray-200 shadow-lg'].join(' ')
           el.data.color = color

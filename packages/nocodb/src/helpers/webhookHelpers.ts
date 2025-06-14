@@ -26,6 +26,7 @@ import { Filter, HookLog, Source } from '~/models';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
 import { isEE, isOnPrem } from '~/utils';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 handlebarsHelpers({ handlebars: Handlebars });
 
@@ -379,14 +380,44 @@ export async function validateCondition(
   return isValid;
 }
 
-export function constructWebHookData(hook, model, view, prevData, newData) {
+/**
+ * Sanitizes user object to include only safe, non-sensitive information
+ */
+export function sanitizeUserForHook(user: any) {
+  if (!user || !user.id || !user.email) return null;
+
+  return {
+    id: user.id,
+    email: user.email,
+    display_name: user.display_name,
+    user_name: user.user_name,
+    // Explicitly exclude sensitive fields like:
+    // - tokens
+    // - password hashes
+    // - api tokens
+    // - personal information not needed in webhooks
+  };
+}
+
+export function constructWebHookData(
+  hook,
+  model,
+  view,
+  prevData,
+  newData,
+  user = null,
+) {
   if (hook.version === 'v2') {
     // extend in the future - currently only support records
     const scope = 'records';
 
+    // Check for include_user in notification object first, fall back to hook.include_user for backward compatibility
+    const includeUser = parseMetaProp(hook, 'notification')?.include_user;
+
     return {
       type: `${scope}.${hook.event}.${hook.operation}`,
       id: uuidv4(),
+      ...(includeUser && isEE && user && { user: sanitizeUserForHook(user) }),
       data: {
         table_id: model.id,
         table_name: model.title,
@@ -420,6 +451,7 @@ function populateAxiosReq({
   view,
   prevData,
   newData,
+  user,
 }: {
   apiMeta: any;
   user: UserType;
@@ -455,6 +487,7 @@ function populateAxiosReq({
     view,
     prevData,
     newData,
+    user,
   );
   // const reqPayload = axiosRequestMake(
   //   _apiMeta,

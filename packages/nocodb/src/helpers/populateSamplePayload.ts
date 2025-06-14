@@ -7,6 +7,8 @@ import type {
 } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { Column, Model, View } from '~/models';
+import { sanitizeUserForHook } from '~/helpers/webhookHelpers';
+import { isEE } from '~/utils';
 
 export async function populateSamplePayload(
   context: NcContext,
@@ -46,12 +48,22 @@ export async function populateSamplePayload(
   return out;
 }
 
+export interface SampleUser {
+  id: string;
+  email: string;
+  display_name: string;
+  user_name: string;
+  roles?: string | Record<string, any>;
+}
+
 export async function populateSamplePayloadV2(
   context: NcContext,
   viewOrModel: View | Model,
   includeNested = false,
   operation = 'insert',
   scope = 'records',
+  includeUser = false,
+  user?: SampleUser,
 ) {
   const rows = {};
   let columns: Column[] = [];
@@ -71,9 +83,22 @@ export async function populateSamplePayloadV2(
 
   await model.getViews(context);
 
+  const sampleUser = includeUser
+    ? user || {
+        id: 'usr_sample_user_id',
+        email: 'user@example.com',
+        display_name: 'Sample User',
+        user_name: 'sample_user',
+        roles: 'user',
+      }
+    : null;
+
   const samplePayload = {
     type: `${scope}.after.${operation}`,
     id: uuidv4(),
+    ...(includeUser &&
+      isEE &&
+      sampleUser && { user: sanitizeUserForHook(sampleUser) }),
     data: {
       table_id: model.id,
       table_name: model.title,

@@ -233,6 +233,7 @@ export class HooksService {
       hook,
       payload: { data, user },
     } = param.hookTest;
+
     try {
       await invokeWebhook(context, {
         hook: new Hook(hook),
@@ -259,12 +260,45 @@ export class HooksService {
     return true;
   }
 
+  async hookSamplePayload(
+    context: NcContext,
+    param: {
+      tableId: string;
+      operation: string;
+      version: string;
+      includeUser?: boolean;
+      user?: any;
+    },
+  ) {
+    const model = await Model.getByIdOrName(context, { id: param.tableId });
+
+    if (param.version === 'v2') {
+      return await populateSamplePayloadV2(
+        context,
+        model,
+        false,
+        param.operation,
+        'records',
+        param.includeUser,
+        param.user,
+      );
+    } else {
+      return await populateSamplePayload(
+        context,
+        model,
+        false,
+        param.operation,
+      );
+    }
+  }
+
   async tableSampleData(
     context: NcContext,
     param: {
       tableId: string;
       operation: HookType['operation'];
       version: any; // HookType['version'];
+      includeUser?: boolean;
     },
   ) {
     const model = new Model(
@@ -284,6 +318,8 @@ export class HooksService {
       model,
       false,
       param.operation,
+      undefined,
+      param.includeUser,
     );
   }
 

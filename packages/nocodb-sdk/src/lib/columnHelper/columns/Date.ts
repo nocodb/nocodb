@@ -58,6 +58,9 @@ export class DateHelper extends AbstractColumnHelper {
     numberOfRows: number;
   }): any[] {
     const { column, highlightedData, numberOfRows } = params;
+    if (highlightedData.length < 2) {
+      return populateFillHandleStrictCopy(params);
+    }
     // data is in form like 'YYYY-MM-DD' depends on meta dateformat
     const meta = parseProp(column.meta);
     const metaDateFormat = meta.date_format ?? 'YYYY-MM-DD';

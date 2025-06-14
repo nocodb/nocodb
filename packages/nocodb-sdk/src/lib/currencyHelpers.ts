@@ -11,14 +11,14 @@ export const getGroupDecimalSymbolFromLocale = (locale?: string) => {
   }
 
   const formatter = new Intl.NumberFormat(locale || 'en-US');
-  if (!formatter.formatToParts) {
+  if (!(formatter as any).formatToParts) {
     return {
       group,
       decimal,
     };
   }
   // Use formatToParts to extract the characters used for grouping (thousands) and decimal
-  const parts = formatter.formatToParts(12345.6) as Array<{
+  const parts = (formatter as any).formatToParts(12345.6) as Array<{
     type: string;
     value: string;
   }>;

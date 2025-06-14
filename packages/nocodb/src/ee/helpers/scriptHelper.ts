@@ -212,49 +212,52 @@ export async function getBaseSchema(baseId: string, ncMeta = Noco.ncMeta) {
         'm.title',
         'm.description',
         ncMeta.knex.raw(`
-          COALESCE(
-            json_agg(
-              DISTINCT jsonb_build_object(
-                'id', v.id,
-                'name', v.title,
-                'type', v.type,
-                'description', v.description
-              )
-            ) FILTER (WHERE v.id IS NOT NULL),
-            '[]'::json
+          (
+            SELECT COALESCE(
+              json_agg(
+                jsonb_build_object(
+                  'id', v.id,
+                  'name', v.title,
+                  'type', v.type,
+                  'description', v.description
+                )
+              ),
+              '[]'::json
+            )
+            FROM ${MetaTable.VIEWS} v
+            WHERE v.fk_model_id = m.id
           ) as views
         `),
         ncMeta.knex.raw(`
-          COALESCE(
-            json_agg(
-              jsonb_build_object(
-                'id', c.id,
-                'name', c.title,
-                'type', c.uidt,
-                'primary_key', c.pk,
-                'primary_value', c.pv,
-                'default_value', c.cdf,
-                'meta', c.meta,
-                'is_system_field', c.system,
-                'options', ${generateColOptionsCase(ncMeta.knex).toQuery()},
-                'description', c.description,
-                'order', c.order
-              )
-              ORDER BY c.order NULLS LAST
-            ) FILTER (WHERE c.id IS NOT NULL),
-            '[]'::json
+          (
+            SELECT COALESCE(
+              json_agg(
+                jsonb_build_object(
+                  'id', c.id,
+                  'name', c.title,
+                  'type', c.uidt,
+                  'primary_key', c.pk,
+                  'primary_value', c.pv,
+                  'default_value', c.cdf,
+                  'meta', c.meta,
+                  'is_system_field', c.system,
+                  'options', ${generateColOptionsCase(ncMeta.knex).toQuery()},
+                  'description', c.description,
+                  'order', c.order
+                )
+                ORDER BY c.order NULLS LAST
+              ),
+              '[]'::json
+            )
+            FROM ${MetaTable.COLUMNS} c
+            WHERE c.fk_model_id = m.id AND c.deleted IS NULL
           ) as fields
         `),
       )
         .from(`${MetaTable.MODELS} as m`)
-        .leftJoin(`${MetaTable.VIEWS} as v`, 'm.id', 'v.fk_model_id')
-        .leftJoin(`${MetaTable.COLUMNS} as c`, function () {
-          this.on('m.id', '=', 'c.fk_model_id').andOnNull('c.deleted');
-        })
         .where('m.base_id', baseId)
         .where('m.mm', '=', false)
-        .whereNull('m.deleted')
-        .groupBy('m.id', 'm.title');
+        .whereNull('m.deleted');
     })
     .with('base_users', (qb) => {
       qb.select(

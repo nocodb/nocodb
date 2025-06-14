@@ -91,14 +91,7 @@ export default class Script extends ScriptCE implements ScriptType {
 
     return scriptsList
       .map((script) => {
-        const deserializeProps = ['meta', 'config'];
-
-        for (const prop of deserializeProps) {
-          if (script[prop]) {
-            script[prop] = deserializeJSON(script[prop]);
-          }
-        }
-
+        script = prepareForResponse(script, ['meta', 'config']);
         return new Script(script);
       })
       .sort((a, b) => a.order - b.order);
@@ -143,7 +136,7 @@ export default class Script extends ScriptCE implements ScriptType {
       scriptId,
     );
 
-    await NocoCache.update(`${CacheScope.SCRIPTS}:${scriptId}`, updateObj);
+    await NocoCache.update(`${CacheScope.SCRIPTS}:${scriptId}`, prepareForResponse(updateObj, ['meta', 'config']));
 
     return this.get(context, scriptId, ncMeta);
   }

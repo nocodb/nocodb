@@ -1140,6 +1140,9 @@ Object.freeze(UITypes);
     }
     
     getTable(idOrName) {
+      if(idOrName instanceof Table) {
+        idOrName = idOrName.id
+      }
       return this.tables.find((table) => table.id === idOrName || table.name === idOrName)
     }
     

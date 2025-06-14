@@ -6369,17 +6369,6 @@
               "$ref": "#/components/schemas/DataRecordV3"
             }
           },
-          "record": {
-            "description": "Single record for belongs-to and one-to-one relationships",
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/DataRecordV3"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
           "next": {
             "type": ["string", "null"],
             "description": "Pagination token for next page"

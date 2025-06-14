@@ -12,22 +12,22 @@
 
 /** Workspace roles for the user. */
 export enum WorkspaceRoles {
-  WorkspaceLevelOwner = "workspace-level-owner",
-  WorkspaceLevelCreator = "workspace-level-creator",
-  WorkspaceLevelEditor = "workspace-level-editor",
-  WorkspaceLevelViewer = "workspace-level-viewer",
-  WorkspaceLevelCommenter = "workspace-level-commenter",
-  WorkspaceLevelNoAccess = "workspace-level-no-access",
+  WorkspaceLevelOwner = 'workspace-level-owner',
+  WorkspaceLevelCreator = 'workspace-level-creator',
+  WorkspaceLevelEditor = 'workspace-level-editor',
+  WorkspaceLevelViewer = 'workspace-level-viewer',
+  WorkspaceLevelCommenter = 'workspace-level-commenter',
+  WorkspaceLevelNoAccess = 'workspace-level-no-access',
 }
 
 /** Base roles for the user. */
 export enum BaseRoles {
-  Owner = "owner",
-  Creator = "creator",
-  Editor = "editor",
-  Viewer = "viewer",
-  Commenter = "commenter",
-  NoAccess = "no-access",
+  Owner = 'owner',
+  Creator = 'creator',
+  Editor = 'editor',
+  Viewer = 'viewer',
+  Commenter = 'commenter',
+  NoAccess = 'no-access',
 }
 
 export interface Base {
@@ -256,7 +256,7 @@ export interface Sort {
    */
   field_id: string;
   /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
-  direction: "asc" | "desc";
+  direction: 'asc' | 'desc';
 }
 
 export interface SortCreate {
@@ -266,7 +266,7 @@ export interface SortCreate {
    */
   field_id: string;
   /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
-  direction: "asc" | "desc";
+  direction: 'asc' | 'desc';
 }
 
 export interface SortUpdate {
@@ -278,7 +278,7 @@ export interface SortUpdate {
    */
   field_id?: string;
   /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
-  direction?: "asc" | "desc";
+  direction?: 'asc' | 'desc';
 }
 
 export interface ViewSummary {
@@ -290,7 +290,7 @@ export interface ViewSummary {
   /** Name of the view. */
   title?: string;
   /** Type of the view. */
-  view_type?: "GRID" | "GALLERY" | "KANBAN" | "CALENDAR" | "FORM";
+  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
 }
 
 /** GRID View */
@@ -312,7 +312,7 @@ export type View = (
          */
         field_id?: string;
         /** Sorting order for the group. */
-        sort?: "asc" | "desc";
+        sort?: 'asc' | 'desc';
       }[];
     }
   | {
@@ -433,9 +433,9 @@ export type View = (
   /** Name of the view. */
   view_name?: string;
   /** Type of the view. */
-  view_type?: "GRID" | "GALLERY" | "KANBAN" | "CALENDAR" | "FORM";
+  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
   /** Lock type of the view. */
-  lock_type?: "COLLABARATIVE" | "LOCKED" | "PERSONAL";
+  lock_type?: 'COLLABARATIVE' | 'LOCKED' | 'PERSONAL';
   /** Description of the view. */
   description?: string;
   /** Indicates if this is the default view. */
@@ -479,9 +479,9 @@ export interface ViewCreate {
   /** Name of the view. */
   view_name?: string;
   /** Type of the view. */
-  view_type?: "GRID" | "GALLERY" | "KANBAN" | "CALENDAR" | "FORM";
+  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
   /** Lock type of the view. */
-  lock_type?: "COLLABARATIVE" | "LOCKED" | "PERSONAL";
+  lock_type?: 'COLLABARATIVE' | 'LOCKED' | 'PERSONAL';
   /** Description of the view. */
   description?: string;
 }
@@ -541,189 +541,189 @@ export interface FieldOptionsCurrency {
   locale?: string;
   /** Currency code. Refer https://simplelocalize.io/data/locales/ */
   code?:
-    | "AED"
-    | "AFN"
-    | "ALL"
-    | "AMD"
-    | "ANG"
-    | "AOA"
-    | "ARS"
-    | "AUD"
-    | "AWG"
-    | "AZN"
-    | "BAM"
-    | "BBD"
-    | "BDT"
-    | "BGN"
-    | "BHD"
-    | "BIF"
-    | "BMD"
-    | "BND"
-    | "BOB"
-    | "BOV"
-    | "BRL"
-    | "BSD"
-    | "BTN"
-    | "BWP"
-    | "BYR"
-    | "BZD"
-    | "CAD"
-    | "CDF"
-    | "CHE"
-    | "CHF"
-    | "CHW"
-    | "CLF"
-    | "CLP"
-    | "CNY"
-    | "COP"
-    | "COU"
-    | "CRC"
-    | "CUP"
-    | "CVE"
-    | "CYP"
-    | "CZK"
-    | "DJF"
-    | "DKK"
-    | "DOP"
-    | "DZD"
-    | "EEK"
-    | "EGP"
-    | "ERN"
-    | "ETB"
-    | "EUR"
-    | "FJD"
-    | "FKP"
-    | "GBP"
-    | "GEL"
-    | "GHC"
-    | "GIP"
-    | "GMD"
-    | "GNF"
-    | "GTQ"
-    | "GYD"
-    | "HKD"
-    | "HNL"
-    | "HRK"
-    | "HTG"
-    | "HUF"
-    | "IDR"
-    | "ILS"
-    | "INR"
-    | "IQD"
-    | "IRR"
-    | "ISK"
-    | "JMD"
-    | "JOD"
-    | "JPY"
-    | "KES"
-    | "KGS"
-    | "KHR"
-    | "KMF"
-    | "KPW"
-    | "KRW"
-    | "KWD"
-    | "KYD"
-    | "KZT"
-    | "LAK"
-    | "LBP"
-    | "LKR"
-    | "LRD"
-    | "LSL"
-    | "LTL"
-    | "LVL"
-    | "LYD"
-    | "MAD"
-    | "MDL"
-    | "MGA"
-    | "MKD"
-    | "MMK"
-    | "MNT"
-    | "MOP"
-    | "MRO"
-    | "MTL"
-    | "MUR"
-    | "MVR"
-    | "MWK"
-    | "MXN"
-    | "MXV"
-    | "MYR"
-    | "MZN"
-    | "NAD"
-    | "NGN"
-    | "NIO"
-    | "NOK"
-    | "NPR"
-    | "NZD"
-    | "OMR"
-    | "PAB"
-    | "PEN"
-    | "PGK"
-    | "PHP"
-    | "PKR"
-    | "PLN"
-    | "PYG"
-    | "QAR"
-    | "ROL"
-    | "RON"
-    | "RSD"
-    | "RUB"
-    | "RWF"
-    | "SAR"
-    | "SBD"
-    | "SCR"
-    | "SDD"
-    | "SEK"
-    | "SGD"
-    | "SHP"
-    | "SIT"
-    | "SKK"
-    | "SLL"
-    | "SOS"
-    | "SRD"
-    | "STD"
-    | "SYP"
-    | "SZL"
-    | "THB"
-    | "TJS"
-    | "TMM"
-    | "TND"
-    | "TOP"
-    | "TRY"
-    | "TTD"
-    | "TWD"
-    | "TZS"
-    | "UAH"
-    | "UGX"
-    | "USD"
-    | "USN"
-    | "USS"
-    | "UYU"
-    | "UZS"
-    | "VEB"
-    | "VND"
-    | "VUV"
-    | "WST"
-    | "XAF"
-    | "XAG"
-    | "XAU"
-    | "XBA"
-    | "XBB"
-    | "XBC"
-    | "XBD"
-    | "XCD"
-    | "XDR"
-    | "XFO"
-    | "XFU"
-    | "XOF"
-    | "XPD"
-    | "XPF"
-    | "XPT"
-    | "XTS"
-    | "XXX"
-    | "YER"
-    | "ZAR"
-    | "ZMK"
-    | "ZWD";
+    | 'AED'
+    | 'AFN'
+    | 'ALL'
+    | 'AMD'
+    | 'ANG'
+    | 'AOA'
+    | 'ARS'
+    | 'AUD'
+    | 'AWG'
+    | 'AZN'
+    | 'BAM'
+    | 'BBD'
+    | 'BDT'
+    | 'BGN'
+    | 'BHD'
+    | 'BIF'
+    | 'BMD'
+    | 'BND'
+    | 'BOB'
+    | 'BOV'
+    | 'BRL'
+    | 'BSD'
+    | 'BTN'
+    | 'BWP'
+    | 'BYR'
+    | 'BZD'
+    | 'CAD'
+    | 'CDF'
+    | 'CHE'
+    | 'CHF'
+    | 'CHW'
+    | 'CLF'
+    | 'CLP'
+    | 'CNY'
+    | 'COP'
+    | 'COU'
+    | 'CRC'
+    | 'CUP'
+    | 'CVE'
+    | 'CYP'
+    | 'CZK'
+    | 'DJF'
+    | 'DKK'
+    | 'DOP'
+    | 'DZD'
+    | 'EEK'
+    | 'EGP'
+    | 'ERN'
+    | 'ETB'
+    | 'EUR'
+    | 'FJD'
+    | 'FKP'
+    | 'GBP'
+    | 'GEL'
+    | 'GHC'
+    | 'GIP'
+    | 'GMD'
+    | 'GNF'
+    | 'GTQ'
+    | 'GYD'
+    | 'HKD'
+    | 'HNL'
+    | 'HRK'
+    | 'HTG'
+    | 'HUF'
+    | 'IDR'
+    | 'ILS'
+    | 'INR'
+    | 'IQD'
+    | 'IRR'
+    | 'ISK'
+    | 'JMD'
+    | 'JOD'
+    | 'JPY'
+    | 'KES'
+    | 'KGS'
+    | 'KHR'
+    | 'KMF'
+    | 'KPW'
+    | 'KRW'
+    | 'KWD'
+    | 'KYD'
+    | 'KZT'
+    | 'LAK'
+    | 'LBP'
+    | 'LKR'
+    | 'LRD'
+    | 'LSL'
+    | 'LTL'
+    | 'LVL'
+    | 'LYD'
+    | 'MAD'
+    | 'MDL'
+    | 'MGA'
+    | 'MKD'
+    | 'MMK'
+    | 'MNT'
+    | 'MOP'
+    | 'MRO'
+    | 'MTL'
+    | 'MUR'
+    | 'MVR'
+    | 'MWK'
+    | 'MXN'
+    | 'MXV'
+    | 'MYR'
+    | 'MZN'
+    | 'NAD'
+    | 'NGN'
+    | 'NIO'
+    | 'NOK'
+    | 'NPR'
+    | 'NZD'
+    | 'OMR'
+    | 'PAB'
+    | 'PEN'
+    | 'PGK'
+    | 'PHP'
+    | 'PKR'
+    | 'PLN'
+    | 'PYG'
+    | 'QAR'
+    | 'ROL'
+    | 'RON'
+    | 'RSD'
+    | 'RUB'
+    | 'RWF'
+    | 'SAR'
+    | 'SBD'
+    | 'SCR'
+    | 'SDD'
+    | 'SEK'
+    | 'SGD'
+    | 'SHP'
+    | 'SIT'
+    | 'SKK'
+    | 'SLL'
+    | 'SOS'
+    | 'SRD'
+    | 'STD'
+    | 'SYP'
+    | 'SZL'
+    | 'THB'
+    | 'TJS'
+    | 'TMM'
+    | 'TND'
+    | 'TOP'
+    | 'TRY'
+    | 'TTD'
+    | 'TWD'
+    | 'TZS'
+    | 'UAH'
+    | 'UGX'
+    | 'USD'
+    | 'USN'
+    | 'USS'
+    | 'UYU'
+    | 'UZS'
+    | 'VEB'
+    | 'VND'
+    | 'VUV'
+    | 'WST'
+    | 'XAF'
+    | 'XAG'
+    | 'XAU'
+    | 'XBA'
+    | 'XBB'
+    | 'XBC'
+    | 'XBD'
+    | 'XCD'
+    | 'XDR'
+    | 'XFO'
+    | 'XFU'
+    | 'XOF'
+    | 'XPD'
+    | 'XPF'
+    | 'XPT'
+    | 'XTS'
+    | 'XXX'
+    | 'YER'
+    | 'ZAR'
+    | 'ZMK'
+    | 'ZWD';
 }
 
 export interface FieldOptionsPercent {
@@ -767,7 +767,7 @@ export interface FieldOptionsDateTime {
    */
   time_format?: string;
   /** Use 12-hour time format. */
-  "12hr_format"?: boolean;
+  '12hr_format'?: boolean;
   /** Display timezone. */
   display_timezone?: boolean;
   /** Timezone. Refer to https://en.wikipedia.org/wiki/List_of_tz_database_time_zones */
@@ -796,7 +796,7 @@ export interface FieldOptionsDate {
 
 export interface FieldOptionsTime {
   /** Use 12-hour time format. */
-  "12hr_format"?: boolean;
+  '12hr_format'?: boolean;
 }
 
 export interface FieldOptionsSelect {
@@ -821,7 +821,7 @@ export interface FieldOptionsRating {
    * - `thumbs-up`
    * - `flag`
    */
-  icon?: "star" | "heart" | "circle-filled" | "thumbs-up" | "flag";
+  icon?: 'star' | 'heart' | 'circle-filled' | 'thumbs-up' | 'flag';
   /**
    * Maximum value for the rating. Allowed range: 1-10.
    * @min 1
@@ -847,13 +847,13 @@ export interface FieldOptionsCheckbox {
    * - `flag`
    */
   icon?:
-    | "square"
-    | "circle-check"
-    | "circle-filled"
-    | "star"
-    | "heart"
-    | "thumbs-up"
-    | "flag";
+    | 'square'
+    | 'circle-check'
+    | 'circle-filled'
+    | 'star'
+    | 'heart'
+    | 'thumbs-up'
+    | 'flag';
   /**
    * Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`).
    * @pattern ^#[0-9A-Fa-f]{6}$
@@ -897,21 +897,21 @@ export interface FieldOptionsRollup {
   related_table_rollup_field_id: string;
   /** Rollup function. */
   rollup_function:
-    | "count"
-    | "min"
-    | "max"
-    | "avg"
-    | "sum"
-    | "countDistinct"
-    | "sumDistinct"
-    | "avgDistinct";
+    | 'count'
+    | 'min'
+    | 'max'
+    | 'avg'
+    | 'sum'
+    | 'countDistinct'
+    | 'sumDistinct'
+    | 'avgDistinct';
 }
 
 export type FieldOptionsButton = BaseFieldOptionsButton &
   (
-    | BaseFieldOptionsButtonTypeMapping<"formula", any>
-    | BaseFieldOptionsButtonTypeMapping<"webhook", any>
-    | BaseFieldOptionsButtonTypeMapping<"ai", any>
+    | BaseFieldOptionsButtonTypeMapping<'formula', any>
+    | BaseFieldOptionsButtonTypeMapping<'webhook', any>
+    | BaseFieldOptionsButtonTypeMapping<'ai', any>
   );
 
 export interface FieldOptionsLinks {
@@ -945,70 +945,70 @@ export interface FieldOptionsLinkToAnotherRecord {
 export type Field = FieldBase &
   (
     | {
-        type?: "SingleLineText";
+        type?: 'SingleLineText';
       }
     | {
-        type?: "LongText";
+        type?: 'LongText';
         options?: FieldOptionsLongText;
       }
     | {
-        type?: "PhoneNumber" | "URL" | "Email";
+        type?: 'PhoneNumber' | 'URL' | 'Email';
         options?: FieldOptionsPhoneNumber;
       }
     | {
-        type?: "Number" | "Decimal";
+        type?: 'Number' | 'Decimal';
         options?: FieldOptionsNumber;
       }
     | {
-        type?: "JSON";
+        type?: 'JSON';
       }
     | {
-        type?: "Currency";
+        type?: 'Currency';
         /** Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD` */
         options?: FieldOptionsCurrency;
       }
     | {
-        type?: "Percent";
+        type?: 'Percent';
         options?: FieldOptionsPercent;
       }
     | {
-        type?: "Duration";
+        type?: 'Duration';
         options?: FieldOptionsDuration;
       }
     | {
-        type?: "Date" | "DateTime" | "Time";
+        type?: 'Date' | 'DateTime' | 'Time';
         options?: FieldOptionsDateTime;
       }
     | {
-        type?: "SingleSelect" | "MultiSelect";
+        type?: 'SingleSelect' | 'MultiSelect';
         options?: FieldOptionsSelect;
       }
     | {
-        type?: "Rating" | "Checkbox";
+        type?: 'Rating' | 'Checkbox';
         options?: FieldOptionsRating;
       }
     | {
-        type?: "Barcode";
+        type?: 'Barcode';
         options?: FieldOptionsBarcode;
       }
     | {
-        type?: "Formula";
+        type?: 'Formula';
         options?: FieldOptionsFormula;
       }
     | {
-        type?: "User";
+        type?: 'User';
         options?: FieldOptionsUser;
       }
     | {
-        type?: "Lookup";
+        type?: 'Lookup';
         options?: FieldOptionsLookup;
       }
     | {
-        type?: "Links";
+        type?: 'Links';
         options?: FieldOptionsLinks;
       }
     | {
-        type?: "LinkToAnotherRecord";
+        type?: 'LinkToAnotherRecord';
         options?: FieldOptionsLinkToAnotherRecord;
       }
   );
@@ -1018,67 +1018,67 @@ export type FilterCreateUpdate = Filter | FilterGroup;
 export type FieldUpdate = FieldBase &
   (
     | {
-        type?: "LongText";
+        type?: 'LongText';
         options?: FieldOptionsLongText;
       }
     | {
-        type?: "PhoneNumber" | "URL" | "Email";
+        type?: 'PhoneNumber' | 'URL' | 'Email';
         options?: FieldOptionsPhoneNumber;
       }
     | {
-        type?: "Number" | "Decimal";
+        type?: 'Number' | 'Decimal';
         options?: FieldOptionsNumber;
       }
     | {
-        type?: "JSON";
+        type?: 'JSON';
       }
     | {
-        type?: "Currency";
+        type?: 'Currency';
         /** Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD` */
         options?: FieldOptionsCurrency;
       }
     | {
-        type?: "Percent";
+        type?: 'Percent';
         options?: FieldOptionsPercent;
       }
     | {
-        type?: "Duration";
+        type?: 'Duration';
         options?: FieldOptionsDuration;
       }
     | {
-        type?: "Date" | "DateTime" | "Time";
+        type?: 'Date' | 'DateTime' | 'Time';
         options?: FieldOptionsDateTime;
       }
     | {
-        type?: "SingleSelect" | "MultiSelect";
+        type?: 'SingleSelect' | 'MultiSelect';
         options?: FieldOptionsSelect;
       }
     | {
-        type?: "Rating" | "Checkbox";
+        type?: 'Rating' | 'Checkbox';
         options?: FieldOptionsRating;
       }
     | {
-        type?: "Barcode";
+        type?: 'Barcode';
         options?: FieldOptionsBarcode;
       }
     | {
-        type?: "Formula";
+        type?: 'Formula';
         options?: FieldOptionsFormula;
       }
     | {
-        type?: "User";
+        type?: 'User';
         options?: FieldOptionsUser;
       }
     | {
-        type?: "Lookup";
+        type?: 'Lookup';
         options?: FieldOptionsLookup;
       }
     | {
-        type?: "Links";
+        type?: 'Links';
         options?: FieldOptionsLinks;
       }
     | {
-        type?: "LinkToAnotherRecord";
+        type?: 'LinkToAnotherRecord';
         options?: FieldOptionsLinkToAnotherRecord;
       }
   );
@@ -1105,21 +1105,21 @@ export interface FilterListResponse {
 
 export interface FilterGroupLevel3 {
   /** Logical operator for the group. */
-  group_operator: "AND" | "OR";
+  group_operator: 'AND' | 'OR';
   /** List of filters in this group. */
   filters: Filter[];
 }
 
 export interface FilterGroupLevel2 {
   /** Logical operator for the group. */
-  group_operator: "AND" | "OR";
+  group_operator: 'AND' | 'OR';
   /** List of filters or nested filter groups at level 3. */
   filters: (Filter | FilterGroupLevel3)[];
 }
 
 export interface FilterGroupLevel1 {
   /** Logical operator for the group. */
-  group_operator: "AND" | "OR";
+  group_operator: 'AND' | 'OR';
   /** List of filters or nested filter groups at level 2. */
   filters: (Filter | FilterGroupLevel2)[];
 }
@@ -1130,7 +1130,7 @@ export interface FilterGroup {
   /** Parent ID of this filter-group. */
   parent_id?: string;
   /** Logical operator for combining filters in the group. */
-  group_operator: "AND" | "OR";
+  group_operator: 'AND' | 'OR';
   /** Nested filters or filter groups. */
   filters: (Filter | FilterGroup)[];
 }
@@ -1163,8 +1163,6 @@ export type DataRecordWithDeletedV3 = DataRecordV3 & {
 export interface DataListResponseV3 {
   /** Array of records for has-many and many-to-many relationships */
   records?: DataRecordV3[];
-  /** Single record for belongs-to and one-to-one relationships */
-  record?: DataRecordV3 | null;
   /** Pagination token for next page */
   next?: string | null;
   /** Pagination token for previous page */
@@ -1189,7 +1187,7 @@ export interface DataUpdateRequestV3 {
   fields: Record<string, any>;
 }
 
-/** V3 Data Delete Request format */
+/** Single record delete request */
 export interface DataDeleteRequestV3 {
   /** Record identifier */
   id: string | number;
@@ -1207,6 +1205,8 @@ export interface DataUpdateResponseV3 {
   records: {
     /** Updated record identifier */
     id: string | number;
+    /** Record fields data (excluding primary key). Undefined when empty. */
+    fields?: Record<string, any>;
   }[];
 }
 
@@ -1217,10 +1217,7 @@ export interface DataDeleteResponseV3 {
 }
 
 /** V3 Data Read Response format */
-export interface DataReadResponseV3 {
-  /** V3 Data Record format with id and fields separation */
-  record: DataRecordV3;
-}
+export type DataReadResponseV3 = DataRecordV3;
 
 /** V3 Nested Data List Response format - supports both single record and array responses */
 export interface DataNestedListResponseV3 {
@@ -1260,13 +1257,13 @@ import type {
   AxiosRequestConfig,
   HeadersDefaults,
   ResponseType,
-} from "axios";
-import axios from "axios";
+} from 'axios';
+import axios from 'axios';
 
 export type QueryParamsType = Record<string | number, any>;
 
 export interface FullRequestParams
-  extends Omit<AxiosRequestConfig, "data" | "params" | "url" | "responseType"> {
+  extends Omit<AxiosRequestConfig, 'data' | 'params' | 'url' | 'responseType'> {
   /** set parameter to `true` for call `securityWorker` for this request */
   secure?: boolean;
   /** request path */
@@ -1283,11 +1280,11 @@ export interface FullRequestParams
 
 export type RequestParams = Omit<
   FullRequestParams,
-  "body" | "method" | "query" | "path"
+  'body' | 'method' | 'query' | 'path'
 >;
 
 export interface ApiConfig<SecurityDataType = unknown>
-  extends Omit<AxiosRequestConfig, "data" | "cancelToken"> {
+  extends Omit<AxiosRequestConfig, 'data' | 'cancelToken'> {
   securityWorker?: (
     securityData: SecurityDataType | null,
   ) => Promise<AxiosRequestConfig | void> | AxiosRequestConfig | void;
@@ -1296,16 +1293,16 @@ export interface ApiConfig<SecurityDataType = unknown>
 }
 
 export enum ContentType {
-  Json = "application/json",
-  FormData = "multipart/form-data",
-  UrlEncoded = "application/x-www-form-urlencoded",
-  Text = "text/plain",
+  Json = 'application/json',
+  FormData = 'multipart/form-data',
+  UrlEncoded = 'application/x-www-form-urlencoded',
+  Text = 'text/plain',
 }
 
 export class HttpClient<SecurityDataType = unknown> {
   public instance: AxiosInstance;
   private securityData: SecurityDataType | null = null;
-  private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
+  private securityWorker?: ApiConfig<SecurityDataType>['securityWorker'];
   private secure?: boolean;
   private format?: ResponseType;
 
@@ -1317,7 +1314,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || "http://localhost:8080",
+      baseURL: axiosConfig.baseURL || 'http://localhost:8080',
     });
     this.secure = secure;
     this.format = format;
@@ -1351,7 +1348,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }
 
   protected stringifyFormItem(formItem: unknown) {
-    if (typeof formItem === "object" && formItem !== null) {
+    if (typeof formItem === 'object' && formItem !== null) {
       return JSON.stringify(formItem);
     } else {
       return `${formItem}`;
@@ -1389,7 +1386,7 @@ export class HttpClient<SecurityDataType = unknown> {
     ...params
   }: FullRequestParams): Promise<T> => {
     const secureParams =
-      ((typeof secure === "boolean" ? secure : this.secure) &&
+      ((typeof secure === 'boolean' ? secure : this.secure) &&
         this.securityWorker &&
         (await this.securityWorker(this.securityData))) ||
       {};
@@ -1400,7 +1397,7 @@ export class HttpClient<SecurityDataType = unknown> {
       type === ContentType.FormData &&
       body &&
       body !== null &&
-      typeof body === "object"
+      typeof body === 'object'
     ) {
       body = this.createFormData(body as Record<string, unknown>);
     }
@@ -1409,7 +1406,7 @@ export class HttpClient<SecurityDataType = unknown> {
       type === ContentType.Text &&
       body &&
       body !== null &&
-      typeof body !== "string"
+      typeof body !== 'string'
     ) {
       body = JSON.stringify(body);
     }
@@ -1419,7 +1416,7 @@ export class HttpClient<SecurityDataType = unknown> {
         ...requestParams,
         headers: {
           ...(requestParams.headers || {}),
-          ...(type ? { "Content-Type": type } : {}),
+          ...(type ? { 'Content-Type': type } : {}),
         },
         params: query,
         responseType: responseFormat,
@@ -1454,8 +1451,8 @@ export class InternalApi<
     ) =>
       this.request<Base[], void>({
         path: `/api/v3/meta/workspaces/${workspaceId}/bases`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1474,10 +1471,10 @@ export class InternalApi<
     ) =>
       this.request<Base, void>({
         path: `/api/v3/meta/workspaces/${workspaceId}/bases`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1492,8 +1489,8 @@ export class InternalApi<
     v3MetaBasesDetail: (baseId: string, params: RequestParams = {}) =>
       this.request<Base, void>({
         path: `/api/v3/meta/bases/${baseId}`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1512,10 +1509,10 @@ export class InternalApi<
     ) =>
       this.request<Base, void>({
         path: `/api/v3/meta/bases/${baseId}`,
-        method: "PATCH",
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1530,7 +1527,7 @@ export class InternalApi<
     v3MetaBasesDelete: (baseId: string, params: RequestParams = {}) =>
       this.request<void, void>({
         path: `/api/v3/meta/bases/${baseId}`,
-        method: "DELETE",
+        method: 'DELETE',
         ...params,
       }),
 
@@ -1545,8 +1542,8 @@ export class InternalApi<
     v3MetaBasesTablesList: (baseId: string, params: RequestParams = {}) =>
       this.request<TableList, void>({
         path: `/api/v3/meta/bases/${baseId}/tables`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1565,10 +1562,10 @@ export class InternalApi<
     ) =>
       this.request<Table, void>({
         path: `/api/v3/meta/bases/${baseId}/tables`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1587,8 +1584,8 @@ export class InternalApi<
     ) =>
       this.request<Table, void>({
         path: `/api/v3/meta/bases/${baseId}/tables/${tableId}`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1608,10 +1605,10 @@ export class InternalApi<
     ) =>
       this.request<Table, void>({
         path: `/api/v3/meta/bases/${baseId}/tables/${tableId}`,
-        method: "PATCH",
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1630,7 +1627,7 @@ export class InternalApi<
     ) =>
       this.request<void, void>({
         path: `/api/v3/meta/bases/${baseId}/tables/${tableId}`,
-        method: "DELETE",
+        method: 'DELETE',
         ...params,
       }),
 
@@ -1654,8 +1651,8 @@ export class InternalApi<
         void
       >({
         path: `/api/v3/meta/bases/${baseId}/tables/${tableId}/views`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1675,10 +1672,10 @@ export class InternalApi<
     ) =>
       this.request<CreateField, void>({
         path: `/api/v3/meta/bases/${baseId}/tables/${tableId}/fields`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1697,8 +1694,8 @@ export class InternalApi<
     ) =>
       this.request<Field, void>({
         path: `/api/v3/meta/bases/${baseId}/fields/${fieldId}`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1718,10 +1715,10 @@ export class InternalApi<
     ) =>
       this.request<CreateField, void>({
         path: `/api/v3/meta/bases/${baseId}/fields/${fieldId}`,
-        method: "PATCH",
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1740,7 +1737,7 @@ export class InternalApi<
     ) =>
       this.request<void, void>({
         path: `/api/v3/meta/bases/${baseId}/fields/${fieldId}`,
-        method: "DELETE",
+        method: 'DELETE',
         ...params,
       }),
 
@@ -1759,8 +1756,8 @@ export class InternalApi<
     ) =>
       this.request<FilterListResponse, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/filters`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1780,10 +1777,10 @@ export class InternalApi<
     ) =>
       this.request<FilterCreateUpdate, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/filters`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1804,10 +1801,10 @@ export class InternalApi<
     ) =>
       this.request<FilterCreateUpdate, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/filters`,
-        method: "PATCH",
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1826,7 +1823,7 @@ export class InternalApi<
     ) =>
       this.request<void, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/filters`,
-        method: "DELETE",
+        method: 'DELETE',
         ...params,
       }),
 
@@ -1846,10 +1843,10 @@ export class InternalApi<
     ) =>
       this.request<FilterCreateUpdate, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/filters`,
-        method: "PUT",
+        method: 'PUT',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1868,8 +1865,8 @@ export class InternalApi<
     ) =>
       this.request<SortListResponse, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/sorts`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1889,10 +1886,10 @@ export class InternalApi<
     ) =>
       this.request<Sort, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/sorts`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1912,7 +1909,7 @@ export class InternalApi<
     ) =>
       this.request<void, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/sorts`,
-        method: "DELETE",
+        method: 'DELETE',
         ...params,
       }),
 
@@ -1933,10 +1930,10 @@ export class InternalApi<
     ) =>
       this.request<Sort, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/sorts`,
-        method: "PATCH",
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1951,8 +1948,8 @@ export class InternalApi<
     v3MetaBasesUsersList: (baseId: string, params: RequestParams = {}) =>
       this.request<BaseUserList, void>({
         path: `/api/v3/meta/bases/${baseId}/users`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1971,10 +1968,10 @@ export class InternalApi<
     ) =>
       this.request<BaseUser[], void>({
         path: `/api/v3/meta/bases/${baseId}/users`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1993,10 +1990,10 @@ export class InternalApi<
     ) =>
       this.request<BaseUser[], void>({
         path: `/api/v3/meta/bases/${baseId}/users`,
-        method: "PATCH",
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2023,10 +2020,10 @@ export class InternalApi<
         void
       >({
         path: `/api/v3/meta/bases/${baseId}/users`,
-        method: "DELETE",
+        method: 'DELETE',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2059,11 +2056,11 @@ export class InternalApi<
          */
         sort?:
           | {
-              direction: "asc" | "desc";
+              direction: 'asc' | 'desc';
               field: string;
             }[]
           | {
-              direction: "asc" | "desc";
+              direction: 'asc' | 'desc';
               field: string;
             };
         /**
@@ -2118,9 +2115,9 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/records`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2146,10 +2143,10 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/records`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2175,10 +2172,10 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/records`,
-        method: "PATCH",
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2204,10 +2201,10 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/records`,
-        method: "DELETE",
+        method: 'DELETE',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2241,9 +2238,9 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/records/${recordId}`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2286,9 +2283,9 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/count`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2323,11 +2320,11 @@ export class InternalApi<
          */
         sort?:
           | {
-              direction: "asc" | "desc";
+              direction: 'asc' | 'desc';
               field: string;
             }[]
           | {
-              direction: "asc" | "desc";
+              direction: 'asc' | 'desc';
               field: string;
             };
         /**
@@ -2365,9 +2362,9 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
-        method: "GET",
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2415,10 +2412,10 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2466,10 +2463,10 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
-        method: "DELETE",
+        method: 'DELETE',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
   };

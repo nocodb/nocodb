@@ -6429,7 +6429,7 @@
       },
       "DataDeleteRequestV3": {
         "type": "object",
-        "description": "V3 Data Delete Request format", 
+        "description": "Single record delete request",
         "properties": {
           "id": {
             "oneOf": [
@@ -6440,12 +6440,10 @@
                 "type": "number"
               }
             ],
-            "description": "Record identifier"
+            "description": "Record identifier",
           }
         },
-        "required": [
-          "id"
-        ]
+        "required": ["id"]
       },
       "DataInsertResponseV3": {
         "type": "object",
@@ -6482,6 +6480,11 @@
                     }
                   ],
                   "description": "Updated record identifier"
+                },
+                "fields": {
+                  "type": "object",
+                  "description": "Record fields data (excluding primary key). Undefined when empty.",
+                  "additionalProperties": true
                 }
               },
               "required": [
@@ -6512,16 +6515,8 @@
         ]
       },
       "DataReadResponseV3": {
-        "type": "object",
-        "description": "V3 Data Read Response format",
-        "properties": {
-          "record": {
-            "$ref": "#/components/schemas/DataRecordV3"
-          }
-        },
-        "required": [
-          "record"
-        ]
+        "$ref": "#/components/schemas/DataRecordV3",
+        "description": "V3 Data Read Response format"
       },
       "DataNestedListResponseV3": {
         "type": "object",

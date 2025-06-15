@@ -15,6 +15,9 @@
     "url": "https://github.com/nocodb/nocodb/issues"
   },
   "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=18 <23"
+  },
   "devDependencies": {
     "husky": "^8.0.3",
     "lerna": "^8.2.2",
@@ -31,8 +34,10 @@
     ]
   },
   "scripts": {
+    "postinstall": "echo 'skip chromium'",
     "bootstrap": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-mail-templates --filter=nc-gui --filter=playwright install && pnpm run integrations:build && pnpm run registerIntegrations",
     "integrations:build": "cd ./packages/noco-integrations/ && pnpm i && pnpm run build",
+    "start": "npx nocodb",
     "start:frontend": "pnpm --filter=nc-gui run dev",
     "start:backend": "pnpm --filter=nocodb run start",
     "lint:staged:playwright": "cd ./tests/playwright; pnpm dlx lint-staged; cd -",

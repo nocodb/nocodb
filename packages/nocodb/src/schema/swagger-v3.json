@@ -497,7 +497,7 @@
                         "type": "Percent",
                         "default_value": "0.34",
                         "options": {
-                          "show_as_percent": true
+                          "show_as_progress": true
                         }
                       },
                       {
@@ -712,7 +712,7 @@
                           "type": "Percent",
                           "default_value": "0.34",
                           "options": {
-                            "show_as_percent": true
+                            "show_as_progress": true
                           }
                         },
                         {
@@ -1001,7 +1001,7 @@
                           "type": "Percent",
                           "default_value": "0.34",
                           "options": {
-                            "show_as_percent": true
+                            "show_as_progress": true
                           }
                         },
                         {
@@ -2394,7 +2394,7 @@
         }
       }
     },
-    "/api/v3/{baseId}/{tableId}": {
+    "/api/v3/data/{baseId}/{tableId}/records": {
       "parameters": [
         {
           "schema": {
@@ -2425,19 +2425,59 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
             },
             "in": "query",
             "name": "fields",
-            "description": "Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list. Alternatively, multiple `fields` query params can also works, ex: `?fields=field1&fields=field2`."
+            "description": "Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=[\"field1\",\"field2\"]` or `fields=field1,field2` will include only 'field1' and 'field2' in the API response."
           },
           {
             "schema": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "direction": {
+                        "type": "string",
+                        "enum": ["asc", "desc"]
+                      },
+                      "field": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["field", "direction"]
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "direction": {
+                      "type": "string",
+                      "enum": ["asc", "desc"]
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["field", "direction"]
+                }
+              ]
             },
             "in": "query",
             "name": "sort",
-            "description": "Allows you to specify the fields by which you want to sort the records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.\n\nExample: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.\n\nIf `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view.\n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+            "description": "Allows you to specify the fields by which you want to sort the records in your API response. Accepts either an array of sort objects or a single sort object.\n\nEach sort object must have a 'field' property specifying the field name and a 'direction' property with value 'asc' or 'desc'.\n\nExample: `sort=[{\"direction\":\"asc\",\"field\":\"field_name\"},{\"direction\":\"desc\",\"field\":\"another_field\"}]` or `sort={\"direction\":\"asc\",\"field\":\"field_name\"}`\n\nIf `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view."
           },
           {
             "schema": {
@@ -2471,8 +2511,8 @@
               "minimum": 1
             },
             "in": "query",
-            "name": "limit",
-            "description": "Enables you to set a limit on the number of records you want to retrieve in your API response. By default, your response includes all the available records, but by using this parameter, you can control the quantity you receive.\n\nExample: `limit=100` will constrain your response to the first 100 records in the dataset."
+            "name": "pageSize",
+            "description": "Enables you to set a limit on the number of records you want to retrieve in your API response. By default, your response includes all the available records, but by using this parameter, you can control the quantity you receive.\n\nExample: `pageSize=100` will constrain your response to the first 100 records in the dataset."
           },
           {
             "schema": {
@@ -2493,133 +2533,55 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "list": {
-                      "type": "array",
-                      "description": "List of data objects",
-                      "items": {
-                        "type": "object"
-                      }
-                    },
-                    "pageInfo": {
-                      "$ref": "#/components/schemas/Paginated",
-                      "description": "Paginated Info"
-                    }
-                  },
-                  "required": [
-                    "list",
-                    "pageInfo"
-                  ]
+                  "$ref": "#/components/schemas/DataListResponseV3"
                 },
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "list": [
+                      "records": [
                         {
-                          "Id": 1,
-                          "SingleLineText": "record #1",
-                          "MultiLineText": "sample long text",
-                          "Email": "user@nocodb.com",
-                          "PhoneNumber": "1234567890",
-                          "URL": "www.google.com",
-                          "Number": 1234,
-                          "Decimal": 100.88,
-                          "Currency": 100,
-                          "Percent": 10,
-                          "Duration": 1010,
-                          "Rating": 3,
-                          "Year": 2020,
-                          "Time": "20:20:00",
-                          "Checkbox": true,
-                          "Date": "2020-01-01",
-                          "Attachment": [
-                            {
-                              "url": "https://nocohub-001-app-attachments.s3.us-east-2.amazonaws.com/nc/uploads/2025/01/11/62e9a6d971350bff43a117a5fe1722093f1afa4f/voice notes_XoKRs.png",
-                              "title": "voice notes.png",
-                              "mimetype": "image/png",
-                              "size": 812244,
-                              "width": 1150,
-                              "height": 1150,
-                              "id": "at0qb41okjqrkl0y",
-                              "thumbnails": {
-                                "tiny": {
-                                  "signedUrl": "https://xxx.s3.us-east-2.amazonaws.com/nc/thumbnails/2025/01/11/62e9a6d971350bff43a117a5fe1722093f1afa4f/voice%20notes_XoKRs.png/tiny.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=XXXX%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=a2db413c8cd1fb0a4df7019604d572045ecdeb9815b8d34d81d6c83a9a3984dc&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fjpeg&x-id=GetObject"
-                                },
-                                "small": {
-                                  "signedUrl": "https://xxx.s3.us-east-2.amazonaws.com/nc/thumbnails/2025/01/11/62e9a6d971350bff43a117a5fe1722093f1afa4f/voice%20notes_XoKRs.png/small.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=XXXX%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=e71c6b8acc8837750fb216cbe960d5aa60bc308a843563dab471374cfb42632d&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fjpeg&x-id=GetObject"
-                                },
-                                "card_cover": {
-                                  "signedUrl": "https://xxx.s3.us-east-2.amazonaws.com/nc/thumbnails/2025/01/11/62e9a6d971350bff43a117a5fe1722093f1afa4f/voice%20notes_XoKRs.png/card_cover.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=XXXX%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=30d2c3a5e368cb215ce8e0e4ac9f2f6f7622c776f8e207516819f8428350c3f0&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fjpeg&x-id=GetObject"
+                          "id": 1,
+                          "fields": {
+                            "SingleLineText": "record #1",
+                            "MultiLineText": "sample long text",
+                            "Email": "user@nocodb.com",
+                            "PhoneNumber": "1234567890",
+                            "URL": "www.google.com",
+                            "Number": 1234,
+                            "Decimal": 100.88,
+                            "Currency": 100,
+                            "Percent": 10,
+                            "Duration": 1010,
+                            "Rating": 3,
+                            "Year": 2020,
+                            "Time": "20:20:00",
+                            "Checkbox": true,
+                            "Date": "2020-01-01",
+                            "SingleSelect": "Jan",
+                            "MultiSelect": [
+                              "Jan",
+                              "Feb",
+                              "Mar"
+                            ],
+                            "DateTime": "2022-02-02 00:00:00+00:00",
+                            "LTAR": [
+                              {
+                                "id": 1,
+                                "fields": {
+                                  "SingleLineText": "record #1"
                                 }
                               },
-                              "signedUrl": "https://xxx.s3.us-east-2.amazonaws.com/nc/uploads/2025/01/11/62e9a6d971350bff43a117a5fe1722093f1afa4f/voice%20notes_XoKRs.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=XXXX%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=698fd5876dda5570f4943d5cf18755b5cb0bf0fd7e59a8d8fc7884fc05e7dc07&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fpng&x-id=GetObject"
-                            }
-                          ],
-                          "JSON": {
-                            "x": 1,
-                            "y": 2
-                          },
-                          "Geometry": "POINT(1, 1)",
-                          "User": [
-                            {
-                              "id": "usg0kjqhj5unp9go",
-                              "email": "robert@nocodb.com",
-                              "display_name": "Robert"
-                            }
-                          ],
-                          "SingleSelect": "Jan",
-                          "MultiSelect": [
-                            "Jan",
-                            "Feb",
-                            "Mar"
-                          ],
-                          "DateTime": "2022-02-02 00:00:00+00:00",
-                          "CreatedBy": {
-                            "id": "usg0kjqhj5unp9go",
-                            "email": "robert@nocodb.com",
-                            "display_name": "Robert"
-                          },
-                          "LastModifiedBy": {
-                            "id": "usg0kjqhj5unp9go",
-                            "email": "robert@nocodb.com",
-                            "display_name": "Robert"
-                          },
-                          "Barcode": "record #1",
-                          "QRCode": "record #1",
-                          "Lookup": [
-                            "record #2",
-                            "record #3",
-                            "record #1"
-                          ],
-                          "Button": {
-                            "type": "url",
-                            "label": "Button",
-                            "url": "www.google.com"
-                          },
-                          "Formula": 101.88,
-                          "Rollup": 3,
-                          "hmLinks": 3,
-                          "mmLinks": 3,
-                          "LTAR": [
-                            {
-                              "SingleLineText": "record #1",
-                              "Id": 1
-                            },
-                            {
-                              "SingleLineText": "record #2",
-                              "Id": 2
-                            },
-                            {
-                              "SingleLineText": "record #3",
-                              "Id": 3
-                            }
-                          ]
+                              {
+                                "id": 2,
+                                "fields": {
+                                  "SingleLineText": "record #2"
+                                }
+                              }
+                            ]
+                          }
                         }
                       ],
-                      "pageInfo": {
-                        "next": "https://staging.noco.ws/api/v3/tables/medhonywr18cysz/records?page=2"
-                      }
+                      "next": "https://staging.noco.ws/api/v3/data/baseId/tableId/records?page=2"
                     }
                   }
                 }
@@ -2639,17 +2601,29 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {},
+                "schema": {
+                  "$ref": "#/components/schemas/DataInsertResponseV3"
+                },
                 "examples": {
                   "Example 1": {
-                    "value": [
-                      {
-                        "Id": 10
-                      },
-                      {
-                        "Id": 11
-                      }
-                    ]
+                    "value": {
+                      "records": [
+                        {
+                          "id": 10,
+                          "fields": {
+                            "Number": 1,
+                            "SingleLineText": "record #1"
+                          }
+                        },
+                        {
+                          "id": 11,
+                          "fields": {
+                            "Number": 2,
+                            "SingleLineText": "record #2"
+                          }
+                        }
+                      ]
+                    }
                   }
                 }
               }
@@ -2668,12 +2642,12 @@
               "schema": {
                 "oneOf": [
                   {
-                    "type": "object"
+                    "$ref": "#/components/schemas/DataInsertRequestV3"
                   },
                   {
                     "type": "array",
                     "items": {
-                      "type": "object"
+                      "$ref": "#/components/schemas/DataInsertRequestV3"
                     }
                   }
                 ]
@@ -2682,49 +2656,49 @@
                 "Example 1": {
                   "value": [
                     {
-                      "Number": 1,
-                      "Decimal": 100.88,
-                      "Currency": 100,
-                      "Percent": 100,
-                      "Duration": 1010,
-                      "Rating": 3,
-                      "Year": 2020,
-                      "Time": "20:20:00",
-                      "SingleLineText": "record #1",
-                      "MultiLineText": "sample text",
-                      "Email": "user@nocodb.com",
-                      "PhoneNumber": "1234567890",
-                      "URL": "www.google.com",
-                      "SingleSelect": "jan",
-                      "Checkbox": true,
-                      "Date": "2020-01-01",
-                      "JSON": {
-                        "x": 1,
-                        "y": 2
-                      },
-                      "Geometry": "POINT(1, 1)",
-                      "User": [
-                        {
-                          "email": "raju@nocodb.com"
-                        }
-                      ],
-                      "MultiSelect": [
-                        "jan",
-                        "feb",
-                        "mar"
-                      ],
-                      "DateTime": "2022-02-02 05:30:00+00:00",
-                      "LTAR": [
-                        {
-                          "Id": 1
+                      "fields": {
+                        "Number": 1,
+                        "Decimal": 100.88,
+                        "Currency": 100,
+                        "Percent": 100,
+                        "Duration": 1010,
+                        "Rating": 3,
+                        "Year": 2020,
+                        "Time": "20:20:00",
+                        "SingleLineText": "record #1",
+                        "MultiLineText": "sample text",
+                        "Email": "user@nocodb.com",
+                        "PhoneNumber": "1234567890",
+                        "URL": "www.google.com",
+                        "SingleSelect": "jan",
+                        "Checkbox": true,
+                        "Date": "2020-01-01",
+                        "JSON": {
+                          "x": 1,
+                          "y": 2
                         },
-                        {
-                          "Id": 2
-                        },
-                        {
-                          "Id": 3
-                        }
-                      ]
+                        "User": [
+                          {
+                            "email": "raju@nocodb.com"
+                          }
+                        ],
+                        "MultiSelect": [
+                          "jan",
+                          "feb",
+                          "mar"
+                        ],
+                        "DateTime": "2022-02-02 05:30:00+00:00",
+                        "LTAR": [
+                          {
+                            "id": 1,
+                            "fields": {}
+                          },
+                          {
+                            "id": 2,
+                            "fields": {}
+                          }
+                        ]
+                      }
                     }
                   ]
                 }
@@ -2748,17 +2722,21 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {},
+                "schema": {
+                  "$ref": "#/components/schemas/DataUpdateResponseV3"
+                },
                 "examples": {
                   "Example 1": {
-                    "value": [
-                      {
-                        "Id": 6
-                      },
-                      {
-                        "Id": 7
-                      }
-                    ]
+                    "value": {
+                      "records": [
+                        {
+                          "id": 6
+                        },
+                        {
+                          "id": 7
+                        }
+                      ]
+                    }
                   }
                 }
               }
@@ -2777,12 +2755,12 @@
               "schema": {
                 "oneOf": [
                   {
-                    "type": "object"
+                    "$ref": "#/components/schemas/DataUpdateRequestV3"
                   },
                   {
                     "type": "array",
                     "items": {
-                      "type": "object"
+                      "$ref": "#/components/schemas/DataUpdateRequestV3"
                     }
                   }
                 ]
@@ -2791,50 +2769,19 @@
                 "Example 1": {
                   "value": [
                     {
-                      "Id": 6,
-                      "Number": 1,
-                      "Decimal": 100.88,
-                      "Currency": 100,
-                      "Percent": 100,
-                      "Duration": 1010,
-                      "Rating": 3,
-                      "Year": 2020,
-                      "Time": "20:20:00",
-                      "SingleLineText": "record #1",
-                      "MultiLineText": "sample text",
-                      "Email": "user@nocodb.com",
-                      "PhoneNumber": "1234567890",
-                      "URL": "www.google.com",
-                      "SingleSelect": "jan",
-                      "Checkbox": true,
-                      "Date": "2020-01-01",
-                      "JSON": {
-                        "x": 1,
-                        "y": 2
-                      },
-                      "Geometry": "POINT(1, 1)",
-                      "User": [
-                        {
-                          "email": "raju@nocodb.com"
-                        }
-                      ],
-                      "MultiSelect": [
-                        "jan",
-                        "feb",
-                        "mar"
-                      ],
-                      "DateTime": "2022-02-02 05:30:00+00:00",
-                      "LTAR": [
-                        {
-                          "Id": 1
-                        },
-                        {
-                          "Id": 2
-                        },
-                        {
-                          "Id": 3
-                        }
-                      ]
+                      "id": 6,
+                      "fields": {
+                        "Number": 101,
+                        "SingleLineText": "Updated record #1",
+                        "Email": "updated@nocodb.com"
+                      }
+                    },
+                    {
+                      "id": 7,
+                      "fields": {
+                        "Number": 102,
+                        "SingleLineText": "Updated record #2"
+                      }
                     }
                   ]
                 }
@@ -2842,7 +2789,7 @@
             }
           }
         },
-        "description": "This API endpoint allows updating existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be updated are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values.\n\nCertain read-only field types will be disregarded if included in the request. These field types include Look Up, Roll Up, Formula, Created By, Updated By, Created At, Updated At, Button, Barcode and QR Code.\n\nFor **Link to another record** field type if specified, all the existing links will be removed & the one's specified in this payload will be inserted. \n\nFor **Attachment** field types, this API cannot be used. Instead, utilize the storage APIs for managing attachments. Support for attachment fields in the record insert API will be added soon.\n\nNote that a PATCH request only updates the specified fields while leaving other fields unaffected. Currently, PUT requests are not supported by this endpoint.",
+        "description": "This API endpoint allows you to update records within a specified table by their Record ID. The request payload should contain the Record ID and the fields that need to be updated.\n\nCertain read-only field types will be disregarded if included in the request. These field types include Look Up, Roll Up, Formula, Created By, Updated By, Created At, Updated At, Button, Barcode and QR Code.\n\nFor **Attachment** field types, this API cannot be used. Instead, utilize the storage APIs for managing attachments. Support for attachment fields in the record update API will be added soon.",
         "parameters": [
           {
             "required": true,
@@ -2858,17 +2805,23 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {},
+                "schema": {
+                  "$ref": "#/components/schemas/DataDeleteResponseV3"
+                },
                 "examples": {
                   "Example 1": {
-                    "value": [
-                      {
-                        "Id": 1
-                      },
-                      {
-                        "Id": 2
-                      }
-                    ]
+                    "value": {
+                      "records": [
+                        {
+                          "id": 1,
+                          "deleted": true
+                        },
+                        {
+                          "id": 2,
+                          "deleted": true
+                        }
+                      ]
+                    }
                   }
                 }
               }
@@ -2887,12 +2840,12 @@
               "schema": {
                 "oneOf": [
                   {
-                    "type": "object"
+                    "$ref": "#/components/schemas/DataDeleteRequestV3"
                   },
                   {
                     "type": "array",
                     "items": {
-                      "type": "object"
+                      "$ref": "#/components/schemas/DataDeleteRequestV3"
                     }
                   }
                 ]
@@ -2901,10 +2854,10 @@
                 "Example 1": {
                   "value": [
                     {
-                      "Id": 1
+                      "id": 1
                     },
                     {
-                      "Id": 2
+                      "id": 2
                     }
                   ]
                 }
@@ -2912,7 +2865,7 @@
             }
           }
         },
-        "description": "This API endpoint allows deleting existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be deleted are input as an array of record-identifiers.",
+        "description": "This API endpoint allows the deletion of records within a specified table by Record ID. The request should include the Record ID of the record(s) to be deleted.",
         "parameters": [
           {
             "required": true,
@@ -2921,7 +2874,7 @@
         ]
       }
     },
-    "/api/v3/{baseId}/{tableId}/{recordId}": {
+    "/api/v3/data/{baseId}/{tableId}/records/{recordId}": {
       "parameters": [
         {
           "schema": {
@@ -2961,11 +2914,21 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
             },
             "in": "query",
             "name": "fields",
-            "description": "Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+            "description": "Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=[\"field1\",\"field2\"]` or `fields=field1,field2` will include only 'field1' and 'field2' in the API response."
           },
           {
             "required": true,
@@ -2978,109 +2941,50 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/DataReadResponseV3"
                 },
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "Id": 1,
-                      "SingleLineText": "record #1",
-                      "MultiLineText": "sample long text",
-                      "Email": "user@nocodb.com",
-                      "PhoneNumber": "1234567890",
-                      "URL": "www.google.com",
-                      "Number": 1234,
-                      "Decimal": 100.88,
-                      "Currency": 100,
-                      "Percent": 10,
-                      "Duration": 1010,
-                      "Rating": 3,
-                      "Year": 2020,
-                      "Time": "20:20:00",
-                      "Checkbox": true,
-                      "Date": "2020-01-01",
-                      "Attachment": [
-                        {
-                          "url": "https://sample.s3.us-east-2.amazonaws.com/nc/uploads/2025/01/11/path/voice sample_image.png",
-                          "title": "voice notes.png",
-                          "mimetype": "image/png",
-                          "size": 812244,
-                          "width": 1150,
-                          "height": 1150,
-                          "id": "at0qb41okjqrkl0y",
-                          "thumbnails": {
-                            "tiny": {
-                              "signedUrl": "https://sample.s3.us-east-2.amazonaws.com/nc/thumbnails/2025/01/11/path/sample_image.png/tiny.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=XXXX%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=a2db413c8cd1fb0a4df7019604d572045ecdeb9815b8d34d81d6c83a9a3984dc&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fjpeg&x-id=GetObject"
-                            },
-                            "small": {
-                              "signedUrl": "https://sample.s3.us-east-2.amazonaws.com/nc/thumbnails/2025/01/11/path/sample_image.png/small.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=XXXX%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=e71c6b8acc8837750fb216cbe960d5aa60bc308a843563dab471374cfb42632d&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fjpeg&x-id=GetObject"
-                            },
-                            "card_cover": {
-                              "signedUrl": "https://sample.s3.us-east-2.amazonaws.com/nc/thumbnails/2025/01/11/path/sample_image.png/card_cover.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=XXXX%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=30d2c3a5e368cb215ce8e0e4ac9f2f6f7622c776f8e207516819f8428350c3f0&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fjpeg&x-id=GetObject"
+                      "id": 1,
+                      "fields": {
+                        "SingleLineText": "record #1",
+                        "MultiLineText": "sample long text",
+                        "Email": "user@nocodb.com",
+                        "PhoneNumber": "1234567890",
+                        "URL": "www.google.com",
+                        "Number": 1234,
+                        "Decimal": 100.88,
+                        "Currency": 100,
+                        "Percent": 10,
+                        "Duration": 1010,
+                        "Rating": 3,
+                        "Year": 2020,
+                        "Time": "20:20:00",
+                        "Checkbox": true,
+                        "Date": "2020-01-01",
+                        "SingleSelect": "Jan",
+                        "MultiSelect": [
+                          "Jan",
+                          "Feb",
+                          "Mar"
+                        ],
+                        "DateTime": "2022-02-02 00:00:00+00:00",
+                        "LTAR": [
+                          {
+                            "id": 1,
+                            "fields": {
+                              "SingleLineText": "record #1"
                             }
                           },
-                          "signedUrl": "https://sample.s3.us-east-2.amazonaws.com/nc/uploads/2025/01/11/path/sample_image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=XXXX%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20250111T135811Z&X-Amz-Expires=7309&X-Amz-Signature=698fd5876dda5570f4943d5cf18755b5cb0bf0fd7e59a8d8fc7884fc05e7dc07&X-Amz-SignedHeaders=host&response-content-disposition=inline%3B%20filename%3D%22voice%20notes.png%22&response-content-type=image%2Fpng&x-id=GetObject"
-                        }
-                      ],
-                      "JSON": {
-                        "x": 1,
-                        "y": 2
-                      },
-                      "Geometry": "POINT(1, 1)",
-                      "User": [
-                        {
-                          "id": "usg0kjqhj5unp9go",
-                          "email": "robert@nocodb.com",
-                          "display_name": "Robert"
-                        }
-                      ],
-                      "SingleSelect": "Jan",
-                      "MultiSelect": [
-                        "Jan",
-                        "Feb",
-                        "Mar"
-                      ],
-                      "DateTime": "2022-02-02 00:00:00+00:00",
-                      "CreatedBy": {
-                        "id": "usg0kjqhj5unp9go",
-                        "email": "robert@nocodb.com",
-                        "display_name": "Robert"
-                      },
-                      "LastModifiedBy": {
-                        "id": "usg0kjqhj5unp9go",
-                        "email": "robert@nocodb.com",
-                        "display_name": "Robert"
-                      },
-                      "Barcode": "record #1",
-                      "QRCode": "record #1",
-                      "Lookup": [
-                        "record #2",
-                        "record #3",
-                        "record #1"
-                      ],
-                      "Button": {
-                        "type": "url",
-                        "label": "Button",
-                        "url": "www.google.com"
-                      },
-                      "Formula": 101.88,
-                      "Rollup": 3,
-                      "hmLinks": 3,
-                      "mmLinks": 3,
-                      "LTAR": [
-                        {
-                          "SingleLineText": "record #1",
-                          "Id": 1
-                        },
-                        {
-                          "SingleLineText": "record #2",
-                          "Id": 2
-                        },
-                        {
-                          "SingleLineText": "record #3",
-                          "Id": 3
-                        }
-                      ]
+                          {
+                            "id": 2,
+                            "fields": {
+                              "SingleLineText": "record #2"
+                            }
+                          }
+                        ]
+                      }
                     }
                   }
                 }
@@ -3093,7 +2997,7 @@
         }
       }
     },
-    "/api/v3/{baseId}/{tableId}/count": {
+    "/api/v3/data/{baseId}/{tableId}/count": {
       "parameters": [
         {
           "schema": {
@@ -3153,11 +3057,7 @@
                     "count": {
                       "type": "number"
                     }
-                  },
-                  "required": [
-                    "list",
-                    "pageInfo"
-                  ]
+                  }
                 },
                 "examples": {
                   "Example 1": {
@@ -3175,7 +3075,7 @@
         }
       }
     },
-    "/api/v3/{baseId}/{tableId}/links/{linkFieldId}/{recordId}": {
+    "/api/v3/data/{baseId}/{tableId}/links/{linkFieldId}/{recordId}": {
       "parameters": [
         {
           "schema": {
@@ -3215,19 +3115,59 @@
           },
           {
             "schema": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "string"
+                }
+              ]
             },
             "in": "query",
             "name": "fields",
-            "description": "Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+            "description": "Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=[\"field1\",\"field2\"]` or `fields=field1,field2` will include only 'field1' and 'field2' in the API response."
           },
           {
             "schema": {
-              "type": "string"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "direction": {
+                        "type": "string",
+                        "enum": ["asc", "desc"]
+                      },
+                      "field": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["field", "direction"]
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "direction": {
+                      "type": "string",
+                      "enum": ["asc", "desc"]
+                    },
+                    "field": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["field", "direction"]
+                }
+              ]
             },
             "in": "query",
             "name": "sort",
-            "description": "Allows you to specify the fields by which you want to sort linked records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.\n\nExample: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.\n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
+            "description": "Allows you to specify the fields by which you want to sort the records in your API response. Accepts either an array of sort objects or a single sort object.\n\nEach sort object must have a 'field' property specifying the field name and a 'direction' property with value 'asc' or 'desc'.\n\nExample: `sort=[{\"direction\":\"asc\",\"field\":\"field_name\"},{\"direction\":\"desc\",\"field\":\"another_field\"}]` or `sort={\"direction\":\"asc\",\"field\":\"field_name\"}`\n\nIf `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view."
           },
           {
             "schema": {
@@ -3252,8 +3192,8 @@
               "minimum": 1
             },
             "in": "query",
-            "name": "limit",
-            "description": "Enables you to set a limit on the number of linked records you want to retrieve in your API response. By default, your response includes all the available linked records, but by using this parameter, you can control the quantity you receive.\n\nExample: `limit=100` will constrain your response to the first 100 linked records in the dataset."
+            "name": "pageSize",
+            "description": "Enables you to set a limit on the number of linked records you want to retrieve in your API response. By default, your response includes all the available linked records, but by using this parameter, you can control the quantity you receive.\n\nExample: `pageSize=100` will constrain your response to the first 100 linked records in the dataset."
           },
           {
             "required": true,
@@ -3266,49 +3206,55 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "list": {
-                      "type": "array",
-                      "description": "List of data objects",
-                      "items": {
-                        "type": "object"
-                      }
-                    },
-                    "pageInfo": {
-                      "$ref": "#/components/schemas/Paginated",
-                      "description": "Paginated Info"
-                    }
-                  },
-                  "required": [
-                    "list",
-                    "pageInfo"
-                  ]
+                  "$ref": "#/components/schemas/DataListResponseV3"
                 },
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "list": [
+                      "records": [
                         {
-                          "Id": 5,
-                          "SingleLineText": "London"
-                        },
-                        {
-                          "Id": 6,
-                          "SingleLineText": "Manchester"
-                        },
-                        {
-                          "Id": 7,
-                          "SingleLineText": "Poole"
-                        },
-                        {
-                          "Id": 8,
-                          "SingleLineText": "Bristol"
+                          "id": 1,
+                          "fields": {
+                            "SingleLineText": "record #1",
+                            "MultiLineText": "sample long text",
+                            "Email": "user@nocodb.com",
+                            "PhoneNumber": "1234567890",
+                            "URL": "www.google.com",
+                            "Number": 1234,
+                            "Decimal": 100.88,
+                            "Currency": 100,
+                            "Percent": 10,
+                            "Duration": 1010,
+                            "Rating": 3,
+                            "Year": 2020,
+                            "Time": "20:20:00",
+                            "Checkbox": true,
+                            "Date": "2020-01-01",
+                            "SingleSelect": "Jan",
+                            "MultiSelect": [
+                              "Jan",
+                              "Feb",
+                              "Mar"
+                            ],
+                            "DateTime": "2022-02-02 00:00:00+00:00",
+                            "LTAR": [
+                              {
+                                "id": 1,
+                                "fields": {
+                                  "SingleLineText": "record #1"
+                                }
+                              },
+                              {
+                                "id": 2,
+                                "fields": {
+                                  "SingleLineText": "record #2"
+                                }
+                              }
+                            ]
+                          }
                         }
                       ],
-                      "pageInfo": {
-                        "next": "https://staging.noco.ws/api/v3/tables/mqw22nwcc3c7tfp/links/cq0bdlyfreqoea0/records/4?page=2"
-                      }
+                      "next": "https://staging.noco.ws/api/v3/data/baseId/tableId/records?page=2"
                     }
                   }
                 }
@@ -3325,13 +3271,27 @@
         "operationId": "db-data-table-row-nested-link",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Records successfully linked",
             "content": {
               "application/json": {
-                "schema": {},
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates whether the linking operation was successful",
+                      "example": true
+                    }
+                  },
+                  "required": ["success"],
+                  "additionalProperties": false
+                },
                 "examples": {
-                  "Example 1": {
-                    "value": true
+                  "Success Response": {
+                    "summary": "Successful linking operation",
+                    "value": {
+                      "success": true
+                    }
                   }
                 }
               }
@@ -3345,29 +3305,58 @@
           "Linked Records"
         ],
         "requestBody": {
+          "required": true,
+          "description": "Array of record objects to be linked, each containing an id field",
           "content": {
             "application/json": {
               "schema": {
                 "oneOf": [
                   {
-                    "type": "object"
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Unique identifier for the record",
+                        "example": "33"
+                      }
+                    },
+                    "required": ["id"],
+                    "additionalProperties": false
                   },
                   {
                     "type": "array",
                     "items": {
-                      "type": "object"
-                    }
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "Unique identifier for the record",
+                          "example": "22"
+                        }
+                      },
+                      "required": ["id"],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1,
+                    "maxItems": 1000
                   }
                 ]
               },
               "examples": {
-                "Example 1": {
+                "Single Record": {
+                  "summary": "Link a single record",
+                  "value": {
+                    "id": "22"
+                  }
+                },
+                "Multiple Records": {
+                  "summary": "Link multiple records",
                   "value": [
                     {
-                      "Id": 4
+                      "id": "43"
                     },
                     {
-                      "Id": 5
+                      "id": "01"
                     }
                   ]
                 }
@@ -3397,13 +3386,27 @@
         "operationId": "db-data-table-row-nested-unlink",
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Records successfully unlinked",
             "content": {
               "application/json": {
-                "schema": {},
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates whether the unlink operation was successful",
+                      "example": true
+                    }
+                  },
+                  "required": ["success"],
+                  "additionalProperties": false
+                },
                 "examples": {
-                  "Example 1": {
-                    "value": true
+                  "Success Response": {
+                    "summary": "Successful unlinking operation",
+                    "value": {
+                      "success": true
+                    }
                   }
                 }
               }
@@ -3417,26 +3420,58 @@
           "Linked Records"
         ],
         "requestBody": {
+          "required": true,
+          "description": "Array of record objects to be unlinked, each containing an id field",
           "content": {
             "application/json": {
               "schema": {
                 "oneOf": [
                   {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Unique identifier for the record",
+                        "example": "33"
+                      }
+                    },
+                    "required": ["id"],
+                    "additionalProperties": false
+                  },
+                  {
                     "type": "array",
                     "items": {
-                      "type": "object"
-                    }
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "Unique identifier for the record",
+                          "example": "33"
+                        }
+                      },
+                      "required": ["id"],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1,
+                    "maxItems": 1000
                   }
                 ]
               },
               "examples": {
-                "Example 1": {
+                "Single Record": {
+                  "summary": "UnLink a single record",
+                  "value": {
+                    "id": "32"
+                  }
+                },
+                "Multiple Records": {
+                  "summary": "UnLink multiple records",
                   "value": [
                     {
-                      "Id": 1
+                      "id": "1"
                     },
                     {
-                      "Id": 2
+                      "id": "22"
                     }
                   ]
                 }
@@ -6278,6 +6313,242 @@
         "required": [
           "list"
         ]
+      },
+      "DataRecordV3": {
+        "type": "object",
+        "description": "V3 Data Record format with id and fields separation",
+        "properties": {
+          "id": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "description": "Record identifier (primary key value)"
+          },
+          "fields": {
+            "type": "object",
+            "description": "Record fields data (excluding primary key). Undefined when empty.",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "DataRecordWithDeletedV3": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/DataRecordV3"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "deleted": {
+                "type": "boolean",
+                "description": "Indicates if the record was deleted"
+              }
+            },
+            "required": [
+              "deleted"
+            ]
+          }
+        ]
+      },
+      "DataListResponseV3": {
+        "type": "object",
+        "description": "V3 Data List Response format",
+        "properties": {
+          "records": {
+            "type": "array",
+            "description": "Array of records for has-many and many-to-many relationships",
+            "items": {
+              "$ref": "#/components/schemas/DataRecordV3"
+            }
+          },
+          "next": {
+            "type": ["string", "null"],
+            "description": "Pagination token for next page"
+          },
+          "prev": {
+            "type": ["string", "null"],
+            "description": "Pagination token for previous page"
+          },
+          "nestedNext": {
+            "type": ["string", "null"],
+            "description": "Nested pagination token for next page"
+          },
+          "nestedPrev": {
+            "type": ["string", "null"],
+            "description": "Nested pagination token for previous page"
+          }
+        }
+      },
+      "DataInsertRequestV3": {
+        "type": "object",
+        "description": "V3 Data Insert Request format",
+        "properties": {
+          "fields": {
+            "type": "object",
+            "description": "Record fields data",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "fields"
+        ]
+      },
+      "DataUpdateRequestV3": {
+        "type": "object",
+        "description": "V3 Data Update Request format",
+        "properties": {
+          "id": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "description": "Record identifier"
+          },
+          "fields": {
+            "type": "object",
+            "description": "Record fields data to update",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "id",
+          "fields"
+        ]
+      },
+      "DataDeleteRequestV3": {
+        "type": "object",
+        "description": "Single record delete request",
+        "properties": {
+          "id": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "description": "Record identifier"
+          }
+        },
+        "required": ["id"]
+      },
+      "DataInsertResponseV3": {
+        "type": "object",
+        "description": "V3 Data Insert Response format",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataRecordV3"
+            },
+            "description": "Array of created records"
+          }
+        },
+        "required": [
+          "records"
+        ]
+      },
+      "DataUpdateResponseV3": {
+        "type": "object",
+        "description": "V3 Data Update Response format",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "description": "Updated record identifier"
+                },
+                "fields": {
+                  "type": "object",
+                  "description": "Record fields data (excluding primary key). Undefined when empty.",
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "id"
+              ]
+            },
+            "description": "Array of updated record identifiers"
+          }
+        },
+        "required": [
+          "records"
+        ]
+      },
+      "DataDeleteResponseV3": {
+        "type": "object",
+        "description": "V3 Data Delete Response format",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataRecordWithDeletedV3"
+            },
+            "description": "Array of deleted records"
+          }
+        },
+        "required": [
+          "records"
+        ]
+      },
+      "DataReadResponseV3": {
+        "$ref": "#/components/schemas/DataRecordV3",
+        "description": "V3 Data Read Response format"
+      },
+      "DataNestedListResponseV3": {
+        "type": "object",
+        "description": "V3 Nested Data List Response format - supports both single record and array responses",
+        "properties": {
+          "records": {
+            "type": "array",
+            "description": "Array of records for has-many and many-to-many relationships",
+            "items": {
+              "$ref": "#/components/schemas/DataRecordV3"
+            }
+          },
+          "record": {
+            "description": "Single record for belongs-to and one-to-one relationships",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DataRecordV3"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "next": {
+            "type": ["string", "null"],
+            "description": "Pagination token for next page"
+          },
+          "prev": {
+            "type": ["string", "null"],
+            "description": "Pagination token for previous page"
+          }
+        }
       },
       "Paginated": {
         "description": "Model for Paginated",

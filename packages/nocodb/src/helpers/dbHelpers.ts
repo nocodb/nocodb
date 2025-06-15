@@ -344,13 +344,32 @@ export function transformObject(value, idToAliasMap) {
 
 export function extractSortsObject(
   context: NcContext,
-  _sorts: string | string[],
+  _sorts: string | string[] | { direction: string; field: string }[],
   aliasColObjMap: { [columnAlias: string]: Column },
   throwErrorIfInvalid = false,
+  apiVersion?: NcApiVersion,
 ): Sort[] {
   if (!_sorts?.length) return;
+  // Handle API V3 format: [{"direction": "asc", "field": "field_name"}, {"direction": "desc", "field": "field_id"}]
+  if (apiVersion === NcApiVersion.V3) {
+    try {
+      _sorts = JSON.parse(_sorts as string);
+    } catch (_e) {}
+    if (!Array.isArray(_sorts)) _sorts = [_sorts];
+    return (_sorts as { direction: string; field: string }[]).map((s) => {
+      const sort: SortType = {
+        direction: s.direction as 'asc' | 'desc' | 'count-desc' | 'count-asc',
+        fk_column_id: aliasColObjMap[s.field]?.id,
+      };
+      if (throwErrorIfInvalid && !sort.fk_column_id) {
+        NcError.get(context).fieldNotFound(s.field);
+      }
+      return new Sort(sort);
+    });
+  }
 
-  let sorts = _sorts;
+  // Handle V2 format
+  let sorts = _sorts as string | string[];
   if (!Array.isArray(sorts)) sorts = sorts.split(/\s*,\s*/);
 
   return sorts.map((s) => {

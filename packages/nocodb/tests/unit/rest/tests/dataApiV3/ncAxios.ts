@@ -163,7 +163,7 @@ export const ncAxios = (testContext: ITestContext) => {
     status?: number;
     msg?: string;
   }) {
-    const url = `/api/v3/${testContext.base.id}/${urlParams.tableId}/links/${urlParams.linkId}/${urlParams.rowId}`;
+    const url = `/api/v3/data/${testContext.base.id}/${urlParams.tableId}/links/${urlParams.linkId}/${urlParams.rowId}`;
     const response = await request(testContext.context.app)
       .get(url)
       .set('xc-auth', testContext.context.token)
@@ -189,7 +189,7 @@ export const ncAxios = (testContext: ITestContext) => {
     status?: number;
     msg?: string;
   }) {
-    const url = `/api/v3/${testContext.base.id}/${urlParams.tableId}/links/${urlParams.linkId}/${urlParams.rowId}`;
+    const url = `/api/v3/data/${testContext.base.id}/${urlParams.tableId}/links/${urlParams.linkId}/${urlParams.rowId}`;
     const response = await request(testContext.context.app)
       .post(url)
       .set('xc-auth', testContext.context.token)
@@ -213,7 +213,7 @@ export const ncAxios = (testContext: ITestContext) => {
     status?: number;
     msg?: string;
   }) {
-    const url = `/api/v3/${testContext.base.id}/${urlParams.tableId}/links/${urlParams.linkId}/${urlParams.rowId}`;
+    const url = `/api/v3/data/${testContext.base.id}/${urlParams.tableId}/links/${urlParams.linkId}/${urlParams.rowId}`;
     const response = await request(testContext.context.app)
       .delete(url)
       .set('xc-auth', testContext.context.token)

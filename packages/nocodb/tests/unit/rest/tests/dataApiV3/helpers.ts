@@ -30,9 +30,11 @@ export const verifyColumnsInRsp = (
   row: Record<string, any>,
   columns: ColumnType[],
 ) => {
-  const responseColumnsListStr = Object.keys(row).sort().join(',');
+  // For v3 API, fields are nested under the 'fields' property
+  const fieldsObject = row.fields || row;
+  const responseColumnsListStr = Object.keys(fieldsObject).sort().join(',');
   const expectedColumnsListStr = columns
-    .filter((c) => !c.system || c.pk)
+    .filter((c) => !c.system && !c.pk)  // Exclude both system columns and primary key
     .map((c) => c.title)
     .sort()
     .join(',');
@@ -61,7 +63,7 @@ export function prepareRecords(
 export function getColumnId(columns: ColumnType[], title: string) {
   return columns.find((c) => c.title === title)!.id!;
 }
-export const idc = (r1: any, r2: any) => r1.Id - r2.Id;
+export const idc = (r1: any, r2: any) => r1.id - r2.id;
 
 export function initArraySeq(i: number, count: number) {
   return Array.from({ length: count }, (_, index) => i + index);

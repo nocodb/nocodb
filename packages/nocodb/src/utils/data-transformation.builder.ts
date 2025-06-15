@@ -292,6 +292,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, unknown>({
     mappings: {
       is12hrFormat: '12hr_format',
       isLocaleString: 'locale_string',
+      showAsProgress: 'show_as_progress',
       // duration: 'duration_format',
     },
     excluded: ['defaultViewColOrder', 'singular', 'plural'],
@@ -425,6 +426,7 @@ export const columnV3ToV2Builder = builderGenerator({
     mappings: {
       '12hr_format': 'is12hrFormat',
       locale_string: 'isLocaleString',
+      show_as_progress: 'showAsProgress',
       // duration_format: 'duration',
     },
     skipfn: (data) => columnsWithOptions.includes(data.uidt || data.type),

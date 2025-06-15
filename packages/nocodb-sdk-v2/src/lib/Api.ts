@@ -12,22 +12,22 @@
 
 /** Workspace roles for the user. */
 export enum WorkspaceRoles {
-  WorkspaceLevelOwner = "workspace-level-owner",
-  WorkspaceLevelCreator = "workspace-level-creator",
-  WorkspaceLevelEditor = "workspace-level-editor",
-  WorkspaceLevelViewer = "workspace-level-viewer",
-  WorkspaceLevelCommenter = "workspace-level-commenter",
-  WorkspaceLevelNoAccess = "workspace-level-no-access",
+  WorkspaceLevelOwner = 'workspace-level-owner',
+  WorkspaceLevelCreator = 'workspace-level-creator',
+  WorkspaceLevelEditor = 'workspace-level-editor',
+  WorkspaceLevelViewer = 'workspace-level-viewer',
+  WorkspaceLevelCommenter = 'workspace-level-commenter',
+  WorkspaceLevelNoAccess = 'workspace-level-no-access',
 }
 
 /** Base roles for the user. */
 export enum BaseRoles {
-  Owner = "owner",
-  Creator = "creator",
-  Editor = "editor",
-  Viewer = "viewer",
-  Commenter = "commenter",
-  NoAccess = "no-access",
+  Owner = 'owner',
+  Creator = 'creator',
+  Editor = 'editor',
+  Viewer = 'viewer',
+  Commenter = 'commenter',
+  NoAccess = 'no-access',
 }
 
 export interface Base {
@@ -256,7 +256,7 @@ export interface Sort {
    */
   field_id: string;
   /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
-  direction: "asc" | "desc";
+  direction: 'asc' | 'desc';
 }
 
 export interface SortCreate {
@@ -266,7 +266,7 @@ export interface SortCreate {
    */
   field_id: string;
   /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
-  direction: "asc" | "desc";
+  direction: 'asc' | 'desc';
 }
 
 export interface SortUpdate {
@@ -278,7 +278,7 @@ export interface SortUpdate {
    */
   field_id?: string;
   /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
-  direction?: "asc" | "desc";
+  direction?: 'asc' | 'desc';
 }
 
 export interface ViewSummary {
@@ -290,7 +290,7 @@ export interface ViewSummary {
   /** Name of the view. */
   title?: string;
   /** Type of the view. */
-  view_type?: "GRID" | "GALLERY" | "KANBAN" | "CALENDAR" | "FORM";
+  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
 }
 
 /** GRID View */
@@ -312,7 +312,7 @@ export type View = (
          */
         field_id?: string;
         /** Sorting order for the group. */
-        sort?: "asc" | "desc";
+        sort?: 'asc' | 'desc';
       }[];
     }
   | {
@@ -433,9 +433,9 @@ export type View = (
   /** Name of the view. */
   view_name?: string;
   /** Type of the view. */
-  view_type?: "GRID" | "GALLERY" | "KANBAN" | "CALENDAR" | "FORM";
+  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
   /** Lock type of the view. */
-  lock_type?: "COLLABARATIVE" | "LOCKED" | "PERSONAL";
+  lock_type?: 'COLLABARATIVE' | 'LOCKED' | 'PERSONAL';
   /** Description of the view. */
   description?: string;
   /** Indicates if this is the default view. */
@@ -479,9 +479,9 @@ export interface ViewCreate {
   /** Name of the view. */
   view_name?: string;
   /** Type of the view. */
-  view_type?: "GRID" | "GALLERY" | "KANBAN" | "CALENDAR" | "FORM";
+  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
   /** Lock type of the view. */
-  lock_type?: "COLLABARATIVE" | "LOCKED" | "PERSONAL";
+  lock_type?: 'COLLABARATIVE' | 'LOCKED' | 'PERSONAL';
   /** Description of the view. */
   description?: string;
 }
@@ -541,198 +541,192 @@ export interface FieldOptionsCurrency {
   locale?: string;
   /** Currency code. Refer https://simplelocalize.io/data/locales/ */
   code?:
-    | "AED"
-    | "AFN"
-    | "ALL"
-    | "AMD"
-    | "ANG"
-    | "AOA"
-    | "ARS"
-    | "AUD"
-    | "AWG"
-    | "AZN"
-    | "BAM"
-    | "BBD"
-    | "BDT"
-    | "BGN"
-    | "BHD"
-    | "BIF"
-    | "BMD"
-    | "BND"
-    | "BOB"
-    | "BOV"
-    | "BRL"
-    | "BSD"
-    | "BTN"
-    | "BWP"
-    | "BYR"
-    | "BZD"
-    | "CAD"
-    | "CDF"
-    | "CHE"
-    | "CHF"
-    | "CHW"
-    | "CLF"
-    | "CLP"
-    | "CNY"
-    | "COP"
-    | "COU"
-    | "CRC"
-    | "CUP"
-    | "CVE"
-    | "CYP"
-    | "CZK"
-    | "DJF"
-    | "DKK"
-    | "DOP"
-    | "DZD"
-    | "EEK"
-    | "EGP"
-    | "ERN"
-    | "ETB"
-    | "EUR"
-    | "FJD"
-    | "FKP"
-    | "GBP"
-    | "GEL"
-    | "GHC"
-    | "GIP"
-    | "GMD"
-    | "GNF"
-    | "GTQ"
-    | "GYD"
-    | "HKD"
-    | "HNL"
-    | "HRK"
-    | "HTG"
-    | "HUF"
-    | "IDR"
-    | "ILS"
-    | "INR"
-    | "IQD"
-    | "IRR"
-    | "ISK"
-    | "JMD"
-    | "JOD"
-    | "JPY"
-    | "KES"
-    | "KGS"
-    | "KHR"
-    | "KMF"
-    | "KPW"
-    | "KRW"
-    | "KWD"
-    | "KYD"
-    | "KZT"
-    | "LAK"
-    | "LBP"
-    | "LKR"
-    | "LRD"
-    | "LSL"
-    | "LTL"
-    | "LVL"
-    | "LYD"
-    | "MAD"
-    | "MDL"
-    | "MGA"
-    | "MKD"
-    | "MMK"
-    | "MNT"
-    | "MOP"
-    | "MRO"
-    | "MTL"
-    | "MUR"
-    | "MVR"
-    | "MWK"
-    | "MXN"
-    | "MXV"
-    | "MYR"
-    | "MZN"
-    | "NAD"
-    | "NGN"
-    | "NIO"
-    | "NOK"
-    | "NPR"
-    | "NZD"
-    | "OMR"
-    | "PAB"
-    | "PEN"
-    | "PGK"
-    | "PHP"
-    | "PKR"
-    | "PLN"
-    | "PYG"
-    | "QAR"
-    | "ROL"
-    | "RON"
-    | "RSD"
-    | "RUB"
-    | "RWF"
-    | "SAR"
-    | "SBD"
-    | "SCR"
-    | "SDD"
-    | "SEK"
-    | "SGD"
-    | "SHP"
-    | "SIT"
-    | "SKK"
-    | "SLL"
-    | "SOS"
-    | "SRD"
-    | "STD"
-    | "SYP"
-    | "SZL"
-    | "THB"
-    | "TJS"
-    | "TMM"
-    | "TND"
-    | "TOP"
-    | "TRY"
-    | "TTD"
-    | "TWD"
-    | "TZS"
-    | "UAH"
-    | "UGX"
-    | "USD"
-    | "USN"
-    | "USS"
-    | "UYU"
-    | "UZS"
-    | "VEB"
-    | "VND"
-    | "VUV"
-    | "WST"
-    | "XAF"
-    | "XAG"
-    | "XAU"
-    | "XBA"
-    | "XBB"
-    | "XBC"
-    | "XBD"
-    | "XCD"
-    | "XDR"
-    | "XFO"
-    | "XFU"
-    | "XOF"
-    | "XPD"
-    | "XPF"
-    | "XPT"
-    | "XTS"
-    | "XXX"
-    | "YER"
-    | "ZAR"
-    | "ZMK"
-    | "ZWD";
+    | 'AED'
+    | 'AFN'
+    | 'ALL'
+    | 'AMD'
+    | 'ANG'
+    | 'AOA'
+    | 'ARS'
+    | 'AUD'
+    | 'AWG'
+    | 'AZN'
+    | 'BAM'
+    | 'BBD'
+    | 'BDT'
+    | 'BGN'
+    | 'BHD'
+    | 'BIF'
+    | 'BMD'
+    | 'BND'
+    | 'BOB'
+    | 'BOV'
+    | 'BRL'
+    | 'BSD'
+    | 'BTN'
+    | 'BWP'
+    | 'BYR'
+    | 'BZD'
+    | 'CAD'
+    | 'CDF'
+    | 'CHE'
+    | 'CHF'
+    | 'CHW'
+    | 'CLF'
+    | 'CLP'
+    | 'CNY'
+    | 'COP'
+    | 'COU'
+    | 'CRC'
+    | 'CUP'
+    | 'CVE'
+    | 'CYP'
+    | 'CZK'
+    | 'DJF'
+    | 'DKK'
+    | 'DOP'
+    | 'DZD'
+    | 'EEK'
+    | 'EGP'
+    | 'ERN'
+    | 'ETB'
+    | 'EUR'
+    | 'FJD'
+    | 'FKP'
+    | 'GBP'
+    | 'GEL'
+    | 'GHC'
+    | 'GIP'
+    | 'GMD'
+    | 'GNF'
+    | 'GTQ'
+    | 'GYD'
+    | 'HKD'
+    | 'HNL'
+    | 'HRK'
+    | 'HTG'
+    | 'HUF'
+    | 'IDR'
+    | 'ILS'
+    | 'INR'
+    | 'IQD'
+    | 'IRR'
+    | 'ISK'
+    | 'JMD'
+    | 'JOD'
+    | 'JPY'
+    | 'KES'
+    | 'KGS'
+    | 'KHR'
+    | 'KMF'
+    | 'KPW'
+    | 'KRW'
+    | 'KWD'
+    | 'KYD'
+    | 'KZT'
+    | 'LAK'
+    | 'LBP'
+    | 'LKR'
+    | 'LRD'
+    | 'LSL'
+    | 'LTL'
+    | 'LVL'
+    | 'LYD'
+    | 'MAD'
+    | 'MDL'
+    | 'MGA'
+    | 'MKD'
+    | 'MMK'
+    | 'MNT'
+    | 'MOP'
+    | 'MRO'
+    | 'MTL'
+    | 'MUR'
+    | 'MVR'
+    | 'MWK'
+    | 'MXN'
+    | 'MXV'
+    | 'MYR'
+    | 'MZN'
+    | 'NAD'
+    | 'NGN'
+    | 'NIO'
+    | 'NOK'
+    | 'NPR'
+    | 'NZD'
+    | 'OMR'
+    | 'PAB'
+    | 'PEN'
+    | 'PGK'
+    | 'PHP'
+    | 'PKR'
+    | 'PLN'
+    | 'PYG'
+    | 'QAR'
+    | 'ROL'
+    | 'RON'
+    | 'RSD'
+    | 'RUB'
+    | 'RWF'
+    | 'SAR'
+    | 'SBD'
+    | 'SCR'
+    | 'SDD'
+    | 'SEK'
+    | 'SGD'
+    | 'SHP'
+    | 'SIT'
+    | 'SKK'
+    | 'SLL'
+    | 'SOS'
+    | 'SRD'
+    | 'STD'
+    | 'SYP'
+    | 'SZL'
+    | 'THB'
+    | 'TJS'
+    | 'TMM'
+    | 'TND'
+    | 'TOP'
+    | 'TRY'
+    | 'TTD'
+    | 'TWD'
+    | 'TZS'
+    | 'UAH'
+    | 'UGX'
+    | 'USD'
+    | 'USN'
+    | 'USS'
+    | 'UYU'
+    | 'UZS'
+    | 'VEB'
+    | 'VND'
+    | 'VUV'
+    | 'WST'
+    | 'XAF'
+    | 'XAG'
+    | 'XAU'
+    | 'XBA'
+    | 'XBB'
+    | 'XBC'
+    | 'XBD'
+    | 'XCD'
+    | 'XDR'
+    | 'XFO'
+    | 'XFU'
+    | 'XOF'
+    | 'XPD'
+    | 'XPF'
+    | 'XPT'
+    | 'XTS'
+    | 'XXX'
+    | 'YER'
+    | 'ZAR'
+    | 'ZMK'
+    | 'ZWD';
 }
 
 export interface FieldOptionsPercent {
-  /**
-   * Number of decimal places allowed.
-   * @min 0
-   * @max 5
-   */
-  precision?: number;
   /** Display as a progress bar. */
   show_as_progress?: boolean;
 }
@@ -746,7 +740,7 @@ export interface FieldOptionsDuration {
    * - `h:mm:ss.SS`
    * - `h:mm:ss.SSS`
    */
-  format?: string;
+  duration_format?: string;
 }
 
 export interface FieldOptionsDateTime {
@@ -773,7 +767,13 @@ export interface FieldOptionsDateTime {
    */
   time_format?: string;
   /** Use 12-hour time format. */
-  "12hr_format"?: boolean;
+  '12hr_format'?: boolean;
+  /** Display timezone. */
+  display_timezone?: boolean;
+  /** Timezone. Refer to https://en.wikipedia.org/wiki/List_of_tz_database_time_zones */
+  timezone?: string;
+  /** Use same timezone for all records. */
+  use_same_timezone_for_all?: boolean;
 }
 
 export interface FieldOptionsDate {
@@ -795,15 +795,8 @@ export interface FieldOptionsDate {
 }
 
 export interface FieldOptionsTime {
-  /**
-   * Time format. Supported options are listed below
-   * - `HH:mm`
-   * - `HH:mm:ss`
-   * - `HH:mm:ss.SSS`
-   */
-  time_format?: string;
   /** Use 12-hour time format. */
-  "12hr_format"?: boolean;
+  '12hr_format'?: boolean;
 }
 
 export interface FieldOptionsSelect {
@@ -828,7 +821,7 @@ export interface FieldOptionsRating {
    * - `thumbs-up`
    * - `flag`
    */
-  icon?: "star" | "heart" | "circle-filled" | "thumbs-up" | "flag";
+  icon?: 'star' | 'heart' | 'circle-filled' | 'thumbs-up' | 'flag';
   /**
    * Maximum value for the rating. Allowed range: 1-10.
    * @min 1
@@ -854,13 +847,13 @@ export interface FieldOptionsCheckbox {
    * - `flag`
    */
   icon?:
-    | "square"
-    | "circle-check"
-    | "circle-filled"
-    | "star"
-    | "heart"
-    | "thumbs-up"
-    | "flag";
+    | 'square'
+    | 'circle-check'
+    | 'circle-filled'
+    | 'star'
+    | 'heart'
+    | 'thumbs-up'
+    | 'flag';
   /**
    * Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`).
    * @pattern ^#[0-9A-Fa-f]{6}$
@@ -872,7 +865,12 @@ export interface FieldOptionsBarcode {
   /** Barcode format (e.g., CODE128). */
   format?: string;
   /** Field ID that contains the value. */
-  value_field_id?: string;
+  barcode_value_field_id?: string;
+}
+
+export interface FieldOptionsQRCode {
+  /** Field ID that contains the value. */
+  qrcode_value_field_id?: string;
 }
 
 export interface FieldOptionsFormula {
@@ -887,29 +885,34 @@ export interface FieldOptionsUser {
 
 export interface FieldOptionsLookup {
   /** Linked field ID. Can be of type Links or LinkToAnotherRecord */
-  link_field_id: string;
+  related_field_id: string;
   /** Lookup field ID in the linked table. */
-  linked_table_lookup_field_id: string;
+  related_table_lookup_field_id: string;
 }
 
 export interface FieldOptionsRollup {
   /** Linked field ID. */
-  link_field_id: string;
+  related_field_id: string;
   /** Rollup field ID in the linked table. */
-  linked_table_rollup_field_id: string;
+  related_table_rollup_field_id: string;
   /** Rollup function. */
   rollup_function:
-    | "count"
-    | "min"
-    | "max"
-    | "avg"
-    | "sum"
-    | "countDistinct"
-    | "sumDistinct"
-    | "avgDistinct";
+    | 'count'
+    | 'min'
+    | 'max'
+    | 'avg'
+    | 'sum'
+    | 'countDistinct'
+    | 'sumDistinct'
+    | 'avgDistinct';
 }
 
-export type FieldOptionsButton = any;
+export type FieldOptionsButton = BaseFieldOptionsButton &
+  (
+    | BaseFieldOptionsButtonTypeMapping<'formula', any>
+    | BaseFieldOptionsButtonTypeMapping<'webhook', any>
+    | BaseFieldOptionsButtonTypeMapping<'ai', any>
+  );
 
 export interface FieldOptionsLinks {
   /**
@@ -922,7 +925,7 @@ export interface FieldOptionsLinks {
    */
   relation_type: string;
   /** Identifier of the linked table. */
-  linked_table_id: string;
+  related_table_id: string;
 }
 
 export interface FieldOptionsLinkToAnotherRecord {
@@ -936,76 +939,76 @@ export interface FieldOptionsLinkToAnotherRecord {
    */
   relation_type: string;
   /** Identifier of the linked table. */
-  linked_table_id: string;
+  related_table_id: string;
 }
 
 export type Field = FieldBase &
   (
     | {
-        type?: "SingleLineText";
+        type?: 'SingleLineText';
       }
     | {
-        type?: "LongText";
+        type?: 'LongText';
         options?: FieldOptionsLongText;
       }
     | {
-        type?: "PhoneNumber" | "URL" | "Email";
+        type?: 'PhoneNumber' | 'URL' | 'Email';
         options?: FieldOptionsPhoneNumber;
       }
     | {
-        type?: "Number" | "Decimal";
+        type?: 'Number' | 'Decimal';
         options?: FieldOptionsNumber;
       }
     | {
-        type?: "JSON";
+        type?: 'JSON';
       }
     | {
-        type?: "Currency";
+        type?: 'Currency';
         /** Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD` */
         options?: FieldOptionsCurrency;
       }
     | {
-        type?: "Percent";
+        type?: 'Percent';
         options?: FieldOptionsPercent;
       }
     | {
-        type?: "Duration";
+        type?: 'Duration';
         options?: FieldOptionsDuration;
       }
     | {
-        type?: "Date" | "DateTime" | "Time";
+        type?: 'Date' | 'DateTime' | 'Time';
         options?: FieldOptionsDateTime;
       }
     | {
-        type?: "SingleSelect" | "MultiSelect";
+        type?: 'SingleSelect' | 'MultiSelect';
         options?: FieldOptionsSelect;
       }
     | {
-        type?: "Rating" | "Checkbox";
+        type?: 'Rating' | 'Checkbox';
         options?: FieldOptionsRating;
       }
     | {
-        type?: "Barcode";
+        type?: 'Barcode';
         options?: FieldOptionsBarcode;
       }
     | {
-        type?: "Formula";
+        type?: 'Formula';
         options?: FieldOptionsFormula;
       }
     | {
-        type?: "User";
+        type?: 'User';
         options?: FieldOptionsUser;
       }
     | {
-        type?: "Lookup";
+        type?: 'Lookup';
         options?: FieldOptionsLookup;
       }
     | {
-        type?: "Links";
+        type?: 'Links';
         options?: FieldOptionsLinks;
       }
     | {
-        type?: "LinkToAnotherRecord";
+        type?: 'LinkToAnotherRecord';
         options?: FieldOptionsLinkToAnotherRecord;
       }
   );
@@ -1015,67 +1018,67 @@ export type FilterCreateUpdate = Filter | FilterGroup;
 export type FieldUpdate = FieldBase &
   (
     | {
-        type?: "LongText";
+        type?: 'LongText';
         options?: FieldOptionsLongText;
       }
     | {
-        type?: "PhoneNumber" | "URL" | "Email";
+        type?: 'PhoneNumber' | 'URL' | 'Email';
         options?: FieldOptionsPhoneNumber;
       }
     | {
-        type?: "Number" | "Decimal";
+        type?: 'Number' | 'Decimal';
         options?: FieldOptionsNumber;
       }
     | {
-        type?: "JSON";
+        type?: 'JSON';
       }
     | {
-        type?: "Currency";
+        type?: 'Currency';
         /** Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD` */
         options?: FieldOptionsCurrency;
       }
     | {
-        type?: "Percent";
+        type?: 'Percent';
         options?: FieldOptionsPercent;
       }
     | {
-        type?: "Duration";
+        type?: 'Duration';
         options?: FieldOptionsDuration;
       }
     | {
-        type?: "Date" | "DateTime" | "Time";
+        type?: 'Date' | 'DateTime' | 'Time';
         options?: FieldOptionsDateTime;
       }
     | {
-        type?: "SingleSelect" | "MultiSelect";
+        type?: 'SingleSelect' | 'MultiSelect';
         options?: FieldOptionsSelect;
       }
     | {
-        type?: "Rating" | "Checkbox";
+        type?: 'Rating' | 'Checkbox';
         options?: FieldOptionsRating;
       }
     | {
-        type?: "Barcode";
+        type?: 'Barcode';
         options?: FieldOptionsBarcode;
       }
     | {
-        type?: "Formula";
+        type?: 'Formula';
         options?: FieldOptionsFormula;
       }
     | {
-        type?: "User";
+        type?: 'User';
         options?: FieldOptionsUser;
       }
     | {
-        type?: "Lookup";
+        type?: 'Lookup';
         options?: FieldOptionsLookup;
       }
     | {
-        type?: "Links";
+        type?: 'Links';
         options?: FieldOptionsLinks;
       }
     | {
-        type?: "LinkToAnotherRecord";
+        type?: 'LinkToAnotherRecord';
         options?: FieldOptionsLinkToAnotherRecord;
       }
   );
@@ -1102,21 +1105,21 @@ export interface FilterListResponse {
 
 export interface FilterGroupLevel3 {
   /** Logical operator for the group. */
-  group_operator: "AND" | "OR";
+  group_operator: 'AND' | 'OR';
   /** List of filters in this group. */
   filters: Filter[];
 }
 
 export interface FilterGroupLevel2 {
   /** Logical operator for the group. */
-  group_operator: "AND" | "OR";
+  group_operator: 'AND' | 'OR';
   /** List of filters or nested filter groups at level 3. */
   filters: (Filter | FilterGroupLevel3)[];
 }
 
 export interface FilterGroupLevel1 {
   /** Logical operator for the group. */
-  group_operator: "AND" | "OR";
+  group_operator: 'AND' | 'OR';
   /** List of filters or nested filter groups at level 2. */
   filters: (Filter | FilterGroupLevel2)[];
 }
@@ -1127,7 +1130,7 @@ export interface FilterGroup {
   /** Parent ID of this filter-group. */
   parent_id?: string;
   /** Logical operator for combining filters in the group. */
-  group_operator: "AND" | "OR";
+  group_operator: 'AND' | 'OR';
   /** Nested filters or filter groups. */
   filters: (Filter | FilterGroup)[];
 }
@@ -1141,6 +1144,91 @@ export type FilterUpdate = {
 
 export interface SortListResponse {
   list: Sort[];
+}
+
+/** V3 Data Record format with id and fields separation */
+export interface DataRecordV3 {
+  /** Record identifier (primary key value) */
+  id: string | number;
+  /** Record fields data (excluding primary key). Undefined when empty. */
+  fields?: Record<string, any>;
+}
+
+export type DataRecordWithDeletedV3 = DataRecordV3 & {
+  /** Indicates if the record was deleted */
+  deleted: boolean;
+};
+
+/** V3 Data List Response format */
+export interface DataListResponseV3 {
+  /** Array of records for has-many and many-to-many relationships */
+  records?: DataRecordV3[];
+  /** Pagination token for next page */
+  next?: string | null;
+  /** Pagination token for previous page */
+  prev?: string | null;
+  /** Nested pagination token for next page */
+  nestedNext?: string | null;
+  /** Nested pagination token for previous page */
+  nestedPrev?: string | null;
+}
+
+/** V3 Data Insert Request format */
+export interface DataInsertRequestV3 {
+  /** Record fields data */
+  fields: Record<string, any>;
+}
+
+/** V3 Data Update Request format */
+export interface DataUpdateRequestV3 {
+  /** Record identifier */
+  id: string | number;
+  /** Record fields data to update */
+  fields: Record<string, any>;
+}
+
+/** Single record delete request */
+export interface DataDeleteRequestV3 {
+  /** Record identifier */
+  id: string | number;
+}
+
+/** V3 Data Insert Response format */
+export interface DataInsertResponseV3 {
+  /** Array of created records */
+  records: DataRecordV3[];
+}
+
+/** V3 Data Update Response format */
+export interface DataUpdateResponseV3 {
+  /** Array of updated record identifiers */
+  records: {
+    /** Updated record identifier */
+    id: string | number;
+    /** Record fields data (excluding primary key). Undefined when empty. */
+    fields?: Record<string, any>;
+  }[];
+}
+
+/** V3 Data Delete Response format */
+export interface DataDeleteResponseV3 {
+  /** Array of deleted records */
+  records: DataRecordWithDeletedV3[];
+}
+
+/** V3 Data Read Response format */
+export type DataReadResponseV3 = DataRecordV3;
+
+/** V3 Nested Data List Response format - supports both single record and array responses */
+export interface DataNestedListResponseV3 {
+  /** Array of records for has-many and many-to-many relationships */
+  records?: DataRecordV3[];
+  /** Single record for belongs-to and one-to-one relationships */
+  record?: DataRecordV3 | null;
+  /** Pagination token for next page */
+  next?: string | null;
+  /** Pagination token for previous page */
+  prev?: string | null;
 }
 
 /**
@@ -1158,18 +1246,24 @@ export interface Paginated {
   nestedPrev?: string;
 }
 
+type BaseFieldOptionsButton = object;
+
+type BaseFieldOptionsButtonTypeMapping<Key, Type> = {
+  type: Key;
+} & Type;
+
 import type {
   AxiosInstance,
   AxiosRequestConfig,
   HeadersDefaults,
   ResponseType,
-} from "axios";
-import axios from "axios";
+} from 'axios';
+import axios from 'axios';
 
 export type QueryParamsType = Record<string | number, any>;
 
 export interface FullRequestParams
-  extends Omit<AxiosRequestConfig, "data" | "params" | "url" | "responseType"> {
+  extends Omit<AxiosRequestConfig, 'data' | 'params' | 'url' | 'responseType'> {
   /** set parameter to `true` for call `securityWorker` for this request */
   secure?: boolean;
   /** request path */
@@ -1186,11 +1280,11 @@ export interface FullRequestParams
 
 export type RequestParams = Omit<
   FullRequestParams,
-  "body" | "method" | "query" | "path"
+  'body' | 'method' | 'query' | 'path'
 >;
 
 export interface ApiConfig<SecurityDataType = unknown>
-  extends Omit<AxiosRequestConfig, "data" | "cancelToken"> {
+  extends Omit<AxiosRequestConfig, 'data' | 'cancelToken'> {
   securityWorker?: (
     securityData: SecurityDataType | null,
   ) => Promise<AxiosRequestConfig | void> | AxiosRequestConfig | void;
@@ -1199,16 +1293,16 @@ export interface ApiConfig<SecurityDataType = unknown>
 }
 
 export enum ContentType {
-  Json = "application/json",
-  FormData = "multipart/form-data",
-  UrlEncoded = "application/x-www-form-urlencoded",
-  Text = "text/plain",
+  Json = 'application/json',
+  FormData = 'multipart/form-data',
+  UrlEncoded = 'application/x-www-form-urlencoded',
+  Text = 'text/plain',
 }
 
 export class HttpClient<SecurityDataType = unknown> {
   public instance: AxiosInstance;
   private securityData: SecurityDataType | null = null;
-  private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
+  private securityWorker?: ApiConfig<SecurityDataType>['securityWorker'];
   private secure?: boolean;
   private format?: ResponseType;
 
@@ -1220,7 +1314,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || "http://localhost:8080",
+      baseURL: axiosConfig.baseURL || 'http://localhost:8080',
     });
     this.secure = secure;
     this.format = format;
@@ -1254,7 +1348,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }
 
   protected stringifyFormItem(formItem: unknown) {
-    if (typeof formItem === "object" && formItem !== null) {
+    if (typeof formItem === 'object' && formItem !== null) {
       return JSON.stringify(formItem);
     } else {
       return `${formItem}`;
@@ -1292,7 +1386,7 @@ export class HttpClient<SecurityDataType = unknown> {
     ...params
   }: FullRequestParams): Promise<T> => {
     const secureParams =
-      ((typeof secure === "boolean" ? secure : this.secure) &&
+      ((typeof secure === 'boolean' ? secure : this.secure) &&
         this.securityWorker &&
         (await this.securityWorker(this.securityData))) ||
       {};
@@ -1303,7 +1397,7 @@ export class HttpClient<SecurityDataType = unknown> {
       type === ContentType.FormData &&
       body &&
       body !== null &&
-      typeof body === "object"
+      typeof body === 'object'
     ) {
       body = this.createFormData(body as Record<string, unknown>);
     }
@@ -1312,7 +1406,7 @@ export class HttpClient<SecurityDataType = unknown> {
       type === ContentType.Text &&
       body &&
       body !== null &&
-      typeof body !== "string"
+      typeof body !== 'string'
     ) {
       body = JSON.stringify(body);
     }
@@ -1322,7 +1416,7 @@ export class HttpClient<SecurityDataType = unknown> {
         ...requestParams,
         headers: {
           ...(requestParams.headers || {}),
-          ...(type ? { "Content-Type": type } : {}),
+          ...(type ? { 'Content-Type': type } : {}),
         },
         params: query,
         responseType: responseFormat,
@@ -1357,8 +1451,8 @@ export class InternalApi<
     ) =>
       this.request<Base[], void>({
         path: `/api/v3/meta/workspaces/${workspaceId}/bases`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1377,10 +1471,10 @@ export class InternalApi<
     ) =>
       this.request<Base, void>({
         path: `/api/v3/meta/workspaces/${workspaceId}/bases`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1395,8 +1489,8 @@ export class InternalApi<
     v3MetaBasesDetail: (baseId: string, params: RequestParams = {}) =>
       this.request<Base, void>({
         path: `/api/v3/meta/bases/${baseId}`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1415,10 +1509,10 @@ export class InternalApi<
     ) =>
       this.request<Base, void>({
         path: `/api/v3/meta/bases/${baseId}`,
-        method: "PATCH",
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1433,7 +1527,7 @@ export class InternalApi<
     v3MetaBasesDelete: (baseId: string, params: RequestParams = {}) =>
       this.request<void, void>({
         path: `/api/v3/meta/bases/${baseId}`,
-        method: "DELETE",
+        method: 'DELETE',
         ...params,
       }),
 
@@ -1448,8 +1542,8 @@ export class InternalApi<
     v3MetaBasesTablesList: (baseId: string, params: RequestParams = {}) =>
       this.request<TableList, void>({
         path: `/api/v3/meta/bases/${baseId}/tables`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1468,10 +1562,10 @@ export class InternalApi<
     ) =>
       this.request<Table, void>({
         path: `/api/v3/meta/bases/${baseId}/tables`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1490,8 +1584,8 @@ export class InternalApi<
     ) =>
       this.request<Table, void>({
         path: `/api/v3/meta/bases/${baseId}/tables/${tableId}`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1511,10 +1605,10 @@ export class InternalApi<
     ) =>
       this.request<Table, void>({
         path: `/api/v3/meta/bases/${baseId}/tables/${tableId}`,
-        method: "PATCH",
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1533,7 +1627,7 @@ export class InternalApi<
     ) =>
       this.request<void, void>({
         path: `/api/v3/meta/bases/${baseId}/tables/${tableId}`,
-        method: "DELETE",
+        method: 'DELETE',
         ...params,
       }),
 
@@ -1557,8 +1651,8 @@ export class InternalApi<
         void
       >({
         path: `/api/v3/meta/bases/${baseId}/tables/${tableId}/views`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1578,10 +1672,10 @@ export class InternalApi<
     ) =>
       this.request<CreateField, void>({
         path: `/api/v3/meta/bases/${baseId}/tables/${tableId}/fields`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1600,8 +1694,8 @@ export class InternalApi<
     ) =>
       this.request<Field, void>({
         path: `/api/v3/meta/bases/${baseId}/fields/${fieldId}`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1621,10 +1715,10 @@ export class InternalApi<
     ) =>
       this.request<CreateField, void>({
         path: `/api/v3/meta/bases/${baseId}/fields/${fieldId}`,
-        method: "PATCH",
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1643,7 +1737,7 @@ export class InternalApi<
     ) =>
       this.request<void, void>({
         path: `/api/v3/meta/bases/${baseId}/fields/${fieldId}`,
-        method: "DELETE",
+        method: 'DELETE',
         ...params,
       }),
 
@@ -1662,8 +1756,8 @@ export class InternalApi<
     ) =>
       this.request<FilterListResponse, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/filters`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1683,10 +1777,10 @@ export class InternalApi<
     ) =>
       this.request<FilterCreateUpdate, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/filters`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1707,10 +1801,10 @@ export class InternalApi<
     ) =>
       this.request<FilterCreateUpdate, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/filters`,
-        method: "PATCH",
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1729,7 +1823,7 @@ export class InternalApi<
     ) =>
       this.request<void, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/filters`,
-        method: "DELETE",
+        method: 'DELETE',
         ...params,
       }),
 
@@ -1749,10 +1843,10 @@ export class InternalApi<
     ) =>
       this.request<FilterCreateUpdate, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/filters`,
-        method: "PUT",
+        method: 'PUT',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1771,8 +1865,8 @@ export class InternalApi<
     ) =>
       this.request<SortListResponse, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/sorts`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1792,10 +1886,10 @@ export class InternalApi<
     ) =>
       this.request<Sort, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/sorts`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1815,7 +1909,7 @@ export class InternalApi<
     ) =>
       this.request<void, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/sorts`,
-        method: "DELETE",
+        method: 'DELETE',
         ...params,
       }),
 
@@ -1836,10 +1930,10 @@ export class InternalApi<
     ) =>
       this.request<Sort, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}/sorts`,
-        method: "PATCH",
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1854,8 +1948,8 @@ export class InternalApi<
     v3MetaBasesUsersList: (baseId: string, params: RequestParams = {}) =>
       this.request<BaseUserList, void>({
         path: `/api/v3/meta/bases/${baseId}/users`,
-        method: "GET",
-        format: "json",
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -1874,10 +1968,10 @@ export class InternalApi<
     ) =>
       this.request<BaseUser[], void>({
         path: `/api/v3/meta/bases/${baseId}/users`,
-        method: "POST",
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1896,10 +1990,10 @@ export class InternalApi<
     ) =>
       this.request<BaseUser[], void>({
         path: `/api/v3/meta/bases/${baseId}/users`,
-        method: "PATCH",
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1926,10 +2020,10 @@ export class InternalApi<
         void
       >({
         path: `/api/v3/meta/bases/${baseId}/users`,
-        method: "DELETE",
+        method: 'DELETE',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -1939,30 +2033,36 @@ export class InternalApi<
      * @tags Table Records
      * @name DbDataTableRowList
      * @summary List Table Records
-     * @request GET:/api/v3/{baseId}/{tableId}
+     * @request GET:/api/v3/data/{baseId}/{tableId}/records
      */
     dbDataTableRowList: (
       baseId: string,
       tableId: string,
       query?: {
         /**
-         * Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.
+         * Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.
          *
-         * Example: `fields=field1,field2` will include only 'field1' and 'field2' in the API response.
-         *
-         * Please note that it's essential not to include spaces between field names in the comma-separated list. Alternatively, multiple `fields` query params can also works, ex: `?fields=field1&fields=field2`.
+         * Example: `fields=["field1","field2"]` or `fields=field1,field2` will include only 'field1' and 'field2' in the API response.
          */
-        fields?: string;
+        fields?: string[] | string;
         /**
-         * Allows you to specify the fields by which you want to sort the records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.
+         * Allows you to specify the fields by which you want to sort the records in your API response. Accepts either an array of sort objects or a single sort object.
          *
-         * Example: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.
+         * Each sort object must have a 'field' property specifying the field name and a 'direction' property with value 'asc' or 'desc'.
+         *
+         * Example: `sort=[{"direction":"asc","field":"field_name"},{"direction":"desc","field":"another_field"}]` or `sort={"direction":"asc","field":"field_name"}`
          *
          * If `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view.
-         *
-         * Please note that it's essential not to include spaces between field names in the comma-separated list.
          */
-        sort?: string;
+        sort?:
+          | {
+              direction: 'asc' | 'desc';
+              field: string;
+            }[]
+          | {
+              direction: 'asc' | 'desc';
+              field: string;
+            };
         /**
          * Enables you to define specific conditions for filtering records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.
          *
@@ -1992,10 +2092,10 @@ export class InternalApi<
         /**
          * Enables you to set a limit on the number of records you want to retrieve in your API response. By default, your response includes all the available records, but by using this parameter, you can control the quantity you receive.
          *
-         * Example: `limit=100` will constrain your response to the first 100 records in the dataset.
+         * Example: `pageSize=100` will constrain your response to the first 100 records in the dataset.
          * @min 1
          */
-        limit?: number;
+        pageSize?: number;
         /**
          * ***View Identifier***. Allows you to fetch records that are currently visible within a specific view. API retrieves records in the order they are displayed if the SORT option is enabled within that view.
          *
@@ -2008,21 +2108,16 @@ export class InternalApi<
       params: RequestParams = {},
     ) =>
       this.request<
-        {
-          /** List of data objects */
-          list: object[];
-          /** Paginated Info */
-          pageInfo: Paginated;
-        },
+        DataListResponseV3,
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}`,
-        method: "GET",
+        path: `/api/v3/data/${baseId}/${tableId}/records`,
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2032,84 +2127,84 @@ export class InternalApi<
      * @tags Table Records
      * @name DbDataTableRowCreate
      * @summary Create Table Records
-     * @request POST:/api/v3/{baseId}/{tableId}
+     * @request POST:/api/v3/data/{baseId}/{tableId}/records
      */
     dbDataTableRowCreate: (
       baseId: string,
       tableId: string,
-      data: object | object[],
+      data: DataInsertRequestV3 | DataInsertRequestV3[],
       params: RequestParams = {},
     ) =>
       this.request<
-        FieldOptions,
+        DataInsertResponseV3,
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}`,
-        method: "POST",
+        path: `/api/v3/data/${baseId}/${tableId}/records`,
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
     /**
-     * @description This API endpoint allows updating existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be updated are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. Certain read-only field types will be disregarded if included in the request. These field types include Look Up, Roll Up, Formula, Created By, Updated By, Created At, Updated At, Button, Barcode and QR Code. For **Link to another record** field type if specified, all the existing links will be removed & the one's specified in this payload will be inserted. For **Attachment** field types, this API cannot be used. Instead, utilize the storage APIs for managing attachments. Support for attachment fields in the record insert API will be added soon. Note that a PATCH request only updates the specified fields while leaving other fields unaffected. Currently, PUT requests are not supported by this endpoint.
+     * @description This API endpoint allows you to update records within a specified table by their Record ID. The request payload should contain the Record ID and the fields that need to be updated. Certain read-only field types will be disregarded if included in the request. These field types include Look Up, Roll Up, Formula, Created By, Updated By, Created At, Updated At, Button, Barcode and QR Code. For **Attachment** field types, this API cannot be used. Instead, utilize the storage APIs for managing attachments. Support for attachment fields in the record update API will be added soon.
      *
      * @tags Table Records
      * @name DbDataTableRowUpdate
      * @summary Update Table Records
-     * @request PATCH:/api/v3/{baseId}/{tableId}
+     * @request PATCH:/api/v3/data/{baseId}/{tableId}/records
      */
     dbDataTableRowUpdate: (
       baseId: string,
       tableId: string,
-      data: object | object[],
+      data: DataUpdateRequestV3 | DataUpdateRequestV3[],
       params: RequestParams = {},
     ) =>
       this.request<
-        FieldOptions,
+        DataUpdateResponseV3,
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}`,
-        method: "PATCH",
+        path: `/api/v3/data/${baseId}/${tableId}/records`,
+        method: 'PATCH',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
     /**
-     * @description This API endpoint allows deleting existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be deleted are input as an array of record-identifiers.
+     * @description This API endpoint allows the deletion of records within a specified table by Record ID. The request should include the Record ID of the record(s) to be deleted.
      *
      * @tags Table Records
      * @name DbDataTableRowDelete
      * @summary Delete Table Records
-     * @request DELETE:/api/v3/{baseId}/{tableId}
+     * @request DELETE:/api/v3/data/{baseId}/{tableId}/records
      */
     dbDataTableRowDelete: (
       baseId: string,
       tableId: string,
-      data: object | object[],
+      data: DataDeleteRequestV3 | DataDeleteRequestV3[],
       params: RequestParams = {},
     ) =>
       this.request<
-        FieldOptions,
+        DataDeleteResponseV3,
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}`,
-        method: "DELETE",
+        path: `/api/v3/data/${baseId}/${tableId}/records`,
+        method: 'DELETE',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2119,7 +2214,7 @@ export class InternalApi<
      * @tags Table Records
      * @name DbDataTableRowRead
      * @summary Read Table Record
-     * @request GET:/api/v3/{baseId}/{tableId}/{recordId}
+     * @request GET:/api/v3/data/{baseId}/{tableId}/records/{recordId}
      */
     dbDataTableRowRead: (
       baseId: string,
@@ -2127,27 +2222,25 @@ export class InternalApi<
       recordId: string,
       query?: {
         /**
-         * Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.
+         * Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.
          *
-         * Example: `fields=field1,field2` will include only 'field1' and 'field2' in the API response.
-         *
-         * Please note that it's essential not to include spaces between field names in the comma-separated list.
+         * Example: `fields=["field1","field2"]` or `fields=field1,field2` will include only 'field1' and 'field2' in the API response.
          */
-        fields?: string;
+        fields?: string[] | string;
       },
       params: RequestParams = {},
     ) =>
       this.request<
-        object,
+        DataReadResponseV3,
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}/${recordId}`,
-        method: "GET",
+        path: `/api/v3/data/${baseId}/${tableId}/records/${recordId}`,
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2157,7 +2250,7 @@ export class InternalApi<
      * @tags Table Records
      * @name DbDataTableRowCount
      * @summary Count Table Records
-     * @request GET:/api/v3/{baseId}/{tableId}/count
+     * @request GET:/api/v3/data/{baseId}/{tableId}/count
      */
     dbDataTableRowCount: (
       baseId: string,
@@ -2189,10 +2282,10 @@ export class InternalApi<
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}/count`,
-        method: "GET",
+        path: `/api/v3/data/${baseId}/${tableId}/count`,
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2202,7 +2295,7 @@ export class InternalApi<
      * @tags Linked Records
      * @name DbDataTableRowNestedList
      * @summary List Linked Records
-     * @request GET:/api/v3/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
+     * @request GET:/api/v3/data/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
      */
     dbDataTableRowNestedList: (
       tableId: string,
@@ -2213,19 +2306,27 @@ export class InternalApi<
         /**
          * Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.
          *
-         * Example: `fields=field1,field2` will include only 'field1' and 'field2' in the API response.
-         *
-         * Please note that it's essential not to include spaces between field names in the comma-separated list.
+         * Example: `fields=["field1","field2"]` or `fields=field1,field2` will include only 'field1' and 'field2' in the API response.
          */
-        fields?: string;
+        fields?: string[] | string;
         /**
-         * Allows you to specify the fields by which you want to sort linked records in your API response. By default, sorting is done in ascending order for the designated fields. To sort in descending order, add a '-' symbol before the field name.
+         * Allows you to specify the fields by which you want to sort the records in your API response. Accepts either an array of sort objects or a single sort object.
          *
-         * Example: `sort=field1,-field2` will sort the records first by 'field1' in ascending order and then by 'field2' in descending order.
+         * Each sort object must have a 'field' property specifying the field name and a 'direction' property with value 'asc' or 'desc'.
          *
-         * Please note that it's essential not to include spaces between field names in the comma-separated list.
+         * Example: `sort=[{"direction":"asc","field":"field_name"},{"direction":"desc","field":"another_field"}]` or `sort={"direction":"asc","field":"field_name"}`
+         *
+         * If `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view.
          */
-        sort?: string;
+        sort?:
+          | {
+              direction: 'asc' | 'desc';
+              field: string;
+            }[]
+          | {
+              direction: 'asc' | 'desc';
+              field: string;
+            };
         /**
          * Enables you to define specific conditions for filtering linked records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.
          *
@@ -2246,29 +2347,24 @@ export class InternalApi<
         /**
          * Enables you to set a limit on the number of linked records you want to retrieve in your API response. By default, your response includes all the available linked records, but by using this parameter, you can control the quantity you receive.
          *
-         * Example: `limit=100` will constrain your response to the first 100 linked records in the dataset.
+         * Example: `pageSize=100` will constrain your response to the first 100 linked records in the dataset.
          * @min 1
          */
-        limit?: number;
+        pageSize?: number;
       },
       params: RequestParams = {},
     ) =>
       this.request<
-        {
-          /** List of data objects */
-          list: object[];
-          /** Paginated Info */
-          pageInfo: Paginated;
-        },
+        DataListResponseV3,
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
-        method: "GET",
+        path: `/api/v3/data/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
+        method: 'GET',
         query: query,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2278,28 +2374,48 @@ export class InternalApi<
      * @tags Linked Records
      * @name DbDataTableRowNestedLink
      * @summary Link Records
-     * @request POST:/api/v3/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
+     * @request POST:/api/v3/data/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
      */
     dbDataTableRowNestedLink: (
       tableId: string,
       linkFieldId: string,
       recordId: string,
       baseId: string,
-      data: object | object[],
+      data:
+        | {
+            /**
+             * Unique identifier for the record
+             * @example "33"
+             */
+            id: string;
+          }
+        | {
+            /**
+             * Unique identifier for the record
+             * @example "22"
+             */
+            id: string;
+          }[],
       params: RequestParams = {},
     ) =>
       this.request<
-        FieldOptions,
+        {
+          /**
+           * Indicates whether the linking operation was successful
+           * @example true
+           */
+          success: boolean;
+        },
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
-        method: "POST",
+        path: `/api/v3/data/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
+        method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
 
@@ -2309,28 +2425,48 @@ export class InternalApi<
      * @tags Linked Records
      * @name DbDataTableRowNestedUnlink
      * @summary Unlink Records
-     * @request DELETE:/api/v3/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
+     * @request DELETE:/api/v3/data/{baseId}/{tableId}/links/{linkFieldId}/{recordId}
      */
     dbDataTableRowNestedUnlink: (
       tableId: string,
       linkFieldId: string,
       recordId: string,
       baseId: string,
-      data: object[],
+      data:
+        | {
+            /**
+             * Unique identifier for the record
+             * @example "33"
+             */
+            id: string;
+          }
+        | {
+            /**
+             * Unique identifier for the record
+             * @example "33"
+             */
+            id: string;
+          }[],
       params: RequestParams = {},
     ) =>
       this.request<
-        FieldOptions,
+        {
+          /**
+           * Indicates whether the unlink operation was successful
+           * @example true
+           */
+          success: boolean;
+        },
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;
         }
       >({
-        path: `/api/v3/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
-        method: "DELETE",
+        path: `/api/v3/data/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
+        method: 'DELETE',
         body: data,
         type: ContentType.Json,
-        format: "json",
+        format: 'json',
         ...params,
       }),
   };

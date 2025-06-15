@@ -27,7 +27,7 @@ describe('dataApiV3', () => {
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -52,32 +52,37 @@ describe('dataApiV3', () => {
 
       it('Delete: single', async function () {
         const rsp = await ncAxiosDelete({
-          url: `${urlPrefix}/${table.id}`,
-          body: [{ Id: 1 }],
+          url: `${urlPrefix}/${table.id}/records`,
+          body: { id: 1 },
         });
-        expect(rsp.body).to.deep.equal([{ Id: 1 }]);
+        expect(rsp.body).to.deep.equal({ records: [{ id: 1, deleted: true }] });
 
         // check that it's gone
         await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/1`,
+          url: `${urlPrefix}/${table.id}/records/1`,
           status: 404,
         });
       });
 
       it('Delete: bulk', async function () {
         const rsp = await ncAxiosDelete({
-          url: `${urlPrefix}/${table.id}`,
-          body: [{ Id: 1 }, { Id: 2 }],
+          url: `${urlPrefix}/${table.id}/records`,
+          body: [{ id: 1 }, { id: 2 }],
         });
-        expect(rsp.body).to.deep.equal([{ Id: 1 }, { Id: 2 }]);
+        expect(rsp.body).to.deep.equal({
+          records: [
+            { id: 1, deleted: true },
+            { id: 2, deleted: true },
+          ],
+        });
 
         // check that it's gone
         await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/1`,
+          url: `${urlPrefix}/${table.id}/records/1`,
           status: 404,
         });
         await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/2`,
+          url: `${urlPrefix}/${table.id}/records/2`,
           status: 404,
         });
       });
@@ -87,14 +92,14 @@ describe('dataApiV3', () => {
       it('Delete: invalid ID', async function () {
         // Invalid table ID
         await ncAxiosDelete({
-          url: `${urlPrefix}/123456789`,
-          body: { Id: 100 },
+          url: `${urlPrefix}/123456789/records`,
+          body: { id: 100 },
           status: 422,
         });
         // Invalid row ID
         await ncAxiosDelete({
-          url: `${urlPrefix}/${table.id}`,
-          body: { Id: '123456789' },
+          url: `${urlPrefix}/${table.id}/records`,
+          body: { id: '123456789' },
           status: 404,
         });
       });

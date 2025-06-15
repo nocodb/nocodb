@@ -15,6 +15,9 @@
     "url": "https://github.com/nocodb/nocodb/issues"
   },
   "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=18 <23"
+  },
   "devDependencies": {
     "husky": "^8.0.3",
     "lerna": "^8.2.2",

@@ -6319,6 +6319,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             UITypes.PhoneNumber,
             UITypes.Email,
             UITypes.JSON,
+            UITypes.Currency,
           ].includes(column.uidt as UITypes))
       ) {
         data[column.column_name] = (

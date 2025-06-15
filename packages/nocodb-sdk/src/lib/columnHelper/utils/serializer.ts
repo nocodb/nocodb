@@ -15,6 +15,7 @@ import UITypes from '~/lib/UITypes';
 import { SerializerOrParserFnProps } from '../column.interface';
 import { SelectTypeConversionError } from '~/lib/error';
 import { checkboxTypeMap } from '~/lib/columnHelper/utils/common';
+import { getGroupDecimalSymbolFromLocale } from '~/lib/currencyHelpers';
 
 /**
  * Remove outer quotes & unescape
@@ -149,10 +150,6 @@ export const serializeJsonValue = (value: any) => {
 export const serializeCurrencyValue = (value: any, col: ColumnType) => {
   return serializeDecimalValue(value, (value) => {
     const columnMeta = parseProp(col.meta);
-
-    let group = ',';
-    let decimal = '.';
-
     // Create a number formatter for the target locale (e.g., 'de-DE', 'en-US')
     const formatter = new Intl.NumberFormat(
       columnMeta?.currency_locale || 'en-US'
@@ -167,17 +164,9 @@ export const serializeCurrencyValue = (value: any, col: ColumnType) => {
       return value?.replace(/[^0-9.]/g, '')?.trim();
     }
 
-    // Use formatToParts to extract the characters used for grouping (thousands) and decimal
-    const parts = (formatter as any).formatToParts(12345.6) as Array<{
-      type: string;
-      value: string;
-    }>;
-
-    // Extract group separator (e.g., '.' in 'de-DE', ',' in 'en-US')
-    group = parts.find((p) => p.type === 'group')?.value || group;
-
-    // Extract decimal separator (e.g., ',' in 'de-DE', '.' in 'en-US')
-    decimal = parts.find((p) => p.type === 'decimal')?.value || decimal;
+    const { group, decimal } = getGroupDecimalSymbolFromLocale(
+      columnMeta?.currency_locale
+    );
 
     return value
       .replace(new RegExp('\\' + group, 'g'), '') // 1. Remove all group (thousands) separators

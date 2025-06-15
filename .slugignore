@@ -1,0 +1,4 @@
+tests
+tests/playwright
+**/.cache
+**/.chromium*

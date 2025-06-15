@@ -1,11 +1,6 @@
-import {
-  All,
-  Controller,
-  HttpCode,
-  NotFoundException,
-  Req,
-} from '@nestjs/common';
+import { All, Controller, HttpCode, Req } from '@nestjs/common';
 import { NcRequest } from 'nocodb-sdk';
+import { NcError } from 'src/helpers/catchError';
 
 const V1_PATH_PREFIX = '/api/v1/*';
 const V2_PATH_PREFIX = '/api/v2/*';
@@ -16,7 +11,7 @@ export class ApiVersionNotFoundController {
   @All([V1_PATH_PREFIX, V2_PATH_PREFIX])
   @HttpCode(404)
   async apiVersion1And2NotFound(@Req() req: NcRequest) {
-    throw new NotFoundException(`Cannot ${req.method} ${req.path}`);
+    NcError.notFound(`Cannot ${req.method} ${req.path}`);
   }
 
   @All(NOT_FOUND_PATH_PREFIX)

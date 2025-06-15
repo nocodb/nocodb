@@ -34,6 +34,7 @@
     ]
   },
   "scripts": {
+    "postinstall": "echo 'skip chromium'",
     "bootstrap": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-mail-templates --filter=nc-gui --filter=playwright install && pnpm run integrations:build && pnpm run registerIntegrations",
     "integrations:build": "cd ./packages/noco-integrations/ && pnpm i && pnpm run build",
     "start": "npx nocodb",

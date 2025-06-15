@@ -1,13 +1,13 @@
-# ─── Supprime Playwright & Chromium ──────────────────────────────────────────
+# Exclure Playwright & Chromium
 tests
 tests/**
-playwright
-playwright/**
 **/playwright*
 packages/**/playwright*
 node_modules/@playwright*
-# ─── Supprime caches, docs, assets lourds ───────────────────────────────────
-node_modules/.cache
+node_modules/playwright*
+node_modules/playwright-core*
+# Exclure caches, docs, git
+node_modules/.cache/**
 docs
 .git
 .github

@@ -79,12 +79,10 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <a-skeleton v-if="isLoading" />
   <div
-    v-else
     class="h-full"
     :class="{
-      'flex items-center justify-center': !hookLogs.length,
+      'flex items-center justify-center': !hookLogs.length && !isLoading,
     }"
   >
     <!--    <a-card class="!mb-[20px]" :body-style="{ padding: '10px' }">
@@ -107,10 +105,27 @@ onBeforeMount(async () => {
     </a-card> -->
 
     <template v-if="showLogs">
-      <a-empty v-if="!hookLogs.length" />
+      <a-empty v-if="!hookLogs.length && !isLoading" />
       <div v-else class="flex h-full">
         <div class="min-w-80 border-r-1 h-full">
+          <div
+            v-if="isLoading"
+            class="p-3 h-full flex flex-col gap-3 children:(border-b-1 border-nc-border-medium) overflow-auto nc-scrollbar-thin"
+          >
+            <a-skeleton
+              v-for="(_row, idx) of ncArrayFrom(7)"
+              :key="idx"
+              :loading="isLoading"
+              active
+              :avatar="{ size: 'small' }"
+              :paragraph="{
+                rows: 2,
+              }"
+              :title="false"
+            />
+          </div>
           <WebhookCallLogList
+            v-else
             v-model:activeItem="activeItem"
             :hook-logs="hookLogs"
             :log-pagination-data="logPaginationData"
@@ -119,7 +134,52 @@ onBeforeMount(async () => {
           />
         </div>
         <div class="flex-grow min-w-100">
-          <WebhookCallLogDetails :item="activeItem" />
+          <div v-if="isLoading" class="h-full p-3 overflow-auto nc-scrollbar-thin flex flex-col gap-6">
+            <a-skeleton
+              active
+              :paragraph="false"
+              class="!children:children:mt-0"
+              :title="{
+                width: '50%',
+              }"
+            />
+
+            <div class="flex gap-x-5">
+              <div class="min-w-80 flex-1">
+                <a-skeleton
+                  v-for="(_row, idx) of ncArrayFrom(3)"
+                  :key="idx"
+                  :loading="isLoading"
+                  active
+                  :paragraph="{
+                    rows: 1,
+                    width: '90%',
+                  }"
+                  :title="false"
+                  class="min-w-80"
+                />
+              </div>
+              <div class="min-w-80 flex-1">
+                <a-skeleton
+                  v-for="(_row, idx) of ncArrayFrom(2)"
+                  :key="idx"
+                  :loading="isLoading"
+                  active
+                  :paragraph="{
+                    rows: 1,
+                    width: '90%',
+                  }"
+                  :title="false"
+                  class="min-w-80"
+                />
+              </div>
+            </div>
+            <div class="flex-1 flex items-stretch gap-4">
+              <WebhookCallLogReqResDetailCardSkeleton title="Request" />
+              <WebhookCallLogReqResDetailCardSkeleton title="Response" />
+            </div>
+          </div>
+          <WebhookCallLogDetails v-else :item="activeItem" />
         </div>
       </div>
     </template>

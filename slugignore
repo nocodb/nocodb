@@ -1,0 +1,14 @@
+# ─── Supprime Playwright & Chromium ──────────────────────────────────────────
+tests
+tests/**
+playwright
+playwright/**
+**/playwright*
+packages/**/playwright*
+node_modules/@playwright*
+# ─── Supprime caches, docs, assets lourds ───────────────────────────────────
+node_modules/.cache
+docs
+.git
+.github
+.vscode

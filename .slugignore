@@ -1,4 +1,14 @@
+# Exclure Playwright & Chromium
 tests
-tests/playwright
-**/.cache
-**/.chromium*
+tests/**
+**/playwright*
+packages/**/playwright*
+node_modules/@playwright*
+node_modules/playwright*
+node_modules/playwright-core*
+# Exclure caches, docs, git
+node_modules/.cache/**
+docs
+.git
+.github
+.vscode

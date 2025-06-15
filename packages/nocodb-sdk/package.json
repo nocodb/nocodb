@@ -18,7 +18,7 @@
     "url": "https://github.com/nocodb/nocodb/issues"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18.20.8"
   },
   "license": "AGPL-3.0-or-later",
   "keywords": [],
@@ -39,7 +39,7 @@
     "preinstall": "npx only-allow pnpm"
   },
   "dependencies": {
-    "axios": "^1.9.0",
+    "axios": "^1.10.0",
     "chevrotain": "^10.5.0",
     "dayjs": "^1.11.13",
     "jsep": "^1.4.0",

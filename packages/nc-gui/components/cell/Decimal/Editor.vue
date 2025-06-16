@@ -32,7 +32,7 @@ const precision = computed(() => {
 
 onMounted(() => {
   if (canvasCellEventData?.keyboardKey && isSinglePrintableKey(canvasCellEventData?.keyboardKey)) {
-    vModel.value = Number(canvasCellEventData.keyboardKey)
+    // vModel.value = Number(canvasCellEventData.keyboardKey)
   }
   if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
     inputRef.value?.focus()

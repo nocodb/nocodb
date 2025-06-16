@@ -181,6 +181,12 @@ onMounted(() => {
     }
   }
 })
+
+watch(vModel, (next, prev) => {
+  if (inputRef?.value?.value !== (next?.toString() ?? next)) {
+    refreshVModel()
+  }
+})
 </script>
 
 <template>

@@ -156,6 +156,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER)
   })
 
+  const blockRowColoring = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_ROW_COLOUR)
+  })
+
   /** Helper functions */
   function getLimit(type: PlanLimitTypes, workspace?: NcWorkspace | null) {
     if (!isPaymentEnabled.value) return Infinity
@@ -687,6 +691,21 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseRowColoring = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockRowColoring.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseRowColoring'),
+      content: t('upgrade.upgradeToUseRowColoringSubtitle', {
+        plan: PlanTitles.TEAM,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_ROW_COLOUR,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     getLimit,
@@ -733,5 +752,7 @@ export const useEeConfig = createSharedComposable(() => {
     cloudFeatures,
     blockCurrentUserFilter,
     showUpgradeToUseCurrentUserFilter,
+    blockRowColoring,
+    showUpgradeToUseRowColoring,
   }
 })

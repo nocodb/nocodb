@@ -221,7 +221,7 @@ export function useCanvasTable({
   const { isFeatureEnabled } = useBetaFeatureToggle()
   const automationStore = useAutomationStore()
   const tooltipStore = useTooltipStore()
-  const { blockExternalSourceRecordVisibility } = useEeConfig()
+  const { blockExternalSourceRecordVisibility, blockRowColoring } = useEeConfig()
   const { isRowColouringEnabled } = useViewRowColorRender({
     meta: meta as Ref<TableType>,
     rows: computed(() => []),
@@ -235,7 +235,7 @@ export function useCanvasTable({
   const { basesUser } = storeToRefs(useBases())
 
   const rowMetaColumnWidth = computed<number>(() => {
-    return isRowColouringEnabled.value ? ROW_META_COLUMN_WIDTH + ROW_COLOR_BORDER_WIDTH + 4 : ROW_META_COLUMN_WIDTH
+    return !blockRowColoring.value ? ROW_META_COLUMN_WIDTH + ROW_COLOR_BORDER_WIDTH + 4 : ROW_META_COLUMN_WIDTH
   })
 
   const rowColouringBorderWidth = computed<number>(() => {

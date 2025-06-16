@@ -13,8 +13,9 @@ export function useViewRowColorRender(params: {
    */
   useCachedResult?: boolean
 }) {
-  const baseStore = useBase()
-  const { getBaseType } = baseStore
+  const { getBaseType } = useBase()
+
+  const { blockRowColoring } = useEeConfig()
 
   const { meta: activeTableMeta } = useSmartsheetStoreOrThrow()
 
@@ -29,11 +30,11 @@ export function useViewRowColorRender(params: {
   const { activeViewRowColorInfo } = storeToRefs(useViewsStore())
 
   const isRowColouringEnabled = computed(() => {
-    return activeViewRowColorInfo.value && !!activeViewRowColorInfo.value?.mode
+    return !blockRowColoring.value && activeViewRowColorInfo.value && !!activeViewRowColorInfo.value?.mode
   })
 
   const evaluateRowColor = (row: any) => {
-    if (!activeViewRowColorInfo.value) return null
+    if (blockRowColoring.value || !activeViewRowColorInfo.value) return null
 
     if (activeViewRowColorInfo.value.mode === ROW_COLORING_MODE.SELECT) {
       const selectRowColorInfo = activeViewRowColorInfo.value
@@ -171,6 +172,8 @@ export function useViewRowColorRender(params: {
     const result = {
       rowBgColor: null,
       rowLeftBorderColor: null,
+      rowHoverColor: null,
+      rowBorderColor: null,
     }
 
     if (!row) return result

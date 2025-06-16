@@ -34,6 +34,10 @@ const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
+const { isUIAllowed } = useRoles()
+
+const hasPermission = computed(() => isUIAllowed('rowColourUpdate'))
+
 const readOnlyFilter = computed(() => props.isLockedView || props.disabled)
 
 const wrapperDomRef = ref<HTMLElement>()
@@ -203,8 +207,18 @@ const updateColor = (index: number, field: string, value: string) => {
           </div>
         </template>
       </div>
-      <div v-if="!readOnlyFilter">
-        <NcButton type="text" size="small" class="hover:!text-brand-500 hover:!bg-transparent" @click="addColor">
+
+      <div v-if="hasPermission">
+        <NcButton
+          v-e="['c:row-color:add']"
+          type="text"
+          size="small"
+          :class="{
+            '!text-brand-500': !readOnlyFilter,
+          }"
+          :disabled="readOnlyFilter"
+          @click="addColor"
+        >
           <template #icon>
             <component :is="iconMap.plus" />
           </template>

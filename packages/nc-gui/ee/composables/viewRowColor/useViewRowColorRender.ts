@@ -137,7 +137,6 @@ export function useViewRowColorRender(params: {
 
     if (params.useCachedResult) {
       const cachedEvaluatedResult = getCachedEvaluatedResult(rowHash, row)
-
       return cachedEvaluatedResult?.rawColor ?? null
     } else {
       const evaluatedResult = evaluatedRowsColor.value[rowHash]
@@ -168,7 +167,7 @@ export function useViewRowColorRender(params: {
     return null
   }
 
-  const getRowMetaRowColorInfo = (row: any) => {
+  const evaluateRowMetaRowColorInfo = (row: any) => {
     const result = {
       rowBgColor: null,
       rowLeftBorderColor: null,
@@ -183,6 +182,43 @@ export function useViewRowColorRender(params: {
     if (!evaluatedResult) return result
 
     return {
+      is_set_as_background: evaluatedResult?.is_set_as_background,
+      rowBgColor: evaluatedResult?.is_set_as_background ? evaluatedResult?.color ?? null : null,
+      rowLeftBorderColor: evaluatedResult?.rawColor ?? null,
+      rowHoverColor: evaluatedResult?.hoverColor ?? null,
+      rowBorderColor: evaluatedResult?.is_set_as_background ? evaluatedResult?.borderColor ?? null : null,
+    }
+  }
+
+  const getEvaluatedRowMetaRowColorInfo = (row: any) => {
+    const result = {
+      rowBgColor: null,
+      rowLeftBorderColor: null,
+      rowHoverColor: null,
+      rowBorderColor: null,
+      is_set_as_background: false,
+    }
+
+    if (!row || (!params.useCachedResult && !evaluatedRowsColor.value)) return result
+
+    const rowHash = getRowHash(row)
+
+    if (params.useCachedResult) {
+      const cachedEvaluatedResult = getCachedEvaluatedResult(rowHash, row)
+
+      return {
+        is_set_as_background: cachedEvaluatedResult?.is_set_as_background ?? false,
+        rowBgColor: cachedEvaluatedResult?.is_set_as_background ? cachedEvaluatedResult?.color ?? null : null,
+        rowLeftBorderColor: cachedEvaluatedResult?.rawColor ?? null,
+        rowHoverColor: cachedEvaluatedResult?.hoverColor ?? null,
+        rowBorderColor: cachedEvaluatedResult?.is_set_as_background ? cachedEvaluatedResult?.borderColor ?? null : null,
+      }
+    }
+
+    const evaluatedResult = evaluatedRowsColor.value[rowHash]
+
+    return {
+      is_set_as_background: evaluatedResult?.is_set_as_background ?? false,
       rowBgColor: evaluatedResult?.is_set_as_background ? evaluatedResult?.color ?? null : null,
       rowLeftBorderColor: evaluatedResult?.rawColor ?? null,
       rowHoverColor: evaluatedResult?.hoverColor ?? null,
@@ -196,6 +232,7 @@ export function useViewRowColorRender(params: {
     getLeftBorderColor,
     getRowColor,
     isRowColouringEnabled,
-    getRowMetaRowColorInfo,
+    evaluateRowMetaRowColorInfo,
+    getEvaluatedRowMetaRowColorInfo,
   }
 }

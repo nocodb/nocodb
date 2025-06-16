@@ -29,10 +29,22 @@ export function useViewRowColorRender(_params: {
     return null
   }
 
-  const getRowMetaRowColorInfo = (_row: any) => {
+  const evaluateRowMetaRowColorInfo = (_row: any) => {
     return {
+      is_set_as_background: false,
       rowBgColor: null,
       rowLeftBorderColor: null,
+      rowHoverColor: null,
+      rowBorderColor: null,
+    }
+  }
+  const getEvaluatedRowMetaRowColorInfo = (_row: any) => {
+    return {
+      is_set_as_background: false,
+      rowBgColor: null,
+      rowLeftBorderColor: null,
+      rowHoverColor: null,
+      rowBorderColor: null,
     }
   }
 
@@ -42,6 +54,7 @@ export function useViewRowColorRender(_params: {
     getLeftBorderColor,
     getRowColor,
     isRowColouringEnabled,
-    getRowMetaRowColorInfo,
+    evaluateRowMetaRowColorInfo,
+    getEvaluatedRowMetaRowColorInfo,
   }
 }

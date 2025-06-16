@@ -222,7 +222,7 @@ export class Datav3Controller {
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
     @Param('rowId') rowId: string,
-  ): Promise<{ record: DataRecord }> {
+  ): Promise<DataRecord> {
     return await this.dataV3Service.dataRead(context, {
       modelId,
       rowId: rowId,

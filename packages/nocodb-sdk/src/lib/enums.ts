@@ -203,6 +203,11 @@ export enum AppEvents {
   DATA_EXPORT = 'data.export',
   DATA_IMPORT = 'data.import',
   USER_PROFILE_UPDATE = 'user.profile.update',
+
+  SCRIPT_CREATE = 'script.create',
+  SCRIPT_DELETE = 'script.delete',
+  SCRIPT_UPDATE = 'script.update',
+  SCRIPT_DUPLICATE = 'script.duplicate',
 }
 
 export enum ClickhouseTables {

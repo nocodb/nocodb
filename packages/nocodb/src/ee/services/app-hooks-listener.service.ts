@@ -30,6 +30,10 @@ import type {
   ModelRoleVisibilityPayload,
   NcContext,
   NcRequest,
+  ScriptCreatePayload,
+  ScriptDeletePayload,
+  ScriptDuplicatePayload,
+  ScriptUpdatePayload,
   SharedBasePayload,
   SharedViewCreatePayload,
   SharedViewDeletePayload,
@@ -103,6 +107,10 @@ import type {
   ProjectInviteEvent,
   ProjectUpdateEvent,
   ProjectUserResendInviteEvent,
+  ScriptCreateEvent,
+  ScriptDeleteEvent,
+  ScriptDuplicateEvent,
+  ScriptUpdateEvent,
   SharedBaseEvent,
   SharedViewUpdateEvent,
   SnapshotDeleteEvent,
@@ -2991,6 +2999,95 @@ export class AppHooksListenerService
           );
         }
         break;
+      case AppEvents.SCRIPT_CREATE: {
+        const param = data as ScriptCreateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<ScriptCreatePayload>(
+            AuditV1OperationTypes.SCRIPT_CREATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                script_title: param.script.title,
+                script_id: param.script.id,
+                script_content: param.script.script,
+                script_description: param.script.description,
+                script_config: param.script.config
+                  ? JSON.stringify(param.script.config)
+                  : undefined,
+              },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.SCRIPT_UPDATE: {
+        const param = data as ScriptUpdateEvent;
+
+        const updatePayload = populateUpdatePayloadDiff({
+          prev: param.oldScript,
+          next: param.script,
+          parseMeta: true,
+          aliasMap: {
+            title: 'script_title',
+            script: 'script_content',
+            config: 'script_config',
+          },
+        });
+        if (!updatePayload) break;
+
+        await this.auditInsert(
+          await generateAuditV1Payload<ScriptUpdatePayload>(
+            AuditV1OperationTypes.SCRIPT_UPDATE,
+            {
+              details: {
+                script_title: param.script.title,
+                script_id: param.script.id,
+                ...updatePayload,
+              },
+              context: param.context,
+              req: param.req,
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.SCRIPT_DELETE: {
+        const param = data as ScriptDeleteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<ScriptDeletePayload>(
+            AuditV1OperationTypes.SCRIPT_DELETE,
+            {
+              details: {
+                script_title: param.script.title,
+                script_id: param.script.id,
+              },
+              context: param.context,
+              req: param.req,
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.SCRIPT_DUPLICATE: {
+        const param = data as ScriptDuplicateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<ScriptDuplicatePayload>(
+            AuditV1OperationTypes.SCRIPT_DUPLICATE,
+            {
+              details: {
+                source_script_title: param.sourceScript.title,
+                source_script_id: param.sourceScript.id,
+                duplicated_script_title: param.destScript.title,
+                duplicated_script_id: param.destScript.id,
+              },
+              context: param.context,
+              req: param.req,
+            },
+          ),
+        );
+        break;
+      }
       default:
         {
           // if not handled, pass to parent

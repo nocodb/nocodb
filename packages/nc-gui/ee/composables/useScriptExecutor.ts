@@ -371,7 +371,16 @@ export const useScriptExecutor = createSharedComposable(() => {
           const minCode = await transform(workerCode)
 
           if (minCode.error || !minCode.code) {
-            throw new Error(minCode.error)
+            activeExecutions.value.set(scriptId, {
+              ...activeExecutions.value.get(scriptId)!,
+              status: 'error',
+              playground: [
+                ...activeExecutions.value.get(scriptId)!.playground,
+                { type: 'text', content: minCode.error, style: 'log' },
+              ],
+              error: minCode.error,
+            })
+            return
           }
 
           await new Promise<void>((resolve, reject) => {

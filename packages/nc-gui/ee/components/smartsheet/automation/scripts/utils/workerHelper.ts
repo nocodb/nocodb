@@ -560,33 +560,37 @@ Object.freeze(UITypes);
         const url = new URL(this.#nextToken);
         const page = parseInt(url.searchParams.get('page') || '1');
         
-        response = await api.dbDataTableRowNestedList(
-          this.#table.id,
-          this.#linkFieldId,
-          this.#parentRecordId,
-          this.#table.base.id,
-          {
-            ...this.#options,
-            page,
-          }
-        );
+        try {
+          response = await api.dbDataTableRowNestedList(
+            this.#table.id,
+            this.#linkFieldId,
+            this.#parentRecordId,
+            this.#table.base.id,
+            {
+              ...this.#options,
+              page,
+            }
+          );
+        } catch (e) {
+          throw new Error(e);
+        }
       } else {
         // For regular table queries
         const url = new URL(this.#nextToken);
         const page = parseInt(url.searchParams.get('page') || '1');
-      
-        response = await api.dbDataTableRowList(
-          this.#table.base.id,
-          this.#table.id,
-          {
-            ...this.#options,
-            page,
-            ...(this.#view ? { viewId: this.#view.id } : {})
-          }
-        );
         
-        if (response?.error) {
-          throw new Error(response?.error);
+        try {
+          response = await api.dbDataTableRowList(
+            this.#table.base.id,
+            this.#table.id,
+            {
+              ...this.#options,
+              page,
+              ...(this.#view ? { viewId: this.#view.id } : {})
+            }
+          );
+        } catch (e) {
+          throw new Error(e);
         }
       }
       
@@ -660,22 +664,27 @@ Object.freeze(UITypes);
       // Calculate next page based on current record count
       const currentPage = Math.floor(this.records.length / 1000) + 1;
       
-      const response = await api.dbDataTableRowNestedList(
-        this.#parentTable.id,
-        this.#linkField.id,
-        this.#parentRecordId,
-        this.#parentTable.base.id,
-        {
-          page: currentPage,
-          pageSize: 1000
-        }
-      );
+      let response;
+      
+      try {
+        response = await api.dbDataTableRowNestedList(
+          this.#parentTable.id,
+          this.#linkField.id,
+          this.#parentRecordId,
+          this.#parentTable.base.id,
+          {
+            page: currentPage,
+            pageSize: 1000
+          }
+        );
+      } catch (e) {
+        throw new Error(e);
+      }
       
       if (!response.records || response.records.length === 0) {
         this.#isFullyLoaded = true;
         return this;
       }
-      
       // Append new records
       this._appendRecords(response.records);
       
@@ -943,19 +952,31 @@ Object.freeze(UITypes);
     }
     
     async updateOptionsAsync(options) {
-      await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, { id: this.id, type: this.type, title: this.name, options: options });
+      try {
+        await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, { id: this.id, type: this.type, title: this.name, options: options });
+        return this
+      } catch (e) {
+        throw new Error(\`Failed to update field options: \${e.message}\`);
+      }
     }
     
     async updateDescriptionAsync(description) {
-      this.description = description;
+    try {
       await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, {  id: this.id, type: this.type, title: this.name, description });
+      this.description = description;
       return this;
-    }
+    } catch (e) {
+      throw new Error(\`Failed to update field description: \${e.message}\`);
+    }  
     
     async updateNameAsync(name) {
-      this.name = name;
-      await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, {  id: this.id, type: this.type, title: this.name });
-      return this
+      try {
+        await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, {  id: this.id, type: this.type, title: name });
+        this.name = name;
+        return this;
+      } catch (e) {
+        throw new Error(\`Failed to update field name: \${e.message}\`);
+      }
     }
   }
   
@@ -991,16 +1012,17 @@ Object.freeze(UITypes);
       
       const fieldsToSelect = Array.from(new Set([..._fieldsToSelect, ...pvAndPk]))
       
-      const data = await api.dbDataTableRowRead(this.#table.base.id, this.#table.id, recordId, {
-        viewId: this.id,
-        ...(fields?.length && { fields: fieldsToSelect })
-      })
       
-      if(!data || data?.error) {
-        throw new Error(\`Record \${recordId} not found in view \${this.name}\`)
-      }
-
-      return new NocoDBRecord(data, this.#table);    
+      try {
+        const data = await api.dbDataTableRowRead(this.#table.base.id, this.#table.id, recordId, {
+          viewId: this.id,
+          ...(fields?.length && { fields: fieldsToSelect })
+        })
+        
+        return new NocoDBRecord(data, this.#table);
+      } catch (e: any) {
+        return null
+      }   
     }
     
     async selectRecordsAsync(options = {}) {
@@ -1042,9 +1064,13 @@ Object.freeze(UITypes);
         ...(fieldsToSelect && { fields: fieldsToSelect }),
         ...(sortArray.length && { sort: sortArray }),
       };
-      const data = await api.dbDataTableRowList(this.#table.base.id, this.#table.id, requestOptions)
-      
-      return new RecordQueryResult(data, this.#table, this, requestOptions);
+      try {
+        const data = await api.dbDataTableRowList(this.#table.base.id, this.#table.id, requestOptions)
+        
+        return new RecordQueryResult(data, this.#table, this, requestOptions);
+      } catch (e: any) {
+        return null
+      }       
     }
   }
   
@@ -1087,16 +1113,15 @@ Object.freeze(UITypes);
       
       field.title = field.name
       delete field.name
-      const data = await api.v3MetaBasesTablesFieldsCreate(this.id, this.#base.id, field);
-      
-      if(!data || data.msg || data.error) {
-       throw new Error(\`Failed to create field \${field.title} in table \${this.name}\`)
+      try {
+        const data = await api.v3MetaBasesTablesFieldsCreate(this.id, this.#base.id, field);
+        const newField = new Field({id: data.id, name: data.title, type: data.type, description: data.description, options: data.options, primary_key: false, primary_value: false, is_system_field: false}, this);
+        this.#all_fields.push(newField);
+        this.fields = this.#all_fields.filter(f => !f.is_system_field);
+        return newField;
+      } catch (e: any) {
+        throw new Error(\`Failed to create field \${field.title} in table \${this.name}\`)
       }
-      
-      const newField = new Field({id: data.id, name: data.title, type: data.type, description: data.description, options: data.options, primary_key: false, primary_value: false, is_system_field: false}, this);
-      this.#all_fields.push(newField);
-      this.fields = this.#all_fields.filter(f => !f.is_system_field);
-      return newField;
     }
     
     async selectRecordAsync(recordId, options = {}) {
@@ -1116,16 +1141,20 @@ Object.freeze(UITypes);
       }).filter(Boolean);
       
       const fieldsToSelect = Array.from(new Set([..._fieldsToSelect, ...pvAndPk]))
- 
-      const data = await api.dbDataTableRowRead(this.base.id, this.id, recordId, {
-        ...(fields?.length && { fields: fieldsToSelect })
-      })
-            
-      if(!data || data?.error) {
-        throw new Error(\`Record \${recordId} not found in table \${this.name}\`)
+      
+      if (!recordId) {
+        throw new Error('Record ID is required')
       }
       
-      return new NocoDBRecord(data, this);    
+      try {
+        const data = await api.dbDataTableRowRead(this.base.id, this.id, recordId, {
+          ...(fields?.length && { fields: fieldsToSelect })
+        })
+        
+        return new NocoDBRecord(data, this);
+      } catch (e: any) {
+        throw new Error(\`Failed to read record \${recordId} in table \${this.name}\`)
+      }
     }
     
     async selectRecordsAsync(options = {}) {
@@ -1164,15 +1193,15 @@ Object.freeze(UITypes);
         pageSize,
         ...(fieldsToSelect && { fields: fieldsToSelect }),
         ...(sortArray.length && { sort: sortArray }),
-  };
+      };
       
-      const data = await api.dbDataTableRowList(this.#base.id, this.id, requestOptions)
-      
-      if (data?.error) {
-        throw new Error(data?.error);
+      try {
+        const data = await api.dbDataTableRowList(this.#base.id, this.id, requestOptions)
+        
+        return new RecordQueryResult(data, this, null, requestOptions);
+      } catch (e: any) {
+        throw new Error(\`Failed to read records in table \${this.name}\`)
       }
-     
-      return new RecordQueryResult(data, this, null, requestOptions);
     }
     
     async createRecordAsync(data) {
@@ -1185,8 +1214,12 @@ Object.freeze(UITypes);
         }
       }
       
-      const response = await api.dbDataTableRowCreate(this.base.id, this.id, { fields: recordData });   
-      return new NocoDBRecord(response?.records?.[0], this).id;
+      try {
+        const data = await api.dbDataTableRowCreate(this.base.id, this.id, { fields: recordData });
+        return new NocoDBRecord(data?.records?.[0], this).id;
+      } catch (e: any) {
+        throw new Error(\`Failed to create record in table \${this.name}\`)
+      }
     }
     
     async createRecordsAsync(data) {
@@ -1215,13 +1248,13 @@ Object.freeze(UITypes);
         }
         insertObjs.push({ fields: recordData });
       }
-      const response = await api.dbDataTableRowCreate(this.base.id, this.id, insertObjs);
       
-      if (response?.error) {
-        throw new Error(response?.error);
+      try {
+        const response = await api.dbDataTableRowCreate(this.base.id, this.id, insertObjs);
+        return (response.records || []).map(r => new NocoDBRecord(r, this).id);
+      } catch (e: any) {
+        throw new Error(\`Failed to create records in table \${this.name}\`)
       }
-      
-      return (response.records || []).map(r => new NocoDBRecord(r, this).id);
     }
     
     async updateRecordAsync(recordId, data) { 
@@ -1233,12 +1266,28 @@ Object.freeze(UITypes);
         } else if (data[field.id]) {
           recordData[field.name] = data[field.id];
         }
-      }     
-      await api.dbDataTableRowUpdate(this.base.id, this.id, { fields: recordData, id: recordID });
+      }
+      try {
+        await api.dbDataTableRowUpdate(this.base.id, this.id, { fields: recordData, id: recordID });
+      } catch (e: any) {
+        throw new Error(\`Failed to update record \${recordId} in table \${this.name}\`)
+      }
     }
     
     async updateRecordsAsync(records) {
       const updateObjs = []
+      
+      if (!Array.isArray(records)) {
+        throw new Error('Data must be an array');
+      }
+      
+      if (records.length === 0) {
+        throw new Error('Data must not be empty');
+      }
+      
+      if (records.length > 10) {
+        throw new Error('Data must not be greater than 10');
+      }
       
       for (const record of records) {
         const recordID = (record.id instanceof NocoDBRecord) ? record.id.id : record.id;
@@ -1254,15 +1303,24 @@ Object.freeze(UITypes);
         }
         updateObjs.push({ fields: recordData, id: recordID });
       }
-
-      await api.dbDataTableRowUpdate(this.base.id, this.id, updateObjs); 
+      try {
+        await api.dbDataTableRowUpdate(this.base.id, this.id, updateObjs);
+      } catch (e: any) {
+        throw new Error(\`Failed to update records in table \${this.name}\`)
+      }
     }
     
     async deleteRecordAsync(recordIdOrRecord) {
       const recordID = (recordIdOrRecord instanceof NocoDBRecord) ? recordIdOrRecord.id: recordIdOrRecord
-      await api.dbDataTableRowDelete(this.base.id, this.id, { id: recordID });
-      
-      return true
+      if (!recordID) {
+        throw new Error('Record ID is required');
+      }
+      try {
+        await api.dbDataTableRowDelete(this.base.id, this.id, { id: recordID });
+        return true
+      } catch (e: any) {
+        throw new Error(\`Failed to delete record \${recordID} in table \${this.name}\`)
+      }
     }
     
     async deleteRecordsAsync(recordIds) {
@@ -1270,8 +1328,20 @@ Object.freeze(UITypes);
       for (const recordId of recordIds) {
         deleteObjs.push({ id: recordId });
       }
-      await api.dbDataTableRowDelete(this.base.id, this.id, deleteObjs);
-      return true
+      if (deleteObjs.length === 0) {
+        throw new Error('Record IDs are required');
+      }
+      
+      if (deleteObjs.length > 10) {
+        throw new Error('You can only delete up to 10 records at a time');
+      }
+      
+      try {
+        await api.dbDataTableRowDelete(this.base.id, this.id, deleteObjs);
+        return true
+      } catch (e: any) {
+        throw new Error(\`Failed to delete records in table \${this.name}\`)
+      }
     }
   }
   
@@ -1308,18 +1378,24 @@ Object.freeze(UITypes);
          return f
       })
       
-      const res = await api.v3MetaBasesTablesCreate(this.id, {
-        title: name,
-        fields: fields
-      })
+      if(!name) {
+        throw new Error('Table name is required');
+      }
       
-      if(!res) return null;
-      
-      const newT = new Table({id: res.id, name: res.title, description: res.description, views: res.views, fields: res.fields }, this);
-      
-      this.tables.push(newT);
-      
-      return newT
+      try {
+        const res = await api.v3MetaBasesTablesCreate(this.id, {
+          title: name,
+          fields: fields
+        })
+        
+        const newT = new Table({id: res.id, name: res.title, description: res.description, views: res.views, fields: res.fields }, this);
+        
+        this.tables.push(newT);
+        
+        return newT
+      } catch (e: any) {
+        throw new Error(\`Failed to create table \${name}\`)
+      }
     }
   }
   `
@@ -1373,41 +1449,24 @@ const api = new Proxy({}, {
               
               const response = responseMessage.payload.payload;
               
-              // Enhanced error handling
-              if (response && typeof response === 'object') {
-                // Check for error property in response
-                if (response.error) {
-                  // Try to parse stringified error objects
-                  if (typeof response.error === 'string') {
-                    try {
-                      response.error = JSON.parse(response.error);
-                    } catch (e) {
-                      // Keep as string if not valid JSON
-                    }
-                  }
-                  
-                  // Check for common error indicators
-                  if (response.error.name === 'AxiosError' || 
-                      response.error.isAxiosError || 
-                      response.error.status >= 400) {
-                    reject(new Error(response.error.message || 'API request failed'));
-                    return;
-                  }
-                }
+              // Error handling
+              if (response && typeof response === 'object' && response.error) {
+                const error = response.error;
                 
-                // Check for HTTP error status codes directly on response
-                if (response.status >= 400) {
-                  reject(new Error(\`HTTP Error: \${response.status} - \${response.statusText || 'Unknown error'}\`));
-                  return;
-                }
+                const apiError = new Error(error.message || 'API request failed');
+                apiError.name = error.name || 'APIError';
                 
-                // Check for NocoDB specific error patterns
-                if (response.msg && response.msg.includes('Error')) {
-                  reject(new Error(response.msg));
-                  return;
-                }
+                if (error.method) (apiError as any).method = error.method;
+                if (error.status) (apiError as any).status = error.status;
+                if (error.statusText) (apiError as any).statusText = error.statusText;
+                if (error.code) (apiError as any).code = error.code;
+                if (error.responseStatus) (apiError as any).responseStatus = error.responseStatus;
+                if (error.responseData) (apiError as any).responseData = error.responseData;
+                if (error.stack) apiError.stack = error.stack;
+                
+                reject(apiError);
+                return;
               }
-              
               // Success case
               resolve(response);
             }

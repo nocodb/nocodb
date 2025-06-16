@@ -135,10 +135,28 @@ export const useScriptExecutor = createSharedComposable(() => {
         payload: { id, payload: response },
       })
     } catch (error: any) {
-      console.error(`Error in API call: ${error}`)
+      console.error(`Error in API call [${method}]:`, error)
+
+      // Create structured error response
+      const errorResponse = {
+        error: {
+          message: error.message || 'Unknown API error',
+          name: error.name || 'Error',
+          method,
+          args: args?.length || 0,
+          ...(error.status && { status: error.status }),
+          ...(error.statusText && { statusText: error.statusText }),
+          ...(error.code && { code: error.code }),
+          ...(error.response && {
+            responseStatus: error.response.status,
+            responseData: error.response.data,
+          }),
+        },
+      }
+
       worker.postMessage({
         type: ActionType.RESPONSE,
-        payload: { id, payload: { error: error instanceof Error ? error.message : JSON.stringify(error) } },
+        payload: { id, payload: errorResponse },
       })
     }
   }

@@ -2361,12 +2361,15 @@ declare interface ConfigItem {}
     return Boolean(field.system)
   }
 
-  private getFieldValueType(field: { type: string; options: any }): string {
+  private getFieldValueType(field: { type: string; options: any }, insertOrUpdate?: boolean): string {
     switch (field.type) {
       case UITypes.ID:
         return 'number'
 
       case UITypes.LinkToAnotherRecord: {
+        if (insertOrUpdate) {
+          return `Array<{id: string}>`
+        }
         const targetTable = this.tables.find((t: any) => t.id === field.options.related_table_id)
         if (!targetTable) {
           return 'NocoDBRecord | RecordQueryResult'
@@ -2413,6 +2416,9 @@ declare interface ConfigItem {}
       case UITypes.Duration:
       case UITypes.Rating:
       case UITypes.Links:
+        if (insertOrUpdate) {
+          return `Array<{id: string}>`
+        }
         return 'number'
 
       case UITypes.Checkbox:
@@ -3003,13 +3009,13 @@ declare interface ConfigItem {}
     },
   ): Promise<${this.pascalCase(tableName, 'table')}Table_Record | null>`)
 
-    const generateFieldKeysType = (fields: any[]) => {
+    const generateFieldKeysType = (fields: any[], insertOrUpdate?: boolean) => {
       const fieldKeys = fields
         .filter((f) => !f.system)
         .map(
           (field) =>
-            `['${field.name}']?: ${this.getFieldValueType(field)}
-      ${field.id}?: ${this.getFieldValueType(field)}`,
+            `['${field.name}']?: ${this.getFieldValueType(field, insertOrUpdate)}
+      ${field.id}?: ${this.getFieldValueType(field, insertOrUpdate)}`,
         )
         .join('\n      ')
 
@@ -3026,7 +3032,7 @@ declare interface ConfigItem {}
       '@param data - Record data with field values',
       '@returns ID of created record',
     ])
-    this.write(`createRecordAsync(data: ${generateFieldKeysType(table.fields)}): Promise<string>`)
+    this.write(`createRecordAsync(data: ${generateFieldKeysType(table.fields, true)}): Promise<string>`)
 
     this.formatJSDoc([
       'Creates multiple records with the specified field values.',
@@ -3036,7 +3042,7 @@ declare interface ConfigItem {}
       '@param data - Array of record data',
       '@returns Array of created record IDs',
     ])
-    this.write(`createRecordsAsync(data: Array<${generateFieldKeysType(table.fields)}>): Promise<string[]>`)
+    this.write(`createRecordsAsync(data: Array<${generateFieldKeysType(table.fields, true)}>): Promise<string[]>`)
 
     this.formatJSDoc([
       'Updates cell values for a record.',
@@ -3051,7 +3057,7 @@ declare interface ConfigItem {}
       `updateRecordAsync(recordOrRecordId:  ${this.pascalCase(
         tableName,
         'table',
-      )}Table_Record | any, data: ${generateFieldKeysType(table.fields)}): Promise<void>`,
+      )}Table_Record | any, data: ${generateFieldKeysType(table.fields, true)}): Promise<void>`,
     )
 
     this.formatJSDoc([
@@ -3062,7 +3068,9 @@ declare interface ConfigItem {}
       '@param data - Array of record updates',
     ])
 
-    this.write(`updateRecordsAsync(data: Array<{id: string, fields: ${generateFieldKeysType(table.fields)}}>): Promise<void>`)
+    this.write(
+      `updateRecordsAsync(data: Array<{id: string, fields: ${generateFieldKeysType(table.fields, true)}}>): Promise<void>`,
+    )
 
     this.formatJSDoc([
       'Delete a record from the table.',

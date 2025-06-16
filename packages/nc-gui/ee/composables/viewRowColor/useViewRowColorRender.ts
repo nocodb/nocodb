@@ -46,6 +46,7 @@ export function useViewRowColorRender(params: {
       const rawColor: string | null | undefined = selectRowColorInfo.options.find((k) => k.title === value)?.color
       const color = rawColor ? getLighterTint(rawColor) : null
       const hoverColor = rawColor ? getLighterTint(rawColor, { brightnessMod: -3 }) : null
+      const borderColor = rawColor ? getLighterTint(rawColor, { brightnessMod: -10 }) : null
 
       return color
         ? {
@@ -53,6 +54,7 @@ export function useViewRowColorRender(params: {
             color,
             hoverColor,
             rawColor,
+            borderColor,
           }
         : null
     }
@@ -78,11 +80,14 @@ export function useViewRowColorRender(params: {
 
           const hoverColor = getLighterTint(eachCondition.color, { brightnessMod: -3 })
 
+          const borderColor = getLighterTint(eachCondition.color, { brightnessMod: -10 })
+
           return {
             is_set_as_background: eachCondition.is_set_as_background,
             color,
             hoverColor,
             rawColor: eachCondition.color,
+            borderColor,
           }
         }
       }
@@ -177,6 +182,8 @@ export function useViewRowColorRender(params: {
     return {
       rowBgColor: evaluatedResult?.is_set_as_background ? evaluatedResult?.color ?? null : null,
       rowLeftBorderColor: evaluatedResult?.rawColor ?? null,
+      rowHoverColor: evaluatedResult?.hoverColor ?? null,
+      rowBorderColor: evaluatedResult?.is_set_as_background ? evaluatedResult?.borderColor ?? null : null,
     }
   }
 

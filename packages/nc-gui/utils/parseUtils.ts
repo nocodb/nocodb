@@ -11,6 +11,8 @@ export const extractRowBackgroundColorStyle = (row: Row) => {
   if (row.rowMeta?.rowBgColor) {
     result.rowBgColor = {
       backgroundColor: row.rowMeta?.rowBgColor,
+
+      ...(row.rowMeta?.rowBorderColor ? { borderColor: row.rowMeta?.rowBorderColor } : {}),
     }
   }
 

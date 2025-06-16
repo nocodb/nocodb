@@ -87,13 +87,11 @@ useProvideSmartsheetRowStore(row)
         </template>
 
         <div class="flex-1 flex flex-col gap-1 justify-center overflow-hidden">
-          <div class="flex justify-start">
-            <LazySmartsheetPlainCell
-              :model-value="row.row[displayField.title]"
-              :column="displayField"
-              class="font-semibold text-brand-500 nc-display-value leading-[20px]"
-            />
-          </div>
+          <SmartsheetPlainCell
+            :model-value="row.row[displayField.title]"
+            :column="displayField"
+            class="font-semibold text-brand-500 nc-display-value leading-[20px]"
+          />
 
           <div v-if="limitedFields.length > 0" class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5">
             <div v-for="field in limitedFields" :key="field.id" class="sm:(w-1/3 max-w-1/3 overflow-hidden)">

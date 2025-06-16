@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   isLinksOrLTAR,
   ncIsNumber,
+  NcRequest,
   RelationTypes,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -301,7 +302,7 @@ export class DataTableService {
     return { count };
   }
 
-  protected async getModelAndView(
+  async getModelAndView(
     context: NcContext,
     param: {
       baseId?: string;

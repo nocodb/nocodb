@@ -5,12 +5,13 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import request from 'supertest';
+import { expect } from 'chai';
 import Model from '../../../src/models/Model';
 import NcConnectionMgrv2 from '../../../src/utils/common/NcConnectionMgrv2';
 import type { ColumnType, NcApiVersion } from 'nocodb-sdk';
 import type Column from '../../../src/models/Column';
 import type Filter from '../../../src/models/Filter';
-import type { Base, View, Sort } from '../../../src/models';
+import type { Base, Sort, View } from '../../../src/models';
 
 const rowValue = (column: ColumnType, index: number) => {
   switch (column.uidt) {
@@ -240,7 +241,7 @@ const rowMixedValue = (
       return val ? (val as string).split(',') : val;
     }
   }
-  if (column.uidt === UITypes.Duration) {
+  if (column.uidt === UITypes.Duration && !isV3) {
     return val ? convertMS2Duration(val, 0) : val;
   }
   return val;
@@ -416,11 +417,25 @@ const createBulkRowsV3 = async (
     values: any[];
   },
 ) => {
-  const res = await request(context.app)
-    .post(`/api/v3/${base.id}/${table.id}`)
-    .set('xc-auth', context.token)
-    .send(values)
-    .expect(200);
+  // Transform values to v3 format with fields wrapper
+  const v3Values = values.map((value) => ({ fields: value }));
+
+  // V3 API has a limit of 10 records per insert, so chunk the data
+  const chunkSize = 10;
+  const chunks: Array<Array<{ fields: any }>> = [];
+  for (let i = 0; i < v3Values.length; i += chunkSize) {
+    chunks.push(v3Values.slice(i, i + chunkSize));
+  }
+
+  // Insert chunks sequentially
+  for (const chunk of chunks) {
+    const res = await request(context.app)
+      .post(`/api/v3/data/${base.id}/${table.id}/records`)
+      .set('xc-auth', context.token)
+      .send(chunk);
+    
+    expect(res.status).to.equal(200);
+  }
 };
 
 // Links 2 table rows together. Will create rows if ids are not provided

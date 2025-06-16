@@ -301,7 +301,10 @@ const getAst = async (
         (!fields?.length || isInFields) &&
         value;
     } else if (fields?.length) {
-      isRequested = isInFields && value;
+      // For APIv3, always extract primary key dependencies even if not explicitly requested
+      // This is needed because APIv3 always returns the primary key as 'id' at root level
+      isRequested =
+        (isInFields && value) || (apiVersion === NcApiVersion.V3 && col.pk);
     } else {
       isRequested = value;
     }

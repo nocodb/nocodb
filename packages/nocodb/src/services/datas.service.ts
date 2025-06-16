@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { isLinksOrLTAR, NcSDKErrorV2 } from 'nocodb-sdk';
-import type { NcApiVersion } from 'nocodb-sdk';
+import { NcApiVersion } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
@@ -13,6 +13,7 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Base, Column, Model, Source, View } from '~/models';
 import { nocoExecute } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { QUERY_STRING_FIELD_ID_ON_RESULT } from 'src/constants';
 
 @Injectable()
 export class DatasService {
@@ -281,6 +282,9 @@ export class DatasService {
                 throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
                 ignorePagination: param.ignorePagination,
                 limitOverride: param.limitOverride,
+                skipSubstitutingColumnIds:
+                  context.api_version === NcApiVersion.V3 &&
+                  query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
               },
             ),
             {},

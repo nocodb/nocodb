@@ -26,6 +26,7 @@ const V3_INSERT_LIMIT = 10;
 interface ModelInfo {
   model: Model;
   primaryKey: string;
+  primaryKeyColumn: Column;
   primaryKeys: Column[];
   columns: Column[];
 }
@@ -54,7 +55,13 @@ export class DataV3Service {
     const primaryKey = model.primaryKey.title;
     const primaryKeys = model.primaryKeys;
 
-    return { model, primaryKey, primaryKeys, columns };
+    return {
+      model,
+      primaryKeyColumn: model.primaryKey,
+      primaryKey,
+      primaryKeys,
+      columns,
+    };
   }
 
   /**
@@ -95,15 +102,27 @@ export class DataV3Service {
   /**
    * Transform a record to the v3 format {id, fields}
    */
-  private async transformRecordToV3Format(
-    context: NcContext,
-    record: any,
-    primaryKey: string,
-    primaryKeys?: Column[],
-    requestedFields?: string[],
-    columns?: Column[],
-    nestedLimit?: number,
-  ): Promise<DataRecord> {
+  private async transformRecordToV3Format(param: {
+    context: NcContext;
+    record: any;
+    primaryKey: string;
+    primaryKeyColumn: Column;
+    primaryKeys?: Column[];
+    requestedFields?: string[];
+    columns?: Column[];
+    nestedLimit?: number;
+  }): Promise<DataRecord> {
+    const {
+      context,
+      record,
+      primaryKey,
+      primaryKeyColumn,
+      primaryKeys,
+      requestedFields,
+      columns,
+      nestedLimit,
+    } = param;
+
     // If specific fields were requested, only include those in the fields object
     // Otherwise, include all non-primary-key fields
     const primaryKeyTitles = primaryKeys
@@ -146,13 +165,12 @@ export class DataV3Service {
                     primaryKey: relatedPrimaryKey,
                     primaryKeys: relatedPrimaryKeys,
                   } = await this.getRelatedModelInfo(context, column);
-                  return this.transformRecordToV3Format(
-                    context,
-                    nestedRecord,
-                    relatedPrimaryKey,
-                    relatedPrimaryKeys,
-                    undefined,
-                  );
+                  return this.transformRecordToV3Format({
+                    context: context,
+                    record: nestedRecord,
+                    primaryKey: relatedPrimaryKey,
+                    primaryKeys: relatedPrimaryKeys,
+                  });
                 }),
               );
             } else {
@@ -197,26 +215,23 @@ export class DataV3Service {
   /**
    * Transform multiple records to v3 format
    */
-  private async transformRecordsToV3Format(
-    context: NcContext,
-    records: any[],
-    primaryKey: string,
-    primaryKeys?: Column[],
-    requestedFields?: string[],
-    columns?: Column[],
-    nestedLimit?: number,
-  ): Promise<DataRecord[]> {
+  private async transformRecordsToV3Format(param: {
+    context: NcContext;
+    records: any[];
+    primaryKey: string;
+    primaryKeyColumn: Column;
+    primaryKeys?: Column[];
+    requestedFields?: string[];
+    columns?: Column[];
+    nestedLimit?: number;
+  }): Promise<DataRecord[]> {
+    const { records } = param;
     return Promise.all(
       records.map((record) =>
-        this.transformRecordToV3Format(
-          context,
+        this.transformRecordToV3Format({
+          ...param,
           record,
-          primaryKey,
-          primaryKeys,
-          requestedFields,
-          columns,
-          nestedLimit,
-        ),
+        }),
       ),
     );
   }

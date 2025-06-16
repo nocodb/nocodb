@@ -23,15 +23,9 @@ const tabs = [
     icon: 'ncScript',
   },
   {
-    title: 'Example Scripts',
-    tabKey: 'examples',
-    icon: 'ncScript',
-    isDisabled: true,
-  },
-  {
     title: 'By Community',
     tabKey: 'by-community',
-    icon: 'ncScript',
+    icon: 'ncGlobe',
     isDisabled: true,
   },
 ] as TabItem[]

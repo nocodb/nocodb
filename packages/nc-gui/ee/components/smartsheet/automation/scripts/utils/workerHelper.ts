@@ -4,7 +4,7 @@ export function generateIntegrationsCode(integrations: any[]): string {
   let code = 'const integrations = {'
   for (const integration of integrations) {
     const integrationMeta = allIntegrations.find(
-      (item) => item.type === integration.type && item.subType === integration.sub_type,
+      (item: any) => item.type === integration.type && item.subType === integration.sub_type,
     )!
     let propsCode = ''
     if (integrationMeta?.meta?.configSchema) {
@@ -22,6 +22,145 @@ export function generateIntegrationsCode(integrations: any[]): string {
   }
   code += '}'
   return code
+}
+
+function generateV3ToV2Converter() {
+  return `
+    /**
+     * Convert a single V3 record to V2 format
+     * @param {Object} recordV3 - V3 format: {id, fields}
+     * @param {Table} table - Table instance
+     * @returns {Object} V2 format: {primaryKey: value, field1: val1, ...}
+     */
+    const convertRecordV3ToV2 = (recordV3, table) => {
+      if (!recordV3 || !recordV3.id || !recordV3.fields) {
+        return recordV3; // Not V3 format, return as-is
+      }
+
+      const primaryKeyFields = table.fields.filter(f => f.primary_key);
+      const recordV2 = {};
+
+      // Handle primary key(s)
+      if (primaryKeyFields.length === 1) {
+        // Single primary key
+        recordV2[primaryKeyFields[0].name] = recordV3.id;
+      } else {
+        // Composite primary key - split by '___'
+        const idParts = String(recordV3.id).split('___');
+        primaryKeyFields.forEach((pk, index) => {
+          if (index < idParts.length) {
+            // Unescape underscores: '\\_' -> '_'
+            recordV2[pk.name] = idParts[index]?.replaceAll('\\\\_', '_');
+          }
+        });
+      }
+
+      for (const [fieldName, fieldValue] of Object.entries(recordV3.fields)) {
+        const field = table.fields.find(f => f.name === fieldName);
+        
+        if (field && (field.type === 'LinkToAnotherRecord' || field.type === 'Links')) {
+          recordV2[fieldName] = convertLTARField(fieldValue, field);
+        } else {
+          recordV2[fieldName] = fieldValue;
+        }
+      }
+
+      return recordV2;
+    };
+
+    /**
+     * Convert LTAR field from V3 to V2 format
+     * @param {*} fieldValue - LTAR field value
+     * @param {Object} field - Field definition
+     * @returns {*} Converted field value
+     */
+    const convertLTARField = (fieldValue, field) => {
+      if (fieldValue === null || fieldValue === undefined) {
+        return fieldValue;
+      }
+
+      const relatedTable = base.getTable(field.options?.related_table_id);
+      if (!relatedTable) {
+        return fieldValue; // Can't convert without related table info
+      }
+
+      const relatedPkFields = relatedTable.fields.filter(f => f.primary_key);
+
+      // Handle array of linked records (hm, mm relations)
+      if (Array.isArray(fieldValue)) {
+        return fieldValue.map(linkedRecord => {
+          if (isV3Format(linkedRecord)) {
+            // Convert nested V3 record to V2
+            return convertRecordV3ToV2(linkedRecord, relatedTable);
+          } else if (typeof linkedRecord === 'string') {
+            // Just an ID string - convert to primary key object
+            return parsePrimaryKey(linkedRecord, relatedPkFields);
+          }
+          return linkedRecord; // Already V2 format or unknown
+        });
+      }
+
+      // Handle single linked record (bt, oo relations)
+      if (isV3Format(fieldValue)) {
+        // Convert nested V3 record to V2
+        return convertRecordV3ToV2(fieldValue, relatedTable);
+      } else if (typeof fieldValue === 'string') {
+        // Just an ID string - convert to primary key object
+        return parsePrimaryKey(fieldValue, relatedPkFields);
+      }
+
+      return fieldValue; // Already V2 format or unknown
+    };
+
+    /**
+     * Parse primary key ID into object format
+     * @param {string} id - Primary key ID
+     * @param {Array} primaryKeyFields - Primary key field definitions
+     * @returns {Object} Primary key object
+     */
+    const parsePrimaryKey = (id, primaryKeyFields) => {
+      const pkObject = {};
+      
+      if (primaryKeyFields.length === 1) {
+        // Single primary key
+        pkObject[primaryKeyFields[0].name] = id;
+      } else {
+        // Composite primary key
+        const idParts = String(id).split('___');
+        primaryKeyFields.forEach((pk, index) => {
+          if (index < idParts.length) {
+            pkObject[pk.name] = idParts[index]?.replaceAll('\\\\_', '_');
+          }
+        });
+      }
+      
+      return pkObject;
+    };
+
+    /**
+     * Convert multiple V3 records to V2 format
+     * @param {Array} recordsV3 - Array of V3 records
+     * @param {Table} table - Table instance
+     * @returns {Array} Array of V2 records
+     */
+    const convertRecordsV3ToV2 = (recordsV3, table) => {
+      if (!Array.isArray(recordsV3)) {
+        return convertRecordV3ToV2(recordsV3, table);
+      }
+      return recordsV3.map(record => convertRecordV3ToV2(record, table));
+    };
+
+    /**
+     * Check if data is in V3 format
+     * @param {*} data - Data to check
+     * @returns {boolean} True if V3 format
+     */
+    const isV3Format = (data) => {
+      return data && typeof data === 'object' && 
+             data.id !== undefined && 
+             data.fields !== undefined;
+    };
+  `
 }
 
 function generalHelpers() {
@@ -357,25 +496,33 @@ Object.freeze(UITypes);
     #view;
     #pageInfo;
     #rawData;
-    #nextUrl;
+    #nextToken;
+    #prevToken;
     
-    constructor(data, table, view, options) {
+    #linkFieldId; // For LTAR-specific pagination
+    #parentRecordId; // For LTAR-specific pagination
+    
+    constructor(data, table, view, options, linkFieldId = null, parentRecordId = null) {
       this.#table = table;
       this.#view = view;
       this.#options = options;
-      this.#pageInfo = data.pageInfo;
+      
+      this.#linkFieldId = linkFieldId;
+      this.#parentRecordId = parentRecordId;
+      
       this.#pageInfo = {
-        page: data.pageInfo?.next ? this.extractPageFromUrl(data.pageInfo.next) - 1 : 1,
-        pageSize: options.limit || 25,
-        isLastPage: !data.pageInfo?.next,
+        hasNext: !!data.next,
+        hasPrev: !!data.prev,
+        isLastPage: !data.next,
       };
-      this.#nextUrl = data.pageInfo?.next || null;
+      this.#nextToken = data.next || null;
+      this.#prevToken = data.prev || null;
 
       const records = []
       
-      this.#rawData = data.list;
+      this.#rawData = data.records || [];
       
-      this.recordIds = Object.freeze(data.list.map(row => {
+      this.recordIds = Object.freeze(data.records.map(row => {
         const record = new NocoDBRecord(row, table);
         records.push(record);
         this.#recordsById.set(record.id, record);
@@ -392,20 +539,7 @@ Object.freeze(UITypes);
     get table() {
       return this.#table;
     }
-    
-    extractPageFromUrl(url) {
-      try {
-        const urlObj = new URL(url);
-        const pageParam = urlObj.searchParams.get('page');
-        return pageParam ? parseInt(pageParam, 10) : 1;
-      } catch (e) {
-        // If URL parsing fails, try regex
-        const pageMatch = url.match(/page=(\\d+)/);
-        return pageMatch ? parseInt(pageMatch[1], 10) : 1;
-      }
-    }
 
-    
     getRecord(recordId) {
       const record = this.#recordsById.get(recordId);
       if (!record) {
@@ -415,78 +549,186 @@ Object.freeze(UITypes);
     }
     
     async loadMoreRecords() {
-      if (!this.#nextUrl) {
+      if (!this.#nextToken) {
         return null;
       }
-      const nextPage = this.#pageInfo.page + 1;
       
-      const response = await api.dbDataTableRowList(
-        this.#table.base.id,
-        this.#table.id,
-        {
-          ...this.#options,
-          offset: this.#pageInfo.page * this.#pageInfo.pageSize,
-          ...(this.#view ? { viewId: this.#view.id } : {})
+      let response;
+      
+      if (this.#linkFieldId && this.#parentRecordId) {
+        // For LTAR fields, use the nested list API
+        const url = new URL(this.#nextToken);
+        const page = parseInt(url.searchParams.get('page') || '1');
+        
+        try {
+          response = await api.dbDataTableRowNestedList(
+            this.#table.id,
+            this.#linkFieldId,
+            this.#parentRecordId,
+            this.#table.base.id,
+            {
+              ...this.#options,
+              page,
+            }
+          );
+        } catch (e) {
+          throw new Error(e);
         }
-      );
+      } else {
+        // For regular table queries
+        const url = new URL(this.#nextToken);
+        const page = parseInt(url.searchParams.get('page') || '1');
+        
+        try {
+          response = await api.dbDataTableRowList(
+            this.#table.base.id,
+            this.#table.id,
+            {
+              ...this.#options,
+              page,
+              ...(this.#view ? { viewId: this.#view.id } : {})
+            }
+          );
+        } catch (e) {
+          throw new Error(e);
+        }
+      }
       
-      this.#rawData = [...this.#rawData, ...response.list];
-      
+      this.#rawData = [...this.#rawData, ...(response.records || [])];
       const records = [...this.records];
       
-      this.recordIds = Object.freeze([...this.recordIds, ...response.list.map(row => {
+      const newRecordIds = (response.records || []).map(row => {
         const record = new NocoDBRecord(row, this.#table);
         records.push(record);
         this.#recordsById.set(record.id, record);
         return record.id;
-      })]);
+      });
       
+      this.recordIds = Object.freeze([...this.recordIds, ...newRecordIds]);
       this.records = Object.freeze(records);
-      this.#nextUrl = response.pageInfo?.next || null;
       
+      this.#nextToken = response.next || null;
+      this.#prevToken = response.prev || null;
+    
       this.#pageInfo = {
-        page: nextPage,
-        pageSize: this.#options.limit || 25,
-        isLastPage: !response.pageInfo?.next,
-        totalRows: response.pageInfo?.totalRows || (this.#pageInfo.totalRows + response.list.length)
+        hasNext: !!response.next,
+        hasPrev: !!response.prev,
+        isLastPage: !response.next,
       };
+      
       return this;
     }
     
     get hasMoreRecords() {
-      return !!this.#nextUrl;
+      return !!this.#nextToken;
     }
-
-    get currentPage() {
-      return this.#pageInfo.page;
+    
+    get nextToken() {
+      return this.#nextToken;
     }
-
-    get pageSize() {
-      return this.#pageInfo.pageSize;
+    
+    get rawData() {
+      return this.#rawData;
     }
-    get nextUrl() {
-      return this.#nextUrl;
+  
+    get prevToken() {
+      return this.#prevToken;
+    }
+  }
+  
+  class LazyRecordQueryResult extends RecordQueryResult {
+    #parentTable;
+    #linkField;
+    #parentRecordId;
+    #isFullyLoaded = false;
+    
+    constructor(initialData, relatedTable, parentTable, linkField, parentRecordId) {
+      // Initialize with embedded data (first 1000 records or whatever was included)
+      super({ 
+        records: initialData, 
+        next: initialData.length >= 1000 ? 'has_more' : null, // Assume more if we got 1000
+        prev: null 
+      }, relatedTable, null, {});
+      
+      this.#parentTable = parentTable;
+      this.#linkField = linkField;
+      this.#parentRecordId = parentRecordId;
+      this.#isFullyLoaded = initialData.length < 1000;
+    }
+    
+    async loadMoreRecords() {
+      if (this.#isFullyLoaded || !this.hasMoreRecords) {
+        return null;
+      }
+      
+      // Calculate next page based on current record count
+      const currentPage = Math.floor(this.records.length / 1000) + 1;
+      
+      let response;
+      
+      try {
+        response = await api.dbDataTableRowNestedList(
+          this.#parentTable.id,
+          this.#linkField.id,
+          this.#parentRecordId,
+          this.#parentTable.base.id,
+          {
+            page: currentPage,
+            pageSize: 1000
+          }
+        );
+      } catch (e) {
+        throw new Error(e);
+      }
+      
+      if (!response.records || response.records.length === 0) {
+        this.#isFullyLoaded = true;
+        return this;
+      }
+      // Append new records
+      this._appendRecords(response.records);
+      
+      // Check if we're done
+      if (response.records.length < 1000) {
+        this.#isFullyLoaded = true;
+      }
+      
+      return this;
+    }
+    
+    _appendRecords(newRecords) {
+      const records = [...this.records];
+      const recordsById = this._getRecordsById();
+      const newRecordIds = newRecords.map(row => {
+        const record = new NocoDBRecord(row, this.table);
+        records.push(record);
+        recordsById.set(record.id, record);
+        return record.id;
+      });
+      
+      this.recordIds = Object.freeze([...this.recordIds, ...newRecordIds]);
+      this.records = Object.freeze(records);
+    }
+    
+    get hasMoreRecords() {
+      return !this.#isFullyLoaded;
     }
   }
   
   class NocoDBRecord {
     #table
-    #data
+    #recordData
   
-    constructor(data, table) {
+    constructor(recordData, table) {
       this.#table = table;
-      this.#data = data;
-      this.id = extractPk(data, table.fields);
+      this.#recordData = recordData;
+      this.id = recordData.id;
       const displayField = this.#table.fields.find(f => f.primary_value)
-      this.name  = this.#data[displayField.name] ?? this.id
+      this.name = displayField ? recordData.fields?.[displayField.name] ?? this.id : this.id;
     }
     
-    get raw_data() {
-      return this.#data;
-    }
-    
-    get table() {
-      return this.#table;
+    get rawData() {
+      return this.#recordData;
     }
     
     getCellValue(fieldOrFieldIdOrName) {
@@ -496,8 +738,8 @@ Object.freeze(UITypes);
         throw new Error(\`Field \${fieldOrFieldIdOrName?.name ?? fieldOrFieldIdOrName} not found\`)
       }
       
-      if (field.name in this.#data) {
-        const data = this.#data[field.name];
+      if (field.name in this.#recordData.fields) {
+        const data = this.#recordData.fields?.[field.name];
         
         switch(field.type) {
           case 'MultiSelect':
@@ -522,7 +764,7 @@ Object.freeze(UITypes);
             const relatedTable = base.getTable(field?.options?.related_table_id)
             
             if (['hm', 'mm'].includes(field?.options?.relation_type)) {
-              return (data ?? []).map(v => new NocoDBRecord(v, relatedTable))
+              return new LazyRecordQueryResult(data || [], relatedTable, this.#table, field, this.id)
             }
             if (['bt', 'oo'].includes(field?.options?.relation_type)) {
               if(!data) return null;
@@ -605,7 +847,12 @@ Object.freeze(UITypes);
         }
         case 'LinkToAnotherRecord': {
           if (['hm', 'mm'].includes(field?.options?.relation_type)) {
-            return value?.map((v) => v.name || v.id).join(', ')
+            if (value instanceof LazyRecordQueryResult || value instanceof RecordQueryResult) {
+              const count = value.records.length;
+              const hasMore = value.hasMoreRecords ? '+' : '';
+              return \`\${count}\${hasMore} linked record\${count !== 1 ? 's' : ''}\`;
+            }
+            return value?.map?.((v) => v.name || v.id).join(', ') || '';
           } else if (['bt', 'oo'].includes(field?.options?.relation_type)) {
             return value?.name || value?.id
           }
@@ -705,20 +952,32 @@ Object.freeze(UITypes);
     }
     
     async updateOptionsAsync(options) {
-      output.warn("This is not Production Ready. The api may change")
-      await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, { id: this.id, type: this.type, title: this.name, options: options });
+      try {
+        await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, { id: this.id, type: this.type, title: this.name, options: options });
+        return this
+      } catch (e) {
+        throw new Error(\`Failed to update field options: \${e.message}\`);
+      }
     }
     
     async updateDescriptionAsync(description) {
-      this.description = description;
-      await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, {  id: this.id, type: this.type, title: this.name, description });
-      return this;
+      try {
+        await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, {  id: this.id, type: this.type, title: this.name, description });
+        this.description = description;
+        return this;
+      } catch (e) {
+        throw new Error(\`Failed to update field description: \${e.message}\`);
+      } 
     }
     
     async updateNameAsync(name) {
-      this.name = name;
-      await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, {  id: this.id, type: this.type, title: this.name });
-      return this
+      try {
+        await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, {  id: this.id, type: this.type, title: name });
+        this.name = name;
+        return this;
+      } catch (e) {
+        throw new Error(\`Failed to update field name: \${e.message}\`);
+      }
     }
   }
   
@@ -754,18 +1013,21 @@ Object.freeze(UITypes);
       
       const fieldsToSelect = Array.from(new Set([..._fieldsToSelect, ...pvAndPk]))
       
-      const data = await api.dbDataTableRowRead(this.#table.base.id, this.#table.id, recordId, {
-        viewId: this.id,
-        ...(fields?.length && { fields: fieldsToSelect })
-      })
       
-      if(data?.error?.name === 'AxiosError' && data?.error?.status) return null;
-
-      return new NocoDBRecord(data, this.#table);    
+      try {
+        const data = await api.dbDataTableRowRead(this.#table.base.id, this.#table.id, recordId, {
+          viewId: this.id,
+          ...(fields?.length && { fields: fieldsToSelect })
+        })
+        
+        return new NocoDBRecord(data, this.#table);
+      } catch (e) {
+        return null
+      }   
     }
     
     async selectRecordsAsync(options = {}) {
-      const { sorts = [], fields = [], recordIds = [], limit = 500, offset = 0 } = options
+      const { sorts = [], fields = [], recordIds = [], pageSize = 50, page = 1, where = '' } = options
            
       const pvAndPk = this.#table.fields.filter(f => f.primary_value || f.primary_key).map(f => f.name)
       
@@ -782,7 +1044,7 @@ Object.freeze(UITypes);
             
       const fieldsToSelect = fields.length ? Array.from(new Set([..._fieldsToSelect, ...pvAndPk])) : null
       
-      const sortStr = sorts.map(sort => {
+      const sortArray = sorts.map(sort => {
         if (typeof sort.field === 'string') {
           const field = this.#table.getField(sort.field)
           
@@ -790,21 +1052,26 @@ Object.freeze(UITypes);
             throw new Error(\`Field \${sort.field} not found in table \${this.#table.name}\`)
           }
           
-          return sort.direction === 'desc' ? \`-\${field.name}\` : field.name; 
+          return { direction: sort.direction, field: field.name };          
         }
-      }).join(',');
+      }).filter(Boolean)
       
       const requestOptions = {
         viewId: this.id,
-        limit,
-        offset,
+        page,
+        where,
+        pageSize,
         ...(recordIds?.length && { pks: recordIds.join(',') }),
         ...(fieldsToSelect && { fields: fieldsToSelect }),
-        ...(sortStr && { sort: sortStr }),
+        ...(sortArray.length && { sort: sortArray }),
       };
-      const data = await api.dbDataTableRowList(this.#table.base.id, this.#table.id, requestOptions)
-      
-      return new RecordQueryResult(data, this.#table, this, requestOptions);
+      try {
+        const data = await api.dbDataTableRowList(this.#table.base.id, this.#table.id, requestOptions)
+        
+        return new RecordQueryResult(data, this.#table, this, requestOptions);
+      } catch (e) {
+        return null
+      }       
     }
   }
   
@@ -836,14 +1103,26 @@ Object.freeze(UITypes);
     
     async createFieldAsync(field) {
       if (this.getField(field.name)) throw new Error(\`Field \${field.name} already exists in table \${this.name}\`)
+      
+      if (field.type === 'Button') {
+        throw new Error('Button field creation is not supported at the moment')
+      }
+      
+      if (!field.name || !field.type) {
+        throw new Error('Field name and type are required')
+      }
+      
       field.title = field.name
       delete field.name
-      output.warn('This is not production ready. Some types may be incorrect')
-      const data = await api.v3MetaBasesTablesFieldsCreate(this.id, this.#base.id, field);
-      const newField = new Field({id: data.id, name: data.title, type: data.type, description: data.description, options: data.options, primary_key: false, primary_value: false, is_system_field: false}, this);
-      this.#all_fields.push(newField);
-      this.fields = this.#all_fields.filter(f => !f.is_system_field);
-      return newField;
+      try {
+        const data = await api.v3MetaBasesTablesFieldsCreate(this.id, this.#base.id, field);
+        const newField = new Field({id: data.id, name: data.title, type: data.type, description: data.description, options: data.options, primary_key: false, primary_value: false, is_system_field: false}, this);
+        this.#all_fields.push(newField);
+        this.fields = this.#all_fields.filter(f => !f.is_system_field);
+        return newField;
+      } catch (e) {
+        throw new Error(\`Failed to create field \${field.title} in table \${this.name}\`)
+      }
     }
     
     async selectRecordAsync(recordId, options = {}) {
@@ -863,18 +1142,24 @@ Object.freeze(UITypes);
       }).filter(Boolean);
       
       const fieldsToSelect = Array.from(new Set([..._fieldsToSelect, ...pvAndPk]))
- 
-      const data = await api.dbDataTableRowRead(this.base.id, this.id, recordId, {
-        ...(fields?.length && { fields: fieldsToSelect })
-      })
-                 
-      if(data?.error?.name === 'AxiosError' && data?.error?.status) return null;
       
-      return new NocoDBRecord(data, this);    
+      if (!recordId) {
+        throw new Error('Record ID is required')
+      }
+      
+      try {
+        const data = await api.dbDataTableRowRead(this.base.id, this.id, recordId, {
+          ...(fields?.length && { fields: fieldsToSelect })
+        })
+        
+        return new NocoDBRecord(data, this);
+      } catch (e) {
+        throw new Error(\`Failed to read record \${recordId} in table \${this.name}\`)
+      }
     }
     
     async selectRecordsAsync(options = {}) {
-      const { sorts = [], fields = [], recordIds = [], limit = 500, offset = 0 } = options
+      const { sorts = [], fields = [], recordIds = [], pageSize = 50, page = 1, where = '' } = options
            
       const pvAndPk = this.fields.filter(f => f.primary_value || f.primary_key).map(f => f.name)
       
@@ -891,7 +1176,7 @@ Object.freeze(UITypes);
             
       const fieldsToSelect = fields.length ? Array.from(new Set([..._fieldsToSelect, ...pvAndPk])) : null
       
-      const sortStr = sorts.map(sort => {
+      const sortArray = sorts.map(sort => {
         if (typeof sort.field === 'string') {
           const field = this.getField(sort.field)
           
@@ -899,21 +1184,25 @@ Object.freeze(UITypes);
             throw new Error(\`Field \${sort.field} not found in table \${this.name}\`)
           }
           
-          return sort.direction === 'desc' ? \`-\${field.name}\` : field.name; 
+          return { direction: sort.direction, field: field.name };
         }
-      }).join(',');
+      }).filter(Boolean)
       
       const requestOptions = {
-        limit,
-        offset,
-        ...(recordIds?.length && { pks: recordIds.join(',') }),
+        page,
+        where,
+        pageSize,
         ...(fieldsToSelect && { fields: fieldsToSelect }),
-        ...(sortStr && { sort: sortStr }),
+        ...(sortArray.length && { sort: sortArray }),
       };
       
-      const data = await api.dbDataTableRowList(this.#base.id, this.id, requestOptions)
-     
-      return new RecordQueryResult(data, this, null, requestOptions);
+      try {
+        const data = await api.dbDataTableRowList(this.#base.id, this.id, requestOptions)
+        
+        return new RecordQueryResult(data, this, null, requestOptions);
+      } catch (e) {
+        throw new Error(\`Failed to read records in table \${this.name}\`)
+      }
     }
     
     async createRecordAsync(data) {
@@ -926,12 +1215,28 @@ Object.freeze(UITypes);
         }
       }
       
-      const response = await api.dbDataTableRowCreate(this.base.id, this.id, recordData);   
-      return new NocoDBRecord(response, this).id;
+      try {
+        const data = await api.dbDataTableRowCreate(this.base.id, this.id, { fields: recordData });
+        return new NocoDBRecord(data?.records?.[0], this).id;
+      } catch (e) {
+        throw new Error(\`Failed to create record in table \${this.name}\`)
+      }
     }
     
     async createRecordsAsync(data) {
       const insertObjs = []
+      
+      if (!Array.isArray(data)) {
+        throw new Error('Data must be an array');
+      }
+      
+      if (data.length === 0) {
+        throw new Error('Data must not be empty');
+      }
+      
+      if (data.length > 10) {
+        throw new Error('Data must not be greater than 10');
+      }
       
       for(const record of data) {
         const recordData = {};
@@ -942,12 +1247,15 @@ Object.freeze(UITypes);
             recordData[field.name] = record[field.id];
           }
         }
-        insertObjs.push(recordData)
+        insertObjs.push({ fields: recordData });
       }
       
-      const response = await api.dbDataTableRowCreate(this.base.id, this.id, insertObjs);
-      
-      return response.map(r => new NocoDBRecord(r, this).id);
+      try {
+        const response = await api.dbDataTableRowCreate(this.base.id, this.id, insertObjs);
+        return (response.records || []).map(r => new NocoDBRecord(r, this).id);
+      } catch (e) {
+        throw new Error(\`Failed to create records in table \${this.name}\`)
+      }
     }
     
     async updateRecordAsync(recordId, data) { 
@@ -960,15 +1268,27 @@ Object.freeze(UITypes);
           recordData[field.name] = data[field.id];
         }
       }
-      const recordObj = extractObjFromPk(recordID, this.fields)
-      
-      Object.assign(recordData, recordObj)
-            
-      await api.dbDataTableRowUpdate(this.base.id, this.id, recordData);
+      try {
+        await api.dbDataTableRowUpdate(this.base.id, this.id, { fields: recordData, id: recordID });
+      } catch (e) {
+        throw new Error(\`Failed to update record \${recordId} in table \${this.name}\`)
+      }
     }
     
     async updateRecordsAsync(records) {
       const updateObjs = []
+      
+      if (!Array.isArray(records)) {
+        throw new Error('Data must be an array');
+      }
+      
+      if (records.length === 0) {
+        throw new Error('Data must not be empty');
+      }
+      
+      if (records.length > 10) {
+        throw new Error('Data must not be greater than 10');
+      }
       
       for (const record of records) {
         const recordID = (record.id instanceof NocoDBRecord) ? record.id.id : record.id;
@@ -982,30 +1302,47 @@ Object.freeze(UITypes);
             recordData[field.name] = fieldData[field.id];
           }
         }
-        const recordObj = extractObjFromPk(recordID, this.fields);
-        Object.assign(recordData, recordObj);    
-        updateObjs.push(recordData);
+        updateObjs.push({ fields: recordData, id: recordID });
       }
-
-      await api.dbDataTableRowUpdate(this.base.id, this.id, updateObjs); 
+      try {
+        await api.dbDataTableRowUpdate(this.base.id, this.id, updateObjs);
+      } catch (e) {
+        throw new Error(\`Failed to update records in table \${this.name}\`)
+      }
     }
     
     async deleteRecordAsync(recordIdOrRecord) {
       const recordID = (recordIdOrRecord instanceof NocoDBRecord) ? recordIdOrRecord.id: recordIdOrRecord
-      const recordObj = extractObjFromPk(recordID, this.fields);
-      await api.dbDataTableRowDelete(this.base.id, this.id, recordObj);
-      
-      return true
+      if (!recordID) {
+        throw new Error('Record ID is required');
+      }
+      try {
+        await api.dbDataTableRowDelete(this.base.id, this.id, { id: recordID });
+        return true
+      } catch (e) {
+        throw new Error(\`Failed to delete record \${recordID} in table \${this.name}\`)
+      }
     }
     
     async deleteRecordsAsync(recordIds) {
       const deleteObjs = []
       for (const recordId of recordIds) {
-        const recordObj = extractObjFromPk(recordId, this.fields);
-        deleteObjs.push(recordObj);
+        deleteObjs.push({ id: recordId });
       }
-      await api.dbDataTableRowDelete(this.base.id, this.id, deleteObjs);
-      return true
+      if (deleteObjs.length === 0) {
+        throw new Error('Record IDs are required');
+      }
+      
+      if (deleteObjs.length > 10) {
+        throw new Error('You can only delete up to 10 records at a time');
+      }
+      
+      try {
+        await api.dbDataTableRowDelete(this.base.id, this.id, deleteObjs);
+        return true
+      } catch (e) {
+        throw new Error(\`Failed to delete records in table \${this.name}\`)
+      }
     }
   }
   
@@ -1029,21 +1366,37 @@ Object.freeze(UITypes);
     }
     
     getTable(idOrName) {
+      if(idOrName instanceof Table) {
+        idOrName = idOrName.id
+      }
       return this.tables.find((table) => table.id === idOrName || table.name === idOrName)
     }
     
     async createTableAsync(name, fields) {
-      throw new Error("Not Production Ready")
       fields = fields.map((f) => {
          f.title = f.name
          delete f.name
          return f
       })
       
-      const res = await api.v3MetaBasesTablesCreate(this.id, {
-        title: name,
-        fields: fields
-      })
+      if(!name) {
+        throw new Error('Table name is required');
+      }
+      
+      try {
+        const res = await api.v3MetaBasesTablesCreate(this.id, {
+          title: name,
+          fields: fields
+        })
+        
+        const newT = new Table({id: res.id, name: res.title, description: res.description, views: res.views, fields: res.fields }, this);
+        
+        this.tables.push(newT);
+        
+        return newT
+      } catch (e) {
+        throw new Error(\`Failed to create table \${name}\`)
+      }
     }
   }
   `
@@ -1089,19 +1442,34 @@ const api = new Proxy({}, {
           payload: { id, method: prop.toString(), args },
         };
         self.postMessage(message);
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
           function handleMessage(e) {
             const responseMessage = e.data;
             if (responseMessage.type === '${ActionType.RESPONSE}' && responseMessage.payload.id === id) {
-              if (typeof responseMessage.payload.payload?.error === 'string') {
-                try {
-                  responseMessage.payload.payload.error = JSON.parse(responseMessage.payload.payload.error);
-                } catch (e) {
-                  // Do nothing
-                }
-              }
-              resolve(responseMessage.payload.payload);
               self.removeEventListener('message', handleMessage);
+              
+              const response = responseMessage.payload.payload;
+              
+              // Error handling
+              if (response && typeof response === 'object' && response.error) {
+                const error = response.error;
+                
+                const apiError = new Error(error.message || 'API request failed');
+                apiError.name = error.name || 'APIError';
+                
+                if (error.method) apiError.method = error.method;
+                if (error.status) apiError.status = error.status;
+                if (error.statusText) apiError.statusText = error.statusText;
+                if (error.code) apiError.code = error.code;
+                if (error.responseStatus) apiError.responseStatus = error.responseStatus;
+                if (error.responseData) apiError.responseData = error.responseData;
+                if (error.stack) apiError.stack = error.stack;
+                
+                reject(apiError);
+                return;
+              }
+              // Success case
+              resolve(response);
             }
           }
           self.addEventListener('message', handleMessage);
@@ -1116,18 +1484,37 @@ const api = new Proxy({}, {
 function generateRemoteFetch(): string {
   return `
     const remoteFetchAsync = async (url, options) => {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         const id = Math.random().toString(36).substr(2, 9);
         self.postMessage({ 
           type: '${ActionType.REMOTE_FETCH}', 
           payload: { url, options, id } 
         });
-        
-        
         self.addEventListener('message', function handler(event) {
           if (event.data.type === '${ActionType.REMOTE_FETCH}' && event.data.payload.id === id) {
             self.removeEventListener('message', handler);
-            resolve(event.data.payload.value);
+            
+            const response = event.data.payload.value;
+            const isError = event.data.payload.error;
+            
+            if (isError) {
+              // Create an error object that mimics axios error structure
+              const error = new Error(response.error?.message || 'Request failed');
+              error.response = {
+                data: response.data,
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers,
+                config: response.config
+              };
+              error.config = response.config;
+              error.code = response.error?.code;
+              error.name = response.error?.name || 'AxiosError';
+              
+              reject(error);
+              return;
+            }
+            resolve(response);
           }
         });
       })
@@ -1357,7 +1744,7 @@ function generateInputMethods(): string {
             tableId = source.table.id;
             viewId = source.id;
           } else if (source instanceof RecordQueryResult) {
-            records = source.raw_data;
+            records = convertRecordsV3ToV2(source.rawData, source.table);
             tableId = source.table.id;
           } else if (Array.isArray(source) && source.length && source[0] instanceof NocoDBRecord) {
             records = source.map(r => r.raw_data);
@@ -1389,8 +1776,7 @@ function generateInputMethods(): string {
           
           function handler(event) {
             if (event.data.type === '${ActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
-              let data = event.data.payload.value;
-              
+              let data = event.data.payload.value;              
               try {
                 data = JSON.parse(data);
                 data = new NocoDBRecord(data, table);
@@ -1427,6 +1813,9 @@ function generateRestrictGlobals(): string {
         get: () => {
           throw new ReferenceError(name + " is not defined");
         },
+        set: () => {
+          throw new Error(\`Cannot modify '${name}' in this environment\`);
+        },
         configurable: false,
       });
     });
@@ -1452,10 +1841,10 @@ function generateConsoleOverride(): string {
 function generateOutput(): string {
   return `
     const output = {
-      text: (message, type = 'log') => {
+      text: (message) => {
         self.postMessage({ 
           type: '${ActionType.OUTPUT}', 
-          payload: { message: JSON.stringify({ action: 'text', args: [message, type] }) } 
+          payload: { message: JSON.stringify({ action: 'text', args: [message] }) } 
         });
       },
       markdown: (content) => {
@@ -1495,7 +1884,7 @@ function generateMessageHandler(userCode: string): string {
             ${userCode}
           })();
         } catch (e) {
-          output.text(\`Error: \${e}\`, 'error');
+          output.text(\`\${e}\`, 'error');
         } finally {
           const doneMessage = { type: '${ActionType.DONE}', payload: undefined };
           self.postMessage(doneMessage);
@@ -1565,6 +1954,7 @@ export function createWorkerCode(userCode: string, custom?: string): string {
     ${generateConsoleOverride()}
     ${generateOutput()}
     ${generateProgressAPIs()}
+    ${generateV3ToV2Converter()}
     ${generateInputMethods()}
     ${generateApiProxy()}
     ${generateViewActions()}

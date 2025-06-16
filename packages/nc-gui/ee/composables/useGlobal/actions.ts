@@ -220,7 +220,6 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     tableId,
     viewId,
     query,
-    automation,
     automationId,
   }: {
     workspaceId?: string
@@ -228,17 +227,16 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     tableId?: string
     viewId?: string
     automationId?: string
-    automation?: boolean
     query?: string
   }) => {
     const tablePath = tableId ? `/${tableId}${viewId ? `/${viewId}` : ''}` : ''
-    const automationPath = automation ? `/automations/${automationId ?? ''}` : ''
+    const automationPath = automationId ? `/automations/${automationId}` : ''
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
     const workspaceId = _workspaceId || 'app'
 
     let path: string
     if (baseId) {
-      if (automation) {
+      if (automationId) {
         path = `/${workspaceId}/${baseId}${automationPath}${queryParams}`
       } else {
         path = `/${workspaceId}/${baseId}${tablePath}${queryParams}`

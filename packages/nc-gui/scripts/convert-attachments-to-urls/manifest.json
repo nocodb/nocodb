@@ -1,0 +1,21 @@
+{
+  "id": "convert-attachments-to-urls",
+  "title": "Convert attachments to URLs",
+  "subTitle": "Export attachments as a comma-separated URL list",
+  "description": "convert-attachments-to-urls/description.md",
+  "entry": "convert-attachments-to-urls/index.txt",
+  "version": "0.1",
+  "iconUrl": "convert-attachments-to-urls/assets/icon.svg",
+  "publisher": {
+    "name": "NocoDB",
+    "email": "contact@nocodb.com",
+    "url": "https://www.nocodb.com",
+    "icon": {
+      "src": "convert-attachments-to-urls/assets/publisher-icon.svg",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "links": [],
+  "order": 1
+}

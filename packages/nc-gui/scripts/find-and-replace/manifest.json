@@ -3,7 +3,7 @@
   "title": "Find and Replace",
   "subTitle": "Find and replace all text matches for a field",
   "description": "find-and-replace/description.md",
-  "entry": "find-and-replace/index.js",
+  "entry": "find-and-replace/index.txt",
   "version": "0.1",
   "iconUrl": "find-and-replace/assets/icon.svg",
   "publisher": {

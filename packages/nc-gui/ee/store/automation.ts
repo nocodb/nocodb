@@ -101,6 +101,10 @@ export const useAutomationStore = defineStore('automation', () => {
     } catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e))
+      ncNavigateTo({
+        workspaceId: activeWorkspaceId.value,
+        baseId: openedProject.value?.id,
+      })
       return null
     } finally {
       if (showLoader) {
@@ -126,6 +130,12 @@ export const useAutomationStore = defineStore('automation', () => {
       const baseAutomations = automations.value.get(baseId) || []
       baseAutomations.push(created)
       automations.value.set(baseId, baseAutomations)
+
+      ncNavigateTo({
+        workspaceId: activeWorkspaceId.value,
+        baseId: openedProject.value?.id,
+        automationId: created.id,
+      })
 
       return created
     } catch (e) {
@@ -209,8 +219,22 @@ export const useAutomationStore = defineStore('automation', () => {
       const filtered = baseAutomations.filter((a) => a.id !== automationId)
       automations.value.set(baseId, filtered)
 
-      if (activeAutomation.value?.id === automationId) {
-        activeAutomation.value = null
+      if (activeAutomationId.value === automationId) {
+        const nextAutomation = filtered[0]
+        if (nextAutomation) {
+          ncNavigateTo({
+            workspaceId: activeWorkspaceId.value,
+            baseId: openedProject.value?.id,
+            automationId: nextAutomation.id,
+          })
+        }
+      }
+
+      if (!filtered.length) {
+        ncNavigateTo({
+          workspaceId: activeWorkspaceId.value,
+          baseId: openedProject.value?.id,
+        })
       }
 
       return true
@@ -250,7 +274,6 @@ export const useAutomationStore = defineStore('automation', () => {
       workspaceId: workspaceIdOrType,
       baseId: baseIdOrBaseId,
       automationId: script.id,
-      automation: true,
     })
   }
 
@@ -326,13 +349,6 @@ export const useAutomationStore = defineStore('automation', () => {
           await loadAutomations({ baseId, force: true })
         }
 
-        ncNavigateTo({
-          workspaceId: activeWorkspaceId.value,
-          automation: true,
-          baseId,
-          automationId: script.id,
-        })
-
         $e(e ?? 'a:script:create')
 
         if (!script) return
@@ -359,7 +375,7 @@ export const useAutomationStore = defineStore('automation', () => {
     // State
     automations,
     activeAutomation,
-    isLoading,
+    isAutomationsLoading: isLoading,
     isLoadingAutomation,
     isSettingsOpen,
     activeBaseSchema,

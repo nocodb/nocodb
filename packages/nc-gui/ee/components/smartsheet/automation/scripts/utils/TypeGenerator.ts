@@ -1,6 +1,7 @@
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 
 export class TypeGenerator {
+  public tables = []
   private initialCode = `
 declare let console: {
   log(...args: Array<unknown>): void
@@ -58,14 +59,33 @@ declare interface NcFile extends NcBlob {
  readonly name: string;
 }
 
-declare function remoteFetchAsync(
+interface RemoteFetchResponse<T = any> {
+  data: T;
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  config: {
+    url: string;
+    method: string;
+    headers: Record<string, string>;
+    data: any;
+  };
+  error?: {
+    message: string;
+    code?: string;
+    name: string;
+    stack?: string;
+  };
+}
+
+declare function remoteFetchAsync<T = any>(
   url: string,
   options?: {
-    method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS'
     headers?: Record<string, string>
     body?: string | null
   },
-): Promise<any>
+): Promise<RemoteFetchResponse<T>>
 
 declare const output: {
   text: (message: string | number | boolean | null, type?: 'log' | 'error' | 'warning') => void
@@ -140,27 +160,12 @@ declare interface RecordQueryResult {
   /**
    * Array of records in this result set
    */
-  readonly records: ReadonlyArray<Record<string, unknown>>
+  readonly records: ReadonlyArray<NocoDBRecord>
 
   /**
    * Whether there are more records available to load
    */
   readonly hasMoreRecords: boolean
-
-  /**
-   * Total number of records matching the query
-   */
-  readonly totalRecords: number
-
-  /**
-   * Current page number (0-based)
-   */
-  readonly currentPage: number
-
-  /**
-   * Number of records per page
-   */
-  readonly pageSize: number
 
   /**
    * Get a specific record from the result set by ID
@@ -505,7 +510,7 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
       /**
        * Timezone string
        */
-      timezone: string
+      timezone: string | null
       /**
        * display_timezone boolean
        */
@@ -610,7 +615,7 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
               >
             >
           }
-        | never
+        | null
     }
   : FieldTypeT extends UITypes.Lookup
   ? {
@@ -637,7 +642,7 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
        * Relation field to use
        */
       related_field_id: string
-    }
+  }
   : FieldTypeT extends UITypes.Links
   ? {
       /**
@@ -781,10 +786,6 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
        * Whether multiple users can be selected
        */
       allow_multiple_users: boolean
-      /**
-       * Whether to notify users when added
-       */
-      notify_user_when_added: boolean
     }
     : FieldTypeT extends UITypes.CreatedTime 
     ? {
@@ -803,7 +804,7 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
       /**
        * Timezone string
        */
-      timezone: string
+      timezone: string | null
       /**
        * display_timezone boolean
        */
@@ -830,7 +831,7 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
       /**
        * Timezone string
        */
-      timezone: string
+      timezone: string | null
       /**
        * display_timezone boolean
        */
@@ -883,12 +884,17 @@ declare interface BaseField {
   /**
    * Whether this field is the primary key. Null if not applicable.
    */
-  // readonly primary_key: boolean | null
+   readonly primary_key: boolean | null
 
   /**
    * Whether this field is the primary value display field. Null if not applicable.
    */
-  // readonly primary_value: boolean | null
+   readonly primary_value: boolean | null
+   
+  /**
+   * Whether this field is a system field
+   */
+   readonly is_system_field: boolean
 
   /**
    * Optional description of the field.
@@ -1060,7 +1066,7 @@ declare interface DateTimeField extends BaseField {
     /**
      * Timezone string
      */
-    timezone: string
+    timezone: string | null
     /**
      * display_timezone boolean
      */
@@ -1087,10 +1093,6 @@ declare interface DateField extends BaseField {
 declare interface TimeField extends BaseField {
   readonly type: UITypes.Time
   readonly options: {
-    /**
-     * Time format string
-     */
-    time_format: string
     /**
      * Whether to use 12-hour format
      */
@@ -1195,26 +1197,10 @@ declare interface FormulaField extends BaseField {
           /**
            * Format configuration for result
            */
-          format: FieldOptionsWriteFormat<
-            NonNullable<
-              Extract<
-                typeof UITypes,
-                | UITypes.Decimal
-                | UITypes.Currency
-                | UITypes.Percent
-                | UITypes.Rating
-                | UITypes.Email
-                | UITypes.URL
-                | UITypes.PhoneNumber
-                | UITypes.DateTime
-                | UITypes.Date
-                | UITypes.Time
-                | UITypes.Checkbox
-              >
-            >
-          >
+           format: FieldOptionsWriteFormat<UITypes.Decimal | UITypes.Currency | UITypes.Percent | UITypes.Rating | UITypes.Email | UITypes.URL | UITypes.PhoneNumber | UITypes.DateTime | UITypes.Date | UITypes.Time | UITypes.Checkbox>
+
         }
-      | never
+      | null
   }
   updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Formula>): Promise<void>
 }
@@ -1581,7 +1567,7 @@ declare interface CreatedTimeField extends BaseField {
     /**
      * Timezone string
      */
-    timezone: string
+    timezone: string | null
     /**
      * display_timezone boolean
      */
@@ -1613,7 +1599,7 @@ declare interface LastModifiedTimeField extends BaseField {
     /**
      * Timezone string
      */
-    timezone: string
+    timezone: string | null
     /**
      * display_timezone boolean
      */
@@ -1648,10 +1634,6 @@ declare interface UserField extends BaseField {
      * Whether multiple users can be selected
      */
     allow_multiple_users: boolean
-    /**
-     * Whether to notify users when added
-     */
-    notify_user_when_added: boolean
   }
 
   updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.User>): Promise<void>
@@ -1791,7 +1773,24 @@ declare interface ForeignKeyField extends BaseField {
 declare interface LinkToAnotherRecordField extends BaseField {
   readonly type: UITypes.LinkToAnotherRecord
 
-  readonly options: never
+  readonly options: {
+    /**
+     * Type of relation (e.g., 'mm' for many-to-many)
+     * mm: Many-to-Many
+     * hm: Has Many
+     * oo: One-to-One
+     * bt: Belongs To
+     */
+    relation_type: 'mm' | 'hm' | 'oo' | 'bt'
+    /**
+     * ID of related table
+     */
+    related_table_id: string
+    /**
+     * Optional view ID for limiting record selection
+     */
+    limit_record_selection_view_id?: string | null
+  }
 
   updateOptionsAsync(options: never): Promise<void>
 }
@@ -1886,13 +1885,17 @@ declare interface View {
      */
     recordIds?: ReadonlyArray<string>
     /**
-     * Maximum records to return (default: 500)
+     * Maximum records to return (default: 50)
      */
-    limit?: number
+    pageSize?: number
     /**
-     * Number of records to skip
+     * Page number (default: 1)
      */
-    offset?: number
+    page?: number
+    /**
+     * where filter expression
+     */
+    where?: string
   }): Promise<RecordQueryResult>
 
   /**
@@ -2000,13 +2003,17 @@ declare interface Table {
      */
     recordIds?: ReadonlyArray<string>
     /**
-     * Maximum records to return (default: 500)
+     * Maximum records to return (default: 50)
      */
-    limit?: number
+    pageSize?: number
     /**
-     * Number of records to skip
+     * Page number (default: 1)
      */
-    offset?: number
+    page?: number
+    /**
+     * where filter expression
+     */
+    where?: string
   }): Promise<RecordQueryResult>
 
   /**
@@ -2045,10 +2052,10 @@ declare interface Table {
    * Field values can be referenced by either field name or ID.
    * This action is asynchronous.
    *
-   * @param recordId - ID of record to update
+   * @param recordOrRecordId - ID of record to update
    * @param data - New field values
    */
-  updateRecordAsync(recordId: NocoDBRecord | any, data: { [key: string]: unknown }): Promise<void>
+  updateRecordAsync(recordOrRecordId: NocoDBRecord | any, data: { [key: string]: unknown }): Promise<void>
 
   /**
    * Updates field values for multiple records.
@@ -2071,9 +2078,9 @@ declare interface Table {
    * Delete a record.
    * This action is asynchronous.
    *
-   * @param recordIdorRecord - Id or Record
+   * @param recordIdOrRecord - Id or Record
    */
-  deleteRecordAsync(recordIdorRecord: string | NocoDBRecord): Promise<void>;
+  deleteRecordAsync(recordIdOrRecord: string | NocoDBRecord): Promise<void>;
 }
 
 /**
@@ -2378,13 +2385,25 @@ declare interface ConfigItem {}
     return Boolean(field.system)
   }
 
-  private getFieldValueType(field: { type: string; options: any }): string {
+  private getFieldValueType(field: { type: string; options: any }, insertOrUpdate?: boolean): string {
     switch (field.type) {
       case UITypes.ID:
         return 'number'
 
-      case UITypes.LinkToAnotherRecord:
-        return 'Record<string, unknown>[] | Record<string, unknown>'
+      case UITypes.LinkToAnotherRecord: {
+        if (insertOrUpdate) {
+          return `Array<{id: string}>`
+        }
+        const targetTable = this.tables.find((t: any) => t.id === field.options.related_table_id)
+        if (!targetTable) {
+          return 'NocoDBRecord | RecordQueryResult'
+        }
+        if (['oo', 'bt'].includes(field.options.type)) {
+          return `${this.pascalCase((targetTable as any).name, 'table')}Table_Record`
+        } else {
+          return `${this.pascalCase((targetTable as any).name, 'table')}Table_RecordQueryResult`
+        }
+      }
 
       case UITypes.ForeignKey:
         return 'string'
@@ -2421,6 +2440,9 @@ declare interface ConfigItem {}
       case UITypes.Duration:
       case UITypes.Rating:
       case UITypes.Links:
+        if (insertOrUpdate) {
+          return `Array<{id: string}>`
+        }
         return 'number'
 
       case UITypes.Checkbox:
@@ -2428,13 +2450,13 @@ declare interface ConfigItem {}
 
       case UITypes.SingleSelect:
         if (field.options?.choices) {
-          return field.options.choices.map((choice: any) => `'${choice.name}'`).join(' | ')
+          return `${field.options.choices.map((choice: any) => `'${choice.title}'`).join(' | ')} | string | null`
         }
         return 'string | null'
 
       case UITypes.MultiSelect:
         if (field.options?.choices) {
-          const choiceType = field.options.choices.map((choice: any) => `'${choice.name}'`).join(' | ')
+          const choiceType = field.options.choices.map((choice: any) => `'${choice.title}'`).join(' | ')
           return `Array<${choiceType}>`
         }
         return 'Array<string>'
@@ -2558,7 +2580,7 @@ declare interface ConfigItem {}
         date_format: '${field.options?.date_format || ''}',
         time_format: '${field.options?.time_format || ''}',
         ['12hr_format']: ${Boolean(field.options?.['12hr_format'])},
-        timezone: ${Boolean(field.options?.timezone) || 'null'},
+        timezone: ${field.options?.timezone || 'null'},
         display_timezone: ${Boolean(field.options?.display_timezone)},
         use_same_timezone_for_all: ${Boolean(field.options?.use_same_timezone_for_all)}
       }`
@@ -2599,19 +2621,23 @@ declare interface ConfigItem {}
       case UITypes.Formula:
         if (!field.options?.formula) return 'null'
         return `{
-        formula: '${field.options.formula}',
-        result: ${
-          field.options.result
-            ? `{
-          type: ${this.getFieldTypeString(field.options.result.type)},
-          format: ${this.generateFieldOptions({
-            type: field.options.result.type,
-            options: field.options.result.options,
-          })}
+          formula: '${field.options.formula}',
+          result: ${
+            field.options.result
+              ? `{
+                    type: ${this.getFieldTypeString(field.options.result.type)},
+                    format: ${
+                      field.options.result.options
+                        ? this.generateFieldOptions({
+                            type: field.options.result.type,
+                            options: field.options.result.options,
+                          })
+                        : 'null'
+                    }
+                  }`
+              : 'null'
+          }
         }`
-            : 'never'
-        }
-      }`
 
       case UITypes.Lookup:
         return `{
@@ -2662,8 +2688,7 @@ declare interface ConfigItem {}
 
       case UITypes.User:
         return `{
-        allow_multiple_users: ${Boolean(field.options?.allow_multiple_users)},
-        notify_user_when_added: ${Boolean(field.options?.notify_user_when_added)}
+        allow_multiple_users: ${Boolean(field.options?.allow_multiple_users)}
       }`
       case UITypes.Button: {
         const baseOptions = `{
@@ -2863,10 +2888,7 @@ declare interface ConfigItem {}
 
     // Records array
     this.formatJSDoc(['Array of records in this result set'])
-    this.write(`readonly records: ReadonlyArray<{
-      id: string;
-      ${fields.map((field) => `'${field.name}'?: ${this.getFieldValueType(field)}`).join(';\n      ')}
-    }>`)
+    this.write(`readonly records: ReadonlyArray<${recordType}>`)
 
     // getRecord method
     this.formatJSDoc(["Get a specific record in the query result, or throw if that record doesn't exist or was filtered", 'out.'])
@@ -2928,13 +2950,17 @@ declare interface ConfigItem {}
      */
     recordIds?: ReadonlyArray<string>
     /**
-     * Maximum records to return (default: 500)
+     * Maximum records to return (default: 50)
      */
-    limit?: number
+    pageSize?: number
     /**
-     * Number of records to skip
+     * Page number (default: 1)
      */
-    offset?: number
+    page?: number
+    /**
+     * where filter expression
+     */
+    where?: string
   }): Promise<${this.pascalCase(tableName, 'table')}Table_RecordQueryResult>`)
 
     // selectRecordAsync
@@ -2985,36 +3011,58 @@ declare interface ConfigItem {}
     )
 
     this.formatJSDoc([
-      'Select records from the table. This action is asynchronous: you must add `await` before each call to this method.',
+      'Select records from the table. This action is asynchronous.',
+      'Always includes primary key and primary value fields in results.',
     ])
     this.write(`selectRecordsAsync(options?: {
+    /**
+     * Fields to include in results
+     */
+    fields?: ReadonlyArray<Field | string>
+    /**
+     * Sort specifications
+     */
     sorts?: ReadonlyArray<{
       field: Field | string
       direction: 'asc' | 'desc'
     }>
+    /**
+     * Specific record IDs to fetch
+     */
     recordIds?: ReadonlyArray<string>
-    fields?: ReadonlyArray<Field | string | null | undefined>
+    /**
+     * Maximum records to return (default: 50)
+     */
+    pageSize?: number
+    /**
+     * Page number (default: 1)
+     */
+    page?: number
+    /**
+     * where filter expression
+     */
+    where?: string
   }): Promise<${this.pascalCase(tableName, 'table')}Table_RecordQueryResult>`)
 
     // selectRecordAsync
     this.formatJSDoc([
-      'Select a single record from the table. This action is asynchronous: you must add `await` before each call to this method.',
-      'If the specified record cannot be found, `null` will be returned.',
+      'Select a single record from the table. This action is asynchronous.',
+      'Always includes primary key and primary value fields in results.',
     ])
     this.write(`selectRecordAsync(
     recordId: any,
     options?: {
-      fields?: Array<Field | string | null | undefined>
+      fields?: Array<Field | string>
     },
   ): Promise<${this.pascalCase(tableName, 'table')}Table_Record | null>`)
 
-    const generateFieldKeysType = (fields: any[]) => {
+    const generateFieldKeysType = (fields: any[], insertOrUpdate?: boolean) => {
       const fieldKeys = fields
         .filter((f) => !f.system)
         .map(
           (field) =>
-            `['${field.name}']?: ${this.getFieldValueType(field)}
-      ${field.id}?: ${this.getFieldValueType(field)}`,
+            `['${field.name}']?: ${this.getFieldValueType(field, insertOrUpdate)}
+      ${field.id}?: ${this.getFieldValueType(field, insertOrUpdate)}`,
         )
         .join('\n      ')
 
@@ -3031,7 +3079,7 @@ declare interface ConfigItem {}
       '@param data - Record data with field values',
       '@returns ID of created record',
     ])
-    this.write(`createRecordAsync(data: ${generateFieldKeysType(table.fields)}): Promise<string>`)
+    this.write(`createRecordAsync(data: ${generateFieldKeysType(table.fields, true)}): Promise<string>`)
 
     this.formatJSDoc([
       'Creates multiple records with the specified field values.',
@@ -3041,10 +3089,10 @@ declare interface ConfigItem {}
       '@param data - Array of record data',
       '@returns Array of created record IDs',
     ])
-    this.write(`createRecordsAsync(data: Array<${generateFieldKeysType(table.fields)}>): Promise<string[]>`)
+    this.write(`createRecordsAsync(data: Array<${generateFieldKeysType(table.fields, true)}>): Promise<string[]>`)
 
     this.formatJSDoc([
-      'Updates cell values for a record.',
+      'Updates field values for a record.',
       'Field values can be referenced by either field name or ID.',
       'This action is asynchronous.',
       '',
@@ -3056,18 +3104,20 @@ declare interface ConfigItem {}
       `updateRecordAsync(recordOrRecordId:  ${this.pascalCase(
         tableName,
         'table',
-      )}Table_Record | any, data: ${generateFieldKeysType(table.fields)}): Promise<void>`,
+      )}Table_Record | any, data: ${generateFieldKeysType(table.fields, true)}): Promise<void>`,
     )
 
     this.formatJSDoc([
-      'Updates cell values for multiple records.',
+      'Updates field values for multiple records.',
       'Field values can be referenced by either field name or ID.',
       'This action is asynchronous.',
       '',
       '@param data - Array of record updates',
     ])
 
-    this.write(`updateRecordsAsync(data: Array<{id: string, fields: ${generateFieldKeysType(table.fields)}}>): Promise<void>`)
+    this.write(
+      `updateRecordsAsync(data: Array<{id: string, fields: ${generateFieldKeysType(table.fields, true)}}>): Promise<void>`,
+    )
 
     this.formatJSDoc([
       'Delete a record from the table.',
@@ -3334,6 +3384,7 @@ declare interface ConfigItem {}
     this.write()
 
     // input.buttonAsync
+
     this.formatJSDoc([
       `Prompts the user to choose from a list of string options.`,
       `@param label - A label explaining what the user is choosing`,
@@ -3403,8 +3454,8 @@ declare interface ConfigItem {}
       `@param label - A label explaining what file being requested`,
       `@param options - Options for file import`,
       `@param options.allowedFileTypes - Which file types can be imported (e.g. '.xlsx', 'application/json', 'image/*')`,
-      `@param options.hasHeaderRow - For csv files, whether first row contains headers`,
-      `@param options.useRawValues - For csv files, whether to return raw string values`,
+      `@param options.hasHeaderRow - For spreadsheets, whether first row contains headers`,
+      `@param options.useRawValues - For csv, whether to return raw string values`,
     ])
     this.write(`fileAsync(label: string, options?: {
  /** If provided, restricts allowed file types (e.g. '.xlsx', 'application/json', 'image/*') */
@@ -3536,7 +3587,6 @@ declare interface ConfigItem {}
     this.write(`recordAsync(label: string, source: Table | View | RecordQueryResult | ReadonlyArray<Record>, options?: {`)
     this.indent_in()
     this.write(`fields?: ReadonlyArray<Field | string;`)
-    this.write(`shouldAllowCreatingRecord?: boolean;`)
     this.indent_out()
     this.write(`}): Promise<Record | null>;`)
 
@@ -3555,19 +3605,16 @@ declare interface ConfigItem {}
       ])
       this.write(`recordAsync(label: string, source: ${tableName}Table, options?: {
    fields?: ReadonlyArray<${fieldTypes}>;
-   shouldAllowCreatingRecord?: boolean;
  }): Promise<${tableName}Table_Record | null>;`)
       this.write()
 
       this.write(`recordAsync(label: string, source: ReadonlyArray<${tableName}Table_Record>, options?: {
    fields?: ReadonlyArray<${fieldTypes}>;
-   shouldAllowCreatingRecord?: boolean;
  }): Promise<${tableName}Table_Record | null>;`)
       this.write()
 
       this.write(`recordAsync(label: string, source: ${tableName}Table_RecordQueryResult, options?: {
    fields?: ReadonlyArray<${fieldTypes}>;
-   shouldAllowCreatingRecord?: boolean;
  }): Promise<${tableName}Table_Record | null>;`)
       this.write()
 
@@ -3575,7 +3622,6 @@ declare interface ConfigItem {}
         const viewName = this.pascalCase(view.name, 'view')
         this.write(`recordAsync(label: string, source: ${tableName}Table_${viewName}View, options?: {
     fields?: ReadonlyArray<${fieldTypes}>;
-    shouldAllowCreatingRecord?: boolean;
   }): Promise<${tableName}Table_Record | null>;`)
         this.write()
       }
@@ -3586,6 +3632,7 @@ declare interface ConfigItem {}
   }
 
   generateTypes(schema: any): string {
+    this.tables = schema.tables
     for (const table of schema.tables) {
       this.write(`// Field interfaces for table: ${table.name}`)
       for (const field of table.fields) {

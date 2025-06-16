@@ -12,7 +12,7 @@ const indicator = h(LoadingOutlined, {
   spin: true,
 })
 
-const showCode = ref(false)
+const showCode = ref(true)
 </script>
 
 <template>

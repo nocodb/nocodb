@@ -9,9 +9,7 @@
     "url": "https://nocodb.com/"
   },
   "homepage": "https://github.com/nocodb/nocodb",
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

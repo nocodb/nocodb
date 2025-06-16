@@ -134,7 +134,6 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
 async function changeScript(script: ScriptType) {
   ncNavigateTo({
     workspaceId: activeWorkspaceId.value,
-    automation: true,
     baseId: baseId.value,
     automationId: script.id,
   })

@@ -46,7 +46,6 @@ const openAutomations = () => {
 
   ncNavigateTo({
     workspaceId: activeWorkspaceId.value ?? 'nc',
-    automation: true,
     baseId: baseId.value,
   })
 }

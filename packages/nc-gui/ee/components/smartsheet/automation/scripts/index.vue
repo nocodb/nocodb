@@ -31,12 +31,12 @@ async function setupMonacoEditor() {
 
   monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
     noSemanticValidation: false,
-    diagnosticCodesToIgnore: [1375, 1378, 2451, 6385],
+    diagnosticCodesToIgnore: [1375, 1378, 2451, 6385, 1108],
     noSyntaxValidation: false,
   })
 
   monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-    target: monaco.languages.typescript.ScriptTarget.ES2016,
+    target: monaco.languages.typescript.ScriptTarget.ESNext,
     allowNonTsExtensions: true,
     noLib: false,
     strictFunctionTypes: true,

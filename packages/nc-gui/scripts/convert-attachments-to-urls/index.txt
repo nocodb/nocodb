@@ -1,0 +1,97 @@
+/**
+ * Convert attachments to URLs
+ * 
+ * Outputs comma-separated URLs for all attachments and writes them to another field for each record.
+ * Can be used for sending URLs to third-party integration services.
+ */
+
+// Script configuration - allows users to select table, view, and fields
+const config = await input.config({
+  title: '📎 Convert attachments to URLs',
+  description: 'Output comma-separated URLs for all attachments and write to another field for each record. Can be used for sending URLs to third-party integration services.',
+  items: [
+    input.config.table('selectedTable', {
+      label: 'Table',
+      description: 'Select a table with records that have attachments you want URLs for',
+    }),
+    input.config.field('selectedField', {
+      label: 'Attachment field from the selected table',
+      parentTable: 'selectedTable',
+      description: 'Select the attachment field from the table above you want URLs for'
+    }),
+    input.config.view('selectedView', {
+      label: 'View from the selected table',
+      parentTable: 'selectedTable',
+    }),
+    input.config.field('fieldToEdit', {
+      label: 'Field to output the attachment URLs to',
+      parentTable: 'selectedTable',
+      description: 'A long text field is recommended. A comma-separated list of URLs will be generated here'
+    })
+  ]
+});
+
+// Assign selections to variables for the script
+const selectedTable = config.selectedTable;
+const selectedField = config.selectedField;
+const selectedView = config.selectedView;
+const fieldToEdit = config.fieldToEdit;
+
+/**
+ * Main function to convert attachments to URLs
+ */
+async function convertAttachmentsToUrls() {
+  // Verify the selected field is an attachment field
+  if (selectedField.type !== UITypes.Attachment) {
+    output.text(`"${selectedField.name}" is not an attachment field. Run the script again with an attachment field.`, 'error');
+    return;
+  }
+
+  // Load records from the selected view
+  const query = await selectedView.selectRecordsAsync({
+    fields: [selectedField]
+  });
+  
+  // Get all records
+  const records = query.records;
+  
+  // Array for records with attachments and their URLs
+  const recordsToUpdate = [];
+
+  // Process each record
+  for (let i = 0; i < records.length; i++) {
+    const record = records[i];
+    const attachments = record.getCellValue(selectedField);
+    
+    // Only process records with attachments
+    if (attachments && attachments.length > 0) {
+      // Extract URLs from attachments
+      const attachmentUrls = attachments.map(attachment => attachment.url);
+      const urlString = attachmentUrls.join(', ');
+      
+      // Add to update array
+      recordsToUpdate.push({
+        id: record.id,
+        fields: {
+          [fieldToEdit.name]: urlString
+        }
+      });
+    }
+  }
+
+  // Update records in batches of 50
+  while (recordsToUpdate.length > 0) {
+    const batch = recordsToUpdate.slice(0, 50);
+    await selectedTable.updateRecordsAsync(batch);
+    recordsToUpdate.splice(0, 50);
+    
+    // Show progress
+    output.text(`Updated ${Math.min(50, batch.length)} records...`);
+  }
+}
+
+// Run the script
+await convertAttachmentsToUrls();
+
+// Output message to indicate when the script is done
+output.text('Records have been updated with attachment URLs', 'success');

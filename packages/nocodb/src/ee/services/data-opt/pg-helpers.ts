@@ -229,6 +229,7 @@ export async function extractColumn({
           listArgs?.sort,
           aliasColObjMap,
           throwErrorIfInvalidParams,
+          apiVersion,
         );
         const { filters: queryFilterObj } = extractFilterFromXwhere(
           refContext,
@@ -1596,6 +1597,7 @@ export async function singleQueryList(
     listArgs?.sort,
     aliasColObjMap,
     ctx.throwErrorIfInvalidParams,
+    ctx.apiVersion,
   );
   const { filters: queryFilterObj } = extractFilterFromXwhere(
     context,

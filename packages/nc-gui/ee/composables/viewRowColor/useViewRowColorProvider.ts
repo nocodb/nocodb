@@ -21,7 +21,7 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
    * Reload row color info
    * @returns void
    */
-  const reloadRowColorInfo = async () => {
+  const reloadRowColorInfo = async (isViewChange: boolean = false) => {
     clearRowColouringCache()
 
     if (!viewId.value) return
@@ -32,7 +32,12 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
 
     eventBus.emit(SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE)
 
-    if (!rowColorInfoResponse) return
+    if (!rowColorInfoResponse) {
+      if (isViewChange) {
+        activeViewRowColorInfo.value = defaultRowColorInfo
+      }
+      return
+    }
 
     activeViewRowColorInfo.value = rowColorInfoResponse
 
@@ -60,7 +65,7 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
   watch(
     () => viewId.value,
     () => {
-      reloadRowColorInfo()
+      reloadRowColorInfo(true)
     },
     { immediate: true },
   )

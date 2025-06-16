@@ -90,8 +90,8 @@ watch(open, (value) => {
             <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
               {{ $t('general.colour') }}
             </span>
-            <span v-if="rowColoringCount" class="bg-brand-50 text-brand-500 nc-toolbar-btn-chip">{{ rowColoringCount }}</span>
           </div>
+          <span v-if="rowColoringCount" class="bg-brand-50 text-brand-500 nc-toolbar-btn-chip">{{ rowColoringCount }}</span>
         </div>
       </NcButton>
     </NcTooltip>

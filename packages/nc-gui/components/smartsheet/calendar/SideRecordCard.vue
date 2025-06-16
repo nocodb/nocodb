@@ -21,7 +21,10 @@ const rowColorInfo = computed(() => {
 </script>
 
 <template>
-  <div class="border-1 cursor-pointer h-12.5 border-gray-200 flex gap-2 flex-col rounded-lg" :style="rowColorInfo.rowBgColor">
+  <div
+    class="border-1 cursor-pointer h-12.5 flex-none border-gray-200 flex gap-2 flex-col rounded-lg overflow-hidden"
+    :style="rowColorInfo.rowBgColor"
+  >
     <div class="flex relative items-center gap-2">
       <span
         :class="{
@@ -33,7 +36,7 @@ const rowColorInfo = computed(() => {
           'bg-purple-500': props.color === 'purple',
           'bg-gray-900': color === 'gray',
         }"
-        class="block h-12 w-1 rounded-l-lg"
+        class="block h-12 w-1"
         :style="rowColorInfo.rowLeftBorderColor"
       ></span>
       <slot name="image" />

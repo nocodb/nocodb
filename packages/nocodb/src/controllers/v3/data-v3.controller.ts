@@ -60,7 +60,7 @@ export class Datav3Controller {
     res.json(responseData);
   }
 
-  @Post([`${PREFIX_APIV3_DATA}/:modelId/records`])
+  @Post(`${PREFIX_APIV3_DATA}/:modelId/records`)
   @HttpCode(200)
   @Acl('dataInsert')
   async dataInsert(
@@ -79,7 +79,7 @@ export class Datav3Controller {
     });
   }
 
-  @Delete([`${PREFIX_APIV3_DATA}/:modelId/records`])
+  @Delete(`${PREFIX_APIV3_DATA}/:modelId/records`)
   @Acl('dataDelete')
   async dataDelete(
     @TenantContext() context: NcContext,
@@ -99,7 +99,7 @@ export class Datav3Controller {
     });
   }
 
-  @Patch([`${PREFIX_APIV3_DATA}/:modelId/records`])
+  @Patch(`${PREFIX_APIV3_DATA}/:modelId/records`)
   @Acl('dataUpdate')
   async dataUpdate(
     @TenantContext() context: NcContext,
@@ -117,7 +117,7 @@ export class Datav3Controller {
     });
   }
 
-  @Get([`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`])
+  @Get(`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`)
   @Acl('nestedDataList')
   async nestedDataList(
     @TenantContext() context: NcContext,
@@ -138,7 +138,7 @@ export class Datav3Controller {
     });
   }
 
-  @Post([`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`])
+  @Post(`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`)
   @HttpCode(200)
   @Acl('nestedDataLink')
   async nestedLink(
@@ -149,27 +149,20 @@ export class Datav3Controller {
     @Query('view_id') viewId: string,
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
-    @Body()
-    refRowIds:
-      | string
-      | string[]
-      | number
-      | number[]
-      | Record<string, any>
-      | Record<string, any>[],
+    @Body() body: Array<{ id: string }>,
   ) {
-    return await this.dataTableService.nestedLink(context, {
+    return await this.dataV3Service.nestedLink(context, {
       modelId,
       rowId: rowId,
       query: req.query,
       viewId,
       columnId,
-      refRowIds,
+      refRowIds: body,
       cookie: req,
     });
   }
 
-  @Delete([`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`])
+  @Delete(`${PREFIX_APIV3_DATA}/:modelId/links/:columnId/:rowId`)
   @Acl('nestedDataUnlink')
   async nestedUnlink(
     @TenantContext() context: NcContext,
@@ -179,21 +172,20 @@ export class Datav3Controller {
     @Query('view_id') viewId: string,
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
-    @Body()
-    refRowIds: string | string[] | number | number[] | Record<string, any>,
+    @Body() body: Array<{ id: string }>,
   ) {
-    return await this.dataTableService.nestedUnlink(context, {
+    return await this.dataV3Service.nestedUnlink(context, {
       modelId,
       rowId: rowId,
       query: req.query,
       viewId,
       columnId,
-      refRowIds,
+      refRowIds: body,
       cookie: req,
     });
   }
 
-  @Get([`${PREFIX_APIV3_DATA}/:modelId/count`])
+  @Get(`${PREFIX_APIV3_DATA}/:modelId/count`)
   @Acl('dataCount')
   async dataCount(
     @TenantContext() context: NcContext,
@@ -213,7 +205,7 @@ export class Datav3Controller {
     res.json(countResult);
   }
 
-  @Get([`${PREFIX_APIV3_DATA}/:modelId/records/:rowId`])
+  @Get(`${PREFIX_APIV3_DATA}/:modelId/records/:rowId`)
   @Acl('dataRead')
   async dataRead(
     @TenantContext() context: NcContext,
@@ -222,7 +214,7 @@ export class Datav3Controller {
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
     @Param('rowId') rowId: string,
-  ): Promise<DataRecord> {
+  ): Promise<{ record: DataRecord }> {
     return await this.dataV3Service.dataRead(context, {
       modelId,
       rowId: rowId,

@@ -215,7 +215,9 @@ describe('dataApiV3', () => {
         const response = await ncAxiosGet({
           url: `${urlPrefix}/${testContext.countryTable.id}/records`,
           query: {
-            sort: 'NotFoundField',
+            sort: JSON.stringify([
+              { direction: 'asc', field: 'NotFoundField' },
+            ]),
           },
           status: 422,
         });

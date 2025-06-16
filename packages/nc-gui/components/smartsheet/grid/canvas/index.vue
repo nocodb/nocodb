@@ -754,7 +754,7 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
 
   const initialX = currentX
 
-  const rowColouringBorderWidthWithPadding = rowColouringBorderWidth.value + 4
+  const rowColouringBoxTotalWidth = rowColouringBorderWidth.value ? rowColouringBorderWidth.value + 8 : 0
 
   if (readOnly.value || !(isHover || isChecked || isRowCellSelected)) {
     regions.push({
@@ -794,11 +794,11 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
     const ctx = defaultOffscreen2DContext
 
     const { width: commentCountWidth } = renderSingleLineText(ctx, {
-      x: initialX + rowMetaColumnWidth.value / 2 - 4 - rowColouringBorderWidthWithPadding,
+      x: initialX + rowMetaColumnWidth.value / 2 - 4 - rowColouringBoxTotalWidth,
       y: 0,
       render: false,
       text: commentCount,
-      maxWidth: rowMetaColumnWidth.value / 2 - rowColouringBorderWidthWithPadding,
+      maxWidth: rowMetaColumnWidth.value / 2 - rowColouringBoxTotalWidth,
       fontFamily: `600 ${reduceFontSize ? '10px' : '12px'} Inter`,
       textAlign: 'center',
       isTagLabel: true,
@@ -806,13 +806,13 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
     })
 
     regions.push({
-      x: initialX + rowMetaColumnWidth.value - 4 - Math.max(20, commentCountWidth + 8) - rowColouringBorderWidthWithPadding,
+      x: initialX + rowMetaColumnWidth.value - 4 - Math.max(20, commentCountWidth + 8) - rowColouringBoxTotalWidth,
       width: Math.max(20, commentCountWidth + 8),
       action: 'comment',
     })
   } else {
     regions.push({
-      x: initialX + rowMetaColumnWidth.value - 4 - 20 - rowColouringBorderWidthWithPadding,
+      x: initialX + rowMetaColumnWidth.value - 4 - 20 - rowColouringBoxTotalWidth,
       width: 20,
       action: 'comment',
     })

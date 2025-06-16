@@ -229,12 +229,44 @@ export const useScriptExecutor = createSharedComposable(() => {
             body: message.payload?.options?.body || null,
             url: message.payload.url,
           })
-          .then((c: any) => {
+          .then((response: any) => {
+            const isError = response.error || (response.status >= 400 && response.status < 600)
+
             worker.postMessage({
               type: ActionType.REMOTE_FETCH,
               payload: {
                 id: message.payload.id,
-                value: c,
+                value: response,
+                error: isError,
+              },
+            })
+          })
+          .catch((e: any) => {
+            const errorResponse = {
+              data: null,
+              status: 0,
+              statusText: 'Network Error',
+              headers: {},
+              config: {
+                url: message.payload.url,
+                method: message.payload?.options?.method || 'GET',
+                headers: message.payload?.options?.headers || {},
+                data: message.payload?.options?.body || null,
+              },
+              error: {
+                message: e.message || 'Unknown error',
+                code: e.code,
+                name: e.name || 'Error',
+                stack: e.stack,
+              },
+            }
+
+            worker.postMessage({
+              type: ActionType.REMOTE_FETCH,
+              payload: {
+                id: message.payload.id,
+                value: errorResponse,
+                error: true,
               },
             })
           })

@@ -59,14 +59,33 @@ declare interface NcFile extends NcBlob {
  readonly name: string;
 }
 
-declare function remoteFetchAsync(
+interface RemoteFetchResponse<T = any> {
+  data: T;
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  config: {
+    url: string;
+    method: string;
+    headers: Record<string, string>;
+    data: any;
+  };
+  error?: {
+    message: string;
+    code?: string;
+    name: string;
+    stack?: string;
+  };
+}
+
+declare function remoteFetchAsync<T = any>(
   url: string,
   options?: {
-    method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS'
     headers?: Record<string, string>
     body?: string | null
   },
-): Promise<any>
+): Promise<RemoteFetchResponse<T>>
 
 declare const output: {
   text: (message: string | number | boolean | null, type?: 'log' | 'error' | 'warning') => void
@@ -865,12 +884,17 @@ declare interface BaseField {
   /**
    * Whether this field is the primary key. Null if not applicable.
    */
-  // readonly primary_key: boolean | null
+   readonly primary_key: boolean | null
 
   /**
    * Whether this field is the primary value display field. Null if not applicable.
    */
-  // readonly primary_value: boolean | null
+   readonly primary_value: boolean | null
+   
+  /**
+   * Whether this field is a system field
+   */
+   readonly is_system_field: boolean
 
   /**
    * Optional description of the field.
@@ -2930,9 +2954,13 @@ declare interface ConfigItem {}
      */
     pageSize?: number
     /**
-     * Page Number (default: 1)
+     * Page number (default: 1)
      */
     page?: number
+    /**
+     * where filter expression
+     */
+    where?: string
   }): Promise<${this.pascalCase(tableName, 'table')}Table_RecordQueryResult>`)
 
     // selectRecordAsync
@@ -2983,29 +3011,48 @@ declare interface ConfigItem {}
     )
 
     this.formatJSDoc([
-      'Select records from the table. This action is asynchronous: you must add `await` before each call to this method.',
+      'Select records from the table. This action is asynchronous.',
+      'Always includes primary key and primary value fields in results.',
     ])
     this.write(`selectRecordsAsync(options?: {
+    /**
+     * Fields to include in results
+     */
+    fields?: ReadonlyArray<Field | string>
+    /**
+     * Sort specifications
+     */
     sorts?: ReadonlyArray<{
       field: Field | string
       direction: 'asc' | 'desc'
     }>
+    /**
+     * Specific record IDs to fetch
+     */
     recordIds?: ReadonlyArray<string>
-    fields?: ReadonlyArray<Field | string | null | undefined>
+    /**
+     * Maximum records to return (default: 50)
+     */
     pageSize?: number
+    /**
+     * Page number (default: 1)
+     */
     page?: number
+    /**
+     * where filter expression
+     */
     where?: string
   }): Promise<${this.pascalCase(tableName, 'table')}Table_RecordQueryResult>`)
 
     // selectRecordAsync
     this.formatJSDoc([
-      'Select a single record from the table. This action is asynchronous: you must add `await` before each call to this method.',
-      'If the specified record cannot be found, `null` will be returned.',
+      'Select a single record from the table. This action is asynchronous.',
+      'Always includes primary key and primary value fields in results.',
     ])
     this.write(`selectRecordAsync(
     recordId: any,
     options?: {
-      fields?: Array<Field | string | null | undefined>
+      fields?: Array<Field | string>
     },
   ): Promise<${this.pascalCase(tableName, 'table')}Table_Record | null>`)
 
@@ -3045,7 +3092,7 @@ declare interface ConfigItem {}
     this.write(`createRecordsAsync(data: Array<${generateFieldKeysType(table.fields, true)}>): Promise<string[]>`)
 
     this.formatJSDoc([
-      'Updates cell values for a record.',
+      'Updates field values for a record.',
       'Field values can be referenced by either field name or ID.',
       'This action is asynchronous.',
       '',
@@ -3061,7 +3108,7 @@ declare interface ConfigItem {}
     )
 
     this.formatJSDoc([
-      'Updates cell values for multiple records.',
+      'Updates field values for multiple records.',
       'Field values can be referenced by either field name or ID.',
       'This action is asynchronous.',
       '',

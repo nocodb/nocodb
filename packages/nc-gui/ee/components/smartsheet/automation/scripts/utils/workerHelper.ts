@@ -160,7 +160,7 @@ function generateV3ToV2Converter() {
              data.id !== undefined && 
              data.fields !== undefined;
     };
-  `;
+  `
 }
 
 function generalHelpers() {
@@ -1192,6 +1192,18 @@ Object.freeze(UITypes);
     async createRecordsAsync(data) {
       const insertObjs = []
       
+      if (!Array.isArray(data)) {
+        throw new Error('Data must be an array');
+      }
+      
+      if (data.length === 0) {
+        throw new Error('Data must not be empty');
+      }
+      
+      if (data.length > 10) {
+        throw new Error('Data must not be greater than 10');
+      }
+      
       for(const record of data) {
         const recordData = {};
         for (const field of this.fields) {
@@ -1412,18 +1424,37 @@ const api = new Proxy({}, {
 function generateRemoteFetch(): string {
   return `
     const remoteFetchAsync = async (url, options) => {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         const id = Math.random().toString(36).substr(2, 9);
         self.postMessage({ 
           type: '${ActionType.REMOTE_FETCH}', 
           payload: { url, options, id } 
         });
-        
-        
         self.addEventListener('message', function handler(event) {
           if (event.data.type === '${ActionType.REMOTE_FETCH}' && event.data.payload.id === id) {
             self.removeEventListener('message', handler);
-            resolve(event.data.payload.value);
+            
+            const response = event.data.payload.value;
+            const isError = event.data.payload.error;
+            
+            if (isError) {
+              // Create an error object that mimics axios error structure
+              const error = new Error(response.error?.message || 'Request failed');
+              error.response = {
+                data: response.data,
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers,
+                config: response.config
+              };
+              error.config = response.config;
+              error.code = response.error?.code;
+              error.name = response.error?.name || 'AxiosError';
+              
+              reject(error);
+              return;
+            }
+            resolve(response);
           }
         });
       })
@@ -1750,10 +1781,10 @@ function generateConsoleOverride(): string {
 function generateOutput(): string {
   return `
     const output = {
-      text: (message, type = 'log') => {
+      text: (message) => {
         self.postMessage({ 
           type: '${ActionType.OUTPUT}', 
-          payload: { message: JSON.stringify({ action: 'text', args: [message, type] }) } 
+          payload: { message: JSON.stringify({ action: 'text', args: [message] }) } 
         });
       },
       markdown: (content) => {

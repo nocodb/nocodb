@@ -335,12 +335,46 @@ export class IntegrationsController {
         method,
         headers,
         data: reqBody,
+        validateStatus: () => true,
       });
 
-      return response.data;
+      return {
+        data: response.data,
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+        config: {
+          url: response.config.url,
+          method: response.config.method,
+          headers: response.config.headers,
+          data: response.config.data,
+        },
+      };
     } catch (e) {
-      console.error(e);
-      throw e;
+      const errorResponse = {
+        data: null,
+        status: e.response?.status || 0,
+        statusText: e.response?.statusText || 'Network Error',
+        headers: e.response?.headers || {},
+        config: {
+          url: e.config?.url || body.url,
+          method: e.config?.method || body.method,
+          headers: e.config?.headers || body.headers,
+          data: e.config?.data || body.body,
+        },
+        error: {
+          message: e.message,
+          code: e.code,
+          name: e.name,
+          stack: e.stack,
+        },
+      };
+
+      if (e.response?.data) {
+        errorResponse.data = e.response.data;
+      }
+
+      return errorResponse;
     }
   }
 }

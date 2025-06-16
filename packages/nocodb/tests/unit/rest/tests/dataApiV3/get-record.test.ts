@@ -31,7 +31,7 @@ describe('dataApiV3', () => {
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}/${testContext.sakilaProject.id}`;
+      urlPrefix = `/api/${API_VERSION}/data/${testContext.sakilaProject.id}`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -93,7 +93,7 @@ describe('dataApiV3', () => {
         table = initResult.table;
         columns = initResult.columns;
         insertedRecords = initResult.insertedRecords;
-        textBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        textBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
       it('Read: all fields', async function () {
         await ncAxiosGet({

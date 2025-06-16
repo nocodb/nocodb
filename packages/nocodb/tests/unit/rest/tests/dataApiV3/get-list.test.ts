@@ -49,7 +49,7 @@ describe('dataApiV3', () => {
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}/${testContext.sakilaProject.id}`;
+      urlPrefix = `/api/${API_VERSION}/data/${testContext.sakilaProject.id}`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -253,7 +253,7 @@ describe('dataApiV3', () => {
           ...columns,
         ];
         insertedRecords = initResult.insertedRecords;
-        textBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        textBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
 
       it('List: default', async function () {
@@ -831,7 +831,7 @@ describe('dataApiV3', () => {
             { column_name: 'f,Decimal', uidt: UITypes.Number },
           ],
         });
-        numberBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        numberBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
         await createBulkRowsV3(testContext.context, {
           base: testContext.base,
           table: table,

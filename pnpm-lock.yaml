@@ -227,8 +227,8 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0(antlr4ng-cli@1.0.7)
       nocodb-sdk:
-        specifier: workspace:^
-        version: link:../nocodb-sdk
+        specifier: 0.263.8
+        version: 0.263.8(debug@4.4.1)
       papaparse:
         specifier: ^5.5.2
         version: 5.5.3
@@ -829,11 +829,11 @@ importers:
         specifier: ^3.3.8
         version: 3.3.11
       nc-lib-gui:
-        specifier: 0.263.7
-        version: 0.263.7
+        specifier: 0.263.8
+        version: 0.263.8
       nocodb-sdk:
-        specifier: workspace:^
-        version: link:../nocodb-sdk
+        specifier: 0.263.8
+        version: 0.263.8(debug@4.4.1)
       nodemailer:
         specifier: ^6.10.0
         version: 6.10.1
@@ -11001,8 +11001,8 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  nc-lib-gui@0.263.7:
-    resolution: {integrity: sha512-nkfmSySqmn/yVjWh5dQGyDdagQWgqWYM1DErzf6N7fxv/tQHueeWOESz17rPpZt01ewHi1ClOJRPGANOT0iVIQ==}
+  nc-lib-gui@0.263.8:
+    resolution: {integrity: sha512-BD51v9f5elidB7VEDWg7BIwihuECPao2qwTZyJQEOZeWVLIgQmYwTFGKxyF9cCKL1flkXCJRogJf3fVTKX/vjA==}
 
   negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
@@ -11056,6 +11056,10 @@ packages:
     peerDependenciesMeta:
       xml2js:
         optional: true
+
+  nocodb-sdk@0.263.8:
+    resolution: {integrity: sha512-FQU8pGnluA4fQHoSUwfx1q5xa/J6dGzq1efvCs6lNDJELogY0vt94G6CiZHLojF0KAo6fQKPWqG7W06whTEzuA==}
+    engines: {node: '>=18'}
 
   node-abi@3.75.0:
     resolution: {integrity: sha512-OhYaY5sDsIka7H7AtijtI9jwGYLyl29eQn/W623DiN/MIv5sUqc4g7BIDThX+gb7di9f6xK02nkp8sdfFWZLTg==}
@@ -27012,7 +27016,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  nc-lib-gui@0.263.7:
+  nc-lib-gui@0.263.8:
     dependencies:
       express: 4.21.2
     transitivePeerDependencies:
@@ -27166,6 +27170,16 @@ snapshots:
       - sqlite3
       - supports-color
       - uploadthing
+
+  nocodb-sdk@0.263.8(debug@4.4.1):
+    dependencies:
+      axios: 1.9.0(debug@4.4.1)
+      chevrotain: 10.5.0
+      dayjs: 1.11.13
+      jsep: 1.4.0
+      validator: 13.15.15
+    transitivePeerDependencies:
+      - debug
 
   node-abi@3.75.0:
     dependencies:

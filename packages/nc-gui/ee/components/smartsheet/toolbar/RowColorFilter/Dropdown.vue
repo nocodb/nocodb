@@ -80,7 +80,10 @@ watch(open, (value) => {
         v-e="['c:coloring']"
         type="secondary"
         size="small"
-        class="nc-coloring-menu-btn nc-toolbar-btn !border-0 !h-7 !bg-nc-bg-maroon-light !hover:bg-nc-bg-maroon-dark group"
+        class="nc-coloring-menu-btn nc-toolbar-btn !border-0 !h-7 group"
+        :class="{
+          '!bg-nc-bg-maroon-light !hover:bg-nc-bg-maroon-dark': rowColoringMode,
+        }"
         :show-as-disabled="isLocked"
       >
         <div class="flex items-center gap-1 min-h-5">

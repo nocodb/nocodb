@@ -58,6 +58,10 @@ const rowColoringCount = computed(() => {
   return rowColorInfo.value?.conditions?.length || 0
 })
 
+const selectColumns = computed(() => {
+  return (meta?.value?.columns || []).filter((c) => c.uidt === UITypes.SingleSelect)
+})
+
 watch(open, (value) => {
   if (!value) {
     clearRowColouringCache()
@@ -106,12 +110,13 @@ watch(open, (value) => {
       <SmartsheetToolbarRowColorFilterTypeOption
         v-model:row-coloring-mode="rowColoringMode"
         v-model:is-open="open"
+        :columns="selectColumns"
         @change="onChangeRowColoringMode"
       >
         <template #select>
           <SmartsheetToolbarRowColorFilterUsingSingleSelectPanel
             v-model="rowColorInfo"
-            :columns="meta?.columns.filter((k) => k.uidt === UITypes.SingleSelect)"
+            :columns="selectColumns"
             :filter-per-view-limit="filterPerViewLimit"
             @change="onRowColorSelectChange"
             @remove="onRemoveRowColoringMode"

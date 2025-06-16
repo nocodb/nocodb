@@ -1,15 +1,23 @@
 <script lang="ts" setup>
-import { ROW_COLORING_MODE } from 'nocodb-sdk'
+import { ROW_COLORING_MODE, type ColumnType } from 'nocodb-sdk'
 import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
+import type { NcListItemType } from '../../../../../components/nc/List/index.vue'
 
 interface Props {
   rowColoringMode?: ROW_COLORING_MODE
   isOpen?: boolean
+  columns?: ColumnType[]
 }
 
 interface Emits {
   (event: 'update:rowColoringMode', model: ROW_COLORING_MODE): void
   (event: 'change', model: ROW_COLORING_MODE): void
+}
+
+interface ListOptionType extends NcListItemType {
+  description: string
+  icon: IconMapKey
+  value: ROW_COLORING_MODE
 }
 
 const props = defineProps<Props>()
@@ -18,6 +26,8 @@ const emits = defineEmits<Emits>()
 const rowColoringModeVModel = useVModel(props, 'rowColoringMode', emits)
 
 const isOpenVModel = useVModel(props, 'isOpen', emits)
+
+const { columns } = toRefs(props)
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -35,21 +45,25 @@ const chooseOption = (option: ROW_COLORING_MODE) => {
   emits('change', option)
 }
 
-const listOptions: { label: string; description: string; icon: IconMapKey; value: ROW_COLORING_MODE }[] = [
+const isOptionsDisabled = computed(() => isLocked.value || !hasPermission.value)
+
+const listOptions = computed<ListOptionType[]>(() => [
   {
     label: t('objects.coloring.usingSingleSelectField'),
     description: t('objects.coloring.usingSingleSelectFieldDescription'),
-    icon: 'singleSelect',
+    icon: 'cellSingleSelect',
     value: ROW_COLORING_MODE.SELECT,
+    ncItemDisabled: !columns.value?.length || isOptionsDisabled.value,
+    ncItemTooltip: !columns.value?.length ? t('objects.coloring.usingSingleSelectFieldTooltip') : '',
   },
-
   {
     label: t('objects.coloring.usingConditions'),
     description: t('objects.coloring.usingConditionsDescription'),
     icon: 'ncConditions',
     value: ROW_COLORING_MODE.FILTER,
+    ncItemDisabled: isOptionsDisabled.value,
   },
-]
+])
 </script>
 
 <template>
@@ -72,7 +86,7 @@ const listOptions: { label: string; description: string; icon: IconMapKey; value
           :close-on-select="false"
           stop-propagation-on-item-click
           item-class-name="!px-4"
-          :is-locked="isLocked || !hasPermission"
+          :is-locked="isOptionsDisabled"
           @update:value="chooseOption"
         >
           <template #listItem="{ option }">

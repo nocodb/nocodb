@@ -576,6 +576,7 @@
     "coloring": {
       "usingSingleSelectField": "Using Single select field",
       "usingSingleSelectFieldDescription": "Colour records based on single select field",
+      "usingSingleSelectFieldTooltip": "There is no single select field. Add to configure colouring using single select field.",
       "usingConditions": "Using Conditions",
       "usingConditionsDescription": "Colour records based on conditions"
     }

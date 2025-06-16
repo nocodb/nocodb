@@ -20,7 +20,7 @@ import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
 import { DataTableService } from '~/services/data-table.service';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { QUERY_STRING_FIELD_ID_ON_RESULT } from 'src/constants';
+import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 
 const V3_INSERT_LIMIT = 10;
 
@@ -210,7 +210,6 @@ export class DataV3Service {
       id: recordPrimaryKeyValue,
       fields: transformedFields,
     };
-
     return result;
   }
 
@@ -284,6 +283,8 @@ export class DataV3Service {
       requestedFields: requestedFields,
       columns: columns,
       nestedLimit: nestedLimit,
+      skipSubstitutingColumnIds:
+        param.query[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
     });
 
     // Check if any LTAR fields were truncated
@@ -479,7 +480,7 @@ export class DataV3Service {
         columns: columns,
         nestedLimit: undefined,
         skipSubstitutingColumnIds:
-          param.cookie?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+          param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
       }),
     };
   }
@@ -505,7 +506,9 @@ export class DataV3Service {
     const { primaryKey } = await this.getModelInfo(context, param.modelId);
 
     // Transform the request body to match internal format
-    const recordIds = param.body.map((record) => ({ [primaryKey]: record.id }));
+    const recordIds = param.body.map((record) => ({
+      [primaryKey.title]: record.id,
+    }));
 
     await this.dataTableService.dataDelete(context, {
       ...param,
@@ -538,7 +541,7 @@ export class DataV3Service {
     const transformedBody = Array.isArray(param.body)
       ? await Promise.all(
           param.body.map(async (record) => ({
-            [primaryKey]: record.id,
+            [primaryKey.title]: record.id,
             ...(await this.transformLTARFieldsToInternal(
               context,
               record.fields,
@@ -548,7 +551,7 @@ export class DataV3Service {
         )
       : [
           {
-            [primaryKey]: param.body.id,
+            [primaryKey.title]: param.body.id,
             ...(await this.transformLTARFieldsToInternal(
               context,
               param.body.fields,
@@ -598,15 +601,17 @@ export class DataV3Service {
 
     // Transform and return full records in V3 format
     return {
-      records: await this.transformRecordsToV3Format(
-        context,
-        fullRecords,
-        primaryKey,
-        primaryKeys,
-        undefined,
-        columns,
-        undefined,
-      ),
+      records: await this.transformRecordsToV3Format({
+        context: context,
+        records: fullRecords,
+        primaryKey: primaryKey,
+        primaryKeys: primaryKeys,
+        requestedFields: undefined,
+        columns: columns,
+        nestedLimit: undefined,
+        skipSubstitutingColumnIds:
+          param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT],
+      }),
     };
   }
 
@@ -639,7 +644,7 @@ export class DataV3Service {
     if (
       response &&
       typeof response === 'object' &&
-      relatedPrimaryKey in response
+      (relatedPrimaryKey.title in response || relatedPrimaryKey.id in response)
     ) {
       // Extract requested fields from query parameters for nested data
       const requestedFields = this.getRequestedFields(param.query);
@@ -648,15 +653,17 @@ export class DataV3Service {
       const relatedModel = await colOptions.getRelatedTable(context);
       const relatedColumns = await relatedModel.getColumns(context);
 
-      const transformedRecord = await this.transformRecordToV3Format(
-        context,
-        response,
-        relatedPrimaryKey,
-        relatedPrimaryKeys,
-        requestedFields,
-        relatedColumns,
-        undefined,
-      );
+      const transformedRecord = await this.transformRecordToV3Format({
+        context: context,
+        record: response,
+        primaryKey: relatedPrimaryKey,
+        primaryKeys: relatedPrimaryKeys,
+        requestedFields: requestedFields,
+        columns: relatedColumns,
+        nestedLimit: undefined,
+        skipSubstitutingColumnIds:
+          param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+      });
 
       // For single relations, return the record directly, for others return as array
       return isSingleRelation
@@ -714,15 +721,17 @@ export class DataV3Service {
     const nestedLimit =
       +param.query?.nestedLimit || BaseModelSqlv2.config.ltarV3Limit;
 
-    const transformedRecords = await this.transformRecordsToV3Format(
-      context,
-      pagedResponse.list,
-      relatedPrimaryKey,
-      relatedPrimaryKeys,
-      requestedFields,
-      relatedColumns,
-      nestedLimit,
-    );
+    const transformedRecords = await this.transformRecordsToV3Format({
+      context: context,
+      records: pagedResponse.list,
+      primaryKey: relatedPrimaryKey,
+      primaryKeys: relatedPrimaryKeys,
+      requestedFields: requestedFields,
+      columns: relatedColumns,
+      nestedLimit: nestedLimit,
+      skipSubstitutingColumnIds:
+        param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+    });
 
     // Check if any LTAR fields were truncated
     const hasNextPage = transformedRecords.some((record) =>
@@ -780,19 +789,21 @@ export class DataV3Service {
     }
 
     const hasPrimaryKey = (obj: any): obj is Record<string, any> => {
-      return primaryKey in obj;
+      return primaryKey.title in obj || primaryKey.id in obj;
     };
-
+    console.log('result', result)
     return hasPrimaryKey(result)
-      ? await this.transformRecordToV3Format(
-          context,
-          result,
-          primaryKey,
-          primaryKeys,
-          requestedFields,
-          columns,
-          undefined,
-        )
+      ? await this.transformRecordToV3Format({
+          context: context,
+          record: result,
+          primaryKey: primaryKey,
+          primaryKeys: primaryKeys,
+          requestedFields: requestedFields,
+          columns: columns,
+          nestedLimit: undefined,
+          skipSubstitutingColumnIds:
+            param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+        })
       : { id: '', fields: {} };
   }
 

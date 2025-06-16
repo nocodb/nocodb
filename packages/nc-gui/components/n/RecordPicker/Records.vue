@@ -21,7 +21,6 @@ const records = toRef(props, 'data')
 const _Fields = toRef(props, 'fields')
 
 const pv = computed(() => (meta.value.columns ?? []).find((c) => c.pv))
-
 useProvideSmartsheetLtarHelpers(meta)
 
 const computedWhere = computed(() => {
@@ -33,7 +32,9 @@ const { cachedRows, loadData, syncCount, totalRows, chunkStates, clearCache } = 
   meta,
   viewMeta,
   where: computedWhere,
-  callbacks: {},
+  callbacks: {
+    getWhereFilter: async (path, ignoreWhereFilter) => (ignoreWhereFilter ? '' : computedWhere.value),
+  },
   disableSmartsheet: true,
 })
 
@@ -234,6 +235,7 @@ onMounted(async () => {
     records.value.forEach((row, index) => {
       cachedRows.value.set(index, {
         row,
+        oldRow: {},
         rowMeta: {
           rowIndex: index,
         },

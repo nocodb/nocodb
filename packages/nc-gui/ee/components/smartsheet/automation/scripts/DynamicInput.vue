@@ -221,6 +221,7 @@ watch(rowInput, (newValue) => {
           v-model:model-value="rowInput"
           :fields="content.options.fields"
           class="w-64"
+          version="v3"
           :records="content.records"
           :table-id="content.tableId"
           :view-id="content.viewId"

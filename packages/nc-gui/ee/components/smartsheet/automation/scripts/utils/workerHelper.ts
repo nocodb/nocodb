@@ -1542,8 +1542,7 @@ function generateInputMethods(): string {
           
           function handler(event) {
             if (event.data.type === '${ActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
-              let data = event.data.payload.value;
-              
+              let data = event.data.payload.value;              
               try {
                 data = JSON.parse(data);
                 data = new NocoDBRecord(data, table);

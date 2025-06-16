@@ -8,11 +8,13 @@ const props = withDefaults(
     viewId?: string
     modelValue: Row
     fields?: string[]
+    version?: 'v3' | 'v2'
     allowRecordCreation?: boolean
     records?: Row[]
   }>(),
   {
     label: '- select a record -',
+    version: 'v2',
   },
 )
 
@@ -20,7 +22,11 @@ const emits = defineEmits<{
   'update:modelValue': (value: Row) => void
 }>()
 
+const { internalApi } = useApi()
+
 const searchQuery = ref('')
+
+const debouncedSearch = refDebounced(searchQuery, 200)
 
 const ncRecordPickerDropdownRef = ref<HTMLDivElement>()
 
@@ -107,8 +113,25 @@ onMounted(async () => {
   await loadMetas()
 })
 
-const resolveInput = (row: Row) => {
-  vModel.value = row
+provide(MetaInj, tableMeta)
+
+const displayField = computed(() => (tableMeta?.value?.columns ?? []).find((c) => c.pv))
+
+const resolveInput = async (row: Row) => {
+  if (props.version === 'v2') {
+    vModel.value = row
+  } else {
+    const rowId = extractPkFromRow(row?.row, tableMeta?.value?.columns ?? [])
+    try {
+      const data = await internalApi.dbDataTableRowRead(tableMeta?.value?.base_id, tableMeta?.value?.id, rowId, {
+        fields: props.fields,
+      })
+      vModel.value = data
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   isOpen.value = false
 }
 const filterQueryRef = ref<{ input: HTMLInputElement }>()
@@ -135,7 +158,11 @@ whenever(isOpen, () => {
       :class="{ 'record-picker-active': isOpen }"
       class="hover:!bg-nc-bg-gray-extralight"
     >
-      <span class="truncate text-left !leading-[1.5]">{{ props.label }}</span>
+      <span v-if="displayField && vModel?.row" class="truncate text-left !leading-[1.5]">
+        <SmartsheetPlainCell :model-value="vModel?.row[displayField.title]" :column="displayField" />
+      </span>
+      <span v-else class="truncate text-left !leading-[1.5]">{{ props.label }}</span>
+
       <template #icon>
         <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" class="self-center" />
       </template>
@@ -166,7 +193,7 @@ whenever(isOpen, () => {
             :data="records"
             :fields="fields"
             :meta="tableMeta"
-            :where="searchQuery"
+            :where="debouncedSearch"
             @resolve="resolveInput"
           />
         </div>

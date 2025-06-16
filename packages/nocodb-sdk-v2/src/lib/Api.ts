@@ -2043,13 +2043,11 @@ export class InternalApi<
       tableId: string,
       query?: {
         /**
-         * Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.
+         * Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.
          *
-         * Example: `fields=field1,field2` will include only 'field1' and 'field2' in the API response.
-         *
-         * Please note that it's essential not to include spaces between field names in the comma-separated list. Alternatively, multiple `fields` query params can also works, ex: `?fields=field1&fields=field2`.
+         * Example: `fields=["field1","field2"]` or `fields=field1,field2` will include only 'field1' and 'field2' in the API response.
          */
-        fields?: string;
+        fields?: string[] | string;
         /**
          * Allows you to specify the fields by which you want to sort the records in your API response. Accepts either an array of sort objects or a single sort object.
          *
@@ -2227,13 +2225,11 @@ export class InternalApi<
       recordId: string,
       query?: {
         /**
-         * Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.
+         * Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.
          *
-         * Example: `fields=field1,field2` will include only 'field1' and 'field2' in the API response.
-         *
-         * Please note that it's essential not to include spaces between field names in the comma-separated list.
+         * Example: `fields=["field1","field2"]` or `fields=field1,field2` will include only 'field1' and 'field2' in the API response.
          */
-        fields?: string;
+        fields?: string[] | string;
       },
       params: RequestParams = {},
     ) =>
@@ -2313,11 +2309,9 @@ export class InternalApi<
         /**
          * Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.
          *
-         * Example: `fields=field1,field2` will include only 'field1' and 'field2' in the API response.
-         *
-         * Please note that it's essential not to include spaces between field names in the comma-separated list.
+         * Example: `fields=["field1","field2"]` or `fields=field1,field2` will include only 'field1' and 'field2' in the API response.
          */
-        fields?: string;
+        fields?: string[] | string;
         /**
          * Allows you to specify the fields by which you want to sort the records in your API response. Accepts either an array of sort objects or a single sort object.
          *
@@ -2364,12 +2358,7 @@ export class InternalApi<
       params: RequestParams = {},
     ) =>
       this.request<
-        {
-          /** List of data objects */
-          list: object[];
-          /** Paginated Info */
-          pageInfo: Paginated;
-        },
+        DataListResponseV3,
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;
@@ -2395,11 +2384,31 @@ export class InternalApi<
       linkFieldId: string,
       recordId: string,
       baseId: string,
-      data: object | object[],
+      data:
+        | {
+            /**
+             * Unique identifier for the record
+             * @example "33"
+             */
+            id: string;
+          }
+        | {
+            /**
+             * Unique identifier for the record
+             * @example "22"
+             */
+            id: string;
+          }[],
       params: RequestParams = {},
     ) =>
       this.request<
-        FieldOptions,
+        {
+          /**
+           * Indicates whether the linking operation was successful
+           * @example true
+           */
+          success: boolean;
+        },
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;
@@ -2426,11 +2435,31 @@ export class InternalApi<
       linkFieldId: string,
       recordId: string,
       baseId: string,
-      data: object[],
+      data:
+        | {
+            /**
+             * Unique identifier for the record
+             * @example "33"
+             */
+            id: string;
+          }
+        | {
+            /**
+             * Unique identifier for the record
+             * @example "33"
+             */
+            id: string;
+          }[],
       params: RequestParams = {},
     ) =>
       this.request<
-        FieldOptions,
+        {
+          /**
+           * Indicates whether the unlink operation was successful
+           * @example true
+           */
+          success: boolean;
+        },
         {
           /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
           msg: string;

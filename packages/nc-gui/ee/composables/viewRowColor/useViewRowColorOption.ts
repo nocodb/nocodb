@@ -92,7 +92,7 @@ export function useViewRowColorOption(params: {
 
     const conditionToAdd = {
       id: undefined,
-      color: theme.light[conditions.length % theme.light.length],
+      color: getThemeV3RandomColor(),
       conditions: [filter],
       is_set_as_background: false,
       nestedConditions: [filter],

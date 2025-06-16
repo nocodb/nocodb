@@ -1085,7 +1085,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         p.permission === PermissionKey.TABLE_RECORD_ADD,
     );
 
-    if (permissionObj && req?.user) {
+    if (permissionObj) {
+      if (!req?.user) {
+        NcError.forbidden('You are not allowed to insert into this table');
+      }
+
       const permission = Permission.isAllowed(permissionObj, {
         id: req.user.id,
         role: getProjectRole(req.user),
@@ -1148,7 +1152,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         p.permission === PermissionKey.TABLE_RECORD_ADD,
     );
 
-    if (permissionObj && req?.user) {
+    if (permissionObj) {
+      if (!req?.user) {
+        NcError.forbidden('You are not allowed to insert into this table');
+      }
+
       const permission = Permission.isAllowed(permissionObj, {
         id: req.user.id,
         role: getProjectRole(req.user),
@@ -3301,14 +3309,22 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         p.permission === PermissionKey.TABLE_RECORD_DELETE,
     );
 
-    if (permissionObj && req?.user) {
+    if (permissionObj) {
+      if (!req?.user) {
+        NcError.forbidden(
+          'You are not allowed to delete records from this table',
+        );
+      }
+
       const permission = Permission.isAllowed(permissionObj, {
         id: req.user.id,
         role: getProjectRole(req.user),
       });
 
       if (!permission) {
-        NcError.forbidden('You are not allowed to insert into this table');
+        NcError.forbidden(
+          'You are not allowed to delete records from this table',
+        );
       }
     }
 
@@ -3323,14 +3339,22 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         p.permission === PermissionKey.TABLE_RECORD_DELETE,
     );
 
-    if (permissionObj && req?.user) {
+    if (permissionObj) {
+      if (!req?.user) {
+        NcError.forbidden(
+          'You are not allowed to delete records from this table',
+        );
+      }
+
       const permission = Permission.isAllowed(permissionObj, {
         id: req.user.id,
         role: getProjectRole(req.user),
       });
 
       if (!permission) {
-        NcError.forbidden('You are not allowed to insert into this table');
+        NcError.forbidden(
+          'You are not allowed to delete records from this table',
+        );
       }
     }
 

@@ -95,12 +95,15 @@ export class DataV3Service {
   /**
    * Transform a record to the v3 format {id, fields}
    */
-  private transformRecordToV3Format(
+  private async transformRecordToV3Format(
+    context: NcContext,
     record: any,
     primaryKey: string,
     primaryKeys?: Column[],
     requestedFields?: string[],
-  ): DataRecord {
+    columns?: Column[],
+    nestedLimit?: number,
+  ): Promise<DataRecord> {
     // If specific fields were requested, only include those in the fields object
     // Otherwise, include all non-primary-key fields
     const primaryKeyTitles = primaryKeys
@@ -123,16 +126,67 @@ export class DataV3Service {
       return requestedFields.includes(key);
     };
 
-    const fields = Object.entries(record)
-      .filter(([key]) => shouldIncludeField(key))
-      .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+    const fields = { ...record };
+    const transformedFields: Record<string, any> = {};
+
+    // Process each field
+    for (const [key, value] of Object.entries(fields)) {
+      if (!shouldIncludeField(key)) continue;
+
+      // Handle LTAR fields if columns are provided
+      if (columns) {
+        const column = columns.find((col) => col.title === key);
+        if (column?.uidt === UITypes.LinkToAnotherRecord) {
+          if (Array.isArray(value)) {
+            // Handle array of linked records
+            if (nestedLimit && value.length > nestedLimit) {
+              transformedFields[key] = await Promise.all(
+                value.slice(0, nestedLimit).map(async (nestedRecord) => {
+                  const {
+                    primaryKey: relatedPrimaryKey,
+                    primaryKeys: relatedPrimaryKeys,
+                  } = await this.getRelatedModelInfo(context, column);
+                  return this.transformRecordToV3Format(
+                    context,
+                    nestedRecord,
+                    relatedPrimaryKey,
+                    relatedPrimaryKeys,
+                    undefined,
+                  );
+                }),
+              );
+            } else {
+              transformedFields[key] = await Promise.all(
+                value.map(async (nestedRecord) => {
+                  const {
+                    primaryKey: relatedPrimaryKey,
+                    primaryKeys: relatedPrimaryKeys,
+                  } = await this.getRelatedModelInfo(context, column);
+                  return this.transformRecordToV3Format(
+                    context,
+                    nestedRecord,
+                    relatedPrimaryKey,
+                    relatedPrimaryKeys,
+                    undefined,
+                  );
+                }),
+              );
+            }
+            continue;
+          }
+        }
+      }
+
+      // For non-LTAR fields, just copy the value
+      transformedFields[key] = value;
+    }
 
     const recordPrimaryKeyValue = primaryKeys
       ? getCompositePkValue(primaryKeys, record)
       : record[primaryKey];
 
     const result: DataRecord = {
-      fields,
+      fields: transformedFields,
     };
 
     // Always include the 'id' property for APIv3
@@ -144,20 +198,92 @@ export class DataV3Service {
   /**
    * Transform multiple records to v3 format
    */
-  private transformRecordsToV3Format(
+  private async transformRecordsToV3Format(
+    context: NcContext,
     records: any[],
     primaryKey: string,
     primaryKeys?: Column[],
     requestedFields?: string[],
-  ): DataRecord[] {
-    return records.map((record) =>
-      this.transformRecordToV3Format(
-        record,
-        primaryKey,
-        primaryKeys,
-        requestedFields,
+    columns?: Column[],
+    nestedLimit?: number,
+  ): Promise<DataRecord[]> {
+    return Promise.all(
+      records.map((record) =>
+        this.transformRecordToV3Format(
+          context,
+          record,
+          primaryKey,
+          primaryKeys,
+          requestedFields,
+          columns,
+          nestedLimit,
+        ),
       ),
     );
+  }
+
+  async dataList(
+    context: NcContext,
+    param: DataListParams,
+  ): Promise<DataListResponse> {
+    const pagedData = await this.dataTableService.dataList(context, {
+      ...(param as Omit<DataListParams, 'req'>),
+      query: {
+        ...param.query,
+        limit: +param.query?.limit || +param.query?.pageSize,
+      },
+      apiVersion: NcApiVersion.V3,
+    });
+
+    const { primaryKey, primaryKeys, columns } = await this.getModelInfo(
+      context,
+      param.modelId,
+    );
+
+    // Extract requested fields from query parameters
+    const requestedFields = this.getRequestedFields(param.query);
+
+    // Extract nested page limit
+    const nestedLimit =
+      +param.query?.nestedLimit || BaseModelSqlv2.config.ltarV3Limit;
+    const nestedPage = Math.max(+param.query?.nestedPage || 1, 1);
+
+    const nestedPrevPageAvail = nestedPage > 1;
+
+    const pagedResponse = new PagedResponseV3Impl(pagedData, {
+      context,
+      tableId: param.modelId,
+      baseUrl: param.req.ncSiteUrl,
+      nestedNextPageAvail: false, // Will be set based on transformed data
+      nestedPrevPageAvail,
+      queryParams: param.query,
+    });
+
+    // Transform records with LTAR handling
+    const transformedRecords = await this.transformRecordsToV3Format(
+      context,
+      pagedResponse.list,
+      primaryKey,
+      primaryKeys,
+      requestedFields,
+      columns,
+      nestedLimit,
+    );
+
+    // Check if any LTAR fields were truncated
+    const hasNextPage = transformedRecords.some((record) =>
+      Object.values(record.fields).some(
+        (value) => Array.isArray(value) && value.length === nestedLimit,
+      ),
+    );
+
+    return {
+      records: transformedRecords,
+      next: pagedResponse.pageInfo.next,
+      prev: pagedResponse.pageInfo.prev,
+      nestedNext: hasNextPage ? pagedResponse.pageInfo.nestedNext : null,
+      nestedPrev: pagedResponse.pageInfo.nestedPrev,
+    };
   }
 
   /**
@@ -222,117 +348,6 @@ export class DataV3Service {
     }
 
     return transformedFields;
-  }
-
-  /**
-   * Transform nested LTAR data to v3 format
-   */
-  private async transformNestedLTARData(
-    context: NcContext,
-    data: any[],
-    columns: Column[],
-    nestedLimit: number,
-  ): Promise<{ transformedData: any[]; hasNextPage: boolean }> {
-    let nestedNextPageAvail = false;
-
-    for (const column of columns) {
-      if (column.uidt === UITypes.LinkToAnotherRecord) {
-        const {
-          primaryKey: relatedPrimaryKey,
-          primaryKeys: relatedPrimaryKeys,
-        } = await this.getRelatedModelInfo(context, column);
-
-        for (const row of data) {
-          // Use column.title instead of column.id to access the LTAR data
-          if (row[column.title] && Array.isArray(row[column.title])) {
-            if (row[column.title].length > nestedLimit) {
-              row[column.title] = row[column.title]
-                .slice(0, nestedLimit)
-                .map((nestedRecord) =>
-                  this.transformRecordToV3Format(
-                    nestedRecord,
-                    relatedPrimaryKey,
-                    relatedPrimaryKeys,
-                    undefined,
-                  ),
-                );
-              nestedNextPageAvail = true;
-            } else {
-              row[column.title] = row[column.title].map((nestedRecord) =>
-                this.transformRecordToV3Format(
-                  nestedRecord,
-                  relatedPrimaryKey,
-                  relatedPrimaryKeys,
-                  undefined,
-                ),
-              );
-            }
-          }
-        }
-      }
-    }
-
-    return { transformedData: data, hasNextPage: nestedNextPageAvail };
-  }
-
-  async dataList(
-    context: NcContext,
-    param: DataListParams,
-  ): Promise<DataListResponse> {
-    const pagedData = await this.dataTableService.dataList(context, {
-      ...(param as Omit<DataListParams, 'req'>),
-      query: {
-        ...param.query,
-        limit: +param.query?.limit || +param.query?.pageSize,
-      },
-      apiVersion: NcApiVersion.V3,
-    });
-
-    const { primaryKey, primaryKeys, columns } = await this.getModelInfo(
-      context,
-      param.modelId,
-    );
-
-    // Extract requested fields from query parameters
-    const requestedFields = this.getRequestedFields(param.query);
-
-    // Extract nested page limit
-    const nestedLimit =
-      +param.query?.nestedLimit || BaseModelSqlv2.config.ltarV3Limit;
-    const nestedPage = Math.max(+param.query?.nestedPage || 1, 1);
-
-    // Transform nested LTAR data
-    const { hasNextPage: nestedNextPageAvail } =
-      await this.transformNestedLTARData(
-        context,
-        pagedData.list,
-        columns,
-        nestedLimit,
-      );
-
-    const nestedPrevPageAvail = nestedPage > 1;
-
-    const pagedResponse = new PagedResponseV3Impl(pagedData, {
-      context,
-      tableId: param.modelId,
-      baseUrl: param.req.ncSiteUrl,
-      nestedNextPageAvail,
-      nestedPrevPageAvail,
-      queryParams: param.query,
-    });
-
-    return {
-      records: this.transformRecordsToV3Format(
-        pagedResponse.list,
-        primaryKey,
-        primaryKeys,
-        requestedFields,
-      ),
-      next: pagedResponse.pageInfo.next,
-      prev: pagedResponse.pageInfo.prev,
-      nestedNext: pagedResponse.pageInfo.nestedNext,
-      nestedPrev: pagedResponse.pageInfo.nestedPrev,
-    };
   }
 
   async dataInsert(
@@ -423,10 +438,13 @@ export class DataV3Service {
 
     // Transform and return full records in V3 format
     return {
-      records: this.transformRecordsToV3Format(
+      records: await this.transformRecordsToV3Format(
+        context,
         fullRecords,
         primaryKey,
         primaryKeys,
+        undefined,
+        columns,
         undefined,
       ),
     };
@@ -546,10 +564,13 @@ export class DataV3Service {
 
     // Transform and return full records in V3 format
     return {
-      records: this.transformRecordsToV3Format(
+      records: await this.transformRecordsToV3Format(
+        context,
         fullRecords,
         primaryKey,
         primaryKeys,
+        undefined,
+        columns,
         undefined,
       ),
     };
@@ -589,11 +610,18 @@ export class DataV3Service {
       // Extract requested fields from query parameters for nested data
       const requestedFields = this.getRequestedFields(param.query);
 
-      const transformedRecord = this.transformRecordToV3Format(
+      // Get related model columns for LTAR transformation
+      const relatedModel = await colOptions.getRelatedTable(context);
+      const relatedColumns = await relatedModel.getColumns(context);
+
+      const transformedRecord = await this.transformRecordToV3Format(
+        context,
         response,
         relatedPrimaryKey,
         relatedPrimaryKeys,
         requestedFields,
+        relatedColumns,
+        undefined,
       );
 
       // For single relations, return the record directly, for others return as array
@@ -644,38 +672,62 @@ export class DataV3Service {
     // Extract requested fields from query parameters for nested data
     const requestedFields = this.getRequestedFields(param.query);
 
-    const transformedRecords = this.transformRecordsToV3Format(
+    // Get related model columns for LTAR transformation
+    const relatedModel = await colOptions.getRelatedTable(context);
+    const relatedColumns = await relatedModel.getColumns(context);
+
+    // Extract nested page limit
+    const nestedLimit =
+      +param.query?.nestedLimit || BaseModelSqlv2.config.ltarV3Limit;
+
+    const transformedRecords = await this.transformRecordsToV3Format(
+      context,
       pagedResponse.list,
       relatedPrimaryKey,
       relatedPrimaryKeys,
       requestedFields,
+      relatedColumns,
+      nestedLimit,
     );
 
-    // For single relations, return the first record directly, for others return as array
+    // Check if any LTAR fields were truncated
+    const hasNextPage = transformedRecords.some((record) =>
+      Object.values(record.fields).some(
+        (value) => Array.isArray(value) && value.length === nestedLimit,
+      ),
+    );
+
+    // For single relations, return the record directly, for others return as array
     if (isSingleRelation) {
-      return {
+      const singleResponse: DataListResponse = {
         record: transformedRecords[0] || null,
         next: pagedResponse.pageInfo.next,
         prev: pagedResponse.pageInfo.prev,
-        nestedNext: pagedResponse.pageInfo.nestedNext,
         nestedPrev: pagedResponse.pageInfo.nestedPrev,
       };
+      if (hasNextPage) {
+        singleResponse.nestedNext = pagedResponse.pageInfo.nestedNext;
+      }
+      return singleResponse;
     }
 
-    return {
+    const listResponse: DataListResponse = {
       records: transformedRecords,
       next: pagedResponse.pageInfo.next,
       prev: pagedResponse.pageInfo.prev,
-      nestedNext: pagedResponse.pageInfo.nestedNext,
       nestedPrev: pagedResponse.pageInfo.nestedPrev,
     };
+    if (hasNextPage) {
+      listResponse.nestedNext = pagedResponse.pageInfo.nestedNext;
+    }
+    return listResponse;
   }
 
   async dataRead(
     context: NcContext,
     param: DataReadParams,
   ): Promise<DataRecord> {
-    const { primaryKey, primaryKeys } = await this.getModelInfo(
+    const { primaryKey, primaryKeys, columns } = await this.getModelInfo(
       context,
       param.modelId,
     );
@@ -698,11 +750,14 @@ export class DataV3Service {
     };
 
     return hasPrimaryKey(result)
-      ? this.transformRecordToV3Format(
+      ? await this.transformRecordToV3Format(
+          context,
           result,
           primaryKey,
           primaryKeys,
           requestedFields,
+          columns,
+          undefined,
         )
       : { id: '', fields: {} };
   }

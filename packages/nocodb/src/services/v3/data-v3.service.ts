@@ -791,7 +791,7 @@ export class DataV3Service {
     const hasPrimaryKey = (obj: any): obj is Record<string, any> => {
       return primaryKey.title in obj || primaryKey.id in obj;
     };
-    console.log('result', result)
+
     return hasPrimaryKey(result)
       ? await this.transformRecordToV3Format({
           context: context,

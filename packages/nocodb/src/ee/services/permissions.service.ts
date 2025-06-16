@@ -44,13 +44,6 @@ export class PermissionsService {
 
     let permission: Permission;
 
-    if (
-      granted_type === PermissionGrantedType.USER &&
-      !permissionObj.subjects?.length
-    ) {
-      NcError.unprocessableEntity('You need to provide at least one subject');
-    }
-
     const existingPermission = await Permission.getByEntity(
       context,
       entity,
@@ -126,12 +119,6 @@ export class PermissionsService {
 
       // Insert new permission users
       if (permission.granted_type === PermissionGrantedType.USER) {
-        if (permissionObj.subjects.length === 0) {
-          NcError.unprocessableEntity(
-            'You need to provide at least one subject',
-          );
-        }
-
         for (const subject of permissionObj.subjects) {
           if (subject.type === 'user') {
             const permissionUser = await WorkspaceUser.get(
@@ -157,6 +144,8 @@ export class PermissionsService {
           permissionObj.subjects,
           ncMeta,
         );
+
+        permission.subjects = permissionObj.subjects;
       }
 
       await ncMeta.commit();

@@ -8,6 +8,8 @@ import {
   type AttachmentResType,
   type ColumnType,
   type LinkToAnotherRecordType,
+  PermissionEntity,
+  PermissionKey,
   PlanFeatureTypes,
   PlanLimitTypes,
   PlanTitles,
@@ -52,6 +54,8 @@ const { metas, getMeta } = useMetas()
 const { base } = storeToRefs(useBase())
 
 const { getPossibleAttachmentSrc } = useAttachment()
+
+const { isAllowed } = usePermissions()
 
 const secondsRemain = ref(0)
 
@@ -893,6 +897,16 @@ const { message: templatedMessage } = useTemplatedMessage(
         data-testid="nc-form-wrapper-submit"
       >
         <div class="max-w-[max(33%,688px)] mx-auto">
+          <div v-if="meta?.id && !isAllowed(PermissionEntity.TABLE, meta?.id, PermissionKey.TABLE_RECORD_ADD)" class="mb-6">
+            <NcAlert
+              type="warning"
+              show-icon
+              class="mt-6 bg-nc-bg-orange-light max-w-[max(33%,688px)] mx-auto"
+              message="Form cannot accept submissions."
+              description="Only specific members have permission to submit responses to this form."
+            />
+          </div>
+
           <GeneralFormBanner
             v-if="!parseProp(formViewData?.meta).hide_banner"
             :banner-image-url="formViewData?.banner_image_url"
@@ -982,6 +996,19 @@ const { message: templatedMessage } = useTemplatedMessage(
                 :style="{background:(formViewData?.meta as Record<string,any>).background_color || '#F9F9FA'}"
               >
                 <div class="min-w-[616px] overflow-x-auto nc-form-scrollbar">
+                  <div
+                    v-if="meta?.id && !isAllowed(PermissionEntity.TABLE, meta?.id, PermissionKey.TABLE_RECORD_ADD)"
+                    class="mb-6"
+                  >
+                    <NcAlert
+                      type="warning"
+                      show-icon
+                      class="mt-6 bg-nc-bg-orange-light max-w-[max(33%,688px)] mx-auto"
+                      message="Form cannot accept submissions."
+                      description="Only specific members have permission to submit responses to this form."
+                    />
+                  </div>
+
                   <GeneralImageCropper
                     v-if="isEditable"
                     v-model:show-cropper="showCropper"

@@ -53,7 +53,7 @@ const rowColoringMode = computed({
 
 const rowColoringCount = computed(() => {
   if (rowColoringMode.value === ROW_COLORING_MODE.SELECT) {
-    return 1
+    return 0
   }
   return rowColorInfo.value?.conditions?.length || 0
 })
@@ -80,7 +80,7 @@ watch(open, (value) => {
         v-e="['c:coloring']"
         type="secondary"
         size="small"
-        class="nc-coloring-menu-btn nc-toolbar-btn !border-0 !h-7"
+        class="nc-coloring-menu-btn nc-toolbar-btn !border-0 !h-7 !bg-nc-bg-maroon-light !hover:bg-nc-bg-maroon-dark group"
         :show-as-disabled="isLocked"
       >
         <div class="flex items-center gap-1 min-h-5">
@@ -91,7 +91,11 @@ watch(open, (value) => {
               {{ $t('general.colour') }}
             </span>
           </div>
-          <span v-if="rowColoringCount" class="bg-brand-50 text-brand-500 nc-toolbar-btn-chip">{{ rowColoringCount }}</span>
+          <span
+            v-if="rowColoringCount"
+            class="bg-nc-bg-maroon-dark group-hover:bg-maroon-200 text-maroon-700 nc-toolbar-btn-chip"
+            >{{ rowColoringCount }}</span
+          >
         </div>
       </NcButton>
     </NcTooltip>

@@ -689,6 +689,7 @@ type CanvasScrollToCellFn = (row?: number, column?: number, path?: Array<number>
 interface RowColouringEvaluatedResultType {
   is_set_as_background: boolean
   color: string
+  hoverColor: string | null
   rawColor: string | undefined
 }
 

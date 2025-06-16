@@ -45,11 +45,13 @@ export function useViewRowColorRender(params: {
       const value = row[selectRowColorInfo.selectColumn.title]
       const rawColor: string | null | undefined = selectRowColorInfo.options.find((k) => k.title === value)?.color
       const color = rawColor ? getLighterTint(rawColor) : null
+      const hoverColor = rawColor ? getLighterTint(rawColor, { brightnessMod: -3 }) : null
 
       return color
         ? {
             is_set_as_background: selectRowColorInfo.is_set_as_background,
             color,
+            hoverColor,
             rawColor,
           }
         : null
@@ -135,7 +137,7 @@ export function useViewRowColorRender(params: {
     }
   }
 
-  const getRowColor = (row: any) => {
+  const getRowColor = (row: any, isHovered: boolean = false) => {
     if (!row || (!params.useCachedResult && !evaluatedRowsColor.value)) return null
 
     const rowHash = getRowHash(row)
@@ -144,13 +146,13 @@ export function useViewRowColorRender(params: {
       const cachedEvaluatedResult = getCachedEvaluatedResult(rowHash, row)
 
       if (cachedEvaluatedResult?.is_set_as_background) {
-        return cachedEvaluatedResult.color
+        return isHovered ? cachedEvaluatedResult.hoverColor : cachedEvaluatedResult.color
       }
     } else {
       const evaluatedResult = evaluatedRowsColor.value[rowHash]
 
       if (evaluatedResult?.is_set_as_background) {
-        return evaluatedResult.color
+        return isHovered ? evaluatedResult.hoverColor : evaluatedResult.color
       }
     }
 

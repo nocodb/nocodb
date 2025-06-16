@@ -961,13 +961,14 @@ Object.freeze(UITypes);
     }
     
     async updateDescriptionAsync(description) {
-    try {
-      await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, {  id: this.id, type: this.type, title: this.name, description });
-      this.description = description;
-      return this;
-    } catch (e) {
-      throw new Error(\`Failed to update field description: \${e.message}\`);
-    }  
+      try {
+        await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, {  id: this.id, type: this.type, title: this.name, description });
+        this.description = description;
+        return this;
+      } catch (e) {
+        throw new Error(\`Failed to update field description: \${e.message}\`);
+      } 
+    }
     
     async updateNameAsync(name) {
       try {
@@ -1020,7 +1021,7 @@ Object.freeze(UITypes);
         })
         
         return new NocoDBRecord(data, this.#table);
-      } catch (e: any) {
+      } catch (e) {
         return null
       }   
     }
@@ -1068,7 +1069,7 @@ Object.freeze(UITypes);
         const data = await api.dbDataTableRowList(this.#table.base.id, this.#table.id, requestOptions)
         
         return new RecordQueryResult(data, this.#table, this, requestOptions);
-      } catch (e: any) {
+      } catch (e) {
         return null
       }       
     }
@@ -1119,7 +1120,7 @@ Object.freeze(UITypes);
         this.#all_fields.push(newField);
         this.fields = this.#all_fields.filter(f => !f.is_system_field);
         return newField;
-      } catch (e: any) {
+      } catch (e) {
         throw new Error(\`Failed to create field \${field.title} in table \${this.name}\`)
       }
     }
@@ -1152,7 +1153,7 @@ Object.freeze(UITypes);
         })
         
         return new NocoDBRecord(data, this);
-      } catch (e: any) {
+      } catch (e) {
         throw new Error(\`Failed to read record \${recordId} in table \${this.name}\`)
       }
     }
@@ -1199,7 +1200,7 @@ Object.freeze(UITypes);
         const data = await api.dbDataTableRowList(this.#base.id, this.id, requestOptions)
         
         return new RecordQueryResult(data, this, null, requestOptions);
-      } catch (e: any) {
+      } catch (e) {
         throw new Error(\`Failed to read records in table \${this.name}\`)
       }
     }
@@ -1217,7 +1218,7 @@ Object.freeze(UITypes);
       try {
         const data = await api.dbDataTableRowCreate(this.base.id, this.id, { fields: recordData });
         return new NocoDBRecord(data?.records?.[0], this).id;
-      } catch (e: any) {
+      } catch (e) {
         throw new Error(\`Failed to create record in table \${this.name}\`)
       }
     }
@@ -1252,7 +1253,7 @@ Object.freeze(UITypes);
       try {
         const response = await api.dbDataTableRowCreate(this.base.id, this.id, insertObjs);
         return (response.records || []).map(r => new NocoDBRecord(r, this).id);
-      } catch (e: any) {
+      } catch (e) {
         throw new Error(\`Failed to create records in table \${this.name}\`)
       }
     }
@@ -1269,7 +1270,7 @@ Object.freeze(UITypes);
       }
       try {
         await api.dbDataTableRowUpdate(this.base.id, this.id, { fields: recordData, id: recordID });
-      } catch (e: any) {
+      } catch (e) {
         throw new Error(\`Failed to update record \${recordId} in table \${this.name}\`)
       }
     }
@@ -1305,7 +1306,7 @@ Object.freeze(UITypes);
       }
       try {
         await api.dbDataTableRowUpdate(this.base.id, this.id, updateObjs);
-      } catch (e: any) {
+      } catch (e) {
         throw new Error(\`Failed to update records in table \${this.name}\`)
       }
     }
@@ -1318,7 +1319,7 @@ Object.freeze(UITypes);
       try {
         await api.dbDataTableRowDelete(this.base.id, this.id, { id: recordID });
         return true
-      } catch (e: any) {
+      } catch (e) {
         throw new Error(\`Failed to delete record \${recordID} in table \${this.name}\`)
       }
     }
@@ -1339,7 +1340,7 @@ Object.freeze(UITypes);
       try {
         await api.dbDataTableRowDelete(this.base.id, this.id, deleteObjs);
         return true
-      } catch (e: any) {
+      } catch (e) {
         throw new Error(\`Failed to delete records in table \${this.name}\`)
       }
     }
@@ -1393,7 +1394,7 @@ Object.freeze(UITypes);
         this.tables.push(newT);
         
         return newT
-      } catch (e: any) {
+      } catch (e) {
         throw new Error(\`Failed to create table \${name}\`)
       }
     }
@@ -1456,12 +1457,12 @@ const api = new Proxy({}, {
                 const apiError = new Error(error.message || 'API request failed');
                 apiError.name = error.name || 'APIError';
                 
-                if (error.method) (apiError as any).method = error.method;
-                if (error.status) (apiError as any).status = error.status;
-                if (error.statusText) (apiError as any).statusText = error.statusText;
-                if (error.code) (apiError as any).code = error.code;
-                if (error.responseStatus) (apiError as any).responseStatus = error.responseStatus;
-                if (error.responseData) (apiError as any).responseData = error.responseData;
+                if (error.method) apiError.method = error.method;
+                if (error.status) apiError.status = error.status;
+                if (error.statusText) apiError.statusText = error.statusText;
+                if (error.code) apiError.code = error.code;
+                if (error.responseStatus) apiError.responseStatus = error.responseStatus;
+                if (error.responseData) apiError.responseData = error.responseData;
                 if (error.stack) apiError.stack = error.stack;
                 
                 reject(apiError);

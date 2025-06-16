@@ -25,10 +25,9 @@ import type { Column, Model } from '../../../../../src/models';
 import type { INcAxios } from './ncAxios';
 
 interface ListResult {
-  list: any[];
-  pageInfo?: {
-    next?: string;
-  };
+  records: any[];
+  next?: string;
+  prev?: string;
 }
 
 const API_VERSION = 'v3';
@@ -63,97 +62,97 @@ describe('dataApiV3', () => {
     describe('general-based', () => {
       it('get list country with limit 4 and next offset', async function () {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
           query: {
             limit: 4,
           },
         });
         const result = response.body as ListResult;
-        expect(result.list.length).to.eq(4);
+        expect(result.records.length).to.eq(4);
 
         const nextResponse = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
           query: {
             limit: 4,
             page: 2,
           },
         });
         const nextResult = nextResponse.body as ListResult;
-        expect(nextResult.list.length).to.eq(4);
-        expect(nextResult.list.map((k) => k.CountryId).sort()).to.not.eq(
-          result.list.map((k) => k.CountryId).sort(),
+        expect(nextResult.records.length).to.eq(4);
+        expect(nextResult.records.map((k) => k.CountryId).sort()).to.not.eq(
+          result.records.map((k) => k.CountryId).sort(),
         );
       });
 
       it('get list country with 1 field', async function () {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
           query: {
             fields: 'CountryId',
           },
         });
         const result = response.body as ListResult;
-        expect(result.list.length).to.greaterThan(0);
+        expect(result.records.length).to.greaterThan(0);
       });
 
       it.skip('get list country with 2 fields on same query param', async function () {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
           query: {
             fields: 'CountryId,Country',
           },
         });
         const result = response.body as ListResult;
-        expect(result.list.length).to.greaterThan(0);
+        expect(result.records.length).to.greaterThan(0);
 
         // TODO: handle space between fields
         // with space after delimiter
         const nextResponse = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
           query: {
             fields: 'CountryId, Country',
           },
         });
         const nextResult = nextResponse.body as ListResult;
-        expect(nextResult.list.length).to.greaterThan(0);
+        expect(nextResult.records.length).to.greaterThan(0);
       });
 
       it('get list country with 2 fields on different query param (array)', async function () {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
           query: {
             fields: ['CountryId', 'Country'],
           },
         });
         const result = response.body as ListResult;
-        expect(result.list.length).to.greaterThan(0);
+        expect(result.records.length).to.greaterThan(0);
       });
 
       it('get list country with name like Ind', async function () {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
           query: {
             filter: '(Country,like,Ind)',
           },
         });
         const result = response.body as ListResult;
-        expect(result.list.length).to.greaterThan(0);
+        expect(result.records.length).to.greaterThan(0);
         expect(
-          result.list.some((k) => k.Country.toLowerCase().startsWith('ind')),
+          result.records.some((k) => k.fields.Country.toLowerCase().startsWith('ind')),
         ).to.eq(true);
       });
 
       it('Nested List - Link to another record', async function () {
         const expectedRecords = [1, 3, 1, 2, 1, 13, 1, 1, 3, 2];
         const records = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
           query: {
             limit: 10,
           },
         });
-        expect(records.body.list.length).to.equal(expectedRecords.length);
+        expect(records.body.records.length).to.equal(expectedRecords.length);
 
-        const cityList = records.body.list.map((r: any) => r['Cities']);
+        const cityList = records.body.records.map((r: any) => r.fields['Cities']);
         expect(cityList).to.deep.equal(expectedRecords);
       });
 
@@ -195,16 +194,16 @@ describe('dataApiV3', () => {
 
         // read first 10 records
         const records = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
           query: {
             limit: 10,
           },
         });
-        expect(records.body.list.length).to.equal(10);
+        expect(records.body.records.length).to.equal(10);
 
         // extract Lookup column
-        const lookupData = records.body.list.map(
-          (record: any) => record['Lookup'],
+        const lookupData = records.body.records.map(
+          (record: any) => record.fields['Lookup'],
         );
         expect(lookupData).to.deep.equal(expectedRecords);
       });
@@ -221,14 +220,14 @@ describe('dataApiV3', () => {
 
         const expectedRecords = [1, 3, 1, 2, 1, 13, 1, 1, 3, 2];
         const records = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
           query: {
             limit: 10,
           },
         });
-        expect(records.body.list.length).to.equal(expectedRecords.length);
-        const rollupData = records.body.list.map(
-          (record: any) => record['Rollup'],
+        expect(records.body.records.length).to.equal(expectedRecords.length);
+        const rollupData = records.body.records.map(
+          (record: any) => record.fields['Rollup'],
         );
 
         expect(rollupData).to.deep.equal(expectedRecords);
@@ -258,66 +257,66 @@ describe('dataApiV3', () => {
 
       it('List: default', async function () {
         const rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {},
           status: 200,
         });
 
-        expect(rsp.body.pageInfo).to.have.property('next');
-        expect(rsp.body.pageInfo.next).to.include(
-          `${textBasedUrlPrefix}/${table.id}?page=2`,
+        expect(rsp.body).to.have.property('next');
+        expect(rsp.body.next).to.include(
+          `${textBasedUrlPrefix}/${table.id}/records?page=2`,
         );
 
         // verify if all the columns are present in the response
-        expect(verifyColumnsInRsp(rsp.body.list[0], expectedColumns)).to.equal(
+        expect(verifyColumnsInRsp(rsp.body.records[0], expectedColumns)).to.equal(
           true,
         );
 
         // verify column data
         const expectedData = insertedRecords.slice(0, 1);
         // compare ignoring property order
-        // rsp.body.list only return a part of columns as per specification
+        // rsp.body.records only return a part of columns as per specification
         expect(normalizeObject(expectedData[0])).to.contain(
-          normalizeObject(rsp.body.list[0]),
+          normalizeObject(rsp.body.records[0].fields),
         );
       });
 
       it('List: offset, limit', async function () {
         const rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: { offset: 200, limit: 100 },
           status: 200,
         });
 
-        expect(rsp.body.pageInfo).to.have.property('next');
-        expect(rsp.body.pageInfo).to.have.property('prev');
-        expect(rsp.body.pageInfo.next).to.include(
-          `${textBasedUrlPrefix}/${table.id}?page=4`,
+        expect(rsp.body).to.have.property('next');
+        expect(rsp.body).to.have.property('prev');
+        expect(rsp.body.next).to.include(
+          `${textBasedUrlPrefix}/${table.id}/records?page=4`,
         );
-        expect(rsp.body.pageInfo.prev).to.include(
-          `${textBasedUrlPrefix}/${table.id}?page=2`,
+        expect(rsp.body.prev).to.include(
+          `${textBasedUrlPrefix}/${table.id}/records?page=2`,
         );
       });
 
       it('List: fields, single', async function () {
         const rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: { fields: 'SingleLineText' },
         });
 
         expect(
-          verifyColumnsInRsp(rsp.body.list[0], [{ title: 'SingleLineText' }]),
+          verifyColumnsInRsp(rsp.body.records[0], [{ title: 'SingleLineText' }]),
         ).to.equal(true);
       });
 
       it('List: fields, multiple', async function () {
         const rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: { fields: ['SingleLineText', 'MultiLineText'] },
         });
 
         expect(
-          verifyColumnsInRsp(rsp.body.list[0], [
+          verifyColumnsInRsp(rsp.body.records[0], [
             { title: 'SingleLineText' },
             { title: 'MultiLineText' },
           ]),
@@ -327,80 +326,80 @@ describe('dataApiV3', () => {
       it('List: sort, ascending', async function () {
         const sortColumn = columns.find((c) => c.title === 'SingleLineText')!;
         const rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: { sort: 'SingleLineText', limit: 400 },
         });
 
-        expect(verifyColumnsInRsp(rsp.body.list[0], expectedColumns)).to.equal(
+        expect(verifyColumnsInRsp(rsp.body.records[0], expectedColumns)).to.equal(
           true,
         );
-        const sortedArray = rsp.body.list.map((r) => r[sortColumn.title]);
+        const sortedArray = rsp.body.records.map((r) => r.fields[sortColumn.title]);
         expect(sortedArray).to.deep.equal(sortedArray.sort());
       });
 
       it('List: sort, descending', async function () {
         const sortColumn = columns.find((c) => c.title === 'SingleLineText')!;
         const rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: { sort: '-SingleLineText', limit: 400 },
         });
 
-        expect(verifyColumnsInRsp(rsp.body.list[0], expectedColumns)).to.equal(
+        expect(verifyColumnsInRsp(rsp.body.records[0], expectedColumns)).to.equal(
           true,
         );
-        const descSortedArray = rsp.body.list.map((r) => r[sortColumn.title]);
+        const descSortedArray = rsp.body.records.map((r) => r.fields[sortColumn.title]);
         expect(descSortedArray).to.deep.equal(descSortedArray.sort().reverse());
       });
 
       it('List: sort, multiple', async function () {
         const rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             sort: ['-SingleLineText', '-MultiLineText'],
             limit: 400,
           },
         });
 
-        expect(verifyColumnsInRsp(rsp.body.list[0], expectedColumns)).to.equal(
+        expect(verifyColumnsInRsp(rsp.body.records[0], expectedColumns)).to.equal(
           true,
         );
         // Combination of SingleLineText & MultiLineText should be in descending order
-        const sortedArray = rsp.body.list.map(
-          (r: any) => r.SingleLineText + r.MultiLineText,
+        const sortedArray = rsp.body.records.map(
+          (r: any) => r.fields.SingleLineText + r.fields.MultiLineText,
         );
         expect(sortedArray).to.deep.equal(sortedArray.sort().reverse());
       });
 
       it('List: filter, single', async function () {
         const rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             where: '(SingleLineText,eq,Afghanistan)',
             limit: 400,
           },
         });
 
-        expect(verifyColumnsInRsp(rsp.body.list[0], expectedColumns)).to.equal(
+        expect(verifyColumnsInRsp(rsp.body.records[0], expectedColumns)).to.equal(
           true,
         );
-        const filteredArray = rsp.body.list.map((r: any) => r.SingleLineText);
+        const filteredArray = rsp.body.records.map((r: any) => r.fields.SingleLineText);
         expect(filteredArray).to.deep.equal(filteredArray.fill('Afghanistan'));
       });
 
       it('List: filter, multiple', async function () {
         const rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             where:
               '(SingleLineText,eq,Afghanistan)~and(MultiLineText,eq,"Allahabad, India")',
             limit: 400,
           },
         });
-        expect(verifyColumnsInRsp(rsp.body.list[0], expectedColumns)).to.equal(
+        expect(verifyColumnsInRsp(rsp.body.records[0], expectedColumns)).to.equal(
           true,
         );
-        const filteredArray = rsp.body.list.map(
-          (r: any) => r.SingleLineText + ' ' + r.MultiLineText,
+        const filteredArray = rsp.body.records.map(
+          (r: any) => r.fields.SingleLineText + ' ' + r.fields.MultiLineText,
         );
         expect(filteredArray).to.deep.equal(
           filteredArray.fill('Afghanistan Allahabad, India'),
@@ -432,13 +431,13 @@ describe('dataApiV3', () => {
 
         // fetch records from view
         let rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: { viewId: gridView.id },
         });
 
-        expect(rsp.body.pageInfo).to.have.property('next');
-        expect(rsp.body.pageInfo.next).to.include(
-          `${textBasedUrlPrefix}/${table.id}?page=2`,
+        expect(rsp.body).to.have.property('next');
+        expect(rsp.body.next).to.include(
+          `${textBasedUrlPrefix}/${table.id}/records?page=2`,
         );
 
         await updateView(testContext.context, {
@@ -456,15 +455,15 @@ describe('dataApiV3', () => {
 
         // fetch records from view
         rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             viewId: gridView.id,
           },
         });
 
-        expect(rsp.body.pageInfo).to.have.property('next');
-        expect(rsp.body.pageInfo.next).to.include(
-          `${textBasedUrlPrefix}/${table.id}?page=2`,
+        expect(rsp.body).to.have.property('next');
+        expect(rsp.body.next).to.include(
+          `${textBasedUrlPrefix}/${table.id}/records?page=2`,
         );
 
         // use count api to verify since we are not including count in pageInfo
@@ -491,15 +490,15 @@ describe('dataApiV3', () => {
 
         // fetch records from view
         rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             viewId: gridView.id,
           },
         });
 
-        expect(rsp.body.pageInfo).to.have.property('next');
-        expect(rsp.body.pageInfo.next).to.include(
-          `${textBasedUrlPrefix}/${table.id}?page=2`,
+        expect(rsp.body).to.have.property('next');
+        expect(rsp.body.next).to.include(
+          `${textBasedUrlPrefix}/${table.id}/records?page=2`,
         );
 
         // use count api to verify since we are not including count in pageInfo
@@ -515,13 +514,13 @@ describe('dataApiV3', () => {
         // Would contain all 'Afghanistan' as we have 31 records for it
         expect(
           verifyColumnsInRsp(
-            rsp.body.list[0],
+            rsp.body.records[0],
             columns.filter(
               (c) => !isCreatedOrLastModifiedTimeCol(c) || !c.system,
             ),
           ),
         ).to.equal(true);
-        const filteredArray = rsp.body.list.map((r) => r.SingleLineText);
+        const filteredArray = rsp.body.records.map((r) => r.fields.SingleLineText);
         expect(filteredArray).to.deep.equal(filteredArray.fill('Afghanistan'));
 
         await updateView(testContext.context, {
@@ -532,7 +531,7 @@ describe('dataApiV3', () => {
 
         // fetch records from view
         rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             viewId: gridView.id,
           },
@@ -542,7 +541,7 @@ describe('dataApiV3', () => {
             c.title !== 'MultiLineText' &&
             (!isCreatedOrLastModifiedTimeCol(c) || !c.system),
         );
-        expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(
+        expect(verifyColumnsInRsp(rsp.body.records[0], displayColumns)).to.equal(
           true,
         );
       });
@@ -586,7 +585,7 @@ describe('dataApiV3', () => {
 
         // fetch records from view
         const rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: { viewId: gridView.id },
         });
         const rspCount = await ncAxiosGet({
@@ -600,7 +599,7 @@ describe('dataApiV3', () => {
             c.title !== 'Email' &&
             !isCreatedOrLastModifiedTimeCol(c),
         );
-        expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(
+        expect(verifyColumnsInRsp(rsp.body.records[0], displayColumns)).to.equal(
           true,
         );
         return gridView;
@@ -610,7 +609,7 @@ describe('dataApiV3', () => {
         const gridView = await prepareViewForTests();
 
         const rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             viewId: gridView.id,
             sort: 'Url',
@@ -625,7 +624,7 @@ describe('dataApiV3', () => {
         );
 
         // limit > count has no next property
-        expect(rsp.body.pageInfo).to.not.have.property('next');
+        expect(rsp.body).to.not.have.property('next');
 
         // use count api to verify since we are not including count in pageInfo
         const countRsp = await ncAxiosGet({
@@ -635,10 +634,10 @@ describe('dataApiV3', () => {
           },
         });
         expect(countRsp.body.count).to.equal(61);
-        expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(
+        expect(verifyColumnsInRsp(rsp.body.records[0], displayColumns)).to.equal(
           true,
         );
-        const sortedArray = rsp.body.list.map((r) => r['Url']);
+        const sortedArray = rsp.body.records.map((r) => r.fields.Url);
         expect(sortedArray).to.deep.equal(sortedArray.sort());
       });
 
@@ -646,7 +645,7 @@ describe('dataApiV3', () => {
         const gridView = await prepareViewForTests();
 
         const rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             viewId: gridView.id,
             where: '(Phone,eq,1-541-754-3010)',
@@ -669,10 +668,10 @@ describe('dataApiV3', () => {
           },
         });
         expect(rspCount.body.count).to.equal(7);
-        expect(verifyColumnsInRsp(rsp.body.list[0], displayColumns)).to.equal(
+        expect(verifyColumnsInRsp(rsp.body.records[0], displayColumns)).to.equal(
           true,
         );
-        const filteredArray = rsp.body.list.map((r) => r['Phone']);
+        const filteredArray = rsp.body.records.map((r) => r.fields.Phone);
         expect(filteredArray).to.deep.equal(
           filteredArray.fill('1-541-754-3010'),
         );
@@ -682,7 +681,7 @@ describe('dataApiV3', () => {
         const gridView = await prepareViewForTests();
 
         const rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             viewId: gridView.id,
             fields: ['Phone', 'MultiLineText', 'SingleLineText', 'Email'],
@@ -691,7 +690,7 @@ describe('dataApiV3', () => {
         });
 
         // limit > count has no next property
-        expect(rsp.body.pageInfo).to.not.have.property('next');
+        expect(rsp.body).to.not.have.property('next');
 
         // use count api to verify since we are not including count in pageInfo
         const countRsp = await ncAxiosGet({
@@ -703,7 +702,7 @@ describe('dataApiV3', () => {
         expect(countRsp.body.count).to.equal(61);
 
         expect(
-          verifyColumnsInRsp(rsp.body.list[0], [
+          verifyColumnsInRsp(rsp.body.records[0], [
             { title: 'Phone' },
             { title: 'SingleLineText' },
           ]),
@@ -714,13 +713,13 @@ describe('dataApiV3', () => {
       it('List: invalid ID', async function () {
         // Invalid table ID
         await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/123456789`,
+          url: `${textBasedUrlPrefix}/123456789/records`,
           status: 422,
         });
 
         // Invalid view ID
         await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             viewId: '123456789',
           },
@@ -730,60 +729,60 @@ describe('dataApiV3', () => {
 
       it('List: invalid limit & offset', async function () {
         let rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             limit: -100,
           },
           status: 200,
         });
 
-        expect(rsp.body.pageInfo).to.have.property('next');
-        expect(rsp.body.pageInfo.next).to.include(
-          `${textBasedUrlPrefix}/${table.id}?page=2`,
+        expect(rsp.body).to.have.property('next');
+        expect(rsp.body.next).to.include(
+          `${textBasedUrlPrefix}/${table.id}/records?page=2`,
         );
 
         rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             limit: 'abc',
           },
           status: 200,
         });
-        expect(rsp.body.pageInfo).to.have.property('next');
-        expect(rsp.body.pageInfo.next).to.include(
-          `${textBasedUrlPrefix}/${table.id}?page=2`,
+        expect(rsp.body).to.have.property('next');
+        expect(rsp.body.next).to.include(
+          `${textBasedUrlPrefix}/${table.id}/records?page=2`,
         );
 
         // Invalid offset : falls back to default value
         rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             offset: -100,
           },
           status: 200,
         });
 
-        expect(rsp.body.pageInfo).to.have.property('next');
-        expect(rsp.body.pageInfo.next).to.include(
-          `${textBasedUrlPrefix}/${table.id}?page=2`,
+        expect(rsp.body).to.have.property('next');
+        expect(rsp.body.next).to.include(
+          `${textBasedUrlPrefix}/${table.id}/records?page=2`,
         );
 
         rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             offset: 'abc',
           },
           status: 200,
         });
 
-        expect(rsp.body.pageInfo).to.have.property('next');
-        expect(rsp.body.pageInfo.next).to.include(
-          `${textBasedUrlPrefix}/${table.id}?page=2`,
+        expect(rsp.body).to.have.property('next');
+        expect(rsp.body.next).to.include(
+          `${textBasedUrlPrefix}/${table.id}/records?page=2`,
         );
 
         // Offset > totalRows : returns empty list
         rsp = await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             offset: 10000,
           },
@@ -795,21 +794,21 @@ describe('dataApiV3', () => {
       it('List: invalid sort, filter, fields', async function () {
         // expect to ignore invalid sort, filter, fields
         await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             sort: 'abc',
           },
           status: 422,
         });
         await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             where: 'abc',
           },
           status: 422,
         });
         await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           query: {
             fields: 'abc',
           },
@@ -854,7 +853,7 @@ describe('dataApiV3', () => {
 
       it(`get list table with sort and filter`, async () => {
         const response = await ncAxiosGet({
-          url: `${numberBasedUrlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}/records`,
           query: {
             limit: 5,
             fields: ['fNumber', 'f,Decimal'],
@@ -862,7 +861,7 @@ describe('dataApiV3', () => {
             where: ['(fNumber,eq,1)'],
           },
         });
-        expect(response.body.list.length).to.eq(1);
+        expect(response.body.records.length).to.eq(1);
       });
     });
   });

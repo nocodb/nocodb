@@ -73,6 +73,7 @@ onMounted(() => {
           isLoadedExtension.value = false
         })
         .catch((e) => {
+          isLoadedExtension.value = false
           throw new Error(e)
         })
     })

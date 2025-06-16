@@ -53,9 +53,9 @@ describe('dataApiV3', () => {
       it('Delete: single', async function () {
         const rsp = await ncAxiosDelete({
           url: `${urlPrefix}/${table.id}/records`,
-          body: [{ Id: 1 }],
+          body: [{ id: 1 }],
         });
-        expect(rsp.body).to.deep.equal([{ Id: 1 }]);
+        expect(rsp.body).to.deep.equal([{ id: 1 }]);
 
         // check that it's gone
         await ncAxiosGet({
@@ -67,9 +67,9 @@ describe('dataApiV3', () => {
       it('Delete: bulk', async function () {
         const rsp = await ncAxiosDelete({
           url: `${urlPrefix}/${table.id}/records`,
-          body: [{ Id: 1 }, { Id: 2 }],
+          body: [{ id: 1 }, { id: 2 }],
         });
-        expect(rsp.body).to.deep.equal([{ Id: 1 }, { Id: 2 }]);
+        expect(rsp.body).to.deep.equal([{ id: 1 }, { id: 2 }]);
 
         // check that it's gone
         await ncAxiosGet({
@@ -88,13 +88,13 @@ describe('dataApiV3', () => {
         // Invalid table ID
         await ncAxiosDelete({
           url: `${urlPrefix}/123456789/records`,
-          body: { Id: 100 },
+          body: { id: 100 },
           status: 422,
         });
         // Invalid row ID
         await ncAxiosDelete({
           url: `${urlPrefix}/${table.id}/records`,
-          body: { Id: '123456789' },
+          body: { id: '123456789' },
           status: 404,
         });
       });

@@ -76,9 +76,12 @@ export function useViewRowColorRender(params: {
         if (isFilterValid) {
           const color: string | null | undefined = getLighterTint(eachCondition.color)
 
+          const hoverColor = getLighterTint(eachCondition.color, { brightnessMod: -3 })
+
           return {
             is_set_as_background: eachCondition.is_set_as_background,
             color,
+            hoverColor,
             rawColor: eachCondition.color,
           }
         }

@@ -74,8 +74,10 @@ ENV LITESTREAM_S3_SKIP_VERIFY=false \
 
 # Install runtime dependencies
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates `# required by wget for HTTPS support` \
     curl \
     dumb-init \
+    wget `# for convenience of downstream users` \
     && curl -L "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_$(dpkg --print-architecture)" -o /usr/local/bin/dasel \
     && chmod +x /usr/local/bin/dasel \
     && apt-get purge curl \

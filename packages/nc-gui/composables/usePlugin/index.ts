@@ -103,6 +103,8 @@ export const usePlugin = createSharedComposable(() => {
 
   const isPluginsEnabled = computed(() => isEeUI)
 
+  const isBetaPluginsEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))
+
   const availablePlugins = computed<PluginManifest[]>(() => [...availableExtensions.value, ...availableScripts.value])
 
   const availableExtensionIds = computed(() => availableExtensions.value.map((e) => e.id))
@@ -263,12 +265,10 @@ export const usePlugin = createSharedComposable(() => {
   }
 
   watch(
-    [() => isPluginsEnabled.value, () => appInfo.value?.isOnPrem],
-    async ([newValue]) => {
+    [() => isBetaPluginsEnabled.value, () => isPluginsEnabled.value, () => appInfo.value?.isOnPrem],
+    async () => {
       availableExtensions.value = []
       availableScripts.value = []
-
-      if (!newValue) return
 
       await loadPlugins()
     },

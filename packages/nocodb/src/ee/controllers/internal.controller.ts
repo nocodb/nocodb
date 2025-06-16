@@ -69,6 +69,7 @@ export class InternalController extends InternalControllerCE {
       deleteScript: 'base',
       baseSchema: 'base',
       workspaceAuditList: 'workspace',
+      duplicateScript: 'base',
     };
   }
 
@@ -245,10 +246,18 @@ export class InternalController extends InternalControllerCE {
           context,
           payload.id,
           payload,
+          req,
         );
 
       case 'deleteScript':
-        return await this.scriptsService.deleteScript(context, payload.id);
+        return await this.scriptsService.deleteScript(context, payload.id, req);
+
+      case 'duplicateScript':
+        return await this.scriptsService.duplicateScript(
+          context,
+          payload.id,
+          req,
+        );
 
       default:
         return await super.internalAPIPost(
@@ -269,11 +278,9 @@ export class InternalController extends InternalControllerCE {
     @Param('columnId') columnId: string,
     @Param('refTableId') refTableId: string,
   ) {
-    const table = await this.columnsService.getLinkColumnRefTable(context, {
+    return await this.columnsService.getLinkColumnRefTable(context, {
       columnId,
       tableId: refTableId,
     });
-
-    return table;
   }
 }

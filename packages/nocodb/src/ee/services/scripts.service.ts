@@ -61,4 +61,28 @@ export class ScriptsService {
 
     return true;
   }
+
+  async duplicateScript(context: NcContext, scriptId: string, req: NcRequest) {
+    const script = await Script.get(context, scriptId);
+
+    if (!script) {
+      return NcError.notFound('Script not found');
+    }
+
+    const newScript = await Script.insert(context, script.base_id, {
+      title: `Copy of ${script.title}`,
+      script: script.script,
+      description: script.description,
+    });
+
+    this.appHooksService.emit(AppEvents.SCRIPT_DUPLICATE, {
+      sourceScript: script,
+      destScript: newScript,
+      context,
+      req: req,
+      user: context.user,
+    });
+
+    return newScript;
+  }
 }

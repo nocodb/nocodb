@@ -113,6 +113,42 @@ export const useAutomationStore = defineStore('automation', () => {
     }
   }
 
+  const duplicateAutomation = async (baseId: string, automationId: string) => {
+    if (!activeWorkspaceId.value) return null
+    try {
+      isLoading.value = true
+
+      const created = await $api.internal.postOperation(
+        activeWorkspaceId.value,
+        baseId,
+        {
+          operation: 'duplicateScript',
+        },
+        {
+          id: automationId,
+        },
+      )
+
+      const baseAutomations = automations.value.get(baseId) || []
+      baseAutomations.push(created)
+      automations.value.set(baseId, baseAutomations)
+
+      ncNavigateTo({
+        workspaceId: activeWorkspaceId.value,
+        baseId: openedProject.value?.id,
+        automationId: created.id,
+      })
+
+      return created
+    } catch (e) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsgv2(e))
+      return null
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   const createAutomation = async (baseId: string, automationData: Partial<ScriptType>) => {
     if (!activeWorkspaceId.value) return null
     try {
@@ -404,6 +440,7 @@ export const useAutomationStore = defineStore('automation', () => {
     getScriptContent,
     getScriptAssetsURL: (pathOrUrl: string) => getPluginAssetUrl(pathOrUrl, pluginTypes.script),
     openNewScriptModal,
+    duplicateAutomation,
   }
 })
 

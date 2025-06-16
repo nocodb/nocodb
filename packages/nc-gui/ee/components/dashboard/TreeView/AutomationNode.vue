@@ -39,7 +39,7 @@ const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const automationStore = useAutomationStore()
 
-const { createAutomation } = automationStore
+const { duplicateAutomation } = automationStore
 
 const basesStore = useBases()
 
@@ -97,11 +97,7 @@ const duplicateScript = async (script: ScriptType) => {
 
   try {
     isLoading.value = true
-    await createAutomation(activeProjectId.value, {
-      title: `Copy of ${script.title}`,
-      script: script.script,
-      description: script.description,
-    })
+    await duplicateAutomation(activeProjectId.value, script.id)
   } finally {
     isLoading.value = false
   }

@@ -21,6 +21,8 @@ const { isSharedBase } = useBase()
 
 const automationStore = useAutomationStore()
 
+const { loadAutomations } = automationStore
+
 const { automations, isAutomationActive } = storeToRefs(automationStore)
 
 const { $e, $api } = useNuxtApp()
@@ -129,6 +131,7 @@ watch(
 )
 
 onMounted(async () => {
+  loadAutomations({ baseId: props.baseId })
   if (props.tab) {
     projectPageTab.value = props.tab
   }

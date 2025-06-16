@@ -43,13 +43,17 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     return locale
   }, 'en' /** fallback locale */)
 
+  const { width } = useWindowSize()
+  const isViewPortMobile = () => {
+    return width.value < MAX_WIDTH_FOR_MOBILE_MODE
+  }
+
   /** State */
   const initialState: StoredState = {
     token: null,
     lang: preferredLanguage,
     darkMode: prefersDarkMode,
     filterAutoSave: true,
-    previewAs: null,
     includeM2M: false,
     showNull: false,
     currentVersion: null,
@@ -65,6 +69,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     isAddNewRecordGridMode: true,
     syncDataUpvotes: [],
     giftBannerDismissedCount: 0,
+    isLeftSidebarOpen: !isViewPortMobile(),
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */

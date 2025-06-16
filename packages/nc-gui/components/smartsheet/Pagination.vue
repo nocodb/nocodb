@@ -11,7 +11,6 @@ interface Props {
   customLabel?: string
   fixedSize?: number
   extraStyle?: string
-  showApiTiming?: boolean
   alignLeft?: boolean
   showSizeChanger?: boolean
   isAddNewRecordGridMode?: boolean
@@ -153,7 +152,6 @@ const tempPageVal = ref(page.value)
       </div>
     </div>
     <div v-if="!isMobileMode" class="flex-1 flex justify-end items-center">
-      <GeneralApiTiming v-if="isEeUI && props.showApiTiming" class="m-1" />
       <div class="text-right">
         <span
           v-if="alignCountOnRight && count !== Infinity"

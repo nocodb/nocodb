@@ -1,7 +1,6 @@
 import { BoolType } from '../Api';
 import UITypes from '../UITypes';
 
-import { MssqlUi } from './MssqlUi';
 import { MysqlUi } from './MysqlUi';
 import { OracleUi } from './OracleUi';
 import { PgUi } from './PgUi';
@@ -32,9 +31,6 @@ export class SqlUiFactory {
 
     if (connectionConfig.client === 'sqlite3') {
       return new SqliteUi();
-    }
-    if (connectionConfig.client === 'mssql') {
-      return new MssqlUi();
     }
     if (connectionConfig.client === 'oracledb') {
       return new OracleUi();

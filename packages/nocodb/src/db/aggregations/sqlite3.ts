@@ -426,11 +426,15 @@ export function genSqlite3AggregateQuery({
 export function replaceDelimitedWithKeyValueSqlite3(params: {
   knex: CustomKnex;
   stack: { key: string; value: string }[];
-  needleColumn: string;
+  needleColumn: string | Knex.QueryBuilder | Knex.RawBuilder;
   delimiter?: string;
 }) {
   const delimiter = params.delimiter ?? ',';
   const knex = params.knex;
+
+  if (!params.stack || params.stack.length === 0) {
+    return knex.raw(`??`, [params.needleColumn]).toQuery();
+  }
 
   // create union replace statement for each user
   const mapUnion = params.stack
@@ -457,7 +461,7 @@ export function replaceDelimitedWithKeyValueSqlite3(params: {
         `  left join (${mapUnion}) nc_t_stack`,
         `    on nc_t_needle.nc_p_needle = nc_t_stack.nc_p_key`,
         `  group by nc_t_needle.nc_raw_needle`,
-        `)`,
+        `) nc_subquery`,
       ].join(' '),
     )
     .toQuery();

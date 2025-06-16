@@ -40,20 +40,21 @@
     "preinstall": "npx only-allow pnpm"
   },
   "dependencies": {
-    "axios": "^1.6.1",
-    "body-parser": "^1.20.1",
-    "dayjs": "^1.11.9",
-    "express": "^4.18.1",
-    "knex": "^2.4.2",
+    "@heyikang/ps-list": "^8.1.2",
+    "body-parser": "^2.2.0",
+    "dayjs": "^1.11.13",
+    "express": "^4.21.2",
+    "knex": "^3.1.0",
     "nocodb-sdk": "workspace:^",
-    "sqlite3": "^5.1.6",
-    "xlsx": "^0.18.5"
+    "sqlite3": "^5.1.7",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
-    "@playwright/test": "1.49.1",
+    "@playwright/test": "1.52.0",
     "@typescript-eslint/eslint-plugin": "^6.1.0",
     "@typescript-eslint/parser": "^6.1.0",
-    "dotenv": "^16.0.3",
+    "axios": "^1.9.0",
+    "dotenv": "^16.5.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^8.10.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
@@ -62,8 +63,8 @@
     "eslint-plugin-json": "^4.0.1",
     "eslint-plugin-prettier": "^4.2.1",
     "husky": "^8.0.1",
-    "lint-staged": "^13.0.3",
-    "mysql2": "^3.2.0",
+    "lint-staged": "^16.0.0",
+    "mysql2": "^3.14.1",
     "pg": "^8.8.0",
     "prettier": "^2.7.1",
     "promised-sqlite3": "^2.1.0"

@@ -197,7 +197,7 @@ const filterIntegration = (i: IntegrationItemType) => !!(i.sub_type !== SyncData
     <div class="flex-1 flex flex-col max-h-full">
       <div class="px-4 py-3 w-full flex items-center gap-3 border-b-1 border-gray-200">
         <div class="flex items-center">
-          <GeneralIcon icon="sync" class="!text-green-700 !h-5 !w-5" />
+          <GeneralIcon icon="ncZap" class="!text-green-700 !h-5 !w-5" />
         </div>
         <div class="flex-1 text-base font-weight-700">Add Sync To Existing Table</div>
 

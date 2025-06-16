@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import HTTPSnippet from 'httpsnippet'
+import { HTTPSnippet } from '@readme/httpsnippet'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 
 const { t } = useI18n()
@@ -41,7 +41,7 @@ const langs = [
   },
   {
     name: 'node',
-    clients: ['axios', 'fetch', 'request', 'native', 'unirest'],
+    clients: ['axios', 'fetch', 'native'],
     icon: iconMap.langNode,
   },
   {
@@ -55,7 +55,7 @@ const langs = [
   },
   {
     name: 'python',
-    clients: ['python3', 'requests'],
+    clients: ['requests'],
     icon: iconMap.langPython,
   },
   {
@@ -101,7 +101,7 @@ const snippet = computed(
         }),
         { name: 'viewId', value: view.value?.id },
       ],
-    }),
+    } as any),
 )
 
 const activeLang = computed(() => langs.find((lang) => lang.name === selectedLangName.value))
@@ -127,12 +127,16 @@ api.dbViewRow.list(
     console.error(error);
 });`
   }
-
-  return snippet.value.convert(
+  const result = snippet.value.convert(
     activeLang.value?.name,
     selectedClient.value || (activeLang.value?.clients && activeLang.value?.clients[0]),
     { indent: '\t' },
   )
+
+  if (result && result[0]) {
+    return result[0]
+  }
+  return ''
 })
 
 const onCopyToClipboard = async () => {
@@ -240,7 +244,7 @@ const supportedDocs = [
       </NcMenu>
       <div class="w-[calc(100%_-_264px)] flex flex-col gap-6 h-full max-h-full">
         <div class="nc-api-clents-tab-wrapper h-[calc(100%_-_56px)] flex flex-col mt-2">
-          <NcTabs v-model:activeKey="selectedClient" class="nc-api-clents-tab">
+          <NcTabs v-model:active-key="selectedClient" class="nc-api-clents-tab">
             <template #rightExtra>
               <NcButton
                 v-e="[

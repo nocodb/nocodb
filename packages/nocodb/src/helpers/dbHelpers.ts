@@ -35,6 +35,11 @@ import {
 import { excludeAttachmentProps } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
+export type QueryWithCte = {
+  builder: string | Knex.QueryBuilder;
+  applyCte: (qb: Knex.QueryBuilder) => void;
+};
+
 export function concatKnexRaw(knex: CustomKnex, raws: Knex.Raw[]) {
   return knex.raw(raws.map(() => '?').join(' '), raws);
 }
@@ -330,6 +335,8 @@ export function transformObject(value, idToAliasMap) {
     const btAlias = idToAliasMap[k];
     if (btAlias) {
       result[btAlias] = v;
+    } else {
+      result[k] = v;
     }
   });
   return result;
@@ -337,13 +344,32 @@ export function transformObject(value, idToAliasMap) {
 
 export function extractSortsObject(
   context: NcContext,
-  _sorts: string | string[],
+  _sorts: string | string[] | { direction: string; field: string }[],
   aliasColObjMap: { [columnAlias: string]: Column },
   throwErrorIfInvalid = false,
+  apiVersion?: NcApiVersion,
 ): Sort[] {
   if (!_sorts?.length) return;
+  // Handle API V3 format: [{"direction": "asc", "field": "field_name"}, {"direction": "desc", "field": "field_id"}]
+  if (apiVersion === NcApiVersion.V3) {
+    try {
+      _sorts = JSON.parse(_sorts as string);
+    } catch (_e) {}
+    if (!Array.isArray(_sorts)) _sorts = [_sorts];
+    return (_sorts as { direction: string; field: string }[]).map((s) => {
+      const sort: SortType = {
+        direction: s.direction as 'asc' | 'desc' | 'count-desc' | 'count-asc',
+        fk_column_id: aliasColObjMap[s.field]?.id,
+      };
+      if (throwErrorIfInvalid && !sort.fk_column_id) {
+        NcError.get(context).fieldNotFound(s.field);
+      }
+      return new Sort(sort);
+    });
+  }
 
-  let sorts = _sorts;
+  // Handle V2 format
+  let sorts = _sorts as string | string[];
   if (!Array.isArray(sorts)) sorts = sorts.split(/\s*,\s*/);
 
   return sorts.map((s) => {
@@ -365,10 +391,7 @@ export function extractSortsObject(
 
     if (throwErrorIfInvalid && !sort.fk_column_id) {
       const fieldNameOrId = s.replace(/^~?[+-]/, '');
-      if (context.api_version === NcApiVersion.V3) {
-        NcError.fieldNotFoundV3(fieldNameOrId);
-      }
-      NcError.fieldNotFound(fieldNameOrId);
+      NcError.get(context).fieldNotFound(fieldNameOrId);
     }
     return new Sort(sort);
   });
@@ -397,12 +420,14 @@ export function shouldSkipField(
   view,
   column,
   extractPkAndPv,
+  pkAndPvOnly = false,
 ) {
-  if (fieldsSet) {
+  if (fieldsSet && !pkAndPvOnly) {
     return !fieldsSet.has(column.title);
   } else {
-    if (column.system && isCreatedOrLastModifiedByCol(column)) return true;
-    if (column.system && isOrderCol(column)) return true;
+    if (!pkAndPvOnly && column.system && isCreatedOrLastModifiedByCol(column))
+      return true;
+    if (!pkAndPvOnly && column.system && isOrderCol(column)) return true;
     if (!extractPkAndPv) {
       if (!(viewOrTableColumn instanceof Column)) {
         if (
@@ -577,3 +602,49 @@ export const validateFuncOnColumn = async ({
     }
   }
 };
+
+export const isFilterValueConsistOf = (
+  filterValue: any,
+  needle: string,
+  option?: {
+    replace?: string;
+  },
+) => {
+  const evalNeedle = needle.toLowerCase().trim();
+  if (Array.isArray(filterValue)) {
+    const result = filterValue.find(
+      (k) => k.toLowerCase().trim() === evalNeedle,
+    );
+    if (result && option?.replace) {
+      filterValue.map((k) => k.replace(evalNeedle, option.replace));
+    }
+    return { exists: result, value: filterValue };
+  } else if (typeof filterValue === 'string') {
+    const result = filterValue
+      .split(',')
+      .find((k) => k.toLowerCase().trim() === evalNeedle);
+    if (result && option?.replace) {
+      filterValue = filterValue
+        .split(',')
+        .map((k) => k.replace(evalNeedle, option.replace))
+        .join(',');
+    }
+    return { exists: result, value: filterValue };
+  }
+  return { exists: false };
+};
+
+export function generateRecursiveCTE(_params: {
+  knex: CustomKnex;
+  idColumnName: string;
+  linkIdColumnName: string;
+  selectingColumnName: string;
+  cteTableName: string;
+  // sourceTable can be a subquery, another CTE, or physical table
+  sourceTable: string | Knex.QueryInterface | Knex.Raw;
+  tableAlias?: string;
+  direction?: 'id_to_link' | 'link_to_id';
+  qb: Knex.QueryBuilder;
+}) {
+  return false;
+}

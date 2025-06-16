@@ -38,11 +38,7 @@ export default async function sortV2(
     );
     if (!column) {
       if (throwErrorIfInvalid) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.fieldNotFoundV3(sort.fk_column_id);
-        } else {
-          NcError.fieldNotFound(sort.fk_column_id);
-        }
+        NcError.get(context).fieldNotFound(sort.fk_column_id);
       }
       continue;
     }
@@ -134,14 +130,6 @@ export default async function sortV2(
             sort.direction || 'asc',
             nulls,
           );
-        } else if (clientType === 'mssql') {
-          qb.orderBy(
-            sanitize(
-              knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name]),
-            ),
-            sort.direction || 'asc',
-            nulls,
-          );
         } else {
           qb.orderBy(
             sanitize(column.column_name),
@@ -156,14 +144,6 @@ export default async function sortV2(
         if (clientType === 'mysql' || clientType === 'mysql2') {
           qb.orderBy(
             sanitize(knex.raw('CONCAT(??)', [column.column_name])),
-            sort.direction || 'asc',
-            nulls,
-          );
-        } else if (clientType === 'mssql') {
-          qb.orderBy(
-            sanitize(
-              knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name]),
-            ),
             sort.direction || 'asc',
             nulls,
           );
@@ -214,8 +194,6 @@ export default async function sortV2(
             ]);
           } else if (knex.clientType() === 'sqlite3') {
             col = knex.raw(`json_extract(??, '$.value')`, [column.column_name]);
-          } else if (knex.clientType() === 'mssql') {
-            col = knex.raw(`JSON_VALUE(??, '$.value')`, [column.column_name]);
           }
 
           qb.orderBy(col, sort.direction || 'asc', nulls);

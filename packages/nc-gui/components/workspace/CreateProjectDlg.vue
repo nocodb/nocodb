@@ -6,7 +6,6 @@ import { computed } from '@vue/reactivity'
 
 const props = defineProps<{
   modelValue: boolean
-  type?: NcProjectType
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -14,8 +13,6 @@ const emit = defineEmits(['update:modelValue'])
 const { t } = useI18n()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
-
-const baseType = computed(() => props.type ?? NcProjectType.DB)
 
 const basesStore = useBases()
 
@@ -52,14 +49,12 @@ const createProject = async () => {
   creating.value = true
   try {
     const base = await _createProject({
-      type: baseType.value,
       title: formState.value.title,
       meta: formState.value.meta,
     })
 
     navigateToProject({
       baseId: base.id!,
-      type: baseType.value,
       workspaceId: 'nc',
     })
     dialogShow.value = false
@@ -109,14 +104,6 @@ watch(aiMode, () => {
 
   onInit()
 })
-
-const typeLabel = computed(() => {
-  switch (baseType.value) {
-    case NcProjectType.DB:
-    default:
-      return 'Base'
-  }
-})
 </script>
 
 <template>
@@ -133,10 +120,10 @@ const typeLabel = computed(() => {
     <template v-if="aiMode === false" #header>
       <!-- Create A New Table -->
       <div class="flex flex-row items-center text-base text-gray-800">
-        <GeneralProjectIcon :color="formState.meta.iconColor" :type="baseType" class="mr-2.5 !text-lg !h-4" />
+        <GeneralProjectIcon :color="formState.meta.iconColor" class="mr-2.5" />
         {{
           $t('general.createEntity', {
-            entity: typeLabel,
+            entity: 'Base',
           })
         }}
       </div>
@@ -178,19 +165,19 @@ const typeLabel = computed(() => {
             type="primary"
             size="small"
             :disabled="creating"
-            :label="`${$t('general.create')} ${typeLabel}`"
-            :loading-label="`${$t('general.creating')} ${typeLabel}`"
+            :label="`${$t('general.create')} Base`"
+            :loading-label="`${$t('general.creating')} Base`"
             @click="createProject"
           >
             {{
               $t('general.createEntity', {
-                entity: typeLabel,
+                entity: 'Base',
               })
             }}
             <template #loading>
               {{
                 $t('general.creatingEntity', {
-                  entity: typeLabel,
+                  entity: 'Base',
                 })
               }}
             </template>
@@ -199,7 +186,7 @@ const typeLabel = computed(() => {
       </div>
     </template>
     <template v-if="aiMode === true">
-      <WorkspaceProjectAiCreateProject v-model:ai-mode="aiMode" v-model:dialog-show="dialogShow" :base-type="baseType" />
+      <WorkspaceProjectAiCreateProject v-model:ai-mode="aiMode" v-model:dialog-show="dialogShow" />
     </template>
   </NcModal>
 </template>

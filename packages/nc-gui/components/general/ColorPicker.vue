@@ -87,12 +87,12 @@ watch(picked, (n, _o) => {
         }"
       >
         <button class="nc-more-colors-trigger h-6 w-6 border-1 border-gray-400 rounded" @click="isPickerOn = !isPickerOn">
-          <GeneralTooltip>
+          <NcTooltip>
             <template #title>{{ $t('activity.moreColors') }}</template>
             <div class="flex items-center justify-center">
               <GeneralIcon :icon="isPickerOn ? 'minus' : 'plus'" class="w-4 h-4" />
             </div>
-          </GeneralTooltip>
+          </NcTooltip>
         </button>
       </div>
     </div>

@@ -6,6 +6,11 @@ import { z } from 'zod';
 import { extractRolesObj, NcApiVersion, ProjectRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest, UserType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
+import type {
+  DataDeleteRequest,
+  DataInsertRequest,
+  DataUpdateRequest,
+} from '~/services/v3/data-v3.types';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
@@ -14,6 +19,7 @@ import { DataTableService } from '~/services/data-table.service';
 import { hasMinimumRole } from '~/utils/roleHelper';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { serialize } from '~/helpers/serialize';
+import { AuditsService } from '~/services/audits.service';
 
 @Injectable()
 export class McpService {
@@ -22,6 +28,7 @@ export class McpService {
     private readonly tablesV3Service: TablesV3Service,
     private readonly datasV3Service: DataV3Service,
     protected readonly dataTableService: DataTableService,
+    private readonly auditService: AuditsService,
   ) {}
 
   async handleRequest(
@@ -179,6 +186,7 @@ export class McpService {
       },
       async ({ tableId, limit = 50, page = 1, where, sort, fields }) => {
         try {
+          limit = Math.max(1, Math.min(limit || 25, 200));
           // Prepare parameters
           const params: any = { limit, page };
           if (where) params.where = where;
@@ -451,14 +459,14 @@ export class McpService {
           tableId: z.string().describe('Table ID'),
           records: z
             .array(
-              z.record(
-                z.string().describe('Field name/title'),
-                z.any().describe('Field value'),
-              ),
+              z.object({
+                fields: z.record(
+                  z.string().describe('Field name/title'),
+                  z.any().describe('Field value'),
+                ),
+              }),
             )
-            .describe(
-              'Array of records as key-value pairs of field titles and values',
-            ),
+            .describe('Array of records with fields as key-value pairs'),
         },
         async ({ tableId, records }) => {
           try {
@@ -467,7 +475,7 @@ export class McpService {
             const result = await this.datasV3Service.dataInsert(context, {
               modelId: tableId,
               baseId: context.base_id,
-              body: recordsArray,
+              body: recordsArray as DataInsertRequest[],
               cookie: req,
             });
 
@@ -492,14 +500,15 @@ export class McpService {
           tableId: z.string().describe('Table ID'),
           records: z
             .array(
-              z.record(
-                z.string().describe('Field name/title'),
-                z.any().describe('Field value'),
-              ),
+              z.object({
+                id: z.union([z.string(), z.number()]).describe('Record ID'),
+                fields: z.record(
+                  z.string().describe('Field name/title'),
+                  z.any().describe('Field value'),
+                ),
+              }),
             )
-            .describe(
-              'Array of records as key-value pairs of field titles and values',
-            ),
+            .describe('Array of records with ID and fields to update'),
         },
         async ({ tableId, records }) => {
           try {
@@ -508,7 +517,7 @@ export class McpService {
             const result = await this.datasV3Service.dataUpdate(context, {
               modelId: tableId,
               baseId: context.base_id,
-              body: recordsArray,
+              body: recordsArray as DataUpdateRequest[],
               cookie: req,
             });
 
@@ -533,14 +542,11 @@ export class McpService {
           tableId: z.string().describe('Table ID'),
           records: z
             .array(
-              z.record(
-                z.string().describe('Field name/title'),
-                z.any().describe('Field value'),
-              ),
+              z.object({
+                id: z.union([z.string(), z.number()]).describe('Record ID'),
+              }),
             )
-            .describe(
-              'Array of records as key-value pairs of primary key titles and values',
-            ),
+            .describe('Array of records with IDs to delete'),
         },
         async ({ tableId, records }) => {
           try {
@@ -548,7 +554,7 @@ export class McpService {
             const result = await this.datasV3Service.dataDelete(context, {
               modelId: tableId,
               baseId: context.base_id,
-              body: recordsArray,
+              body: recordsArray as DataDeleteRequest[],
               cookie: req,
             });
 
@@ -560,6 +566,53 @@ export class McpService {
           } catch (error) {
             return {
               content: [{ type: 'text', text: `Error: ${error.message}` }],
+              isError: true,
+            };
+          }
+        },
+      );
+
+      server.tool(
+        'readAuditLogs',
+        {
+          tableId: z.string().describe('Table ID (fk_model_id)'),
+          rowId: z.string().describe('Record/Row ID to filter logs for'),
+          limit: z
+            .number()
+            .optional()
+            .default(25)
+            .describe('Number of logs to retrieve (default: 25, max: 1000)'),
+          offset: z
+            .number()
+            .optional()
+            .default(0)
+            .describe('Offset for pagination (default: 0)'),
+        },
+        async ({ tableId, rowId, limit = 25, offset = 0 }) => {
+          limit = Math.max(1, Math.min(limit || 25, 1000));
+          try {
+            const audits = await this.auditService.auditOnlyList({
+              query: {
+                row_id: rowId,
+                fk_model_id: tableId,
+                limit,
+                offset,
+              },
+            });
+
+            return {
+              content: [
+                { type: 'text', text: JSON.stringify(audits, null, 2) },
+              ],
+            };
+          } catch (error) {
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: `Error retrieving audit logs: ${error.message}`,
+                },
+              ],
               isError: true,
             };
           }

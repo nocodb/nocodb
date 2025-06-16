@@ -1,5 +1,7 @@
+import AbstractColumnHelper, {
+  SerializerOrParserFnProps,
+} from '~/lib/columnHelper/column.interface';
 import { SilentTypeConversionError } from '~/lib/error';
-import AbstractColumnHelper from '../column.interface';
 import { parseJsonValue, serializeJsonValue } from '../utils';
 
 export class JsonHelper extends AbstractColumnHelper {
@@ -21,5 +23,25 @@ export class JsonHelper extends AbstractColumnHelper {
 
   parsePlainCellValue(value: any): string {
     return parseJsonValue(value);
+  }
+
+  override equalityComparison(
+    a: any,
+    b: any,
+    _param: SerializerOrParserFnProps['params']
+  ): boolean {
+    const aStr =
+      typeof a === 'object'
+        ? JSON.stringify(a)
+        : typeof a === 'string'
+        ? a
+        : a.toString();
+    const bStr =
+      typeof b === 'object'
+        ? JSON.stringify(b)
+        : typeof b === 'string'
+        ? b
+        : b.toString();
+    return aStr === bStr;
   }
 }

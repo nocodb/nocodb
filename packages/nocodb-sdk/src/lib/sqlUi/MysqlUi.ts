@@ -1013,6 +1013,7 @@ export class MysqlUi implements SqlUi {
       case 'json':
         return 'json';
     }
+    return 'string';
   }
 
   static getDataTypeForUiType(
@@ -1515,6 +1516,9 @@ export class MysqlUi implements SqlUi {
   }
   isParsedJsonReturnType(col: ColumnType): boolean {
     return ['json'].includes(col.dt?.toLowerCase());
+  }
+  get tableNameLengthLimit(): number {
+    return 64;
   }
   //#endregion methods
 }

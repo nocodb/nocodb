@@ -1,6 +1,7 @@
 {
   "dashboards": {
     "create_new_dashboard_project": "Create New Interface",
+    "create_new_table": "Create New Table",
     "connect_data_sources": "Connect data sources",
     "alert": "Alert",
     "alert-message": "No databases have been connected. Connect database bases to build interfaces. Skip this step and add databases from the base home page later.",
@@ -152,7 +153,9 @@
     "newEditorWillBeChanged": "Additional charges may apply for new invites",
     "newEditorWillBeChangedSubtitle": "Members assigned the Editor role or higher may incur additional charges.",
     "upgradeToUploadWsImage": "Upgrade to upload a workspace image",
-    "upgradeToUploadWsImageSubtitle": "Your current {activePlan} plan allows only icons and emojis. Upgrade to the {plan} plan to upload a custom image as your workspace avatar."
+    "upgradeToUploadWsImageSubtitle": "Your current {activePlan} plan allows only icons and emojis. Upgrade to the {plan} plan to upload a custom image as your workspace avatar.",
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
   },
   "general": {
     "script": "Script",
@@ -391,7 +394,15 @@
     "reactivate": "Reactivate",
     "left": "left",
     "seat": "Seat",
-    "seats": "Seats"
+    "seats": "Seats",
+    "automation": "Automation",
+    "resources": "Resources",
+    "community": "Community",
+    "youtube": "Youtube",
+    "changelog": "Changelog",
+    "contactSupport": "Contact Support",
+    "proceedImport": "Proceed Import",
+    "inserting": "Inserting"
   },
   "objects": {
     "script": "Script",
@@ -494,7 +505,6 @@
       "postgreSQL": "PostgreSQL",
       "sqlite": "SQLite",
       "dataBricks": "DataBricks",
-      "mssqlServer": "MSSQL Server",
       "oracle": "Oracle",
       "telegram": "Telegram",
       "whatsapp": "Whatsapp",
@@ -805,9 +815,16 @@
     "upgradeToPlan": "Upgrade to {plan} plan",
     "upgradeWorkspaceToPlan": "Upgrade {workspace} to {plan} plan",
     "upgradeToPlanSubtitle": "You will be charged immediately for this plan.",
-    "reactivateToPlan": "Reactivate {plan} plan?"
+    "reactivateToPlan": "Reactivate {plan} plan?",
+    "whatsNew": "What’s New!",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user",
+    "hideExtensions": "Hide Extensions",
+    "duplicatesFound": "Duplicates found",
+    "matchingResultsInRecords": "Matching results in {count} records"
   },
   "labels": {
+    "crossBase": "Link to external base",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -839,6 +856,7 @@
     "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
     "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
     "currentWorkspace": "Current workspace",
+    "currentBase": "Current base",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "Failed",
@@ -869,7 +887,7 @@
     "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
-    "toggleExperimentalFeature": "Easily toggle experimental features on or off to explore upcoming functionalities.",
+    "toggleExperimentalFeature": "Easily toggle all experimental features on / off",
     "modifiedOn": "Modified on",
     "configuration": "Configuration",
     "setup": "Setup",
@@ -1236,7 +1254,8 @@
     "apiSnippet": "API Snippets",
     "includeData": "Include Data",
     "includeRecords": "Include records",
-    "baseDuplicateMessage": "Note: Audit logs & integrations will not be duplicated.",
+    "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Include views",
     "includeWebhook": "Include webhook",
     "includeComments": "Include comments",
@@ -1320,7 +1339,12 @@
     "invoice": "Invoice",
     "status": "Status",
     "invoiceTotal": "Invoice Total",
-    "pastInvoices": "Past Invoices"
+    "pastInvoices": "Past Invoices",
+    "createNew": "Create New",
+    "dataApiV2": "Data APIs V2",
+    "metaApiV2": "Meta APIs V2",
+    "showExtraFields": "Show additional fields",
+    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1608,6 +1632,7 @@
     "changePlan": "ChangePlan"
   },
   "tooltip": {
+    "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "Current date option not available for the data source or the data type",
     "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",
@@ -1665,7 +1690,15 @@
     "copyErrorCode": "Copy error code",
     "paidUserBadgeTooltip": "User has an editor or higher role in at least one base.",
     "approachingLimit": "Approaching limit",
-    "exceedingLimit": "Exceeding limit"
+    "exceedingLimit": "Exceeding limit",
+    "filteredByCurrentUser": "Filtered by current user",
+    "navigateToBaseToCreateTable": "Navigate to a base to a create table",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToTableToCreateView": "Navigate to a table to a create view",
+    "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
+    "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table"
   },
   "placeholder": {
     "searchIcons": "Search icons",
@@ -1726,9 +1759,17 @@
     "searchOptions": "Search options",
     "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional).",
     "noBaseUsersFound": "No base users found",
-    "noInvoices": "No Invoices"
+    "noInvoices": "No Invoices",
+    "noResultsFoundForYourSearch": "No results found for your search.",
+    "noTables": "No tables",
+    "noAutomations": "No automations",
+    "emptyTablePlaceholder": "This base is empty—for now.",
+    "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access."
   },
   "msg": {
+    "userAlreadyExists": "User with \"{email}\" already have access.",
+    "evaluateRecursively": "Evaluate recursively",
+    "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Drop your document here",
@@ -2076,7 +2117,9 @@
       "pleaseRequestAccessForView": "Please request for higher permission from the Admin / Base owner / Workspace owner to get access to this {viewName}",
       "preventHideAllOptions": "You cannot hide all options if field is required",
       "valueMustBeAtMostCharLong": "Value must be at most {length} characters long",
-      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
+      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",
@@ -2204,7 +2247,7 @@
       "projInfo": "Copied base info to clipboard",
       "inviteUrlCopy": "Copied Invite URL to clipboard",
       "createView": "View created successfully",
-      "formEmailSMTP": "Please activate SMTP plugin in App store for enabling email notification",
+      "formEmailSMTP": "Please activate the SMTP plugin to enable e-mail notifications",
       "collabView": "Successfully Switched to collaborative view",
       "lockedView": "Successfully Switched to locked view",
       "futureRelease": "Coming soon!",

@@ -15,8 +15,6 @@ const emits = defineEmits<Emits>()
 
 const active = inject(ActiveCellInj, ref(false))
 
-const { isMssql } = useBase()
-
 const column = inject(ColumnInj)
 
 const isForm = inject(IsFormInj)
@@ -49,7 +47,7 @@ const checkboxMeta = computed(() => {
 
 const vModel = computed<boolean | number>({
   get: () => !!props.modelValue && props.modelValue !== '0' && props.modelValue !== 0 && props.modelValue !== 'false',
-  set: (val: any) => emits('update:modelValue', isMssql(column?.value?.source_id) ? +val : val),
+  set: (val: any) => emits('update:modelValue', val),
 })
 
 function onClick(force?: boolean, event?: MouseEvent | KeyboardEvent) {

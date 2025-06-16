@@ -405,12 +405,12 @@ onMounted(() => {
 
   isReverseLazyLoad.value = false
 
-  options.value = vModel.value.colOptions.options
+  options.value = [...vModel.value.colOptions.options]
 
   let indexCounter = 0
   options.value = options.value.map((el) => {
     el.index = indexCounter++
-    return el
+    return { ...el }
   })
 
   if (isKanbanStack.value) {

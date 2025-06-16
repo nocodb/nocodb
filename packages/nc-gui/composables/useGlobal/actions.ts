@@ -1,6 +1,5 @@
 import { getActivePinia } from 'pinia'
 import type { Actions, AppInfo, Getters, State } from './types'
-import type { NcProjectType } from '#imports'
 
 export function useGlobalActions(state: State, _getters: Getters): Actions {
   const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
@@ -119,7 +118,6 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
   }: {
     workspaceId?: string
     baseId?: string
-    type?: NcProjectType
     query?: any
   }) => {
     const workspaceId = _workspaceId || 'nc'
@@ -140,7 +138,6 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
 
   const ncNavigateTo = ({
     workspaceId: _workspaceId,
-    type: _type,
     baseId,
     query,
     tableId,
@@ -148,7 +145,6 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
   }: {
     workspaceId?: string
     baseId?: string
-    type?: NcProjectType
     query?: any
     tableId?: string
     viewId?: string

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { NcRequest } from 'nocodb-sdk';
+import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
@@ -79,6 +79,7 @@ export class BulkDataAliasService {
       cookie: NcRequest;
       raw?: boolean;
       allowSystemColumn?: boolean;
+      apiVersion?: NcApiVersion;
     },
   ) {
     return await this.executeBulkOperation(context, {
@@ -90,6 +91,7 @@ export class BulkDataAliasService {
           cookie: param.cookie,
           raw: param.raw,
           allowSystemColumn: param.allowSystemColumn,
+          apiVersion: param.apiVersion,
         },
       ],
     });
@@ -102,12 +104,19 @@ export class BulkDataAliasService {
       body: any;
       cookie: NcRequest;
       query: any;
+      internalFlags?: {
+        skipHooks?: boolean;
+      };
     },
   ) {
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkUpdateAll',
-      options: [param.query, param.body, { cookie: param.cookie }],
+      options: [
+        param.query,
+        param.body,
+        { cookie: param.cookie, skip_hooks: param.internalFlags?.skipHooks },
+      ],
     });
   }
 
@@ -131,12 +140,18 @@ export class BulkDataAliasService {
     param: PathParams & {
       query: any;
       req: NcRequest;
+      internalFlags?: {
+        skipHooks?: boolean;
+      };
     },
   ) {
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkDeleteAll',
-      options: [param.query, { cookie: param.req }],
+      options: [
+        param.query,
+        { cookie: param.req, skip_hooks: param.internalFlags?.skipHooks },
+      ],
     });
   }
 

@@ -1,15 +1,21 @@
 <script lang="ts" setup>
 import { type ColumnType, isSystemColumn } from 'nocodb-sdk'
 
-const props = defineProps<{
-  // As we need to focus search box when the parent is opened
-  isParentOpen: boolean
-  toolbarMenu: 'groupBy' | 'sort' | 'globalSearch'
-  searchInputPlaceholder?: string
-  selectedOptionId?: string
-  options: ColumnType[]
-  showSelectedOption?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    // As we need to focus search box when the parent is opened
+    isParentOpen: boolean
+    toolbarMenu: 'groupBy' | 'sort' | 'globalSearch'
+    searchInputPlaceholder?: string
+    selectedOptionId?: string
+    options: ColumnType[]
+    showSelectedOption?: boolean
+    inputBordered?: boolean
+  }>(),
+  {
+    inputBordered: true,
+  },
+)
 
 const emits = defineEmits<{ selected: [ColumnType] }>()
 
@@ -80,17 +86,24 @@ const handleSelect = (c: ColumnType) => {
     $e(configByToolbarMenu.value.selectOptionEvent)
   }
 }
+
+const isLocked = inject(IsLockedInj)
 </script>
 
 <template>
   <NcList
     class="field-list-with-search"
+    :class="{
+      'nc-input-bordered': inputBordered,
+    }"
     :search-input-placeholder="searchInputPlaceholder"
     :show-selected-option="showSelectedOption"
     option-label-key="title"
     option-value-key="id"
-    :input-bordered="true"
+    :input-bordered="inputBordered"
+    :hide-top-divider="inputBordered"
     :open="isParentOpen"
+    :is-locked="isLocked && toolbarMenu !== 'globalSearch'"
     show-search-always
     :item-class-name="configByToolbarMenu.optionClassName"
     :list="options"
@@ -106,11 +119,7 @@ const handleSelect = (c: ColumnType) => {
 
 <style lang="scss">
 .field-list-with-search {
-  .nc-divider {
-    display: none !important;
-  }
-
-  .nc-toolbar-dropdown-search-field-input {
+  &.nc-input-bordered .nc-toolbar-dropdown-search-field-input {
     @apply rounded-lg mb-2;
   }
 

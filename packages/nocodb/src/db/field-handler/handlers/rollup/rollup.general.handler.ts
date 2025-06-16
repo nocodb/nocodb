@@ -1,16 +1,16 @@
+import { ComputedFieldHandler } from '../computed';
 import type CustomKnex from '~/db/CustomKnex';
-import type { HandlerOptions } from '~/db/field-handler/field-handler.interface';
+import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
 import type { Column, RollupColumn } from '~/models';
-import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { Filter } from '~/models';
 
-export class RollupGeneralHandler extends GenericFieldHandler {
+export class RollupGeneralHandler extends ComputedFieldHandler {
   override async filter(
     knex: CustomKnex,
     filter: Filter,
     column: Column,
-    options: HandlerOptions,
+    options: FilterOptions,
   ) {
     const {
       baseModel: baseModelSqlv2,

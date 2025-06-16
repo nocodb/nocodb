@@ -60,11 +60,6 @@ export async function convertDateFormatForConcat(
         meta.date_format,
         clientType,
       )}', ${query})`;
-    } else if (clientType === 'mssql') {
-      query = `FORMAT(${query}, '${convertDateFormat(
-        meta.date_format,
-        clientType,
-      )}')`;
     }
   }
   return query;

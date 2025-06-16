@@ -4,6 +4,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useTitle } from '@vueuse/core'
 import type { ViewPageType } from '~/lib/types'
 import { getFormattedViewTabTitle } from '~/helpers/parsers/parserHelpers'
+import { DlgViewCreate } from '#components'
 
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api } = useNuxtApp()
@@ -25,6 +26,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
   // Store recent views from all Workspaces
   const allRecentViews = ref<RecentView[]>([])
   const route = router.currentRoute
+
+  const { refreshCommandPalette } = useCommandPalette()
+
+  const { $e } = useNuxtApp()
 
   const bases = useBases()
   const { openedProject } = storeToRefs(bases)
@@ -61,6 +66,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const isPublic = computed(() => route.value.meta?.public)
 
   const { activeTable } = storeToRefs(useTablesStore())
+
+  const lastOpenedViewId = ref<string | undefined>(undefined)
 
   const activeViewTitleOrId = computed(() => {
     if (!route.value.params.viewTitle?.length) {
@@ -484,7 +491,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
           return await $api.dbView.calendarCreate(view.fk_model_id, payload)
       }
     } catch (e: any) {
-      message.error(e.message)
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 
@@ -529,6 +537,73 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
+  const onOpenViewCreateModal = ({
+    title = '',
+    type,
+    copyViewId,
+    groupingFieldColumnId,
+    calendarRange,
+    coverImageColumnId,
+    baseId,
+    tableId,
+  }: {
+    title?: string
+    type: ViewTypes | 'AI'
+    copyViewId?: string
+    groupingFieldColumnId?: string
+    calendarRange?: Array<{
+      fk_from_column_id: string
+      fk_to_column_id: string | null
+    }>
+    coverImageColumnId?: string
+    baseId: string
+    tableId: string
+  }) => {
+    if (!baseId || !tableId) return
+
+    const isDlgOpen = ref(true)
+
+    const { close } = useDialog(DlgViewCreate, {
+      'modelValue': isDlgOpen,
+      title,
+      type,
+      'tableId': tableId,
+      'selectedViewId': copyViewId,
+      calendarRange,
+      groupingFieldColumnId,
+      coverImageColumnId,
+      'onUpdate:modelValue': closeDialog,
+      'baseId': baseId,
+      'onCreated': async (view?: ViewType) => {
+        closeDialog()
+
+        refreshCommandPalette()
+
+        await loadViews({
+          tableId,
+          force: true,
+        })
+
+        if (view) {
+          navigateToView({
+            view,
+            tableId,
+            baseId,
+            doNotSwitchTab: true,
+          })
+        }
+
+        $e('a:view:create', { view: view?.type || type })
+      },
+    })
+
+    function closeDialog() {
+      isDlgOpen.value = false
+
+      close(1000)
+    }
+  }
+
   refreshViewTabTitle.on(() => {
     updateTabTitle()
   })
@@ -570,6 +645,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     duplicateView,
     setCurrentViewExpandedFormMode,
     setCurrentViewExpandedFormAttachmentColumn,
+    onOpenViewCreateModal,
+    lastOpenedViewId,
   }
 })
 

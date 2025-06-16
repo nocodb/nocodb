@@ -58,7 +58,8 @@ test.describe('Erd', () => {
     await dashboard.details.clickRelationsTab();
   };
 
-  test('Verify default config, all columns disabled, only PK and FK disabled, Sql views and MM table option, junction table names', async () => {
+  // skipping this test as it is disabled in the GUI of base ERD
+  test.skip('Verify default config, all columns disabled, only PK and FK disabled, Sql views and MM table option, junction table names', async () => {
     await toggleMM();
     await openProjectErd();
 

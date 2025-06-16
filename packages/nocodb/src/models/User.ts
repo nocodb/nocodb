@@ -374,7 +374,10 @@ export default class User implements UserType {
       ...sanitiseUserObj(user),
       roles: user.roles ? extractRolesObj(user.roles) : null,
       base_roles: baseRoles ? baseRoles : null,
-    } as any;
+    } as UserType & {
+      roles: Record<string, boolean>;
+      base_roles: Record<string, boolean>;
+    };
   }
 
   protected static async clearCache(userId: string, ncMeta = Noco.ncMeta) {

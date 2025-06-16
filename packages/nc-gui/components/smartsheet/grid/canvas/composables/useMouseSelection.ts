@@ -24,7 +24,7 @@ export function useMouseSelection({
   scrollLeft: Ref<number>
   columns: ComputedRef<CanvasGridColumn[]>
   triggerReRender: () => void
-  scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
+  scrollToCell: CanvasScrollToCellFn
   elementMap: CanvasElement
   getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
@@ -119,7 +119,8 @@ export function useMouseSelection({
       }
 
       selection.value.endRange(cell)
-      scrollToCell(cell.row, cell.col, cell.path)
+
+      scrollToCell(cell.row, cell.col, cell.path, selection.value.isDifferentColSelection())
       triggerReRender()
     }
   }

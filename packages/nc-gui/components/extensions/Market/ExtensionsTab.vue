@@ -83,9 +83,14 @@ const onAddExtension = (ext: any) => {
                 </div>
               </div>
 
-              <div class="max-h-[36px] text-small leading-[18px] text-nc-content-gray-subtle line-clamp-2">
+              <NcTooltip
+                :title="ext.subTitle"
+                show-on-truncate-only
+                :line-clamp="2"
+                class="text-small leading-[18px] text-nc-content-gray-subtle line-clamp-2"
+              >
                 {{ ext.subTitle }}
-              </div>
+              </NcTooltip>
             </div>
             <NcButton
               v-if="!blockAddNewExtension"

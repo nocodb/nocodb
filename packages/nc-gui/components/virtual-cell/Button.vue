@@ -14,6 +14,8 @@ const { currentRow } = useSmartsheetRowStoreOrThrow()
 
 const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
+const { appInfo } = useGlobal()
+
 const meta = inject(MetaInj, ref())
 
 const isGrid = inject(IsGridInj, ref(false))
@@ -108,7 +110,9 @@ const componentProps = computed(() => {
     return {
       href: url,
       target: '_blank',
-      ...(column.value?.colOptions.error || !isValidURL(url) ? { disabled: true } : {}),
+      ...(column.value?.colOptions.error || !isValidURL(url, { require_tld: !appInfo.value?.allowLocalUrl })
+        ? { disabled: true }
+        : {}),
     }
   } else if (column.value.colOptions.type === ButtonActionsType.Webhook) {
     return {
@@ -142,7 +146,7 @@ const triggerAction = async () => {
   const colOptions = column.value.colOptions
 
   if (colOptions.type === ButtonActionsType.Url) {
-    confirmPageLeavingRedirect(componentProps.value?.href, componentProps.value?.target)
+    confirmPageLeavingRedirect(componentProps.value?.href, componentProps.value?.target, appInfo.value?.allowLocalUrl)
   } else if (colOptions.type === ButtonActionsType.Webhook) {
     try {
       isLoading.value = true

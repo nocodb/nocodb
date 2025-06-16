@@ -30,3 +30,5 @@ export const ANT_MESSAGE_DURATION = +(process.env.ANT_MESSAGE_DURATION ?? (ncIsP
 export const EXTERNAL_SOURCE_TOTAL_ROWS = 200
 
 export const EXTERNAL_SOURCE_VISIBLE_ROWS = 100
+
+export const MINI_SIDEBAR_WIDTH = 48

@@ -17,15 +17,15 @@ const viewsStore = useViewsStore()
 
 const { activeView, views } = storeToRefs(viewsStore)
 
-const { loadViews, navigateToView } = viewsStore
-
-const { refreshCommandPalette } = useCommandPalette()
+const { navigateToView, onOpenViewCreateModal } = viewsStore
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isOpen = ref<boolean>(false)
 
 const isSqlView = computed(() => (activeTable.value as TableType)?.type === 'view')
+
+const isSyncedTable = computed(() => (activeTable.value as TableType)?.synced)
 
 const activeSource = computed(() => {
   return base.value.sources?.find((s) => s.id === activeView.value?.source_id)
@@ -117,53 +117,16 @@ async function onOpenModal({
 
   $e('c:view:create:topbar', { view: type === 'AI' ? type : viewTypeAlias[type] })
 
-  const isDlgOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgViewCreate'), {
-    'modelValue': isDlgOpen,
+  onOpenViewCreateModal({
     title,
     type,
-    'tableId': activeTable.value.id,
-    'selectedViewId': copyViewId,
-    calendarRange,
+    copyViewId,
     groupingFieldColumnId,
+    calendarRange,
     coverImageColumnId,
-    'onUpdate:modelValue': closeDialog,
-    'baseId': base.value.id,
-    'onCreated': async (view?: ViewType) => {
-      closeDialog()
-
-      refreshCommandPalette()
-
-      await loadViews({
-        tableId: activeTable.value.id!,
-        force: true,
-      })
-
-      activeTable.value.meta = {
-        ...(activeTable.value.meta as object),
-        hasNonDefaultViews: true,
-      }
-
-      if (view) {
-        navigateToView({
-          view,
-          tableId: activeTable.value.id!,
-          baseId: base.value.id!,
-          doNotSwitchTab: true,
-        })
-      }
-
-      $e('a:view:create', { view: view?.type || type })
-    },
+    baseId: base.value.id!,
+    tableId: activeTable.value.id!,
   })
-
-  function closeDialog() {
-    isOpen.value = false
-    isDlgOpen.value = false
-
-    close(1000)
-  }
 }
 </script>
 
@@ -208,7 +171,7 @@ async function onOpenModal({
           <NcDivider class="!mt-0 !mb-2" />
           <div class="overflow-hidden mb-2">
             <a-menu class="nc-viewlist-menu">
-              <a-sub-menu popup-class-name="nc-viewlist-submenu-popup ">
+              <a-sub-menu popup-class-name="nc-viewlist-submenu-popup">
                 <template #title>
                   <div class="flex items-center justify-between gap-2 text-sm font-weight-500 !text-brand-500">
                     <div class="flex items-center gap-2">
@@ -235,19 +198,21 @@ async function onOpenModal({
                 </a-menu-item>
 
                 <NcTooltip
-                  :title="$t('tooltip.sourceDataIsReadonly')"
-                  :disabled="!activeSource?.is_data_readonly && !isSqlView"
+                  :title="
+                    isSyncedTable ? $t('tooltip.formViewCreationNotSupportedForSyncedTable') : $t('tooltip.sourceDataIsReadonly')
+                  "
+                  :disabled="!activeSource?.is_data_readonly && !isSqlView && !isSyncedTable"
                   placement="right"
                 >
                   <a-menu-item
-                    :disabled="!!activeSource?.is_data_readonly || isSqlView"
+                    :disabled="!!activeSource?.is_data_readonly || isSqlView || isSyncedTable"
                     @click="onOpenModal({ type: ViewTypes.FORM })"
                   >
                     <div
                       class="nc-viewlist-submenu-popup-item"
                       data-testid="topbar-view-create-form"
                       :class="{
-                        'opacity-50': !!activeSource?.is_data_readonly || isSqlView,
+                        'opacity-50': !!activeSource?.is_data_readonly || isSqlView || isSyncedTable,
                       }"
                     >
                       <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />

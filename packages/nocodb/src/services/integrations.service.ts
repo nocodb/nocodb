@@ -441,7 +441,7 @@ export class IntegrationsService {
     }
 
     if (
-      !integrationMeta.exposedEndpoints?.includes(params.endpoint) ||
+      !integrationMeta.expose?.includes(params.endpoint) ||
       !(params.endpoint in wrapper) ||
       typeof wrapper[params.endpoint] !== 'function'
     ) {

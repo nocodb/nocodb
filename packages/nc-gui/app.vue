@@ -29,6 +29,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         break
       case 'k':
         e.preventDefault()
+        commandPalette.value?.open?.()
         break
       case 'l':
         e.preventDefault()

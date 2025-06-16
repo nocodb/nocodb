@@ -788,6 +788,7 @@ export class OracleUi implements SqlUi {
       case 'varying array':
         return 'string';
     }
+    return 'string';
   }
 
   static getUIType(col): any {
@@ -1095,6 +1096,9 @@ export class OracleUi implements SqlUi {
 
   isParsedJsonReturnType(_col: ColumnType): boolean {
     return false;
+  }
+  get tableNameLengthLimit(): number {
+    return 255;
   }
   //#endregion methods
 }

@@ -1,3 +1,5 @@
+import type { Api } from 'nocodb-sdk'
+
 const apiPlugin = (nuxtApp) => {
   const { api } = useApi()
 
@@ -7,7 +9,7 @@ const apiPlugin = (nuxtApp) => {
 
 declare module '#app' {
   interface NuxtApp {
-    $api: ReturnType<typeof createApiInstance>
+    $api: Api<any>
   }
 }
 

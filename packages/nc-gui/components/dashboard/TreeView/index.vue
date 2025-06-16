@@ -27,8 +27,6 @@ const { loadTables } = baseStore
 
 const { isSharedBase, base } = storeToRefs(baseStore)
 
-const { updateTab } = useTabs()
-
 const tablesStore = useTablesStore()
 
 const { loadProjectTables } = tablesStore
@@ -159,8 +157,6 @@ async function handleTableRename(
     const newMeta = await $api.dbTable.read(table.id as string)
     await setMeta(newMeta)
 
-    updateTab({ id: table.id }, { title: newMeta.title })
-
     refreshCommandPalette()
 
     $e('a:table:rename')
@@ -179,7 +175,7 @@ function openTableCreateDialog(sourceId?: string, baseId?: string) {
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
-    'sourceId': sourceId, // || sources.value[0].id,
+    'sourceId': sourceId,
     'baseId': baseId || basesList.value[0].id,
     'onUpdate:modelValue': closeDialog,
   })

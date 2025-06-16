@@ -13,6 +13,7 @@ import {
 } from '../../factory/column';
 import { createTable, getTable } from '../../factory/table';
 import {
+  countRows,
   createBulkRows,
   createChildRow,
   createRow,
@@ -21,9 +22,11 @@ import {
   getRow,
   listRow,
 } from '../../factory/row';
+import { listenForJob } from '../../factory/job';
 import { isMysql, isPg, isSqlite } from '../../init/db';
 import type { ColumnType } from 'nocodb-sdk';
 import type Model from '../../../../src/models/Model';
+import type View from '../../../../src/models/View';
 import type Base from '~/models/Base';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
@@ -41,6 +44,7 @@ function tableStaticTest() {
   let base: Base;
   let sakilaProject: Base;
   let customerTable: Model;
+  let customerView: View;
   let customerColumns;
   let sakilaCtx: {
     workspace_id: string;
@@ -63,6 +67,11 @@ function tableStaticTest() {
       base: sakilaProject,
       name: 'customer',
     });
+
+    customerView = (await customerTable.getViews(sakilaCtx)).find(
+      (v) => v.is_default,
+    )!;
+
     customerColumns = await customerTable.getColumns(sakilaCtx);
     console.timeEnd('#### tableTest');
   });
@@ -343,42 +352,58 @@ function tableStaticTest() {
       throw new Error('Should not exist');
     }
   });
+
   // todo: Test contents of file
   it('Export csv', async () => {
-    const response = await request(context.app)
-      .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/csv`,
-      )
+    // get row count
+    const rowCount = await countRows({
+      base: sakilaProject,
+      table: customerTable,
+      view: customerView,
+    });
+
+    // Start export job
+    const jobResponse = await request(context.app)
+      .post(`/api/v2/export/${customerView.id}/csv`)
       .set('xc-auth', context.token)
       .expect(200);
 
-    if (
-      !response['header']['content-disposition'].includes('Customer-export.csv')
-    ) {
-      throw new Error('Wrong file name');
-    }
-    if (!response.text) {
-      throw new Error('Wrong export');
-    }
-  });
-  // todo: Test contents of file
-  it('Export excel', async () => {
-    const response = await request(context.app)
-      .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/${customerTable.title}/export/excel`,
-      )
-      .set('xc-auth', context.token)
-      .expect(200);
+    // Verify we got a job ID
+    const jobId = jobResponse.body.id;
+    expect(jobId).to.be.a('string');
 
-    if (
-      !response['header']['content-disposition'].includes(
-        'Customer-export.xlsx',
-      )
-    ) {
-      throw new Error('Wrong file name');
-    }
-    if (!response.text) {
-      throw new Error('Wrong export');
+    // Wait for job completion using the helper function
+    const resultData = await listenForJob({
+      context,
+      base_id: sakilaProject.id,
+      job_id: jobId,
+    });
+
+    // Verify the exported file
+    expect(resultData).to.be.an('object');
+    expect(resultData.url).to.be.a('string');
+
+    try {
+      const fileUrl = resultData.url;
+
+      // Download the file using the download endpoint
+      const fileResponse = await request(context.app)
+        .get(`/${encodeURI(fileUrl)}`)
+        .set('xc-auth', context.token)
+        .expect(200);
+
+      // Check file content
+      expect(fileResponse.headers['content-disposition']).to.include(
+        `${customerTable.title} (Default View).csv`,
+      );
+      expect(fileResponse.headers['content-type']).to.include('text/csv');
+      expect(fileResponse.text).to.be.a('string').and.not.empty;
+      expect(fileResponse.text.split('\n').length).to.equal(rowCount + 1);
+    } catch (error) {
+      console.error('Error downloading file:', error.message);
+      console.error('URL used:', `/${resultData.url}`);
+      console.error('Result data:', JSON.stringify(resultData, null, 2));
+      throw error;
     }
   });
   // todo: Add export test for views

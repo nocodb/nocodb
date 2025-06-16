@@ -1,6 +1,5 @@
 import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
-import { isEE } from '~/utils';
 
 const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.MCP_TOKENS, (table) => {

@@ -45,7 +45,7 @@ export function useCopyPaste({
     path?: Array<number>
   }>
   columns: ComputedRef<CanvasGridColumn[]>
-  scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
+  scrollToCell: CanvasScrollToCellFn
   selection: Ref<CellRange>
   editEnabled: Ref<{
     rowIndex: number
@@ -776,7 +776,7 @@ export function useCopyPaste({
       }
       return newAttachments
     } catch (e: any) {
-      message.error(e.message || t('msg.error.internalError'))
+      message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.internalError'))
     }
   }
 

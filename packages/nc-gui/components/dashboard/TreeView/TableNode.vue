@@ -18,18 +18,17 @@ const { openTable: _openTable } = useTableNew({
   baseId: base.value.id!,
 })
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const route = useRoute()
 
 const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
-const tabStore = useTabs()
-const { updateTab } = tabStore
-
 const { $e, $api } = useNuxtApp()
 
-const { isMysql, isMssql, isPg } = useBase()
+const { isMysql, isPg } = useBase()
 
 useTableNew({
   baseId: base.value.id!,
@@ -98,8 +97,6 @@ const validators = computed(() => {
               tableNameLengthLimit = 64
             } else if (isPg(source.value?.id)) {
               tableNameLengthLimit = 63
-            } else if (isMssql(source.value?.id)) {
-              tableNameLengthLimit = 128
             }
             const basePrefix = base?.value?.prefix || ''
             if ((basePrefix + value).length > tableNameLengthLimit) {
@@ -136,8 +133,6 @@ const setIcon = async (icon: string, table: TableType) => {
       icon,
     }
     tables.value.splice(tables.value.indexOf(table), 1, { ...table })
-
-    updateTab({ id: table.id }, { meta: table.meta })
 
     await $api.dbTable.update(table.id as string, {
       meta: table.meta,
@@ -246,11 +241,6 @@ const duplicateTable = (table: SidebarTableNode) => {
   if (showRecordPlanLimitExceededModal()) return
 
   _duplicateTable(table)
-}
-
-const onSyncOptions = () => {
-  isOptionsOpen.value = false
-  isSyncModalOpen.value = true
 }
 
 const focusInput = () => {
@@ -456,8 +446,10 @@ async function onRename() {
         class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-gray-200"
         :class="{
           'hover:bg-gray-200': openedTableId !== table.id,
-          'pl-13.5': sourceIndex !== 0,
-          'pl-7.5 xs:(pl-6)': sourceIndex === 0,
+          'pl-13.5 !xs:(pl-12)': sourceIndex !== 0 && !isNewSidebarEnabled,
+          'pl-7.5 xs:(pl-6)': sourceIndex === 0 && !isNewSidebarEnabled,
+          'pl-8 !xs:(pl-7)': sourceIndex !== 0 && isNewSidebarEnabled,
+          'pl-2 xs:(pl-2)': sourceIndex === 0 && isNewSidebarEnabled,
           '!bg-primary-selected': isTableOpened,
         }"
         :data-testid="`nc-tbl-side-node-${table.title}`"
@@ -470,7 +462,7 @@ async function onRename() {
             <div
               v-else
               v-e="['c:table:emoji-picker']"
-              class="flex items-center nc-table-icon"
+              class="flex items-center nc-table-icon min-w-6"
               :class="{
                 'pointer-events-none': !canUserEditEmote,
               }"
@@ -483,14 +475,14 @@ async function onRename() {
                 :readonly="!canUserEditEmote || isMobileMode"
                 @emoji-selected="setIcon($event, table)"
               >
-                <template #default>
-                  <NcTooltip class="flex" placement="topLeft" hide-on-click :disabled="!canUserEditEmote">
+                <template #default="{ isOpen }">
+                  <NcTooltip class="flex" placement="topLeft" hide-on-click :disabled="!canUserEditEmote || isOpen">
                     <template #title>
                       {{ $t('general.changeIcon') }}
                     </template>
 
                     <component
-                      :is="iconMap.sync"
+                      :is="iconMap.ncZap"
                       v-if="table?.synced"
                       class="w-4 text-sm"
                       :class="isTableOpened ? '!text-brand-600/85' : '!text-gray-600/75'"
@@ -616,18 +608,6 @@ async function onRename() {
                   </NcMenuItem>
 
                   <NcMenuItem
-                    v-if="table?.synced && isUIAllowed('tableDelete', { roles: baseRole, source })"
-                    :data-testid="`sidebar-table-sync-${table.title}`"
-                    class="nc-table-sync"
-                    @click="onSyncOptions"
-                  >
-                    <div v-e="['c:table:sync']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="sync" class="opacity-80" />
-                      Sync Options
-                    </div>
-                  </NcMenuItem>
-
-                  <NcMenuItem
                     v-if="isUIAllowed('tableDescriptionEdit', { roles: baseRole, source })"
                     :data-testid="`sidebar-table-description-${table.title}`"
                     class="nc-table-description"
@@ -673,6 +653,7 @@ async function onRename() {
                     v-if="isUIAllowed('tableDelete', { roles: baseRole, source })"
                     :data-testid="`sidebar-table-delete-${table.title}`"
                     class="!text-red-500 !hover:bg-red-50 nc-table-delete"
+                    :disabled="table.synced"
                     @click="deleteTable"
                   >
                     <div v-e="['c:table:delete']" class="flex gap-2 items-center">

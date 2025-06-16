@@ -93,8 +93,6 @@ export class SqlViewsService {
       tableNameLengthLimit = 64;
     } else if (sqlClientType === 'pg') {
       tableNameLengthLimit = 63;
-    } else if (sqlClientType === 'mssql') {
-      tableNameLengthLimit = 128;
     }
 
     if (body.view_name.length > tableNameLengthLimit) {

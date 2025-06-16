@@ -47,7 +47,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
 
   const { close } = useDialog(resolveComponent('DlgTableCreate'), {
     'modelValue': isOpen,
-    sourceId, // || sources.value[0].id,
+    sourceId,
     'baseId': openedProject.value.id,
     'onCreate': closeDialog,
     'onUpdate:modelValue': () => closeDialog(),
@@ -221,7 +221,7 @@ const sourceIdToIconMap = computed(() => {
           <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-brand-500" />
         </div>
         <div class="flex flex-col gap-1">
-          <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
+          <div class="label">{{ $t('dashboards.create_new_table') }}</div>
           <div class="subtext">{{ $t('msg.subText.createNewTable') }}</div>
         </div>
       </div>
@@ -280,7 +280,7 @@ const sourceIdToIconMap = computed(() => {
         @click="onCreateSyncClick"
       >
         <div class="icon-wrapper">
-          <GeneralIcon icon="sync" class="!h-7 !w-7 !text-green-700" />
+          <GeneralIcon icon="ncZap" class="!h-7 !w-7 !text-green-700" />
         </div>
         <div class="flex flex-col gap-1">
           <div class="label">Sync Data</div>
@@ -402,7 +402,7 @@ const sourceIdToIconMap = computed(() => {
         </template>
       </NcTable>
     </div>
-    <div v-else class="py-3 flex items-center gap-6 <lg:flex-col">
+    <div v-else-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })" class="py-3 flex items-center gap-6 <lg:flex-col">
       <img src="~assets/img/placeholder/table.png" class="!w-[23rem] flex-none" />
       <div class="text-center lg:text-left">
         <div class="text-2xl text-gray-800 font-bold">{{ $t('placeholder.createTable') }}</div>
@@ -411,10 +411,23 @@ const sourceIdToIconMap = computed(() => {
         </div>
       </div>
     </div>
+    <div v-else class="py-3 flex items-center gap-6 flex-col">
+      <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[240px] !h-[187px] flex-none" />
+      <div class="text-center">
+        <div class="text-2xl text-nc-content-gray font-bold">{{ $t('placeholder.emptyTablePlaceholder') }}</div>
+        <div class="text-sm text-nc-content-gray-subtle2 pt-3">
+          {{ $t('placeholder.emptyTablePlaceholderSubtitle') }}
+        </div>
+      </div>
+    </div>
 
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
     <LazyDashboardSettingsDataSourcesCreateBase v-if="isNewBaseModalOpen" v-model:open="isNewBaseModalOpen" is-modal />
-    <LazyDashboardSettingsSyncCreate v-if="isNewSyncModalOpen" v-model:open="isNewSyncModalOpen" />
+    <LazyDashboardSettingsSyncCreate
+      v-if="isNewSyncModalOpen && base?.id"
+      v-model:open="isNewSyncModalOpen"
+      :base-id="base?.id"
+    />
   </div>
 </template>
 

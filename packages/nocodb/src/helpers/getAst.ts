@@ -160,11 +160,7 @@ const getAst = async (
         (f) => !colAliasMap[f] && !aliasColMap[f],
       );
       if (invalidFields.length) {
-        if (apiVersion === NcApiVersion.V3) {
-          NcError.fieldNotFoundV3(invalidFields.join(', '));
-        } else {
-          NcError.fieldNotFound(invalidFields.join(', '));
-        }
+        NcError.get(context).fieldNotFound(invalidFields.join(', '));
       }
     }
   } else {
@@ -206,11 +202,14 @@ const getAst = async (
       query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
     if (nestedFields && nestedFields !== '*') {
       if (col.uidt === UITypes.LinkToAnotherRecord) {
-        const model = await col
-          .getColOptions<LinkToAnotherRecordColumn>(context)
-          .then((colOpt) => colOpt.getRelatedTable(context));
+        const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
+          context,
+        );
+        const model = await colOpt.getRelatedTable(context);
 
-        const { ast } = await getAst(context, {
+        const { refContext: refTableContext } = colOpt.getRelContext(context);
+
+        const { ast } = await getAst(refTableContext, {
           model,
           query: query?.nested?.[col.title],
           dependencyFields: (dependencyFields.nested[col.title] =
@@ -232,12 +231,16 @@ const getAst = async (
         ).reduce((o, f) => ({ ...o, [f]: 1 }), {});
       }
     } else if (col.uidt === UITypes.LinkToAnotherRecord) {
-      const model = await col
-        .getColOptions<LinkToAnotherRecordColumn>(context)
-        .then((colOpt) => colOpt.getRelatedTable(context));
+      const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
+        context,
+      );
+
+      const { refContext: refTableContext } = colOpt.getRelContext(context);
+
+      const model = await colOpt.getRelatedTable(context);
 
       value = (
-        await getAst(context, {
+        await getAst(refTableContext, {
           model,
           query: query?.nested?.[col.title],
           extractOnlyPrimaries: nestedFields !== '*',
@@ -252,7 +255,6 @@ const getAst = async (
     }
     let isRequested;
 
-    const isForeignKey = col.uidt === UITypes.ForeignKey;
     const isInFields = fields?.length && fields.includes(col.title);
     const isSortOrFilterColumn =
       includeSortAndFilterColumns &&
@@ -263,7 +265,7 @@ const getAst = async (
     }
     // exclude system column and foreign key from API response for v3
     else if (
-      (col.system || isForeignKey) &&
+      col.system &&
       ![UITypes.CreatedTime, UITypes.LastModifiedTime].includes(col.uidt) &&
       apiVersion === NcApiVersion.V3
     ) {
@@ -299,7 +301,10 @@ const getAst = async (
         (!fields?.length || isInFields) &&
         value;
     } else if (fields?.length) {
-      isRequested = isInFields && value;
+      // For APIv3, always extract primary key dependencies even if not explicitly requested
+      // This is needed because APIv3 always returns the primary key as 'id' at root level
+      isRequested =
+        (isInFields && value) || (apiVersion === NcApiVersion.V3 && col.pk);
     } else {
       isRequested = value;
     }
@@ -324,7 +329,7 @@ const extractDependencies = async (
     fieldsSet: new Set(),
   },
 ) => {
-  switch (column.uidt) {
+  switch (column?.uidt) {
     case UITypes.Lookup:
       await extractLookupDependencies(context, column, dependencyFields);
       break;
@@ -347,10 +352,17 @@ const extractLookupDependencies = async (
 ) => {
   const lookupColumnOpts = await lookUpColumn.getColOptions(context);
   const relationColumn = await lookupColumnOpts.getRelationColumn(context);
-  await extractRelationDependencies(context, relationColumn, dependencyFields);
+  const relationColumnOpts =
+    await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
+  const { refContext } = relationColumnOpts.getRelContext(context);
+  await extractRelationDependencies(
+    refContext,
+    relationColumn,
+    dependencyFields,
+  );
   await extractDependencies(
     context,
-    await lookupColumnOpts.getLookupColumn(context),
+    await lookupColumnOpts.getLookupColumn(refContext),
     (dependencyFields.nested[relationColumn.title] = dependencyFields.nested[
       relationColumn.title
     ] || {

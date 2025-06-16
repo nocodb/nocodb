@@ -39,6 +39,13 @@ export class FormsService {
 
     const model = await Model.get(context, param.tableId);
 
+    if (model.synced) {
+      NcError._.prohibitedSyncTableOperation({
+        modelName: model.title,
+        operation: 'create_form_view',
+      });
+    }
+
     const source = await Source.get(context, model.source_id);
 
     if (source.is_data_readonly) {

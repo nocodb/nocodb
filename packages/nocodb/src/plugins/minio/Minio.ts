@@ -66,8 +66,13 @@ export default class Minio implements IStorageAdapterV2 {
 
   public async test(): Promise<boolean> {
     try {
-      const createStream = Readable.from(['Hello from Minio, NocoDB']);
-      await this.fileCreateByStream('nc-test-file.txt', createStream);
+      const stream = new Readable({
+        read() {
+          this.push('Hello from Minio, NocoDB');
+          this.push(null);
+        },
+      });
+      await this.fileCreateByStream('nc-test-file.txt', stream);
       return true;
     } catch (e) {
       throw e;
@@ -116,9 +121,31 @@ export default class Minio implements IStorageAdapterV2 {
         });
       });
 
+      // Create a transform stream to ensure data is in Buffer format
+      const bufferStream = new Readable({
+        read() {},
+      });
+
+      stream.on('data', (chunk) => {
+        // Convert string chunks to Buffer if necessary
+        if (typeof chunk === 'string') {
+          bufferStream.push(Buffer.from(chunk, 'utf8'));
+        } else {
+          bufferStream.push(chunk);
+        }
+      });
+
+      stream.on('end', () => {
+        bufferStream.push(null);
+      });
+
+      stream.on('error', (err) => {
+        bufferStream.emit('error', err);
+      });
+
       const uploadParams = {
         Key: key,
-        Body: stream,
+        Body: bufferStream,
         metaData: {
           ContentType: options?.mimetype,
           size: options?.size,

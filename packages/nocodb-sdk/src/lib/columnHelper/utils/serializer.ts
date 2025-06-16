@@ -6,12 +6,15 @@ import {
   ncIsBoolean,
   ncIsFunction,
   ncIsNaN,
+  ncIsNull,
   ncIsNumber,
   ncIsString,
+  ncIsUndefined,
 } from '~/lib/is';
 import UITypes from '~/lib/UITypes';
 import { SerializerOrParserFnProps } from '../column.interface';
 import { SelectTypeConversionError } from '~/lib/error';
+import { checkboxTypeMap } from '~/lib/columnHelper/utils/common';
 
 /**
  * Remove outer quotes & unescape
@@ -124,8 +127,10 @@ export const serializeCheckboxValue = (
 
   if (ncIsString(value)) {
     const strval = value.trim().toLowerCase();
-    if (strval === 'true' || strval === '1') return true;
-    if (strval === 'false' || strval === '0' || strval === '') return false;
+    const parsedValue = checkboxTypeMap[strval];
+    if (!ncIsNull(parsedValue) && !ncIsUndefined(parsedValue)) {
+      return parsedValue;
+    }
   }
 
   return null;
@@ -141,9 +146,44 @@ export const serializeJsonValue = (value: any) => {
   }
 };
 
-export const serializeCurrencyValue = (value: any) => {
+export const serializeCurrencyValue = (value: any, col: ColumnType) => {
   return serializeDecimalValue(value, (value) => {
-    return value?.replace(/[^0-9.]/g, '')?.trim();
+    const columnMeta = parseProp(col.meta);
+
+    let group = ',';
+    let decimal = '.';
+
+    // Create a number formatter for the target locale (e.g., 'de-DE', 'en-US')
+    const formatter = new Intl.NumberFormat(
+      columnMeta?.currency_locale || 'en-US'
+    );
+
+    // If the locale is not set or is 'en-US', or the formatter does not support formatToParts, use the default behavior
+    if (
+      !columnMeta?.currency_locale ||
+      columnMeta.currency_locale === 'en-US' ||
+      typeof (formatter as any).formatToParts !== 'function'
+    ) {
+      return value?.replace(/[^0-9.]/g, '')?.trim();
+    }
+
+    // Use formatToParts to extract the characters used for grouping (thousands) and decimal
+    const parts = (formatter as any).formatToParts(12345.6) as Array<{
+      type: string;
+      value: string;
+    }>;
+
+    // Extract group separator (e.g., '.' in 'de-DE', ',' in 'en-US')
+    group = parts.find((p) => p.type === 'group')?.value || group;
+
+    // Extract decimal separator (e.g., ',' in 'de-DE', '.' in 'en-US')
+    decimal = parts.find((p) => p.type === 'decimal')?.value || decimal;
+
+    return value
+      .replace(new RegExp('\\' + group, 'g'), '') // 1. Remove all group (thousands) separators
+      .replace(new RegExp('\\' + decimal), '.') // 2. Replace the locale-specific decimal separator with a dot (.)
+      .replace(/[^\d.-]/g, '') // 3. Remove any non-digit, non-dot, non-minus characters (e.g., currency symbols, spaces)
+      .trim(); // 4. Trim whitespace from both ends of the string
   });
 };
 

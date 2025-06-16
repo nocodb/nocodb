@@ -13,7 +13,6 @@ import {
 } from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
-import { NcCheckbox } from '#components'
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
@@ -62,15 +61,13 @@ const useForm = Form.useForm
 
 const { $api, $state } = useNuxtApp()
 
-const { addTab } = useTabs()
-
 const basesStore = useBases()
 
 const { bases } = storeToRefs(basesStore)
 
 const baseStore = useBase()
 
-const { isMysql, isMssql, isPg } = baseStore
+const { isMysql, isPg } = baseStore
 
 const { base: activeBase } = storeToRefs(baseStore)
 
@@ -157,8 +154,6 @@ const validators = computed(() =>
               tableNameLengthLimit = 64
             } else if (isPg(sourceId)) {
               tableNameLengthLimit = 63
-            } else if (isMssql(sourceId)) {
-              tableNameLengthLimit = 128
             }
 
             const basePrefix = base?.value?.prefix || ''
@@ -741,11 +736,6 @@ async function importTemplate() {
 
       // reload table list
       await loadProjectTables(base.value.id, true)
-
-      addTab({
-        ...tab,
-        type: TabType.TABLE,
-      })
     } catch (e: any) {
       console.log(e)
       throw e

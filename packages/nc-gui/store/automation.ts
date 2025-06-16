@@ -27,6 +27,8 @@ export const useAutomationStore = defineStore('automation', () => {
 
   const openScript = async (_p1: any) => {}
 
+  async function openNewScriptModal(..._arg: any[]) {}
+
   return {
     // State
     automations,
@@ -46,6 +48,7 @@ export const useAutomationStore = defineStore('automation', () => {
     updateAutomation,
     deleteAutomation,
     openScript,
+    openNewScriptModal,
   }
 })
 

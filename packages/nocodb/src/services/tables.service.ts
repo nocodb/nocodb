@@ -174,8 +174,6 @@ export class TablesService {
       tableNameLengthLimit = 64;
     } else if (sqlClientType === 'pg') {
       tableNameLengthLimit = 63;
-    } else if (sqlClientType === 'mssql') {
-      tableNameLengthLimit = 128;
     }
 
     if (param.table.table_name.length > tableNameLengthLimit) {
@@ -235,10 +233,16 @@ export class TablesService {
       tableId: string;
       user: User;
       forceDeleteRelations?: boolean;
+      forceDeleteSyncs?: boolean;
       req?: any;
     },
   ) {
     const table = await Model.getByIdOrName(context, { id: param.tableId });
+
+    if (table?.synced && !param.forceDeleteSyncs) {
+      NcError.badRequest('Synced tables cannot be deleted');
+    }
+
     await table.getColumns(context);
 
     if (table.mm) {
@@ -254,17 +258,23 @@ export class TablesService {
       // get relation column names
       const relColumns = await Promise.all(
         tables.map((t) => {
-          return t.getColumns(context).then((cols) => {
-            return cols.find((c) => {
-              return (
-                isLinksOrLTAR(c) &&
-                (c.colOptions as LinkToAnotherRecordColumn).type ===
-                  RelationTypes.MANY_TO_MANY &&
-                (c.colOptions as LinkToAnotherRecordColumn).fk_mm_model_id ===
-                  table.id
-              );
+          return t
+            .getColumns({
+              ...context,
+              base_id: t.base_id,
+              workspace_id: t.fk_workspace_id,
+            })
+            .then((cols) => {
+              return cols.find((c) => {
+                return (
+                  isLinksOrLTAR(c) &&
+                  (c.colOptions as LinkToAnotherRecordColumn).type ===
+                    RelationTypes.MANY_TO_MANY &&
+                  (c.colOptions as LinkToAnotherRecordColumn).fk_mm_model_id ===
+                    table.id
+                );
+              });
             });
-          });
         }),
       );
 
@@ -308,7 +318,7 @@ export class TablesService {
           c
             .getColOptions<LinkToAnotherRecordColumn>(context)
             .then((opt) => opt.getRelatedTable(context))
-            .then(),
+            .then((t) => t?.title),
         ),
       );
       NcError.badRequest(
@@ -753,8 +763,6 @@ export class TablesService {
       tableNameLengthLimit = 64;
     } else if (sqlClientType === 'pg') {
       tableNameLengthLimit = 63;
-    } else if (sqlClientType === 'mssql') {
-      tableNameLengthLimit = 128;
     }
 
     if (tableCreatePayLoad.table_name.length > tableNameLengthLimit) {
@@ -873,6 +881,7 @@ export class TablesService {
             column_name: colMetaFromDb?.cn || c.cn || c.column_name,
             order: i + 1,
             readonly: c.readonly || false,
+            meta: c.meta || {},
           } as NormalColumnRequestType;
         }),
         ...virtualColumns.map((c, i) => ({

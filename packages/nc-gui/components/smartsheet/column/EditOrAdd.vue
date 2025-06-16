@@ -119,7 +119,7 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const readOnly = computed(() => props.readonly)
 
-const { isMysql, isMssql, isDatabricks, isXcdbBase } = useBase()
+const { isMysql, isDatabricks, isXcdbBase } = useBase()
 
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
@@ -1273,8 +1273,7 @@ watch(activeAiTab, (newValue) => {
         <template v-if="!readOnly && isFullUpdateAllowed">
           <div class="nc-column-options-wrapper flex flex-col gap-4">
             <!--
-            Default Value for JSON & LongText is not supported in MySQL
-            Default Value is Disabled for MSSQL -->
+            Default Value for JSON & LongText is not supported in MySQL  -->
             <LazySmartsheetColumnRichLongTextDefaultValue
               v-if="isTextArea(formState) && formState.meta?.richMode"
               v-model:value="formState"
@@ -1284,7 +1283,6 @@ watch(activeAiTab, (newValue) => {
               v-else-if="
           !isVirtualCol(formState) &&
           !isAttachment(formState) &&
-          !isMssql(meta!.source_id) &&
           !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState))) &&
           !(isDatabricks(meta!.source_id) && formState.unique) &&
           !isAI(formState)

@@ -484,6 +484,7 @@ export class UtilsService {
       samlAuthEnabled,
       giftUrl,
       prodReady: Noco.getConfig()?.meta?.db?.client !== DriverClient.SQLITE,
+      allowLocalUrl: process.env.NC_ALLOW_LOCAL_HOOKS === 'true',
       isOnPrem,
     };
 

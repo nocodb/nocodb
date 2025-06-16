@@ -421,7 +421,7 @@ const isDeleteOrUpdateAllowed = (user) => {
       </NcTable>
     </div>
 
-    <LazyDlgInviteDlg v-model:model-value="isInviteModalVisible" :base-id="currentBase?.id" type="base" />
+    <LazyDlgInviteDlg v-model:model-value="isInviteModalVisible" :base-id="currentBase?.id" :users="collaborators" type="base" />
   </div>
 </template>
 

@@ -7,6 +7,8 @@ const props = defineProps<{
   tab?: string
 }>()
 
+const { hideSidebar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const { integrations } = useProvideIntegrationViewStore()
 
 const basesStore = useBases()
@@ -18,6 +20,8 @@ const { activeWorkspace } = storeToRefs(useWorkspace())
 const { isSharedBase } = useBase()
 
 const automationStore = useAutomationStore()
+
+const { loadAutomations } = automationStore
 
 const { automations, isAutomationActive } = storeToRefs(automationStore)
 
@@ -68,6 +72,8 @@ watch(
     if (newVal && newVal !== oldVal) {
       if (newVal === 'collaborator') {
         projectPageTab.value = 'collaborator'
+      } else if (newVal === 'syncs') {
+        projectPageTab.value = 'syncs'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
       } else if (newVal === 'allTable') {
@@ -125,9 +131,15 @@ watch(
 )
 
 onMounted(async () => {
+  await until(() => !!currentBase.value?.id).toBeTruthy()
+  loadAutomations({ baseId: currentBase.value?.id })
   if (props.tab) {
     projectPageTab.value = props.tab
   }
+})
+
+onMounted(() => {
+  hideSidebar.value = false
 })
 </script>
 
@@ -151,7 +163,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <SmartsheetTopbarCmdK v-if="!isSharedBase" />
+      <SmartsheetTopbarCmdK v-if="!isSharedBase && !isNewSidebarEnabled" />
 
       <LazyGeneralShareProject />
     </div>
@@ -245,7 +257,19 @@ onMounted(async () => {
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
-        <a-tab-pane key="base-settings">
+        <a-tab-pane v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('sourceCreate') && base.id" key="syncs">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__syncs">
+              <GeneralIcon icon="ncZap" />
+              <div>Syncs</div>
+            </div>
+          </template>
+          <DashboardSettingsSyncs v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
+        </a-tab-pane>
+        <a-tab-pane
+          v-if="!isSharedBase && (isUIAllowed('baseMiscSettings') || isFeatureEnabled(FEATURE_FLAG.MODEL_CONTEXT_PROTOCOL))"
+          key="base-settings"
+        >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__base-settings">
               <GeneralIcon icon="ncSettings" />

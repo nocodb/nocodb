@@ -139,3 +139,21 @@ export const antSelectFilterOption = (
 
   return searchCompare(optionValue, inputValue)
 }
+
+/**
+ * Extracts the name from an email address.
+ *
+ * @param email - The email address to extract the name from.
+ * @returns The name extracted from the email address.
+ *
+ * @example
+ * ```typescript
+ * const name = extractNameFromEmail('john.doe@example.com');
+ * console.log(name); // Output: 'john.doe'
+ * ```
+ */
+export const extractNameFromEmail = (email?: string) => {
+  if (!email) return ''
+
+  return email?.slice(0, email.indexOf('@'))
+}

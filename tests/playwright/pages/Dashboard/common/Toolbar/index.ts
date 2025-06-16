@@ -223,8 +223,8 @@ export class ToolbarPage extends BasePage {
     const menuItems = {
       creator: ['Download', 'Upload'],
       editor: ['Download', 'Upload'],
-      commenter: ['CSV', 'Excel'],
-      viewer: ['CSV', 'Excel'],
+      commenter: ['CSV'],
+      viewer: ['CSV'],
     };
     const vMenu = this.rootPage.locator('.nc-dropdown-actions-menu:visible');
     for (const item of menuItems[param.role.toLowerCase()]) {

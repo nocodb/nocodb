@@ -9,9 +9,6 @@ class SwaggerTypes {
       case 'pg':
         SwaggerTypes.setSwaggerTypeForPg(column, field);
         break;
-      case 'mssql':
-        SwaggerTypes.setSwaggerTypeForMssql(column, field);
-        break;
       case 'sqlite3':
         SwaggerTypes.setSwaggerTypeForSqlite(column, field);
         break;
@@ -209,64 +206,6 @@ class SwaggerTypes {
       case 'xml':
         field.type = 'string';
         break;
-      default:
-        field.type = 'string';
-        break;
-    }
-  }
-
-  static setSwaggerTypeForMssql(column, field) {
-    switch (column.dt) {
-      case 'bigint':
-      case 'int':
-      case 'tinyint':
-      case 'smallint':
-      case 'bit':
-        field.type = 'integer';
-        break;
-      case 'binary':
-        field.type = 'string';
-        field.format = 'binary';
-        break;
-      case 'char':
-      case 'date':
-      case 'datetime':
-      case 'datetime2':
-      case 'datetimeoffset':
-      case 'geography':
-      case 'geometry':
-      case 'heirarchyid':
-      case 'image':
-      case 'money':
-      case 'nchar':
-      case 'ntext':
-      case 'nvarchar':
-      case 'smalldatetime':
-      case 'smallmoney':
-      case 'sql_variant':
-      case 'sysname':
-      case 'text':
-      case 'time':
-      case 'timestamp':
-      case 'uniqueidentifier':
-      case 'varbinary':
-      case 'xml':
-      case 'varchar':
-        field.type = 'string';
-        break;
-
-      case 'decimal':
-      case 'float':
-      case 'numeric':
-      case 'real':
-        field.type = 'number';
-        field.format = 'float';
-        break;
-
-      case 'json':
-        field.type = 'object';
-        break;
-
       default:
         field.type = 'string';
         break;

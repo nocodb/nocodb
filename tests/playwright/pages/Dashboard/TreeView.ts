@@ -8,12 +8,16 @@ export class TreeViewPage extends BasePage {
   readonly dashboard: DashboardPage;
   readonly base: any;
   readonly quickImportButton: Locator;
+  readonly createNewButton: Locator;
+  readonly miniSidebar: Locator;
 
   constructor(dashboard: DashboardPage, base: any) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.base = base;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
+    this.createNewButton = this.get().locator('.nc-home-create-new-btn');
+    this.miniSidebar = this.dashboard.get().getByTestId('nc-mini-sidebar');
   }
 
   get() {
@@ -70,7 +74,10 @@ export class TreeViewPage extends BasePage {
   }
 
   async openBase({ title }: { title: string }) {
+    await this.dashboard.leftSidebar.verifyBaseListOpen(true);
+
     const nodes = this.get().locator(`[data-testid="nc-sidebar-base-${title.toLowerCase()}"]`);
+    await nodes.waitFor();
     await nodes.click();
     return;
   }
@@ -131,6 +138,53 @@ export class TreeViewPage extends BasePage {
     }
   }
 
+  async createEntity({
+    type,
+    skipOpeningModal,
+    baseTitle,
+  }: {
+    type: 'table' | 'script';
+    skipOpeningModal?: boolean;
+    mode?: string;
+    baseTitle: string;
+  }) {
+    if (skipOpeningModal) return;
+
+    await this.dashboard.leftSidebar.miniSidebarActionClick({ type: 'base' });
+
+    const verifyBaseListOpen = await this.dashboard.leftSidebar.verifyBaseListOpen();
+
+    switch (type) {
+      case 'table': {
+        if (verifyBaseListOpen) {
+          await this.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).hover();
+
+          await this.get()
+            .getByTestId(`nc-sidebar-base-${baseTitle}`)
+            .getByTestId('nc-sidebar-add-base-entity')
+            .click();
+        } else {
+          const isCreateNewDropdown = (await this.createNewButton.getAttribute('class')).includes(
+            'nc-home-create-new-dropdown-btn'
+          );
+
+          if (!isCreateNewDropdown) {
+            return await this.createNewButton.click();
+          } else {
+            await this.createNewButton.click();
+            await this.dashboard.get().locator('.nc-dropdown.active').waitFor();
+
+            await this.dashboard.get().locator('.nc-dropdown.active').getByTestId(`create-new-${type}`).click();
+          }
+        }
+        break;
+      }
+      case 'script': {
+        // Todo:
+      }
+    }
+  }
+
   async createTable({
     title,
     skipOpeningModal,
@@ -141,18 +195,15 @@ export class TreeViewPage extends BasePage {
     mode?: string;
     baseTitle: string;
   }) {
-    if (!skipOpeningModal) {
-      await this.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).hover();
-
-      await this.get().getByTestId(`nc-sidebar-base-${baseTitle}`).getByTestId('nc-sidebar-add-base-entity').click();
-    }
+    await this.createEntity({ type: 'table', skipOpeningModal, baseTitle });
 
     await this.dashboard.get().locator('.ant-modal.active').locator('.ant-modal-body').waitFor();
 
     await this.dashboard.get().getByPlaceholder('Enter table name').fill(title);
 
     await this.waitForResponse({
-      uiAction: () => this.dashboard.get().locator('button:has-text("Create Table")').click(),
+      uiAction: () =>
+        this.dashboard.get().locator('.ant-modal.active').locator('button:has-text("Create Table")').click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
       responseJsonMatcher: json => json.title === title && json.type === 'table',
@@ -316,6 +367,8 @@ export class TreeViewPage extends BasePage {
   async openProject({ title, context }: { title: string; context: NcContext }) {
     title = this.scopedProjectTitle({ title, context });
 
+    await this.dashboard.leftSidebar.verifyBaseListOpen(true);
+
     await this.get().getByTestId(`nc-sidebar-base-title-${title}`).click();
     await this.rootPage.waitForTimeout(1000);
 
@@ -339,6 +392,8 @@ export class TreeViewPage extends BasePage {
   async renameProject(param: { newTitle: string; title: string; context: NcContext }) {
     param.title = this.scopedProjectTitle({ title: param.title, context: param.context });
     param.newTitle = this.scopedProjectTitle({ title: param.newTitle, context: param.context });
+
+    await this.dashboard.leftSidebar.verifyBaseListOpen(true);
 
     await this.openProjectContextMenu({ baseTitle: param.title });
     const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible').last();

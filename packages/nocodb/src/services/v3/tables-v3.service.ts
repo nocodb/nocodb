@@ -173,18 +173,9 @@ export class TablesV3Service {
       sourceId: param.sourceId,
     });
 
-    const result = tableReadBuilder().build(tableCreateOutput);
-
-    result.display_field_id = tableCreateOutput.columns.find(
-      (column) => column.pv,
-    )?.id;
-
-    result.fields = tableCreateOutput.columns
-      .filter((c) => !c.system || c.uidt === UITypes.ID)
-      .map((column) => {
-        return columnBuilder().build(column);
-      });
-
-    return result;
+    return this.getTableWithAccessibleViews(context, {
+      tableId: tableCreateOutput.id,
+      user: param.user,
+    });
   }
 }

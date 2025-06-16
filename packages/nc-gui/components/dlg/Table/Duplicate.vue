@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { type LinkToAnotherRecordType, type TableType, UITypes } from 'nocodb-sdk'
-import type { TabType } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -12,8 +11,6 @@ const emit = defineEmits(['update:modelValue'])
 const { api } = useApi()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
-
-const { addTab } = useTabs()
 
 const { $e, $poller } = useNuxtApp()
 
@@ -91,7 +88,6 @@ const _duplicate = async () => {
             await loadTables()
             refreshCommandPalette()
             const newTable = tables.value.find((el) => el.id === data?.data?.result?.id)
-            if (newTable) addTab({ title: newTable.title, id: newTable.id, type: newTable.type as TabType })
 
             openTable(newTable!)
             isLoading.value = false
@@ -168,6 +164,15 @@ const isEaster = ref(false)
           <NcSwitch :checked="options.includeHooks" />
           {{ $t('labels.includeWebhook') }}
         </div>
+      </div>
+
+      <div
+        :class="{
+          'mb-5': isEeUI,
+        }"
+        class="mt-5 text-nc-content-gray-subtle2 font-medium"
+      >
+        {{ $t('labels.tableDuplicateMessage') }}
       </div>
     </div>
     <div class="flex flex-row gap-x-2 mt-5 justify-end">

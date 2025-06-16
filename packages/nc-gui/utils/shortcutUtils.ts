@@ -1,7 +1,7 @@
-export const renderAltOrOptlKey = () => {
-  return isMac() ? '⌥' : 'ALT'
+export const renderAltOrOptlKey = (capitalize = false) => {
+  return isMac() ? '⌥' : capitalize ? 'Alt' : 'ALT'
 }
 
-export const renderCmdOrCtrlKey = () => {
-  return isMac() ? '⌘' : 'CTRL'
+export const renderCmdOrCtrlKey = (capitalize = false) => {
+  return isMac() ? '⌘' : capitalize ? 'Ctrl' : 'CTRL'
 }

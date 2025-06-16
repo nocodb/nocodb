@@ -1,12 +1,10 @@
 <script lang="ts" setup>
 import { stringToViewTypeMap } from 'nocodb-sdk'
-import type { NcProjectType } from '#imports'
 
 interface Props {
   dialogShow: boolean
   aiMode: boolean | null
   workspaceId?: string
-  baseType: NcProjectType
 }
 
 const props = withDefaults(defineProps<Props>(), {})
@@ -24,7 +22,7 @@ const dialogShow = useVModel(props, 'dialogShow', emit)
 
 const aiMode = useVModel(props, 'aiMode', emit)
 
-const { workspaceId, baseType } = toRefs(props)
+const { workspaceId } = toRefs(props)
 
 const { navigateToProject } = useGlobal()
 
@@ -272,7 +270,6 @@ const onCreateSchema = async () => {
       navigateToProject({
         baseId: base.id!,
         workspaceId: isEeUI ? workspaceId.value : 'nc',
-        type: baseType.value,
       })
 
       dialogShow.value = false

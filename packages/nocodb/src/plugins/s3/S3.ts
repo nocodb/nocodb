@@ -7,7 +7,7 @@ import { S3_PATCH_KEYS } from '~/constants';
 
 interface S3Input {
   bucket: string;
-  region: string;
+  region?: string;
   access_key?: string;
   access_secret?: string;
   endpoint?: string;

@@ -26,7 +26,15 @@ const autoNavigateToProject = async () => {
     return
   }
 
-  await basesStore.navigateToProject({ baseId: basesList.value[0].id! })
+  const lastVisitedBase = ncLastVisitedBase().get()
+
+  const firstBase = lastVisitedBase
+    ? basesStore.basesList.find((b) => b.id === lastVisitedBase) ?? basesStore.basesList[0]
+    : basesStore.basesList[0]
+
+  if (!firstBase?.id) return
+
+  await basesStore.navigateToProject({ baseId: firstBase.id! })
 }
 
 const isSharedView = computed(() => {

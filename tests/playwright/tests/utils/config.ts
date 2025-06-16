@@ -35,7 +35,8 @@ const knexConfig = {
 };
 
 function getKnexConfig({ dbName, dbType }: { dbName: string; dbType: string }) {
-  const config = knexConfig[dbType];
+  // deep copy to avoid mutation of original
+  const config = JSON.parse(JSON.stringify(knexConfig[dbType]));
 
   if (dbType === 'sqlite') {
     config.connection.filename = `./${dbName}.sqlite3`;

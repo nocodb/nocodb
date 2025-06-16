@@ -726,6 +726,16 @@ import NcLogoZendesk from '~icons/nc-icons-v2/zendesk.svg'
 import NcLogoZohoColored from '~icons/nc-icons-v2/zoho-colored.svg'
 import NcLogoZoho from '~icons/nc-icons-v2/zoho.svg'
 import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
+import NcBaseOutline from '~icons/nc-icons-v2/base-outline.svg'
+import NcBaseOutlineDuo from '~icons/nc-icons-v2/base-outline-duo.svg'
+import NcSearchDuo from '~icons/nc-icons-v2/search-duo.svg'
+import NcSettingsDuo from '~icons/nc-icons-v2/settings-duo.svg'
+import NcIntegrationDuo from '~icons/nc-icons-v2/integration-duo.svg'
+import NcMegaPhoneDuo from '~icons/nc-icons-v2/mega-phone-duo.svg'
+import NcNotificationDuo from '~icons/nc-icons-v2/notification-duo.svg'
+import NcLayout from '~icons/nc-icons-v2/layout.svg'
+import NcPlusCircleSolid from '~icons/nc-icons-v2/plus-circle-solid.svg'
+import NcHeadphone from '~icons/nc-icons-v2/headphone'
 
 import MdiNcCheckBold from '~icons/nc-icons/mdi-check-bold'
 import MdiNcCropSquare from '~icons/nc-icons/mdi-crop-square'
@@ -743,6 +753,7 @@ import MdiNcFlag from '~icons/nc-icons/mdi-flag'
 import MdiNcFlagOutline from '~icons/nc-icons/mdi-flag-outline'
 import MdiNcAttachFile from '~icons/nc-icons/mdi-attach'
 import MdiCloudKeyOutline from '~icons/mdi/cloud-key-outline'
+import NcDiscordForum from '~icons/nc-icons/discord-forum'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -964,7 +975,7 @@ export const iconMap = {
   'bt_solid': BelongsToSolidIcon,
   'oneToOneSolid': OnetoOneIcon,
   'workspaceDefault': MsGroup,
-  'project': Project,
+  'project': h(Project, { stroke: 'transparent' }),
   'search': NcSearch,
   // calendar: Calendar,
   'checkCircle': NcCheckCircle,
@@ -1664,6 +1675,7 @@ export const iconMap = {
   'ncLogoTwitchColored': h(NcLogoTwitchColored, { stroke: 'transparent' }),
   'ncLogoTwitch': h(NcLogoTwitch, { stroke: 'transparent' }),
   'ncLogoTwitterColored': h(NcLogoTwitterColored, { stroke: 'transparent' }),
+  'ncLogoTwitter': h(NcLogoTwitter, { stroke: 'transparent' }),
   'ncLogoTypeformColored': h(NcLogoTypeformColored, { stroke: 'transparent' }),
   'ncLogoTypeform': h(NcLogoTypeform, { stroke: 'transparent' }),
   'ncLogoWhatsappColored': h(NcLogoWhatsappColored, { stroke: 'transparent' }),
@@ -1692,6 +1704,17 @@ export const iconMap = {
   'mdi-flag-outline': MdiNcFlagOutline,
   'sso': MdiCloudKeyOutline,
   'mcp': NcMCP,
+  'ncBaseOutline': NcBaseOutline,
+  'ncBaseOutlineDuo': NcBaseOutlineDuo,
+  'ncSearchDuo': NcSearchDuo,
+  'ncSettingsDuo': NcSettingsDuo,
+  'ncIntegrationDuo': NcIntegrationDuo,
+  'ncMegaPhoneDuo': NcMegaPhoneDuo,
+  'ncNotificationDuo': NcNotificationDuo,
+  'ncLayout': NcLayout,
+  'ncPlusCircleSolid': h(NcPlusCircleSolid, { stroke: 'transparent' }),
+  'ncDiscordForum': NcDiscordForum,
+  'ncHeadphone': NcHeadphone,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4244,6 +4267,42 @@ export const searchableMap = {
   ncLogoZoho: {
     icon: h(NcLogoZoho, { stroke: 'transparent' }),
     keywords: ['crm', 'business apps', 'collaboration', 'productivity', 'enterprise'],
+  },
+  ncBaseOutline: {
+    icon: NcBaseOutline,
+    keywords: ['base', 'database', 'storage', 'db'],
+  },
+  ncBaseOutlineDuo: {
+    icon: NcBaseOutlineDuo,
+    keywords: ['base', 'database', 'storage', 'db'],
+  },
+  ncSearchDuo: {
+    icon: NcSearchDuo,
+    keywords: ['search'],
+  },
+  ncSettingsDuo: {
+    icon: NcSettingsDuo,
+    keywords: ['settings'],
+  },
+  ncIntegrationDuo: {
+    icon: NcIntegrationDuo,
+    keywords: ['integration', 'settings'],
+  },
+  ncMegaPhoneDuo: {
+    icon: NcMegaPhoneDuo,
+    keywords: ['megaphone', 'horn'],
+  },
+  ncNotificationDuo: {
+    icon: NcNotificationDuo,
+    keywords: ['notification', 'bell'],
+  },
+  ncLayout: {
+    icon: NcLayout,
+    keywords: ['layout', 'table'],
+  },
+  ncHeadphone: {
+    icon: NcHeadphone,
+    keywords: ['headphone', 'call'],
   },
 }
 

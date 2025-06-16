@@ -174,8 +174,10 @@ class NcPluginMgrv2 {
           port: process.env.NC_SMTP_PORT,
           username: process.env.NC_SMTP_USERNAME,
           password: process.env.NC_SMTP_PASSWORD,
-          secure: process.env.NC_SMTP_SECURE,
-          ignoreTLS: process.env.NC_SMTP_IGNORE_TLS,
+          secure: process.env.NC_SMTP_SECURE === 'true',
+          ignoreTLS: process.env.NC_SMTP_IGNORE_TLS === 'true',
+          rejectUnauthorized:
+            process.env.NC_SMTP_REJECT_UNAUTHORIZED === 'true',
         }),
       });
     }

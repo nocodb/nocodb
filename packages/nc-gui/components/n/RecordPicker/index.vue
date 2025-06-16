@@ -7,6 +7,7 @@ const props = withDefaults(
     tableId: string
     viewId?: string
     modelValue: Row
+    disabled?: boolean
     fields?: string[]
     version?: 'v3' | 'v2'
     allowRecordCreation?: boolean
@@ -117,7 +118,9 @@ provide(MetaInj, tableMeta)
 
 const displayField = computed(() => (tableMeta?.value?.columns ?? []).find((c) => c.pv))
 
+const localState = ref()
 const resolveInput = async (row: Row) => {
+  localState.value = row
   if (props.version === 'v2') {
     vModel.value = row
   } else {
@@ -146,6 +149,7 @@ whenever(isOpen, () => {
 <template>
   <NcDropdown
     v-model:visible="isOpen"
+    :disabled="props.disabled"
     :trigger="['click']"
     :class="`.nc-${randomClass}`"
     :overlay-class-name="`nc-record-picker-dropdown !min-w-[540px] xs:(!min-w-[90vw]) ${isOpen ? 'active' : ''}`"
@@ -153,13 +157,14 @@ whenever(isOpen, () => {
     <NcButton
       type="secondary"
       size="small"
+      :disabled="disabled"
       icon-position="right"
       full-width
       :class="{ 'record-picker-active': isOpen }"
       class="hover:!bg-nc-bg-gray-extralight"
     >
-      <span v-if="displayField && vModel?.row" class="truncate text-left !leading-[1.5]">
-        <SmartsheetPlainCell :model-value="vModel?.row[displayField.title]" :column="displayField" />
+      <span v-if="displayField && localState?.row" class="truncate text-left !leading-[1.5]">
+        <SmartsheetPlainCell :model-value="localState?.row[displayField.title]" :column="displayField" />
       </span>
       <span v-else class="truncate text-left !leading-[1.5]">{{ props.label }}</span>
 

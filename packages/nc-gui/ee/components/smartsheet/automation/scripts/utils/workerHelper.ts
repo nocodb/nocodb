@@ -24,6 +24,145 @@ export function generateIntegrationsCode(integrations: any[]): string {
   return code
 }
 
+function generateV3ToV2Converter() {
+  return `
+    /**
+     * Convert a single V3 record to V2 format
+     * @param {Object} recordV3 - V3 format: {id, fields}
+     * @param {Table} table - Table instance
+     * @returns {Object} V2 format: {primaryKey: value, field1: val1, ...}
+     */
+    const convertRecordV3ToV2 = (recordV3, table) => {
+      if (!recordV3 || !recordV3.id || !recordV3.fields) {
+        return recordV3; // Not V3 format, return as-is
+      }
+
+      const primaryKeyFields = table.fields.filter(f => f.primary_key);
+      const recordV2 = {};
+
+      // Handle primary key(s)
+      if (primaryKeyFields.length === 1) {
+        // Single primary key
+        recordV2[primaryKeyFields[0].name] = recordV3.id;
+      } else {
+        // Composite primary key - split by '___'
+        const idParts = String(recordV3.id).split('___');
+        primaryKeyFields.forEach((pk, index) => {
+          if (index < idParts.length) {
+            // Unescape underscores: '\\_' -> '_'
+            recordV2[pk.name] = idParts[index]?.replaceAll('\\\\_', '_');
+          }
+        });
+      }
+
+      for (const [fieldName, fieldValue] of Object.entries(recordV3.fields)) {
+        const field = table.fields.find(f => f.name === fieldName);
+        
+        if (field && (field.type === 'LinkToAnotherRecord' || field.type === 'Links')) {
+          recordV2[fieldName] = convertLTARField(fieldValue, field);
+        } else {
+          recordV2[fieldName] = fieldValue;
+        }
+      }
+
+      return recordV2;
+    };
+
+    /**
+     * Convert LTAR field from V3 to V2 format
+     * @param {*} fieldValue - LTAR field value
+     * @param {Object} field - Field definition
+     * @returns {*} Converted field value
+     */
+    const convertLTARField = (fieldValue, field) => {
+      if (fieldValue === null || fieldValue === undefined) {
+        return fieldValue;
+      }
+
+      const relatedTable = base.getTable(field.options?.related_table_id);
+      if (!relatedTable) {
+        return fieldValue; // Can't convert without related table info
+      }
+
+      const relatedPkFields = relatedTable.fields.filter(f => f.primary_key);
+
+      // Handle array of linked records (hm, mm relations)
+      if (Array.isArray(fieldValue)) {
+        return fieldValue.map(linkedRecord => {
+          if (isV3Format(linkedRecord)) {
+            // Convert nested V3 record to V2
+            return convertRecordV3ToV2(linkedRecord, relatedTable);
+          } else if (typeof linkedRecord === 'string') {
+            // Just an ID string - convert to primary key object
+            return parsePrimaryKey(linkedRecord, relatedPkFields);
+          }
+          return linkedRecord; // Already V2 format or unknown
+        });
+      }
+
+      // Handle single linked record (bt, oo relations)
+      if (isV3Format(fieldValue)) {
+        // Convert nested V3 record to V2
+        return convertRecordV3ToV2(fieldValue, relatedTable);
+      } else if (typeof fieldValue === 'string') {
+        // Just an ID string - convert to primary key object
+        return parsePrimaryKey(fieldValue, relatedPkFields);
+      }
+
+      return fieldValue; // Already V2 format or unknown
+    };
+
+    /**
+     * Parse primary key ID into object format
+     * @param {string} id - Primary key ID
+     * @param {Array} primaryKeyFields - Primary key field definitions
+     * @returns {Object} Primary key object
+     */
+    const parsePrimaryKey = (id, primaryKeyFields) => {
+      const pkObject = {};
+      
+      if (primaryKeyFields.length === 1) {
+        // Single primary key
+        pkObject[primaryKeyFields[0].name] = id;
+      } else {
+        // Composite primary key
+        const idParts = String(id).split('___');
+        primaryKeyFields.forEach((pk, index) => {
+          if (index < idParts.length) {
+            pkObject[pk.name] = idParts[index]?.replaceAll('\\\\_', '_');
+          }
+        });
+      }
+      
+      return pkObject;
+    };
+
+    /**
+     * Convert multiple V3 records to V2 format
+     * @param {Array} recordsV3 - Array of V3 records
+     * @param {Table} table - Table instance
+     * @returns {Array} Array of V2 records
+     */
+    const convertRecordsV3ToV2 = (recordsV3, table) => {
+      if (!Array.isArray(recordsV3)) {
+        return convertRecordV3ToV2(recordsV3, table);
+      }
+      return recordsV3.map(record => convertRecordV3ToV2(record, table));
+    };
+
+    /**
+     * Check if data is in V3 format
+     * @param {*} data - Data to check
+     * @returns {boolean} True if V3 format
+     */
+    const isV3Format = (data) => {
+      return data && typeof data === 'object' && 
+             data.id !== undefined && 
+             data.fields !== undefined;
+    };
+  `;
+}
+
 function generalHelpers() {
   return `
     const padZero = (val, isSSS = false) => {
@@ -482,6 +621,10 @@ Object.freeze(UITypes);
     
     get nextToken() {
       return this.#nextToken;
+    }
+    
+    get rawData() {
+      return this.#rawData;
     }
   
     get prevToken() {
@@ -1510,7 +1653,7 @@ function generateInputMethods(): string {
             tableId = source.table.id;
             viewId = source.id;
           } else if (source instanceof RecordQueryResult) {
-            records = source.raw_data;
+            records = convertRecordsV3ToV2(source.rawData, source.table);
             tableId = source.table.id;
           } else if (Array.isArray(source) && source.length && source[0] instanceof NocoDBRecord) {
             records = source.map(r => r.raw_data);
@@ -1720,6 +1863,7 @@ export function createWorkerCode(userCode: string, custom?: string): string {
     ${generateConsoleOverride()}
     ${generateOutput()}
     ${generateProgressAPIs()}
+    ${generateV3ToV2Converter()}
     ${generateInputMethods()}
     ${generateApiProxy()}
     ${generateViewActions()}

@@ -222,6 +222,7 @@ watch(rowInput, (newValue) => {
           :fields="content.options.fields"
           class="w-64"
           version="v3"
+          :disabled="isResolved"
           :records="content.records"
           :table-id="content.tableId"
           :view-id="content.viewId"

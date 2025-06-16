@@ -596,7 +596,7 @@ declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT ex
               >
             >
           }
-        | never
+        | null
     }
   : FieldTypeT extends UITypes.Lookup
   ? {
@@ -1173,26 +1173,10 @@ declare interface FormulaField extends BaseField {
           /**
            * Format configuration for result
            */
-          format: FieldOptionsWriteFormat<
-            NonNullable<
-              Extract<
-                typeof UITypes,
-                | UITypes.Decimal
-                | UITypes.Currency
-                | UITypes.Percent
-                | UITypes.Rating
-                | UITypes.Email
-                | UITypes.URL
-                | UITypes.PhoneNumber
-                | UITypes.DateTime
-                | UITypes.Date
-                | UITypes.Time
-                | UITypes.Checkbox
-              >
-            >
-          >
+           format: FieldOptionsWriteFormat<UITypes.Decimal | UITypes.Currency | UITypes.Percent | UITypes.Rating | UITypes.Email | UITypes.URL | UITypes.PhoneNumber | UITypes.DateTime | UITypes.Date | UITypes.Time | UITypes.Checkbox>
+
         }
-      | never
+      | null
   }
   updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Formula>): Promise<void>
 }
@@ -1765,7 +1749,24 @@ declare interface ForeignKeyField extends BaseField {
 declare interface LinkToAnotherRecordField extends BaseField {
   readonly type: UITypes.LinkToAnotherRecord
 
-  readonly options: never
+  readonly options: {
+    /**
+     * Type of relation (e.g., 'mm' for many-to-many)
+     * mm: Many-to-Many
+     * hm: Has Many
+     * oo: One-to-One
+     * bt: Belongs To
+     */
+    relation_type: 'mm' | 'hm' | 'oo' | 'bt'
+    /**
+     * ID of related table
+     */
+    related_table_id: string
+    /**
+     * Optional view ID for limiting record selection
+     */
+    limit_record_selection_view_id?: string | null
+  }
 
   updateOptionsAsync(options: never): Promise<void>
 }
@@ -2590,19 +2591,23 @@ declare interface ConfigItem {}
       case UITypes.Formula:
         if (!field.options?.formula) return 'null'
         return `{
-        formula: '${field.options.formula}',
-        result: ${
-          field.options.result
-            ? `{
-          type: ${this.getFieldTypeString(field.options.result.type)},
-          format: ${this.generateFieldOptions({
-            type: field.options.result.type,
-            options: field.options.result.options,
-          })}
+          formula: '${field.options.formula}',
+          result: ${
+            field.options.result
+              ? `{
+                    type: ${this.getFieldTypeString(field.options.result.type)},
+                    format: ${
+                      field.options.result.options
+                        ? this.generateFieldOptions({
+                            type: field.options.result.type,
+                            options: field.options.result.options,
+                          })
+                        : 'null'
+                    }
+                  }`
+              : 'null'
+          }
         }`
-            : 'never'
-        }
-      }`
 
       case UITypes.Lookup:
         return `{
@@ -3527,7 +3532,6 @@ declare interface ConfigItem {}
     this.write(`recordAsync(label: string, source: Table | View | RecordQueryResult | ReadonlyArray<Record>, options?: {`)
     this.indent_in()
     this.write(`fields?: ReadonlyArray<Field | string;`)
-    this.write(`shouldAllowCreatingRecord?: boolean;`)
     this.indent_out()
     this.write(`}): Promise<Record | null>;`)
 
@@ -3546,19 +3550,16 @@ declare interface ConfigItem {}
       ])
       this.write(`recordAsync(label: string, source: ${tableName}Table, options?: {
    fields?: ReadonlyArray<${fieldTypes}>;
-   shouldAllowCreatingRecord?: boolean;
  }): Promise<${tableName}Table_Record | null>;`)
       this.write()
 
       this.write(`recordAsync(label: string, source: ReadonlyArray<${tableName}Table_Record>, options?: {
    fields?: ReadonlyArray<${fieldTypes}>;
-   shouldAllowCreatingRecord?: boolean;
  }): Promise<${tableName}Table_Record | null>;`)
       this.write()
 
       this.write(`recordAsync(label: string, source: ${tableName}Table_RecordQueryResult, options?: {
    fields?: ReadonlyArray<${fieldTypes}>;
-   shouldAllowCreatingRecord?: boolean;
  }): Promise<${tableName}Table_Record | null>;`)
       this.write()
 
@@ -3566,7 +3567,6 @@ declare interface ConfigItem {}
         const viewName = this.pascalCase(view.name, 'view')
         this.write(`recordAsync(label: string, source: ${tableName}Table_${viewName}View, options?: {
     fields?: ReadonlyArray<${fieldTypes}>;
-    shouldAllowCreatingRecord?: boolean;
   }): Promise<${tableName}Table_Record | null>;`)
         this.write()
       }

@@ -1,14 +1,15 @@
 import * as esbuild from 'esbuild-wasm'
 import wasmUrl from 'esbuild-wasm/esbuild.wasm?url'
 
+let isEsbuildInitialized = false
+let initPromise: Promise<void> | null = null
+
 export function useEsbuild() {
-  const esbuildInitialized = ref(false)
   const isInitializing = ref(false)
   const initError = ref(null)
-  let initPromise: Promise<void> | null = null
 
   const initWasm = async () => {
-    if (esbuildInitialized.value) {
+    if (isEsbuildInitialized) {
       return
     }
 
@@ -25,7 +26,7 @@ export function useEsbuild() {
         await esbuild.initialize({
           wasmURL: wasmUrl,
         })
-        esbuildInitialized.value = true
+        isEsbuildInitialized = true
       } catch (error) {
         console.error('Failed to initialize esbuild:', error)
         initError.value = error
@@ -41,11 +42,17 @@ export function useEsbuild() {
   const transform = async (code: string) => {
     await initWasm()
 
-    if (!esbuildInitialized.value) {
+    if (!isEsbuildInitialized) {
       throw new Error('esbuild initialization failed')
     }
+
     try {
-      const result = await esbuild.transform(code, { loader: 'ts', minify: true, platform: 'browser', target: 'chrome64' })
+      const result = await esbuild.transform(code, {
+        loader: 'ts',
+        minify: true,
+        platform: 'browser',
+        target: 'chrome64',
+      })
       return {
         code: result.code,
         map: result.map,
@@ -65,7 +72,7 @@ export function useEsbuild() {
   return {
     initWasm,
     transform,
-    esbuildInitialized,
+    esbuildInitialized: computed(() => isEsbuildInitialized),
     isInitializing,
     initError,
   }

@@ -67,7 +67,9 @@ describe('dataApiV3', () => {
             },
           ],
         });
-        expect(rsp.body).to.deep.equal({ records: [{ id: 1 }] });
+        expect(rsp.body.records).to.have.length(1);
+        expect(rsp.body.records[0]).to.have.property('id', 1);
+        expect(rsp.body.records[0]).to.have.property('fields');
       });
 
       it('Update: partial', async function () {
@@ -90,7 +92,9 @@ describe('dataApiV3', () => {
             },
           ],
         });
-        expect(rsp.body).to.deep.equal({ records: [{ id: 1 }] });
+        expect(rsp.body.records).to.have.length(1);
+        expect(rsp.body.records[0]).to.have.property('id', 1);
+        expect(rsp.body.records[0]).to.have.property('fields');
 
         const recordAfterUpdate = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/records/1`,
@@ -99,13 +103,11 @@ describe('dataApiV3', () => {
           },
         });
         expect(recordAfterUpdate.body).to.deep.equal({
-          record: {
-            id: 1,
-            fields: {
-              ...recordBeforeUpdate.body.record.fields,
-              SingleLineText: 'some text',
-              MultiLineText: 'some more text',
-            },
+          id: 1,
+          fields: {
+            ...recordBeforeUpdate.body.fields,
+            SingleLineText: 'some text',
+            MultiLineText: 'some more text',
           },
         });
       });
@@ -130,7 +132,12 @@ describe('dataApiV3', () => {
             },
           ],
         });
-        expect(rsp.body).to.deep.equal({ records: [{ id: 1 }, { id: 2 }] });
+        expect(rsp.body.records).to.have.length(2);
+        expect(rsp.body.records[0]).to.have.property('id', 1);
+        expect(rsp.body.records[1]).to.have.property('id', 2);
+        rsp.body.records.forEach(record => {
+          expect(record).to.have.property('fields');
+        });
       });
 
       it('Update: single with column id', async function () {
@@ -154,7 +161,9 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: updatePayload,
         });
-        expect(rsp.body).to.deep.equal({ records: [{ id: 1 }] });
+        expect(rsp.body.records).to.have.length(1);
+        expect(rsp.body.records[0]).to.have.property('id', 1);
+        expect(rsp.body.records[0]).to.have.property('fields');
         const rspGet = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/records`,
           query: {
@@ -195,7 +204,12 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: createPayload,
         });
-        expect(rsp.body).to.deep.equal({ records: [{ id: 1 }, { id: 2 }] });
+        expect(rsp.body.records).to.have.length(2);
+        expect(rsp.body.records[0]).to.have.property('id', 1);
+        expect(rsp.body.records[1]).to.have.property('id', 2);
+        rsp.body.records.forEach(record => {
+          expect(record).to.have.property('fields');
+        });
         const rspGet = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/records`,
           query: {

@@ -64,8 +64,12 @@ export function useViewRowColorOption(params: {
     return await composeColumnsForFilter({ rootMeta: meta.value, getMeta: async (id) => metas.value[id] })
   })
 
-  const reloadViewData = () => {
-    reloadViewDataHook.trigger({ shouldShowLoading: false })
+  const reloadViewDataIfNeeded = (columnId?: string) => {
+    if (!columnId || !viewFieldsMap.value) return
+
+    if (!viewFieldsMap.value[columnId]?.show) {
+      reloadViewDataHook.trigger({ shouldShowLoading: false })
+    }
   }
 
   const onRemoveRowColoringMode = async () => {
@@ -80,8 +84,8 @@ export function useViewRowColorOption(params: {
       await $api.dbView.viewRowColorSelectAdd(params.view.value.id, rowColorInfo.value)
       eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
 
-      if (columnChanged && !viewFieldsMap.value?.[rowColorInfo.value.fk_column_id]?.show) {
-        reloadViewData()
+      if (columnChanged) {
+        reloadViewDataIfNeeded(rowColorInfo.value.fk_column_id)
       }
     }
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
@@ -92,7 +96,7 @@ export function useViewRowColorOption(params: {
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const filter = {
       id: undefined,
-      fk_column_id: evalColumn.id,
+      fk_column_id: evalColumn?.id,
       comparison_op: 'eq',
       is_group: false,
       logical_op: 'and',
@@ -130,6 +134,8 @@ export function useViewRowColorOption(params: {
       }
     })
 
+    reloadViewDataIfNeeded(evalColumn?.id)
+
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
@@ -141,9 +147,7 @@ export function useViewRowColorOption(params: {
       if (rowColorInfo.value.fk_column_id) {
         await $api.dbView.viewRowColorSelectAdd(params.view.value.id, rowColorInfo.value)
 
-        if (!viewFieldsMap.value?.[rowColorInfo.value.fk_column_id]?.show) {
-          reloadViewData()
-        }
+        reloadViewDataIfNeeded(rowColorInfo.value.fk_column_id)
       }
 
       eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
@@ -194,7 +198,7 @@ export function useViewRowColorOption(params: {
       id: undefined,
       fk_row_color_condition_id: conditionToAdd.id,
       fk_parent_id: params.fk_parent_id,
-      fk_column_id: evalColumn.id,
+      fk_column_id: evalColumn?.id,
       comparison_op: 'eq',
       is_group: false,
       logical_op: conditionToAdd.conditions[0]?.logical_op ?? 'and',
@@ -222,6 +226,8 @@ export function useViewRowColorOption(params: {
       const result = await $api.rowColorConditions.rowColorConditionsFilterCreate(conditionToAdd.id, toInsert)
       filter.id = result.id
     })
+
+    reloadViewDataIfNeeded(evalColumn?.id)
 
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }

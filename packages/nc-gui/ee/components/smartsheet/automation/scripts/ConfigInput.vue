@@ -11,15 +11,7 @@ const props = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'change'])
 
-const { isUIAllowed } = useRoles()
-
-const automationStore = useAutomationStore()
-
-const { activeProjectId } = storeToRefs(useBases())
-
-const { activeAutomationId } = storeToRefs(automationStore)
-
-const { updateAutomation } = automationStore
+const { updateScript } = useScriptStoreOrThrow()
 
 const configValue = useVModel(props, 'modelValue', emit)
 
@@ -58,19 +50,12 @@ const handleFieldOrViewChange = (item: ScriptConfigItem, value: any) => {
   }
 }
 
-const triggerUpdate = async (val) => {
+const triggerUpdate = async () => {
   try {
     isLoading.value = true
-    await updateAutomation(
-      activeProjectId.value,
-      activeAutomationId.value,
-      {
-        config: val,
-      },
-      {
-        skipNetworkCall: !isUIAllowed('scriptCreateOrEdit'),
-      },
-    )
+    await updateScript({
+      config: configValue.value,
+    })
     message.toast('Script settings saved!')
   } catch (error) {
     message.error(await extractSdkResponseErrorMsgv2(error))
@@ -115,7 +100,7 @@ onMounted(() => {
             <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <NSelectTable :value="getValue(item.key)" allow-clear @change="(value) => handleTableChange(item.key, value)" />
+            <NSelectTable :value="getValue(item.key)" @change="(value) => handleTableChange(item.key, value)" />
           </div>
         </template>
 
@@ -131,7 +116,6 @@ onMounted(() => {
               :value="getValue(item.key)"
               :table-id="getValue(item.parentTable)"
               :disabled="canShowFieldOrView(item)"
-              allow-clear
               @change="(value) => handleFieldOrViewChange(item, value)"
             />
           </div>
@@ -149,7 +133,6 @@ onMounted(() => {
               :value="getValue(item.key)"
               :table-id="getValue(item.parentTable)"
               :disabled="canShowFieldOrView(item)"
-              allow-clear
               @change="(value) => handleFieldOrViewChange(item, value)"
             />
           </div>
@@ -175,7 +158,7 @@ onMounted(() => {
             <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <a-input-number v-model:value="configValue[item.key]" class="nc-input-sm nc-input-shadow" />
+            <a-input v-model:value="configValue[item.key]" type="number" class="nc-input-sm nc-input-shadow" />
           </div>
         </template>
 

@@ -5,7 +5,7 @@ const automationStore = useAutomationStore()
 
 const { activeAutomation, isLoadingAutomation, isSettingsOpen } = storeToRefs(automationStore)
 
-const { isValidConfig } = useScriptStoreOrThrow()
+const { isValidConfig, shouldShowSettings } = useScriptStoreOrThrow()
 
 const toggleScriptSettings = () => {
   isSettingsOpen.value = !isSettingsOpen.value
@@ -15,6 +15,7 @@ const toggleScriptSettings = () => {
 <template>
   <div v-if="!isLoadingAutomation && activeAutomation" class="flex items-center gap-2">
     <NcButton
+      v-if="shouldShowSettings"
       :class="{ '!bg-brand-50 !hover:bg-brand-100/70 !text-brand-500': isSettingsOpen }"
       type="secondary"
       size="small"

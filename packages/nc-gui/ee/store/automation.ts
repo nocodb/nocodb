@@ -13,16 +13,13 @@ export const useAutomationStore = defineStore('automation', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const isMarketVisible = ref(false)
-
-  const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
-
   // State
   const automations = ref<Map<string, ScriptType[]>>(new Map())
   const activeAutomation = ref<ScriptType | null>(null)
   const isLoading = ref(false)
   const isLoadingAutomation = ref(false)
   const isSettingsOpen = ref(false)
+  const isMarketVisible = ref(false)
 
   const activeBaseAutomations = computed(() => {
     if (!activeProjectId.value) return []
@@ -30,6 +27,8 @@ export const useAutomationStore = defineStore('automation', () => {
   })
 
   const activeAutomationId = computed(() => route.params.automationId as string)
+
+  const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
 
   const activeBaseSchema = computedAsync(async () => {
     if (!activeProjectId.value || !activeWorkspaceId.value || !isAutomationEnabled.value) return null

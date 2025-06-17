@@ -35,6 +35,11 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   const isValidConfig = computed(() => {
     return validateConfigValues(config.value ?? {}, activeAutomation.value?.config ?? {})?.length === 0
   })
+
+  const shouldShowSettings = computed(() => {
+    return config.value?.title || config.value?.description || config.value?.items?.length
+  })
+
   const resolveInput = (id: string, value: string | File) => {
     if (!activeExecutionId.value) return
 
@@ -75,17 +80,33 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     }
   }
 
+  const updateScript = async ({ script, config }: { script: string; config?: Record<string, any> }) => {
+    if (!activeProjectId.value || !activeAutomation.value?.id) return
+
+    await updateAutomation(activeProjectId.value, activeAutomation.value.id, {
+      script,
+      config,
+    })
+
+    if (config) {
+      configValue.value = config
+    }
+  }
+
   const debouncedSave = useDebounceFn(async () => {
     if (!activeProjectId.value || !activeAutomation.value?.id) return
-    await updateAutomation(activeProjectId.value, activeAutomation.value.id, {
+    await updateScript({
       script: code.value,
-      config: configValue.value,
     })
   }, 2000)
 
   watch(code, async (_newValue, oldValue) => {
     if (!oldValue) return
     await debouncedSave()
+  })
+
+  onBeforeUnmount(() => {
+    stopScript()
   })
 
   return {
@@ -98,6 +119,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     playground,
     isValidConfig,
     isSettingsOpen,
+    shouldShowSettings,
 
     // Script execution state
     isRunning,
@@ -108,6 +130,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     runScript,
     stopExecution: stopScript,
     resolveInput,
+    updateScript,
   }
 })
 

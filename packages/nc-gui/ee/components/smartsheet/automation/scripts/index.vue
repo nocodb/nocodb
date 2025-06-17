@@ -9,7 +9,7 @@ let editor: monaco.editor.IStandaloneCodeEditor
 
 const { activeAutomation, activeBaseSchema } = storeToRefs(useAutomationStore())
 
-const { libCode, code, config, configValue, isSettingsOpen } = useScriptStoreOrThrow()
+const { libCode, code, config, configValue, isSettingsOpen, shouldShowSettings } = useScriptStoreOrThrow()
 
 async function setupMonacoEditor() {
   if (!editorRef.value) return
@@ -99,8 +99,12 @@ onMounted(async () => {
           <div ref="editorRef" class="h-full" />
         </div>
       </Pane>
-      <Pane :size="30">
-        <SmartsheetAutomationScriptsConfigInput v-if="isSettingsOpen" v-model:model-value="configValue" :config="config" />
+      <Pane :min-size="25" :size="30">
+        <SmartsheetAutomationScriptsConfigInput
+          v-if="isSettingsOpen && shouldShowSettings"
+          v-model:model-value="configValue"
+          :config="config"
+        />
         <SmartsheetAutomationScriptsPlayground v-else />
       </Pane>
     </Splitpanes>
@@ -148,6 +152,20 @@ onMounted(async () => {
   }
   .line-numbers {
     @apply text-nc-content-gray-subtle2;
+  }
+  .monaco-hover-content {
+    @apply !bg-nc-bg-gray-extralight;
+    border-radius: 12px !important;
+
+    .status-bar {
+      @apply !bg-nc-bg-gray-extralight;
+      .actions {
+        @apply !bg-nc-bg-gray-extralight !py-1;
+        .action {
+          @apply !no-underline !text-nc-content-brand font-semibold;
+        }
+      }
+    }
   }
 }
 

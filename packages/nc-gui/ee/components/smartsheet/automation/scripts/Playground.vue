@@ -3,7 +3,7 @@ import { marked } from 'marked'
 import VueJsonPretty from 'vue-json-pretty'
 import DynamicInput from './DynamicInput.vue'
 
-const { isRunning, isFinished, playground, resolveInput, runScript } = useScriptStoreOrThrow()
+const { isRunning, isFinished, playground, resolveInput, runScript, isValidConfig } = useScriptStoreOrThrow()
 </script>
 
 <template>
@@ -54,12 +54,16 @@ const { isRunning, isFinished, playground, resolveInput, runScript } = useScript
       </template>
       <template v-else>
         <div class="flex items-center flex-col gap-3 h-full justify-center">
-          <NcButton size="small" type="primary" :loading="isRunning" @click="runScript">
-            <div class="flex gap-2 items-center">
-              <GeneralIcon icon="ncPlay" />
-              Run
-            </div>
-          </NcButton>
+          <NcTooltip :disabled="isValidConfig">
+            <NcButton size="small" type="primary" :disabled="!isValidConfig" :loading="isRunning" @click="runScript">
+              <div class="flex gap-2 items-center">
+                <GeneralIcon icon="ncPlay" />
+                Run
+              </div>
+            </NcButton>
+
+            <template #title> Setup script settings first to execute </template>
+          </NcTooltip>
         </div>
       </template>
     </div>

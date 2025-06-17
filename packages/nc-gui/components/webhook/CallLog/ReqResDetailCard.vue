@@ -8,10 +8,6 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { copy } = useCopy()
-
-const { t } = useI18n()
-
 const copyPayloadContent = computed(() => {
   return typeof props.payload === 'object' ? JSON.stringify(props.payload, null, 2) : props.payload?.toString()
 })
@@ -47,7 +43,7 @@ const formattedPayload = computed(() => {
         </div>
       </div>
       <div v-if="params && Object.keys(params).length" class="detail-params">
-        <span class="text-gray-500 font-weight-bold text-small1">Params</span>
+        <span class="text-gray-500 font-weight-bold text-small1">Parameter</span>
         <div class="log-details">
           <div v-for="(value, key) in params" :key="key" class="log-detail-item">
             <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
@@ -61,14 +57,14 @@ const formattedPayload = computed(() => {
           </div>
         </div>
       </div>
-      <div v-if="payload && Object.keys(payload).length" class="detail-payload">
-        <div class="text-sm text-gray-500 font-weight-bold pb-2 flex justify-between">
+      <div v-if="payload && Object.keys(payload).length" class="detail-payload -mt-1">
+        <div class="text-sm text-gray-500 font-weight-bold pb-2 flex justify-between items-center">
           <span class="text-xs leading-[18px]">Payload</span>
-          <GeneralCopyButton :content="copyPayloadContent" />
+          <GeneralCopyButton :content="copyPayloadContent" size="xs" class="!px-1" />
         </div>
         <LazyMonacoEditor
           :model-value="formattedPayload"
-          class="min-w-full w-full h-50 resize overflow-auto expanded-editor"
+          class="min-w-full w-full flex-1 min-h-50 resize-y overflow-auto expanded-editor"
           hide-minimap
           disable-deep-compare
           read-only
@@ -100,7 +96,7 @@ const formattedPayload = computed(() => {
   }
 
   .content {
-    @apply flex-grow max-h-117 overflow-auto nc-scrollbar-thin flex flex-col;
+    @apply flex-1 overflow-auto nc-scrollbar-thin flex flex-col;
 
     & > div:not(:last-child) {
       @apply border-b border-gray-200;
@@ -131,7 +127,10 @@ const formattedPayload = computed(() => {
     .detail-params,
     .detail-headers,
     .detail-payload {
-      @apply flex-grow min-w-80;
+      @apply min-w-80;
+    }
+    .detail-payload {
+      @apply flex-grow;
     }
   }
 }

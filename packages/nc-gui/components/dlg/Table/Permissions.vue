@@ -31,7 +31,7 @@ const onNavigateToPermissionsOverview = () => {
       <template #title>
         <div class="flex-1 flex items-center gap-2 text-nc-content-gray-emphasis">
           <GeneralIcon icon="ncLock" class="w-5 h-5 flex-none" />
-          <div class="text-subHeading2">Table Permissions</div>
+          <div class="text-subHeading2">{{ $t('title.tablePermissions') }}</div>
           <div
             v-if="title"
             class="flex items-center bg-nc-bg-gray-medium px-1 gap-1 rounded-md text-caption text-nc-content-gray-subtle"
@@ -43,7 +43,9 @@ const onNavigateToPermissionsOverview = () => {
       </template>
     </PermissionsTable>
     <div class="flex justify-end mt-5">
-      <NcButton type="secondary" size="small" @click="onNavigateToPermissionsOverview">Go to Permissions Overview</NcButton>
+      <NcButton type="secondary" size="small" @click="onNavigateToPermissionsOverview">
+        {{ $t('activity.goToPermissionsOverview') }}
+      </NcButton>
     </div>
   </NcModal>
 </template>

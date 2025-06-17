@@ -3,33 +3,42 @@ import type { ColumnType } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
 interface Props {
   columns: ColumnType[]
-  triggerFields: string[]
+  triggerField?: boolean
+  triggerFields?: string[]
 }
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:selectedColumns'])
+const emits = defineEmits(['update:triggerFields', 'update:triggerField'])
 
 const columns = toRef(props, 'columns')
 
 const triggerFields = useVModel(props, 'triggerFields', emits)
+const triggerField = useVModel(props, 'triggerField', emits)
 
 const isDropdownOpen = ref(false)
 
 const computedTags = computed(() => {
-  return triggerFields.value.map((colId) => {
+  return triggerFields.value?.map((colId) => {
     return columns.value.find((k) => k.id === colId)
   })
 })
 
 const removeColumnId = (colId: string) => {
-  triggerFields.value = triggerFields.value.filter((k) => k !== colId)
+  triggerFields.value = triggerFields.value?.filter((k) => k !== colId)
 }
 </script>
 
 <template>
-  <div class="my-3">
-    <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!pt-0">
+  <div class="w-full flex items-center justify-between h-[32px]">
+    <label class="cursor-pointer" @click.prevent="triggerField = !triggerField">
+      <NcSwitch :checked="triggerField" class="nc-check-box-trigger-field">
+        <span class="!text-gray-700 font-semibold">
+          {{ $t('general.trigger') }} {{ $t('activity.forUpdatesInSpecificFields').toLowerCase() }}
+        </span>
+      </NcSwitch>
+    </label>
+    <NcDropdown v-if="triggerField" v-model:visible="isDropdownOpen" overlay-class-name="!pt-0">
       <NcButton size="small" type="secondary">
         <div class="flex items-center justify-center gap-2">
           <GeneralIcon icon="plus" />
@@ -72,7 +81,8 @@ const removeColumnId = (colId: string) => {
         </NcList>
       </template>
     </NcDropdown>
-
+  </div>
+  <div v-if="triggerField">
     <div v-if="triggerFields?.length" class="mt-3 gap-2 flex flex-wrap">
       <div
         v-for="col of computedTags"
@@ -106,8 +116,8 @@ const removeColumnId = (colId: string) => {
   :deep(.nc-list-item) {
     @apply !p-1;
     .ant-checkbox-checked .ant-checkbox-inner {
-      background-color: #3366FF !important;
-      border-color: #3366FF !important;
+      background-color: #3366ff !important;
+      border-color: #3366ff !important;
     }
   }
 

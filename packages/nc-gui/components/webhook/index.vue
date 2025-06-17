@@ -921,32 +921,56 @@ const triggerSubType = computed(() => {
                 </div>
               </div>
               <div class="border-1 border-nc-border-gray-medium rounded-b-2xl p-4">
-                <div
-                  class="w-full cursor-pointer flex items-center"
-                  @click.prevent="hookRef.trigger_field = !hookRef.trigger_field"
-                >
-                  <NcSwitch :checked="Boolean(hookRef.trigger_field)" class="nc-check-box-trigger-field">
-                    <span class="!text-gray-700 font-semibold">
-                      {{ $t('general.trigger') }} {{ $t('activity.forUpdatesInSpecificFields').toLowerCase() }}
-                    </span>
-                  </NcSwitch>
-                </div>
+                <WebhookTriggerByField
+                  v-model:trigger-fields="hookRef.trigger_fields"
+                  v-model:trigger-field="hookRef.trigger_field"
+                  :columns="triggerByFieldColumns"
+                />
+                <div class="w-full flex items-center justify-between h-[32px]">
+                  <label class="cursor-pointer" @click.prevent="hookRef.condition = !hookRef.condition">
+                    <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
+                      <span class="!text-gray-700 font-semibold">
+                        {{ $t('general.trigger') }} {{ $t('activity.basedOnConditions').toLowerCase() }}
+                      </span>
+                    </NcSwitch>
+                  </label>
 
-                <div v-if="Boolean(hookRef.trigger_field)">
-                  <WebhookTriggerByField v-model:trigger-fields="hookRef.trigger_fields" :columns="triggerByFieldColumns" />
-                </div>
-                <div class="w-full cursor-pointer flex items-center my-4" @click.prevent="hookRef.condition = !hookRef.condition">
-                  <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
-                    <span class="!text-gray-700 font-semibold">
-                      {{ $t('general.trigger') }} {{ $t('activity.basedOnConditions').toLowerCase() }}
-                    </span>
-                  </NcSwitch>
+                  <div v-if="hookRef.condition" class="flex gap-2">
+                    <NcButton
+                      size="small"
+                      type="secondary"
+                      class="nc-btn-focus"
+                      data-testid="add-filter"
+                      @click.stop="filterRef.addFilter()"
+                    >
+                      <div class="flex items-center gap-1">
+                        <component :is="iconMap.plus" />
+                        <!-- Add Filter -->
+                        {{ $t('activity.addFilter') }}
+                      </div>
+                    </NcButton>
+
+                    <NcButton
+                      class="nc-btn-focus"
+                      type="secondary"
+                      size="small"
+                      data-testid="add-filter-group"
+                      @click.stop="filterRef.addFilterGroup()"
+                    >
+                      <div class="flex items-center gap-1">
+                        <!-- Add Filter Group -->
+                        <component :is="iconMap.plus" />
+                        {{ $t('activity.addFilterGroup') }}
+                      </div>
+                    </NcButton>
+                  </div>
                 </div>
 
                 <div>
                   <LazySmartsheetToolbarColumnFilter
                     v-if="hookRef.condition"
                     ref="filterRef"
+                    :hidden-add-new-filter="true"
                     class="w-full !py-0"
                     :auto-save="false"
                     :show-loading="false"

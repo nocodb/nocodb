@@ -33,6 +33,13 @@ export function useViewRowColorRender(params: {
     return !blockRowColoring.value && activeViewRowColorInfo.value && !!activeViewRowColorInfo.value?.mode
   })
 
+  /**
+   * In shared view meta.columns will include only visible columns so we have to use columnsById to get all columns
+   */
+  const metaColumns = computed(() => {
+    return Object.values(meta.value?.columnsById ?? {})
+  })
+
   const evaluateRowColor = (row: any) => {
     if (blockRowColoring.value || !activeViewRowColorInfo.value) return null
 
@@ -71,7 +78,7 @@ export function useViewRowColorRender(params: {
         const isFilterValid = validateRowFilters(
           eachCondition.conditions,
           row,
-          meta.value!.columns as ColumnType[],
+          metaColumns.value as ColumnType[],
           getBaseType(meta.value!.source_id),
           meta.value!,
         )

@@ -106,8 +106,6 @@ export class PagedResponseV3Impl<T> {
     const commonQueryParams = extractProps(queryParams || {}, [
       'sort',
       'where',
-      's',
-      'w',
     ]);
 
     if (!pagedResponse.pageInfo.isFirstPage && pagedResponse.pageInfo.page) {

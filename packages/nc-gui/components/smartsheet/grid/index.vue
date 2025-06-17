@@ -282,11 +282,23 @@ const updateRowCommentCount = (count: number) => {
     syncVisibleData?.()
   } else {
     const aggCommentCountIndex = pAggCommentCount.value.findIndex((row) => row.row_id === routeQuery.value.rowId)
+
     const currentRowIndex = pData.value.findIndex(
       (row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === routeQuery.value.rowId,
     )
 
-    if (aggCommentCountIndex === -1 || currentRowIndex === -1) return
+    if (currentRowIndex === -1) return
+
+    if (aggCommentCountIndex === -1) {
+      pAggCommentCount.value.push({
+        row_id: routeQuery.value.rowId,
+        count: count,
+      })
+
+      pData.value[currentRowIndex]!.rowMeta.commentCount = count
+
+      return
+    }
 
     if (Number(pAggCommentCount.value[aggCommentCountIndex].count) === count) return
     pAggCommentCount.value[aggCommentCountIndex].count = count

@@ -577,6 +577,7 @@ onMounted(async () => {
                 class="flex flex-grow text-lg px-2 font-medium capitalize outline-none bg-inherit nc-text-field-hook-title"
                 :placeholder="$t('placeholder.webhookTitle')"
                 :contenteditable="true"
+                disabled
                 @keydown.enter="titleDomRef?.blur()"
               />
               <GeneralIcon icon="rename" class="cursor-text" @click="titleDomRef?.focus()" />
@@ -712,21 +713,22 @@ onMounted(async () => {
                 <div>
                   <NcTabs v-model:activeKey="urlTabKey">
                     <a-tab-pane key="params" :tab="$t('title.parameter')" force-render>
-                      <LazyApiClientParams v-model="hookRef.notification.payload.parameters" />
+                      <LazyApiClientParams v-model="hookRef.notification.payload.parameters" disabled />
                     </a-tab-pane>
 
                     <a-tab-pane key="headers" :tab="$t('title.headers')" class="nc-tab-headers">
-                      <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" />
+                      <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" disabled />
                     </a-tab-pane>
 
                     <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
                       <div
                         style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
-                        class="my-3 mx-1 rounded-lg overflow-hidden"
+                        class="my-3 mx-1 rounded-lg"
                       >
                         <LazyMonacoEditor
                           v-model="hookRef.notification.payload.body"
                           lang="handlebars"
+                          read-only
                           disable-deep-compare
                           :validate="false"
                           class="min-h-60 max-h-80 !rounded-lg"
@@ -829,6 +831,7 @@ onMounted(async () => {
                 :show-loading="false"
                 :hook-id="hookRef.id"
                 :web-hook="true"
+                read-only
                 action-btn-type="secondary"
                 @update:filters-length="hookRef.condition = $event > 0"
               />

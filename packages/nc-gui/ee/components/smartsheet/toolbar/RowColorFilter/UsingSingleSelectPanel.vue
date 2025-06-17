@@ -39,33 +39,39 @@ const hasPermission = computed(() => !isLocked.value && isUIAllowed('rowColourUp
 
 <template>
   <div class="w-[420px] p-4 flex flex-col gap-4">
-    <a-form-item class="!my-0">
-      <NcSelect
-        v-model:value="vModel.fk_column_id"
-        class="nc-colouring-field-select w-full nc-select-shadow"
-        :dropdown-match-select-width="false"
-        :disabled="!hasPermission"
-        @change="emits('change', true)"
-      >
-        <a-select-option v-for="(column, idx) of columns" :key="idx" :value="column.id">
-          <div class="w-full flex gap-2 items-center">
-            <SmartsheetHeaderIcon :column="column" class="!mx-0" />
-            <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-              <template #title>
+    <div class="flex flex-col gap-2">
+      <div>
+        {{ $t('objects.coloring.colourRecordsByField') }}
+      </div>
+
+      <a-form-item class="!my-0">
+        <NcSelect
+          v-model:value="vModel.fk_column_id"
+          class="nc-colouring-field-select w-full nc-select-shadow"
+          :dropdown-match-select-width="false"
+          :disabled="!hasPermission"
+          @change="emits('change', true)"
+        >
+          <a-select-option v-for="(column, idx) of columns" :key="idx" :value="column.id">
+            <div class="w-full flex gap-2 items-center">
+              <SmartsheetHeaderIcon :column="column" class="!mx-0" />
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>
+                  {{ column.title }}
+                </template>
                 {{ column.title }}
-              </template>
-              {{ column.title }}
-            </NcTooltip>
-            <component
-              :is="iconMap.check"
-              v-if="vModel.fk_column_id === column.id"
-              id="nc-selected-item-icon"
-              class="text-primary w-4 h-4"
-            />
-          </div>
-        </a-select-option>
-      </NcSelect>
-    </a-form-item>
+              </NcTooltip>
+              <component
+                :is="iconMap.check"
+                v-if="vModel.fk_column_id === column.id"
+                id="nc-selected-item-icon"
+                class="text-primary w-4 h-4"
+              />
+            </div>
+          </a-select-option>
+        </NcSelect>
+      </a-form-item>
+    </div>
 
     <div class="flex items-center gap-2 justify-between">
       <NcButton type="text" size="small" :disabled="!hasPermission" @click="emits('remove')">

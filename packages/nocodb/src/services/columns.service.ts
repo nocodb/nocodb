@@ -1,4 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { pluralize, singularize } from 'inflection';
 import {
   AppEvents,
   ButtonActionsType,
@@ -10,6 +11,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
+  NcApiVersion,
   ncIsNull,
   ncIsUndefined,
   partialUpdateAllowedTypes,
@@ -22,39 +24,22 @@ import {
   UITypes,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
-import { pluralize, singularize } from 'inflection';
 import rfdc from 'rfdc';
-import { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
   LinkToAnotherRecordType,
   UserType,
 } from 'nocodb-sdk';
-import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
-import type { Base, LinkToAnotherRecordColumn } from '~/models';
-import type CustomKnex from '~/db/CustomKnex';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type CustomKnex from '~/db/CustomKnex';
+import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { Base, LinkToAnotherRecordColumn } from '~/models';
 import type {
   IColumnsService,
   ReusableParams,
 } from '~/services/columns.service.type';
-import { Filter, User } from '~/models';
-import { parseMetaProp } from '~/utils/modelUtils';
-import {
-  BaseUser,
-  CalendarRange,
-  Column,
-  FormulaColumn,
-  Hook,
-  KanbanView,
-  Model,
-  Script,
-  Source,
-  View,
-} from '~/models';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {
@@ -69,6 +54,7 @@ import {
   validateRollupPayload,
 } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
+import { extractProps } from '~/helpers/extractProps';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import {
   getUniqueColumnAliasName,
@@ -76,16 +62,32 @@ import {
 } from '~/helpers/getUniqueName';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import validateParams from '~/helpers/validateParams';
-import Noco from '~/Noco';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
+import {
+  BaseUser,
+  CalendarRange,
+  Column,
+  Filter,
+  FormulaColumn,
+  Hook,
+  KanbanView,
+  Model,
+  Script,
+  Source,
+  User,
+  View,
+} from '~/models';
+import Noco from '~/Noco';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
+import { ViewRowColorService } from '~/services/view-row-color.service';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   convertAIRecordTypeToValue,
   convertValueToAIRecordType,
 } from '~/utils/dataConversion';
-import { extractProps } from '~/helpers/extractProps';
-import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
+import { MetaTable } from '~/utils/globals';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 export type { ReusableParams } from '~/services/columns.service.type';
 
@@ -202,6 +204,7 @@ export class ColumnsService implements IColumnsService {
     protected readonly appHooksService: AppHooksService,
     @Inject(forwardRef(() => 'FormulaColumnTypeChanger'))
     protected readonly formulaColumnTypeChanger: IFormulaColumnTypeChanger,
+    protected readonly viewRowColorService: ViewRowColorService,
   ) {}
 
   async updateFormulas(
@@ -1848,6 +1851,16 @@ export class ColumnsService implements IColumnsService {
       columns: table.columns,
     });
 
+    if (
+      [UITypes.SingleSelect].includes(oldColumn.uidt) &&
+      colBody.uidt !== UITypes.SingleSelect
+    ) {
+      await this.viewRowColorService.selectColumnRemovedOrChanged({
+        context,
+        column: oldColumn,
+      });
+    }
+
     if (param.apiVersion === NcApiVersion.V3) {
       return column;
     }
@@ -3159,6 +3172,13 @@ export class ColumnsService implements IColumnsService {
         context,
         columnId: column.id,
         columns: table.columns,
+      });
+    }
+
+    if ([UITypes.SingleSelect].includes(column.uidt)) {
+      await this.viewRowColorService.selectColumnRemovedOrChanged({
+        context,
+        column,
       });
     }
 

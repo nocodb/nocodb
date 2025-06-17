@@ -3,7 +3,7 @@ import { arrayToNested, parseProp, ROW_COLORING_MODE } from 'nocodb-sdk';
 import { ViewRowColorService as ViewRowColorServiceCE } from 'src/services/view-row-color.service';
 import { CacheScope } from 'src/utils/globals';
 import type { MetaService } from '~/meta/meta.service';
-import type { Filter, SelectOption } from '~/models';
+import type { Column, Filter, SelectOption } from '~/models';
 import type { ViewMetaRowColoring } from '~/models/View';
 import type {
   FilterType,
@@ -399,6 +399,31 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       );
     }
     await this.clearCache(view);
+  }
+
+  async selectColumnRemovedOrChanged(param: {
+    context: NcContext;
+    column: Column;
+  }) {
+    const { context, column } = param;
+
+    const removalPromises: Promise<void>[] = [];
+    // remove row coloring select from view
+    const views = await View.list(context, column.fk_model_id);
+    for (const view of views) {
+      if (view.row_coloring_mode === ROW_COLORING_MODE.SELECT) {
+        const metaRowColoring: ViewMetaRowColoring = parseProp(view.meta) ?? {};
+        if (metaRowColoring.rowColoringInfo.fk_column_id === column.id) {
+          removalPromises.push(
+            this.removeRowColorInfo({
+              context,
+              fk_view_id: view.id,
+            }),
+          );
+        }
+      }
+    }
+    await Promise.all(removalPromises);
   }
 
   async clearCache(view: View) {

@@ -79,7 +79,7 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
         event,
       )
     ) {
-      reloadRowColorInfo()
+      reloadRowColorInfo(true)
     }
   })
 

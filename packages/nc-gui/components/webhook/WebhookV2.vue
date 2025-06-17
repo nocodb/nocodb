@@ -879,6 +879,7 @@ onMounted(async () => {
               <div v-show="isVisible">
                 <LazyMonacoEditor
                   v-model="sampleData"
+                  read-only
                   :monaco-config="{
                     minimap: {
                       enabled: false,

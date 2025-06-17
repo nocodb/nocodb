@@ -574,6 +574,10 @@ async function saveHooks() {
     })
 
     emits('close', hookRef)
+
+    if (showUpgradeModal.value) {
+      message.success('Webhook upgraded to v3 successfully!')
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

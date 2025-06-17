@@ -535,15 +535,18 @@ test.describe.serial('Webhook', () => {
     // create after insert webhook
     await webhook.create({
       title: 'hook-1',
-      event: 'On Multiple Record Insert',
+      event: 'Record',
+      operation: 'insert',
     });
     await webhook.create({
       title: 'hook-1',
-      event: 'On Multiple Record Update',
+      event: 'Record',
+      operation: 'update',
     });
     await webhook.create({
       title: 'hook-1',
-      event: 'On Multiple Record Delete',
+      event: 'Record',
+      operation: 'delete',
     });
 
     await clearServerData({ request });
@@ -554,7 +557,7 @@ test.describe.serial('Webhook', () => {
     await api.dbTableRow.bulkCreate('noco', context.base.id, table.id, rowAttributesForInsert);
     await page.reload();
     let rsp = await getWebhookResponses({ request, count: 1 });
-    await verifyBulkOperationTrigger(rsp, 'records.after.bulkInsert');
+    await verifyBulkOperationTrigger(rsp, 'records.after.insert');
 
     // bulk update all rows
     await clearServerData({ request });
@@ -568,7 +571,7 @@ test.describe.serial('Webhook', () => {
     await page.reload();
     // 50 records updated, we expect 2 webhook responses
     rsp = await getWebhookResponses({ request, count: 1 });
-    await verifyBulkOperationTrigger(rsp, 'records.after.bulkUpdate');
+    await verifyBulkOperationTrigger(rsp, 'records.after.update');
 
     // bulk delete all rows
     await clearServerData({ request });
@@ -577,7 +580,7 @@ test.describe.serial('Webhook', () => {
     await api.dbTableRow.bulkDelete('noco', context.base.id, table.id, rowAttributesForDelete);
     await page.reload();
     rsp = await getWebhookResponses({ request, count: 1 });
-    await verifyBulkOperationTrigger(rsp, 'records.after.bulkDelete');
+    await verifyBulkOperationTrigger(rsp, 'records.after.delete');
   });
 
   test('Virtual columns', async ({ request, page }) => {
@@ -708,7 +711,8 @@ test.describe.serial('Webhook', () => {
     // after update hook
     await webhook.create({
       title: 'hook-2',
-      event: 'On Record Update',
+      event: 'Record',
+      operation: 'update',
     });
 
     // clear server data
@@ -805,12 +809,8 @@ test.describe.serial('Webhook', () => {
     // after insert hook
     await webhook.create({
       title: 'hook-1',
-      event: 'On Record Delete',
-    });
-    // after insert hook
-    await webhook.create({
-      title: 'hook-2',
-      event: 'On Multiple Record Delete',
+      event: 'Record',
+      operation: 'delete',
     });
 
     const titles = ['Poole', 'Delaware', 'Pabalo', 'John', 'Vicky', 'Tom'];
@@ -837,7 +837,7 @@ test.describe.serial('Webhook', () => {
     await dashboard.grid.deleteSelectedRows();
     rsp = await getWebhookResponses({ request, count: 2 });
 
-    await verifyDeleteOperation(rsp, 'records.after.bulkDelete', 2);
+    await verifyDeleteOperation(rsp, 'records.after.delete', 2);
 
     // Right click and delete record
     await dashboard.grid.deleteRow(0);
@@ -854,6 +854,6 @@ test.describe.serial('Webhook', () => {
     await dashboard.grid.deleteRow(0);
     rsp = await getWebhookResponses({ request, count: 4 });
 
-    await verifyDeleteOperation(rsp, 'records.after.bulkDelete', 2);
+    await verifyDeleteOperation(rsp, 'records.after.delete', 2);
   });
 });

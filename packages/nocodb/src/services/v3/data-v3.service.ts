@@ -230,7 +230,7 @@ export class DataV3Service {
 
     // Get the model to access primary key
     const model = await Model.get(context, param.modelId);
-    await model.getColumns(context);
+    const columns = await model.getColumns(context);
     const primaryKey = model.primaryKey.title;
 
     // extract nested page limit
@@ -241,7 +241,6 @@ export class DataV3Service {
     // check if nested next page is available
     // - check for all nested list
     // - check if any Links have limit + 1 record
-    const columns = await model.getColumns(context);
     let nestedNextPageAvail = false;
     const nestedPrevPageAvail = nestedPage > 1;
     for (const column of columns) {
@@ -250,7 +249,7 @@ export class DataV3Service {
         const relatedModel = await (
           column.colOptions as LinkToAnotherRecordColumn
         ).getRelatedTable(context);
-        await model.getColumns(context);
+        await relatedModel.getColumns(context);
         const relatedPrimaryKey = relatedModel.primaryKey.title;
 
         // Transform nested data to match the same structure
@@ -261,7 +260,7 @@ export class DataV3Service {
               .map((nestedRecord) => ({
                 id: nestedRecord[relatedPrimaryKey],
                 fields: Object.entries(nestedRecord)
-                  .filter(([key]: string[]) => key !== relatedPrimaryKey)
+                  .filter(([key]) => key !== relatedPrimaryKey)
                   .reduce(
                     (acc, [key, value]) => ({ ...acc, [key]: value }),
                     {},
@@ -272,7 +271,7 @@ export class DataV3Service {
             row[column.id] = row[column.id].map((nestedRecord) => ({
               id: nestedRecord[relatedPrimaryKey],
               fields: Object.entries(nestedRecord)
-                .filter(([key]: string[]) => key !== relatedPrimaryKey)
+                .filter(([key]) => key !== relatedPrimaryKey)
                 .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
             }));
           }
@@ -326,7 +325,7 @@ export class DataV3Service {
 
             // Transform LinkToAnotherRecord fields
             for (const col of ltarColumns) {
-              if (fields[col.id]) {
+              if (fields[col.title]) {
                 const relatedModel = await (
                   col.colOptions as LinkToAnotherRecordColumn
                 ).getRelatedTable(context);
@@ -334,17 +333,17 @@ export class DataV3Service {
                 const relatedPrimaryKey = relatedModel.primaryKey.title;
 
                 // If it's an array of records, transform each one
-                if (Array.isArray(fields[col.id])) {
-                  fields[col.id] = fields[col.id].map((nestedRecord) => ({
+                if (Array.isArray(fields[col.title])) {
+                  fields[col.title] = fields[col.title].map((nestedRecord) => ({
                     [relatedPrimaryKey]: nestedRecord.id,
                     ...nestedRecord.fields,
                   }));
                 }
                 // If it's a single record, transform it
-                else if (fields[col.id].id) {
-                  fields[col.id] = {
-                    [relatedPrimaryKey]: fields[col.id].id,
-                    ...fields[col.id].fields,
+                else if (fields[col.title].id) {
+                  fields[col.title] = {
+                    [relatedPrimaryKey]: fields[col.title].id,
+                    ...fields[col.title].fields,
                   };
                 }
               }
@@ -379,7 +378,7 @@ export class DataV3Service {
         ? result.map((record) => ({
             id: record[primaryKey],
             fields: Object.entries(record)
-              .filter(([key]: string[]) => key !== primaryKey)
+              .filter(([key]) => key !== primaryKey)
               .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
           }))
         : hasPrimaryKey(result)
@@ -387,7 +386,7 @@ export class DataV3Service {
             {
               id: result[primaryKey],
               fields: Object.entries(result)
-                .filter(([key]: string[]) => key !== primaryKey)
+                .filter(([key]) => key !== primaryKey)
                 .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
             },
           ]
@@ -399,10 +398,15 @@ export class DataV3Service {
     context: NcContext,
     param: DataDeleteParams,
   ): Promise<{ records: DataRecordWithDeleted[] }> {
+    // Get the model to access primary key
+    const model = await Model.get(context, param.modelId);
+    await model.getColumns(context);
+    const primaryKey = model.primaryKey.title;
+
     // Transform the request body to match internal format
     const recordIds = Array.isArray(param.body)
-      ? param.body.map((record) => record.id)
-      : [param.body.id];
+      ? param.body.map((record) => ({ [primaryKey]: record.id }))
+      : [{ [primaryKey]: param.body.id }];
 
     await this.dataTableService.dataDelete(context, {
       ...param,
@@ -411,11 +415,13 @@ export class DataV3Service {
 
     // Transform the response to match the new format
     return {
-      records: recordIds.map((id) => ({
-        id,
-        fields: {},
-        deleted: true,
-      })),
+      records: (Array.isArray(param.body) ? param.body : [param.body]).map(
+        (record) => ({
+          id: record.id,
+          fields: {},
+          deleted: true,
+        }),
+      ),
     };
   }
 
@@ -441,25 +447,25 @@ export class DataV3Service {
 
             // Transform LinkToAnotherRecord fields
             for (const col of ltarColumns) {
-              if (fields[col.id]) {
-                const relatedModel = (
+              if (fields[col.title]) {
+                const relatedModel = await (
                   col.colOptions as LinkToAnotherRecordColumn
                 ).getRelatedTable(context);
                 await relatedModel.getColumns(context);
                 const relatedPrimaryKey = relatedModel.primaryKey.title;
 
                 // If it's an array of records, transform each one
-                if (Array.isArray(fields[col.id])) {
-                  fields[col.id] = fields[col.id].map((nestedRecord) => ({
+                if (Array.isArray(fields[col.title])) {
+                  fields[col.title] = fields[col.title].map((nestedRecord) => ({
                     [relatedPrimaryKey]: nestedRecord.id,
                     ...nestedRecord.fields,
                   }));
                 }
                 // If it's a single record, transform it
-                else if (fields[col.id].id) {
-                  fields[col.id] = {
-                    [relatedPrimaryKey]: fields[col.id].id,
-                    ...fields[col.id].fields,
+                else if (fields[col.title].id) {
+                  fields[col.title] = {
+                    [relatedPrimaryKey]: fields[col.title].id,
+                    ...fields[col.title].fields,
                   };
                 }
               }
@@ -484,33 +490,13 @@ export class DataV3Service {
       apiVersion: NcApiVersion.V3,
     });
 
-    // Transform the response to match the new format
-    if (!result || typeof result !== 'object') {
-      return { records: [] };
-    }
-
-    const hasPrimaryKey = (obj: any): obj is Record<string, any> => {
-      return primaryKey in obj;
-    };
+    // For update operations, only return the IDs
+    const recordIds = Array.isArray(param.body)
+      ? param.body.map((record) => record.id)
+      : [param.body.id];
 
     return {
-      records: Array.isArray(result)
-        ? result.map((record) => ({
-            id: record[primaryKey],
-            fields: Object.entries(record)
-              .filter(([key]: string[]) => key !== primaryKey)
-              .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
-          }))
-        : hasPrimaryKey(result)
-        ? [
-            {
-              id: result[primaryKey],
-              fields: Object.entries(result)
-                .filter(([key]: unknown[]) => key !== primaryKey)
-                .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
-            },
-          ]
-        : [],
+      records: recordIds.map((id) => ({ id, fields: {} })),
     };
   }
 
@@ -536,7 +522,27 @@ export class DataV3Service {
     await relatedModel.getColumns(context);
     const relatedPrimaryKey = relatedModel.primaryKey.title;
 
-    // Ensure response is a PagedResponseImpl
+    // Handle case where response is a single object (ONE_TO_ONE, BELONGS_TO)
+    if (
+      response &&
+      typeof response === 'object' &&
+      relatedPrimaryKey in response
+    ) {
+      return {
+        record: {
+          id: response[relatedPrimaryKey],
+          fields: Object.entries(response)
+            .filter(([key]) => key !== relatedPrimaryKey)
+            .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
+        },
+        next: null,
+        prev: null,
+        nestedNext: null,
+        nestedPrev: null,
+      };
+    }
+
+    // Handle case where response is a paginated list (HAS_MANY, MANY_TO_MANY)
     if (!response || !('list' in response) || !('pageInfo' in response)) {
       return {
         records: [],
@@ -559,13 +565,48 @@ export class DataV3Service {
       records: pagedResponse.list.map((record) => ({
         id: record[relatedPrimaryKey],
         fields: Object.entries(record)
-          .filter(([key]: string[]) => key !== relatedPrimaryKey)
+          .filter(([key]) => key !== relatedPrimaryKey)
           .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
       })),
       next: pagedResponse.pageInfo.next,
       prev: pagedResponse.pageInfo.prev,
       nestedNext: pagedResponse.pageInfo.nestedNext,
       nestedPrev: pagedResponse.pageInfo.nestedPrev,
+    };
+  }
+
+  async dataRead(
+    context: NcContext,
+    param: DataReadParams,
+  ): Promise<{ record: DataRecord }> {
+    // Get the model to access primary key
+    const model = await Model.get(context, param.modelId);
+    await model.getColumns(context);
+    const primaryKey = model.primaryKey.title;
+
+    const result = await this.dataTableService.dataRead(context, {
+      ...(param as Omit<DataReadParams, 'req'>),
+      apiVersion: NcApiVersion.V3,
+    });
+
+    // Transform the response to match the new format
+    if (!result || typeof result !== 'object') {
+      return { record: { id: '', fields: {} } };
+    }
+
+    const hasPrimaryKey = (obj: any): obj is Record<string, any> => {
+      return primaryKey in obj;
+    };
+
+    return {
+      record: hasPrimaryKey(result)
+        ? {
+            id: result[primaryKey],
+            fields: Object.entries(result)
+              .filter(([key]) => key !== primaryKey)
+              .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {}),
+          }
+        : { id: '', fields: {} },
     };
   }
 }

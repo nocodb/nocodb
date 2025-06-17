@@ -173,9 +173,7 @@ describe.only('dataApiV3', () => {
         });
 
         expect(rsp.body).to.have.property('next');
-        expect(rsp.body.next).to.include(
-          `${urlPrefix}/${table.id}/records?page=2`,
-        );
+        expect(rsp.body.next).to.include(`${urlPrefix}/${table.id}?page=2`);
         expect(rsp.body.records).to.deep.equal(
           records.map((record) => {
             const { Id, ...fields } = record;
@@ -192,7 +190,7 @@ describe.only('dataApiV3', () => {
         // remove Id's from record array
         records.forEach((r) => delete r.Id);
         rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           body: records.map((record) => {
             // Ensure Id is not in fields even if it somehow exists
             const { Id, ...fields } = record;
@@ -202,12 +200,12 @@ describe.only('dataApiV3', () => {
           }),
         });
 
-        // APIv3 insert returns full records with fields
-        expect(rsp.body.records).to.have.lengthOf(10);
-        rsp.body.records.forEach((record, index) => {
-          expect(record).to.have.property('id', 401 + index);
-          expect(record).to.have.property('fields');
-        });
+        // prepare array with 10 Id's, from 401 to 410
+        const ids: { id: number; fields: Record<string, any> }[] = [];
+        for (let i = 401; i <= 410; i++) {
+          ids.push({ id: i, fields: {} });
+        }
+        expect(rsp.body.records.sort((a, b) => a.id - b.id)).to.deep.equal(ids);
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -228,8 +226,10 @@ describe.only('dataApiV3', () => {
         }
 
         expect(rsp.body).to.deep.equal({
-          id: 401,
-          fields: firstRecordFields,
+          record: {
+            id: 401,
+            fields: firstRecordFields,
+          },
         });
 
         ///////////////////////////////////////////////////////////////////////////
@@ -253,24 +253,22 @@ describe.only('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords,
         });
-        // APIv3 update returns full records with fields
-        expect(rsp.body.records).to.have.lengthOf(updatedRecords.length);
-        rsp.body.records.forEach((record, index) => {
-          expect(record).to.have.property('id', updatedRecords[index].id);
-          expect(record).to.have.property('fields');
-          expect(record.fields).to.include(updatedRecords[index].fields);
-        });
+        // Update operations only return IDs
+        expect(rsp.body.records).to.deep.equal(
+          updatedRecords.map((record) => ({ id: record.id })),
+        );
 
         ///////////////////////////////////////////////////////////////////////////
 
         // delete record with ID 401 to 404
         rsp = await ncAxiosDelete({
-          url: `${urlPrefix}/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           body: updatedRecords.map((record) => ({ id: record.id })),
         });
         expect(rsp.body.records).to.deep.equal(
           updatedRecords.map((record) => ({
             id: record.id,
+            fields: {},
             deleted: true,
           })),
         );
@@ -366,9 +364,7 @@ describe.only('dataApiV3', () => {
           },
         });
         expect(rsp.body).to.have.property('next');
-        expect(rsp.body.next).to.include(
-          `${urlPrefix}/${table.id}/records?page=2`,
-        );
+        expect(rsp.body.next).to.include(`${urlPrefix}/${table.id}?page=2`);
         expect(rsp.body.records).to.deep.equal(
           recordsV3.map((record) => {
             const { Id, ...fields } = record;
@@ -387,7 +383,7 @@ describe.only('dataApiV3', () => {
         recordsV3.forEach((r) => delete r.Id);
 
         rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           body: recordsV3.map((record) => {
             // Ensure Id is not in fields even if it somehow exists
             const { Id, ...fields } = record;
@@ -397,12 +393,12 @@ describe.only('dataApiV3', () => {
           }),
         });
 
-        // APIv3 insert returns full records with fields
-        expect(rsp.body.records).to.have.lengthOf(10);
-        rsp.body.records.forEach((record, index) => {
-          expect(record).to.have.property('id', 401 + index);
-          expect(record).to.have.property('fields');
-        });
+        // prepare array with 10 Id's, from 401 to 410
+        const ids: { id: number; fields: Record<string, any> }[] = [];
+        for (let i = 401; i <= 410; i++) {
+          ids.push({ id: i, fields: {} });
+        }
+        expect(rsp.body.records).to.deep.equal(ids);
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -416,8 +412,10 @@ describe.only('dataApiV3', () => {
         const firstRecordV3 = recordsV3[0] || {};
         const { Id: firstId, ...firstRecordFields } = firstRecordV3;
         expect(rsp.body).to.deep.equal({
-          id: 401,
-          fields: firstRecordFields,
+          record: {
+            id: 401,
+            fields: firstRecordFields,
+          },
         });
 
         ///////////////////////////////////////////////////////////////////////////
@@ -435,19 +433,10 @@ describe.only('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords,
         });
-        // APIv3 update returns full records with fields
-        expect(rsp.body.records).to.have.lengthOf(updatedRecords.length);
-        rsp.body.records.forEach((record, index) => {
-          expect(record).to.have.property('id', updatedRecords[index].id);
-          expect(record).to.have.property('fields');
-          // Use specific field comparisons for select fields to handle arrays properly
-          expect(record.fields.SingleSelect).to.equal(
-            updatedRecords[index].fields.SingleSelect,
-          );
-          expect(JSON.stringify(record.fields.MultiSelect)).to.equal(
-            JSON.stringify(updatedRecords[index].fields.MultiSelect),
-          );
-        });
+        // Update operations only return IDs
+        expect(rsp.body.records).to.deep.equal(
+          updatedRecords.map((record) => ({ id: record.id })),
+        );
 
         // verify updated records
         rsp = await ncAxiosGet({
@@ -458,31 +447,19 @@ describe.only('dataApiV3', () => {
             fields: 'Id,SingleSelect,MultiSelect',
           },
         });
-        // APIv3 verify updated records with flexible array comparison
-        const actualRecords = rsp.body.records.slice(0, 4);
-        expect(actualRecords).to.have.lengthOf(updatedRecords.length);
-        actualRecords.forEach((record, index) => {
-          expect(record).to.have.property('id', updatedRecords[index].id);
-          expect(record).to.have.property('fields');
-          expect(record.fields.SingleSelect).to.equal(
-            updatedRecords[index].fields.SingleSelect,
-          );
-          // Use deep equality for MultiSelect array comparison
-          expect(JSON.stringify(record.fields.MultiSelect)).to.equal(
-            JSON.stringify(updatedRecords[index].fields.MultiSelect),
-          );
-        });
+        expect(rsp.body.records.slice(0, 4)).to.deep.equal(updatedRecords);
 
         ///////////////////////////////////////////////////////////////////////////
 
         // delete record with ID 401 to 404
         rsp = await ncAxiosDelete({
-          url: `${urlPrefix}/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           body: updatedRecords.map((record) => ({ id: record.id })),
         });
         expect(rsp.body.records).to.deep.equal(
           updatedRecords.map((record) => ({
             id: record.id,
+            fields: {},
             deleted: true,
           })),
         );
@@ -512,9 +489,7 @@ describe.only('dataApiV3', () => {
         });
 
         expect(rsp.body).to.have.property('next');
-        expect(rsp.body.next).to.include(
-          `${urlPrefix}/${table.id}/records?page=2`,
-        );
+        expect(rsp.body.next).to.include(`${urlPrefix}/${table.id}?page=2`);
 
         // extract first 10 records from inserted records
         const records = insertedRecords.slice(0, 10);
@@ -537,16 +512,16 @@ describe.only('dataApiV3', () => {
           delete r.UpdatedBy;
         });
         rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           body: records.map((record) => ({ fields: record })),
         });
 
-        // APIv3 insert returns full records with fields
-        expect(rsp.body.records).to.have.lengthOf(10);
-        rsp.body.records.forEach((record, index) => {
-          expect(record).to.have.property('id', 801 + index);
-          expect(record).to.have.property('fields');
-        });
+        // prepare array with 10 Id's, from 801 to 810
+        const ids: { id: number; fields: Record<string, any> }[] = [];
+        for (let i = 801; i <= 810; i++) {
+          ids.push({ id: i, fields: {} });
+        }
+        expect(rsp.body.records).to.deep.equal(ids);
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -558,10 +533,12 @@ describe.only('dataApiV3', () => {
           },
         });
         expect(rsp.body).to.deep.equal({
-          id: 801,
-          fields: {
-            Date: records[0].Date,
-            DateTime: records[0].DateTime,
+          record: {
+            id: 801,
+            fields: {
+              Date: records[0].Date,
+              DateTime: records[0].DateTime,
+            },
           },
         });
 
@@ -580,13 +557,9 @@ describe.only('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords,
         });
-        // APIv3 update returns full records with fields
-        expect(rsp.body.records).to.have.lengthOf(updatedRecords.length);
-        rsp.body.records.forEach((record, index) => {
-          expect(record).to.have.property('id', updatedRecords[index].id);
-          expect(record).to.have.property('fields');
-          expect(record.fields).to.include(updatedRecords[index].fields);
-        });
+        expect(rsp.body.records).to.deep.equal(
+          updatedRecords.map((record) => ({ id: record.id })),
+        );
 
         // verify updated records
         rsp = await ncAxiosGet({
@@ -603,12 +576,13 @@ describe.only('dataApiV3', () => {
 
         // delete record with ID 801 to 804
         rsp = await ncAxiosDelete({
-          url: `${urlPrefix}/${table.id}/records`,
+          url: `${urlPrefix}/${table.id}`,
           body: updatedRecords.map((record) => ({ id: record.id })),
         });
         expect(rsp.body.records).to.deep.equal(
           updatedRecords.map((record) => ({
             id: record.id,
+            fields: {},
             deleted: true,
           })),
         );
@@ -646,7 +620,7 @@ describe.only('dataApiV3', () => {
             linkId: getColumnId(columnsCountry, 'Cities'),
             rowId: '1',
           },
-          body: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
+          body: [{ id:1}, {id:2}, {id:3}, {id:4}, {id:5}],
           status: 200,
         });
 
@@ -680,9 +654,16 @@ describe.only('dataApiV3', () => {
         // links
         expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
 
+        let citiesExpectedFromListAPI = citiesExpected.map((c) => ({
+          id: c.id,
+          fields: c.fields,
+        }));
         expect(rspFromRecordAPI.body.records.length).to.be.eq(1);
         expect(rspFromRecordAPI.body.records[0].fields['Cities']).to.be.eq(5);
-        expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
+        expect(rspFromLinkAPI.body.records).to.deep.equal(
+          citiesExpectedFromListAPI,
+        );
+        ///////////////////////////////////////////////////////////////////
 
         // verify in City table
         for (let i = 1; i <= 10; i++) {
@@ -762,9 +743,15 @@ describe.only('dataApiV3', () => {
 
         expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
 
+        citiesExpectedFromListAPI = citiesExpected.map((c) => ({
+          id: c.id,
+          fields: c.fields,
+        }));
         expect(rspFromRecordAPI.body.records.length).to.be.eq(1);
         expect(rspFromRecordAPI.body.records[0].fields['Cities']).to.be.eq(7);
-        expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
+        expect(rspFromLinkAPI.body.records).to.deep.equal(
+          citiesExpectedFromListAPI,
+        );
 
         // verify in City table
         for (let i = 1; i <= 10; i++) {
@@ -839,9 +826,15 @@ describe.only('dataApiV3', () => {
         ];
         expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
 
+        citiesExpectedFromListAPI = citiesExpected.map((c) => ({
+          id: c.id,
+          fields: c.fields,
+        }));
         expect(rspFromRecordAPI.body.records.length).to.be.eq(1);
         expect(rspFromRecordAPI.body.records[0].fields['Cities']).to.be.eq(3);
-        expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
+        expect(rspFromLinkAPI.body.records).to.deep.equal(
+          citiesExpectedFromListAPI,
+        );
         // verify in City table
         for (let i = 1; i <= 10; i++) {
           rspFromLinkAPI = await ncAxiosLinkGet({
@@ -1007,7 +1000,7 @@ describe.only('dataApiV3', () => {
         );
 
         expect(rspFromRecordAPI.body.records.length).to.equal(1);
-        expect(rspFromRecordAPI.body.records[0].fields['Actors']).to.equal(20);
+        expect(rspFromRecordAPI.body.records[0]['Actors']).to.equal(20);
 
         // Update mm link between Actor and Film
         // List them for a record & verify in both tables
@@ -1070,14 +1063,12 @@ describe.only('dataApiV3', () => {
           });
           expect(rspFromLinkAPI.body.records.length).to.equal(1);
           expect(rspFromLinkAPI.body.records[0]).to.deep.equal({
-            id: 1,
-            fields: {
-              Actor: `Actor 1`,
-            },
+            Id: 1,
+            Actor: `Actor 1`,
           });
 
           expect(rspFromRecordAPI.body.records.length).to.equal(1);
-          expect(rspFromRecordAPI.body.records[0].fields['Actors']).to.equal(1);
+          expect(rspFromRecordAPI.body.records[0]['Actors']).to.equal(1);
         }
 
         // Delete mm link between Actor and Film
@@ -1166,22 +1157,16 @@ describe.only('dataApiV3', () => {
           if (i % 2 === 0) {
             expect(rspFromLinkAPI.body.records.length).to.equal(1);
             expect(rspFromLinkAPI.body.records[0]).to.deep.equal({
-              id: 1,
-              fields: {
-                Actor: `Actor 1`,
-              },
+              Id: 1,
+              Actor: `Actor 1`,
             });
 
             expect(rspFromRecordAPI.body.records.length).to.equal(1);
-            expect(rspFromRecordAPI.body.records[0].fields['Actors']).to.equal(
-              1,
-            );
+            expect(rspFromRecordAPI.body.records[0]['Actors']).to.equal(1);
           } else {
             expect(rspFromLinkAPI.body.records.length).to.equal(0);
             expect(rspFromRecordAPI.body.records.length).to.equal(1);
-            expect(rspFromRecordAPI.body.records[0].fields['Actors']).to.equal(
-              0,
-            );
+            expect(rspFromRecordAPI.body.records[0]['Actors']).to.equal(0);
           }
         }
       });
@@ -1226,12 +1211,12 @@ describe.only('dataApiV3', () => {
 
         expect(respFromLinkAPI.body.records.length).to.equal(1);
         expect(respFromLinkAPI.body.records[0]).to.deep.equal({
-          id: 1,
-          fields: { City: 'City 1' },
+          Id: 1,
+          City: 'City 1',
         });
 
         expect(respFromRecordAPI.body.records.length).to.eq(1);
-        expect(respFromRecordAPI.body.records[0].fields['Cities']).to.eq(1);
+        expect(respFromRecordAPI.body.records[0]['Cities']).to.eq(1);
 
         respFromLinkAPI = await ncAxiosLinkGet({
           urlParams: {
@@ -1256,7 +1241,7 @@ describe.only('dataApiV3', () => {
         );
 
         expect(respFromRecordAPI.body.records.length).to.eq(1);
-        expect(respFromRecordAPI.body.records[0].fields['Cities']).to.eq(2);
+        expect(respFromRecordAPI.body.records[0]['Cities']).to.eq(2);
       });
 
       // limit & offset verification
@@ -1287,16 +1272,16 @@ describe.only('dataApiV3', () => {
         });
         expect(rsp.body.records.length).to.equal(10);
         expect(rsp.body.records).to.deep.equal([
-          { id: 1, fields: { City: 'City 1' } },
-          { id: 2, fields: { City: 'City 2' } },
-          { id: 3, fields: { City: 'City 3' } },
-          { id: 4, fields: { City: 'City 4' } },
-          { id: 5, fields: { City: 'City 5' } },
-          { id: 6, fields: { City: 'City 6' } },
-          { id: 7, fields: { City: 'City 7' } },
-          { id: 8, fields: { City: 'City 8' } },
-          { id: 9, fields: { City: 'City 9' } },
-          { id: 10, fields: { City: 'City 10' } },
+          { Id: 1, City: 'City 1' },
+          { Id: 2, City: 'City 2' },
+          { Id: 3, City: 'City 3' },
+          { Id: 4, City: 'City 4' },
+          { Id: 5, City: 'City 5' },
+          { Id: 6, City: 'City 6' },
+          { Id: 7, City: 'City 7' },
+          { Id: 8, City: 'City 8' },
+          { Id: 9, City: 'City 9' },
+          { Id: 10, City: 'City 10' },
         ]);
 
         rsp = await ncAxiosLinkGet({
@@ -1312,16 +1297,16 @@ describe.only('dataApiV3', () => {
         });
         expect(rsp.body.records.length).to.equal(10);
         expect(rsp.body.records).to.deep.equal([
-          { id: 6, fields: { City: 'City 6' } },
-          { id: 7, fields: { City: 'City 7' } },
-          { id: 8, fields: { City: 'City 8' } },
-          { id: 9, fields: { City: 'City 9' } },
-          { id: 10, fields: { City: 'City 10' } },
-          { id: 11, fields: { City: 'City 11' } },
-          { id: 12, fields: { City: 'City 12' } },
-          { id: 13, fields: { City: 'City 13' } },
-          { id: 14, fields: { City: 'City 14' } },
-          { id: 15, fields: { City: 'City 15' } },
+          { Id: 6, City: 'City 6' },
+          { Id: 7, City: 'City 7' },
+          { Id: 8, City: 'City 8' },
+          { Id: 9, City: 'City 9' },
+          { Id: 10, City: 'City 10' },
+          { Id: 11, City: 'City 11' },
+          { Id: 12, City: 'City 12' },
+          { Id: 13, City: 'City 13' },
+          { Id: 14, City: 'City 14' },
+          { Id: 15, City: 'City 15' },
         ]);
 
         rsp = await ncAxiosLinkGet({
@@ -1337,11 +1322,11 @@ describe.only('dataApiV3', () => {
         });
         expect(rsp.body.records.length).to.equal(5);
         expect(rsp.body.records).to.deep.equal([
-          { id: 46, fields: { City: 'City 46' } },
-          { id: 47, fields: { City: 'City 47' } },
-          { id: 48, fields: { City: 'City 48' } },
-          { id: 49, fields: { City: 'City 49' } },
-          { id: 50, fields: { City: 'City 50' } },
+          { Id: 46, City: 'City 46' },
+          { Id: 47, City: 'City 47' },
+          { Id: 48, City: 'City 48' },
+          { Id: 49, City: 'City 49' },
+          { Id: 50, City: 'City 50' },
         ]);
       });
 
@@ -1841,7 +1826,9 @@ describe.only('dataApiV3', () => {
             url: `${urlPrefix}/${table.id}/records/${id}`,
             status: 200,
           });
-          expect(getResponse.body.fields.Checkbox).to.equal(valueCase.expect);
+          expect(getResponse.body.record.fields.Checkbox).to.equal(
+            valueCase.expect,
+          );
           const patchResponse = await ncAxiosPatch({
             url: `${urlPrefix}/${table.id}/records`,
             body: [
@@ -1926,7 +1913,7 @@ describe.only('dataApiV3', () => {
           });
           expect(listGet2.body.records.length).to.equal(recordToUpdate.length);
           for (let i = 0; i < expectedValueCases.length; i++) {
-            expect(listGet1.body.records[i].fields.Checkbox).to.equal(
+            expect(listGet1.body.records[i].Checkbox).to.equal(
               expectedValueCases[i].expect,
             );
           }

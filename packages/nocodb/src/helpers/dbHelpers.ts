@@ -354,7 +354,9 @@ export function extractSortsObject(
   if (apiVersion === NcApiVersion.V3) {
     try {
       _sorts = JSON.parse(_sorts as string);
-    } catch (_e) {}
+    } catch (_e) {
+      _sorts = [];
+    }
     if (!Array.isArray(_sorts)) _sorts = [_sorts];
     return (_sorts as { direction: string; field: string }[]).map((s) => {
       const sort: SortType = {

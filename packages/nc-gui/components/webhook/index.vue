@@ -933,16 +933,8 @@ const triggerSubType = computed(() => {
                 </div>
               </div>
               <div class="border-1 border-nc-border-gray-medium rounded-b-2xl px-4 pt-4">
-                <div v-if="hookRef.event === 'after' && hookRef.operation?.includes('update')" class="mb-4">
-                  <WebhookTriggerByField
-                    v-model:trigger-fields="hookRef.trigger_fields"
-                    v-model:trigger-field="hookRef.trigger_field"
-                    :columns="triggerByFieldColumns"
-                  />
-                </div>
-
                 <div class="w-full flex items-center justify-between h-[28px]">
-                  <label class="cursor-pointer" @click.prevent="hookRef.condition = !hookRef.condition">
+                  <label class="cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
                     <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
                       <span class="!text-gray-700 font-semibold">
                         {{ $t('general.trigger') }} {{ $t('activity.basedOnConditions').toLowerCase() }}
@@ -998,6 +990,14 @@ const triggerSubType = computed(() => {
                     :web-hook="true"
                     action-btn-type="secondary"
                     @update:filters-length="hookRef.condition = $event > 0"
+                  />
+                </div>
+
+                <div v-if="hookRef.event === 'after' && hookRef.operation?.includes('update')" class="mb-4">
+                  <WebhookTriggerByField
+                    v-model:trigger-fields="hookRef.trigger_fields"
+                    v-model:trigger-field="hookRef.trigger_field"
+                    :columns="triggerByFieldColumns"
                   />
                 </div>
               </div>

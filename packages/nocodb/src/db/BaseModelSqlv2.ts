@@ -31,12 +31,6 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import { addOrRemoveLinks } from './BaseModelSqlv2/add-remove-links';
-import { baseModelInsert } from './BaseModelSqlv2/insert';
-import { NestedLinkPreparator } from './BaseModelSqlv2/nested-link-preparator';
-import { relationDataFetcher } from './BaseModelSqlv2/relation-data-fetcher';
-import { selectObject } from './BaseModelSqlv2/select-object';
-import { FieldHandler } from './field-handler';
 import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
@@ -68,6 +62,13 @@ import type {
 } from '~/models';
 import type LookupColumn from '~/models/LookupColumn';
 import type { ResolverObj } from '~/utils';
+import { baseModelUpdate } from '~/db/BaseModelSqlv2/update';
+import { FieldHandler } from '~/db/field-handler';
+import { selectObject } from '~/db/BaseModelSqlv2/select-object';
+import { relationDataFetcher } from '~/db/BaseModelSqlv2/relation-data-fetcher';
+import { NestedLinkPreparator } from '~/db/BaseModelSqlv2/nested-link-preparator';
+import { baseModelInsert } from '~/db/BaseModelSqlv2/insert';
+import { addOrRemoveLinks } from '~/db/BaseModelSqlv2/add-remove-links';
 import applyAggregation from '~/db/aggregation';
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
 import conditionV2 from '~/db/conditionV2';
@@ -111,7 +112,6 @@ import {
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import {
-  batchUpdate,
   extractColsMetaForAudit,
   extractExcludedColumnNames,
   generateAuditV1Payload,
@@ -2030,85 +2030,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async updateByPk(id, data, trx?, cookie?, _disableOptimization = false) {
-    try {
-      const columns = await this.model.getColumns(this.context);
-
-      const updateObj = await this.model.mapAliasToColumn(
-        this.context,
-        data,
-        this.clientMeta,
-        this.dbDriver,
-        columns,
-      );
-
-      await this.validate(data, columns);
-
-      await this.beforeUpdate(data, trx, cookie);
-
-      const btForeignKeyColumn = columns.find(
-        (c) =>
-          c.uidt === UITypes.ForeignKey && data[c.column_name] !== undefined,
-      );
-
-      const btColumn = btForeignKeyColumn
-        ? columns.find(
-            (c) =>
-              c.uidt === UITypes.LinkToAnotherRecord &&
-              c.colOptions?.fk_child_column_id === btForeignKeyColumn.id,
-          )
-        : null;
-
-      const prevData = await this.readByPk(
-        id,
-        false,
-        {},
-        { ignoreView: true, getHiddenColumn: true },
-      );
-
-      if (!prevData) {
-        NcError.recordNotFound(id);
-      }
-
-      await this.prepareNocoData(updateObj, false, cookie, prevData);
-
-      const query = this.dbDriver(this.tnPath)
-        .update(updateObj)
-        .where(await this._wherePk(id, true));
-
-      await this.execAndParse(query, null, { raw: true });
-
-      const newId = this.extractPksValues(
-        {
-          ...prevData,
-          ...updateObj,
-        },
-        true,
-      );
-
-      const newData = await this.readByPk(
-        newId,
-        false,
-        {},
-        { ignoreView: true, getHiddenColumn: true },
-      );
-
-      if (btColumn && Object.keys(data || {}).length === 1) {
-        await this.addChild({
-          colId: btColumn.id,
-          rowId: newId,
-          childId: updateObj[btForeignKeyColumn.title],
-          cookie,
-          onlyUpdateAuditLogs: true,
-          prevData,
-        });
-      } else {
-        await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
-      }
-      return newData;
-    } catch (e) {
-      await this.errorUpdate(e, data, trx, cookie);
-      throw e;
-    }
+    return baseModelUpdate(this).updateByPk(
+      id,
+      data,
+      trx,
+      cookie,
+      _disableOptimization,
+    );
   }
 
   async _wherePk(id, skipGetColumns = false, skipPkValidation = false) {
@@ -2858,16 +2786,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async bulkUpdate(
     datas: any[],
-    {
-      cookie,
-      raw = false,
-      throwExceptionIfNotExist = false,
-      isSingleRecordUpdation = false,
-      allowSystemColumn = false,
-      typecast = false,
-      apiVersion,
-      skip_hooks = false,
-    }: {
+    param: {
       cookie?: any;
       raw?: boolean;
       throwExceptionIfNotExist?: boolean;
@@ -2878,161 +2797,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skip_hooks?: boolean;
     } = {},
   ) {
-    let transaction;
-    const readChunkSize = 100;
-
-    try {
-      const columns = await this.model.getColumns(this.context);
-
-      // validate update data
-      if (!raw) {
-        for (const d of datas) {
-          await this.validate(d, columns, { allowSystemColumn, typecast });
-        }
-      }
-
-      const updateDatas = raw
-        ? datas
-        : await Promise.all(
-            datas.map((d) =>
-              this.model.mapAliasToColumn(
-                this.context,
-                d,
-                this.clientMeta,
-                this.dbDriver,
-                columns,
-              ),
-            ),
-          );
-
-      const prevData = [];
-      const newData = [];
-      const updatePkValues = [];
-      const toBeUpdated = [];
-      const pkAndData: { pk: string; data: any }[] = [];
-
-      for (const d of updateDatas) {
-        const pkValues = this.extractPksValues(d, true);
-
-        if (!pkValues) {
-          if (throwExceptionIfNotExist) NcError.recordNotFound(pkValues);
-          continue;
-        }
-
-        pkAndData.push({ pk: pkValues, data: d });
-      }
-
-      for (let i = 0; i < pkAndData.length; i += readChunkSize) {
-        const chunk = pkAndData.slice(i, i + readChunkSize);
-        const pksToRead = chunk.map((v) => v.pk);
-
-        const oldRecords = await this.chunkList({ pks: pksToRead });
-        const oldRecordsMap = new Map<string, any>(
-          oldRecords.map((r) => [this.extractPksValues(r, true), r]),
-        );
-
-        for (const { pk, data } of chunk) {
-          const oldRecord = oldRecordsMap.get(pk);
-
-          if (!oldRecord) {
-            // removed data from error param, record not found message do not use data
-            if (throwExceptionIfNotExist) NcError.recordNotFound(pk);
-            continue;
-          }
-
-          await this.prepareNocoData(data, false, cookie, oldRecord);
-          prevData.push(oldRecord);
-
-          const wherePk = await this._wherePk(pk, true);
-          toBeUpdated.push({ d: data, wherePk });
-
-          updatePkValues.push(
-            this.extractPksValues(
-              {
-                ...oldRecord,
-                ...data,
-              },
-              true,
-            ),
-          );
-        }
-      }
-
-      transaction = await this.dbDriver.transaction();
-
-      if (
-        this.model.primaryKeys.length === 1 &&
-        (this.isPg || this.isMySQL || this.isSqlite)
-      ) {
-        await batchUpdate(
-          transaction,
-          this.tnPath,
-          toBeUpdated.map((o) => o.d),
-          this.model.primaryKey.column_name,
-        );
-      } else {
-        for (const o of toBeUpdated) {
-          await transaction(this.tnPath).update(o.d).where(o.wherePk);
-        }
-      }
-
-      await transaction.commit();
-
-      // todo: wrap with transaction
-      if (apiVersion === NcApiVersion.V3) {
-        for (const d of datas) {
-          // remove LTAR/Links if part of the update request
-          await this.updateLTARCols({
-            rowId: this.extractPksValues(d, true),
-            cookie,
-            newData: d,
-          });
-        }
-      }
-
-      if (!raw) {
-        for (let i = 0; i < updatePkValues.length; i += readChunkSize) {
-          const pksChunk = updatePkValues.slice(i, i + readChunkSize);
-
-          const updatedRecords = await this.list(
-            { pks: pksChunk.join(',') },
-            { limitOverride: pksChunk.length },
-          );
-
-          const updatedRecordsMap = new Map(
-            updatedRecords.map((record) => [
-              this.extractPksValues(record, true),
-              record,
-            ]),
-          );
-
-          for (const pk of pksChunk) {
-            if (updatedRecordsMap.has(pk)) {
-              newData.push(updatedRecordsMap.get(pk));
-            }
-          }
-        }
-      }
-
-      if (!raw && !skip_hooks) {
-        if (isSingleRecordUpdation) {
-          await this.afterUpdate(
-            prevData[0],
-            newData[0],
-            null,
-            cookie,
-            datas[0],
-          );
-        } else {
-          await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
-        }
-      }
-
-      return newData;
-    } catch (e) {
-      if (transaction) await transaction.rollback();
-      throw e;
-    }
+    return baseModelUpdate(this).bulkUpdate(datas, param);
   }
 
   async updateLTARCols({

@@ -11,7 +11,7 @@ import type {
   NcRequest,
   RelationTypes,
 } from 'nocodb-sdk';
-import type { Column, Model, View } from '~/models';
+import type { Column, Filter, Model, Sort, View } from '~/models';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 
@@ -99,6 +99,31 @@ export interface IBaseModelSqlV2 {
       extractOnlyPrimaries?: boolean;
       apiVersion?: NcApiVersion;
       extractOrderColumn?: boolean;
+    },
+  ): Promise<any>;
+
+  chunkList(args: { pks: string[]; chunkSize?: number }): Promise<any[]>;
+
+  list(
+    args?: {
+      where?: string;
+      limit?: any;
+      offset?: any;
+      filterArr?: Filter[];
+      sortArr?: Sort[];
+      sort?: string | string[];
+      fieldsSet?: Set<string>;
+      limitOverride?: number;
+      pks?: string;
+      customConditions?: Filter[];
+      apiVersion?: NcApiVersion;
+    },
+    options?: {
+      ignoreViewFilterAndSort?: boolean;
+      ignorePagination?: boolean;
+      validateFormula?: boolean;
+      throwErrorIfInvalidParams?: boolean;
+      limitOverride?: number;
     },
   ): Promise<any>;
 
@@ -284,7 +309,46 @@ export interface IBaseModelSqlV2 {
     }>,
   ): Promise<void>;
 
+  addChild({
+    colId,
+    rowId,
+    childId,
+    cookie,
+    onlyUpdateAuditLogs,
+    prevData,
+  }: {
+    colId: string;
+    rowId: string;
+    childId: string;
+    cookie?: any;
+    onlyUpdateAuditLogs?: boolean;
+    prevData?: Record<string, any>;
+  }): Promise<void>;
+
   getNestedColumn(column: Column): Promise<Column | any>;
+  _wherePk(
+    id,
+    skipGetColumns?: boolean,
+    skipPkValidation?: boolean,
+  ): Promise<Record<string, unknown> | ((qb: any) => void)>;
+
+  afterBulkUpdate(
+    prevData: any,
+    newData: any,
+    _trx: any,
+    req,
+    isBulkAllOperation?: boolean,
+  ): Promise<void>;
+
+  updateLTARCols({
+    rowId,
+    newData,
+    cookie,
+  }: {
+    newData: any;
+    rowId: string;
+    cookie: any;
+  }): Promise<void>;
 
   get viewId(): string;
   get dbDriver(): CustomKnex;

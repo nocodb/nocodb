@@ -30,7 +30,7 @@ const removeColumnId = (colId: string) => {
 </script>
 
 <template>
-  <div class="w-full flex items-center justify-between h-[32px]">
+  <div class="w-full flex items-center justify-between h-[28px]">
     <label class="cursor-pointer" @click.prevent="triggerField = !triggerField">
       <NcSwitch :checked="triggerField" class="nc-check-box-trigger-field">
         <span class="!text-gray-700 font-semibold">
@@ -40,7 +40,7 @@ const removeColumnId = (colId: string) => {
     </label>
     <NcDropdown v-if="triggerField" v-model:visible="isDropdownOpen" overlay-class-name="!pt-0">
       <NcButton
-        size="small"
+        size="xs"
         type="secondary"
         :class="{
           '!shadow-selected !border-brand-500': isDropdownOpen,
@@ -76,7 +76,7 @@ const removeColumnId = (colId: string) => {
                 <template #title>
                   {{ option?.title }}
                 </template>
-                <div class="flex-1 text-nc-content-gray font-semibold leading-5 text-small">
+                <div class="flex-1 text-nc-content-gray-subtle font-semibold hover:text-black leading-5 text-small transition-colors">
                   {{ option?.title }}
                 </div>
               </NcTooltip>

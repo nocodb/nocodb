@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ROW_COLORING_MODE, type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, ROW_COLORING_MODE } from 'nocodb-sdk'
 import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
 import type { NcListItemType } from '../../../../../components/nc/List/index.vue'
 

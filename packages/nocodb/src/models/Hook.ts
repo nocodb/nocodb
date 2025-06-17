@@ -110,6 +110,7 @@ export default class Hook implements HookType {
       event?: HookType['event'];
       operation?: HookType['operation'][0];
       affectedColumns?: string[];
+      notEmptyColumns?: string[];
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -150,15 +151,7 @@ export default class Hook implements HookType {
             const triggerFields = hookTriggerFields
               .filter((k) => k.fk_hook_id === hook.id)
               .map((k) => k.fk_column_id);
-            if (
-              !triggerFields.some((colId) =>
-                param.affectedColumns?.includes(colId),
-              )
-            ) {
-              hooks = hooks.filter((k) => k.id !== hook.id);
-            } else {
-              hook.trigger_fields = triggerFields;
-            }
+            hook.trigger_fields = triggerFields;
           }
         }
       }
@@ -182,6 +175,32 @@ export default class Hook implements HookType {
           : h.operation?.toLowerCase() ===
             (param.operation as unknown as string)?.toLowerCase(),
       );
+      if (
+        param.operation === 'update' ||
+        (param.operation as any) === 'bulkUpdate'
+      ) {
+        hooks = hooks.filter((hook) => {
+          return (
+            !hook.trigger_field ||
+            hook.trigger_fields.some((field) =>
+              param.affectedColumns?.includes(field),
+            )
+          );
+        });
+      }
+      if (
+        param.operation === 'insert' ||
+        (param.operation as any) === 'bulkInsert'
+      ) {
+        hooks = hooks.filter((hook) => {
+          return (
+            !hook.trigger_field ||
+            hook.trigger_fields.some((field) =>
+              param.notEmptyColumns?.includes(field),
+            )
+          );
+        });
+      }
     }
     return hooks?.map((h) => new Hook(h));
   }
@@ -211,6 +230,7 @@ export default class Hook implements HookType {
         'active',
         'base_id',
         'source_id',
+        'trigger_field',
       ]);
 
     if (insertObj.notification && typeof insertObj.notification === 'object') {
@@ -248,7 +268,7 @@ export default class Hook implements HookType {
             fk_column_id: colId,
           };
         }),
-        true
+        true,
       );
     }
 
@@ -293,6 +313,7 @@ export default class Hook implements HookType {
         'timeout',
         'active',
         'version',
+        'trigger_field',
       ]);
 
     if (

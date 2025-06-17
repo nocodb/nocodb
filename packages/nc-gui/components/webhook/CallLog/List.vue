@@ -32,8 +32,8 @@ const emit = defineEmits<Emit>()
         @click="emit('update:activeItem', log)"
       >
         <div class="icon-wrapper">
-          <GeneralIcon v-if="log.error" icon="ncAlertCircleFilled"></GeneralIcon>
-          <GeneralIcon v-else icon="checkFill" class="text-white"></GeneralIcon>
+          <GeneralIcon v-if="log.error" icon="ncAlertCircleFilled h-[20px] w-[20px]"></GeneralIcon>
+          <GeneralIcon v-else icon="checkFill" class="text-white h-[20px] w-[20px]"></GeneralIcon>
         </div>
         <div class="flex flex-col">
           <h4 class="font-weight-bold">{{ hookLogFormatter(log.created_at) }}</h4>

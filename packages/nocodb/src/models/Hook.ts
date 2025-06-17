@@ -175,7 +175,9 @@ export default class Hook implements HookType {
         h.version === 'v3'
           ? compareOperationCode({
               code: h.operation,
-              operation: param.operation as unknown as string,
+              operation: (param.operation as unknown as string)
+                .replace('bulk', '')
+                .toLowerCase(),
             })
           : h.operation?.toLowerCase() ===
             (param.operation as unknown as string)?.toLowerCase(),

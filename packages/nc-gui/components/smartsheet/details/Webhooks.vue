@@ -245,7 +245,23 @@ const getHookTypeText = (hook: HookType) => {
   <div class="nc-webhook-wrapper w-full p-4">
     <div class="max-w-250 h-full w-full mx-auto">
       <div v-if="activeView && !isHooksLoading">
-        <div class="w-full mb-4 flex justify-between gap-3">
+        <div class="flex gap-4 border-1 border-nc-border-gray-medium rounded-lg p-4">
+          <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium w-6 h-6" />
+          <div class="flex-1">
+            <div class="text-nc-content-gray font-bold text-base leading-6">
+              {{ $t('msg.webhookV2Deprecated') }}
+            </div>
+            <div class="text-nc-content-gray-muted mt-1 font-medium leading-5">
+              {{ $t('msg.webhookV2DeprecatedDesc') }}
+            </div>
+          </div>
+
+          <NcButton type="text" size="small" class="!text-brand-500">
+            {{ $t('activity.goToDocs') }}
+          </NcButton>
+        </div>
+
+        <div class="w-full mb-4 mt-6 flex justify-between gap-3">
           <div class="flex-1 flex gap-2">
             <a-input
               v-model:value="webHookSearch"

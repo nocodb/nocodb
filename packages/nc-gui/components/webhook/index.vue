@@ -856,7 +856,7 @@ const triggerSubType = computed(() => {
                     <a-select-option v-for="event of eventsEnum" :key="event.value"> {{ event.text }}</a-select-option>
                   </NcSelect>
 
-                  <NcDropdown v-model:visible="isDropdownOpen" v-if="hookRef.event === 'after'">
+                  <NcDropdown v-if="hookRef.event === 'after'" v-model:visible="isDropdownOpen">
                     <div
                       class="rounded-lg border-1 w-full transition-all cursor-pointer flex items-center border-nc-border-grey-medium h-8 py-1 gap-2 px-4 py-2 h-[36px]"
                       style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
@@ -922,7 +922,7 @@ const triggerSubType = computed(() => {
                 </div>
               </div>
               <div class="border-1 border-nc-border-gray-medium rounded-b-2xl px-4 pt-4">
-                <div class="mb-2">
+                <div v-if="hookRef.event === 'after' && hookRef.operation?.includes('update')" class="mb-2">
                   <WebhookTriggerByField
                     v-model:trigger-fields="hookRef.trigger_fields"
                     v-model:trigger-field="hookRef.trigger_field"

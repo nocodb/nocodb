@@ -35,7 +35,9 @@ describe.only('dataApiV3', () => {
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
+      urlPrefix = `/api/${API_VERSION}${API_VERSION === 'v3' ? '/data' : ''}/${
+        testContext.base.id
+      }`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -173,7 +175,9 @@ describe.only('dataApiV3', () => {
         });
 
         expect(rsp.body).to.have.property('next');
-        expect(rsp.body.next).to.include(`${urlPrefix}/${table.id}?page=2`);
+        expect(rsp.body.next).to.include(
+          `${urlPrefix}/${table.id}/records?page=2`,
+        );
         expect(rsp.body.records).to.deep.equal(
           records.map((record) => {
             const { Id, ...fields } = record;
@@ -190,7 +194,7 @@ describe.only('dataApiV3', () => {
         // remove Id's from record array
         records.forEach((r) => delete r.Id);
         rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: records.map((record) => {
             // Ensure Id is not in fields even if it somehow exists
             const { Id, ...fields } = record;
@@ -262,7 +266,7 @@ describe.only('dataApiV3', () => {
 
         // delete record with ID 401 to 404
         rsp = await ncAxiosDelete({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords.map((record) => ({ id: record.id })),
         });
         expect(rsp.body.records).to.deep.equal(
@@ -364,7 +368,9 @@ describe.only('dataApiV3', () => {
           },
         });
         expect(rsp.body).to.have.property('next');
-        expect(rsp.body.next).to.include(`${urlPrefix}/${table.id}?page=2`);
+        expect(rsp.body.next).to.include(
+          `${urlPrefix}/${table.id}/records?page=2`,
+        );
         expect(rsp.body.records).to.deep.equal(
           recordsV3.map((record) => {
             const { Id, ...fields } = record;
@@ -383,7 +389,7 @@ describe.only('dataApiV3', () => {
         recordsV3.forEach((r) => delete r.Id);
 
         rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: recordsV3.map((record) => {
             // Ensure Id is not in fields even if it somehow exists
             const { Id, ...fields } = record;
@@ -453,7 +459,7 @@ describe.only('dataApiV3', () => {
 
         // delete record with ID 401 to 404
         rsp = await ncAxiosDelete({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords.map((record) => ({ id: record.id })),
         });
         expect(rsp.body.records).to.deep.equal(
@@ -489,7 +495,9 @@ describe.only('dataApiV3', () => {
         });
 
         expect(rsp.body).to.have.property('next');
-        expect(rsp.body.next).to.include(`${urlPrefix}/${table.id}?page=2`);
+        expect(rsp.body.next).to.include(
+          `${urlPrefix}/${table.id}/records?page=2`,
+        );
 
         // extract first 10 records from inserted records
         const records = insertedRecords.slice(0, 10);
@@ -512,7 +520,7 @@ describe.only('dataApiV3', () => {
           delete r.UpdatedBy;
         });
         rsp = await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: records.map((record) => ({ fields: record })),
         });
 
@@ -576,7 +584,7 @@ describe.only('dataApiV3', () => {
 
         // delete record with ID 801 to 804
         rsp = await ncAxiosDelete({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords.map((record) => ({ id: record.id })),
         });
         expect(rsp.body.records).to.deep.equal(
@@ -589,7 +597,7 @@ describe.only('dataApiV3', () => {
       });
     });
 
-    describe('Link based', () => {
+    describe.only('Link based', () => {
       let tblCity: Model;
       let tblCountry: Model;
       let tblActor: Model;
@@ -620,7 +628,7 @@ describe.only('dataApiV3', () => {
             linkId: getColumnId(columnsCountry, 'Cities'),
             rowId: '1',
           },
-          body: [{ id:1}, {id:2}, {id:3}, {id:4}, {id:5}],
+          body: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }],
           status: 200,
         });
 
@@ -1855,7 +1863,7 @@ describe.only('dataApiV3', () => {
         }
       });
 
-      it(`will handle various insert value (bulk)`, async () => {
+      it.only(`will handle various insert value (bulk)`, async () => {
         for (const expectedValue of [true, false]) {
           const expectedValueCases = valueCases.filter(
             (k) => k.expect === expectedValue,

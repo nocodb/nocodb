@@ -28,7 +28,7 @@ defineProps<Props>()
       <div class="detail-payload -mt-1">
         <div class="text-sm text-gray-500 font-weight-bold pb-2 flex justify-between items-center">
           <span class="text-xs leading-[18px]">Payload</span>
-          <GeneralCopyButton :content="''" size="xs" class="!px-1" disabled />
+          <GeneralCopyButton content="" size="xs" class="!px-1" disabled />
         </div>
 
         <div class="log-details">

@@ -202,12 +202,12 @@ describe.only('dataApiV3', () => {
           }),
         });
 
-        // prepare array with 10 Id's, from 401 to 410
-        const ids: { id: number }[] = [];
-        for (let i = 401; i <= 410; i++) {
-          ids.push({ id: i });
-        }
-        expect(rsp.body.records).to.deep.equal(ids);
+        // APIv3 insert returns full records with fields
+        expect(rsp.body.records).to.have.lengthOf(10);
+        rsp.body.records.forEach((record, index) => {
+          expect(record).to.have.property('id', 401 + index);
+          expect(record).to.have.property('fields');
+        });
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -255,10 +255,13 @@ describe.only('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords,
         });
-        // Update operations only return IDs
-        expect(rsp.body.records).to.deep.equal(
-          updatedRecords.map((record) => ({ id: record.id })),
-        );
+        // APIv3 update returns full records with fields
+        expect(rsp.body.records).to.have.lengthOf(updatedRecords.length);
+        rsp.body.records.forEach((record, index) => {
+          expect(record).to.have.property('id', updatedRecords[index].id);
+          expect(record).to.have.property('fields');
+          expect(record.fields).to.include(updatedRecords[index].fields);
+        });
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -396,12 +399,12 @@ describe.only('dataApiV3', () => {
           }),
         });
 
-        // prepare array with 10 Id's, from 401 to 410
-        const ids: { id: number }[] = [];
-        for (let i = 401; i <= 410; i++) {
-          ids.push({ id: i });
-        }
-        expect(rsp.body.records).to.deep.equal(ids);
+        // APIv3 insert returns full records with fields
+        expect(rsp.body.records).to.have.lengthOf(10);
+        rsp.body.records.forEach((record, index) => {
+          expect(record).to.have.property('id', 401 + index);
+          expect(record).to.have.property('fields');
+        });
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -436,10 +439,19 @@ describe.only('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords,
         });
-        // Update operations only return IDs
-        expect(rsp.body.records).to.deep.equal(
-          updatedRecords.map((record) => ({ id: record.id })),
-        );
+        // APIv3 update returns full records with fields
+        expect(rsp.body.records).to.have.lengthOf(updatedRecords.length);
+        rsp.body.records.forEach((record, index) => {
+          expect(record).to.have.property('id', updatedRecords[index].id);
+          expect(record).to.have.property('fields');
+          // Use specific field comparisons for select fields to handle arrays properly
+          expect(record.fields.SingleSelect).to.equal(
+            updatedRecords[index].fields.SingleSelect,
+          );
+          expect(JSON.stringify(record.fields.MultiSelect)).to.equal(
+            JSON.stringify(updatedRecords[index].fields.MultiSelect),
+          );
+        });
 
         // verify updated records
         rsp = await ncAxiosGet({
@@ -450,7 +462,20 @@ describe.only('dataApiV3', () => {
             fields: 'Id,SingleSelect,MultiSelect',
           },
         });
-        expect(rsp.body.records.slice(0, 4)).to.deep.equal(updatedRecords);
+        // APIv3 verify updated records with flexible array comparison
+        const actualRecords = rsp.body.records.slice(0, 4);
+        expect(actualRecords).to.have.lengthOf(updatedRecords.length);
+        actualRecords.forEach((record, index) => {
+          expect(record).to.have.property('id', updatedRecords[index].id);
+          expect(record).to.have.property('fields');
+          expect(record.fields.SingleSelect).to.equal(
+            updatedRecords[index].fields.SingleSelect,
+          );
+          // Use deep equality for MultiSelect array comparison
+          expect(JSON.stringify(record.fields.MultiSelect)).to.equal(
+            JSON.stringify(updatedRecords[index].fields.MultiSelect),
+          );
+        });
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -520,12 +545,12 @@ describe.only('dataApiV3', () => {
           body: records.map((record) => ({ fields: record })),
         });
 
-        // prepare array with 10 Id's, from 801 to 810
-        const ids: { id: number }[] = [];
-        for (let i = 801; i <= 810; i++) {
-          ids.push({ id: i });
-        }
-        expect(rsp.body.records).to.deep.equal(ids);
+        // APIv3 insert returns full records with fields
+        expect(rsp.body.records).to.have.lengthOf(10);
+        rsp.body.records.forEach((record, index) => {
+          expect(record).to.have.property('id', 801 + index);
+          expect(record).to.have.property('fields');
+        });
 
         ///////////////////////////////////////////////////////////////////////////
 
@@ -561,9 +586,13 @@ describe.only('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: updatedRecords,
         });
-        expect(rsp.body.records).to.deep.equal(
-          updatedRecords.map((record) => ({ id: record.id })),
-        );
+        // APIv3 update returns full records with fields
+        expect(rsp.body.records).to.have.lengthOf(updatedRecords.length);
+        rsp.body.records.forEach((record, index) => {
+          expect(record).to.have.property('id', updatedRecords[index].id);
+          expect(record).to.have.property('fields');
+          expect(record.fields).to.include(updatedRecords[index].fields);
+        });
 
         // verify updated records
         rsp = await ncAxiosGet({

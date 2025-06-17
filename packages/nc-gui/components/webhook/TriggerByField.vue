@@ -87,7 +87,7 @@ const removeColumnId = (colId: string) => {
     </NcDropdown>
   </div>
   <div v-if="triggerField">
-    <div v-if="triggerFields?.length" class="mt-3 gap-2 flex flex-wrap min-h-5.5">
+    <div v-if="triggerFields?.length" class="mt-2 gap-2 flex flex-wrap min-h-5.5">
       <div
         v-for="col of computedTags"
         :key="col.id"
@@ -104,7 +104,7 @@ const removeColumnId = (colId: string) => {
         <GeneralIcon class="cursor-pointer opacity-70 hover:opacity-100" icon="close" @click="removeColumnId(col.id)" />
       </div>
     </div>
-    <div v-else class="flex flex-row text-gray-400 mt-3">
+    <div v-else class="flex flex-row text-gray-400 mt-2">
       {{ $t('title.noFieldsSelected') }}
     </div>
   </div>

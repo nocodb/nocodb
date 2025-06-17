@@ -131,8 +131,7 @@ watch(
 )
 
 onMounted(async () => {
-  await until(() => !!currentBase.value?.id).toBeTruthy()
-  loadAutomations({ baseId: currentBase.value?.id })
+  loadAutomations({ baseId: props.baseId })
   if (props.tab) {
     projectPageTab.value = props.tab
   }

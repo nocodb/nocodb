@@ -29,6 +29,14 @@ import { NcContext, NcRequest } from '~/interface/config';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { DataTableService } from '~/services/data-table.service';
 import { PREFIX_APIV3_DATA } from '~/constants/controllers';
+import {
+  DataListResponse,
+  DataRecordWithDeleted,
+} from '~/services/v3/data-v3.types';
+
+interface RecordField {
+  [key: string]: any;
+}
 
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
@@ -88,14 +96,12 @@ export class Datav3Controller {
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
     @Body() body: DataDeleteRequest | DataDeleteRequest[],
-    @Query('records') records: string | string[],
   ) {
     return await this.dataV3Service.dataDelete(context, {
       modelId: modelId,
       cookie: req,
       viewId,
       body,
-      queryRecords: records,
     });
   }
 
@@ -228,7 +234,7 @@ export class Datav3Controller {
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
     @Param('rowId') rowId: string,
-  ): Promise<DataRecord> {
+  ): Promise<{ record: DataRecord }> {
     return await this.dataV3Service.dataRead(context, {
       modelId,
       rowId: rowId,

@@ -5,21 +5,16 @@ export interface RecordField {
 }
 
 export interface DataRecord {
-  id?: string | number;
+  id: string | number;
   fields: RecordField;
 }
 
-export interface DataRecordId {
-  id: string | number;
-}
-
-export interface DataRecordWithDeleted extends DataRecordId {
+export interface DataRecordWithDeleted extends DataRecord {
   deleted: boolean;
 }
 
 export interface DataListResponse {
-  records?: DataRecord[];
-  record?: DataRecord | null;
+  records: DataRecord[];
   next?: string;
   prev?: string;
   nestedNext?: string;
@@ -69,8 +64,7 @@ export interface DataDeleteParams {
   modelId: string;
   viewId?: string;
   cookie: any;
-  body?: DataDeleteRequest | DataDeleteRequest[];
-  queryRecords?: string | string[];
+  body: DataDeleteRequest | DataDeleteRequest[];
 }
 
 export interface NestedDataListParams {

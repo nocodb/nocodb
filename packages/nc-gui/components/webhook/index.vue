@@ -167,6 +167,10 @@ const toggleOperation = (operation: string) => {
   } else {
     ops?.push(operation)
   }
+  if (!ops.includes('update')) {
+    hookRef.trigger_field = false
+    hookRef.trigger_fields = []
+  }
   hookRef.operation = ops // this will trigger hookRef.operation watch
   // event other than 'after' has no 'send me everything'
   sendMeEverythingChecked.value = hookRef.event === 'after' && ops?.length === operationsEnum.value?.length
@@ -175,6 +179,10 @@ const toggleOperation = (operation: string) => {
 const toggleSendMeEverythingChecked = (evt: Event) => {
   sendMeEverythingChecked.value = !sendMeEverythingChecked.value
   hookRef.operation = sendMeEverythingChecked.value ? [...operationsEnum.value.map((k) => k.value)] : []
+  if (!sendMeEverythingChecked.value) {
+    hookRef.trigger_field = false
+    hookRef.trigger_fields = []
+  }
 }
 const handleEventChange = (e: string) => {
   sendMeEverythingChecked.value = false
@@ -182,6 +190,8 @@ const handleEventChange = (e: string) => {
   hookRef.event = e as any
   if (e !== 'after') {
     hookRef.operation = ['trigger']
+    hookRef.trigger_field = false
+    hookRef.trigger_fields = []
   }
 }
 

@@ -100,6 +100,9 @@ const removeColumnId = (colId: string) => {
         <GeneralIcon class="cursor-pointer" icon="close" @click="removeColumnId(col.id)" />
       </div>
     </div>
+    <div v-else class="flex flex-row text-gray-400 mt-2">
+      {{ $t('title.noFieldsSelected') }}
+    </div>
   </div>
 </template>
 

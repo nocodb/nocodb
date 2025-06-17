@@ -159,7 +159,7 @@ const isDropdownOpen = ref()
 const titleDomRef = ref<HTMLInputElement | undefined>()
 
 const toggleOperation = (operation: string) => {
-  const ops = hookRef.operation
+  const ops = [...hookRef.operation]
   const index = ops?.indexOf(operation) ?? -1
 
   if (index >= 0) {
@@ -167,7 +167,7 @@ const toggleOperation = (operation: string) => {
   } else {
     ops?.push(operation)
   }
-
+  hookRef.operation = ops // this will trigger hookRef.operation watch
   sendMeEverythingChecked.value = ops?.length === operationsEnum.value?.length
 }
 
@@ -637,15 +637,15 @@ async function loadSampleData() {
     ((hookRef?.operation && hookRef?.operation[0]) as any) || 'insert',
     hookRef.version!,
   )
-
+  console.log('samplePayload', samplePayload)
   // if non-URL based hook and version is v2, then return the newRowData as payload
   // this is for backward compatibility
-  if (hookRef.notification.type !== 'URL' && ['v2'].includes(hookRef.version)) {
+  if (hookRef.notification.type !== 'URL' && ['v2', 'v3'].includes(hookRef.version)) {
     sampleData.value = {
       event: sampleData.value?.data?.rows,
     }
   } else {
-    sampleData.value = samplePayload.value
+    sampleData.value = samplePayload
   }
 }
 

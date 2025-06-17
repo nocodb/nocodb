@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm -r build",
+    "build": "node scripts/build-optimized.js",
+    "build:all": "pnpm -r build",
+    "build:force": "node scripts/build-optimized.js --force",
+    "build:verbose": "node scripts/build-optimized.js --verbose",
     "test": "pnpm -r test",
     "test:coverage": "pnpm -r test:coverage",
     "test:watch": "pnpm -r test:watch",

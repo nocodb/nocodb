@@ -48,6 +48,8 @@ export default class Hook implements HookType {
   base_id?: string;
   source_id?: string;
   version?: 'v1' | 'v2' | 'v3';
+  trigger_field?: boolean;
+  trigger_fields?: string[];
 
   constructor(
     hook: Partial<Hook | HookReqType> & {
@@ -79,13 +81,15 @@ export default class Hook implements HookType {
         MetaTable.HOOKS,
         hookId,
       );
-      const hookTriggerFields = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
+      const hookTriggerFields = await ncMeta.metaList2(
+        hook.fk_workspace_id,
+        hook.base_id,
         MetaTable.HOOK_TRIGGER_FIELDS,
-        hookId,
+        { condition: { fk_hook_id: hookId } },
       );
-      hook.triggerFields = hookTriggerFields.map((field) => field.fk_column_id);
+      hook.trigger_fields = hookTriggerFields.map(
+        (field) => field.fk_column_id,
+      );
       await NocoCache.set(`${CacheScope.HOOK}:${hookId}`, hook);
     }
     return hook && new Hook(hook);
@@ -132,27 +136,29 @@ export default class Hook implements HookType {
           },
         },
       );
-      const hookTriggerFields = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.HOOK_TRIGGER_FIELDS,
-        {
-          xcCondition: { fk_hook_id: hooks.map((k) => k.id) },
-        },
-      );
-      for (const hook of hooks) {
-        if (hook.version === 'v3' && hook.triggerField) {
-          const triggerFields = hookTriggerFields
-            .filter((k) => k.fk_hook_id === hook.id)
-            .map((k) => k.fk_column_id);
-          if (
-            !triggerFields.some((colId) =>
-              param.affectedColumns?.includes(colId),
-            )
-          ) {
-            hooks = hooks.filter((k) => k.id !== hook.id);
-          } else {
-            hook.triggerFields = triggerFields;
+      if (hooks && hooks.length > 0) {
+        const hookTriggerFields = await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.HOOK_TRIGGER_FIELDS,
+          {
+            xcCondition: { fk_hook_id: { in: hooks.map((k) => k.id) } },
+          },
+        );
+        for (const hook of hooks) {
+          if (hook.version === 'v3' && hook.trigger_field) {
+            const triggerFields = hookTriggerFields
+              .filter((k) => k.fk_hook_id === hook.id)
+              .map((k) => k.fk_column_id);
+            if (
+              !triggerFields.some((colId) =>
+                param.affectedColumns?.includes(colId),
+              )
+            ) {
+              hooks = hooks.filter((k) => k.id !== hook.id);
+            } else {
+              hook.trigger_fields = triggerFields;
+            }
           }
         }
       }
@@ -229,6 +235,19 @@ export default class Hook implements HookType {
       MetaTable.HOOKS,
       insertObj,
     );
+    if (hook.trigger_fields && hook.trigger_fields.length > 0) {
+      await ncMeta.bulkMetaInsert(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.HOOK_TRIGGER_FIELDS,
+        hook.trigger_fields.map((colId) => {
+          return {
+            fk_hook_id: id,
+            fk_column_id: colId,
+          };
+        }),
+      );
+    }
 
     await NocoCache.incrHashField(
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
@@ -287,6 +306,8 @@ export default class Hook implements HookType {
     if (updateObj.notification && typeof updateObj.notification === 'object') {
       updateObj.notification = JSON.stringify(updateObj.notification);
     }
+
+    // [DEPRECATED]: should not need to check for v3
     if (updateObj.version === 'v3') {
       (updateObj as any).operation = operationArrToCode(
         updateObj.operation as HookType['operation'],
@@ -301,6 +322,30 @@ export default class Hook implements HookType {
       updateObj,
       hookId,
     );
+    // [DEPRECATED]: should not need to check for v3
+    if (updateObj.version === 'v3') {
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.HOOK_TRIGGER_FIELDS,
+        {
+          fk_hook_id: hookId,
+        },
+      );
+
+      await ncMeta.bulkMetaInsert(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.HOOK_TRIGGER_FIELDS,
+        hook.trigger_fields.map((colId) => {
+          return {
+            fk_hook_id: hookId,
+            fk_column_id: colId,
+          };
+        }),
+        true,
+      );
+    }
 
     await NocoCache.update(`${CacheScope.HOOK}:${hookId}`, updateObj);
 

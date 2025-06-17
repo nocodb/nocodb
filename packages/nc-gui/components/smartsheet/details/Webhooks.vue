@@ -269,7 +269,7 @@ const getHookTypeText = (hook: HookType) => {
             </div>
           </div>
 
-          <NcButton type="text" size="small" class="!text-brand-500">
+          <NcButton type="text" size="small" class="!text-brand-500 btn-goto-docs">
             {{ $t('activity.goToDocs') }}
           </NcButton>
         </div>
@@ -469,5 +469,8 @@ const getHookTypeText = (hook: HookType) => {
 <style lang="scss" scoped>
 :deep(.ant-input::placeholder) {
   @apply text-gray-500;
+}
+.btn-goto-docs:hover {
+  background: var(--nc-background-coloured-orange-dark, #fee6d6) !important;
 }
 </style>

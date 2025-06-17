@@ -357,6 +357,8 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
         isLocaleString: 'locale_string',
         richMode: 'rich_text',
         [LongTextAiMetaProp]: 'generate_text_using_ai',
+        showAsProgress: 'show_as_progress',
+        // isLocaleString : 'thousand_separator',
         isDisplayTimezone: 'display_timezone',
         is_multi: 'allow_multiple_users',
         is_progress: 'show_as_progress',
@@ -572,6 +574,7 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       '12hr_format': 'is12hrFormat',
       locale_string: 'isLocaleString',
       rich_text: 'richMode',
+      show_as_progress: 'showAsProgress',
       display_timezone: 'isDisplayTimezone',
 
       // LingText

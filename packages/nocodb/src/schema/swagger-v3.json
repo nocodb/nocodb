@@ -6402,7 +6402,7 @@
         ]
       },
       "DataUpdateRequestV3": {
-        "type": "object", 
+        "type": "object",
         "description": "V3 Data Update Request format",
         "properties": {
           "id": {

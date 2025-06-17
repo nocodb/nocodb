@@ -324,6 +324,15 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
     return
   }
 
+  if (ignoreNavigation && toggleIsExpanded) {
+    if (isNewSidebarEnabled.value) {
+      ignoreNavigation = false
+      toggleIsExpanded = false
+    } else {
+      $e('c:base:expand')
+    }
+  }
+
   if (!isNewSidebarEnabled.value) {
     ignoreNavigation = isMobileMode.value || ignoreNavigation
   }
@@ -787,7 +796,6 @@ defineExpose({
                 </NcButton>
 
                 <NcButton
-                  v-e="['c:base:expand']"
                   type="text"
                   size="xxsmall"
                   class="nc-sidebar-node-btn nc-sidebar-expand !xs:opacity-100"

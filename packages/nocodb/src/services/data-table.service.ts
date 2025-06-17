@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   isLinksOrLTAR,
-  ncIsNumber,
-  NcRequest,
+  ncIsNumber, NcRequest,
   RelationTypes,
   ViewTypes,
 } from 'nocodb-sdk';

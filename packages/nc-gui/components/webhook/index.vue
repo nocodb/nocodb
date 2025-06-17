@@ -856,23 +856,24 @@ const triggerSubType = computed(() => {
               </div>
               <div class="mt-3 border-1 border-nc-border-gray-medium p-4 border-b-0 rounded-t-2xl">
                 <div class="w-full flex gap-3">
-                  <NcSelect
-                    v-model:value="hookRef.event"
-                    class="w-full webhook-event-select"
-                    data-testid="nc-dropdown-hook-event"
-                    dropdown-class-name="nc-modal-hook-event"
-                    @change="handleEventChange"
-                  >
-                    <a-select-option v-for="event of eventsEnum" :key="event.value"> {{ event.text }}</a-select-option>
-                  </NcSelect>
-
+                  <a-form-item class="w-full !my-0">
+                    <NcSelect
+                      v-model:value="hookRef.event"
+                      class="w-full webhook-event-select nc-select-shadow"
+                      data-testid="nc-dropdown-hook-event"
+                      dropdown-class-name="nc-modal-hook-event"
+                      @change="handleEventChange"
+                    >
+                      <a-select-option v-for="event of eventsEnum" :key="event.value"> {{ event.text }}</a-select-option>
+                    </NcSelect>
+                  </a-form-item>
                   <NcDropdown v-if="hookRef.event === 'after'" v-model:visible="isDropdownOpen">
                     <div
-                      class="rounded-lg border-1 w-full transition-all cursor-pointer flex items-center border-nc-border-grey-medium h-8 py-1 gap-2 px-4 py-2 h-[36px]"
-                      style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+                      class="rounded-lg border-1 w-full transition-all cursor-pointer flex items-center border-nc-border-grey-medium h-8 py-1 gap-2 px-4 py-2 h-[36px] shadow-default"
                       data-testid="nc-dropdown-hook-operation"
                       :class="{
                         '!border-brand-500 !shadow-selected': isDropdownOpen,
+                        '!hover:shadow-hover': !isDropdownOpen,
                       }"
                     >
                       <div class="text-nc-content-gray flex-1">
@@ -892,7 +893,7 @@ const triggerSubType = computed(() => {
                     <template #overlay>
                       <NcMenu
                         class="webhook-trigger-selection"
-                        variant="small"
+                        variant="medium"
                         data-testid="nc-dropdown-hook-operation-modal"
                         data-testvalue="send_everything"
                       >
@@ -902,7 +903,7 @@ const triggerSubType = computed(() => {
                             data-testvalue="sendMeEverything"
                             @click.stop="toggleSendMeEverythingChecked"
                           >
-                            <div class="flex-1 w-full">
+                            <div class="flex-1 w-full text-sm">
                               {{ $t('labels.sendMeEverything') }}
                             </div>
                             <NcCheckbox :checked="sendMeEverythingChecked" />
@@ -918,7 +919,7 @@ const triggerSubType = computed(() => {
                           :data-testvalue="operation.value"
                           @click.prevent="toggleOperation(operation.value)"
                         >
-                          <div class="flex-1 w-full">
+                          <div class="flex-1 w-full text-sm">
                             <template v-if="hookRef.event === 'after'">
                               {{ $t('general.after') }}
                             </template>

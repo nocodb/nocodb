@@ -102,7 +102,7 @@ watch(
           <div class="tab" data-testid="nc-webhooks-tab">
             <GeneralIcon icon="ncWebhook" class="tab-icon" />
             <div>{{ $t('objects.webhooks') }}</div>
-            <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium h-4 w-4" />
+            <GeneralIcon v-if="hasV2Webhooks" icon="alertTriangleSolid" class="text-nc-content-orange-medium h-4 w-4" />
           </div>
         </template>
         <LazySmartsheetDetailsWebhooks />

@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import type { FilterType, NcContext, RowColoringInfo } from 'nocodb-sdk';
+import type {
+  ColumnReqType,
+  FilterType,
+  NcContext,
+  RowColoringInfo,
+} from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { Column } from '~/models';
 
@@ -59,8 +64,15 @@ export class ViewRowColorService {
     ncMeta?: MetaService;
   }) {}
 
-  async selectColumnRemovedOrChanged(_param: {
+  async checkIfColumnInvolved(_param: {
     context: NcContext;
-    column: Column;
-  }) {}
+    existingColumn: Column;
+    newColumn?: Column | ColumnReqType;
+    action: 'delete' | 'update';
+    ncMeta?: MetaService;
+  }) {
+    return {
+      applyRowColorInvolvement: async () => {},
+    };
+  }
 }

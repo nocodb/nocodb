@@ -1,11 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { arrayToNested, parseProp, ROW_COLORING_MODE } from 'nocodb-sdk';
+import {
+  arrayToNested,
+  parseProp,
+  ROW_COLORING_MODE,
+  UITypes,
+} from 'nocodb-sdk';
 import { ViewRowColorService as ViewRowColorServiceCE } from 'src/services/view-row-color.service';
 import { CacheScope } from 'src/utils/globals';
 import type { MetaService } from '~/meta/meta.service';
 import type { Column, Filter, SelectOption } from '~/models';
 import type { ViewMetaRowColoring } from '~/models/View';
 import type {
+  ColumnReqType,
   FilterType,
   NcContext,
   RowColoringInfo,
@@ -262,22 +268,11 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     ncMeta?: MetaService;
   }) {
     const ncMeta = params.ncMeta ?? Noco.ncMeta;
-    let view: View;
-    if (params.fk_view_id) {
-      view = await View.get(params.context, params.fk_view_id);
-      if (!view) {
-        NcError.get(params.context).viewNotFound(params.fk_view_id);
-      }
-    } else {
-      NcError.requiredFieldMissing('view_id');
-    }
-
     const exists = await ncMeta.metaGet2(
       params.context.workspace_id,
       params.context.base_id,
       MetaTable.ROW_COLOR_CONDITIONS,
       {
-        fk_view_id: params.fk_view_id,
         id: params.fk_row_coloring_conditions_id,
       },
     );
@@ -285,6 +280,16 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       NcError.notFound(
         `Row color condition with id ${params.fk_row_coloring_conditions_id} does not exists`,
       );
+    }
+    if (params.fk_view_id && params.fk_view_id !== exists.fk_view_id) {
+      NcError.notFound(
+        `Row color condition with id ${params.fk_row_coloring_conditions_id} does not exists`,
+      );
+    }
+
+    const view = await View.get(params.context, exists.fk_view_id);
+    if (!view) {
+      NcError.get(params.context).viewNotFound(params.fk_view_id);
     }
     await RowColorCondition.delete(
       params.context,
@@ -401,29 +406,131 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     await this.clearCache(view);
   }
 
-  async selectColumnRemovedOrChanged(param: {
+  async checkIfColumnInvolved(param: {
     context: NcContext;
-    column: Column;
+    existingColumn: Column;
+    newColumn?: Column | ColumnReqType;
+    action: 'delete' | 'update';
+    ncMeta?: MetaService;
   }) {
-    const { context, column } = param;
+    const { context, existingColumn, newColumn, action } = param;
+    const ncMeta = param.ncMeta ?? Noco.ncMeta;
+    const commitHandlers: (() => Promise<void>)[] = [];
 
-    const removalPromises: Promise<void>[] = [];
-    // remove row coloring select from view
-    const views = await View.list(context, column.fk_model_id);
-    for (const view of views) {
-      if (view.row_coloring_mode === ROW_COLORING_MODE.SELECT) {
-        const metaRowColoring: ViewMetaRowColoring = parseProp(view.meta) ?? {};
-        if (metaRowColoring.rowColoringInfo.fk_column_id === column.id) {
-          removalPromises.push(
-            this.removeRowColorInfo({
-              context,
-              fk_view_id: view.id,
-            }),
-          );
+    if (
+      existingColumn.uidt === UITypes.SingleSelect &&
+      (action === 'delete' ||
+        (action === 'update' && newColumn?.uidt !== UITypes.SingleSelect))
+    ) {
+      // remove row coloring select from view
+      const views = await View.list(context, existingColumn.fk_model_id);
+      for (const view of views) {
+        if (view.row_coloring_mode === ROW_COLORING_MODE.SELECT) {
+          const metaRowColoring: ViewMetaRowColoring =
+            parseProp(view.meta) ?? {};
+          if (
+            metaRowColoring.rowColoringInfo.fk_column_id === existingColumn.id
+          ) {
+            commitHandlers.push(() =>
+              this.removeRowColorInfo({
+                context,
+                fk_view_id: view.id,
+              }),
+            );
+          }
         }
       }
     }
-    await Promise.all(removalPromises);
+
+    if (action === 'delete') {
+      const inConditions = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          xcCondition: (qb) => {
+            qb.where('fk_column_id', existingColumn.id).whereNotNull(
+              'fk_row_color_condition_id',
+            );
+          },
+        },
+      );
+
+      if ((inConditions?.length ?? 0) > 0) {
+        // get unique affectedRowColorConditionIds
+        const affectedRowColorConditionIds = [
+          ...new Set(inConditions.map((flt) => flt.fk_row_color_condition_id)),
+        ];
+        const affectedFilters = await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          {
+            xcCondition: (qb) => {
+              qb.whereIn(
+                'fk_row_color_condition_id',
+                affectedRowColorConditionIds,
+              );
+            },
+          },
+        );
+        for (const affectedRowColorConditionId of affectedRowColorConditionIds) {
+          console.log(
+            'affectedFilters.some',
+            affectedFilters.filter(
+              (flt) =>
+                flt.fk_column_id !== existingColumn.id &&
+                flt.fk_row_color_condition_id === affectedRowColorConditionId,
+            ),
+          );
+          // if not has other filters, remove the row coloring condition
+          if (
+            !affectedFilters.some(
+              (flt) =>
+                flt.fk_column_id !== existingColumn.id &&
+                flt.fk_row_color_condition_id === affectedRowColorConditionId,
+            )
+          ) {
+            commitHandlers.push(() =>
+              this.deleteRowColoringCondition({
+                context,
+                fk_row_coloring_conditions_id: affectedRowColorConditionId,
+                ncMeta,
+              }),
+            );
+            const rowColorCondition = await RowColorCondition.getById(
+              context,
+              affectedRowColorConditionId,
+            );
+            const rowColoringConditionsFromView =
+              await RowColorCondition.getByViewId(
+                context,
+                rowColorCondition.fk_view_id,
+              );
+            if (
+              !rowColoringConditionsFromView.some(
+                (rowColor) => rowColor.id !== rowColorCondition.id,
+              )
+            ) {
+              // if not has other condition, remove the row coloring setting altogether
+              commitHandlers.push(() =>
+                this.removeRowColorInfo({
+                  context,
+                  fk_view_id: rowColorCondition.fk_view_id,
+                  ncMeta,
+                }),
+              );
+            }
+          }
+        }
+      }
+    }
+
+    return {
+      applyRowColorInvolvement: async () => {
+        Promise.all(commitHandlers.map((k) => k()));
+      },
+    };
   }
 
   async clearCache(view: View) {

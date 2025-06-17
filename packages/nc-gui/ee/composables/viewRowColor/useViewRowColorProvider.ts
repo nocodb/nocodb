@@ -1,4 +1,4 @@
-import { ROW_COLORING_MODE, type RowColoringInfo, type ViewType, arrayToNested } from 'nocodb-sdk'
+import { ROW_COLORING_MODE, type RowColoringInfo, type RowColoringInfoFilter, type ViewType, arrayToNested } from 'nocodb-sdk'
 import { clearRowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
 import { SmartsheetStoreEvents } from '#imports'
 
@@ -34,6 +34,10 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
 
     if (!rowColorInfoResponse) {
       if (isViewChange) {
+        // need to remove conditions first
+        // somehow it's not reactive
+        const conditions = (activeViewRowColorInfo.value as RowColoringInfoFilter).conditions
+        conditions?.splice(0)
         activeViewRowColorInfo.value = defaultRowColorInfo
       }
       return

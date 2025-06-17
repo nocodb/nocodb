@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { parse } from 'papaparse'
-import { InputType } from './types'
+import { ScriptInputType } from '~/lib/enum'
 
 const props = defineProps<{
   content: {
-    type: InputType
+    type: ScriptInputType
     options:
       | { label: string; value: string; variant: string }[]
       | {
@@ -42,7 +42,7 @@ const resolveInput = (value?: string | File) => {
 }
 
 watch(inputValue, (newValue) => {
-  if (content.value.type === InputType.SELECT && newValue) {
+  if (content.value.type === ScriptInputType.SELECT && newValue) {
     resolveInput()
   }
 })
@@ -126,7 +126,7 @@ watch(rowInput, (newValue) => {
 
 <template>
   <div class="dynamic-input mb-4">
-    <template v-if="content.type === InputType.TEXT">
+    <template v-if="content.type === ScriptInputType.TEXT">
       <div class="flex flex-col gap-1">
         <label class="font-semibold text-nc-content-gray">{{ content.label }}</label>
         <a-input
@@ -139,7 +139,7 @@ watch(rowInput, (newValue) => {
       </div>
     </template>
 
-    <template v-else-if="content.type === InputType.SELECT">
+    <template v-else-if="content.type === ScriptInputType.SELECT">
       <div class="flex flex-col gap-1">
         <label class="font-semibold text-nc-content-gray">{{ content.label }}</label>
         <a-select v-model:value="inputValue" class="w-64" :disabled="isResolved" show-search @change="onChange">
@@ -162,7 +162,7 @@ watch(rowInput, (newValue) => {
       </div>
     </template>
 
-    <template v-else-if="content.type === InputType.BUTTONS">
+    <template v-else-if="content.type === ScriptInputType.BUTTONS">
       <div class="flex flex-col gap-1">
         <label class="font-semibold text-nc-content-gray">{{ content.label }}</label>
         <div class="flex flex-wrap gap-2">
@@ -180,7 +180,7 @@ watch(rowInput, (newValue) => {
       </div>
     </template>
 
-    <template v-else-if="content.type === InputType.FILE">
+    <template v-else-if="content.type === ScriptInputType.FILE">
       <div class="flex flex-col gap-1">
         <label v-if="content?.label" class="font-semibold text-nc-content-gray">
           {{ content.label }}
@@ -191,7 +191,7 @@ watch(rowInput, (newValue) => {
       </div>
     </template>
 
-    <template v-else-if="content.type === InputType.TABLE">
+    <template v-else-if="content.type === ScriptInputType.TABLE">
       <div class="flex flex-col gap-1">
         <label v-if="content?.label" class="font-semibold text-nc-content-gray">
           {{ content.label }}
@@ -199,7 +199,7 @@ watch(rowInput, (newValue) => {
         <NSelectTable class="w-64" :disabled="isResolved" @change="resolveInput" />
       </div>
     </template>
-    <template v-else-if="content.type === InputType.VIEW">
+    <template v-else-if="content.type === ScriptInputType.VIEW">
       <div class="flex flex-col gap-2">
         <label v-if="content?.label" class="font-semibold text-nc-content-gray">
           {{ content.label }}
@@ -207,7 +207,7 @@ watch(rowInput, (newValue) => {
         <NSelectView class="w-64" :table-id="content.tableId" :disabled="isResolved" @change="resolveInput" />
       </div>
     </template>
-    <template v-else-if="content.type === InputType.FIELD">
+    <template v-else-if="content.type === ScriptInputType.FIELD">
       <div class="flex flex-col gap-2">
         <label v-if="content?.label" class="font-semibold text-nc-content-gray">
           {{ content.label }}
@@ -215,7 +215,7 @@ watch(rowInput, (newValue) => {
         <NSelectField class="w-64" :table-id="content.tableId" :disabled="isResolved" @change="resolveInput" />
       </div>
     </template>
-    <template v-else-if="content.type === InputType.RECORD">
+    <template v-else-if="content.type === ScriptInputType.RECORD">
       <div class="flex flex-col gap-2">
         <NRecordPicker
           v-model:model-value="rowInput"

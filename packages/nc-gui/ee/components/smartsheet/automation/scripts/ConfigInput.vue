@@ -1,21 +1,6 @@
 <script setup lang="ts">
 import { validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
-
-interface ConfigItem {
-  type: 'table' | 'field' | 'view' | 'text' | 'number' | 'select'
-  key: string
-  label?: string
-  description?: string
-  parentTable?: string
-  options?: Array<{ value: string; label?: string }>
-}
-
-interface ScriptConfig {
-  title: string
-  description?: string
-  items: ConfigItem[]
-}
-
+import type { ScriptConfig, ScriptConfigItem } from '#imports'
 interface Props {
   config: ScriptConfig
   modelValue: Record<string, any>
@@ -28,13 +13,14 @@ const configValue = useVModel(props, 'modelValue', emit)
 
 const getValue = (key: string) => configValue.value[key]?.value || ''
 
-const canShowFieldOrView = (item: ConfigItem): boolean => {
+const canShowFieldOrView = (item: ScriptConfigItem): boolean => {
   if (!item?.parentTable) return true
   return !getValue(item.parentTable)
 }
 
 const isConfigValid = computed(() => {
-  validateConfigValues(props.config, configValue.value)
+  const res = validateConfigValues(props.config, configValue.value)
+  return res.length === 0
 })
 
 const emitUpdate = () => emit('change', configValue.value)
@@ -48,7 +34,7 @@ const handleTableChange = (key: string, value: any) => {
   })
 }
 
-const handleFieldOrViewChange = (item: ConfigItem, value: any) => {
+const handleFieldOrViewChange = (item: ScriptConfigItem, value: any) => {
   if (value && item.parentTable) {
     configValue.value[item.key] = {
       type: item.type,
@@ -76,7 +62,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight h-[95svh] nc-scrollbar-md">
+  <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium h-[95svh] nc-scrollbar-md">
     <div class="flex mx-auto flex-col max-w-130 gap-6">
       <div>
         <div v-if="config?.title" class="text-subHeading2 text-nc-content-gray-emphasis">
@@ -188,7 +174,7 @@ onMounted(() => {
         </template>
       </div>
 
-      <NcButton :disabled="!isConfigValid" size="small"> Save </NcButton>
+      <NcButton :disabled="!isConfigValid" size="small" @click="emitUpdate"> Save </NcButton>
     </div>
   </div>
 </template>

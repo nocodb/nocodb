@@ -63,7 +63,7 @@ async function setupMonacoEditor() {
     selectOnLineNumbers: false,
     scrollBeyondLastLine: false,
     fontSize: 13,
-    lineHeight: 18,
+    lineHeight: 23,
     detectIndentation: true,
     autoIndent: 'full',
     automaticLayout: true,
@@ -89,7 +89,7 @@ async function setupMonacoEditor() {
 
 onMounted(async () => {
   code.value = activeAutomation.value?.script || ''
-  configValue.value = activeAutomation.value?.config || {}
+  configValue.value = JSON.parse(JSON.stringify(activeAutomation.value?.config || {})) || {}
   await until(() => editorRef.value).toBeTruthy()
   await setupMonacoEditor()
 })

@@ -938,11 +938,14 @@ const triggerSubType = computed(() => {
                   />
                 </div>
               </div>
-            </div>
-            <div class="flex flex-col gap-4">
-              <div v-if="hookRef.notification.type === 'URL'" class="flex flex-col gap-8">
-                <div class="flex flex-col custom-select w-full gap-4">
-                  <div class="flex w-full gap-3">
+
+              <div class="text-nc-content-gray text-base mt-6 font-bold leading-6">
+                {{ $t('general.action') }}
+              </div>
+
+              <div class="mt-3 border-1 custom-select border-nc-border-gray-medium p-4 border-b-0 rounded-t-2xl">
+                <template v-if="hookRef.notification.type === 'URL'">
+                  <div class="flex gap-3">
                     <a-form-item class="w-1/3">
                       <a-select
                         v-model:value="hookRef.notification.payload.method"
@@ -967,7 +970,6 @@ const triggerSubType = computed(() => {
                         </a-select-option>
                       </a-select>
                     </a-form-item>
-
                     <a-form-item class="w-2/3" v-bind="validateInfos['notification.payload.path']">
                       <a-input
                         v-model:value="hookRef.notification.payload.path"
@@ -977,67 +979,70 @@ const triggerSubType = computed(() => {
                       />
                     </a-form-item>
                   </div>
-                </div>
-                <div>
-                  <NcTabs v-model:activeKey="urlTabKey">
-                    <a-tab-pane key="params" :tab="$t('title.parameter')" force-render>
-                      <LazyApiClientParams v-model="hookRef.notification.payload.parameters" />
-                    </a-tab-pane>
-
-                    <a-tab-pane key="headers" :tab="$t('title.headers')" class="nc-tab-headers">
-                      <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" />
-                    </a-tab-pane>
-
-                    <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
-                      <div
-                        style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
-                        class="my-3 mx-1 rounded-lg overflow-hidden"
-                      >
-                        <LazyMonacoEditor
-                          v-model="hookRef.notification.payload.body"
-                          lang="handlebars"
-                          disable-deep-compare
-                          :validate="false"
-                          class="min-h-60 max-h-80 !rounded-lg"
-                          :monaco-config="{
-                            minimap: {
-                              enabled: false,
-                            },
-                            padding: {
-                              top: 8,
-                              bottom: 8,
-                            },
-                            fontSize: 14.5,
-                            overviewRulerBorder: false,
-                            overviewRulerLanes: 0,
-                            hideCursorInOverviewRuler: true,
-                            lineDecorationsWidth: 8,
-                            lineNumbersMinChars: 0,
-                            roundedSelection: false,
-                            selectOnLineNumbers: false,
-                            scrollBeyondLastLine: false,
-                            contextmenu: false,
-                            glyphMargin: false,
-                            folding: false,
-                            bracketPairColorization: {
-                              enabled: false,
-                            },
-                            wordWrap: 'on',
-                            scrollbar: {
-                              horizontal: 'hidden',
-                              verticalScrollbarSize: 6,
-                            },
-                            wrappingStrategy: 'advanced',
-                            renderLineHighlight: 'none',
-                            tabSize: 4,
-                          }"
-                        />
-                      </div>
-                    </a-tab-pane>
-                  </NcTabs>
-                </div>
+                </template>
               </div>
 
+              <div v-if="hookRef.notification.type === 'URL'" class="border-1 border-nc-border-gray-medium rounded-b-2xl p-4">
+                <NcTabs v-model:activeKey="urlTabKey">
+                  <a-tab-pane key="params" :tab="$t('title.parameter')" force-render>
+                    <LazyApiClientParams v-model="hookRef.notification.payload.parameters" />
+                  </a-tab-pane>
+
+                  <a-tab-pane key="headers" :tab="$t('title.headers')" class="nc-tab-headers">
+                    <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" />
+                  </a-tab-pane>
+
+                  <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
+                    <div
+                      style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+                      class="my-3 mx-1 rounded-lg overflow-hidden"
+                    >
+                      <LazyMonacoEditor
+                        v-model="hookRef.notification.payload.body"
+                        lang="handlebars"
+                        disable-deep-compare
+                        :validate="false"
+                        class="min-h-60 max-h-80 !rounded-lg"
+                        :monaco-config="{
+                          minimap: {
+                            enabled: false,
+                          },
+                          padding: {
+                            top: 8,
+                            bottom: 8,
+                          },
+                          fontSize: 14.5,
+                          overviewRulerBorder: false,
+                          overviewRulerLanes: 0,
+                          hideCursorInOverviewRuler: true,
+                          lineDecorationsWidth: 8,
+                          lineNumbersMinChars: 0,
+                          roundedSelection: false,
+                          selectOnLineNumbers: false,
+                          scrollBeyondLastLine: false,
+                          contextmenu: false,
+                          glyphMargin: false,
+                          folding: false,
+                          bracketPairColorization: {
+                            enabled: false,
+                          },
+                          wordWrap: 'on',
+                          scrollbar: {
+                            horizontal: 'hidden',
+                            verticalScrollbarSize: 6,
+                          },
+                          wrappingStrategy: 'advanced',
+                          renderLineHighlight: 'none',
+                          tabSize: 4,
+                        }"
+                      />
+                    </div>
+                  </a-tab-pane>
+                </NcTabs>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-4">
               <div v-if="hookRef.notification.type === 'Slack'" class="flex flex-col w-full gap-3">
                 <a-form-item v-bind="validateInfos['notification.payload.channels']">
                   <LazyWebhookChannelMultiSelect

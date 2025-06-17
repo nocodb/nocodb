@@ -591,7 +591,7 @@ onMounted(async () => {
               <div class="flex flex-row">
                 <div class="px-4">
                   <!-- TODO: better icon -->
-                  <GeneralIcon icon="ncAlertCircle" class="text-orange-500 mt-1 w-6 h-6 nc-pending" />
+                  <GeneralIcon icon="alertTriangleSolid" class="text-orange-500 mt-1 w-6 h-6 nc-pending" />
                 </div>
                 <div>
                   <div class="font-bold">This webhook will be deprecated</div>

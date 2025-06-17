@@ -15,7 +15,7 @@ const automationStore = useAutomationStore()
 
 const { loadAutomations } = automationStore
 
-const { isAutomationActive, activeAutomationId, activeAutomation, automations } = storeToRefs(automationStore)
+const { activeAutomationId, activeAutomation, automations } = storeToRefs(automationStore)
 
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 const bases = useBases()
@@ -23,14 +23,14 @@ const bases = useBases()
 const { openedProject } = storeToRefs(bases)
 
 const isAutomationOpened = computed(() => {
-  return isAutomationActive.value && openedProject.value?.id === baseId.value
+  return openedProject.value?.id === baseId.value
 })
 
 const isAutomationsLoading = ref(false)
 
 const isOptionsOpen = ref(false)
 
-const isExpanded = ref(false)
+const isExpanded = ref(true)
 
 const openAutomations = () => {
   if (!isExpanded.value) {

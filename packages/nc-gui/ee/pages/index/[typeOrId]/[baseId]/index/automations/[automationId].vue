@@ -3,9 +3,7 @@ const automationStore = useAutomationStore()
 
 const { activeAutomation } = storeToRefs(automationStore)
 
-useProvideScriptStore({
-  script: activeAutomation.value,
-})
+useProvideScriptStore(activeAutomation)
 </script>
 
 <template>

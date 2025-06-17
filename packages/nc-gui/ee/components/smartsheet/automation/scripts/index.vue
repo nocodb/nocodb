@@ -7,20 +7,15 @@ const editorRef = ref<HTMLDivElement | null>(null)
 
 let editor: monaco.editor.IStandaloneCodeEditor
 
-const automationStore = useAutomationStore()
+const { isUIAllowed } = useRoles()
 
-const { loadAutomation } = automationStore
+const { activeAutomation, activeAutomationId, activeBaseSchema } = storeToRefs(useAutomationStore())
 
 const { activeProjectId } = storeToRefs(useBases())
-
-const { activeAutomation, isLoadingAutomation, activeAutomationId, activeBaseSchema } = storeToRefs(automationStore)
 
 const { libCode, code, config, configValue, isSettingsOpen } = useScriptStoreOrThrow()
 
 async function setupMonacoEditor() {
-  await until(() => isLoadingAutomation.value === false).toBeTruthy()
-  await until(() => !!activeAutomation.value).toBeTruthy()
-
   if (!editorRef.value) return
 
   const typeGenerator = new TypeGenerator()
@@ -60,6 +55,7 @@ async function setupMonacoEditor() {
     minimap: {
       enabled: false,
     },
+    fontSize: 13,
     detectIndentation: true,
     autoIndent: 'full',
     automaticLayout: true,
@@ -80,21 +76,13 @@ async function setupMonacoEditor() {
 }
 
 onMounted(async () => {
-  await until(() => !!activeAutomationId.value).toBeTruthy()
-  await until(() => activeBaseSchema?.value?.id === activeProjectId.value).toBeTruthy()
-
-  await loadAutomation(activeAutomationId.value)
   code.value = activeAutomation.value?.script || ''
-
   configValue.value = activeAutomation.value?.config || {}
-
   await until(() => editorRef.value).toBeTruthy()
   await setupMonacoEditor()
 })
 
 const { updateAutomation } = useAutomationStore()
-
-const { isUIAllowed } = useRoles()
 
 const triggerUpdate = useDebounceFn((val) => {
   updateAutomation(
@@ -111,7 +99,7 @@ const triggerUpdate = useDebounceFn((val) => {
 </script>
 
 <template>
-  <div v-show="!isLoadingAutomation" class="flex h-full w-full">
+  <div class="flex h-full w-full">
     <Splitpanes class="nc-extensions-content-resizable-wrapper">
       <Pane class="flex flex-col h-full min-w-0">
         <div class="w-full flex-1">
@@ -128,10 +116,6 @@ const triggerUpdate = useDebounceFn((val) => {
         <SmartsheetAutomationScriptsPlayground v-else />
       </Pane>
     </Splitpanes>
-  </div>
-
-  <div v-show="isLoadingAutomation" class="w-full flex items-center justify-center h-full">
-    <GeneralLoader size="xlarge" />
   </div>
 </template>
 

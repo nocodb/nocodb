@@ -4,17 +4,7 @@ import { parseScript, validateConfigValues } from '~/components/smartsheet/autom
 
 const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: ScriptType) => {
   const automationStore = useAutomationStore()
-  const { activeAutomationId, activeAutomation, isSettingsOpen } = storeToRefs(automationStore)
-  const { loadAutomation } = automationStore
-
-  const code = ref<string | null>(null)
-  const currentScriptId = ref<string | null>(null)
-
-  const config = computed(() => {
-    return parseScript(code.value) ?? {}
-  })
-
-  const configValue = ref<Record<string, any>>({})
+  const { activeAutomation, isSettingsOpen } = storeToRefs(automationStore)
 
   const {
     runScript: executeScript,
@@ -25,14 +15,24 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     libCode,
   } = useScriptExecutor()
 
+  const code = ref<string>()
+  const currentScriptId = ref<string | null>(null)
+  const configValue = ref<Record<string, any>>({})
+
+  const config = computed(() => {
+    return parseScript(code.value) ?? {}
+  })
+
   const playground = computed(() => {
     if (!currentScriptId.value) return []
 
     const execution = activeExecutions.value.get(currentScriptId.value)
-
     return execution?.playground ?? []
   })
 
+  const isValidConfig = computed(() => {
+    return validateConfigValues(config.value ?? {}, configValue.value ?? {})?.length === 0
+  })
   const resolveInput = (id: string, value: string | File) => {
     if (!currentScriptId.value) return
 
@@ -57,10 +57,6 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     }
   }
 
-  const isValidConfig = computed(() => {
-    return validateConfigValues(config.value ?? {}, configValue.value ?? {})?.length === 0
-  })
-
   const runScript = async () => {
     if (isRunning.value || !isValidConfig.value) return
 
@@ -77,23 +73,26 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     }
   }
 
-  onMounted(async () => {
-    await loadAutomation(activeAutomationId.value)
-  })
-
   return {
-    resolveInput,
-    stopExecution: stopScript,
+    // State
+    code,
+    configValue,
+
+    // Computed
+    config,
+    playground,
+    isValidConfig,
+    isSettingsOpen,
+
+    // Script execution state
     isRunning,
     isFinished,
-    playground,
     libCode,
+
+    // Methods
     runScript,
-    code,
-    config,
-    configValue,
-    isSettingsOpen,
-    isValidConfig,
+    stopExecution: stopScript,
+    resolveInput,
   }
 })
 
@@ -105,5 +104,6 @@ export function useScriptStoreOrThrow() {
   if (!state) {
     throw new Error('useScriptStoreOrThrow must be used within a ScriptStoreProvider')
   }
+
   return state
 }

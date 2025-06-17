@@ -838,6 +838,8 @@ test.describe.serial('Webhook', () => {
   });
 
   test('Include user option', async ({ request }) => {
+    if (!isEE()) test.skip();
+
     await clearServerData({ request });
     await dashboard.treeView.createTable({ title: 'Test', baseTitle: context.base.title });
 

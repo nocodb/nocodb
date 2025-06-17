@@ -1271,7 +1271,7 @@ const triggerSubType = computed(() => {
         </div>
       </div>
     </div>
-    <div v-else-if="activeTab === HookTab.Log" class="h-[calc(100%_-_66px)]">
+    <div v-else-if="activeTab === HookTab.Log" class="h-[calc(100%_-_57px)]">
       <WebhookCallLog :hook="hook" />
     </div>
   </NcModal>

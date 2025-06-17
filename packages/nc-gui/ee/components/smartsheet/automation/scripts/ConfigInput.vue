@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
+
 interface ConfigItem {
   type: 'table' | 'field' | 'view' | 'text' | 'number' | 'select'
   key: string
@@ -31,6 +33,10 @@ const canShowFieldOrView = (item: ConfigItem): boolean => {
   return !getValue(item.parentTable)
 }
 
+const isConfigValid = computed(() => {
+  validateConfigValues(props.config, configValue.value)
+})
+
 const emitUpdate = () => emit('change', configValue.value)
 
 const handleTableChange = (key: string, value: any) => {
@@ -40,7 +46,6 @@ const handleTableChange = (key: string, value: any) => {
       configValue.value[item.key] = undefined
     }
   })
-  emitUpdate()
 }
 
 const handleFieldOrViewChange = (item: ConfigItem, value: any) => {
@@ -53,7 +58,6 @@ const handleFieldOrViewChange = (item: ConfigItem, value: any) => {
   } else {
     configValue.value[item.key] = value ? { type: item.type, value } : undefined
   }
-  emitUpdate()
 }
 
 onMounted(() => {
@@ -140,7 +144,7 @@ onMounted(() => {
             <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <a-input v-model:value="configValue[item.key]" type="text" class="nc-input-sm nc-input-shadow" @change="emitUpdate" />
+            <a-input v-model:value="configValue[item.key]" type="text" class="nc-input-sm nc-input-shadow" />
           </div>
         </template>
 
@@ -152,7 +156,7 @@ onMounted(() => {
             <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <a-input-number v-model:value="configValue[item.key]" class="nc-input-sm nc-input-shadow" @change="emitUpdate" />
+            <a-input-number v-model:value="configValue[item.key]" class="nc-input-sm nc-input-shadow" />
           </div>
         </template>
 
@@ -164,7 +168,7 @@ onMounted(() => {
             <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <a-select v-model:value="configValue[item.key]" show-search @change="emitUpdate">
+            <a-select v-model:value="configValue[item.key]" show-search>
               <template #suffixIcon>
                 <GeneralIcon icon="arrowDown" class="text-gray-700" />
               </template>
@@ -183,6 +187,8 @@ onMounted(() => {
           </div>
         </template>
       </div>
+
+      <NcButton :disabled="!isConfigValid" size="small"> Save </NcButton>
     </div>
   </div>
 </template>

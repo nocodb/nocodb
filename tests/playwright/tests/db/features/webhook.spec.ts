@@ -836,4 +836,86 @@ test.describe.serial('Webhook', () => {
 
     await verifyDeleteOperation(rsp, 'records.after.bulkDelete', 2);
   });
+
+  test('Include user option', async ({ request }) => {
+    await clearServerData({ request });
+    await dashboard.treeView.createTable({ title: 'Test', baseTitle: context.base.title });
+
+    // Test webhook without include_user option (default)
+    await webhook.create({
+      title: 'hook-without-user',
+      event: 'On Record Insert',
+    });
+
+    await clearServerData({ request });
+    await dashboard.grid.addNewRow({
+      index: 0,
+      columnHeader: 'Title',
+      value: 'Test Record',
+    });
+
+    let rsp = await getWebhookResponses({ request, count: 1 });
+
+    // Verify webhook response doesn't include user information
+    expect(rsp[0].type).toBe('records.after.insert');
+    expect(rsp[0].data.table_name).toBe('Test');
+    expect(rsp[0].user).toBeUndefined();
+
+    // Create webhook with include_user option enabled
+    await webhook.open({ index: 0 });
+    await webhook.toggleIncludeUser({ save: true });
+
+    await clearServerData({ request });
+    await dashboard.grid.addNewRow({
+      index: 1,
+      columnHeader: 'Title',
+      value: 'Test Record 2',
+    });
+
+    rsp = await getWebhookResponses({ request, count: 1 });
+
+    // Verify webhook response includes user information
+    expect(rsp[0].type).toBe('records.after.insert');
+    expect(rsp[0].data.table_name).toBe('Test');
+    expect(rsp[0].user).toBeDefined();
+    expect(rsp[0].user).toMatchObject({
+      id: expect.any(String),
+      email: expect.any(String),
+    });
+
+    // Test webhook without include_user option (default)
+    await webhook.create({
+      title: 'hook-without-user-update',
+      event: 'On Record Update',
+    });
+
+    await clearServerData({ request });
+    await dashboard.grid.editRow({ index: 1, value: 'Updated Record' });
+
+    rsp = await getWebhookResponses({ request, count: 1 });
+
+    // Verify webhook response doesn't include user information after disabling
+    expect(rsp[0].type).toBe('records.after.update');
+    expect(rsp[0].data.table_name).toBe('Test');
+    expect(rsp[0].user).toBeUndefined();
+
+    // Test disabling include_user option
+    await webhook.open({ index: 1 });
+    await webhook.toggleIncludeUser({ save: true });
+
+    // Test with update operation
+    await clearServerData({ request });
+    await dashboard.grid.editRow({ index: 0, value: 'Updated Record 2' });
+
+    rsp = await getWebhookResponses({ request, count: 1 });
+
+    // Verify webhook response includes user information for update
+    expect(rsp[0].type).toBe('records.after.update');
+    expect(rsp[0].data.table_name).toBe('Test');
+    expect(rsp[0].user).toBeDefined();
+    expect(rsp[0].user).toMatchObject({
+      id: expect.any(String),
+      email: expect.any(String),
+    });
+  });
 });

@@ -17,6 +17,8 @@ const configValue = useVModel(props, 'modelValue', emit)
 
 const isLoading = ref(false)
 
+const hasInput = computed(() => props.config?.items?.length > 0)
+
 const getValue = (key: string) => configValue.value[key]?.value || ''
 
 const canShowFieldOrView = (item: ScriptConfigItem): boolean => {
@@ -84,8 +86,8 @@ onMounted(() => {
   <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium h-[95svh] nc-scrollbar-md">
     <div class="flex mx-auto flex-col max-w-130 gap-6">
       <div>
-        <div v-if="config?.title" class="text-subHeading2 text-nc-content-gray-emphasis">
-          {{ config?.title }}
+        <div class="text-subHeading2 text-nc-content-gray-emphasis">
+          {{ config?.title || 'Script Settings' }}
         </div>
         <div v-if="config?.description" class="text-nc-content-gray-subtle2 text-body mt-2">
           {{ config?.description }}
@@ -191,7 +193,7 @@ onMounted(() => {
         </template>
       </div>
 
-      <NcTooltip class="w-full" :disabled="isConfigValid">
+      <NcTooltip v-if="hasInput" class="w-full" :disabled="isConfigValid">
         <template #title> Please fill in all required fields </template>
         <NcButton :loading="isLoading" class="w-full" size="small" :disabled="!isConfigValid" @click="triggerUpdate">
           Save

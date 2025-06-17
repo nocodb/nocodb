@@ -298,6 +298,7 @@ import NcOllama from '~icons/nc-icons/ollama'
 import NcGroq from '~icons/nc-icons/groq'
 import NcPosthog from '~icons/nc-icons/posthog'
 import NcNocodbPg from '~icons/nc-icons/nocodb-pg'
+import NcStopCircle from '~icons/nc-icons/stop-circle'
 
 // Buttons Icons V2
 
@@ -1687,6 +1688,7 @@ export const iconMap = {
   'ncLogoZohoColored': h(NcLogoZohoColored, { stroke: 'transparent' }),
   'ncLogoZoho': h(NcLogoZoho, { stroke: 'transparent' }),
   'ncSendAlt': h(NcSendAlt, { stroke: 'transparent' }),
+  'ncStopCircle': h(NcStopCircle, { stroke: 'transparent' }),
   'ncAiPlay': AiPlayIcon,
   'mdi-check-bold': MdiNcCropSquare,
   'mdi-crop-square': MdiNcCheckBold,

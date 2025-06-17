@@ -280,6 +280,10 @@ export function useViewRowColorOption(params: {
           filter,
           showNullAndEmptyInFilter: baseMeta.value?.showNullAndEmptyInFilter,
         })
+
+        if (params.prevValue && evalColumn?.id && params.prevValue !== evalColumn?.id) {
+          reloadViewDataIfNeeded(evalColumn?.id)
+        }
       }
     }
     if (['logical_op'].includes(params.type)) {

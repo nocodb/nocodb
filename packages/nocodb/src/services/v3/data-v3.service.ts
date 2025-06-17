@@ -445,7 +445,7 @@ export class DataV3Service {
       return { records: [] };
     }
 
-    // Fetch full records using baseModel.readByPk() to maintain order
+    // Fetch full records using baseModel.chunkList() for better performance
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
@@ -453,19 +453,28 @@ export class DataV3Service {
       source,
     });
 
-    // Fetch records individually to maintain order
-    const fullRecords = [];
+    // Convert IDs to strings for chunkList
+    const idsAsStrings = insertedIds.map((id) => String(id));
+
+    // Fetch all records in bulk
+    const fullRecords = await baseModel.chunkList({
+      pks: idsAsStrings,
+      apiVersion: NcApiVersion.V3,
+    });
+
+    // Create a map for quick lookup by ID
+    const recordMap = new Map();
+    for (const record of fullRecords) {
+      const recordId = baseModel.extractPksValues(record, true);
+      recordMap.set(String(recordId), record);
+    }
+
+    // Maintain the original order of insertedIds
+    const orderedRecords = [];
     for (const id of insertedIds) {
-      const record = await baseModel.readByPk(
-        id,
-        false,
-        {},
-        {
-          apiVersion: NcApiVersion.V3,
-        },
-      );
+      const record = recordMap.get(String(id));
       if (record) {
-        fullRecords.push(record);
+        orderedRecords.push(record);
       }
     }
 
@@ -473,7 +482,7 @@ export class DataV3Service {
     return {
       records: await this.transformRecordsToV3Format({
         context: context,
-        records: fullRecords,
+        records: orderedRecords,
         primaryKey: primaryKey,
         primaryKeys: primaryKeys,
         requestedFields: undefined,
@@ -575,7 +584,7 @@ export class DataV3Service {
       return { records: [] };
     }
 
-    // Fetch full records using baseModel.readByPk() to maintain order
+    // Fetch full records using baseModel.chunkList() for better performance
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
@@ -583,19 +592,27 @@ export class DataV3Service {
       source,
     });
 
-    // Fetch records individually to maintain order
-    const fullRecords = [];
+    // Convert IDs to strings for chunkList
+    const idsAsStrings = updatedIds.map((id) => String(id));
+
+    // Fetch all records in bulk
+    const fullRecords = await baseModel.chunkList({
+      pks: idsAsStrings,
+    });
+
+    // Create a map for quick lookup by ID
+    const recordMap = new Map();
+    for (const record of fullRecords) {
+      const recordId = baseModel.extractPksValues(record, true);
+      recordMap.set(String(recordId), record);
+    }
+
+    // Maintain the original order of updatedIds
+    const orderedRecords = [];
     for (const id of updatedIds) {
-      const record = await baseModel.readByPk(
-        id,
-        false,
-        {},
-        {
-          apiVersion: NcApiVersion.V3,
-        },
-      );
+      const record = recordMap.get(String(id));
       if (record) {
-        fullRecords.push(record);
+        orderedRecords.push(record);
       }
     }
 
@@ -603,7 +620,7 @@ export class DataV3Service {
     return {
       records: await this.transformRecordsToV3Format({
         context: context,
-        records: fullRecords,
+        records: orderedRecords,
         primaryKey: primaryKey,
         primaryKeys: primaryKeys,
         requestedFields: undefined,

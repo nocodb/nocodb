@@ -369,6 +369,7 @@ export default class Hook implements HookType {
         }),
         true,
       );
+      updateObj.trigger_fields = hook.trigger_fields;
     }
 
     await NocoCache.update(`${CacheScope.HOOK}:${hookId}`, updateObj);

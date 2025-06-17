@@ -195,6 +195,11 @@ const handleEventChange = (e: string) => {
     hookRef.trigger_field = false
     hookRef.trigger_fields = []
   }
+
+  // Automatically set active to true when event type is manual
+  if (hookRef.event === 'manual') {
+    hookRef.active = true
+  }
 }
 
 const formInput = ref({
@@ -501,6 +506,7 @@ async function saveHooks() {
   try {
     await validate()
     if (hookRef.operation?.length === 0 && sendMeEverythingChecked.value === false) {
+      message.error('At least one operation need to be selected')
       throw new Error('At least one operation need to be selected')
     }
   } catch (error: any) {

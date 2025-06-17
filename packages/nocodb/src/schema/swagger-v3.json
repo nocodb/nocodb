@@ -2946,46 +2946,44 @@
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "record": {
-                        "id": 1,
-                        "fields": {
-                          "SingleLineText": "record #1",
-                          "MultiLineText": "sample long text",
-                          "Email": "user@nocodb.com",
-                          "PhoneNumber": "1234567890",
-                          "URL": "www.google.com",
-                          "Number": 1234,
-                          "Decimal": 100.88,
-                          "Currency": 100,
-                          "Percent": 10,
-                          "Duration": 1010,
-                          "Rating": 3,
-                          "Year": 2020,
-                          "Time": "20:20:00",
-                          "Checkbox": true,
-                          "Date": "2020-01-01",
-                          "SingleSelect": "Jan",
-                          "MultiSelect": [
-                            "Jan",
-                            "Feb",
-                            "Mar"
-                          ],
-                          "DateTime": "2022-02-02 00:00:00+00:00",
-                          "LTAR": [
-                            {
-                              "id": 1,
-                              "fields": {
-                                "SingleLineText": "record #1"
-                              }
-                            },
-                            {
-                              "id": 2,
-                              "fields": {
-                                "SingleLineText": "record #2"
-                              }
+                      "id": 1,
+                      "fields": {
+                        "SingleLineText": "record #1",
+                        "MultiLineText": "sample long text",
+                        "Email": "user@nocodb.com",
+                        "PhoneNumber": "1234567890",
+                        "URL": "www.google.com",
+                        "Number": 1234,
+                        "Decimal": 100.88,
+                        "Currency": 100,
+                        "Percent": 10,
+                        "Duration": 1010,
+                        "Rating": 3,
+                        "Year": 2020,
+                        "Time": "20:20:00",
+                        "Checkbox": true,
+                        "Date": "2020-01-01",
+                        "SingleSelect": "Jan",
+                        "MultiSelect": [
+                          "Jan",
+                          "Feb",
+                          "Mar"
+                        ],
+                        "DateTime": "2022-02-02 00:00:00+00:00",
+                        "LTAR": [
+                          {
+                            "id": 1,
+                            "fields": {
+                              "SingleLineText": "record #1"
                             }
-                          ]
-                        }
+                          },
+                          {
+                            "id": 2,
+                            "fields": {
+                              "SingleLineText": "record #2"
+                            }
+                          }
+                        ]
                       }
                     }
                   }

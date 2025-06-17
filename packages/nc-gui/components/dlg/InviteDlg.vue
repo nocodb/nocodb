@@ -291,12 +291,12 @@ const inviteCollaborator = async () => {
 
     for (const email of payloadData?.split(',')) {
       if (props.users?.some((u) => u.email === email.trim())) {
-        let scopeLabel = 'labels.base'
+        let scopeLabel = 'objects.project'
 
         if (props.type === 'workspace') {
-          scopeLabel = 'labels.workspace'
+          scopeLabel = 'objects.workspace'
         } else if (props.type === 'organization') {
-          scopeLabel = 'labels.organization'
+          scopeLabel = 'general.organization'
         }
 
         warningMsg.value = t('msg.userAlreadyExists', { email: email.trim(), scope: t(scopeLabel).toLowerCase() })

@@ -7,11 +7,7 @@ const editorRef = ref<HTMLDivElement | null>(null)
 
 let editor: monaco.editor.IStandaloneCodeEditor
 
-const { isUIAllowed } = useRoles()
-
-const { activeAutomation, activeAutomationId, activeBaseSchema } = storeToRefs(useAutomationStore())
-
-const { activeProjectId } = storeToRefs(useBases())
+const { activeAutomation, activeBaseSchema } = storeToRefs(useAutomationStore())
 
 const { libCode, code, config, configValue, isSettingsOpen } = useScriptStoreOrThrow()
 
@@ -93,21 +89,6 @@ onMounted(async () => {
   await until(() => editorRef.value).toBeTruthy()
   await setupMonacoEditor()
 })
-
-const { updateAutomation } = useAutomationStore()
-
-const triggerUpdate = useDebounceFn((val) => {
-  updateAutomation(
-    activeProjectId.value,
-    activeAutomationId.value,
-    {
-      config: val,
-    },
-    {
-      skipNetworkCall: !isUIAllowed('scriptCreateOrEdit'),
-    },
-  )
-}, 1000)
 </script>
 
 <template>
@@ -119,12 +100,7 @@ const triggerUpdate = useDebounceFn((val) => {
         </div>
       </Pane>
       <Pane :size="30">
-        <SmartsheetAutomationScriptsConfigInput
-          v-if="isSettingsOpen"
-          v-model:model-value="configValue"
-          :config="config"
-          @change="triggerUpdate"
-        />
+        <SmartsheetAutomationScriptsConfigInput v-if="isSettingsOpen" v-model:model-value="configValue" :config="config" />
         <SmartsheetAutomationScriptsPlayground v-else />
       </Pane>
     </Splitpanes>

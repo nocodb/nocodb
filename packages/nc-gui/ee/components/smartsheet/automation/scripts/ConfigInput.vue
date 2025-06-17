@@ -1,15 +1,29 @@
 <script setup lang="ts">
 import { validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
-import type { ScriptConfig, ScriptConfigItem } from '#imports'
+import type { ScriptConfig, ScriptConfigItem } from '~/lib/types'
+
 interface Props {
   config: ScriptConfig
   modelValue: Record<string, any>
 }
 
 const props = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue', 'change'])
 
+const { isUIAllowed } = useRoles()
+
+const automationStore = useAutomationStore()
+
+const { activeProjectId } = storeToRefs(useBases())
+
+const { activeAutomationId } = storeToRefs(automationStore)
+
+const { updateAutomation } = automationStore
+
 const configValue = useVModel(props, 'modelValue', emit)
+
+const isLoading = ref(false)
 
 const getValue = (key: string) => configValue.value[key]?.value || ''
 
@@ -22,8 +36,6 @@ const isConfigValid = computed(() => {
   const res = validateConfigValues(props.config, configValue.value)
   return res.length === 0
 })
-
-const emitUpdate = () => emit('change', configValue.value)
 
 const handleTableChange = (key: string, value: any) => {
   configValue.value[key] = value ? { type: 'table', value } : undefined
@@ -43,6 +55,27 @@ const handleFieldOrViewChange = (item: ScriptConfigItem, value: any) => {
     }
   } else {
     configValue.value[item.key] = value ? { type: item.type, value } : undefined
+  }
+}
+
+const triggerUpdate = async (val) => {
+  try {
+    isLoading.value = true
+    await updateAutomation(
+      activeProjectId.value,
+      activeAutomationId.value,
+      {
+        config: val,
+      },
+      {
+        skipNetworkCall: !isUIAllowed('scriptCreateOrEdit'),
+      },
+    )
+    message.toast('Script settings saved!')
+  } catch (error) {
+    message.error(await extractSdkResponseErrorMsgv2(error))
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -174,7 +207,12 @@ onMounted(() => {
         </template>
       </div>
 
-      <NcButton :disabled="!isConfigValid" size="small" @click="emitUpdate"> Save </NcButton>
+      <NcTooltip class="w-full" :disabled="isConfigValid">
+        <template #title> Please fill in all required fields </template>
+        <NcButton :loading="isLoading" class="w-full" size="small" :disabled="!isConfigValid" @click="triggerUpdate">
+          Save
+        </NcButton>
+      </NcTooltip>
     </div>
   </div>
 </template>

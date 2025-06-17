@@ -103,7 +103,7 @@ export class PagedResponseV3Impl<T> {
       path: `/api/v3/data/${context.base_id}/${tableId}/records`,
     };
 
-    const commonQueryParams = extractProps(param.query || {}, [
+    const commonQueryParams = extractProps(queryParams || {}, [
       'sort',
       'where',
       's',

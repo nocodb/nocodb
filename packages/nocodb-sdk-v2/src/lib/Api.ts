@@ -767,7 +767,7 @@ export interface FieldOptionsDateTime {
    */
   time_format?: string;
   /** Use 12-hour time format. */
-  '12hr_format'?: boolean;
+  "12hr_format"?: boolean;
   /** Display timezone. */
   display_timezone?: boolean;
   /** Timezone. Refer to https://en.wikipedia.org/wiki/List_of_tz_database_time_zones */
@@ -909,9 +909,9 @@ export interface FieldOptionsRollup {
 
 export type FieldOptionsButton = BaseFieldOptionsButton &
   (
-    | BaseFieldOptionsButtonTypeMapping<'formula', any>
-    | BaseFieldOptionsButtonTypeMapping<'webhook', any>
-    | BaseFieldOptionsButtonTypeMapping<'ai', any>
+    | BaseFieldOptionsButtonTypeMapping<"formula", any>
+    | BaseFieldOptionsButtonTypeMapping<"webhook", any>
+    | BaseFieldOptionsButtonTypeMapping<"ai", any>
   );
 
 export interface FieldOptionsLinks {
@@ -1163,6 +1163,8 @@ export type DataRecordWithDeletedV3 = DataRecordV3 & {
 export interface DataListResponseV3 {
   /** Array of records for has-many and many-to-many relationships */
   records?: DataRecordV3[];
+  /** Single record for belongs-to and one-to-one relationships */
+  record?: DataRecordV3 | null;
   /** Pagination token for next page */
   next?: string | null;
   /** Pagination token for previous page */
@@ -1187,7 +1189,7 @@ export interface DataUpdateRequestV3 {
   fields: Record<string, any>;
 }
 
-/** Single record delete request */
+/** V3 Data Delete Request format */
 export interface DataDeleteRequestV3 {
   /** Record identifier */
   id: string | number;
@@ -1205,8 +1207,6 @@ export interface DataUpdateResponseV3 {
   records: {
     /** Updated record identifier */
     id: string | number;
-    /** Record fields data (excluding primary key). Undefined when empty. */
-    fields?: Record<string, any>;
   }[];
 }
 
@@ -1217,7 +1217,10 @@ export interface DataDeleteResponseV3 {
 }
 
 /** V3 Data Read Response format */
-export type DataReadResponseV3 = DataRecordV3;
+export interface DataReadResponseV3 {
+  /** V3 Data Record format with id and fields separation */
+  record: DataRecordV3;
+}
 
 /** V3 Nested Data List Response format - supports both single record and array responses */
 export interface DataNestedListResponseV3 {
@@ -2056,11 +2059,11 @@ export class InternalApi<
          */
         sort?:
           | {
-              direction: 'asc' | 'desc';
+              direction: "asc" | "desc";
               field: string;
             }[]
           | {
-              direction: 'asc' | 'desc';
+              direction: "asc" | "desc";
               field: string;
             };
         /**
@@ -2115,7 +2118,7 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/records`,
-        method: 'GET',
+        method: "GET",
         query: query,
         format: 'json',
         ...params,
@@ -2143,7 +2146,7 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/records`,
-        method: 'POST',
+        method: "POST",
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -2172,7 +2175,7 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/records`,
-        method: 'PATCH',
+        method: "PATCH",
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -2201,7 +2204,7 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/records`,
-        method: 'DELETE',
+        method: "DELETE",
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -2238,7 +2241,7 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/records/${recordId}`,
-        method: 'GET',
+        method: "GET",
         query: query,
         format: 'json',
         ...params,
@@ -2283,7 +2286,7 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/count`,
-        method: 'GET',
+        method: "GET",
         query: query,
         format: 'json',
         ...params,
@@ -2320,11 +2323,11 @@ export class InternalApi<
          */
         sort?:
           | {
-              direction: 'asc' | 'desc';
+              direction: "asc" | "desc";
               field: string;
             }[]
           | {
-              direction: 'asc' | 'desc';
+              direction: "asc" | "desc";
               field: string;
             };
         /**
@@ -2362,7 +2365,7 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
-        method: 'GET',
+        method: "GET",
         query: query,
         format: 'json',
         ...params,
@@ -2412,7 +2415,7 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
-        method: 'POST',
+        method: "POST",
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -2463,7 +2466,7 @@ export class InternalApi<
         }
       >({
         path: `/api/v3/data/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
-        method: 'DELETE',
+        method: "DELETE",
         body: data,
         type: ContentType.Json,
         format: 'json',

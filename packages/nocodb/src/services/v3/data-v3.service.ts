@@ -206,17 +206,43 @@ export class DataV3Service {
             // Check depth limit to prevent unbounded recursion
             if (depth >= MAX_NESTING_DEPTH) {
               // At max depth, return simplified representation with just IDs
-              transformedFields[key] = value.map((nestedRecord) => {
-                if (typeof nestedRecord === 'object' && nestedRecord !== null) {
-                  // Try to extract ID from the nested record
-                  const id =
-                    nestedRecord.id ||
-                    nestedRecord.Id ||
-                    Object.values(nestedRecord)[0];
-                  return { id: String(id) };
-                }
-                return { id: String(nestedRecord) };
-              });
+              transformedFields[key] = value.map(
+                (nestedRecord, recordIndex) => {
+                  if (
+                    typeof nestedRecord === 'object' &&
+                    nestedRecord !== null
+                  ) {
+                    // Try to extract ID from the nested record with fallbacks
+                    const id =
+                      nestedRecord.id ||
+                      nestedRecord.Id ||
+                      nestedRecord.ID ||
+                      Object.values(nestedRecord)[0];
+
+                    // Validate the extracted ID
+                    if (id === undefined || id === null || id === '') {
+                      NcError.unprocessableEntity(
+                        `Unable to extract valid ID from nested record at index ${recordIndex} in field "${key}" at max depth`,
+                      );
+                    }
+
+                    return { id: String(id) };
+                  }
+
+                  // Handle primitive values
+                  if (
+                    nestedRecord === undefined ||
+                    nestedRecord === null ||
+                    nestedRecord === ''
+                  ) {
+                    NcError.unprocessableEntity(
+                      `Invalid nested record value at index ${recordIndex} in field "${key}" at max depth: ${nestedRecord}`,
+                    );
+                  }
+
+                  return { id: String(nestedRecord) };
+                },
+              );
               continue;
             }
 
@@ -396,19 +422,55 @@ export class DataV3Service {
               if (typeof nestedRecord === 'object' && nestedRecord.id) {
                 // For composite PKs, split the id and create the appropriate object
                 if (relatedPrimaryKeys.length > 1) {
-                  const idParts = nestedRecord.id.toString().split('___');
+                  const idString = String(nestedRecord.id);
+                  const idParts = idString.split('___');
+
+                  // Validate that we have the correct number of parts
+                  if (idParts.length !== relatedPrimaryKeys.length) {
+                    NcError.unprocessableEntity(
+                      `Invalid composite key: expected ${relatedPrimaryKeys.length} parts but got ${idParts.length} in "${idString}"`,
+                    );
+                  }
+
                   const pkObject = {};
                   relatedPrimaryKeys.forEach((pk, index) => {
-                    pkObject[getPrimaryKey(pk)] = idParts[index]?.replaceAll(
-                      '\\_',
-                      '_',
-                    );
+                    const part = idParts[index];
+
+                    // Validate that the part exists and is not empty
+                    if (part === undefined || part === null) {
+                      NcError.unprocessableEntity(
+                        `Invalid composite key part at index ${index}: got ${part} in "${idString}"`,
+                      );
+                    }
+
+                    // Handle escaped underscores, but validate the result
+                    const cleanedPart = part.replaceAll('\\_', '_');
+
+                    // Don't allow completely empty string primary keys (after cleaning)
+                    if (cleanedPart === '') {
+                      NcError.unprocessableEntity(
+                        `Empty primary key part at index ${index} after cleaning in "${idString}"`,
+                      );
+                    }
+
+                    pkObject[getPrimaryKey(pk)] = cleanedPart;
                   });
                   return pkObject;
                 } else {
-                  // Single primary key
+                  // Single primary key - validate it's not empty
+                  const pkValue = String(nestedRecord.id);
+                  if (
+                    pkValue === '' ||
+                    pkValue === 'undefined' ||
+                    pkValue === 'null'
+                  ) {
+                    NcError.unprocessableEntity(
+                      `Invalid primary key value: "${pkValue}"`,
+                    );
+                  }
+
                   return {
-                    [getPrimaryKey(relatedPrimaryKey)]: nestedRecord.id,
+                    [getPrimaryKey(relatedPrimaryKey)]: pkValue,
                   };
                 }
               }
@@ -421,19 +483,55 @@ export class DataV3Service {
           if (nestedRecord.id) {
             // For composite PKs, split the id and create the appropriate object
             if (relatedPrimaryKeys.length > 1) {
-              const idParts = nestedRecord.id.toString().split('___');
+              const idString = String(nestedRecord.id);
+              const idParts = idString.split('___');
+
+              // Validate that we have the correct number of parts
+              if (idParts.length !== relatedPrimaryKeys.length) {
+                NcError.unprocessableEntity(
+                  `Invalid composite key: expected ${relatedPrimaryKeys.length} parts but got ${idParts.length} in "${idString}"`,
+                );
+              }
+
               const pkObject = {};
               relatedPrimaryKeys.forEach((pk, index) => {
-                pkObject[getPrimaryKey(pk)] = idParts[index]?.replaceAll(
-                  '\\_',
-                  '_',
-                );
+                const part = idParts[index];
+
+                // Validate that the part exists and is not empty
+                if (part === undefined || part === null) {
+                  NcError.unprocessableEntity(
+                    `Invalid composite key part at index ${index}: got ${part} in "${idString}"`,
+                  );
+                }
+
+                // Handle escaped underscores, but validate the result
+                const cleanedPart = part.replaceAll('\\_', '_');
+
+                // Don't allow completely empty string primary keys (after cleaning)
+                if (cleanedPart === '') {
+                  NcError.unprocessableEntity(
+                    `Empty primary key part at index ${index} after cleaning in "${idString}"`,
+                  );
+                }
+
+                pkObject[getPrimaryKey(pk)] = cleanedPart;
               });
               transformedFields[column.title] = pkObject;
             } else {
-              // Single primary key
+              // Single primary key - validate it's not empty
+              const pkValue = String(nestedRecord.id);
+              if (
+                pkValue === '' ||
+                pkValue === 'undefined' ||
+                pkValue === 'null'
+              ) {
+                NcError.unprocessableEntity(
+                  `Invalid primary key value: "${pkValue}"`,
+                );
+              }
+
               transformedFields[column.title] = {
-                [getPrimaryKey(relatedPrimaryKey)]: nestedRecord.id,
+                [getPrimaryKey(relatedPrimaryKey)]: pkValue,
               };
             }
           }

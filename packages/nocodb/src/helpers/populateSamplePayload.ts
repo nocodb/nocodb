@@ -1,4 +1,4 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { ncIsString, RelationTypes, UITypes } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type {
   LinkToAnotherRecordColumn,
@@ -52,6 +52,7 @@ export async function populateSamplePayloadV2(
   includeNested = false,
   operation = 'insert',
   scope = 'records',
+  version = 'v2',
 ) {
   const rows = {};
   let columns: Column[] = [];
@@ -71,9 +72,14 @@ export async function populateSamplePayloadV2(
 
   await model.getViews(context);
 
+  if (ncIsString(operation) && version === 'v3') {
+    operation = operation.replace('bulk', '').toLowerCase();
+  }
+
   const samplePayload = {
     type: `${scope}.after.${operation}`,
     id: uuidv4(),
+    ...(version === 'v3' ? { version } : {}),
     data: {
       table_id: model.id,
       table_name: model.title,
@@ -91,7 +97,9 @@ export async function populateSamplePayloadV2(
   }
 
   let prevRows;
-  if (['update'].includes(operation)) {
+  if (
+    ['update', ...(version === 'v2' ? ['bulkUpdate'] : [])].includes(operation)
+  ) {
     prevRows = rows;
   }
 

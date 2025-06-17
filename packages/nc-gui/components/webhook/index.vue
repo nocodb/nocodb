@@ -847,7 +847,13 @@ const webhookV2AndV3Diff = computed(() => {
             </NcButton>
 
             <NcButton :loading="loading" type="primary" size="small" data-testid="nc-save-webhook" @click.stop="saveHooks">
-              {{ showUpgradeModal ? 'Upgrade to v3' : hook ? $t('labels.multiField.saveChanges') : $t('activity.createWebhook') }}
+              {{
+                showUpgradeModal
+                  ? $t('general.upgrade')
+                  : hook
+                  ? $t('labels.multiField.saveChanges')
+                  : $t('activity.createWebhook')
+              }}
             </NcButton>
           </template>
           <NcButton type="text" size="small" data-testid="nc-close-webhook-modal" @click.stop="closeModal">

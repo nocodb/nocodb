@@ -6,7 +6,7 @@ export interface RecordField {
 
 export interface DataRecord {
   id: string | number;
-  fields: RecordField;
+  fields?: RecordField;
 }
 
 export interface DataRecordWithDeleted extends DataRecord {

@@ -826,7 +826,7 @@ const triggerSubType = computed(() => {
         </div>
       </div>
     </template>
-    <div v-if="activeTab === HookTab.Configuration" class="flex bg-white rounded-b-2xl h-[calc(100%_-_66px)]">
+    <div v-if="activeTab === HookTab.Configuration" class="flex bg-white rounded-b-2xl h-[calc(100%_-_56px)]">
       <div
         ref="containerElem"
         class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-12 py-6 mx-auto"
@@ -1470,5 +1470,8 @@ const triggerSubType = computed(() => {
 <style lang="scss">
 .webhook-event-select div.ant-select-selector {
   height: 36px !important;
+  .ant-select-selection-item {
+    @apply font-500 text-nc-content-gray;
+  }
 }
 </style>

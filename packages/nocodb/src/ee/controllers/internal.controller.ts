@@ -107,7 +107,7 @@ export class InternalController extends InternalControllerCE {
 
         return await this.auditsService.workspaceAuditList(context, {
           cursor: req.query.cursor,
-          baseId,
+          baseId: req.query.baseId,
           fkUserId: req.query.fkUserId,
           type: req.query.type,
           startDate: req.query.startDate,

@@ -483,6 +483,7 @@ export class DatasService {
       model,
       query,
       view,
+      includeRowColorColumns: query.include_row_color === 'true',
     });
 
     const listArgs: any = { ...dependencyFields };

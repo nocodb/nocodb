@@ -53,9 +53,9 @@ describe('dataApiV3', () => {
       it('Delete: single', async function () {
         const rsp = await ncAxiosDelete({
           url: `${urlPrefix}/${table.id}/records`,
-          body: [{ id: 1 }],
+          body: { id: 1 },
         });
-        expect(rsp.body).to.deep.equal([{ id: 1 }]);
+        expect(rsp.body).to.deep.equal({ records: [{ id: 1, deleted: true }] });
 
         // check that it's gone
         await ncAxiosGet({
@@ -67,9 +67,14 @@ describe('dataApiV3', () => {
       it('Delete: bulk', async function () {
         const rsp = await ncAxiosDelete({
           url: `${urlPrefix}/${table.id}/records`,
-          body: [{ id: 1 }, { id: 2 }],
+          body: { records: [{ id: 1 }, { id: 2 }] },
         });
-        expect(rsp.body).to.deep.equal([{ id: 1 }, { id: 2 }]);
+        expect(rsp.body).to.deep.equal({
+          records: [
+            { id: 1, deleted: true },
+            { id: 2, deleted: true },
+          ],
+        });
 
         // check that it's gone
         await ncAxiosGet({

@@ -16,6 +16,8 @@ async function setupMonacoEditor() {
 
   const typeGenerator = new TypeGenerator()
 
+  monaco.languages.typescript.javascriptDefaults.setExtraLibs([])
+
   monaco.languages.typescript.javascriptDefaults.addExtraLib(typeGenerator.generateTypes(activeBaseSchema.value))
 
   monaco.languages.typescript.javascriptDefaults.addExtraLib(libCode.value ?? '')
@@ -88,6 +90,13 @@ onMounted(async () => {
   configValue.value = JSON.parse(JSON.stringify(activeAutomation.value?.config || {})) || {}
   await until(() => editorRef.value).toBeTruthy()
   await setupMonacoEditor()
+})
+
+onUnmounted(() => {
+  editor?.getModel()?.dispose()
+  editor?.dispose()
+  monaco.editor.getModels().forEach((model) => model.dispose())
+  monaco.languages.typescript.javascriptDefaults.setExtraLibs([])
 })
 </script>
 

@@ -118,7 +118,9 @@ provide(MetaInj, tableMeta)
 
 const displayField = computed(() => (tableMeta?.value?.columns ?? []).find((c) => c.pv))
 
+const localState = ref()
 const resolveInput = async (row: Row) => {
+  localState.value = row
   if (props.version === 'v2') {
     vModel.value = row
   } else {
@@ -161,8 +163,8 @@ whenever(isOpen, () => {
       :class="{ 'record-picker-active': isOpen }"
       class="hover:!bg-nc-bg-gray-extralight"
     >
-      <span v-if="displayField && vModel?.row" class="truncate text-left !leading-[1.5]">
-        <SmartsheetPlainCell :model-value="vModel?.row[displayField.title]" :column="displayField" />
+      <span v-if="displayField && localState?.row" class="truncate text-left !leading-[1.5]">
+        <SmartsheetPlainCell :model-value="localState?.row[displayField.title]" :column="displayField" />
       </span>
       <span v-else class="truncate text-left !leading-[1.5]">{{ props.label }}</span>
 

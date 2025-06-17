@@ -1,16 +1,17 @@
 import { Injectable } from '@nestjs/common';
+import { AppEvents } from 'nocodb-sdk';
 import type { ScriptType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Script from '~/models/Script';
 import { NcError } from '~/helpers/catchError';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
 export class ScriptsService {
-  constructor() {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async listScripts(context: NcContext, baseId: string) {
-    const scripts = await Script.list(context, baseId);
-    return scripts;
+    return await Script.list(context, baseId);
   }
 
   async getScript(context: NcContext, scriptId: string) {
@@ -33,6 +34,14 @@ export class ScriptsService {
       ...scriptBody,
       created_by: req.user.id,
     });
+
+    this.appHooksService.emit(AppEvents.SCRIPT_CREATE, {
+      script,
+      req,
+      context,
+      user: req.user,
+    });
+
     return script;
   }
 
@@ -40,6 +49,7 @@ export class ScriptsService {
     context: NcContext,
     scriptId: string,
     body: Pick<ScriptType, 'title'>,
+    req: NcRequest,
   ) {
     const script = await Script.get(context, scriptId);
 
@@ -47,10 +57,20 @@ export class ScriptsService {
       return NcError.notFound('Script not found');
     }
 
-    return await Script.update(context, scriptId, body);
+    const updatedScript = await Script.update(context, scriptId, body);
+
+    this.appHooksService.emit(AppEvents.SCRIPT_UPDATE, {
+      script: updatedScript,
+      oldScript: script,
+      context,
+      user: context.user,
+      req: req,
+    });
+
+    return updatedScript;
   }
 
-  async deleteScript(context: NcContext, scriptId: string) {
+  async deleteScript(context: NcContext, scriptId: string, req: NcRequest) {
     const script = await Script.get(context, scriptId);
 
     if (!script) {
@@ -59,6 +79,37 @@ export class ScriptsService {
 
     await Script.delete(context, scriptId);
 
+    this.appHooksService.emit(AppEvents.SCRIPT_DELETE, {
+      script,
+      context,
+      req: req,
+      user: context.user,
+    });
+
     return true;
+  }
+
+  async duplicateScript(context: NcContext, scriptId: string, req: NcRequest) {
+    const script = await Script.get(context, scriptId);
+
+    if (!script) {
+      return NcError.notFound('Script not found');
+    }
+
+    const newScript = await Script.insert(context, script.base_id, {
+      title: `Copy of ${script.title}`,
+      script: script.script,
+      description: script.description,
+    });
+
+    this.appHooksService.emit(AppEvents.SCRIPT_DUPLICATE, {
+      sourceScript: script,
+      destScript: newScript,
+      context,
+      req: req,
+      user: context.user,
+    });
+
+    return newScript;
   }
 }

@@ -244,6 +244,7 @@ const permissionScopes = {
     'updateScript',
     'deleteScript',
     'listScripts',
+    'duplicateScript',
     'getScript',
     'baseSchema',
 
@@ -492,6 +493,7 @@ const rolePermissions:
       createScript: true,
       updateScript: true,
       deleteScript: true,
+      duplicateScript: true,
     },
   },
   [ProjectRoles.OWNER]: {

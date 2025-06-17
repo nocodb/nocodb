@@ -31,6 +31,10 @@ import type {
   RelationEvent,
   RowCommentEvent,
   RowMentionEvent,
+  ScriptCreateEvent,
+  ScriptDeleteEvent,
+  ScriptDuplicateEvent,
+  ScriptUpdateEvent,
   SharedBaseDeleteEvent,
   SharedBaseEvent,
   SharedViewUpdateEvent,
@@ -207,6 +211,23 @@ export class AppHooksService extends ApppHookServiceCE {
   on(
     event: AppEvents.WORKSPACE_UPGRADE_REQUEST,
     listener: (data: WorkspaceRequestUpgradeEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.SCRIPT_CREATE,
+    listener: (data: ScriptCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.SCRIPT_UPDATE,
+    listener: (data: ScriptUpdateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.SCRIPT_DELETE,
+    listener: (data: ScriptDeleteEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.SCRIPT_DUPLICATE,
+    listener: (data: ScriptDuplicateEvent) => void,
   ): () => void;
 
   on(event, listener): () => void {
@@ -441,6 +462,12 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.SNAPSHOT_RESTORE, data: SnapshotRestoreEvent): void;
   emit(event: AppEvents.DATA_EXPORT, data: DataExportEvent): void;
   emit(event: AppEvents.DATA_IMPORT, data: DataImportEvent): void;
+
+  emit(event: AppEvents.SCRIPT_CREATE, data: ScriptCreateEvent): void;
+  emit(event: AppEvents.SCRIPT_UPDATE, data: ScriptUpdateEvent): void;
+  emit(event: AppEvents.SCRIPT_DELETE, data: ScriptDeleteEvent): void;
+  emit(event: AppEvents.SCRIPT_DUPLICATE, data: ScriptDuplicateEvent): void;
+
   emit(
     event: AppEvents.USER_PROFILE_UPDATE,
     data: UserProfileUpdateEvent,

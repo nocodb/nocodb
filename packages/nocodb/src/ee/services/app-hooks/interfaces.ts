@@ -8,6 +8,7 @@ import type {
   IntegrationType,
   PlanFeatureTypes,
   PlanLimitTypes,
+  ScriptType,
   UserType,
   WorkspaceType,
 } from 'nocodb-sdk';
@@ -84,6 +85,29 @@ export interface WorkspaceRequestUpgradeEvent extends NcBaseEvent {
     display_name?: string;
   };
   limitOrFeature: PlanLimitTypes | PlanFeatureTypes;
+}
+
+export interface ScriptCreateEvent extends NcBaseEvent {
+  script: ScriptType;
+  user: UserType;
+}
+
+export interface ScriptUpdateEvent extends NcBaseEvent {
+  script: ScriptType;
+  user: UserType;
+  oldScript: ScriptType;
+}
+
+export interface ScriptDeleteEvent extends NcBaseEvent {
+  script: ScriptType;
+  user: UserType;
+}
+
+export interface ScriptDuplicateEvent extends NcBaseEvent {
+  error?: string;
+  sourceScript: ScriptType;
+  destScript: ScriptType;
+  user: UserType;
 }
 
 export * from 'src/services/app-hooks/interfaces';

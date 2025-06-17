@@ -136,7 +136,10 @@ export default class Script extends ScriptCE implements ScriptType {
       scriptId,
     );
 
-    await NocoCache.update(`${CacheScope.SCRIPTS}:${scriptId}`, prepareForResponse(updateObj, ['meta', 'config']));
+    await NocoCache.update(
+      `${CacheScope.SCRIPTS}:${scriptId}`,
+      prepareForResponse(updateObj, ['meta', 'config']),
+    );
 
     return this.get(context, scriptId, ncMeta);
   }

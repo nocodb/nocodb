@@ -37,7 +37,15 @@ const { isUIAllowed } = useRoles()
 
 const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
-const { activeAutomationId } = storeToRefs(useAutomationStore())
+const automationStore = useAutomationStore()
+
+const { duplicateAutomation } = automationStore
+
+const basesStore = useBases()
+
+const { activeProjectId } = storeToRefs(basesStore)
+
+const { activeAutomationId } = storeToRefs(automationStore)
 
 const { meta: metaKey, control } = useMagicKeys()
 
@@ -80,6 +88,19 @@ const focusInput = () => {
     input.value?.focus()
     input.value?.select()
   })
+}
+
+const isLoading = ref(false)
+
+const duplicateScript = async (script: ScriptType) => {
+  if (!activeProjectId.value) return
+
+  try {
+    isLoading.value = true
+    await duplicateAutomation(activeProjectId.value, script.id)
+  } finally {
+    isLoading.value = false
+  }
 }
 
 /** Enable editing script name on dbl click */
@@ -209,21 +230,21 @@ const deleteScript = () => {
 
 <template>
   <a-menu-item
-    class="nc-sidebar-node !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-gray-700 !flex !items-center hover:(!bg-gray-200 !text-gray-700) cursor-pointer"
     :class="{
       '!pl-13.5 !xs:(pl-12)': !isNewSidebarEnabled,
       '!pl-2 !xs:(pl-2)': isNewSidebarEnabled,
     }"
     :data-testid="`view-sidebar-script-${vModel.title}`"
+    class="nc-sidebar-node !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-gray-700 !flex !items-center hover:(!bg-gray-200 !text-gray-700) cursor-pointer"
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
   >
     <NcTooltip
-      :tooltip-style="{ width: '240px', zIndex: '1049' }"
-      :overlay-inner-style="{ width: '240px' }"
-      trigger="hover"
-      placement="right"
       :disabled="isEditing || isDropdownOpen || !showAutomationNodeTooltip"
+      :overlay-inner-style="{ width: '240px' }"
+      :tooltip-style="{ width: '240px', zIndex: '1049' }"
+      placement="right"
+      trigger="hover"
     >
       <template #title>
         <div class="flex flex-col gap-3">
@@ -234,21 +255,21 @@ const deleteScript = () => {
       <div v-e="['a:script:open']" class="text-sm flex items-center w-full gap-1" data-testid="script-item">
         <div
           v-e="['c:script:emoji-picker']"
-          class="flex min-w-6"
           :data-testid="`view-sidebar-drag-handle-${vModel.title}`"
+          class="flex min-w-6"
           @mouseenter="showAutomationNodeTooltip = false"
           @mouseleave="showAutomationNodeTooltip = true"
         >
           <LazyGeneralEmojiPicker
+            :clearable="true"
+            :emoji="props.view?.meta?.icon"
+            :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
             class="nc-script-icon"
             size="small"
-            :emoji="props.view?.meta?.icon"
-            :clearable="true"
-            :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
             @emoji-selected="emits('selectIcon', $event)"
           >
             <template #default>
-              <GeneralIcon icon="ncScript" class="w-4 text-nc-content-gray-subtle !text-[16px]" />
+              <GeneralIcon class="w-4 text-nc-content-gray-subtle !text-[16px]" icon="ncScript" />
             </template>
           </LazyGeneralEmojiPicker>
         </div>
@@ -257,29 +278,29 @@ const deleteScript = () => {
           v-if="isEditing"
           ref="input"
           v-model:value="_title"
-          class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
           :class="{
             'font-semibold !text-brand-600': activeAutomationId === vModel.id,
           }"
           :style="{
             fontWeight: 'inherit',
           }"
+          class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
           @blur="onRename"
           @keydown.stop="onKeyDown($event)"
         />
         <NcTooltip
           v-else
           class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none w-full max-w-full"
-          show-on-truncate-only
           disabled
+          show-on-truncate-only
         >
           <template #title> {{ vModel.title }}</template>
           <div
-            data-testid="sidebar-script-title"
             :class="{
               'font-semibold text-brand-600': activeAutomationId === vModel.id,
             }"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+            data-testid="sidebar-script-title"
           >
             {{ vModel.title }}
           </div>
@@ -294,38 +315,38 @@ const deleteScript = () => {
             <template #title>
               {{ vModel.description }}
             </template>
-            <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
-              <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-gray-600 opacity-0" />
+            <NcButton class="!hover:bg-transparent" size="xsmall" type="text">
+              <GeneralIcon class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-gray-600 opacity-0" icon="info" />
             </NcButton>
           </NcTooltip>
           <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
             <NcButton
               v-e="['c:script:option']"
-              type="text"
-              size="xxsmall"
-              class="nc-sidebar-node-btn invisible !group-hover:(visible opacity-100) nc-sidebar-script-node-context-btn"
               :class="{
                 '!visible !opacity-100': isDropdownOpen,
               }"
-              @click.stop="isDropdownOpen = !isDropdownOpen"
-              @dblclick.stop
+              class="nc-sidebar-node-btn invisible !group-hover:(visible opacity-100) nc-sidebar-script-node-context-btn"
+              size="xxsmall"
+              type="text"
               @mouseenter="showAutomationNodeTooltip = false"
               @mouseleave="showAutomationNodeTooltip = true"
+              @click.stop="isDropdownOpen = !isDropdownOpen"
+              @dblclick.stop
             >
-              <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
+              <GeneralIcon class="text-xl w-4.75" icon="threeDotHorizontal" />
             </NcButton>
 
             <template #overlay>
-              <NcMenu variant="small" class="!min-w-62.5" :data-testid="`sidebar-script-context-menu-list-${script.title}`">
+              <NcMenu :data-testid="`sidebar-script-context-menu-list-${script.title}`" class="!min-w-62.5" variant="small">
                 <NcMenuItemCopyId
                   v-if="script?.id"
                   :id="script.id"
-                  :tooltip="$t('labels.clickToCopyScriptID')"
                   :label="
                     $t('labels.scriptIdColon', {
                       scriptId: script?.id,
                     })
                   "
+                  :tooltip="$t('labels.clickToCopyScriptID')"
                 />
                 <template v-if="!isSharedBase && isUIAllowed('scriptCreateOrEdit')">
                   <NcDivider />
@@ -335,7 +356,7 @@ const deleteScript = () => {
                     class="nc-script-rename"
                     @click="onRenameMenuClick(script)"
                   >
-                    <GeneralIcon icon="rename" class="text-gray-700" />
+                    <GeneralIcon class="text-gray-700" icon="rename" />
                     {{ $t('general.rename') }} {{ $t('objects.script').toLowerCase() }}
                   </NcMenuItem>
 
@@ -345,10 +366,20 @@ const deleteScript = () => {
                     class="nc-script-description"
                     @click="openAutomationDescriptionDialog(script)"
                   >
-                    <GeneralIcon icon="ncAlignLeft" class="text-gray-700" />
+                    <GeneralIcon class="text-gray-700" icon="ncAlignLeft" />
                     {{ $t('labels.editDescription') }}
                   </NcMenuItem>
-
+                  <NcDivider />
+                  <NcMenuItem
+                    v-e="['c:script:duplicate']"
+                    :data-testid="`sidebar-script-duplicate-${script.title}`"
+                    class="nc-script-duplicate"
+                    @click="duplicateScript(script)"
+                  >
+                    <GeneralLoader v-if="isLoading" />
+                    <GeneralIcon v-else class="text-gray-700" icon="duplicate" />
+                    {{ $t('general.duplicate') }} {{ $t('objects.script').toLowerCase() }}
+                  </NcMenuItem>
                   <NcDivider />
                   <NcMenuItem
                     v-e="['c:table:delete']"

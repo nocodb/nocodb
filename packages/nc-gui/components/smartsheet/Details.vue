@@ -16,6 +16,8 @@ const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 
+const { hasV2Webhooks } = storeToRefs(useWebhooksStore())
+
 const indicator = h(LoadingOutlined, {
   style: {
     fontSize: '2rem',
@@ -98,8 +100,9 @@ watch(
       <a-tab-pane v-if="isUIAllowed('hookList') && !isSqlView" key="webhook">
         <template #tab>
           <div class="tab" data-testid="nc-webhooks-tab">
-            <GeneralIcon icon="ncWebhook" class="tab-icon" :class="{}" />
+            <GeneralIcon icon="ncWebhook" class="tab-icon" />
             <div>{{ $t('objects.webhooks') }}</div>
+            <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium h-4 w-4" />
           </div>
         </template>
         <LazySmartsheetDetailsWebhooks />

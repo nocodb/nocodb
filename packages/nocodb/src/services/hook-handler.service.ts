@@ -1,16 +1,23 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
-import type { FormColumnType, FormType, HookType } from 'nocodb-sdk';
-import type { ColumnType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { transformDataForMailRendering } from '~/helpers/webhookHelpers';
-import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
-import { Base, FormView, Hook, Model, Source, View } from '~/models';
+import type {
+  ColumnType,
+  FormColumnType,
+  FormType,
+  HookType,
+} from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
+import {
+  getAffectedColumns,
+  transformDataForMailRendering,
+} from '~/helpers/webhookHelpers';
 import { JobTypes } from '~/interface/Jobs';
+import { MailEvent } from '~/interface/Mail';
+import { Base, FormView, Hook, Model, Source, View } from '~/models';
+import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MailService } from '~/services/mail/mail.service';
-import { MailEvent } from '~/interface/Mail';
 
 export const HANDLE_WEBHOOK = '__nc_handleHooks';
 
@@ -131,6 +138,12 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
       fk_model_id: modelId,
       event: event as HookType['event'],
       operation: operation as HookType['operation'][0],
+      affectedColumns: await getAffectedColumns(context, {
+        hookName,
+        newData,
+        prevData,
+        model,
+      }),
     });
     for (const hook of hooks) {
       if (hook.active) {

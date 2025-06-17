@@ -872,7 +872,8 @@ const triggerSubType = computed(() => {
                         :class="{
                           'transform rotate-180': isDropdownOpen,
                         }"
-                        class="text-nc-content-gray transition-all w-4 h-4"
+                        class="transition-all"
+                        style="width: 12.5px; height: 12.5px; margin-right: -6px"
                         icon="ncChevronDown"
                       />
                     </div>

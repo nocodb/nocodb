@@ -15,13 +15,7 @@ interface Emits {
       columns?: ColumnType[]
     },
   ): void
-  (
-    event: 'change',
-    model: {
-      modelValue?: Ref<any>
-      columns?: ColumnType[]
-    },
-  ): void
+  (event: 'change', model?: boolean): void
   (event: 'remove', model: void): void
 }
 
@@ -51,7 +45,7 @@ const hasPermission = computed(() => !isLocked.value && isUIAllowed('rowColourUp
         class="nc-colouring-field-select w-full nc-select-shadow"
         :dropdown-match-select-width="false"
         :disabled="!hasPermission"
-        @change="emits('change', vModel)"
+        @change="emits('change', true)"
       >
         <a-select-option v-for="(column, idx) of columns" :key="idx" :value="column.id">
           <div class="w-full flex gap-2 items-center">
@@ -83,7 +77,7 @@ const hasPermission = computed(() => !isLocked.value && isUIAllowed('rowColourUp
           v-model:checked="vModel.is_set_as_background"
           placement="right"
           :disabled="!hasPermission"
-          @change="emits('change', vModel)"
+          @change="emits('change')"
         >
           {{ $t('labels.backgroundColour') }}
         </NcSwitch>

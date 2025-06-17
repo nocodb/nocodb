@@ -20,6 +20,8 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
+const { fieldsMap } = useViewColumnsOrThrow()
+
 const {
   rowColorInfo,
   filterPerViewLimit,
@@ -38,6 +40,7 @@ const {
 } = useViewRowColorOption({
   meta,
   view: activeView,
+  viewFieldsMap: fieldsMap,
 })
 
 const open = ref(false)

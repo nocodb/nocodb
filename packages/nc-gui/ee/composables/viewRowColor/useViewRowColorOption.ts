@@ -12,9 +12,16 @@ import type { FilterRowChangeEvent } from '#imports'
 export function useViewRowColorOption(params: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
   view: Ref<ViewType>
+  viewFieldsMap: ComputedRef<Record<string, any>>
 }) {
   const { $api } = useNuxtApp()
+
   const view = params.view
+
+  const viewFieldsMap = params.viewFieldsMap
+
+  const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
   const { activeViewRowColorInfo: rowColorInfo } = storeToRefs(useViewsStore())
 
   const { eventBus } = useSmartsheetStoreOrThrow()
@@ -57,6 +64,10 @@ export function useViewRowColorOption(params: {
     return await composeColumnsForFilter({ rootMeta: meta.value, getMeta: async (id) => metas.value[id] })
   })
 
+  const reloadViewData = () => {
+    reloadViewDataHook.trigger({ shouldShowLoading: false })
+  }
+
   const onRemoveRowColoringMode = async () => {
     await $api.dbView.deleteViewRowColor(params.view.value.id)
     rowColorInfo.value = { mode: null, conditions: [] }
@@ -64,10 +75,14 @@ export function useViewRowColorOption(params: {
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
-  const onRowColorSelectChange = async () => {
+  const onRowColorSelectChange = async (columnChanged?: boolean = false) => {
     if (rowColorInfo.value.fk_column_id) {
       await $api.dbView.viewRowColorSelectAdd(params.view.value.id, rowColorInfo.value)
       eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
+
+      if (columnChanged && !viewFieldsMap.value?.[rowColorInfo.value.fk_column_id]?.show) {
+        reloadViewData()
+      }
     }
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
@@ -125,13 +140,17 @@ export function useViewRowColorOption(params: {
       rowColorInfo.value.is_set_as_background = false
       if (rowColorInfo.value.fk_column_id) {
         await $api.dbView.viewRowColorSelectAdd(params.view.value.id, rowColorInfo.value)
+
+        if (!viewFieldsMap.value?.[rowColorInfo.value.fk_column_id]?.show) {
+          reloadViewData()
+        }
       }
+
       eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
+      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
     } else if (mode === ROW_COLORING_MODE.FILTER) {
       onRowColorConditionAdd()
     }
-
-    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
   const onRowColorConditionDelete = async (index: number) => {
@@ -203,6 +222,7 @@ export function useViewRowColorOption(params: {
       const result = await $api.rowColorConditions.rowColorConditionsFilterCreate(conditionToAdd.id, toInsert)
       filter.id = result.id
     })
+
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 

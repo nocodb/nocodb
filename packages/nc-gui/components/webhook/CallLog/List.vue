@@ -70,14 +70,12 @@ const emit = defineEmits<Emit>()
 
   .item {
     @apply cursor-pointer flex gap-2 p-3 rounded-lg;
-    &:hover {
-      @apply bg-gray-50;
-    }
+    @apply hover:bg-nc-bg-gray-extralight;
     &.active {
-      @apply bg-[#F0F3FF];
+      @apply bg-nc-bg-brand;
 
       h4 {
-        @apply text-[#2952CC];
+        @apply text-brand-600;
         font-weight: bold;
       }
     }

@@ -40,14 +40,14 @@ const formattedPayload = computed(() => {
         <span class="text-gray-500 font-weight-bold text-xs leading-[18px]">Header</span>
         <div class="log-details">
           <div v-for="(value, key) in headers" :key="key" class="log-detail-item">
-            <nc-tooltip class="text-small1 min-w-40">
+            <NcTooltip class="text-small1 min-w-40">
               <template #title>{{ key }}</template>
               <span class="label"> {{ key }}</span>
-            </nc-tooltip>
-            <nc-tooltip class="text-small1">
+            </NcTooltip>
+            <NcTooltip class="text-small1">
               <template #title>{{ value }}</template>
               <span class="value"> {{ value }}</span>
-            </nc-tooltip>
+            </NcTooltip>
           </div>
         </div>
       </div>
@@ -55,14 +55,14 @@ const formattedPayload = computed(() => {
         <span class="text-gray-500 font-weight-bold text-xs leading-[18px]">Params</span>
         <div class="log-details">
           <div v-for="(value, key) in params" :key="key" class="log-detail-item">
-            <nc-tooltip class="text-small1 min-w-40">
+            <NcTooltip class="text-small1 min-w-40">
               <template #title>{{ key }}</template>
               <span class="label"> {{ key }}</span>
-            </nc-tooltip>
-            <nc-tooltip class="text-small1">
+            </NcTooltip>
+            <NcTooltip class="text-small1">
               <template #title>{{ value }}</template>
               <span class="value"> {{ value }}</span>
-            </nc-tooltip>
+            </NcTooltip>
           </div>
         </div>
       </div>

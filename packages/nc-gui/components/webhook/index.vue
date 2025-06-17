@@ -503,8 +503,8 @@ async function saveHooks() {
     if (hookRef.operation?.length === 0 && sendMeEverythingChecked.value === false) {
       throw new Error('At least one operation need to be selected')
     }
-  } catch (_: any) {
-    message.error(t('msg.error.invalidForm'))
+  } catch (error: any) {
+    console.error('validation error', error)
 
     loading.value = false
 

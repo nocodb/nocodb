@@ -72,39 +72,36 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-4 overflow-y-auto h-[95svh] nc-scrollbar-md">
-    <h1 v-if="config?.title" class="text-2xl text-nc-content-gray font-semibold">
-      {{ config?.title }}
-    </h1>
-    <p class="text-nc-content-gray leading-5">
-      {{ config?.description }}
-    </p>
+  <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight h-[95svh] nc-scrollbar-md">
+    <div class="flex mx-auto flex-col max-w-130 gap-6">
+      <div>
+        <div v-if="config?.title" class="text-subHeading2 text-nc-content-gray-emphasis">
+          {{ config?.title }}
+        </div>
+        <div v-if="config?.description" class="text-nc-content-gray-subtle2 text-body mt-2">
+          {{ config?.description }}
+        </div>
+      </div>
 
-    <div class="py-2">
-      <div v-for="item in config?.items" :key="item.key" class="pb-4">
+      <div v-for="item in config?.items" :key="item.key">
         <template v-if="item.type === 'table'">
-          <div class="flex flex-col">
-            <div v-if="item?.label || item?.key" class="font-semibold text-nc-content-gray">
+          <div class="flex flex-col gap-2">
+            <div v-if="item?.label || item?.key" class="text-caption text-nc-content-gray-subtle2">
               {{ item.label || item.key }}
             </div>
-            <div v-if="item?.description" class="mb-2">
+            <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <NSelectTable
-              :value="getValue(item.key)"
-              allow-clear
-              class="w-64"
-              @change="(value) => handleTableChange(item.key, value)"
-            />
+            <NSelectTable :value="getValue(item.key)" allow-clear @change="(value) => handleTableChange(item.key, value)" />
           </div>
         </template>
 
         <template v-else-if="item.type === 'view'">
-          <div class="flex flex-col">
-            <div v-if="item?.label || item?.key" class="font-semibold text-nc-content-gray">
+          <div class="flex flex-col gap-2">
+            <div v-if="item?.label || item?.key" class="text-caption text-nc-content-gray-subtle2">
               {{ item.label || item.key }}
             </div>
-            <div v-if="item?.description" class="mb-2">
+            <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
             <NSelectView
@@ -112,18 +109,17 @@ onMounted(() => {
               :table-id="getValue(item.parentTable)"
               :disabled="canShowFieldOrView(item)"
               allow-clear
-              class="w-64"
               @change="(value) => handleFieldOrViewChange(item, value)"
             />
           </div>
         </template>
 
         <template v-else-if="item.type === 'field'">
-          <div class="flex flex-col">
-            <div v-if="item?.label || item?.key" class="font-semibold text-nc-content-gray">
+          <div class="flex flex-col gap-2">
+            <div v-if="item?.label || item?.key" class="text-caption text-nc-content-gray-subtle2">
               {{ item.label || item.key }}
             </div>
-            <div v-if="item?.description" class="mb-2">
+            <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
             <NSelectField
@@ -131,54 +127,44 @@ onMounted(() => {
               :table-id="getValue(item.parentTable)"
               :disabled="canShowFieldOrView(item)"
               allow-clear
-              class="w-64"
               @change="(value) => handleFieldOrViewChange(item, value)"
             />
           </div>
         </template>
 
         <template v-else-if="item.type === 'text'">
-          <div class="flex flex-col">
-            <div v-if="item?.label || item?.key" class="font-semibold text-nc-content-gray">
+          <div class="flex flex-col gap-2">
+            <div v-if="item?.label || item?.key" class="text-caption text-nc-content-gray-subtle2">
               {{ item.label || item.key }}
             </div>
-            <div v-if="item?.description" class="mb-2">
+            <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <a-input
-              v-model:value="configValue[item.key]"
-              type="text"
-              class="nc-input-sm !w-64 nc-input-shadow"
-              @change="emitUpdate"
-            />
+            <a-input v-model:value="configValue[item.key]" type="text" class="nc-input-sm nc-input-shadow" @change="emitUpdate" />
           </div>
         </template>
 
         <template v-else-if="item.type === 'number'">
-          <div class="flex flex-col">
-            <div v-if="item?.label || item?.key" class="font-semibold text-nc-content-gray">
+          <div class="flex flex-col gap-2">
+            <div v-if="item?.label || item?.key" class="text-caption text-nc-content-gray-subtle2">
               {{ item.label || item.key }}
             </div>
-            <div v-if="item?.description" class="mb-2">
+            <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <a-input-number
-              v-model:value="configValue[item.key]"
-              class="nc-input-sm !w-64 nc-input-shadow"
-              @change="emitUpdate"
-            />
+            <a-input-number v-model:value="configValue[item.key]" class="nc-input-sm nc-input-shadow" @change="emitUpdate" />
           </div>
         </template>
 
         <template v-else-if="item.type === 'select'">
-          <div class="flex flex-col">
-            <div v-if="item?.label || item?.key" class="font-semibold text-nc-content-gray">
+          <div class="flex flex-col gap-2">
+            <div v-if="item?.label || item?.key" class="text-caption text-nc-content-gray-subtle2">
               {{ item.label || item.key }}
             </div>
-            <div v-if="item?.description" class="mb-2">
+            <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <a-select v-model:value="configValue[item.key]" class="w-64" show-search @change="emitUpdate">
+            <a-select v-model:value="configValue[item.key]" show-search @change="emitUpdate">
               <template #suffixIcon>
                 <GeneralIcon icon="arrowDown" class="text-gray-700" />
               </template>

@@ -44,18 +44,26 @@ async function setupMonacoEditor() {
     model,
     contextmenu: false,
     theme: 'vs',
+    folding: false,
     foldingStrategy: 'indentation',
-    selectOnLineNumbers: true,
     language: 'typescript',
     tabSize: 2,
     bracketPairColorization: {
       enabled: true,
       independentColorPoolPerBracketType: true,
     },
+    lineNumbersMinChars: 5,
     minimap: {
       enabled: false,
     },
+    scrollbar: {
+      horizontal: 'hidden',
+      verticalScrollbarSize: 6,
+    },
+    selectOnLineNumbers: false,
+    scrollBeyondLastLine: false,
     fontSize: 13,
+    lineHeight: 18,
     detectIndentation: true,
     autoIndent: 'full',
     automaticLayout: true,
@@ -66,6 +74,10 @@ async function setupMonacoEditor() {
     parameterHints: {
       enabled: true,
     },
+    overviewRulerBorder: false,
+    renderIndentGuides: false,
+    wrappingStrategy: 'advanced',
+    renderLineHighlight: 'none',
   })
 
   editor.onDidChangeModelContent(() => {
@@ -99,14 +111,14 @@ const triggerUpdate = useDebounceFn((val) => {
 </script>
 
 <template>
-  <div class="flex h-full w-full">
-    <Splitpanes class="nc-extensions-content-resizable-wrapper">
-      <Pane class="flex flex-col h-full min-w-0">
+  <div class="flex h-full w-full nc-scripts-content-resizable-wrapper">
+    <Splitpanes>
+      <Pane :size="70" class="flex flex-col h-full min-w-0">
         <div class="w-full flex-1">
           <div ref="editorRef" class="h-full" />
         </div>
       </Pane>
-      <Pane>
+      <Pane :size="30">
         <SmartsheetAutomationScriptsConfigInput
           v-if="isSettingsOpen"
           v-model:model-value="configValue"
@@ -117,10 +129,53 @@ const triggerUpdate = useDebounceFn((val) => {
       </Pane>
     </Splitpanes>
   </div>
+  <div class="h-9 border-t-1 flex border-nc-border-gray-medium px-2 py-1">
+    <div class="flex-1" />
+    <div class="flex items-center gap-2">
+      <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts">
+        <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
+          <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
+          APIs
+        </div>
+      </NuxtLink>
+
+      <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts">
+        <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
+          <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
+          Example Scripts
+        </div>
+      </NuxtLink>
+      <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts/api/base">
+        <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
+          <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
+          Script Docs
+        </div>
+      </NuxtLink>
+    </div>
+  </div>
 </template>
 
 <style lang="scss">
-.monaco-editor {
-  position: absolute !important;
+.nc-scripts-content-resizable-wrapper {
+  height: calc(100% - var(--topbar-height) - 36px);
+  .monaco-editor {
+    @apply !border-0 !rounded-b-lg outline-none;
+  }
+  .overflow-guard {
+    @apply !border-0 !rounded-b-lg !rounded-t-0;
+  }
+  .monaco-editor,
+  .monaco-diff-editor,
+  .monaco-component {
+    --vscode-editor-background: #ffffff;
+    --vscode-editorGutter-background: #ffffff;
+  }
+  .line-numbers {
+    @apply text-nc-content-gray-subtle2;
+  }
+}
+
+.nc-docs-link {
+  @apply !text-nc-content-gray-subtle no-underline;
 }
 </style>

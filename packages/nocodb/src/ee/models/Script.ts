@@ -1,4 +1,5 @@
 import { Script as ScriptCE } from 'src/models';
+import { Logger } from '@nestjs/common';
 import type { ScriptType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
@@ -11,7 +12,8 @@ import {
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
-import { deserializeJSON } from '~/utils/serialize';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+const logger = new Logger('Base');
 
 export default class Script extends ScriptCE implements ScriptType {
   id?: string;
@@ -110,6 +112,10 @@ export default class Script extends ScriptCE implements ScriptType {
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
     return true;
   }
 
@@ -141,6 +147,10 @@ export default class Script extends ScriptCE implements ScriptType {
       prepareForResponse(updateObj, ['meta', 'config']),
     );
 
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
     return this.get(context, scriptId, ncMeta);
   }
 
@@ -171,6 +181,10 @@ export default class Script extends ScriptCE implements ScriptType {
       MetaTable.SCRIPTS,
       insertObj,
     );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     return this.get(context, id, ncMeta).then(async (res) => {
       await NocoCache.appendToList(

@@ -31,6 +31,10 @@ export class CommandPaletteService {
           view_is_default: boolean;
           view_type: string;
           view_meta: string;
+          script_id: string;
+          script_title: string;
+          script_meta: string;
+          script_order: number;
         }[] = await getCommandPaletteForUserWorkspace(
           param.user?.id,
           data.workspace_id,
@@ -74,6 +78,18 @@ export class CommandPaletteService {
           }
         >();
 
+        const scripts = new Map<
+          string,
+          {
+            id: string;
+            title: string;
+            workspace_id: string;
+            base_id: string;
+            order: number;
+            meta: any;
+          }
+        >();
+
         for (const item of list) {
           if (!workspaces.has(item.workspace_id)) {
             workspaces.set(item.workspace_id, {
@@ -113,6 +129,17 @@ export class CommandPaletteService {
               table_id: item.table_id,
               is_default: item.view_is_default,
               type: item.view_type,
+            });
+          }
+
+          if (!scripts.has(item.script_id)) {
+            scripts.set(item.script_id, {
+              id: item.script_id,
+              title: item.script_title,
+              meta: deserializeJSON(item.script_meta),
+              workspace_id: item.workspace_id,
+              base_id: item.base_id,
+              order: item.script_order,
             });
           }
         }
@@ -176,6 +203,23 @@ export class CommandPaletteService {
               payload: `/${view.workspace_id}/${view.base_id}/${
                 view.table_id
               }/${encodeURIComponent(id)}`,
+            },
+          });
+        }
+
+        for (const [id, script] of scripts) {
+          cmdData.push({
+            id: `script-${id}`,
+            title: script.title,
+            parent: `p-${script.base_id}`,
+            icon: script?.meta?.icon || 'ncScript',
+            projectName: bases.get(script.base_id)?.title,
+            section: 'Scripts',
+            handler: {
+              type: 'navigate',
+              payload: `/${script.workspace_id}/${
+                script.base_id
+              }/automations/${encodeURIComponent(script.id)}`,
             },
           });
         }

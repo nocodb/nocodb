@@ -162,18 +162,20 @@ export function useViewRowColorOption(params: {
     const conditionToDelete = conditions[index]
     const newConditions = conditions.filter((condition, i) => i !== index)
     await popPendingAction()
+
     if (newConditions.length === 0) {
-      await $api.dbView.deleteViewRowColor(params.view.value.id)
-      eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
+      onRemoveRowColoringMode()
     } else {
+      const deleteConditionId = conditionToDelete?.id
+
       conditions.splice(index, 1)
-      if (conditionToDelete.id) {
-        await $api.dbView.viewRowColorConditionDelete(params.view.value.id, conditionToDelete.id)
+      if (deleteConditionId) {
+        await $api.dbView.viewRowColorConditionDelete(params.view.value.id, deleteConditionId)
         eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
       }
-    }
 
-    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+    }
   }
 
   const onRowColorConditionUpdate = async (params: { index: number; color: string; is_set_as_background: boolean }) => {
@@ -318,7 +320,12 @@ export function useViewRowColorOption(params: {
       conditionToDelete.nestedConditions = conditionToDelete.nestedConditions.filter((f) => f.id !== filterToDelete.id)
     }
     conditionToDelete.conditions = conditionToDelete.conditions.filter((fil) => !deletedFilterIds.includes(fil.id))
-    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+
+    if (!conditionToDelete.conditions.length && !conditionToDelete.nestedConditions.length) {
+      onRowColorConditionDelete(colorIndex)
+    } else {
+      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+    }
   }
 
   const filterPerViewLimit = computed(() => getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW))

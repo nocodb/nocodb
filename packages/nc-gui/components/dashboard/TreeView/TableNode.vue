@@ -653,7 +653,7 @@ async function onRename() {
                     @click="onPermissions(table)"
                   >
                     <div v-e="['c:table:permissions']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="lock" class="opacity-80" />
+                      <GeneralIcon icon="ncLock" class="opacity-80" />
                       {{ $t('title.editTablePermissions') }}
                     </div>
                   </NcMenuItem>

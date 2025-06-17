@@ -1,28 +1,11 @@
 <script setup lang="ts">
-const { isRunning, runScript, stopExecution, code } = useScriptStoreOrThrow()
+const { isRunning, runScript, stopExecution } = useScriptStoreOrThrow()
 
 const automationStore = useAutomationStore()
 
-const { updateAutomation } = automationStore
-
-const { activeAutomation, activeAutomationId, isLoadingAutomation, isSettingsOpen } = storeToRefs(automationStore)
+const { activeAutomation, isLoadingAutomation, isSettingsOpen } = storeToRefs(automationStore)
 
 const { isValidConfig } = useScriptStoreOrThrow()
-
-const { base } = storeToRefs(useBase())
-
-const isSaving = ref(false)
-
-const useDebouncedSaveCode = async () => {
-  try {
-    isSaving.value = true
-    await updateAutomation(base.value.id, activeAutomationId.value, {
-      script: code.value,
-    })
-  } finally {
-    isSaving.value = false
-  }
-}
 
 const toggleScriptSettings = () => {
   isSettingsOpen.value = !isSettingsOpen.value
@@ -53,15 +36,6 @@ const toggleScriptSettings = () => {
 
     <NcButton v-if="isRunning" size="small" type="primary" @click="stopExecution">
       <div class="flex gap-2 items-center">Stop Execution</div>
-    </NcButton>
-    <NcButton
-      :disabled="code === activeAutomation.script || isSaving"
-      :loading="isSaving"
-      size="small"
-      type="primary"
-      @click="useDebouncedSaveCode"
-    >
-      <div class="flex gap-2 items-center">Save script</div>
     </NcButton>
   </div>
 </template>

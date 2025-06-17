@@ -4,7 +4,9 @@ import { parseScript, validateConfigValues } from '~/components/smartsheet/autom
 
 const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: ScriptType) => {
   const automationStore = useAutomationStore()
+  const { updateAutomation } = automationStore
   const { activeAutomation, isSettingsOpen } = storeToRefs(automationStore)
+  const { activeProjectId } = storeToRefs(useBases())
 
   const {
     runScript: executeScript,
@@ -72,6 +74,18 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
       currentScriptId.value = null
     }
   }
+
+  const debouncedSave = useDebounceFn(async () => {
+    await updateAutomation(activeProjectId.value, activeAutomation.value.id, {
+      script: code.value,
+      config: configValue.value,
+    })
+  }, 2000)
+
+  watch([code, configValue], async (newValue, oldValue) => {
+    if (!oldValue[0] || !oldValue[1]) return
+    await debouncedSave()
+  })
 
   return {
     // State

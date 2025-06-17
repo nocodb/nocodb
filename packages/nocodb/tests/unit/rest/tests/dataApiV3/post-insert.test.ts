@@ -120,7 +120,7 @@ describe('dataApiV3', () => {
         // Invalid data - create should not specify ID
         await ncAxiosPost({
           url: `${urlPrefix}/${table.id}/records`,
-          body: { ...newRecord, Id: 300 },
+          body: { fields: { ...newRecord.fields, Id: 300 } },
           status: 422,
         });
         // Invalid data - number instead of string
@@ -479,9 +479,8 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: newRecord,
         });
-        expect(rsp.body).to.deep.equal({ Id: 401 });
-        const record = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/records/401`,
+        expect(rsp.body).to.deep.equal({
+          records: [{ id: 401 }],
         });
         const record = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/records/401`,

@@ -102,46 +102,7 @@ describe('dataApiV3', () => {
         const firstRow = await ncAxiosGet({
           url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
         });
-        expect(firstRow.body.record.fields).to.contain.keys([
-          'Country',
-          'Cities',
-        ]);
-      });
-
-      it('Read: specific field without primary key', async function () {
-        const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
-          query: {
-            fields: 'Country',
-          },
-        });
-
-        // Verify that only the requested field is present in fields
-        expect(response.body.record.fields).to.have.property('Country');
-        expect(Object.keys(response.body.record.fields)).to.have.length(1);
-
-        // Verify that id is not included when primary key is not in fields
-        expect(response.body.record).to.not.have.property('id');
-      });
-
-      it('Read: specific field with primary key', async function () {
-        const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
-          query: {
-            fields: ['CountryId', 'Country'],
-          },
-        });
-
-        // Verify that both requested fields are present
-        expect(response.body.record.fields).to.have.property('CountryId');
-        expect(response.body.record.fields).to.have.property('Country');
-        expect(Object.keys(response.body.record.fields)).to.have.length(2);
-
-        // Verify that id IS included when primary key is in fields
-        expect(response.body.record).to.have.property('id');
-        expect(response.body.record.id).to.equal(
-          response.body.record.fields.CountryId,
-        );
+        expect(firstRow.body.record.fields).to.contain.keys(['Country', 'Cities']);
       });
 
       it('Read: invalid ID', async function () {

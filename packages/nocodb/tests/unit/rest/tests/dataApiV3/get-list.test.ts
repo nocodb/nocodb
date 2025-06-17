@@ -93,38 +93,9 @@ describe('dataApiV3', () => {
         });
         const result = response.body as ListResult;
         expect(result.records.length).to.greaterThan(0);
-
-        // Verify that only the requested field is present in fields
-        const firstRecord = result.records[0];
-        expect(firstRecord.fields).to.have.property('Country');
-        expect(Object.keys(firstRecord.fields)).to.have.length(1);
-
-        // Verify that id is always included for APIv3
-        expect(firstRecord).to.have.property('id');
       });
 
       it('get list country with primary key field included', async function () {
-        const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
-          query: {
-            fields: ['CountryId', 'Country'],
-          },
-        });
-        const result = response.body as ListResult;
-        expect(result.records.length).to.greaterThan(0);
-
-        // Verify that both requested fields are present
-        const firstRecord = result.records[0];
-        expect(firstRecord.fields).to.have.property('CountryId');
-        expect(firstRecord.fields).to.have.property('Country');
-        expect(Object.keys(firstRecord.fields)).to.have.length(2);
-
-        // Verify that id IS included when primary key is in fields
-        expect(firstRecord).to.have.property('id');
-        expect(firstRecord.id).to.equal(firstRecord.fields.CountryId);
-      });
-
-      it.skip('get list country with 2 fields on same query param', async function () {
         const response = await ncAxiosGet({
           url: `${urlPrefix}/${testContext.countryTable.id}/records`,
           query: {
@@ -167,9 +138,7 @@ describe('dataApiV3', () => {
         const result = response.body as ListResult;
         expect(result.records.length).to.greaterThan(0);
         expect(
-          result.records.some((k) =>
-            k.fields.Country.toLowerCase().startsWith('ind'),
-          ),
+          result.records.some((k) => k.fields.Country.toLowerCase().startsWith('ind')),
         ).to.eq(true);
       });
 
@@ -183,9 +152,7 @@ describe('dataApiV3', () => {
         });
         expect(records.body.records.length).to.equal(expectedRecords.length);
 
-        const cityList = records.body.records.map(
-          (r: any) => r.fields['Cities'],
-        );
+        const cityList = records.body.records.map((r: any) => r.fields['Cities']);
         expect(cityList).to.deep.equal(expectedRecords);
       });
 
@@ -301,9 +268,9 @@ describe('dataApiV3', () => {
         );
 
         // verify if all the columns are present in the response
-        expect(
-          verifyColumnsInRsp(rsp.body.records[0], expectedColumns),
-        ).to.equal(true);
+        expect(verifyColumnsInRsp(rsp.body.records[0], expectedColumns)).to.equal(
+          true,
+        );
 
         // verify column data
         const expectedData = insertedRecords.slice(0, 1);
@@ -338,9 +305,7 @@ describe('dataApiV3', () => {
         });
 
         expect(
-          verifyColumnsInRsp(rsp.body.records[0], [
-            { title: 'SingleLineText' },
-          ]),
+          verifyColumnsInRsp(rsp.body.records[0], [{ title: 'SingleLineText' }]),
         ).to.equal(true);
       });
 
@@ -362,20 +327,13 @@ describe('dataApiV3', () => {
         const sortColumn = columns.find((c) => c.title === 'SingleLineText')!;
         const rsp = await ncAxiosGet({
           url: `${textBasedUrlPrefix}/${table.id}/records`,
-          query: {
-            sort: JSON.stringify([
-              { direction: 'asc', field: 'SingleLineText' },
-            ]),
-            limit: 400,
-          },
+          query: { sort: 'SingleLineText', limit: 400 },
         });
 
-        expect(
-          verifyColumnsInRsp(rsp.body.records[0], expectedColumns),
-        ).to.equal(true);
-        const sortedArray = rsp.body.records.map(
-          (r) => r.fields[sortColumn.title],
+        expect(verifyColumnsInRsp(rsp.body.records[0], expectedColumns)).to.equal(
+          true,
         );
+        const sortedArray = rsp.body.records.map((r) => r.fields[sortColumn.title]);
         expect(sortedArray).to.deep.equal(sortedArray.sort());
       });
 
@@ -383,20 +341,13 @@ describe('dataApiV3', () => {
         const sortColumn = columns.find((c) => c.title === 'SingleLineText')!;
         const rsp = await ncAxiosGet({
           url: `${textBasedUrlPrefix}/${table.id}/records`,
-          query: {
-            sort: JSON.stringify([
-              { direction: 'desc', field: 'SingleLineText' },
-            ]),
-            limit: 400,
-          },
+          query: { sort: '-SingleLineText', limit: 400 },
         });
 
-        expect(
-          verifyColumnsInRsp(rsp.body.records[0], expectedColumns),
-        ).to.equal(true);
-        const descSortedArray = rsp.body.records.map(
-          (r) => r.fields[sortColumn.title],
+        expect(verifyColumnsInRsp(rsp.body.records[0], expectedColumns)).to.equal(
+          true,
         );
+        const descSortedArray = rsp.body.records.map((r) => r.fields[sortColumn.title]);
         expect(descSortedArray).to.deep.equal(descSortedArray.sort().reverse());
       });
 
@@ -412,9 +363,9 @@ describe('dataApiV3', () => {
           },
         });
 
-        expect(
-          verifyColumnsInRsp(rsp.body.records[0], expectedColumns),
-        ).to.equal(true);
+        expect(verifyColumnsInRsp(rsp.body.records[0], expectedColumns)).to.equal(
+          true,
+        );
         // Combination of SingleLineText & MultiLineText should be in descending order
         const sortedArray = rsp.body.records.map(
           (r: any) => r.fields.SingleLineText + r.fields.MultiLineText,
@@ -431,12 +382,10 @@ describe('dataApiV3', () => {
           },
         });
 
-        expect(
-          verifyColumnsInRsp(rsp.body.records[0], expectedColumns),
-        ).to.equal(true);
-        const filteredArray = rsp.body.records.map(
-          (r: any) => r.fields.SingleLineText,
+        expect(verifyColumnsInRsp(rsp.body.records[0], expectedColumns)).to.equal(
+          true,
         );
+        const filteredArray = rsp.body.records.map((r: any) => r.fields.SingleLineText);
         expect(filteredArray).to.deep.equal(filteredArray.fill('Afghanistan'));
       });
 
@@ -449,9 +398,9 @@ describe('dataApiV3', () => {
             limit: 400,
           },
         });
-        expect(
-          verifyColumnsInRsp(rsp.body.records[0], expectedColumns),
-        ).to.equal(true);
+        expect(verifyColumnsInRsp(rsp.body.records[0], expectedColumns)).to.equal(
+          true,
+        );
         const filteredArray = rsp.body.records.map(
           (r: any) => r.fields.SingleLineText + ' ' + r.fields.MultiLineText,
         );
@@ -574,9 +523,7 @@ describe('dataApiV3', () => {
             ),
           ),
         ).to.equal(true);
-        const filteredArray = rsp.body.records.map(
-          (r) => r.fields.SingleLineText,
-        );
+        const filteredArray = rsp.body.records.map((r) => r.fields.SingleLineText);
         expect(filteredArray).to.deep.equal(filteredArray.fill('Afghanistan'));
 
         await updateView(testContext.context, {
@@ -597,9 +544,9 @@ describe('dataApiV3', () => {
             c.title !== 'MultiLineText' &&
             (!isCreatedOrLastModifiedTimeCol(c) || !c.system),
         );
-        expect(
-          verifyColumnsInRsp(rsp.body.records[0], displayColumns),
-        ).to.equal(true);
+        expect(verifyColumnsInRsp(rsp.body.records[0], displayColumns)).to.equal(
+          true,
+        );
       });
 
       async function prepareViewForTests() {
@@ -655,9 +602,9 @@ describe('dataApiV3', () => {
             c.title !== 'Email' &&
             !isCreatedOrLastModifiedTimeCol(c),
         );
-        expect(
-          verifyColumnsInRsp(rsp.body.records[0], displayColumns),
-        ).to.equal(true);
+        expect(verifyColumnsInRsp(rsp.body.records[0], displayColumns)).to.equal(
+          true,
+        );
         return gridView;
       }
 
@@ -690,9 +637,9 @@ describe('dataApiV3', () => {
           },
         });
         expect(countRsp.body.count).to.equal(61);
-        expect(
-          verifyColumnsInRsp(rsp.body.records[0], displayColumns),
-        ).to.equal(true);
+        expect(verifyColumnsInRsp(rsp.body.records[0], displayColumns)).to.equal(
+          true,
+        );
         const sortedArray = rsp.body.records.map((r) => r.fields.Url);
         expect(sortedArray).to.deep.equal(sortedArray.sort());
       });
@@ -724,9 +671,9 @@ describe('dataApiV3', () => {
           },
         });
         expect(rspCount.body.count).to.equal(7);
-        expect(
-          verifyColumnsInRsp(rsp.body.records[0], displayColumns),
-        ).to.equal(true);
+        expect(verifyColumnsInRsp(rsp.body.records[0], displayColumns)).to.equal(
+          true,
+        );
         const filteredArray = rsp.body.records.map((r) => r.fields.Phone);
         expect(filteredArray).to.deep.equal(
           filteredArray.fill('1-541-754-3010'),

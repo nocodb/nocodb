@@ -420,22 +420,11 @@ const createBulkRowsV3 = async (
   // Transform values to v3 format with fields wrapper
   const v3Values = values.map((value) => ({ fields: value }));
 
-  // V3 API has a limit of 10 records per insert, so chunk the data
-  const chunkSize = 10;
-  const chunks: Array<Array<{ fields: any }>> = [];
-  for (let i = 0; i < v3Values.length; i += chunkSize) {
-    chunks.push(v3Values.slice(i, i + chunkSize));
-  }
-
-  // Insert chunks sequentially
-  for (const chunk of chunks) {
-    const res = await request(context.app)
-      .post(`/api/v3/data/${base.id}/${table.id}/records`)
-      .set('xc-auth', context.token)
-      .send(chunk);
-    
-    expect(res.status).to.equal(200);
-  }
+  const res = await request(context.app)
+    .post(`/api/v3/data/${base.id}/${table.id}/records`)
+    .set('xc-auth', context.token)
+    .send(v3Values)
+    .expect(200);
 };
 
 // Links 2 table rows together. Will create rows if ids are not provided

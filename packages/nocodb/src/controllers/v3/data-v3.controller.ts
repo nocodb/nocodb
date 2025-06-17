@@ -222,6 +222,7 @@ export class Datav3Controller {
   async dataRead(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
+    @Param('baseName') baseName: string,
     @Param('modelId') modelId: string,
     @Query('view_id') viewId: string,
     @Param('rowId') rowId: string,

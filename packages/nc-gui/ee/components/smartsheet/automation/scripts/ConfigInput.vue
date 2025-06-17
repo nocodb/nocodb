@@ -11,7 +11,7 @@ const props = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'change'])
 
-const { updateScript } = useScriptStoreOrThrow()
+const { updateScript, isSettingsOpen } = useScriptStoreOrThrow()
 
 const configValue = useVModel(props, 'modelValue', emit)
 
@@ -57,6 +57,7 @@ const triggerUpdate = async () => {
       config: configValue.value,
     })
     message.toast('Script settings saved!')
+    isSettingsOpen.value = false
   } catch (error) {
     message.error(await extractSdkResponseErrorMsgv2(error))
   } finally {

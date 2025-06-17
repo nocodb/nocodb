@@ -5,7 +5,7 @@ const automationStore = useAutomationStore()
 
 const { activeAutomation, isLoadingAutomation, isSettingsOpen } = storeToRefs(automationStore)
 
-const { isValidConfig, shouldShowSettings } = useScriptStoreOrThrow()
+const { isValidConfig, shouldShowSettings, restartScript } = useScriptStoreOrThrow()
 
 const toggleScriptSettings = () => {
   isSettingsOpen.value = !isSettingsOpen.value
@@ -24,11 +24,24 @@ const toggleScriptSettings = () => {
       <GeneralIcon icon="ncSettings2" />
     </NcButton>
 
-    <NcButton v-if="isRunning" size="small" type="primary" @click="stopExecution">
-      <div class="flex gap-2 items-center">Stop Execution</div>
-    </NcButton>
-    <NcTooltip :disabled="isValidConfig">
-      <NcButton size="small" type="primary" :disabled="isRunning || !isValidConfig" :loading="isRunning" @click="runScript">
+    <template v-if="isRunning">
+      <NcButton type="text" size="small" class="!text-nc-content-brand !hover:bg-white" :loading="isRunning">
+        Running Script ...
+      </NcButton>
+      <div class="flex items-center">
+        <NcButton type="secondary" size="small" class="!rounded-r-none" @click="stopExecution">
+          <div class="flex gap-2 items-center">
+            <GeneralIcon icon="ncStopCircle" />
+            Stop
+          </div>
+        </NcButton>
+        <NcButton type="secondary" size="small" class="!rounded-l-none !border-l-0" @click="restartScript">
+          <GeneralIcon icon="ncRotateCcw" />
+        </NcButton>
+      </div>
+    </template>
+    <NcTooltip v-else :disabled="isValidConfig">
+      <NcButton size="small" type="secondary" :disabled="isRunning || !isValidConfig" :loading="isRunning" @click="runScript">
         <div class="flex gap-2 items-center">
           <GeneralIcon icon="ncPlay" />
           Run

@@ -82,6 +82,11 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     }
   }
 
+  const restartScript = async () => {
+    stopScript()
+    await runScript()
+  }
+
   const updateScript = async ({ script, config }: { script: string; config?: Record<string, any> }) => {
     if (!activeProjectId.value || !activeAutomation.value?.id) return
 
@@ -133,6 +138,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     stopExecution: stopScript,
     resolveInput,
     updateScript,
+    restartScript,
   }
 })
 

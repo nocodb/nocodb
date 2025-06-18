@@ -6,7 +6,7 @@ const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
 
-const { isAutomationActive, activeAutomationId } = storeToRefs(useAutomationStore())
+const { activeAutomationId } = storeToRefs(useAutomationStore())
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -51,7 +51,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <LazySmartsheetTopbarAutomationInfo v-if="!isPublic && activeAutomationId" />
       </div>
 
-      <div v-if="!isSharedBase && !isMobileMode && !activeAutomationId && !isAutomationActive">
+      <div v-if="!isSharedBase && !isMobileMode && !activeAutomationId">
         <SmartsheetTopbarSelectMode />
       </div>
 

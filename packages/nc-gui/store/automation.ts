@@ -6,8 +6,6 @@ export const useAutomationStore = defineStore('automation', () => {
   const isLoadingAutomation = ref(false)
 
   // Getters
-  const isAutomationActive = computed(() => false)
-
   const activeBaseAutomations = computed(() => [])
 
   const activeAutomationId = computed(() => '')
@@ -37,7 +35,6 @@ export const useAutomationStore = defineStore('automation', () => {
     isLoadingAutomation,
 
     // Getters
-    isAutomationActive,
     activeBaseAutomations,
     activeAutomationId,
 

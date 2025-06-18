@@ -14,6 +14,10 @@ const disableBaseLayout = computed(() => route.value.path.startsWith('/nc/view')
 
 useTheme()
 
+const { isExperimentalFeatureModalOpen, initializeFeatures } = useBetaFeatureToggle()
+
+initializeFeatures()
+
 const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope } = useCommandPalette()
 
 applyNonSelectable()
@@ -140,6 +144,7 @@ const _ = (window as any).ResizeObserver
       <CmdL v-model:open="cmdL" :set-active-cmd-view="setActiveCmdView" />
       <!-- Documentation. Integrated NocoDB Docs directly inside the Product -->
       <CmdJ />
+      <DashboardFeatureExperimentation v-model:value="isExperimentalFeatureModalOpen" />
     </div>
   </ErrorBoundary>
 </template>

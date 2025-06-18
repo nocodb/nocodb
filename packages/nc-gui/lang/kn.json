@@ -1257,6 +1257,7 @@
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "ದೃಶ್ಯಗಳನ್ನು ಸೇರಿಸಿ",
+    "includeScripts": "Include scripts",
     "includeWebhook": "ವೆಬ್‌ಹುಕ್ ಸೇರಿಸಿ",
     "includeComments": "ಕಾಮೆಂಟ್‌ಗಳನ್ನು ಸೇರಿಸಿ",
     "zoomInToViewColumns": "ಕಾಲಮ್‌ಗಳನ್ನು ವೀಕ್ಷಿಸಲು_zoomIn_ಮಾಡಿ",

@@ -44,7 +44,7 @@ const vModelIsOpen = computed({
   <NcDropdown v-model:visible="vModelIsOpen" :disabled="disabled">
     <div
       v-if="defaultSlotWrapper"
-      class="flex-1 border-1 border-nc-gray-medium rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none"
+      class="border-1 border-nc-gray-medium rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none"
       :class="[
         defaultSlotWrapperClass,
         {

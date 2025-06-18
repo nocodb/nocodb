@@ -1257,6 +1257,7 @@
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "تضمين العروض",
+    "includeScripts": "Include scripts",
     "includeWebhook": "تضمين Webhook",
     "includeComments": "تضمين التعليقات",
     "zoomInToViewColumns": "تكبير العرض لرؤية الأعمدة",

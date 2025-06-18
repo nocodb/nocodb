@@ -451,6 +451,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
       // for kanban view only
       fk_grp_col_id: string | null
       fk_geo_data_col_id: string | null
+      row_coloring_mode: string | null
+      meta?: any
 
       // for calendar view only
       calendar_range: Array<{
@@ -463,6 +465,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
       type: view.type,
       description: view.description || '',
       copy_from_id: view.id!,
+      row_coloring_mode: view.row_coloring_mode!,
+      meta: parseProp(view.meta)?.rowColoringInfo ? { rowColoringInfo: parseProp(view.meta).rowColoringInfo } : undefined,
       fk_grp_col_id: null,
       fk_geo_data_col_id: null,
       fk_cover_image_col_id: null,

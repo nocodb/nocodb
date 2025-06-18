@@ -27982,6 +27982,14 @@
             "$ref": "#/components/schemas/Id",
             "description": "ID of view owner user"
           },
+          "row_coloring_mode": {
+            "type": "string",
+            "enum": [
+              "filter",
+              "select"
+            ],
+            "description": "The row coloring mode whether it is select, condition or not set"
+          },
           "fk_custom_url_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "ID of custom url"

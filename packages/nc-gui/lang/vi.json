@@ -1257,6 +1257,7 @@
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Bao gồm chế độ xem",
+    "includeScripts": "Include scripts",
     "includeWebhook": "Bao gồm webhook",
     "includeComments": "Bao gồm bình luận",
     "zoomInToViewColumns": "Phóng to để xem các cột",

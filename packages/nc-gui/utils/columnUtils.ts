@@ -2,6 +2,7 @@ import type { FunctionalComponent, SVGAttributes } from 'vue'
 import type { ButtonType, ColumnType, FormulaType, IntegrationType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
   ButtonActionsType,
+  FormulaDataTypes,
   RelationTypes,
   UITypes,
   LongTextAiMetaProp as _LongTextAiMetaProp,
@@ -416,6 +417,10 @@ const getColumnValidationError = (column: ColumnType, value?: any) => {
   }
 }
 
+const getFormulaColDataType = (col: ColumnType) => {
+  return (col?.colOptions as any)?.parsed_tree?.dataType ?? FormulaDataTypes.STRING
+}
+
 export {
   uiTypes,
   isTypableInputColumn,
@@ -433,4 +438,5 @@ export {
   formViewHiddenColTypes,
   columnToValidate,
   getColumnValidationError,
+  getFormulaColDataType,
 }

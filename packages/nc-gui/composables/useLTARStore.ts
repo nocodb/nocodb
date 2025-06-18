@@ -1,5 +1,6 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
 import {
+  FormulaDataTypes,
   RelationTypes,
   UITypes,
   dateFormats,
@@ -359,11 +360,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value)
           }
 
-          if (!query && !ncIsNumber(query)) return ''
+          if (!isValidValue(query)) return ''
 
           if (isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) && isDateOrDateTimeCol(field)) {
             operator = 'eq,exactDate'
           } else if (
+            (field.uidt !== UITypes.Formula || getFormulaColDataType(field) !== FormulaDataTypes.NUMERIC) &&
             !isNumericCol(field) &&
             sqlUi.value &&
             ['text', 'string'].includes(sqlUi.value.getAbstractType(field)) &&

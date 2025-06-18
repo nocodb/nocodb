@@ -71,7 +71,6 @@ const isAllowed = computed(() => (props.entityId ? _isAllowed(props.entity, prop
       class="relative"
       :class="{
         'pointer-events-none': !isAllowed,
-        'opacity-50': !isAllowed,
       }"
     >
       <div
@@ -83,7 +82,7 @@ const isAllowed = computed(() => (props.entityId ? _isAllowed(props.entity, prop
       />
 
       <div class="flex items-center gap-1">
-        <slot />
+        <slot :is-allowed="isAllowed" />
       </div>
     </div>
   </NcTooltip>

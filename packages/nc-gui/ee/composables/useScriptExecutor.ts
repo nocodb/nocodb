@@ -451,7 +451,6 @@ export const useScriptExecutor = createSharedComposable(() => {
         scriptQueue.add(executeScript, {
           id: scriptId,
           priority: extra?.priority || 1,
-          timeout: 120000, // 2 minutes timeout per script execution
         })
         return scriptId
       } catch (error) {
@@ -498,10 +497,46 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
+  const setupQueueEventListeners = () => {
+    scriptQueue.on(QueueEvents.TASK_FAILED, (data) => {
+      const { id, error } = data
+      const execution = activeExecutions.value.get(id)
+
+      if (execution) {
+        const isTimeout = error && (error.message?.includes('timed out') || error.message?.includes('timeout'))
+
+        if (execution.worker) {
+          execution.worker.terminate()
+        }
+
+        isRunning.value = false
+        isFinished.value = true
+
+        activeExecutions.value.set(id, {
+          ...execution,
+          status: 'error',
+          error,
+          worker: null,
+          playground: [
+            ...execution.playground,
+            {
+              type: 'text',
+              content: isTimeout ? `Script execution timed out` : `Script execution failed: ${error?.message || 'Unknown error'}`,
+              style: 'error',
+            },
+          ],
+        })
+      }
+    })
+  }
+
   onMounted(async () => {
     if (isPublic.value || !isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS)) return
 
     await loadAutomation(activeAutomationId.value)
+
+    setupQueueEventListeners()
+
     const integrationsCode = generateIntegrationsCode(aiIntegrations.value)
     libCode.value = generateLibCode(aiIntegrations.value)
 

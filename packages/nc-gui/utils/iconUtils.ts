@@ -299,6 +299,7 @@ import NcGroq from '~icons/nc-icons/groq'
 import NcPosthog from '~icons/nc-icons/posthog'
 import NcNocodbPg from '~icons/nc-icons/nocodb-pg'
 import NcStopCircle from '~icons/nc-icons/stop-circle'
+import NcEnter from '~icons/nc-icons/enter'
 
 // Buttons Icons V2
 
@@ -1369,7 +1370,7 @@ export const iconMap = {
   'ncKey2': NcKeyIcon,
   'ncCornerDownRight': NcCornerDownRightIcon,
   'ncArrowRight2': NcArrowRightIcon,
-  'ncStopCircle': NcStopCircleIcon,
+  'ncStopCircle2': NcStopCircleIcon,
   'ncLogOut': NcLogOutIcon,
   'ncArrowLeftCircle': NcArrowLeftCircleIcon,
   'ncBarChart2': NcBarChart2Icon,
@@ -1563,6 +1564,7 @@ export const iconMap = {
   'ncSpanner': NcSpanner,
   'ncScript': NcScript,
   'youtube': NcYoutube2Icon,
+  'ncEnter': NcEnter,
   'ncAutoAwesome': h(NcAutoAwesome, { stroke: 'transparent' }),
   'ncPlusAi': h(NcPlusAi, { stroke: 'transparent' }),
   'ncPlusMultiple': NcPlusMultiple,

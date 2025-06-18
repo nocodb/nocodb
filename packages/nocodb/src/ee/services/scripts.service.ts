@@ -96,8 +96,18 @@ export class ScriptsService {
       return NcError.notFound('Script not found');
     }
 
+    const existingScripts = await Script.list(context, script.base_id);
+
+    let newTitle = `Copy of ${script.title}`;
+    let counter = 1;
+
+    while (existingScripts.some((s) => s.title === newTitle)) {
+      newTitle = `Copy of ${script.title} (${counter})`;
+      counter++;
+    }
+
     const newScript = await Script.insert(context, script.base_id, {
-      title: `Copy of ${script.title}`,
+      title: newTitle,
       script: script.script,
       description: script.description,
     });

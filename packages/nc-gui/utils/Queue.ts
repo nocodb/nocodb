@@ -27,6 +27,7 @@ export interface QueueTask<T> {
   timeout?: number
   resolve: (value: T | PromiseLike<T>) => void
   reject: (reason?: any) => void
+  abortController?: AbortController
 }
 
 export enum QueueEvents {
@@ -44,6 +45,7 @@ export type QueueEventCallback = (data: any) => void
 
 export class Queue {
   private queue: QueueTask<any>[] = []
+  private runningTasks: Map<string, QueueTask<any>> = new Map()
   private runningCount = 0
   private requestTimestamps: number[] = []
   private rateLimitOptions: RateLimitOptions
@@ -80,12 +82,23 @@ export class Queue {
       priority?: number
       id?: string
       timeout?: number
+      signal?: AbortSignal
     } = {},
   ): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       const id = options.id || `task-${++this.taskCounter}`
       const priority =
         options.priority !== undefined ? Math.min(Math.max(0, options.priority), (this.options.priorityLevels || 1) - 1) : 0
+
+      const abortController = new AbortController()
+
+      if (options.signal) {
+        if (options.signal.aborted) {
+          reject(new Error('Task was cancelled before being added to queue'))
+          return
+        }
+        options.signal.addEventListener('abort', () => abortController.abort())
+      }
 
       const queueTask: QueueTask<T> = {
         id,
@@ -96,6 +109,7 @@ export class Queue {
         timeout: options.timeout,
         resolve,
         reject,
+        abortController,
       }
 
       // Add task to queue with priority sorting
@@ -141,62 +155,122 @@ export class Queue {
     const { id, task, resolve, reject } = queueTask
     queueTask.attempts++
 
+    this.runningTasks.set(id, queueTask)
     this.runningCount++
     this.emit(QueueEvents.TASK_STARTED, { id, attempts: queueTask.attempts })
 
+    let shouldCleanup = true
+
     try {
+      // Check if task was cancelled before execution
+      if (queueTask.abortController?.signal.aborted) {
+        throw new Error('Task was cancelled before execution')
+      }
+
       // Check if we need to wait for rate limit
       await this.waitForRateLimit()
+
+      // Check again after waiting (task might have been cancelled)
+      if (queueTask.abortController?.signal.aborted) {
+        throw new Error('Task was cancelled during rate limit wait')
+      }
 
       // Record this request timestamp for rate limiting
       if (this.rateLimitOptions.enabled) {
         this.requestTimestamps.push(Date.now())
       }
 
-      // Execute the task with optional timeout
+      // Execute the task with optional timeout and cancellation
       let result: T
       if (this.options.timeout || queueTask.timeout) {
         const timeoutMs = queueTask.timeout || this.options.timeout
-        result = await this.withTimeout(task(), timeoutMs!)
+        result = await this.withTimeoutAndCancellation(task(), timeoutMs!, queueTask.abortController?.signal)
       } else {
-        result = await task()
+        result = await this.withCancellation(task(), queueTask.abortController?.signal)
       }
 
       // Task completed successfully
       resolve(result)
       this.emit(QueueEvents.TASK_COMPLETED, { id })
     } catch (error) {
-      // Check if we should retry the task
-      if (this.shouldRetry(queueTask, error)) {
-        this.handleRetry(queueTask, error)
+      // Check if this was a cancellation
+      if (queueTask.abortController?.signal.aborted || (error as Error).message.includes('cancelled')) {
+        reject(new Error(`Task ${id} was cancelled`))
+        this.emit(QueueEvents.TASK_FAILED, { id, error: 'Task cancelled', attempts: queueTask.attempts })
       } else {
-        // No more retries, reject the promise
-        reject(error)
-        this.emit(QueueEvents.TASK_FAILED, { id, error, attempts: queueTask.attempts })
+        // Check if we should retry the task
+        if (this.shouldRetry(queueTask, error)) {
+          this.handleRetry(queueTask, error)
+          shouldCleanup = false // Don't cleanup here, handleRetry will manage it
+          return
+        } else {
+          // No more retries, reject the promise
+          reject(error)
+          this.emit(QueueEvents.TASK_FAILED, { id, error, attempts: queueTask.attempts })
+        }
       }
     } finally {
-      this.runningCount--
+      // Only cleanup if we're not retrying
+      if (shouldCleanup) {
+        this.runningTasks.delete(id)
+        this.runningCount--
 
-      // If the queue is empty and no tasks are running, emit idle event
-      if (this.queue.length === 0 && this.runningCount === 0) {
-        this.emit(QueueEvents.QUEUE_IDLE, {})
-      }
+        // If the queue is empty and no tasks are running, emit idle event
+        if (this.queue.length === 0 && this.runningCount === 0) {
+          this.emit(QueueEvents.QUEUE_IDLE, {})
+        }
 
-      // Try to run next task if not paused
-      if (!this.paused) {
-        this.tryRunNext()
+        // Try to run next task if not paused
+        if (!this.paused) {
+          this.tryRunNext()
+        }
       }
     }
   }
 
   /**
-   * Wrap a promise with a timeout
+   * Wrap a promise with cancellation support
    */
-  private async withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  private async withCancellation<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+    if (!signal) return promise
+
     return Promise.race([
       promise,
-      new Promise<T>((_resolve, reject) => setTimeout(() => reject(new Error(`Task timed out after ${timeoutMs}ms`)), timeoutMs)),
+      new Promise<T>((_resolve, reject) => {
+        if (signal.aborted) {
+          reject(new Error('Task was cancelled'))
+          return
+        }
+        signal.addEventListener('abort', () => reject(new Error('Task was cancelled')))
+      }),
     ])
+  }
+
+  /**
+   * Wrap a promise with timeout and cancellation
+   */
+  private async withTimeoutAndCancellation<T>(promise: Promise<T>, timeoutMs: number, signal?: AbortSignal): Promise<T> {
+    const promises: Promise<T>[] = [promise]
+
+    // Add timeout promise
+    promises.push(
+      new Promise<T>((_resolve, reject) => setTimeout(() => reject(new Error(`Task timed out after ${timeoutMs}ms`)), timeoutMs)),
+    )
+
+    // Add cancellation promise if signal provided
+    if (signal) {
+      promises.push(
+        new Promise<T>((_resolve, reject) => {
+          if (signal.aborted) {
+            reject(new Error('Task was cancelled'))
+            return
+          }
+          signal.addEventListener('abort', () => reject(new Error('Task was cancelled')))
+        }),
+      )
+    }
+
+    return Promise.race(promises)
   }
 
   /**
@@ -221,6 +295,13 @@ export class Queue {
    */
   private handleRetry(queueTask: QueueTask<any>, error: any) {
     const retryOptions = this.options.retryOptions!
+
+    // Remove from running tasks since we're going to retry
+    this.runningTasks.delete(queueTask.id)
+    this.runningCount--
+
+    // Create new abort controller for retry
+    queueTask.abortController = new AbortController()
 
     // Calculate delay based on retry count
     let delay: number
@@ -343,19 +424,46 @@ export class Queue {
    */
   public clear(): number {
     const count = this.queue.length
+
+    // Cancel all pending tasks
+    for (const task of this.queue) {
+      task.abortController?.abort()
+      task.reject(new Error('Task was cancelled via clear()'))
+    }
     this.queue = []
     return count
   }
 
   /**
    * Remove a specific task from the queue by ID
+   * This will cancel running tasks and remove pending tasks
    * @param id The ID of the task to remove
-   * @returns True if the task was found and removed
+   * @returns True if the task was found and removed/cancelled
    */
   public remove(id: string): boolean {
-    const initialLength = this.queue.length
-    this.queue = this.queue.filter((task) => task.id !== id)
-    return this.queue.length < initialLength
+    let found = false
+
+    // Check if task is currently running
+    const runningTask = this.runningTasks.get(id)
+    if (runningTask) {
+      // Cancel the running task
+      runningTask.abortController?.abort()
+      found = true
+      this.emit(QueueEvents.TASK_FAILED, { id, error: 'Task cancelled via remove()', attempts: runningTask.attempts })
+    }
+
+    this.queue = this.queue.filter((task) => {
+      if (task.id === id) {
+        // Cancel pending task
+        task.abortController?.abort()
+        task.reject(new Error(`Task ${id} was cancelled`))
+        found = true
+        return false
+      }
+      return true
+    })
+
+    return found
   }
 
   /**

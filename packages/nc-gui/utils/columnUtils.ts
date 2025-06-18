@@ -7,6 +7,7 @@ import {
   UITypes,
   LongTextAiMetaProp as _LongTextAiMetaProp,
   checkboxIconList,
+  isSystemColumn,
   isValidURL,
   ratingIconList,
   validateEmail,
@@ -421,6 +422,21 @@ const getFormulaColDataType = (col: ColumnType) => {
   return (col?.colOptions as any)?.parsed_tree?.dataType ?? FormulaDataTypes.STRING
 }
 
+const isSearchableColumn = (column: ColumnType) => {
+  return (
+    !isSystemColumn(column) &&
+    ![
+      UITypes.Links,
+      UITypes.Rollup,
+      UITypes.DateTime,
+      UITypes.Date,
+      UITypes.Button,
+      UITypes.LastModifiedTime,
+      UITypes.CreatedTime,
+    ].includes(column?.uidt as UITypes)
+  )
+}
+
 export {
   uiTypes,
   isTypableInputColumn,
@@ -439,4 +455,5 @@ export {
   columnToValidate,
   getColumnValidationError,
   getFormulaColDataType,
+  isSearchableColumn,
 }

@@ -53,7 +53,7 @@ export const useAutomationStore = defineStore('automation', () => {
     }
 
     try {
-      isLoading.value = true
+      isLoadingAutomation.value = true
 
       const response = (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
         operation: 'listScripts',
@@ -66,7 +66,7 @@ export const useAutomationStore = defineStore('automation', () => {
       message.error(await extractSdkResponseErrorMsgv2(e))
       return []
     } finally {
-      isLoading.value = false
+      isLoadingAutomation.value = false
     }
   }
 

@@ -573,7 +573,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     let data;
     try {
       data = await this.execAndParse(qb, undefined, {
-        apiVersion: args.apiVersion,
+        apiVersion: args.apiVersion ?? this.context.api_version,
         skipSubstitutingColumnIds: options.skipSubstitutingColumnIds,
       });
     } catch (e) {

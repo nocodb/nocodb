@@ -745,6 +745,7 @@ export class DataV3Service {
     // Fetch all records in bulk
     const fullRecords = await baseModel.chunkList({
       pks: idsAsStrings,
+      apiVersion: context.api_version,
     });
 
     // Create a map for quick lookup by ID

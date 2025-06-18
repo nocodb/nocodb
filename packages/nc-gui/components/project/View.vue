@@ -23,7 +23,7 @@ const automationStore = useAutomationStore()
 
 const { loadAutomations } = automationStore
 
-const { automations, isAutomationActive } = storeToRefs(automationStore)
+const { automations } = storeToRefs(automationStore)
 
 const { $e, $api } = useNuxtApp()
 
@@ -98,8 +98,6 @@ const { navigateToProjectPage } = useBase()
 
 watch(projectPageTab, () => {
   $e(`a:project:view:tab-change:${projectPageTab.value}`)
-
-  if (isAutomationActive.value) return
 
   navigateToProjectPage({
     page: projectPageTab.value as any,

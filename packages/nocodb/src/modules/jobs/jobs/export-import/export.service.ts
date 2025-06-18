@@ -17,6 +17,7 @@ import type { LookupType, RollupType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
+import { Script } from '~/models';
 import {
   Base,
   BaseUser,
@@ -47,6 +48,23 @@ export class ExportService {
   private readonly debugLog = debug('nc:jobs:import');
 
   constructor(private datasService: DatasService) {}
+
+  async serializeScripts(context: NcContext) {
+    const serializedScripts = [];
+
+    const scripts = await Script.list(context, context.base_id);
+
+    for (const script of scripts) {
+      serializedScripts.push({
+        title: script.title,
+        script: script.script,
+        description: script.description,
+        meta: script.meta,
+      });
+    }
+
+    return serializedScripts;
+  }
 
   async serializeModels(
     context: NcContext,
@@ -542,7 +560,6 @@ export class ExportService {
         comments: serializedComments,
       });
     }
-
     return serializedModels;
   }
 

@@ -7,7 +7,7 @@ const { isRunning, isFinished, playground, resolveInput, runScript, isValidConfi
 </script>
 
 <template>
-  <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium h-[95svh] nc-scrollbar-md">
+  <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium h-[91svh] nc-scrollbar-md">
     <div v-if="isRunning || isFinished" class="flex mx-auto flex-col max-w-130 gap-6">
       <div v-for="(item, index) in playground" :key="index">
         <template v-if="item.type === 'text'">

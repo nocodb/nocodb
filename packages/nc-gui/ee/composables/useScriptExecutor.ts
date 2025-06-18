@@ -368,10 +368,12 @@ export const useScriptExecutor = createSharedComposable(() => {
               status: 'error',
               playground: [
                 ...activeExecutions.value.get(scriptId)!.playground,
-                { type: 'text', content: minCode.error, style: 'log' },
+                { type: 'text', content: minCode.error, style: 'error' },
               ],
               error: minCode.error,
             })
+            isRunning.value = false
+            isFinished.value = true
             return
           }
 

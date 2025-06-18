@@ -33,6 +33,9 @@ const onChange = () => {
 const handleFileUpload = async (file: File) => {
   try {
     let parsedContents = null
+    if (props.content.type !== ScriptInputType.FILE) {
+      return
+    }
 
     if (file.name.endsWith('.csv')) {
       const text = await file.text()
@@ -180,7 +183,28 @@ watch(rowInput, (newValue) => {
         {{ content.label }}
       </label>
       <a-upload :accept="content.accept" :disabled="isResolved" :multiple="false" :before-upload="handleFileUpload">
-        <NcButton :disabled="isResolved" type="secondary">Click to Upload</NcButton>
+        <NcButton v-if="!isResolved" size="small" :disabled="isResolved" type="secondary">Click to Upload</NcButton>
+        <template #itemRender="{ file, actions }">
+          <div class="border-1 border-nc-border-gray-medium bg-white flex items-center pl-1 py-2 pr-4 rounded-xl">
+            <CellAttachmentIconView class="w-10 h-10" :item="{ title: file.name, mimetype: file.type }" />
+            <div class="flex flex-col flex-1">
+              <div class="text-caption text-nc-content-gray">
+                <NcTooltip class="!max-w-[200px] truncate" show-on-truncate-only>
+                  {{ file.name }}
+                  <template #title>
+                    {{ file.name }}
+                  </template>
+                </NcTooltip>
+              </div>
+              <div class="text-caption text-nc-content-gray-muted">
+                {{ formatBytes(file.size) }}
+              </div>
+            </div>
+            <NcButton :disabled="isResolved" type="text" size="small" @click="actions.remove">
+              <GeneralIcon class="text-nc-content-gray-subtle" icon="delete" />
+            </NcButton>
+          </div>
+        </template>
       </a-upload>
     </div>
   </template>

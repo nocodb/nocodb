@@ -93,7 +93,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium h-[95svh] nc-scrollbar-md">
+  <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium h-[91svh] nc-scrollbar-md">
     <div class="flex mx-auto flex-col max-w-130 gap-6">
       <div>
         <div class="text-subHeading2 text-nc-content-gray-emphasis">

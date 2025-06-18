@@ -118,7 +118,7 @@ export interface ScriptSelectInputContent extends ScriptBaseInputContent {
 // Buttons input content
 export interface ScriptButtonsInputContent extends ScriptBaseInputContent {
   type: ScriptInputType.BUTTONS
-  options: (ScriptInputButtonOption | string)[]
+  options: ScriptInputButtonOption[]
 }
 
 export interface ScriptFileInputContent extends ScriptBaseInputContent {

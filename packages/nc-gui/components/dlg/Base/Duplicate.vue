@@ -15,6 +15,10 @@ const { navigateToProject } = useGlobal()
 
 const { refreshCommandPalette } = useCommandPalette()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isScriptsEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
+
 const { api } = useApi()
 
 const { $e, $poller } = useNuxtApp()
@@ -247,6 +251,7 @@ onKeyStroke('Enter', () => {
           </div>
 
           <div
+            v-if="isScriptsEnabled"
             class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
             @click="options.includeScripts = !options.includeScripts"
           >

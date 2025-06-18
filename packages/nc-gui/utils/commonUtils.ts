@@ -130,8 +130,8 @@ export const searchCompare = (source?: NestedArray<string | number | undefined>,
  */
 export const antSelectFilterOption = (
   inputValue: string,
-  option?: DefaultOptionType,
-  searchKey: keyof DefaultOptionType | (keyof DefaultOptionType)[] = 'key',
+  option?: DefaultOptionType | NcListItemType,
+  searchKey: keyof DefaultOptionType | keyof NcListItemType | (keyof NcListItemType)[] | (keyof DefaultOptionType)[] = 'key',
 ) => {
   if (!option) return false
 

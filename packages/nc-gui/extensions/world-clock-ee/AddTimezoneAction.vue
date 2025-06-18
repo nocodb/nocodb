@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { NcListItemType } from '../../components/nc/List/index.vue'
+import type { NcListItemType } from '#imports'
 import { type AcceptableCity, timezoneData } from './timezone-data'
 
 const props = withDefaults(

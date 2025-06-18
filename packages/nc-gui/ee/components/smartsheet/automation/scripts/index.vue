@@ -16,19 +16,19 @@ async function setupMonacoEditor() {
 
   const typeGenerator = new TypeGenerator()
 
-  monaco.languages.typescript.javascriptDefaults.setExtraLibs([])
+  monaco.languages.typescript.typescriptDefaults.setExtraLibs([])
 
-  monaco.languages.typescript.javascriptDefaults.addExtraLib(typeGenerator.generateTypes(activeBaseSchema.value))
+  monaco.languages.typescript.typescriptDefaults.addExtraLib(typeGenerator.generateTypes(activeBaseSchema.value))
 
-  monaco.languages.typescript.javascriptDefaults.addExtraLib(libCode.value ?? '')
+  monaco.languages.typescript.typescriptDefaults.addExtraLib(libCode.value ?? '')
 
-  monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+  monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
     noSemanticValidation: false,
     diagnosticCodesToIgnore: [1375, 1378, 2451, 6385, 1108],
     noSyntaxValidation: false,
   })
 
-  monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+  monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
     target: monaco.languages.typescript.ScriptTarget.ESNext,
     allowNonTsExtensions: true,
     noLib: false,
@@ -36,7 +36,7 @@ async function setupMonacoEditor() {
     strict: true,
   })
 
-  const model = monaco.editor.createModel(code.value, 'javascript')
+  const model = monaco.editor.createModel(code.value, 'typescript')
 
   editor = monaco.editor.create(editorRef.value!, {
     model,

@@ -11,7 +11,7 @@ const props = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'change'])
 
-const { updateScript, isSettingsOpen } = useScriptStoreOrThrow()
+const { updateScript, isSettingsOpen, isValidConfig } = useScriptStoreOrThrow()
 
 const configValue = useVModel(props, 'modelValue', emit)
 
@@ -95,6 +95,11 @@ onMounted(() => {
 <template>
   <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium h-[91svh] nc-scrollbar-md">
     <div class="flex mx-auto flex-col max-w-130 gap-6">
+      <NcAlert v-if="!isValidConfig" type="warning" class="bg-nc-bg-default">
+        <template #message> Setup script settings to run </template>
+        <template #description> You cannot run this script without setting up the script settings first. </template>
+      </NcAlert>
+
       <div>
         <div class="text-subHeading2 text-nc-content-gray-emphasis">
           {{ config?.title || 'Script Settings' }}

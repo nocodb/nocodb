@@ -33,12 +33,12 @@ async function init() {
   // Center elements without changing zoom level
   await nextTick()
   setTimeout(() => {
-    fitView({ 
-      duration: 200, 
+    fitView({
+      duration: 200,
       padding: 0.1,
       // Don't change zoom - keep current zoom level but center the content
       minZoom: viewport.value.zoom || 1,
-      maxZoom: viewport.value.zoom || 1
+      maxZoom: viewport.value.zoom || 1,
     })
   }, 100)
 }

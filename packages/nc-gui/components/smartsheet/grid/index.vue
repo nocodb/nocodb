@@ -292,7 +292,7 @@ const updateRowCommentCount = (count: number) => {
     if (aggCommentCountIndex === -1) {
       pAggCommentCount.value.push({
         row_id: routeQuery.value.rowId,
-        count: count,
+        count,
       })
 
       pData.value[currentRowIndex]!.rowMeta.commentCount = count

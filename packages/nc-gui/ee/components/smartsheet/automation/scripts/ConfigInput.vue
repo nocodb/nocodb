@@ -188,7 +188,7 @@ onMounted(() => {
             <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <a-select v-model:value="configValue[item.key]" show-search>
+            <a-select v-model:value="configValue[item.key]" class="nc-select-shadow" show-search>
               <template #suffixIcon>
                 <GeneralIcon icon="arrowDown" class="text-gray-700" />
               </template>

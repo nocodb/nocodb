@@ -139,7 +139,7 @@ watch(rowInput, (newValue) => {
   <template v-else-if="content.type === ScriptInputType.SELECT">
     <div class="flex flex-col gap-2">
       <label class="text-caption text-nc-content-gray-subtle2">{{ content.label }}</label>
-      <a-select v-model:value="inputValue" :disabled="isResolved" show-search @change="onChange">
+      <a-select v-model:value="inputValue" :disabled="isResolved" class="nc-select-shadow" show-search @change="onChange">
         <template #suffixIcon>
           <GeneralIcon icon="arrowDown" class="text-gray-700" />
         </template>

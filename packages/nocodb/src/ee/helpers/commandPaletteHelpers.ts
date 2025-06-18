@@ -81,7 +81,11 @@ export async function getCommandPaletteForUserWorkspace(
         'v.type as view_type',
         'v.meta as view_meta',
         'v.order as view_order',
-        'dm.disabled',
+
+        's.id as script_id',
+        's.title as script_title',
+        's.meta as script_meta',
+        's.order as script_order',
       )
       .from(rootQb.as('root'))
       .innerJoin(`${MetaTable.MODELS} as t`, `t.base_id`, `root.base_id`)
@@ -91,6 +95,14 @@ export async function getCommandPaletteForUserWorkspace(
           `dm.role`,
           `=`,
           `root.base_role`,
+        );
+      })
+      .leftJoin(`${MetaTable.SCRIPTS} as s`, function () {
+        this.on(`s.base_id`, `=`, `root.base_id`).andOn(
+          ncMeta.knexConnection.raw(`CASE
+            WHEN root.base_role IN ('${ProjectRoles.EDITOR}', '${ProjectRoles.CREATOR}', '${ProjectRoles.OWNER}') THEN 1
+            ELSE 0
+          END = 1`),
         );
       })
       .where(function () {

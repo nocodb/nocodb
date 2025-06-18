@@ -405,6 +405,15 @@ export class ExportService {
         }
       }
 
+      const serializedRowColorConditions =
+        await RowColorViewHelpers.withContext(
+          context,
+        ).getDuplicateRowColorConditions({
+          views: model.views,
+          idMap,
+          mapColumnId: true,
+        });
+
       const serializedHooks = [];
 
       if (!excludeHooks) {
@@ -489,6 +498,7 @@ export class ExportService {
           });
         }
       }
+
       serializedModels.push({
         model: {
           id: idMap.get(model.id),
@@ -560,6 +570,10 @@ export class ExportService {
           }),
           view: view.view,
         })),
+        rowColorConditions: {
+          filters: serializedRowColorConditions.filters,
+          rowColorConditions: serializedRowColorConditions.rowColorConditions,
+        },
         hooks: serializedHooks,
         comments: serializedComments,
       });

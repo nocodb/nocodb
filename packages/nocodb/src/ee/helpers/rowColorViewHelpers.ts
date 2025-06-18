@@ -1,4 +1,5 @@
 import { type NcContext, parseProp } from 'nocodb-sdk';
+import { RowColorViewHelpers as RowColorViewHelpersCE } from 'src/helpers/rowColorViewHelpers';
 import type RowColorCondition from '~/models/RowColorCondition';
 import type { MetaService } from '~/meta/meta.service';
 import type { Filter, View } from '~/models';
@@ -13,13 +14,15 @@ type GetRowColorConditionsResult = {
   }[];
 }[];
 
-export class RowColorViewHelpers {
+export class RowColorViewHelpers extends RowColorViewHelpersCE {
   protected constructor(
     protected readonly context: NcContext,
     protected props: {
       ncMeta: MetaService;
     },
-  ) {}
+  ) {
+    super(context, props);
+  }
   static withContext(
     context: NcContext,
     props?: {
@@ -103,6 +106,7 @@ export class RowColorViewHelpers {
 
   async randomizeRowColorConditionId(payload: GetRowColorConditionsResult) {
     const { ncMeta } = this.props;
+    const filterIdMap = new Map<string, string>();
     return (await Promise.all(
       payload.map(async (viewRow) => {
         return {
@@ -115,18 +119,28 @@ export class RowColorViewHelpers {
                   ...rowColor.record,
                   id,
                 },
-                filters: await Promise.all(
-                  rowColor.filters.map(async (filter) => {
-                    const filterId = await ncMeta.genNanoid(
-                      MetaTable.FILTER_EXP,
-                    );
-                    return {
-                      ...filter,
-                      id: filterId,
-                      fk_row_color_condition_id: id,
-                    };
-                  }),
-                ),
+                filters: (
+                  await Promise.all(
+                    rowColor.filters.map(async (filter) => {
+                      const newFilterId = await ncMeta.genNanoid(
+                        MetaTable.FILTER_EXP,
+                      );
+                      filterIdMap.set(filter.id, newFilterId);
+                      return {
+                        ...filter,
+                        id: newFilterId,
+                        fk_row_color_condition_id: id,
+                      };
+                    }),
+                  )
+                ).map((filter) => {
+                  return {
+                    ...filter,
+                    fk_parent_id: filter.fk_parent_id
+                      ? filterIdMap.get(filter.fk_parent_id)
+                      : filter.fk_parent_id,
+                  };
+                }),
               };
             }),
           ),
@@ -135,27 +149,29 @@ export class RowColorViewHelpers {
     )) as GetRowColorConditionsResult;
   }
 
-  async getDuplicateRowColorConditions(
-    views: {
-      view: View;
-      toViewId: string;
-    }[],
-  ) {
-    const actualRecords = await this.getRowColorConditions(
-      views.map((view) => view.view),
-    );
-    const viewIdMap = views.reduce<Record<string, string>>((acc, cur) => {
-      acc[cur.view.id] = cur.toViewId;
-      return acc;
-    }, {});
+  async getDuplicateRowColorConditions(param: {
+    views: View[];
+    idMap: Map<string, string>;
+    mapColumnId?: boolean;
+  }) {
+    const { views, idMap, mapColumnId } = param;
+    const actualRecords = await this.getRowColorConditions(views);
     const randomized = await this.randomizeRowColorConditionId(actualRecords);
     const rowColors: RowColorCondition[] = [];
     const filters: Filter[] = [];
     for (const v of randomized) {
       for (const rc of v.rowColoringConditions) {
-        rowColors.push({ ...rc.record, fk_view_id: viewIdMap[v.view.id] });
+        rowColors.push({ ...rc.record, fk_view_id: idMap.get(v.view.id) });
         for (const filter of rc.filters) {
-          filters.push(filter);
+          filters.push({
+            ...filter,
+            ...(mapColumnId
+              ? {
+                  fk_column_id: idMap.get(filter.fk_column_id),
+                  fk_parent_column_id: idMap.get(filter.fk_parent_column_id),
+                }
+              : {}),
+          } as Filter);
         }
       }
     }

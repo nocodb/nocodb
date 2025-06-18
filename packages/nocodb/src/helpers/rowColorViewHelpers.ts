@@ -47,18 +47,25 @@ export class RowColorViewHelpers {
     return payload;
   }
 
-  async getDuplicateRowColorConditions(
-    views: {
-      view: View;
-      toViewId: string;
-    }[],
-  ) {
+  async getDuplicateRowColorConditions(param: {
+    views: View[];
+    idMap: Map<string, string>;
+    mapColumnId?: boolean;
+  }): Promise<{
+    result: GetRowColorConditionsResult;
+    filters: Filter[];
+    rowColorConditions: RowColorCondition[];
+  }> {
     return {
-      result: views,
+      result: param.views.map((v) => ({
+        view: v,
+        rowColoringConditions: [],
+      })),
       filters: [],
       rowColorConditions: [],
     };
   }
+
   mapMetaColumn(payload: { meta?: any; idMap: Map<string, string> }) {
     return payload.meta;
   }

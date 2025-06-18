@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { activeBaseSchema } = storeToRefs(useAutomationStore())
+const { activeBaseSchema, isAutomationsLoading } = storeToRefs(useAutomationStore())
 
 await until(() => !!activeBaseSchema.value).toBeTruthy()
 </script>
@@ -7,6 +7,9 @@ await until(() => !!activeBaseSchema.value).toBeTruthy()
 <template>
   <div style="height: calc(100svh)" class="nc-container flex flex-col h-full">
     <LazySmartsheetTopbar />
-    <LazySmartsheetAutomationScripts />
+    <LazySmartsheetAutomationScripts v-if="!isAutomationsLoading" />
+    <div v-else class="flex items-center justify-center h-full">
+      <GeneralLoader size="xlarge" />
+    </div>
   </div>
 </template>

@@ -347,9 +347,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         ...(relatedTableDisplayValueColumn.value ? [relatedTableDisplayValueColumn.value] : []),
         ...(fields.value || []),
       ]
-        .filter((col) => {
-          return !isVirtualCol(col)
-        })
+        .filter((col) => isSearchableColumn(col))
         .map((field: ColumnType): string => {
           let operator = 'like'
           let query = searchQuery.trim()

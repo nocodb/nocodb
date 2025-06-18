@@ -15,7 +15,6 @@ export const useAutomationStore = defineStore('automation', () => {
 
   // State
   const automations = ref<Map<string, ScriptType[]>>(new Map())
-  const activeAutomation = ref<ScriptType | null>(null)
   const isLoading = ref(false)
   const isLoadingAutomation = ref(false)
   const isSettingsOpen = ref(false)
@@ -27,6 +26,11 @@ export const useAutomationStore = defineStore('automation', () => {
   })
 
   const activeAutomationId = computed(() => route.params.automationId as string)
+
+  const activeAutomation = computed(() => {
+    if (!activeAutomationId.value) return null
+    return activeBaseAutomations.value.find((a) => a.id === activeAutomationId.value) || null
+  })
 
   const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
 
@@ -88,10 +92,6 @@ export const useAutomationStore = defineStore('automation', () => {
           operation: 'getScript',
           id: automationId,
         })) as unknown as ScriptType)
-
-      if (activeAutomationId.value) {
-        activeAutomation.value = automation
-      }
 
       return automation
     } catch (e) {
@@ -216,10 +216,6 @@ export const useAutomationStore = defineStore('automation', () => {
         automations.value.set(baseId, baseAutomations)
       }
 
-      if (activeAutomation.value?.id === automationId) {
-        activeAutomation.value = updated as unknown as ScriptType
-      }
-
       return updated
     } catch (e) {
       console.error(e)
@@ -315,8 +311,6 @@ export const useAutomationStore = defineStore('automation', () => {
     if (!activeProjectId.value || !isAutomationEnabled.value) return
     if (automationId) {
       automation = await loadAutomation(automationId)
-    } else {
-      activeAutomation.value = null
     }
 
     if (automation) {

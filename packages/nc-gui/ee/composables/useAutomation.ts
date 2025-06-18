@@ -106,7 +106,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     await updateScript({
       script: code.value,
     })
-  }, 2000)
+  }, 500)
 
   watch(code, async (_newValue, oldValue) => {
     if (!oldValue) return

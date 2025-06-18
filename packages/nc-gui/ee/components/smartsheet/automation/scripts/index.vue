@@ -72,6 +72,10 @@ async function setupMonacoEditor() {
     parameterHints: {
       enabled: true,
     },
+    padding: {
+      top: 6,
+      bottom: 6,
+    },
     overviewRulerBorder: false,
     renderIndentGuides: false,
     wrappingStrategy: 'advanced',
@@ -105,7 +109,7 @@ onUnmounted(() => {
 <template>
   <div class="flex h-full w-full nc-scripts-content-resizable-wrapper">
     <Splitpanes>
-      <Pane :size="70" class="flex flex-col h-full min-w-0">
+      <Pane min-size="20" :size="70" class="flex flex-col h-full min-w-0">
         <div class="w-full flex-1">
           <div ref="editorRef" class="h-full" />
         </div>

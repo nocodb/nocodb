@@ -41,7 +41,7 @@ const toggleScriptSettings = () => {
       </div>
     </template>
     <NcTooltip v-else :disabled="isValidConfig">
-      <NcButton size="small" type="secondary" :disabled="isRunning || !isValidConfig" :loading="isRunning" @click="runScript">
+      <NcButton size="small" :disabled="isRunning || !isValidConfig" :loading="isRunning" @click="runScript">
         <div class="flex gap-2 items-center">
           <GeneralIcon icon="ncPlay" />
           Run

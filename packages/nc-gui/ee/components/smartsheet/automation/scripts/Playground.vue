@@ -19,6 +19,10 @@ watch(
     }
   },
 )
+
+const resolve = (item: ScriptPlaygroundItem, data: any) => {
+  resolveInput(item.id!, data)
+}
 </script>
 
 <template>
@@ -71,7 +75,7 @@ watch(
           />
         </template>
         <template v-else-if="item.type === 'input-request'">
-          <DynamicInput :content="item.content" :on-resolve="resolveInput(item.id!, $event)" />
+          <DynamicInput :content="item.content" :on-resolve="(data: any) => resolve(item, data)" />
         </template>
       </div>
     </div>

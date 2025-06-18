@@ -13,6 +13,7 @@ import {
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+import { defaultScript } from '~/utils/scriptDefault';
 const logger = new Logger('Base');
 
 export default class Script extends ScriptCE implements ScriptType {
@@ -170,6 +171,10 @@ export default class Script extends ScriptCE implements ScriptType {
       'fk_workspace_id',
       'created_by',
     ]);
+
+    if (!insertObj.script) {
+      insertObj.script = defaultScript;
+    }
 
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.SCRIPTS, {
       base_id: context.base_id,

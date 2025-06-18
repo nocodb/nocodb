@@ -1362,7 +1362,11 @@ Object.freeze(UITypes);
     
     getCollaborator(idOrNameOrEmail) {
       if(!idOrNameOrEmail) return null;
-      return this.activeCollaborators.find((collaborator) => collaborator.id === idOrNameOrEmail || collaborator.name === idOrNameOrEmail || collaborator.email === idOrNameOrEmail)
+      return this.activeCollaborators.find((collaborator) => 
+        collaborator.id === idOrNameOrEmail || 
+        collaborator.name === idOrNameOrEmail || 
+        (collaborator.email && idOrNameOrEmail && collaborator.email.toLowerCase() === idOrNameOrEmail.toLowerCase())
+      )
     }
     
     getTable(idOrName) {

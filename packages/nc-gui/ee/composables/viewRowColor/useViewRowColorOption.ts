@@ -33,6 +33,8 @@ export function useViewRowColorOption(params: {
   const baseStore = useBase()
   const { baseMeta } = baseStore
 
+  const isLoadingFilter = ref(false)
+
   // newly added condition is not saved directly to server until another action is taken
   // this is to handle that
   const pendingAction: Ref<() => Promise<void> | null> = ref(null)
@@ -170,7 +172,12 @@ export function useViewRowColorOption(params: {
 
       conditions.splice(index, 1)
       if (deleteConditionId) {
-        await $api.dbView.viewRowColorConditionDelete(params.view.value.id, deleteConditionId)
+        try {
+          await $api.dbView.viewRowColorConditionDelete(params.view.value.id, deleteConditionId)
+        } catch (err: any) {
+          console.log('error', err)
+        }
+
         eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
       }
 
@@ -184,15 +191,21 @@ export function useViewRowColorOption(params: {
     const conditionToUpdate = conditions[params.index]!
     conditionToUpdate.is_set_as_background = params.is_set_as_background
     conditionToUpdate.color = params.color
-    await $api.dbView.viewRowColorConditionUpdate(view.value.id, conditionToUpdate?.id, {
-      color: params.color,
-      is_set_as_background: params.is_set_as_background,
-      nc_order: conditionToUpdate.nc_order,
-    })
+    try {
+      await $api.dbView.viewRowColorConditionUpdate(view.value.id, conditionToUpdate?.id, {
+        color: params.color,
+        is_set_as_background: params.is_set_as_background,
+        nc_order: conditionToUpdate.nc_order,
+      })
+    } catch (err: any) {
+      console.log('error', err)
+    }
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
   const onRowColorConditionFilterAdd = async (colorIndex: number, params: FilterGroupChangeEvent) => {
+    isLoadingFilter.value = true
+
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToAdd = conditions[colorIndex]!
     const evalColumn = filterColumns.value.find((k) => k.pv)
@@ -232,9 +245,13 @@ export function useViewRowColorOption(params: {
     reloadViewDataIfNeeded(evalColumn?.id)
 
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+
+    isLoadingFilter.value = false
   }
 
   const onRowColorConditionFilterAddGroup = async (colorIndex: number, params: FilterGroupChangeEvent) => {
+    isLoadingFilter.value = true
+
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToAdd = conditions[colorIndex]!
     const filter = {
@@ -265,6 +282,8 @@ export function useViewRowColorOption(params: {
       filter.id = result.id
     })
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+
+    isLoadingFilter.value = false
   }
 
   const onRowColorConditionFilterUpdate = async (colorIndex: number, params: FilterRowChangeEvent) => {
@@ -306,26 +325,41 @@ export function useViewRowColorOption(params: {
   }
 
   const onRowColorConditionFilterDelete = async (colorIndex: number, params: FilterGroupChangeEvent) => {
+    isLoadingFilter.value = true
+
     await popPendingAction()
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToDelete = conditions[colorIndex]!
     const filterToDelete = conditionToDelete.conditions.find((k) => k.id === params.filter!.id)!
 
-    const deletedFilterIds = await deleteFilterWithSub($api, filterToDelete)
-    conditionToDelete.conditions = conditionToDelete.conditions.filter((f) => f.id !== filterToDelete.id)
-    if (params.fk_parent_id) {
-      const parentFilter = conditionToDelete.conditions.find((f) => f.id === params.fk_parent_id)
-      parentFilter.children = parentFilter.children.filter((f) => f.id !== filterToDelete.id)
-    } else {
-      conditionToDelete.nestedConditions = conditionToDelete.nestedConditions.filter((f) => f.id !== filterToDelete.id)
-    }
-    conditionToDelete.conditions = conditionToDelete.conditions.filter((fil) => !deletedFilterIds.includes(fil.id))
+    if (!filterToDelete?.id) {
+      isLoadingFilter.value = false
 
-    if (!conditionToDelete.conditions.length && !conditionToDelete.nestedConditions.length) {
-      onRowColorConditionDelete(colorIndex)
-    } else {
-      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+      return
     }
+
+    try {
+      const deletedFilterIds = await deleteFilterWithSub($api, filterToDelete)
+
+      conditionToDelete.conditions = conditionToDelete.conditions.filter((f) => f.id !== filterToDelete.id)
+      if (params.fk_parent_id) {
+        const parentFilter = conditionToDelete.conditions.find((f) => f.id === params.fk_parent_id)
+        parentFilter.children = parentFilter.children.filter((f) => f.id !== filterToDelete.id)
+      } else {
+        conditionToDelete.nestedConditions = conditionToDelete.nestedConditions.filter((f) => f.id !== filterToDelete.id)
+      }
+      conditionToDelete.conditions = conditionToDelete.conditions.filter((fil) => !deletedFilterIds.includes(fil.id))
+
+      if (!conditionToDelete.conditions.length && !conditionToDelete.nestedConditions.length) {
+        onRowColorConditionDelete(colorIndex)
+      } else {
+        eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+      }
+    } catch (err: any) {
+      console.log('error', err)
+    }
+
+    isLoadingFilter.value = false
   }
 
   const filterPerViewLimit = computed(() => getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW))
@@ -334,6 +368,7 @@ export function useViewRowColorOption(params: {
     rowColorInfo,
     filterColumns,
     filterPerViewLimit,
+    isLoadingFilter,
     onDropdownOpen,
     onChangeRowColoringMode,
     onRemoveRowColoringMode,

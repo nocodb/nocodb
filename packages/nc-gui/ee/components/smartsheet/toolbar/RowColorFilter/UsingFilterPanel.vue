@@ -10,6 +10,7 @@ interface Props {
   disabled?: boolean
   isLockedView?: boolean
   dbClientType?: ClientType
+  isLoadingFilter?: boolean
   handler: {
     conditionAdd: () => void
     conditionUpdate: (params: { index: number; color: string; is_set_as_background: boolean }) => void
@@ -135,6 +136,7 @@ const updateColor = (index: number, field: string, value: string) => {
               :query-filter="false"
               is-colour-filter
               :read-only="isLockedView || disabled"
+              :is-loading-filter="isLoadingFilter"
             >
               <template #root-header>
                 <div class="flex justify-between w-full pb-2">

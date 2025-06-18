@@ -25,6 +25,7 @@ const { fieldsMap } = useViewColumnsOrThrow()
 const {
   rowColorInfo,
   filterPerViewLimit,
+  isLoadingFilter,
   onDropdownOpen,
   onChangeRowColoringMode,
   onRemoveRowColoringMode,
@@ -130,6 +131,7 @@ watch(open, (value) => {
             v-model="rowColorInfo"
             :columns="filterColumns"
             :filter-per-view-limit="filterPerViewLimit"
+            :is-loading-filter="isLoadingFilter"
             :handler="{
               conditionAdd: onRowColorConditionAdd,
               conditionDelete: onRowColorConditionDelete,

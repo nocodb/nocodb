@@ -1257,6 +1257,7 @@
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Nézetek beillesztése",
+    "includeScripts": "Include scripts",
     "includeWebhook": "Webhook beillesztése",
     "includeComments": "Megjegyzések beillesztése",
     "zoomInToViewColumns": "Közelítés az oszlopok megtekintéséhez",

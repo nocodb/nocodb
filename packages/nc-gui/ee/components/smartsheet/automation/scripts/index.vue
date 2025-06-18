@@ -166,7 +166,7 @@ onUnmounted(() => {
     --vscode-editorGutter-background: #ffffff;
   }
   .line-numbers {
-    @apply text-nc-content-gray-subtle2;
+    @apply text-nc-content-gray-subtle2 !pr-1;
   }
   .monaco-hover-content {
     @apply !bg-nc-bg-gray-extralight;

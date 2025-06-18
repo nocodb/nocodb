@@ -1257,6 +1257,7 @@
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "കാഴ്ചകള്‍ ഉള്‍പ്പെടുത്തുക",
+    "includeScripts": "Include scripts",
     "includeWebhook": "വെബ്‌ഹുക്ക് ഉള്‍പ്പെടുത്തുക",
     "includeComments": "കമന്റുകള്‍ ഉള്‍പ്പെടുത്തുക",
     "zoomInToViewColumns": "കോളങ്ങൾ കാണുന്നതിന് സൂം ചെയ്യുക",

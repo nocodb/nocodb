@@ -2654,8 +2654,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  async chunkList(args: { pks: string[]; chunkSize?: number
-    apiVersion?: NcApiVersion; }) {
+  async chunkList(args: {
+    pks: string[];
+    chunkSize?: number;
+    apiVersion?: NcApiVersion;
+  }) {
     const { pks, chunkSize = 1000 } = args;
 
     const data = [];

@@ -7,23 +7,16 @@ const editorRef = ref<HTMLDivElement | null>(null)
 
 let editor: monaco.editor.IStandaloneCodeEditor
 
-const automationStore = useAutomationStore()
+const { activeAutomation, activeBaseSchema } = storeToRefs(useAutomationStore())
 
-const { loadAutomation } = automationStore
-
-const { activeProjectId } = storeToRefs(useBases())
-
-const { activeAutomation, isLoadingAutomation, activeAutomationId, activeBaseSchema } = storeToRefs(automationStore)
-
-const { libCode, code, config, configValue, isSettingsOpen } = useScriptStoreOrThrow()
+const { libCode, code, config, configValue, isSettingsOpen, shouldShowSettings } = useScriptStoreOrThrow()
 
 async function setupMonacoEditor() {
-  await until(() => isLoadingAutomation.value === false).toBeTruthy()
-  await until(() => !!activeAutomation.value).toBeTruthy()
-
   if (!editorRef.value) return
 
   const typeGenerator = new TypeGenerator()
+
+  monaco.languages.typescript.javascriptDefaults.setExtraLibs([])
 
   monaco.languages.typescript.javascriptDefaults.addExtraLib(typeGenerator.generateTypes(activeBaseSchema.value))
 
@@ -49,17 +42,26 @@ async function setupMonacoEditor() {
     model,
     contextmenu: false,
     theme: 'vs',
+    folding: false,
     foldingStrategy: 'indentation',
-    selectOnLineNumbers: true,
     language: 'typescript',
     tabSize: 2,
     bracketPairColorization: {
       enabled: true,
       independentColorPoolPerBracketType: true,
     },
+    lineNumbersMinChars: 5,
     minimap: {
       enabled: false,
     },
+    scrollbar: {
+      horizontal: 'hidden',
+      verticalScrollbarSize: 6,
+    },
+    selectOnLineNumbers: false,
+    scrollBeyondLastLine: false,
+    fontSize: 13,
+    lineHeight: 23,
     detectIndentation: true,
     autoIndent: 'full',
     automaticLayout: true,
@@ -70,6 +72,14 @@ async function setupMonacoEditor() {
     parameterHints: {
       enabled: true,
     },
+    padding: {
+      top: 6,
+      bottom: 6,
+    },
+    overviewRulerBorder: false,
+    renderIndentGuides: false,
+    wrappingStrategy: 'advanced',
+    renderLineHighlight: 'none',
   })
 
   editor.onDidChangeModelContent(() => {
@@ -80,63 +90,101 @@ async function setupMonacoEditor() {
 }
 
 onMounted(async () => {
-  await until(() => !!activeAutomationId.value).toBeTruthy()
-  await until(() => activeBaseSchema?.value?.id === activeProjectId.value).toBeTruthy()
-
-  await loadAutomation(activeAutomationId.value)
   code.value = activeAutomation.value?.script || ''
-
-  configValue.value = activeAutomation.value?.config || {}
-
+  configValue.value = {
+    ...(activeAutomation.value?.config ?? {}),
+  }
   await until(() => editorRef.value).toBeTruthy()
   await setupMonacoEditor()
 })
 
-const { updateAutomation } = useAutomationStore()
-
-const { isUIAllowed } = useRoles()
-
-const triggerUpdate = useDebounceFn((val) => {
-  updateAutomation(
-    activeProjectId.value,
-    activeAutomationId.value,
-    {
-      config: val,
-    },
-    {
-      skipNetworkCall: !isUIAllowed('scriptCreateOrEdit'),
-    },
-  )
-}, 1000)
+onUnmounted(() => {
+  editor?.getModel()?.dispose()
+  editor?.dispose()
+  monaco.editor.getModels().forEach((model) => model.dispose())
+  monaco.languages.typescript.javascriptDefaults.setExtraLibs([])
+})
 </script>
 
 <template>
-  <div v-show="!isLoadingAutomation" class="flex h-full w-full">
-    <Splitpanes class="nc-extensions-content-resizable-wrapper">
-      <Pane class="flex flex-col h-full min-w-0">
+  <div class="flex h-full w-full nc-scripts-content-resizable-wrapper">
+    <Splitpanes>
+      <Pane min-size="20" :size="70" class="flex flex-col h-full min-w-0">
         <div class="w-full flex-1">
           <div ref="editorRef" class="h-full" />
         </div>
       </Pane>
-      <Pane>
+      <Pane :min-size="25" :size="30">
         <SmartsheetAutomationScriptsConfigInput
-          v-if="isSettingsOpen"
+          v-if="isSettingsOpen && shouldShowSettings"
           v-model:model-value="configValue"
           :config="config"
-          @change="triggerUpdate"
         />
         <SmartsheetAutomationScriptsPlayground v-else />
       </Pane>
     </Splitpanes>
   </div>
+  <div class="h-9 border-t-1 flex border-nc-border-gray-medium px-2 py-1">
+    <div class="flex-1" />
+    <div class="flex items-center gap-2">
+      <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts">
+        <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
+          <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
+          APIs
+        </div>
+      </NuxtLink>
 
-  <div v-show="isLoadingAutomation" class="w-full flex items-center justify-center h-full">
-    <GeneralLoader size="xlarge" />
+      <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts">
+        <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
+          <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
+          Example Scripts
+        </div>
+      </NuxtLink>
+      <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts/api/base">
+        <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
+          <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
+          Script Docs
+        </div>
+      </NuxtLink>
+    </div>
   </div>
 </template>
 
 <style lang="scss">
-.monaco-editor {
-  position: absolute !important;
+.nc-scripts-content-resizable-wrapper {
+  height: calc(100% - var(--topbar-height) - 36px);
+  .monaco-editor {
+    @apply !border-0 !rounded-b-lg outline-none;
+  }
+  .overflow-guard {
+    @apply !border-0 !rounded-b-lg !rounded-t-0;
+  }
+  .monaco-editor,
+  .monaco-diff-editor,
+  .monaco-component {
+    --vscode-editor-background: #ffffff;
+    --vscode-editorGutter-background: #ffffff;
+  }
+  .line-numbers {
+    @apply text-nc-content-gray-subtle2 !pr-1;
+  }
+  .monaco-hover-content {
+    @apply !bg-nc-bg-gray-extralight;
+    border-radius: 12px !important;
+
+    .status-bar {
+      @apply !bg-nc-bg-gray-extralight;
+      .actions {
+        @apply !bg-nc-bg-gray-extralight !py-1;
+        .action {
+          @apply !no-underline !text-nc-content-brand font-semibold;
+        }
+      }
+    }
+  }
+}
+
+.nc-docs-link {
+  @apply !text-nc-content-gray-subtle no-underline;
 }
 </style>

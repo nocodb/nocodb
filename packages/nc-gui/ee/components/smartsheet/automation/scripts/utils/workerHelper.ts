@@ -1,4 +1,4 @@
-import { ActionType, InputType } from '../types'
+import { ScriptActionType, ScriptInputType } from '~/lib/enum'
 
 export function generateIntegrationsCode(integrations: any[]): string {
   let code = 'const integrations = {'
@@ -1362,7 +1362,11 @@ Object.freeze(UITypes);
     
     getCollaborator(idOrNameOrEmail) {
       if(!idOrNameOrEmail) return null;
-      return this.activeCollaborators.find((collaborator) => collaborator.id === idOrNameOrEmail || collaborator.name === idOrNameOrEmail || collaborator.email === idOrNameOrEmail)
+      return this.activeCollaborators.find((collaborator) => 
+        collaborator.id === idOrNameOrEmail || 
+        collaborator.name === idOrNameOrEmail || 
+        (collaborator.email && idOrNameOrEmail && collaborator.email.toLowerCase() === idOrNameOrEmail.toLowerCase())
+      )
     }
     
     getTable(idOrName) {
@@ -1438,14 +1442,14 @@ const api = new Proxy({}, {
       target[prop] = function(...args) {
         const id = Math.random().toString(36).substring(2);
         const message = {
-          type: '${ActionType.CALL_API}',
+          type: '${ScriptActionType.CALL_API}',
           payload: { id, method: prop.toString(), args },
         };
         self.postMessage(message);
         return new Promise((resolve, reject) => {
           function handleMessage(e) {
             const responseMessage = e.data;
-            if (responseMessage.type === '${ActionType.RESPONSE}' && responseMessage.payload.id === id) {
+            if (responseMessage.type === '${ScriptActionType.RESPONSE}' && responseMessage.payload.id === id) {
               self.removeEventListener('message', handleMessage);
               
               const response = responseMessage.payload.payload;
@@ -1487,11 +1491,11 @@ function generateRemoteFetch(): string {
       return new Promise((resolve, reject) => {
         const id = Math.random().toString(36).substr(2, 9);
         self.postMessage({ 
-          type: '${ActionType.REMOTE_FETCH}', 
+          type: '${ScriptActionType.REMOTE_FETCH}', 
           payload: { url, options, id } 
         });
         self.addEventListener('message', function handler(event) {
-          if (event.data.type === '${ActionType.REMOTE_FETCH}' && event.data.payload.id === id) {
+          if (event.data.type === '${ScriptActionType.REMOTE_FETCH}' && event.data.payload.id === id) {
             self.removeEventListener('message', handler);
             
             const response = event.data.payload.value;
@@ -1526,7 +1530,7 @@ function generateProgressAPIs(): string {
   return `
     const updateProgress = (type, { rowId, cellId, progress, message, icon } = {}) => {
       const progressMessage = {
-        type: '${ActionType.UPDATE_PROGRESS}',
+        type: '${ScriptActionType.UPDATE_PROGRESS}',
         payload: {
           type,
           data: {
@@ -1543,7 +1547,7 @@ function generateProgressAPIs(): string {
 
     const resetProgress = (type, { rowId, cellId } = {}) => {
       const resetMessage = {
-        type: '${ActionType.RESET_PROGRESS}',
+        type: '${ScriptActionType.RESET_PROGRESS}',
         payload: {
           type,
           data: {
@@ -1567,11 +1571,11 @@ function generateInputMethods(): string {
         return new Promise((resolve) => {
           const id = Math.random().toString(36).substr(2, 9);
           self.postMessage({ 
-            type: '${ActionType.INPUT}', 
-            payload: { type: '${InputType.TEXT}', label, id } 
+            type: '${ScriptActionType.INPUT}', 
+            payload: { type: '${ScriptInputType.TEXT}', label, id } 
           });
           function handler(event) {
-            if (event.data.type === '${ActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
+            if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
               self.removeEventListener('message', handler);
               resolve(event.data.payload.value);
             }
@@ -1591,11 +1595,11 @@ function generateInputMethods(): string {
           });
           
           self.postMessage({ 
-            type: '${ActionType.INPUT}', 
-            payload: { type: '${InputType.SELECT}', label, options: processedOptions, id } 
+            type: '${ScriptActionType.INPUT}', 
+            payload: { type: '${ScriptInputType.SELECT}', label, options: processedOptions, id } 
           });
           function handler(event) {
-            if (event.data.type === '${ActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
+            if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
               self.removeEventListener('message', handler);
               resolve(event.data.payload.value);
             }
@@ -1615,11 +1619,11 @@ function generateInputMethods(): string {
           });
           
           self.postMessage({ 
-            type: '${ActionType.INPUT}', 
-            payload: { type: '${InputType.BUTTONS}', label, options: processedOptions, id } 
+            type: '${ScriptActionType.INPUT}', 
+            payload: { type: '${ScriptInputType.BUTTONS}', label, options: processedOptions, id } 
           });
           function handler(event) {
-            if (event.data.type === '${ActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
+            if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
               self.removeEventListener('message', handler);
               resolve(event.data.payload.value);
             }
@@ -1631,18 +1635,18 @@ function generateInputMethods(): string {
         return new Promise((resolve) => {
           const id = Math.random().toString(36).substr(2, 9);
           self.postMessage({ 
-            type: '${ActionType.INPUT}', 
+            type: '${ScriptActionType.INPUT}', 
             payload: { 
               label,
               id,
-              type: '${InputType.FILE}', 
+              type: '${ScriptInputType.FILE}', 
               accept: options.allowedFileTypes?.join(',') || '', 
               hasHeaderRow: options.hasHeaderRow,
               useRawValues: options.useRawValues
             } 
           });
           function handler(event) {
-            if (event.data.type === '${ActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
+            if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
               self.removeEventListener('message', handler);
               let data = event.data.payload.value
               
@@ -1662,11 +1666,11 @@ function generateInputMethods(): string {
         return new Promise((resolve) => {
           const id = Math.random().toString(36).substr(2, 9);
           self.postMessage({
-            type: '${ActionType.INPUT}',
-            payload: { type: '${InputType.TABLE}', label, id }
+            type: '${ScriptActionType.INPUT}',
+            payload: { type: '${ScriptInputType.TABLE}', label, id }
           })
           function handler(event) {
-            if (event.data.type === '${ActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
+            if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
               self.removeEventListener('message', handler);
               resolve(base.getTable(event.data.payload.value));
             }
@@ -1678,6 +1682,10 @@ function generateInputMethods(): string {
         return new Promise((resolve) => {
           const id = Math.random().toString(36).substr(2, 9);
           
+          if (!tableIdOrTableNameOrTable) {
+            throw new Error('Table is required');
+          }
+          
           let tableId;
           let table
           
@@ -1692,11 +1700,11 @@ function generateInputMethods(): string {
           }
           
           self.postMessage({
-            type: '${ActionType.INPUT}',
-            payload: { type: '${InputType.VIEW}', tableId, label, id }
+            type: '${ScriptActionType.INPUT}',
+            payload: { type: '${ScriptInputType.VIEW}', tableId, label, id }
           })
           function handler(event) {
-            if (event.data.type === '${ActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
+            if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
               self.removeEventListener('message', handler);
               resolve(table.getView(event.data.payload.value));
             }
@@ -1708,6 +1716,10 @@ function generateInputMethods(): string {
         return new Promise((resolve) => {
           const id = Math.random().toString(36).substr(2, 9);
           
+          if (!tableIdOrTableNameOrTable) {
+            throw new Error('Table is required');
+          }
+          
           let tableId;
           let table
           
@@ -1722,11 +1734,11 @@ function generateInputMethods(): string {
           }
           
           self.postMessage({
-            type: '${ActionType.INPUT}',
-            payload: { type: '${InputType.FIELD}', tableId, label, id }
+            type: '${ScriptActionType.INPUT}',
+            payload: { type: '${ScriptInputType.FIELD}', tableId, label, id }
           })
           function handler(event) {
-            if (event.data.type === '${ActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
+            if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
               self.removeEventListener('message', handler);
               resolve(table.getField(event.data.payload.value));
             }
@@ -1770,12 +1782,12 @@ function generateInputMethods(): string {
           const fieldsToSelect = Array.from(new Set([...fields, ...pvAndPk]))
           
           self.postMessage({
-            type: '${ActionType.INPUT}',
-            payload: { type: '${InputType.RECORD}', tableId, viewId, records, label, id, options: { fields: options?.fields ? fieldsToSelect : [] } }
+            type: '${ScriptActionType.INPUT}',
+            payload: { type: '${ScriptInputType.RECORD}', tableId, viewId, records, label, id, options: { fields: options?.fields ? fieldsToSelect : [] } }
           });
           
           function handler(event) {
-            if (event.data.type === '${ActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
+            if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
               let data = event.data.payload.value;              
               try {
                 data = JSON.parse(data);
@@ -1826,13 +1838,13 @@ function generateConsoleOverride(): string {
   return `
     self.console = {
       log: (...args) => {
-        self.postMessage({ type: '${ActionType.LOG}', payload: { args } });
+        self.postMessage({ type: '${ScriptActionType.LOG}', payload: { args } });
       },
       error: (...args) => {
-        self.postMessage({ type: '${ActionType.ERROR}', payload: { args } });
+        self.postMessage({ type: '${ScriptActionType.ERROR}', payload: { args } });
       },
       warn: (...args) => {
-        self.postMessage({ type: '${ActionType.WARN}', payload: { args } });
+        self.postMessage({ type: '${ScriptActionType.WARN}', payload: { args } });
       },
     };
   `
@@ -1841,33 +1853,33 @@ function generateConsoleOverride(): string {
 function generateOutput(): string {
   return `
     const output = {
-      text: (message) => {
+      text: (message, type) => {
         self.postMessage({ 
-          type: '${ActionType.OUTPUT}', 
-          payload: { message: JSON.stringify({ action: 'text', args: [message] }) } 
+          type: '${ScriptActionType.OUTPUT}', 
+          payload: { message: JSON.stringify({ action: 'text', args: [message, type] }) } 
         });
       },
       markdown: (content) => {
         self.postMessage({ 
-          type: '${ActionType.OUTPUT}', 
+          type: '${ScriptActionType.OUTPUT}', 
           payload: { message: JSON.stringify({ action: 'markdown', args: [content] }) } 
         });
       },
       table: (data) => {
         self.postMessage({ 
-          type: '${ActionType.OUTPUT}', 
+          type: '${ScriptActionType.OUTPUT}', 
           payload: { message: JSON.stringify({ action: 'table', args: [data] }) } 
         });
       },
       clear: () => {
         self.postMessage({ 
-          type: '${ActionType.OUTPUT}', 
+          type: '${ScriptActionType.OUTPUT}', 
           payload: { message: JSON.stringify({ action: 'clear', args: [] }) } 
         });
       },
       inspect: (data) => {
         self.postMessage({ 
-          type: '${ActionType.OUTPUT}', 
+          type: '${ScriptActionType.OUTPUT}', 
           payload: { message: JSON.stringify({ action: 'inspect', args: [data] }) } 
         });
       }
@@ -1886,7 +1898,7 @@ function generateMessageHandler(userCode: string): string {
         } catch (e) {
           output.text(\`\${e}\`, 'error');
         } finally {
-          const doneMessage = { type: '${ActionType.DONE}', payload: undefined };
+          const doneMessage = { type: '${ScriptActionType.DONE}', payload: undefined };
           self.postMessage(doneMessage);
         }
       }
@@ -1901,7 +1913,7 @@ function generateViewActions(): string {
         return new Promise((resolve) => {
           const id = Math.random().toString(36).substr(2, 9);
           self.postMessage({
-            type: "${ActionType.ACTION}",
+            type: "${ScriptActionType.ACTION}",
             payload: { 
               id,
               action: 'reloadView'
@@ -1909,7 +1921,7 @@ function generateViewActions(): string {
           });
           function handler(event) {
             if (
-              event.data.type === "${ActionType.ACTION_COMPLETE}" &&
+              event.data.type === "${ScriptActionType.ACTION_COMPLETE}" &&
               event.data.payload.id === id
             ) {
               self.removeEventListener("message", handler);
@@ -1924,7 +1936,7 @@ function generateViewActions(): string {
         return new Promise((resolve) => {
           const id = Math.random().toString(36).substr(2, 9);
           self.postMessage({
-            type: "${ActionType.ACTION}",
+            type: "${ScriptActionType.ACTION}",
             payload: { 
               id,
               action: 'reloadRow',
@@ -1933,7 +1945,7 @@ function generateViewActions(): string {
           });
           function handler(event) {
             if (
-              event.data.type === "${ActionType.ACTION_COMPLETE}" &&
+              event.data.type === "${ScriptActionType.ACTION_COMPLETE}" &&
               event.data.payload.id === id
             ) {
               self.removeEventListener("message", handler);

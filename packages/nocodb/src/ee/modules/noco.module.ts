@@ -97,6 +97,7 @@ export const nocoModuleEeMetadata = {
   ],
   exports: [
     ...nocoModuleMetadata.exports,
+    ScriptsService,
 
     /* Generic */
     CustomUrlsService,

@@ -105,6 +105,7 @@ export class DuplicateController extends DuplicateControllerCE {
       options: {
         ...body.options,
         excludeHooks: true,
+        excludeScripts: true,
       },
       req: {
         user: req.user,

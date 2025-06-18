@@ -1,20 +1,13 @@
 import type { ScriptType } from 'nocodb-sdk'
-import { ActionType } from '~/components/smartsheet/automation/scripts/types'
+import { ScriptActionType } from '~/lib/enum'
 import { parseScript, validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
+import type { ScriptInputFileUploadResult } from '~/lib/types'
 
 const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: ScriptType) => {
   const automationStore = useAutomationStore()
-  const { activeAutomationId, activeAutomation, isSettingsOpen } = storeToRefs(automationStore)
-  const { loadAutomation } = automationStore
-
-  const code = ref<string | null>(null)
-  const currentScriptId = ref<string | null>(null)
-
-  const config = computed(() => {
-    return parseScript(code.value) ?? {}
-  })
-
-  const configValue = ref<Record<string, any>>({})
+  const { updateAutomation } = automationStore
+  const { activeAutomation, isSettingsOpen } = storeToRefs(automationStore)
+  const { activeProjectId } = storeToRefs(useBases())
 
   const {
     runScript: executeScript,
@@ -25,75 +18,128 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     libCode,
   } = useScriptExecutor()
 
+  const code = ref<string>()
+  const activeExecutionId = ref<string | null>(null)
+  const configValue = ref<Record<string, any>>({})
+
+  const config = computed(() => {
+    return parseScript(code.value) ?? {}
+  })
+
   const playground = computed(() => {
-    if (!currentScriptId.value) return []
+    if (!activeExecutionId.value) return []
 
-    const execution = activeExecutions.value.get(currentScriptId.value)
-
+    const execution = activeExecutions.value.get(activeExecutionId.value)
     return execution?.playground ?? []
   })
 
-  const resolveInput = (id: string, value: string | File) => {
-    if (!currentScriptId.value) return
+  const isValidConfig = computed(() => {
+    return validateConfigValues(config.value ?? {}, activeAutomation.value?.config ?? {})?.length === 0
+  })
 
-    const execution = activeExecutions.value.get(currentScriptId.value)
+  const shouldShowSettings = computed(() => {
+    return config.value?.title || config.value?.description || config.value?.items?.length
+  })
+
+  const resolveInput = (id: string, value: string | Record<string, any> | ScriptInputFileUploadResult) => {
+    if (!activeExecutionId.value) return
+
+    const execution = activeExecutions.value.get(activeExecutionId.value)
     if (!execution) return
 
-    const index = execution.playground.findIndex((item) => item.id === id && item.type === 'input-request')
+    const index = execution.playground.findIndex((item) => item?.id === id && item.type === 'input-request')
     if (index !== -1) {
-      const item = execution.playground[index]
+      const item = execution.playground[index] as ScriptInputRequestPlaygroundItem
       if (item?.resolve) {
         if (typeof value === 'object') {
           value = JSON.stringify(value)
         }
 
-        item?.resolve(value as string | File)
+        item?.resolve(value)
       }
 
       execution.worker?.postMessage({
-        type: ActionType.INPUT_RESOLVED,
+        type: ScriptActionType.INPUT_RESOLVED,
         payload: { id, value },
       })
     }
   }
 
-  const isValidConfig = computed(() => {
-    return validateConfigValues(config.value ?? {}, configValue.value ?? {})?.length === 0
-  })
-
   const runScript = async () => {
     if (isRunning.value || !isValidConfig.value) return
 
-    currentScriptId.value = await executeScript({
+    isSettingsOpen.value = false
+
+    activeExecutionId.value = await executeScript({
       ...activeAutomation.value,
-      code: code.value,
+      script: code.value,
     })
   }
 
   const stopScript = () => {
-    if (currentScriptId.value) {
-      _stopExecution(currentScriptId.value)
-      currentScriptId.value = null
+    if (activeExecutionId.value) {
+      _stopExecution(activeExecutionId.value)
+      activeExecutionId.value = null
     }
   }
 
-  onMounted(async () => {
-    await loadAutomation(activeAutomationId.value)
+  const restartScript = async () => {
+    stopScript()
+    await runScript()
+  }
+
+  const updateScript = async ({ script, config }: { script?: string; config?: Record<string, any> }) => {
+    if (!activeProjectId.value || !activeAutomation.value?.id) return
+
+    await updateAutomation(activeProjectId.value, activeAutomation.value.id, {
+      script,
+      config,
+    })
+
+    if (config) {
+      configValue.value = config
+    }
+  }
+
+  const debouncedSave = useDebounceFn(async () => {
+    if (!activeProjectId.value || !activeAutomation.value?.id) return
+    await updateScript({
+      script: code.value,
+    })
+  }, 500)
+
+  watch(code, async (_newValue, oldValue) => {
+    if (!oldValue) return
+    await debouncedSave()
+  })
+
+  onBeforeUnmount(() => {
+    stopScript()
   })
 
   return {
-    resolveInput,
-    stopExecution: stopScript,
+    // State
+    code,
+    configValue,
+
+    // Computed
+    config,
+    playground,
+    isValidConfig,
+    isSettingsOpen,
+    shouldShowSettings,
+
+    // Script execution state
     isRunning,
     isFinished,
-    playground,
     libCode,
+
+    // Methods
     runScript,
-    code,
-    config,
-    configValue,
-    isSettingsOpen,
-    isValidConfig,
+    stopExecution: stopScript,
+    resolveInput,
+    updateScript,
+    restartScript,
   }
 })
 
@@ -105,5 +151,6 @@ export function useScriptStoreOrThrow() {
   if (!state) {
     throw new Error('useScriptStoreOrThrow must be used within a ScriptStoreProvider')
   }
+
   return state
 }

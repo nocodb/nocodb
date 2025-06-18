@@ -31,6 +31,8 @@ const handleNavigateToScript = (script: ScriptType) => {
 }
 
 function openAutomationCreateDialog() {
+  isOpen.value = false
+
   openNewScriptModal({
     baseId: base.value?.id,
     e: 'c:automation:create:topbar',
@@ -41,7 +43,7 @@ function openAutomationCreateDialog() {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpen">
+  <NcDropdown v-model:visible="isOpen" overlay-class-name="max-w-64">
     <slot name="default" :is-open="isOpen"></slot>
     <template #overlay>
       <LazyNcList
@@ -50,6 +52,7 @@ function openAutomationCreateDialog() {
         :list="activeBaseAutomations"
         option-value-key="id"
         option-label-key="title"
+        class="min-w-64 !w-auto"
         search-input-placeholder="Search automations"
         @change="handleNavigateToScript"
       >
@@ -57,7 +60,7 @@ function openAutomationCreateDialog() {
           <div>
             <LazyGeneralEmojiPicker :emoji="option?.meta?.icon" readonly size="xsmall">
               <template #default>
-                <GeneralIcon icon="ncScript" class="min-w-4 !text-gray-500" />
+                <GeneralIcon icon="ncScript" class="min-w-4 text-lg flex" />
               </template>
             </LazyGeneralEmojiPicker>
           </div>

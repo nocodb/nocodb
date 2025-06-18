@@ -1,18 +1,6 @@
 <script setup lang="ts">
-interface ConfigItem {
-  type: 'table' | 'field' | 'view' | 'text' | 'number' | 'select'
-  key: string
-  label?: string
-  description?: string
-  parentTable?: string
-  options?: Array<{ value: string; label?: string }>
-}
-
-interface ScriptConfig {
-  title: string
-  description?: string
-  items: ConfigItem[]
-}
+import { validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
+import type { ScriptConfig, ScriptConfigItemField, ScriptConfigItemView } from '~/lib/types'
 
 interface Props {
   config: ScriptConfig
@@ -20,171 +8,188 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue', 'change'])
+
+const { updateScript, isSettingsOpen } = useScriptStoreOrThrow()
 
 const configValue = useVModel(props, 'modelValue', emit)
 
-const getValue = (key: string) => configValue.value[key]?.value || ''
+const isLoading = ref(false)
 
-const canShowFieldOrView = (item: ConfigItem): boolean => {
+const hasInput = computed(() => props.config?.items?.length > 0)
+
+const getValue = (key: string): string => configValue.value[key]?.value || ''
+
+const canShowFieldOrView = (item: ScriptConfigItemField | ScriptConfigItemView): boolean => {
   if (!item?.parentTable) return true
   return !getValue(item.parentTable)
 }
 
-const emitUpdate = () => emit('change', configValue.value)
+const isConfigValid = computed(() => {
+  const res = validateConfigValues(props.config, configValue.value)
+  return res.length === 0
+})
 
-const handleTableChange = (key: string, value: any) => {
+const handleTableChange = (key: string, value: string | null) => {
   configValue.value[key] = value ? { type: 'table', value } : undefined
+
+  // Clear dependent fields/views when table changes
   ;(props.config?.items ?? []).forEach((item) => {
-    if (item.parentTable === key) {
-      configValue.value[item.key] = undefined
+    if (item.type === 'field' || item.type === 'view') {
+      if (item.parentTable === key) {
+        configValue.value[item.key] = undefined
+      }
     }
   })
-  emitUpdate()
 }
 
-const handleFieldOrViewChange = (item: ConfigItem, value: any) => {
+const handleFieldOrViewChange = (item: ScriptConfigItemField | ScriptConfigItemView, value: string | null) => {
   if (value && item.parentTable) {
-    configValue.value[item.key] = {
-      type: item.type,
-      value,
-      tableId: configValue.value[item.parentTable]?.value,
+    const tableId = configValue.value[item.parentTable]?.value
+    if (tableId) {
+      configValue.value[item.key] = {
+        type: item.type,
+        value,
+        tableId,
+      }
     }
   } else {
     configValue.value[item.key] = value ? { type: item.type, value } : undefined
   }
-  emitUpdate()
+}
+
+const triggerUpdate = async () => {
+  try {
+    isLoading.value = true
+    await updateScript({
+      config: configValue.value,
+    })
+    message.toast('Script settings saved!')
+    isSettingsOpen.value = false
+  } catch (error) {
+    message.error(await extractSdkResponseErrorMsgv2(error as any))
+  } finally {
+    isLoading.value = false
+  }
 }
 
 onMounted(() => {
   ;(props.config?.items ?? []).forEach((item) => {
     if (item.type === 'table') {
       configValue.value[item.key] = configValue.value[item.key] || { type: item.type, value: '' }
-    } else if (['field', 'view'].includes(item.type) && item.parentTable) {
+    } else if (item.type === 'field' || item.type === 'view') {
+      const parentTableValue = configValue.value[item.parentTable]?.value
       configValue.value[item.key] = configValue.value[item.key] || {
         type: item.type,
         value: '',
-        tableId: configValue.value[item.parentTable]?.value,
+        tableId: parentTableValue || '',
       }
+    } else if (item.type === 'text' || item.type === 'number' || item.type === 'select') {
+      configValue.value[item.key] = configValue.value[item.key] || { type: item.type, value: '' }
     }
   })
 })
 </script>
 
 <template>
-  <div class="p-4 overflow-y-auto h-[95svh] nc-scrollbar-md">
-    <h1 v-if="config?.title" class="text-2xl text-nc-content-gray font-semibold">
-      {{ config?.title }}
-    </h1>
-    <p class="text-nc-content-gray leading-5">
-      {{ config?.description }}
-    </p>
+  <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium h-[91svh] nc-scrollbar-md">
+    <div class="flex mx-auto flex-col max-w-130 gap-6">
+      <div>
+        <div class="text-subHeading2 text-nc-content-gray-emphasis">
+          {{ config?.title || 'Script Settings' }}
+        </div>
+        <div v-if="config?.description" class="text-nc-content-gray-subtle2 text-body mt-2">
+          {{ config?.description }}
+        </div>
+      </div>
 
-    <div class="py-2">
-      <div v-for="item in config?.items" :key="item.key" class="pb-4">
+      <div v-for="item in config?.items" :key="item.key">
         <template v-if="item.type === 'table'">
-          <div class="flex flex-col">
-            <div v-if="item?.label || item?.key" class="font-semibold text-nc-content-gray">
+          <div class="flex flex-col gap-2">
+            <div v-if="item?.label || item?.key" class="text-caption text-nc-content-gray-subtle2">
               {{ item.label || item.key }}
             </div>
-            <div v-if="item?.description" class="mb-2">
+            <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <NSelectTable
-              :value="getValue(item.key)"
-              allow-clear
-              class="w-64"
-              @change="(value) => handleTableChange(item.key, value)"
-            />
+            <NSelectTable :value="getValue(item.key)" @change="(value) => handleTableChange(item.key, value)" />
           </div>
         </template>
 
         <template v-else-if="item.type === 'view'">
-          <div class="flex flex-col">
-            <div v-if="item?.label || item?.key" class="font-semibold text-nc-content-gray">
+          <div class="flex flex-col gap-2">
+            <div v-if="item?.label || item?.key" class="text-caption text-nc-content-gray-subtle2">
               {{ item.label || item.key }}
             </div>
-            <div v-if="item?.description" class="mb-2">
+            <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
             <NSelectView
               :value="getValue(item.key)"
               :table-id="getValue(item.parentTable)"
               :disabled="canShowFieldOrView(item)"
-              allow-clear
-              class="w-64"
               @change="(value) => handleFieldOrViewChange(item, value)"
             />
           </div>
         </template>
 
         <template v-else-if="item.type === 'field'">
-          <div class="flex flex-col">
-            <div v-if="item?.label || item?.key" class="font-semibold text-nc-content-gray">
+          <div class="flex flex-col gap-2">
+            <div v-if="item?.label || item?.key" class="text-caption text-nc-content-gray-subtle2">
               {{ item.label || item.key }}
             </div>
-            <div v-if="item?.description" class="mb-2">
+            <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
             <NSelectField
               :value="getValue(item.key)"
               :table-id="getValue(item.parentTable)"
               :disabled="canShowFieldOrView(item)"
-              allow-clear
-              class="w-64"
               @change="(value) => handleFieldOrViewChange(item, value)"
             />
           </div>
         </template>
 
         <template v-else-if="item.type === 'text'">
-          <div class="flex flex-col">
-            <div v-if="item?.label || item?.key" class="font-semibold text-nc-content-gray">
+          <div class="flex flex-col gap-2">
+            <div v-if="item?.label || item?.key" class="text-caption text-nc-content-gray-subtle2">
               {{ item.label || item.key }}
             </div>
-            <div v-if="item?.description" class="mb-2">
+            <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <a-input
-              v-model:value="configValue[item.key]"
-              type="text"
-              class="nc-input-sm !w-64 nc-input-shadow"
-              @change="emitUpdate"
-            />
+            <a-input v-model:value="configValue[item.key]" type="text" class="nc-input-sm nc-input-shadow" />
           </div>
         </template>
 
         <template v-else-if="item.type === 'number'">
-          <div class="flex flex-col">
-            <div v-if="item?.label || item?.key" class="font-semibold text-nc-content-gray">
+          <div class="flex flex-col gap-2">
+            <div v-if="item?.label || item?.key" class="text-caption text-nc-content-gray-subtle2">
               {{ item.label || item.key }}
             </div>
-            <div v-if="item?.description" class="mb-2">
+            <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <a-input-number
-              v-model:value="configValue[item.key]"
-              class="nc-input-sm !w-64 nc-input-shadow"
-              @change="emitUpdate"
-            />
+            <a-input v-model:value="configValue[item.key]" type="number" class="nc-input-sm nc-input-shadow" />
           </div>
         </template>
 
         <template v-else-if="item.type === 'select'">
-          <div class="flex flex-col">
-            <div v-if="item?.label || item?.key" class="font-semibold text-nc-content-gray">
+          <div class="flex flex-col gap-2">
+            <div v-if="item?.label || item?.key" class="text-caption text-nc-content-gray-subtle2">
               {{ item.label || item.key }}
             </div>
-            <div v-if="item?.description" class="mb-2">
+            <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <a-select v-model:value="configValue[item.key]" class="w-64" show-search @change="emitUpdate">
+            <a-select v-model:value="configValue[item.key]" show-search>
               <template #suffixIcon>
                 <GeneralIcon icon="arrowDown" class="text-gray-700" />
               </template>
               <a-select-option v-for="option in item.options" :key="option.value" :value="option.value">
                 <div class="flex gap-2 w-full justify-between items-center">
-                  {{ option.label }}
+                  {{ option.label || option.value }}
                   <GeneralIcon
                     v-if="configValue[item.key] === option.value"
                     id="nc-selected-item-icon"
@@ -197,6 +202,13 @@ onMounted(() => {
           </div>
         </template>
       </div>
+
+      <NcTooltip v-if="hasInput" class="w-full" :disabled="isConfigValid">
+        <template #title> Please fill in all required fields </template>
+        <NcButton :loading="isLoading" class="w-full" size="small" :disabled="!isConfigValid" @click="triggerUpdate">
+          Save
+        </NcButton>
+      </NcTooltip>
     </div>
   </div>
 </template>

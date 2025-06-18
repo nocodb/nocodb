@@ -36,29 +36,6 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
               <GeneralProjectIcon :type="base?.type" :color="parseProp(base.meta).iconColor" class="!grayscale min-w-5" />
             </NcTooltip>
-            <NcTooltip class="ml-1 truncate nc-active-base-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
-              <template #title>
-                <span class="capitalize">
-                  {{ base?.title }}
-                </span>
-              </template>
-
-              <span
-                class="text-ellipsis capitalize"
-                :style="{
-                  wordBreak: 'keep-all',
-                  whiteSpace: 'nowrap',
-                  display: 'inline',
-                }"
-              >
-                {{ base?.title }}
-              </span>
-            </NcTooltip>
-            <GeneralIcon
-              icon="chevronDown"
-              class="!text-current opacity-70 flex-none transform transition-transform duration-25 w-3.5 h-3.5"
-              :class="{ '!rotate-180': isOpen }"
-            />
           </div>
         </template>
       </SmartsheetTopbarProjectListDropdown>
@@ -72,7 +49,6 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
             :class="{
               'max-w-full': isMobileMode,
               'max-w-1/4': !isSharedBase && !isMobileMode && !activeAutomation,
-              'max-w-none': isSharedBase && !isMobileMode,
             }"
           >
             <LazyGeneralEmojiPicker v-if="!isMobileMode" readonly size="xsmall" class="mr-1">
@@ -88,7 +64,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               </template>
             </LazyGeneralEmojiPicker>
 
-            <NcTooltip class="truncate nc-active-table-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
+            <NcTooltip class="truncate max-w-40 nc-active-table-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
               <template #title>
                 {{ activeAutomation?.title }}
               </template>

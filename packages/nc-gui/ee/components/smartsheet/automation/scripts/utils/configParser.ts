@@ -1,20 +1,6 @@
 import * as acorn from 'acorn-loose'
 import * as walk from 'acorn-walk'
-
-interface ConfigItem {
-  type: 'table' | 'field' | 'view' | 'text' | 'number' | 'select'
-  key: string
-  label?: string
-  description?: string
-  parentTable?: string
-  options?: Array<{ value: string; label?: string }>
-}
-
-interface ScriptConfig {
-  title: string
-  description?: string
-  items: ConfigItem[]
-}
+import type { ScriptConfig, ScriptConfigItem } from '~/lib/types'
 
 export const isInputConfigCall = (node: any) => {
   return (
@@ -42,7 +28,7 @@ export const extractObjectValue = (node: any) => {
   return undefined
 }
 
-export const parseConfigItem = (node: any): ConfigItem | null => {
+export const parseConfigItem = (node: any): ScriptConfigItem | null => {
   // Check if it's a config item call (input.config.type)
   if (
     node.type === 'CallExpression' &&
@@ -51,7 +37,7 @@ export const parseConfigItem = (node: any): ConfigItem | null => {
     node.callee.object.object.name === 'input' &&
     node.callee.object.property.name === 'config'
   ) {
-    const type = node.callee.property.name as ConfigItem['type']
+    const type = node.callee.property.name as ScriptConfigItem['type']
     const [keyNode, optionsNode] = node.arguments
 
     if (keyNode && keyNode.type === 'Literal') {
@@ -153,7 +139,7 @@ export const parseScript = (scriptContent: string): any => {
     })
 
     let config: ScriptConfig | null = null
-    const items: ConfigItem[] = []
+    const items: ScriptConfigItem[] = []
 
     walk.simple(ast, {
       CallExpression(node: any) {

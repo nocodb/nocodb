@@ -29,6 +29,10 @@ export const useBase = defineStore('baseStore', () => {
 
   const tablesStore = useTablesStore()
 
+  const automationStore = useAutomationStore()
+
+  const { loadAutomations } = automationStore
+
   // todo: refactor
   const sharedProject = ref<BaseType>()
 
@@ -126,6 +130,8 @@ export const useBase = defineStore('baseStore', () => {
   async function loadTables() {
     if (base.value.id) {
       await tablesStore.loadProjectTables(base.value.id, true)
+      await loadAutomations({ baseId: base.value.id || baseId.value })
+
       // tables.value = basesStore.baseTableList[base.value.id]
       //   await api.dbTable.list(base.value.id, {
       //   includeM2M: includeM2M.value,

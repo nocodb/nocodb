@@ -1,9 +1,9 @@
 import type { ScriptType } from 'nocodb-sdk'
-import { ActionType } from '~/components/smartsheet/automation/scripts/types'
-import type { CallApiAction, ViewActionPayload } from '~/components/smartsheet/automation/scripts/types'
 import { createWorkerCode, generateIntegrationsCode } from '~/components/smartsheet/automation/scripts/utils/workerHelper'
 import { generateLibCode } from '~/components/smartsheet/automation/scripts/utils/editorUtils'
 import { replaceConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
+import type { CallApiAction, ScriptPlaygroundItem, ViewActionPayload } from '~/lib/types'
+import { ScriptActionType } from '~/lib/enum'
 
 export const useScriptExecutor = createSharedComposable(() => {
   const { internalApi, api } = useApi()
@@ -35,14 +35,6 @@ export const useScriptExecutor = createSharedComposable(() => {
   const isRunning = ref(false)
   const isFinished = ref(false)
 
-  interface PlaygroundItem {
-    type: string
-    content: any
-    style?: string
-    id?: string
-    resolve?: (value: string) => void
-  }
-
   const activeExecutions = ref<
     Map<
       string,
@@ -53,7 +45,7 @@ export const useScriptExecutor = createSharedComposable(() => {
         worker: Worker | null
         pk?: string
         fieldId?: string
-        playground: Array<PlaygroundItem>
+        playground: Array<ScriptPlaygroundItem>
       }
     >
   >(new Map())
@@ -131,7 +123,7 @@ export const useScriptExecutor = createSharedComposable(() => {
       const response = await api[method](...args)
 
       worker.postMessage({
-        type: ActionType.RESPONSE,
+        type: ScriptActionType.RESPONSE,
         payload: { id, payload: response },
       })
     } catch (error: any) {
@@ -155,7 +147,7 @@ export const useScriptExecutor = createSharedComposable(() => {
       }
 
       worker.postMessage({
-        type: ActionType.RESPONSE,
+        type: ScriptActionType.RESPONSE,
         payload: { id, payload: errorResponse },
       })
     }
@@ -163,22 +155,22 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   function handleWorkerMessage(scriptId: string, message: any, worker: Worker, onWorkerDone: () => void) {
     switch (message.type) {
-      case ActionType.LOG:
-      case ActionType.ERROR:
-      case ActionType.WARN:
+      case ScriptActionType.LOG:
+      case ScriptActionType.ERROR:
+      case ScriptActionType.WARN:
         actions[message.type](scriptId, ...message.payload.args)
         break
-      case ActionType.OUTPUT: {
+      case ScriptActionType.OUTPUT: {
         const { action, args } = JSON.parse(message.payload.message)
         if (action in actions.output) {
           ;(actions.output as any)[action](scriptId, ...args)
         }
         break
       }
-      case ActionType.CALL_API:
+      case ScriptActionType.CALL_API:
         handleApiCall(worker, message)
         break
-      case ActionType.INPUT: {
+      case ScriptActionType.INPUT: {
         const execution = activeExecutions.value.get(scriptId)
         if (execution) {
           execution.playground.push({
@@ -197,14 +189,14 @@ export const useScriptExecutor = createSharedComposable(() => {
               if (typeof value === 'object') {
                 value = JSON.stringify(value)
               }
-              worker.postMessage({ type: ActionType.INPUT_RESOLVED, payload: { id: message.payload.id, value } })
+              worker.postMessage({ type: ScriptActionType.INPUT_RESOLVED, payload: { id: message.payload.id, value } })
             },
           })
         }
         break
       }
 
-      case ActionType.ACTION: {
+      case ScriptActionType.ACTION: {
         const payload = message.payload as ViewActionPayload
 
         switch (payload.action) {
@@ -222,7 +214,7 @@ export const useScriptExecutor = createSharedComposable(() => {
 
         // Confirm action completion
         worker.postMessage({
-          type: ActionType.ACTION_COMPLETE,
+          type: ScriptActionType.ACTION_COMPLETE,
           payload: {
             id: payload.id,
             value: undefined,
@@ -231,15 +223,15 @@ export const useScriptExecutor = createSharedComposable(() => {
         break
       }
 
-      case ActionType.UPDATE_PROGRESS: {
+      case ScriptActionType.UPDATE_PROGRESS: {
         eventBus.emit(SmartsheetScriptActions.UPDATE_PROGRESS, message.payload)
         break
       }
-      case ActionType.RESET_PROGRESS: {
+      case ScriptActionType.RESET_PROGRESS: {
         eventBus.emit(SmartsheetScriptActions.RESET_PROGRESS, message.payload)
         break
       }
-      case ActionType.REMOTE_FETCH: {
+      case ScriptActionType.REMOTE_FETCH: {
         api.workspace
           .remoteFetch(activeWorkspace.value?.id, {
             method: message.payload?.options?.method || 'GET',
@@ -251,7 +243,7 @@ export const useScriptExecutor = createSharedComposable(() => {
             const isError = response.error || (response.status >= 400 && response.status < 600)
 
             worker.postMessage({
-              type: ActionType.REMOTE_FETCH,
+              type: ScriptActionType.REMOTE_FETCH,
               payload: {
                 id: message.payload.id,
                 value: response,
@@ -280,7 +272,7 @@ export const useScriptExecutor = createSharedComposable(() => {
             }
 
             worker.postMessage({
-              type: ActionType.REMOTE_FETCH,
+              type: ScriptActionType.REMOTE_FETCH,
               payload: {
                 id: message.payload.id,
                 value: errorResponse,
@@ -290,7 +282,7 @@ export const useScriptExecutor = createSharedComposable(() => {
           })
         break
       }
-      case ActionType.DONE:
+      case ScriptActionType.DONE:
         onWorkerDone()
         break
       default:
@@ -376,10 +368,12 @@ export const useScriptExecutor = createSharedComposable(() => {
               status: 'error',
               playground: [
                 ...activeExecutions.value.get(scriptId)!.playground,
-                { type: 'text', content: minCode.error, style: 'log' },
+                { type: 'text', content: minCode.error, style: 'error' },
               ],
               error: minCode.error,
             })
+            isRunning.value = false
+            isFinished.value = true
             return
           }
 
@@ -457,7 +451,6 @@ export const useScriptExecutor = createSharedComposable(() => {
         scriptQueue.add(executeScript, {
           id: scriptId,
           priority: extra?.priority || 1,
-          timeout: 120000, // 2 minutes timeout per script execution
         })
         return scriptId
       } catch (error) {
@@ -504,10 +497,46 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
+  const setupQueueEventListeners = () => {
+    scriptQueue.on(QueueEvents.TASK_FAILED, (data) => {
+      const { id, error } = data
+      const execution = activeExecutions.value.get(id)
+
+      if (execution) {
+        const isTimeout = error && (error.message?.includes('timed out') || error.message?.includes('timeout'))
+
+        if (execution.worker) {
+          execution.worker.terminate()
+        }
+
+        isRunning.value = false
+        isFinished.value = true
+
+        activeExecutions.value.set(id, {
+          ...execution,
+          status: 'error',
+          error,
+          worker: null,
+          playground: [
+            ...execution.playground,
+            {
+              type: 'text',
+              content: isTimeout ? `Script execution timed out` : `Script execution failed: ${error?.message || 'Unknown error'}`,
+              style: 'error',
+            },
+          ],
+        })
+      }
+    })
+  }
+
   onMounted(async () => {
     if (isPublic.value || !isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS)) return
 
     await loadAutomation(activeAutomationId.value)
+
+    setupQueueEventListeners()
+
     const integrationsCode = generateIntegrationsCode(aiIntegrations.value)
     libCode.value = generateLibCode(aiIntegrations.value)
 

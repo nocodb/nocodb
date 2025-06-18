@@ -3,7 +3,7 @@ import { WorkspaceUserRoles } from 'nocodb-sdk';
 import { ImportService as ImportServiceCE } from 'src/modules/jobs/jobs/export-import/import.service';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
-import { WorkspaceUser } from '~/models';
+import { type User, WorkspaceUser } from '~/models';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -19,6 +19,7 @@ import { SortsService } from '~/services/sorts.service';
 import { TablesService } from '~/services/tables.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
+import { ScriptsService } from '~/services/scripts.service';
 
 @Injectable()
 export class ImportService extends ImportServiceCE {
@@ -40,6 +41,7 @@ export class ImportService extends ImportServiceCE {
     protected bulkDataService: BulkDataAliasService,
     protected hooksService: HooksService,
     protected viewsService: ViewsService,
+    protected scriptsService: ScriptsService,
   ) {
     super(
       tablesService,
@@ -58,6 +60,26 @@ export class ImportService extends ImportServiceCE {
       hooksService,
       viewsService,
     );
+  }
+
+  override async importScripts(
+    context: NcContext,
+    param: {
+      user: User;
+      baseId: string;
+      data: Array<any>;
+      req: NcRequest;
+    },
+  ) {
+    if (!param.data?.length) return;
+    for (const script of param.data) {
+      await this.scriptsService.createScript(
+        context,
+        context.base_id,
+        script,
+        param.req,
+      );
+    }
   }
 
   override async importUsers(

@@ -1682,6 +1682,10 @@ function generateInputMethods(): string {
         return new Promise((resolve) => {
           const id = Math.random().toString(36).substr(2, 9);
           
+          if (!tableIdOrTableNameOrTable) {
+            throw new Error('Table is required');
+          }
+          
           let tableId;
           let table
           
@@ -1711,6 +1715,10 @@ function generateInputMethods(): string {
       fieldAsync: async (label, tableIdOrTableNameOrTable) => {
         return new Promise((resolve) => {
           const id = Math.random().toString(36).substr(2, 9);
+          
+          if (!tableIdOrTableNameOrTable) {
+            throw new Error('Table is required');
+          }
           
           let tableId;
           let table

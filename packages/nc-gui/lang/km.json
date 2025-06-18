@@ -1257,6 +1257,7 @@
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "រួមបញ្ចូលទិដ្ឋភាព",
+    "includeScripts": "Include scripts",
     "includeWebhook": "រួមបញ្ចូល Webhook",
     "includeComments": "រួមបញ្ចូលមតិយោបល់",
     "zoomInToViewColumns": "ផ្លោងចូលផ្ដើមមើលចំណង",

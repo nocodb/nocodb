@@ -390,7 +390,6 @@ export function sanitizeUserForHook(user: any) {
     id: user.id,
     email: user.email,
     display_name: user.display_name,
-    user_name: user.user_name,
     // Explicitly exclude sensitive fields like:
     // - tokens
     // - password hashes

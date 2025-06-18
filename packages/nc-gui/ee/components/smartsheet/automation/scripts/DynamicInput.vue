@@ -1,33 +1,9 @@
 <script setup lang="ts">
 import { parse } from 'papaparse'
 import { ScriptInputType } from '~/lib/enum'
+import type { DynamicInputProps } from '~/lib/types'
 
-const props = defineProps<{
-  content: {
-    type: ScriptInputType
-    options:
-      | { label: string; value: string; variant: string }[]
-      | {
-          fields: string[]
-        }
-    tableId?: string
-    label?: string
-    viewId?: string
-    accept?: string
-    records?: Record<string, any>[]
-    hasHeaderRow?: boolean
-    useRawValues?: boolean
-  }
-  onResolve: (
-    value:
-      | string
-      | Record<string, any>
-      | {
-          file: File
-          parsedContents: any
-        },
-  ) => void
-}>()
+const props = defineProps<DynamicInputProps>()
 
 const { content } = toRefs(props)
 
@@ -133,7 +109,7 @@ watch(rowInput, (newValue) => {
           v-model:value="inputValue"
           type="text"
           :disabled="isResolved"
-          class="nc-input-sm !w-96 nc-input-shadow"
+          class="nc-input-sm nc-input-shadow"
           @keyup.enter="onChange"
         />
       </div>

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { NcDropdownPlacement } from '#imports'
+
 const props = withDefaults(
   defineProps<{
     trigger?: Array<'click' | 'hover' | 'contextmenu'>
@@ -6,7 +8,7 @@ const props = withDefaults(
     overlayClassName?: string | undefined
     overlayStyle?: Record<string, any>
     disabled?: boolean
-    placement?: 'bottom' | 'top' | 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight' | 'topCenter' | 'bottomCenter' | 'right'
+    placement?: NcDropdownPlacement
     autoClose?: boolean
     // if true, the dropdown will not have the nc-dropdown class (used for blocking keyboard events)
     nonNcDropdown?: boolean

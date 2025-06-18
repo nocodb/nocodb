@@ -67,7 +67,7 @@ watch(
   >
     <div class="flex flex-col h-full">
       <!-- Header -->
-      <div class="p-2 w-full flex items-center gap-3 border-b-1 border-gray-200">
+      <div class="p-2 w-full flex items-center gap-3 border-b-1 border-nc-border-gray-medium">
         <div class="flex items-center">
           <GeneralIcon icon="table" class="!h-6 !w-6 pl-1" />
         </div>
@@ -75,7 +75,7 @@ watch(
 
         <div class="flex items-center gap-3">
           <NcButton size="small" type="text" @click="vVisible = false">
-            <GeneralIcon icon="close" class="text-gray-600" />
+            <GeneralIcon icon="close" />
           </NcButton>
         </div>
       </div>
@@ -88,26 +88,26 @@ watch(
               <GeneralLoader size="large" />
             </div>
 
-            <div v-else-if="tableData" class="space-y-6 h-full flex flex-col">
-              <PermissionsTable :table-id="tableId" :base="base">
+            <div v-else-if="tableData" class="space-y-8 h-full flex flex-col">
+              <PermissionsTable :table-id="tableId" :base="base" class="!gap-4" placement="bottomLeft">
                 <template #actions>
-                  <!-- <NcButton type="text" size="small">
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="ncRepeat" class="flex-none h-4 w-4" />
-                  <span>Revert to Default</span>
-                </div>
-              </NcButton> -->
+                  <!-- <NcButton type="secondary" size="small">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
+                      <span>Revert to Default</span>
+                    </div>
+                  </NcButton> -->
                 </template>
               </PermissionsTable>
 
               <PermissionsField :table-data="tableData">
                 <template #actions>
-                  <!-- <NcButton type="text" size="small">
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="ncRepeat" class="flex-none h-4 w-4" />
-                  <span>Revert to Default</span>
-                </div>
-              </NcButton> -->
+                  <!-- <NcButton type="secondary" size="small">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
+                      <span>Revert to Default</span>
+                    </div>
+                  </NcButton> -->
                 </template>
               </PermissionsField>
             </div>

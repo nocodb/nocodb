@@ -810,6 +810,17 @@ interface NcListProps {
 
 // NcList type ends here
 
+type NcDropdownPlacement =
+  | 'bottom'
+  | 'top'
+  | 'bottomLeft'
+  | 'bottomRight'
+  | 'topLeft'
+  | 'topRight'
+  | 'topCenter'
+  | 'bottomCenter'
+  | 'right'
+
 export type {
   User,
   ProjectMetaInfo,
@@ -870,4 +881,5 @@ export type {
   NcListItemType,
   MultiSelectRawValueType,
   RawValueType,
+  NcDropdownPlacement,
 }

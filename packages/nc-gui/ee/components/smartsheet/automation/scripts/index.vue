@@ -13,30 +13,14 @@ const { libCode, code, config, configValue, isSettingsOpen, shouldShowSettings }
 
 async function setupMonacoEditor() {
   if (!editorRef.value) return
-
   const typeGenerator = new TypeGenerator()
 
-  monaco.languages.typescript.typescriptDefaults.setExtraLibs([])
-
-  monaco.languages.typescript.typescriptDefaults.addExtraLib(typeGenerator.generateTypes(activeBaseSchema.value))
-
-  monaco.languages.typescript.typescriptDefaults.addExtraLib(libCode.value ?? '')
-
-  monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-    noSemanticValidation: false,
-    diagnosticCodesToIgnore: [1375, 1378, 2451, 6385, 1108],
-    noSyntaxValidation: false,
-  })
-
-  monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-    target: monaco.languages.typescript.ScriptTarget.ESNext,
-    allowNonTsExtensions: true,
-    noLib: false,
-    strictFunctionTypes: true,
-    strict: true,
-  })
-
   const model = monaco.editor.createModel(code.value, 'typescript')
+
+  monaco.languages.typescript.typescriptDefaults.setExtraLibs([
+    { content: typeGenerator.generateTypes(activeBaseSchema.value) },
+    { content: libCode.value ?? '' },
+  ])
 
   editor = monaco.editor.create(editorRef.value!, {
     model,
@@ -98,11 +82,10 @@ onMounted(async () => {
   await setupMonacoEditor()
 })
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
   editor?.getModel()?.dispose()
   editor?.dispose()
   monaco.editor.getModels().forEach((model) => model.dispose())
-  monaco.languages.typescript.javascriptDefaults.setExtraLibs([])
 })
 </script>
 

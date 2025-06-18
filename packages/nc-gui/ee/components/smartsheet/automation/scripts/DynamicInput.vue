@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { parse } from 'papaparse'
 import { ScriptInputType } from '~/lib/enum'
-import type { DynamicInputProps } from '~/lib/types'
+import { type DynamicInputProps } from '~/lib/types'
 
 const props = defineProps<DynamicInputProps>()
 
@@ -101,117 +101,121 @@ watch(rowInput, (newValue) => {
 </script>
 
 <template>
-  <div class="dynamic-input mb-4">
-    <template v-if="content.type === ScriptInputType.TEXT">
-      <div class="flex flex-col gap-1">
-        <label class="font-semibold text-nc-content-gray">{{ content.label }}</label>
-        <a-input
-          v-model:value="inputValue"
-          type="text"
-          :disabled="isResolved"
-          class="nc-input-sm nc-input-shadow"
-          @keyup.enter="onChange"
-        />
-      </div>
-    </template>
-
-    <template v-else-if="content.type === ScriptInputType.SELECT">
-      <div class="flex flex-col gap-1">
-        <label class="font-semibold text-nc-content-gray">{{ content.label }}</label>
-        <a-select v-model:value="inputValue" class="w-64" :disabled="isResolved" show-search @change="onChange">
-          <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
-          </template>
-
-          <a-select-option v-for="option in content.options" :key="option" :value="option.value">
-            <div class="flex gap-2 w-full justify-between items-center">
-              {{ option.label }}
-              <GeneralIcon
-                v-if="inputValue === option.value"
-                id="nc-selected-item-icon"
-                icon="check"
-                class="text-primary w-4 h-4"
-              />
-            </div>
-          </a-select-option>
-        </a-select>
-      </div>
-    </template>
-
-    <template v-else-if="content.type === ScriptInputType.BUTTONS">
-      <div class="flex flex-col gap-1">
-        <label class="font-semibold text-nc-content-gray">{{ content.label }}</label>
-        <div class="flex flex-wrap gap-2">
-          <NcButton
-            v-for="option in content.options"
-            :key="option.value"
-            :type="option.variant"
-            size="small"
-            :disabled="isResolved"
-            @click="resolveInput(option.value ?? option.label)"
+  <template v-if="content.type === ScriptInputType.TEXT">
+    <div class="flex flex-col gap-2">
+      <label class="text-caption text-nc-content-gray-subtle2">{{ content.label }}</label>
+      <a-input
+        v-model:value="inputValue"
+        type="text"
+        :disabled="isResolved"
+        class="nc-input-sm nc-input-shadow"
+        @keyup.enter="onChange"
+      />
+      <NcButton v-if="!isResolved" type="primary" size="small" :disabled="!inputValue" @click="resolveInput">
+        <div class="flex gap-2 items-center">
+          Next
+          <div
+            :class="{
+              '!bg-nc-bg-gray-extralight': !inputValue,
+            }"
+            class="px-1 py-0.5 bg-brand-600 transition-all rounded-md"
           >
-            {{ option.label }}
-          </NcButton>
+            <GeneralIcon
+              :class="{
+                '!text-gray-300': !inputValue,
+              }"
+              class="transition-all"
+              icon="ncEnter"
+            />
+          </div>
         </div>
-      </div>
-    </template>
+      </NcButton>
+    </div>
+  </template>
 
-    <template v-else-if="content.type === ScriptInputType.FILE">
-      <div class="flex flex-col gap-1">
-        <label v-if="content?.label" class="font-semibold text-nc-content-gray">
-          {{ content.label }}
-        </label>
-        <a-upload :accept="content.accept" :disabled="isResolved" :multiple="false" :before-upload="handleFileUpload">
-          <NcButton :disabled="isResolved" type="secondary">Click to Upload</NcButton>
-        </a-upload>
-      </div>
-    </template>
+  <template v-else-if="content.type === ScriptInputType.SELECT">
+    <div class="flex flex-col gap-2">
+      <label class="text-caption text-nc-content-gray-subtle2">{{ content.label }}</label>
+      <a-select v-model:value="inputValue" :disabled="isResolved" show-search @change="onChange">
+        <template #suffixIcon>
+          <GeneralIcon icon="arrowDown" class="text-gray-700" />
+        </template>
 
-    <template v-else-if="content.type === ScriptInputType.TABLE">
-      <div class="flex flex-col gap-1">
-        <label v-if="content?.label" class="font-semibold text-nc-content-gray">
-          {{ content.label }}
-        </label>
-        <NSelectTable class="w-64" :disabled="isResolved" @change="resolveInput" />
-      </div>
-    </template>
-    <template v-else-if="content.type === ScriptInputType.VIEW">
-      <div class="flex flex-col gap-2">
-        <label v-if="content?.label" class="font-semibold text-nc-content-gray">
-          {{ content.label }}
-        </label>
-        <NSelectView class="w-64" :table-id="content.tableId" :disabled="isResolved" @change="resolveInput" />
-      </div>
-    </template>
-    <template v-else-if="content.type === ScriptInputType.FIELD">
-      <div class="flex flex-col gap-2">
-        <label v-if="content?.label" class="font-semibold text-nc-content-gray">
-          {{ content.label }}
-        </label>
-        <NSelectField class="w-64" :table-id="content.tableId" :disabled="isResolved" @change="resolveInput" />
-      </div>
-    </template>
-    <template v-else-if="content.type === ScriptInputType.RECORD">
-      <div class="flex flex-col gap-2">
-        <NRecordPicker
-          v-model:model-value="rowInput"
-          :fields="content.options.fields"
-          class="w-64"
-          version="v3"
+        <a-select-option v-for="option in content.options" :key="option" :value="option.value">
+          <div class="flex gap-2 w-full justify-between items-center">
+            {{ option.label }}
+            <GeneralIcon
+              v-if="inputValue === option.value"
+              id="nc-selected-item-icon"
+              icon="check"
+              class="text-primary w-4 h-4"
+            />
+          </div>
+        </a-select-option>
+      </a-select>
+    </div>
+  </template>
+
+  <template v-else-if="content.type === ScriptInputType.BUTTONS">
+    <div class="flex flex-col gap-2">
+      <label class="text-caption text-nc-content-gray-subtle2">{{ content.label }}</label>
+      <div class="flex flex-wrap gap-2">
+        <NcButton
+          v-for="option in content.options"
+          :key="option.value"
+          :type="option.variant"
+          size="small"
           :disabled="isResolved"
-          :records="content.records"
-          :table-id="content.tableId"
-          :view-id="content.viewId"
-        />
+          @click="resolveInput(option.value ?? option.label)"
+        >
+          {{ option.label }}
+        </NcButton>
       </div>
-    </template>
-  </div>
+    </div>
+  </template>
+
+  <template v-else-if="content.type === ScriptInputType.FILE">
+    <div class="flex flex-col gap-2">
+      <label class="text-caption text-nc-content-gray-subtle2">
+        {{ content.label }}
+      </label>
+      <a-upload :accept="content.accept" :disabled="isResolved" :multiple="false" :before-upload="handleFileUpload">
+        <NcButton :disabled="isResolved" type="secondary">Click to Upload</NcButton>
+      </a-upload>
+    </div>
+  </template>
+
+  <template v-else-if="content.type === ScriptInputType.TABLE">
+    <div class="flex flex-col gap-2">
+      <label class="text-caption text-nc-content-gray-subtle2">{{ content.label }}</label>
+      <NSelectTable :disabled="isResolved" @change="resolveInput" />
+    </div>
+  </template>
+  <template v-else-if="content.type === ScriptInputType.VIEW">
+    <div class="flex flex-col gap-2">
+      <label class="text-caption text-nc-content-gray-subtle2">{{ content.label }}</label>
+      <NSelectView :table-id="content.tableId" :disabled="isResolved" @change="resolveInput" />
+    </div>
+  </template>
+  <template v-else-if="content.type === ScriptInputType.FIELD">
+    <div class="flex flex-col gap-2">
+      <label class="text-caption text-nc-content-gray-subtle2">{{ content.label }}</label>
+      <NSelectField :table-id="content.tableId" :disabled="isResolved" @change="resolveInput" />
+    </div>
+  </template>
+  <template v-else-if="content.type === ScriptInputType.RECORD">
+    <div class="flex flex-col gap-2">
+      <NRecordPicker
+        v-model:model-value="rowInput"
+        :fields="content.options.fields"
+        version="v3"
+        :disabled="isResolved"
+        :records="content.records"
+        :table-id="content.tableId"
+        :view-id="content.viewId"
+      />
+    </div>
+  </template>
 </template>
 
-<style scoped>
-.dynamic-input {
-  @apply pl-1;
-  display: flex;
-  align-items: center;
-}
-</style>
+<style scoped></style>

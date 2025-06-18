@@ -1,6 +1,7 @@
 import type { ScriptType } from 'nocodb-sdk'
 import { ScriptActionType } from '~/lib/enum'
 import { parseScript, validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
+import type { ScriptInputFileUploadResult } from '~/lib/types'
 
 const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: ScriptType) => {
   const automationStore = useAutomationStore()
@@ -40,21 +41,21 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     return config.value?.title || config.value?.description || config.value?.items?.length
   })
 
-  const resolveInput = (id: string, value: string | File) => {
+  const resolveInput = (id: string, value: string | Record<string, any> | ScriptInputFileUploadResult) => {
     if (!activeExecutionId.value) return
 
     const execution = activeExecutions.value.get(activeExecutionId.value)
     if (!execution) return
 
-    const index = execution.playground.findIndex((item) => item.id === id && item.type === 'input-request')
+    const index = execution.playground.findIndex((item) => item?.id === id && item.type === 'input-request')
     if (index !== -1) {
-      const item = execution.playground[index]
+      const item = execution.playground[index] as ScriptInputRequestPlaygroundItem
       if (item?.resolve) {
         if (typeof value === 'object') {
           value = JSON.stringify(value)
         }
 
-        item?.resolve(value as string | File)
+        item?.resolve(value)
       }
 
       execution.worker?.postMessage({
@@ -87,7 +88,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     await runScript()
   }
 
-  const updateScript = async ({ script, config }: { script: string; config?: Record<string, any> }) => {
+  const updateScript = async ({ script, config }: { script?: string; config?: Record<string, any> }) => {
     if (!activeProjectId.value || !activeAutomation.value?.id) return
 
     await updateAutomation(activeProjectId.value, activeAutomation.value.id, {

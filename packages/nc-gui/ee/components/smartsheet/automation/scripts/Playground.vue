@@ -7,65 +7,59 @@ const { isRunning, isFinished, playground, resolveInput, runScript, isValidConfi
 </script>
 
 <template>
-  <div class="w-full flex flex-col p-6 w-full h-full bg-nc-bg-gray-extralight text-gray-800 overflow-hidden">
-    <div ref="playgroundRef" class="flex-grow h-full overflow-y-auto">
-      <template v-if="isRunning || isFinished">
-        <div v-for="(item, index) in playground" :key="index" class="mb-4">
-          <template v-if="item.type === 'text'">
-            <div
-              class="leading-5"
-              :class="{ 'text-red-500': item.style === 'error', 'text-yellow-500': item.style === 'warning' }"
-            >
-              {{ item.content }}
-            </div>
-          </template>
-          <template v-else-if="item.type === 'markdown'">
-            <div class="prose" v-html="marked(item.content)"></div>
-          </template>
-          <template v-else-if="item.type === 'table'">
-            <table class="nc-scripts-table">
-              <thead>
-                <tr>
-                  <th
-                    v-for="(value, key) in item.content[0] || item.content"
-                    :key="key"
-                    class="text-left font-semibold leading-5 p-2"
-                  >
-                    {{ key }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(row, rowIndex) in Array.isArray(item.content) ? item.content : [item.content]" :key="rowIndex">
-                  <td v-for="(value, key) in row" :key="key" class="text-nc-content-gray-subtle leading-5 px-2 py-1">
-                    {{ value }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </template>
-          <template v-else-if="item.type === 'inspect'">
-            <VueJsonPretty :show-double-quotes="false" highlight-selected-node :deep="2" :data="item.content" />
-          </template>
-          <template v-else-if="item.type === 'input-request'">
-            <DynamicInput :content="item.content" :on-resolve="(value) => resolveInput(item.id!, value)" />
-          </template>
-        </div>
-      </template>
-      <template v-else>
-        <div class="flex items-center flex-col gap-3 h-full justify-center">
-          <NcTooltip :disabled="isValidConfig">
-            <NcButton size="small" type="primary" :disabled="!isValidConfig" :loading="isRunning" @click="runScript">
-              <div class="flex gap-2 items-center">
-                <GeneralIcon icon="ncPlay" />
-                Run
-              </div>
-            </NcButton>
+  <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium h-[95svh] nc-scrollbar-md">
+    <div v-if="isRunning || isFinished" class="flex mx-auto flex-col max-w-130 gap-6">
+      <div v-for="(item, index) in playground" :key="index">
+        <template v-if="item.type === 'text'">
+          <div class="leading-5" :class="{ 'text-red-500': item.style === 'error', 'text-yellow-500': item.style === 'warning' }">
+            {{ item.content }}
+          </div>
+        </template>
+        <template v-else-if="item.type === 'markdown'">
+          <div class="prose" v-html="marked(item.content)"></div>
+        </template>
+        <template v-else-if="item.type === 'table'">
+          <table class="nc-scripts-table">
+            <thead>
+              <tr>
+                <th
+                  v-for="(value, key) in item.content[0] || item.content"
+                  :key="key"
+                  class="text-left font-semibold leading-5 p-2"
+                >
+                  {{ key }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, rowIndex) in Array.isArray(item.content) ? item.content : [item.content]" :key="rowIndex">
+                <td v-for="(value, key) in row" :key="key" class="text-nc-content-gray-subtle leading-5 px-2 py-1">
+                  {{ value }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </template>
+        <template v-else-if="item.type === 'inspect'">
+          <VueJsonPretty :show-double-quotes="false" highlight-selected-node :deep="2" :data="item.content" />
+        </template>
+        <template v-else-if="item.type === 'input-request'">
+          <DynamicInput :content="item.content" :on-resolve="(value) => resolveInput(item.id!, value)" />
+        </template>
+      </div>
+    </div>
 
-            <template #title> Setup script settings first to execute </template>
-          </NcTooltip>
-        </div>
-      </template>
+    <div v-else class="flex items-center flex-col gap-3 h-full justify-center">
+      <NcTooltip :disabled="isValidConfig">
+        <NcButton size="small" type="primary" :disabled="!isValidConfig" :loading="isRunning" @click="runScript">
+          <div class="flex gap-2 items-center">
+            <GeneralIcon icon="ncPlay" />
+            Run
+          </div>
+        </NcButton>
+
+        <template #title> Setup script settings first to execute </template>
+      </NcTooltip>
     </div>
   </div>
 </template>

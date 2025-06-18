@@ -20,15 +20,15 @@ export enum ScriptViewActionType {
   RELOAD_ROW = 'reloadRow',
 }
 
-export const ScriptInputType = {
-  TEXT: 'text',
-  SELECT: 'select',
-  FILE: 'file',
-  BUTTONS: 'buttons',
-  VIEW: 'view',
-  TABLE: 'table',
-  FIELD: 'field',
-  RECORD: 'record',
-} as const
+export enum ScriptInputType {
+  TEXT = 'text',
+  SELECT = 'select',
+  FILE = 'file',
+  BUTTONS = 'buttons',
+  VIEW = 'view',
+  TABLE = 'table',
+  FIELD = 'field',
+  RECORD = 'record',
+}
 
 export * from '../../lib/enums'

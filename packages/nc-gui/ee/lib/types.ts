@@ -1,13 +1,46 @@
-import type { type ScriptActionType, ScriptInputType, ScriptViewActionType } from '~/lib/enum'
+import type { ScriptActionType, ScriptInputType, ScriptViewActionType } from '~/lib/enum'
 
-export interface ScriptConfigItem {
+interface ScriptConfigItemBase {
   type: 'table' | 'field' | 'view' | 'text' | 'number' | 'select'
   key: string
   label?: string
   description?: string
-  parentTable?: string
-  options?: Array<{ value: string; label?: string }>
 }
+
+export interface ScriptConfigItemTable extends ScriptConfigItemBase {
+  type: 'table'
+}
+
+export interface ScriptConfigItemField extends ScriptConfigItemBase {
+  type: 'field'
+  parentTable: string
+}
+
+export interface ScriptConfigItemView extends ScriptConfigItemBase {
+  type: 'view'
+  parentTable: string
+}
+
+export interface ScriptConfigItemSelect extends ScriptConfigItemBase {
+  type: 'select'
+  options: Array<{ value: string; label?: string }>
+}
+
+export interface ScriptConfigItemNumber extends ScriptConfigItemBase {
+  type: 'number'
+}
+
+export interface ScriptConfigItemText extends ScriptConfigItemBase {
+  type: 'text'
+}
+
+export type ScriptConfigItem =
+  | ScriptConfigItemTable
+  | ScriptConfigItemField
+  | ScriptConfigItemView
+  | ScriptConfigItemSelect
+  | ScriptConfigItemNumber
+  | ScriptConfigItemText
 
 export interface ScriptConfig {
   title: string
@@ -79,13 +112,13 @@ export interface ScriptTextInputContent extends ScriptBaseInputContent {
 // Select input content
 export interface ScriptSelectInputContent extends ScriptBaseInputContent {
   type: ScriptInputType.SELECT
-  options: ScriptSelectOption[]
+  options: ScriptInputSelectOption[]
 }
 
 // Buttons input content
 export interface ScriptButtonsInputContent extends ScriptBaseInputContent {
   type: ScriptInputType.BUTTONS
-  options: (ScriptButtonOption | string)[]
+  options: (ScriptInputButtonOption | string)[]
 }
 
 export interface ScriptFileInputContent extends ScriptBaseInputContent {

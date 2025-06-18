@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
-import type { ScriptConfig, ScriptConfigItem } from '~/lib/types'
+import type { ScriptConfig, ScriptConfigItemField, ScriptConfigItemView } from '~/lib/types'
 
 interface Props {
   config: ScriptConfig
@@ -19,9 +19,9 @@ const isLoading = ref(false)
 
 const hasInput = computed(() => props.config?.items?.length > 0)
 
-const getValue = (key: string) => configValue.value[key]?.value || ''
+const getValue = (key: string): string => configValue.value[key]?.value || ''
 
-const canShowFieldOrView = (item: ScriptConfigItem): boolean => {
+const canShowFieldOrView = (item: ScriptConfigItemField | ScriptConfigItemView): boolean => {
   if (!item?.parentTable) return true
   return !getValue(item.parentTable)
 }
@@ -31,21 +31,28 @@ const isConfigValid = computed(() => {
   return res.length === 0
 })
 
-const handleTableChange = (key: string, value: any) => {
+const handleTableChange = (key: string, value: string | null) => {
   configValue.value[key] = value ? { type: 'table', value } : undefined
+
+  // Clear dependent fields/views when table changes
   ;(props.config?.items ?? []).forEach((item) => {
-    if (item.parentTable === key) {
-      configValue.value[item.key] = undefined
+    if (item.type === 'field' || item.type === 'view') {
+      if (item.parentTable === key) {
+        configValue.value[item.key] = undefined
+      }
     }
   })
 }
 
-const handleFieldOrViewChange = (item: ScriptConfigItem, value: any) => {
+const handleFieldOrViewChange = (item: ScriptConfigItemField | ScriptConfigItemView, value: string | null) => {
   if (value && item.parentTable) {
-    configValue.value[item.key] = {
-      type: item.type,
-      value,
-      tableId: configValue.value[item.parentTable]?.value,
+    const tableId = configValue.value[item.parentTable]?.value
+    if (tableId) {
+      configValue.value[item.key] = {
+        type: item.type,
+        value,
+        tableId,
+      }
     }
   } else {
     configValue.value[item.key] = value ? { type: item.type, value } : undefined
@@ -61,7 +68,7 @@ const triggerUpdate = async () => {
     message.toast('Script settings saved!')
     isSettingsOpen.value = false
   } catch (error) {
-    message.error(await extractSdkResponseErrorMsgv2(error))
+    message.error(await extractSdkResponseErrorMsgv2(error as any))
   } finally {
     isLoading.value = false
   }
@@ -71,12 +78,15 @@ onMounted(() => {
   ;(props.config?.items ?? []).forEach((item) => {
     if (item.type === 'table') {
       configValue.value[item.key] = configValue.value[item.key] || { type: item.type, value: '' }
-    } else if (['field', 'view'].includes(item.type) && item.parentTable) {
+    } else if (item.type === 'field' || item.type === 'view') {
+      const parentTableValue = configValue.value[item.parentTable]?.value
       configValue.value[item.key] = configValue.value[item.key] || {
         type: item.type,
         value: '',
-        tableId: configValue.value[item.parentTable]?.value,
+        tableId: parentTableValue || '',
       }
+    } else if (item.type === 'text' || item.type === 'number' || item.type === 'select') {
+      configValue.value[item.key] = configValue.value[item.key] || { type: item.type, value: '' }
     }
   })
 })
@@ -179,7 +189,7 @@ onMounted(() => {
               </template>
               <a-select-option v-for="option in item.options" :key="option.value" :value="option.value">
                 <div class="flex gap-2 w-full justify-between items-center">
-                  {{ option.label }}
+                  {{ option.label || option.value }}
                   <GeneralIcon
                     v-if="configValue[item.key] === option.value"
                     id="nc-selected-item-icon"

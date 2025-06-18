@@ -3487,7 +3487,7 @@ declare interface ConfigItem {}
       `@param options - Array of options with labels and values`,
       `@returns Promise resolving to the selected option's value`,
     ])
-    this.write(`selectAsync<T>(label: string, options: ReadonlyArray<{
+    this.write(`selectAsync<T>(label: string, options: Array<{
     label: string;
     value: T;
 }>): Promise<T>;`)

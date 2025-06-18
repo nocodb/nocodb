@@ -87,6 +87,7 @@ export class DuplicateProcessor {
       excludeViews?: boolean;
       excludeComments?: boolean;
       excludeUsers?: boolean;
+      excludeScripts?: boolean;
     };
     operation: JobTypes;
   }) {
@@ -130,6 +131,11 @@ export class DuplicateProcessor {
         ...options,
       });
 
+      let exportedScripts = null;
+      if (!options?.excludeScripts) {
+        exportedScripts = await this.exportService.serializeScripts(context);
+      }
+
       elapsedTime(
         hrTime,
         `serialize models schema for ${dataSource.base_id}::${dataSource.id}`,
@@ -151,6 +157,15 @@ export class DuplicateProcessor {
         data: exportedModels,
         req: req,
       });
+
+      if (exportedScripts) {
+        await this.importService.importScripts(targetContext, {
+          user,
+          baseId: targetBase.id,
+          data: exportedScripts,
+          req: req,
+        });
+      }
 
       elapsedTime(hrTime, `import models schema`, operation);
 
@@ -239,6 +254,7 @@ export class DuplicateProcessor {
     const excludeViews = options?.excludeViews || false;
     const excludeComments = options?.excludeComments || excludeData || false;
     const excludeUsers = options?.excludeUsers || false;
+    const excludeScripts = options?.excludeScripts || false;
 
     const base = await Base.get(context, baseId);
     const dupProject = await Base.get(context, dupProjectId);
@@ -256,6 +272,7 @@ export class DuplicateProcessor {
         excludeViews,
         excludeComments,
         excludeUsers,
+        excludeScripts,
       },
       operation: JobTypes.DuplicateBase,
     });

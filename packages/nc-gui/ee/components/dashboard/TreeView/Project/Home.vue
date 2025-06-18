@@ -329,11 +329,14 @@ const showCreateNewAsDropdown = computed(() => {
                 </NcMenuItem>
                 <NcMenuItem
                   v-if="isAutomationEnabled"
+                  inner-class="w-full"
                   data-testid="create-new-script"
                   @click="openNewScriptModal({ baseId: base.id })"
                 >
                   <GeneralIcon icon="ncScript" />
                   New Script
+                  <div class="flex-1 w-full" />
+                  <NcBadge :border="false" size="xs" class="!text-brand-600 !bg-brand-50"> Beta </NcBadge>
                 </NcMenuItem>
               </NcMenu>
             </template>

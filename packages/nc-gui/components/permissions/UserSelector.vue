@@ -99,6 +99,7 @@ const userSelectorListRef = ref()
         :permission="permission"
         :open="visible"
         list-class-name="!w-auto"
+        show-search-always
       >
       </PermissionsUserSelectorList>
 

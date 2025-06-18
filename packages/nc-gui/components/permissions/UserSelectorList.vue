@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { PermissionKey } from 'nocodb-sdk'
-import { PermissionMeta, PermissionRoleMap, PermissionRolePower } from 'nocodb-sdk'
+import type { PermissionKey, WorkspaceUserRoles } from 'nocodb-sdk'
+import { PermissionMeta, PermissionRoleMap, PermissionRolePower, WorkspaceRolesToProjectRoles, ProjectRoles } from 'nocodb-sdk'
 import type { NcListProps } from '#imports'
 
 interface Props extends Partial<NcListProps> {
@@ -42,7 +42,14 @@ const { basesUser } = storeToRefs(basesStore)
 const listRef = ref()
 
 const baseUsers = computed(() => {
-  return basesUser.value.get(baseId) || []
+  return (basesUser.value.get(baseId) || []).map((user) => ({
+    ...user,
+    roles:
+      user.roles ??
+      (user.workspace_roles
+        ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
+        : ProjectRoles.NO_ACCESS),
+  }))
 })
 
 // Filter users based on minimum role requirement from PermissionMeta
@@ -56,8 +63,6 @@ const roleFilteredUsers = computed(() => {
   if (!minimumRolePower) return baseUsers.value
 
   return baseUsers.value.filter((user) => {
-    if (!user.roles) return false
-
     if (typeof user.roles === 'string') {
       const userRoles = (user.roles as string).split(',').map((r) => r.trim())
       return userRoles.some((role) => {
@@ -140,11 +145,14 @@ defineExpose({
     :item-height="52"
     search-input-placeholder="Search user"
     is-multi-select
-    show-search-always
     :class="listClassName"
     :filter-option="filterOption"
     empty-description="No users found"
   >
+    <template #listItemExtraLeft="{ isSelected }">
+      <NcCheckbox :checked="isSelected" />
+    </template>
+
     <template #listItemContent="{ option }">
       <div v-if="option?.email" class="w-full flex gap-3 items-center max-w-[calc(100%_-_24px)]">
         <GeneralUserIcon :user="option" size="base" class="flex-none" />
@@ -161,15 +169,16 @@ defineExpose({
       </div>
       <template v-else>{{ option.email ?? option.id }} </template>
     </template>
-    <template #listItemSelectedIcon="{ isSelected }">
-      <NcCheckbox :checked="isSelected" />
+    <template #listItemExtraRight="{ option }">
+      <RolesBadge :border="false" :role="option.roles" />
     </template>
+    <template #listItemSelectedIcon> </template>
     <template v-if="showListFooter" #listFooter>
       <NcDivider class="!my-0" />
 
-      <div class="flex items-center justify-between p-2">
-        <NcButton type="text" size="small" :disabled="selectedUsers.size === 0" @click="clearAll()"> Clear all </NcButton>
+      <div class="flex items-center p-2 gap-3">
         <NcButton type="text" size="small" :disabled="listRef?.list?.length === 0" @click="selectAll()"> Select all </NcButton>
+        <NcButton type="text" size="small" :disabled="selectedUsers.size === 0" @click="clearAll()"> Clear all </NcButton>
       </div>
     </template>
   </NcList>

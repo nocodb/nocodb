@@ -4,11 +4,29 @@ import VueJsonPretty from 'vue-json-pretty'
 import DynamicInput from './DynamicInput.vue'
 
 const { isRunning, isFinished, playground, resolveInput, runScript, isValidConfig } = useScriptStoreOrThrow()
+
+const playgroundContainer = ref<HTMLElement | null>(null)
+
+watch(
+  () => playground.value.length,
+  (newLength, oldLength) => {
+    if (newLength > oldLength) {
+      nextTick(() => {
+        if (playgroundContainer.value) {
+          playgroundContainer.value.scrollTop = playgroundContainer.value.scrollHeight
+        }
+      })
+    }
+  },
+)
 </script>
 
 <template>
-  <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium h-[91svh] nc-scrollbar-md">
-    <div v-if="isRunning || isFinished" class="flex mx-auto flex-col max-w-130 gap-6">
+  <div
+    ref="playgroundContainer"
+    class="p-6 overflow-y-auto bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium h-[91svh] nc-scrollbar-md"
+  >
+    <div v-if="isRunning || isFinished" class="flex mx-auto flex-col max-w-130 gap-6 pb-40">
       <div v-for="(item, index) in playground" :key="index">
         <template v-if="item.type === 'text'">
           <div class="leading-5" :class="{ 'text-red-500': item.style === 'error', 'text-yellow-500': item.style === 'warning' }">

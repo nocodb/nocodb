@@ -7,6 +7,7 @@ import {
   isVirtualCol,
   NcApiVersion,
   type NcContext,
+  ncIsNullOrUndefined,
   ncIsNumber,
   parseProp,
   RelationTypes,
@@ -330,6 +331,9 @@ export const isPrimitiveType = (val) =>
   typeof val === 'string' || typeof val === 'number';
 
 export function transformObject(value, idToAliasMap) {
+  if (ncIsNullOrUndefined(value)) {
+    return value;
+  }
   const result = {};
   Object.entries(value).forEach(([k, v]) => {
     const btAlias = idToAliasMap[k];

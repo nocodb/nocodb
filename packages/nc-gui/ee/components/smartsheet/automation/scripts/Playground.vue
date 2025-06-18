@@ -71,7 +71,7 @@ watch(
           />
         </template>
         <template v-else-if="item.type === 'input-request'">
-          <DynamicInput :content="item.content" :on-resolve="(value) => resolveInput(item.id!, value)" />
+          <DynamicInput :content="item.content" :on-resolve="resolveInput(item.id!, $event)" />
         </template>
       </div>
     </div>

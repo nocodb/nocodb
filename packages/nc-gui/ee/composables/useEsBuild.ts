@@ -72,7 +72,7 @@ export function useEsbuild() {
   return {
     initWasm,
     transform,
-    esbuildInitialized: computed(() => isEsbuildInitialized),
+    esbuildInitialized: isEsbuildInitialized,
     isInitializing,
     initError,
   }

@@ -229,6 +229,7 @@ watch(rowInput, (newValue) => {
   </template>
   <template v-else-if="content.type === ScriptInputType.RECORD">
     <div class="flex flex-col gap-2">
+      <label class="text-caption text-nc-content-gray-subtle2">{{ content.label }}</label>
       <NRecordPicker
         v-model:model-value="rowInput"
         :fields="content.options.fields"
@@ -241,5 +242,3 @@ watch(rowInput, (newValue) => {
     </div>
   </template>
 </template>
-
-<style scoped></style>

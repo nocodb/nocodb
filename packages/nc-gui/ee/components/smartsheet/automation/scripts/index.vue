@@ -87,7 +87,9 @@ async function setupMonacoEditor() {
 
 onMounted(async () => {
   code.value = activeAutomation.value?.script || ''
-  configValue.value = JSON.parse(JSON.stringify(activeAutomation.value?.config || {})) || {}
+  configValue.value = {
+    ...(activeAutomation.value?.config ?? {}),
+  }
   await until(() => editorRef.value).toBeTruthy()
   await setupMonacoEditor()
 })

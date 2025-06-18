@@ -1,19 +1,26 @@
 <script setup lang="ts">
 import { UseVirtualList } from '@vueuse/components'
+import type { NcButtonProps } from './Button.vue'
 import NcTooltip from '~/components/nc/Tooltip.vue'
 
-const props = defineProps<{
-  current: number
-  total: number
-  pageSize: number
-  entityName?: string
-  mode?: 'simple' | 'full'
-  prevPageTooltip?: string
-  nextPageTooltip?: string
-  firstPageTooltip?: string
-  lastPageTooltip?: string
-  showSizeChanger?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    current: number
+    total: number
+    pageSize: number
+    entityName?: string
+    mode?: 'simple' | 'full'
+    variant?: 'default' | 'v2'
+    prevPageTooltip?: string
+    nextPageTooltip?: string
+    firstPageTooltip?: string
+    lastPageTooltip?: string
+    showSizeChanger?: boolean
+  }>(),
+  {
+    variant: 'default',
+  },
+)
 
 const emits = defineEmits(['update:current', 'update:pageSize'])
 
@@ -51,6 +58,8 @@ const totalPages = computed(() => Math.max(Math.ceil(total.value / localPageSize
 const { isMobileMode } = useGlobal()
 
 const mode = computed(() => props.mode || (isMobileMode.value ? 'simple' : 'full'))
+
+const btnSize = computed<NcButtonProps['size']>(() => (props.variant === 'default' ? 'xsmall' : 'xs'))
 
 const changePage = ({ increase, set }: { increase?: boolean; set?: number }) => {
   if (set) {
@@ -98,49 +107,61 @@ const pageSizeOptions = [
 </script>
 
 <template>
-  <div class="nc-pagination flex flex-row items-center gap-x-0.25">
-    <component :is="props.firstPageTooltip && mode === 'full' ? NcTooltip : 'div'" v-if="mode === 'full'">
-      <template v-if="props.firstPageTooltip" #title>
-        {{ props.firstPageTooltip }}
-      </template>
-      <NcButton
-        v-e="[`a:pagination:${entityName}:first-page`]"
-        class="first-page !border-0"
-        type="text"
-        size="xsmall"
-        :disabled="current === 1"
-        @click="goToFirstPage"
-      >
-        <GeneralIcon icon="doubleLeftArrow" class="nc-pagination-icon" />
-      </NcButton>
-    </component>
-
-    <component :is="props.prevPageTooltip && mode === 'full' ? NcTooltip : 'div'">
-      <template v-if="props.prevPageTooltip" #title>
-        {{ props.prevPageTooltip }}
-      </template>
-      <NcButton
-        v-e="[`a:pagination:${entityName}:prev-page`]"
-        class="prev-page !border-0"
-        type="secondary"
-        size="xsmall"
-        :disabled="current === 1"
-        @click="changePage({ increase: false })"
-      >
-        <GeneralIcon icon="arrowLeft" class="nc-pagination-icon" />
-      </NcButton>
-    </component>
-
-    <div v-if="!isMobileMode" class="text-gray-500">
-      <NcDropdown placement="top" overlay-class-name="!shadow-none">
-        <NcButton class="!border-0 nc-select-page" type="secondary" size="xsmall">
-          <div class="flex gap-1 items-center px-2">
-            <span class="nc-current-page">
-              {{ current }}
-            </span>
-            <GeneralIcon icon="arrowDown" class="text-gray-800 mt-0.5 nc-select-expand-btn" />
-          </div>
+  <div class="nc-pagination flex flex-row items-center gap-x-0.25" :class="`nc-variant-${variant}`">
+    <div class="nc-pagition-btns-wrapper">
+      <component :is="props.firstPageTooltip && mode === 'full' ? NcTooltip : 'div'" v-if="mode === 'full'">
+        <template v-if="props.firstPageTooltip" #title>
+          {{ props.firstPageTooltip }}
+        </template>
+        <NcButton
+          v-e="[`a:pagination:${entityName}:first-page`]"
+          class="first-page !border-0"
+          type="text"
+          :size="btnSize"
+          :disabled="current === 1"
+          @click="goToFirstPage"
+        >
+          <GeneralIcon icon="doubleLeftArrow" class="nc-pagination-icon" />
         </NcButton>
+      </component>
+      <div v-if="variant === 'v2'" class="nc-pagition-v2-border"></div>
+
+      <component :is="props.prevPageTooltip && mode === 'full' ? NcTooltip : 'div'">
+        <template v-if="props.prevPageTooltip" #title>
+          {{ props.prevPageTooltip }}
+        </template>
+        <NcButton
+          v-e="[`a:pagination:${entityName}:prev-page`]"
+          class="prev-page"
+          type="text"
+          :size="btnSize"
+          :disabled="current === 1"
+          @click="changePage({ increase: false })"
+        >
+          <GeneralIcon icon="arrowLeft" class="nc-pagination-icon" />
+        </NcButton>
+      </component>
+    </div>
+
+    <div v-if="!isMobileMode" class="nc-pagination-selector-wrapper text-gray-500">
+      <NcDropdown placement="top" overlay-class-name="!shadow-none">
+        <div class="flex items-center gap-2">
+          <NcButton class="nc-select-page" :type="variant === 'default' ? 'text' : 'secondary'" :size="btnSize">
+            <div
+              class="flex items-center"
+              :class="{
+                'gap-1 px-2': variant === 'default',
+                'gap-2': variant !== 'default',
+              }"
+            >
+              <span class="nc-current-page">
+                {{ current }}
+              </span>
+              <GeneralIcon icon="arrowDown" class="text-gray-800 mt-0.5 nc-select-expand-btn" />
+            </div>
+          </NcButton>
+          <div v-if="variant === 'v2'" class="text-small1 font-500 text-nc-content-gray-subtle">/{{ pagesList.length }}</div>
+        </div>
 
         <template #overlay>
           <NcMenu class="nc-pagination-menu overflow-hidden" variant="small">
@@ -201,37 +222,40 @@ const pageSizeOptions = [
       </NcDropdown>
     </div>
 
-    <component :is="props.nextPageTooltip && mode === 'full' ? NcTooltip : 'div'">
-      <template v-if="props.nextPageTooltip" #title>
-        {{ props.nextPageTooltip }}
-      </template>
-      <NcButton
-        v-e="[`a:pagination:${entityName}:next-page`]"
-        class="next-page !border-0"
-        type="secondary"
-        size="xsmall"
-        :disabled="current === totalPages"
-        @click="changePage({ increase: true })"
-      >
-        <GeneralIcon icon="arrowRight" class="nc-pagination-icon" />
-      </NcButton>
-    </component>
+    <div class="nc-pagition-btns-wrapper">
+      <component :is="props.nextPageTooltip && mode === 'full' ? NcTooltip : 'div'">
+        <template v-if="props.nextPageTooltip" #title>
+          {{ props.nextPageTooltip }}
+        </template>
+        <NcButton
+          v-e="[`a:pagination:${entityName}:next-page`]"
+          class="next-page"
+          type="text"
+          :size="btnSize"
+          :disabled="current === totalPages"
+          @click="changePage({ increase: true })"
+        >
+          <GeneralIcon icon="arrowRight" class="nc-pagination-icon" />
+        </NcButton>
+      </component>
+      <div v-if="variant === 'v2'" class="nc-pagition-v2-border"></div>
 
-    <component :is="props.lastPageTooltip && mode === 'full' ? NcTooltip : 'div'" v-if="mode === 'full'">
-      <template v-if="props.lastPageTooltip" #title>
-        {{ props.lastPageTooltip }}
-      </template>
-      <NcButton
-        v-e="[`a:pagination:${entityName}:last-page`]"
-        class="last-page !border-0"
-        type="secondary"
-        size="xsmall"
-        :disabled="current === totalPages"
-        @click="goToLastPage"
-      >
-        <GeneralIcon icon="doubleRightArrow" class="nc-pagination-icon" />
-      </NcButton>
-    </component>
+      <component :is="props.lastPageTooltip && mode === 'full' ? NcTooltip : 'div'" v-if="mode === 'full'">
+        <template v-if="props.lastPageTooltip" #title>
+          {{ props.lastPageTooltip }}
+        </template>
+        <NcButton
+          v-e="[`a:pagination:${entityName}:last-page`]"
+          class="last-page"
+          type="text"
+          :size="btnSize"
+          :disabled="current === totalPages"
+          @click="goToLastPage"
+        >
+          <GeneralIcon icon="doubleRightArrow" class="nc-pagination-icon" />
+        </NcButton>
+      </component>
+    </div>
 
     <div v-if="showSizeChanger && !isMobileMode" class="text-gray-500"></div>
   </div>
@@ -249,6 +273,38 @@ const pageSizeOptions = [
 :deep(.nc-button:not(:disabled)) {
   .nc-pagination-icon {
     @apply !text-gray-500;
+  }
+}
+
+.nc-pagition-btns-wrapper {
+  @apply flex items-center gap-x-0.25;
+}
+
+.nc-pagination {
+  &.nc-variant-v2 {
+    @apply w-full max-w-[308px] justify-between gap-2;
+
+    .nc-pagition-btns-wrapper {
+      @apply border-1 border-nc-border-gray-medium rounded-lg gap-x-0 items-stretch;
+
+      .nc-pagition-v2-border {
+        @apply self-stretch border-r-1 border-nc-border-gray-medium;
+      }
+
+      .first-page,
+      .next-page {
+        @apply rounded-r-none px-2;
+      }
+
+      .prev-page,
+      .last-page {
+        @apply rounded-l-none px-2;
+      }
+    }
+
+    .nc-pagination-selector-wrapper {
+      @apply flex-1 flex justify-center items-center children:flex-none;
+    }
   }
 }
 </style>

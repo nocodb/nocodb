@@ -485,3 +485,10 @@ export enum NcApiVersion {
   V2,
   V3,
 }
+
+export enum HookOperationCode {
+  insert = 1 << 0,  // 1
+  update = 1 << 1,  // 2
+  delete = 1 << 2,  // 4
+  trigger = 1 << 3, // 8
+}

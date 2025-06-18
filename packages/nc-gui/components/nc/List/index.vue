@@ -397,9 +397,6 @@ watch(searchQuery, () => {
           v-model:value="searchQuery"
           :placeholder="searchInputPlaceholder"
           class="nc-toolbar-dropdown-search-field-input !pl-2 !pr-1.5 flex-1"
-          :class="{
-            '!pt-0': variant === 'small',
-          }"
           allow-clear
           :bordered="inputBordered"
           @keydown.enter.stop="handleKeydownEnter"
@@ -409,7 +406,7 @@ watch(searchQuery, () => {
         ></a-input>
         <slot name="headerExtraRight"> </slot>
       </div>
-      <NcDivider v-if="!hideTopDivider" />
+      <NcDivider v-if="!hideTopDivider" class="!my-1" />
     </template>
 
     <slot name="listHeader"></slot>
@@ -417,6 +414,8 @@ watch(searchQuery, () => {
       class="nc-list-wrapper"
       :class="{
         'cursor-not-allowed': isLocked,
+        'pb-1': variant === 'small',
+        'pb-2': variant !== 'small',
       }"
     >
       <template v-if="list.length">
@@ -427,8 +426,8 @@ watch(searchQuery, () => {
             :class="[
               containerClassName,
               {
-                'px-1 pb-1': variant === 'small',
-                'px-2 pb-2': variant !== 'small',
+                'px-1': variant === 'small',
+                'px-2': variant !== 'small',
               },
             ]"
           >

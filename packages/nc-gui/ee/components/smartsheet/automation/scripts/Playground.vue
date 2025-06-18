@@ -29,7 +29,10 @@ watch(
     <div v-if="isRunning || isFinished" class="flex mx-auto flex-col max-w-130 gap-6 pb-40">
       <div v-for="(item, index) in playground" :key="index">
         <template v-if="item.type === 'text'">
-          <div class="leading-5" :class="{ 'text-red-500': item.style === 'error', 'text-yellow-500': item.style === 'warning' }">
+          <div
+            class="leading-5 whitespace-pre-wrap"
+            :class="{ 'text-red-500': item.style === 'error', 'text-yellow-500': item.style === 'warning' }"
+          >
             {{ item.content }}
           </div>
         </template>

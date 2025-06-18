@@ -110,6 +110,7 @@ const duplicateScript = async (script: ScriptType) => {
   try {
     isLoading.value = true
     await duplicateAutomation(activeProjectId.value, script.id)
+    isDropdownOpen.value = false
   } finally {
     isLoading.value = false
   }

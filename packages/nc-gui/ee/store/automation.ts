@@ -131,7 +131,7 @@ export const useAutomationStore = defineStore('automation', () => {
 
       ncNavigateTo({
         workspaceId: activeWorkspaceId.value,
-        baseId: openedProject.value?.id,
+        baseId: activeProjectId.value,
         automationId: created.id,
       })
 

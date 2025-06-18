@@ -90,6 +90,18 @@ export class ImportService {
     throw new NotImplementedException();
   }
 
+  async importScripts(
+    _context: NcContext,
+    _param: {
+      user: User;
+      baseId: string;
+      data: Array<any>;
+      req: NcRequest;
+    },
+  ) {
+    // Not Implemented
+  }
+
   async importModels(
     context: NcContext,
     param: {

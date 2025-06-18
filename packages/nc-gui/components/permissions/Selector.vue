@@ -31,6 +31,7 @@ const permissionDescription = computed(() => permissionMeta.value?.description |
 const permissionSelectorConfig = computed<PermissionSelectorConfig>(() => ({
   entity: props.config.entity,
   entityId: props.config.entityId,
+  entityTitle: props.config.entityTitle,
   permission: props.config.permission,
   label: permissionLabel.value,
   description: permissionDescription.value,
@@ -212,6 +213,7 @@ const handleClickDropdown = (e: MouseEvent) => {
           :permission-label="permissionLabel"
           :permission-description="permissionDescription"
           :permission="config.permission"
+          :entity-title="config.entityTitle"
           :readonly="props.readonly"
           @save="handleUserSelectorSave"
         />
@@ -225,6 +227,7 @@ const handleClickDropdown = (e: MouseEvent) => {
           :permission-label="permissionLabel"
           :permission-description="permissionDescription"
           :permission="config.permission"
+          :entity-title="config.entityTitle"
           @save="handleUserSelectorSave"
         />
       </template>

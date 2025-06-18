@@ -702,6 +702,7 @@ interface RowColouringEvaluatedResultType {
 interface PermissionConfig {
   entity: PermissionEntity
   entityId: string
+  entityTitle?: string
   permission: PermissionKey
 }
 

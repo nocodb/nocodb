@@ -13,6 +13,7 @@ const props = defineProps<{
 const permissionConfig = computed<PermissionConfig>(() => ({
   entity: PermissionEntity.FIELD,
   entityId: props.fieldId,
+  entityTitle: props.fieldTitle,
   permission: props.permissionType,
 }))
 </script>

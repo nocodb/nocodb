@@ -41,7 +41,13 @@ const { isRunning, isFinished, playground, resolveInput, runScript, isValidConfi
           </table>
         </template>
         <template v-else-if="item.type === 'inspect'">
-          <VueJsonPretty :show-double-quotes="false" highlight-selected-node :deep="2" :data="item.content" />
+          <VueJsonPretty
+            :show-double-quotes="false"
+            :highlight-selected-node="false"
+            :show-line="false"
+            :deep="2"
+            :data="item.content"
+          />
         </template>
         <template v-else-if="item.type === 'input-request'">
           <DynamicInput :content="item.content" :on-resolve="(value) => resolveInput(item.id!, value)" />
@@ -65,6 +71,20 @@ const { isRunning, isFinished, playground, resolveInput, runScript, isValidConfi
 </template>
 
 <style scoped lang="scss">
+:deep(.vjs-tree) {
+  .vjs-tree-node:hover {
+    @apply !bg-nc-bg-gray-light;
+  }
+
+  .vjs-key {
+    @apply !text-nc-content-gray-subtle2;
+  }
+
+  .vjs-value {
+    @apply !text-nc-content-gray-subtle;
+  }
+}
+
 .nc-scripts-table {
   @apply border-1 border-separate rounded-md border-gray-300 w-full border-1 border-nc-gray-medium;
   border-spacing: 0px;
@@ -94,17 +114,28 @@ const { isRunning, isFinished, playground, resolveInput, runScript, isValidConfi
   }
 
   h1 {
-    @apply text-3xl text-nc-content-gray-emphasis leading-9 mb-0;
+    @apply text-Heading1 text-nc-content-gray;
     font-weight: 700;
   }
 
   h2 {
-    @apply text-nc-content-gray-emphasis text-xl leading-6 !my-4;
+    @apply text-Heading3 text-nc-content-gray;
+  }
+
+  h3 {
+    @apply text-subHeading1 text-nc-content-gray;
+  }
+
+  h4 {
+    @apply text-subHeading2 text-nc-content-gray;
+  }
+
+  h5 {
+    @apply text-bodyBold text-nc-content-gray;
   }
 
   p {
-    @apply text-nc-content-gray-emphasis leading-6;
-    font-size: 14px !important;
+    @apply text-nc-content-gray-emphasis caption;
   }
 
   li {

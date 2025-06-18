@@ -1841,10 +1841,10 @@ function generateConsoleOverride(): string {
 function generateOutput(): string {
   return `
     const output = {
-      text: (message) => {
+      text: (message, type) => {
         self.postMessage({ 
           type: '${ScriptActionType.OUTPUT}', 
-          payload: { message: JSON.stringify({ action: 'text', args: [message] }) } 
+          payload: { message: JSON.stringify({ action: 'text', args: [message, type] }) } 
         });
       },
       markdown: (content) => {

@@ -306,16 +306,6 @@ const visibleRows = computed(() => {
   })
 })
 
-const visibleRowsRowOnly = computed(() => {
-  return visibleRows.value?.map((k) => k.row) ?? []
-})
-
-const { getLeftBorderColor, getRowColor } = useViewRowColorRender({
-  meta,
-  view,
-  rows: visibleRowsRowOnly,
-})
-
 const totalMaxPlaceholderRows = computed(() => {
   if (!gridWrapper.value || rowSlice.start <= 1) {
     return 0
@@ -2232,17 +2222,6 @@ const headerFilteredOrSortedClass = (colId: string) => {
   }
   return {}
 }
-
-const getRowColorStyle = (row) => {
-  const rowColor = getRowColor(row)
-
-  if (rowColor) {
-    return {
-      'background-color': `${rowColor} !important`,
-    }
-  }
-  return {}
-}
 </script>
 
 <template>
@@ -2598,9 +2577,6 @@ const getRowColorStyle = (row) => {
                       <td
                         class="caption nc-grid-cell w-[80px] min-w-[80px]"
                         :data-testid="`cell-Id-${row.rowMeta.rowIndex}`"
-                        :style="{
-                          ...getRowColorStyle(row.row),
-                        }"
                         @contextmenu="contextMenuTarget = null"
                       >
                         <div class="w-full flex items-center h-full px-1 gap-0.5">
@@ -2617,14 +2593,7 @@ const getRowColorStyle = (row) => {
                             <span>
                               {{ row.rowMeta.rowIndex + 1 }}
                             </span>
-                            <div
-                              class="inline-block min-w-[4px] h-full rounded-full"
-                              :style="{
-                                ...(getLeftBorderColor(row.row)
-                                  ? { 'background-color': `${getLeftBorderColor(row.row)} !important` }
-                                  : {}),
-                              }"
-                            ></div>
+                            <div class="inline-block min-w-[4px] h-full rounded-full"></div>
                           </div>
 
                           <div
@@ -2730,7 +2699,6 @@ const getRowColorStyle = (row) => {
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
                           'max-width': gridViewCols[fields[0].id]?.width || '180px',
                           'width': gridViewCols[fields[0].id]?.width || '180px',
-                          ...getRowColorStyle(row.row),
                         }"
                         :data-testid="`cell-${fields[0].title}-${row.rowMeta.rowIndex}`"
                         v-bind="
@@ -2835,7 +2803,6 @@ const getRowColorStyle = (row) => {
                           'min-width': gridViewCols[columnObj.id]?.width || '180px',
                           'max-width': gridViewCols[columnObj.id]?.width || '180px',
                           'width': gridViewCols[columnObj.id]?.width || '180px',
-                          ...getRowColorStyle(row.row),
                         }"
                         :data-testid="`cell-${columnObj.title}-${row.rowMeta.rowIndex}`"
                         v-bind="

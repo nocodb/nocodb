@@ -81,9 +81,9 @@ const columns = computed(() => {
       :class="{
         '!w-full': webHook,
       }"
-      :column="{ ...getColumn(filter), uidt: types[filter.fk_column_id] }"
-      :filter="filter"
-      :disabled="isLockedView || readOnly"
+      :column="{ ...column, uidt: types[filter.fk_column_id] }"
+      :filter="vModel"
+      :disabled="isLockedView || disabled"
       @update-filter-value="(value) => updateFilterValue(value, filter, i)"
       @click.stop
     />

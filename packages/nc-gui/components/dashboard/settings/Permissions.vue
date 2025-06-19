@@ -96,6 +96,12 @@ const getTableData = (): (TableType & { type: string })[] => {
   return data
 }
 
+const tableData = computed(() => {
+  const data = getTableData()
+
+  return data.filter((table) => searchCompare(table.title, searchQuery.value))
+})
+
 const onRowClick = (record: TableType & { type: string }) => {
   if (!record?.id) return
 
@@ -127,6 +133,13 @@ watch(
     immediate: true,
   },
 )
+
+/**
+ * Reset search query on unmount
+ */
+onBeforeUnmount(() => {
+  searchQuery.value = ''
+})
 </script>
 
 <template>
@@ -145,93 +158,86 @@ watch(
       </a-input>
     </div>
 
-    <div
-      class="flex mt-4"
-      :style="{
-        height: 'calc(100vh - var(--topbar-height) - 218px)',
-      }"
+    <NcTable
+      :is-data-loading="base?.isLoading"
+      :columns="columns"
+      sticky-first-column
+      :data="tableData"
+      :bordered="false"
+      row-height="44px"
+      header-row-height="44px"
+      class="nc-base-permissions flex-1 max-w-full"
+      @row-click="onRowClick"
     >
-      <NcTable
-        :is-data-loading="base?.isLoading"
-        :columns="columns"
-        sticky-first-column
-        :data="getTableData()"
-        :bordered="false"
-        row-height="44px"
-        header-row-height="44px"
-        class="nc-base-permissions flex-1"
-        @row-click="onRowClick"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="record.type === 'table'">
-            <!-- Name Column -->
-            <template v-if="column.key === 'name'">
-              <div
-                v-if="record.type === 'table'"
-                class="w-full flex items-center gap-3 max-w-full text-gray-800"
-                data-testid="permissions-table-name"
-              >
-                <GeneralTableIcon :meta="(record as TableType)" class="flex-none h-4 w-4 !text-nc-content-gray-subtle" />
-                <NcTooltip class="truncate font-weight-600 max-w-[calc(100%_-_28px)]" show-on-truncate-only>
-                  <template #title>
-                    {{ record?.title }}
-                  </template>
+      <template #bodyCell="{ column, record }">
+        <template v-if="record.type === 'table'">
+          <!-- Name Column -->
+          <template v-if="column.key === 'name'">
+            <div
+              v-if="record.type === 'table'"
+              class="w-full flex items-center gap-3 max-w-full text-gray-800"
+              data-testid="permissions-table-name"
+            >
+              <GeneralTableIcon :meta="(record as TableType)" class="flex-none h-4 w-4 !text-nc-content-gray-subtle" />
+              <NcTooltip class="truncate font-weight-600 max-w-[calc(100%_-_28px)]" show-on-truncate-only>
+                <template #title>
                   {{ record?.title }}
-                </NcTooltip>
-              </div>
-              <div v-else-if="record.type === 'context_actions'" class="w-full flex gap-3 max-w-full text-gray-600 pl-6">
-                <GeneralIcon icon="ncLock" class="flex-none h-4 w-4" />
-                <span class="text-sm">{{ record.title }}</span>
-              </div>
-            </template>
+                </template>
+                {{ record?.title }}
+              </NcTooltip>
+            </div>
+            <div v-else-if="record.type === 'context_actions'" class="w-full flex gap-3 max-w-full text-gray-600 pl-6">
+              <GeneralIcon icon="ncLock" class="flex-none h-4 w-4" />
+              <span class="text-sm">{{ record.title }}</span>
+            </div>
+          </template>
 
-            <!-- Create Records Column -->
-            <template v-if="column.key === 'create_records'">
-              <div v-if="record.type === 'table'" class="w-full flex justify-center gap-2">
-                <PermissionsInlineTableSelector
-                  :base="base!"
-                  :table-id="record.id"
-                  :permission-type="PermissionKey.TABLE_RECORD_ADD"
-                  :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_RECORD_ADD)"
-                />
-              </div>
-            </template>
+          <!-- Create Records Column -->
+          <template v-if="column.key === 'create_records'">
+            <div v-if="record.type === 'table'" class="w-full flex justify-center gap-2">
+              <PermissionsInlineTableSelector
+                :base="base!"
+                :table-id="record.id"
+                :permission-type="PermissionKey.TABLE_RECORD_ADD"
+                :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_RECORD_ADD)"
+              />
+            </div>
+          </template>
 
-            <!-- Delete Records Column -->
-            <template v-if="column.key === 'delete_records'">
-              <div v-if="record.type === 'table'" class="w-full flex justify-center gap-2">
-                <PermissionsInlineTableSelector
-                  :base="base!"
-                  :table-id="record.id"
-                  :permission-type="PermissionKey.TABLE_RECORD_DELETE"
-                  :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_RECORD_DELETE)"
-                />
-              </div>
-            </template>
+          <!-- Delete Records Column -->
+          <template v-if="column.key === 'delete_records'">
+            <div v-if="record.type === 'table'" class="w-full flex justify-center gap-2">
+              <PermissionsInlineTableSelector
+                :base="base!"
+                :table-id="record.id"
+                :permission-type="PermissionKey.TABLE_RECORD_DELETE"
+                :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_RECORD_DELETE)"
+              />
+            </div>
+          </template>
 
-            <template v-if="column.key === 'context_actions'">
-              <div v-if="record.type === 'table'" class="w-full flex justify-end gap-2">
-                <NcDropdown>
-                  <NcButton size="small" type="secondary" @click.stop>
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="threeDotVertical" class="flex-none h-4 w-4" />
-                    </div>
-                  </NcButton>
-                  <template #overlay>
-                    <NcMenu variant="small">
-                      <NcMenuItem @click="openFieldPermissionsModal(record.id)">
-                        <GeneralIcon icon="ncMaximize2" class="flex-none h-4 w-4" />
-                        <span>View field permissions</span>
-                      </NcMenuItem>
-                    </NcMenu>
-                  </template>
-                </NcDropdown>
-              </div>
-            </template>
+          <template v-if="column.key === 'context_actions'">
+            <div v-if="record.type === 'table'" class="w-full flex justify-end gap-2">
+              <NcDropdown>
+                <NcButton size="small" type="secondary" @click.stop>
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="threeDotVertical" class="flex-none h-4 w-4" />
+                  </div>
+                </NcButton>
+                <template #overlay>
+                  <NcMenu variant="small">
+                    <NcMenuItem @click="openFieldPermissionsModal(record.id)">
+                      <GeneralIcon icon="ncMaximize2" class="flex-none h-4 w-4" />
+                      <span>View field permissions</span>
+                    </NcMenuItem>
+                  </NcMenu>
+                </template>
+              </NcDropdown>
+            </div>
           </template>
         </template>
-      </NcTable>
-    </div>
+      </template>
+    </NcTable>
   </div>
 
   <!-- Permissions Modal -->

@@ -4,7 +4,7 @@ import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
-import { clearTextCache } from '../utils/canvas'
+import { clearRowColouringCache, clearTextCache } from '../utils/canvas'
 import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX, EDIT_INTERACTABLE } from '../utils/constants'
 import { ActionManager } from '../loaders/ActionManager'
 import { useGridCellHandler } from '../cells'
@@ -1246,6 +1246,13 @@ export function useCanvasTable({
 
   watch(isAiFillMode, () => {
     triggerRefreshCanvas()
+  })
+
+  eventBus.on((event) => {
+    if (event === SmartsheetStoreEvents.TRIGGER_RE_RENDER) {
+      clearRowColouringCache()
+      triggerRefreshCanvas()
+    }
   })
 
   // load metas and refresh canvas

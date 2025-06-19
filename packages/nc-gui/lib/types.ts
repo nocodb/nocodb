@@ -479,6 +479,11 @@ interface CellRendererOptions {
     maxSpanning?: number
   }
   allowLocalUrl?: boolean
+  /**
+   * `isRootCell` is used to determine if the cell is the root cell of the row or nested cell
+   * This is used in row colouring
+   */
+  isRootCell?: boolean
 }
 
 interface CellRenderStore {

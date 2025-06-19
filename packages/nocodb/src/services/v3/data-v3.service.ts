@@ -22,6 +22,26 @@ import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 
+// Reusable params interface for caching expensive operations
+interface ReusableParams {
+  [key: string]: any;
+}
+
+// Helper function to cache expensive operations
+async function reuseOrSave(
+  tp: string,
+  params: ReusableParams,
+  get: () => Promise<any>,
+): Promise<any> {
+  if (params[tp]) {
+    return params[tp];
+  }
+
+  const res = await get();
+  params[tp] = res;
+  return res;
+}
+
 const V3_INSERT_LIMIT = 10;
 
 interface ModelInfo {
@@ -110,6 +130,7 @@ export class DataV3Service {
     columns?: Column[];
     nestedLimit?: number;
     skipSubstitutingColumnIds?: boolean;
+    reuse?: ReusableParams;
   }): Promise<DataRecord> {
     const {
       context,
@@ -120,6 +141,7 @@ export class DataV3Service {
       columns,
       nestedLimit,
       skipSubstitutingColumnIds,
+      reuse = {},
     } = param;
 
     const getPrimaryKey = (column: Column) => {
@@ -160,34 +182,37 @@ export class DataV3Service {
         const column = columns.find((col) => col.title === key);
         if (column?.uidt === UITypes.LinkToAnotherRecord) {
           if (Array.isArray(value)) {
+            // Cache the related model info per column to avoid N+1 queries
+            const relatedModelInfo = await reuseOrSave(
+              `relatedModelInfo_${column.id}`,
+              reuse,
+              async () => this.getRelatedModelInfo(context, column),
+            );
+            
+            const { primaryKey: relatedPrimaryKey, primaryKeys: relatedPrimaryKeys } = relatedModelInfo;
+            
             // Handle array of linked records
             if (nestedLimit && value.length > nestedLimit) {
               transformedFields[key] = await Promise.all(
                 value.slice(0, nestedLimit).map(async (nestedRecord) => {
-                  const {
-                    primaryKey: relatedPrimaryKey,
-                    primaryKeys: relatedPrimaryKeys,
-                  } = await this.getRelatedModelInfo(context, column);
                   return this.transformRecordToV3Format({
                     context: context,
                     record: nestedRecord,
                     primaryKey: relatedPrimaryKey,
                     primaryKeys: relatedPrimaryKeys,
+                    reuse, // Pass reuse params to nested calls
                   });
                 }),
               );
             } else {
               transformedFields[key] = await Promise.all(
                 value.map(async (nestedRecord) => {
-                  const {
-                    primaryKey: relatedPrimaryKey,
-                    primaryKeys: relatedPrimaryKeys,
-                  } = await this.getRelatedModelInfo(context, column);
                   return this.transformRecordToV3Format({
                     context: context,
                     record: nestedRecord,
                     primaryKey: relatedPrimaryKey,
                     primaryKeys: relatedPrimaryKeys,
+                    reuse, // Pass reuse params to nested calls
                   });
                 }),
               );
@@ -225,6 +250,7 @@ export class DataV3Service {
     columns?: Column[];
     nestedLimit?: number;
     skipSubstitutingColumnIds?: boolean;
+    reuse?: ReusableParams;
   }): Promise<DataRecord[]> {
     const { records } = param;
     return Promise.all(
@@ -285,6 +311,7 @@ export class DataV3Service {
       nestedLimit: nestedLimit,
       skipSubstitutingColumnIds:
         param.query[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+      reuse: {}, // Create reuse cache for this data list operation
     });
 
     // Check if any LTAR fields were truncated
@@ -490,6 +517,7 @@ export class DataV3Service {
         nestedLimit: undefined,
         skipSubstitutingColumnIds:
           param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+        reuse: {}, // Create reuse cache for this data insert operation
       }),
     };
   }
@@ -628,6 +656,7 @@ export class DataV3Service {
         nestedLimit: undefined,
         skipSubstitutingColumnIds:
           param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT],
+        reuse: {}, // Create reuse cache for this data update operation
       }),
     };
   }
@@ -680,6 +709,7 @@ export class DataV3Service {
         nestedLimit: undefined,
         skipSubstitutingColumnIds:
           param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+        reuse: {}, // Create reuse cache for this nested data list operation
       });
 
       // For single relations, return the record directly, for others return as array
@@ -748,6 +778,7 @@ export class DataV3Service {
       nestedLimit: nestedLimit,
       skipSubstitutingColumnIds:
         param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+      reuse: {}, // Create reuse cache for this nested data list operation
     });
 
     // Check if any LTAR fields were truncated
@@ -820,6 +851,7 @@ export class DataV3Service {
           nestedLimit: undefined,
           skipSubstitutingColumnIds:
             param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+          reuse: {}, // Create reuse cache for this data read operation
         })
       : { id: '', fields: {} };
   }

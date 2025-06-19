@@ -21,6 +21,7 @@ watch(
 )
 
 const resolve = (item: ScriptPlaygroundItem, data: any) => {
+  if (item.type !== 'input-request') return
   resolveInput(item.id!, data)
 }
 </script>
@@ -31,7 +32,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
     class="p-6 overflow-y-auto bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium h-[91svh] nc-scrollbar-md"
   >
     <div v-if="isRunning || isFinished" class="flex mx-auto flex-col max-w-130 gap-6 pb-40">
-      <div v-for="(item, index) in playground" :key="index">
+      <div v-for="(item, index) in playground" :key="index" class="playground-item" :data-type="item.type">
         <template v-if="item.type === 'text'">
           <div
             class="leading-5 whitespace-pre-wrap"
@@ -175,5 +176,9 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
   img {
     @apply !my-4;
   }
+}
+
+.playground-item[data-type='text'] + .playground-item[data-type='text'] {
+  margin-top: -18px;
 }
 </style>

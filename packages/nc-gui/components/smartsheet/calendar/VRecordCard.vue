@@ -44,7 +44,7 @@ const rowColorInfo = computed(() => {
       'z-90': hover,
       '!bg-nc-bg-gray-light': hover || dragging,
     }"
-    class="relative flex gap-1 border-1 rounded-md h-full"
+    class="relative flex-none flex gap-1 border-1 rounded-md h-full overflow-hidden"
   >
     <div
       v-if="resize"
@@ -61,7 +61,7 @@ const rowColorInfo = computed(() => {
         'bg-purple-500': color === 'purple',
         'bg-gray-900': color === 'gray',
       }"
-      class="h-full min-h-3 w-1.25 -ml-0.25 rounded-l-md"
+      class="h-full min-h-3 w-1.25 -ml-0.25"
       :style="rowColorInfo.rowLeftBorderColor"
     ></div>
 

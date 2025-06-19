@@ -54,7 +54,7 @@ const rowColorInfo = computed(() => {
 
       ...rowColorInfo.rowBgColor,
     }"
-    class="relative transition-all border-1 flex items-center gap-2 group"
+    class="relative transition-all border-1 flex-none flex items-center gap-2 group overflow-hidden"
   >
     <div
       v-if="position === 'leftRounded' || position === 'rounded'"
@@ -67,7 +67,7 @@ const rowColorInfo = computed(() => {
         'bg-purple-500': color === 'purple',
         'bg-gray-900': color === 'gray',
       }"
-      class="w-1 min-h-6.5 rounded-l-[4px] bg-blue-500"
+      class="w-1 min-h-6.5 bg-blue-500"
       :style="rowColorInfo.rowLeftBorderColor"
     ></div>
 

@@ -5,6 +5,8 @@ export function useViewRowColorOption(params: {
   view: Ref<ViewType>
 }) {
   const { $api } = useNuxtApp()
+  const view = params.view
+  const { rowColorInfo } = useViewRowColorProvider({ view: params.view })
   const eventBus = useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore)
   const meta = inject(MetaInj, ref())
   const { metas } = useMetas()
@@ -13,32 +15,21 @@ export function useViewRowColorOption(params: {
   const baseStore = useBase()
   const { getBaseType, baseMeta } = baseStore
 
-  const dbRowColorInfo: Ref<RowColoringInfo> = inject(ViewRowColorInj)
-
-  const rowColorInfo = ref(
-    Object.assign(
-      {
-        mode: null,
-        conditions: [],
-      },
-      dbRowColorInfo.value,
-    ),
-  )
-
-  watch(
-    () => dbRowColorInfo,
-    (oldValue, newValue) => {
-      if (newValue?.value) {
-        rowColorInfo.value = Object.assign(
-          {
-            mode: null,
-            conditions: [],
-          },
-          newValue.value,
-        )
-      }
-    },
-  )
+  // newly added condition is not saved directly to server until another action is taken
+  // this is to handle that
+  const pendingAction: Ref<() => Promise<void> | null> = ref(null)
+  const pushPendingAction = async (handle: () => Promise<void>) => {
+    if (pendingAction.value) {
+      await pendingAction.value()
+    }
+    pendingAction.value = handle
+  }
+  const popPendingAction = async () => {
+    if (pendingAction.value) {
+      await pendingAction.value()
+    }
+    pendingAction.value = null
+  }
 
   const onDropdownOpen = () => {
     rowColorInfo.value = Object.assign(
@@ -46,8 +37,17 @@ export function useViewRowColorOption(params: {
         mode: null,
         conditions: [],
       },
-      dbRowColorInfo.value,
+      rowColorInfo.value,
     )
+
+    for (const colorCondition of rowColorInfo.value.conditions) {
+      for (const filter of colorCondition.conditions) {
+        filter.tmp_id = filter.id
+        if (filter.fk_parent_id) {
+          filter.tmp_fk_parent_id = filter.fk_parent_id
+        }
+      }
+    }
   }
 
   const filterColumns = computedAsync(async () => {
@@ -72,19 +72,23 @@ export function useViewRowColorOption(params: {
     const evalColumn = filterColumns.value[0]
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const filter = {
+      id: undefined,
       tmp_id: Math.random().toString(36).substring(2, 15),
       fk_column_id: evalColumn.id,
       comparison_op: 'eq',
       is_group: false,
       logical_op: 'and',
+      order: 1,
     }
 
     adjustFilterWhenColumnChange({
       column: evalColumn,
       filter,
-      showNullAndEmptyInFilter: baseMeta.value.showNullAndEmptyInFilter,
+      showNullAndEmptyInFilter: baseMeta.value?.showNullAndEmptyInFilter,
     })
+
     const conditionToAdd = {
+      id: undefined,
       color: theme.light[conditions.length % theme.light.length],
       conditions: [filter],
       is_set_as_background: false,
@@ -92,6 +96,86 @@ export function useViewRowColorOption(params: {
       nc_order: conditions.length + 1,
     }
     conditions.push(conditionToAdd)
+    await pushPendingAction(async () => {
+      const response = await $api.dbView.viewRowColorConditionAdd(params.view.value.id, conditionToAdd)
+      conditionToAdd.id = response.id
+      const rowColoringResponse: RowColoringInfo = response.info
+      if (conditionToAdd.conditions[0]) {
+        conditionToAdd.conditions[0].id = rowColoringResponse.conditions.find(
+          (con) => con.id === conditionToAdd.id,
+        ).conditions[0].id
+        conditionToAdd.conditions[0].fk_row_color_conditions_id = conditionToAdd.id
+      }
+    })
+  }
+  const onRowColorConditionDelete = async (index: number) => {
+    const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
+    const conditionToDelete = conditions[index]
+    const newConditions = conditions.filter((condition, i) => i !== index)
+    await popPendingAction()
+    if (newConditions.length === 0) {
+      await $api.dbView.deleteViewRowColor(params.view.value.id)
+      eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
+    } else {
+      conditions.splice(index, 1)
+      if (conditionToDelete.id) {
+        await $api.dbView.viewRowColorConditionDelete(params.view.value.id, conditionToDelete.id)
+        eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
+      }
+    }
+  }
+
+  const onRowColorConditionUpdate = async (params: { index: number; color: string; is_set_as_background: boolean }) => {
+    await popPendingAction()
+    const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
+    const conditionToUpdate = conditions[params.index]!
+    conditionToUpdate.is_set_as_background = params.is_set_as_background
+    conditionToUpdate.color = params.color
+    await $api.dbView.viewRowColorConditionUpdate(view.value.id, conditionToUpdate?.id, {
+      color: params.color,
+      is_set_as_background: params.is_set_as_background,
+      nc_order: conditionToUpdate.nc_order,
+    })
+  }
+
+  const onRowColorConditionFilterAdd = async (params: { colorIndex: number }) => {
+    const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
+    const conditionToAdd = conditions[params.colorIndex]!
+    const evalColumn = filterColumns.value[0]
+    const filter = {
+      id: undefined,
+      tmp_id: Math.random().toString(36).substring(2, 15),
+      fk_row_color_conditions_id: conditionToAdd.id,
+      fk_column_id: evalColumn.id,
+      comparison_op: 'eq',
+      is_group: false,
+      logical_op: conditionToAdd.conditions[0]?.logical_op ?? 'and',
+      order: conditionToAdd.conditions.length + 1,
+    }
+
+    adjustFilterWhenColumnChange({
+      column: evalColumn,
+      filter,
+      showNullAndEmptyInFilter: baseMeta.value?.showNullAndEmptyInFilter,
+    })
+    conditionToAdd.conditions.push(filter)
+    await pushPendingAction(async () => {
+      const result = await $api.dbTableFilter.create(view.value.id, filter)
+      filter.id = result.id
+      filter.tmp_id = result.id
+    })
+  }
+  const onRowColorConditionFilterUpdate = async (params: {
+    colorIndex: number
+    filterId: number
+    field: string
+    value: string
+  }) => {
+    await popPendingAction()
+    const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
+    const conditionToUpdate = conditions[index]!
+    const filter = conditionToUpdate.conditions.find((k) => k.id === params.filterId)
+    filter[params.field] = params.value
   }
 
   const filterPerViewLimit = computed(() => getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW))
@@ -104,5 +188,9 @@ export function useViewRowColorOption(params: {
     onRemoveRowColoringMode,
     onRowColorSelectChange,
     onRowColorConditionAdd,
+    onRowColorConditionDelete,
+    onRowColorConditionUpdate,
+    onRowColorConditionFilterAdd,
+    onRowColorConditionFilterUpdate,
   }
 }

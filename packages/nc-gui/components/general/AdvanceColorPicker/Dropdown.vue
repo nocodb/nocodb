@@ -5,7 +5,8 @@ interface Props {
 }
 
 interface Emits {
-  (event: 'update:modelValue', model: number): void
+  (event: 'update:modelValue', model: string): void
+  (event: 'change', model: string): void
 }
 
 const props = defineProps<Props>()
@@ -19,6 +20,10 @@ const slotHasChildren = (name?: string) => {
 }
 
 const isOpenColorPicker = ref(false)
+const onColorChange = (value: string) => {
+  vModel.value = value
+  emits('change', value)
+}
 </script>
 
 <template>
@@ -48,7 +53,7 @@ const isOpenColorPicker = ref(false)
       </button>
     </template>
     <template #overlay>
-      <GeneralAdvanceColorPicker v-model="vModel" :is-open="isOpenColorPicker" @input="vModel = $event">
+      <GeneralAdvanceColorPicker v-model="vModel" :is-open="isOpenColorPicker" @input="onColorChange">
       </GeneralAdvanceColorPicker>
     </template>
   </NcDropdown>

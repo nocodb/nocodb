@@ -24,11 +24,14 @@ export function useViewRowColorProvider(params: { view: Ref<ViewType>; rowColorI
       { immediate: true },
     )
   }
+  const setRowColorInfo = (value: RowColoringInfo) => {
+    rowColorInfo.value = value
+  }
   eventBus.on((event) => {
     if ([SmartsheetStoreEvents.ROW_COLOR_UPDATE, SmartsheetStoreEvents.FIELD_UPDATE].includes(event)) {
       reloadRowColorInfo()
     }
   })
   provide(ViewRowColorInj, rowColorInfo)
-  return { rowColorInfo, reloadRowColorInfo }
+  return { rowColorInfo, reloadRowColorInfo, setRowColorInfo }
 }

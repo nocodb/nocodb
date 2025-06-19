@@ -225,7 +225,7 @@ export function useCanvasTable({
   const { isRowColouringEnabled } = useViewRowColorRender({
     meta: meta as Ref<TableType>,
     rows: computed(() => []),
-    isGridCanvas: true,
+    useCachedResult: true,
   })
 
   const fields = inject(FieldsInj, ref([]))

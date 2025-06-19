@@ -103,9 +103,12 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
       <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
 
-      <LazySmartsheetToolbarFieldsMenu v-if="isCalendar && !isMobileMode" :show-system-fields="false" />
-      <LazySmartsheetToolbarColumnFilterMenu v-if="isCalendar && !isMobileMode" />
-      <LazySmartsheetToolbarCalendarToggleSideBar v-if="isCalendar && !isMobileMode" />
+      <template v-if="isCalendar && !isMobileMode">
+        <LazySmartsheetToolbarRowColorFilterDropdown />
+        <LazySmartsheetToolbarFieldsMenu :show-system-fields="false" />
+        <LazySmartsheetToolbarColumnFilterMenu />
+        <LazySmartsheetToolbarCalendarToggleSideBar />
+      </template>
     </template>
   </div>
 </template>

@@ -3,8 +3,11 @@ import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { useAgent } from 'request-filtering-agent';
 import { UtilsService as UtilsServiceCE } from 'src/services/utils.service';
-import type { AppConfig } from '~/interface/config';
+import type { AppConfig, NcRequest } from '~/interface/config';
 import SSOClient from '~/models/SSOClient';
+import { CacheGetType, CacheScope } from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+import { getCircularReplacer } from '~/utils';
 
 interface ViewCount {
   formCount: number | null;
@@ -172,5 +175,53 @@ export class UtilsService extends UtilsServiceCE {
       process.env.NC_MARKETING_ROOT_URL || 'https://nocodb.com';
 
     return result;
+  }
+
+  async templates(req: NcRequest) {
+    const {
+      industry,
+      usecase,
+      search,
+      page = 1,
+      per_page = 25,
+    } = req.query as {
+      industry: string;
+      usecase: string;
+      search: string;
+      page: string;
+      per_page: string;
+    };
+
+    const key = `${CacheScope.TEMPLATES}:${industry}:${usecase}:${search}:${page}:${per_page}`;
+
+    const cachedData = await NocoCache.get(key, CacheGetType.TYPE_ARRAY);
+
+    if (cachedData) {
+      return cachedData;
+    }
+
+    let response;
+    try {
+      response = await axios.get('https://nocodb.com/api/v1/cloud/templates', {
+        params: {
+          industry,
+          usecase,
+          search,
+          page,
+          per_page,
+        },
+      });
+    } catch (e) {
+      this.logger.error(e?.message, e);
+      return [];
+    }
+
+    await NocoCache.setExpiring(
+      key,
+      JSON.stringify(response.data, getCircularReplacer),
+      2 * 60 * 60,
+    );
+
+    return response.data;
   }
 }

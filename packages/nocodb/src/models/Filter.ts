@@ -107,9 +107,9 @@ export default class Filter implements FilterType {
       'fk_parent_column_id',
       'fk_view_id',
       'fk_hook_id',
+      'fk_row_color_conditions_id',
       'fk_link_col_id',
     ].find((k) => filter[k]);
-
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
       [referencedModelColName]: filter[referencedModelColName],
     });

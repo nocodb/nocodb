@@ -7,7 +7,6 @@ export function useViewRowColorProvider(params: { view: Ref<ViewType>; rowColorI
   const rowColorInfo: Ref<RowColoringInfo> =
     params.rowColorInfo ??
     ref({
-      __id: '',
       mode: null,
       conditions: [],
       fk_column_id: null,
@@ -15,11 +14,6 @@ export function useViewRowColorProvider(params: { view: Ref<ViewType>; rowColorI
       is_set_as_background: null,
     })
 
-  const onRowColorInfoUpdated = () => {
-    rowColorInfo.value.__id = Math.random().toString(36).substring(2, 15)
-    console.log('rowColorInfo.value.__id', rowColorInfo.value.__id)
-    // rowColorInfo.value = { ...rowColorInfo.value, __id: Math.random().toString(36).substring(2, 15) }
-  }
   const reloadRowColorInfo = async () => {
     if (params.view.value?.id) {
       const rowColorInfoResponse = await $api.dbView.getViewRowColor(params.view.value?.id)
@@ -61,5 +55,5 @@ export function useViewRowColorProvider(params: { view: Ref<ViewType>; rowColorI
     }
   })
   provide(ViewRowColorInj, rowColorInfo)
-  return { rowColorInfo, reloadRowColorInfo, setRowColorInfo, onRowColorInfoUpdated }
+  return { rowColorInfo, reloadRowColorInfo, setRowColorInfo }
 }

@@ -14,13 +14,12 @@ import { ViewRowColorService } from '~/services/view-row-color.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 
-// TODO: incorporate view id or base id in route!
-@Controller()
+@Controller('/api/v1/db/meta/views/:viewId')
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class ViewRowColorController {
   constructor(private readonly viewRowColorService: ViewRowColorService) {}
 
-  @Post('/api/v1/db/meta/views/:viewId/view-row-color-select')
+  @Post('/row-color-select')
   @Acl('viewRowColorSelectAdd')
   async setViewRowColorSelect(
     @TenantContext() context: NcContext,
@@ -32,7 +31,7 @@ export class ViewRowColorController {
     });
   }
 
-  @Post('/api/v1/db/meta/view-row-color-conditions')
+  @Post('/row-color-conditions')
   @Acl('viewRowColorConditionAdd')
   async addViewRowColorCondition(
     @TenantContext() context: NcContext,
@@ -44,7 +43,7 @@ export class ViewRowColorController {
     });
   }
 
-  @Patch('/api/v1/db/meta/view-row-color-conditions/:id')
+  @Patch('/row-color-conditions/:id')
   @Acl('viewRowColorConditionUpdate')
   async updateViewRowColorCondition(
     @TenantContext() context: NcContext,
@@ -58,7 +57,7 @@ export class ViewRowColorController {
     });
   }
 
-  @Delete('/api/v1/db/meta/view-row-color-conditions/:id')
+  @Delete('/row-color-conditions/:id')
   @Acl('viewRowColorConditionDelete')
   async deleteViewRowColorCondition(
     @TenantContext() context: NcContext,

@@ -853,8 +853,14 @@ export function useCanvasRender({
       activeCell.value.row === row.rowMeta.rowIndex && comparePath(activeCell.value.path, row?.rowMeta?.path)
     const isDisabled = (!row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS) || vSelectedAllRecords.value
 
-    ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : rowColor || '#ffffff'
-    if (row.rowMeta.selected) ctx.fillStyle = '#3366ff0d'
+    if (rowColor) {
+      ctx.fillStyle = rowColor
+    } else {
+      ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : '#ffffff'
+
+      if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
+    }
+
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
 
     let currentX = xOffset + 4
@@ -1221,6 +1227,8 @@ export function useCanvasRender({
     const isRowCellSelected =
       activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path ?? group?.path)
 
+    const rowColor = getRowColor(row.row, isHovered || row.rowMeta.selected || isRowCellSelected)
+
     if (row) {
       const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
       let xOffset = initialXOffset
@@ -1264,7 +1272,7 @@ export function useCanvasRender({
           row.rowMeta.selected ||
           (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) && isActiveCellInCurrentGroup)
         ) {
-          ctx.fillStyle = '#3366ff0d'
+          ctx.fillStyle = rowColor ? '#3366ff0d' : '#F6F7FE'
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         } else if (isRowCellSelected) {
           ctx.fillStyle = 'red'
@@ -1358,7 +1366,7 @@ export function useCanvasRender({
             row.rowMeta.selected ||
             (selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup)
           ) {
-            ctx.fillStyle = '#3366ff0d'
+            ctx.fillStyle = rowColor ? '#3366ff0d' : '#F6F7FE'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
             ctx.fillStyle = isHovered || isRowCellSelected ? '#F9F9FA' : '#ffffff'
@@ -1371,8 +1379,6 @@ export function useCanvasRender({
             ctx.fillStyle = '#FFFFFF'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
-
-          const rowColor = getRowColor(row.row)
 
           if (column.id === 'row_number') {
             if (isGroupBy.value) width -= initialXOffset
@@ -1507,7 +1513,7 @@ export function useCanvasRender({
         }
 
         if (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
-          ctx.fillStyle = '#3366ff0d'
+          ctx.fillStyle = '#F6F7FE'
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         }
 
@@ -1539,18 +1545,16 @@ export function useCanvasRender({
 
           const colIdx = columns.value.findIndex((col) => col.id === column.id)
           if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
-            ctx.fillStyle = '#3366ff0d'
+            ctx.fillStyle = '#F6F7FE'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
             ctx.fillStyle = isHovered || isRowCellSelected ? '#F9F9FA' : '#ffffff'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
 
-          const rowColor = getRowColor(row.row)
-
           if (column.id === 'row_number') {
             if (isGroupBy.value) width -= initialXOffset
-            renderRowMeta(ctx, row!, { xOffset, yOffset, width }, rowColor)
+            renderRowMeta(ctx, row!, { xOffset, yOffset, width })
           } else {
             const isActive = activeCell.value.row === rowIdx && activeCell.value.column === colIdx
 

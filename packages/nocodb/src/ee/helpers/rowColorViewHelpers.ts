@@ -38,6 +38,43 @@ export class RowColorViewHelpers extends RowColorViewHelpersCE {
     return new RowColorViewHelpers(context, props as any);
   }
 
+  async viewDeleted(view: View) {
+    const context = this.context;
+    const { ncMeta } = this.props;
+
+    const rowColorConditions = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.ROW_COLOR_CONDITIONS,
+      {
+        condition: {
+          fk_view_id: view.id,
+        },
+      },
+    );
+    const rowColorConditionIds = rowColorConditions.map((k) => k.id);
+
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.ROW_COLOR_CONDITIONS,
+      {
+        fk_view_id: view.id,
+      },
+    );
+    // TODO: should be able delete where in
+    for (const rc of rowColorConditionIds) {
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          fk_row_color_condition_id: rc,
+        },
+      );
+    }
+  }
+
   async getRowColorConditions(
     views: View[],
   ): Promise<GetRowColorConditionsResult> {

@@ -69,4 +69,6 @@ export class RowColorViewHelpers {
   mapMetaColumn(payload: { meta?: any; idMap: Map<string, string> }) {
     return payload.meta;
   }
+
+  async viewDeleted(_view: View) {}
 }

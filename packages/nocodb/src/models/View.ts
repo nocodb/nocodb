@@ -1466,6 +1466,9 @@ export default class View implements ViewType {
     const tableScope = this.extractViewTableNameScope(view);
     const columnTable = this.extractViewColumnsTableName(view);
     const columnTableScope = this.extractViewColumnsTableNameScope(view);
+    await RowColorViewHelpers.withContext(context, { ncMeta }).viewDeleted(
+      view,
+    );
     await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,

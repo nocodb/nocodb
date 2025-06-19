@@ -60,6 +60,10 @@ const slotHasChildren = (name?: string) => {
 const isDisabled = computed(() => {
   return vModel.value.readOnly || props.disabled || props.isLockedView
 })
+
+const isChildLogicalOpChangeAllowed = computed(() => {
+  return new Set(vModel.value.children?.slice(1).map((filter) => filter.logical_op)).size > 1
+})
 // #endregion
 
 // #region event handling
@@ -124,7 +128,7 @@ const onDelete = () => {
         :columns="columns"
         :disabled="disabled"
         :is-locked-view="isLockedView"
-        :is-logical-op-change-allowed="isLogicalOpChangeAllowed"
+        :is-logical-op-change-allowed="isChildLogicalOpChangeAllowed"
         :action-btn-type="actionBtnType"
         :web-hook="webHook"
         :link="link"

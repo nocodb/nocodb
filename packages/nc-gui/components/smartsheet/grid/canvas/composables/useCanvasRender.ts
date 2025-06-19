@@ -865,6 +865,8 @@ export function useCanvasRender({
 
     let currentX = xOffset + 4
 
+    const rowColouringBoxTotalWidth = rowColouringBorderWidth.value ? rowColouringBorderWidth.value + 4 : 0
+
     /**
      * 1. Render row index
      */
@@ -885,7 +887,7 @@ export function useCanvasRender({
         x: currentX + 8,
         y: yOffset,
         text: (row.rowMeta.rowIndex! + 1).toString(),
-        maxWidth: rowMetaColumnWidth.value - 28 - rowColouringBorderWidth.value - 4,
+        maxWidth: rowMetaColumnWidth.value - 28 - rowColouringBoxTotalWidth,
         fontFamily: `500 ${rowIndexFontSize} Inter`,
         isTagLabel: true,
         fillStyle: '#6B7280',
@@ -964,7 +966,7 @@ export function useCanvasRender({
           y,
           render,
           text: commentCount,
-          maxWidth: rowMetaColumnWidth.value / 2 - rowColouringBorderWidth.value - 4,
+          maxWidth: rowMetaColumnWidth.value / 2 - rowColouringBoxTotalWidth,
           fontFamily: `${reduceFontSize ? '600 10px' : '500 13px'} Inter`,
           textAlign: 'center',
           isTagLabel: true,
@@ -977,7 +979,7 @@ export function useCanvasRender({
 
       const bubbleWidth = Math.max(20, commentCountWidth + (reduceFontSize ? 6 : 8))
 
-      const x = xOffset + width - 4 - bubbleWidth - rowColouringBorderWidth.value - 4
+      const x = xOffset + width - 4 - bubbleWidth - rowColouringBoxTotalWidth
 
       const isExpandHovered = isBoxHovered(
         {
@@ -1023,7 +1025,7 @@ export function useCanvasRender({
       }
     } else if (isHover || isRowCellSelected) {
       const box = {
-        x: xOffset + width - 4 - 20 - rowColouringBorderWidth.value - 4,
+        x: xOffset + width - 4 - 20 - rowColouringBoxTotalWidth,
         y: yOffset + (rowHeight.value - 20) / 2,
         height: 20,
         width: 20,

@@ -518,6 +518,14 @@ export class ColumnsService implements IColumnsService {
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
     sqlUi.adjustLengthAndScale(colBody);
 
+    const { applyRowColorInvolvement } =
+      await this.viewRowColorService.checkIfColumnInvolved({
+        context,
+        existingColumn: oldColumn,
+        newColumn: colBody,
+        action: 'update',
+      });
+
     if (
       isMetaOnlyUpdateAllowed ||
       isCreatedOrLastModifiedTimeCol(column) ||
@@ -1851,15 +1859,7 @@ export class ColumnsService implements IColumnsService {
       columns: table.columns,
     });
 
-    if (
-      [UITypes.SingleSelect].includes(oldColumn.uidt) &&
-      colBody.uidt !== UITypes.SingleSelect
-    ) {
-      await this.viewRowColorService.selectColumnRemovedOrChanged({
-        context,
-        column: oldColumn,
-      });
-    }
+    await applyRowColorInvolvement();
 
     if (param.apiVersion === NcApiVersion.V3) {
       return column;
@@ -2644,6 +2644,13 @@ export class ColumnsService implements IColumnsService {
 
     const column = await Column.get(context, { colId: param.columnId }, ncMeta);
 
+    const { applyRowColorInvolvement } =
+      await this.viewRowColorService.checkIfColumnInvolved({
+        context,
+        existingColumn: column,
+        action: 'delete',
+      });
+
     if ((column.system || isSystemColumn(column)) && !param.forceDeleteSystem) {
       NcError.badRequest(
         `The column '${
@@ -3175,12 +3182,7 @@ export class ColumnsService implements IColumnsService {
       });
     }
 
-    if ([UITypes.SingleSelect].includes(column.uidt)) {
-      await this.viewRowColorService.selectColumnRemovedOrChanged({
-        context,
-        column,
-      });
-    }
+    await applyRowColorInvolvement();
 
     return table;
   }

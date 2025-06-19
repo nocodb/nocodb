@@ -70,7 +70,7 @@ export function useViewRowColorRender(params: {
     if (activeViewRowColorInfo.value.mode === ROW_COLORING_MODE.FILTER) {
       const filterRowColorInfo = activeViewRowColorInfo.value
 
-      if (!filterRowColorInfo || !filterRowColorInfo.conditions) {
+      if (!filterRowColorInfo || !filterRowColorInfo.conditions || !meta.value) {
         return null
       }
 

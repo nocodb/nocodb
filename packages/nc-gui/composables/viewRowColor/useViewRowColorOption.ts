@@ -6,6 +6,7 @@ export function useViewRowColorOption(params: {
   view: Ref<ViewType>
 }) {
   const { $api } = useNuxtApp()
+  const eventBus = useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore)
 
   const dbRowColorInfo: Ref<RowColoringInfo> = inject(ViewRowColorInj)
 
@@ -30,13 +31,18 @@ export function useViewRowColorOption(params: {
     }
   }
 
-  const onRemoveRowColoringMode = () => {
-    rowColorInfo.value.mode = null
+  const onRemoveRowColoringMode = async () => {
+    await $api.dbView.deleteViewRowColor(params.view.value.id)
+    rowColorInfo.value = { mode: null }
+    eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
   }
 
-  const onRowColorSelectChange = () => {
-    
+  const onRowColorSelectChange = async () => {
+    if (rowColorInfo.value.fk_column_id) {
+      await $api.dbView.viewRowColorSelectAdd(params.view.value.id, rowColorInfo.value)
+      eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
+    }
   }
 
-  return { rowColorInfo, onDropdownOpen, onRemoveRowColoringMode }
+  return { rowColorInfo, onDropdownOpen, onRemoveRowColoringMode, onRowColorSelectChange }
 }

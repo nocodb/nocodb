@@ -68,11 +68,12 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
         <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
-        <LazySmartsheetToolbarRowColorFilterDropdown v-if="isGrid || isGallery || isKanban || isMap" />
-
         <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
 
         <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+
+        <LazySmartsheetToolbarRowColorFilterDropdown v-if="isGrid || isGallery || isKanban || isMap" />
+
         <LazySmartsheetToolbarOpenedViewAction v-if="isCalendar" />
       </div>
 

@@ -785,8 +785,8 @@ export const getLighterTint = (
 
   const hsv = evalColor.toHsv()
 
-  const safeS = !hsv.h ? 0 : 5 + (option?.saturationMod ?? 0) // prevent gray → red
-  const safeV = (!hsv.h ? 98 : 100) + (option?.brightnessMod ?? 0)
+  const safeS = hsv.s < 0.01 ? 0 : 5 + (option?.saturationMod ?? 0) // prevent gray → red
+  const safeV = Math.min(100, (hsv.s < 0.01 ? 97 : 100) + (option?.brightnessMod ?? 0))
 
   return tinycolor({
     h: hsv.h,

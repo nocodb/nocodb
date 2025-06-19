@@ -39,7 +39,8 @@ const allowedComparisonSubOp = computed(() => {
   )
 })
 
-const onChange = (filter: ColumnFilterType) => {
+const onChange = () => {
+  const { filter } = props
   emits('change', {
     filter,
     comparison_op: filter.comparison_op,
@@ -63,7 +64,7 @@ const onChange = (filter: ColumnFilterType) => {
     :disabled="filter.readOnly || isLockedView || readOnly"
     hide-details
     dropdown-class-name="nc-dropdown-filter-comp-sub-op"
-    @change="onChange(filter)"
+    @change="onChange"
   >
     <template v-for="compSubOp of allowedComparisonSubOp" :key="compSubOp.value">
       <a-select-option :value="compSubOp.value">

@@ -44,7 +44,6 @@ export class ViewRowColorService {
   async setRowColoringSelect(_params: {
     context: NcContext;
     fk_view_id?: string;
-    color: string;
     fk_column_id: string;
     is_set_as_background: boolean;
     ncMeta?: MetaService;

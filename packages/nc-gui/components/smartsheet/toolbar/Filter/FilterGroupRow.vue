@@ -177,7 +177,7 @@ const onDelete = () => {
               @change="onLogicalOpChange($event)"
             >
               <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
-                <div class="flex items-center w-full justify-between w-full gap-2">
+                <div class="flex items-center w-full justify-between gap-2">
                   <div class="truncate flex-1 capitalize">{{ op.text }}</div>
                   <component
                     :is="iconMap.check"

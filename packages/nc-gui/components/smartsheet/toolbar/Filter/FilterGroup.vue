@@ -32,6 +32,13 @@ const scrollToBottom = () => {
 const scrollDownIfNeeded = () => {
   if (nested.value || props.isColourFilter) {
     nextTick(() => {
+      if (
+        !addFiltersRowDomRef?.value ||
+        (props.isColourFilter && addFiltersRowDomRef?.value?.getBoundingClientRect()?.top < 200)
+      ) {
+        return
+      }
+
       addFiltersRowDomRef?.value?.scrollIntoView({
         behavior: 'smooth',
         block: !props.isColourFilter ? 'end' : undefined,

@@ -1227,7 +1227,7 @@ export function useCanvasRender({
     const isRowCellSelected =
       activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path ?? group?.path)
 
-    const rowColor = getRowColor(row.row, isHovered || row.rowMeta.selected || isRowCellSelected)
+    const rowColor = row?.row ? getRowColor(row.row, isHovered || row.rowMeta.selected || isRowCellSelected) : null
 
     if (row) {
       const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])

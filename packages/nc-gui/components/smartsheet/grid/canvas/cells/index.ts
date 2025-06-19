@@ -69,7 +69,7 @@ export function useGridCellHandler(params: {
 
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
-  const { getRowColor } = useViewRowColorRender({
+  const { getRowColor, isRowColouringEnabled } = useViewRowColorRender({
     meta: params.meta!,
     rows: computed(() => []),
     useCachedResult: true,
@@ -191,7 +191,7 @@ export function useGridCellHandler(params: {
     if (skipRender) return
     if (!isGroupHeader) {
       const columnState = isColumnSortedOrFiltered(column.id!)
-      if (columnState !== undefined && !rowMeta?.isValidationFailed) {
+      if (!isRowColouringEnabled.value && columnState !== undefined && !rowMeta?.isValidationFailed) {
         let bgColorProps: 'cellBgColor' | 'cellBgColor.hovered' | 'cellBgColor.selected' = 'cellBgColor'
         let borderColorProps: 'cellBorderColor' | 'cellBorderColor.hovered' | 'cellBorderColor.selected' = 'cellBorderColor'
         if (selected || isRowChecked || isCellInSelectionRange) {
@@ -215,10 +215,11 @@ export function useGridCellHandler(params: {
         })
       } else if (
         !rowMeta?.isValidationFailed &&
-        isRootCell &&
-        !(selected || isRowHovered || isRowChecked || isCellInSelectionRange)
+        isRootCell
+        // &&
+        // !(selected || isRowHovered || isRowChecked || isCellInSelectionRange)
       ) {
-        const rowColor = getRowColor(row)
+        const rowColor = getRowColor(row, selected || isRowChecked || isRowHovered || isCellInSelectionRange)
 
         if (rowColor) {
           roundedRect(ctx, x, y, width, height, 0, {

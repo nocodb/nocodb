@@ -34,7 +34,7 @@ const handleFileUpload = async (file: File) => {
   try {
     let parsedContents = null
     if (props.content.type !== ScriptInputType.FILE) {
-      return
+      return false
     }
 
     if (file.name.endsWith('.csv')) {
@@ -49,7 +49,7 @@ const handleFileUpload = async (file: File) => {
               file,
               parsedContents: null,
             })
-            return
+            return false
           }
 
           parsedContents = results.data
@@ -89,6 +89,7 @@ const handleFileUpload = async (file: File) => {
         errorMessage: 'This file type is not supported',
       })
     }
+    return false
   } catch (e) {
     console.error(e)
     resolveInput({ file, parsedContents: null })
@@ -189,8 +190,8 @@ watch(
       </label>
       <a-upload :accept="content.accept" :disabled="isResolved" :multiple="false" :before-upload="handleFileUpload">
         <NcButton v-if="!isResolved" size="small" :disabled="isResolved" type="secondary">Click to Upload</NcButton>
-        <template #itemRender="{ file, actions }">
-          <div class="border-1 border-nc-border-gray-medium bg-white flex items-center pl-1 py-2 pr-4 rounded-xl">
+        <template #itemRender="{ file }">
+          <div v-if="file" class="border-1 border-nc-border-gray-medium bg-white flex items-center pl-1 py-2 pr-4 rounded-xl">
             <CellAttachmentIconView class="w-10 h-10" :item="{ title: file.name, mimetype: file.type }" />
             <div class="flex flex-col flex-1">
               <div class="text-caption text-nc-content-gray">
@@ -205,9 +206,6 @@ watch(
                 {{ formatBytes(file.size) }}
               </div>
             </div>
-            <NcButton :disabled="isResolved" type="text" size="small" @click="actions.remove">
-              <GeneralIcon class="text-nc-content-gray-subtle" icon="delete" />
-            </NcButton>
           </div>
         </template>
       </a-upload>

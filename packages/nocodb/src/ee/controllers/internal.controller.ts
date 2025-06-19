@@ -95,7 +95,7 @@ export class InternalController extends InternalControllerCE {
       case 'getScript':
         return await this.scriptsService.getScript(context, req.query.id);
       case 'baseSchema':
-        return await getBaseSchema(baseId);
+        return await getBaseSchema(baseId, context.workspace_id);
       case 'mcpList':
         return await this.mcpService.list(context, req);
       case 'mcpGet':

@@ -782,14 +782,16 @@ export const getLighterTint = (
   },
 ) => {
   const evalColor = tinycolor(color)
-  // evalColor = evalColor.saturate(5)
-  // evalColor = evalColor.brighten(100)
-  // return evalColor.toHex8String()
-  const hue = evalColor.toHsv().h
+
+  const hsv = evalColor.toHsv()
+
+  const safeS = !hsv.h ? 0 : 5 + (option?.saturationMod ?? 0) // prevent gray → red
+  const safeV = (!hsv.h ? 98 : 100) + (option?.brightnessMod ?? 0)
+
   return tinycolor({
-    h: hue,
-    s: 5 + (option?.saturationMod ?? 0),
-    v: 100 + (option?.brightnessMod ?? 0),
+    h: hsv.h,
+    s: safeS,
+    v: safeV,
   }).toHexString()
 }
 

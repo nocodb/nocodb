@@ -6,7 +6,7 @@ const automationStore = useAutomationStore()
 
 const { loadAutomations, openScript, openNewScriptModal: _openNewScriptModal } = automationStore
 
-const { activeBaseAutomations, isAutomationsLoading, isMarketVisible, isDetailsVisible, detailsScriptId } =
+const { activeBaseAutomations, isLoadingAutomation, isMarketVisible, isDetailsVisible, detailsScriptId } =
   storeToRefs(automationStore)
 
 const { openedProject } = storeToRefs(useBases())
@@ -62,7 +62,7 @@ const openMarketPlace = () => {
       v-if="isUIAllowed('scriptCreateOrEdit')"
       class="flex flex-row gap-x-6 pb-2 overflow-x-auto nc-scrollbar-thin"
       :class="{
-        'pointer-events-none': isAutomationsLoading,
+        'pointer-events-none': isLoadingAutomation,
       }"
     >
       <div
@@ -93,7 +93,7 @@ const openMarketPlace = () => {
       </div>
     </div>
     <div
-      v-if="isAutomationsLoading"
+      v-if="isLoadingAutomation"
       class="flex items-center justify-center text-center mt-4"
       :style="{
         height: 'calc(100vh - var(--topbar-height) - 15.2rem)',
@@ -115,7 +115,7 @@ const openMarketPlace = () => {
       }"
     >
       <NcTable
-        :is-data-loading="isAutomationsLoading"
+        :is-data-loading="isLoadingAutomation"
         :columns="columns"
         sticky-first-column
         :data="[...activeBaseAutomations]"

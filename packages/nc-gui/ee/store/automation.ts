@@ -15,7 +15,7 @@ export const useAutomationStore = defineStore('automation', () => {
 
   // State
   const automations = ref<Map<string, ScriptType[]>>(new Map())
-  const isLoading = ref(false)
+  const isUpdatingAutomation = ref(false)
   const isLoadingAutomation = ref(false)
   const isSettingsOpen = ref(false)
   const isMarketVisible = ref(false)
@@ -63,7 +63,7 @@ export const useAutomationStore = defineStore('automation', () => {
       return response
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
       return []
     } finally {
       isLoadingAutomation.value = false
@@ -96,7 +96,7 @@ export const useAutomationStore = defineStore('automation', () => {
       return automation
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
       ncNavigateTo({
         workspaceId: activeWorkspaceId.value,
         baseId: activeProjectId.value,
@@ -112,8 +112,6 @@ export const useAutomationStore = defineStore('automation', () => {
   const duplicateAutomation = async (baseId: string, automationId: string) => {
     if (!activeWorkspaceId.value) return null
     try {
-      isLoading.value = true
-
       const created = await $api.internal.postOperation(
         activeWorkspaceId.value,
         baseId,
@@ -138,18 +136,14 @@ export const useAutomationStore = defineStore('automation', () => {
       return created
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
-    } finally {
-      isLoading.value = false
     }
   }
 
   const createAutomation = async (baseId: string, automationData: Partial<ScriptType>) => {
     if (!activeWorkspaceId.value) return null
     try {
-      isLoading.value = true
-
       const created = await $api.internal.postOperation(
         activeWorkspaceId.value,
         baseId,
@@ -172,10 +166,8 @@ export const useAutomationStore = defineStore('automation', () => {
       return created
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
-    } finally {
-      isLoading.value = false
     }
   }
 
@@ -189,7 +181,7 @@ export const useAutomationStore = defineStore('automation', () => {
   ) => {
     if (!activeWorkspaceId.value) return null
     try {
-      isLoading.value = true
+      isUpdatingAutomation.value = true
 
       const automation = automations.value.get(baseId)?.find((a) => a.id === automationId)
       const updated = options?.skipNetworkCall
@@ -219,18 +211,16 @@ export const useAutomationStore = defineStore('automation', () => {
       return updated
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
     } finally {
-      isLoading.value = false
+      isUpdatingAutomation.value = false
     }
   }
 
   const deleteAutomation = async (baseId: string, automationId: string) => {
     if (!activeWorkspaceId.value) return null
     try {
-      isLoading.value = true
-
       await $api.internal.postOperation(
         activeWorkspaceId.value,
         baseId,
@@ -268,10 +258,8 @@ export const useAutomationStore = defineStore('automation', () => {
       return true
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
       return false
-    } finally {
-      isLoading.value = false
     }
   }
 
@@ -314,8 +302,8 @@ export const useAutomationStore = defineStore('automation', () => {
     }
 
     if (automation) {
-      const script = parseScript(automation.script)
-      const isValid = validateConfigValues(script ?? {}, automation.value?.config ?? {})
+      const script = parseScript(automation.script ?? '')
+      const isValid = validateConfigValues(script ?? {}, automation?.config ?? {})
       if (isValid?.length) {
         isSettingsOpen.value = true
       } else {
@@ -394,7 +382,7 @@ export const useAutomationStore = defineStore('automation', () => {
     // State
     automations,
     activeAutomation,
-    isAutomationsLoading: isLoading,
+    isUpdatingAutomation,
     isLoadingAutomation,
     isSettingsOpen,
     activeBaseSchema,

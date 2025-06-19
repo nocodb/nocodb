@@ -213,12 +213,7 @@ export function useGridCellHandler(params: {
             left: true,
           },
         })
-      } else if (
-        !rowMeta?.isValidationFailed &&
-        isRootCell
-        // &&
-        // !(selected || isRowHovered || isRowChecked || isCellInSelectionRange)
-      ) {
+      } else if (!rowMeta?.isValidationFailed && isRootCell) {
         const rowColor = getRowColor(row, selected || isRowHovered || isRowChecked || isCellInSelectionRange)
 
         if (rowColor) {

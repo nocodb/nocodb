@@ -81,7 +81,7 @@ const { $api } = useNuxtApp()
 
 const { getMeta } = useMetas()
 
-const { meta, view } = useSmartsheetStoreOrThrow()
+const { meta, view, eventBus } = useSmartsheetStoreOrThrow()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -993,6 +993,8 @@ const saveChanges = async () => {
 
     showSystemFields.value = showOrHideSystemFields.value
     visibilityOps.value = []
+
+    eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
 
     return !hasUnsavedChanges.value
   } catch (e) {

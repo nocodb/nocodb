@@ -190,6 +190,7 @@ export function useViewData(
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
               where: where?.value,
               ...(excludePageInfo.value ? { excludeCount: 'true' } : {}),
+              include_row_color: true,
             } as any,
             {
               cancelToken: controller.value.token,

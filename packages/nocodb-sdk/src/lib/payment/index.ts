@@ -48,6 +48,7 @@ export enum PlanFeatureTypes {
   FEATURE_WEBHOOK_CUSTOM_PAYLOAD = 'feature_webhook_custom_payload',
   FEATURE_WORKSPACE_CUSTOM_LOGO = 'feature_workspace_custom_logo',
   FEATURE_CURRENT_USER_FILTER = 'feature_current_user_filter',
+  FEATURE_ROW_COLOUR = 'feature_row_colour',
 }
 
 export enum PlanTitles {
@@ -216,6 +217,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to upload a custom image as workspace avatar',
   [PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER]:
     'to filter view by current user',
+  [PlanFeatureTypes.FEATURE_ROW_COLOUR]: 'to use row colouring.',
 };
 
 export const getUpgradeMessage = (

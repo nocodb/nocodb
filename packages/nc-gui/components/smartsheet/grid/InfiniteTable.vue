@@ -2211,7 +2211,7 @@ const cellFilteredOrSortedClass = (colId: string) => {
 }
 
 const headerFilteredOrSortedClass = (colId: string) => {
-  const columnState = isColumnSortedOrFiltered(colId)
+  const columnState = isColumnSortedOrFiltered(colId, true)
   if (columnState) {
     const headerBgClass = filteredOrSortedAppearanceConfig[columnState]?.headerBgClass
     if (headerBgClass) {
@@ -2554,7 +2554,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       </div>
                     </div>
                     <tr
-                      class="nc-grid-row transition transition-all duration-500 opacity-100 !xs:h-14"
+                      class="nc-grid-row transition-all duration-500 opacity-100 !xs:h-14"
                       :style="{
                         height: `${rowHeight}px`,
                         filter:
@@ -2581,7 +2581,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       >
                         <div class="w-full flex items-center h-full px-1 gap-0.5">
                           <div
-                            class="nc-row-no min-w-4 h-4 flex items-center justify-center text-gray-500 pl-1.5"
+                            class="nc-row-no min-w-4 h-4 flex items-center justify-between text-gray-500 pl-1.5 w-full"
                             :class="{
                               'toggle': !readOnly,
                               'hidden': row.rowMeta?.selected || vSelectedAllRecords,
@@ -2590,7 +2590,10 @@ const headerFilteredOrSortedClass = (colId: string) => {
                               'text-small': row.rowMeta.rowIndex + 1 < 1000,
                             }"
                           >
-                            {{ row.rowMeta.rowIndex + 1 }}
+                            <span>
+                              {{ row.rowMeta.rowIndex + 1 }}
+                            </span>
+                            <div class="inline-block min-w-[4px] h-full rounded-full"></div>
                           </div>
 
                           <div

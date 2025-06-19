@@ -401,6 +401,7 @@ export function useInfiniteData(args: {
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             includeSortAndFilterColumns: true,
             where: whereFilter,
+            include_row_color: true,
           } as any)
         : await fetchSharedViewData(
             {

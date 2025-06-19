@@ -4,18 +4,24 @@ import {
   isLinksOrLTAR,
   isOrderCol,
   isSystemColumn,
+  NcApiVersion,
+  parseProp,
   RelationTypes,
+  ROW_COLORING_MODE,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
-import { NcApiVersion } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import type {
   Column,
   LinkToAnotherRecordColumn,
   LookupColumn,
   Model,
 } from '~/models';
-import type { NcContext } from '~/interface/config';
+import type { ViewMetaRowColoring } from '~/models/View';
+import { MetaTable } from '~/cli';
+import { NcError } from '~/helpers/catchError';
 import {
   CalendarRange,
   Filter,
@@ -25,7 +31,8 @@ import {
   KanbanViewColumn,
   View,
 } from '~/models';
-import { NcError } from '~/helpers/catchError';
+import RowColorCondition from '~/models/RowColorCondition';
+import Noco from '~/Noco';
 
 type Ast = {
   [key: string]: 1 | true | null | Ast;
@@ -50,6 +57,7 @@ const getAst = async (
     apiVersion = NcApiVersion.V2,
     extractOrderColumn = false,
     includeSortAndFilterColumns = false,
+    includeRowColorColumns = false,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
@@ -64,6 +72,7 @@ const getAst = async (
     apiVersion?: NcApiVersion;
     extractOrderColumn?: boolean;
     includeSortAndFilterColumns?: boolean;
+    includeRowColorColumns?: boolean;
   },
 ): Promise<{
   ast: Ast;
@@ -109,6 +118,14 @@ const getAst = async (
   }
 
   if (!model.columns?.length) await model.getColumns(context);
+
+  const rowColoringColumnIds = new Set<string>();
+  if (view && includeRowColorColumns) {
+    const addingColumns = await getViewRowColorFields({ context, view });
+    for (const addColumn of addingColumns) {
+      rowColoringColumnIds.add(addColumn);
+    }
+  }
 
   // extract only pk and pv
   if (extractOnlyPrimaries) {
@@ -262,6 +279,8 @@ const getAst = async (
 
     if (isSortOrFilterColumn) {
       isRequested = true;
+    } else if (rowColoringColumnIds.has(col.id)) {
+      isRequested = true;
     }
     // exclude system column and foreign key from API response for v3
     else if (
@@ -319,6 +338,40 @@ const getAst = async (
   }, Promise.resolve({}));
 
   return { ast, dependencyFields, parsedQuery: dependencyFields };
+};
+
+const getViewRowColorFields = async (params: {
+  context: NcContext;
+  view: View;
+  ncMeta?: MetaService;
+}) => {
+  if (params.view.row_coloring_mode === ROW_COLORING_MODE.SELECT) {
+    const viewMeta = parseProp(params.view.meta) as ViewMetaRowColoring;
+    return [viewMeta?.rowColoringInfo?.fk_column_id];
+  } else if (params.view.row_coloring_mode === ROW_COLORING_MODE.FILTER) {
+    const ncMeta = params.ncMeta ?? Noco.ncMeta;
+    const rowColorConditions = await RowColorCondition.getByViewId(
+      params.context,
+      params.view.id,
+    );
+    const filters = await ncMeta.metaList2(
+      params.context.workspace_id,
+      params.context.base_id,
+      MetaTable.FILTER_EXP,
+      {
+        xcCondition: (knex) =>
+          knex.whereIn(
+            'fk_row_color_condition_id',
+            rowColorConditions.map((k) => k.id),
+          ),
+      },
+    );
+    return filters
+      .filter((f) => f.fk_column_id)
+      .map((f) => f.fk_column_id as string)
+      .filter((value, index, array) => array.indexOf(value) === index);
+  }
+  return [] as string[];
 };
 
 const extractDependencies = async (

@@ -18,6 +18,7 @@ import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import { Script } from '~/models';
+import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import {
   Base,
   BaseUser,
@@ -404,6 +405,15 @@ export class ExportService {
         }
       }
 
+      const serializedRowColorConditions =
+        await RowColorViewHelpers.withContext(
+          context,
+        ).getDuplicateRowColorConditions({
+          views: model.views,
+          idMap,
+          mapColumnId: true,
+        });
+
       const serializedHooks = [];
 
       if (!excludeHooks) {
@@ -528,7 +538,10 @@ export class ExportService {
           id: idMap.get(view.id),
           is_default: view.is_default,
           type: view.type,
-          meta: view.meta,
+          meta: RowColorViewHelpers.withContext(context).mapMetaColumn({
+            meta: view.meta,
+            idMap,
+          }),
           order: view.order,
           title: view.title,
           show: view.show,
@@ -537,6 +550,7 @@ export class ExportService {
           sorts: view.sorts,
           lock_type: view.lock_type,
           owned_by: view.owned_by,
+          row_coloring_mode: view.row_coloring_mode,
           columns: view.columns.map((column) => {
             const {
               id,
@@ -556,6 +570,10 @@ export class ExportService {
           }),
           view: view.view,
         })),
+        rowColorConditions: {
+          filters: serializedRowColorConditions.filters,
+          rowColorConditions: serializedRowColorConditions.rowColorConditions,
+        },
         hooks: serializedHooks,
         comments: serializedComments,
       });

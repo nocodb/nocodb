@@ -81,6 +81,16 @@ export interface NcListProps {
    * Whether to hide the top divider
    */
   hideTopDivider?: boolean
+
+  /**
+   * This will remove side padding and rounded corners from the list item
+   */
+  itemFullWidth?: boolean
+
+  /**
+   * Whether to stop propagation on item click
+   */
+  stopPropagationOnItemClick?: boolean
 }
 
 interface Emits {
@@ -105,6 +115,8 @@ const props = withDefaults(defineProps<NcListProps>(), {
   itemTooltipPlacement: 'right',
   isLocked: false,
   hideTopDivider: false,
+  itemFullWidth: false,
+  stopPropagationOnItemClick: false,
 })
 
 const emits = defineEmits<Emits>()
@@ -226,7 +238,11 @@ const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: numb
  * This function is responsible for handling the selection of an option from the list.
  * It updates the model value, emits a change event, and optionally closes the dropdown.
  */
-const handleSelectOption = (option: NcListItemType, index?: number) => {
+const handleSelectOption = (option: NcListItemType, index?: number, e?: MouseEvent) => {
+  if (e && props.stopPropagationOnItemClick) {
+    e.stopPropagation()
+  }
+
   if (props.isLocked) return
   if (!ncIsObject(option) || !(optionValueKey in option) || option.ncItemDisabled) return
   if (index !== undefined) {
@@ -429,6 +445,7 @@ watch(searchQuery, () => {
               {
                 'px-1 pb-1': variant === 'small',
                 'px-2 pb-2': variant !== 'small',
+                '!px-0': itemFullWidth,
               },
             ]"
           >
@@ -436,10 +453,11 @@ watch(searchQuery, () => {
               <NcTooltip
                 v-for="{ data: option, index: idx } in virtualList"
                 :key="idx"
-                class="flex items-center gap-2 nc-list-item w-full px-2 rounded-md my-[2px] first-of-type:mt-0 last-of-type:mb-0"
+                class="flex items-center gap-2 nc-list-item w-full px-2 my-[2px] first-of-type:mt-0 last-of-type:mb-0"
                 :class="[
                   `nc-list-option-${idx}`,
                   {
+                    'rounded-md': !itemFullWidth,
                     'nc-list-option-selected': compareVModel(option[optionValueKey]),
                     'bg-gray-100 ':
                       !option?.ncItemDisabled && showHoverEffectOnSelectedOption && compareVModel(option[optionValueKey]),
@@ -456,7 +474,7 @@ watch(searchQuery, () => {
                 :placement="itemTooltipPlacement"
                 :disabled="!option?.ncItemTooltip"
                 @mouseover="handleResetHoverEffect(true, idx)"
-                @click="handleSelectOption(option, idx)"
+                @click="handleSelectOption(option, idx, $event)"
               >
                 <template #title>{{ option.ncItemTooltip }} </template>
                 <slot name="listItem" :option="option" :is-selected="compareVModel(option[optionValueKey])" :index="idx">

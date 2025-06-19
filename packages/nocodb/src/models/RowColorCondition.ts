@@ -8,6 +8,7 @@ export interface IRowColorCondition {
   fk_workspace_id?: string;
   base_id?: string;
   color: string;
+  nc_order: number;
   is_set_as_background: boolean;
 }
 export default class RowColorCondition implements IRowColorCondition {
@@ -16,6 +17,7 @@ export default class RowColorCondition implements IRowColorCondition {
   fk_workspace_id?: string;
   base_id?: string;
   color: string;
+  nc_order: number;
   is_set_as_background: boolean;
 
   constructor(data: RowColorCondition) {

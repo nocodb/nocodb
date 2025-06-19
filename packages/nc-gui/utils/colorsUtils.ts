@@ -190,6 +190,25 @@ export const themeV3Colors = {
   },
 }
 
+type ThemeV3ColorKeys = Exclude<keyof typeof themeV3Colors, 'base'>
+type Shade = keyof (typeof themeV3Colors)[ThemeV3ColorKeys]
+
+/**
+ * Get a random color from the themeV3Colors
+ * @param randomNumber - The random number to use to get the color
+ * @param shade - The shade of the color to get
+ * @returns The color
+ */
+export function getThemeV3RandomColor(shade: Shade = 700): string {
+  const colorGroups = Object.keys(themeV3Colors).filter((key) => key !== 'base') as ThemeV3ColorKeys[]
+
+  const groupIndex = Math.floor(Math.random() * 1000) % colorGroups.length
+  const colorGroup = colorGroups[groupIndex]!
+
+  const selectedGroup = themeV3Colors[colorGroup]
+  return selectedGroup[shade]
+}
+
 const isValidHex = (hex: string) => /^#([A-Fa-f0-9]{3,4}){1,2}$/.test(hex)
 
 const getChunksFromString = (st: string, chunkSize: number) => st.match(new RegExp(`.{${chunkSize}}`, 'g'))

@@ -74,6 +74,7 @@ export class PublicDatasService {
       model,
       query: {},
       view,
+      includeRowColorColumns: query.include_row_color === 'true',
     });
 
     const listArgs: any = { ...query, ...dependencyFields };
@@ -254,7 +255,12 @@ export class PublicDatasService {
       source,
     });
 
-    const { ast } = await getAst(context, { model, query: param.query, view });
+    const { ast } = await getAst(context, {
+      model,
+      query: param.query,
+      view,
+      includeRowColorColumns: query.include_row_color === 'true',
+    });
 
     const listArgs: any = { ...query };
     try {

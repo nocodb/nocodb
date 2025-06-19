@@ -2235,6 +2235,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
 
 const getRowColorStyle = (row) => {
   const rowColor = getRowColor(row)
+
   if (rowColor) {
     return {
       'background-color': `${rowColor} !important`,
@@ -2574,7 +2575,7 @@ const getRowColorStyle = (row) => {
                       </div>
                     </div>
                     <tr
-                      class="nc-grid-row transition transition-all duration-500 opacity-100 !xs:h-14"
+                      class="nc-grid-row transition-all duration-500 opacity-100 !xs:h-14"
                       :style="{
                         height: `${rowHeight}px`,
                         filter:

@@ -32,8 +32,8 @@ export interface StatefulGroupProps {
 }
 export interface GroupProps extends StatefulGroupProps {
   index: number
-  fk_parent_id?: string
-  tmp_fk_parent_id?: string
+  fkParentId?: string
+  tmpFkParentId?: string
   nestedLevel: number
   columns: ColumnTypeForFilter[]
   dbClientType?: ClientType

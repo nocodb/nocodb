@@ -118,8 +118,8 @@ const handlePermissionSave = () => {
               :permission-type="PermissionKey.RECORD_FIELD_EDIT"
               :current-value="getPermissionSummaryLabel('field', record.field_id!, PermissionKey.RECORD_FIELD_EDIT)"
               :border-on-hover="true"
-              @save="handlePermissionSave"
               class="-ml-3"
+              @save="handlePermissionSave"
             />
           </template>
         </template>

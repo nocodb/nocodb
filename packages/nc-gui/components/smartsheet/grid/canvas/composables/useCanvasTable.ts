@@ -1,4 +1,14 @@
-import { PermissionEntity, PermissionKey, UITypes, isAIPromptCol, isLinksOrLTAR, isOrderCol, isReadonly, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  PermissionEntity,
+  PermissionKey,
+  UITypes,
+  isAIPromptCol,
+  isLinksOrLTAR,
+  isOrderCol,
+  isReadonly,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import type { ButtonType, ColumnType, TableType, UserType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'

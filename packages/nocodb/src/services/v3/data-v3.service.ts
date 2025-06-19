@@ -42,7 +42,26 @@ async function reuseOrSave(
   return res;
 }
 
+// Helper function to process arrays with concurrency control
+async function processConcurrently<T, R>(
+  items: T[],
+  processor: (item: T) => Promise<R>,
+  maxConcurrency: number = MAX_CONCURRENT_TRANSFORMS,
+): Promise<R[]> {
+  const results: R[] = [];
+
+  for (let i = 0; i < items.length; i += maxConcurrency) {
+    const batch = items.slice(i, i + maxConcurrency);
+    const batchResults = await Promise.all(batch.map(processor));
+    results.push(...batchResults);
+  }
+
+  return results;
+}
+
 const V3_INSERT_LIMIT = 10;
+const MAX_NESTING_DEPTH = 3;
+const MAX_CONCURRENT_TRANSFORMS = 50;
 
 interface ModelInfo {
   model: Model;
@@ -131,6 +150,7 @@ export class DataV3Service {
     nestedLimit?: number;
     skipSubstitutingColumnIds?: boolean;
     reuse?: ReusableParams;
+    depth?: number;
   }): Promise<DataRecord> {
     const {
       context,
@@ -142,6 +162,7 @@ export class DataV3Service {
       nestedLimit,
       skipSubstitutingColumnIds,
       reuse = {},
+      depth = 0,
     } = param;
 
     const getPrimaryKey = (column: Column) => {
@@ -182,41 +203,54 @@ export class DataV3Service {
         const column = columns.find((col) => col.title === key);
         if (column?.uidt === UITypes.LinkToAnotherRecord) {
           if (Array.isArray(value)) {
+            // Check depth limit to prevent unbounded recursion
+            if (depth >= MAX_NESTING_DEPTH) {
+              // At max depth, return simplified representation with just IDs
+              transformedFields[key] = value.map((nestedRecord) => {
+                if (typeof nestedRecord === 'object' && nestedRecord !== null) {
+                  // Try to extract ID from the nested record
+                  const id =
+                    nestedRecord.id ||
+                    nestedRecord.Id ||
+                    Object.values(nestedRecord)[0];
+                  return { id: String(id) };
+                }
+                return { id: String(nestedRecord) };
+              });
+              continue;
+            }
+
             // Cache the related model info per column to avoid N+1 queries
             const relatedModelInfo = await reuseOrSave(
               `relatedModelInfo_${column.id}`,
               reuse,
               async () => this.getRelatedModelInfo(context, column),
             );
-            
-            const { primaryKey: relatedPrimaryKey, primaryKeys: relatedPrimaryKeys } = relatedModelInfo;
-            
-            // Handle array of linked records
-            if (nestedLimit && value.length > nestedLimit) {
-              transformedFields[key] = await Promise.all(
-                value.slice(0, nestedLimit).map(async (nestedRecord) => {
-                  return this.transformRecordToV3Format({
-                    context: context,
-                    record: nestedRecord,
-                    primaryKey: relatedPrimaryKey,
-                    primaryKeys: relatedPrimaryKeys,
-                    reuse, // Pass reuse params to nested calls
-                  });
-                }),
-              );
-            } else {
-              transformedFields[key] = await Promise.all(
-                value.map(async (nestedRecord) => {
-                  return this.transformRecordToV3Format({
-                    context: context,
-                    record: nestedRecord,
-                    primaryKey: relatedPrimaryKey,
-                    primaryKeys: relatedPrimaryKeys,
-                    reuse, // Pass reuse params to nested calls
-                  });
-                }),
-              );
-            }
+
+            const {
+              primaryKey: relatedPrimaryKey,
+              primaryKeys: relatedPrimaryKeys,
+            } = relatedModelInfo;
+
+            // Handle array of linked records with concurrency control
+            const recordsToProcess =
+              nestedLimit && value.length > nestedLimit
+                ? value.slice(0, nestedLimit)
+                : value;
+
+            transformedFields[key] = await processConcurrently(
+              recordsToProcess,
+              async (nestedRecord) => {
+                return this.transformRecordToV3Format({
+                  context: context,
+                  record: nestedRecord,
+                  primaryKey: relatedPrimaryKey,
+                  primaryKeys: relatedPrimaryKeys,
+                  reuse, // Pass reuse params to nested calls
+                  depth: depth + 1, // Increment depth for nested calls
+                });
+              },
+            );
             continue;
           }
         }
@@ -251,15 +285,16 @@ export class DataV3Service {
     nestedLimit?: number;
     skipSubstitutingColumnIds?: boolean;
     reuse?: ReusableParams;
+    depth?: number;
   }): Promise<DataRecord[]> {
     const { records } = param;
-    return Promise.all(
-      records.map((record) =>
-        this.transformRecordToV3Format({
-          ...param,
-          record,
-        }),
-      ),
+
+    // Use concurrency control to prevent overwhelming the system
+    return processConcurrently(records, async (record) =>
+      this.transformRecordToV3Format({
+        ...param,
+        record,
+      }),
     );
   }
 
@@ -312,6 +347,7 @@ export class DataV3Service {
       skipSubstitutingColumnIds:
         param.query[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
       reuse: {}, // Create reuse cache for this data list operation
+      depth: 0, // Start at depth 0 for main records
     });
 
     // Check if any LTAR fields were truncated
@@ -518,6 +554,7 @@ export class DataV3Service {
         skipSubstitutingColumnIds:
           param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
         reuse: {}, // Create reuse cache for this data insert operation
+        depth: 0, // Start at depth 0 for main records
       }),
     };
   }
@@ -657,6 +694,7 @@ export class DataV3Service {
         skipSubstitutingColumnIds:
           param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT],
         reuse: {}, // Create reuse cache for this data update operation
+        depth: 0, // Start at depth 0 for main records
       }),
     };
   }
@@ -710,6 +748,7 @@ export class DataV3Service {
         skipSubstitutingColumnIds:
           param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
         reuse: {}, // Create reuse cache for this nested data list operation
+        depth: 0, // Start at depth 0 for main records
       });
 
       // For single relations, return the record directly, for others return as array
@@ -779,6 +818,7 @@ export class DataV3Service {
       skipSubstitutingColumnIds:
         param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
       reuse: {}, // Create reuse cache for this nested data list operation
+      depth: 0, // Start at depth 0 for main records
     });
 
     // Check if any LTAR fields were truncated
@@ -852,6 +892,7 @@ export class DataV3Service {
           skipSubstitutingColumnIds:
             param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
           reuse: {}, // Create reuse cache for this data read operation
+          depth: 0, // Start at depth 0 for main records
         })
       : { id: '', fields: {} };
   }

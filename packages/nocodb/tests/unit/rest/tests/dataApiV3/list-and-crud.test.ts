@@ -711,8 +711,8 @@ describe('dataApiV3', () => {
             expect(
               rspFromRecordAPI.body.records[0].fields['Country'],
             ).to.deep.eq({
-              Id: 1,
-              Country: `Country 1`, // Note the change in key
+              id: 1,
+              fields: { Country: `Country 1` },
             });
           } else {
             expect(rspFromLinkAPI.body.record || {}).to.deep.equal({});
@@ -793,8 +793,8 @@ describe('dataApiV3', () => {
             expect(
               rspFromRecordAPI.body.records[0].fields['Country'],
             ).to.deep.eq({
-              Id: 1,
-              Country: `Country 1`, // Note the change in key
+              id: 1,
+              fields: { Country: `Country 1` },
             });
           } else {
             expect(rspFromLinkAPI.body.record || {}).to.deep.equal({});
@@ -869,8 +869,8 @@ describe('dataApiV3', () => {
             expect(
               rspFromRecordAPI.body.records[0].fields['Country'],
             ).to.deep.eq({
-              Id: 1,
-              Country: `Country 1`, // Note the change in key
+              id: 1,
+              fields: { Country: `Country 1` },
             });
           } else {
             expect(rspFromLinkAPI.body.record || {}).to.deep.equal({});

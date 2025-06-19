@@ -33,6 +33,7 @@ interface Props {
 
   handler?: GroupHandler
   isColourFilter?: boolean
+  isLoadingFilter?: boolean
 }
 interface Emits {
   (event: 'update:modelValue', model: string): void
@@ -154,6 +155,7 @@ const onDelete = () => {
         :is-full-width="isFullWidth"
         :handler="handler"
         :is-colour-filter="isColourFilter"
+        :is-loading-filter="isLoadingFilter"
         @change="onFilterChange"
         @row-change="onFilterRowChange"
       >
@@ -191,7 +193,7 @@ const onDelete = () => {
           </div>
         </template>
         <template #nestedRowEnd>
-          <div>
+          <div :class="{ 'cursor-wait': isLoadingFilter }">
             <NcButton
               v-if="!vModel.readOnly && !disabled"
               :key="index"
@@ -200,6 +202,7 @@ const onDelete = () => {
               size="small"
               :disabled="isLockedView"
               class="nc-filter-item-remove-btn cursor-pointer"
+              :class="{ 'pointer-events-none': isLoadingFilter }"
               @click.stop="onDelete()"
             >
               <component :is="iconMap.deleteListItem" />

@@ -348,6 +348,7 @@ const onFilterDelete = async (
                 :query-filter="queryFilter"
                 :handler="handler"
                 :is-colour-filter="isColourFilter"
+                :is-loading-filter="isLoadingFilter"
                 @change="onFilterRowChange($event, i)"
                 @delete="onFilterDelete($event, i)"
               />
@@ -369,6 +370,7 @@ const onFilterDelete = async (
                 :link="link"
                 :handler="handler"
                 :is-colour-filter="isColourFilter"
+                :is-loading-filter="isLoadingFilter"
                 @change="onFilterRowChange($event, i)"
                 @delete="onFilterDelete($event, i)"
               />
@@ -386,6 +388,7 @@ const onFilterDelete = async (
           class="flex gap-2"
           :class="{
             'mt-1 mb-2': vModel.length,
+            'cursor-wait': isLoadingFilter,
           }"
         >
           <NcButton
@@ -394,6 +397,7 @@ const onFilterDelete = async (
             :disabled="disableAddNewFilter || isLockedView || readOnly"
             class="nc-btn-focus"
             data-testid="add-filter"
+            :class="{ 'pointer-events-none': isLoadingFilter }"
             @click.stop="addFilter()"
           >
             <div class="flex items-center gap-1">
@@ -406,6 +410,7 @@ const onFilterDelete = async (
           <NcButton
             v-if="nestedLevel < MAX_NESTED_LEVEL && !disabled"
             class="nc-btn-focus"
+            :class="{ 'pointer-events-none': isLoadingFilter }"
             :disabled="disableAddNewFilter || isLockedView"
             :type="actionBtnType"
             size="small"
@@ -428,10 +433,12 @@ const onFilterDelete = async (
           class="flex gap-2"
           :class="{
             'mt-1 mb-2': vModel.length,
+            'cursor-wait': isLoadingFilter,
           }"
         >
           <NcButton
             class="nc-btn-focus"
+            :class="{ 'pointer-events-none': isLoadingFilter }"
             size="small"
             :type="actionBtnType"
             data-testid="add-filter"
@@ -448,6 +455,7 @@ const onFilterDelete = async (
           <NcButton
             v-if="!link && !webHook && nestedLevel < MAX_NESTED_LEVEL"
             class="nc-btn-focus"
+            :class="{ 'pointer-events-none': isLoadingFilter }"
             :type="actionBtnType"
             size="small"
             :disabled="isLockedView"

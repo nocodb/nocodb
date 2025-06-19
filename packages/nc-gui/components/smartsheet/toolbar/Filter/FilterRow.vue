@@ -25,6 +25,7 @@ interface Props {
   inputValueProps?: any
   deleteButtonProps?: any
   isColourFilter?: boolean
+  isLoadingFilter?: boolean
 }
 interface Emits {
   (event: 'update:modelValue', model: string): void
@@ -544,7 +545,7 @@ const onChangeToDynamic = async () => {
           <div v-else class="flex-grow"></div>
         </div>
       </template>
-      <div>
+      <div :class="{ 'cursor-wait': isLoadingFilter }">
         <!-- if locked view, do not hide the button -->
         <NcButton
           v-if="!vModel.readOnly && !disabled"
@@ -554,6 +555,7 @@ const onChangeToDynamic = async () => {
           size="small"
           :disabled="isLockedView"
           class="nc-filter-item-remove-btn self-center"
+          :class="{ 'pointer-events-none': isLoadingFilter }"
           @click.stop="onDelete()"
         >
           <component :is="iconMap.deleteListItem" />

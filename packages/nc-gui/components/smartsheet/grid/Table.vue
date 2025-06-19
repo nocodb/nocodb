@@ -1877,7 +1877,7 @@ const cellFilteredOrSortedClass = (colId: string) => {
 }
 
 const headerFilteredOrSortedClass = (colId: string) => {
-  const columnState = isColumnSortedOrFiltered(colId)
+  const columnState = isColumnSortedOrFiltered(colId, true)
   if (columnState) {
     const headerBgClass = filteredOrSortedAppearanceConfig[columnState]?.headerBgClass
     if (headerBgClass) {

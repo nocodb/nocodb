@@ -3,6 +3,11 @@ import { type FilterType, type TableType, UITypes } from 'nocodb-sdk'
 export function useColumnFilteredOrSorted() {
   const { nestedFilters, allFilters, sorts, validFiltersFromUrlParams, meta } = useSmartsheetStoreOrThrow()
 
+  /**
+   * If true, the cell will be coloured based on the filtered or sorted state.
+   */
+  const isCellColouringEnabled = false
+
   const userColumnIds = computed(() =>
     ((meta.value as TableType)?.columns || []).filter((c) => c.uidt === UITypes.User).map((c) => c.id),
   )
@@ -41,7 +46,11 @@ export function useColumnFilteredOrSorted() {
     return columnIds
   })
 
-  const isColumnSortedOrFiltered = (colId: string) => {
+  const isColumnSortedOrFiltered = (colId: string, isColumnHeader: boolean = false) => {
+    if (!isColumnHeader && !isCellColouringEnabled) {
+      return undefined
+    }
+
     if (filteredColumnIds.value.has(colId)) {
       return 'FILTERED'
     } else if (sortedColumnIds.value.has(colId)) {
@@ -88,5 +97,6 @@ export function useColumnFilteredOrSorted() {
     sortedColumnIds,
     isColumnSortedOrFiltered,
     userColumnIds,
+    isCellColouringEnabled,
   }
 }

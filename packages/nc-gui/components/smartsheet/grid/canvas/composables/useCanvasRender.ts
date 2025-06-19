@@ -284,7 +284,7 @@ export function useCanvasRender({
       }
 
       if (colObj?.id) {
-        const columnState = isColumnSortedOrFiltered(colObj.id)
+        const columnState = isColumnSortedOrFiltered(colObj.id, true)
 
         if (columnState) {
           renderTag(ctx, {
@@ -527,7 +527,7 @@ export function useCanvasRender({
         ctx.fillRect(xOffset, 0, width, 32)
 
         if (column.columnObj?.id) {
-          const columnState = isColumnSortedOrFiltered(column.columnObj.id)
+          const columnState = isColumnSortedOrFiltered(column.columnObj.id, true)
 
           if (columnState) {
             renderTag(ctx, {
@@ -854,7 +854,7 @@ export function useCanvasRender({
     const isDisabled = (!row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS) || vSelectedAllRecords.value
 
     ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : rowColor || '#ffffff'
-    if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
+    if (row.rowMeta.selected) ctx.fillStyle = '#3366ff0d'
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
 
     let currentX = xOffset + 4
@@ -1264,7 +1264,7 @@ export function useCanvasRender({
           row.rowMeta.selected ||
           (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) && isActiveCellInCurrentGroup)
         ) {
-          ctx.fillStyle = '#F6F7FE'
+          ctx.fillStyle = '#3366ff0d'
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         } else if (isRowCellSelected) {
           ctx.fillStyle = 'red'
@@ -1358,7 +1358,7 @@ export function useCanvasRender({
             row.rowMeta.selected ||
             (selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup)
           ) {
-            ctx.fillStyle = '#F6F7FE'
+            ctx.fillStyle = '#3366ff0d'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
             ctx.fillStyle = isHovered || isRowCellSelected ? '#F9F9FA' : '#ffffff'
@@ -1507,7 +1507,7 @@ export function useCanvasRender({
         }
 
         if (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
-          ctx.fillStyle = '#F6F7FE'
+          ctx.fillStyle = '#3366ff0d'
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         }
 
@@ -1539,7 +1539,7 @@ export function useCanvasRender({
 
           const colIdx = columns.value.findIndex((col) => col.id === column.id)
           if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
-            ctx.fillStyle = '#F6F7FE'
+            ctx.fillStyle = '#3366ff0d'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
             ctx.fillStyle = isHovered || isRowCellSelected ? '#F9F9FA' : '#ffffff'

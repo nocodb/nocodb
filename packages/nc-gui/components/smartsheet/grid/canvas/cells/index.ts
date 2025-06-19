@@ -219,7 +219,7 @@ export function useGridCellHandler(params: {
         // &&
         // !(selected || isRowHovered || isRowChecked || isCellInSelectionRange)
       ) {
-        const rowColor = getRowColor(row, selected || isRowChecked || isRowHovered || isCellInSelectionRange)
+        const rowColor = getRowColor(row, selected || isRowHovered || isRowChecked || isCellInSelectionRange)
 
         if (rowColor) {
           roundedRect(ctx, x, y, width, height, 0, {

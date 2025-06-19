@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ClientType } from 'nocodb-sdk'
-import { defaultColumns } from '../columns'
+import { defaultColumns } from '../../../-helper/columns'
 const columns = defaultColumns
 
 const filter1 = ref({
@@ -17,6 +17,8 @@ const column1 = computed(() => {
 const lastChangeEvent1 = ref({})
 const options1 = ref({
   disabled: false,
+  webHook: false,
+  link: false,
   index: 0,
   isLockedView: false,
   isLogicalOpChangeAllowed: false,
@@ -67,10 +69,19 @@ const isFieldInaccessible1 = ref(true)
         <div class="flex gap-2">
           <div class="flex flex-col gap-2">
             <div><NcSwitch v-model:checked="options1.disabled">disabled</NcSwitch></div>
+            <div><NcSwitch v-model:checked="options1.webHook">webHook</NcSwitch></div>
+            <div><NcSwitch v-model:checked="options1.link">link</NcSwitch></div>
             <div><NcSwitch v-model:checked="options1.isLogicalOpChangeAllowed">isLogicalOpChangeAllowed</NcSwitch><br /></div>
             <div><NcSwitch v-model:checked="options1.isLockedView">isLockedView</NcSwitch></div>
             <div><NcSwitch v-model:checked="options1.showNullAndEmptyInFilter">showNullAndEmptyInFilter</NcSwitch></div>
-            <div>dbClientType: <NcSelect v-model:value="options1.dbClientType"></NcSelect></div>
+            <div>
+              dbClientType:
+              <NcSelect v-model:value="options1.dbClientType">
+                <a-select-option :value="ClientType.PG"> PG </a-select-option>
+                <a-select-option :value="ClientType.SQLITE"> sqlite </a-select-option>
+                <a-select-option :value="ClientType.MYSQL"> mysql </a-select-option>
+              </NcSelect>
+            </div>
             <div>Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-gray-200" /><br /></div>
           </div>
           <div class="flex">
@@ -96,6 +107,8 @@ const isFieldInaccessible1 = ref(true)
         :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"
         :is-locked-view="options1.isLockedView"
         :db-client-type="options1.dbClientType"
+        :web-hook="options1.webHook"
+        :link="options1.link"
         @change="onFilter1Change($event)"
         @delete="onFilter1Delete($event)"
       />

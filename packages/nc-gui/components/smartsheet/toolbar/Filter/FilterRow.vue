@@ -425,6 +425,9 @@ const onChangeToDynamic = async () => {
               v-else
               v-bind="inputValueProps"
               class="nc-filter-value-select rounded-md min-w-34"
+              :class="{
+                '!w-full': webHook,
+              }"
               :column="column"
               :filter="vModel"
               :disabled="isDisabled"
@@ -433,6 +436,7 @@ const onChangeToDynamic = async () => {
               @click.stop
             />
           </template>
+          <div v-else class="flex-grow"></div>
         </div>
       </template>
       <div>

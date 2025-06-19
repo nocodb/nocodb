@@ -404,7 +404,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               filtersArr: [...nestedFilters.value, ...sideBarFilter.value],
               offset: params.offset,
             })
-        formattedSideBarData.value = [...formattedSideBarData.value, ...formatData(response!.list, getEvaluatedRowMetaRowColorInfo)]
+        formattedSideBarData.value = [
+          ...formattedSideBarData.value,
+          ...formatData(response!.list, getEvaluatedRowMetaRowColorInfo),
+        ]
       } catch (e) {
         console.log(e)
       }
@@ -642,6 +645,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                 next_date: nextDate,
                 to_date: toDate,
                 from_date: fromDate,
+                include_row_color: true,
               },
               {
                 ...queryParams.value,
@@ -761,6 +765,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               ...{},
               ...{},
               ...{ filterArrJson: JSON.stringify([...sideBarFilter.value]) },
+              include_row_color: true,
             })
           : await fetchSharedViewData({
               sortsArr: sorts.value,

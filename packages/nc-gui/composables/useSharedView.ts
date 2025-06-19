@@ -223,6 +223,7 @@ export function useSharedView() {
         ...param,
         filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),
+        include_row_color: true,
       } as any,
       {
         headers: {

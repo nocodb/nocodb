@@ -42,6 +42,9 @@ export default async (
         case UITypes.Links:
           field.type = 'number';
           break;
+        case UITypes.Decimal:
+          field.type = 'number';
+          break;
         case UITypes.Attachment:
           field.type = 'array';
           field.items = {

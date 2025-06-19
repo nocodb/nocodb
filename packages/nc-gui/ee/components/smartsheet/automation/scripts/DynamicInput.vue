@@ -84,8 +84,9 @@ const handleFileUpload = async (file: File) => {
       })
     } else {
       resolveInput({
-        file: 'This file type is not supported',
-        parsedContents,
+        file,
+        parsedContents: null,
+        errorMessage: 'This file type is not supported',
       })
     }
   } catch (e) {
@@ -96,11 +97,15 @@ const handleFileUpload = async (file: File) => {
 
 const rowInput = ref()
 
-watch(rowInput, (newValue) => {
-  if (newValue) {
-    resolveInput(newValue)
-  }
-})
+watch(
+  rowInput,
+  (newValue) => {
+    if (newValue) {
+      resolveInput(newValue)
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

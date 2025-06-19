@@ -1,6 +1,9 @@
 <script setup lang="ts">
-const { activeBaseSchema, isLoadingAutomation } = storeToRefs(useAutomationStore())
+const automationStore = useAutomationStore()
+const { updateBaseSchema } = automationStore
+const { activeBaseSchema, isLoadingAutomation } = storeToRefs(automationStore)
 
+await updateBaseSchema()
 await until(() => !!activeBaseSchema.value).toBeTruthy()
 </script>
 

@@ -11,16 +11,21 @@ const { activeAutomation, activeBaseSchema } = storeToRefs(useAutomationStore())
 
 const { libCode, code, config, configValue, isSettingsOpen, shouldShowSettings } = useScriptStoreOrThrow()
 
-async function setupMonacoEditor() {
-  if (!editorRef.value) return
+const updateTypes = () => {
   const typeGenerator = new TypeGenerator()
-
-  const model = monaco.editor.createModel(code.value, 'typescript')
 
   monaco.languages.typescript.typescriptDefaults.setExtraLibs([
     { content: typeGenerator.generateTypes(activeBaseSchema.value) },
     { content: libCode.value ?? '' },
   ])
+}
+
+async function setupMonacoEditor() {
+  if (!editorRef.value) return
+
+  updateTypes()
+
+  const model = monaco.editor.createModel(code.value, 'typescript')
 
   editor = monaco.editor.create(editorRef.value!, {
     model,
@@ -80,6 +85,12 @@ onMounted(async () => {
   }
   await until(() => editorRef.value).toBeTruthy()
   await setupMonacoEditor()
+})
+
+watch(activeBaseSchema, (newVal) => {
+  if (newVal) {
+    updateTypes()
+  }
 })
 
 onBeforeUnmount(() => {

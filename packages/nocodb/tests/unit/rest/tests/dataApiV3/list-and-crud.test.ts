@@ -19,7 +19,7 @@ import type { INcAxios } from './ncAxios';
 const API_VERSION = 'v3';
 const debugMode = true;
 
-describe.only('dataApiV3', () => {
+describe('dataApiV3', () => {
   describe('list-and-crud', () => {
     let testContext: ITestContext;
     let testAxios: INcAxios;

@@ -2354,9 +2354,10 @@ export default class View implements ViewType {
         const duplicateRowColorConditions =
           await RowColorViewHelpers.withContext(
             context,
-          ).getDuplicateRowColorConditions([
-            { view: copyFromView, toViewId: view_id },
-          ]);
+          ).getDuplicateRowColorConditions({
+            views: [copyFromView],
+            idMap: new Map<string, string>([copyFromView.id, view_id]),
+          });
 
         const sorts = await copyFromView.getSorts(context, ncMeta);
         const filters = await Filter.rootFilterList(

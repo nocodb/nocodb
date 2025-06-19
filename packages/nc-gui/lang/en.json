@@ -1351,7 +1351,9 @@
     "dataApiV2": "Data APIs V2",
     "metaApiV2": "Meta APIs V2",
     "showExtraFields": "Show additional fields",
-    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records"
+    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records",
+    "removeColouring": "Remove colouring",
+    "backgroundColour": "Background colour"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1636,8 +1638,7 @@
     "addConditionGroup": "Add condition group",
     "pending": "Pending",
     "goToPage": "Go to Page",
-    "changePlan": "ChangePlan",
-    "coloring": "Coloring"
+    "changePlan": "ChangePlan"
   },
   "tooltip": {
     "crossBase": "Link records from a table in a different base",

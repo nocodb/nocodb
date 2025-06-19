@@ -33,6 +33,8 @@ const { activeTableId } = storeToRefs(useTablesStore())
 const { activeView, openedViewsTab, activeViewTitleOrId } = storeToRefs(useViewsStore())
 const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, xWhere } = useProvideSmartsheetStore(activeView, meta)
 
+useViewRowColorProvider({ view: activeView })
+
 const reloadViewDataEventHook = createEventHook()
 
 const reloadViewMetaEventHook = createEventHook<void | boolean>()

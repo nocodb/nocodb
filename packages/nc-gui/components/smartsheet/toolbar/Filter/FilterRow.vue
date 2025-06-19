@@ -117,51 +117,40 @@ const showFilterInput = computed(() => {
 // #region event handling
 const onColumnChange = (fk_column_id: string) => {
   const prevValue = vModel.value.fk_column_id
-  vModel.value.fk_column_id = fk_column_id
-  // adjust comparison ops and sub ops
-  const evalColumn = props.columns.find((col) => col.id === fk_column_id)
-  if (evalColumn) {
-    const evalUidt: UITypes = evalColumn.filterUidt ?? evalColumn.uidt
-    if (isVirtualCol(evalColumn)) {
-      vModel.value.dynamic = false
-      vModel.value.fk_value_col_id = null
-    } else {
-      vModel.value.fk_value_col_id = null
+  if (props.handler?.rowChange) {
+    props.handler?.rowChange({
+      filter: vModel.value,
+      type: 'fk_column_id',
+      prevValue,
+      value: fk_column_id,
+      index: props.index,
+    })
+  } else {
+    vModel.value.fk_column_id = fk_column_id
+    // adjust comparison ops and sub ops
+    const evalColumn = props.columns.find((col) => col.id === fk_column_id)
+    if (evalColumn) {
+      adjustFilterWhenColumnChange({
+        column: evalColumn,
+        filter: vModel.value,
+        showNullAndEmptyInFilter: props.showNullAndEmptyInFilter,
+      })
     }
-    vModel.value.comparison_op = comparisonOpList(evalUidt, parseProp(evalColumn.meta)?.date_format).find((compOp) =>
-      isComparisonOpAllowed(
-        vModel.value,
-        compOp,
-        (evalColumn.filterUidt ?? evalColumn.uidt) as UITypes,
-        props.showNullAndEmptyInFilter,
-      ),
-    )?.value
 
-    if (isDateType(evalUidt) && !['blank', 'notblank'].includes(vModel.value.comparison_op!)) {
-      if (vModel.value.comparison_op === 'isWithin') {
-        vModel.value.comparison_sub_op = 'pastNumberOfDays'
-      } else {
-        vModel.value.comparison_sub_op = 'exactDate'
-      }
-    } else {
-      // reset
-      vModel.value.comparison_sub_op = null
-    }
+    emits('change', {
+      filter: { ...vModel.value },
+      type: 'fk_column_id',
+      prevValue,
+      value: fk_column_id,
+      index: props.index,
+    })
   }
-
-  emits('change', {
-    filter: { ...vModel.value },
-    type: 'fk_column_id',
-    prevValue,
-    value: fk_column_id,
-    index: props.index,
-  })
 }
 const onLogicalOpChange = (logical_op: string) => {
   const prevValue = vModel.value.logical_op
   if (props.handler?.rowChange) {
     props.handler?.rowChange({
-      filter: { ...vModel.value },
+      filter: vModel.value,
       type: 'logical_op',
       prevValue,
       value: logical_op,
@@ -180,10 +169,9 @@ const onLogicalOpChange = (logical_op: string) => {
 }
 const onComparisonOpChange = (comparison_op: string) => {
   const prevValue = vModel.value.comparison_op
-
   if (props.handler?.rowChange) {
     props.handler?.rowChange({
-      filter: { ...vModel.value },
+      filter: vModel.value,
       type: 'comparison_op',
       prevValue,
       value: comparison_op,
@@ -242,7 +230,7 @@ const onComparisonSubOpChange = (comparison_sub_op: string) => {
   const prevValue = vModel.value.comparison_sub_op
   if (props.handler?.rowChange) {
     props.handler?.rowChange({
-      filter: { ...vModel.value },
+      filter: vModel.value,
       type: 'comparison_sub_op',
       prevValue,
       value: comparison_sub_op,
@@ -263,7 +251,7 @@ const onFkValueColIdChanged = (fk_value_col_id: string) => {
   const prevValue = vModel.value.fk_value_col_id
   if (props.handler?.rowChange) {
     props.handler?.rowChange({
-      filter: { ...vModel.value },
+      filter: vModel.value,
       type: 'fk_value_col_id',
       prevValue,
       value: fk_value_col_id,
@@ -284,7 +272,7 @@ const onValueChange = (value: string) => {
   const prevValue = vModel.value.value
   if (props.handler?.rowChange) {
     props.handler?.rowChange({
-      filter: { ...vModel.value },
+      filter: vModel.value,
       type: 'value',
       prevValue,
       value,

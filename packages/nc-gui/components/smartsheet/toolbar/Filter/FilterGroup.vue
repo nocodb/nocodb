@@ -110,7 +110,7 @@ const innerAdd = async (isGroup: boolean) => {
     await props.handler.addFilterGroup({
       type: 'add',
       filter: null,
-      filters: [...vModel.value],
+      filters: vModel.value,
       index: props.index,
       value: [...vModel.value],
       tmp_fk_parent_id: props.tmp_fk_parent_id,
@@ -121,7 +121,7 @@ const innerAdd = async (isGroup: boolean) => {
     await props.handler.addFilter({
       type: 'add',
       filter: null,
-      filters: [...vModel.value],
+      filters: vModel.value,
       index: props.index,
       value: [...vModel.value],
       tmp_fk_parent_id: props.tmp_fk_parent_id,
@@ -198,7 +198,7 @@ const onFilterDelete = async (
     await props.handler?.deleteFilter({
       type: 'delete',
       filter: vModel.value[index],
-      filters: [...vModel.value],
+      filters: vModel.value,
       index: props.index,
       value: [...vModel.value],
       tmp_fk_parent_id: props.tmp_fk_parent_id,
@@ -337,6 +337,7 @@ const onFilterDelete = async (
                 :disable-add-new-filter="disableAddNewFilter"
                 :filters-count="filtersCount"
                 :query-filter="queryFilter"
+                :handler="handler"
                 @change="onFilterRowChange($event, i)"
                 @delete="onFilterDelete($event, i)"
               />
@@ -356,6 +357,7 @@ const onFilterDelete = async (
                 :db-client-type="dbClientType"
                 :web-hook="webHook"
                 :link="link"
+                :handler="handler"
                 @change="onFilterRowChange($event, i)"
                 @delete="onFilterDelete($event, i)"
               />

@@ -99,12 +99,12 @@ const removeColor = (index: number) => {
                         type="text"
                         size="small"
                         :style="{
-                          'background-color': getLighterTint(rowColorConfig.color, { saturationMod: 15 }),
+                          'background-color': rowColorConfig.color,
                         }"
                       >
                         <span
                           :style="{
-                            color: getOppositeColorOfBackground(getLighterTint(rowColorConfig.color, { saturationMod: 15 })),
+                            color: getOppositeColorOfBackground(rowColorConfig.color),
                           }"
                         >
                           <component :is="iconMap.chevronDown" />

@@ -13,7 +13,7 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Base, Column, Model, Source, View } from '~/models';
 import { nocoExecute } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { QUERY_STRING_FIELD_ID_ON_RESULT } from 'src/constants';
+import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 
 @Injectable()
 export class DatasService {

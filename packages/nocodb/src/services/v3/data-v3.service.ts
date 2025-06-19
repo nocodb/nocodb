@@ -15,53 +15,18 @@ import type {
 } from './data-v3.types';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
+import type { ReusableParams } from '~/utils';
 import { Column, Model, Source } from '~/models';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
 import { DataTableService } from '~/services/data-table.service';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
-
-// Reusable params interface for caching expensive operations
-interface ReusableParams {
-  [key: string]: any;
-}
-
-// Helper function to cache expensive operations
-async function reuseOrSave(
-  tp: string,
-  params: ReusableParams,
-  get: () => Promise<any>,
-): Promise<any> {
-  if (params[tp]) {
-    return params[tp];
-  }
-
-  const res = await get();
-  params[tp] = res;
-  return res;
-}
-
-// Helper function to process arrays with concurrency control
-async function processConcurrently<T, R>(
-  items: T[],
-  processor: (item: T) => Promise<R>,
-  maxConcurrency: number = MAX_CONCURRENT_TRANSFORMS,
-): Promise<R[]> {
-  const results: R[] = [];
-
-  for (let i = 0; i < items.length; i += maxConcurrency) {
-    const batch = items.slice(i, i + maxConcurrency);
-    const batchResults = await Promise.all(batch.map(processor));
-    results.push(...batchResults);
-  }
-
-  return results;
-}
-
-const V3_INSERT_LIMIT = 10;
-const MAX_NESTING_DEPTH = 3;
-const MAX_CONCURRENT_TRANSFORMS = 50;
+import {
+  MAX_NESTING_DEPTH,
+  QUERY_STRING_FIELD_ID_ON_RESULT,
+  V3_INSERT_LIMIT,
+} from '~/constants';
+import { processConcurrently, reuseOrSave } from '~/utils';
 
 interface ModelInfo {
   model: Model;
@@ -206,27 +171,22 @@ export class DataV3Service {
             // Check depth limit to prevent unbounded recursion
             if (depth >= MAX_NESTING_DEPTH) {
               // At max depth, return simplified representation with just IDs
-              transformedFields[key] = value.map(
-                (nestedRecord, recordIndex) => {
-                  if (
-                    typeof nestedRecord === 'object' &&
-                    nestedRecord !== null
-                  ) {
-                    // Try to extract ID from the nested record with fallbacks
-                    const id =
-                      nestedRecord.id ||
-                      nestedRecord.Id ||
-                      nestedRecord.ID ||
-                      Object.values(nestedRecord)[0];
+              transformedFields[key] = value.map((nestedRecord) => {
+                if (typeof nestedRecord === 'object' && nestedRecord !== null) {
+                  // Try to extract ID from the nested record with fallbacks
+                  const id =
+                    nestedRecord.id ||
+                    nestedRecord.Id ||
+                    nestedRecord.ID ||
+                    Object.values(nestedRecord)[0];
 
-                    // For read operations, handle missing IDs gracefully
-                    return { id: id ? String(id) : null };
-                  }
+                  // For read operations, handle missing IDs gracefully
+                  return { id: id ? String(id) : null };
+                }
 
-                  // Handle primitive values - for read operations, convert to string
-                  return { id: nestedRecord ? String(nestedRecord) : null };
-                },
-              );
+                // Handle primitive values - for read operations, convert to string
+                return { id: nestedRecord ? String(nestedRecord) : null };
+              });
               continue;
             }
 

@@ -2654,7 +2654,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  async chunkList(args: { pks: string[]; chunkSize?: number }) {
+  async chunkList(args: { pks: string[]; chunkSize?: number
+    apiVersion?: NcApiVersion; }) {
     const { pks, chunkSize = 1000 } = args;
 
     const data = [];
@@ -2665,6 +2666,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const chunkData = await this.list(
         {
           pks: chunk.join(','),
+          apiVersion: args.apiVersion,
         },
         {
           limitOverride: chunk.length,

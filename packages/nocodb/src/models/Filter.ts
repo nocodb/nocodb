@@ -90,6 +90,7 @@ export default class Filter implements FilterType {
       'fk_link_col_id',
       'fk_value_col_id',
       'fk_parent_column_id',
+      'fk_row_color_conditions_id',
       'fk_column_id',
       'comparison_op',
       'comparison_sub_op',

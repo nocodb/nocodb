@@ -30,6 +30,7 @@ export class DatasService {
       throwErrorIfInvalidParams?: boolean;
       getHiddenColumns?: boolean;
       includeSortAndFilterColumns?: boolean;
+      includeRowColorColumns?: boolean;
       apiVersion?: NcApiVersion;
     },
   ) {
@@ -75,6 +76,7 @@ export class DatasService {
       getHiddenColumns: param.getHiddenColumns,
       apiVersion: param.apiVersion,
       includeSortAndFilterColumns: param.includeSortAndFilterColumns,
+      includeRowColorColumns: param.includeRowColorColumns,
     });
   }
 
@@ -221,6 +223,7 @@ export class DatasService {
       getHiddenColumns?: boolean;
       apiVersion?: NcApiVersion;
       includeSortAndFilterColumns?: boolean;
+      includeRowColorColumns?: boolean;
     },
   ) {
     const {
@@ -251,6 +254,7 @@ export class DatasService {
       getHiddenColumn: param.getHiddenColumns,
       apiVersion,
       includeSortAndFilterColumns: includeSortAndFilterColumns,
+      includeRowColorColumns: param.includeRowColorColumns,
     });
 
     const listArgs: any = dependencyFields;

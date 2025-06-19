@@ -31,6 +31,7 @@ export default class Filter implements FilterType {
   fk_parent_column_id?: string;
   fk_column_id?: string;
   fk_parent_id?: string;
+  fk_row_color_condition_id: string;
   fk_link_col_id?: string;
   fk_value_col_id?: string;
 
@@ -89,6 +90,7 @@ export default class Filter implements FilterType {
       'fk_link_col_id',
       'fk_value_col_id',
       'fk_parent_column_id',
+      'fk_row_color_condition_id',
       'fk_column_id',
       'comparison_op',
       'comparison_sub_op',
@@ -105,9 +107,9 @@ export default class Filter implements FilterType {
       'fk_parent_column_id',
       'fk_view_id',
       'fk_hook_id',
+      'fk_row_color_condition_id',
       'fk_link_col_id',
     ].find((k) => filter[k]);
-
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
       [referencedModelColName]: filter[referencedModelColName],
     });

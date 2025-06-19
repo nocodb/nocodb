@@ -165,6 +165,9 @@ const rolePermissions = {
       extensionList: true,
       // Scripts
       scriptCreateOrEdit: true,
+
+      // Row colouring
+      rowColourUpdate: true,
     },
   },
   [ProjectRoles.EDITOR]: {

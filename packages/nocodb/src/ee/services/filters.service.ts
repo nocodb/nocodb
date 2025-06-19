@@ -114,4 +114,18 @@ export class FiltersService extends FiltersServiceCE {
   async linkFilterList(context: NcContext, param: { columnId: any }) {
     return Filter.rootFilterListByLink(context, { columnId: param.columnId });
   }
+
+  async rowColorConditionsCreate(
+    context: NcContext,
+    param: {
+      rowColorConditionsId: string;
+      filter: FilterReqType;
+    },
+  ) {
+    const filter = await Filter.insert(context, {
+      ...param.filter,
+      fk_row_color_condition_id: param.rowColorConditionsId,
+    } as any);
+    return filter;
+  }
 }

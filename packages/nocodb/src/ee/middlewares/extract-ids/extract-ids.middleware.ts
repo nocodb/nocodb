@@ -17,6 +17,7 @@ import {
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { map } from 'rxjs';
+import RowColorCondition from 'src/models/RowColorCondition';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -248,6 +249,22 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = hook.base_id;
       req.ncSourceId = hook.source_id;
+    } else if (params.rowColorConditionId) {
+      const rowColorCondition = await RowColorCondition.getById(
+        context,
+        params.rowColorConditionId,
+      );
+
+      if (!rowColorCondition) {
+        NcError.genericNotFound(
+          'Row color condition',
+          params.rowColorConditionId,
+        );
+      }
+      req.ncBaseId = rowColorCondition.base_id;
+
+      view = await View.get(context, rowColorCondition.fk_view_id);
+      req.ncSourceId = view.source_id;
     } else if (params.gridViewColumnId) {
       const gridViewColumn = await GridViewColumn.get(
         context,

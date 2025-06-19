@@ -256,6 +256,8 @@ const permissionScopes = {
     'mcpCreate',
     'mcpUpdate',
     'mcpDelete',
+
+    'viewRowColorInfo',
   ],
 };
 
@@ -425,6 +427,8 @@ const rolePermissions:
       mcpCreate: true,
       mcpUpdate: true,
       mcpDelete: true,
+
+      viewRowColorInfo: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -890,6 +894,8 @@ const permissionDescriptions: Record<string, string> = {
   mcpDelete: 'delete an MCP token',
 
   globalAuditList: 'view list of audits',
+
+  viewRowColorInfo: 'view row colouring info',
 };
 
 // Human-readable descriptions for roles

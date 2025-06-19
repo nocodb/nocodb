@@ -1867,7 +1867,7 @@ const cellFilteredOrSortedClass = (colId: string) => {
 }
 
 const headerFilteredOrSortedClass = (colId: string) => {
-  const columnState = isColumnSortedOrFiltered(colId)
+  const columnState = isColumnSortedOrFiltered(colId, true)
   if (columnState) {
     const headerBgClass = filteredOrSortedAppearanceConfig[columnState]?.headerBgClass
     if (headerBgClass) {
@@ -2259,9 +2259,9 @@ onKeyStroke('ArrowDown', onDown)
                         :data-testid="`cell-Id-${rowIndex}`"
                         @contextmenu="contextMenuTarget = null"
                       >
-                        <div class="w-[64px] pl-2 pr-1 items-center flex gap-0.5">
+                        <div class="w-[64px] pl-2 pr-1 items-center w-full flex gap-0.5">
                           <div
-                            class="nc-row-no sm:min-w-4 text-gray-500"
+                            class="nc-row-no sm:min-w-4 text-gray-500 flex items-center justify-between h-4 w-full"
                             :class="{
                               'toggle': !readOnly,
                               'hidden': row.rowMeta.selected,
@@ -2274,7 +2274,10 @@ onKeyStroke('ArrowDown', onDown)
                                 ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 < 1000,
                             }"
                           >
-                            {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
+                            <span>
+                              {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
+                            </span>
+                            <div class="inline-block min-w-[4px] h-full rounded-full"></div>
                           </div>
                           <div
                             v-if="!readOnly"

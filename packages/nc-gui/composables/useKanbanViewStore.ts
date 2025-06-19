@@ -125,6 +125,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         groupData = await fetchSharedViewGroupedData(groupingFieldColumn!.value!.id!, {
           sortsArr: sorts.value,
           filtersArr: nestedFilters.value,
+          include_row_color: true,
         })
       } else {
         groupData = await api.dbViewRow.groupedDataList(
@@ -133,7 +134,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           meta.value!.id!,
           viewMeta.value!.id!,
           groupingFieldColumn!.value!.id!,
-          { where: xWhere.value },
+          { where: xWhere.value, include_row_color: true },
           {},
         )
       }

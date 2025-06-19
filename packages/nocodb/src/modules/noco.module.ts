@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 // import { NotFoundHandlerModule } from './not-found-handler.module';
+import { ViewRowColorService } from '~/services/view-row-color.service';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { JobsModule } from '~/modules/jobs/jobs.module';
 
@@ -148,6 +149,7 @@ import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { ViewsV3Service } from '~/services/v3/views-v3.service';
+import { ViewRowColorController } from '~/controllers/view-row-color.controller';
 
 /* ACL */
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -221,6 +223,7 @@ export const nocoModuleMetadata = {
 
           // MCP
           McpController,
+          ViewRowColorController,
 
           /* V3 APIs */
           BasesV3Controller,
@@ -311,6 +314,8 @@ export const nocoModuleMetadata = {
     NocoJobsService,
     McpTokenService,
     McpService,
+    ViewRowColorService,
+
     /* Datas */
     DataTableService,
     DatasService,
@@ -362,6 +367,7 @@ export const nocoModuleMetadata = {
     UtilsService,
     IntegrationsService,
     NocoJobsService,
+    ViewRowColorService,
 
     /* Datas */
     DatasService,

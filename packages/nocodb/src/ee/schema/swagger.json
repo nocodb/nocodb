@@ -3554,6 +3554,50 @@
           }
         ]
       }
+    },
+    "/api/v1/db/meta/row-color-conditions/{rowColorConditionId}/filters": {
+      "post": {
+        "summary": "Create a filter for a row color condition",
+        "operationId": "rowColorConditionsFilterCreate",
+        "tags": ["Row Color Conditions"],
+        "parameters": [
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "rcc_123xyz"
+            },
+            "name": "rowColorConditionId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the row color condition"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully created filter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Filter"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4397,6 +4441,10 @@
           "fk_view_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to View"
+          },
+          "fk_row_color_condition_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to row color conditions"
           },
           "id": {
             "$ref": "#/components/schemas/Id",

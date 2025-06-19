@@ -1,3 +1,4 @@
+import { ColumnType, FilterType } from './Api';
 import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
 import { PlanTitles } from './payment';
 
@@ -192,6 +193,11 @@ export enum NcErrorType {
   PROHIBITED_SYNC_TABLE_OPERATION = 'PROHIBITED_SYNC_TABLE_OPERATION',
 }
 
+export enum ROW_COLORING_MODE {
+  FILTER = 'filter',
+  SELECT = 'select',
+}
+
 export const LongTextAiMetaProp = 'ai';
 
 export const NO_SCOPE = 'nc';
@@ -220,6 +226,38 @@ export const DURATION_TYPE_MAP = {
 
 export const CURRENT_USER_TOKEN = '@me';
 
+// this type makes every parameter inside an object be optional
+// useful for where / insert / update query
+export type DeepPartial<T> = T extends object
+  ? { [P in keyof T]?: DeepPartial<T[P]> }
+  : T;
+
+export type RowColoringInfoFilterRow = {
+  id: string;
+  is_set_as_background: boolean;
+  nc_order: number;
+  color: string;
+  conditions: FilterType[];
+  nestedConditions: FilterType[];
+};
+
+export type RowColoringInfoSelect = {
+  mode: ROW_COLORING_MODE.SELECT;
+  fk_column_id: string;
+  options: { title: string; color: string }[];
+  selectColumn: ColumnType;
+  is_set_as_background: boolean;
+};
+export type RowColoringInfoFilter = {
+  mode: ROW_COLORING_MODE.FILTER;
+  conditions: RowColoringInfoFilterRow[];
+};
+
+export type RowColoringInfo = {
+  fk_model_id: string;
+  fk_view_id: string;
+} & (RowColoringInfoSelect | RowColoringInfoFilter);
+
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
 
 type RolesObj = Partial<Record<Roles, boolean>>;
@@ -234,3 +272,5 @@ interface PlanLimitExceededDetailsType {
 }
 
 export { Roles, RolesObj, RolesType, PlanLimitExceededDetailsType };
+
+export type RowColoringMode = null | 'SELECT' | 'FILTER';

@@ -91,6 +91,9 @@ const rolePermissions = {
       baseAuditList: true,
 
       extensionList: true,
+
+      // Row colouring
+      rowColourUpdate: true,
     },
   },
   [ProjectRoles.EDITOR]: {

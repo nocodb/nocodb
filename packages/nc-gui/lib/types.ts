@@ -81,6 +81,13 @@ interface ThemeConfig extends AntTheme {
   accentColor: string
 }
 
+interface RowMetaRowColorInfo {
+  rowBgColor?: string | null
+  rowLeftBorderColor?: string | null
+  rowHoverColor?: string | null
+  rowBorderColor?: string | null
+}
+
 interface Row {
   row: Record<string, any>
   oldRow: Record<string, any>
@@ -124,7 +131,7 @@ interface Row {
     minutes?: number
     recordIndex?: number // For week spanning records in month view
     maxSpanning?: number
-  }
+  } & RowMetaRowColorInfo
 }
 
 interface Attachment {
@@ -479,6 +486,11 @@ interface CellRendererOptions {
     maxSpanning?: number
   }
   allowLocalUrl?: boolean
+  /**
+   * `isRootCell` is used to determine if the cell is the root cell of the row or nested cell
+   * This is used in row colouring
+   */
+  isRootCell?: boolean
 }
 
 interface CellRenderStore {
@@ -676,6 +688,14 @@ interface CloudFeaturesType {
 
 type CanvasScrollToCellFn = (row?: number, column?: number, path?: Array<number>, horizontalScroll?: boolean) => void
 
+interface RowColouringEvaluatedResultType {
+  is_set_as_background: boolean
+  color: string
+  hoverColor: string | null
+  rawColor: string | undefined
+  borderColor: string | null
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -683,6 +703,7 @@ export type {
   Filter,
   NocoI18n,
   ThemeConfig,
+  RowMetaRowColorInfo,
   Row,
   RolePermissions,
   Permission,
@@ -728,4 +749,5 @@ export type {
   CanvasGroup,
   CloudFeaturesType,
   CanvasScrollToCellFn,
+  RowColouringEvaluatedResultType,
 }

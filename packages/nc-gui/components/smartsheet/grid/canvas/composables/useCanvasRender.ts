@@ -26,7 +26,6 @@ import {
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
-  ROW_META_COLUMN_WIDTH,
 } from '../utils/constants'
 import { parseCellWidth } from '../utils/cell'
 import {
@@ -94,6 +93,8 @@ export function useCanvasRender({
   draggedRowGroupPath,
   removeInlineAddRecord,
   upgradeModalInlineState,
+  rowMetaColumnWidth,
+  rowColouringBorderWidth,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -170,6 +171,8 @@ export function useCanvasRender({
     isHoveredLearnMore: boolean
     isHoveredUpgrade: boolean
   }>
+  rowMetaColumnWidth: ComputedRef<number>
+  rowColouringBorderWidth: ComputedRef<number>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -178,6 +181,12 @@ export function useCanvasRender({
   const { isWsOwner } = useEeConfig()
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const isLocked = inject(IsLockedInj, ref(false))
+
+  const { getLeftBorderColor, getRowColor, isRowColouringEnabled } = useViewRowColorRender({
+    meta,
+    rows: computed(() => []),
+    useCachedResult: true,
+  })
 
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
 
@@ -275,7 +284,7 @@ export function useCanvasRender({
       }
 
       if (colObj?.id) {
-        const columnState = isColumnSortedOrFiltered(colObj.id)
+        const columnState = isColumnSortedOrFiltered(colObj.id, true)
 
         if (columnState) {
           renderTag(ctx, {
@@ -518,7 +527,7 @@ export function useCanvasRender({
         ctx.fillRect(xOffset, 0, width, 32)
 
         if (column.columnObj?.id) {
-          const columnState = isColumnSortedOrFiltered(column.columnObj.id)
+          const columnState = isColumnSortedOrFiltered(column.columnObj.id, true)
 
           if (columnState) {
             renderTag(ctx, {
@@ -836,6 +845,7 @@ export function useCanvasRender({
       yOffset: number
       width: number
     },
+    rowColor?: string,
   ) => {
     const isHover = hoverRow.value?.rowIndex === row.rowMeta.rowIndex && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
     const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
@@ -843,11 +853,19 @@ export function useCanvasRender({
       activeCell.value.row === row.rowMeta.rowIndex && comparePath(activeCell.value.path, row?.rowMeta?.path)
     const isDisabled = (!row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS) || vSelectedAllRecords.value
 
-    ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : '#ffffff'
-    if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
+    if (rowColor) {
+      ctx.fillStyle = rowColor
+    } else {
+      ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : '#ffffff'
+
+      if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
+    }
+
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
 
     let currentX = xOffset + 4
+
+    const rowColouringBoxTotalWidth = rowColouringBorderWidth.value ? rowColouringBorderWidth.value + 4 : 0
 
     /**
      * 1. Render row index
@@ -869,7 +887,7 @@ export function useCanvasRender({
         x: currentX + 8,
         y: yOffset,
         text: (row.rowMeta.rowIndex! + 1).toString(),
-        maxWidth: ROW_META_COLUMN_WIDTH - 28,
+        maxWidth: rowMetaColumnWidth.value - 28 - rowColouringBoxTotalWidth,
         fontFamily: `500 ${rowIndexFontSize} Inter`,
         isTagLabel: true,
         fillStyle: '#6B7280',
@@ -948,7 +966,7 @@ export function useCanvasRender({
           y,
           render,
           text: commentCount,
-          maxWidth: ROW_META_COLUMN_WIDTH / 2,
+          maxWidth: rowMetaColumnWidth.value / 2 - rowColouringBoxTotalWidth,
           fontFamily: `${reduceFontSize ? '600 10px' : '500 13px'} Inter`,
           textAlign: 'center',
           isTagLabel: true,
@@ -961,7 +979,7 @@ export function useCanvasRender({
 
       const bubbleWidth = Math.max(20, commentCountWidth + (reduceFontSize ? 6 : 8))
 
-      const x = xOffset + width - 4 - bubbleWidth
+      const x = xOffset + width - 4 - bubbleWidth - rowColouringBoxTotalWidth
 
       const isExpandHovered = isBoxHovered(
         {
@@ -1006,7 +1024,12 @@ export function useCanvasRender({
         })
       }
     } else if (isHover || isRowCellSelected) {
-      const box = { x: xOffset + width - 4 - 20, y: yOffset + (rowHeight.value - 20) / 2, height: 20, width: 20 }
+      const box = {
+        x: xOffset + width - 4 - 20 - rowColouringBoxTotalWidth,
+        y: yOffset + (rowHeight.value - 20) / 2,
+        height: 20,
+        width: 20,
+      }
 
       const isExpandHovered = isBoxHovered(box, mousePosition)
       renderIconButton(ctx, {
@@ -1025,6 +1048,23 @@ export function useCanvasRender({
         borderColor: !isExpandHovered ? 'transparent' : undefined,
         background: !isExpandHovered ? 'transparent' : undefined,
         setCursor,
+      })
+    }
+
+    if (isRowColouringEnabled) {
+      const rowColorBorderHeight = rowHeight.value - 8
+
+      const leftBorderColor = getLeftBorderColor(row.row)
+
+      renderTag(ctx, {
+        x: xOffset + width - 8,
+        radius: 8,
+        y: yOffset + (rowHeight.value - rowColorBorderHeight) / 2,
+        height: rowColorBorderHeight,
+        width: 4,
+        fillStyle: leftBorderColor ?? 'transparent',
+        borderColor: leftBorderColor ?? 'transparent',
+        borderWidth: 0,
       })
     }
   }
@@ -1189,6 +1229,8 @@ export function useCanvasRender({
     const isRowCellSelected =
       activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path ?? group?.path)
 
+    const rowColor = row?.row ? getRowColor(row.row, isHovered || row.rowMeta.selected || isRowCellSelected) : null
+
     if (row) {
       const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
       let xOffset = initialXOffset
@@ -1232,7 +1274,7 @@ export function useCanvasRender({
           row.rowMeta.selected ||
           (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) && isActiveCellInCurrentGroup)
         ) {
-          ctx.fillStyle = '#F6F7FE'
+          ctx.fillStyle = rowColor ? '#3366ff0d' : '#F6F7FE'
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         } else if (isRowCellSelected) {
           ctx.fillStyle = 'red'
@@ -1303,6 +1345,7 @@ export function useCanvasRender({
           isRowChecked: row.rowMeta.selected,
           isCellInSelectionRange:
             selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) && isActiveCellInCurrentGroup,
+          isRootCell: true,
         })
         ctx.restore()
         xOffset += width
@@ -1325,7 +1368,7 @@ export function useCanvasRender({
             row.rowMeta.selected ||
             (selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup)
           ) {
-            ctx.fillStyle = '#F6F7FE'
+            ctx.fillStyle = rowColor ? '#3366ff0d' : '#F6F7FE'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
             ctx.fillStyle = isHovered || isRowCellSelected ? '#F9F9FA' : '#ffffff'
@@ -1341,7 +1384,7 @@ export function useCanvasRender({
 
           if (column.id === 'row_number') {
             if (isGroupBy.value) width -= initialXOffset
-            renderRowMeta(ctx, row, { xOffset, yOffset, width })
+            renderRowMeta(ctx, row, { xOffset, yOffset, width }, rowColor)
           } else {
             const value = row.row[column.title]
 
@@ -1386,6 +1429,7 @@ export function useCanvasRender({
               isRowHovered: isHovered,
               isRowChecked: row.rowMeta.selected,
               isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup,
+              isRootCell: true,
             })
             ctx.restore()
           }
@@ -1396,7 +1440,7 @@ export function useCanvasRender({
             isActiveCellInCurrentGroup
 
           ctx.strokeStyle =
-            idx !== 0 && (isHovered || row.rowMeta.selected || isColumnInSelection || isRowCellSelected)
+            idx !== 0 && (isHovered || row.rowMeta.selected || isColumnInSelection || isRowCellSelected || rowColor)
               ? themeV3Colors.gray['200']
               : themeV3Colors.gray['100']
           ctx.lineWidth = 1
@@ -1601,6 +1645,7 @@ export function useCanvasRender({
 
         const isRowHovered = hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
         const isRowCellSelected = activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path)
+        const rowColor = getRowColor(row?.row)
 
         const isNextRowHovered = hoverRow.value?.rowIndex === rowIdx + 1 && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
         const isNextRowCellSelected =
@@ -1638,7 +1683,8 @@ export function useCanvasRender({
           isRowCellSelected ||
           isNextRowHovered ||
           isNextRowCellSelected ||
-          isNextRowSelected
+          isNextRowSelected ||
+          rowColor
             ? themeV3Colors.gray['300']
             : themeV3Colors.gray['200']
         ctx.lineWidth = 1

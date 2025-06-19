@@ -28,6 +28,8 @@ useProvideViewGroupBy(sharedView, meta, xWhere, true)
 
 useProvideSmartsheetLtarHelpers(meta)
 
+useViewRowColorProvider({ shared: true })
+
 if (signedIn.value) {
   try {
     await loadProject()

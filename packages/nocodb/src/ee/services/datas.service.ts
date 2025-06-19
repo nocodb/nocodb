@@ -31,6 +31,7 @@ export class DatasService extends DatasServiceCE {
       getHiddenColumns?: boolean;
       apiVersion?: NcApiVersion;
       includeSortAndFilterColumns?: boolean;
+      includeRowColorColumns?: boolean;
     },
   ) {
     let { model, view: _view } = param as { view?: View; model?: Model };

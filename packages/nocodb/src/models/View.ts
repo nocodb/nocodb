@@ -14,9 +14,11 @@ import type {
   ExpandedFormModeType,
   FilterType,
   NcRequest,
+  ROW_COLORING_MODE,
   ViewType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import Model from '~/models/Model';
 import FormView from '~/models/FormView';
 import GridView from '~/models/GridView';
@@ -84,6 +86,7 @@ export default class View implements ViewType {
   order: number;
   type: ViewTypes;
   lock_type?: ViewType['lock_type'];
+  row_coloring_mode?: ROW_COLORING_MODE;
   created_by?: string;
   owned_by?: string;
 
@@ -1463,6 +1466,9 @@ export default class View implements ViewType {
     const tableScope = this.extractViewTableNameScope(view);
     const columnTable = this.extractViewColumnsTableName(view);
     const columnTableScope = this.extractViewColumnsTableNameScope(view);
+    await RowColorViewHelpers.withContext(context, { ncMeta }).viewDeleted(
+      view,
+    );
     await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
@@ -2196,7 +2202,13 @@ export default class View implements ViewType {
       'created_by',
       'owned_by',
       'lock_type',
-      ...(isEE ? ['expanded_record_mode', 'attachment_mode_column_id'] : []),
+      ...(isEE
+        ? [
+            'expanded_record_mode',
+            'attachment_mode_column_id',
+            'row_coloring_mode',
+          ]
+        : []),
     ]);
 
     if (isEE) {
@@ -2342,6 +2354,14 @@ export default class View implements ViewType {
           id: eventId,
         });
 
+        const duplicateRowColorConditions =
+          await RowColorViewHelpers.withContext(
+            context,
+          ).getDuplicateRowColorConditions({
+            views: [copyFromView],
+            idMap: new Map<string, string>([copyFromView.id, view_id]),
+          });
+
         const sorts = await copyFromView.getSorts(context, ncMeta);
         const filters = await Filter.rootFilterList(
           context,
@@ -2386,6 +2406,7 @@ export default class View implements ViewType {
             filterInsertObjs.push({
               ...extractProps(filter, [
                 'fk_parent_column_id',
+                'fk_row_color_condition_id',
                 'fk_column_id',
                 'comparison_op',
                 'comparison_sub_op',
@@ -2435,7 +2456,15 @@ export default class View implements ViewType {
           context.workspace_id,
           context.base_id,
           MetaTable.FILTER_EXP,
-          filterInsertObjs,
+          duplicateRowColorConditions.filters.concat(filterInsertObjs),
+          true,
+        );
+
+        await ncMeta.bulkMetaInsert(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.ROW_COLOR_CONDITIONS,
+          duplicateRowColorConditions.rowColorConditions,
           true,
         );
 
@@ -2678,4 +2707,11 @@ export default class View implements ViewType {
   ) {
     return;
   }
+}
+
+export interface ViewMetaRowColoring {
+  rowColoringInfo: {
+    fk_column_id: string;
+    is_set_as_background: boolean;
+  };
 }

@@ -18,9 +18,14 @@ import type { FormView, FormViewColumn } from '~/models';
 import { Base, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getFeature } from '~/helpers/paymentHelpers';
+import { ViewRowColorService } from './view-row-color.service';
 
 @Injectable()
 export class PublicMetasService extends PublicMetasServiceCE {
+  constructor(private readonly viewRowColorService: ViewRowColorService) {
+    super();
+  }
+
   async viewMetaGet(
     context: NcContext,
     param: { sharedViewUuid: string; password: string },
@@ -33,8 +38,14 @@ export class PublicMetasService extends PublicMetasServiceCE {
       view = await this.validateFormViewPlanLimitAndFeatures(view, workspace);
     }
 
+    const viewRowColorInfo = await this.viewRowColorService.getByViewId({
+      context,
+      fk_view_id: view.id,
+    });
+
     Object.assign(view, {
       workspace,
+      viewRowColorInfo,
     });
 
     return view;

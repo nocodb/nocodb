@@ -1043,11 +1043,11 @@ export function useCanvasRender({
       })
     }
 
-    const rowColorBorderHeight = rowHeight.value - 8
-
-    const leftBorderColor = getLeftBorderColor(row.row)
-
     if (isRowColouringEnabled) {
+      const rowColorBorderHeight = rowHeight.value - 8
+
+      const leftBorderColor = getLeftBorderColor(row.row)
+
       renderTag(ctx, {
         x: xOffset + width - 8,
         radius: 8,

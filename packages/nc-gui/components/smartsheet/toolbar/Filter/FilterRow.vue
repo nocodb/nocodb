@@ -9,11 +9,18 @@ interface Props {
   dbClientType?: ClientType
   showNullAndEmptyInFilter?: boolean
 
-  renderMode?: null | string
   disabled?: boolean
   // some view is different when locked view but not disabled
   isLockedView?: boolean
   isLogicalOpChangeAllowed?: boolean
+  sentryProps?: any
+  containerProps?: any
+  logicalOpsProps?: any
+  columnSelectProps?: any
+  comparisonOpsProps?: any
+  comparisonSubOpsProps?: any
+  inputValueProps?: any
+  deleteButtonProps?: any
 }
 interface Emits {
   (event: 'update:modelValue', model: string): void
@@ -48,6 +55,12 @@ const logicalOps = [
 ]
 
 // #region utils & computed
+const slots = useSlots()
+
+const slotHasChildren = (name?: string) => {
+  return (slots[name ?? 'default']?.()?.length ?? 0) > 0
+}
+
 const isDisabled = computed(() => {
   return vModel.value.readOnly || props.disabled || props.isLockedView
 })
@@ -187,7 +200,7 @@ const onDelete = () => {
 
 <template>
   <div class="inline-block">
-    <div class="flex flex-row gap-x-0 w-full nc-filter-wrapper bg-white">
+    <div class="flex flex-row gap-x-0 w-full nc-filter-wrapper bg-white" v-bind="containerProps">
       <!-- #region logical op -->
       <template v-if="index === 0">
         <div class="flex items-center !min-w-18 !max-w-18 pl-3 nc-filter-where-label">
@@ -196,7 +209,8 @@ const onDelete = () => {
       </template>
       <tempalte v-else>
         <NcSelect
-          v-e="['c:filter:logical-op:select']"
+          v-e="['c:filter:logical-op:select', sentryProps]"
+          v-bind="logicalOpsProps"
           :value="vModel.logical_op"
           :dropdown-match-select-width="false"
           class="h-full !max-w-18 !min-w-18 capitalize"
@@ -225,6 +239,7 @@ const onDelete = () => {
       <!-- #endregion logical op -->
       <SmartsheetToolbarFilterFieldListDropdownLite
         v-model="vModel.fk_column_id"
+        v-bind="columnSelectProps"
         class="nc-filter-field-select min-w-32 max-h-8"
         :columns="columns"
         :disabled="isDisabled"
@@ -234,7 +249,8 @@ const onDelete = () => {
       />
       <NcSelect
         v-if="comparisonOps && comparisonOps.length > 0"
-        v-e="['c:filter:comparison-op:select']"
+        v-e="['c:filter:comparison-op:select', sentryProps]"
+        v-bind="comparisonOpsProps"
         :value="vModel.comparison_op"
         :dropdown-match-select-width="false"
         class="caption nc-filter-operation-select !min-w-26.75 max-h-8"
@@ -263,7 +279,8 @@ const onDelete = () => {
       <template v-if="comparisonSubOps && comparisonSubOps.length > 0">
         <NcSelect
           v-model:value="vModel.comparison_sub_op"
-          v-e="['c:filter:sub-comparison-op:select']"
+          v-e="['c:filter:sub-comparison-op:select', sentryProps]"
+          v-bind="comparisonSubOpsProps"
           :dropdown-match-select-width="false"
           class="caption nc-filter-sub_operation-select min-w-28"
           :class="{
@@ -296,9 +313,10 @@ const onDelete = () => {
           </template>
         </NcSelect>
       </template>
-      <div>
+      <template v-if="showFilterInput">
         <SmartsheetToolbarFilterInputLite
-          v-if="showFilterInput"
+          v-if="!slotHasChildren('valueInput')"
+          v-bind="inputValueProps"
           class="nc-filter-value-select rounded-md min-w-34"
           :column="column"
           :filter="vModel"
@@ -307,12 +325,14 @@ const onDelete = () => {
           @update-filter-value="(value) => onValueChange(value)"
           @click.stop
         />
-      </div>
+        <slot name="valueInput"></slot>
+      </template>
       <div>
         <!-- if locked view, do not hide the button -->
         <NcButton
           v-if="!vModel.readOnly && !disabled"
-          v-e="['c:filter:delete']"
+          v-e="['c:filter:delete', sentryProps]"
+          v-bind="deleteButtonProps"
           type="text"
           size="small"
           :disabled="isLockedView"

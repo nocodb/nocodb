@@ -149,5 +149,54 @@ const onFilter1Delete = (event) => {
         @delete="onFilter1Delete($event)"
       />
     </div>
+    <a-card>
+      <div class="flex flex-col gap-2">
+        <h4>Custom slot</h4>
+      </div>
+    </a-card>
+    <div class="p-4">
+      <SmartsheetToolbarFilterRow
+        :model-value="filter1"
+        :index="options1.index"
+        :columns="columns"
+        :show-null-and-empty-in-filter="options1.showNullAndEmptyInFilter"
+        :comparison-sub-ops="[]"
+        :disabled="options1.disabled"
+        :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"
+        :is-locked-view="options1.isLockedView"
+        :db-client-type="options1.dbClientType"
+        @change="onFilter1Change($event)"
+        @delete="onFilter1Delete($event)"
+      >
+        <template #valueInput> This is custom input </template>
+      </SmartsheetToolbarFilterRow>
+    </div>
+    <a-card>
+      <div class="flex flex-col gap-2">
+        <h4>Custom props</h4>
+      </div>
+    </a-card>
+    <div class="p-4">
+      <SmartsheetToolbarFilterRow
+        :model-value="filter1"
+        :index="options1.index"
+        :columns="columns"
+        :show-null-and-empty-in-filter="options1.showNullAndEmptyInFilter"
+        :comparison-sub-ops="[]"
+        :disabled="options1.disabled"
+        :is-logical-op-change-allowed="options1.isLogicalOpChangeAllowed"
+        :is-locked-view="options1.isLockedView"
+        :db-client-type="options1.dbClientType"
+        :container-props="{ class: ['!bg-red-500'] }"
+        :logical-ops-props="{ class: ['bg-yellow-500'] }"
+        :column-select-props="{ class: ['bg-blue-500'] }"
+        :comparison-ops-props="{ class: ['bg-green-500'] }"
+        :comparison-sub-ops-props="{ class: ['bg-gray-500'] }"
+        :input-value-props="{ class: ['bg-cyan-500'] }"
+        :delete-button-props="{ class: ['bg-magenta-500'] }"
+        @change="onFilter1Change($event)"
+        @delete="onFilter1Delete($event)"
+      />
+    </div>
   </div>
 </template>

@@ -1270,7 +1270,7 @@ export function useCanvasTable({
   })
 
   eventBus.on((event) => {
-    if (event === SmartsheetStoreEvents.TRIGGER_RE_RENDER) {
+    if ([SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
       forcedNextTick(() => {
         clearRowColouringCache()
         triggerRefreshCanvas()

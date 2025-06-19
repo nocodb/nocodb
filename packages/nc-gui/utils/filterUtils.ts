@@ -11,9 +11,18 @@ export interface ComparisonOpUiType {
   excludedTypes?: UITypes[]
 }
 
+export interface FilterGroupChangeEvent {
+  filters: ColumnFilterType[]
+  filter: ColumnFilterType
+  type: 'row_changed' | 'add' | 'delete'
+  prevValue?: any
+  value: any
+  index: number
+}
+
 export interface FilterRowChangeEvent {
   filter: ColumnFilterType
-  type: 'logical_op' | 'fk_column_id' | 'comparison_op' | 'comparison_sub_op' | 'value'
+  type: 'logical_op' | 'fk_column_id' | 'comparison_op' | 'comparison_sub_op' | 'value' | 'child_add' | 'child_delete'
   prevValue: any
   value: any
   index: number

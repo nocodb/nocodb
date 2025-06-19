@@ -49,4 +49,10 @@ export const defaultColumns: ColumnType[] = [
     title: 'Column 6',
     order: 6,
   },
+  {
+    id: 'col6',
+    uidt: UITypes.Checkbox,
+    title: 'Column 7',
+    order: 7,
+  },
 ]

@@ -21,16 +21,24 @@ const options1 = ref({
   link: false,
   isForm: false,
   isPublic: false,
-  filterPerViewLimit: 0,
+  filterPerViewLimit: 50,
   filtersCount: 0,
   queryFilter: false,
   disableAddNewFilter: false,
 })
 const lastChangeEvent1 = ref({})
+const lastRowChangeEvent1 = ref({})
 const column1Id = ref(columns[0]!.id)
 const column1 = computed(() => {
   return columns.find((col) => col.id === column1Id.value)
 })
+
+const onChange = (event) => {
+  lastChangeEvent1.value = event
+}
+const onRowChange = (event) => {
+  lastRowChangeEvent1.value = event
+}
 </script>
 
 <template>
@@ -38,7 +46,7 @@ const column1 = computed(() => {
     <a-card>
       <h4>Simple</h4>
 
-      <div class="flex gap-2">
+      <div class="flex gap-4">
         <div class="flex flex-col gap-2">
           <div><NcSwitch v-model:checked="options1.disabled">disabled</NcSwitch></div>
           <div><NcSwitch v-model:checked="options1.isLogicalOpChangeAllowed">isLogicalOpChangeAllowed</NcSwitch><br /></div>
@@ -50,28 +58,42 @@ const column1 = computed(() => {
           <div><NcSwitch v-model:checked="options1.isPublic">isPublic</NcSwitch></div>
           <div><NcSwitch v-model:checked="options1.queryFilter">queryFilter</NcSwitch></div>
           <div><NcSwitch v-model:checked="options1.disableAddNewFilter">disableAddNewFilter</NcSwitch></div>
-
-          <div>dbClientType: <NcSelect v-model:value="options1.dbClientType"></NcSelect></div>
-          <div>actionBtnType: <NcSelect v-model:value="options1.actionBtnType"></NcSelect></div>
-
-          <div>Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-gray-200" /><br /></div>
-          <div>NestedLevel: <input v-model="options1.nestedLevel" type="number" class="text-xs p-1 border-gray-200" /><br /></div>
-          <div>
-            filterPerViewLimit:
-            <input v-model="options1.filterPerViewLimit" type="number" class="text-xs p-1 border-gray-200" /><br />
+        </div>
+        <div class="flex-col gap-2">
+          <div class="flex">
+            <NcSelect v-model:value="column1Id" @change="filter1.fk_column_id = column1Id">
+              <a-select-option v-for="col of columns" :key="col.id" :value="col.id">
+                {{ col.id }} - {{ col.uidt }}
+              </a-select-option>
+            </NcSelect>
+            <div class="w-[300px] overflow-wrap">
+              {{ column1 }}
+            </div>
           </div>
-          <div>
-            filtersCount: <input v-model="options1.filtersCount" type="number" class="text-xs p-1 border-gray-200" /><br />
+          <div class="flex-col space-y-2">
+            <div>dbClientType: <NcSelect v-model:value="options1.dbClientType"></NcSelect></div>
+            <div>actionBtnType: <NcSelect v-model:value="options1.actionBtnType"></NcSelect></div>
+
+            <div>Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-gray-200" /><br /></div>
+            <div>
+              NestedLevel: <input v-model="options1.nestedLevel" type="number" class="text-xs p-1 border-gray-200" /><br />
+            </div>
+            <div>
+              filterPerViewLimit:
+              <input v-model="options1.filterPerViewLimit" type="number" class="text-xs p-1 border-gray-200" /><br />
+            </div>
+            <div>
+              filtersCount: <input v-model="options1.filtersCount" type="number" class="text-xs p-1 border-gray-200" /><br />
+            </div>
           </div>
         </div>
-        <div class="flex">
-          <NcSelect v-model:value="column1Id" @change="filter1.fk_column_id = column1Id">
-            <a-select-option v-for="col of columns" :key="col.id" :value="col.id">
-              {{ col.id }} - {{ col.uidt }}
-            </a-select-option>
-          </NcSelect>
-          <div class="w-[300px] overflow-wrap">
-            {{ column1 }}
+        <div class="flex-col space-y-2">
+          Last event:
+          <div class="w-[300px] max-h-[100px] overflow-wrap bg-gray-300 overflow-y-scroll">
+            {{ lastRowChangeEvent1 }}
+          </div>
+          <div class="w-[300px] max-h-[100px] overflow-wrap bg-gray-300 overflow-y-scroll">
+            {{ lastChangeEvent1 }}
           </div>
         </div>
       </div>
@@ -94,6 +116,8 @@ const column1 = computed(() => {
         :disable-add-new-filter="options1.disableAddNewFilter"
         :filters-count="options1.filtersCount"
         :query-filter="options1.queryFilter"
+        @change="onChange"
+        @row-change="onRowChange"
       />
     </div>
   </div>

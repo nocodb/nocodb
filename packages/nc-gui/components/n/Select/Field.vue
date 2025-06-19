@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { type ColumnType, isSystemColumn } from 'nocodb-sdk'
+import NIconField from '../icon/Field.vue'
 import type { NSelectProps } from './types'
 const props = withDefaults(
   defineProps<NSelectProps & { tableId?: string; forceLoadTableFields?: boolean; filterColumn?: (t: ColumnType) => boolean }>(),

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ViewType } from 'nocodb-sdk'
+import NIconView from '../icon/View.vue'
 import type { NSelectProps } from './types'
 const props = withDefaults(
   defineProps<

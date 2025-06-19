@@ -81,17 +81,19 @@ const getLteText = (fieldUiType: UITypes) => {
   return '<='
 }
 
-export const comparisonOpList = (
-  fieldUiType: UITypes,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  dateFormat?: string,
-): {
+export interface ComparisonOpUiType {
   text: string
   value: string
   ignoreVal: boolean
   includedTypes?: UITypes[]
   excludedTypes?: UITypes[]
-}[] => [
+}
+
+export const comparisonOpList = (
+  fieldUiType: UITypes,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  dateFormat?: string,
+): ComparisonOpUiType[] => [
   {
     text: 'is checked',
     value: 'checked',
@@ -362,13 +364,7 @@ export const comparisonSubOpList = (
   // TODO: type
   comparison_op: string,
   dateFormat?: string,
-): {
-  text: string
-  value: string
-  ignoreVal: boolean
-  includedTypes?: UITypes[]
-  excludedTypes?: UITypes[]
-}[] => {
+): ComparisonOpUiType[] => {
   const isDateMonth = dateFormat && isDateMonthFormat(dateFormat)
 
   if (comparison_op === 'isWithin') {

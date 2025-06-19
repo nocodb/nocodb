@@ -676,22 +676,25 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                                 :permission="PermissionKey.TABLE_RECORD_ADD"
                                 placement="right"
                               >
-                                <NcMenuItem
-                                  v-if="hasEditPermission && !isPublic && !isSyncedTable"
-                                  v-e="['c:kanban:add-new-record']"
-                                  data-testid="nc-kanban-context-menu-add-new-record"
-                                  @click="
-                                    () => {
-                                      selectedStackTitle = stack.title
-                                      handleOpenNewRecordForm(stack.title)
-                                    }
-                                  "
-                                >
-                                  <div class="flex gap-2 items-center">
-                                    <component :is="iconMap.plus" class="flex-none w-4 h-4" />
-                                    {{ $t('activity.newRecord') }}
-                                  </div>
-                                </NcMenuItem>
+                                <template #default="{ isAllowed }">
+                                  <NcMenuItem
+                                    v-if="hasEditPermission && !isPublic && !isSyncedTable"
+                                    v-e="['c:kanban:add-new-record']"
+                                    data-testid="nc-kanban-context-menu-add-new-record"
+                                    :disabled="!isAllowed"
+                                    @click="
+                                      () => {
+                                        selectedStackTitle = stack.title
+                                        handleOpenNewRecordForm(stack.title)
+                                      }
+                                    "
+                                  >
+                                    <div class="flex gap-2 items-center">
+                                      <component :is="iconMap.plus" class="flex-none w-4 h-4" />
+                                      {{ $t('activity.newRecord') }}
+                                    </div>
+                                  </NcMenuItem>
+                                </template>
                               </PermissionsTooltip>
                               <NcMenuItem
                                 v-if="stack.title !== null && hasEditPermission && !isPublic && !isLocked"
@@ -984,6 +987,7 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                                 :entity-id="meta?.id"
                                 :permission="PermissionKey.TABLE_RECORD_ADD"
                                 placement="right"
+                                show-overlay
                               >
                                 <NcButton
                                   v-if="isUIAllowed('dataInsert') && !isSyncedTable"
@@ -1015,6 +1019,7 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                           :entity="PermissionEntity.TABLE"
                           :entity-id="meta?.id"
                           :permission="PermissionKey.TABLE_RECORD_ADD"
+                          show-overlay
                         >
                           <NcButton
                             size="xs"
@@ -1230,22 +1235,27 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
               :permission="PermissionKey.TABLE_RECORD_DELETE"
               placement="right"
             >
-              <NcMenuItem
-                v-if="contextMenuTarget"
-                v-e="['a:kanban:delete-record']"
-                class="!text-red-600 !hover:bg-red-50"
-                @click="deleteRow(contextMenuTarget)"
-              >
-                <div class="flex items-center gap-2 nc-kanban-context-menu-item">
-                  <component :is="iconMap.delete" class="flex" />
-                  <!-- Delete Record -->
-                  {{
-                    $t('general.deleteEntity', {
-                      entity: $t('objects.record').toLowerCase(),
-                    })
-                  }}
-                </div>
-              </NcMenuItem>
+              <template #default="{ isAllowed }">
+                <NcMenuItem
+                  v-if="contextMenuTarget"
+                  v-e="['a:kanban:delete-record']"
+                  :class="{
+                    '!text-red-600 !hover:bg-red-50': isAllowed,
+                  }"
+                  :disabled="!isAllowed"
+                  @click="deleteRow(contextMenuTarget)"
+                >
+                  <div class="flex items-center gap-2 nc-kanban-context-menu-item">
+                    <component :is="iconMap.delete" class="flex" />
+                    <!-- Delete Record -->
+                    {{
+                      $t('general.deleteEntity', {
+                        entity: $t('objects.record').toLowerCase(),
+                      })
+                    }}
+                  </div>
+                </NcMenuItem>
+              </template>
             </PermissionsTooltip>
           </NcMenu>
         </template>

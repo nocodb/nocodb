@@ -31,6 +31,7 @@ export default class Filter implements FilterType {
   fk_parent_column_id?: string;
   fk_column_id?: string;
   fk_parent_id?: string;
+  fk_row_color_conditions_id: string;
   fk_link_col_id?: string;
   fk_value_col_id?: string;
 

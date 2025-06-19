@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ViewUpdateReqType } from 'nocodb-sdk';
+import { ViewRowColorService } from 'src/services/view-row-color.service';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { ViewsService } from '~/services/views.service';
@@ -23,7 +24,10 @@ import { NcContext, NcRequest } from '~/interface/config';
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class ViewsController {
-  constructor(private readonly viewsService: ViewsService) {}
+  constructor(
+    private readonly viewsService: ViewsService,
+    private readonly viewRowColorService: ViewRowColorService,
+  ) {}
 
   @Get([
     '/api/v1/db/meta/tables/:tableId/views',
@@ -41,6 +45,18 @@ export class ViewsController {
         user: req.user,
       }),
     );
+  }
+
+  @Get(['/api/v1/db/meta/views/:viewId/row-color'])
+  @Acl('viewRowColorInfo')
+  async viewRowColorInfo(
+    @TenantContext() context: NcContext,
+    @Param('viewId') viewId: string,
+  ) {
+    return await this.viewRowColorService.getByViewId({
+      context,
+      fk_view_id: viewId,
+    });
   }
 
   @Patch(['/api/v1/db/meta/views/:viewId', '/api/v2/meta/views/:viewId'])

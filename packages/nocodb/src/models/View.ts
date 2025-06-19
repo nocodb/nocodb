@@ -14,6 +14,7 @@ import type {
   ExpandedFormModeType,
   FilterType,
   NcRequest,
+  ROW_COLORING_MODE,
   ViewType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
@@ -84,6 +85,7 @@ export default class View implements ViewType {
   order: number;
   type: ViewTypes;
   lock_type?: ViewType['lock_type'];
+  row_coloring_mode?: ROW_COLORING_MODE;
   created_by?: string;
   owned_by?: string;
 
@@ -2678,4 +2680,11 @@ export default class View implements ViewType {
   ) {
     return;
   }
+}
+
+export interface ViewMetaRowColoring {
+  rowColoringInfo: {
+    fk_column_id: string;
+    is_set_as_background: boolean;
+  };
 }

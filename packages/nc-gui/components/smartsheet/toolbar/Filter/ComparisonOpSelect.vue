@@ -21,7 +21,10 @@ const emits = defineEmits<Emits>()
 const vModel = useVModel(props, 'modelValue', emits)
 
 const allowedComparisonOp = computed(() => {
-  return comparisonOpList(props.uidt, parseProp(props.column?.meta)?.date_format)
+  const { filter, uidt, showNullAndEmptyInFilter } = props
+  return comparisonOpList(props.uidt, parseProp(props.column?.meta)?.date_format).filter((compOp) =>
+    isComparisonOpAllowed(filter, compOp, uidt, showNullAndEmptyInFilter),
+  )
 })
 
 const onChange = (filter: ColumnFilterType) => {
@@ -51,7 +54,7 @@ const onChange = (filter: ColumnFilterType) => {
     @change="onChange(filter)"
   >
     <template v-for="compOp of allowedComparisonOp" :key="compOp.value">
-      <a-select-option v-if="isComparisonOpAllowed(filter, compOp, uidt, showNullAndEmptyInFilter)" :value="compOp.value">
+      <a-select-option :value="compOp.value">
         <div class="flex items-center w-full justify-between w-full gap-2">
           <div class="truncate flex-1">{{ compOp.text }}</div>
           <component

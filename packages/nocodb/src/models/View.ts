@@ -2359,7 +2359,7 @@ export default class View implements ViewType {
             context,
           ).getDuplicateRowColorConditions({
             views: [copyFromView],
-            idMap: new Map<string, string>([copyFromView.id, view_id]),
+            idMap: new Map<string, string>([[copyFromView.id, view_id]]),
           });
 
         const sorts = await copyFromView.getSorts(context, ncMeta);

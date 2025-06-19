@@ -212,6 +212,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       extractOnlyPrimaries,
       extractOrderColumn,
       apiVersion,
+      skipSubstitutingColumnIds:
+        this.context.api_version === NcApiVersion.V3 &&
+        query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
     });
 
     await this.selectObject({

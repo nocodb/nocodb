@@ -58,6 +58,7 @@ const getAst = async (
     extractOrderColumn = false,
     includeSortAndFilterColumns = false,
     includeRowColorColumns = false,
+    skipSubstitutingColumnIds = false,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
@@ -73,6 +74,7 @@ const getAst = async (
     extractOrderColumn?: boolean;
     includeSortAndFilterColumns?: boolean;
     includeRowColorColumns?: boolean;
+    skipSubstitutingColumnIds?: boolean;
   },
 ): Promise<{
   ast: Ast;
@@ -82,6 +84,10 @@ const getAst = async (
   // set default values of dependencyFields and nested
   dependencyFields.nested = dependencyFields.nested || {};
   dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();
+
+  const getFieldKey = (col: Column) => {
+    return skipSubstitutingColumnIds ? col.id : col.title;
+  };
 
   let coverImageId;
   let dependencyFieldsForCalenderView;
@@ -131,9 +137,12 @@ const getAst = async (
   if (extractOnlyPrimaries) {
     const ast: Ast = {
       ...(model.primaryKeys
-        ? model.primaryKeys.reduce((o, pk) => ({ ...o, [pk.title]: 1 }), {})
+        ? model.primaryKeys.reduce(
+            (o, pk) => ({ ...o, [getFieldKey(pk)]: 1 }),
+            {},
+          )
         : {}),
-      ...(model.displayValue ? { [model.displayValue.title]: 1 } : {}),
+      ...(model.displayValue ? { [getFieldKey(model.displayValue)]: 1 } : {}),
     };
     await Promise.all(
       model.primaryKeys.map((c) =>
@@ -150,7 +159,7 @@ const getAst = async (
     const ast: Ast = {
       ...(dependencyFieldsForCalenderView || []).reduce((o, f) => {
         const col = model.columns.find((c) => c.id === f);
-        return { ...o, [col.title]: 1 };
+        return { ...o, [getFieldKey(col)]: 1 };
       }, {}),
     };
 
@@ -215,6 +224,7 @@ const getAst = async (
 
   const ast: Ast = await columns.reduce(async (obj, col: Column) => {
     let value: number | boolean | { [key: string]: any } = 1;
+    // TODO: also get from col.id
     const nestedFields =
       query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
     if (nestedFields && nestedFields !== '*') {
@@ -333,7 +343,7 @@ const getAst = async (
 
     return {
       ...(await obj),
-      [col.title]: isRequested,
+      [getFieldKey(col)]: isRequested,
     };
   }, Promise.resolve({}));
 

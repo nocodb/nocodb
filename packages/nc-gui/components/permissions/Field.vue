@@ -69,63 +69,60 @@ const handlePermissionSave = () => {
 </script>
 
 <template>
-  <div>
-    <div class="flex items-center justify-between mb-4 min-h-8">
-      <h3 class="text-nc-content-gray-emphasis text-bodyBold mb-0">Field Permissions</h3>
-      <div class="flex items-center gap-2">
-        <template v-if="customFieldPermissionsCount > 0">
-          <div class="flex items-center justify-center">
-            <div class="h-1.5 w-1.5 rounded-full bg-primary flex-none"></div>
-          </div>
-          <span class="text-body text-nc-content-gray-subtle">
-            {{ customFieldPermissionsCount }}/{{ visibleFields.length }} fields have custom permissions
-          </span>
-        </template>
-        <slot name="actions" />
-      </div>
-    </div>
-
-    <!-- Field Permissions Table -->
-    <div class="border border-nc-border-gray-medium rounded-lg overflow-hidden">
-      <NcTable
-        :is-data-loading="false"
-        :columns="fieldPermissionsColumns"
-        :data="fieldPermissionsData"
-        :bordered="false"
-        row-height="56px"
-        header-row-height="44px"
-        class="nc-field-permissions-table"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'field_name'">
-            <div v-if="isFieldModified(record.field_id!)" class="flex items-center justify-center absolute left-1">
+  <!-- Field Permissions Table -->
+  <NcTable
+    :is-data-loading="false"
+    :columns="fieldPermissionsColumns"
+    :data="fieldPermissionsData"
+    :bordered="false"
+    row-height="56px"
+    header-row-height="44px"
+    class="nc-field-permissions-table flex-1"
+  >
+    <template #tableToolbar>
+      <div class="flex items-center justify-between min-h-8">
+        <h3 class="text-nc-content-gray-emphasis text-bodyBold mb-0">Field Permissions</h3>
+        <div class="flex items-center gap-2">
+          <template v-if="customFieldPermissionsCount > 0">
+            <div class="flex items-center justify-center">
               <div class="h-1.5 w-1.5 rounded-full bg-primary flex-none"></div>
             </div>
-
-            <div class="flex items-center gap-3">
-              <component :is="getUIDTIcon(record.field_icon || '')" class="flex-none h-4 w-4 text-nc-content-gray-subtle" />
-              <span class="text-captionBold text-nc-content-gray truncate">
-                {{ record.field_name }}
-              </span>
-            </div>
+            <span class="text-body text-nc-content-gray-subtle">
+              {{ customFieldPermissionsCount }}/{{ visibleFields.length }} fields have custom permissions
+            </span>
           </template>
+          <slot name="actions" />
+        </div>
+      </div>
+    </template>
+    <template #bodyCell="{ column, record }">
+      <template v-if="column.key === 'field_name'">
+        <div v-if="isFieldModified(record.field_id!)" class="flex items-center justify-center absolute left-1">
+          <div class="h-1.5 w-1.5 rounded-full bg-primary flex-none"></div>
+        </div>
 
-          <template v-if="column.key === 'edit_permission'">
-            <PermissionsInlineFieldSelector
-              :base="base!"
-              :field-id="record.field_id!"
-              :field-title="record.field_title!"
-              :permission-type="PermissionKey.RECORD_FIELD_EDIT"
-              :current-value="getPermissionSummaryLabel('field', record.field_id!, PermissionKey.RECORD_FIELD_EDIT)"
-              :border-on-hover="true"
-              class="-ml-3"
-              @save="handlePermissionSave"
-            />
-          </template>
-        </template>
-      </NcTable>
-    </div>
-  </div>
+        <div class="flex items-center gap-3">
+          <component :is="getUIDTIcon(record.field_icon || '')" class="flex-none h-4 w-4 text-nc-content-gray-subtle" />
+          <span class="text-captionBold text-nc-content-gray truncate">
+            {{ record.field_name }}
+          </span>
+        </div>
+      </template>
+
+      <template v-if="column.key === 'edit_permission'">
+        <PermissionsInlineFieldSelector
+          :base="base!"
+          :field-id="record.field_id!"
+          :field-title="record.field_title!"
+          :permission-type="PermissionKey.RECORD_FIELD_EDIT"
+          :current-value="getPermissionSummaryLabel('field', record.field_id!, PermissionKey.RECORD_FIELD_EDIT)"
+          :border-on-hover="true"
+          class="-ml-3"
+          @save="handlePermissionSave"
+        />
+      </template>
+    </template>
+  </NcTable>
 </template>
 
 <style scoped>

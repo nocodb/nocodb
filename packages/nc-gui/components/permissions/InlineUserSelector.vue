@@ -76,7 +76,9 @@ const usersToShow = computed(() => {
     <NcListDropdown v-model:visible="isDropdownOpen" default-slot-wrapper-class="flex-1">
       <div class="flex items-center gap-1.5 w-full">
         <!-- Selected user tags -->
-        <div v-if="selectedUsers.size === 0" class="font-medium flex-1 text-gray-500">Select users</div>
+        <div v-if="selectedUsers.size === 0" class="font-medium flex-1 text-gray-500">
+          -no users selected- (Nobody {{ permissionDescription }})
+        </div>
         <div v-else class="flex items-center flex-1 overflow-hidden">
           <!-- Show first few users as tags -->
           <a-tag

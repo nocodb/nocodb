@@ -98,9 +98,7 @@ onUnmounted(() => {
 .nc-sidebar-bottom-section {
   @apply flex-none overflow-auto p-1 empty:hidden;
 
-  &:not(:has(.nc-maintenance-sidebar-banner))
-  &:not(:has(.nc-upgrade-sidebar-banner))
-  {
+  &:not(:has(.nc-maintenance-sidebar-banner)) &:not(:has(.nc-upgrade-sidebar-banner)) {
     @apply border-t-1;
   }
   &:has(.nc-upgrade-sidebar-banner) {

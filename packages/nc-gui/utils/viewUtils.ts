@@ -1,4 +1,4 @@
-import { ViewTypes, type RowColoringInfo } from 'nocodb-sdk'
+import { type RowColoringInfo, ViewTypes } from 'nocodb-sdk'
 import { iconMap } from './iconUtils'
 import type { Language } from '~/lib/types'
 import UsersIcon from '~icons/nc-icons/users'

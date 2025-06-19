@@ -3,7 +3,7 @@ import { parseProp, stringifyProp } from 'nocodb-sdk'
 export { parseProp, stringifyProp }
 
 export const extractRowBackgroundColorStyle = (row: Row) => {
-  let result = {
+  const result = {
     rowBgColor: {},
     rowLeftBorderColor: {},
   }

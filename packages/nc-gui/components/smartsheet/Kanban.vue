@@ -127,7 +127,7 @@ const allRowsRowOnly = computed(() => {
     .map((k) => k.row)
 })
 
-const { getLeftBorderColor, getRowColor } = useViewRowColorRender({
+const { getLeftBorderColor, getRowColor, getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender({
   meta,
   view,
   rows: allRowsRowOnly,
@@ -509,6 +509,19 @@ const getRowColorStyle = (row) => {
   }
   return {}
 }
+
+const getCardBorderColor = (row) => {
+  const rowColorInfo = getEvaluatedRowMetaRowColorInfo(row)
+  if (rowColorInfo.rowBorderColor) {
+    return {
+      'border-color': `${rowColorInfo.rowBorderColor} !important`,
+    }
+  }
+
+  return {
+    'border-color': `${themeV3Colors.gray[200]} !important`,
+  }
+}
 </script>
 
 <template>
@@ -810,7 +823,11 @@ const getRowColorStyle = (row) => {
                                 <a-card
                                   :key="`${getRowId(record)}-${index}`"
                                   class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
-                                  :body-style="{ padding: '12px !important', flex: 1, display: 'flex' }"
+                                  :body-style="{
+                                    padding: '12px !important',
+                                    flex: 1,
+                                    display: 'flex',
+                                  }"
                                   :data-stack="stack.title"
                                   :data-testid="`nc-gallery-card-${record.row.id}`"
                                   :class="{
@@ -819,6 +836,7 @@ const getRowColorStyle = (row) => {
                                   }"
                                   :style="{
                                     ...getRowColorStyle(record.row),
+                                    ...getCardBorderColor(record.row),
                                   }"
                                   @click="expandFormClick($event, record)"
                                   @contextmenu="showContextMenu($event, record)"

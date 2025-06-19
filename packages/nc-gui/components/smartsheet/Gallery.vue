@@ -239,7 +239,7 @@ const visibleRowsRowOnly = computed(() => {
   return visibleRows.value?.map((k) => k.row) ?? []
 })
 
-const { getLeftBorderColor, getRowColor } = useViewRowColorRender({
+const { getLeftBorderColor, getRowColor, getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender({
   meta,
   view,
   rows: visibleRowsRowOnly,
@@ -392,6 +392,19 @@ const getRowColorStyle = (row) => {
   }
   return {}
 }
+
+const getCardBorderColor = (row) => {
+  const rowColorInfo = getEvaluatedRowMetaRowColorInfo(row)
+  if (rowColorInfo.rowBorderColor) {
+    return {
+      'border-color': `${rowColorInfo.rowBorderColor} !important`,
+    }
+  }
+
+  return {
+    'border-color': `${themeV3Colors.gray[200]} !important`,
+  }
+}
 </script>
 
 <template>
@@ -451,6 +464,7 @@ const getRowColorStyle = (row) => {
                   :data-testid="`nc-gallery-card-${record.rowMeta.rowIndex}`"
                   :style="{
                     ...getRowColorStyle(record.row),
+                    ...getCardBorderColor(record.row),
                   }"
                   @click="expandFormClick($event, record)"
                   @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"

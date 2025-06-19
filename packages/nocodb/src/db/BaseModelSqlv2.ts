@@ -122,6 +122,7 @@ import {
 } from '~/utils';
 import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
+import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 
 dayjs.extend(utc);
 
@@ -226,6 +227,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       data = await this.execAndParse(qb, null, {
         first: true,
         apiVersion,
+        skipSubstitutingColumnIds:
+          this.context.api_version === NcApiVersion.V3 &&
+          query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
       });
     } catch (e) {
       if (
@@ -408,6 +412,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       validateFormula?: boolean;
       throwErrorIfInvalidParams?: boolean;
       limitOverride?: number;
+      skipSubstitutingColumnIds?: boolean;
     } = {},
   ): Promise<any> {
     const {
@@ -566,6 +571,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       data = await this.execAndParse(qb, undefined, {
         apiVersion: args.apiVersion,
+        skipSubstitutingColumnIds: options.skipSubstitutingColumnIds,
       });
     } catch (e) {
       if (validateFormula || !haveFormulaColumn(columns)) throw e;

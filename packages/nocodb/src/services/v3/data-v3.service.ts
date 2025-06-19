@@ -219,28 +219,12 @@ export class DataV3Service {
                       nestedRecord.ID ||
                       Object.values(nestedRecord)[0];
 
-                    // Validate the extracted ID
-                    if (id === undefined || id === null || id === '') {
-                      NcError.unprocessableEntity(
-                        `Unable to extract valid ID from nested record at index ${recordIndex} in field "${key}" at max depth`,
-                      );
-                    }
-
-                    return { id: String(id) };
+                    // For read operations, handle missing IDs gracefully
+                    return { id: id ? String(id) : null };
                   }
 
-                  // Handle primitive values
-                  if (
-                    nestedRecord === undefined ||
-                    nestedRecord === null ||
-                    nestedRecord === ''
-                  ) {
-                    NcError.unprocessableEntity(
-                      `Invalid nested record value at index ${recordIndex} in field "${key}" at max depth: ${nestedRecord}`,
-                    );
-                  }
-
-                  return { id: String(nestedRecord) };
+                  // Handle primitive values - for read operations, convert to string
+                  return { id: nestedRecord ? String(nestedRecord) : null };
                 },
               );
               continue;

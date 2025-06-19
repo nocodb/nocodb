@@ -49,9 +49,9 @@ export function useEsbuild() {
     try {
       const result = await esbuild.transform(code, {
         loader: 'ts',
-        minify: true,
         platform: 'browser',
         target: 'chrome64',
+        sourcemap: 'external',
       })
       return {
         code: result.code,

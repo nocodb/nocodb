@@ -84,6 +84,8 @@ interface ThemeConfig extends AntTheme {
 interface RowMetaRowColorInfo {
   rowBgColor?: string | null
   rowLeftBorderColor?: string | null
+  rowHoverColor?: string | null
+  rowBorderColor?: string | null
 }
 
 interface Row {
@@ -691,6 +693,7 @@ interface RowColouringEvaluatedResultType {
   color: string
   hoverColor: string | null
   rawColor: string | undefined
+  borderColor: string | null
 }
 
 export type {

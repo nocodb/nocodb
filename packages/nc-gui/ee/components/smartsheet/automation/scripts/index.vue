@@ -107,35 +107,12 @@ onBeforeUnmount(() => {
       </Pane>
     </Splitpanes>
   </div>
-  <div class="h-9 border-t-1 flex border-nc-border-gray-medium px-2 py-1">
-    <div class="flex-1" />
-    <div class="flex items-center gap-2">
-      <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts">
-        <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
-          <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
-          APIs
-        </div>
-      </NuxtLink>
-
-      <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts">
-        <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
-          <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
-          Example Scripts
-        </div>
-      </NuxtLink>
-      <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts/api/base">
-        <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
-          <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
-          Script Docs
-        </div>
-      </NuxtLink>
-    </div>
-  </div>
+  <SmartsheetAutomationScriptsBottomBar />
 </template>
 
 <style lang="scss">
 .nc-scripts-content-resizable-wrapper {
-  height: calc(100% - var(--topbar-height) - 36px);
+  height: calc(100svh - var(--topbar-height) - 30px);
   .monaco-editor {
     @apply !border-0 !rounded-b-lg outline-none;
   }

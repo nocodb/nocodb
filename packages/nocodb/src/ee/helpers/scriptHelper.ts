@@ -1,7 +1,8 @@
 import { UITypes, viewTypeAlias } from 'nocodb-sdk';
-import { MetaTable } from '~/utils/globals';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { transformFieldConfig } from '~/utils/transformProperties';
+import NocoCache from '~/cache/NocoCache';
 
 const colOptionsHandlers = {
   [UITypes.Barcode]: {
@@ -204,7 +205,19 @@ const generateColOptionsCase = (knex = Noco.ncMeta.knex) => {
     `);
 };
 
-export async function getBaseSchema(baseId: string, ncMeta = Noco.ncMeta) {
+export async function getBaseSchema(
+  baseId: string,
+  workspaceId: string,
+  ncMeta = Noco.ncMeta,
+) {
+  const key = `${CacheScope.BASE_SCHEMA}:${baseId}`;
+
+  const baseSchema = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+
+  if (baseSchema) {
+    return baseSchema;
+  }
+
   const finalQuery = ncMeta.knex
     .with('base_tables', (qb) => {
       qb.select(
@@ -319,5 +332,31 @@ export async function getBaseSchema(baseId: string, ncMeta = Noco.ncMeta) {
     return table;
   });
 
+  await NocoCache.set(key, result);
+
+  await NocoCache.appendToList(
+    CacheScope.BASE_SCHEMA,
+    ['ws', workspaceId],
+    key,
+  );
+
   return result;
+}
+
+export async function cleanBaseSchemaCacheForBase(baseId: string) {
+  await NocoCache.del(`${CacheScope.BASE_SCHEMA}:${baseId}`);
+}
+
+export async function cleanBaseSchemaCacheForWorkspace(workspaceId: string) {
+  const keys = await NocoCache.get(
+    `${CacheScope.BASE_SCHEMA}:ws:${workspaceId}`,
+    CacheGetType.TYPE_ARRAY,
+  );
+
+  if (keys) {
+    await NocoCache.del([
+      ...keys,
+      `${CacheScope.BASE_SCHEMA}:ws:${workspaceId}`,
+    ]);
+  }
 }

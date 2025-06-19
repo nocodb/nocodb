@@ -26,6 +26,7 @@ import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { NcError } from '~/helpers/catchError';
+import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 
 const logger = new Logger('Base');
 
@@ -245,6 +246,10 @@ export default class Base extends BaseCE {
       logger.error('Failed to clean command palette cache');
     });
 
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
+
     // set meta
     return await ncMeta.metaUpdate(
       context.workspace_id,
@@ -368,6 +373,10 @@ export default class Base extends BaseCE {
       logger.error(`Failed to delete custom urls of baseId: ${baseId}`);
     });
 
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
+
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
     });
@@ -420,6 +429,10 @@ export default class Base extends BaseCE {
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
+    });
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
     });
 
     await MCPToken.bulkDelete({ base_id: baseId }, ncMeta);

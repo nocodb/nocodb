@@ -5,7 +5,7 @@ const { signedIn } = useGlobal()
 
 const { loadProject } = useBase()
 
-const { isLocked, xWhere, eventBus } = useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
+const { isLocked, xWhere } = useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
 
 useProvideKanbanViewStore(meta, sharedView)
 useProvideCalendarViewStore(meta, sharedView)
@@ -28,7 +28,7 @@ useProvideViewGroupBy(sharedView, meta, xWhere, true)
 
 useProvideSmartsheetLtarHelpers(meta)
 
-useViewRowColorProvider({ eventBus, shared: true })
+useViewRowColorProvider({ shared: true })
 
 if (signedIn.value) {
   try {

@@ -127,7 +127,7 @@ const allRowsRowOnly = computed(() => {
     .map((k) => k.row)
 })
 
-const { getLeftBorderColor, getRowColor, getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender({
+const { getLeftBorderColor, getRowColor, getEvaluatedRowMetaRowColorInfo, isRowColouringEnabled } = useViewRowColorRender({
   meta,
   view,
   rows: allRowsRowOnly,
@@ -904,6 +904,7 @@ const getCardBorderColor = (row) => {
                                   </template>
                                   <div class="flex-1 flex content-stretch gap-3">
                                     <div
+                                      v-if="isRowColouringEnabled"
                                       class="w-1 flex-none min-h-4 rounded-sm"
                                       :style="{
                                         ...(getLeftBorderColor(record.row)

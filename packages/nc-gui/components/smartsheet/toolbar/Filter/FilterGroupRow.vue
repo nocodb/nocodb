@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { type ClientType } from 'nocodb-sdk'
+import type { GroupHandler } from './types'
 import { SmartsheetToolbarFilterGroup } from '#components'
+
 interface Props {
   modelValue: ColumnFilterType
   index: number
@@ -14,6 +16,7 @@ interface Props {
   link?: boolean
   isForm?: boolean
   isPublic?: boolean
+  isFullWidth?: boolean
 
   disabled?: boolean
   // some view is different when locked view but not disabled
@@ -27,6 +30,8 @@ interface Props {
 
   // what's this???
   queryFilter?: boolean
+
+  handler?: GroupHandler
 }
 interface Emits {
   (event: 'update:modelValue', model: string): void
@@ -138,6 +143,9 @@ const onDelete = () => {
         :disable-add-new-filter="disableAddNewFilter"
         :filters-count="filtersCount"
         :query-filter="queryFilter"
+        :fk-parent-id="vModel.id"
+        :is-full-width="isFullWidth"
+        :handler="handler"
         @change="onFilterChange"
         @row-change="onFilterRowChange"
       >

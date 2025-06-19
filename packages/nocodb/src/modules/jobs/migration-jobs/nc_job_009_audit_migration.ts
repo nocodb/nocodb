@@ -1,67 +1,97 @@
-import debug from 'debug';
 import { v7 as uuidv7 } from 'uuid';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { AuditOperationTypes } from 'nocodb-sdk';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 
 @Injectable()
 export class AuditMigration {
-  private readonly debugLog = debug('nc:migration-jobs:audit');
+  private readonly logger = new Logger(AuditMigration.name);
 
   async job() {
     try {
+      this.logger.log('Starting audit migration job');
+
       const ncMeta = Noco.ncMeta;
-      const batchSize = 1000; // Increased batch size for better performance
+      const batchSize = 1000;
       const fallbackTimestamp = new Date('2020-01-01T00:00:00.000Z').getTime();
 
-      // Get the last migrated record's created_at timestamp
       const lastMigratedRecord = await ncMeta
         .knexConnection(MetaTable.AUDIT)
         .whereNotNull('old_id')
         .orderBy('created_at', 'desc')
+        .orderBy('old_id', 'desc')
         .first();
 
-      const lastMigratedTimestamp =
+      let lastProcessedTimestamp =
         lastMigratedRecord?.created_at || new Date(0);
+      let lastProcessedId = lastMigratedRecord?.old_id || 0;
 
-      // Get total count of records to migrate
-      const totalToMigrate = await ncMeta
-        .knexConnection(`${MetaTable.AUDIT}_old`)
-        .where('created_at', '<=', lastMigratedTimestamp)
-        .count('* as count')
+      this.logger.log(
+        `Starting from timestamp: ${lastProcessedTimestamp}, last ID: ${lastProcessedId}`,
+      );
+
+      // Use compound cursor (timestamp + id) to handle duplicate timestamps correctly
+      const totalRemainingRecords = await ncMeta.knexConnection
+        .from(`${MetaTable.AUDIT}_old as old`)
+        .leftJoin(`${MetaTable.AUDIT} as new`, 'old.id', 'new.old_id')
+        .whereNull('new.old_id')
+        .where('old.op_type', '!=', AuditOperationTypes.COMMENT)
+        .where(function () {
+          this.where('old.created_at', '>', lastProcessedTimestamp).orWhere(
+            function () {
+              this.where(
+                'old.created_at',
+                '=',
+                lastProcessedTimestamp,
+              ).andWhere('old.id', '>', lastProcessedId);
+            },
+          );
+        })
+        .count('old.id as count')
         .first();
 
-      if (totalToMigrate.count === 0) {
-        // Check if we have any records left to migrate
-        const remainingRecords = await ncMeta
-          .knexConnection(`${MetaTable.AUDIT}_old`)
-          .count('* as count')
-          .first();
-
-        if (remainingRecords.count === 0) {
-          // No more records to migrate, cleanup
-          await this.cleanupMigration(ncMeta);
-          return true;
-        }
+      if (totalRemainingRecords.count === 0) {
+        this.logger.log('No more records to migrate, starting cleanup');
+        await this.cleanupMigration(ncMeta);
+        this.logger.log('Audit migration completed successfully');
+        return true;
       }
 
+      this.logger.log(
+        `Found ${totalRemainingRecords.count} records to migrate in this batch`,
+      );
+
       let processedCount = 0;
+      let totalMigratedCount = 0;
       let hasMoreRecords = true;
 
       while (hasMoreRecords) {
-        // Fetch records in batches, starting from where we left off
+        // Use compound cursor to avoid infinite loops with duplicate timestamps
         const batch = await ncMeta.knexConnection
           .select('*')
           .from(`${MetaTable.AUDIT}_old`)
-          .where('created_at', '>', lastMigratedTimestamp)
+          .where(function () {
+            this.where('created_at', '>', lastProcessedTimestamp).orWhere(
+              function () {
+                this.where('created_at', '=', lastProcessedTimestamp).andWhere(
+                  'id',
+                  '>',
+                  lastProcessedId,
+                );
+              },
+            );
+          })
           .orderBy('created_at', 'asc')
+          .orderBy('id', 'asc')
           .limit(batchSize);
 
         if (batch.length === 0) {
           hasMoreRecords = false;
           break;
         }
+
+        this.logger.debug(`Processing batch of ${batch.length} records`);
 
         const auditRecords = [];
         const oldIds = new Set();
@@ -71,7 +101,6 @@ export class AuditMigration {
             continue;
           }
 
-          // Use created_at if available, otherwise use fallback timestamp
           let timestamp = fallbackTimestamp;
           if (record.created_at) {
             const createdAtDate = new Date(record.created_at);
@@ -80,7 +109,7 @@ export class AuditMigration {
             }
           }
 
-          // Generate UUIDv7 with the determined timestamp
+          // Generate UUIDv7 with preserved timestamp for chronological ordering
           const id = uuidv7({ msecs: timestamp });
 
           const newRecord = {
@@ -113,9 +142,8 @@ export class AuditMigration {
         }
 
         if (auditRecords.length > 0) {
-          // Use a transaction for better performance and consistency
           await ncMeta.knexConnection.transaction(async (trx) => {
-            // Check for any records that might have been migrated in parallel
+            // Check for parallel migration conflicts
             const existingRecords = await trx(MetaTable.AUDIT)
               .whereIn('old_id', Array.from(oldIds))
               .select('old_id');
@@ -127,58 +155,96 @@ export class AuditMigration {
 
             if (newRecords.length > 0) {
               await trx(MetaTable.AUDIT).insert(newRecords);
+              totalMigratedCount += newRecords.length;
+              this.logger.debug(
+                `Inserted ${newRecords.length} new audit records`,
+              );
+            }
+
+            if (existingIds.size > 0) {
+              this.logger.debug(
+                `Skipped ${existingIds.size} already migrated records`,
+              );
             }
           });
         }
 
+        // Update cursor to last record in batch
+        const lastRecord = batch[batch.length - 1];
+        lastProcessedTimestamp = lastRecord.created_at;
+        lastProcessedId = lastRecord.id;
+
         processedCount += batch.length;
 
-        // Log progress every 10,000 records
-        if (processedCount % 10000 === 0) {
-          this.debugLog(`Processed ${processedCount} audit records`);
+        if (processedCount % 5000 === 0) {
+          const progressPercentage =
+            +totalRemainingRecords.count > 0
+              ? ((processedCount / +totalRemainingRecords.count) * 100).toFixed(
+                  1,
+                )
+              : 0;
+          this.logger.log(
+            `Migration progress: ${processedCount}/${totalRemainingRecords.count} records processed (${progressPercentage}%), ${totalMigratedCount} records migrated`,
+          );
         }
 
-        // If we got fewer records than batch size, we're done
         if (batch.length < batchSize) {
           hasMoreRecords = false;
         }
       }
 
-      this.debugLog(
-        `Migration batch completed. Processed ${processedCount} audit records.`,
+      this.logger.log(
+        `Migration batch completed. Processed ${processedCount} records, migrated ${totalMigratedCount} new records.`,
       );
 
-      // Check if we've migrated all records from the old table
-      const remainingRecords = await ncMeta
-        .knexConnection(`${MetaTable.AUDIT}_old`)
-        .count('* as count')
+      // Check completion (excluding comment records that are intentionally skipped)
+      const remainingRecords = await ncMeta.knexConnection
+        .from(`${MetaTable.AUDIT}_old as old`)
+        .leftJoin(`${MetaTable.AUDIT} as new`, 'old.id', 'new.old_id')
+        .whereNull('new.old_id')
+        .where('old.op_type', '!=', AuditOperationTypes.COMMENT)
+        .count('old.id as count')
         .first();
 
+      this.logger.log(
+        `Remaining unmigrated records: ${remainingRecords.count}`,
+      );
+
       if (remainingRecords.count === 0) {
+        this.logger.log('All records migrated, starting cleanup');
         await this.cleanupMigration(ncMeta);
+        this.logger.log('Audit migration completed successfully');
         return true;
       }
 
+      this.logger.log(
+        'Migration batch completed, more records remain for next run',
+      );
       return false;
     } catch (e) {
-      this.debugLog('Error running audit migration: ', e);
+      this.logger.error('Error running audit migration', e.stack || e.message);
       return false;
     }
   }
 
   private async cleanupMigration(ncMeta) {
     try {
-      // Drop the old table and remove old_id column
+      this.logger.log('Starting migration cleanup');
+
       await ncMeta.knexConnection.schema.dropTable(`${MetaTable.AUDIT}_old`);
+      this.logger.log('Dropped old audit table');
+
       await ncMeta.knexConnection.schema.alterTable(
         MetaTable.AUDIT,
         (table) => {
           table.dropColumn('old_id');
         },
       );
-      this.debugLog('Migration cleanup completed successfully');
+
+      this.logger.log('Removed old_id column from audit table');
+      this.logger.log('Migration cleanup completed successfully');
     } catch (e) {
-      this.debugLog('Error during migration cleanup: ', e);
+      this.logger.error('Error during migration cleanup', e.stack || e.message);
       throw e;
     }
   }

@@ -155,7 +155,9 @@
     "upgradeToUploadWsImage": "قم بالترقية لتحميل صورة لمساحة العمل",
     "upgradeToUploadWsImageSubtitle": "تسمح خطتك الحالية {activePlan} بالأيقونات والرموز التعبيرية فقط. قم بالترقية إلى خطة {plan} لتحميل صورة مخصصة كصورة رمزية لمساحة العمل.",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
-    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
+    "upgradeToUseRowColoring": "Upgrade to use row coloring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "Script",
@@ -572,6 +574,14 @@
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
       "apiCallsMonthly": "API calls (monthly)"
+    },
+    "coloring": {
+      "usingSingleSelectField": "Using Single select field",
+      "usingSingleSelectFieldDescription": "Colour records based on single select field",
+      "usingSingleSelectFieldTooltip": "No single select field found. Add one to enable select-field based row colouring.",
+      "usingConditions": "Using Conditions",
+      "usingConditionsDescription": "Colour records based on conditions",
+      "colourRecordsByField": "Colour records by field"
     }
   },
   "datatype": {
@@ -1345,7 +1355,12 @@
     "dataApiV2": "Data APIs V2",
     "metaApiV2": "Meta APIs V2",
     "showExtraFields": "Show additional fields",
-    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records"
+    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records",
+    "removeColouring": "Remove colouring",
+    "backgroundColour": "Background colour",
+    "addColour": "Add Colour",
+    "defaultColours": "Default colours",
+    "customColours": "Custom colours"
   },
   "activity": {
     "clickToResolve": "انقر للحل",

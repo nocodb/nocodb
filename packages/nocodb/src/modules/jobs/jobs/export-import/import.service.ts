@@ -22,6 +22,7 @@ import type {
   User,
   View,
 } from '~/models';
+import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import { sanitizeColumnName } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import {
@@ -1455,6 +1456,12 @@ export class ImportService {
       for (const view of viewsData) {
         const viewData = withoutId({
           ...view,
+          meta: RowColorViewHelpers.withContext(context).mapMetaColumn({
+            meta: view.meta,
+            idMap: {
+              get: getIdOrExternalId,
+            } as any,
+          }),
         });
 
         const vw = await this.createView(

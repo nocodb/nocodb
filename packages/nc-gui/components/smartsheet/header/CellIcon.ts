@@ -2,6 +2,9 @@ import { type ColumnType } from 'nocodb-sdk'
 import type { PropType } from '@vue/runtime-core'
 
 export const renderIcon = (column: ColumnType, abstractType: any) => {
+  if(column.title === 'Number') {
+    console.log(column, abstractType, isInt(column, abstractType), isFloat(column, abstractType))
+  }
   if (isPrimaryKey(column)) {
     return iconMap.cellSystemKey
   } else if (isSpecificDBType(column)) {

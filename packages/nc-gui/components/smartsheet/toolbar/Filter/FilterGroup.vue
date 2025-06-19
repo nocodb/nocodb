@@ -106,7 +106,6 @@ const onLockedViewFooterOpen = () => {}
 
 const innerAdd = async (isGroup: boolean) => {
   const prevValue = [...vModel.value]
-  console.log('props.parentFilter', props.parentFilter)
   if (isGroup && props.handler?.addFilterGroup) {
     await props.handler.addFilterGroup({
       type: 'add',

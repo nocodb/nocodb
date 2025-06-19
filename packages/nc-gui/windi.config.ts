@@ -12,6 +12,7 @@ import animations from '@windicss/plugin-animations'
 import questionMark from '@windicss/plugin-question-mark'
 
 import { theme as colors, themeColors, themeV2Colors, themeV3Colors, themeVariables } from './utils/colorsUtils'
+import { ROW_COLORS } from './constants/row-colors'
 
 const isEE = process.env.EE
 
@@ -48,6 +49,7 @@ export default defineConfig({
     'text-blue-500',
     'text-purple-500',
     'text-grey',
+    ...ROW_COLORS.map((color) => `bg-${color}`),
   ],
   plugins: [
     scrollbar,

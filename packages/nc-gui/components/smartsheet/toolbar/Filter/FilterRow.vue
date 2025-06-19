@@ -113,7 +113,12 @@ const onColumnChange = (fk_column_id: string) => {
       vModel.value.fk_value_col_id = null
     }
     vModel.value.comparison_op = comparisonOpList(evalUidt, parseProp(evalColumn.meta)?.date_format).find((compOp) =>
-      isComparisonOpAllowed(vModel.value, compOp),
+      isComparisonOpAllowed(
+        vModel.value,
+        compOp,
+        (evalColumn.filterUidt ?? evalColumn.uidt) as UITypes,
+        props.showNullAndEmptyInFilter,
+      ),
     )?.value
 
     if (isDateType(evalUidt) && !['blank', 'notblank'].includes(vModel.value.comparison_op!)) {

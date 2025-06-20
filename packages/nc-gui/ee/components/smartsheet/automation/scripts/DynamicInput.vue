@@ -55,8 +55,24 @@ const handleFileUpload = async (file: File) => {
           parsedContents = results.data
 
           if (props.content?.hasHeaderRow) {
-            parsedContents = parsedContents.slice(1)
+            // Extract headers from the first row
+            const headers = results.data[0]
+            // Transform remaining rows into array of key-value pairs
+            parsedContents = results.data.slice(1).map((row) => {
+              const rowObj = {}
+              headers.forEach((header, index) => {
+                if (header) {
+                  // Only use non-empty headers
+                  rowObj[header] = row[index]
+                }
+              })
+              return rowObj
+            })
+          } else {
+            // If no header row, keep as array of arrays
+            parsedContents = results.data
           }
+
           resolveInput({
             file,
             parsedContents,

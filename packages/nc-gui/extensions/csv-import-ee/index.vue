@@ -888,21 +888,21 @@ const fieldMappingColumns: NcTableColumnProps[] = [
     padding: '0 16px',
   },
   {
-    key: 'nocodb-field',
-    title: 'NocoDB Field',
+    key: 'csv-column',
+    title: 'CSV Column',
     minWidth: 252,
     padding: '0 16px',
   },
   {
     key: 'mapping',
-    title: '<-',
+    title: '->',
     minWidth: 48,
     width: 48,
     padding: '0 16px',
   },
   {
-    key: 'csv-column',
-    title: 'CSV Column',
+    key: 'nocodb-field',
+    title: 'NocoDB Field',
     minWidth: 252,
     padding: '0 16px',
   },
@@ -1356,7 +1356,7 @@ const errorMsgsTableColumns = [
               </NcModal>
               <div class="flex-1 flex flex-col gap-4 p-4">
                 <div class="flex items-center justify-between gap-3">
-                  <div class="text-sm font-weight-700 text-nc-content-gray">Select destination fields</div>
+                  <div class="text-sm font-weight-700 text-nc-content-gray">Match CSV columns to NocoDB fields</div>
                   <div>
                     <NcBadge class="!text-sm !h-5 bg-nc-bg-gray-medium truncate" :border="false"
                       >{{ selectedFieldDetails.selected }}/{{ selectedFieldDetails.total }} selected
@@ -1410,7 +1410,7 @@ const errorMsgsTableColumns = [
                       </NcBadge>
                     </div>
                     <template v-if="column.key === 'mapping'">
-                      <GeneralIcon icon="ncArrowLeft" />
+                      <GeneralIcon icon="ncArrowRight" />
                     </template>
                     <div v-if="column.key === 'csv-column'" class="w-full pl-3 text-left">
                       {{ column.title }}
@@ -1443,7 +1443,7 @@ const errorMsgsTableColumns = [
                       </template>
                     </div>
                     <template v-if="column.key === 'mapping'">
-                      <GeneralIcon icon="ncArrowLeft" />
+                      <GeneralIcon icon="ncArrowRight" />
                     </template>
                     <template v-if="column.key === 'csv-column'">
                       <a-form-item class="!my-0 w-full">

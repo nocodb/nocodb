@@ -939,6 +939,10 @@ onMounted(async () => {
   importConfig.value.encoding = importConfig.value.encoding || SupportedExportCharset['utf-8']
 })
 
+const customRow = (record: Record<string, any>) => ({
+  class: `${record.enabled ? 'selected' : ''} `,
+})
+
 const errorMsgsTableColumns = [
   {
     key: 'title',
@@ -1374,6 +1378,7 @@ const errorMsgsTableColumns = [
                   header-cell-class-name="!text-nc-content-gray-subtle2 !font-weight-700"
                   body-row-class-name="!cursor-default"
                   row-height="48px"
+                  :custom-row="customRow"
                 >
                   <template #headerCell="{ column }">
                     <template v-if="column.key === 'select'">
@@ -1514,7 +1519,7 @@ const errorMsgsTableColumns = [
           </div>
           <template v-else>
             <div
-              class="w-full flex items-center p-2 rounded-lg flex gap-4 border-1 border-nc-border-gray-medium cursor-pointer"
+              class="w-full flex items-center p-2 rounded-lg gap-4 border-1 border-nc-border-gray-medium cursor-pointer"
               @click="fullscreen = true"
             >
               <div

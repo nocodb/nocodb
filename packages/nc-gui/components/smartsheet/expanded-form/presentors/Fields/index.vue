@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, type ColumnType } from 'nocodb-sdk'
 
 /* interface */
 
@@ -27,7 +27,15 @@ const newRecordSubmitBtnText = toRef(props, 'newRecordSubmitBtnText')
 
 /* stores */
 
-const { commentsDrawer, changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
+const {
+  commentsDrawer,
+  changedColumns,
+  isNew,
+  loadRow: _loadRow,
+  row: _row,
+  meta,
+  isAllowedAddNewRecord,
+} = useExpandedFormStoreOrThrow()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
@@ -85,17 +93,28 @@ export default {
                   </div>
                 </NcMenuItem>
                 <NcDivider />
-                <NcMenuItem
+                <PermissionsTooltip
                   v-if="isUIAllowed('dataEdit') && !isNew"
-                  v-e="['c:row-expand:delete']"
-                  class="!text-red-500 !hover:bg-red-50"
-                  @click="!isNew && emits('deleteRow')"
+                  :entity="PermissionEntity.TABLE"
+                  :entity-id="meta?.id"
+                  :permission="PermissionKey.TABLE_RECORD_DELETE"
                 >
-                  <div data-testid="nc-expanded-form-delete">
-                    <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
-                    Delete record
-                  </div>
-                </NcMenuItem>
+                  <template #default="{ isAllowed }">
+                    <NcMenuItem
+                      v-e="['c:row-expand:delete']"
+                      :class="{
+                        '!text-red-500 !hover:bg-red-50': isAllowed,
+                      }"
+                      :disabled="!isAllowed"
+                      @click="!isNew && emits('deleteRow')"
+                    >
+                      <div data-testid="nc-expanded-form-delete">
+                        <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
+                        Delete record
+                      </div>
+                    </NcMenuItem>
+                  </template>
+                </PermissionsTooltip>
               </NcMenu>
             </template>
           </NcDropdown>
@@ -106,7 +125,7 @@ export default {
         <div v-if="isMobileMode && !isSqlView" class="p-2">
           <NcButton
             v-e="['c:row-expand:save']"
-            :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
+            :disabled="(!isAllowedAddNewRecord && isNew) || (changedColumns.size === 0 && !isUnsavedFormExist)"
             :loading="isSaving"
             class="nc-expand-form-save-btn !xs:(text-sm) !px-2"
             :class="{

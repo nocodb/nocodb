@@ -1,9 +1,19 @@
+export interface Template {
+  'Id': number
+  'Title': string
+  'Description': string
+  'Use Case': string
+  'Shared Base Url': string
+  'Industry': string | null
+  'Thumbnail': string | null
+}
+
 export const useTemplates = createSharedComposable(() => {
   const { $api } = useNuxtApp()
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const templates = ref([])
+  const templates = ref<Template[]>([])
   const isLoading = ref(false)
   const hasMore = ref(true)
   const page = ref(1)
@@ -40,13 +50,14 @@ export const useTemplates = createSharedComposable(() => {
         ...query,
       })
 
-      if (reset) {
-        templates.value = res.list || []
-      } else {
-        templates.value = [...templates.value, ...(res.list || [])]
+      if (Array.isArray(res)) {
+        if (reset) {
+          templates.value = res as Template[]
+        } else {
+          templates.value = [...templates.value, ...(res as Template[])]
+        }
+        hasMore.value = res.length === perPage.value
       }
-
-      hasMore.value = (res.list || []).length === perPage.value
 
       if (hasMore.value) {
         page.value++

@@ -84,10 +84,6 @@ watch(activeCategory, (newCategory) => {
   }
 })
 
-onMounted(() => {
-  loadTemplates({ reset: true })
-})
-
 const templateContainer = ref(null)
 const loadingTrigger = ref(null)
 
@@ -109,52 +105,65 @@ onMounted(() => {
     observer.disconnect()
   })
 })
+
+// Function to open template in a new tab
+const openTemplate = (url: string) => {
+  if (url) {
+    window.open(url, '_blank')
+  }
+}
 </script>
 
 <template>
-  <div class="container mx-auto py-8 px-4">
+  <div class="container mx-auto h-full py-8 px-4">
     <div class="flex flex-col gap-6">
       <div class="flex gap-8">
         <MarketplaceSidebar v-model:active-category="activeCategory" v-model:search-query="debouncedSearch" />
 
-        <div class="flex-1">
-          <h2 class="text-xl text-nc-content-gray font-bold">
-            {{ currentCategoryInfo.title }}
-          </h2>
-          <div class="text-nc-content-gray-subtle2">{{ currentCategoryInfo.subtitle }}</div>
-
-          <div ref="templateContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-            <template v-if="templates.length">
-              <div v-for="template in templates" :key="template.id" class="template-card">
-                <MarketplaceCard
-                  :title="template.title"
-                  :description="template.description"
-                  :image="template.image || 'https://via.placeholder.com/300x200'"
-                />
-              </div>
-            </template>
-
-            <template v-else-if="isLoading && !templates.length">
-              <div v-for="i in 6" :key="i" class="template-card-skeleton">
-                <div class="h-40 bg-gray-200 rounded-lg animate-pulse"></div>
-                <div class="h-6 bg-gray-200 rounded-lg mt-2 w-3/4 animate-pulse"></div>
-                <div class="h-4 bg-gray-200 rounded-lg mt-2 animate-pulse"></div>
-              </div>
-            </template>
-
-            <template v-else-if="!templates.length">
-              <div class="col-span-3 flex flex-col items-center justify-center py-12">
-                <div class="text-nc-content-gray-subtle2 text-lg">No templates found</div>
-                <div class="text-nc-content-gray-subtle2">Try adjusting your search or filters</div>
-              </div>
-            </template>
+        <div class="flex-1 flex flex-col">
+          <div class="mb-6">
+            <h2 class="text-xl text-nc-content-gray font-bold">
+              {{ currentCategoryInfo.title }}
+            </h2>
+            <div class="text-nc-content-gray-subtle2">{{ currentCategoryInfo.subtitle }}</div>
           </div>
 
-          <!-- Loading indicator and trigger for infinite scroll -->
-          <div v-if="hasMore" ref="loadingTrigger" class="py-8 flex justify-center">
-            <div v-if="isLoading" class="flex items-center gap-2">
-              <GeneralLoader size="medium" />
-              <span class="text-nc-content-gray-subtle2">Loading more templates...</span>
+          <!-- Scrollable template container -->
+          <div class="template-container-wrapper overflow-y-auto">
+            <div ref="templateContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 template-container">
+              <template v-if="templates.length">
+                <div
+                  v-for="template in templates"
+                  :key="template.Id"
+                  class="template-card"
+                  @click="openTemplate(template['Shared Base Url'])"
+                >
+                  <MarketplaceCard :title="template.Title" :description="template.Description" :image="template.Thumbnail" />
+                </div>
+              </template>
+
+              <template v-else-if="isLoading && !templates.length">
+                <div v-for="i in 6" :key="i" class="template-card-skeleton">
+                  <div class="h-40 bg-gray-200 rounded-lg animate-pulse"></div>
+                  <div class="h-6 bg-gray-200 rounded-lg mt-2 w-3/4 animate-pulse"></div>
+                  <div class="h-4 bg-gray-200 rounded-lg mt-2 animate-pulse"></div>
+                </div>
+              </template>
+
+              <template v-else-if="!templates.length">
+                <div class="col-span-3 flex flex-col items-center justify-center py-12">
+                  <div class="text-nc-content-gray-subtle2 text-lg">No templates found</div>
+                  <div class="text-nc-content-gray-subtle2">Try adjusting your search or filters</div>
+                </div>
+              </template>
+            </div>
+
+            <!-- Loading indicator and trigger for infinite scroll -->
+            <div v-if="hasMore" ref="loadingTrigger" class="py-4 flex justify-center">
+              <div v-if="isLoading" class="flex items-center gap-2">
+                <GeneralLoader size="medium" />
+                <span class="text-nc-content-gray-subtle2">Loading more templates...</span>
+              </div>
             </div>
           </div>
         </div>
@@ -164,6 +173,15 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
+.template-container-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  height: calc(100svh - 400px); /* Adjust height as needed */
+}
+
 .template-card {
   transition: transform 0.2s ease-in-out;
 

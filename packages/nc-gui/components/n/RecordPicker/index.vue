@@ -160,16 +160,24 @@ whenever(isOpen, () => {
       :disabled="disabled"
       icon-position="right"
       full-width
-      :class="{ 'record-picker-active': isOpen }"
-      class="hover:!bg-nc-bg-gray-extralight"
+      :class="{ 'record-picker-active': isOpen, '!bg-[#F5F5F5]': disabled }"
+      class="!border-[#d9d9d9]"
     >
       <span v-if="displayField && localState?.row" class="truncate text-left !leading-[1.5]">
         <SmartsheetPlainCell :model-value="localState?.row[displayField.title]" :column="displayField" />
       </span>
-      <span v-else class="truncate text-left !leading-[1.5]">{{ props.label }}</span>
+      <span
+        v-else
+        :class="{
+          'text-[rgba(0,0,0,.25)]': disabled,
+        }"
+        class="truncate text-left !leading-[1.5]"
+      >
+        {{ props.label }}
+      </span>
 
       <template #icon>
-        <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" class="self-center" />
+        <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" class="self-center text-gray-700" />
       </template>
     </NcButton>
 

@@ -12,6 +12,7 @@ const colOptionsHandlers = {
       barcode_value_field_id: 'fk_barcode_value_column_id',
       barcode_format: 'barcode_format',
     },
+    aggregate: false,
   },
   [UITypes.QrCode]: {
     condition: UITypes.QrCode,
@@ -19,6 +20,7 @@ const colOptionsHandlers = {
     fields: {
       qrcode_value_field_id: 'fk_qr_value_column_id',
     },
+    aggregate: false,
   },
   [UITypes.Links]: {
     condition: UITypes.Links,
@@ -28,6 +30,7 @@ const colOptionsHandlers = {
       related_table_id: 'fk_related_model_id',
       limit_record_selection_view_id: 'fk_target_view_id',
     },
+    aggregate: false,
   },
   [UITypes.LinkToAnotherRecord]: {
     condition: UITypes.LinkToAnotherRecord,
@@ -37,6 +40,7 @@ const colOptionsHandlers = {
       related_table_id: 'fk_related_model_id',
       limit_record_selection_view_id: 'fk_target_view_id',
     },
+    aggregate: false,
   },
   [UITypes.Lookup]: {
     condition: UITypes.Lookup,
@@ -45,6 +49,7 @@ const colOptionsHandlers = {
       related_field_id: 'fk_relation_column_id',
       related_table_lookup_field_id: 'fk_lookup_column_id',
     },
+    aggregate: false,
   },
   [UITypes.Rollup]: {
     condition: UITypes.Rollup,
@@ -54,6 +59,7 @@ const colOptionsHandlers = {
       related_table_rollup_field_id: 'fk_rollup_column_id',
       rollup_function: 'rollup_function',
     },
+    aggregate: false,
   },
   [UITypes.Formula]: {
     condition: UITypes.Formula,
@@ -61,6 +67,7 @@ const colOptionsHandlers = {
     fields: {
       formula: 'formula_raw',
     },
+    aggregate: false,
   },
   [UITypes.SingleSelect]: {
     condition: UITypes.SingleSelect,
@@ -69,6 +76,7 @@ const colOptionsHandlers = {
       choices:
         "json_agg(jsonb_build_object('title', title, 'color', color, 'id', id))",
     },
+    aggregate: true,
   },
   [UITypes.MultiSelect]: {
     condition: UITypes.MultiSelect,
@@ -77,6 +85,7 @@ const colOptionsHandlers = {
       choices:
         "json_agg(jsonb_build_object('title', title, 'color', color, 'id', id))",
     },
+    aggregate: true,
   },
   [UITypes.Button]: {
     condition: UITypes.Button,
@@ -93,6 +102,7 @@ const colOptionsHandlers = {
       model: 'model',
       type: 'type',
     },
+    aggregate: false,
   },
   [UITypes.LongText]: {
     condition: UITypes.LongText,
@@ -102,6 +112,7 @@ const colOptionsHandlers = {
       integration_id: 'fk_integration_id',
       model: 'model',
     },
+    aggregate: false,
   },
 };
 
@@ -113,7 +124,7 @@ const generateColumnOptionsCTEs = (knex) => {
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '_')}`;
 
-    if (config?.fields?.choices) {
+    if (config?.aggregate) {
       ctes[cteName] = (qb) => {
         const fieldMappings = Object.entries(config.fields)
           .map(([key, value]) => {

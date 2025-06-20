@@ -4,6 +4,8 @@ import { UITypes, isSystemColumn } from 'nocodb-sdk'
 
 const reloadData = inject(ReloadViewDataHookInj)!
 
+const reloadAggregate = inject(ReloadAggregateHookInj)
+
 const activeView = inject(ActiveViewInj, ref())
 
 const { meta, eventBus, isGrid, isGallery, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery, gridEditEnabled } =
@@ -70,6 +72,7 @@ watch(
 
 function onPressEnter() {
   reloadData.trigger({ shouldShowLoading: false, offset: 0 })
+  reloadAggregate.trigger()
 }
 
 const displayColumn = computed(() => {

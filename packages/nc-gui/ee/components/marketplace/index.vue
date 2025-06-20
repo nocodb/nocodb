@@ -96,12 +96,12 @@ const openTemplate = (url: string) => {
 
 onMounted(() => {
   const observer = new IntersectionObserver(
-    (entries) => {
+    useThrottleFn((entries) => {
       if (entries[0].isIntersecting && !isLoading.value && hasMore.value) {
         loadTemplates()
       }
-    },
-    { threshold: 0.1 },
+    }, 1000),
+    { threshold: 0.1, rootMargin: '200px' },
   )
 
   if (loadingTrigger.value) {
@@ -170,6 +170,7 @@ onMounted(() => {
 <style scoped lang="scss">
 .template-card {
   transition: transform 0.2s ease-in-out;
+  will-change: transform;
 
   &:hover {
     transform: translateY(-4px);

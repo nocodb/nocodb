@@ -9,7 +9,8 @@ let editor: monaco.editor.IStandaloneCodeEditor
 
 const { activeAutomation, activeBaseSchema } = storeToRefs(useAutomationStore())
 
-const { libCode, code, config, configValue, isSettingsOpen, shouldShowSettings } = useScriptStoreOrThrow()
+const { libCode, code, config, configValue, isSettingsOpen, shouldShowSettings, isCreateEditScriptAllowed } =
+  useScriptStoreOrThrow()
 
 const updateTypes = () => {
   const typeGenerator = new TypeGenerator()
@@ -103,12 +104,12 @@ onBeforeUnmount(() => {
 <template>
   <div class="flex h-full w-full nc-scripts-content-resizable-wrapper">
     <Splitpanes>
-      <Pane min-size="20" :size="70" class="flex flex-col h-full min-w-0">
+      <Pane v-show="isCreateEditScriptAllowed" min-size="20" :size="70" class="flex flex-col h-full min-w-0">
         <div class="w-full flex-1">
           <div ref="editorRef" class="h-full" />
         </div>
       </Pane>
-      <Pane :min-size="25" :size="30">
+      <Pane :min-size="25" :size="isCreateEditScriptAllowed ? 30 : 100">
         <SmartsheetAutomationScriptsConfigInput
           v-if="isSettingsOpen && shouldShowSettings"
           v-model:model-value="configValue"

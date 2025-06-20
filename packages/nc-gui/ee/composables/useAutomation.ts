@@ -8,6 +8,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   const { updateAutomation } = automationStore
   const { activeAutomation, isSettingsOpen } = storeToRefs(automationStore)
   const { activeProjectId } = storeToRefs(useBases())
+  const { isUIAllowed } = useRoles()
 
   const {
     runScript: executeScript,
@@ -24,6 +25,10 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
 
   const config = computed(() => {
     return parseScript(code.value) ?? {}
+  })
+
+  const isCreateEditScriptAllowed = computed(() => {
+    return isUIAllowed('scriptCreateOrEdit')
   })
 
   const playground = computed(() => {
@@ -91,10 +96,12 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   const updateScript = async ({ script, config }: { script?: string; config?: Record<string, any> }) => {
     if (!activeProjectId.value || !activeAutomation.value?.id) return
 
-    await updateAutomation(activeProjectId.value, activeAutomation.value.id, {
-      script,
-      config,
-    })
+    if (isCreateEditScriptAllowed.value) {
+      await updateAutomation(activeProjectId.value, activeAutomation.value.id, {
+        script,
+        config,
+      })
+    }
 
     if (config) {
       configValue.value = config
@@ -128,6 +135,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     isValidConfig,
     isSettingsOpen,
     shouldShowSettings,
+    isCreateEditScriptAllowed,
 
     // Script execution state
     isRunning,

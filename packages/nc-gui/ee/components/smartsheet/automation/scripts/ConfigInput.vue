@@ -11,7 +11,7 @@ const props = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'change'])
 
-const { updateScript, isSettingsOpen, isValidConfig } = useScriptStoreOrThrow()
+const { updateScript, isSettingsOpen, isValidConfig, isCreateEditScriptAllowed } = useScriptStoreOrThrow()
 
 const configValue = useVModel(props, 'modelValue', emit)
 
@@ -93,7 +93,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium h-[91svh] nc-scrollbar-md">
+  <div
+    :class="{
+      'border-l-1 border-nc-border-gray-medium': isCreateEditScriptAllowed,
+    }"
+    class="p-6 overflow-y-auto bg-nc-bg-gray-extralight h-[91svh] nc-scrollbar-md"
+  >
     <div class="flex mx-auto flex-col max-w-130 gap-6">
       <NcAlert v-if="!isValidConfig" type="warning" class="bg-nc-bg-default">
         <template #message> Setup script settings to run </template>

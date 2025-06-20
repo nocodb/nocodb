@@ -611,7 +611,7 @@ const showCreateNewAsDropdown = computed(() => {
           </template>
         </div>
       </div>
-      <Automation v-if="isAutomationEnabled && !isSharedBase" :base-id="base.id" />
+      <Automation v-if="isAutomationEnabled && !isSharedBase && isUIAllowed('scriptList')" :base-id="base.id" />
     </div>
 
     <slot name="footer"> </slot>

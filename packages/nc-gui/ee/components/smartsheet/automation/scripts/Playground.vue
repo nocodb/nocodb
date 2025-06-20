@@ -3,7 +3,8 @@ import { marked } from 'marked'
 import VueJsonPretty from 'vue-json-pretty'
 import DynamicInput from './DynamicInput.vue'
 
-const { isRunning, isFinished, playground, resolveInput, runScript, isValidConfig } = useScriptStoreOrThrow()
+const { isRunning, isFinished, playground, resolveInput, runScript, isValidConfig, isCreateEditScriptAllowed } =
+  useScriptStoreOrThrow()
 
 const playgroundContainer = ref<HTMLElement | null>(null)
 
@@ -29,7 +30,10 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
 <template>
   <div
     ref="playgroundContainer"
-    class="p-6 overflow-y-auto bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium h-[91svh] nc-scrollbar-md"
+    :class="{
+      'border-l-1 border-nc-border-gray-medium': isCreateEditScriptAllowed,
+    }"
+    class="p-6 overflow-y-auto bg-nc-bg-gray-extralight h-[91svh] nc-scrollbar-md"
   >
     <div v-if="isRunning || isFinished" class="flex mx-auto flex-col max-w-130 gap-6 pb-40">
       <div v-for="(item, index) in playground" :key="index" class="playground-item" :data-type="item.type">

@@ -6,10 +6,17 @@ ENV NODE_ENV=production
 ENV PORT=4444
 ENV NPM_CONFIG_CACHE=/tmp/.npm
 
-# Install PostgreSQL client tools and curl for health checks
+# Install PostgreSQL 17 client tools and curl for health checks
 RUN apt-get update && apt-get install -y \
-    postgresql-client \
+    wget \
+    ca-certificates \
+    gnupg \
+    lsb-release \
     curl \
+    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt/ bullseye-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y postgresql-client-17 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 

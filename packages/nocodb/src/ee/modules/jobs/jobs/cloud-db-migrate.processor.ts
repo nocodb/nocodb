@@ -112,6 +112,10 @@ export class CloudDbMigrateProcessor {
 
           resolve(true);
         } else if (status === 'failed') {
+          await Workspace.update(workspaceId, {
+            db_job_id: null,
+          });
+
           reject(new Error(message));
         } else {
           setTimeout(() => getStatus(resolve, reject), 1000);

@@ -37,23 +37,13 @@ const loadTableMeta = async () => {
 
 // Watch for table ID changes
 watch(
-  () => props.tableId,
-  () => {
-    if (props.tableId && props.visible) {
+  [() => props.tableId, () => props.visible],
+  ([newTableId, newVisible]) => {
+    if (newTableId && newVisible) {
       loadTableMeta()
     }
   },
   { immediate: true },
-)
-
-// Watch for modal visibility
-watch(
-  () => props.visible,
-  (visible) => {
-    if (visible && props.tableId) {
-      loadTableMeta()
-    }
-  },
 )
 </script>
 

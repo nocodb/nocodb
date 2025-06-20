@@ -916,8 +916,8 @@ const { message: templatedMessage } = useTemplatedMessage(
               type="warning"
               show-icon
               class="mt-6 bg-nc-bg-orange-light max-w-[max(33%,688px)] mx-auto"
-              message="Form cannot accept submissions."
-              description="Only specific members have permission to submit responses to this form."
+              :message="$t('objects.permissions.formCannotAcceptSubmissions')"
+              :description="$t('objects.permissions.formCannotAcceptSubmissionsDescription')"
             />
           </div>
 
@@ -1015,8 +1015,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                       type="warning"
                       show-icon
                       class="mt-6 bg-nc-bg-orange-light max-w-[max(33%,688px)] mx-auto"
-                      message="Form cannot accept submissions."
-                      description="Only specific members have permission to submit responses to this form."
+                      :message="$t('objects.permissions.formCannotAcceptSubmissions')"
+                      :description="$t('objects.permissions.formCannotAcceptSubmissionsDescription')"
                     />
                   </div>
 

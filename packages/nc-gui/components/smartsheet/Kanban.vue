@@ -485,8 +485,10 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
   // || isTouchEvent(event) // allow drag and drop for touch devices for now
 }
 
-const handleOpenNewRecordForm = (_stackTitle?: string) => {
+const handleOpenNewRecordForm = (stackTitle?: string) => {
   if (showRecordPlanLimitExceededModal()) return
+
+  selectedStackTitle.value = stackTitle ?? ''
 
   openNewRecordFormHook.trigger()
 }
@@ -682,12 +684,7 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                                     v-e="['c:kanban:add-new-record']"
                                     data-testid="nc-kanban-context-menu-add-new-record"
                                     :disabled="!isAllowed"
-                                    @click="
-                                      () => {
-                                        selectedStackTitle = stack.title
-                                        handleOpenNewRecordForm(stack.title)
-                                      }
-                                    "
+                                    @click="handleOpenNewRecordForm(stack.title)"
                                   >
                                     <div class="flex gap-2 items-center">
                                       <component :is="iconMap.plus" class="flex-none w-4 h-4" />
@@ -987,25 +984,22 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                                 :entity-id="meta?.id"
                                 :permission="PermissionKey.TABLE_RECORD_ADD"
                                 placement="right"
-                                show-overlay
                               >
-                                <NcButton
-                                  v-if="isUIAllowed('dataInsert') && !isSyncedTable"
-                                  size="xs"
-                                  type="secondary"
-                                  @click="
-                                    () => {
-                                      selectedStackTitle = stack.title
-                                      handleOpenNewRecordForm(stack.title)
-                                    }
-                                  "
-                                >
-                                  <div class="flex items-center gap-2">
-                                    <component :is="iconMap.plus" v-if="!isPublic && !isLocked" />
+                                <template #default="{ isAllowed }">
+                                  <NcButton
+                                    v-if="isUIAllowed('dataInsert') && !isSyncedTable"
+                                    size="xs"
+                                    type="secondary"
+                                    :disabled="!isAllowed"
+                                    @click="handleOpenNewRecordForm(stack.title)"
+                                  >
+                                    <div class="flex items-center gap-2">
+                                      <component :is="iconMap.plus" v-if="!isPublic && !isLocked" />
 
-                                    {{ $t('activity.newRecord') }}
-                                  </div>
-                                </NcButton>
+                                      {{ $t('activity.newRecord') }}
+                                    </div>
+                                  </NcButton>
+                                </template>
                               </PermissionsTooltip>
                             </div>
                           </template>
@@ -1019,24 +1013,21 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                           :entity="PermissionEntity.TABLE"
                           :entity-id="meta?.id"
                           :permission="PermissionKey.TABLE_RECORD_ADD"
-                          show-overlay
                         >
-                          <NcButton
-                            size="xs"
-                            type="secondary"
-                            @click="
-                              () => {
-                                selectedStackTitle = stack.title
-                                handleOpenNewRecordForm(stack.title)
-                              }
-                            "
-                          >
-                            <div class="flex items-center gap-2">
-                              <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
+                          <template #default="{ isAllowed }">
+                            <NcButton
+                              size="xs"
+                              type="secondary"
+                              :disabled="!isAllowed"
+                              @click="handleOpenNewRecordForm(stack.title)"
+                            >
+                              <div class="flex items-center gap-2">
+                                <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
 
-                              {{ $t('activity.newRecord') }}
-                            </div>
-                          </NcButton>
+                                {{ $t('activity.newRecord') }}
+                              </div>
+                            </NcButton>
+                          </template>
                         </PermissionsTooltip>
                         <div v-else>&nbsp;</div>
 

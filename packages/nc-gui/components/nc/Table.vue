@@ -231,7 +231,7 @@ watch(
         'nc-scrollbar-thin !overflow-auto max-h-full': !disableTableScroll,
       }"
       :style="{
-        maxHeight: disableTableScroll ? undefined : `calc(100% - ${tableToolbarHeight}px - ${tableFooterHeight}px)`,
+        maxHeight: disableTableScroll ? undefined : `calc(100% - ${tableToolbarHeight + tableFooterHeight}px)`,
       }"
     >
       <table
@@ -374,7 +374,7 @@ watch(
       v-if="!isDataLoading && !data?.length"
       class="flex-none nc-table-empty flex items-center justify-center py-8 px-6 h-full"
       :style="{
-        maxHeight: `calc(100% - ${headerRowHeight} - ${tableToolbarHeight}px - ${tableFooterHeight}px)`,
+        maxHeight: `calc(100% - ${headerRowHeight} - ${tableToolbarHeight + tableFooterHeight}px)`,
       }"
     >
       <div class="flex-none text-center flex flex-col items-center gap-3">

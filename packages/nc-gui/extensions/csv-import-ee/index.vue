@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import type { UploadFile } from 'ant-design-vue'
-import { type ColumnType, SupportedExportCharset, UITypes, charsetOptions, csvColumnSeparatorOptions } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  SupportedExportCharset,
+  UITypes,
+  charsetOptions,
+  csvColumnSeparatorOptions,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import papaparse from 'papaparse'
 import dayjs from 'dayjs'
 
@@ -9,6 +17,14 @@ import ImportStatus from './ImportStatus.vue'
 const { $api, $e } = useNuxtApp()
 
 const CHUNK_SIZE = 100
+
+const filterForDestinationColumn = (col: ColumnType): boolean => {
+  if ([UITypes.ForeignKey, UITypes.ID].includes(col.uidt as UITypes)) {
+    return true
+  } else {
+    return !isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)
+  }
+}
 
 const GENERATED_COLUMN_TYPES = [
   UITypes.Links,
@@ -41,10 +57,11 @@ interface ImportType {
   tooltip: string
 }
 
-interface ImportColumnType {
+interface SrcDestMappingType {
+  srcTitle: string
   enabled: boolean
+  destCn: string
   mapIndex: string
-  columnId: string
 }
 
 interface ImportPayloadType {
@@ -60,7 +77,7 @@ interface ImportPayloadType {
   upsert: boolean
   header: boolean
   upsertColumnId?: string
-  importColumns: ImportColumnType[]
+  srcDestMapping: SrcDestMappingType[]
   importType: ImportType['type']
   stats: { inserted: number | null; updated: number | null; error?: { title?: string; message: string } }
   status?: 'initial' | 'inprogress' | 'completed' | 'failed'
@@ -140,6 +157,15 @@ const parsedData = ref<any>()
 
 const columns = ref<Record<string, ColumnType>>({})
 
+const columnByTitle = computed(() => {
+  return Object.values(columns.value).reduce((acc, column) => {
+    if (column.title) {
+      acc[column.title] = column
+    }
+    return acc
+  }, {} as Record<string, ColumnType>)
+})
+
 const importPayloadPlaceholder: ImportPayloadType = {
   step: 0,
   file: {
@@ -153,7 +179,7 @@ const importPayloadPlaceholder: ImportPayloadType = {
   upsert: false,
   header: true,
   upsertColumnId: undefined,
-  importColumns: [],
+  srcDestMapping: [],
   importType: 'insertAndUpdate',
   stats: {
     inserted: null,
@@ -246,36 +272,29 @@ const headers = computed(() => {
     })
 })
 
-const tableColumns = computed(() => {
-  return importPayload.value.importColumns.reduce((acc, importColumn) => {
-    const column = columns.value[importColumn.columnId]
-    if (!column.id || !column.title || GENERATED_COLUMN_TYPES.includes(column.uidt as UITypes)) return acc
-    acc.push({
-      label: column.title,
-      value: column.id,
-    })
-    return acc
-  }, [] as { label: string; value: string }[])
+const nocodbTableColumns = computed(() => {
+  return Object.values(columns.value).filter((c) => c.id && !c.system && !GENERATED_COLUMN_TYPES.includes(c.uidt as UITypes))
 })
 
 const readyForImport = computed(() => {
   const isUpsertColumnSelected = importPayload.value.upsert
     ? importPayload.value.upsertColumnId &&
-      importPayload.value.importColumns.find(
-        (column) => column.columnId === importPayload.value.upsertColumnId && !!column.mapIndex,
+      importPayload.value.srcDestMapping.find(
+        (column) => !!column.destCn && columnByTitle.value[column.destCn]?.id === importPayload.value.upsertColumnId,
       )
     : true
+
   return (
     importPayload.value.tableId &&
-    Object.values(importPayload.value.importColumns).some((column) => column.enabled && column.mapIndex) &&
+    Object.values(importPayload.value.srcDestMapping).some((column) => column.enabled && column.destCn) &&
     isUpsertColumnSelected
   )
 })
 
 const selectedFieldDetails = computed(() => {
   return {
-    total: importPayload.value?.importColumns?.length ?? 0,
-    selected: (importPayload.value?.importColumns || []).filter((c) => !!c?.enabled)?.length ?? 0,
+    total: importPayload.value?.srcDestMapping?.length ?? 0,
+    selected: (importPayload.value?.srcDestMapping || []).filter((c) => !!c?.enabled && !!c.destCn)?.length ?? 0,
   }
 })
 
@@ -285,21 +304,25 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
     const tableMeta = await getTableMeta(table.id)
     if (tableMeta?.columns) {
       columns.value = tableMeta.columns.reduce((acc, column) => {
-        if (!column.id) return acc
+        if (!column.id || !filterForDestinationColumn(column)) return acc
         acc[column.id] = column
         return acc
       }, {} as Record<string, ColumnType>)
 
-      importPayload.value.importColumns = tableMeta.columns.reduce((acc, column) => {
-        if (!column.id || column.system || GENERATED_COLUMN_TYPES.includes(column.uidt as UITypes)) return acc
+      const nocodbColumnsToMap = tableMeta.columns.filter(
+        (c) => c.id && !c.system && !GENERATED_COLUMN_TYPES.includes(c.uidt as UITypes) && c.title?.toLocaleLowerCase() !== 'id',
+      )
 
-        const mapIndex =
-          headers.value.find((h) => h.label === column.title && column.title?.toLocaleLowerCase() !== 'id')?.value ?? ''
+      importPayload.value.srcDestMapping = headers.value.map((h) => {
+        const column = nocodbColumnsToMap.find((c) => searchCompare([c.title], h.label))
 
-        acc.push({ enabled: !!mapIndex, mapIndex, columnId: column.id })
-
-        return acc
-      }, [] as ImportColumnType[])
+        return {
+          srcTitle: h.label,
+          enabled: !!column,
+          destCn: column?.title ?? '',
+          mapIndex: h.value,
+        }
+      })
     }
     importPayload.value.tableName = table?.title
     importPayload.value.tableIcon = table?.meta?.icon
@@ -392,24 +415,25 @@ const handleChange = (info: { file: UploadFile }) => {
   }
 }
 
-const onMappingField = (columnId: string, value: string) => {
-  const columnMeta = importPayload.value.importColumns.find((m) => m.columnId === columnId)
-
-  if (columnMeta && !columnMeta.enabled) columnMeta.enabled = true
+const onMappingField = (srcTitle: string, value: string) => {
+  const columnMeta = importPayload.value.srcDestMapping.find((m) => m.srcTitle === srcTitle)
 
   if (columnMeta) {
     if (value && !columnMeta.enabled) columnMeta.enabled = true
-    if (!value && columnMeta.enabled) columnMeta.enabled = false
+    if (!value && columnMeta.enabled) {
+      columnMeta.enabled = false
+      columnMeta.destCn = ''
+    }
   }
 
   updateHistory(true)
 }
 
 const onUpsertColumnChange = (columnId: string) => {
-  importPayload.value.importColumns.forEach((m) => {
-    if (m.columnId === columnId && !m.enabled) {
+  importPayload.value.srcDestMapping.forEach((m) => {
+    if (m.destCn === columns.value[columnId]?.title && !m.enabled) {
       m.enabled = true
-    } else if (!m.mapIndex && m.enabled) {
+    } else if (!m.destCn && m.enabled) {
       m.enabled = false
     }
   })
@@ -473,10 +497,9 @@ const prepareDataToImport = () => {
   // map data
   data = data
     .map((row: string[]) => {
-      return importPayload.value.importColumns.reduce((acc, importMeta) => {
-        const column = columns.value[importMeta.columnId]
-        if (importMeta.enabled && importMeta.mapIndex && column.title) {
-          acc[column.title] = row[parseInt(importMeta.mapIndex)]
+      return importPayload.value.srcDestMapping.reduce((acc, importMeta) => {
+        if (importMeta.enabled && importMeta.destCn) {
+          acc[importMeta.destCn] = row[parseInt(importMeta.mapIndex)]
         }
         return acc
       }, {} as Record<string, any>)
@@ -849,20 +872,20 @@ const newImport = () => {
 
 const isAllMappedFieldsSelected = computed(() => {
   return (
-    !!importPayload.value.importColumns.length &&
-    importPayload.value.importColumns.filter((c) => !!c.mapIndex).every((c) => c.enabled === true)
+    !!importPayload.value.srcDestMapping.length &&
+    importPayload.value.srcDestMapping.filter((c) => !!c.destCn).every((c) => c.enabled)
   )
 })
 
 const isSomeFieldsSelected = computed(() => {
-  return !!importPayload.value.importColumns.length && importPayload.value.importColumns.some((c) => c.enabled === true)
+  return !!importPayload.value.srcDestMapping.length && importPayload.value.srcDestMapping.some((c) => c.enabled)
 })
 
 const onClickSelectAllFields = (value: boolean) => {
-  for (const importMeta of importPayload.value.importColumns) {
-    if (!importMeta.mapIndex) continue
+  for (const importMeta of importPayload.value.srcDestMapping) {
+    if (!importMeta.destCn) continue
 
-    if (!value && importPayload.value.upsertColumnId === importMeta.columnId) continue
+    if (!value && importPayload.value.upsertColumnId === columns.value[importMeta.destCn]?.id) continue
 
     importMeta.enabled = value
   }
@@ -942,6 +965,16 @@ onMounted(async () => {
 const customRow = (record: Record<string, any>) => ({
   class: `${record.enabled ? 'selected' : ''} `,
 })
+
+function getUnselectedFields(record: Record<string, any>) {
+  // if it is not selected, then pass validation
+  const allRecord = importPayload.value.srcDestMapping
+
+  return Object.values(columns.value).filter((c) => {
+    // Exclude columns that are already mapped, except for the current record's `destCn`
+    return !allRecord?.some((item) => item.srcTitle !== record.srcTitle && item.destCn === c.title)
+  })
+}
 
 const errorMsgsTableColumns = [
   {
@@ -1282,18 +1315,18 @@ const errorMsgsTableColumns = [
                               dropdown-class-name="w-[254px]"
                               @change="onUpsertColumnChange"
                             >
-                              <a-select-option v-for="(opt, i) of tableColumns" :key="i" :value="opt.value">
+                              <a-select-option v-for="(col, i) of nocodbTableColumns" :key="i" :value="col.id">
                                 <div class="flex items-center gap-2 w-full">
                                   <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                                     <template #title>
-                                      {{ opt.label }}
+                                      {{ col.title }}
                                     </template>
-                                    {{ opt.label }}
+                                    {{ col.title }}
                                   </NcTooltip>
 
                                   <component
                                     :is="iconMap.check"
-                                    v-if="importPayload.upsertColumnId === opt.value"
+                                    v-if="importPayload.upsertColumnId === col.id"
                                     id="nc-selected-item-icon"
                                     class="flex-none text-primary w-4 h-4"
                                   />
@@ -1370,11 +1403,9 @@ const errorMsgsTableColumns = [
 
                 <NcTable
                   :columns="fieldMappingColumns"
-                  :data="importPayload.importColumns"
+                  :data="importPayload.srcDestMapping"
                   class="flex-1"
                   :bordered="false"
-                  :disable-table-scroll="!!errorMsgs.length"
-                  header-row-height="40px"
                   header-cell-class-name="!text-nc-content-gray-subtle2 !font-weight-700"
                   body-row-class-name="!cursor-default"
                   row-height="48px"
@@ -1388,7 +1419,7 @@ const errorMsgsTableColumns = [
                         @update:checked="onClickSelectAllFields"
                       />
                     </template>
-                    <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-3">
+                    <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-3 pl-3">
                       {{ column.title }}
 
                       <NcBadge
@@ -1417,62 +1448,61 @@ const errorMsgsTableColumns = [
                     <template v-if="column.key === 'mapping'">
                       <GeneralIcon icon="ncArrowRight" />
                     </template>
-                    <div v-if="column.key === 'csv-column'" class="w-full pl-3 text-left">
+                    <div v-if="column.key === 'csv-column'" class="w-full text-left">
                       {{ column.title }}
                     </div>
                   </template>
 
                   <template #bodyCell="{ column, record: importMeta }">
                     <template v-if="column.key === 'select'">
-                      <NcTooltip :disabled="importMeta.enabled || !!importMeta.mapIndex">
-                        <template #title>Select CSV Column to map</template>
+                      <NcTooltip :disabled="importMeta.enabled || !!importMeta.destCn">
+                        <template #title>Select NocoDB field to map</template>
                         <NcCheckbox
                           v-model:checked="importMeta.enabled"
-                          :disabled="importPayload.upsertColumnId === importMeta.columnId || !importMeta.mapIndex"
+                          :disabled="!importMeta.destCn || importPayload.upsertColumnId === columnByTitle[importMeta.destCn]?.id"
                           @change="updateHistory(true)"
                         />
                       </NcTooltip>
                     </template>
-                    <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-2">
-                      <template v-if="columns[importMeta.columnId]">
-                        <component
-                          :is="getUIDTIcon(columns[importMeta.columnId].uidt!)"
-                          v-if="columns[importMeta.columnId]?.uidt"
-                          class="flex-none w-3.5 h-3.5"
-                        />
-                        <NcTooltip class="truncate max-w-[calc(100%_-_24px)]" show-on-truncate-only>
-                          <template #title> {{ columns[importMeta.columnId].title }} </template>
+                    <div v-if="column.key === 'csv-column'" class="w-full flex items-center gap-2">
+                      <NcTooltip class="truncate max-w-[calc(100%_-_24px)]" show-on-truncate-only>
+                        <template #title> {{ importMeta.srcTitle }} </template>
 
-                          {{ columns[importMeta.columnId].title }}
-                        </NcTooltip>
-                      </template>
+                        {{ importMeta.srcTitle }}
+                      </NcTooltip>
                     </div>
+
                     <template v-if="column.key === 'mapping'">
                       <GeneralIcon icon="ncArrowRight" />
                     </template>
-                    <template v-if="column.key === 'csv-column'">
+
+                    <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-2">
                       <a-form-item class="!my-0 w-full">
                         <NcSelect
-                          :value="importMeta.mapIndex || null"
+                          v-model:value="importMeta.destCn"
+                          class="nc-field-select-input w-full nc-select-shadow !border-none"
                           show-search
                           allow-clear
-                          :filter-option="(input, option) => antSelectFilterOption(input, option, 'data-label')"
-                          class="nc-field-select-input w-full nc-select-shadow !border-none"
                           :placeholder="`-${$t('labels.multiField.selectField').toLowerCase()}-`"
-                          @update:value="(value) => (importMeta.mapIndex = value)"
-                          @change="onMappingField(importMeta.columnId, $event)"
+                          dropdown-class-name="nc-dropdown-filter-field"
+                          @update:value="(value) => (importMeta.destCn = value)"
+                          @change="onMappingField(importMeta.srcTitle, $event)"
                         >
-                          <a-select-option v-for="(col, i) of headers" :key="i" :value="col.value" :data-label="col.label">
+                          <template #suffixIcon>
+                            <GeneralIcon icon="arrowDown" class="text-current" />
+                          </template>
+                          <a-select-option v-for="(col, i) of getUnselectedFields(importMeta)" :key="i" :value="col.title">
                             <div class="flex items-center gap-2 w-full">
+                              <component :is="getUIDTIcon(col.uidt as UITypes)" class="flex-none w-3.5 h-3.5" />
                               <NcTooltip class="truncate flex-1" show-on-truncate-only>
                                 <template #title>
-                                  {{ col.label }}
+                                  {{ col.title }}
                                 </template>
-                                {{ col.label }}
+                                {{ col.title }}
                               </NcTooltip>
                               <component
                                 :is="iconMap.check"
-                                v-if="importMeta.mapIndex === col.value"
+                                v-if="importMeta.destCn === col.title"
                                 id="nc-selected-item-icon"
                                 class="flex-none text-primary w-4 h-4"
                               />
@@ -1480,7 +1510,7 @@ const errorMsgsTableColumns = [
                           </a-select-option>
                         </NcSelect>
                       </a-form-item>
-                    </template>
+                    </div>
                   </template>
                 </NcTable>
               </div>

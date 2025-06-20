@@ -13,6 +13,7 @@ const { libCode, code, config, configValue, isSettingsOpen, shouldShowSettings, 
   useScriptStoreOrThrow()
 
 const updateTypes = () => {
+  if (!activeBaseSchema.value) return
   const typeGenerator = new TypeGenerator()
 
   monaco.languages.typescript.typescriptDefaults.setExtraLibs([

@@ -978,24 +978,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      if (data[column.column_name] !== undefined) {
-        const permissionObj = cookie?.permissions?.find(
-          (p) =>
-            p.entity === PermissionEntity.FIELD &&
-            p.entity_id === column.id &&
-            p.permission === PermissionKey.RECORD_FIELD_EDIT,
-        );
-
-        if (permissionObj && cookie?.user) {
-          const permission = Permission.isAllowed(permissionObj, {
-            id: cookie.user.id,
-            role: getProjectRole(cookie.user),
-          });
-
-          if (!permission) {
-            NcError.forbidden('You are not allowed to edit this field');
-          }
-        }
+      if (
+        data[column.column_name] !== undefined &&
+        // if inserting data with column default value, skip permission check
+        !(isInsertData && column.cdf === data[column.column_name])
+      ) {
+        await this.checkPermission({
+          entity: PermissionEntity.FIELD,
+          entityId: column.id,
+          permission: PermissionKey.RECORD_FIELD_EDIT,
+          user: cookie?.user,
+          req: cookie,
+        });
       }
     }
 
@@ -1078,27 +1072,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       });
     }
 
-    const permissionObj = req?.permissions?.find(
-      (p) =>
-        p.entity === PermissionEntity.TABLE &&
-        p.entity_id === this.model.id &&
-        p.permission === PermissionKey.TABLE_RECORD_ADD,
-    );
-
-    if (permissionObj) {
-      if (!req?.user) {
-        NcError.forbidden('You are not allowed to insert into this table');
-      }
-
-      const permission = Permission.isAllowed(permissionObj, {
-        id: req.user.id,
-        role: getProjectRole(req.user),
-      });
-
-      if (!permission) {
-        NcError.forbidden('You are not allowed to insert into this table');
-      }
-    }
+    await this.checkPermission({
+      entity: PermissionEntity.TABLE,
+      entityId: this.model.id,
+      permission: PermissionKey.TABLE_RECORD_ADD,
+      user: req?.user,
+      req,
+    });
 
     await this.handleHooks('before.insert', null, data, req);
   }
@@ -1145,27 +1125,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       });
     }
 
-    const permissionObj = req?.permissions?.find(
-      (p) =>
-        p.entity === PermissionEntity.TABLE &&
-        p.entity_id === this.model.id &&
-        p.permission === PermissionKey.TABLE_RECORD_ADD,
-    );
-
-    if (permissionObj) {
-      if (!req?.user) {
-        NcError.forbidden('You are not allowed to insert into this table');
-      }
-
-      const permission = Permission.isAllowed(permissionObj, {
-        id: req.user.id,
-        role: getProjectRole(req.user),
-      });
-
-      if (!permission) {
-        NcError.forbidden('You are not allowed to insert into this table');
-      }
-    }
+    await this.checkPermission({
+      entity: PermissionEntity.TABLE,
+      entityId: this.model.id,
+      permission: PermissionKey.TABLE_RECORD_ADD,
+      user: req?.user,
+      req,
+    });
 
     await this.handleHooks('before.bulkInsert', null, data, req);
   }
@@ -3302,61 +3268,25 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async beforeDelete(data: any, _trx: any, req): Promise<void> {
-    const permissionObj = req?.permissions?.find(
-      (p) =>
-        p.entity === PermissionEntity.TABLE &&
-        p.entity_id === this.model.id &&
-        p.permission === PermissionKey.TABLE_RECORD_DELETE,
-    );
-
-    if (permissionObj) {
-      if (!req?.user) {
-        NcError.forbidden(
-          'You are not allowed to delete records from this table',
-        );
-      }
-
-      const permission = Permission.isAllowed(permissionObj, {
-        id: req.user.id,
-        role: getProjectRole(req.user),
-      });
-
-      if (!permission) {
-        NcError.forbidden(
-          'You are not allowed to delete records from this table',
-        );
-      }
-    }
+    await this.checkPermission({
+      entity: PermissionEntity.TABLE,
+      entityId: this.model.id,
+      permission: PermissionKey.TABLE_RECORD_DELETE,
+      user: req?.user,
+      req,
+    });
 
     return super.beforeDelete(data, _trx, req);
   }
 
   public async beforeBulkDelete(_data: any, _trx: any, req): Promise<void> {
-    const permissionObj = req?.permissions?.find(
-      (p) =>
-        p.entity === PermissionEntity.TABLE &&
-        p.entity_id === this.model.id &&
-        p.permission === PermissionKey.TABLE_RECORD_DELETE,
-    );
-
-    if (permissionObj) {
-      if (!req?.user) {
-        NcError.forbidden(
-          'You are not allowed to delete records from this table',
-        );
-      }
-
-      const permission = Permission.isAllowed(permissionObj, {
-        id: req.user.id,
-        role: getProjectRole(req.user),
-      });
-
-      if (!permission) {
-        NcError.forbidden(
-          'You are not allowed to delete records from this table',
-        );
-      }
-    }
+    await this.checkPermission({
+      entity: PermissionEntity.TABLE,
+      entityId: this.model.id,
+      permission: PermissionKey.TABLE_RECORD_DELETE,
+      user: req?.user,
+      req,
+    });
 
     return super.beforeBulkDelete(_data, _trx, req);
   }
@@ -3512,6 +3442,56 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         fk_model_id: this.model.id,
         count,
       });
+    }
+  }
+
+  async checkPermission(params: {
+    entity: PermissionEntity;
+    entityId: string | string[];
+    permission: PermissionKey;
+    user: any;
+    req: any;
+  }) {
+    const { entity, entityId, permission, user, req } = params;
+
+    const permissionObj = req?.permissions?.find(
+      (p) =>
+        p.entity === entity &&
+        (Array.isArray(entityId)
+          ? entityId.includes(p.entity_id)
+          : p.entity_id === entityId) &&
+        p.permission === permission,
+    );
+
+    let errorMessage = 'You are not allowed for this action';
+
+    switch (permission) {
+      case PermissionKey.TABLE_RECORD_ADD:
+        errorMessage = 'You are not allowed to insert into this table';
+        break;
+      case PermissionKey.TABLE_RECORD_DELETE:
+        errorMessage = 'You are not allowed to delete records from this table';
+        break;
+      case PermissionKey.RECORD_FIELD_EDIT:
+        errorMessage = 'You are not allowed to edit this field';
+        break;
+      default:
+        errorMessage = 'You are not allowed to access this table';
+    }
+
+    if (permissionObj) {
+      if (!user) {
+        NcError.forbidden(errorMessage);
+      }
+
+      const hasPermission = Permission.isAllowed(permissionObj, {
+        id: user.id,
+        role: getProjectRole(user),
+      });
+
+      if (!hasPermission) {
+        NcError.forbidden(errorMessage);
+      }
     }
   }
 }

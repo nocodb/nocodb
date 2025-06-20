@@ -5351,7 +5351,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         if (alias) {
           if (ltarMap[key]) {
             // Handle LTAR/Lookup columns
-            if (ncIsArray(value) && value.length > 0 && ncIsObject(value[0])) {
+            if (
+              ncIsArray(value) &&
+              value.length > 0 &&
+              ncIsObject(value.filter((k) => k)[0])
+            ) {
               // Transform array of objects
               item[alias] = value.map((arrVal) =>
                 transformObject(arrVal, idToAliasMap),

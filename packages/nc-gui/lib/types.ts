@@ -660,6 +660,7 @@ type CanvasEditEnabledType = {
   height: number | string
   fixed: boolean
   path: Array<number>
+  isCellEditable?: boolean
 } | null
 
 type CanvasCellEventDataInjType = ExtractInjectedReactive<typeof CanvasCellEventDataInj>

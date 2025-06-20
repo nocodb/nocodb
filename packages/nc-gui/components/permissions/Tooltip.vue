@@ -14,6 +14,7 @@ interface Props {
   defaultTooltip?: string
   showPointerEventNone?: boolean
   disabled?: boolean
+  arrow?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -23,7 +24,10 @@ const props = withDefaults(defineProps<Props>(), {
   defaultTooltip: '',
   showPointerEventNone: true,
   disabled: false,
+  arrow: false,
 })
+
+const { t } = useI18n()
 
 const { isAllowed: _isAllowed } = usePermissions()
 
@@ -51,13 +55,13 @@ const tooltipDescription = computed(() => {
 
   switch (props.permission) {
     case PermissionKey.TABLE_RECORD_ADD:
-      return 'You do not have permission to create records in this table'
+      return t('objects.permissions.addNewRecordTooltip')
     case PermissionKey.TABLE_RECORD_DELETE:
-      return 'You do not have permission to delete records in this table'
+      return t('objects.permissions.deleteRecordTooltip')
     case PermissionKey.RECORD_FIELD_EDIT:
-      return 'You do not have permission to edit this field'
+      return t('objects.permissions.editFieldTooltip')
     default:
-      return 'You do not have permission to perform this action'
+      return t('objects.permissions.generalPermissionTooltip')
   }
 })
 
@@ -75,7 +79,7 @@ const isAllowed = computed(() => {
 </script>
 
 <template>
-  <NcTooltip :disabled="disabled || (isAllowed && !defaultTooltip)" :placement="placement" :arrow="false">
+  <NcTooltip :disabled="isAllowed && !defaultTooltip" :placement="placement" :arrow="arrow">
     <template #title>
       <div v-if="!isAllowed" class="flex flex-col gap-1">
         <div class="text-captionBold">{{ tooltipTitle }}</div>

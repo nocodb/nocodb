@@ -171,6 +171,7 @@ export function useCopyPaste({
       return false
     }
 
+    // Keep this check at the end so that readonly or other field restrictions get priority over permission check
     if (col.id && !isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)) {
       message.toast('You do not have permission to paste into this field')
       return false

@@ -582,6 +582,12 @@
       "usingConditions": "Using Conditions",
       "usingConditionsDescription": "Colour records based on conditions",
       "colourRecordsByField": "Colour records by field"
+    },
+    "permissions": {
+      "addNewRecordTooltip": "You do not have permission to create records in this table",
+      "deleteRecordTooltip": "You do not have permission to delete records in this table",
+      "editFieldTooltip": "You do not have permission to edit this field",
+      "generalPermissionTooltip": "You do not have permission to perform this action"
     }
   },
   "datatype": {

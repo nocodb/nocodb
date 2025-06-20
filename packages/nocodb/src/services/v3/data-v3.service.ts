@@ -15,24 +15,29 @@ import type {
 } from './data-v3.types';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
+import type { ReusableParams } from '~/utils';
 import { Column, Model, Source } from '~/models';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
 import { DataTableService } from '~/services/data-table.service';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-
-const V3_INSERT_LIMIT = 10;
+import {
+  MAX_NESTING_DEPTH,
+  QUERY_STRING_FIELD_ID_ON_RESULT,
+  V3_INSERT_LIMIT,
+} from '~/constants';
+import { processConcurrently, reuseOrSave } from '~/utils';
 
 interface ModelInfo {
   model: Model;
-  primaryKey: string;
+  primaryKey: Column;
   primaryKeys: Column[];
   columns: Column[];
 }
 
 interface RelatedModelInfo {
   model: Model;
-  primaryKey: string;
+  primaryKey: Column;
   primaryKeys: Column[];
 }
 
@@ -51,10 +56,15 @@ export class DataV3Service {
       modelId,
     });
     const columns = await model.getColumns(context);
-    const primaryKey = model.primaryKey.title;
+    const primaryKey = model.primaryKey;
     const primaryKeys = model.primaryKeys;
 
-    return { model, primaryKey, primaryKeys, columns };
+    return {
+      model,
+      primaryKey,
+      primaryKeys,
+      columns,
+    };
   }
 
   /**
@@ -68,7 +78,7 @@ export class DataV3Service {
       column.colOptions as LinkToAnotherRecordColumn
     ).getRelatedTable(context);
     await relatedModel.getColumns(context);
-    const relatedPrimaryKey = relatedModel.primaryKey.title;
+    const relatedPrimaryKey = relatedModel.primaryKey;
     const primaryKeys = relatedModel.primaryKeys;
 
     return { model: relatedModel, primaryKey: relatedPrimaryKey, primaryKeys };
@@ -95,20 +105,40 @@ export class DataV3Service {
   /**
    * Transform a record to the v3 format {id, fields}
    */
-  private async transformRecordToV3Format(
-    context: NcContext,
-    record: any,
-    primaryKey: string,
-    primaryKeys?: Column[],
-    requestedFields?: string[],
-    columns?: Column[],
-    nestedLimit?: number,
-  ): Promise<DataRecord> {
+  private async transformRecordToV3Format(param: {
+    context: NcContext;
+    record: any;
+    primaryKey: Column;
+    primaryKeys?: Column[];
+    requestedFields?: string[];
+    columns?: Column[];
+    nestedLimit?: number;
+    skipSubstitutingColumnIds?: boolean;
+    reuse?: ReusableParams;
+    depth?: number;
+  }): Promise<DataRecord> {
+    const {
+      context,
+      record,
+      primaryKey,
+      primaryKeys,
+      requestedFields,
+      columns,
+      nestedLimit,
+      skipSubstitutingColumnIds,
+      reuse = {},
+      depth = 0,
+    } = param;
+
+    const getPrimaryKey = (column: Column) => {
+      return skipSubstitutingColumnIds ? column.id : column.title;
+    };
+
     // If specific fields were requested, only include those in the fields object
     // Otherwise, include all non-primary-key fields
     const primaryKeyTitles = primaryKeys
-      ? primaryKeys.map((pk) => pk.title)
-      : [primaryKey];
+      ? primaryKeys.map((pk) => getPrimaryKey(pk))
+      : [getPrimaryKey(primaryKey)];
 
     const shouldIncludeField = (key: string) => {
       // For APIv3, primary keys should NEVER be in the fields object
@@ -137,41 +167,90 @@ export class DataV3Service {
       if (columns) {
         const column = columns.find((col) => col.title === key);
         if (column?.uidt === UITypes.LinkToAnotherRecord) {
+          // Get column options to determine relation type
+          const colOptions = (await column.getColOptions(
+            context,
+          )) as LinkToAnotherRecordColumn;
+          const relationType = colOptions.type;
+
           if (Array.isArray(value)) {
-            // Handle array of linked records
-            if (nestedLimit && value.length > nestedLimit) {
-              transformedFields[key] = await Promise.all(
-                value.slice(0, nestedLimit).map(async (nestedRecord) => {
-                  const {
-                    primaryKey: relatedPrimaryKey,
-                    primaryKeys: relatedPrimaryKeys,
-                  } = await this.getRelatedModelInfo(context, column);
-                  return this.transformRecordToV3Format(
-                    context,
-                    nestedRecord,
-                    relatedPrimaryKey,
-                    relatedPrimaryKeys,
-                    undefined,
-                  );
-                }),
-              );
-            } else {
-              transformedFields[key] = await Promise.all(
-                value.map(async (nestedRecord) => {
-                  const {
-                    primaryKey: relatedPrimaryKey,
-                    primaryKeys: relatedPrimaryKeys,
-                  } = await this.getRelatedModelInfo(context, column);
-                  return this.transformRecordToV3Format(
-                    context,
-                    nestedRecord,
-                    relatedPrimaryKey,
-                    relatedPrimaryKeys,
-                    undefined,
-                  );
-                }),
-              );
+            // Check depth limit to prevent unbounded recursion
+            if (depth >= MAX_NESTING_DEPTH) {
+              // At max depth, return simplified representation based on relation type
+              transformedFields[key] = value.map((nestedRecord) => {
+                if (typeof nestedRecord === 'object' && nestedRecord !== null) {
+                  // Try to extract ID from the nested record with fallbacks
+                  const id =
+                    nestedRecord.id ||
+                    nestedRecord.Id ||
+                    nestedRecord.ID ||
+                    Object.values(nestedRecord)[0];
+
+                  // For read operations, handle missing IDs gracefully
+                  return { id: id ? String(id) : null };
+                }
+
+                // Handle primitive values - for read operations, convert to string
+                return { id: nestedRecord ? String(nestedRecord) : null };
+              });
+              continue;
             }
+
+            // Cache the related model info per column to avoid N+1 queries
+            const relatedModelInfo = await reuseOrSave(
+              `relatedModelInfo_${column.id}`,
+              reuse,
+              async () => this.getRelatedModelInfo(context, column),
+            );
+
+            const {
+              primaryKey: relatedPrimaryKey,
+              primaryKeys: relatedPrimaryKeys,
+            } = relatedModelInfo;
+
+            // Handle array of linked records with concurrency control
+            const recordsToProcess =
+              nestedLimit && value.length > nestedLimit
+                ? value.slice(0, nestedLimit)
+                : value;
+
+            // Transform all nested records using v3 format
+            transformedFields[key] = await processConcurrently(
+              recordsToProcess,
+              async (nestedRecord) => {
+                return this.transformRecordToV3Format({
+                  context: context,
+                  record: nestedRecord,
+                  primaryKey: relatedPrimaryKey,
+                  primaryKeys: relatedPrimaryKeys,
+                  reuse,
+                  depth: depth + 1,
+                });
+              },
+            );
+            continue;
+          } else if (value && typeof value === 'object') {
+            // Handle single nested record (typically BELONGS_TO or ONE_TO_ONE)
+            const relatedModelInfo = await reuseOrSave(
+              `relatedModelInfo_${column.id}`,
+              reuse,
+              async () => this.getRelatedModelInfo(context, column),
+            );
+
+            const {
+              primaryKey: relatedPrimaryKey,
+              primaryKeys: relatedPrimaryKeys,
+            } = relatedModelInfo;
+
+            // Transform single record using v3 format
+            transformedFields[key] = await this.transformRecordToV3Format({
+              context: context,
+              record: value,
+              primaryKey: relatedPrimaryKey,
+              primaryKeys: relatedPrimaryKeys,
+              reuse,
+              depth: depth + 1,
+            });
             continue;
           }
         }
@@ -182,42 +261,40 @@ export class DataV3Service {
     }
 
     const recordPrimaryKeyValue = primaryKeys
-      ? getCompositePkValue(primaryKeys, record)
-      : record[primaryKey];
+      ? getCompositePkValue(primaryKeys, record, { skipSubstitutingColumnIds })
+      : record[getPrimaryKey(primaryKey)];
 
     const result: DataRecord = {
       // Always include the 'id' property for APIv3
       id: recordPrimaryKeyValue,
       fields: transformedFields,
     };
-
     return result;
   }
 
   /**
    * Transform multiple records to v3 format
    */
-  private async transformRecordsToV3Format(
-    context: NcContext,
-    records: any[],
-    primaryKey: string,
-    primaryKeys?: Column[],
-    requestedFields?: string[],
-    columns?: Column[],
-    nestedLimit?: number,
-  ): Promise<DataRecord[]> {
-    return Promise.all(
-      records.map((record) =>
-        this.transformRecordToV3Format(
-          context,
-          record,
-          primaryKey,
-          primaryKeys,
-          requestedFields,
-          columns,
-          nestedLimit,
-        ),
-      ),
+  private async transformRecordsToV3Format(param: {
+    context: NcContext;
+    records: any[];
+    primaryKey: Column;
+    primaryKeys?: Column[];
+    requestedFields?: string[];
+    columns?: Column[];
+    nestedLimit?: number;
+    skipSubstitutingColumnIds?: boolean;
+    reuse?: ReusableParams;
+    depth?: number;
+  }): Promise<DataRecord[]> {
+    const { records } = param;
+
+    // Use concurrency control to prevent overwhelming the system
+    return processConcurrently(records, async (record) =>
+      this.transformRecordToV3Format({
+        ...param,
+        record,
+      }),
     );
   }
 
@@ -259,15 +336,19 @@ export class DataV3Service {
     });
 
     // Transform records with LTAR handling
-    const transformedRecords = await this.transformRecordsToV3Format(
-      context,
-      pagedResponse.list,
-      primaryKey,
-      primaryKeys,
-      requestedFields,
-      columns,
-      nestedLimit,
-    );
+    const transformedRecords = await this.transformRecordsToV3Format({
+      context: context,
+      records: pagedResponse.list,
+      primaryKey: primaryKey,
+      primaryKeys: primaryKeys,
+      requestedFields: requestedFields,
+      columns: columns,
+      nestedLimit: nestedLimit,
+      skipSubstitutingColumnIds:
+        param.query[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+      reuse: {}, // Create reuse cache for this data list operation
+      depth: 0, // Start at depth 0 for main records
+    });
 
     // Check if any LTAR fields were truncated
     const hasNextPage = transformedRecords.some((record) =>
@@ -292,8 +373,14 @@ export class DataV3Service {
     context: NcContext,
     fields: any,
     ltarColumns: Column[],
+    option?: {
+      skipSubstitutingColumnIds?: boolean;
+    },
   ): Promise<any> {
     const transformedFields = { ...fields };
+    const getPrimaryKey = (column: Column) => {
+      return option?.skipSubstitutingColumnIds ? column.id : column.title;
+    };
 
     for (const column of ltarColumns) {
       if (fields[column.title]) {
@@ -302,51 +389,96 @@ export class DataV3Service {
           primaryKeys: relatedPrimaryKeys,
         } = await this.getRelatedModelInfo(context, column);
 
-        if (Array.isArray(fields[column.title])) {
-          // Handle array of linked records
-          transformedFields[column.title] = fields[column.title].map(
-            (nestedRecord: any) => {
-              if (typeof nestedRecord === 'object' && nestedRecord.id) {
-                // For composite PKs, split the id and create the appropriate object
-                if (relatedPrimaryKeys.length > 1) {
-                  const idParts = nestedRecord.id.toString().split('___');
-                  const pkObject = {};
-                  relatedPrimaryKeys.forEach((pk, index) => {
-                    pkObject[pk.title] = idParts[index]?.replaceAll('\\_', '_');
-                  });
-                  return pkObject;
-                } else {
-                  // Single primary key
-                  return { [relatedPrimaryKey]: nestedRecord.id };
-                }
-              }
-              return nestedRecord;
-            },
+        const fieldValue = fields[column.title];
+
+        // Handle v3 format consistently for all relation types
+        if (Array.isArray(fieldValue)) {
+          // Array of records - each should have id property
+          transformedFields[column.title] = fieldValue.map((nestedRecord) =>
+            this.convertRecordIdToInternal(
+              nestedRecord,
+              relatedPrimaryKey,
+              relatedPrimaryKeys,
+              getPrimaryKey,
+            ),
           );
-        } else if (typeof fields[column.title] === 'object') {
-          // Handle single linked record
-          const nestedRecord = fields[column.title];
-          if (nestedRecord.id) {
-            // For composite PKs, split the id and create the appropriate object
-            if (relatedPrimaryKeys.length > 1) {
-              const idParts = nestedRecord.id.toString().split('___');
-              const pkObject = {};
-              relatedPrimaryKeys.forEach((pk, index) => {
-                pkObject[pk.title] = idParts[index]?.replaceAll('\\_', '_');
-              });
-              transformedFields[column.title] = pkObject;
-            } else {
-              // Single primary key
-              transformedFields[column.title] = {
-                [relatedPrimaryKey]: nestedRecord.id,
-              };
-            }
-          }
+        } else if (
+          fieldValue &&
+          typeof fieldValue === 'object' &&
+          fieldValue.id
+        ) {
+          // Single record with id property (v3 format)
+          transformedFields[column.title] = this.convertRecordIdToInternal(
+            fieldValue,
+            relatedPrimaryKey,
+            relatedPrimaryKeys,
+            getPrimaryKey,
+          );
+        } else if (fieldValue === null) {
+          transformedFields[column.title] = null;
         }
       }
     }
 
     return transformedFields;
+  }
+
+  /**
+   * Convert a record ID from v3 format to internal format
+   */
+  private convertRecordIdToInternal(
+    nestedRecord: any,
+    relatedPrimaryKey: Column,
+    relatedPrimaryKeys: Column[],
+    getPrimaryKey: (column: Column) => string,
+  ): any {
+    // For composite PKs, split the id and create the appropriate object
+    if (relatedPrimaryKeys.length > 1) {
+      const idString = String(nestedRecord.id);
+      const idParts = idString.split('___');
+
+      // Validate that we have the correct number of parts
+      if (idParts.length !== relatedPrimaryKeys.length) {
+        NcError.unprocessableEntity(
+          `Invalid composite key: expected ${relatedPrimaryKeys.length} parts but got ${idParts.length} in "${idString}"`,
+        );
+      }
+
+      const pkObject = {};
+      relatedPrimaryKeys.forEach((pk, index) => {
+        const part = idParts[index];
+
+        // Validate that the part exists and is not empty
+        if (part === undefined || part === null) {
+          NcError.unprocessableEntity(
+            `Invalid composite key part at index ${index}: got ${part} in "${idString}"`,
+          );
+        }
+
+        // Handle escaped underscores, but validate the result
+        const cleanedPart = part.replaceAll('\\_', '_');
+
+        // Don't allow completely empty string primary keys (after cleaning)
+        if (cleanedPart === '') {
+          NcError.unprocessableEntity(
+            `Empty primary key part at index ${index} after cleaning in "${idString}"`,
+          );
+        }
+
+        pkObject[getPrimaryKey(pk)] = cleanedPart;
+      });
+      return pkObject;
+    } else {
+      // Single primary key - validate it's not empty
+      const pkValue = String(nestedRecord.id);
+      if (pkValue === '' || pkValue === 'undefined' || pkValue === 'null') {
+        NcError.unprocessableEntity(`Invalid primary key value: "${pkValue}"`);
+      }
+
+      return {
+        [getPrimaryKey(relatedPrimaryKey)]: pkValue,
+      };
+    }
   }
 
   async dataInsert(
@@ -397,21 +529,23 @@ export class DataV3Service {
     }
 
     const hasPrimaryKey = (obj: any): obj is Record<string, any> => {
-      return primaryKey in obj;
+      return primaryKey.id in obj || primaryKey.title in obj;
     };
 
     // Extract inserted record IDs
     const insertedIds = Array.isArray(result)
-      ? result.map((record) => record[primaryKey]).filter((id) => id != null)
+      ? result
+          .map((record) => record[primaryKey.id] ?? record[primaryKey.title])
+          .filter((id) => id != null)
       : hasPrimaryKey(result)
-      ? [result[primaryKey]]
+      ? [result[primaryKey.id] ?? result[primaryKey.title]]
       : [];
 
     if (insertedIds.length === 0) {
       return { records: [] };
     }
 
-    // Fetch full records using baseModel.readByPk() to maintain order
+    // Fetch full records using baseModel.chunkList() for better performance
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
@@ -419,33 +553,46 @@ export class DataV3Service {
       source,
     });
 
-    // Fetch records individually to maintain order
-    const fullRecords = [];
+    // Convert IDs to strings for chunkList
+    const idsAsStrings = insertedIds.map((id) => String(id));
+
+    // Fetch all records in bulk
+    const fullRecords = await baseModel.chunkList({
+      pks: idsAsStrings,
+      apiVersion: NcApiVersion.V3,
+    });
+
+    // Create a map for quick lookup by ID
+    const recordMap = new Map();
+    for (const record of fullRecords) {
+      const recordId = baseModel.extractPksValues(record, true);
+      recordMap.set(String(recordId), record);
+    }
+
+    // Maintain the original order of insertedIds
+    const orderedRecords = [];
     for (const id of insertedIds) {
-      const record = await baseModel.readByPk(
-        id,
-        false,
-        {},
-        {
-          apiVersion: NcApiVersion.V3,
-        },
-      );
+      const record = recordMap.get(String(id));
       if (record) {
-        fullRecords.push(record);
+        orderedRecords.push(record);
       }
     }
 
     // Transform and return full records in V3 format
     return {
-      records: await this.transformRecordsToV3Format(
-        context,
-        fullRecords,
-        primaryKey,
-        primaryKeys,
-        undefined,
-        columns,
-        undefined,
-      ),
+      records: await this.transformRecordsToV3Format({
+        context: context,
+        records: orderedRecords,
+        primaryKey: primaryKey,
+        primaryKeys: primaryKeys,
+        requestedFields: undefined,
+        columns: columns,
+        nestedLimit: undefined,
+        skipSubstitutingColumnIds:
+          param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+        reuse: {}, // Create reuse cache for this data insert operation
+        depth: 0, // Start at depth 0 for main records
+      }),
     };
   }
 
@@ -470,7 +617,9 @@ export class DataV3Service {
     const { primaryKey } = await this.getModelInfo(context, param.modelId);
 
     // Transform the request body to match internal format
-    const recordIds = param.body.map((record) => ({ [primaryKey]: record.id }));
+    const recordIds = param.body.map((record) => ({
+      [primaryKey.title]: record.id,
+    }));
 
     await this.dataTableService.dataDelete(context, {
       ...param,
@@ -503,7 +652,7 @@ export class DataV3Service {
     const transformedBody = Array.isArray(param.body)
       ? await Promise.all(
           param.body.map(async (record) => ({
-            [primaryKey]: record.id,
+            [primaryKey.title]: record.id,
             ...(await this.transformLTARFieldsToInternal(
               context,
               record.fields,
@@ -513,7 +662,7 @@ export class DataV3Service {
         )
       : [
           {
-            [primaryKey]: param.body.id,
+            [primaryKey.title]: param.body.id,
             ...(await this.transformLTARFieldsToInternal(
               context,
               param.body.fields,
@@ -537,7 +686,7 @@ export class DataV3Service {
       return { records: [] };
     }
 
-    // Fetch full records using baseModel.readByPk() to maintain order
+    // Fetch full records using baseModel.chunkList() for better performance
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
@@ -545,33 +694,46 @@ export class DataV3Service {
       source,
     });
 
-    // Fetch records individually to maintain order
-    const fullRecords = [];
+    // Convert IDs to strings for chunkList
+    const idsAsStrings = updatedIds.map((id) => String(id));
+
+    // Fetch all records in bulk
+    const fullRecords = await baseModel.chunkList({
+      pks: idsAsStrings,
+      apiVersion: context.api_version,
+    });
+
+    // Create a map for quick lookup by ID
+    const recordMap = new Map();
+    for (const record of fullRecords) {
+      const recordId = baseModel.extractPksValues(record, true);
+      recordMap.set(String(recordId), record);
+    }
+
+    // Maintain the original order of updatedIds
+    const orderedRecords = [];
     for (const id of updatedIds) {
-      const record = await baseModel.readByPk(
-        id,
-        false,
-        {},
-        {
-          apiVersion: NcApiVersion.V3,
-        },
-      );
+      const record = recordMap.get(String(id));
       if (record) {
-        fullRecords.push(record);
+        orderedRecords.push(record);
       }
     }
 
     // Transform and return full records in V3 format
     return {
-      records: await this.transformRecordsToV3Format(
-        context,
-        fullRecords,
-        primaryKey,
-        primaryKeys,
-        undefined,
-        columns,
-        undefined,
-      ),
+      records: await this.transformRecordsToV3Format({
+        context: context,
+        records: orderedRecords,
+        primaryKey: primaryKey,
+        primaryKeys: primaryKeys,
+        requestedFields: undefined,
+        columns: columns,
+        nestedLimit: undefined,
+        skipSubstitutingColumnIds:
+          param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT],
+        reuse: {}, // Create reuse cache for this data update operation
+        depth: 0, // Start at depth 0 for main records
+      }),
     };
   }
 
@@ -604,7 +766,7 @@ export class DataV3Service {
     if (
       response &&
       typeof response === 'object' &&
-      relatedPrimaryKey in response
+      (relatedPrimaryKey.title in response || relatedPrimaryKey.id in response)
     ) {
       // Extract requested fields from query parameters for nested data
       const requestedFields = this.getRequestedFields(param.query);
@@ -613,15 +775,19 @@ export class DataV3Service {
       const relatedModel = await colOptions.getRelatedTable(context);
       const relatedColumns = await relatedModel.getColumns(context);
 
-      const transformedRecord = await this.transformRecordToV3Format(
-        context,
-        response,
-        relatedPrimaryKey,
-        relatedPrimaryKeys,
-        requestedFields,
-        relatedColumns,
-        undefined,
-      );
+      const transformedRecord = await this.transformRecordToV3Format({
+        context: context,
+        record: response,
+        primaryKey: relatedPrimaryKey,
+        primaryKeys: relatedPrimaryKeys,
+        requestedFields: requestedFields,
+        columns: relatedColumns,
+        nestedLimit: undefined,
+        skipSubstitutingColumnIds:
+          param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+        reuse: {}, // Create reuse cache for this nested data list operation
+        depth: 0, // Start at depth 0 for main records
+      });
 
       // For single relations, return the record directly, for others return as array
       return isSingleRelation
@@ -679,15 +845,19 @@ export class DataV3Service {
     const nestedLimit =
       +param.query?.nestedLimit || BaseModelSqlv2.config.ltarV3Limit;
 
-    const transformedRecords = await this.transformRecordsToV3Format(
-      context,
-      pagedResponse.list,
-      relatedPrimaryKey,
-      relatedPrimaryKeys,
-      requestedFields,
-      relatedColumns,
-      nestedLimit,
-    );
+    const transformedRecords = await this.transformRecordsToV3Format({
+      context: context,
+      records: pagedResponse.list,
+      primaryKey: relatedPrimaryKey,
+      primaryKeys: relatedPrimaryKeys,
+      requestedFields: requestedFields,
+      columns: relatedColumns,
+      nestedLimit: nestedLimit,
+      skipSubstitutingColumnIds:
+        param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+      reuse: {}, // Create reuse cache for this nested data list operation
+      depth: 0, // Start at depth 0 for main records
+    });
 
     // Check if any LTAR fields were truncated
     const hasNextPage = transformedRecords.some((record) =>
@@ -745,19 +915,23 @@ export class DataV3Service {
     }
 
     const hasPrimaryKey = (obj: any): obj is Record<string, any> => {
-      return primaryKey in obj;
+      return primaryKey.title in obj || primaryKey.id in obj;
     };
 
     return hasPrimaryKey(result)
-      ? await this.transformRecordToV3Format(
-          context,
-          result,
-          primaryKey,
-          primaryKeys,
-          requestedFields,
-          columns,
-          undefined,
-        )
+      ? await this.transformRecordToV3Format({
+          context: context,
+          record: result,
+          primaryKey: primaryKey,
+          primaryKeys: primaryKeys,
+          requestedFields: requestedFields,
+          columns: columns,
+          nestedLimit: undefined,
+          skipSubstitutingColumnIds:
+            param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+          reuse: {}, // Create reuse cache for this data read operation
+          depth: 0, // Start at depth 0 for main records
+        })
       : { id: '', fields: {} };
   }
 

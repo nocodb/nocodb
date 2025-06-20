@@ -138,17 +138,28 @@ export function _wherePk(
   return where;
 }
 
-export function getCompositePkValue(primaryKeys: Column[], row) {
+export function getCompositePkValue(
+  primaryKeys: Column[],
+  row,
+  option?: {
+    skipSubstitutingColumnIds?: boolean;
+  },
+) {
   if (row === null || row === undefined) {
-    NcError.requiredFieldMissing(primaryKeys.map((c) => c.title).join(','));
+    NcError.requiredFieldMissing(
+      primaryKeys
+        .map((c) => (option?.skipSubstitutingColumnIds ? c.id : c.title))
+        .join(','),
+    );
   }
 
   if (typeof row !== 'object') return row;
 
+  const pkIdOrTitleKey = option?.skipSubstitutingColumnIds ? 'id' : 'title';
   if (primaryKeys.length > 1) {
     return primaryKeys
       .map((c) =>
-        (row[c.title] ?? row[c.column_name])
+        (row[c[pkIdOrTitleKey]] ?? row[c.column_name])
           ?.toString?.()
           .replaceAll('_', '\\_'),
       )
@@ -157,7 +168,7 @@ export function getCompositePkValue(primaryKeys: Column[], row) {
 
   return (
     primaryKeys[0] &&
-    (row[primaryKeys[0].title] ?? row[primaryKeys[0].column_name])
+    (row[primaryKeys[0][pkIdOrTitleKey]] ?? row[primaryKeys[0].column_name])
   );
 }
 

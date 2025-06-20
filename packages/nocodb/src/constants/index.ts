@@ -22,8 +22,14 @@ export const NC_EMAIL_ASSETS_BASE_URL = 'https://cdn.nocodb.com/emails/v2';
 
 export const NC_RECURSIVE_MAX_DEPTH = 7;
 
+export const QUERY_STRING_FIELD_ID_ON_RESULT = 'fieldIdOnResult';
+
 export const S3_PATCH_KEYS = [
   'uploads',
   'thumbnails',
   ...(Object.values(PublicAttachmentScope) as string[]),
 ];
+
+export const V3_INSERT_LIMIT = 10;
+export const MAX_NESTING_DEPTH = 3;
+export const MAX_CONCURRENT_TRANSFORMS = 50;

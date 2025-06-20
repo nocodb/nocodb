@@ -10,6 +10,7 @@ import {
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import { NcApiVersion } from 'nocodb-sdk';
+import { QUERY_STRING_FIELD_ID_ON_RESULT } from 'src/constants';
 import {
   checkForCurrentUserFilters,
   checkForStaticDateValFilters,
@@ -1322,7 +1323,13 @@ export async function singleQueryRead(
           )
           .toQuery(),
         null,
-        { skipDateConversion: true, first: true },
+        {
+          skipDateConversion: true,
+          skipSubstitutingColumnIds:
+            context.api_version === NcApiVersion.V3 &&
+            ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+          first: true,
+        },
       );
 
       return res;
@@ -1462,7 +1469,13 @@ export async function singleQueryRead(
       )
       .toQuery(),
     null,
-    { skipDateConversion: true, first: true },
+    {
+      skipDateConversion: true,
+      first: true,
+      skipSubstitutingColumnIds:
+        context.api_version === NcApiVersion.V3 &&
+        ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+    },
   );
 
   return res;
@@ -1538,6 +1551,9 @@ export async function singleQueryList(
         },
         apiVersion: ctx.apiVersion,
         baseModel,
+        skipSubstitutingColumnIds:
+          context.api_version === NcApiVersion.V3 &&
+          ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
       });
 
       // if count is less than the actual result length then reset the count cache
@@ -1781,6 +1797,9 @@ export async function singleQueryList(
     },
     apiVersion: ctx.apiVersion,
     baseModel,
+    skipSubstitutingColumnIds:
+      context.api_version === NcApiVersion.V3 &&
+      ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
   });
 
   return new PagedResponseImpl(
@@ -1811,6 +1830,7 @@ const getDataWithCountCache = async (params: {
   excludeCount?: boolean;
   skipCache?: boolean;
   countCacheKey?: string;
+  skipSubstitutingColumnIds?: boolean;
 }): Promise<[count: number | undefined, data: any[]]> => {
   const countHandler = async (): Promise<number | undefined> => {
     if (params.excludeCount) {
@@ -1851,6 +1871,7 @@ const getDataWithCountCache = async (params: {
       const startTime = process.hrtime();
       const result = await params.baseModel.execAndParse(params.query, null, {
         skipDateConversion: true,
+        skipSubstitutingColumnIds: params.skipSubstitutingColumnIds,
       });
       params?.recordQueryTime(
         parseHrtimeToMilliSeconds(process.hrtime(startTime)),
@@ -1862,7 +1883,11 @@ const getDataWithCountCache = async (params: {
         params.knex.raw(params.query, [params.limit, params.offset]).toQuery(),
         null,
         // unsure why params.apiVersion only used when fetching from cache
-        { skipDateConversion: true, apiVersion: params.apiVersion },
+        {
+          skipDateConversion: true,
+          skipSubstitutingColumnIds: params.skipSubstitutingColumnIds,
+          apiVersion: params.apiVersion,
+        },
       );
       params?.recordQueryTime(
         parseHrtimeToMilliSeconds(process.hrtime(startTime)),

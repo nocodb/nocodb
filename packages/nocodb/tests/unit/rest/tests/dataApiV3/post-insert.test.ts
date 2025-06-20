@@ -72,9 +72,9 @@ describe('dataApiV3', () => {
           body: newRecord,
         });
 
-        expect(rsp.body).to.deep.equal({
-          records: [{ id: 401 }],
-        });
+        expect(rsp.body.records).to.have.length(1);
+        expect(rsp.body.records[0]).to.have.property('id', 401);
+        expect(rsp.body.records[0]).to.have.property('fields');
       });
 
       it('Create: few fields left out', async function () {
@@ -90,9 +90,9 @@ describe('dataApiV3', () => {
         });
 
         // fields left out should be null
-        expect(rsp.body).to.deep.equal({
-          records: [{ id: 401 }],
-        });
+        expect(rsp.body.records).to.have.length(1);
+        expect(rsp.body.records[0]).to.have.property('id', 401);
+        expect(rsp.body.records[0]).to.have.property('fields');
       });
 
       it('Create: bulk', async function () {
@@ -100,12 +100,12 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: [newRecord, newRecord, newRecord],
         });
-        expect(rsp.body).to.deep.equal({ 
-          records: [
-            { id: 401 },
-            { id: 402 },
-            { id: 403 },
-          ]
+        expect(rsp.body.records).to.have.length(3);
+        expect(rsp.body.records[0]).to.have.property('id', 401);
+        expect(rsp.body.records[1]).to.have.property('id', 402);
+        expect(rsp.body.records[2]).to.have.property('id', 403);
+        rsp.body.records.forEach(record => {
+          expect(record).to.have.property('fields');
         });
       });
 
@@ -148,9 +148,9 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: createPayload,
         });
-        expect(rsp.body).to.deep.equal({
-          records: [{ id: 401 }],
-        });
+        expect(rsp.body.records).to.have.length(1);
+        expect(rsp.body.records[0]).to.have.property('id', 401);
+        expect(rsp.body.records[0]).to.have.property('fields');
         const rspGet = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/records`,
           query: {
@@ -188,7 +188,12 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: createPayload,
         });
-        expect(rsp.body).to.deep.equal({ records: [{ id: 401 }, { id: 402 }] });
+        expect(rsp.body.records).to.have.length(2);
+        expect(rsp.body.records[0]).to.have.property('id', 401);
+        expect(rsp.body.records[1]).to.have.property('id', 402);
+        rsp.body.records.forEach(record => {
+          expect(record).to.have.property('fields');
+        });
         const rspGet = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/records`,
           query: {
@@ -450,17 +455,17 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: newRecord,
         });
-        expect(rsp.body).to.deep.equal({
-          records: [{ id: 401 }],
-        });
+        expect(rsp.body.records).to.have.length(1);
+        expect(rsp.body.records[0]).to.have.property('id', 401);
+        expect(rsp.body.records[0]).to.have.property('fields');
 
         const record = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/records/401`,
         });
-        expect(record.body.record.id).to.equal(401);
-        expect(record.body.record.fields.userFieldSingle[0].email).to.equal('a@nocodb.com');
-        expect(record.body.record.fields.userFieldMulti[0].email).to.equal('a@nocodb.com');
-        expect(record.body.record.fields.userFieldMulti[1].email).to.equal('b@nocodb.com');
+        expect(record.body.id).to.equal(401);
+        expect(record.body.fields.userFieldSingle[0].email).to.equal('a@nocodb.com');
+        expect(record.body.fields.userFieldMulti[0].email).to.equal('a@nocodb.com');
+        expect(record.body.fields.userFieldMulti[1].email).to.equal('b@nocodb.com');
       });
 
       it('Create record : using ID', async function () {
@@ -479,20 +484,20 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records`,
           body: newRecord,
         });
-        expect(rsp.body).to.deep.equal({
-          records: [{ id: 401 }],
-        });
+        expect(rsp.body.records).to.have.length(1);
+        expect(rsp.body.records[0]).to.have.property('id', 401);
+        expect(rsp.body.records[0]).to.have.property('fields');
         const record = await ncAxiosGet({
           url: `${urlPrefix}/${table.id}/records/401`,
         });
-        expect(record.body.record.id).to.equal(401);
-        expect(record.body.record.fields.userFieldSingle[0].email).to.equal(
+        expect(record.body.id).to.equal(401);
+        expect(record.body.fields.userFieldSingle[0].email).to.equal(
           'test@example.com',
         );
-        expect(record.body.record.fields.userFieldMulti[0].email).to.equal(
+        expect(record.body.fields.userFieldMulti[0].email).to.equal(
           'test@example.com',
         );
-        expect(record.body.record.fields.userFieldMulti[1].email).to.equal('a@nocodb.com');
+        expect(record.body.fields.userFieldMulti[1].email).to.equal('a@nocodb.com');
       });
     });
 

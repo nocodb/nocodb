@@ -3,16 +3,17 @@ import {
   ButtonActionsType,
   extractFilterFromXwhere,
   isOrderCol,
+  NcApiVersion,
   NcDataErrorCodes,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import {
+  checkForCurrentUserFilters,
   checkForStaticDateValFilters,
   shouldSkipCache,
 } from './common-helpers';
-import type { NcApiVersion } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
@@ -22,11 +23,10 @@ import type {
   LinkToAnotherRecordColumn,
   LookupColumn,
   QrCodeColumn,
-  View,
 } from '~/models';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
-import { Column, Filter, Model, Sort, Source } from '~/models';
+import { Column, Filter, Model, Sort, Source, View } from '~/models';
 import {
   _wherePk,
   extractSortsObject,
@@ -46,6 +46,7 @@ import getAst from '~/helpers/getAst';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
+import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 
 const logger = new Logger('mysql-helpers');
 
@@ -91,6 +92,7 @@ export async function extractColumns({
   ast,
   throwErrorIfInvalidParams,
   validateFormula,
+  apiVersion,
 }: {
   columns: Column[];
   // allowedCols?: Record<string, boolean>;
@@ -128,6 +130,7 @@ export async function extractColumns({
         throwErrorIfInvalidParams,
         validateFormula,
         columns,
+        apiVersion,
       }),
     );
   }
@@ -149,7 +152,7 @@ export async function extractColumn({
   throwErrorIfInvalidParams,
   validateFormula,
   columns,
-  apiVersion,
+  apiVersion = NcApiVersion.V2,
 }: {
   column: Column;
   qb: Knex.QueryBuilder;
@@ -196,6 +199,8 @@ export async function extractColumn({
         // extract nested query params
         const listArgs = getListArgs(params ?? {}, relatedModel, {
           ignoreAssigningWildcardSelect: true,
+          apiVersion,
+          nested: true,
         });
 
         const aliasColObjMap = await relatedModel.getAliasColObjMap(refContext);
@@ -220,6 +225,7 @@ export async function extractColumn({
           listArgs?.sort,
           aliasColObjMap,
           throwErrorIfInvalidParams,
+          apiVersion,
         );
         const { filters: queryFilterObj } = extractFilterFromXwhere(
           refContext,
@@ -238,44 +244,41 @@ export async function extractColumn({
               const alias4 = getAlias();
               const alias5 = getAlias();
 
-              const parentModel = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getRelatedTable(context);
-              const mmChildColumn = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getMMChildColumn(context);
-              const mmParentColumn = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getMMParentColumn(context);
-              const assocModel = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getMMModel(context);
-              const childColumn = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getChildColumn(context);
-              const parentColumn = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getParentColumn(context);
+              const relationColOpts =
+                column.colOptions as LinkToAnotherRecordColumn;
 
-              // if mm table is not present then return
-              if (!assocModel) {
-                qb.select(
-                  knex.raw('? as ??', [
-                    NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
-                    getAs(column),
-                  ]),
-                );
-              }
+              const { parentContext, childContext, mmContext, refContext } =
+                await relationColOpts.getParentChildContext(context);
+
+              const parentModel = await relationColOpts.getRelatedTable(
+                refContext,
+              );
+              const mmChildColumn = await relationColOpts.getMMChildColumn(
+                mmContext,
+              );
+              const mmParentColumn = await relationColOpts.getMMParentColumn(
+                mmContext,
+              );
+              const assocModel = await relationColOpts.getMMModel(mmContext);
+              const childColumn = await relationColOpts.getChildColumn(
+                childContext,
+              );
+              const parentColumn = await relationColOpts.getParentColumn(
+                parentContext,
+              );
 
               const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
-                model: assocModel,
+                id: assocModel.id,
                 dbDriver: knex,
               });
 
-              const parentBaseModel = await Model.getBaseModelSQL(refContext, {
-                model: parentModel,
-                dbDriver: knex,
-              });
+              const parentBaseModel = await Model.getBaseModelSQL(
+                parentContext,
+                {
+                  id: parentColumn.fk_model_id,
+                  dbDriver: knex,
+                },
+              );
 
               const assocQb = knex(
                 knex.raw('?? as ??', [
@@ -288,7 +291,6 @@ export async function extractColumn({
                 rootAlias,
                 sanitize(childColumn.column_name),
               ]);
-
               const mmQb = knex(assocQb.as(alias4))
                 .leftJoin(
                   knex.raw(`?? as ?? on ??.?? = ??.??`, [
@@ -307,8 +309,21 @@ export async function extractColumn({
               // apply filters on nested query
               await conditionV2(parentBaseModel, queryFilterObj, mmQb, alias2);
 
+              const view = column.colOptions.fk_target_view_id
+                ? await View.get(
+                    refContext,
+                    column.colOptions.fk_target_view_id,
+                  )
+                : await View.getDefaultView(
+                    refContext,
+                    parentBaseModel.model.id,
+                  );
+              const relatedSorts = await view.getSorts(refContext);
               // apply sorts on nested query
-              if (sorts) await sortV2(parentBaseModel, sorts, mmQb, alias2);
+              if (sorts && sorts.length > 0) {
+                await sortV2(parentBaseModel, sorts, mmQb, alias2);
+              } else if (relatedSorts && relatedSorts.length > 0)
+                await sortV2(parentBaseModel, relatedSorts, mmQb, alias2);
 
               const mmAggQb = knex(mmQb.as(alias5));
               await extractColumns({
@@ -351,20 +366,27 @@ export async function extractColumn({
               const alias2 = getAlias();
               const alias3 = getAlias();
 
+              const { refContext, parentContext, childContext } = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getParentChildContext(context);
+
               const parentModel = await (
                 column.colOptions as LinkToAnotherRecordColumn
-              ).getRelatedTable(context);
+              ).getRelatedTable(refContext);
               const childColumn = await (
                 column.colOptions as LinkToAnotherRecordColumn
-              ).getChildColumn(context);
+              ).getChildColumn(childContext);
               const parentColumn = await (
                 column.colOptions as LinkToAnotherRecordColumn
-              ).getParentColumn(context);
+              ).getParentColumn(parentContext);
 
-              const parentBaseModel = await Model.getBaseModelSQL(refContext, {
-                model: parentModel,
-                dbDriver: knex,
-              });
+              const parentBaseModel = await Model.getBaseModelSQL(
+                parentContext,
+                {
+                  model: parentModel,
+                  dbDriver: knex,
+                },
+              );
 
               const btQb = knex(parentBaseModel.getTnPath(parentModel))
                 .select('*')
@@ -428,33 +450,34 @@ export async function extractColumn({
             break;
           case RelationTypes.ONE_TO_ONE:
             {
+              const isBt = column.meta?.bt;
+              const relationColOpts =
+                column.colOptions as LinkToAnotherRecordColumn;
+
+              const { childContext, parentContext, refContext } =
+                await relationColOpts.getParentChildContext(context);
+
               const alias1 = getAlias();
               const alias2 = getAlias();
               const alias3 = getAlias();
 
+              const refModel = await (
+                column.colOptions as LinkToAnotherRecordColumn
+              ).getRelatedTable(refContext);
               const childColumn = await (
                 column.colOptions as LinkToAnotherRecordColumn
-              ).getChildColumn(context);
+              ).getChildColumn(childContext);
               const parentColumn = await (
                 column.colOptions as LinkToAnotherRecordColumn
-              ).getParentColumn(context);
+              ).getParentColumn(parentContext);
 
-              const isBt = column.meta?.bt;
+              const refBaseModel = await Model.getBaseModelSQL(refContext, {
+                model: refModel,
+                dbDriver: knex,
+              });
 
               if (isBt) {
-                const parentModel = await (
-                  column.colOptions as LinkToAnotherRecordColumn
-                ).getRelatedTable(context);
-
-                const parentBaseModel = await Model.getBaseModelSQL(
-                  refContext,
-                  {
-                    model: parentModel,
-                    dbDriver: knex,
-                  },
-                );
-
-                const btQb = knex(parentBaseModel.getTnPath(parentModel))
+                const btQb = knex(refBaseModel.getTnPath(refModel))
                   .select('*')
                   .where(
                     sanitize(parentColumn.column_name),
@@ -466,7 +489,7 @@ export async function extractColumn({
                   .first();
 
                 // apply filters on nested query
-                await conditionV2(parentBaseModel, queryFilterObj, btQb);
+                await conditionV2(refBaseModel, queryFilterObj, btQb);
 
                 const btAggQb = knex(btQb.as(alias3));
                 await extractColumns({
@@ -476,7 +499,7 @@ export async function extractColumn({
                   params,
                   getAlias,
                   alias: alias3,
-                  baseModel: parentBaseModel,
+                  baseModel: refBaseModel,
                   // dependencyFields,
                   ast,
                   throwErrorIfInvalidParams,
@@ -513,10 +536,7 @@ export async function extractColumn({
                 );
                 qb.select(knex.raw('??.??', [alias1, getAs(column)]));
               } else {
-                const childModel = await (
-                  column.colOptions as LinkToAnotherRecordColumn
-                ).getRelatedTable(context);
-                const hmQb = knex(baseModel.getTnPath(childModel))
+                const hmQb = knex(refBaseModel.getTnPath(refModel))
                   .select('*')
                   .where(
                     childColumn.column_name,
@@ -524,10 +544,7 @@ export async function extractColumn({
                   )
                   .first();
 
-                const childBaseModel = await Model.getBaseModelSQL(refContext, {
-                  model: childModel,
-                  dbDriver: knex,
-                });
+                await conditionV2(refBaseModel, queryFilterObj, hmQb);
 
                 const hmAggQb = knex(hmQb.as(alias3));
                 await extractColumns({
@@ -537,7 +554,7 @@ export async function extractColumn({
                   params,
                   getAlias,
                   alias: alias3,
-                  baseModel: childBaseModel,
+                  baseModel: refBaseModel,
                   // dependencyFields,
                   ast,
                   throwErrorIfInvalidParams,
@@ -571,19 +588,24 @@ export async function extractColumn({
               const alias2 = getAlias();
               const alias3 = getAlias();
 
-              const childModel = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getRelatedTable(context);
-              const childColumn = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getChildColumn(context);
-              const parentColumn = await (
-                column.colOptions as LinkToAnotherRecordColumn
-              ).getParentColumn(context);
+              const relationColOpts =
+                column.colOptions as LinkToAnotherRecordColumn;
 
-              const childBaseModel = await Model.getBaseModelSQL(refContext, {
-                model: childModel,
+              const { childContext, parentContext, refContext } =
+                await relationColOpts.getParentChildContext(context);
+
+              const childModel = await relationColOpts.getRelatedTable(
+                refContext,
+              );
+              const childColumn = await relationColOpts.getChildColumn(
+                childContext,
+              );
+              const parentColumn = await relationColOpts.getParentColumn(
+                parentContext,
+              );
+              const childBaseModel = await Model.getBaseModelSQL(childContext, {
                 dbDriver: knex,
+                model: childModel,
               });
 
               const hmQb = knex(childBaseModel.getTnPath(childModel))
@@ -599,8 +621,19 @@ export async function extractColumn({
               // apply filters on nested query
               await conditionV2(childBaseModel, queryFilterObj, hmQb);
 
+              const view = relationColOpts.fk_target_view_id
+                ? await View.get(
+                    childContext,
+                    relationColOpts.fk_target_view_id,
+                  )
+                : await View.getDefaultView(childContext, childModel.id);
+              const childSorts = await view.getSorts(childContext);
+
               // apply sorts on nested query
-              if (sorts) await sortV2(childBaseModel, sorts, hmQb);
+              if (sorts && sorts.length > 0) {
+                await sortV2(childBaseModel, sorts, hmQb, alias2);
+              } else if (childSorts && childSorts.length > 0)
+                await sortV2(childBaseModel, childSorts, hmQb);
 
               const hmAggQb = knex(hmQb.as(alias3));
               await extractColumns({
@@ -610,7 +643,7 @@ export async function extractColumn({
                 params,
                 getAlias,
                 alias: alias3,
-                baseModel,
+                baseModel: childBaseModel,
                 // dependencyFields,
                 ast,
                 throwErrorIfInvalidParams,
@@ -657,7 +690,7 @@ export async function extractColumn({
         let relQb;
         const relTableAlias = getAlias();
 
-        let refBaseModel;
+        let refBaseModel: BaseModelSqlv2;
         switch (relationColOpts.type) {
           case RelationTypes.MANY_TO_MANY:
             {
@@ -684,6 +717,11 @@ export async function extractColumn({
                 parentContext,
               );
 
+              const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+                model: assocModel,
+                dbDriver: knex,
+              });
+
               const parentBaseModel = await Model.getBaseModelSQL(
                 parentContext,
                 {
@@ -693,11 +731,6 @@ export async function extractColumn({
               );
 
               refBaseModel = parentBaseModel;
-
-              const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
-                model: parentModel,
-                dbDriver: baseModel.dbDriver,
-              });
 
               // if mm table is not present then return
               if (!assocModel) {
@@ -711,7 +744,7 @@ export async function extractColumn({
 
               const assocQb = knex(
                 knex.raw('?? as ??', [
-                  mmBaseModel.getTnPath(assocModel),
+                  assocBaseModel.getTnPath(assocModel),
                   alias1,
                 ]),
               ).whereRaw(`??.?? = ??.??`, [
@@ -735,9 +768,6 @@ export async function extractColumn({
             break;
           case RelationTypes.BELONGS_TO:
             {
-              // if (aliasC) break
-              // const alias2 = getAlias();
-
               const parentModel = await relationColOpts.getRelatedTable(
                 refContext,
               );
@@ -882,6 +912,7 @@ export async function extractColumn({
           ast,
           throwErrorIfInvalidParams,
           validateFormula,
+          apiVersion,
         });
 
         if (!result.isArray) {
@@ -1035,6 +1066,7 @@ export async function extractColumn({
           ast,
           throwErrorIfInvalidParams,
           validateFormula,
+          apiVersion,
         });
       }
       break;
@@ -1065,6 +1097,7 @@ export async function extractColumn({
           ast,
           throwErrorIfInvalidParams,
           validateFormula,
+          apiVersion,
         });
       }
       break;
@@ -1137,7 +1170,20 @@ export async function extractColumn({
     }
     default:
       {
-        if (column.dt === 'bytea') {
+        // if v3 api then return as array by splitting
+        if (
+          column.uidt === UITypes.MultiSelect &&
+          apiVersion === NcApiVersion.V3
+        ) {
+          const columnName = await getColumnName(context, column, columns);
+
+          qb.select(
+            knex.raw(
+              `JSON_EXTRACT(CONCAT('["', REPLACE(??.??, ',', '","'), '"]'), '$') as ??`,
+              [rootAlias, sanitize(columnName), getAs(column)],
+            ),
+          );
+        } else if (column.dt === 'bytea') {
           qb.select(
             knex.raw(
               `encode(??.??, '${
@@ -1225,7 +1271,12 @@ export async function singleQueryRead(
           )
           .toQuery(),
         null,
-        { first: true },
+        {
+          first: true,
+          skipSubstitutingColumnIds:
+            context.api_version === NcApiVersion.V3 &&
+            ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+        },
       );
       return res;
     }
@@ -1291,6 +1342,12 @@ export async function singleQueryRead(
     }),
   ];
 
+  if (
+    await checkForCurrentUserFilters({ context, filters: aggrConditionObj })
+  ) {
+    skipCache = true;
+  }
+
   // apply filters on root query and count query
   await conditionV2(baseModel, aggrConditionObj, rootQb);
   // await conditionV2(baseModel, aggrConditionObj, countQb);
@@ -1307,6 +1364,7 @@ export async function singleQueryRead(
     getHiddenColumn: ctx.getHiddenColumn,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
     apiVersion: ctx.apiVersion,
+    includeRowColorColumns: ctx.params.include_row_color,
   });
 
   await extractColumns({
@@ -1353,7 +1411,7 @@ export async function singleQueryRead(
 
   // const res = await finalQb;
 
-  const res = await baseModel.execAndParse(
+  return await baseModel.execAndParse(
     knex
       .raw(
         query,
@@ -1361,10 +1419,13 @@ export async function singleQueryRead(
       )
       .toQuery(),
     null,
-    { first: true },
+    {
+      first: true,
+      skipSubstitutingColumnIds:
+        context.api_version === NcApiVersion.V3 &&
+        ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+    },
   );
-
-  return res;
 }
 
 export async function singleQueryList(
@@ -1418,6 +1479,13 @@ export async function singleQueryList(
       const startTime = process.hrtime();
       const res = await baseModel.execAndParse(
         knex.raw(cachedQuery, [+listArgs.limit, +listArgs.offset]).toQuery(),
+        null,
+        {
+          skipSubstitutingColumnIds:
+            context.api_version === NcApiVersion.V3 &&
+            ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+          apiVersion: ctx.apiVersion,
+        },
       );
       dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
 
@@ -1467,6 +1535,7 @@ export async function singleQueryList(
     listArgs?.sort,
     aliasColObjMap,
     ctx.throwErrorIfInvalidParams,
+    ctx.apiVersion,
   );
   const { filters: queryFilterObj } = extractFilterFromXwhere(
     context,
@@ -1520,6 +1589,12 @@ export async function singleQueryList(
     }),
   ];
 
+  if (
+    await checkForCurrentUserFilters({ context, filters: aggrConditionObj })
+  ) {
+    skipCache = true;
+  }
+
   // apply filters on root query and count query
   await conditionV2(baseModel, aggrConditionObj, rootQb);
   await conditionV2(baseModel, aggrConditionObj, countQb);
@@ -1566,6 +1641,7 @@ export async function singleQueryList(
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
     apiVersion: ctx.apiVersion,
     includeSortAndFilterColumns: ctx.includeSortAndFilterColumns,
+    includeRowColorColumns: ctx.params.include_row_color === 'true',
   });
 
   await extractColumns({
@@ -1613,6 +1689,9 @@ export async function singleQueryList(
     const startTime = process.hrtime();
     res = await baseModel.execAndParse(finalQb, undefined, {
       apiVersion: ctx.apiVersion,
+      skipSubstitutingColumnIds:
+        context.api_version === NcApiVersion.V3 &&
+        ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
     });
     dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
   } else {
@@ -1643,6 +1722,9 @@ export async function singleQueryList(
       undefined,
       {
         apiVersion: ctx.apiVersion,
+        skipSubstitutingColumnIds:
+          context.api_version === NcApiVersion.V3 &&
+          ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
       },
     );
     dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));

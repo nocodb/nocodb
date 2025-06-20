@@ -81,7 +81,7 @@ export class CloudDbMigrateProcessor {
       const dataDbUrl = this.dbConfigToJdbcUrl(dataDbConfig);
       const targetDbUrl = this.dbConfigToJdbcUrl(targetDbConfig, workspaceId);
 
-      const response = await axios.post(`${NC_MIGRATOR_URL}/migrate`, {
+      const response = await axios.post(`${NC_MIGRATOR_URL}/api/v1/migrate`, {
         sourceUrl: dataDbUrl,
         targetUrl: targetDbUrl,
         schemas,
@@ -93,7 +93,7 @@ export class CloudDbMigrateProcessor {
 
       const getStatus = async (resolve, reject) => {
         const response = await axios.get(
-          `${NC_MIGRATOR_URL}/migrate/${jobId}/status`,
+          `${NC_MIGRATOR_URL}/api/v1/migrate/${jobId}/status`,
         );
         const { status, message, progress } = response.data;
 

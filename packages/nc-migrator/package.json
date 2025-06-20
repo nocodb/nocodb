@@ -1,0 +1,28 @@
+{
+  "name": "nc-migrator",
+  "version": "0.1.0",
+  "description": "Database migration service for transferring PostgreSQL data between databases",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "database",
+    "migration",
+    "postgresql",
+    "data-transfer"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "express": "^5.1.0",
+    "uuid": "^11.1.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "private": true
+}

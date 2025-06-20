@@ -64,7 +64,11 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               </template>
             </LazyGeneralEmojiPicker>
 
-            <NcTooltip class="truncate max-w-40 nc-active-table-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
+            <NcTooltip
+              class="truncate max-w-40 nc-active-table-title max-w-full !leading-5"
+              show-on-truncate-only
+              :disabled="isOpen"
+            >
               <template #title>
                 {{ activeAutomation?.title }}
               </template>

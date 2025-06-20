@@ -10,12 +10,14 @@ interface Props {
   mode?: 'inline' | 'full'
   horizontal?: boolean
   readonly?: boolean
+  removeReadonlyPadding?: boolean
   borderOnHover?: boolean
   placement?: NcDropdownPlacement
 }
 const props = withDefaults(defineProps<Props>(), {
   borderOnHover: false,
   placement: 'bottomRight',
+  removeReadonlyPadding: true,
 })
 
 const emits = defineEmits(['save'])
@@ -143,7 +145,7 @@ const handleClickDropdown = (e: MouseEvent) => {
 
         <NcListDropdown
           v-model:is-open="isOpenPermissionDropdown"
-          :default-slot-wrapper-class="`${!readonly ? 'w-[165px]' : '!px-0 !border-0'}`"
+          :default-slot-wrapper-class="`${!readonly ? 'w-[165px]' : removeReadonlyPadding ? '!px-0 !border-0' : '!border-0'}`"
           :placement="placement"
           :disabled="readonly"
           :border-on-hover="borderOnHover"
@@ -170,7 +172,7 @@ const handleClickDropdown = (e: MouseEvent) => {
               option-label-key="value"
               option-value-key="value"
               :close-on-select="false"
-              :item-height="48"
+              :item-height="46"
               class="!w-auto"
               item-class-name="!py-1"
               @update:value="onPermissionChange"

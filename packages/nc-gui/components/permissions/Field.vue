@@ -52,6 +52,7 @@ const fieldPermissionsData = computed(() => {
     field_icon: field.uidt,
     field_id: field.id,
     field_title: field.title,
+    col: field,
   }))
 })
 
@@ -110,16 +111,24 @@ const handlePermissionSave = () => {
       </template>
 
       <template v-if="column.key === 'edit_permission'">
-        <PermissionsInlineFieldSelector
-          :base="base!"
-          :field-id="record.field_id!"
-          :field-title="record.field_title!"
-          :permission-type="PermissionKey.RECORD_FIELD_EDIT"
-          :current-value="getPermissionSummaryLabel('field', record.field_id!, PermissionKey.RECORD_FIELD_EDIT)"
-          :border-on-hover="true"
-          class="-ml-3"
-          @save="handlePermissionSave"
-        />
+        <NcTooltip :disabled="showEditRestrictedColumnTooltip(record.col)" :arrow="false">
+          <template #title>
+            {{ $t('tooltip.dataInThisFieldCantBeManuallyEdited') }}
+          </template>
+
+          <PermissionsInlineFieldSelector
+            :base="base!"
+            :field-id="record.field_id!"
+            :field-title="record.field_title!"
+            :permission-type="PermissionKey.RECORD_FIELD_EDIT"
+            :current-value="getPermissionSummaryLabel('field', record.field_id!, PermissionKey.RECORD_FIELD_EDIT)"
+            :border-on-hover="true"
+            class="-ml-3"
+            @save="handlePermissionSave"
+            :readonly="!showEditRestrictedColumnTooltip(record.col)"
+            :remove-readonly-padding="false"
+          />
+        </NcTooltip>
       </template>
     </template>
   </NcTable>

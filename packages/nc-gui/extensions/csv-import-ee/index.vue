@@ -1394,7 +1394,7 @@ const errorMsgsTableColumns = [
               <div class="flex items-center justify-between gap-3">
                 <div class="text-sm font-weight-700 text-nc-content-gray">Match CSV columns to NocoDB fields</div>
                 <div>
-                  <NcBadge class="!text-sm !h-5 bg-nc-bg-gray-medium truncate" :border="false"
+                  <NcBadge class="!text-sm !h-5 bg-nc-bg-brand truncate text-primary" :border="false"
                     >{{ selectedFieldDetails.selected }}/{{ selectedFieldDetails.total }} selected
                   </NcBadge>
                 </div>
@@ -1406,7 +1406,7 @@ const errorMsgsTableColumns = [
                 class="flex-1"
                 :bordered="false"
                 header-cell-class-name="!text-nc-content-gray-subtle2 !font-weight-700"
-                body-row-class-name="!cursor-default"
+                body-row-class-name="!cursor-default !border-b-0"
                 row-height="48px"
                 :custom-row="customRow"
               >
@@ -1619,25 +1619,7 @@ const errorMsgsTableColumns = [
     }
   }
 
-  &:not(.ant-select-focused):hover .ant-select-selector {
-    @apply !bg-nc-bg-gray-medium;
-  }
-
-  &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
-  &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
-    @apply !shadow-none;
-  }
-
-  &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
-    @apply shadow-none;
-  }
-  &:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
-    @apply !border-transparent;
-  }
-
-  &:not(.ant-select-focused):hover .ant-select-clear {
-    @apply !bg-nc-bg-gray-medium;
-  }
+ 
 }
 
 :deep(.ant-select-selection-item) {

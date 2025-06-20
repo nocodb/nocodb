@@ -1,4 +1,5 @@
 import { UITypes, viewTypeAlias } from 'nocodb-sdk';
+import type { NcContext } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { transformFieldConfig } from '~/utils/transformProperties';
@@ -186,12 +187,8 @@ const generateOptionsCoalesce = () => {
   return `COALESCE(${optionAliases.join(', ')})`;
 };
 
-export async function getBaseSchema(
-  baseId: string,
-  workspaceId: string,
-  ncMeta = Noco.ncMeta,
-) {
-  const key = `${CacheScope.BASE_SCHEMA}:${baseId}`;
+export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
+  const key = `${CacheScope.BASE_SCHEMA}:${context.base_id}`;
 
   const baseSchema = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
 
@@ -213,7 +210,7 @@ export async function getBaseSchema(
     .with('base_models', (qb) => {
       qb.select('id', 'title', 'description')
         .from(`${MetaTable.MODELS}`)
-        .where('base_id', baseId)
+        .where('base_id', context.base_id)
         .where('mm', false)
         .whereNull('deleted');
     })
@@ -308,7 +305,7 @@ export async function getBaseSchema(
       )
         .from(`${MetaTable.PROJECT_USERS} as bu`)
         .join(`${MetaTable.USERS} as u`, 'bu.fk_user_id', 'u.id')
-        .where('bu.base_id', baseId);
+        .where('bu.base_id', context.base_id);
     })
     .select(
       ncMeta.knex.raw(
@@ -331,7 +328,7 @@ export async function getBaseSchema(
           'collaborators', (SELECT base_collaborators FROM base_users)
         ) as result
       `,
-        [baseId, baseId],
+        [context.base_id, context.base_id],
       ),
     )
     .first();
@@ -355,7 +352,7 @@ export async function getBaseSchema(
 
   await NocoCache.appendToList(
     CacheScope.BASE_SCHEMA,
-    ['ws', workspaceId],
+    ['ws', context.workspace_id],
     key,
   );
 

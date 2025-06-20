@@ -1,8 +1,8 @@
+import type { NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
 
 export async function getBaseSchema(
-  _baseId: string,
-  _workspaceId: string,
+  _context: NcContext,
   _ncMeta = Noco.ncMeta,
 ) {
   // Not Implemented

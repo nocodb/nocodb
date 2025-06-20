@@ -196,7 +196,7 @@ export class UtilsService extends UtilsServiceCE {
 
     const cachedData = await NocoCache.get(key, CacheGetType.TYPE_ARRAY);
 
-    if (cachedData) {
+    if (cachedData?.length) {
       return cachedData;
     }
 

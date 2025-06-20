@@ -13,6 +13,7 @@ import { SnapshotProcessor } from '~/modules/jobs/jobs/snapshot/snapshot.process
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
 import { SyncModuleSyncDataProcessor } from '~/integrations/sync/module/services/sync.processor';
 import { UpdateUsageStatsProcessor } from '~/modules/jobs/jobs/update-usage-stats.processor';
+import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.processor';
 
 @Module({
   ...JobsModuleMetadata,
@@ -32,6 +33,7 @@ import { UpdateUsageStatsProcessor } from '~/modules/jobs/jobs/update-usage-stat
     RemoteImportService,
     SyncModuleSyncDataProcessor,
     UpdateUsageStatsProcessor,
+    CloudDbMigrateProcessor,
   ],
   exports: [...JobsModuleMetadata.exports, RemoteImportService],
 })

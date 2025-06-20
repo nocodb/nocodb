@@ -15,6 +15,8 @@ import Noco from '~/Noco';
 import { DbMux } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { DbMuxStatus } from '~/utils/globals';
+import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
+import { getWorkspaceDbInstance } from '~/utils/cloudDb';
 
 export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
   protected static dataKnex?: XKnex;
@@ -50,6 +52,11 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
     }
 
     if (source.isMeta()) {
+      const dbInstance = await getWorkspaceDbInstance(source.fk_workspace_id);
+      if (dbInstance) {
+        return XKnex(dbInstance.config);
+      }
+
       // if data db is set, use it for generating knex connection
       if (!this.dataKnex) {
         await this.getDataConfig();
@@ -181,6 +188,31 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
     );
 
     return this.connectionRefs[source.base_id][source.id];
+  }
+
+  public static async getSqlClient(source: Source, _knex = null) {
+    const workspaceSqlClient = await this.getWorkspaceSqlClient(
+      source.fk_workspace_id,
+    );
+    if (workspaceSqlClient) {
+      return workspaceSqlClient;
+    }
+
+    const knex = _knex || (await this.get(source));
+    return SqlClientFactory.create({
+      knex,
+      ...(await source.getConnectionConfig()),
+    });
+  }
+
+  public static async getWorkspaceSqlClient(workspaceId: string) {
+    const dbInstance = await getWorkspaceDbInstance(workspaceId);
+    if (dbInstance) {
+      return SqlClientFactory.create({
+        knex: XKnex(dbInstance.config),
+        ...dbInstance.config,
+      });
+    }
   }
 
   public static async getDataConfig?() {

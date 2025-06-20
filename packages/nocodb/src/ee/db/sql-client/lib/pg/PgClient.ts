@@ -101,10 +101,9 @@ class PGClient extends PGClientCE {
       ).rows?.[0];
 
       if (!schemaExists) {
-        await this.sqlClient.raw(
-          `CREATE SCHEMA IF NOT EXISTS ??  AUTHORIZATION ?? `,
-          [schemaName, this.connectionConfig.connection.user],
-        );
+        await this.sqlClient.raw(`CREATE SCHEMA IF NOT EXISTS ?? `, [
+          schemaName,
+        ]);
       }
 
       // this.sqlClient = knex(this.connectionConfig);

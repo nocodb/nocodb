@@ -100,6 +100,7 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.PLANS]: 'pl',
       [MetaTable.SUBSCRIPTIONS]: 'sub',
       [MetaTable.ROW_COLOR_CONDITIONS]: 'rc',
+      [MetaTable.DB_SERVERS]: 'db',
     };
 
     const prefix = prefixMap[target] || 'nc';

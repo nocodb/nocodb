@@ -46,6 +46,7 @@ export enum JobTypes {
   SyncModuleSyncData = 'sync-module-sync-data',
   SyncModuleMigrateSync = 'sync-module-migrate-sync',
   UpdateUsageStats = 'update-usage-stats',
+  CloudDbMigrate = 'cloud-db-migrate',
 }
 
 export const SKIP_STORING_JOB_META = [

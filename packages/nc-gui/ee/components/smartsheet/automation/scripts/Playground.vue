@@ -40,7 +40,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
         <template v-if="item.type === 'text'">
           <div
             class="leading-5 whitespace-pre-wrap"
-            :class="{ 'text-red-500': item.style === 'error', 'text-yellow-500': item.style === 'warning' }"
+            :class="{ 'text-red-500': item.style === 'error', 'text-orange-500': item.style === 'warning' }"
           >
             {{ item.content }}
           </div>

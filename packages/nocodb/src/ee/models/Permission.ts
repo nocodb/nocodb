@@ -439,6 +439,84 @@ export default class Permission {
     return res;
   }
 
+  public static async removeSubjectBase(
+    context: NcContext,
+    subject: { type: 'user' | 'group'; id: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    // Get all permission subjects for this subject in the workspace
+    const subjectPermissions = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PERMISSION_SUBJECTS,
+      {
+        xcCondition: {
+          _and: [
+            { subject_type: { eq: subject.type } },
+            { subject_id: { eq: subject.id } },
+          ],
+        },
+      },
+    );
+
+    if (!subjectPermissions || subjectPermissions.length === 0) {
+      return [];
+    }
+
+    // Extract unique permission IDs that will be affected
+    const affectedPermissionIds = [
+      ...new Set(
+        subjectPermissions.map(
+          (sp: { fk_permission_id: string }) => sp.fk_permission_id,
+        ),
+      ),
+    ];
+
+    // Delete all permission subjects for this subject
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PERMISSION_SUBJECTS,
+      null,
+      {
+        _and: [
+          { subject_type: { eq: subject.type } },
+          { subject_id: { eq: subject.id } },
+        ],
+      },
+    );
+
+    // Update cache for each affected permission by removing the subject
+    for (const permissionId of affectedPermissionIds) {
+      const cacheKey = `${CacheScope.PERMISSION}:${permissionId}`;
+      const cachedPermission = await NocoCache.get(
+        cacheKey,
+        CacheGetType.TYPE_OBJECT,
+      );
+
+      if (cachedPermission && cachedPermission.subjects) {
+        // Remove the subject from the cached subjects array
+        const updatedSubjects = cachedPermission.subjects.filter(
+          (s: { type: 'user' | 'group'; id: string }) =>
+            !(s.type === subject.type && s.id === subject.id),
+        );
+
+        await NocoCache.update(cacheKey, {
+          subjects: updatedSubjects,
+        });
+      }
+    }
+
+    return affectedPermissionIds;
+  }
+
+  public static async clearBaseCache(context: NcContext) {
+    await NocoCache.deepDel(
+      `${CacheScope.PERMISSION}:${context.base_id}:list`,
+      CacheDelDirection.PARENT_TO_CHILD,
+    );
+  }
+
   static isAllowed(
     permissionObj: Permission,
     user: {

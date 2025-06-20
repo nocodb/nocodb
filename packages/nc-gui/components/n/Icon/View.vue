@@ -25,7 +25,7 @@ const props = defineProps<{
   />
 </template>
 
-<style>
+<style scoped lang="scss">
 .nc-view-icon {
   font-size: 1.05rem;
 }

@@ -93,6 +93,15 @@ export class WebhookFormPage extends BasePage {
     }
   }
 
+  async toggleIncludeUser({ save }: { save: boolean }) {
+    await this.get().locator(`.nc-check-box-include-user`).click();
+
+    if (save) {
+      await this.save();
+      await this.close();
+    }
+  }
+
   async deleteCondition(p: { save: boolean }) {
     await this.get().locator(`.nc-filter-item-remove-btn`).click();
     if (p.save) {

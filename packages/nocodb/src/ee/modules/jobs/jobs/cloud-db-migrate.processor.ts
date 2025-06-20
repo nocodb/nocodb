@@ -137,6 +137,6 @@ export class CloudDbMigrateProcessor {
       config.connection.password
     }@${config.connection.host}:${config.connection.port}/${
       database || config.connection.database
-    }`;
+    }${config.connection.ssl ? '?sslmode=require' : ''}`;
   }
 }

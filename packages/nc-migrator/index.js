@@ -14,6 +14,37 @@ const runningProcesses = new Map(); // Track running child processes
 
 app.use(bodyParser.json());
 
+// Helper function to sanitize URLs for client responses
+function sanitizeUrl(url) {
+    if (!url || typeof url !== 'string') return url;
+    return url.replace(/\/\/[^@]*@/, '//***:***@');
+}
+
+// Helper function to log errors with full details while returning sanitized client messages
+function logAndSanitizeError(error, sourceUrl = null, targetUrl = null) {
+    // Log full error details to server
+    console.error('Migration error details:', {
+        message: error.message,
+        stack: error.stack,
+        sourceUrl: sourceUrl,
+        targetUrl: targetUrl,
+        code: error.code,
+        stdout: error.stdout,
+        stderr: error.stderr
+    });
+    
+    // Return sanitized error message for client
+    let clientMessage = error.message;
+    if (sourceUrl) {
+        clientMessage = clientMessage.replace(new RegExp(sourceUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), sanitizeUrl(sourceUrl));
+    }
+    if (targetUrl) {
+        clientMessage = clientMessage.replace(new RegExp(targetUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), sanitizeUrl(targetUrl));
+    }
+    
+    return clientMessage;
+}
+
 function validateDbUrl(url) {
     if (!url || typeof url !== 'string') return false;
     // Basic PostgreSQL URL validation (pg,postgres,postgresql)
@@ -25,10 +56,12 @@ app.post('/api/v1/migrate', async (req, res) => {
 
     // Enhanced validation
     if (!validateDbUrl(sourceUrl)) {
+        console.log('Invalid source URL provided:', sanitizeUrl(sourceUrl));
         return res.status(400).json({ error: 'Invalid source connection: please provide valid connection details for your source data' });
     }
     
     if (!validateDbUrl(targetUrl)) {
+        console.log('Invalid target URL provided:', sanitizeUrl(targetUrl));
         return res.status(400).json({ error: 'Invalid destination connection: please provide valid connection details for your destination data' });
     }
     
@@ -45,8 +78,8 @@ app.post('/api/v1/migrate', async (req, res) => {
         progress: 0,
         message: 'Data transfer queued',
         startTime: new Date(),
-        sourceUrl: sourceUrl.replace(/\/\/[^@]*@/, '//***:***@'), // Hide credentials in logs
-        targetUrl: targetUrl.replace(/\/\/[^@]*@/, '//***:***@'),
+        sourceUrl: sanitizeUrl(sourceUrl), // Store sanitized version
+        targetUrl: sanitizeUrl(targetUrl), // Store sanitized version
         schemas,
         steps: [],
         error: null
@@ -60,7 +93,8 @@ app.post('/api/v1/migrate', async (req, res) => {
 
     // Start async migration
     startMigration(sourceUrl, targetUrl, schemas, jobId).catch(error => {
-        updateJobStatus(jobId, 'failed', 100, `Data transfer failed: ${error.message}`, error);
+        const sanitizedMessage = logAndSanitizeError(error, sourceUrl, targetUrl);
+        updateJobStatus(jobId, 'failed', 100, `Data transfer failed: ${sanitizedMessage}`, sanitizedMessage);
     });
 });
 
@@ -105,10 +139,11 @@ function updateJobStatus(jobId, status, progress, message, error = null) {
     if (job) {
         job.status = status;
         job.progress = Math.min(100, Math.max(0, progress));
-        job.message = message;
+        job.message = message; // Message should already be sanitized when passed to this function
         job.lastUpdate = new Date();
         if (error) {
-            job.error = error.message || error;
+            // Store sanitized error message for client consumption
+            job.error = typeof error === 'string' ? error : (error.message || error);
         }
         if (status === 'completed' || status === 'failed') {
             job.endTime = new Date();
@@ -136,6 +171,7 @@ async function startMigration(sourceUrl, targetUrl, schemas, jobId) {
         
         const targetDbName = extractDbName(targetUrl);
         if (!targetDbName) {
+            console.error(`[${jobId}] Could not extract database name from target URL:`, sanitizeUrl(targetUrl));
             throw new Error('Could not identify destination location from connection details');
         }
 
@@ -146,7 +182,7 @@ async function startMigration(sourceUrl, targetUrl, schemas, jobId) {
         const createDbUrl = buildCreateDbUrl(targetUrl, targetDbName);
         
         const createDbCommand = `createdb --maintenance-db="${createDbUrl}" "${targetDbName}"`;
-        await executeCommand(createDbCommand, jobId);
+        await executeCommand(createDbCommand, jobId, sourceUrl, targetUrl);
         addJobStep(jobId, 'Target resource set up successfully');
 
         updateJobStatus(jobId, 'running', 40, 'Preparing data to migrate to your upgraded workspace...');
@@ -158,7 +194,7 @@ async function startMigration(sourceUrl, targetUrl, schemas, jobId) {
         const schemaArgs = schemas.map(s => `--schema="${s}"`).join(' ');
         const dumpCommand = `pg_dump ${schemaArgs} --no-owner --no-privileges --format=custom --file="${dumpFile}" "${sourceUrl}"`;
         
-        await executeCommand(dumpCommand, jobId);
+        await executeCommand(dumpCommand, jobId, sourceUrl, targetUrl);
         
         updateJobStatus(jobId, 'running', 70, 'Starting data migration to your upgraded workspace...');
         addJobStep(jobId, 'Starting data migration to your upgraded workspace...');
@@ -166,7 +202,7 @@ async function startMigration(sourceUrl, targetUrl, schemas, jobId) {
         // Restore to target database
         const restoreCommand = `pg_restore --no-owner --no-privileges --verbose --dbname="${targetUrl}" "${dumpFile}"`;
         
-        await executeCommand(restoreCommand, jobId);
+        await executeCommand(restoreCommand, jobId, sourceUrl, targetUrl);
         
         addJobStep(jobId, 'Data migration to your upgraded workspace completed successfully');
 
@@ -184,15 +220,33 @@ async function startMigration(sourceUrl, targetUrl, schemas, jobId) {
         addJobStep(jobId, 'Your workspace has been upgraded successfully');
 
     } catch (error) {
-        updateJobStatus(jobId, 'failed', 100, `Your workspace upgrade failed: ${error.message}`, error);
-        addJobStep(jobId, `Your workspace upgrade failed: ${error.message}`);
+        // Log full error details to server
+        console.error(`[${jobId}] Migration failed:`, {
+            message: error.message,
+            stack: error.stack,
+            sourceUrl: sourceUrl,
+            targetUrl: targetUrl
+        });
+        
+        const sanitizedMessage = logAndSanitizeError(error, sourceUrl, targetUrl);
+        updateJobStatus(jobId, 'failed', 100, `Your workspace upgrade failed: ${sanitizedMessage}`, sanitizedMessage);
+        addJobStep(jobId, `Your workspace upgrade failed: ${sanitizedMessage}`);
         throw error;
     }
 }
 
-function executeCommand(command, jobId) {
+function executeCommand(command, jobId, sourceUrl = null, targetUrl = null) {
     return new Promise((resolve, reject) => {
-        console.log(`[${jobId}] Executing: ${command.replace(/postgresql:\/\/[^@]*@/, 'postgresql://***:***@')}`);
+        // Log sanitized command to console
+        let sanitizedCommand = command;
+        if (sourceUrl) {
+            sanitizedCommand = sanitizedCommand.replace(new RegExp(sourceUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), sanitizeUrl(sourceUrl));
+        }
+        if (targetUrl) {
+            sanitizedCommand = sanitizedCommand.replace(new RegExp(targetUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), sanitizeUrl(targetUrl));
+        }
+        
+        console.log(`[${jobId}] Executing: ${sanitizedCommand}`);
         
         const childProcess = exec(command, { maxBuffer: 10 * 1024 * 1024 }); // 10MB buffer
         
@@ -209,7 +263,15 @@ function executeCommand(command, jobId) {
 
         childProcess.stderr?.on('data', (data) => {
             stderr += data;
-            console.log(`[${jobId}] ${data.toString()}`);
+            // Sanitize stderr output before logging
+            let sanitizedData = data.toString();
+            if (sourceUrl) {
+                sanitizedData = sanitizedData.replace(new RegExp(sourceUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), sanitizeUrl(sourceUrl));
+            }
+            if (targetUrl) {
+                sanitizedData = sanitizedData.replace(new RegExp(targetUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), sanitizeUrl(targetUrl));
+            }
+            console.log(`[${jobId}] ${sanitizedData}`);
         });
 
         childProcess.on('close', (code) => {
@@ -217,16 +279,31 @@ function executeCommand(command, jobId) {
             if (code === 0) {
                 resolve({ stdout, stderr });
             } else {
+                // Create error with full details for server logging, but sanitize the message
                 const error = new Error(`Command failed with exit code ${code}: ${stderr || stdout}`);
                 error.code = code;
                 error.stdout = stdout;
                 error.stderr = stderr;
+                
+                // Log full error details to server
+                console.error(`[${jobId}] Command execution failed:`, {
+                    command: command, // Full command for server logs
+                    code: code,
+                    stdout: stdout,
+                    stderr: stderr
+                });
+                
                 reject(error);
             }
         });
 
         childProcess.on('error', (error) => {
             runningProcesses.delete(jobId);
+            console.error(`[${jobId}] Command execution error:`, {
+                command: command, // Full command for server logs
+                error: error.message,
+                stack: error.stack
+            });
             reject(new Error(`Command execution failed: ${error.message}`));
         });
     });
@@ -308,7 +385,7 @@ function gracefulShutdown(signal) {
             for (const [jobId, process] of runningProcesses.entries()) {
                 console.log(`Killing process for job ${jobId}`);
                 process.kill('SIGTERM');
-                updateJobStatus(jobId, 'failed', 100, 'Migration cancelled due to service shutdown');
+                updateJobStatus(jobId, 'failed', 100, 'Migration cancelled due to service shutdown', 'Migration cancelled due to service shutdown');
             }
             runningProcesses.clear();
         }

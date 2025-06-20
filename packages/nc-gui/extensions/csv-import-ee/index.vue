@@ -1406,7 +1406,7 @@ const errorMsgsTableColumns = [
                 class="flex-1"
                 :bordered="false"
                 header-cell-class-name="!text-nc-content-gray-subtle2 !font-weight-700"
-                body-row-class-name="!cursor-default !border-b-0"
+                body-row-class-name="!cursor-default"
                 row-height="48px"
                 :custom-row="customRow"
               >
@@ -1619,7 +1619,6 @@ const errorMsgsTableColumns = [
     }
   }
 
- 
 }
 
 :deep(.ant-select-selection-item) {

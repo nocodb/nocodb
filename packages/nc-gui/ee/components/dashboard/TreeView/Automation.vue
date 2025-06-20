@@ -114,7 +114,7 @@ watch(activeAutomationId, () => {
       >
         <div class="flex flex-row h-full items-center">
           <div class="flex w-auto">
-            <LazyGeneralEmojiPicker size="small" :readonly="true">
+            <LazyGeneralEmojiPicker size="small" readonly>
               <template #default>
                 <GeneralIcon
                   icon="ncAutomation"

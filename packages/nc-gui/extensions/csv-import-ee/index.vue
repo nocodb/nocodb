@@ -1353,7 +1353,7 @@ const errorMsgsTableColumns = [
                   </div>
                 </div>
               </NcModal>
-              <div class="flex-1 bg-nc-bg-gray-extralight flex flex-col gap-4 p-4">
+              <div class="flex-1 flex flex-col gap-4 p-4">
                 <div class="flex items-center justify-between gap-3">
                   <div class="text-sm font-weight-700 text-nc-content-gray">Select destination fields</div>
                   <div>

@@ -204,7 +204,8 @@ const importPayload = computedAsync(async () => {
       })
     }
   }
-  return savedPayloads.value[0]
+
+  return savedPayloads.value[0]!
 }, importPayloadPlaceholder)
 
 const updateHistory = async (updateImportVerified = false) => {

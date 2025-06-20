@@ -8,6 +8,8 @@ import {
   csvColumnSeparatorOptions,
   isSystemColumn,
   isVirtualCol,
+  PermissionEntity,
+  PermissionKey,
 } from 'nocodb-sdk'
 import papaparse from 'papaparse'
 import dayjs from 'dayjs'
@@ -113,6 +115,8 @@ const { fullscreen, fullscreenModalSize, extension, tables, insertData, getTable
 const { getMeta } = useMetas()
 
 const { t } = useI18n()
+
+const { isAllowed } = usePermissions()
 
 const EXTENSION_ID = extension.value.extensionId
 
@@ -233,6 +237,12 @@ const importPayload = computedAsync(async () => {
 
   return savedPayloads.value[0]!
 }, importPayloadPlaceholder)
+
+const isUploadAllowed = computed(() => {
+  if (!importPayload.value?.tableId) return true
+
+  return isAllowed(PermissionEntity.TABLE, importPayload.value?.tableId, PermissionKey.TABLE_RECORD_ADD)
+})
 
 const updateHistory = async (updateImportVerified = false) => {
   // update last used
@@ -1006,7 +1016,7 @@ const errorMsgsTableColumns = [
 
         <NcButton
           size="small"
-          :disabled="!readyForImport"
+          :disabled="!readyForImport || !isUploadAllowed"
           :loading="isImportingRecords || isVerifyImportLoading"
           @click="onVerifyImport"
         >
@@ -1122,6 +1132,7 @@ const errorMsgsTableColumns = [
           >
             <div class="flex flex-col gap-2 w-[calc(50%_-_6px)]">
               <div>Separator</div>
+
               <a-form-item class="!my-0 flex-1">
                 <NcSelect
                   v-model:value="importConfig.delimiter"
@@ -1205,7 +1216,11 @@ const errorMsgsTableColumns = [
             <div class="h-full w-[420px] flex flex-col nc-scrollbar-thin border-r border-nc-border-gray-medium">
               <section>
                 <h1>Table</h1>
-                <a-form-item class="!my-0 w-full">
+                <a-form-item
+                  class="!my-0 w-full nc-input-required-error"
+                  :validate-status="!isUploadAllowed ? 'error' : ''"
+                  :help="!isUploadAllowed ? $t('objects.permissions.uploadDataTooltip') : ''"
+                >
                   <NcSelect
                     v-model:value="importPayload.tableId"
                     class="w-full nc-select-shadow"
@@ -1628,6 +1643,14 @@ const errorMsgsTableColumns = [
 :deep(.nc-csv-import-encoding.ant-select) {
   .ant-select-selector {
     @apply !rounded-lg h-8;
+  }
+}
+
+.nc-input-required-error {
+  &:focus-within {
+    :deep(.ant-form-item-explain-error) {
+      @apply text-gray-400;
+    }
   }
 }
 </style>

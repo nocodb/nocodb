@@ -64,8 +64,6 @@ const currentCategoryInfo = computed(() => {
   return categoryInfo[activeCategory.value] || categoryInfo.marketplace
 })
 
-const debouncedSearch = refDebounced(query.search, 1000)
-
 watch(activeCategory, (newCategory) => {
   query.usecase = null
   query.industry = null
@@ -86,30 +84,47 @@ watch(activeCategory, (newCategory) => {
 
 const templateContainer = ref(null)
 const loadingTrigger = ref(null)
+let observer: IntersectionObserver | null = null
 
-// Function to open template in a new tab
 const openTemplate = (url: string) => {
   if (url) {
     window.open(url, '_blank')
   }
 }
 
-onMounted(() => {
-  const observer = new IntersectionObserver(
+const setupObserver = () => {
+  if (observer) {
+    observer.disconnect()
+  }
+
+  observer = new IntersectionObserver(
     useThrottleFn((entries) => {
       if (entries[0].isIntersecting && !isLoading.value && hasMore.value) {
         loadTemplates()
       }
     }, 1000),
-    { threshold: 0.1, rootMargin: '200px' },
+    { threshold: 0.1, rootMargin: '500px' },
   )
 
   if (loadingTrigger.value) {
     observer.observe(loadingTrigger.value)
   }
+}
+
+watch(activeCategory, () => {
+  nextTick(() => {
+    setupObserver()
+  })
+})
+
+onMounted(() => {
+  setupObserver()
 
   onBeforeUnmount(() => {
-    observer.disconnect()
+    if (observer) {
+      observer.disconnect()
+      observer = null
+    }
   })
 })
 </script>
@@ -117,7 +132,7 @@ onMounted(() => {
 <template>
   <MarketplaceHeader />
   <div class="flex container h-[calc(100vh_-_80px)] gap-8 mt-8 mx-auto">
-    <MarketplaceSidebar v-model:active-category="activeCategory" v-model:search-query="debouncedSearch" class="sticky top-0" />
+    <MarketplaceSidebar v-model:active-category="activeCategory" class="sticky top-0" />
     <div class="flex-1 flex flex-col">
       <div class="mb-6">
         <h2 class="text-xl text-nc-content-gray font-bold">

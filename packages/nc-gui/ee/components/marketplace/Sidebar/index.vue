@@ -1,13 +1,11 @@
 <script setup lang="ts">
 const props = defineProps<{
   activeCategory: string
-  searchQuery: string
 }>()
-const emit = defineEmits(['upate:searchQuery', 'update:searchQuery'])
 
-const searchQuery = useVModel(props, 'searchQuery', emit)
+const activeCategory = useVModel(props, 'activeCategory')
 
-const activeCategory = useVModel(props, 'activeCategory', emit)
+const { query } = useTemplates()
 
 const isSearchFocused = ref(false)
 
@@ -22,7 +20,7 @@ const setActiveItem = (category: string) => {
     <Transition name="search-slide" appear>
       <div class="relative">
         <a-input
-          v-model:value="searchQuery"
+          v-model:value="query.search"
           type="text"
           placeholder="Search for keywords like CRM..."
           class="nc-input-sm nc-input-shadow transition-all duration-300"
@@ -32,10 +30,10 @@ const setActiveItem = (category: string) => {
           <template #prefix>
             <Transition name="search-icon" mode="out-in">
               <GeneralIcon
-                :key="searchQuery?.length ? 'active' : 'inactive'"
+                :key="query.search?.length ? 'active' : 'inactive'"
                 :class="{
-                  'text-nc-content-brand': searchQuery?.length || isSearchFocused,
-                  'text-nc-content-gray-muted': !searchQuery?.length && !isSearchFocused,
+                  'text-nc-content-brand': query.search?.length || isSearchFocused,
+                  'text-nc-content-gray-muted': !query.search?.length && !isSearchFocused,
                 }"
                 icon="search"
               />
@@ -46,10 +44,10 @@ const setActiveItem = (category: string) => {
     </Transition>
 
     <TransitionGroup name="stagger-items" tag="div" class="flex flex-col gap-6">
-      <MarketplaceSidebarItem :active="activeCategory === 'marketplace'" @click="setActiveItem('marketplace')">
+      <MarketplaceSidebarItem key="marketplace" :active="activeCategory === 'marketplace'" @click="setActiveItem('marketplace')">
         Marketplace
       </MarketplaceSidebarItem>
-      <MarketplaceSidebarFolder>
+      <MarketplaceSidebarFolder key="departments">
         <template #title> Departments </template>
 
         <MarketplaceSidebarItem :active="activeCategory === 'sales'" @click="setActiveItem('sales')">
@@ -92,7 +90,7 @@ const setActiveItem = (category: string) => {
         </MarketplaceSidebarItem>
       </MarketplaceSidebarFolder>
 
-      <MarketplaceSidebarFolder>
+      <MarketplaceSidebarFolder key="industries">
         <template #title> Industries </template>
 
         <MarketplaceSidebarItem :active="activeCategory === 'healthcare'" @click="setActiveItem('healthcare')">

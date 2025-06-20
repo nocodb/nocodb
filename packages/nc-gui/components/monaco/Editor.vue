@@ -15,7 +15,6 @@ interface Props {
   autoFocus?: boolean
   monacoConfig?: Partial<MonacoEditor.IStandaloneEditorConstructionOptions>
   monacoCustomTheme?: Partial<MonacoEditor.IStandaloneThemeData>
-  stickyScroll?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -26,7 +25,6 @@ const props = withDefaults(defineProps<Props>(), {
   autoFocus: true,
   monacoConfig: () => ({} as Partial<MonacoEditor.IStandaloneEditorConstructionOptions>),
   monacoCustomTheme: () => ({} as Partial<MonacoEditor.IStandaloneThemeData>),
-  stickyScroll: false,
 })
 
 const emits = defineEmits(['update:modelValue'])
@@ -157,9 +155,6 @@ onMounted(async () => {
       },
       ...(lang === 'json' ? { detectIndentation: false, insertSpaces: true } : {}),
       ...monacoConfig,
-      stickyScroll: {
-        enabled: props.stickyScroll,
-      },
     })
 
     editor.onDidChangeModelContent(async () => {

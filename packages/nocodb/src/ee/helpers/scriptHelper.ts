@@ -211,8 +211,7 @@ export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
       qb.select('id', 'title', 'description')
         .from(`${MetaTable.MODELS}`)
         .where('base_id', context.base_id)
-        .where('mm', false)
-        .whereNull('deleted');
+        .where('mm', false);
     })
 
     // Views aggregation CTE
@@ -264,8 +263,7 @@ export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
         .from(`${MetaTable.COLUMNS} as c`)
         .whereIn('c.fk_model_id', function () {
           this.select('id').from('base_models');
-        })
-        .whereNull('c.deleted');
+        });
 
       // Add all the LEFT JOINs for column options
       columnsQuery = generateOptionsJoins(ncMeta.knex, columnsQuery);

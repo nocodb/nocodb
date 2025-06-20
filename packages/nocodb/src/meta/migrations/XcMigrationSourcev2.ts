@@ -69,6 +69,7 @@ import * as nc_079_cross_base_link from '~/meta/migrations/v2/nc_079_cross_base_
 import * as nc_080_sync_mappings from '~/meta/migrations/v2/nc_080_sync_mappings';
 import * as nc_081_audit from '~/meta/migrations/v2/nc_081_audit';
 import * as nc_082_row_color_conditions from '~/meta/migrations/v2/nc_082_row_color_conditions';
+import * as nc_083_column_index from '~/meta/migrations/v2/nc_083_column_index';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -149,6 +150,7 @@ export default class XcMigrationSourcev2 {
       'nc_080_sync_mappings',
       'nc_081_audit',
       'nc_082_row_color_conditions',
+      'nc_083_column_index',
     ]);
   }
 
@@ -300,6 +302,8 @@ export default class XcMigrationSourcev2 {
         return nc_081_audit;
       case 'nc_082_row_color_conditions':
         return nc_082_row_color_conditions;
+      case 'nc_083_column_index':
+        return nc_083_column_index;
     }
   }
 }

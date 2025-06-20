@@ -38,6 +38,8 @@ const meta = inject(MetaInj, ref())
 
 const { getMeta } = useMetas()
 
+const { appInfo } = useGlobal()
+
 const { activeTable } = toRefs(useTablesStore())
 
 const { updateStatLimit, showWebhookLogsFeatureAccessModal } = useEeConfig()
@@ -228,6 +230,8 @@ const methodList = [
   { title: 'PATCH' },
 ]
 
+const showCyclicCallsWarning = ref(false)
+
 const validators = computed(() => {
   return {
     'title': [fieldRequiredValidator()],
@@ -235,7 +239,44 @@ const validators = computed(() => {
     'notification.type': [fieldRequiredValidator()],
     ...(hookRef.notification.type === 'URL' && {
       'notification.payload.method': [fieldRequiredValidator()],
-      'notification.payload.path': [fieldRequiredValidator()],
+      'notification.payload.path': [
+        fieldRequiredValidator(),
+        {
+          validator: (_: any, path: string) => {
+            return new Promise<void>((resolve, reject) => {
+              showCyclicCallsWarning.value = false
+              const siteUrl = appInfo.value?.ncSiteUrl
+
+              if (!path || !siteUrl) {
+                resolve()
+                return
+              }
+
+              let matched = false
+              try {
+                const webhookUrl = new URL(hookRef.value.notification.payload.path)
+                const siteUrlObj = new URL(siteUrl)
+
+                // Check if the hostname matches exactly
+                matched = webhookUrl.hostname === siteUrlObj.hostname
+              } catch (e) {
+                // If URL parsing fails, fall back to simple includes check
+                matched = path.includes(siteUrl)
+              }
+
+              if (matched) {
+                if (appInfo.value?.isCloud) {
+                  reject(new Error(t('msg.internalUrlsNotAllowed')))
+                } else {
+                  showCyclicCallsWarning.value = true
+                }
+              }
+
+              resolve()
+            })
+          },
+        },
+      ],
     }),
     ...(hookRef.notification.type === 'Email' && {
       'notification.payload.to': [fieldRequiredValidator()],
@@ -826,14 +867,18 @@ const toggleIncludeUser = async () => {
                         </a-select-option>
                       </a-select>
                     </a-form-item>
-
                     <a-form-item class="w-2/3" v-bind="validateInfos['notification.payload.path']">
-                      <a-input
-                        v-model:value="hookRef.notification.payload.path"
-                        size="medium"
-                        placeholder="http://example.com"
-                        class="nc-text-field-hook-url-path nc-input-shadow h-9 !rounded-lg"
-                      />
+                      <div class="flex flex-col gap-2">
+                        <a-input
+                          v-model:value="hookRef.notification.payload.path"
+                          size="medium"
+                          placeholder="http://example.com"
+                          class="nc-text-field-hook-url-path nc-input-shadow h-9 !rounded-lg"
+                        />
+                        <div v-if="showCyclicCallsWarning" class="text-xs text-warning pl-2">
+                          {{ $t('msg.cyclicCallsWarning') }}
+                        </div>
+                      </div>
                     </a-form-item>
                   </div>
                 </div>
@@ -969,11 +1014,14 @@ const toggleIncludeUser = async () => {
               <div>
                 <div class="w-full cursor-pointer flex items-center" @click.prevent="toggleIncludeUser">
                   <NcSwitch :checked="Boolean(hookRef.notification.include_user)" class="nc-check-box-include-user">
-                    <span class="text-sm text-gray-700 font-medium">Include user information in webhook payload</span>
+                    <span class="!text-gray-700 font-semibold">{{ $t('labels.includeUser') }}</span>
                   </NcSwitch>
-                </div>
-                <div v-if="hookRef.notification.include_user" class="mt-2 text-xs text-gray-500 pl-8">
-                  The user who triggered the webhook will be included in the payload as a 'user' object.
+                  <NcTooltip>
+                    <template #title>
+                      {{ $t('tooltip.includeUserHint') }}
+                    </template>
+                    <GeneralIcon icon="info" class="text-gray-400 ml-1" />
+                  </NcTooltip>
                 </div>
               </div>
             </div>

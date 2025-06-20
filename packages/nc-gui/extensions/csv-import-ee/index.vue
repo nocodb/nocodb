@@ -8,7 +8,7 @@ import ImportStatus from './ImportStatus.vue'
 
 const { $api, $e } = useNuxtApp()
 
-const CHUNK_SIZE = 200
+const CHUNK_SIZE = 100
 
 const GENERATED_COLUMN_TYPES = [
   UITypes.Links,
@@ -624,7 +624,11 @@ const onVerifyImport = async () => {
 
   isVerifyImportLoading.value = false
 
-  if (!errorMsgs.value.length && ncIsEmptyObject(mergeFieldValueCount.value)) {
+  // if there are no duplicate merge field values, then we can import
+  if (
+    !errorMsgs.value.length &&
+    (ncIsEmptyObject(mergeFieldValueCount.value) || Object.values(mergeFieldValueCount.value).every((value) => value === 1))
+  ) {
     onImport()
   }
 }
@@ -639,6 +643,8 @@ const errorMsgsTableData = computed(() => {
   })
 
   for (const mergeFieldValue in mergeFieldValueCount.value) {
+    if (mergeFieldValueCount.value[mergeFieldValue] === 1) continue
+
     data.push({
       title: `Detected ${mergeFieldValueCount.value[mergeFieldValue]} ${
         mergeFieldValueCount.value[mergeFieldValue] === 1 ? 'record' : 'records'

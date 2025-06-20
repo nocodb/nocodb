@@ -986,10 +986,6 @@ const errorMsgsTableColumns = [
     padding: '0px 12px',
   },
 ] as NcTableColumnProps[]
-
-watchEffect(() => {
-  console.log('importPayload.value', importPayload.value.srcDestMapping)
-})
 </script>
 
 <template>

@@ -389,7 +389,10 @@ export function useCanvasTable({
               ? false
               : !!f.pv,
           readonly: f.readonly || isDataReadOnly.value || isSqlView.value || isPublicView.value,
-          isCellEditable: !isReadonly(f) && isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT),
+          isCellEditable:
+            showReadonlyColumnTooltip(f) ||
+            !showEditRestrictedColumnTooltip(f) ||
+            isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT),
           pv: !!f.pv,
           virtual: isVirtualCol(f),
           aggregation: formatAggregation(gridViewCol.aggregation, aggregations.value[f.title], f),
@@ -1260,8 +1263,12 @@ export function useCanvasTable({
       return null
     }
 
-    if (column.id && !isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)) {
-      message.toast('You do not have permission to edit this field')
+    if (
+      column.id &&
+      disableMakeCellEditable(column) &&
+      !isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)
+    ) {
+      message.toast(t('objects.permissions.editFieldTooltip'))
       return null
     }
 

@@ -453,6 +453,10 @@ const showEditRestrictedColumnTooltip = (col: ColumnType) => {
   )
 }
 
+const disableMakeCellEditable = (col: ColumnType) => {
+  return showEditRestrictedColumnTooltip(col) && !isLinksOrLTAR(col)
+}
+
 export {
   uiTypes,
   isTypableInputColumn,
@@ -474,4 +478,5 @@ export {
   isSearchableColumn,
   showReadonlyColumnTooltip,
   showEditRestrictedColumnTooltip,
+  disableMakeCellEditable,
 }

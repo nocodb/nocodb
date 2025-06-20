@@ -1618,7 +1618,6 @@ const errorMsgsTableColumns = [
       @apply text-nc-content-gray text-sm font-weight-500;
     }
   }
-
 }
 
 :deep(.ant-select-selection-item) {

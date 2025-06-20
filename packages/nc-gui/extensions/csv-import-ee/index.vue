@@ -435,6 +435,7 @@ const onUpsertColumnChange = (columnId: string) => {
       m.enabled = true
     } else if (!m.destCn && m.enabled) {
       m.enabled = false
+      m.destCn = ''
     }
   })
 
@@ -871,10 +872,8 @@ const newImport = () => {
 }
 
 const isAllMappedFieldsSelected = computed(() => {
-  return (
-    !!importPayload.value.srcDestMapping.length &&
-    importPayload.value.srcDestMapping.filter((c) => !!c.destCn).every((c) => c.enabled)
-  )
+  const selectedFields = importPayload.value.srcDestMapping.filter((c) => !!c.destCn)
+  return !!selectedFields.length && selectedFields.every((c) => c.enabled)
 })
 
 const isSomeFieldsSelected = computed(() => {
@@ -885,7 +884,7 @@ const onClickSelectAllFields = (value: boolean) => {
   for (const importMeta of importPayload.value.srcDestMapping) {
     if (!importMeta.destCn) continue
 
-    if (!value && importPayload.value.upsertColumnId === columns.value[importMeta.destCn]?.id) continue
+    if (!value && importPayload.value.upsertColumnId === columnByTitle.value[importMeta.destCn]?.id) continue
 
     importMeta.enabled = value
   }
@@ -987,6 +986,10 @@ const errorMsgsTableColumns = [
     padding: '0px 12px',
   },
 ] as NcTableColumnProps[]
+
+watchEffect(() => {
+  console.log('importPayload.value', importPayload.value.srcDestMapping)
+})
 </script>
 
 <template>
@@ -1352,7 +1355,7 @@ const errorMsgsTableColumns = [
               </section>
             </div>
 
-            <div class="w-[calc(100%_-_420px)] flex flex-col overflow-auto nc-scrollbar-thin h-full">
+            <div class="w-[calc(100%_-_420px)] flex flex-col h-full p-4 gap-4">
               <NcModal
                 v-if="importPayload.upsert && isImportVerified"
                 v-model:visible="isVerifyImportDlgVisible"
@@ -1391,129 +1394,128 @@ const errorMsgsTableColumns = [
                   </div>
                 </div>
               </NcModal>
-              <div class="flex-1 flex flex-col gap-4 p-4">
-                <div class="flex items-center justify-between gap-3">
-                  <div class="text-sm font-weight-700 text-nc-content-gray">Match CSV columns to NocoDB fields</div>
-                  <div>
-                    <NcBadge class="!text-sm !h-5 bg-nc-bg-gray-medium truncate" :border="false"
-                      >{{ selectedFieldDetails.selected }}/{{ selectedFieldDetails.total }} selected
+
+              <div class="flex items-center justify-between gap-3">
+                <div class="text-sm font-weight-700 text-nc-content-gray">Match CSV columns to NocoDB fields</div>
+                <div>
+                  <NcBadge class="!text-sm !h-5 bg-nc-bg-gray-medium truncate" :border="false"
+                    >{{ selectedFieldDetails.selected }}/{{ selectedFieldDetails.total }} selected
+                  </NcBadge>
+                </div>
+              </div>
+
+              <NcTable
+                :columns="fieldMappingColumns"
+                :data="importPayload.srcDestMapping"
+                class="flex-1"
+                :bordered="false"
+                header-cell-class-name="!text-nc-content-gray-subtle2 !font-weight-700"
+                body-row-class-name="!cursor-default"
+                row-height="48px"
+                :custom-row="customRow"
+              >
+                <template #headerCell="{ column }">
+                  <template v-if="column.key === 'select'">
+                    <NcCheckbox
+                      :checked="isAllMappedFieldsSelected"
+                      :indeterminate="isSomeFieldsSelected && !isAllMappedFieldsSelected"
+                      @update:checked="onClickSelectAllFields"
+                    />
+                  </template>
+                  <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-3 pl-3">
+                    {{ column.title }}
+
+                    <NcBadge
+                      v-if="importPayload.tableId"
+                      class="!text-sm !h-5 bg-nc-bg-gray-medium truncate font-normal"
+                      :border="false"
+                    >
+                      <LazyGeneralEmojiPicker
+                        :emoji="importPayload.tableIcon || selectedTable?.meta?.icon"
+                        readonly
+                        size="xsmall"
+                      >
+                        <template #default>
+                          <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
+                        </template>
+                      </LazyGeneralEmojiPicker>
+                      <NcTooltip class="max-w-[80px] ml-1 text-nc-content-gray-subtle2 truncate" show-on-truncate-only>
+                        <template #title>
+                          {{ importPayload.tableName || selectedTable.title }}
+                        </template>
+
+                        {{ importPayload.tableName || selectedTable.title }}
+                      </NcTooltip>
                     </NcBadge>
                   </div>
-                </div>
+                  <template v-if="column.key === 'mapping'">
+                    <GeneralIcon icon="ncArrowRight" />
+                  </template>
+                  <div v-if="column.key === 'csv-column'" class="w-full text-left">
+                    {{ column.title }}
+                  </div>
+                </template>
 
-                <NcTable
-                  :columns="fieldMappingColumns"
-                  :data="importPayload.srcDestMapping"
-                  class="flex-1"
-                  :bordered="false"
-                  header-cell-class-name="!text-nc-content-gray-subtle2 !font-weight-700"
-                  body-row-class-name="!cursor-default"
-                  row-height="48px"
-                  :custom-row="customRow"
-                >
-                  <template #headerCell="{ column }">
-                    <template v-if="column.key === 'select'">
+                <template #bodyCell="{ column, record: importMeta }">
+                  <template v-if="column.key === 'select'">
+                    <NcTooltip :disabled="importMeta.enabled || !!importMeta.destCn">
+                      <template #title>Select NocoDB field to map</template>
                       <NcCheckbox
-                        :checked="isAllMappedFieldsSelected"
-                        :indeterminate="isSomeFieldsSelected && !isAllMappedFieldsSelected"
-                        @update:checked="onClickSelectAllFields"
+                        v-model:checked="importMeta.enabled"
+                        :disabled="!importMeta.destCn || importPayload.upsertColumnId === columnByTitle[importMeta.destCn]?.id"
+                        @change="updateHistory(true)"
                       />
-                    </template>
-                    <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-3 pl-3">
-                      {{ column.title }}
+                    </NcTooltip>
+                  </template>
+                  <div v-if="column.key === 'csv-column'" class="w-full flex items-center gap-2">
+                    <NcTooltip class="truncate max-w-[calc(100%_-_24px)]" show-on-truncate-only>
+                      <template #title> {{ importMeta.srcTitle }} </template>
 
-                      <NcBadge
-                        v-if="importPayload.tableId"
-                        class="!text-sm !h-5 bg-nc-bg-gray-medium truncate font-normal"
-                        :border="false"
+                      {{ importMeta.srcTitle }}
+                    </NcTooltip>
+                  </div>
+
+                  <template v-if="column.key === 'mapping'">
+                    <GeneralIcon icon="ncArrowRight" />
+                  </template>
+
+                  <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-2">
+                    <a-form-item class="!my-0 w-full">
+                      <NcSelect
+                        :value="importMeta.destCn || null"
+                        class="nc-field-select-input w-full nc-select-shadow !border-none"
+                        show-search
+                        allow-clear
+                        :placeholder="`-${$t('labels.multiField.selectField').toLowerCase()}-`"
+                        dropdown-class-name="nc-dropdown-filter-field"
+                        @update:value="(value) => (importMeta.destCn = value)"
+                        @change="onMappingField(importMeta.srcTitle, $event)"
                       >
-                        <LazyGeneralEmojiPicker
-                          :emoji="importPayload.tableIcon || selectedTable?.meta?.icon"
-                          readonly
-                          size="xsmall"
-                        >
-                          <template #default>
-                            <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
-                          </template>
-                        </LazyGeneralEmojiPicker>
-                        <NcTooltip class="max-w-[80px] ml-1 text-nc-content-gray-subtle2 truncate" show-on-truncate-only>
-                          <template #title>
-                            {{ importPayload.tableName || selectedTable.title }}
-                          </template>
-
-                          {{ importPayload.tableName || selectedTable.title }}
-                        </NcTooltip>
-                      </NcBadge>
-                    </div>
-                    <template v-if="column.key === 'mapping'">
-                      <GeneralIcon icon="ncArrowRight" />
-                    </template>
-                    <div v-if="column.key === 'csv-column'" class="w-full text-left">
-                      {{ column.title }}
-                    </div>
-                  </template>
-
-                  <template #bodyCell="{ column, record: importMeta }">
-                    <template v-if="column.key === 'select'">
-                      <NcTooltip :disabled="importMeta.enabled || !!importMeta.destCn">
-                        <template #title>Select NocoDB field to map</template>
-                        <NcCheckbox
-                          v-model:checked="importMeta.enabled"
-                          :disabled="!importMeta.destCn || importPayload.upsertColumnId === columnByTitle[importMeta.destCn]?.id"
-                          @change="updateHistory(true)"
-                        />
-                      </NcTooltip>
-                    </template>
-                    <div v-if="column.key === 'csv-column'" class="w-full flex items-center gap-2">
-                      <NcTooltip class="truncate max-w-[calc(100%_-_24px)]" show-on-truncate-only>
-                        <template #title> {{ importMeta.srcTitle }} </template>
-
-                        {{ importMeta.srcTitle }}
-                      </NcTooltip>
-                    </div>
-
-                    <template v-if="column.key === 'mapping'">
-                      <GeneralIcon icon="ncArrowRight" />
-                    </template>
-
-                    <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-2">
-                      <a-form-item class="!my-0 w-full">
-                        <NcSelect
-                          v-model:value="importMeta.destCn"
-                          class="nc-field-select-input w-full nc-select-shadow !border-none"
-                          show-search
-                          allow-clear
-                          :placeholder="`-${$t('labels.multiField.selectField').toLowerCase()}-`"
-                          dropdown-class-name="nc-dropdown-filter-field"
-                          @update:value="(value) => (importMeta.destCn = value)"
-                          @change="onMappingField(importMeta.srcTitle, $event)"
-                        >
-                          <template #suffixIcon>
-                            <GeneralIcon icon="arrowDown" class="text-current" />
-                          </template>
-                          <a-select-option v-for="(col, i) of getUnselectedFields(importMeta)" :key="i" :value="col.title">
-                            <div class="flex items-center gap-2 w-full">
-                              <component :is="getUIDTIcon(col.uidt as UITypes)" class="flex-none w-3.5 h-3.5" />
-                              <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                                <template #title>
-                                  {{ col.title }}
-                                </template>
+                        <template #suffixIcon>
+                          <GeneralIcon icon="arrowDown" class="text-current" />
+                        </template>
+                        <a-select-option v-for="(col, i) of getUnselectedFields(importMeta)" :key="i" :value="col.title">
+                          <div class="flex items-center gap-2 w-full">
+                            <component :is="getUIDTIcon(col.uidt as UITypes)" class="flex-none w-3.5 h-3.5" />
+                            <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                              <template #title>
                                 {{ col.title }}
-                              </NcTooltip>
-                              <component
-                                :is="iconMap.check"
-                                v-if="importMeta.destCn === col.title"
-                                id="nc-selected-item-icon"
-                                class="flex-none text-primary w-4 h-4"
-                              />
-                            </div>
-                          </a-select-option>
-                        </NcSelect>
-                      </a-form-item>
-                    </div>
-                  </template>
-                </NcTable>
-              </div>
+                              </template>
+                              {{ col.title }}
+                            </NcTooltip>
+                            <component
+                              :is="iconMap.check"
+                              v-if="importMeta.destCn === col.title"
+                              id="nc-selected-item-icon"
+                              class="flex-none text-primary w-4 h-4"
+                            />
+                          </div>
+                        </a-select-option>
+                      </NcSelect>
+                    </a-form-item>
+                  </div>
+                </template>
+              </NcTable>
             </div>
           </div>
           <general-overlay :model-value="isImportingRecords" inline transition class="!bg-opacity-15">

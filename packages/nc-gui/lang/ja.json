@@ -1255,6 +1255,7 @@
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "ビューを含める",
+    "includeScripts": "Include scripts",
     "includeWebhook": "Webhookを含める",
     "includeComments": "コメントを含める",
     "zoomInToViewColumns": "列を表示するにはズームインしてください",

@@ -36,7 +36,7 @@ const onNavigateToPermissionsOverview = () => {
     <PermissionsTable :table-id="tableId" :base="base">
       <template #title>
         <div class="flex items-center gap-2">
-          <GeneralIcon icon="lock" class="w-5 h-5 flex items-center" />
+          <GeneralIcon icon="ncLock" class="w-5 h-5 flex items-center" />
           <div class="text-nc-content-gray-subtle2 font-bold">Table permissions</div>
           <div v-if="title" class="flex items-center bg-nc-bg-gray-medium px-1 gap-1 rounded-md">
             <GeneralIcon icon="table" class="w-4 h-4" />

@@ -7,6 +7,7 @@ const props = defineProps<{
   fieldTitle: string
   permissionType: PermissionKey
   currentValue: string
+  borderOnHover?: boolean
 }>()
 
 const permissionConfig = computed<PermissionConfig>(() => ({
@@ -17,5 +18,5 @@ const permissionConfig = computed<PermissionConfig>(() => ({
 </script>
 
 <template>
-  <PermissionsSelector :base="base" :config="permissionConfig" mode="inline" />
+  <PermissionsSelector :base="base" :config="permissionConfig" mode="inline" :border-on-hover="borderOnHover" />
 </template>

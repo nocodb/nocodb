@@ -124,9 +124,9 @@ const handlePermissionSave = () => {
             :current-value="getPermissionSummaryLabel('field', record.field_id!, PermissionKey.RECORD_FIELD_EDIT)"
             :border-on-hover="true"
             class="-ml-3"
-            @save="handlePermissionSave"
             :readonly="!showEditRestrictedColumnTooltip(record.col)"
             :remove-readonly-padding="false"
+            @save="handlePermissionSave"
           />
         </NcTooltip>
       </template>

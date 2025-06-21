@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PermissionEntity, PermissionKey, type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, PermissionEntity, PermissionKey } from 'nocodb-sdk'
 
 /* interface */
 

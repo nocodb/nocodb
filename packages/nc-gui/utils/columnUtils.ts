@@ -6,6 +6,7 @@ import {
   UITypes,
   LongTextAiMetaProp as _LongTextAiMetaProp,
   checkboxIconList,
+  isLinksOrLTAR,
   isValidURL,
   ratingIconList,
   validateEmail,
@@ -416,6 +417,18 @@ const getColumnValidationError = (column: ColumnType, value?: any) => {
   }
 }
 
+const showReadonlyColumnTooltip = (col: ColumnType) => {
+  const shouldApplyDataCell = !(isBarcode(col) || isQrCode(col) || isBoolean(col) || isRating(col))
+  return isReadOnlyVirtualCell(col) && shouldApplyDataCell && !isLinksOrLTAR(col)
+}
+
+const showEditRestrictedColumnTooltip = (col: ColumnType) => {
+  return (
+    !isReadOnlyVirtualCell(col) &&
+    ![UITypes.Button, UITypes.Count, UITypes.Order, UITypes.ForeignKey].includes(col.uidt as UITypes)
+  )
+}
+
 export {
   uiTypes,
   isTypableInputColumn,
@@ -433,4 +446,6 @@ export {
   formViewHiddenColTypes,
   columnToValidate,
   getColumnValidationError,
+  showReadonlyColumnTooltip,
+  showEditRestrictedColumnTooltip,
 }

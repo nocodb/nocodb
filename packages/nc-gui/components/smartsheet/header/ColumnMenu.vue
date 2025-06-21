@@ -567,16 +567,22 @@ const onDeleteColumn = () => {
       </div>
     </NcMenuItem>
 
-    <NcMenuItem
+    <NcTooltip
       v-if="isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
-      title="Edit field permissions"
-      @click="onFieldPermissions"
+      :disabled="showEditRestrictedColumnTooltip(column)"
+      placement="right"
+      :arrow="false"
     >
-      <div class="nc-column-field-permissions nc-header-menu-item">
-        <GeneralIcon icon="ncLock" class="opacity-80 !w-4.25 !h-4.25" />
-        Edit field permissions
-      </div>
-    </NcMenuItem>
+      <template #title>
+        {{ $t('tooltip.dataInThisFieldCantBeManuallyEdited') }}
+      </template>
+      <NcMenuItem :disabled="!showEditRestrictedColumnTooltip(column)" title="Edit field permissions" @click="onFieldPermissions">
+        <div class="nc-column-field-permissions nc-header-menu-item">
+          <GeneralIcon icon="ncLock" class="opacity-80 !w-4.25 !h-4.25" />
+          Edit field permissions
+        </div>
+      </NcMenuItem>
+    </NcTooltip>
 
     <NcMenuItem
       v-if="[UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)"

@@ -12,6 +12,8 @@ interface Props {
   showIcon?: boolean
   showOverlay?: boolean
   defaultTooltip?: string
+  showPointerEventNone?: boolean
+  disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -19,6 +21,8 @@ const props = withDefaults(defineProps<Props>(), {
   showIcon: true,
   showOverlay: false,
   defaultTooltip: '',
+  showPointerEventNone: true,
+  disabled: false,
 })
 
 const { isAllowed: _isAllowed } = usePermissions()
@@ -57,11 +61,21 @@ const tooltipDescription = computed(() => {
   }
 })
 
-const isAllowed = computed(() => (props.entityId ? _isAllowed(props.entity, props.entityId, props.permission) : true))
+const isAllowed = computed(() => {
+  /**
+   * if disabled, always return true
+   * @example: If column is already readonly, then we don't need to show the tooltip and restrict any action like button click, etc.
+   * */
+  if (props.disabled) {
+    return true
+  }
+
+  return props.entityId ? _isAllowed(props.entity, props.entityId, props.permission) : true
+})
 </script>
 
 <template>
-  <NcTooltip :disabled="isAllowed && !defaultTooltip" :placement="placement" :arrow="false">
+  <NcTooltip :disabled="disabled || (isAllowed && !defaultTooltip)" :placement="placement" :arrow="false">
     <template #title>
       <div v-if="!isAllowed" class="flex flex-col gap-1">
         <div class="text-captionBold">{{ tooltipTitle }}</div>
@@ -77,7 +91,7 @@ const isAllowed = computed(() => (props.entityId ? _isAllowed(props.entity, prop
     <div
       class="relative"
       :class="{
-        'pointer-events-none': !isAllowed,
+        'pointer-events-none': !isAllowed && showPointerEventNone,
       }"
     >
       <div

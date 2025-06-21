@@ -12,6 +12,7 @@ interface Props {
   active?: boolean
   virtual?: boolean
   path?: Array<number>
+  isAllowed?: boolean
 }
 
 const props = defineProps<Props>()
@@ -28,6 +29,8 @@ const path = toRef(props, 'path', [])
 
 const readOnly = toRef(props, 'readOnly', false)
 
+const isAllowed = toRef(props, 'isAllowed', true)
+
 provide(ColumnInj, column)
 
 const editEnabled = useVModel(props, 'editEnabled', emit)
@@ -39,6 +42,8 @@ provide(EditModeInj, editEnabled)
 provide(ActiveCellInj, active)
 
 provide(ReadonlyInj, readOnly)
+
+provide(IsAllowedInj, isAllowed)
 
 const isForm = inject(IsFormInj, ref(false))
 

@@ -464,6 +464,7 @@ const selectOption = (option) => {
           :entity-id="meta?.id"
           :permission="PermissionKey.TABLE_RECORD_ADD"
           placement="left"
+          show-overlay
         >
           <NcButton
             v-if="isUIAllowed('dataEdit') && props.visible && !isSyncedTable"

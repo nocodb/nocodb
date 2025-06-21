@@ -48,7 +48,7 @@ export function useKeyboardNavigation({
   copyValue: (target?: Cell, path?: Array<number>) => void
   clearCell: (ctx: { row: number; col: number; path?: Array<number> } | null, skipUpdate?: boolean) => Promise<void>
   clearSelectedRangeOfCells: (path?: Array<number>) => Promise<void>
-  makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+  makeCellEditable: MakeCellEditableFn
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
   cachedGroups: Ref<Map<number, CanvasGroup>>
   isAddingEmptyRowAllowed: ComputedRef<boolean>
@@ -241,7 +241,7 @@ export function useKeyboardNavigation({
 
               const row = cachedRows.value.get(activeCell.value.row)
 
-              makeCellEditable(row, columns.value[activeCell.value.column]!)
+              makeCellEditable(row, columns.value[activeCell.value.column]!, true)
               selection.value.clear()
             }
           }

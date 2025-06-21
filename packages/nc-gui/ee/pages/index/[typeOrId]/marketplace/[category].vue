@@ -8,13 +8,13 @@ const {
   templates,
   isLoading,
   hasMore,
-  loadTemplates,
   activeCategory,
   categoryInfo,
   currentCategoryInfo,
   templateContainer,
   loadingTrigger,
   openTemplate,
+  setupObserver,
 } = useMarketplaceTemplates(category.value)
 
 const validCategories = Object.keys(categoryInfo)
@@ -30,6 +30,12 @@ watch(activeCategory, (newCategory) => {
       router.push(`/${typeOrId.value}/marketplace/${newCategory}`)
     }
   }
+})
+
+onMounted(() => {
+  nextTick(() => {
+    setupObserver()
+  })
 })
 </script>
 

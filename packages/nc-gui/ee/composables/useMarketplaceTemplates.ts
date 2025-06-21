@@ -1,4 +1,3 @@
-// Template interface
 export interface Template {
   'Id': number
   'Title': string
@@ -9,24 +8,20 @@ export interface Template {
   'Thumbnail': string | null
 }
 
-// Create a shared composable that can be reused across components
 export const useMarketplaceTemplates = createSharedComposable((initialCategory = 'marketplace') => {
   const { $api } = useNuxtApp()
   const route = useRoute()
   const router = useRouter()
   const typeOrId = computed(() => route.params.typeOrId as string)
 
-  // Get active workspace ID from store
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  // Template data and loading state
   const templates = ref<Template[]>([])
   const isLoading = ref(false)
   const hasMore = ref(true)
   const page = ref(1)
   const perPage = ref(12)
 
-  // Query parameters
   const query = reactive({
     search: '',
     industry: null as string | null,
@@ -35,10 +30,8 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
     per_page: perPage.value,
   })
 
-  // Active category state
   const activeCategory = ref(initialCategory)
 
-  // Category information
   const categoryInfo = {
     'marketplace': {
       title: 'Popular templates',
@@ -96,12 +89,10 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
     },
   }
 
-  // Get current category info
   const currentCategoryInfo = computed(() => {
     return categoryInfo[activeCategory.value] || categoryInfo.marketplace
   })
 
-  // Load templates from API
   const loadTemplates = async (reset = false) => {
     if (!activeWorkspaceId.value) return
 
@@ -181,7 +172,6 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
     }
   }
 
-  // Setup intersection observer for infinite scroll
   const setupObserver = () => {
     if (observer) {
       observer.disconnect()
@@ -193,7 +183,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
           loadTemplates()
         }
       }, 1000),
-      { threshold: 0.1, rootMargin: '500px' },
+      { threshold: 0.1, rootMargin: '300px' },
     )
 
     if (loadingTrigger.value) {
@@ -201,23 +191,28 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
     }
   }
 
-  // Apply category-specific filters
+  watch(
+    () => loadingTrigger.value,
+    (newVal) => {
+      if (newVal && observer) {
+        observer.disconnect()
+        observer.observe(newVal)
+      }
+    },
+  )
+
   const applyCategoryFilters = () => {
-    // Reset filters
     query.usecase = null
     query.industry = null
 
-    // Skip for marketplace as it doesn't need filters
     if (activeCategory.value === 'marketplace') return
 
-    // Apply department filters
     const departments = ['sales', 'marketing', 'hr', 'product-management', 'operations', 'project-management']
     if (departments.includes(activeCategory.value)) {
       query.usecase = activeCategory.value
       return
     }
 
-    // Apply industry filters
     const industries = ['healthcare', 'finance', 'education', 'manufacturing', 'real-estate', 'retail']
     if (industries.includes(activeCategory.value)) {
       query.industry = activeCategory.value
@@ -231,13 +226,11 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
     { deep: true },
   )
 
-  // Watch for category changes and update filters
   watch(activeCategory, (newCategory) => {
     applyCategoryFilters()
     loadTemplates(true)
   })
 
-  // Setup and cleanup
   onMounted(() => {
     applyCategoryFilters()
     loadTemplates(true)

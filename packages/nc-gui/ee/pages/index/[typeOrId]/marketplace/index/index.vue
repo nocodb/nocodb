@@ -3,13 +3,28 @@ const route = useRoute()
 const router = useRouter()
 const typeOrId = computed(() => route.params.typeOrId as string)
 
-const { templates, isLoading, hasMore, activeCategory, templateContainer, loadingTrigger, openTemplate, categoryInfo } =
-  useMarketplaceTemplates('marketplace')
+const {
+  templates,
+  isLoading,
+  hasMore,
+  activeCategory,
+  templateContainer,
+  loadingTrigger,
+  openTemplate,
+  categoryInfo,
+  setupObserver,
+} = useMarketplaceTemplates('marketplace')
 
 watch(activeCategory, (newCategory) => {
   if (newCategory !== 'marketplace') {
     router.push(`/${typeOrId.value}/marketplace/${newCategory}`)
   }
+})
+
+onMounted(() => {
+  nextTick(() => {
+    setupObserver()
+  })
 })
 </script>
 

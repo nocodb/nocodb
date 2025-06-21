@@ -1,13 +1,6 @@
 <script lang="ts" setup>
 import type { PermissionKey, WorkspaceUserRoles } from 'nocodb-sdk'
-import {
-  PermissionMeta,
-  PermissionRoleMap,
-  PermissionRolePower,
-  WorkspaceRolesToProjectRoles,
-  ProjectRoles,
-  OrderedProjectRoles,
-} from 'nocodb-sdk'
+import { PermissionMeta, PermissionRoleMap, PermissionRolePower, WorkspaceRolesToProjectRoles, ProjectRoles } from 'nocodb-sdk'
 import type { NcListProps } from '#imports'
 
 interface Props extends Partial<NcListProps> {
@@ -41,8 +34,6 @@ const {
   showListFooter,
   ...restProps
 } = props
-
-const { baseRoles } = useRoles()
 
 const basesStore = useBases()
 
@@ -136,29 +127,6 @@ const filterOption = (input: string, option: NcListItemType) => {
   return antSelectFilterOption(input, option, ['email', 'display_name'])
 }
 
-const isRoleInherited = (user: NcListItemType) => {
-  if (!isEeUI || !accessibleRoles.value.includes(user.roles)) return false
-
-  const inheritedRole =
-    user.workspace_roles && WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles]
-      ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles]
-      : null
-
-  return inheritedRole && inheritedRole === user.roles
-}
-
-watch(
-  baseRoles,
-  (br) => {
-    const currentRoleIndex = OrderedProjectRoles.findIndex((role) => br && Object.keys(br).includes(role))
-
-    accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
-  },
-  {
-    immediate: true,
-  },
-)
-
 defineExpose({
   selectAll,
   clearAll,
@@ -205,13 +173,7 @@ defineExpose({
     </template>
     <template #listItemExtraRight="{ option }">
       <div class="flex items-center gap-1">
-        <NcTooltip v-if="isRoleInherited(option)" class="uppercase text-[10px] leading-4 text-gray-500" placement="bottom">
-          <template #title>
-            {{ $t('tooltip.roleInheritedFromWorkspace') }}
-          </template>
-          (WS)
-        </NcTooltip>
-        <RolesBadge :border="false" :role="option.roles" />
+        <RolesBadge :border="false" :role="option.roles" icon-only nc-badge-class="!px-1" show-tooltip />
       </div>
     </template>
     <template #listItemSelectedIcon> </template>

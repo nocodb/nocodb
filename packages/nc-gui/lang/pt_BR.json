@@ -155,7 +155,9 @@
     "upgradeToUploadWsImage": "Faça upgrade para enviar uma imagem do espaço de trabalho",
     "upgradeToUploadWsImageSubtitle": "Seu plano {activePlan} atual permite apenas ícones e emojis. Faça upgrade para o plano {plan} para enviar uma imagem personalizada como avatar do espaço de trabalho.",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
-    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
+    "upgradeToUseRowColoring": "Upgrade to use row coloring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "Script",
@@ -572,6 +574,14 @@
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
       "apiCallsMonthly": "API calls (monthly)"
+    },
+    "coloring": {
+      "usingSingleSelectField": "Using Single select field",
+      "usingSingleSelectFieldDescription": "Colour records based on single select field",
+      "usingSingleSelectFieldTooltip": "No single select field found. Add one to enable select-field based row colouring.",
+      "usingConditions": "Using Conditions",
+      "usingConditionsDescription": "Colour records based on conditions",
+      "colourRecordsByField": "Colour records by field"
     }
   },
   "datatype": {
@@ -820,7 +830,8 @@
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
-    "duplicatesFound": "Duplicates found"
+    "duplicatesFound": "Duplicates found",
+    "matchingResultsInRecords": "Matching results in {count} records"
   },
   "labels": {
     "crossBase": "Link to external base",
@@ -1256,6 +1267,7 @@
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Incluir visualizações",
+    "includeScripts": "Include scripts",
     "includeWebhook": "Incluir webhook",
     "includeComments": "Incluir comentários",
     "zoomInToViewColumns": "Aumente o zoom para ver as colunas",
@@ -1343,7 +1355,12 @@
     "dataApiV2": "Data APIs V2",
     "metaApiV2": "Meta APIs V2",
     "showExtraFields": "Show additional fields",
-    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records"
+    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records",
+    "removeColouring": "Remove colouring",
+    "backgroundColour": "Background colour",
+    "addColour": "Add Colour",
+    "defaultColours": "Default colours",
+    "customColours": "Custom colours"
   },
   "activity": {
     "clickToResolve": "Clique para resolver",
@@ -1696,7 +1713,8 @@
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation"
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table"
   },
   "placeholder": {
     "searchIcons": "Pesquisar ícones",

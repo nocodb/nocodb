@@ -59,11 +59,11 @@ const isAllowed = computed(() => (props.entityId ? _isAllowed(props.entity, prop
 </script>
 
 <template>
-  <NcTooltip :disabled="isAllowed" :placement="placement">
+  <NcTooltip :disabled="isAllowed" :placement="placement" :arrow="false">
     <template #title>
       <div class="flex flex-col gap-1">
-        <div class="text-sm font-bold">{{ tooltipTitle }}</div>
-        <div v-if="tooltipDescription" class="text-xs">
+        <div class="text-captionBold">{{ tooltipTitle }}</div>
+        <div v-if="tooltipDescription" class="text-captionSm">
           {{ tooltipDescription }}
         </div>
       </div>

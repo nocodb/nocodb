@@ -1255,6 +1255,7 @@
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Включити вигляди",
+    "includeScripts": "Include scripts",
     "includeWebhook": "Включити вебхук",
     "includeComments": "Включити коментарі",
     "zoomInToViewColumns": "Збільшіть масштаб, щоб переглянути колонки",

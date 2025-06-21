@@ -1356,6 +1356,7 @@
     "metaApiV2": "Meta APIs V2",
     "showExtraFields": "Show additional fields",
     "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records",
+    "includeUser": "Include User",
     "removeColouring": "Remove colouring",
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
@@ -1648,6 +1649,7 @@
     "changePlan": "योजना परिवर्तन गर्नुहोस्"
   },
   "tooltip": {
+    "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
     "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "हरेक कार्यक्षेत्रमा कम्तीमा एक मालिक हुनुपर्छ। कार्यक्षेत्र छोड्नु अघि अर्को प्रयोगकर्तालाई मालिकको रूपमा तोक्नुहोस्। यदि तपाईं अन्तिम सदस्य हुनुहुन्छ भने, त्यसको सट्टा कार्यक्षेत्र मेट्ने विचार गर्नुहोस्।",
     "currentDateNotAvail": "वर्तमान मिति विकल्प डाटा स्रोत वा डाटा प्रकारका लागि उपलब्ध छैन",
@@ -2329,6 +2331,8 @@
     },
     "noAccess": "No Access",
     "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
-    "tryAgain": "Try Again"
+    "tryAgain": "Try Again",
+    "internalUrlsNotAllowed": "Internal URLs are not allowed",
+    "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls"
   }
 }

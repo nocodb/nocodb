@@ -223,6 +223,20 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
       query.industry = activeCategory.value
     }
   }
+  watch(
+    () => ({ search: query.search, industry: query.industry, usecase: query.usecase }),
+    () => {
+      loadTemplates(true)
+    },
+    { deep: true },
+  )
+
+  // Watch for category changes and update filters
+  watch(activeCategory, (newCategory) => {
+    applyCategoryFilters()
+    loadTemplates(true)
+  })
+
   // Setup and cleanup
   onMounted(() => {
     applyCategoryFilters()

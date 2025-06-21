@@ -1,11 +1,9 @@
 <script setup lang="ts">
-// Get the category from the route
 const route = useRoute()
 const router = useRouter()
 const category = computed(() => route.params.category as string)
 const typeOrId = computed(() => route.params.typeOrId as string)
 
-// Initialize marketplace templates with the current category
 const {
   templates,
   isLoading,
@@ -19,14 +17,11 @@ const {
   openTemplate,
 } = useMarketplaceTemplates(category.value)
 
-// Validate that the category exists
 const validCategories = Object.keys(categoryInfo)
 if (!validCategories.includes(category.value)) {
-  // Redirect to marketplace if category is invalid
   router.replace(`/${typeOrId.value}/marketplace`)
 }
 
-// Handle sidebar category changes
 watch(activeCategory, (newCategory) => {
   if (newCategory !== category.value) {
     if (newCategory === 'marketplace') {
@@ -36,13 +31,6 @@ watch(activeCategory, (newCategory) => {
     }
   }
 })
-
-// Manual load more function
-const loadMoreTemplates = () => {
-  if (!isLoading.value && hasMore.value) {
-    loadTemplates()
-  }
-}
 </script>
 
 <template>
@@ -93,7 +81,6 @@ const loadMoreTemplates = () => {
               <GeneralLoader size="medium" />
               <span class="text-nc-content-gray-subtle2">Loading more templates...</span>
             </div>
-            <div v-else class="text-primary cursor-pointer hover:underline" @click="loadMoreTemplates">Load more templates</div>
           </div>
         </div>
       </div>

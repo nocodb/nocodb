@@ -614,7 +614,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         open: navigateToBlankTargetOpenOption,
       })
     } else {
-      router.push({ name: 'index-typeOrId-marketplace', params: { typeOrId: workspaceId }, query })
+      router.push({ name: 'index-typeOrId-marketplace-index', params: { typeOrId: workspaceId }, query })
     }
   }
 

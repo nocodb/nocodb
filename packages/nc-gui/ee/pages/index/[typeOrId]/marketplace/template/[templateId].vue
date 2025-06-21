@@ -1,21 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useMarketplaceTemplates } from '~/ee/composables/useMarketplaceTemplates'
-import { useRoute, useRouter } from 'vue-router'
-
 const route = useRoute()
 const router = useRouter()
 const templateId = computed(() => route.params.templateId)
 const typeOrId = computed(() => route.params.typeOrId)
 
-// Use the shared marketplace templates composable
 const { activeCategory, getTemplateById } = useMarketplaceTemplates('marketplace')
 
 const template = ref(null)
 const isLoading = ref(true)
 const error = ref(null)
 
-// Get template details
 const fetchTemplateDetails = async () => {
   isLoading.value = true
   error.value = null
@@ -30,12 +24,10 @@ const fetchTemplateDetails = async () => {
   }
 }
 
-// Go back to the previous page
 const goBack = () => {
   router.back()
 }
 
-// Open template in new tab
 const useTemplate = () => {
   if (template.value && template.value['Shared Base Url']) {
     window.open(template.value['Shared Base Url'], '_blank')
@@ -53,7 +45,6 @@ onMounted(() => {
     <div class="flex container h-[calc(100vh_-_80px)] gap-8 mt-8 mx-auto">
       <MarketplaceSidebar v-model:active-category="activeCategory" class="sticky top-0" />
       <div class="flex-1 flex flex-col">
-        <!-- Back button -->
         <div class="mb-4">
           <button class="flex items-center text-primary hover:underline" @click="goBack">
             <span class="i-mdi-arrow-left mr-1"></span>

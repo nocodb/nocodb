@@ -136,12 +136,14 @@ const displayValue = computed(() => {
                       class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
                       :column="field"
                       :hide-menu="true"
+                      :hide-icon-tooltip="true"
                     />
                     <LazySmartsheetHeaderCell
                       v-else
                       class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
                       :column="field"
                       :hide-menu="true"
+                      :hide-icon-tooltip="true"
                     />
                   </template>
                   <div class="nc-link-record-cell flex w-full max-w-full">

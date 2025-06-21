@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { PermissionKey } from 'nocodb-sdk'
+import { PermissionMeta } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -8,6 +9,7 @@ const props = defineProps<{
   permissionLabel: string
   permissionDescription?: string
   permission?: PermissionKey
+  entityTitle?: string
 }>()
 
 const emits = defineEmits(['update:visible', 'save'])
@@ -61,6 +63,13 @@ const onSave = async () => {
 }
 
 const userSelectorListRef = ref()
+
+const description = computed(() => {
+  return PermissionMeta[props.permission as PermissionKey].userSelectorDescription?.replace(
+    '{{field}}',
+    `<b class="text-nc-content-gray-emphasis">${props.entityTitle ?? 'this'}</b>`,
+  )
+})
 </script>
 
 <template>
@@ -80,14 +89,14 @@ const userSelectorListRef = ref()
   >
     <div>
       <div class="flex items-center justify-between mb-2">
-        <div class="text-base font-semibold text-nc-content-gray-emphasis">Selet specific users</div>
+        <div class="text-subHeading2 text-nc-content-gray-emphasis">
+          Select who can edit {{ entityTitle ? `"${entityTitle}"` : '' }}
+        </div>
       </div>
 
-      <div class="text-sm text-nc-content-gray-muted mb-5">
-        Only members selected here <span class="font-weight-700">{{ permissionDescription || 'will have this permission' }}</span>
-      </div>
+      <div class="text-body text-nc-content-gray-subtle mb-5" v-html="description"></div>
 
-      <div class="text-nc-content-gray-muted mb-2">Select users</div>
+      <div class="text-nc-content-gray text-caption mb-2">Select users</div>
 
       <PermissionsUserSelectorList
         ref="userSelectorListRef"

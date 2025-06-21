@@ -22,6 +22,7 @@ export function useKeyboardNavigation({
   expandForm,
   cachedGroups,
   isAddingEmptyRowAllowed,
+  isAddingEmptyRowPermitted,
   addEmptyRow,
   addNewColumn,
   onActiveCellChanged,
@@ -52,6 +53,7 @@ export function useKeyboardNavigation({
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
   cachedGroups: Ref<Map<number, CanvasGroup>>
   isAddingEmptyRowAllowed: ComputedRef<boolean>
+  isAddingEmptyRowPermitted: ComputedRef<boolean>
   addNewColumn: () => void
   addEmptyRow: (
     addAfter?: number,
@@ -182,7 +184,7 @@ export function useKeyboardNavigation({
       switch (e.keyCode) {
         case 82: {
           // ALT + R
-          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
+          if (isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value && !removeInlineAddRecord.value) {
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow(undefined, undefined, undefined, defaultData, groupPath)
             activeCell.value.row = totalRows.value

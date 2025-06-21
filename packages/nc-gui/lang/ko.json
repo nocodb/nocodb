@@ -1683,12 +1683,13 @@
     "approachingLimit": "한계에 가까워짐",
     "exceedingLimit": "한도 초과",
     "filteredByCurrentUser": "현재 사용자를 기준으로 필터링됨",
-    "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
-    "navigateToTableToCreateView": "Navigate to a table to a create view",
-    "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
-    "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation"
+    "navigateToBaseToCreateTable": "테이블을 만들기 위해 프로젝트로 이동합니다.",
+    "navigateToBaseToCreateAutomation": "프로젝트로 이동하여 자동화를 생성합니다.",
+    "navigateToTableToCreateView": "테이블로 이동하여 뷰를 생성합니다",
+    "youDontHaveAccessToCreateNewTable": "새 테이블을 만들 수 있는 액세스 권한이 없습니다.",
+    "youDontHaveAccessToCreateNewView": "새 보기를 만들 수 있는 액세스 권한이 없습니다.",
+    "youDontHaveAccessToCreateNewAutomation": "새 자동화를 만들 수 있는 액세스 권한이 없습니다.",
+    "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",

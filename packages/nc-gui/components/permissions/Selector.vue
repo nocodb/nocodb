@@ -1,17 +1,8 @@
 <script lang="ts" setup>
-import { type BaseType, type PermissionEntity, PermissionGrantedType, type PermissionKey, PermissionRole } from 'nocodb-sdk'
+import { type BaseType, PermissionGrantedType, PermissionRole } from 'nocodb-sdk'
 
 const props = defineProps<{
-  base: BaseType & {
-    permissions: {
-      entity: PermissionEntity
-      entity_id: string
-      permission: PermissionKey
-      granted_type: PermissionGrantedType
-      granted_role?: PermissionRole
-      user_ids?: string[]
-    }[]
-  }
+  base: BaseType
   config: PermissionConfig
 }>()
 
@@ -63,14 +54,17 @@ const saveState = async () => {
   try {
     let granted_type
     let granted_role
-    let user_ids
+    let subjects
 
     if (currentPermission.value === 'creators_and_up') {
       granted_type = PermissionGrantedType.ROLE
       granted_role = PermissionRole.CREATOR
     } else if (currentPermission.value === 'specific_users') {
       granted_type = PermissionGrantedType.USER
-      user_ids = selectedUsers.value.map((user) => user.id)
+      subjects = selectedUsers.value.map((user) => ({
+        type: 'user',
+        id: user.id,
+      }))
     } else if (currentPermission.value === 'nobody') {
       granted_type = PermissionGrantedType.NOBODY
     } else {
@@ -104,13 +98,15 @@ const saveState = async () => {
           permission: props.config.permission,
           granted_type,
           granted_role,
-          user_ids,
+          subjects,
         },
       )
     }
 
     emits('save')
     $e('a:permissions:save')
+
+    await basesStore.loadProject(props.base.id, true)
   } catch (e: any) {
     message.error('Failed to save permissions')
   } finally {
@@ -135,8 +131,12 @@ const onPermissionChange = (value: string) => {
 }
 
 // Initialize permission state from props
-const initializePermissionState = () => {
-  const permission = props.base.permissions.find(
+const initializePermissionState = async () => {
+  if (!props.base.permissions) {
+    return
+  }
+
+  const permission = props.base.permissions?.find(
     (perm) =>
       perm.entity === props.config.entity &&
       perm.entity_id === props.config.entityId &&
@@ -149,7 +149,7 @@ const initializePermissionState = () => {
       // Map basesUser data to PermissionSelectorUser format
       const baseUsers = basesUser.value.get(props.base.id!) || []
       selectedUsers.value = baseUsers
-        .filter((user) => permission.user_ids?.includes(user.id))
+        .filter((user) => permission.subjects?.some((subject) => subject.type === 'user' && subject.id === user.id))
         .map((user) => ({
           id: user.id,
           email: user.email,

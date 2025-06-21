@@ -1,19 +1,10 @@
 <script lang="ts" setup>
-import { type BaseType, PermissionEntity, type PermissionGrantedType, PermissionKey, type PermissionRole } from 'nocodb-sdk'
+import { type BaseType, PermissionEntity, PermissionKey } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
   tableId: string
-  base: BaseType & {
-    permissions: {
-      entity: PermissionEntity
-      entity_id: string
-      permission: PermissionKey
-      granted_type: PermissionGrantedType
-      granted_role?: PermissionRole
-      user_ids?: string[]
-    }[]
-  }
+  base: BaseType
 }>()
 
 const emits = defineEmits(['update:visible'])

@@ -29,23 +29,27 @@ const up = async (knex: Knex) => {
     table.index(['entity', 'entity_id', 'permission'], 'nc_permissions_entity');
   });
 
-  await knex.schema.createTable(MetaTable.PERMISSION_USERS, (table) => {
+  await knex.schema.createTable(MetaTable.PERMISSION_SUBJECTS, (table) => {
     table.string('fk_permission_id', 20);
-    table.string('fk_user_id', 20);
+    table.string('subject_type', 255); // user, group
+    table.string('subject_id', 255); // user id, group id
 
     table.string('fk_workspace_id', 20);
     table.string('base_id', 20);
 
     table.timestamps(true, true);
 
-    table.primary(['fk_permission_id', 'fk_user_id']);
-    table.index(['fk_workspace_id', 'base_id'], 'nc_permission_users_context');
+    table.primary(['fk_permission_id', 'subject_type', 'subject_id']);
+    table.index(
+      ['fk_workspace_id', 'base_id'],
+      'nc_permission_subjects_context',
+    );
   });
 };
 
 const down = async (knex: Knex) => {
   await knex.schema.dropTable(MetaTable.PERMISSIONS);
-  await knex.schema.dropTable(MetaTable.PERMISSION_USERS);
+  await knex.schema.dropTable(MetaTable.PERMISSION_SUBJECTS);
 };
 
 export { up, down };

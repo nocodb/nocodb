@@ -68,7 +68,7 @@ export enum MetaTable {
   USAGE_STATS = 'nc_usage_stats',
   MCP_TOKENS = 'nc_mcp_tokens',
   PERMISSIONS = 'nc_permissions',
-  PERMISSION_USERS = 'nc_permission_users',
+  PERMISSION_SUBJECTS = 'nc_permission_subjects',
 }
 
 export enum MetaTableOldV2 {

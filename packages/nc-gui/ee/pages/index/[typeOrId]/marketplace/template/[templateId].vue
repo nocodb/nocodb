@@ -4,6 +4,7 @@ import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import rehypeSanitize from 'rehype-sanitize'
 import rehypeStringify from 'rehype-stringify'
+import type { CarouselApi } from '~/components/nc/Carousel/interface'
 
 const route = useRoute()
 const router = useRouter()
@@ -15,6 +16,8 @@ const { activeCategory, getTemplateById, currentCategoryInfo } = useMarketplaceT
 const template = ref(null)
 const isLoading = ref(true)
 const error = ref(null)
+const carouselApi = ref<CarouselApi>()
+const currentSlideIndex = ref(0)
 
 const fetchTemplateDetails = async () => {
   isLoading.value = true
@@ -134,6 +137,40 @@ const navigateToCategory = (category: string) => {
   activeCategory.value = category
   router.push(`/${typeOrId.value}/marketplace/${category}`)
 }
+
+const navigateToHome = () => {
+  router.push(`/${typeOrId.value}/marketplace`)
+}
+
+const screenshots = computed(() => {
+  if (template.value?.Screenshots?.length) {
+    return template.value.Screenshots
+  }
+  return [
+    { url: template.value?.Image || '/img/marketplace/template-placeholder.png', title: 'Screenshot 1' },
+    { url: '/img/marketplace/template-placeholder-2.png', title: 'Screenshot 2' },
+    { url: '/img/marketplace/template-placeholder-3.png', title: 'Screenshot 3' },
+  ]
+})
+
+const onCarouselInit = (api: CarouselApi) => {
+  carouselApi.value = api
+
+  if (api) {
+    api.on('select', () => {
+      currentSlideIndex.value = api.selectedScrollSnap()
+    })
+
+    currentSlideIndex.value = api.selectedScrollSnap()
+  }
+}
+
+const scrollToSlide = (index: number) => {
+  if (carouselApi.value) {
+    carouselApi.value.scrollTo(index)
+    currentSlideIndex.value = index
+  }
+}
 </script>
 
 <template>
@@ -161,7 +198,33 @@ const navigateToCategory = (category: string) => {
               <NcButton size="small"> Use this Template </NcButton>
             </div>
 
-            <div class="mb-16"></div>
+            <div class="mb-16">
+              <NcCarousel class="w-full template-carousel" @init-api="onCarouselInit">
+                <NcCarouselContent>
+                  <NcCarouselItem v-for="(screenshot, index) in screenshots" :key="index">
+                    <div class="w-full h-[300px] flex items-center justify-center">
+                      <img
+                        :src="screenshot.url"
+                        :alt="screenshot.title || `Screenshot ${index + 1}`"
+                        class="max-h-full max-w-full object-contain rounded-lg shadow-lg"
+                      />
+                    </div>
+                  </NcCarouselItem>
+                </NcCarouselContent>
+
+                <div class="flex items-center justify-center gap-3 mt-6 flex-wrap">
+                  <div
+                    v-for="(screenshot, index) in screenshots"
+                    :key="index"
+                    class="thumbnail-wrapper cursor-pointer transition-all"
+                    :class="{ selected: currentSlideIndex === index }"
+                    @click="scrollToSlide(index)"
+                  >
+                    <img :src="screenshot.url" :alt="`Thumbnail ${index + 1}`" class="h-16 w-24 object-cover rounded" />
+                  </div>
+                </div>
+              </NcCarousel>
+            </div>
 
             <NcTabs>
               <a-tab-pane key="overview" class="w-full">
@@ -277,10 +340,10 @@ const navigateToCategory = (category: string) => {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scped>
 .marketplace-container {
   .ant-tabs-nav {
-    @apply !pl-0;
+    @apply mb-6;
   }
 
   .ant-tabs-tab {
@@ -300,9 +363,39 @@ const navigateToCategory = (category: string) => {
       @apply !h-12 !w-12;
     }
   }
-}
 
-.template-detail {
-  max-width: none;
+  .template-carousel {
+    @apply rounded-lg overflow-hidden;
+
+    .embla__slide {
+      @apply transition-opacity duration-300;
+
+      img {
+        @apply transition-transform duration-300;
+
+        &:hover {
+          transform: scale(1.02);
+        }
+      }
+    }
+
+    .thumbnail-wrapper {
+      @apply opacity-70 transition-all rounded overflow-hidden;
+
+      img {
+        @apply transition-all duration-200;
+      }
+
+      &:hover {
+        @apply opacity-90;
+      }
+
+      &.selected {
+        @apply opacity-100 shadow-md border-1 border-nc-border-brand;
+        box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
+        transform: translateY(-2px);
+      }
+    }
+  }
 }
 </style>

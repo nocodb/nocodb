@@ -2557,7 +2557,8 @@ defineExpose({
                     :row="editEnabled.row"
                     :path="editEnabled.path"
                     active
-                    :read-only="!isDataEditAllowed"
+                    :read-only="!isDataEditAllowed || !editEnabled.column?.isCellEditable"
+                    :is-allowed="editEnabled.column?.isCellEditable"
                     @save="
                       updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state, undefined, undefined, editEnabled.path)
                     "
@@ -2571,7 +2572,8 @@ defineExpose({
                     :path="editEnabled.path"
                     active
                     edit-enabled
-                    :read-only="!isDataEditAllowed"
+                    :read-only="!isDataEditAllowed || !editEnabled.column?.isCellEditable"
+                    :is-allowed="editEnabled.column?.isCellEditable"
                     @update:model-value="updateValue"
                     @save="updateOrSaveRow?.(...$event)"
                     @save-with-state="updateOrSaveRow?.(...$event)"

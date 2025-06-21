@@ -139,7 +139,7 @@ export function useCopyPaste({
   })
   const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 
-  function isPasteable(row?: Row, col?: ColumnType, showInfo = false) {
+  function isPasteable(row?: Row, col?: ColumnType, showInfo = false, avoidLtarRestrictions = false) {
     if (!row || !col) {
       if (showInfo) {
         message.toast('Please select a cell to paste')
@@ -147,12 +147,16 @@ export function useCopyPaste({
       return false
     }
 
+    const restrictEditCell = col.id && !isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
+
     // skip pasting virtual columns (including LTAR columns for now) and system columns
     if (isVirtualCol(col) || isSystemColumn(col) || col?.readonly) {
-      if (showInfo) {
-        message.toast(t('msg.info.pasteNotSupported'))
+      if (!avoidLtarRestrictions || !isLinksOrLTAR(col)) {
+        if (showInfo) {
+          message.toast(t('msg.info.pasteNotSupported'))
+        }
+        return false
       }
-      return false
     }
 
     // skip pasting auto increment columns
@@ -172,8 +176,10 @@ export function useCopyPaste({
     }
 
     // Keep this check at the end so that readonly or other field restrictions get priority over permission check
-    if (col.id && !isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)) {
-      message.toast('You do not have permission to paste into this field')
+    if (restrictEditCell) {
+      if (showInfo) {
+        message.toast('You do not have permission to paste into this field')
+      }
       return false
     }
 
@@ -427,6 +433,8 @@ export function useCopyPaste({
 
           // handle belongs to column, skip custom links
           if (isBt(columnObj) && !(columnObj.meta as any)?.custom) {
+            if (!isPasteable(rowObj, columnObj, true, true)) return
+
             const pasteVal = convertCellData(
               {
                 value: clipboardData,
@@ -464,6 +472,8 @@ export function useCopyPaste({
 
           // Handle many-to-many column paste
           if (isMm(columnObj)) {
+            if (!isPasteable(rowObj, columnObj, true, true)) return
+
             const pasteVal = convertCellData(
               {
                 value: clipboardData,

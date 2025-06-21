@@ -33,7 +33,20 @@ export const useTooltipStore = defineStore('tooltip', () => {
     }
   })
 
-  function showTooltip({ text, rect }: { text: TooltipTextType; rect: RenderRectangleProps }) {
+  function showTooltip({
+    text,
+    rect,
+  }: {
+    text: TooltipTextType
+    /**
+     * Todo: Show tooltip at mouse position if showAtMousePosition is true & targetWidth is provided
+     */
+    rect: RenderRectangleProps & { showAtMousePosition?: boolean }
+    mousePosition: {
+      x: number
+      y: number
+    }
+  }) {
     if (!text) return
 
     let canvasX = 0
@@ -54,26 +67,37 @@ export const useTooltipStore = defineStore('tooltip', () => {
       top: rect.y,
       right: rect.x + rect.width,
       bottom: rect.y + rect.height,
-      width: rect.width,
+      width: rect.targetWidth || rect.width,
       height: rect.height,
     }
   }
 
   function tryShowTooltip({
     text,
+    description,
     rect,
     mousePosition,
   }: {
     text: TooltipTextType
-    rect?: RenderRectangleProps
+    description?: string
+    rect?: RenderRectangleProps & { showAtMousePosition?: boolean }
     mousePosition: {
       x: number
       y: number
     }
   }) {
+    console.log('text', text)
     if (!rect || !isBoxHovered(rect, mousePosition) || !text) return false
 
-    showTooltip({ text, rect })
+    const tooltipWithDescription =
+      ncIsString(text) && description
+        ? h('div', { class: 'flex flex-col gap-1' }, [
+            h('div', { class: 'text-captionBold' }, text),
+            h('div', { class: 'text-captionSm' }, description),
+          ])
+        : text
+
+    showTooltip({ text: tooltipWithDescription, rect, mousePosition })
     return true
   }
 

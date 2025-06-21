@@ -124,9 +124,11 @@ test.describe('Source Restrictions', () => {
       );
     }
 
-    await expect(await dashboard.rootPage.locator(`li[role="menuitem"]:has-text("Edit"):visible`).last()).toBeVisible();
+    await expect(
+      await dashboard.rootPage.locator(`li[role="menuitem"]:has-text("Edit"):visible`).first()
+    ).toBeVisible();
 
-    await dashboard.rootPage.locator(`li[role="menuitem"]:has-text("Edit"):visible`).last().click();
+    await dashboard.rootPage.locator(`li[role="menuitem"]:has-text("Edit"):visible`).first().click();
     await dashboard.rootPage.waitForTimeout(300);
     await expect(
       dashboard.rootPage.locator(`.nc-dropdown-edit-column .ant-form-item-label:has-text("Icon")`).last()

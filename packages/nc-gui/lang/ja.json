@@ -814,9 +814,12 @@
     "upgradeWorkspaceToPlan": "{workspace}を{plan}プランへアップグレード",
     "upgradeToPlanSubtitle": "このプランは直ちに課金されます。",
     "reactivateToPlan": "{plan}プランを再開しますか？",
-    "whatsNew": "What’s New",
-    "currentUser": "Current User",
-    "filteredByLoggedInUser": "Filtered by logged-in user"
+    "whatsNew": "What’s New!",
+    "currentUser": "現在のユーザー",
+    "filteredByLoggedInUser": "Filtered by logged-in user",
+    "hideExtensions": "Hide Extensions",
+    "duplicatesFound": "Duplicates found",
+    "matchingResultsInRecords": "Matching results in {count} records"
   },
   "labels": {
     "crossBase": "Link to external base",

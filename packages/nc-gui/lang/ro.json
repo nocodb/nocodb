@@ -155,7 +155,9 @@
     "upgradeToUploadWsImage": "Fă upgrade pentru a încărca o imagine pentru workspace",
     "upgradeToUploadWsImageSubtitle": "Planul tău {activePlan} permite doar pictograme și emoji. Fă upgrade la planul {plan} pentru a încărca o imagine personalizată ca avatar al workspace-ului.",
     "upgradeToUseCurrentUserFilter": "Actualizați pentru a filtra după utilizatorul curent",
-    "upgradeToUseCurrentUserFilterSubtitle": "Faceți upgrade la planul {plan} pentru a utiliza filtre care afișează datele pe baza utilizatorului curent."
+    "upgradeToUseCurrentUserFilterSubtitle": "Faceți upgrade la planul {plan} pentru a utiliza filtre care afișează datele pe baza utilizatorului curent.",
+    "upgradeToUseRowColoring": "Upgrade to use row coloring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "Script",
@@ -566,12 +568,20 @@
       "Enterprise": "Enterprise"
     },
     "currentPlan": {
-      "nextInvoice": "Next invoice",
-      "numberOfBilledUsers": "Billed users",
-      "numberOfBillableUsers": "Billable users",
-      "storageUsedGB": "Storage used",
-      "webhookCallsMonthly": "Webhook calls",
-      "apiCallsMonthly": "API calls"
+      "nextInvoice": "Next Invoice",
+      "numberOfBilledUsers": "Number of Billed Users",
+      "numberOfBillableUsers": "Number of Billable Users",
+      "storageUsedGB": "Storage Used (GB)",
+      "webhookCallsMonthly": "Webhook calls (monthly)",
+      "apiCallsMonthly": "API calls (monthly)"
+    },
+    "coloring": {
+      "usingSingleSelectField": "Using Single select field",
+      "usingSingleSelectFieldDescription": "Colour records based on single select field",
+      "usingSingleSelectFieldTooltip": "No single select field found. Add one to enable select-field based row colouring.",
+      "usingConditions": "Using Conditions",
+      "usingConditionsDescription": "Colour records based on conditions",
+      "colourRecordsByField": "Colour records by field"
     }
   },
   "datatype": {
@@ -1345,7 +1355,12 @@
     "dataApiV2": "API-uri de date V2",
     "metaApiV2": "API-uri Meta V2",
     "showExtraFields": "Afișează câmpuri suplimentare",
-    "showExtraFieldsDescription": "Afișează câmpuri suplimentare alături de valoarea afișată atunci când selectezi înregistrări legate"
+    "showExtraFieldsDescription": "Afișează câmpuri suplimentare alături de valoarea afișată atunci când selectezi înregistrări legate",
+    "removeColouring": "Remove colouring",
+    "backgroundColour": "Background colour",
+    "addColour": "Add Colour",
+    "defaultColours": "Default colours",
+    "customColours": "Custom colours"
   },
   "activity": {
     "clickToResolve": "Fă clic pentru a rezolva",

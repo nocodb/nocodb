@@ -138,26 +138,32 @@ const mode = computed(() => props.mode || 'full')
           @click="!props.readonly && (isDropdownOpen = !isDropdownOpen)"
         >
           <div
-            class="flex items-center gap-1.5 px-2 py-1 rounded border text-sm w-full"
+            class="flex-1 border-1 border-nc-gray-medium rounded-lg h-8 px-3 py-1 flex items-center gap-1.5 transition-all cursor-pointer select-none"
             :class="[
               getPermissionTextColor(currentOption?.value || PermissionOptionValue.EDITORS_AND_UP),
-              props.readonly ? 'bg-transparent border-transparent' : 'shadow-sm border-1 border-nc-gray-medium cursor-pointer',
+              props.readonly ? 'bg-transparent border-transparent' : 'border-nc-gray-medium cursor-pointer',
+              {
+                'shadow-default hover:shadow-hover': !isDropdownOpen,
+                'border-brand-500 shadow-selected': isDropdownOpen,
+              },
             ]"
           >
-            <GeneralIcon :icon="(currentOption?.icon || 'role_editor') as any" class="flex-none h-3.5 w-3.5" />
-            <span class="font-medium">{{ currentOption?.label || 'Editors & up' }}</span>
-            <span class="flex-1"></span>
-            <GeneralIcon v-if="!props.readonly" icon="arrowDown" class="flex-none h-3 w-3 text-gray-400 !h-4 !w-4" />
+            <GeneralIcon :icon="(currentOption?.icon || 'role_editor') as any" class="flex-none h-4 w-4" />
+            <span class="font-medium flex-1">{{ currentOption?.label || 'Editors & up' }}</span>
+
+            <GeneralIcon v-if="!props.readonly" icon="arrowDown" class="flex-none text-gray-500 h-4 w-4" />
           </div>
 
           <a-select
             v-if="!readonly"
             :value="currentOption?.value"
             :open="isDropdownOpen"
+            placement="bottomRight"
             :dropdown-match-select-width="false"
             dropdown-class-name="!rounded-lg !h-fit max-w-[350px] nc-permission-selector-dropdown"
-            class="!absolute top-0 left-0 h-full w-full z-10 opacity-0"
+            class="!absolute top-0 left-0 h-full w-full z-10 opacity-0 pointer-events-none"
             @select="onPermissionChange"
+            @keydown.esc.stop="isDropdownOpen = false"
           >
             <a-select-option
               v-for="option in permissionOptions"
@@ -210,7 +216,7 @@ const mode = computed(() => props.mode || 'full')
       @click="!props.readonly && (isDropdownOpen = !isDropdownOpen)"
     >
       <div
-        class="flex items-center gap-1.5 px-2 py-1 rounded border text-sm w-full"
+        class="flex-1 border-1 border-nc-gray-medium rounded-lg h-8 px-3 py-1 flex items-center gap-1.5 transition-all cursor-pointer select-none"
         :class="[
           getPermissionTextColor(currentOption?.value || PermissionOptionValue.EDITORS_AND_UP),
           props.readonly ? 'bg-transparent border-transparent' : 'cursor-pointer',

@@ -36,9 +36,9 @@ const handlePermissionSave = () => {
     </div>
 
     <!-- Create Records Permission -->
-    <PermissionsSelector :base="base" :config="createPermissionConfig" @save="handlePermissionSave" />
+    <PermissionsSelector :base="base" :config="createPermissionConfig" horizontal @save="handlePermissionSave" />
 
     <!-- Delete Records Permission -->
-    <PermissionsSelector :base="base" :config="deletePermissionConfig" @save="handlePermissionSave" />
+    <PermissionsSelector :base="base" :config="deletePermissionConfig" horizontal @save="handlePermissionSave" />
   </div>
 </template>

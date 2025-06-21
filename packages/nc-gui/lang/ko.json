@@ -830,8 +830,7 @@
     "currentUser": "현재 사용자",
     "filteredByLoggedInUser": "로그인한 사용자별로 필터링됨",
     "hideExtensions": "확장 프로그램 숨기기",
-    "duplicatesFound": "중복이 발견되었습니다.",
-    "matchingResultsInRecords": "{count} 레코드의 결과 일치"
+    "duplicatesFound": "중복이 발견되었습니다."
   },
   "labels": {
     "crossBase": "외부 베이스에 대한 링크",
@@ -1713,8 +1712,8 @@
     "navigateToTableToCreateView": "테이블로 이동하여 뷰를 생성합니다",
     "youDontHaveAccessToCreateNewTable": "새 테이블을 만들 수 있는 액세스 권한이 없습니다.",
     "youDontHaveAccessToCreateNewView": "새 보기를 만들 수 있는 액세스 권한이 없습니다.",
-    "youDontHaveAccessToCreateNewAutomation": "새 자동화를 만들 수 있는 액세스 권한이 없습니다.",
-    "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table"
+    "youDontHaveAccessToCreateNewAutomation": "새 자동화를 만들 수 있는 액세스 권한이 없습니다",
+    "formViewCreationNotSupportedForSyncedTable": "동기화된 테이블에 대해 양식 보기 생성이 지원되지 않습니다."
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",

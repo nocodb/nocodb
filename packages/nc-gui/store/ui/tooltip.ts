@@ -86,7 +86,6 @@ export const useTooltipStore = defineStore('tooltip', () => {
       y: number
     }
   }) {
-    console.log('text', text)
     if (!rect || !isBoxHovered(rect, mousePosition) || !text) return false
 
     const tooltipWithDescription =

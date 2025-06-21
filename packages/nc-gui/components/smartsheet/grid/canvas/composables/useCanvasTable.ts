@@ -1071,6 +1071,7 @@ export function useCanvasTable({
     makeCellEditable,
     expandForm,
     isAddingEmptyRowAllowed,
+    isAddingEmptyRowPermitted,
     addEmptyRow,
     onActiveCellChanged,
     addNewColumn,

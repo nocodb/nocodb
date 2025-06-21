@@ -65,6 +65,10 @@ watch(isDropdownOpen, (isOpen) => {
     handleSave()
   }
 })
+
+const usersToShow = computed(() => {
+  return selectedUsersList.value.slice(0, 2)
+})
 </script>
 
 <template>
@@ -76,10 +80,15 @@ watch(isDropdownOpen, (isOpen) => {
         <div v-else class="flex items-center flex-1 overflow-hidden">
           <!-- Show first few users as tags -->
           <a-tag
-            v-for="user in selectedUsersList.slice(0, 2)"
+            v-for="user in usersToShow"
             :key="user?.id"
-            class="rounded-tag max-w-[30%] !pl-0"
+            class="rounded-tag !pl-0"
             color="'#ccc'"
+            :class="{
+              'max-w-2/3': usersToShow.length === 1,
+              'max-w-1/2': usersToShow.length === 2,
+              'max-w-1/3': usersToShow.length > 2,
+            }"
           >
             <span
               :style="{
@@ -90,7 +99,7 @@ watch(isDropdownOpen, (isOpen) => {
               class="flex items-stretch gap-2 text-small"
             >
               <div>
-                <GeneralUserIcon size="auto" :user="user" class="!text-[0.5rem] !h-[16.8px]" />
+                <GeneralUserIcon size="auto" :user="user" class="!text-[0.6rem] !h-[18px]" />
               </div>
               <NcTooltip class="truncate max-w-full !leading-5 !text-caption" show-on-truncate-only>
                 <template #title>

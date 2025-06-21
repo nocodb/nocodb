@@ -172,9 +172,9 @@ const handleClickDropdown = (e: MouseEvent) => {
               option-label-key="value"
               option-value-key="value"
               :close-on-select="false"
-              :item-height="46"
+              :item-height="48"
               class="!w-auto"
-              item-class-name="!py-1"
+              variant="medium"
               @update:value="onPermissionChange"
             >
               <template #listItem="{ option }">

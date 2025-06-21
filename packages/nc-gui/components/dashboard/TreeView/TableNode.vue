@@ -66,10 +66,9 @@ const source = computed(() => {
 })
 
 const isTableDeleteDialogVisible = ref(false)
+const isTablePermissionsDialogVisible = ref(false)
 
 const isOptionsOpen = ref(false)
-
-const isSyncModalOpen = ref(false)
 
 const input = ref<HTMLInputElement>()
 
@@ -326,6 +325,11 @@ async function onDuplicate() {
 
   isOnDuplicateLoading.value = false
   isOptionsOpen.value = false
+}
+
+async function onPermissions(_table: SidebarTableNode) {
+  isOptionsOpen.value = false
+  isTablePermissionsDialogVisible.value = true
 }
 
 // TODO: Should find a way to render the components without using the `nextTick` function
@@ -638,6 +642,24 @@ async function onRename() {
                   </NcMenuItem>
                   <NcDivider />
 
+                  <NcMenuItem
+                    v-if="
+                      isUIAllowed('tableDuplicate', {
+                        source,
+                      }) &&
+                      base.sources?.[sourceIndex] &&
+                      (source?.is_meta || source?.is_local)
+                    "
+                    :data-testid="`sidebar-table-permissions-${table.title}`"
+                    @click="onPermissions(table)"
+                  >
+                    <div v-e="['c:table:permissions']" class="flex gap-2 items-center">
+                      <GeneralIcon icon="lock" class="opacity-80" />
+                      Edit Table Permissions
+                    </div>
+                  </NcMenuItem>
+                  <NcDivider />
+
                   <NcMenuItem @click="onDuplicate">
                     <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
                     <GeneralIcon v-else class="nc-view-copy-icon opacity-80" icon="duplicate" />
@@ -691,13 +713,12 @@ async function onRename() {
       :table-id="table.id"
       :base-id="base.id"
     />
-    <LazyDashboardSettingsSyncEdit
-      v-if="table && table.id && table.synced && base?.id && isSyncModalOpen"
-      v-model:open="isSyncModalOpen"
+    <DlgTablePermissions
+      v-if="table.id && base?.id"
+      v-model:visible="isTablePermissionsDialogVisible"
       :table-id="table.id"
-      :base-id="base.id"
+      :base="base"
     />
-
     <DashboardTreeViewViewsList v-if="isExpanded" :table-id="table.id" :base-id="base.id" @deleted="refreshViews" />
   </div>
 </template>

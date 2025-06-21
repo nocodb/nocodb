@@ -67,6 +67,8 @@ export enum MetaTable {
   SYNC_MAPPINGS = 'nc_sync_mappings',
   USAGE_STATS = 'nc_usage_stats',
   MCP_TOKENS = 'nc_mcp_tokens',
+  PERMISSIONS = 'nc_permissions',
+  PERMISSION_USERS = 'nc_permission_users',
 }
 
 export enum MetaTableOldV2 {
@@ -211,6 +213,8 @@ export enum CacheScope {
   STORAGE_STATS = 'storageStats',
   CLOUD_FEATURES = 'cloudFeatures',
   MCP_TOKEN = 'mcpToken',
+  PERMISSION = 'permission',
+  PERMISSION_USER = 'permissionUser',
 }
 
 export enum CacheGetType {

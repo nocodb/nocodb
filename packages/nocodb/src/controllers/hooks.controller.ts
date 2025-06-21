@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -124,11 +125,13 @@ export class HooksController {
     @Param('tableId') tableId: string,
     @Param('operation') operation: HookType['operation'],
     @Param('version') version: HookType['version'],
+    @Query('includeUser') includeUser: string,
   ) {
     return await this.hooksService.tableSampleData(context, {
       tableId,
       operation,
       version,
+      includeUser: includeUser === 'true',
     });
   }
 

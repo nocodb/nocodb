@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { BaseType } from 'nocodb-sdk'
-import { PermissionMeta, PermissionRolePower } from 'nocodb-sdk'
+import { PermissionMeta, PermissionOptionValue, PermissionRolePower } from 'nocodb-sdk'
 
 const props = defineProps<{
   base: BaseType
@@ -57,18 +57,18 @@ const permissionOptions = computed(() => {
   // Filter options to only show roles that meet or exceed the minimum requirement
   return allPermissionOptions.value.filter((option) => {
     // Always allow 'specific_users' and 'nobody' options
-    if (option.value === 'specific_users' || option.value === 'nobody') return true
+    if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY) return true
 
     // Map option values to PermissionRole enum values for comparison
     let optionRole: string | undefined
     switch (option.value) {
-      case 'viewers_and_up':
+      case PermissionOptionValue.VIEWERS_AND_UP:
         optionRole = 'viewer'
         break
-      case 'editors_and_up':
+      case PermissionOptionValue.EDITORS_AND_UP:
         optionRole = 'editor'
         break
-      case 'creators_and_up':
+      case PermissionOptionValue.CREATORS_AND_UP:
         optionRole = 'creator'
         break
       default:
@@ -135,7 +135,7 @@ const mode = computed(() => props.mode || 'full')
       >
         <div
           class="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 border text-sm w-full"
-          :class="getPermissionTextColor(currentOption?.value || 'editors_and_up')"
+          :class="getPermissionTextColor(currentOption?.value || PermissionOptionValue.EDITORS_AND_UP)"
         >
           <GeneralIcon :icon="(currentOption?.icon || 'role_editor') as any" class="flex-none h-4 w-4" />
           <span class="font-medium text-sm">{{ currentOption?.label || 'Editors & up' }}</span>
@@ -180,7 +180,7 @@ const mode = computed(() => props.mode || 'full')
       </div>
     </div>
 
-    <div v-if="currentOption?.value === 'specific_users'">
+    <div v-if="currentOption?.value === PermissionOptionValue.SPECIFIC_USERS">
       <div>
         Only <span class="font-bold">{{ selectedUserNames }}</span> {{ permissionDescription }}
       </div>
@@ -204,7 +204,7 @@ const mode = computed(() => props.mode || 'full')
     >
       <div
         class="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 border text-sm w-full"
-        :class="getPermissionTextColor(currentOption?.value || 'editors_and_up')"
+        :class="getPermissionTextColor(currentOption?.value || PermissionOptionValue.EDITORS_AND_UP)"
       >
         <GeneralIcon :icon="(currentOption?.icon || 'role_editor') as any" class="flex-none h-3.5 w-3.5" />
         <span class="font-medium">{{ currentOption?.label || 'Editors & up' }}</span>
@@ -248,7 +248,7 @@ const mode = computed(() => props.mode || 'full')
     </div>
 
     <!-- Inline specific users display -->
-    <div v-if="currentOption?.value === 'specific_users'" class="flex items-center gap-1">
+    <div v-if="currentOption?.value === PermissionOptionValue.SPECIFIC_USERS" class="flex items-center gap-1">
       <!-- Field selector style: compact user count -->
       <NcButton v-if="config.entity === 'field'" type="text" size="small" @click="showUserSelector = true">
         <div class="flex items-center gap-1">

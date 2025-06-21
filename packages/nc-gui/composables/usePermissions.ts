@@ -1,50 +1,23 @@
-import { ProjectRoles, RoleColors } from 'nocodb-sdk'
+import {
+  PermissionOptionValue,
+  PermissionOptions,
+  ProjectRoles,
+  RoleColors,
+  getPermissionIcon,
+  getPermissionLabel,
+  getPermissionOption,
+  getPermissionOptionValue,
+} from 'nocodb-sdk'
 
-export interface PermissionOption {
-  value: string
-  label: string
-  description: string
-  icon: string
-  isDefault?: boolean
-}
+// Re-export the interface from SDK for backward compatibility
+export type { PermissionOption } from 'nocodb-sdk'
 
 export const usePermissions = () => {
   const baseStore = useBase()
   const { base } = storeToRefs(baseStore)
 
-  const permissionOptions: PermissionOption[] = [
-    {
-      value: 'viewers_and_up',
-      label: 'Viewers and up',
-      description: 'Members with Viewer, Editor, Creator or Owner role',
-      icon: 'role_viewer',
-    },
-    {
-      value: 'editors_and_up',
-      label: 'Editors & up',
-      description: 'Members with Editor, Creator or Owner role',
-      icon: 'role_editor',
-      isDefault: true,
-    },
-    {
-      value: 'creators_and_up',
-      label: 'Creators & up',
-      description: 'Members with Creator or Owner role',
-      icon: 'role_creator',
-    },
-    {
-      value: 'specific_users',
-      label: 'Specific users',
-      description: 'Specific set of members',
-      icon: 'ncUsers',
-    },
-    {
-      value: 'nobody',
-      label: 'Nobody',
-      description: 'No one can add records',
-      icon: 'role_no_access',
-    },
-  ]
+  // Use centralized permission options from SDK
+  const permissionOptions = PermissionOptions
 
   // Permissions data grouped by entity
   const permissionsByEntity = computed(() => {
@@ -68,32 +41,10 @@ export const usePermissions = () => {
     const permission = permissions.find((p) => p.permission === permissionType)
 
     if (!permission) {
-      return 'editors_and_up'
+      return PermissionOptionValue.EDITORS_AND_UP
     }
 
-    if (permission.granted_type === 'role') {
-      if (permission.granted_role === 'viewer') {
-        return 'viewers_and_up'
-      } else if (permission.granted_role === 'creator') {
-        return 'creators_and_up'
-      } else {
-        return 'editors_and_up'
-      }
-    } else if (permission.granted_type === 'user') {
-      return 'specific_users'
-    } else if (permission.granted_type === 'nobody') {
-      return 'nobody'
-    }
-
-    return 'editors_and_up'
-  }
-
-  const getPermissionOption = (value: string) => {
-    return permissionOptions.find((option) => option.value === value) || permissionOptions[1] // fallback to editors_and_up
-  }
-
-  const getPermissionLabel = (value: string) => {
-    return getPermissionOption(value)?.label || 'Editors & up'
+    return getPermissionOptionValue(permission.granted_type, permission.granted_role)
   }
 
   // Get permission summary with display label
@@ -102,21 +53,17 @@ export const usePermissions = () => {
     return getPermissionLabel(internalValue)
   }
 
-  const getPermissionIcon = (value: string) => {
-    return getPermissionOption(value)?.icon || 'role_editor'
-  }
-
   const getPermissionColor = (value: string): string => {
     switch (value) {
-      case 'creators_and_up':
+      case PermissionOptionValue.CREATORS_AND_UP:
         return RoleColors[ProjectRoles.CREATOR] // 'blue'
-      case 'editors_and_up':
+      case PermissionOptionValue.EDITORS_AND_UP:
         return RoleColors[ProjectRoles.EDITOR] // 'green'
-      case 'viewers_and_up':
+      case PermissionOptionValue.VIEWERS_AND_UP:
         return RoleColors[ProjectRoles.VIEWER] // 'yellow'
-      case 'nobody':
+      case PermissionOptionValue.NOBODY:
         return RoleColors[ProjectRoles.NO_ACCESS] // 'red'
-      case 'specific_users':
+      case PermissionOptionValue.SPECIFIC_USERS:
       default:
         return 'gray'
     }

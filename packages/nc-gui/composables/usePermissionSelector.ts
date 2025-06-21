@@ -1,4 +1,12 @@
-import { PermissionEntity, PermissionGrantedType, PermissionRole } from 'nocodb-sdk'
+import {
+  PermissionEntity,
+  PermissionGrantedType,
+  PermissionOptionValue,
+  PermissionOptions,
+  PermissionRole,
+  getPermissionOption,
+  getPermissionOptionValue,
+} from 'nocodb-sdk'
 import type { BaseType } from 'nocodb-sdk'
 
 export interface PermissionSelectorConfig {
@@ -19,7 +27,8 @@ export const usePermissionSelector = (
   const basesStore = useBases()
   const { basesUser } = storeToRefs(basesStore)
 
-  const { permissionOptions: allPermissionOptions, getPermissionOption } = usePermissions()
+  // Use centralized permission options from SDK
+  const allPermissionOptions = PermissionOptions
 
   // Filter options based on minimum role requirement
   const permissionOptions = computed(() => {
@@ -30,15 +39,15 @@ export const usePermissionSelector = (
     const minRoleIndex = roleHierarchy.indexOf(minimumRole)
 
     return allPermissionOptions.filter((option) => {
-      if (option.value === 'specific_users' || option.value === 'nobody') {
+      if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY) {
         return true // Always allow these options
       }
 
-      if (option.value === 'viewers_and_up' && minRoleIndex > 0) {
+      if (option.value === PermissionOptionValue.VIEWERS_AND_UP && minRoleIndex > 0) {
         return false // Don't show viewers if minimum is editor or higher
       }
 
-      if (option.value === 'editors_and_up' && minRoleIndex > 1) {
+      if (option.value === PermissionOptionValue.EDITORS_AND_UP && minRoleIndex > 1) {
         return false // Don't show editors if minimum is creator or higher
       }
 
@@ -46,7 +55,7 @@ export const usePermissionSelector = (
     })
   })
 
-  const currentPermission = ref('editors_and_up')
+  const currentPermission = ref(PermissionOptionValue.EDITORS_AND_UP)
   const selectedUsers = ref<PermissionSelectorUser[]>([])
   const isLoading = ref(false)
 
@@ -60,20 +69,20 @@ export const usePermissionSelector = (
   })
 
   // Convert display value to internal value
-  const getInternalValue = (displayValue: string) => {
+  const getInternalValue = (displayValue: string): PermissionOptionValue => {
     switch (displayValue) {
       case 'Viewers and up':
-        return 'viewers_and_up'
+        return PermissionOptionValue.VIEWERS_AND_UP
       case 'Editors & up':
-        return 'editors_and_up'
+        return PermissionOptionValue.EDITORS_AND_UP
       case 'Creators & up':
-        return 'creators_and_up'
+        return PermissionOptionValue.CREATORS_AND_UP
       case 'Specific users':
-        return 'specific_users'
+        return PermissionOptionValue.SPECIFIC_USERS
       case 'Nobody':
-        return 'nobody'
+        return PermissionOptionValue.NOBODY
       default:
-        return 'editors_and_up'
+        return PermissionOptionValue.EDITORS_AND_UP
     }
   }
 
@@ -93,26 +102,26 @@ export const usePermissionSelector = (
       let granted_role
       let subjects
 
-      if (currentPermission.value === 'viewers_and_up') {
+      if (currentPermission.value === PermissionOptionValue.VIEWERS_AND_UP) {
         granted_type = PermissionGrantedType.ROLE
         granted_role = PermissionRole.VIEWER
-      } else if (currentPermission.value === 'creators_and_up') {
+      } else if (currentPermission.value === PermissionOptionValue.CREATORS_AND_UP) {
         granted_type = PermissionGrantedType.ROLE
         granted_role = PermissionRole.CREATOR
-      } else if (currentPermission.value === 'specific_users') {
+      } else if (currentPermission.value === PermissionOptionValue.SPECIFIC_USERS) {
         granted_type = PermissionGrantedType.USER
         subjects = selectedUsers.value.map((user) => ({
           type: 'user',
           id: user.id,
         }))
-      } else if (currentPermission.value === 'nobody') {
+      } else if (currentPermission.value === PermissionOptionValue.NOBODY) {
         granted_type = PermissionGrantedType.NOBODY
       } else {
         granted_type = PermissionGrantedType.ROLE
         granted_role = PermissionRole.EDITOR
       }
 
-      if (currentPermission.value === 'editors_and_up') {
+      if (currentPermission.value === PermissionOptionValue.EDITORS_AND_UP) {
         await $api.internal.postOperation(
           base.value.fk_workspace_id,
           base.value.id,
@@ -155,17 +164,17 @@ export const usePermissionSelector = (
 
   // Handle user selector save
   const handleUserSelectorSave = (data: { selectedUsers: PermissionSelectorUser[] }) => {
-    currentPermission.value = 'specific_users'
+    currentPermission.value = PermissionOptionValue.SPECIFIC_USERS
     selectedUsers.value = data.selectedUsers
     saveState()
   }
 
   // Handle permission change
   const onPermissionChange = (value: string) => {
-    if (value === 'specific_users') {
+    if (value === PermissionOptionValue.SPECIFIC_USERS) {
       openUserSelector()
     } else {
-      currentPermission.value = value
+      currentPermission.value = value as PermissionOptionValue
       saveState()
     }
   }
@@ -185,8 +194,12 @@ export const usePermissionSelector = (
     )
 
     if (permission) {
+      currentPermission.value = getPermissionOptionValue(
+        permission.granted_type as PermissionGrantedType,
+        permission.granted_role as PermissionRole,
+      )
+
       if (permission.granted_type === PermissionGrantedType.USER) {
-        currentPermission.value = 'specific_users'
         // Map basesUser data to PermissionSelectorUser format
         const baseUsers = basesUser.value.get(base.value.id!) || []
         selectedUsers.value = baseUsers
@@ -196,18 +209,6 @@ export const usePermissionSelector = (
             email: user.email,
             display_name: user.display_name,
           }))
-      } else if (permission.granted_type === PermissionGrantedType.ROLE) {
-        if (permission.granted_role === PermissionRole.VIEWER) {
-          currentPermission.value = 'viewers_and_up'
-        } else if (permission.granted_role === PermissionRole.CREATOR) {
-          currentPermission.value = 'creators_and_up'
-        } else {
-          currentPermission.value = 'editors_and_up'
-        }
-      } else if (permission.granted_type === PermissionGrantedType.NOBODY) {
-        currentPermission.value = 'nobody'
-      } else {
-        currentPermission.value = 'editors_and_up'
       }
     } else {
       currentPermission.value = getInternalValue(currentValue.value)

@@ -3,6 +3,8 @@ import {
   type AttachmentType,
   type ColumnType,
   type LinkToAnotherRecordType,
+  PermissionEntity,
+  PermissionKey,
   type TableType,
   UITypes,
   type ViewType,
@@ -118,6 +120,8 @@ export function useCopyPaste({
   const { copy } = useCopy()
   const { cleaMMCell, clearLTARCell, addLTARRef, syncLTARRefs } = useSmartsheetLtarHelpersOrThrow()
   const { isSqlView } = useSmartsheetStoreOrThrow()
+  const { isAllowed } = usePermissions()
+
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -164,6 +168,11 @@ export function useCopyPaste({
       if (showInfo) {
         message.toast(t('msg.info.editingPKnotSupported'))
       }
+      return false
+    }
+
+    if (col.id && !isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)) {
+      message.toast('You do not have permission to paste into this field')
       return false
     }
 

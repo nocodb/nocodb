@@ -145,7 +145,12 @@ export default defineNuxtConfig({
         ignoreTryCatch: true,
       },
       minify: true,
-      rollupOptions: {},
+      chunkSizeWarningLimit: 200,
+      sourcemap: false, // Disable sourcemaps to save memory
+      rollupOptions: {
+        // Aggressive memory reduction
+        maxParallelFileOps: 1,
+      },
     },
     plugins: [
       VueI18nPlugin({
@@ -330,15 +335,6 @@ export default defineNuxtConfig({
       { name: 'useJwt', from: '@vueuse/integrations/useJwt' },
       { name: 'storeToRefs', from: 'pinia' },
     ],
-  },
-
-  nitro: {
-    prerender: {
-      concurrency: 1,
-    },
-  },
-  experimental: {
-    payloadExtraction: true,
   },
 
   compatibilityDate: '2024-12-04',

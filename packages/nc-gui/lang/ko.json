@@ -1354,6 +1354,7 @@
     "metaApiV2": "메타 API V2",
     "showExtraFields": "추가 필드 표시",
     "showExtraFieldsDescription": "연결된 레코드를 선택할 때 표시 값과 함께 추가 필드를 표시합니다",
+    "includeUser": "Include User",
     "removeColouring": "색상 제거",
     "backgroundColour": "배경색",
     "addColour": "색상 추가",
@@ -1646,6 +1647,7 @@
     "changePlan": "ChangePlan"
   },
   "tooltip": {
+    "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
     "crossBase": "다른 기준에 있는 테이블의 레코드 링크",
     "leaveWorkspace": "각 작업 영역에는 소유자가 한 명 이상 있어야 합니다. 작업 영역을 나가기 전에 다른 사용자를 소유자로 지정하십시오. 마지막 구성원인 경우 대신 작업 영역을 삭제하는 것이 좋습니다.",
     "currentDateNotAvail": "데이터 소스 또는 데이터 유형에 대해 현재 날짜 옵션을 사용할 수 없습니다.",
@@ -2323,6 +2325,8 @@
     },
     "noAccess": "접근 금지",
     "noAccessDescription": "작업 영역에 액세스할 수 없습니다. 액세스 권한을 요청하려면 관리자에게 문의하십시오.",
-    "tryAgain": "다시 시도"
+    "tryAgain": "다시 시도",
+    "internalUrlsNotAllowed": "Internal URLs are not allowed",
+    "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls"
   }
 }

@@ -704,7 +704,6 @@ interface PermissionConfig {
   permission: PermissionKey
   label: string
   description?: string
-  minimumRole?: 'viewer' | 'editor' | 'creator'
 }
 
 interface PermissionSelectorUser {

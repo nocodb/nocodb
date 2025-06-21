@@ -45,3 +45,9 @@ export const PermissionRoleMap = {
   [WorkspaceUserRoles.COMMENTER]: PermissionRole.COMMENTER,
   [WorkspaceUserRoles.VIEWER]: PermissionRole.VIEWER,
 };
+
+export const PermissionMinimumRole = {
+  [PermissionKey.TABLE_RECORD_ADD]: PermissionRole.EDITOR,
+  [PermissionKey.TABLE_RECORD_DELETE]: PermissionRole.EDITOR,
+  [PermissionKey.RECORD_FIELD_EDIT]: PermissionRole.EDITOR,
+}

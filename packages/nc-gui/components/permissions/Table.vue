@@ -15,7 +15,6 @@ const createPermissionConfig: PermissionConfig = {
   permission: PermissionKey.TABLE_RECORD_ADD,
   label: 'Who can create records?',
   description: 'can create records',
-  minimumRole: 'editor',
 }
 
 const deletePermissionConfig: PermissionConfig = {
@@ -24,7 +23,6 @@ const deletePermissionConfig: PermissionConfig = {
   permission: PermissionKey.TABLE_RECORD_DELETE,
   label: 'Who can delete records?',
   description: 'can delete records',
-  minimumRole: 'editor',
 }
 
 const handlePermissionSave = () => {

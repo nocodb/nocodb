@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { isSystemColumn } from 'nocodb-sdk'
+import { PermissionKey, isSystemColumn } from 'nocodb-sdk'
 import type { TableType } from 'nocodb-sdk'
 
 interface Props {
@@ -22,7 +22,7 @@ const visibleFields = computed(() => {
 const customFieldPermissionsCount = computed(() => {
   return visibleFields.value.filter((field) => {
     const editPermissions = permissionsByEntity.value[`field_${field.id}`] || []
-    const hasEditPermissions = editPermissions.find((p) => p.permission === 'RECORD_FIELD_EDIT')
+    const hasEditPermissions = editPermissions.find((p) => p.permission === PermissionKey.RECORD_FIELD_EDIT)
     return hasEditPermissions
   }).length
 })
@@ -95,9 +95,8 @@ const fieldPermissionsData = computed(() => {
               :base="base!"
               :field-id="record.field_id!"
               :field-title="record.field_title!"
-              permission-type="RECORD_FIELD_EDIT"
-              :current-value="getPermissionSummaryLabel('field', record.field_id!, 'RECORD_FIELD_EDIT')"
-              minimum-role="editor"
+              :permission-type="PermissionKey.RECORD_FIELD_EDIT"
+              :current-value="getPermissionSummaryLabel('field', record.field_id!, PermissionKey.RECORD_FIELD_EDIT)"
             />
           </template>
         </template>

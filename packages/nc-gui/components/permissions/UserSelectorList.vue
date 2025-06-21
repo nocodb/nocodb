@@ -177,7 +177,7 @@ defineExpose({
       </div>
     </template>
     <template #listItemSelectedIcon> </template>
-    <template v-if="showListFooter" #listFooter>
+    <template v-if="showListFooter && roleFilteredUsers.length > 1" #listFooter>
       <NcDivider class="!my-0" />
 
       <div class="flex items-center p-2 gap-3">

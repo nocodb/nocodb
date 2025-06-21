@@ -12,6 +12,7 @@ interface Props extends Partial<NcListProps> {
   readonly?: boolean
   listClassName?: string
   showListFooter?: boolean
+  disabledUsers?: string[]
 }
 
 const props = withDefaults(defineProps<Props>(), {})
@@ -68,14 +69,14 @@ const roleFilteredUsers = computed(() => {
       return userRoles.some((role) => {
         const mappedRole = PermissionRoleMap[role as keyof typeof PermissionRoleMap]
         const rolePower = PermissionRolePower[mappedRole]
-        return rolePower && rolePower >= minimumRolePower
+        return (rolePower && rolePower >= minimumRolePower) || selectedUsers.value.has(user.id)
       })
     }
 
     return Object.keys(user.roles).some((role) => {
       const mappedRole = PermissionRoleMap[role as keyof typeof PermissionRoleMap]
       const rolePower = PermissionRolePower[mappedRole]
-      return rolePower && rolePower >= minimumRolePower
+      return (rolePower && rolePower >= minimumRolePower) || selectedUsers.value.has(user.id)
     })
   })
 })
@@ -159,8 +160,8 @@ defineExpose({
 
     <template #listItemContent="{ option }">
       <div v-if="option?.email" class="w-full flex gap-3 items-center max-w-[calc(100%_-_24px)]">
-        <GeneralUserIcon :user="option" size="base" class="flex-none" />
-        <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
+        <GeneralUserIcon :user="option" size="base" class="flex-none" :disabled="disabledUsers?.includes(option.id)" />
+        <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]" :class="{ 'opacity-50': disabledUsers?.includes(option.id) }">
           <div class="w-full flex gap-3">
             <span class="text-sm text-gray-800 capitalize font-semibold truncate">
               {{ option?.display_name || option?.email?.slice(0, option?.email.indexOf('@')) }}

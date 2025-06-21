@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { PermissionKey } from 'nocodb-sdk'
-import { PermissionMeta } from 'nocodb-sdk'
+import { PermissionMeta, PermissionRoleMap, PermissionRolePower } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -70,6 +70,38 @@ const description = computed(() => {
     `<b class="text-nc-content-gray-emphasis">${props.entityTitle ?? 'this'}</b>`,
   )
 })
+
+const selectedBelowMinimumRoleUsers = computed(() => {
+  if (!props.permission) return []
+
+  const permissionMeta = PermissionMeta[props.permission]
+  if (!permissionMeta) return []
+
+  const minimumRolePower = PermissionRolePower[permissionMeta.minimumRole]
+  if (!minimumRolePower) return []
+
+  const selectedUsersArray = Array.from(selectedUsers.value)
+
+  return selectedUsersArray.filter((userId) => {
+    const user = baseUsers.value.find((user) => user.id === userId)
+    if (!user) return false
+
+    if (typeof user.roles === 'string') {
+      const userRoles = (user.roles as string).split(',').map((r) => r.trim())
+      return userRoles.some((role) => {
+        const mappedRole = PermissionRoleMap[role as keyof typeof PermissionRoleMap]
+        const rolePower = PermissionRolePower[mappedRole]
+        return rolePower && rolePower < minimumRolePower
+      })
+    }
+
+    return Object.keys(user.roles).some((role) => {
+      const mappedRole = PermissionRoleMap[role as keyof typeof PermissionRoleMap]
+      const rolePower = PermissionRolePower[mappedRole]
+      return rolePower && rolePower < minimumRolePower
+    })
+  })
+})
 </script>
 
 <template>
@@ -109,6 +141,7 @@ const description = computed(() => {
         :open="visible"
         list-class-name="!w-auto"
         show-search-always
+        :disabled-users="selectedBelowMinimumRoleUsers"
       >
       </PermissionsUserSelectorList>
 

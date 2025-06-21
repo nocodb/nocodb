@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { PermissionKey } from 'nocodb-sdk'
+import { type PermissionKey, PermissionMeta, PermissionRoleMap, PermissionRolePower } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 
 const props = defineProps<{
@@ -69,6 +69,38 @@ watch(isDropdownOpen, (isOpen) => {
 const usersToShow = computed(() => {
   return selectedUsersList.value.slice(0, 2)
 })
+
+const selectedBelowMinimumRoleUsers = computed(() => {
+  if (!props.permission) return []
+
+  const permissionMeta = PermissionMeta[props.permission]
+  if (!permissionMeta) return []
+
+  const minimumRolePower = PermissionRolePower[permissionMeta.minimumRole]
+  if (!minimumRolePower) return []
+
+  const selectedUsersArray = Array.from(selectedUsers.value)
+
+  return selectedUsersArray.filter((userId) => {
+    const user = baseUsers.value.find((user) => user.id === userId)
+    if (!user) return false
+
+    if (typeof user.roles === 'string') {
+      const userRoles = (user.roles as string).split(',').map((r) => r.trim())
+      return userRoles.some((role) => {
+        const mappedRole = PermissionRoleMap[role as keyof typeof PermissionRoleMap]
+        const rolePower = PermissionRolePower[mappedRole]
+        return rolePower && rolePower < minimumRolePower
+      })
+    }
+
+    return Object.keys(user.roles).some((role) => {
+      const mappedRole = PermissionRoleMap[role as keyof typeof PermissionRoleMap]
+      const rolePower = PermissionRolePower[mappedRole]
+      return rolePower && rolePower < minimumRolePower
+    })
+  })
+})
 </script>
 
 <template>
@@ -101,13 +133,20 @@ const usersToShow = computed(() => {
               class="flex items-stretch gap-2 text-small"
             >
               <div>
-                <GeneralUserIcon size="auto" :user="user" class="!text-[0.6rem] !h-[18px]" />
+                <GeneralUserIcon
+                  size="auto"
+                  :user="user"
+                  class="!text-[0.6rem] !h-[18px]"
+                  :disabled="selectedBelowMinimumRoleUsers.includes(user?.id ?? '')"
+                />
               </div>
               <NcTooltip class="truncate max-w-full !leading-5 !text-caption" show-on-truncate-only>
                 <template #title>
                   {{ user?.display_name?.trim() || extractNameFromEmail(user?.email) }}
                 </template>
-                {{ user?.display_name?.trim() || extractNameFromEmail(user?.email) }}
+                <span :class="{ '!opacity-50': selectedBelowMinimumRoleUsers.includes(user?.id ?? '') }">
+                  {{ user?.display_name?.trim() || extractNameFromEmail(user?.email) }}
+                </span>
               </NcTooltip>
             </span>
           </a-tag>
@@ -139,6 +178,7 @@ const usersToShow = computed(() => {
           show-list-footer
           :readonly="readonly"
           :close-on-select="false"
+          :disabled-users="selectedBelowMinimumRoleUsers"
         >
         </PermissionsUserSelectorList>
       </template>

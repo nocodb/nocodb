@@ -80,6 +80,8 @@ watch(
         projectPageTab.value = 'allTable'
       } else if (newVal === 'allScripts' && isAutomationEnabled.value && isEeUI) {
         projectPageTab.value = 'allScripts'
+      } else if (newVal === 'permissions') {
+        projectPageTab.value = 'permissions'
       } else {
         projectPageTab.value = 'base-settings'
       }
@@ -235,6 +237,15 @@ onMounted(() => {
             </div>
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
+        </a-tab-pane>
+        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id" key="permissions">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__permissions">
+              <GeneralIcon icon="ncLock" />
+              <div>Permissions</div>
+            </div>
+          </template>
+          <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id" key="data-source">
           <template #tab>

@@ -38,13 +38,13 @@ const tooltipTitle = computed(() => {
 
   switch (props.permission) {
     case PermissionKey.TABLE_RECORD_ADD:
-      return 'Create record restricted'
+      return t('objects.permissions.addNewRecordTooltipTitle')
     case PermissionKey.TABLE_RECORD_DELETE:
-      return 'Delete record restricted'
+      return t('objects.permissions.deleteRecordTooltipTitle')
     case PermissionKey.RECORD_FIELD_EDIT:
-      return 'Edit restricted'
+      return t('objects.permissions.editFieldTooltipTitle')
     default:
-      return 'Permission restricted'
+      return t('objects.permissions.generalPermissionTooltipTitle')
   }
 })
 

@@ -41,7 +41,7 @@ export function useViewRowColorRender(params: {
   })
 
   const evaluateRowColor = (row: any) => {
-    if (blockRowColoring.value || !activeViewRowColorInfo.value) return null
+    if (!isRowColouringEnabled.value) return null
 
     if (activeViewRowColorInfo.value.mode === ROW_COLORING_MODE.SELECT) {
       const selectRowColorInfo = activeViewRowColorInfo.value
@@ -105,12 +105,14 @@ export function useViewRowColorRender(params: {
   }
 
   const evaluatedRowsColor = computed(() => {
+    if (!isRowColouringEnabled.value) return {}
+
     return rows.value
       .map((row) => {
         const evaluateResult = evaluateRowColor(toRaw(row))
         return {
           hash: getRowHash(row),
-          ...evaluateResult,
+          ...(evaluateResult || {}),
         }
       })
       .reduce((obj, cur) => {
@@ -138,7 +140,7 @@ export function useViewRowColorRender(params: {
   }
 
   const getLeftBorderColor = (row: any) => {
-    if (!row || (!params.useCachedResult && !evaluatedRowsColor.value)) return null
+    if (!row || (!params.useCachedResult && !evaluatedRowsColor.value) || !isRowColouringEnabled.value) return null
 
     const rowHash = getRowHash(row)
 
@@ -153,7 +155,7 @@ export function useViewRowColorRender(params: {
   }
 
   const getRowColor = (row: any, isHovered: boolean = false) => {
-    if (!row || (!params.useCachedResult && !evaluatedRowsColor.value)) return null
+    if (!row || (!params.useCachedResult && !evaluatedRowsColor.value) || !isRowColouringEnabled.value) return null
 
     const rowHash = getRowHash(row)
 
@@ -182,7 +184,7 @@ export function useViewRowColorRender(params: {
       rowBorderColor: null,
     }
 
-    if (!row) return result
+    if (!row || !isRowColouringEnabled.value) return result
 
     const evaluatedResult = evaluateRowColor(row)
 
@@ -206,7 +208,7 @@ export function useViewRowColorRender(params: {
       is_set_as_background: false,
     }
 
-    if (!row || (!params.useCachedResult && !evaluatedRowsColor.value)) return result
+    if (!row || (!params.useCachedResult && !evaluatedRowsColor.value) || !isRowColouringEnabled.value) return result
 
     const rowHash = getRowHash(row)
 

@@ -1257,6 +1257,7 @@
     "baseDuplicateMessage": "Notă: Legăturile între baze, jurnalele de audit și integrările nu vor fi duplicate.",
     "tableDuplicateMessage": "Notă: Legăturile între baze nu vor fi duplicate.",
     "includeView": "Include vizualizări",
+    "includeScripts": "Include scripts",
     "includeWebhook": "Include webhook",
     "includeComments": "Include comentarii",
     "zoomInToViewColumns": "Zoom pentru a vizualiza coloanele",

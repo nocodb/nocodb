@@ -22,7 +22,7 @@ services:
       MYSQL_PASSWORD: password
       MYSQL_ROOT_PASSWORD: password
       MYSQL_USER: noco
-    image: "mysql:8.3.0"
+    image: "mysql:9.3.0"
     deploy:
       resources:
         limits:

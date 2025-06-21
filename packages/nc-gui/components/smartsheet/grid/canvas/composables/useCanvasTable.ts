@@ -1213,6 +1213,7 @@ export function useCanvasTable({
       width: parseCellWidth(clickedColumn.width) + ([UITypes.LongText, UITypes.Formula].includes(column.uidt) ? 2 : 0) + 2,
       fixed: clickedColumn.fixed,
       path,
+      isCellEditable: clickedColumn.isCellEditable,
     }
     hideTooltip()
     return true

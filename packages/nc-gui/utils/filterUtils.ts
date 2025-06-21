@@ -17,6 +17,7 @@ import type {
   type LookupType,
   type TableType,
 } from 'nocodb-sdk'
+import { getI18n } from '../plugins/a.i18n'
 
 export const MAX_NESTED_LEVEL = 5
 export const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
@@ -67,6 +68,7 @@ export function isDateType(uidt: UITypes) {
 }
 
 const getEqText = (fieldUiType: UITypes) => {
+  const i18n = getI18n()
   if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
     return '='
   } else if (
@@ -80,12 +82,13 @@ const getEqText = (fieldUiType: UITypes) => {
       UITypes.DateTime,
     ].includes(fieldUiType)
   ) {
-    return 'is'
+    return i18n.global.t('filterOperation.is')
   }
-  return 'is equal'
+  return i18n.global.t('filterOperation.isEqual')
 }
 
 const getNeqText = (fieldUiType: UITypes) => {
+  const i18n = getI18n()
   if (isNumericCol(fieldUiType) || fieldUiType === UITypes.Time) {
     return '!='
   } else if (
@@ -99,49 +102,55 @@ const getNeqText = (fieldUiType: UITypes) => {
       UITypes.DateTime,
     ].includes(fieldUiType)
   ) {
-    return 'is not'
+    return i18n.global.t('filterOperation.isNot')
   }
-  return 'is not equal'
+  return i18n.global.t('filterOperation.isNotEqual')
 }
 
 const getLikeText = (fieldUiType: UITypes) => {
+  const i18n = getI18n()
   if (fieldUiType === UITypes.Attachment) {
-    return 'filenames contain'
+    return i18n.global.t('filterOperation.filenamesContain')
   }
-  return 'is like'
+  return i18n.global.t('filterOperation.isLike')
 }
 
 const getNotLikeText = (fieldUiType: UITypes) => {
+  const i18n = getI18n()
   if (fieldUiType === UITypes.Attachment) {
-    return "filenames don't contain"
+    return i18n.global.t('filterOperation.filenamesDontContain')
   }
-  return 'is not like'
+  return i18n.global.t('filterOperation.isNotLike')
 }
 
 const getGtText = (fieldUiType: UITypes) => {
+  const i18n = getI18n()
   if ([UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(fieldUiType)) {
-    return 'is after'
+    return i18n.global.t('filterOperation.isAfter')
   }
   return '>'
 }
 
 const getLtText = (fieldUiType: UITypes) => {
+  const i18n = getI18n()
   if ([UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(fieldUiType)) {
-    return 'is before'
+    return i18n.global.t('filterOperation.isBefore')
   }
   return '<'
 }
 
 const getGteText = (fieldUiType: UITypes) => {
+  const i18n = getI18n()
   if ([UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(fieldUiType)) {
-    return 'is on or after'
+    return i18n.global.t('filterOperation.isOnOrAfter')
   }
   return '>='
 }
 
 const getLteText = (fieldUiType: UITypes) => {
+  const i18n = getI18n()
   if ([UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(fieldUiType)) {
-    return 'is on or before'
+    return i18n.global.t('filterOperation.isOnOrBefore')
   }
   return '<='
 }
@@ -150,394 +159,362 @@ export const comparisonOpList = (
   fieldUiType: UITypes,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   dateFormat?: string,
-): ComparisonOpUiType[] => [
-  {
-    text: 'is checked',
-    value: 'checked',
-    ignoreVal: true,
-    includedTypes: [UITypes.Checkbox],
-  },
-  {
-    text: 'is not checked',
-    value: 'notchecked',
-    ignoreVal: true,
-    includedTypes: [UITypes.Checkbox],
-  },
-  {
-    text: getEqText(fieldUiType),
-    value: 'eq',
-    ignoreVal: false,
-    excludedTypes: [
-      UITypes.Checkbox,
-      UITypes.MultiSelect,
-      UITypes.Attachment,
-      UITypes.User,
-      UITypes.CreatedBy,
-      UITypes.LastModifiedBy,
-    ],
-  },
-  {
-    text: getNeqText(fieldUiType),
-    value: 'neq',
-    ignoreVal: false,
-    excludedTypes: [
-      UITypes.Checkbox,
-      UITypes.MultiSelect,
-      UITypes.Attachment,
-      UITypes.User,
-      UITypes.CreatedBy,
-      UITypes.LastModifiedBy,
-    ],
-  },
-  {
-    text: getLikeText(fieldUiType),
-    value: 'like',
-    ignoreVal: false,
-    excludedTypes: [
-      UITypes.Checkbox,
-      UITypes.SingleSelect,
-      UITypes.MultiSelect,
-      UITypes.User,
-      UITypes.CreatedBy,
-      UITypes.LastModifiedBy,
-      UITypes.Collaborator,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.CreatedTime,
-      UITypes.LastModifiedTime,
-      UITypes.Time,
-      ...numericUITypes,
-    ],
-  },
-  {
-    text: getNotLikeText(fieldUiType),
-    value: 'nlike',
-    ignoreVal: false,
-    excludedTypes: [
-      UITypes.Checkbox,
-      UITypes.SingleSelect,
-      UITypes.MultiSelect,
-      UITypes.User,
-      UITypes.CreatedBy,
-      UITypes.LastModifiedBy,
-      UITypes.Collaborator,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.CreatedTime,
-      UITypes.LastModifiedTime,
-      UITypes.Time,
-      ...numericUITypes,
-    ],
-  },
-  {
-    text: 'is empty',
-    value: 'empty',
-    ignoreVal: true,
-    excludedTypes: [
-      UITypes.Checkbox,
-      UITypes.SingleSelect,
-      UITypes.MultiSelect,
-      UITypes.User,
-      UITypes.CreatedBy,
-      UITypes.LastModifiedBy,
-      UITypes.Collaborator,
-      UITypes.Attachment,
-      UITypes.LinkToAnotherRecord,
-      UITypes.Lookup,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.CreatedTime,
-      UITypes.LastModifiedTime,
-      UITypes.Time,
-      ...numericUITypes,
-    ],
-  },
-  {
-    text: 'is not empty',
-    value: 'notempty',
-    ignoreVal: true,
-    excludedTypes: [
-      UITypes.Checkbox,
-      UITypes.SingleSelect,
-      UITypes.MultiSelect,
-      UITypes.User,
-      UITypes.CreatedBy,
-      UITypes.LastModifiedBy,
-      UITypes.Collaborator,
-      UITypes.Attachment,
-      UITypes.LinkToAnotherRecord,
-      UITypes.Lookup,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.CreatedTime,
-      UITypes.LastModifiedTime,
-      UITypes.Time,
-      ...numericUITypes,
-    ],
-  },
-  {
-    text: 'is null',
-    value: 'null',
-    ignoreVal: true,
-    excludedTypes: [
-      ...numericUITypes,
-      UITypes.Checkbox,
-      UITypes.SingleSelect,
-      UITypes.MultiSelect,
-      UITypes.User,
-      UITypes.CreatedBy,
-      UITypes.LastModifiedBy,
-      UITypes.Collaborator,
-      UITypes.Attachment,
-      UITypes.LinkToAnotherRecord,
-      UITypes.Lookup,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.CreatedTime,
-      UITypes.LastModifiedTime,
-      UITypes.Time,
-    ],
-  },
-  {
-    text: 'is not null',
-    value: 'notnull',
-    ignoreVal: true,
-    excludedTypes: [
-      ...numericUITypes,
-      UITypes.Checkbox,
-      UITypes.SingleSelect,
-      UITypes.MultiSelect,
-      UITypes.User,
-      UITypes.CreatedBy,
-      UITypes.LastModifiedBy,
-      UITypes.Collaborator,
-      UITypes.Attachment,
-      UITypes.LinkToAnotherRecord,
-      UITypes.Lookup,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.CreatedTime,
-      UITypes.LastModifiedTime,
-      UITypes.Time,
-    ],
-  },
-  {
-    text: 'contains all of',
-    value: 'allof',
-    ignoreVal: false,
-    includedTypes: [UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy],
-  },
-  {
-    text: 'contains any of',
-    value: 'anyof',
-    ignoreVal: false,
-    includedTypes: [UITypes.MultiSelect, UITypes.SingleSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy],
-  },
-  {
-    text: 'does not contain all of',
-    value: 'nallof',
-    ignoreVal: false,
-    includedTypes: [UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy],
-  },
-  {
-    text: 'does not contain any of',
-    value: 'nanyof',
-    ignoreVal: false,
-    includedTypes: [UITypes.MultiSelect, UITypes.SingleSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy],
-  },
-  {
-    text: getGtText(fieldUiType),
-    value: 'gt',
-    ignoreVal: false,
-    includedTypes: [
-      ...numericUITypes,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.LastModifiedTime,
-      UITypes.CreatedTime,
-      UITypes.Time,
-    ],
-  },
-  {
-    text: getLtText(fieldUiType),
-    value: 'lt',
-    ignoreVal: false,
-    includedTypes: [
-      ...numericUITypes,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.LastModifiedTime,
-      UITypes.CreatedTime,
-      UITypes.Time,
-    ],
-  },
-  {
-    text: getGteText(fieldUiType),
-    value: 'gte',
-    ignoreVal: false,
-    includedTypes: [
-      ...numericUITypes,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.LastModifiedTime,
-      UITypes.CreatedTime,
-      UITypes.Time,
-    ],
-  },
-  {
-    text: getLteText(fieldUiType),
-    value: 'lte',
-    ignoreVal: false,
-    includedTypes: [
-      ...numericUITypes,
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.Time,
-      UITypes.CreatedTime,
-      UITypes.LastModifiedTime,
-    ],
-  },
-  {
-    text: 'is within',
-    value: 'isWithin',
-    ignoreVal: true,
-    includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
-  },
-  {
-    text: 'is blank',
-    value: 'blank',
-    ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
-  },
-  {
-    text: 'is not blank',
-    value: 'notblank',
-    ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
-  },
-]
+): ComparisonOpUiType[] => {
+  const i18n = getI18n()
+  return [
+    {
+      text: i18n.global.t('filterOperation.isChecked'),
+      value: 'checked',
+      ignoreVal: true,
+      includedTypes: [UITypes.Checkbox],
+    },
+    {
+      text: i18n.global.t('filterOperation.isNotChecked'),
+      value: 'notchecked',
+      ignoreVal: true,
+      includedTypes: [UITypes.Checkbox],
+    },
+    {
+      text: getEqText(fieldUiType),
+      value: 'eq',
+      ignoreVal: false,
+      excludedTypes: [
+        UITypes.Checkbox,
+        UITypes.MultiSelect,
+        UITypes.Attachment,
+        UITypes.User,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+      ],
+    },
+    {
+      text: getNeqText(fieldUiType),
+      value: 'neq',
+      ignoreVal: false,
+      excludedTypes: [
+        UITypes.Checkbox,
+        UITypes.MultiSelect,
+        UITypes.Attachment,
+        UITypes.User,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+      ],
+    },
+    {
+      text: getLikeText(fieldUiType),
+      value: 'like',
+      ignoreVal: false,
+      excludedTypes: [
+        UITypes.Checkbox,
+        UITypes.SingleSelect,
+        UITypes.MultiSelect,
+        UITypes.User,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+        UITypes.Collaborator,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.Time,
+        ...numericUITypes,
+      ],
+    },
+    {
+      text: getNotLikeText(fieldUiType),
+      value: 'nlike',
+      ignoreVal: false,
+      excludedTypes: [
+        UITypes.Checkbox,
+        UITypes.SingleSelect,
+        UITypes.MultiSelect,
+        UITypes.User,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+        UITypes.Collaborator,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.Time,
+        ...numericUITypes,
+      ],
+    },
+    {
+      text: i18n.global.t('filterOperation.isEmpty'),
+      value: 'empty',
+      ignoreVal: true,
+      excludedTypes: [
+        UITypes.Checkbox,
+        UITypes.SingleSelect,
+        UITypes.MultiSelect,
+        UITypes.User,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+        UITypes.Collaborator,
+        UITypes.Attachment,
+        UITypes.LinkToAnotherRecord,
+        UITypes.Lookup,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.Time,
+        ...numericUITypes,
+      ],
+    },
+    {
+      text: i18n.global.t('filterOperation.isNotEmpty'),
+      value: 'notempty',
+      ignoreVal: true,
+      excludedTypes: [
+        UITypes.Checkbox,
+        UITypes.SingleSelect,
+        UITypes.MultiSelect,
+        UITypes.User,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+        UITypes.Collaborator,
+        UITypes.Attachment,
+        UITypes.LinkToAnotherRecord,
+        UITypes.Lookup,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.Time,
+        ...numericUITypes,
+      ],
+    },
+    {
+      text: i18n.global.t('filterOperation.isNull'),
+      value: 'null',
+      ignoreVal: true,
+      excludedTypes: [
+        ...numericUITypes,
+        UITypes.Checkbox,
+        UITypes.SingleSelect,
+        UITypes.MultiSelect,
+        UITypes.User,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+        UITypes.Collaborator,
+        UITypes.Attachment,
+        UITypes.LinkToAnotherRecord,
+        UITypes.Lookup,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.Time,
+      ],
+    },
+    {
+      text: i18n.global.t('filterOperation.isNotNull'),
+      value: 'notnull',
+      ignoreVal: true,
+      excludedTypes: [
+        ...numericUITypes,
+        UITypes.Checkbox,
+        UITypes.SingleSelect,
+        UITypes.MultiSelect,
+        UITypes.User,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedBy,
+        UITypes.Collaborator,
+        UITypes.Attachment,
+        UITypes.LinkToAnotherRecord,
+        UITypes.Lookup,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.Time,
+      ],
+    },
+    {
+      text: i18n.global.t('filterOperation.containsAllOf'),
+      value: 'allof',
+      ignoreVal: false,
+      includedTypes: [UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy],
+    },
+    {
+      text: i18n.global.t('filterOperation.containsAnyOf'),
+      value: 'anyof',
+      ignoreVal: false,
+      includedTypes: [UITypes.MultiSelect, UITypes.SingleSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy],
+    },
+    {
+      text: i18n.global.t('filterOperation.doesNotContainAllOf'),
+      value: 'nallof',
+      ignoreVal: false,
+      includedTypes: [UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy],
+    },
+    {
+      text: i18n.global.t('filterOperation.doesNotContainAnyOf'),
+      value: 'nanyof',
+      ignoreVal: false,
+      includedTypes: [UITypes.MultiSelect, UITypes.SingleSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy],
+    },
+    {
+      text: getGtText(fieldUiType),
+      value: 'gt',
+      ignoreVal: false,
+      includedTypes: [
+        ...numericUITypes,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.LastModifiedTime,
+        UITypes.CreatedTime,
+        UITypes.Time,
+      ],
+    },
+    {
+      text: getLtText(fieldUiType),
+      value: 'lt',
+      ignoreVal: false,
+      includedTypes: [
+        ...numericUITypes,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.LastModifiedTime,
+        UITypes.CreatedTime,
+        UITypes.Time,
+      ],
+    },
+    {
+      text: getGteText(fieldUiType),
+      value: 'gte',
+      ignoreVal: false,
+      includedTypes: [
+        ...numericUITypes,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.LastModifiedTime,
+        UITypes.CreatedTime,
+        UITypes.Time,
+      ],
+    },
+    {
+      text: getLteText(fieldUiType),
+      value: 'lte',
+      ignoreVal: false,
+      includedTypes: [
+        ...numericUITypes,
+        UITypes.Date,
+        UITypes.DateTime,
+        UITypes.Time,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+      ],
+    },
+    {
+      text: i18n.global.t('filterOperation.isWithin'),
+      value: 'isWithin',
+      ignoreVal: true,
+      includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
+    },
+    {
+      text: i18n.global.t('filterOperation.isBlank'),
+      value: 'blank',
+      ignoreVal: true,
+      excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
+    },
+    {
+      text: i18n.global.t('filterOperation.isNotBlank'),
+      value: 'notblank',
+      ignoreVal: true,
+      excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
+    },
+  ]
+}
 
 export const comparisonSubOpList = (
   // TODO: type
   comparison_op: string,
   dateFormat?: string,
 ): ComparisonOpUiType[] => {
+  const i18n = getI18n()
   const isDateMonth = dateFormat && isDateMonthFormat(dateFormat)
 
   if (comparison_op === 'isWithin') {
     return [
       {
-        text: 'the past week',
+        text: i18n.global.t('filterOperation.thePastWeek'),
         value: 'pastWeek',
         ignoreVal: true,
         includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
       },
       {
-        text: 'the past month',
+        text: i18n.global.t('filterOperation.thePastMonth'),
         value: 'pastMonth',
         ignoreVal: true,
         includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
       },
       {
-        text: 'the past year',
+        text: i18n.global.t('filterOperation.thePastYear'),
         value: 'pastYear',
         ignoreVal: true,
         includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
       },
       {
-        text: 'the next week',
+        text: i18n.global.t('filterOperation.theNextWeek'),
         value: 'nextWeek',
         ignoreVal: true,
         includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
       },
       {
-        text: 'the next month',
+        text: i18n.global.t('filterOperation.theNextMonth'),
         value: 'nextMonth',
         ignoreVal: true,
         includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
       },
       {
-        text: 'the next year',
+        text: i18n.global.t('filterOperation.theNextYear'),
         value: 'nextYear',
         ignoreVal: true,
         includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
       },
       {
-        text: 'the next number of days',
+        text: i18n.global.t('filterOperation.theNextNumberOfDays'),
         value: 'nextNumberOfDays',
         ignoreVal: false,
         includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
       },
       {
-        text: 'the past number of days',
+        text: i18n.global.t('filterOperation.thePastNumberOfDays'),
         value: 'pastNumberOfDays',
         ignoreVal: false,
         includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
       },
     ]
+  } else if (['eq', 'neq', 'gt', 'lt', 'gte', 'lte'].includes(comparison_op)) {
+    if (isDateMonth) {
+      return [
+        {
+          text: i18n.global.t('filterOperation.exactDate'),
+          value: 'exactDate',
+          ignoreVal: false,
+          includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
+        },
+      ]
+    }
+    return [
+      {
+        text: i18n.global.t('filterOperation.exactDate'),
+        value: 'exactDate',
+        ignoreVal: false,
+        includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
+      },
+      {
+        text: i18n.global.t('filterOperation.exactDatetime'),
+        value: 'exactDatetime',
+        ignoreVal: false,
+        includedTypes: [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
+      },
+    ]
   }
-  return [
-    {
-      text: 'today',
-      value: 'today',
-      ignoreVal: true,
-      includedTypes: [...(isDateMonth ? [] : [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime])],
-    },
-    {
-      text: 'tomorrow',
-      value: 'tomorrow',
-      ignoreVal: true,
-      includedTypes: [...(isDateMonth ? [] : [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime])],
-    },
-    {
-      text: 'yesterday',
-      value: 'yesterday',
-      ignoreVal: true,
-      includedTypes: [...(isDateMonth ? [] : [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime])],
-    },
-    {
-      text: 'one week ago',
-      value: 'oneWeekAgo',
-      ignoreVal: true,
-      includedTypes: [...(isDateMonth ? [] : [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime])],
-    },
-    {
-      text: 'one week from now',
-      value: 'oneWeekFromNow',
-      ignoreVal: true,
-      includedTypes: [...(isDateMonth ? [] : [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime])],
-    },
-    {
-      text: 'one month ago',
-      value: 'oneMonthAgo',
-      ignoreVal: true,
-      includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
-    },
-    {
-      text: 'one month from now',
-      value: 'oneMonthFromNow',
-      ignoreVal: true,
-      includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
-    },
-    {
-      text: 'number of days ago',
-      value: 'daysAgo',
-      ignoreVal: false,
-      includedTypes: [...(isDateMonth ? [] : [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime])],
-    },
-    {
-      text: 'number of days from now',
-      value: 'daysFromNow',
-      ignoreVal: false,
-      includedTypes: [...(isDateMonth ? [] : [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime])],
-    },
-    {
-      text: isDateMonth ? 'exact month' : 'exact date',
-      value: 'exactDate',
-      ignoreVal: false,
-      includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
-    },
-  ]
+  return []
 }
 
 export const getPlaceholderNewRow = (

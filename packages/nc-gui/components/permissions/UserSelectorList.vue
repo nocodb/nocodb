@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { PermissionKey, WorkspaceUserRoles } from 'nocodb-sdk'
-import { PermissionMeta, PermissionRoleMap, PermissionRolePower, WorkspaceRolesToProjectRoles, ProjectRoles } from 'nocodb-sdk'
+import { PermissionMeta, PermissionRoleMap, PermissionRolePower, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import type { NcListProps } from '#imports'
 
 interface Props extends Partial<NcListProps> {
@@ -26,8 +26,8 @@ const {
   open: _open,
   selectedUsers: _selectedUsers,
   baseId,
-  permissionLabel,
-  permissionDescription,
+  permissionLabel: _permissionLabel,
+  permissionDescription: _permissionDescription,
   permission,
   readonly: _readonly,
   listClassName,
@@ -51,8 +51,6 @@ const baseUsers = computed(() => {
         : ProjectRoles.NO_ACCESS),
   }))
 })
-
-const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
 // Filter users based on minimum role requirement from PermissionMeta
 const roleFilteredUsers = computed(() => {
@@ -140,7 +138,6 @@ defineExpose({
     :open="vOpen"
     v-bind="restProps"
     :value="selectedUserIds"
-    @change="handleUpdateValue($event)"
     :list="roleFilteredUsers"
     option-label-key="email"
     option-value-key="id"
@@ -150,6 +147,7 @@ defineExpose({
     :class="listClassName"
     :filter-option="filterOption"
     empty-description="No users found"
+    @change="handleUpdateValue($event)"
   >
     <template #listItemExtraLeft="{ isSelected }">
       <NcCheckbox :checked="isSelected" />

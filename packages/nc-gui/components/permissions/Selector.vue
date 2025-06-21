@@ -166,7 +166,6 @@ const handleClickDropdown = (e: MouseEvent) => {
             <NcList
               v-model:open="isOpenPermissionDropdown"
               :value="currentOption?.value || PermissionOptionValue.EDITORS_AND_UP"
-              @update:value="onPermissionChange"
               :list="permissionOptions"
               option-label-key="value"
               option-value-key="value"
@@ -174,6 +173,7 @@ const handleClickDropdown = (e: MouseEvent) => {
               :item-height="48"
               class="!w-auto"
               item-class-name="!py-1"
+              @update:value="onPermissionChange"
             >
               <template #listItem="{ option }">
                 <div class="w-full flex flex-col">

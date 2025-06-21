@@ -20,6 +20,7 @@ import {
 import type { Composer, I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
+import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
 import type { ImageWindowLoader } from '../components/smartsheet/grid/canvas/loaders/ImageLoader'
 import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/SpriteLoader'
 import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
@@ -29,7 +30,6 @@ import type { BaseRoleLoader } from '../components/smartsheet/grid/canvas/loader
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
 import type Record from '~icons/*'
-import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
 
 interface User {
   id: string

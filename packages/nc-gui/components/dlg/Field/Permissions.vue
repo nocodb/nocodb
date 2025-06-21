@@ -55,7 +55,7 @@ const onNavigateToPermissionsOverview = () => {
         </div>
       </div>
 
-      <PermissionsSelector :base="base" :config="editPermissionConfig" @save="handlePermissionSave" horizontal />
+      <PermissionsSelector :base="base" :config="editPermissionConfig" horizontal @save="handlePermissionSave" />
     </div>
 
     <div class="flex justify-end mt-5">

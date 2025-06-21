@@ -1356,6 +1356,7 @@
     "metaApiV2": "API-uri Meta V2",
     "showExtraFields": "Afișează câmpuri suplimentare",
     "showExtraFieldsDescription": "Afișează câmpuri suplimentare alături de valoarea afișată atunci când selectezi înregistrări legate",
+    "includeUser": "Include User",
     "removeColouring": "Remove colouring",
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
@@ -1648,6 +1649,7 @@
     "changePlan": "Schimbă planul"
   },
   "tooltip": {
+    "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
     "crossBase": "Link-uri înregistrări dintr-un tabel într-o baza diferita",
     "leaveWorkspace": "Fiecare spațiu de lucru trebuie să aibă cel puțin un proprietar. Vă rugăm să atribuiți un alt utilizator ca proprietar înainte de a părăsi spațiul de lucru. Dacă sunteți ultimul membru, luați în considerare ștergerea spațiului de lucru.",
     "currentDateNotAvail": "Opțiunea de dată curentă nu este disponibilă pentru sursa de date sau tipul de date",
@@ -2329,6 +2331,8 @@
     },
     "noAccess": "Fără acces",
     "noAccessDescription": "Nu aveți acces la niciun spațiu de lucru. Vă rugăm să contactați administratorul pentru a solicita acces.",
-    "tryAgain": "Încearcă din nou"
+    "tryAgain": "Încearcă din nou",
+    "internalUrlsNotAllowed": "Internal URLs are not allowed",
+    "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls"
   }
 }

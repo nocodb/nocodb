@@ -1,5 +1,5 @@
 import type { WorkspaceUserRoles } from 'nocodb-sdk'
-import { IconType, isCreatedOrLastModifiedByCol, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
+import { IconType, ProjectRoles, WorkspaceRolesToProjectRoles, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTag, roundedRect } from '../utils/canvas'
 import type { RenderRectangleProps } from '../utils/types'
 import { getSelectedUsers } from '../../../../cell/User/utils'

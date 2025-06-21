@@ -5,12 +5,22 @@ const props = defineProps<{
 
 const activeCategory = useVModel(props, 'activeCategory')
 
-const { query } = useTemplates()
+const { query } = useMarketplaceTemplates()
+const route = useRoute()
+const router = useRouter()
 
 const isSearchFocused = ref(false)
 
 const setActiveItem = (category: string) => {
   activeCategory.value = category
+
+  const typeOrId = route.params.typeOrId
+
+  if (category === 'marketplace') {
+    router.push(`/${typeOrId}/marketplace`)
+  } else {
+    router.push(`/${typeOrId}/marketplace/${category}`)
+  }
 }
 </script>
 

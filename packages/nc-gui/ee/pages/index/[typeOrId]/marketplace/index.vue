@@ -9,7 +9,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Marketplace />
+  <NuxtPage />
 </template>
 
 <style scoped lang="scss"></style>

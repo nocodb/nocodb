@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const activeCategory = ref('marketplace')
 
-const { templates, query, loadTemplates, isLoading, hasMore } = useTemplates()
+const { templates, query, loadTemplates, isLoading, hasMore } = useMarketplaceTemplates()
 
 const categoryInfo = {
   'marketplace': {

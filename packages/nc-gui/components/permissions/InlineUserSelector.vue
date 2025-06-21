@@ -151,7 +151,7 @@ watch(isDropdownOpen, (isOpen) => {
 <template>
   <div v-if="!readonly" ref="dropdownRef" class="relative flex items-center">
     <div
-      class="flex items-center gap-1.5 px-2 py-1 rounded border text-sm w-full shadow-sm border-1 border-nc-gray-medium cursor-pointer"
+      class="flex items-center gap-1.5 px-2 py-0.5 rounded border text-sm w-full shadow-sm border-1 border-nc-gray-medium cursor-pointer"
       @click="isDropdownOpen = !isDropdownOpen"
     >
       <!-- Selected user tags -->

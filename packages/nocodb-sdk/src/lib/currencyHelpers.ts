@@ -36,6 +36,16 @@ export const getGroupDecimalSymbolFromLocale = (locale?: string) => {
 };
 
 export const getNumericValue = (value: string, locale?: string) => {
+  // accept valid decimal string as well, like '9.123', '9.1234', '9.123456789'
+  if (/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(value)) {
+    return {
+      value: value,
+      pointDecimalValue: value,
+      numericValue: parseFloat(value),
+      isValid: true,
+    };
+  }
+
   const { group, decimal } = getGroupDecimalSymbolFromLocale(locale);
   const [integerString, decimalString] = value.split(decimal);
 

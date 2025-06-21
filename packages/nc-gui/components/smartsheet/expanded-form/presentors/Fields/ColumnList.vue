@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, PermissionEntity, PermissionKey, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   fields: ColumnType[]
@@ -78,38 +78,46 @@ const showCol = (col: ColumnType) => {
         :disabled="!isReadOnlyVirtualCell(col) || !shouldApplyDataCell(col) || isLinksOrLTAR(col)"
       >
         <template #title>{{ $t('msg.info.fieldReadonly') }}</template>
-        <SmartsheetDivDataCell
-          v-if="col.title"
-          class="flex-1 bg-white px-1 min-h-8 flex items-center relative"
-          :class="{
-            'w-full': props.forceVerticalMode,
-            '!select-text nc-system-field bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
-              isReadOnlyVirtualCell(col) && shouldApplyDataCell(col) && !isLinksOrLTAR(col),
-            '!select-text nc-readonly-div-data-cell': readOnly,
-          }"
+        <PermissionsTooltip
+          class="w-full"
+          :entity="PermissionEntity.FIELD"
+          :entity-id="col.id"
+          :permission="PermissionKey.RECORD_FIELD_EDIT"
+          placement="right"
         >
-          <LazySmartsheetVirtualCell
-            v-if="isVirtualCol(col)"
-            v-model="_row.row[col.title]"
-            :column="col"
-            :read-only="readOnly"
-            :row="_row"
-          />
+          <SmartsheetDivDataCell
+            v-if="col.title"
+            class="flex-1 bg-white px-1 min-h-8 flex items-center relative"
+            :class="{
+              'w-full': props.forceVerticalMode,
+              '!select-text nc-system-field bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
+                isReadOnlyVirtualCell(col) && shouldApplyDataCell(col) && !isLinksOrLTAR(col),
+              '!select-text nc-readonly-div-data-cell': readOnly,
+            }"
+          >
+            <LazySmartsheetVirtualCell
+              v-if="isVirtualCol(col)"
+              v-model="_row.row[col.title]"
+              :column="col"
+              :read-only="readOnly"
+              :row="_row"
+            />
 
-          <LazySmartsheetCell
-            v-else
-            v-model="_row.row[col.title]"
-            :active="true"
-            :column="col"
-            :edit-enabled="true"
-            :read-only="
-              ncIsPlaywright()
-                ? readOnly
-                : readOnly || (isReadOnlyVirtualCell(col) && shouldApplyDataCell(col) && !isLinksOrLTAR(col))
-            "
-            @update:model-value="changedColumns.add(col.title)"
-          />
-        </SmartsheetDivDataCell>
+            <LazySmartsheetCell
+              v-else
+              v-model="_row.row[col.title]"
+              :active="true"
+              :column="col"
+              :edit-enabled="true"
+              :read-only="
+                ncIsPlaywright()
+                  ? readOnly
+                  : readOnly || (isReadOnlyVirtualCell(col) && shouldApplyDataCell(col) && !isLinksOrLTAR(col))
+              "
+              @update:model-value="changedColumns.add(col.title)"
+            />
+          </SmartsheetDivDataCell>
+        </PermissionsTooltip>
       </NcTooltip>
     </div>
   </div>

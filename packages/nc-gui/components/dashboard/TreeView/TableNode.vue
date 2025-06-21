@@ -713,12 +713,7 @@ async function onRename() {
       :table-id="table.id"
       :base-id="base.id"
     />
-    <PermissionsModal
-      v-if="table.id && base?.id"
-      v-model:visible="isTablePermissionsDialogVisible"
-      :base-id="base?.id || ''"
-      :table-id="table.id"
-    />
+    <DlgTablePermissions v-if="table.id" v-model:visible="isTablePermissionsDialogVisible" :table-id="table.id" />
     <DashboardTreeViewViewsList v-if="isExpanded" :table-id="table.id" :base-id="base.id" @deleted="refreshViews" />
   </div>
 </template>

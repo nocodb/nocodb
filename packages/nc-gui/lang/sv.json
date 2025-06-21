@@ -1255,6 +1255,7 @@
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Inkludera vyer",
+    "includeScripts": "Include scripts",
     "includeWebhook": "Inkludera webhook",
     "includeComments": "Inkludera kommentarer",
     "zoomInToViewColumns": "Zooma in för att visa kolumner",

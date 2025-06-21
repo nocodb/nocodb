@@ -637,6 +637,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "editTablePermissions": "Edit table permissions",
     "confirmSnapshotRestore": "Confirm Snapshot Restore",
     "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
@@ -906,7 +907,7 @@
     "sharedBase": "Shared Base",
     "fieldID": "Field ID",
     "addDescription": "Add description",
-    "editDescription": "Edit description",
+    "editDescription": "Edit table description",
     "urlFormula": "URL Formula",
     "selectIcon": "none",
     "selectAWebhook": "-- select a webhook --",

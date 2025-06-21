@@ -1255,6 +1255,7 @@
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Iekļaut skatījumus",
+    "includeScripts": "Include scripts",
     "includeWebhook": "Iekļaut webhook",
     "includeComments": "Iekļaut komentārus",
     "zoomInToViewColumns": "Tuvināt, lai skatītu kolonnas",

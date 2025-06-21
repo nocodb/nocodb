@@ -154,8 +154,10 @@
     "newEditorWillBeChangedSubtitle": "새 편집자 및 더 높은 역할 구성원은 다음 청구 주기에 청구됩니다.",
     "upgradeToUploadWsImage": "작업 영역 이미지를 업로드하도록 업그레이드",
     "upgradeToUploadWsImageSubtitle": "현재 {activePlan} 요금제는 아이콘과 이모티콘만 허용합니다. {plan} 플랜으로 업그레이드하여 사용자 지정 이미지를 작업 영역 아바타로 업로드합니다.",
-    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
-    "upgradeToUseCurrentUserFilterSubtitle": "현재 사용자를 기반으로 데이터를 표시하는 필터를 사용하려면 {plan} 플랜으로 업그레이드합니다."
+    "upgradeToUseCurrentUserFilter": "현재 사용자를 기준으로 필터링하도록 업그레이드",
+    "upgradeToUseCurrentUserFilterSubtitle": "현재 사용자를 기반으로 데이터를 표시하는 필터를 사용하려면 {plan} 플랜으로 업그레이드합니다.",
+    "upgradeToUseRowColoring": "Upgrade to use row coloring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "스크립트",
@@ -566,12 +568,20 @@
       "Enterprise": "엔터프라이즈"
     },
     "currentPlan": {
-      "nextInvoice": "Next invoice",
-      "numberOfBilledUsers": "Billed users",
-      "numberOfBillableUsers": "Billable users",
-      "storageUsedGB": "Storage used",
-      "webhookCallsMonthly": "Webhook calls",
-      "apiCallsMonthly": "API calls"
+      "nextInvoice": "다음 인보이스",
+      "numberOfBilledUsers": "청구된 사용자",
+      "numberOfBillableUsers": "청구 가능한 사용자",
+      "storageUsedGB": "사용된 스토리지",
+      "webhookCallsMonthly": "웹훅 호출",
+      "apiCallsMonthly": "API 호출"
+    },
+    "coloring": {
+      "usingSingleSelectField": "Using Single select field",
+      "usingSingleSelectFieldDescription": "Colour records based on single select field",
+      "usingSingleSelectFieldTooltip": "No single select field found. Add one to enable select-field based row colouring.",
+      "usingConditions": "Using Conditions",
+      "usingConditionsDescription": "Colour records based on conditions",
+      "colourRecordsByField": "Colour records by field"
     }
   },
   "datatype": {
@@ -1340,8 +1350,15 @@
     "invoiceTotal": "송장 합계",
     "pastInvoices": "청구서",
     "createNew": "새로 만들기",
-    "dataApiV2": "Data APIs V2",
-    "metaApiV2": "Meta APIs V2"
+    "dataApiV2": "데이터 API V2",
+    "metaApiV2": "메타 API V2",
+    "showExtraFields": "추가 필드 표시",
+    "showExtraFieldsDescription": "연결된 레코드를 선택할 때 표시 값과 함께 추가 필드를 표시합니다",
+    "removeColouring": "Remove colouring",
+    "backgroundColour": "Background colour",
+    "addColour": "Add Colour",
+    "defaultColours": "Default colours",
+    "customColours": "Custom colours"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",

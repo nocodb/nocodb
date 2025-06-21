@@ -1255,6 +1255,7 @@
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "รวมมุมมอง",
+    "includeScripts": "Include scripts",
     "includeWebhook": "รวมเว็บฮุค",
     "includeComments": "รวมความคิดเห็น",
     "zoomInToViewColumns": "ซูมเข้าดูคอลัมน์",

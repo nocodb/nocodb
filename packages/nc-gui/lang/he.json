@@ -1356,6 +1356,7 @@
     "metaApiV2": "Meta APIs V2",
     "showExtraFields": "Show additional fields",
     "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records",
+    "includeUser": "Include User",
     "removeColouring": "Remove colouring",
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
@@ -1648,6 +1649,7 @@
     "changePlan": "שנה תוכנית"
   },
   "tooltip": {
+    "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
     "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "כל מרחב עבודה חייב לכלול לפחות בעל אחד. אנא הקצה משתמש אחר כבעלים לפני עזיבת מרחב העבודה. אם אתה החבר האחרון, שקול למחוק את מרחב העבודה במקום זאת.",
     "currentDateNotAvail": "אפשרות התאריך הנוכחי לא זמינה עבור מקור הנתונים או סוג הנתונים",
@@ -2329,6 +2331,8 @@
     },
     "noAccess": "No Access",
     "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
-    "tryAgain": "Try Again"
+    "tryAgain": "Try Again",
+    "internalUrlsNotAllowed": "Internal URLs are not allowed",
+    "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls"
   }
 }

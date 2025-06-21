@@ -310,6 +310,7 @@ const {
   view,
   isAddingColumnAllowed,
   isAddingEmptyRowAllowed,
+  isAddingEmptyRowPermitted,
   // Selections
   isSelectedOnlyScript,
   isSelectedOnlyAI,
@@ -1996,6 +1997,8 @@ async function expandRows({
     'newColumns': newColumns,
     'cellsOverwritten': cellsOverwritten,
     'rowsUpdated': rowsUpdated,
+    'isAddingEmptyRowPermitted': isAddingEmptyRowPermitted.value,
+    'meta': meta.value,
     'onUpdate:expand': closeDialog,
     'onUpdate:modelValue': closeDlg,
   })

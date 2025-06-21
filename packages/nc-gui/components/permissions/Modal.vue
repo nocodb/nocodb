@@ -82,14 +82,14 @@ watch(
 
       <div class="h-[calc(100%_-_50px)] flex">
         <!-- Content -->
-        <div class="flex-1 overflow-hidden p-6 flex justify-center">
-          <div class="w-[720px]">
+        <div class="flex-1 p-6 nc-scrollbar-thin relative">
+          <div class="w-full max-w-[720px] min-w-[540px] mx-auto h-full">
             <div v-if="isLoading" class="flex items-center justify-center py-8">
               <GeneralLoader size="large" />
             </div>
 
-            <div v-else-if="tableData" class="space-y-8 h-full flex flex-col">
-              <PermissionsTable :table-id="tableId" :base="base" class="!gap-4" placement="bottomLeft">
+            <div v-else-if="tableData" class="h-full flex flex-col">
+              <PermissionsTable :table-id="tableId" :base="base" class="!gap-4 mb-8" placement="bottomLeft">
                 <template #actions>
                   <!-- <NcButton type="secondary" size="small">
                     <div class="flex items-center gap-2">
@@ -99,17 +99,20 @@ watch(
                   </NcButton> -->
                 </template>
               </PermissionsTable>
-
-              <PermissionsField :table-data="tableData">
-                <template #actions>
-                  <!-- <NcButton type="secondary" size="small">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
-                      <span>Revert to Default</span>
-                    </div>
-                  </NcButton> -->
-                </template>
-              </PermissionsField>
+              <div class="h-[calc(100%_+_32px)] sticky top-0">
+                <div class="flex h-full max-h-[calc(100%_-_32px)]">
+                  <PermissionsField :table-data="tableData">
+                    <template #actions>
+                      <!-- <NcButton type="secondary" size="small">
+                        <div class="flex items-center gap-2">
+                          <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
+                          <span>Revert to Default</span>
+                        </div>
+                      </NcButton> -->
+                    </template>
+                  </PermissionsField>
+                </div>
+              </div>
             </div>
           </div>
         </div>

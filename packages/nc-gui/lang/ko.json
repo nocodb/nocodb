@@ -1267,7 +1267,7 @@
     "baseDuplicateMessage": "참고: 교차 기반 링크, 감사 로그 및 통합은 중복되지 않습니다.",
     "tableDuplicateMessage": "참고: 교차 기본 링크는 중복되지 않습니다.",
     "includeView": "보기 포함",
-    "includeScripts": "스크립트 포함",
+    "includeScripts": "Include scripts",
     "includeWebhook": "웹훅 포함",
     "includeComments": "주석 포함",
     "zoomInToViewColumns": "열을 보려면 확대하세요",

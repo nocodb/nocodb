@@ -484,7 +484,7 @@ interface CellRendererOptions {
     minutes?: number
     recordIndex?: number // For week spanning records in month view
     maxSpanning?: number
-  }
+  } & RowMetaRowColorInfo
   allowLocalUrl?: boolean
   /**
    * `isRootCell` is used to determine if the cell is the root cell of the row or nested cell

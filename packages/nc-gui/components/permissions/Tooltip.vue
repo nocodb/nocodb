@@ -11,12 +11,14 @@ interface Props {
   placement?: TooltipPlacement
   showIcon?: boolean
   showOverlay?: boolean
+  defaultTooltip?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   placement: 'top',
   showIcon: true,
   showOverlay: false,
+  defaultTooltip: '',
 })
 
 const { isAllowed: _isAllowed } = usePermissions()
@@ -59,14 +61,17 @@ const isAllowed = computed(() => (props.entityId ? _isAllowed(props.entity, prop
 </script>
 
 <template>
-  <NcTooltip :disabled="isAllowed" :placement="placement" :arrow="false">
+  <NcTooltip :disabled="isAllowed && !defaultTooltip" :placement="placement" :arrow="false">
     <template #title>
-      <div class="flex flex-col gap-1">
+      <div v-if="!isAllowed" class="flex flex-col gap-1">
         <div class="text-captionBold">{{ tooltipTitle }}</div>
         <div v-if="tooltipDescription" class="text-captionSm">
           {{ tooltipDescription }}
         </div>
       </div>
+      <template v-else>
+        {{ defaultTooltip }}
+      </template>
     </template>
 
     <div
@@ -83,9 +88,7 @@ const isAllowed = computed(() => (props.entityId ? _isAllowed(props.entity, prop
         }"
       />
 
-      <div class="flex items-center gap-1">
-        <slot :is-allowed="isAllowed" />
-      </div>
+      <slot :is-allowed="isAllowed" />
     </div>
   </NcTooltip>
 </template>

@@ -155,7 +155,9 @@
     "upgradeToUploadWsImage": "升级以上传工作区图像",
     "upgradeToUploadWsImageSubtitle": "您当前的 {activePlan} 套餐仅允许使用图标和表情符号。升级到 {plan} 套餐即可上传自定义图像作为工作区头像。",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
-    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
+    "upgradeToUseRowColoring": "Upgrade to use row coloring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "Script",
@@ -564,12 +566,20 @@
       "Enterprise": "企业"
     },
     "currentPlan": {
-      "nextInvoice": "Next invoice",
-      "numberOfBilledUsers": "Billed users",
-      "numberOfBillableUsers": "Billable users",
-      "storageUsedGB": "Storage used",
-      "webhookCallsMonthly": "Webhook calls",
-      "apiCallsMonthly": "API calls"
+      "nextInvoice": "Next Invoice",
+      "numberOfBilledUsers": "Number of Billed Users",
+      "numberOfBillableUsers": "Number of Billable Users",
+      "storageUsedGB": "Storage Used (GB)",
+      "webhookCallsMonthly": "Webhook calls (monthly)",
+      "apiCallsMonthly": "API calls (monthly)"
+    },
+    "coloring": {
+      "usingSingleSelectField": "Using Single select field",
+      "usingSingleSelectFieldDescription": "Colour records based on single select field",
+      "usingSingleSelectFieldTooltip": "No single select field found. Add one to enable select-field based row colouring.",
+      "usingConditions": "Using Conditions",
+      "usingConditionsDescription": "Colour records based on conditions",
+      "colourRecordsByField": "Colour records by field"
     }
   },
   "datatype": {
@@ -1341,7 +1351,14 @@
     "pastInvoices": "历史发票",
     "createNew": "Create New",
     "dataApiV2": "Data APIs V2",
-    "metaApiV2": "Meta APIs V2"
+    "metaApiV2": "Meta APIs V2",
+    "showExtraFields": "Show additional fields",
+    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records",
+    "removeColouring": "Remove colouring",
+    "backgroundColour": "Background colour",
+    "addColour": "Add Colour",
+    "defaultColours": "Default colours",
+    "customColours": "Custom colours"
   },
   "activity": {
     "clickToResolve": "点击解决",

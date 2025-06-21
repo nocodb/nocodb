@@ -587,7 +587,7 @@ async function onRename() {
                   <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
                     <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
                     <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
-                    {{ $t('labels.editDescription') }}
+                    {{ $t('labels.editTableDescription') }}
                   </div>
                 </NcMenuItem>
 
@@ -638,7 +638,7 @@ async function onRename() {
                     <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
                       <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
                       <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
-                      {{ $t('labels.editDescription') }}
+                      {{ $t('labels.editTableDescription') }}
                     </div>
                   </NcMenuItem>
                   <NcMenuItem

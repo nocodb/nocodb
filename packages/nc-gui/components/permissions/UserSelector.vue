@@ -1,10 +1,13 @@
 <script lang="ts" setup>
+import { PermissionRoleMap, PermissionRolePower } from 'nocodb-sdk'
+
 const props = defineProps<{
   visible: boolean
   selectedUsers: Set<string>
   baseId: string
   permissionLabel: string
   permissionDescription?: string
+  minimumRole?: string
 }>()
 
 const emits = defineEmits(['update:visible', 'save'])
@@ -27,12 +30,34 @@ const baseUsers = computed(() => {
   return basesUser.value.get(props.baseId) || []
 })
 
+// Filter users based on minimum role requirement
+const roleFilteredUsers = computed(() => {
+  if (!props.minimumRole) return baseUsers.value
+
+  const minimumRolePower = PermissionRolePower[PermissionRoleMap[props.minimumRole]]
+  if (!minimumRolePower) return baseUsers.value
+
+  return baseUsers.value.filter((user) => {
+    if (!user.roles) return false
+
+    // Split roles string and check each role
+    const userRoles = user.roles.split(',').map((r) => r.trim())
+    return userRoles.some((role) => {
+      const mappedRole = PermissionRoleMap[role]
+      const rolePower = PermissionRolePower[mappedRole]
+      return rolePower && rolePower >= minimumRolePower
+    })
+  })
+})
+
 // Filtered users based on search
 const filteredUsers = computed(() => {
-  if (!searchQuery.value.trim()) return baseUsers.value
+  const users = roleFilteredUsers.value
+
+  if (!searchQuery.value.trim()) return users
 
   const query = searchQuery.value.toLowerCase()
-  return baseUsers.value.filter((user) => {
+  return users.filter((user) => {
     return user.email?.toLowerCase().includes(query) || user.display_name?.toLowerCase().includes(query)
   })
 })

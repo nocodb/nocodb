@@ -12,6 +12,8 @@ const emits = defineEmits(['save'])
 
 const baseRef = toRef(props, 'base')
 
+const selectWidth = computed(() => props.selectWidth || 'w-60')
+
 // Convert the config to the format expected by usePermissionSelector
 const permissionSelectorConfig = computed<PermissionSelectorConfig>(() => ({
   entity: props.config.entity,
@@ -79,20 +81,26 @@ const mode = computed(() => props.mode || 'full')
 </script>
 
 <template>
-  <div v-if="mode === 'full'" class="space-y-3">
-    <div class="flex items-center justify-between">
-      <label class="text-sm font-medium text-nc-content-gray-emphasis">
+  <div v-if="mode === 'full'">
+    <div class="flex flex-col gap-1">
+      <label class="text-sm font-medium text-nc-content-gray-subtle mb-1">
         {{ config.label }}
       </label>
 
-      <div ref="dropdownRef" class="nc-permission-selector relative flex items-center" @click="isDropdownOpen = !isDropdownOpen">
+      <div
+        ref="dropdownRef"
+        class="nc-permission-selector relative flex items-center"
+        :class="selectWidth"
+        @click="isDropdownOpen = !isDropdownOpen"
+      >
         <div
-          class="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 border"
+          class="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 border text-sm w-full"
           :class="getPermissionTextColor(currentOption?.value)"
         >
           <GeneralIcon :icon="currentOption?.icon || 'role_editor'" class="flex-none h-4 w-4" />
           <span class="font-medium text-sm">{{ currentOption?.label || 'Editors & up' }}</span>
           <span v-if="currentOption?.isDefault" class="text-xs text-gray-500">(DEFAULT)</span>
+          <span class="flex-1"></span>
           <GeneralIcon icon="arrowDown" class="flex-none h-3 w-3 text-gray-400" />
         </div>
 
@@ -101,7 +109,7 @@ const mode = computed(() => props.mode || 'full')
           :open="isDropdownOpen"
           :dropdown-match-select-width="false"
           dropdown-class-name="!rounded-lg !h-fit max-w-[350px] nc-permission-selector-dropdown"
-          class="!absolute top-0 left-0 w-full h-full z-10 opacity-0"
+          class="!absolute top-0 left-0 h-full w-full z-10 opacity-0"
           @change="onPermissionChange"
         >
           <a-select-option
@@ -111,7 +119,7 @@ const mode = computed(() => props.mode || 'full')
             :disabled="isLoading"
             @click="closeOnClickOption(option.value)"
           >
-            <div class="flex flex-col w-full gap-1 py-1">
+            <div class="flex flex-col gap-1 py-1">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <GeneralIcon :icon="option.icon" class="flex-none h-4 w-4" :class="getPermissionTextColor(option.value)" />
@@ -144,13 +152,19 @@ const mode = computed(() => props.mode || 'full')
   </div>
 
   <div v-else class="flex items-center gap-2">
-    <div ref="dropdownRef" class="nc-permission-selector relative flex items-center" @click="isDropdownOpen = !isDropdownOpen">
+    <div
+      ref="dropdownRef"
+      class="nc-permission-selector relative flex items-center"
+      :class="selectWidth"
+      @click="isDropdownOpen = !isDropdownOpen"
+    >
       <div
-        class="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 border text-sm"
+        class="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 border text-sm w-full"
         :class="getPermissionTextColor(currentOption?.value)"
       >
         <GeneralIcon :icon="currentOption?.icon || 'role_editor'" class="flex-none h-3.5 w-3.5" />
         <span class="font-medium">{{ currentOption?.label || 'Editors & up' }}</span>
+        <span class="flex-1"></span>
         <GeneralIcon icon="arrowDown" class="flex-none h-3 w-3 text-gray-400" />
       </div>
 
@@ -159,7 +173,7 @@ const mode = computed(() => props.mode || 'full')
         :open="isDropdownOpen"
         :dropdown-match-select-width="false"
         dropdown-class-name="!rounded-lg !h-fit max-w-[350px] nc-permission-selector-dropdown"
-        class="!absolute top-0 left-0 w-full h-full z-10 opacity-0"
+        class="!absolute top-0 left-0 h-full w-full z-10 opacity-0"
         @change="onPermissionChange"
       >
         <a-select-option
@@ -169,7 +183,7 @@ const mode = computed(() => props.mode || 'full')
           :disabled="isLoading"
           @click="closeOnClickOption(option.value)"
         >
-          <div class="flex flex-col w-full gap-1 py-1">
+          <div class="flex flex-col gap-1 py-1">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <GeneralIcon :icon="option.icon" class="flex-none h-4 w-4" :class="getPermissionTextColor(option.value)" />
@@ -213,6 +227,7 @@ const mode = computed(() => props.mode || 'full')
     :base-id="base.id"
     :permission-label="config.label"
     :permission-description="config.description"
+    :minimum-role="config.minimumRole"
     @save="handleUserSelectorSave"
   />
 </template>
@@ -221,6 +236,7 @@ const mode = computed(() => props.mode || 'full')
 .ant-select-item-option-content {
   white-space: normal;
 }
+
 .nc-permission-selector-dropdown {
   .rc-virtual-list-holder {
     &::-webkit-scrollbar {

@@ -27,7 +27,7 @@ const handlePermissionSave = () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-5">
     <div class="flex items-center justify-between">
       <slot name="title">
         <div class="text-nc-content-gray-subtle2 leading-6 font-bold">Table permissions</div>

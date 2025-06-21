@@ -122,10 +122,10 @@ const handleClickDropdown = (e: MouseEvent) => {
     </div>
 
     <div
-      class="flex w-full"
+      class="flex w-full gap-3"
       :class="{
-        'items-center gap-3': !horizontal,
-        'flex-col gap-2': horizontal,
+        'items-center': !horizontal,
+        'flex-col': horizontal,
       }"
     >
       <div class="flex items-center gap-3">
@@ -146,7 +146,12 @@ const handleClickDropdown = (e: MouseEvent) => {
           >
             <GeneralIcon :icon="(currentOption?.icon || 'role_editor') as any" class="flex-none h-4 w-4" />
             <span class="font-medium flex-1 whitespace-nowrap">{{ currentOption?.label || 'Editors & up' }}</span>
-            <GeneralIcon v-if="!readonly" icon="chevronDown" class="flex-none h-4 w-4 text-nc-content-gray-muted" />
+            <GeneralIcon
+              v-if="!readonly"
+              icon="chevronDown"
+              class="flex-none h-4 w-4 text-nc-content-gray-muted transition-transform"
+              :class="{ 'transform rotate-180': isOpenPermissionDropdown }"
+            />
           </div>
           <template #overlay>
             <NcList

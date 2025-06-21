@@ -1,24 +1,39 @@
 <script lang="ts" setup>
 import type { PermissionKey } from 'nocodb-sdk'
 import { PermissionMeta, PermissionRoleMap, PermissionRolePower } from 'nocodb-sdk'
+import type { NcListProps } from '#imports'
 
-const props = defineProps<{
+interface Props extends Partial<NcListProps> {
   selectedUsers: Set<string>
   baseId: string
   permissionLabel: string
   permissionDescription?: string
   permission?: PermissionKey
   readonly?: boolean
-  isOpen?: boolean
   listClassName?: string
   showListFooter?: boolean
-}>()
+}
 
-const emits = defineEmits(['update:selectedUsers', 'update:isOpen'])
+const props = withDefaults(defineProps<Props>(), {})
+
+const emits = defineEmits(['update:selectedUsers', 'update:open'])
 
 const selectedUsers = useVModel(props, 'selectedUsers', emits)
 
-const isOpen = useVModel(props, 'isOpen', emits)
+const vOpen = useVModel(props, 'open', emits)
+
+const {
+  open: _open,
+  selectedUsers: _selectedUsers,
+  baseId,
+  permissionLabel,
+  permissionDescription,
+  permission,
+  readonly: _readonly,
+  listClassName,
+  showListFooter,
+  ...restProps
+} = props
 
 const basesStore = useBases()
 
@@ -27,14 +42,14 @@ const { basesUser } = storeToRefs(basesStore)
 const listRef = ref()
 
 const baseUsers = computed(() => {
-  return basesUser.value.get(props.baseId) || []
+  return basesUser.value.get(baseId) || []
 })
 
 // Filter users based on minimum role requirement from PermissionMeta
 const roleFilteredUsers = computed(() => {
-  if (!props.permission) return baseUsers.value
+  if (!permission) return baseUsers.value
 
-  const permissionMeta = PermissionMeta[props.permission]
+  const permissionMeta = PermissionMeta[permission]
   if (!permissionMeta) return baseUsers.value
 
   const minimumRolePower = PermissionRolePower[permissionMeta.minimumRole]
@@ -115,7 +130,8 @@ defineExpose({
 <template>
   <NcList
     ref="listRef"
-    :open="isOpen"
+    :open="vOpen"
+    v-bind="restProps"
     :value="selectedUserIds"
     @change="handleUpdateValue($event)"
     :list="roleFilteredUsers"
@@ -151,7 +167,7 @@ defineExpose({
     <template v-if="showListFooter" #listFooter>
       <NcDivider class="!my-0" />
 
-      <div class="flex items-center justify-between py-2">
+      <div class="flex items-center justify-between p-2">
         <NcButton type="text" size="small" :disabled="selectedUsers.size === 0" @click="clearAll()"> Clear all </NcButton>
         <NcButton type="text" size="small" :disabled="listRef?.list?.length === 0" @click="selectAll()"> Select all </NcButton>
       </div>

@@ -67,11 +67,11 @@ watch(
   >
     <div class="flex flex-col h-full">
       <!-- Header -->
-      <div class="px-4 py-3 w-full flex items-center gap-3 border-b-1 border-gray-200">
+      <div class="p-2 w-full flex items-center gap-3 border-b-1 border-gray-200">
         <div class="flex items-center">
-          <GeneralIcon icon="ncLock" class="!text-green-700 !h-5 !w-5" />
+          <GeneralIcon icon="table" class="!h-6 !w-6 pl-1" />
         </div>
-        <div class="flex-1 text-xl font-weight-700">Permissions for {{ tableData?.title }}</div>
+        <div class="flex-1 text-lg font-bold text-nc-content-gray-emphasis">{{ tableData?.title }}</div>
 
         <div class="flex items-center gap-3">
           <NcButton size="small" type="text" @click="vVisible = false">
@@ -80,34 +80,42 @@ watch(
         </div>
       </div>
 
-      <!-- Content -->
-      <div class="flex-1 overflow-hidden p-6">
-        <div v-if="isLoading" class="flex items-center justify-center py-8">
-          <GeneralLoader size="large" />
+      <div class="h-[calc(100%_-_50px)] flex">
+        <!-- Content -->
+        <div class="flex-1 overflow-hidden p-6 flex justify-center">
+          <div class="w-[720px]">
+            <div v-if="isLoading" class="flex items-center justify-center py-8">
+              <GeneralLoader size="large" />
+            </div>
+
+            <div v-else-if="tableData" class="space-y-6 h-full flex flex-col">
+              <PermissionsTable :table-id="tableId" :base="base">
+                <template #actions>
+                  <!-- <NcButton type="text" size="small">
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncRepeat" class="flex-none h-4 w-4" />
+                  <span>Revert to Default</span>
+                </div>
+              </NcButton> -->
+                </template>
+              </PermissionsTable>
+
+              <PermissionsField :table-data="tableData">
+                <template #actions>
+                  <!-- <NcButton type="text" size="small">
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncRepeat" class="flex-none h-4 w-4" />
+                  <span>Revert to Default</span>
+                </div>
+              </NcButton> -->
+                </template>
+              </PermissionsField>
+            </div>
+          </div>
         </div>
-
-        <div v-else-if="tableData" class="space-y-6 h-full flex flex-col">
-          <PermissionsTable :table-id="tableId" :base="base">
-            <template #actions>
-              <!-- <NcButton type="text" size="small">
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="ncRepeat" class="flex-none h-4 w-4" />
-                  <span>Revert to Default</span>
-                </div>
-              </NcButton> -->
-            </template>
-          </PermissionsTable>
-
-          <PermissionsField :table-data="tableData">
-            <template #actions>
-              <!-- <NcButton type="text" size="small">
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="ncRepeat" class="flex-none h-4 w-4" />
-                  <span>Revert to Default</span>
-                </div>
-              </NcButton> -->
-            </template>
-          </PermissionsField>
+        <div class="w-[320px] h-full p-5 bg-nc-bg-gray-extralight">
+          <PermissionsSupportedDocs />
+          <NcDivider class="!my-4" />
         </div>
       </div>
     </div>

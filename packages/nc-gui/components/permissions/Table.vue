@@ -29,13 +29,13 @@ const handlePermissionSave = () => {
 <template>
   <div class="flex flex-col gap-4">
     <div class="flex items-center justify-between">
-      <div class="text-lg text-nc-content-gray-subtle2 leading-6 font-bold">Table permissions</div>
+      <slot name="title">
+        <div class="text-nc-content-gray-subtle2 leading-6 font-bold">Table permissions</div>
+      </slot>
       <slot name="actions" />
     </div>
 
-    <div class="flex flex-col gap-4 px-4">
-      <div class="text-sm text-nc-content-gray-muted">Limit who can create and delete records in Locked Table</div>
-
+    <div class="flex flex-col gap-4">
       <div class="flex flex-col gap-2">
         <!-- Create Records Permission -->
         <PermissionsSelector :base="base" :config="createPermissionConfig" @save="handlePermissionSave" />

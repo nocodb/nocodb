@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { BaseType } from 'nocodb-sdk'
 import { PermissionMeta, PermissionOptionValue, PermissionRolePower } from 'nocodb-sdk'
+import PermissionsInlineUserSelector from './InlineUserSelector.vue'
 
 const props = defineProps<{
   base: BaseType
@@ -8,13 +9,14 @@ const props = defineProps<{
   mode?: 'inline' | 'full'
   horizontal?: boolean
   selectWidth?: string
+  readonly?: boolean
 }>()
 
 const emits = defineEmits(['save'])
 
 const baseRef = toRef(props, 'base')
 
-const selectWidth = computed(() => props.selectWidth || 'w-60')
+const selectWidth = computed(() => props.selectWidth || 'w-[165px]')
 
 // Derive label and description from PermissionMeta
 const permissionMeta = computed(() => PermissionMeta[props.config.permission])
@@ -38,11 +40,11 @@ const {
   currentOption,
   permissionOptions: allPermissionOptions,
   isLoading,
-  showUserSelector,
   userSelectorSelectedUsers,
-  selectedUsers,
+  selectedUsers: _selectedUsers,
   onPermissionChange: handlePermissionChange,
   handleUserSelectorSave: handleUserSave,
+  showUserSelector,
 } = usePermissionSelector(baseRef, permissionSelectorConfig, currentValue)
 
 // Filter permission options based on minimum role requirement
@@ -83,28 +85,27 @@ const permissionOptions = computed(() => {
 
 const { getPermissionTextColor } = usePermissions()
 
-const selectedUserNames = computed(() => {
-  return selectedUsers.value.map((user) => user.display_name || user.email).join(', ')
-})
-
 // Dropdown state for overlay pattern
 const isDropdownOpen = ref(false)
 const dropdownRef = ref(null)
 
 const onPermissionChange = (value: any) => {
-  handlePermissionChange(value)
+  if (props.readonly) return
+  handlePermissionChange(value, props.mode === 'inline')
   emits('save')
   isDropdownOpen.value = false
 }
 
 // Handle user selector save and emit save event
 const handleUserSelectorSave = (data: { selectedUsers: PermissionSelectorUser[] }) => {
+  if (props.readonly) return
   handleUserSave(data)
   emits('save')
 }
 
 // Close dropdown when clicking outside
 onClickOutside(dropdownRef, (e) => {
+  if (props.readonly) return
   if ((e.target as HTMLElement)?.closest('.nc-permission-selector-dropdown')) {
     return
   }
@@ -113,6 +114,7 @@ onClickOutside(dropdownRef, (e) => {
 
 // Handle same value selection to close dropdown
 const closeOnClickOption = (optionValue: string) => {
+  if (props.readonly) return
   if (isLoading.value || optionValue !== currentOption.value?.value) return
   isDropdownOpen.value = false
 }
@@ -124,74 +126,78 @@ const mode = computed(() => props.mode || 'full')
 <template>
   <div v-if="mode === 'full'">
     <div class="flex gap-1" :class="horizontal ? 'flex-row items-center gap-3' : 'flex-col'">
-      <label class="text-sm font-medium text-nc-content-gray-subtle" :class="horizontal ? 'flex-1' : 'mb-1'">
+      <label :class="horizontal ? 'flex-1' : 'mb-1'">
         {{ permissionLabel }}
       </label>
 
-      <div
-        ref="dropdownRef"
-        class="nc-permission-selector relative flex items-center"
-        :class="selectWidth"
-        @click="isDropdownOpen = !isDropdownOpen"
-      >
+      <div class="flex items-center gap-2">
         <div
-          class="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 border text-sm w-full"
-          :class="getPermissionTextColor(currentOption?.value || PermissionOptionValue.EDITORS_AND_UP)"
+          ref="dropdownRef"
+          class="nc-permission-selector relative flex items-center"
+          :class="props.readonly ? '' : selectWidth"
+          @click="!props.readonly && (isDropdownOpen = !isDropdownOpen)"
         >
-          <GeneralIcon :icon="(currentOption?.icon || 'role_editor') as any" class="flex-none h-4 w-4" />
-          <span class="font-medium text-sm">{{ currentOption?.label || 'Editors & up' }}</span>
-          <span v-if="currentOption?.isDefault" class="text-xs text-gray-500">(DEFAULT)</span>
-          <span class="flex-1"></span>
-          <GeneralIcon icon="arrowDown" class="flex-none h-3 w-3 text-gray-400" />
+          <div
+            class="flex items-center gap-1.5 px-2 py-1 rounded border text-sm w-full"
+            :class="[
+              getPermissionTextColor(currentOption?.value || PermissionOptionValue.EDITORS_AND_UP),
+              props.readonly ? 'bg-transparent border-transparent' : 'shadow-sm border-1 border-nc-gray-medium cursor-pointer',
+            ]"
+          >
+            <GeneralIcon :icon="(currentOption?.icon || 'role_editor') as any" class="flex-none h-3.5 w-3.5" />
+            <span class="font-medium">{{ currentOption?.label || 'Editors & up' }}</span>
+            <span class="flex-1"></span>
+            <GeneralIcon v-if="!props.readonly" icon="arrowDown" class="flex-none h-3 w-3 text-gray-400 !h-4 !w-4" />
+          </div>
+
+          <a-select
+            v-if="!readonly"
+            :value="currentOption?.value"
+            :open="isDropdownOpen"
+            :dropdown-match-select-width="false"
+            dropdown-class-name="!rounded-lg !h-fit max-w-[350px] nc-permission-selector-dropdown"
+            class="!absolute top-0 left-0 h-full w-full z-10 opacity-0"
+            @select="onPermissionChange"
+          >
+            <a-select-option
+              v-for="option in permissionOptions"
+              :key="option.value"
+              :value="option.value"
+              :disabled="isLoading"
+              @click="closeOnClickOption(option.value)"
+            >
+              <div class="flex flex-col gap-1 py-1">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon
+                      :icon="(option.icon as any)"
+                      class="flex-none h-4 w-4"
+                      :class="getPermissionTextColor(option.value)"
+                    />
+                    <span class="font-medium" :class="getPermissionTextColor(option.value)">{{ option.label }}</span>
+                    <span v-if="option.isDefault" class="text-xs text-gray-500">(DEFAULT)</span>
+                  </div>
+                  <GeneralLoader v-if="isLoading" size="medium" />
+                  <GeneralIcon v-else-if="option.value === currentOption?.value" icon="check" class="text-primary h-4 w-4" />
+                </div>
+                <div class="text-xs text-gray-500">{{ option.description }}</div>
+              </div>
+            </a-select-option>
+          </a-select>
         </div>
 
-        <a-select
-          :value="currentOption?.value"
-          :open="isDropdownOpen"
-          :dropdown-match-select-width="false"
-          dropdown-class-name="!rounded-lg !h-fit max-w-[350px] nc-permission-selector-dropdown"
-          class="!absolute top-0 left-0 h-full w-full z-10 opacity-0"
-          @change="onPermissionChange"
-        >
-          <a-select-option
-            v-for="option in permissionOptions"
-            :key="option.value"
-            :value="option.value"
-            :disabled="isLoading"
-            @click="closeOnClickOption(option.value)"
-          >
-            <div class="flex flex-col gap-1 py-1">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <GeneralIcon
-                    :icon="(option.icon as any)"
-                    class="flex-none h-4 w-4"
-                    :class="getPermissionTextColor(option.value)"
-                  />
-                  <span class="font-medium" :class="getPermissionTextColor(option.value)">{{ option.label }}</span>
-                  <span v-if="option.isDefault" class="text-xs text-gray-500">(DEFAULT)</span>
-                </div>
-                <GeneralLoader v-if="isLoading" size="medium" />
-                <GeneralIcon v-else-if="option.value === currentOption?.value" icon="check" class="text-primary h-4 w-4" />
-              </div>
-              <div class="text-xs text-gray-500">{{ option.description }}</div>
-            </div>
-          </a-select-option>
-        </a-select>
-      </div>
-    </div>
-
-    <div v-if="currentOption?.value === PermissionOptionValue.SPECIFIC_USERS">
-      <div>
-        Only <span class="font-bold">{{ selectedUserNames }}</span> {{ permissionDescription }}
-      </div>
-      <div class="flex items-center gap-2">
-        <NcButton type="secondary" size="small" @click="showUserSelector = true">
-          <div class="flex items-center gap-2">
-            <GeneralIcon icon="edit" class="w-4 h-4" />
-            <span>Change selected users</span>
-          </div>
-        </NcButton>
+        <!-- Inline User Selector on the same line -->
+        <PermissionsInlineUserSelector
+          v-if="base.id && currentOption?.value === PermissionOptionValue.SPECIFIC_USERS"
+          v-model:selected-users="userSelectorSelectedUsers"
+          class="flex-1"
+          :base-id="base.id"
+          :permission-label="permissionLabel"
+          :permission-description="permissionDescription"
+          :permission="config.permission"
+          :readonly="props.readonly"
+          @save="handleUserSelectorSave"
+        />
       </div>
     </div>
   </div>
@@ -200,26 +206,30 @@ const mode = computed(() => props.mode || 'full')
     <div
       ref="dropdownRef"
       class="nc-permission-selector relative flex items-center"
-      :class="selectWidth"
-      @click="isDropdownOpen = !isDropdownOpen"
+      :class="props.readonly ? '' : selectWidth"
+      @click="!props.readonly && (isDropdownOpen = !isDropdownOpen)"
     >
       <div
-        class="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 border text-sm w-full"
-        :class="getPermissionTextColor(currentOption?.value || PermissionOptionValue.EDITORS_AND_UP)"
+        class="flex items-center gap-1.5 px-2 py-1 rounded border text-sm w-full"
+        :class="[
+          getPermissionTextColor(currentOption?.value || PermissionOptionValue.EDITORS_AND_UP),
+          props.readonly ? 'bg-transparent border-transparent' : 'cursor-pointer',
+        ]"
       >
         <GeneralIcon :icon="(currentOption?.icon || 'role_editor') as any" class="flex-none h-3.5 w-3.5" />
         <span class="font-medium">{{ currentOption?.label || 'Editors & up' }}</span>
         <span class="flex-1"></span>
-        <GeneralIcon icon="arrowDown" class="flex-none h-3 w-3 text-gray-400" />
+        <GeneralIcon v-if="!props.readonly" icon="arrowDown" class="flex-none h-3 w-3 text-gray-400" />
       </div>
 
       <a-select
+        v-if="!props.readonly"
         :value="currentOption?.value"
         :open="isDropdownOpen"
         :dropdown-match-select-width="false"
         dropdown-class-name="!rounded-lg !h-fit max-w-[350px] nc-permission-selector-dropdown"
         class="!absolute top-0 left-0 h-full w-full z-10 opacity-0"
-        @change="onPermissionChange"
+        @select="onPermissionChange"
       >
         <a-select-option
           v-for="option in permissionOptions"
@@ -248,37 +258,18 @@ const mode = computed(() => props.mode || 'full')
       </a-select>
     </div>
 
-    <!-- Inline specific users display -->
-    <div v-if="currentOption?.value === PermissionOptionValue.SPECIFIC_USERS" class="flex items-center gap-1">
-      <!-- Field selector style: compact user count -->
-      <NcButton v-if="config.entity === 'field'" type="text" size="small" @click="showUserSelector = true">
-        <div class="flex items-center gap-1">
-          <span class="text-xs">{{ selectedUsers.length }} users</span>
-          <GeneralIcon icon="edit" class="w-3 h-3" />
-        </div>
-      </NcButton>
-
-      <!-- Table selector style: user names display -->
-      <template v-else>
-        <span class="text-xs text-nc-content-gray-muted">{{ selectedUserNames || 'No users selected' }}</span>
-        <NcButton type="text" size="small" @click="showUserSelector = true">
-          <GeneralIcon icon="edit" class="w-3 h-3" />
-        </NcButton>
-      </template>
-    </div>
+    <!-- User Selector Modal (shared by both modes) -->
+    <PermissionsUserSelector
+      v-if="base.id"
+      v-model:visible="showUserSelector"
+      :selected-users="userSelectorSelectedUsers"
+      :base-id="base.id"
+      :permission-label="permissionLabel"
+      :permission-description="permissionDescription"
+      :permission="config.permission"
+      @save="handleUserSelectorSave"
+    />
   </div>
-
-  <!-- User Selector Modal (shared by both modes) -->
-  <PermissionsUserSelector
-    v-if="base.id"
-    v-model:visible="showUserSelector"
-    :selected-users="userSelectorSelectedUsers"
-    :base-id="base.id"
-    :permission-label="permissionLabel"
-    :permission-description="permissionDescription"
-    :permission="config.permission"
-    @save="handleUserSelectorSave"
-  />
 </template>
 
 <style lang="scss">

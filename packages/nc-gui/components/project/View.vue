@@ -245,7 +245,7 @@ onMounted(() => {
               <div>Permissions</div>
             </div>
           </template>
-          <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
+          <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
         </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id" key="data-source">
           <template #tab>

@@ -145,21 +145,23 @@ watch(visible, (isVisible) => {
     }"
     wrap-class-name="nc-modal-permissions-user-selector"
     :footer="null"
-    class="!w-[35rem]"
+    class="!w-[448px]"
     :closable="false"
     @keydown.esc="visible = false"
   >
     <div>
-      <div class="flex items-center justify-between mb-4">
-        <div class="text-lg font-semibold text-nc-content-gray-emphasis">Choose specific users</div>
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-base font-semibold text-nc-content-gray-emphasis">Selet specific users</div>
       </div>
 
-      <div class="text-sm text-nc-content-gray-muted mb-6">
-        Only these users {{ permissionDescription || 'will have this permission' }}
+      <div class="text-sm text-nc-content-gray-muted mb-5">
+        Only members selected here <span class="font-weight-700">{{ permissionDescription || 'will have this permission' }}</span>
       </div>
+
+      <div class="text-nc-content-gray-muted mb-2">Select users</div>
 
       <!-- Search Input -->
-      <div class="relative mb-6">
+      <div class="relative">
         <GeneralIcon
           icon="search"
           class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-nc-content-gray-muted"
@@ -168,21 +170,25 @@ watch(visible, (isVisible) => {
           v-model="searchQuery"
           type="text"
           placeholder="Find a user"
-          class="w-full pl-10 pr-4 py-2 border border-nc-border-gray-medium rounded-lg focus:border-brand-500 focus:outline-none text-sm"
+          class="w-full pl-10 pr-4 py-2 border-1 border-b-0 rounded-t-lg border-nc-border-gray-medium focus:!border-nc-border-gray-medium focus:!outline-none text-sm"
         />
       </div>
 
       <div class="max-h-80 overflow-y-auto mb-6">
-        <div v-if="filteredUsers.length === 0" class="text-center py-8 text-nc-content-gray-muted">No users found</div>
-        <div v-else class="space-y-2">
+        <div
+          v-if="filteredUsers.length === 0"
+          class="flex flex-col items-center justify-center py-8 text-nc-content-gray-muted border-1 border-nc-border-gray-medium rounded-b-lg"
+        >
+          <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[164px] flex-none" alt="No users found" />
+          No users found
+        </div>
+        <div v-else>
           <div
             v-for="user in filteredUsers"
             :key="user.id"
-            class="flex items-center gap-3 p-2 hover:bg-nc-bg-gray-light rounded-lg cursor-pointer"
+            class="flex h-[54px] items-center gap-3 px-3 hover:bg-nc-bg-gray-light cursor-pointer border-1 border-b-0 border-nc-border-gray-medium last:rounded-b-lg last:border-b-1"
             @click="toggleUser(user.id)"
           >
-            <NcCheckbox :checked="isUserSelected(user.id)" @click.stop="toggleUser(user.id)" />
-
             <!-- User Avatar and Info -->
             <div v-if="'email' in user" class="flex items-center gap-3 flex-1">
               <GeneralUserIcon :user="user" size="medium" />
@@ -195,6 +201,8 @@ watch(visible, (isVisible) => {
                 </div>
               </div>
             </div>
+
+            <NcCheckbox :checked="isUserSelected(user.id)" @click.stop="toggleUser(user.id)" />
           </div>
         </div>
       </div>

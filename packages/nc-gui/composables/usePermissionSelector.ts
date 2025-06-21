@@ -170,8 +170,8 @@ export const usePermissionSelector = (
   }
 
   // Handle permission change
-  const onPermissionChange = (value: string) => {
-    if (value === PermissionOptionValue.SPECIFIC_USERS) {
+  const onPermissionChange = (value: string, inline = false) => {
+    if (value === PermissionOptionValue.SPECIFIC_USERS && inline) {
       openUserSelector()
     } else {
       currentPermission.value = value as PermissionOptionValue

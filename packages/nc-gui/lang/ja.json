@@ -1356,7 +1356,6 @@
     "metaApiV2": "Meta APIs V2",
     "showExtraFields": "Show additional fields",
     "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records",
-    "includeUser": "Include User",
     "removeColouring": "Remove colouring",
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
@@ -1649,7 +1648,6 @@
     "changePlan": "プランを変更"
   },
   "tooltip": {
-    "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
     "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "各ワークスペースには、少なくとも1人のオーナーが必要です。ワークスペースを離れる前に、他のユーザーを所有者として割り当ててください。あなたが最後のメンバーである場合は、代わりにワークスペースを削除することを検討してください。",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
@@ -2331,8 +2329,6 @@
     },
     "noAccess": "No Access",
     "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
-    "tryAgain": "Try Again",
-    "internalUrlsNotAllowed": "Internal URLs are not allowed",
-    "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls"
+    "tryAgain": "Try Again"
   }
 }

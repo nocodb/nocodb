@@ -616,7 +616,6 @@ async function onRename() {
                       isUIAllowed('tableDuplicate', {
                         source,
                       }) &&
-                      base.sources?.[sourceIndex] &&
                       (source?.is_meta || source?.is_local)
                     "
                     :data-testid="`sidebar-table-duplicate-${table.title}`"
@@ -646,7 +645,6 @@ async function onRename() {
                       isUIAllowed('tableDuplicate', {
                         source,
                       }) &&
-                      base.sources?.[sourceIndex] &&
                       (source?.is_meta || source?.is_local)
                     "
                     :data-testid="`sidebar-table-permissions-${table.title}`"

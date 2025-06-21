@@ -80,6 +80,10 @@ const roleFilteredUsers = computed(() => {
   })
 })
 
+const computedNcList = computed(() => {
+  return listRef.value?.list ?? roleFilteredUsers.value
+})
+
 // Selected users display
 const selectedUsersList = computed(() => {
   return Array.from(selectedUsers.value)
@@ -128,7 +132,7 @@ const filterOption = (input: string, option: NcListItemType) => {
 defineExpose({
   selectAll,
   clearAll,
-  list: listRef?.value?.list ?? roleFilteredUsers.value,
+  list: computedNcList,
 })
 </script>
 

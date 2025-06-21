@@ -110,7 +110,7 @@ export const PermissionMeta = {
   },
   [PermissionKey.RECORD_FIELD_EDIT]: {
     minimumRole: PermissionRole.EDITOR,
-    label: 'Who can edit records in this field',
+    label: 'Who can edit values in this field',
     description: 'can edit records',
   },
 }

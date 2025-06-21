@@ -88,8 +88,9 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
 }
 
 const newRecord = (row: RowType) => {
-  if (isPublic.value || (meta.value?.id && !isAllowed(PermissionEntity.TABLE, meta.value?.id, PermissionKey.TABLE_RECORD_ADD)))
+  if (isPublic.value || (meta.value?.id && !isAllowed(PermissionEntity.TABLE, meta.value?.id, PermissionKey.TABLE_RECORD_ADD))) {
     return
+  }
 
   $e('c:calendar:new-record', activeCalendarView.value)
   expandRecord({

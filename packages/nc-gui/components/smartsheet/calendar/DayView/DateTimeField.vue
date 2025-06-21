@@ -1085,6 +1085,7 @@ const expandRecord = (record: Row) => {
               </NcMenu>
             </template>
           </NcDropdown>
+
           <NcButton
             v-else-if="
               !isPublic && isUIAllowed('dataEdit') && [UITypes.DateTime, UITypes.Date].includes(calDataType) && !isSyncedTable
@@ -1113,8 +1114,7 @@ const expandRecord = (record: Row) => {
               }
             }
             emit('newRecord', record)
-          }
-        "
+        }"
           >
             <component :is="iconMap.plus" class="h-4 w-4" />
           </NcButton>

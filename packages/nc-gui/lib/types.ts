@@ -29,6 +29,7 @@ import type { BaseRoleLoader } from '../components/smartsheet/grid/canvas/loader
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
 import type Record from '~icons/*'
+import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
 
 interface User {
   id: string
@@ -710,6 +711,105 @@ interface PermissionSelectorUser {
   display_name?: string | null
 }
 
+// NcList type starts here
+
+type MultiSelectRawValueType = Array<string | number>
+
+type RawValueType = string | number | MultiSelectRawValueType
+
+interface NcListItemType {
+  value?: RawValueType
+  label?: string
+  ncItemDisabled?: boolean
+  ncItemTooltip?: string
+  [key: string]: any
+}
+
+/**
+ * Props interface for the List component
+ */
+interface NcListProps {
+  /** The currently selected value */
+  value: RawValueType
+  /** The list of items to display */
+  list: NcListItemType[]
+  /**
+   * The key to use for accessing the value from a list item
+   * @default 'value'
+   */
+  optionValueKey?: string
+  /**
+   * The key to use for accessing the label from a list item
+   * @default 'label'
+   */
+  optionLabelKey?: string
+  /** Whether the list is open or closed */
+  open?: boolean
+  /**
+   * Whether to close the list after an item is selected
+   * @default true
+   */
+  closeOnSelect?: boolean
+  /** Placeholder text for the search input */
+  searchInputPlaceholder?: string
+  /** Show search input box always */
+  showSearchAlways?: boolean
+  /** Whether to show the currently selected option */
+  showSelectedOption?: boolean
+  /**
+   * The height of each item in the list, used for virtual list rendering.
+   * @default 38
+   */
+  itemHeight?: number
+  variant?: 'default' | 'small' | 'medium'
+  /** Custom filter function for list items */
+  filterOption?: (input: string, option: NcListItemType, index: Number) => boolean
+  /**
+   * Indicates whether the component allows multiple selections.
+   */
+  isMultiSelect?: boolean
+  /**
+   * The minimum number of items required in the list to enable search functionality.
+   */
+  minItemsForSearch?: number
+  /**
+   * Whether the list is locked and cannot be interacted with
+   */
+  isLocked?: boolean
+
+  /**
+   * Whether input should have border
+   */
+  inputBordered?: boolean
+
+  listWrapperClassName?: string
+
+  containerClassName?: string
+
+  itemClassName?: string
+
+  itemTooltipPlacement?: TooltipPlacement
+
+  /**
+   * Whether to hide the top divider
+   */
+  hideTopDivider?: boolean
+
+  emptyDescription?: string
+
+  /**
+   * This will remove side padding and rounded corners from the list item
+   */
+  itemFullWidth?: boolean
+
+  /**
+   * Whether to stop propagation on item click
+   */
+  stopPropagationOnItemClick?: boolean
+}
+
+// NcList type ends here
+
 export type {
   User,
   ProjectMetaInfo,
@@ -766,4 +866,8 @@ export type {
   RowColouringEvaluatedResultType,
   PermissionConfig,
   PermissionSelectorUser,
+  NcListProps,
+  NcListItemType,
+  MultiSelectRawValueType,
+  RawValueType,
 }

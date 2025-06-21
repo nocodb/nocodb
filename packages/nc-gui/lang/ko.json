@@ -154,8 +154,10 @@
     "newEditorWillBeChangedSubtitle": "새 편집자 및 더 높은 역할 구성원은 다음 청구 주기에 청구됩니다.",
     "upgradeToUploadWsImage": "작업 영역 이미지를 업로드하도록 업그레이드",
     "upgradeToUploadWsImageSubtitle": "현재 {activePlan} 요금제는 아이콘과 이모티콘만 허용합니다. {plan} 플랜으로 업그레이드하여 사용자 지정 이미지를 작업 영역 아바타로 업로드합니다.",
-    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
-    "upgradeToUseCurrentUserFilterSubtitle": "현재 사용자를 기반으로 데이터를 표시하는 필터를 사용하려면 {plan} 플랜으로 업그레이드합니다."
+    "upgradeToUseCurrentUserFilter": "현재 사용자를 기준으로 필터링하도록 업그레이드",
+    "upgradeToUseCurrentUserFilterSubtitle": "현재 사용자를 기반으로 데이터를 표시하는 필터를 사용하려면 {plan} 플랜으로 업그레이드합니다.",
+    "upgradeToUseRowColoring": "행 색상 지정을 사용하도록 업그레이드",
+    "upgradeToUseRowColoringSubtitle": "{plan} 플랜으로 업그레이드하여 필드 값 또는 조건에 따라 행의 색상을 지정하면 데이터를 더 쉽게 스캔하고 우선 순위를 지정할 수 있습니다."
   },
   "general": {
     "script": "스크립트",
@@ -395,12 +397,14 @@
     "left": "왼쪽",
     "seat": "좌석",
     "seats": "좌석",
-    "automation": "Automation",
-    "resources": "Resources",
-    "community": "Community",
-    "youtube": "Youtube",
-    "changelog": "Changelog",
-    "contactSupport": "Contact Support"
+    "automation": "자동화",
+    "resources": "리소스",
+    "community": "커뮤니티",
+    "youtube": "유튜브",
+    "changelog": "변경 기록",
+    "contactSupport": "도움 받기",
+    "proceedImport": "가져오기 진행",
+    "inserting": "삽입"
   },
   "objects": {
     "script": "스크립트",
@@ -564,12 +568,20 @@
       "Enterprise": "엔터프라이즈"
     },
     "currentPlan": {
-      "nextInvoice": "Next invoice",
-      "numberOfBilledUsers": "Billed users",
-      "numberOfBillableUsers": "Billable users",
-      "storageUsedGB": "Storage used",
-      "webhookCallsMonthly": "Webhook calls",
-      "apiCallsMonthly": "API calls"
+      "nextInvoice": "다음 인보이스",
+      "numberOfBilledUsers": "청구된 사용자",
+      "numberOfBillableUsers": "청구 가능한 사용자",
+      "storageUsedGB": "사용된 스토리지",
+      "webhookCallsMonthly": "웹훅 호출",
+      "apiCallsMonthly": "API 호출"
+    },
+    "coloring": {
+      "usingSingleSelectField": "단일 선택 필드 사용",
+      "usingSingleSelectFieldDescription": "단일 선택 필드를 기반으로 한 색상 기록",
+      "usingSingleSelectFieldTooltip": "단일 선택 필드를 찾을 수 없습니다. 하나를 추가하면 선택 필드 기반 행 색상 지정을 사용할 수 있습니다.",
+      "usingConditions": "조건 사용",
+      "usingConditionsDescription": "조건에 따른 색상 기록",
+      "colourRecordsByField": "필드별 레코드 색상 지정"
     }
   },
   "datatype": {
@@ -816,7 +828,10 @@
     "reactivateToPlan": "{plan} 요금제를 다시 활성화하시겠습니까?",
     "whatsNew": "What’s New",
     "currentUser": "현재 사용자",
-    "filteredByLoggedInUser": "로그인한 사용자별로 필터링됨"
+    "filteredByLoggedInUser": "로그인한 사용자별로 필터링됨",
+    "hideExtensions": "확장 프로그램 숨기기",
+    "duplicatesFound": "중복이 발견되었습니다.",
+    "matchingResultsInRecords": "{count} 레코드의 결과 일치"
   },
   "labels": {
     "crossBase": "Link to external base",
@@ -1252,6 +1267,7 @@
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "참고: 교차 기본 링크는 중복되지 않습니다.",
     "includeView": "보기 포함",
+    "includeScripts": "스크립트 포함",
     "includeWebhook": "웹훅 포함",
     "includeComments": "주석 포함",
     "zoomInToViewColumns": "열을 보려면 확대하세요",
@@ -1334,8 +1350,15 @@
     "invoiceTotal": "송장 합계",
     "pastInvoices": "청구서",
     "createNew": "새로 만들기",
-    "dataApiV2": "Data APIs V2",
-    "metaApiV2": "Meta APIs V2"
+    "dataApiV2": "데이터 API V2",
+    "metaApiV2": "메타 API V2",
+    "showExtraFields": "추가 필드 표시",
+    "showExtraFieldsDescription": "연결된 레코드를 선택할 때 표시 값과 함께 추가 필드를 표시합니다",
+    "removeColouring": "색상 제거",
+    "backgroundColour": "배경색",
+    "addColour": "색상 추가",
+    "defaultColours": "기본 색상",
+    "customColours": "사용자 정의 색상"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",
@@ -1683,12 +1706,13 @@
     "approachingLimit": "한계에 가까워짐",
     "exceedingLimit": "한도 초과",
     "filteredByCurrentUser": "현재 사용자를 기준으로 필터링됨",
-    "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
-    "navigateToTableToCreateView": "Navigate to a table to a create view",
-    "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
-    "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation"
+    "navigateToBaseToCreateTable": "테이블을 만들기 위해 프로젝트로 이동합니다.",
+    "navigateToBaseToCreateAutomation": "프로젝트로 이동하여 자동화를 생성합니다.",
+    "navigateToTableToCreateView": "테이블로 이동하여 뷰를 생성합니다",
+    "youDontHaveAccessToCreateNewTable": "새 테이블을 만들 수 있는 액세스 권한이 없습니다.",
+    "youDontHaveAccessToCreateNewView": "새 보기를 만들 수 있는 액세스 권한이 없습니다.",
+    "youDontHaveAccessToCreateNewAutomation": "새 자동화를 만들 수 있는 액세스 권한이 없습니다",
+    "formViewCreationNotSupportedForSyncedTable": "동기화된 테이블에 대해 양식 보기 생성이 지원되지 않습니다."
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",
@@ -1755,6 +1779,9 @@
     "noAutomations": "자동화 없음"
   },
   "msg": {
+    "userAlreadyExists": "\"{email}\"가 있는 사용자는 이미 액세스 권한이 있습니다.",
+    "evaluateRecursively": "재귀적으로 평가",
+    "evaluateRecursivelyTooltip": "이 조회를 재귀적으로 평가하여 자체 참조 관계가 많음(Enterprise Edition + PostgreSQL만 해당)",
     "urlFilter": "URL 필터는 URL 매개 변수에서 적용되며 도구 모음을 통해 설정된 보기 필터와 결합됩니다.",
     "urlFilterError": "URL 필터가 잘못되었습니다. 적용할 수 없으므로 무시됩니다.",
     "dropYourDocHere": "여기에 문서를 놓습니다",

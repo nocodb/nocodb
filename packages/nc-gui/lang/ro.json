@@ -155,9 +155,7 @@
     "upgradeToUploadWsImage": "Fă upgrade pentru a încărca o imagine pentru workspace",
     "upgradeToUploadWsImageSubtitle": "Planul tău {activePlan} permite doar pictograme și emoji. Fă upgrade la planul {plan} pentru a încărca o imagine personalizată ca avatar al workspace-ului.",
     "upgradeToUseCurrentUserFilter": "Actualizați pentru a filtra după utilizatorul curent",
-    "upgradeToUseCurrentUserFilterSubtitle": "Faceți upgrade la planul {plan} pentru a utiliza filtre care afișează datele pe baza utilizatorului curent.",
-    "upgradeToUseRowColoring": "Upgrade to use row coloring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
+    "upgradeToUseCurrentUserFilterSubtitle": "Faceți upgrade la planul {plan} pentru a utiliza filtre care afișează datele pe baza utilizatorului curent."
   },
   "general": {
     "script": "Script",
@@ -826,12 +824,12 @@
     "upgradeWorkspaceToPlan": "Fă upgrade spațiului {workspace} la planul {plan}",
     "upgradeToPlanSubtitle": "Veți fi taxat imediat pentru acest plan.",
     "reactivateToPlan": "Reactivați planul {plan}?",
-    "whatsNew": "What’s New",
-    "currentUser": "Current User",
-    "filteredByLoggedInUser": "Filtered by logged-in user",
-    "hideExtensions": "Hide Extensions",
-    "duplicatesFound": "Duplicates found",
-    "matchingResultsInRecords": "Matching results in {count} records"
+    "whatsNew": "Noutăți!",
+    "currentUser": "Utilizator curent",
+    "filteredByLoggedInUser": "Filtrat după utilizatorul conectat",
+    "hideExtensions": "Ascunde extensiile",
+    "duplicatesFound": "Duplicate găsite",
+    "matchingResultsInRecords": "Potrivirea rezultatelor în {count} înregistrări"
   },
   "labels": {
     "crossBase": "Legătură către bază externă",
@@ -1355,12 +1353,7 @@
     "dataApiV2": "API-uri de date V2",
     "metaApiV2": "API-uri Meta V2",
     "showExtraFields": "Afișează câmpuri suplimentare",
-    "showExtraFieldsDescription": "Afișează câmpuri suplimentare alături de valoarea afișată atunci când selectezi înregistrări legate",
-    "removeColouring": "Remove colouring",
-    "backgroundColour": "Background colour",
-    "addColour": "Add Colour",
-    "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "showExtraFieldsDescription": "Afișează câmpuri suplimentare alături de valoarea afișată atunci când selectezi înregistrări legate"
   },
   "activity": {
     "clickToResolve": "Fă clic pentru a rezolva",
@@ -1707,14 +1700,14 @@
     "paidUserBadgeTooltip": "Utilizatorul are rol de Editor sau superior în cel puțin o bază.",
     "approachingLimit": "Aproape de limită",
     "exceedingLimit": "Depășește limita",
-    "filteredByCurrentUser": "Filtered by current user",
-    "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
-    "navigateToTableToCreateView": "Navigate to a table to a create view",
-    "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
-    "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
-    "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table"
+    "filteredByCurrentUser": "Filtrat după utilizatorul curent",
+    "navigateToBaseToCreateTable": "Navighează la o bază pentru a crea un tabel",
+    "navigateToBaseToCreateAutomation": "Navigați la o bază pentru a crea o automatizare",
+    "navigateToTableToCreateView": "Navighează la un tabel pentru a crea o vizualizare",
+    "youDontHaveAccessToCreateNewTable": "Nu aveți acces pentru a crea un tabel nou",
+    "youDontHaveAccessToCreateNewView": "Nu aveți acces pentru a crea o vizualizare nouă",
+    "youDontHaveAccessToCreateNewAutomation": "Nu aveți acces pentru a crea o nouă automatizare",
+    "formViewCreationNotSupportedForSyncedTable": "Crearea unei vizualizări de formular nu este disponibilă pentru un tabel sincronizat"
   },
   "placeholder": {
     "searchIcons": "Caută icoane",

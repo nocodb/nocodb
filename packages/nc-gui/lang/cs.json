@@ -1354,6 +1354,7 @@
     "metaApiV2": "Meta APIs V2",
     "showExtraFields": "Show additional fields",
     "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records",
+    "includeUser": "Include User",
     "removeColouring": "Remove colouring",
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
@@ -1646,6 +1647,7 @@
     "changePlan": "Změnit tarif"
   },
   "tooltip": {
+    "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
     "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Každý pracovní prostor musí mít alespoň jednoho vlastníka. Před opuštěním přiřaďte jinému uživateli roli vlastníka. Pokud jste posledním členem, zvažte místo toho odstranění pracovního prostoru.",
     "currentDateNotAvail": "Current date option not available for this data source / data type",
@@ -2320,6 +2322,8 @@
     },
     "noAccess": "Žádný přístup",
     "noAccessDescription": "Nemáte přístup k žádnému",
-    "tryAgain": "Zkuste to znovu"
+    "tryAgain": "Zkuste to znovu",
+    "internalUrlsNotAllowed": "Internal URLs are not allowed",
+    "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls"
   }
 }

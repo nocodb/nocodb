@@ -16,5 +16,5 @@ const permissionConfig = computed<PermissionConfig>(() => ({
 </script>
 
 <template>
-  <PermissionsSelector :base="base" :config="permissionConfig" mode="inline" select-width="min-w-48" readonly />
+  <PermissionsSelector :base="base" :config="permissionConfig" mode="inline" readonly />
 </template>

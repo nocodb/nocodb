@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { PermissionKey } from 'nocodb-sdk'
-import { PermissionMinimumRole, PermissionRoleMap, PermissionRolePower } from 'nocodb-sdk'
+import { PermissionMeta, PermissionRoleMap, PermissionRolePower } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -31,14 +31,14 @@ const baseUsers = computed(() => {
   return basesUser.value.get(props.baseId) || []
 })
 
-// Filter users based on minimum role requirement from PermissionMinimumRole
+// Filter users based on minimum role requirement from PermissionMeta
 const roleFilteredUsers = computed(() => {
   if (!props.permission) return baseUsers.value
 
-  const minimumRole = PermissionMinimumRole[props.permission]
-  if (!minimumRole) return baseUsers.value
+  const permissionMeta = PermissionMeta[props.permission]
+  if (!permissionMeta) return baseUsers.value
 
-  const minimumRolePower = PermissionRolePower[minimumRole]
+  const minimumRolePower = PermissionRolePower[permissionMeta.minimumRole]
   if (!minimumRolePower) return baseUsers.value
 
   return baseUsers.value.filter((user) => {

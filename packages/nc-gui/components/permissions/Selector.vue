@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { BaseType } from 'nocodb-sdk'
-import { PermissionMinimumRole, PermissionRolePower } from 'nocodb-sdk'
+import { PermissionMeta, PermissionRolePower } from 'nocodb-sdk'
 
 const props = defineProps<{
   base: BaseType
@@ -15,13 +15,18 @@ const baseRef = toRef(props, 'base')
 
 const selectWidth = computed(() => props.selectWidth || 'w-60')
 
+// Derive label and description from PermissionMeta
+const permissionMeta = computed(() => PermissionMeta[props.config.permission])
+const permissionLabel = computed(() => permissionMeta.value?.label || 'Permission')
+const permissionDescription = computed(() => permissionMeta.value?.description || 'have this permission')
+
 // Convert the config to the format expected by usePermissionSelector
 const permissionSelectorConfig = computed<PermissionSelectorConfig>(() => ({
   entity: props.config.entity,
   entityId: props.config.entityId,
   permission: props.config.permission,
-  label: props.config.label,
-  description: props.config.description || 'have this permission',
+  label: permissionLabel.value,
+  description: permissionDescription.value,
 }))
 
 // Create a dummy currentValue ref since Selector doesn't use display values
@@ -43,10 +48,10 @@ const {
 const permissionOptions = computed(() => {
   if (!props.config.permission) return allPermissionOptions.value
 
-  const minimumRole = PermissionMinimumRole[props.config.permission]
-  if (!minimumRole) return allPermissionOptions.value
+  const permissionMeta = PermissionMeta[props.config.permission]
+  if (!permissionMeta) return allPermissionOptions.value
 
-  const minimumRolePower = PermissionRolePower[minimumRole]
+  const minimumRolePower = PermissionRolePower[permissionMeta.minimumRole]
   if (!minimumRolePower) return allPermissionOptions.value
 
   // Filter options to only show roles that meet or exceed the minimum requirement
@@ -119,7 +124,7 @@ const mode = computed(() => props.mode || 'full')
   <div v-if="mode === 'full'">
     <div class="flex flex-col gap-1">
       <label class="text-sm font-medium text-nc-content-gray-subtle mb-1">
-        {{ config.label }}
+        {{ permissionLabel }}
       </label>
 
       <div
@@ -157,7 +162,11 @@ const mode = computed(() => props.mode || 'full')
             <div class="flex flex-col gap-1 py-1">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <GeneralIcon :icon="option.icon" class="flex-none h-4 w-4" :class="getPermissionTextColor(option.value)" />
+                  <GeneralIcon
+                    :icon="(option.icon as any)"
+                    class="flex-none h-4 w-4"
+                    :class="getPermissionTextColor(option.value)"
+                  />
                   <span class="font-medium" :class="getPermissionTextColor(option.value)">{{ option.label }}</span>
                   <span v-if="option.isDefault" class="text-xs text-gray-500">(DEFAULT)</span>
                 </div>
@@ -173,7 +182,7 @@ const mode = computed(() => props.mode || 'full')
 
     <div v-if="currentOption?.value === 'specific_users'">
       <div>
-        Only <span class="font-bold">{{ selectedUserNames }}</span> {{ config.description || 'have this permission' }}
+        Only <span class="font-bold">{{ selectedUserNames }}</span> {{ permissionDescription }}
       </div>
       <div class="flex items-center gap-2">
         <NcButton type="secondary" size="small" @click="showUserSelector = true">
@@ -221,7 +230,11 @@ const mode = computed(() => props.mode || 'full')
           <div class="flex flex-col gap-1 py-1">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <GeneralIcon :icon="option.icon as any" class="flex-none h-4 w-4" :class="getPermissionTextColor(option.value)" />
+                <GeneralIcon
+                  :icon="(option.icon as any)"
+                  class="flex-none h-4 w-4"
+                  :class="getPermissionTextColor(option.value)"
+                />
                 <span class="font-medium" :class="getPermissionTextColor(option.value)">{{ option.label }}</span>
                 <span v-if="option.isDefault" class="text-xs text-gray-500">(DEFAULT)</span>
               </div>
@@ -260,8 +273,8 @@ const mode = computed(() => props.mode || 'full')
     v-model:visible="showUserSelector"
     :selected-users="userSelectorSelectedUsers"
     :base-id="base.id"
-    :permission-label="config.label"
-    :permission-description="config.description"
+    :permission-label="permissionLabel"
+    :permission-description="permissionDescription"
     :permission="config.permission"
     @save="handleUserSelectorSave"
   />

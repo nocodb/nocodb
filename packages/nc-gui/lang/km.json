@@ -155,7 +155,9 @@
     "upgradeToUploadWsImage": "ធ្វើបច្ចុប្បន្នភាពដើម្បីផ្ទុករូប Workspace",
     "upgradeToUploadWsImageSubtitle": "គម្រោង {activePlan} បច្ចុប្បន្នអនុញ្ញាតបានតែរូបតំណាងនិងអ៊ីមូជី។ សូមធ្វើបច្ចុប្បន្នភាពទៅគម្រោង {plan} ដើម្បីផ្ទុករូបភាពផ្ទាល់ខ្លួនជារូបអាវ៉ាតារ Workspace របស់អ្នក។",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
-    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
+    "upgradeToUseRowColoring": "Upgrade to use row coloring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "Script",
@@ -564,12 +566,20 @@
       "Enterprise": "សហគ្រាស"
     },
     "currentPlan": {
-      "nextInvoice": "Next invoice",
-      "numberOfBilledUsers": "Billed users",
-      "numberOfBillableUsers": "Billable users",
-      "storageUsedGB": "Storage used",
-      "webhookCallsMonthly": "Webhook calls",
-      "apiCallsMonthly": "API calls"
+      "nextInvoice": "Next Invoice",
+      "numberOfBilledUsers": "Number of Billed Users",
+      "numberOfBillableUsers": "Number of Billable Users",
+      "storageUsedGB": "Storage Used (GB)",
+      "webhookCallsMonthly": "Webhook calls (monthly)",
+      "apiCallsMonthly": "API calls (monthly)"
+    },
+    "coloring": {
+      "usingSingleSelectField": "Using Single select field",
+      "usingSingleSelectFieldDescription": "Colour records based on single select field",
+      "usingSingleSelectFieldTooltip": "No single select field found. Add one to enable select-field based row colouring.",
+      "usingConditions": "Using Conditions",
+      "usingConditionsDescription": "Colour records based on conditions",
+      "colourRecordsByField": "Colour records by field"
     }
   },
   "datatype": {
@@ -1341,7 +1351,14 @@
     "pastInvoices": "វិក្កយបត្រកន្លងមក",
     "createNew": "Create New",
     "dataApiV2": "Data APIs V2",
-    "metaApiV2": "Meta APIs V2"
+    "metaApiV2": "Meta APIs V2",
+    "showExtraFields": "Show additional fields",
+    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records",
+    "removeColouring": "Remove colouring",
+    "backgroundColour": "Background colour",
+    "addColour": "Add Colour",
+    "defaultColours": "Default colours",
+    "customColours": "Custom colours"
   },
   "activity": {
     "clickToResolve": "ចុចដើម្បីដោះស្រាយ",

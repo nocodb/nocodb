@@ -10,11 +10,13 @@ interface Props {
   description?: string
   placement?: TooltipPlacement
   showIcon?: boolean
+  showOverlay?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   placement: 'top',
   showIcon: true,
+  showOverlay: false,
 })
 
 const { isAllowed: _isAllowed } = usePermissions()
@@ -74,7 +76,7 @@ const isAllowed = computed(() => (props.entityId ? _isAllowed(props.entity, prop
       }"
     >
       <div
-        v-if="!isAllowed"
+        v-if="!isAllowed && showOverlay"
         class="absolute inset-0 bg-gray-100/30 backdrop-blur-[0.5px] z-10 rounded"
         :class="{
           'cursor-not-allowed': !isAllowed,

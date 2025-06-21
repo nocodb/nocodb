@@ -135,7 +135,7 @@ const handleClickDropdown = (e: MouseEvent) => {
 
         <NcListDropdown
           v-model:is-open="isOpenPermissionDropdown"
-          default-slot-wrapper-class="w-[165px]"
+          :default-slot-wrapper-class="`${!readonly ? 'w-[165px]' : '!px-0 !border-0'}`"
           :placement="horizontal ? 'bottomRight' : 'bottomLeft'"
           :disabled="readonly"
           @click="handleClickDropdown"

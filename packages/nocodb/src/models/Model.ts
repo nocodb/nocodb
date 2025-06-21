@@ -39,6 +39,7 @@ import {
   prepareForResponse,
 } from '~/utils/modelUtils';
 import { Source } from '~/models';
+import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 
 const logger = new Logger('Model');
 
@@ -273,6 +274,10 @@ export default class Model implements TableType {
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
+    });
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
     });
 
     return modelRes;
@@ -661,6 +666,10 @@ export default class Model implements TableType {
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
+    });
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
     });
 
     return true;

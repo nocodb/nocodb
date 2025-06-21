@@ -30,19 +30,15 @@ const handlePermissionSave = () => {
   <div class="flex flex-col gap-5">
     <div class="flex items-center justify-between">
       <slot name="title">
-        <div class="text-nc-content-gray-subtle2 leading-6 font-bold">Table permissions</div>
+        <div class="text-nc-content-gray-subtle2 leading-6 font-bold">{{ $t('title.tablePermissions') }}</div>
       </slot>
       <slot name="actions" />
     </div>
 
-    <div class="flex flex-col gap-4">
-      <div class="flex flex-col gap-2">
-        <!-- Create Records Permission -->
-        <PermissionsSelector :base="base" :config="createPermissionConfig" @save="handlePermissionSave" />
+    <!-- Create Records Permission -->
+    <PermissionsSelector :base="base" :config="createPermissionConfig" @save="handlePermissionSave" />
 
-        <!-- Delete Records Permission -->
-        <PermissionsSelector :base="base" :config="deletePermissionConfig" @save="handlePermissionSave" />
-      </div>
-    </div>
+    <!-- Delete Records Permission -->
+    <PermissionsSelector :base="base" :config="deletePermissionConfig" @save="handlePermissionSave" />
   </div>
 </template>

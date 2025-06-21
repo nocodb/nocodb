@@ -1,4 +1,4 @@
-import { ProjectRoles, WorkspaceUserRoles } from '../enums'
+import { ProjectRoles, WorkspaceUserRoles } from '../enums';
 
 export enum PermissionKey {
   TABLE_RECORD_ADD = 'TABLE_RECORD_ADD',
@@ -35,11 +35,11 @@ export enum PermissionOptionValue {
 }
 
 export interface PermissionOption {
-  value: PermissionOptionValue
-  label: string
-  description: string
-  icon: string
-  isDefault?: boolean
+  value: PermissionOptionValue;
+  label: string;
+  description: string;
+  icon: string;
+  isDefault?: boolean;
 }
 
 export const PermissionOptions: PermissionOption[] = [
@@ -74,7 +74,7 @@ export const PermissionOptions: PermissionOption[] = [
     description: 'No one can add records',
     icon: 'role_no_access',
   },
-]
+];
 
 export const PermissionRolePower = {
   [PermissionRole.OWNER]: 6,
@@ -100,33 +100,35 @@ export const PermissionRoleMap = {
 export const PermissionMeta = {
   [PermissionKey.TABLE_RECORD_ADD]: {
     minimumRole: PermissionRole.EDITOR,
-    label: 'Who can create records in this table',
+    label: 'Who can create records',
     description: 'can create records',
   },
   [PermissionKey.TABLE_RECORD_DELETE]: {
     minimumRole: PermissionRole.EDITOR,
-    label: 'Who can delete records in this table',
+    label: 'Who can delete records',
     description: 'can delete records',
   },
   [PermissionKey.RECORD_FIELD_EDIT]: {
     minimumRole: PermissionRole.EDITOR,
-    label: 'Who can edit values in this field',
+    label: 'Who can edit data in this field',
     description: 'can edit records',
   },
-}
+};
 
 // Utility functions for permission management
-export const getPermissionOption = (value: string): PermissionOption | undefined => {
-  return PermissionOptions.find((option) => option.value === value)
-}
+export const getPermissionOption = (
+  value: string
+): PermissionOption | undefined => {
+  return PermissionOptions.find((option) => option.value === value);
+};
 
 export const getPermissionLabel = (value: string): string => {
-  return getPermissionOption(value)?.label || 'Editors & up'
-}
+  return getPermissionOption(value)?.label || 'Editors & up';
+};
 
 export const getPermissionIcon = (value: string): string => {
-  return getPermissionOption(value)?.icon || 'role_editor'
-}
+  return getPermissionOption(value)?.icon || 'role_editor';
+};
 
 export const getPermissionOptionValue = (
   grantedType: PermissionGrantedType,
@@ -134,16 +136,16 @@ export const getPermissionOptionValue = (
 ): PermissionOptionValue => {
   if (grantedType === PermissionGrantedType.ROLE) {
     if (grantedRole === PermissionRole.VIEWER) {
-      return PermissionOptionValue.VIEWERS_AND_UP
+      return PermissionOptionValue.VIEWERS_AND_UP;
     } else if (grantedRole === PermissionRole.CREATOR) {
-      return PermissionOptionValue.CREATORS_AND_UP
+      return PermissionOptionValue.CREATORS_AND_UP;
     } else {
-      return PermissionOptionValue.EDITORS_AND_UP
+      return PermissionOptionValue.EDITORS_AND_UP;
     }
   } else if (grantedType === PermissionGrantedType.USER) {
-    return PermissionOptionValue.SPECIFIC_USERS
+    return PermissionOptionValue.SPECIFIC_USERS;
   } else if (grantedType === PermissionGrantedType.NOBODY) {
-    return PermissionOptionValue.NOBODY
+    return PermissionOptionValue.NOBODY;
   }
-  return PermissionOptionValue.EDITORS_AND_UP
-}
+  return PermissionOptionValue.EDITORS_AND_UP;
+};

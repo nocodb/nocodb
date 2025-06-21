@@ -27,6 +27,8 @@ import {
   ncIsNull,
   ncIsObject,
   ncIsUndefined,
+  PermissionEntity,
+  PermissionKey,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -50,8 +52,6 @@ import type {
   DataUpdatePayload,
   FilterType,
   NcRequest,
-  PermissionEntity,
-  PermissionKey,
   UpdatePayload,
 } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
@@ -4434,6 +4434,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     onlyUpdateAuditLogs?: boolean;
     prevData?: Record<string, any>;
   }) {
+    await this.checkPermission({
+      entity: PermissionEntity.FIELD,
+      entityId: colId,
+      permission: PermissionKey.RECORD_FIELD_EDIT,
+      user: cookie?.user,
+      req: cookie,
+    });
+
     await this.model.getColumns(this.context);
     const column = this.model.columnsById[colId];
 
@@ -4733,6 +4741,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     childId: string;
     cookie?: any;
   }) {
+    await this.checkPermission({
+      entity: PermissionEntity.FIELD,
+      entityId: colId,
+      permission: PermissionKey.RECORD_FIELD_EDIT,
+      user: cookie?.user,
+      req: cookie,
+    });
+
     await this.model.getColumns(this.context);
     const column = this.model.columnsById[colId];
     if (
@@ -6021,6 +6037,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     colId: string;
     rowId: string;
   }) {
+    await this.checkPermission({
+      entity: PermissionEntity.FIELD,
+      entityId: params.colId,
+      permission: PermissionKey.RECORD_FIELD_EDIT,
+      user: params.cookie?.user,
+      req: params.cookie,
+    });
+
     return addOrRemoveLinks(this).addLinks(params);
   }
 
@@ -6030,6 +6054,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     colId: string;
     rowId: string;
   }) {
+    await this.checkPermission({
+      entity: PermissionEntity.FIELD,
+      entityId: params.colId,
+      permission: PermissionKey.RECORD_FIELD_EDIT,
+      user: params.cookie?.user,
+      req: params.cookie,
+    });
+
     return addOrRemoveLinks(this).removeLinks(params);
   }
 

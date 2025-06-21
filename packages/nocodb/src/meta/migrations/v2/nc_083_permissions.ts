@@ -16,7 +16,7 @@ const up = async (knex: Knex) => {
     table.string('created_by', 20); // user id
 
     table.boolean('enforce_for_form').defaultTo(true);
-    table.boolean('enforce_for_automation').defaultTo(false);
+    table.boolean('enforce_for_automation').defaultTo(true);
 
     table.string('granted_type', 255); // role, user, no_one
 

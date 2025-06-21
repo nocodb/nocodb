@@ -600,24 +600,22 @@ const handleOpenNewRecordForm = () => {
       </div>
     </NcDropdown>
     <div class="sticky bottom-4 w-[fit-content]">
-      <PermissionsTooltip
-        :entity="PermissionEntity.TABLE"
-        :entity-id="meta?.id"
-        :permission="PermissionKey.TABLE_RECORD_ADD"
-        show-overlay
-      >
-        <NcButton
-          v-if="isUIAllowed('dataInsert') && !isSyncedTable"
-          size="xs"
-          type="secondary"
-          class="ml-4"
-          @click="handleOpenNewRecordForm"
-        >
-          <div class="flex items-center gap-2">
-            <component :is="iconMap.plus" class="" />
-            {{ $t('activity.newRecord') }}
-          </div>
-        </NcButton>
+      <PermissionsTooltip :entity="PermissionEntity.TABLE" :entity-id="meta?.id" :permission="PermissionKey.TABLE_RECORD_ADD">
+        <template #default="{ isAllowed }">
+          <NcButton
+            v-if="isUIAllowed('dataInsert') && !isSyncedTable"
+            size="xs"
+            type="secondary"
+            class="ml-4"
+            :disabled="!isAllowed"
+            @click="handleOpenNewRecordForm"
+          >
+            <div class="flex items-center gap-2">
+              <component :is="iconMap.plus" class="" />
+              {{ $t('activity.newRecord') }}
+            </div>
+          </NcButton>
+        </template>
       </PermissionsTooltip>
     </div>
   </div>

@@ -44,14 +44,7 @@ const isSearchResultVisible = computed(() => {
   )
 })
 
-const columns = computed(
-  () =>
-    (meta.value as TableType)?.columns?.filter(
-      (column) =>
-        !isSystemColumn(column) &&
-        ![UITypes.Links, UITypes.Rollup, UITypes.DateTime, UITypes.Date, UITypes.Button].includes(column?.uidt as UITypes),
-    ) ?? [],
-)
+const columns = computed(() => (meta.value as TableType)?.columns?.filter((column) => isSearchableColumn(column)) ?? [])
 
 watch(
   () => activeView.value?.id,

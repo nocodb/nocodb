@@ -73,10 +73,12 @@ const showCol = (col: ColumnType) => {
         }"
         placement="right"
         :disabled="!showReadonlyColumnTooltip(col)"
+        :arrow="false"
       >
         <template #title>{{ $t('msg.info.fieldReadonly') }}</template>
         <PermissionsTooltip
           class="w-full"
+          :tooltip-style="{ zIndex: '1049' }"
           :entity="PermissionEntity.FIELD"
           :entity-id="col.id"
           :permission="PermissionKey.RECORD_FIELD_EDIT"

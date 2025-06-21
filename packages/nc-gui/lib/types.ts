@@ -1,6 +1,8 @@
 import type { CSSProperties } from '@vue/runtime-dom'
 
 import {
+  type PermissionEntity,
+  type PermissionKey,
   type BaseType,
   type ColumnType,
   type FilterType,
@@ -74,7 +76,7 @@ type Filter = FilterType & {
   readOnly?: boolean
 }
 
-type NocoI18n = I18n<{}, unknown, unknown, string, false>
+type NocoI18n = I18n<Record<string, unknown>, Record<string, unknown>, Record<string, unknown>, string, false>
 
 interface ThemeConfig extends AntTheme {
   primaryColor: string
@@ -696,6 +698,20 @@ interface RowColouringEvaluatedResultType {
   borderColor: string | null
 }
 
+interface PermissionConfig {
+  entity: PermissionEntity
+  entityId: string
+  permission: PermissionKey
+  label: string
+  description?: string
+}
+
+interface PermissionSelectorUser {
+  id: string
+  email: string
+  display_name?: string | null
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -750,4 +766,6 @@ export type {
   CloudFeaturesType,
   CanvasScrollToCellFn,
   RowColouringEvaluatedResultType,
+  PermissionConfig,
+  PermissionSelectorUser,
 }

@@ -3,7 +3,8 @@ const props = defineProps<{
   visible: boolean
   selectedUsers: Set<string>
   baseId: string
-  permissionType: 'create' | 'delete'
+  permissionLabel: string
+  permissionDescription?: string
 }>()
 
 const emits = defineEmits(['update:visible', 'save'])
@@ -64,21 +65,23 @@ const onSave = async () => {
   try {
     const selectedUsersList = Array.from(selectedUsers.value)
 
-    const users = selectedUsersList.map((userId) => {
-      const user = baseUsers.value.find((user) => user.id === userId)
-      return {
-        id: user?.id,
-        email: user?.email,
-        display_name: user?.display_name,
-      }
-    })
+    const users = selectedUsersList
+      .map((userId) => {
+        const user = baseUsers.value.find((user) => user.id === userId)
+        if (!user) return null
+        return {
+          id: user.id,
+          email: user.email,
+          display_name: user.display_name,
+        }
+      })
+      .filter((user) => user !== null) as PermissionSelectorUser[]
 
     emits('save', {
-      permissionType: props.permissionType,
       selectedUsers: users,
     })
 
-    $e('a:table:permissions:users:save')
+    $e('a:permissions:users:save')
     visible.value = false
   } catch (e: any) {
     message.error('Failed to save user permissions')
@@ -115,7 +118,9 @@ watch(visible, (isVisible) => {
         <div class="text-lg font-semibold text-nc-content-gray-emphasis">Choose specific users</div>
       </div>
 
-      <div class="text-sm text-nc-content-gray-muted mb-6">Only these users can {{ permissionType }} records in Locked Table</div>
+      <div class="text-sm text-nc-content-gray-muted mb-6">
+        Only these users {{ permissionDescription || 'will have this permission' }}
+      </div>
 
       <!-- Search Input -->
       <div class="relative mb-6">
@@ -131,7 +136,6 @@ watch(visible, (isVisible) => {
         />
       </div>
 
-      <!-- Users List -->
       <div class="max-h-80 overflow-y-auto mb-6">
         <div v-if="filteredUsers.length === 0" class="text-center py-8 text-nc-content-gray-muted">No users found</div>
         <div v-else class="space-y-2">
@@ -159,7 +163,6 @@ watch(visible, (isVisible) => {
         </div>
       </div>
 
-      <!-- Action buttons -->
       <div class="flex items-center justify-between pt-4 border-t border-nc-border-gray-light">
         <div class="flex gap-4">
           <NcButton type="text" size="small" :disabled="isLoading || filteredUsers.length === 0" @click="selectAll">

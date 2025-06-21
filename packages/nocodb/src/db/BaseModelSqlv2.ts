@@ -50,6 +50,8 @@ import type {
   DataUpdatePayload,
   FilterType,
   NcRequest,
+  PermissionEntity,
+  PermissionKey,
   UpdatePayload,
 } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
@@ -6958,6 +6960,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async statsUpdate(_args: { count: number }) {}
+
+  async checkPermission(_params: {
+    entity: PermissionEntity;
+    entityId: string | string[];
+    permission: PermissionKey;
+    user: any;
+    req: any;
+  }) {}
 }
 
 export { BaseModelSqlv2 };

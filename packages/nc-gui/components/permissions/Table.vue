@@ -4,6 +4,7 @@ import { type BaseType, PermissionEntity, PermissionKey } from 'nocodb-sdk'
 const props = defineProps<{
   tableId: string
   base: BaseType
+  horizontal?: boolean
 }>()
 
 const { $e } = useNuxtApp()
@@ -36,9 +37,9 @@ const handlePermissionSave = () => {
     </div>
 
     <!-- Create Records Permission -->
-    <PermissionsSelector :base="base" :config="createPermissionConfig" horizontal @save="handlePermissionSave" />
+    <PermissionsSelector :base="base" :config="createPermissionConfig" :horizontal="horizontal" @save="handlePermissionSave" />
 
     <!-- Delete Records Permission -->
-    <PermissionsSelector :base="base" :config="deletePermissionConfig" horizontal @save="handlePermissionSave" />
+    <PermissionsSelector :base="base" :config="deletePermissionConfig" :horizontal="horizontal" @save="handlePermissionSave" />
   </div>
 </template>

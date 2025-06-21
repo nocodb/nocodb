@@ -145,7 +145,6 @@ export default defineNuxtConfig({
         ignoreTryCatch: true,
       },
       minify: true,
-      chunkSizeWarningLimit: 200,
       sourcemap: false, // Disable sourcemaps to save memory
       rollupOptions: {
         // Aggressive memory reduction

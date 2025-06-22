@@ -4,8 +4,13 @@ export interface Template {
   'Description': string
   'Use Case': string
   'Shared Base Url': string
+  'Template Status'?: string
   'Industry': string | null
+  'ERD'?: string
+  'Details'?: string
   'Thumbnail': string | null
+  'Screenshots'?: string[]
+  'Related Templates'?: Template[]
 }
 
 export const useMarketplaceTemplates = createSharedComposable((initialCategory = 'marketplace') => {
@@ -143,8 +148,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
     isLoading.value = true
 
     try {
-      // Use the actual API to fetch template details
-      const template = await $api.internal.getOperation(activeWorkspaceId.value, 'NO_SCOPE', {
+      const template = await $api.internal.getOperation(activeWorkspaceId.value, NO_SCOPE, {
         operation: 'template',
         id,
       })

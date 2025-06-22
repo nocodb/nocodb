@@ -790,6 +790,8 @@ interface NcListProps {
 
   containerClassName?: string
 
+  wrapperClassName?: string
+
   itemClassName?: string
 
   itemTooltipPlacement?: TooltipPlacement

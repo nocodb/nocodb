@@ -28,6 +28,7 @@ const formatData = (
     offset?: number
   },
   path: Array<number> = [],
+  evaluateRowMetaRowColorInfoCallback?: (row: Record<string, any>) => RowMetaRowColorInfo,
 ) => {
   // If pageInfo exists, use it for calculation
   if (pageInfo?.page && pageInfo?.pageSize) {
@@ -40,6 +41,7 @@ const formatData = (
           rowIndex,
           isLastRow: rowIndex === pageInfo.totalRows! - 1,
           path,
+          ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
         },
       }
     })
@@ -53,6 +55,7 @@ const formatData = (
     rowMeta: {
       rowIndex: offset + index,
       path,
+      ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
     },
   }))
 }
@@ -128,6 +131,10 @@ export function useInfiniteData(args: {
     : useSmartsheetStoreOrThrow()
 
   const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
+
+  const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender({
+    useCachedResult: true,
+  })
 
   const selectedAllRecords = ref(false)
 
@@ -265,6 +272,8 @@ export function useInfiniteData(args: {
         dataCache.chunkStates.value[chunkId] = undefined
         return
       }
+
+      console.log('newItems', newItems)
       newItems.forEach((item) => {
         dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
       })
@@ -416,7 +425,7 @@ export function useInfiniteData(args: {
             },
           )
 
-      const data = formatData(response.list, response.pageInfo, params, path)
+      const data = formatData(response.list, response.pageInfo, params, path, getEvaluatedRowMetaRowColorInfo)
 
       loadAggCommentsCount(data, path)
 
@@ -1266,6 +1275,7 @@ export function useInfiniteData(args: {
           rowIndex: insertIndex,
           new: false,
           saving: false,
+          ...getEvaluatedRowMetaRowColorInfo({ ...insertedData, ...currentRow.row }),
         },
       })
 
@@ -1394,6 +1404,7 @@ export function useInfiniteData(args: {
       )
 
       Object.assign(toUpdate.oldRow, updatedRowData)
+      Object.assign(toUpdate.rowMeta, getEvaluatedRowMetaRowColorInfo(toUpdate.row))
 
       // Update the row in cachedRows
       if (toUpdate.rowMeta.rowIndex !== undefined) {

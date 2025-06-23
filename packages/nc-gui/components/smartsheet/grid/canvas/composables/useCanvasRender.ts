@@ -182,7 +182,7 @@ export function useCanvasRender({
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const isLocked = inject(IsLockedInj, ref(false))
 
-  const { getLeftBorderColor, getRowColor, isRowColouringEnabled } = useViewRowColorRender({
+  const { isRowColouringEnabled } = useViewRowColorRender({
     meta,
     rows: computed(() => []),
     useCachedResult: true,
@@ -1054,7 +1054,7 @@ export function useCanvasRender({
     if (isRowColouringEnabled) {
       const rowColorBorderHeight = rowHeight.value - 8
 
-      const leftBorderColor = getLeftBorderColor(row.row)
+      const leftBorderColor = row.rowMeta.rowLeftBorderColor ?? null
 
       renderTag(ctx, {
         x: xOffset + width - 8,
@@ -1229,7 +1229,11 @@ export function useCanvasRender({
     const isRowCellSelected =
       activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path ?? group?.path)
 
-    const rowColor = row?.row ? getRowColor(row.row, isHovered || row.rowMeta.selected || isRowCellSelected) : null
+    const rowColor = row?.row
+      ? isHovered || row.rowMeta.selected || isRowCellSelected
+        ? row.rowMeta.rowHoverColor
+        : row.rowMeta.rowBgColor
+      : null
 
     if (row) {
       const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
@@ -1645,7 +1649,7 @@ export function useCanvasRender({
 
         const isRowHovered = hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
         const isRowCellSelected = activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path)
-        const rowColor = getRowColor(row?.row)
+        const rowColor = row?.row ? row.rowMeta.rowBgColor : null
 
         const isNextRowHovered = hoverRow.value?.rowIndex === rowIdx + 1 && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
         const isNextRowCellSelected =

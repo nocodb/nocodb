@@ -10,7 +10,7 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const automationStore = useAutomationStore()
 
-  const { loadAutomation } = automationStore
+  const { loadAutomation, updateBaseSchema } = automationStore
 
   const { activeProjectId } = storeToRefs(useBases())
 
@@ -405,6 +405,7 @@ export const useScriptExecutor = createSharedComposable(() => {
 
                 isRunning.value = false
                 isFinished.value = true
+                updateBaseSchema()
                 resolve()
               })
             }
@@ -425,6 +426,7 @@ export const useScriptExecutor = createSharedComposable(() => {
 
               isRunning.value = false
               isFinished.value = true
+              updateBaseSchema()
               reject(error)
             }
           })

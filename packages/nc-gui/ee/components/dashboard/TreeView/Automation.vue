@@ -26,8 +26,6 @@ const isAutomationOpened = computed(() => {
   return openedProject.value?.id === baseId.value
 })
 
-const isAutomationsLoading = ref(false)
-
 const isOptionsOpen = ref(false)
 
 const isExpanded = ref(true)
@@ -116,9 +114,7 @@ watch(activeAutomationId, () => {
       >
         <div class="flex flex-row h-full items-center">
           <div class="flex w-auto">
-            <GeneralLoader v-if="isAutomationsLoading" class="flex items-center w-6 h-full !text-gray-600" />
-
-            <LazyGeneralEmojiPicker v-else size="small" :readonly="true">
+            <LazyGeneralEmojiPicker size="small" readonly>
               <template #default>
                 <GeneralIcon
                   icon="ncAutomation"

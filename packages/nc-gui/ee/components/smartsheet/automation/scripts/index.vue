@@ -9,34 +9,25 @@ let editor: monaco.editor.IStandaloneCodeEditor
 
 const { activeAutomation, activeBaseSchema } = storeToRefs(useAutomationStore())
 
-const { libCode, code, config, configValue, isSettingsOpen, shouldShowSettings } = useScriptStoreOrThrow()
+const { libCode, code, config, configValue, isSettingsOpen, shouldShowSettings, isCreateEditScriptAllowed } =
+  useScriptStoreOrThrow()
+
+const updateTypes = () => {
+  if (!activeBaseSchema.value) return
+  const typeGenerator = new TypeGenerator()
+
+  monaco.languages.typescript.typescriptDefaults.setExtraLibs([
+    { content: typeGenerator.generateTypes(activeBaseSchema.value) },
+    { content: libCode.value ?? '' },
+  ])
+}
 
 async function setupMonacoEditor() {
   if (!editorRef.value) return
 
-  const typeGenerator = new TypeGenerator()
+  updateTypes()
 
-  monaco.languages.typescript.javascriptDefaults.setExtraLibs([])
-
-  monaco.languages.typescript.javascriptDefaults.addExtraLib(typeGenerator.generateTypes(activeBaseSchema.value))
-
-  monaco.languages.typescript.javascriptDefaults.addExtraLib(libCode.value ?? '')
-
-  monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-    noSemanticValidation: false,
-    diagnosticCodesToIgnore: [1375, 1378, 2451, 6385, 1108],
-    noSyntaxValidation: false,
-  })
-
-  monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-    target: monaco.languages.typescript.ScriptTarget.ESNext,
-    allowNonTsExtensions: true,
-    noLib: false,
-    strictFunctionTypes: true,
-    strict: true,
-  })
-
-  const model = monaco.editor.createModel(code.value, 'javascript')
+  const model = monaco.editor.createModel(code.value, 'typescript')
 
   editor = monaco.editor.create(editorRef.value!, {
     model,
@@ -98,23 +89,28 @@ onMounted(async () => {
   await setupMonacoEditor()
 })
 
-onUnmounted(() => {
+watch(activeBaseSchema, (newVal) => {
+  if (newVal) {
+    updateTypes()
+  }
+})
+
+onBeforeUnmount(() => {
   editor?.getModel()?.dispose()
   editor?.dispose()
   monaco.editor.getModels().forEach((model) => model.dispose())
-  monaco.languages.typescript.javascriptDefaults.setExtraLibs([])
 })
 </script>
 
 <template>
   <div class="flex h-full w-full nc-scripts-content-resizable-wrapper">
     <Splitpanes>
-      <Pane min-size="20" :size="70" class="flex flex-col h-full min-w-0">
+      <Pane v-show="isCreateEditScriptAllowed" min-size="20" :size="70" class="flex flex-col h-full min-w-0">
         <div class="w-full flex-1">
           <div ref="editorRef" class="h-full" />
         </div>
       </Pane>
-      <Pane :min-size="25" :size="30">
+      <Pane :min-size="25" :size="isCreateEditScriptAllowed ? 30 : 100">
         <SmartsheetAutomationScriptsConfigInput
           v-if="isSettingsOpen && shouldShowSettings"
           v-model:model-value="configValue"
@@ -124,35 +120,12 @@ onUnmounted(() => {
       </Pane>
     </Splitpanes>
   </div>
-  <div class="h-9 border-t-1 flex border-nc-border-gray-medium px-2 py-1">
-    <div class="flex-1" />
-    <div class="flex items-center gap-2">
-      <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts">
-        <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
-          <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
-          APIs
-        </div>
-      </NuxtLink>
-
-      <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts">
-        <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
-          <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
-          Example Scripts
-        </div>
-      </NuxtLink>
-      <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts/api/base">
-        <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
-          <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
-          Script Docs
-        </div>
-      </NuxtLink>
-    </div>
-  </div>
+  <SmartsheetAutomationScriptsBottomBar />
 </template>
 
 <style lang="scss">
 .nc-scripts-content-resizable-wrapper {
-  height: calc(100% - var(--topbar-height) - 36px);
+  height: calc(100svh - var(--topbar-height) - 30px);
   .monaco-editor {
     @apply !border-0 !rounded-b-lg outline-none;
   }

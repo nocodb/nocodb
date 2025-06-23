@@ -16,6 +16,7 @@ import Base from '~/models/Base';
 import { extractProps } from '~/helpers/extractProps';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
+import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 
 const logger = new Logger('BaseUser');
 
@@ -77,6 +78,10 @@ export default class BaseUser extends BaseUserCE {
       cleanCommandPaletteCacheForUser(d.fk_user_id).catch(() => {
         logger.error('Error cleaning command palette cache');
       });
+
+      cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+        logger.error('Failed to clean base schema cache');
+      });
     }
   }
 
@@ -125,6 +130,10 @@ export default class BaseUser extends BaseUserCE {
 
     cleanCommandPaletteCacheForUser(fk_user_id).catch(() => {
       logger.error('Error cleaning command palette cache');
+    });
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
     });
 
     return res;

@@ -34,7 +34,7 @@ const handleFileUpload = async (file: File) => {
   try {
     let parsedContents = null
     if (props.content.type !== ScriptInputType.FILE) {
-      return
+      return false
     }
 
     if (file.name.endsWith('.csv')) {
@@ -49,14 +49,30 @@ const handleFileUpload = async (file: File) => {
               file,
               parsedContents: null,
             })
-            return
+            return false
           }
 
           parsedContents = results.data
 
           if (props.content?.hasHeaderRow) {
-            parsedContents = parsedContents.slice(1)
+            // Extract headers from the first row
+            const headers = results.data[0]
+            // Transform remaining rows into array of key-value pairs
+            parsedContents = results.data.slice(1).map((row) => {
+              const rowObj = {}
+              headers.forEach((header, index) => {
+                if (header) {
+                  // Only use non-empty headers
+                  rowObj[header] = row[index]
+                }
+              })
+              return rowObj
+            })
+          } else {
+            // If no header row, keep as array of arrays
+            parsedContents = results.data
           }
+
           resolveInput({
             file,
             parsedContents,
@@ -84,10 +100,12 @@ const handleFileUpload = async (file: File) => {
       })
     } else {
       resolveInput({
-        file: 'This file type is not supported',
-        parsedContents,
+        file,
+        parsedContents: null,
+        errorMessage: 'This file type is not supported',
       })
     }
+    return false
   } catch (e) {
     console.error(e)
     resolveInput({ file, parsedContents: null })
@@ -96,11 +114,15 @@ const handleFileUpload = async (file: File) => {
 
 const rowInput = ref()
 
-watch(rowInput, (newValue) => {
-  if (newValue) {
-    resolveInput(newValue)
-  }
-})
+watch(
+  rowInput,
+  (newValue) => {
+    if (newValue) {
+      resolveInput(newValue)
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -139,7 +161,7 @@ watch(rowInput, (newValue) => {
   <template v-else-if="content.type === ScriptInputType.SELECT">
     <div class="flex flex-col gap-2">
       <label class="text-caption text-nc-content-gray-subtle2">{{ content.label }}</label>
-      <a-select v-model:value="inputValue" :disabled="isResolved" show-search @change="onChange">
+      <a-select v-model:value="inputValue" :disabled="isResolved" class="nc-select-shadow" show-search @change="onChange">
         <template #suffixIcon>
           <GeneralIcon icon="arrowDown" class="text-gray-700" />
         </template>
@@ -184,8 +206,8 @@ watch(rowInput, (newValue) => {
       </label>
       <a-upload :accept="content.accept" :disabled="isResolved" :multiple="false" :before-upload="handleFileUpload">
         <NcButton v-if="!isResolved" size="small" :disabled="isResolved" type="secondary">Click to Upload</NcButton>
-        <template #itemRender="{ file, actions }">
-          <div class="border-1 border-nc-border-gray-medium bg-white flex items-center pl-1 py-2 pr-4 rounded-xl">
+        <template #itemRender="{ file }">
+          <div v-if="file" class="border-1 border-nc-border-gray-medium bg-white flex items-center pl-1 py-2 pr-4 rounded-xl">
             <CellAttachmentIconView class="w-10 h-10" :item="{ title: file.name, mimetype: file.type }" />
             <div class="flex flex-col flex-1">
               <div class="text-caption text-nc-content-gray">
@@ -200,9 +222,6 @@ watch(rowInput, (newValue) => {
                 {{ formatBytes(file.size) }}
               </div>
             </div>
-            <NcButton :disabled="isResolved" type="text" size="small" @click="actions.remove">
-              <GeneralIcon class="text-nc-content-gray-subtle" icon="delete" />
-            </NcButton>
           </div>
         </template>
       </a-upload>

@@ -34,6 +34,9 @@ import {
   UsageStat,
 } from '~/models';
 import { getActivePlanAndSubscription } from '~/helpers/paymentHelpers';
+import {
+  cleanBaseSchemaCacheForWorkspace,
+} from '~/helpers/scriptHelper';
 
 const logger = new Logger('Workspace');
 
@@ -392,6 +395,10 @@ export default class Workspace implements WorkspaceType {
       logger.error(`Failed to delete custom urls of workspaceId: ${id}`);
     });
 
+    cleanBaseSchemaCacheForWorkspace(id).catch(() => {
+      logger.error('Failed to clean base schema cache for workspace');
+    });
+
     return await ncMeta.metaDelete(
       RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
@@ -418,6 +425,10 @@ export default class Workspace implements WorkspaceType {
 
     MCPToken.bulkDelete({ fk_workspace_id: id }, ncMeta).catch(() => {
       logger.error(`Failed to delete mcp tokens of workspaceId: ${id}`);
+    });
+
+    cleanBaseSchemaCacheForWorkspace(id).catch(() => {
+      logger.error('Failed to clean base schema cache for workspace');
     });
 
     return await ncMeta.metaUpdate(

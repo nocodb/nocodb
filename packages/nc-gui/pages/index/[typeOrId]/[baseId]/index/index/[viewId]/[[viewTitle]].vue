@@ -27,6 +27,6 @@ watch(
 
 <template>
   <div class="w-full h-full relative">
-    <LazyTabsSmartsheet :active-tab="activeTab" />
+    <TabsSmartsheet :active-tab="activeTab" />
   </div>
 </template>

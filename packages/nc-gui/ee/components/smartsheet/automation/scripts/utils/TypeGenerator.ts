@@ -3467,7 +3467,13 @@ declare interface ConfigItem {}
 }): Promise<{
  /** The uploaded file */
  file: NcFile;
- /** Parsed contents for supported file types (.csv) */
+ /** 
+  * Parsed contents for supported file types:
+  * - For CSV with hasHeaderRow=true: Array of objects with column headers as keys
+  * - For CSV with hasHeaderRow=false: Array of arrays (raw rows)
+  * - For JSON: Parsed JSON object
+  * - For text: Raw text content
+  */
  parsedContents: any;
 }>;`)
 

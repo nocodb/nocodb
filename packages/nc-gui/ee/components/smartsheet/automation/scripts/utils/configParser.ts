@@ -166,6 +166,33 @@ export const parseScript = (scriptContent: string): any => {
       },
     })
 
+    if (config?.items?.length) {
+      config.items = config.items
+        .map((item) => {
+          if (!['table', 'field', 'view', 'text', 'number', 'select'].includes(item.type)) {
+            return false
+          }
+
+          switch (item.type) {
+            case 'view':
+            case 'field': {
+              if (!item?.parentTable) return false
+              if (!config.items.find((i: ScriptConfigItem) => i.type === 'table' && i.key === item.parentTable)) {
+                return false
+              }
+              break
+            }
+            case 'select': {
+              if (!item?.options?.length) return false
+              if (!item?.options?.some((option) => option?.value && option?.label)) return false
+              break
+            }
+          }
+
+          return item
+        })
+        .filter(Boolean)
+    }
     return config
   } catch (error) {
     console.error('Error parsing script configuration:', error)

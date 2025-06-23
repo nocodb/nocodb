@@ -234,6 +234,7 @@ export enum CacheScope {
   CLOUD_FEATURES = 'cloudFeatures',
   MCP_TOKEN = 'mcpToken',
   DB_SERVERS = 'dbServers',
+  BASE_SCHEMA = 'baseSchema',
 }
 
 export const RootScopeTables = {

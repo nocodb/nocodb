@@ -128,7 +128,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
           metas: metas.value,
           serializeSearchQuery: true,
         })
-      } catch {
+      } catch (_err: any) {
         /**
          * If it is a virtual column, then send query as it is
          */
@@ -143,7 +143,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         }
       }
 
-      if (isVirtualCol(col) && !isValidValue(searchQuery)) {
+      if (isVirtualCol(col) && col.uidt !== UITypes.Formula && !isValidValue(searchQuery)) {
         searchQuery = query
       }
 

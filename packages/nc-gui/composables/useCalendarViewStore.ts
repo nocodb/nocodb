@@ -137,7 +137,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { sharedView, fetchSharedViewData, fetchSharedViewActiveDate, fetchSharedCalendarViewData } = useSharedView()
 
-    const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender)
+    const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
     const calendarMetaData = ref<CalendarType>({})
 

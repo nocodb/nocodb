@@ -121,12 +121,6 @@ const isRequiredGroupingFieldColumn = computed(() => {
   return !!groupingFieldColumn.value?.rqd
 })
 
-const allRowsRowOnly = computed(() => {
-  return Array.from(formattedData.value.values())
-    .flatMap((rowArray) => rowArray)
-    .map((k) => k.row)
-})
-
 const { isRowColouringEnabled } = useViewRowColorRender()
 
 const kanbanContainerRef = ref()

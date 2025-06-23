@@ -3789,7 +3789,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // disable external source audit in cloud
     if (!req.ncParentAuditId && (await this.isDataAuditEnabled())) {
-      parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+      parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
       await Audit.insert(
         await generateAuditV1Payload<DataBulkDeletePayload>(
@@ -3894,7 +3894,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await this.handleHooks('after.bulkDelete', null, data, req);
     }
 
-    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
     // disable external source audit in cloud
     if (await this.isDataAuditEnabled()) {
@@ -3962,7 +3962,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     if (newData && newData.length > 0) {
-      const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+      const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
       // disable external source audit in cloud
       if (await this.isDataAuditEnabled()) {

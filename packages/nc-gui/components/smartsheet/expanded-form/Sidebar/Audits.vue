@@ -1,10 +1,28 @@
 <script setup lang="ts">
-import { type AuditType } from 'nocodb-sdk'
+import { type AuditType, PlanLimitTypes } from 'nocodb-sdk'
 
 const { user } = useGlobal()
 
-const { primaryKey, consolidatedAudits, isAuditLoading, loadMoreAudits, resetAuditPages, mightHaveMoreAudits } =
+const { primaryKey, consolidatedAudits, isAuditLoading, loadMoreAudits, resetAuditPages, hasMoreAudits } =
   useExpandedFormStoreOrThrow()
+
+const { getPlanLimit } = useWorkspace()
+
+const auditRetentionLimit = computed(() => {
+  const retention = getPlanLimit(PlanLimitTypes.LIMIT_AUDIT_RETENTION)
+
+  if (retention === 14) {
+    return '2 weeks'
+  } else if (retention === 60) {
+    return '2 months'
+  } else if (retention === 180) {
+    return '6 months'
+  } else if (retention === 365) {
+    return '1 year'
+  }
+
+  return null
+})
 
 const auditsWrapperEl = ref<HTMLElement | null>(null)
 
@@ -94,11 +112,17 @@ function isV0Audit(audit: AuditType) {
             <MdiHistory />
           </div>
           <div class="font-bold text-center my-1 text-gray-600">See changes to this record</div>
+          <div v-if="auditRetentionLimit" class="text-center text-gray-600">
+            Your current plan provides <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history.
+          </div>
         </div>
       </template>
       <template v-else>
         <div class="mt-auto" />
-        <div v-if="mightHaveMoreAudits" class="p-3 text-center">
+        <div v-if="auditRetentionLimit" class="text-center text-gray-600 my-2">
+          You have <span class="font-bold">{{ auditRetentionLimit }}</span> of revision history.
+        </div>
+        <div v-if="hasMoreAudits" class="p-3 text-center">
           <NcButton size="small" type="secondary" @click="initLoadMoreAudits()"> Load earlier </NcButton>
         </div>
         <div v-for="audit of consolidatedAudits" :key="audit.id" :class="`${audit.id}`" class="nc-audit-item">

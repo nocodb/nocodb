@@ -651,6 +651,8 @@
   },
   "title": {
     "editTablePermissions": "Edit table permissions",
+    "editFieldPermissions": "Edit field permissions",
+    "editAllFieldPermissions": "Edit all field permissions",
     "confirmSnapshotRestore": "Confirm Snapshot Restore",
     "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",

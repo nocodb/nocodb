@@ -14,7 +14,7 @@ const { navigateToProjectPage } = baseStore
 const { base } = storeToRefs(baseStore)
 
 const onNavigateToPermissionsOverview = () => {
-  navigateToProjectPage({ page: 'permissions' })
+  navigateToProjectPage({ page: 'permissions', action: `permissions-${props.tableId}` })
   visible.value = false
 }
 </script>
@@ -44,7 +44,7 @@ const onNavigateToPermissionsOverview = () => {
     </PermissionsTable>
     <div class="flex justify-end mt-5">
       <NcButton type="secondary" size="small" @click="onNavigateToPermissionsOverview">
-        {{ $t('activity.goToPermissionsOverview') }}
+        {{ $t('title.editFieldPermissions') }}
       </NcButton>
     </div>
   </NcModal>

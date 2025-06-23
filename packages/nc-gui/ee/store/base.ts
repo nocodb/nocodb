@@ -285,7 +285,13 @@ export const useBase = defineStore('baseStore', () => {
     },
   )
 
-  const navigateToProjectPage = async ({ page }: { page: 'all-table' | 'collaborator' | 'data-source' | 'permissions' }) => {
+  const navigateToProjectPage = async ({
+    page,
+    action,
+  }: {
+    page: 'all-table' | 'collaborator' | 'data-source' | 'permissions'
+    action?: string
+  }) => {
     // await router.push({
     //   name: 'index-typeOrId-baseId-index-index',
     //   params: {
@@ -302,6 +308,7 @@ export const useBase = defineStore('baseStore', () => {
       baseId: route.value.params.baseId,
       query: {
         page,
+        action,
       },
     })
   }

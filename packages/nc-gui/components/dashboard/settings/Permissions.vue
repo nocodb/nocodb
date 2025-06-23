@@ -14,6 +14,9 @@ const emits = defineEmits(['update:state', 'update:reload'])
 
 const vReload = useVModel(props, 'reload', emits)
 
+const router = useRouter()
+const route = router.currentRoute
+
 const { t } = useI18n()
 
 const baseStore = useBase()
@@ -123,6 +126,33 @@ watch(
 onBeforeUnmount(() => {
   searchQuery.value = ''
 })
+
+const removeActionQuery = (action: string) => {
+  if (!action) return
+
+  router.replace({
+    query: {
+      ...route.value.query,
+      action: undefined,
+    },
+  })
+}
+
+watch(
+  () => route.value.query.action,
+  (action) => {
+    if (!action || !action.startsWith('permissions-')) return removeActionQuery(action)
+
+    const tableId = action.split('-')[1]
+
+    if (!tableId) return
+
+    openFieldPermissionsModal(tableId)
+
+    removeActionQuery(action)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

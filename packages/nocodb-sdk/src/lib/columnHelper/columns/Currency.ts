@@ -19,7 +19,7 @@ export class CurrencyHelper extends AbstractColumnHelper {
     value = serializeCurrencyValue(value, params.col);
 
     if (value === null) {
-      if (params.isMultipleCellPaste) {
+      if (params.isMultipleCellPaste || params.serializeSearchQuery) {
         return null;
       } else {
         throw new SilentTypeConversionError();

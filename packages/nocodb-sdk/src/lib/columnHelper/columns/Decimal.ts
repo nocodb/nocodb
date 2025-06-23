@@ -19,7 +19,7 @@ export class DecimalHelper extends AbstractColumnHelper {
     value = serializeDecimalValue(value);
 
     if (value === null) {
-      if (params.isMultipleCellPaste) {
+      if (params.isMultipleCellPaste || params.serializeSearchQuery) {
         return null;
       } else {
         throw new SilentTypeConversionError();

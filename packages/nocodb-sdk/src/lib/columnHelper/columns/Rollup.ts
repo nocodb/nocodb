@@ -18,7 +18,7 @@ export class RollupHelper extends AbstractColumnHelper {
     _value: any,
     params: SerializerOrParserFnProps['params']
   ): null {
-    if (params.isMultipleCellPaste) {
+    if (params.isMultipleCellPaste || params.serializeSearchQuery) {
       return undefined;
     } else {
       throw new ComputedTypePasteError();

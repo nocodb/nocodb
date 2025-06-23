@@ -251,8 +251,9 @@ const { floatingStyles } = useFloating(targetReference, tooltipRef, {
 })
 const { tryShowTooltip, hideTooltip } = tooltipStore
 
-let selectedRowInfo: { index: number | null | undefined; path: Array<number> } = {
+let selectedRowInfo: { index: number | null | undefined; isSelectionStarted: boolean; path: Array<number> } = {
   index: null,
+  isSelectionStarted: false,
   path: [],
 }
 
@@ -855,6 +856,7 @@ const handleRowMetaClick = ({
             selectedRowInfo = {
               index: row.rowMeta.rowIndex,
               path,
+              isSelectionStarted: false,
             }
           }
 
@@ -1155,7 +1157,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   if (mouseUpListener) {
     document.removeEventListener('mouseup', mouseUpListener)
     mouseUpListener = null
-    selectedRowInfo = { index: null, path: [] }
+    selectedRowInfo = { index: null, path: [], isSelectionStarted: false }
   }
 
   await onMouseUpFillHandlerEnd()
@@ -1890,15 +1892,29 @@ const handleMouseMove = (e: MouseEvent) => {
 
       const selectionEnd = Math.min(selectionStart + MAX_SELECTED_ROWS, Math.max(selectedRowInfo.index, row.rowMeta.rowIndex))
 
+      /**
+       * If selection is started and the selection is not changed, then don't do anything
+       */
+      if (selectionStart === selectionEnd && selectionStart === selectedRowInfo.index && selectedRowInfo.isSelectionStarted) {
+        return
+      }
+
       const dataCache = getDataCache(element.groupPath)
 
       dataCache.cachedRows.value.forEach((row) => {
         if (row.rowMeta.rowIndex >= selectionStart && row.rowMeta.rowIndex <= selectionEnd) {
           row.rowMeta.selected = true
-        } else {
+        } else if (selectedRowInfo.isSelectionStarted) {
+          /**
+           * If it is first drag selection, then we should not unselect other rows until we move cursor to next or prev row
+           */
           row.rowMeta.selected = false
         }
       })
+
+      if (!selectedRowInfo.isSelectionStarted) {
+        selectedRowInfo.isSelectionStarted = true
+      }
 
       requestAnimationFrame(triggerRefreshCanvas)
     }

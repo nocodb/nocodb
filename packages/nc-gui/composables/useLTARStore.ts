@@ -9,7 +9,7 @@ import {
   isLinksOrLTAR,
   isNumericCol,
   isSystemColumn,
-  isVirtualCol,
+  s
   ncIsNaN,
   parseStringDateTime,
   timeFormats,

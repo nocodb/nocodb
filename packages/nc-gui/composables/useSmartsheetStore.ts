@@ -9,7 +9,6 @@ import {
   extractFilterFromXwhere,
   isNumericCol,
   isVirtualCol,
-  ncIsNaN,
 } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { EventBusEnum, type SmartsheetStoreEvents } from '#imports'

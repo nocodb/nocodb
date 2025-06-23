@@ -231,8 +231,9 @@ export class AuditMigration {
     try {
       this.logger.log('Starting migration cleanup');
 
-      await ncMeta.knexConnection.schema.dropTable(`${MetaTable.AUDIT}_old`);
-      this.logger.log('Dropped old audit table');
+      // TODO: skipped for this iteration, we will drop in a follow up
+      // await ncMeta.knexConnection.schema.dropTable(`${MetaTable.AUDIT}_old`);
+      // this.logger.log('Dropped old audit table');
 
       await ncMeta.knexConnection.schema.alterTable(
         MetaTable.AUDIT,

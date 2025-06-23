@@ -190,7 +190,6 @@ export function useGridCellHandler(params: {
   ) => {
     if (skipRender) return
     if (!isGroupHeader) {
-      console.log('rowmeta', rowMeta)
       const columnState = isColumnSortedOrFiltered(column.id!)
       if (!isRowColouringEnabled.value && columnState !== undefined && !rowMeta?.isValidationFailed) {
         let bgColorProps: 'cellBgColor' | 'cellBgColor.hovered' | 'cellBgColor.selected' = 'cellBgColor'

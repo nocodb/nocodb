@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
-import NIconTable from '../icon/Table.vue'
+import NIconTable from '../icon/Table'
 import type { NSelectProps } from './types'
 const props = withDefaults(
   defineProps<NSelectProps & { baseId?: string; forceLoadBaseTables?: boolean; filterTable?: (t: TableType) => boolean }>(),

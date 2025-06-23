@@ -561,6 +561,7 @@ import NcVerticalAlignTop from '~icons/nc-icons/align-vertical-top.svg'
 import NcVerticalAlignCenter from '~icons/nc-icons/align-vertical-center.svg'
 import NcVerticalAlignBottom from '~icons/nc-icons/align-vertical-bottom.svg'
 import NcAngleRotateCw from '~icons/nc-icons/angle-rotate-cw.svg'
+import NcCheckCircle2 from '~icons/nc-icons/check-2.svg'
 
 import NcSlash1 from '~icons/nc-icons/slash1'
 
@@ -1122,6 +1123,7 @@ export const iconMap = {
   'shrink': h('span', { class: 'material-symbols' }, 'close_fullscreen'),
   'check': NcCheck,
   'circleCheck': MdiCheckboxMarkedCircle,
+  'circleCheck3': NcCheckCircle2,
   'acl': h('span', { class: 'material-symbols' }, 'shield'),
   'sync': MsSync,
   'warning': MaterialSymbolsWarningOutlineRounded,

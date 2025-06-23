@@ -49,7 +49,7 @@ defineExpose({
 </script>
 
 <template>
-  <a-select v-bind="props" ref="NSelectComponent" v-model="modelValue">
+  <a-select v-bind="props" ref="NSelectComponent" v-model="modelValue" class="nc-select-shadow">
     <template #suffixIcon>
       <GeneralIcon icon="arrowDown" class="text-gray-700" />
     </template>

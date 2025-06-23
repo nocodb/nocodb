@@ -5,6 +5,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AppModule as AppCEModule, ceModuleConfig } from 'src/app.module';
 import { LoggerModule } from 'nestjs-pino';
 import { DbMuxController } from '~/controllers/db-mux.controller';
+import { DbServerController } from '~/controllers/db-server.controller';
 import { ThrottlerConfigService } from '~/services/throttler/throttler-config.service';
 import appConfig from '~/app.config';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -60,7 +61,7 @@ const enableThrottler = throttlerEnabled();
     }),
   ],
 
-  controllers: [DbMuxController],
+  controllers: [DbMuxController, DbServerController],
 
   providers: [
     ...ceModuleConfig.providers.map((x) => {

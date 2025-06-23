@@ -20,6 +20,7 @@ import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 import { SyncModuleSyncDataProcessor } from '~/integrations/sync/module/services/sync.processor';
 import { UpdateUsageStatsProcessor } from '~/modules/jobs/jobs/update-usage-stats.processor';
 import { DataExportCleanUpProcessor } from '~/modules/jobs/jobs/data-export-clean-up/data-export-clean-up.processor';
+import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.processor';
 
 @Injectable()
 export class JobsMap extends JobsMapCE {
@@ -44,6 +45,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly noOpJob: NoOpMigration,
     protected readonly syncModuleSyncDataProcessor: SyncModuleSyncDataProcessor,
     protected readonly updateUsageStatsProcessor: UpdateUsageStatsProcessor,
+    protected readonly cloudDbMigrateProcessor: CloudDbMigrateProcessor,
   ) {
     super(
       duplicateProcessor,
@@ -98,6 +100,9 @@ export class JobsMap extends JobsMapCE {
       },
       [JobTypes.UpdateUsageStats]: {
         this: this.updateUsageStatsProcessor,
+      },
+      [JobTypes.CloudDbMigrate]: {
+        this: this.cloudDbMigrateProcessor,
       },
     };
   }

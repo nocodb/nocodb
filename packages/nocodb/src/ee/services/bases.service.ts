@@ -22,6 +22,7 @@ import { DataReflectionService } from '~/services/data-reflection.service';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { ColumnsService } from '~/services/columns.service';
 import { isEE } from '~/utils';
+import { getWorkspaceDbInstance } from '~/utils/cloudDb';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -53,6 +54,8 @@ export class BasesService extends BasesServiceCE {
   async baseCreate(param: { base: ProjectReqType; user: any; req: any }) {
     validatePayload('swagger.json#/components/schemas/ProjectReq', param.base);
 
+    let workspace: Workspace;
+
     if (process.env.TEST !== 'true') {
       const fk_workspace_id = (param.base as any).fk_workspace_id;
 
@@ -60,7 +63,7 @@ export class BasesService extends BasesServiceCE {
         NcError.badRequest('fk_workspace_id is required');
       }
 
-      const workspace = await Workspace.get(fk_workspace_id);
+      workspace = await Workspace.get(fk_workspace_id);
 
       if (!workspace) {
         NcError.workspaceNotFound(fk_workspace_id);
@@ -94,7 +97,15 @@ export class BasesService extends BasesServiceCE {
       baseBody.prefix = `nc_${ranId}__`;
       baseBody.is_meta = true;
 
-      const dataConfig = await NcConnectionMgrv2.getDataConfig();
+      const workspaceDbInstance = await getWorkspaceDbInstance(
+        baseBody.fk_workspace_id,
+      );
+
+      // This config is only used to determine db client type (TODO: check if this can be improved)
+      const dataConfig = workspaceDbInstance
+        ? workspaceDbInstance.config
+        : await NcConnectionMgrv2.getDataConfig();
+
       if (
         dataConfig?.client === 'pg' &&
         process.env.NC_DISABLE_PG_DATA_REFLECTION !== 'true'

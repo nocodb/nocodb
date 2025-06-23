@@ -89,6 +89,7 @@ export enum MetaTable {
   ROW_COLOR_CONDITIONS = 'nc_row_color_conditions',
   USAGE_STATS = 'nc_usage_stats',
   MCP_TOKENS = 'nc_mcp_tokens',
+  DB_SERVERS = 'nc_db_servers',
 }
 
 export const orderedMetaTables = [
@@ -232,6 +233,7 @@ export enum CacheScope {
   STORAGE_STATS = 'storageStats',
   CLOUD_FEATURES = 'cloudFeatures',
   MCP_TOKEN = 'mcpToken',
+  DB_SERVERS = 'dbServers',
 }
 
 export const RootScopeTables = {
@@ -253,6 +255,7 @@ export const RootScopeTables = {
     MetaTable.AUDIT,
     MetaTable.CUSTOM_URLS,
     MetaTable.MCP_TOKENS,
+    MetaTable.DB_SERVERS,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,

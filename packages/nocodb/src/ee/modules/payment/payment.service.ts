@@ -7,6 +7,7 @@ import {
   PlanOrder,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
+import { JobTypes } from 'src/interface/Jobs';
 import type { PlanFeatureTypes, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { Org, Plan, Subscription, Workspace, WorkspaceUser } from '~/models';
@@ -19,6 +20,7 @@ import {
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
+import { NocoJobsService } from '~/services/noco-jobs.service';
 
 const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder');
 
@@ -26,7 +28,10 @@ const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder');
 export class PaymentService {
   logger = new Logger('PaymentService');
 
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(
+    private readonly appHooksService: AppHooksService,
+    private readonly nocoJobsService: NocoJobsService,
+  ) {}
 
   async getPlans() {
     return await Plan.list();
@@ -1078,6 +1083,13 @@ export class PaymentService {
         .toISOString(),
     });
 
+    await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {
+      workspaceId: workspaceOrOrg.id,
+      conditions: {
+        plan_id: plan.title,
+      },
+    });
+
     if (subscriptionData.status === 'active') {
       await this.updateNextInvoice(
         subscription.id,
@@ -1445,6 +1457,13 @@ export class PaymentService {
               .unix(stripeSub.billing_cycle_anchor)
               .utc()
               .toISOString(),
+          });
+
+          await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {
+            workspaceId: workspaceOrOrg.id,
+            conditions: {
+              plan: stripeSub.metadata.plan_title,
+            },
           });
 
           // mark loyalty used if applicable

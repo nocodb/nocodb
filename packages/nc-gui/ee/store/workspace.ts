@@ -89,6 +89,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
 
+  const upgradeWsDlg = ref(false)
+  const upgradeWsJobId = ref<string | null>(null)
+
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'workspace',
   )
@@ -352,6 +355,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         (res.workspace as WorkspaceType & { integrations: Partial<IntegrationType>[] })?.integrations || []
 
       workspaceUserCount.value = Number(res.workspaceUserCount)
+
+      if (res.workspace.db_job_id) {
+        upgradeWsJobId.value = res.workspace.db_job_id
+        upgradeWsDlg.value = true
+      }
+
       return res
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -626,6 +635,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     deletingWorkspace,
     ssoLoginRequiredDlg,
     toggleSsoLoginRequiredDlg,
+    upgradeWsDlg,
+    upgradeWsJobId,
   }
 })
 

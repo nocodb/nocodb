@@ -182,11 +182,7 @@ export function useCanvasRender({
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const isLocked = inject(IsLockedInj, ref(false))
 
-  const { isRowColouringEnabled } = useViewRowColorRender({
-    meta,
-    rows: computed(() => []),
-    useCachedResult: true,
-  })
+  const { isRowColouringEnabled } = useViewRowColorRender()
 
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
 

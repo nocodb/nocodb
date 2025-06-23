@@ -69,11 +69,7 @@ export function useGridCellHandler(params: {
 
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
-  const { isRowColouringEnabled } = useViewRowColorRender({
-    meta: params.meta!,
-    rows: computed(() => []),
-    useCachedResult: true,
-  })
+  const { isRowColouringEnabled } = useViewRowColorRender()
 
   const baseStore = useBase()
   const { showNull, appInfo } = useGlobal()

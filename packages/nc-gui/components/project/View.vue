@@ -242,7 +242,7 @@ onMounted(() => {
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />
-              <div>Permissions</div>
+              <div>{{ $t('general.permissions') }}</div>
             </div>
           </template>
           <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />

@@ -404,7 +404,8 @@
     "changelog": "Changelog",
     "contactSupport": "Contact Support",
     "proceedImport": "Proceed Import",
-    "inserting": "Inserting"
+    "inserting": "Inserting",
+    "permissions": "Permissions"
   },
   "objects": {
     "script": "Script",

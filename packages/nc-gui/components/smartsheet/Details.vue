@@ -39,9 +39,9 @@ watch(
     if (
       // check page access only after base roles are loaded
       isBaseRolesLoaded.value &&
-      ((openedSubTab.value === 'field' && !isUIAllowed('fieldAdd')) ||
+      ((['field', 'permissions'].includes(openedSubTab.value) && !isUIAllowed('fieldAdd')) ||
         (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) ||
-        (['field', 'webhook'].includes(openedSubTab.value) && isSqlView.value))
+        (['field', 'permissions', 'webhook'].includes(openedSubTab.value) && isSqlView.value))
     ) {
       onViewsTabChange('relation')
     }
@@ -71,6 +71,15 @@ watch(
           </div>
         </template>
         <LazySmartsheetDetailsFields />
+      </a-tab-pane>
+      <a-tab-pane v-if="isUIAllowed('fieldAdd') && !isSqlView" key="permissions">
+        <template #tab>
+          <div class="tab" data-testid="nc-permissions-tab">
+            <GeneralIcon icon="ncLock" class="tab-icon" :class="{}" />
+            <div>{{ $t('general.permissions') }}</div>
+          </div>
+        </template>
+        <div>permissions</div>
       </a-tab-pane>
       <a-tab-pane key="relation">
         <template #tab>

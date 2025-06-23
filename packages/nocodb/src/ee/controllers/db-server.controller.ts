@@ -78,6 +78,7 @@ export class DbServerController {
   async migrate(
     @Param('dbServerId') dbServerId: string,
     @Param('workspaceId') workspaceId: string,
+    @Body() body: { conditions?: Record<string, string> },
   ) {
     const dbServer = await DbServer.getWithConfig(dbServerId);
     if (!dbServer) NcError.genericNotFound('DbServer', dbServerId);
@@ -91,7 +92,7 @@ export class DbServerController {
 
     const job = await this.jobsService.add(JobTypes.CloudDbMigrate, {
       workspaceId,
-      dbServerId,
+      conditions: body.conditions,
     });
 
     return {

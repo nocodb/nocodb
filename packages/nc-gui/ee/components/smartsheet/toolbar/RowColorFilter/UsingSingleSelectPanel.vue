@@ -4,7 +4,7 @@ import { SmartsheetHeaderIcon } from '#components'
 
 interface Props {
   modelValue?: Ref<any>
-  columns?: ColumnType[]
+  columns?: ComputedRef<ColumnType[]>
 }
 
 interface Emits {

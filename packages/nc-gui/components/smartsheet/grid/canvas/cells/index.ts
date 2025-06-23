@@ -69,11 +69,7 @@ export function useGridCellHandler(params: {
 
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
-  const { getRowColor, isRowColouringEnabled } = useViewRowColorRender({
-    meta: params.meta!,
-    rows: computed(() => []),
-    useCachedResult: true,
-  })
+  const { isRowColouringEnabled } = useViewRowColorRender()
 
   const baseStore = useBase()
   const { showNull, appInfo } = useGlobal()
@@ -214,7 +210,10 @@ export function useGridCellHandler(params: {
           },
         })
       } else if (!rowMeta?.isValidationFailed && isRootCell) {
-        const rowColor = getRowColor(row, selected || isRowHovered || isRowChecked || isCellInSelectionRange)
+        const rowColor =
+          rowMeta?.is_set_as_background && (selected || isRowHovered || isRowChecked || isCellInSelectionRange)
+            ? rowMeta?.rowHoverColor
+            : rowMeta?.rowBgColor
 
         if (rowColor) {
           roundedRect(ctx, x, y, width, height, 0, {

@@ -4,10 +4,11 @@ const vModel = ref({
   fk_column_id: '',
 })
 const removeClicked = ref(0)
-const columns = [
+
+const columns = computed(() => [
   { id: 'col_1', title: 'First Column' },
   { id: 'col_2', title: 'Second Column' },
-]
+])
 </script>
 
 <template>

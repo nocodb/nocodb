@@ -51,6 +51,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockRowColoring = computed(() => false)
 
+  const blockTableAndFieldPermissions = computed(() => false)
+
   const getLimit = (..._args: any[]) => {}
 
   const getStatLimit = (..._args: any[]) => {}
@@ -97,6 +99,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseRowColoring = (..._args: any[]) => {}
 
+  const showUpgradeToUseTableAndFieldPermissions = (..._args: any[]) => {}
+
   return {
     getLimit,
     getStatLimit,
@@ -142,5 +146,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCurrentUserFilter,
     blockRowColoring,
     showUpgradeToUseRowColoring,
+    blockTableAndFieldPermissions,
+    showUpgradeToUseTableAndFieldPermissions,
   }
 })

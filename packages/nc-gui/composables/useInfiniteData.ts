@@ -28,6 +28,7 @@ const formatData = (
     offset?: number
   },
   path: Array<number> = [],
+  evaluateRowMetaRowColorInfoCallback?: (row: Record<string, any>) => RowMetaRowColorInfo,
 ) => {
   // If pageInfo exists, use it for calculation
   if (pageInfo?.page && pageInfo?.pageSize) {
@@ -40,6 +41,7 @@ const formatData = (
           rowIndex,
           isLastRow: rowIndex === pageInfo.totalRows! - 1,
           path,
+          ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
         },
       }
     })
@@ -53,6 +55,7 @@ const formatData = (
     rowMeta: {
       rowIndex: offset + index,
       path,
+      ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
     },
   }))
 }
@@ -113,6 +116,7 @@ export function useInfiniteData(args: {
     totalRowsWithoutSearchQuery,
     fetchTotalRowsWithSearchQuery,
     whereQueryFromUrl,
+    eventBus,
   } = disableSmartsheet
     ? {
         nestedFilters: ref([]),
@@ -124,10 +128,15 @@ export function useInfiniteData(args: {
         totalRowsWithoutSearchQuery: ref(0),
         fetchTotalRowsWithSearchQuery: computed(() => false),
         whereQueryFromUrl: computed(() => ''),
+        eventBus: useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore),
       }
     : useSmartsheetStoreOrThrow()
 
+  const { isGroupBy } = useViewGroupByOrThrow()
+
   const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
+
+  const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
   const selectedAllRecords = ref(false)
 
@@ -265,6 +274,7 @@ export function useInfiniteData(args: {
         dataCache.chunkStates.value[chunkId] = undefined
         return
       }
+
       newItems.forEach((item) => {
         dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
       })
@@ -416,7 +426,7 @@ export function useInfiniteData(args: {
             },
           )
 
-      const data = formatData(response.list, response.pageInfo, params, path)
+      const data = formatData(response.list, response.pageInfo, params, path, getEvaluatedRowMetaRowColorInfo)
 
       loadAggCommentsCount(data, path)
 
@@ -1266,6 +1276,7 @@ export function useInfiniteData(args: {
           rowIndex: insertIndex,
           new: false,
           saving: false,
+          ...getEvaluatedRowMetaRowColorInfo({ ...insertedData, ...currentRow.row }),
         },
       })
 
@@ -1394,6 +1405,7 @@ export function useInfiniteData(args: {
       )
 
       Object.assign(toUpdate.oldRow, updatedRowData)
+      Object.assign(toUpdate.rowMeta, getEvaluatedRowMetaRowColorInfo(toUpdate.row))
 
       // Update the row in cachedRows
       if (toUpdate.rowMeta.rowIndex !== undefined) {
@@ -1755,6 +1767,31 @@ export function useInfiniteData(args: {
 
     return rows
   }
+
+  /**
+   * This is used to update the rowMeta color info when the row colour info is updated
+   */
+  eventBus.on((event) => {
+    if (![SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
+      return
+    }
+
+    // If it is group by, we need to update the rowMeta color info for each row in the group
+    if (isGroupBy.value) {
+      groupDataCache.value.forEach((group) => {
+        group.cachedRows.value.forEach((row) => {
+          Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+        })
+      })
+    } else {
+      // If it is not group by, we need to update the rowMeta color info for each row in cachedRows
+      const { cachedRows } = getDataCache()
+
+      cachedRows.value.forEach((row) => {
+        Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+      })
+    }
+  })
 
   return {
     getDataCache,

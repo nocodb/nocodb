@@ -222,11 +222,7 @@ export function useCanvasTable({
   const automationStore = useAutomationStore()
   const tooltipStore = useTooltipStore()
   const { blockExternalSourceRecordVisibility, blockRowColoring } = useEeConfig()
-  const { isRowColouringEnabled } = useViewRowColorRender({
-    meta: meta as Ref<TableType>,
-    rows: computed(() => []),
-    useCachedResult: true,
-  })
+  const { isRowColouringEnabled } = useViewRowColorRender()
 
   const fields = inject(FieldsInj, ref([]))
 

@@ -195,6 +195,8 @@ async function getConnectionPool(config: any, sourceId: string | null) {
       if (dynamicPoolMax) {
         poolSizeConfig = { min: 0, max: dynamicPoolMax };
       }
+    } else {
+      poolSizeConfig = { min: 0, max: 10 };
     }
 
     connectionPools[connectionKey] = knex({

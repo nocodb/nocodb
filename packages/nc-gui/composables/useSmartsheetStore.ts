@@ -138,13 +138,13 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
            * We don't have to anything if serializeValue is not valid for current column
            */
           console.log('invalid search query for column', col.title, searchQuery)
-        } else {
-          if (col.uidt === UITypes.Formula && getFormulaColDataType(col) === FormulaDataTypes.NUMERIC) {
-            searchQuery = ncIsNaN(searchQuery) ? '' : searchQuery
-          } else {
-            searchQuery = query
-          }
+        } else if (col.uidt !== UITypes.Formula) {
+          searchQuery = query
         }
+      }
+
+      if (isVirtualCol(col) && !isValidValue(searchQuery)) {
+        searchQuery = query
       }
 
       if (!isValidValue(searchQuery)) return ''

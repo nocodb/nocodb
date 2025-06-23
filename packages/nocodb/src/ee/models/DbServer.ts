@@ -42,7 +42,7 @@ export default class DbServer {
 
       if (!dbServer) return null;
 
-      dbServer = prepareForResponse(dbServer, ['config', 'conditions']);
+      dbServer = prepareForResponse(dbServer, ['conditions']);
       await NocoCache.set(key, dbServer);
     }
 
@@ -146,9 +146,7 @@ export default class DbServer {
       );
 
       dbServers = dbServers.map((dbServer) => {
-        return new DbServer(
-          prepareForResponse(dbServer, ['config', 'conditions']),
-        );
+        return new DbServer(prepareForResponse(dbServer, ['conditions']));
       });
 
       await NocoCache.setList(CacheScope.DB_SERVERS, [], dbServers);

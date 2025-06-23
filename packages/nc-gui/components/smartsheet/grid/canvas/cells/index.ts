@@ -211,7 +211,9 @@ export function useGridCellHandler(params: {
         })
       } else if (!rowMeta?.isValidationFailed && isRootCell) {
         const rowColor =
-          selected || isRowHovered || isRowChecked || isCellInSelectionRange ? rowMeta?.rowHoverColor : rowMeta?.rowBgColor
+          rowMeta?.is_set_as_background && (selected || isRowHovered || isRowChecked || isCellInSelectionRange)
+            ? rowMeta?.rowHoverColor
+            : rowMeta?.rowBgColor
 
         if (rowColor) {
           roundedRect(ctx, x, y, width, height, 0, {

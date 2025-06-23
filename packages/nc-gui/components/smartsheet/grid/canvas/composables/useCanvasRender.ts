@@ -1226,7 +1226,7 @@ export function useCanvasRender({
       activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path ?? group?.path)
 
     const rowColor = row?.row
-      ? isHovered || row.rowMeta.selected || isRowCellSelected
+      ? row.rowMeta?.is_set_as_background && (isHovered || row.rowMeta.selected || isRowCellSelected)
         ? row.rowMeta.rowHoverColor
         : row.rowMeta.rowBgColor
       : null

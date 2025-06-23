@@ -990,7 +990,7 @@ export function useCopyPaste({
             isMysql,
           })
 
-          await copy(textToCopy)
+          await copy(isValidValue(textToCopy) ? textToCopy : '')
           message.toast(
             t(`msg.toast.nCellCopied`, {
               n: 1,

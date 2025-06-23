@@ -273,7 +273,6 @@ export function useInfiniteData(args: {
         return
       }
 
-      console.log('newItems', newItems)
       newItems.forEach((item) => {
         dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
       })

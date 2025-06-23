@@ -127,11 +127,8 @@ const allRowsRowOnly = computed(() => {
     .map((k) => k.row)
 })
 
-const { getLeftBorderColor, getRowColor, getEvaluatedRowMetaRowColorInfo, isRowColouringEnabled } = useViewRowColorRender({
-  meta,
-  view,
-  rows: allRowsRowOnly,
-})
+const { isRowColouringEnabled } = useViewRowColorRender()
+
 const kanbanContainerRef = ref()
 
 const selectedStackTitle = ref('')
@@ -499,29 +496,6 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
 
   openNewRecordFormHook.trigger()
 }
-
-const getRowColorStyle = (row) => {
-  const rowColor = getRowColor(row)
-  if (rowColor) {
-    return {
-      'background-color': `${rowColor} !important`,
-    }
-  }
-  return {}
-}
-
-const getCardBorderColor = (row) => {
-  const rowColorInfo = getEvaluatedRowMetaRowColorInfo(row)
-  if (rowColorInfo.rowBorderColor) {
-    return {
-      'border-color': `${rowColorInfo.rowBorderColor} !important`,
-    }
-  }
-
-  return {
-    'border-color': `${themeV3Colors.gray[200]} !important`,
-  }
-}
 </script>
 
 <template>
@@ -835,8 +809,8 @@ const getCardBorderColor = (row) => {
                                     '!cursor-default': !hasEditPermission || isPublic,
                                   }"
                                   :style="{
-                                    ...getRowColorStyle(record.row),
-                                    ...getCardBorderColor(record.row),
+                                    ...extractRowBackgroundColorStyle(record).rowBgColor,
+                                    ...extractRowBackgroundColorStyle(record).rowBorderColor,
                                   }"
                                   @click="expandFormClick($event, record)"
                                   @contextmenu="showContextMenu($event, record)"
@@ -906,11 +880,7 @@ const getCardBorderColor = (row) => {
                                     <div
                                       v-if="isRowColouringEnabled"
                                       class="w-1 flex-none min-h-4 rounded-sm"
-                                      :style="{
-                                        ...(getLeftBorderColor(record.row)
-                                          ? { 'background-color': `${getLeftBorderColor(record.row)} !important` }
-                                          : {}),
-                                      }"
+                                      :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
                                     ></div>
                                     <div class="flex-1 flex flex-col gap-3 !children:pointer-events-none">
                                       <h2

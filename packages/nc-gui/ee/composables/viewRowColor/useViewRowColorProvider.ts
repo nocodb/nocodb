@@ -7,6 +7,8 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
 
   const { activeView, activeViewRowColorInfo } = storeToRefs(useViewsStore())
 
+  const { blockRowColoring } = useEeConfig()
+
   const { eventBus } = useSmartsheetStoreOrThrow()
 
   const viewId = computed(() => {
@@ -15,6 +17,10 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
     }
 
     return activeView.value?.id
+  })
+
+  const isRowColouringEnabled = computed(() => {
+    return !blockRowColoring.value && activeViewRowColorInfo.value && !!activeViewRowColorInfo.value?.mode
   })
 
   /**
@@ -84,6 +90,16 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
       reloadRowColorInfo(true)
     }
   })
+
+  watch(
+    isRowColouringEnabled,
+    () => {
+      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+    },
+    {
+      immediate: true,
+    },
+  )
 
   return { reloadRowColorInfo }
 }

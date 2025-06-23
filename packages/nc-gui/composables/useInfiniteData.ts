@@ -116,6 +116,7 @@ export function useInfiniteData(args: {
     totalRowsWithoutSearchQuery,
     fetchTotalRowsWithSearchQuery,
     whereQueryFromUrl,
+    eventBus,
   } = disableSmartsheet
     ? {
         nestedFilters: ref([]),
@@ -127,14 +128,15 @@ export function useInfiniteData(args: {
         totalRowsWithoutSearchQuery: ref(0),
         fetchTotalRowsWithSearchQuery: computed(() => false),
         whereQueryFromUrl: computed(() => ''),
+        eventBus: useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore),
       }
     : useSmartsheetStoreOrThrow()
 
+  const { isGroupBy } = useViewGroupByOrThrow()
+
   const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
-  const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender({
-    useCachedResult: true,
-  })
+  const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
   const selectedAllRecords = ref(false)
 
@@ -1765,6 +1767,31 @@ export function useInfiniteData(args: {
 
     return rows
   }
+
+  /**
+   * This is used to update the rowMeta color info when the row colour info is updated
+   */
+  eventBus.on((event) => {
+    if (![SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
+      return
+    }
+
+    // If it is group by, we need to update the rowMeta color info for each row in the group
+    if (isGroupBy.value) {
+      groupDataCache.value.forEach((group) => {
+        group.cachedRows.value.forEach((row) => {
+          Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+        })
+      })
+    } else {
+      // If it is not group by, we need to update the rowMeta color info for each row in cachedRows
+      const { cachedRows } = getDataCache()
+
+      cachedRows.value.forEach((row) => {
+        Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+      })
+    }
+  })
 
   return {
     getDataCache,

@@ -1,31 +1,12 @@
-import { type ColumnType, ROW_COLORING_MODE, type TableType } from 'nocodb-sdk'
+import { type ColumnType, ROW_COLORING_MODE } from 'nocodb-sdk'
 import { rowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
-import { validateRowFilters } from '~/utils/dataUtils'
 
-export function useViewRowColorRender(params: {
-  meta?: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
-  /**
-   * If useCachedResult is true then rows value will be empty array as we evaluate result on canvas render and store it in rowColouringCache
-   */
-  rows?: Ref<Record<string, any>[]> | ComputedRef<Record<string, any>[]>
-  /**
-   * If useCachedResult is true then we will use rowColouringCache to store the evaluated result
-   */
-  useCachedResult?: boolean
-}) {
+export function useViewRowColorRender() {
   const { getBaseType } = useBase()
 
   const { blockRowColoring } = useEeConfig()
 
-  const { meta: activeTableMeta } = useSmartsheetStoreOrThrow()
-
-  const meta = computed(() => {
-    return params.meta?.value ?? activeTableMeta.value
-  })
-
-  const rows = computed(() => {
-    return ncIsArray(params.rows?.value) ? params.rows?.value : []
-  })
+  const { meta } = useSmartsheetStoreOrThrow()
 
   const { activeViewRowColorInfo } = storeToRefs(useViewsStore())
 
@@ -104,26 +85,6 @@ export function useViewRowColorRender(params: {
     return null
   }
 
-  const evaluatedRowsColor = computed(() => {
-    if (!isRowColouringEnabled.value) return {}
-
-    return rows.value
-      .map((row) => {
-        const evaluateResult = evaluateRowColor(toRaw(row))
-        return {
-          hash: getRowHash(row),
-          ...(evaluateResult || {}),
-        }
-      })
-      .reduce((obj, cur) => {
-        obj[cur.hash] = cur
-        if (cur && activeViewRowColorInfo.value) {
-          cur.__eval_id = activeViewRowColorInfo.value.__id
-        }
-        return obj
-      }, {})
-  })
-
   const getCachedEvaluatedResult = (rowHash: string, row: any) => {
     const cachedEvaluatedResult = rowColouringCache.get(rowHash)
 
@@ -139,45 +100,9 @@ export function useViewRowColorRender(params: {
     return cachedEvaluatedResult
   }
 
-  const getLeftBorderColor = (row: any) => {
-    if (!row || (!params.useCachedResult && !evaluatedRowsColor.value) || !isRowColouringEnabled.value) return null
-
-    const rowHash = getRowHash(row)
-
-    if (params.useCachedResult) {
-      const cachedEvaluatedResult = getCachedEvaluatedResult(rowHash, row)
-      return cachedEvaluatedResult?.rawColor ?? null
-    } else {
-      const evaluatedResult = evaluatedRowsColor.value[rowHash]
-
-      return evaluatedResult?.rawColor ?? null
-    }
-  }
-
-  const getRowColor = (row: any, isHovered: boolean = false) => {
-    if (!row || (!params.useCachedResult && !evaluatedRowsColor.value) || !isRowColouringEnabled.value) return null
-
-    const rowHash = getRowHash(row)
-
-    if (params.useCachedResult) {
-      const cachedEvaluatedResult = getCachedEvaluatedResult(rowHash, row)
-
-      if (cachedEvaluatedResult?.is_set_as_background) {
-        return isHovered ? cachedEvaluatedResult.hoverColor : cachedEvaluatedResult.color
-      }
-    } else {
-      const evaluatedResult = evaluatedRowsColor.value[rowHash]
-
-      if (evaluatedResult?.is_set_as_background) {
-        return isHovered ? evaluatedResult.hoverColor : evaluatedResult.color
-      }
-    }
-
-    return null
-  }
-
-  const evaluateRowMetaRowColorInfo = (row: any) => {
+  const getEvaluatedRowMetaRowColorInfo = (row: any) => {
     const result = {
+      is_set_as_backgrounsd: false,
       rowBgColor: null,
       rowLeftBorderColor: null,
       rowHoverColor: null,
@@ -186,62 +111,23 @@ export function useViewRowColorRender(params: {
 
     if (!row || !isRowColouringEnabled.value) return result
 
-    const evaluatedResult = evaluateRowColor(row)
-
-    if (!evaluatedResult) return result
-
-    return {
-      is_set_as_background: evaluatedResult?.is_set_as_background,
-      rowBgColor: evaluatedResult?.is_set_as_background ? evaluatedResult?.color ?? null : null,
-      rowLeftBorderColor: evaluatedResult?.rawColor ?? null,
-      rowHoverColor: evaluatedResult?.hoverColor ?? null,
-      rowBorderColor: evaluatedResult?.is_set_as_background ? evaluatedResult?.borderColor ?? null : null,
-    }
-  }
-
-  const getEvaluatedRowMetaRowColorInfo = (row: any) => {
-    const result = {
-      rowBgColor: null,
-      rowLeftBorderColor: null,
-      rowHoverColor: null,
-      rowBorderColor: null,
-      is_set_as_background: false,
-    }
-
-    if (!row || (!params.useCachedResult && !evaluatedRowsColor.value) || !isRowColouringEnabled.value) return result
-
     const rowHash = getRowHash(row)
 
-    if (params.useCachedResult) {
-      const cachedEvaluatedResult = getCachedEvaluatedResult(rowHash, row)
-
-      return {
-        is_set_as_background: cachedEvaluatedResult?.is_set_as_background ?? false,
-        rowBgColor: cachedEvaluatedResult?.is_set_as_background ? cachedEvaluatedResult?.color ?? null : null,
-        rowLeftBorderColor: cachedEvaluatedResult?.rawColor ?? null,
-        rowHoverColor: cachedEvaluatedResult?.hoverColor ?? null,
-        rowBorderColor: cachedEvaluatedResult?.is_set_as_background ? cachedEvaluatedResult?.borderColor ?? null : null,
-      }
-    }
-
-    const evaluatedResult = evaluatedRowsColor.value[rowHash]
+    const cachedEvaluatedResult = getCachedEvaluatedResult(rowHash, row)
 
     return {
-      is_set_as_background: evaluatedResult?.is_set_as_background ?? false,
-      rowBgColor: evaluatedResult?.is_set_as_background ? evaluatedResult?.color ?? null : null,
-      rowLeftBorderColor: evaluatedResult?.rawColor ?? null,
-      rowHoverColor: evaluatedResult?.hoverColor ?? null,
-      rowBorderColor: evaluatedResult?.is_set_as_background ? evaluatedResult?.borderColor ?? null : null,
+      is_set_as_background: cachedEvaluatedResult?.is_set_as_background ?? false,
+      rowBgColor: cachedEvaluatedResult?.is_set_as_background ? cachedEvaluatedResult?.color ?? null : null,
+      rowLeftBorderColor: cachedEvaluatedResult?.rawColor ?? null,
+      rowHoverColor: cachedEvaluatedResult?.hoverColor ?? null,
+      rowBorderColor: cachedEvaluatedResult?.is_set_as_background ? cachedEvaluatedResult?.borderColor ?? null : null,
     }
   }
 
   return {
     rowColorInfo: activeViewRowColorInfo,
     evaluateRowColor,
-    getLeftBorderColor,
-    getRowColor,
     isRowColouringEnabled,
-    evaluateRowMetaRowColorInfo,
     getEvaluatedRowMetaRowColorInfo,
   }
 }

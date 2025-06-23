@@ -23,7 +23,7 @@ export class CloudDbMigrateProcessor {
   async job(job: Job) {
     this.debugLog(`job started for ${job.id}`);
 
-    const { workspaceId, conditions } = job.data;
+    const { workspaceId, conditions = {} } = job.data;
 
     const logBasic = (log) => {
       this.jobsLogService.sendLog(job, { message: log });
@@ -58,7 +58,7 @@ export class CloudDbMigrateProcessor {
       }
 
       // use dbServer with minimum tenants
-      const dbServer = matchingDbServers.sort(
+      let dbServer = matchingDbServers.sort(
         (a, b) => a.current_tenant_count - b.current_tenant_count,
       )[0];
 
@@ -66,6 +66,8 @@ export class CloudDbMigrateProcessor {
         logBasic('DbServer not found');
         return;
       }
+
+      dbServer = await DbServer.getWithConfig(dbServer.id);
 
       await Workspace.update(workspaceId, {
         db_job_id: `${job.id}`,

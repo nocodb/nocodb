@@ -37,7 +37,127 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
   >
     <div v-if="isRunning || isFinished" class="flex mx-auto flex-col max-w-130 gap-6 pb-40">
       <div v-for="(item, index) in playground" :key="index" class="playground-item" :data-type="item.type">
-        <template v-if="item.type === 'text'">
+        <template v-if="item.type === 'workflow-step'">
+          <div
+            :class="{
+              'bg-nc-bg-blue-light border-nc-border-blue': item.content.color === 'blue',
+              'bg-nc-bg-red-light border-nc-border-red': item.content.color === 'red',
+              'bg-nc-bg-green-light border-nc-border-green': item.content.color === 'green',
+              'bg-nc-bg-yellow-light border-nc-border-yellow': item.content.color === 'yellow',
+              'bg-nc-bg-purple-light border-nc-border-purple': item.content.color === 'purple',
+              'bg-nc-bg-orange-light border-nc-border-orange': item.content.color === 'orange',
+              'bg-nc-bg-pink-light border-nc-border-pink': item.content.color === 'pink',
+              'bg-nc-bg-maroon-light border-nc-border-maroon': item.content.color === 'maroon',
+              'bg-white border-nc-border-gray-medium': !item.content.color,
+            }"
+            class="workflow-step-card border-1 rounded-lg overflow-hidden"
+          >
+            <div
+              :class="{
+                'border-nc-border-blue': item.content.color === 'blue',
+                'border-nc-border-red': item.content.color === 'red',
+                'border-nc-border-green': item.content.color === 'green',
+                'border-nc-border-yellow': item.content.color === 'yellow',
+                'border-nc-border-purple': item.content.color === 'purple',
+                'border-nc-border-orange': item.content.color === 'orange',
+                'border-nc-border-pink': item.content.color === 'pink',
+                'border-nc-border-maroon': item.content.color === 'maroon',
+                'border-nc-border-gray-medium': !item.content.color,
+              }"
+              class="step-header px-4 py-3 border-b border-gray-200"
+            >
+              <div class="flex items-center gap-3">
+                <div v-if="item.content.icon" class="step-icon">
+                  <GeneralIcon :icon="item.content.icon" class="w-5 h-5 text-gray-600" />
+                </div>
+                <div
+                  :class="{
+                    'text-nc-content-blue-dark': item.content.color === 'blue',
+                    'text-nc-content-red-dark': item.content.color === 'red',
+                    'text-nc-content-green-dark': item.content.color === 'green',
+                    'text-nc-content-yellow-dark': item.content.color === 'yellow',
+                    'text-nc-content-purple-dark': item.content.color === 'purple',
+                    'text-nc-content-orange-dark': item.content.color === 'orange',
+                    'text-nc-content-pink-dark': item.content.color === 'pink',
+                    'text-nc-content-maroon-dark': item.content.color === 'maroon',
+                    'text-nc-content-gray-emphasis': !item.content.color,
+                  }"
+                  class="font-medium"
+                >
+                  {{ item.content.title }}
+                </div>
+              </div>
+              <div v-if="item.content.description" class="text-sm text-gray-600 mt-1">
+                {{ item.content.description }}
+              </div>
+            </div>
+
+            <!-- Step Content -->
+            <div v-if="item.content.children.length > 0" class="step-content p-4 space-y-4">
+              <div v-for="(child, childIndex) in item.content.children" :key="childIndex">
+                <!-- Render child items using existing templates -->
+                <template v-if="child.type === 'text'">
+                  <div
+                    class="leading-5 whitespace-pre-wrap text-sm"
+                    :class="{
+                      'text-red-500': child.style === 'error',
+                      'text-orange-500': child.style === 'warning',
+                    }"
+                  >
+                    {{ child.content }}
+                  </div>
+                </template>
+
+                <template v-else-if="child.type === 'markdown'">
+                  <div class="prose" v-html="marked(child.content)"></div>
+                </template>
+
+                <template v-else-if="child.type === 'table'">
+                  <table class="nc-scripts-table">
+                    <thead>
+                      <tr>
+                        <th
+                          v-for="(value, key) in child.content[0] || child.content"
+                          :key="key"
+                          class="text-left font-semibold leading-5 p-2"
+                        >
+                          {{ key }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        v-for="(row, rowIndex) in Array.isArray(child.content) ? child.content : [child.content]"
+                        :key="rowIndex"
+                      >
+                        <td v-for="(value, key) in row" :key="key" class="text-nc-content-gray-subtle leading-5 px-2 py-1">
+                          {{ value }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </template>
+
+                <template v-else-if="child.type === 'inspect'">
+                  <VueJsonPretty
+                    :show-double-quotes="false"
+                    :highlight-selected-node="false"
+                    :show-line="false"
+                    :deep="2"
+                    :data="child.content"
+                  />
+                </template>
+
+                <template v-else-if="child.type === 'input-request'">
+                  <DynamicInput :content="child.content" :on-resolve="(data: any) => resolve(child, data)" />
+                </template>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Regular items (not in workflow steps) -->
+        <template v-else-if="item.type === 'text'">
           <div
             class="leading-5 whitespace-pre-wrap"
             :class="{ 'text-red-500': item.style === 'error', 'text-orange-500': item.style === 'warning' }"
@@ -134,6 +254,18 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
       }
     }
   }
+}
+
+.workflow-step-card {
+  @apply shadow-sm;
+}
+
+.step-header {
+  @apply relative;
+}
+
+.step-content {
+  @apply relative;
 }
 
 :deep(.prose) {

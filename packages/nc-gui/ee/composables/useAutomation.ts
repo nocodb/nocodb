@@ -17,6 +17,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     isFinished,
     activeExecutions,
     libCode,
+    activeSteps,
   } = useScriptExecutor()
 
   const code = ref<string>()
@@ -52,15 +53,44 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     const execution = activeExecutions.value.get(activeExecutionId.value)
     if (!execution) return
 
-    const index = execution.playground.findIndex((item) => item?.id === id && item.type === 'input-request')
-    if (index !== -1) {
-      const item = execution.playground[index] as ScriptInputRequestPlaygroundItem
+    const findInputItem = (
+      items: ScriptPlaygroundItem[],
+    ): { item: ScriptInputRequestPlaygroundItem; index: number; parent?: WorkflowStepItem } | null => {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+
+        if (item?.id === id && item.type === 'input-request') {
+          return { item: item as ScriptInputRequestPlaygroundItem, index: i }
+        }
+
+        // If it's a workflow step, search in its children
+        if (item.type === 'workflow-step') {
+          const stepItem = item as WorkflowStepItem
+          for (let j = 0; j < stepItem.content.children.length; j++) {
+            const child = stepItem.content.children[j]
+            if (child?.id === id && child.type === 'input-request') {
+              return {
+                item: child as ScriptInputRequestPlaygroundItem,
+                index: j,
+                parent: stepItem,
+              }
+            }
+          }
+        }
+      }
+      return null
+    }
+
+    const result = findInputItem(execution.playground)
+
+    if (result) {
+      const { item } = result
+
       if (item?.resolve) {
         if (typeof value === 'object') {
           value = JSON.stringify(value)
         }
-
-        item?.resolve(value)
+        item.resolve(value)
       }
 
       execution.worker?.postMessage({
@@ -136,6 +166,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     isSettingsOpen,
     shouldShowSettings,
     isCreateEditScriptAllowed,
+    activeSteps,
 
     // Script execution state
     isRunning,

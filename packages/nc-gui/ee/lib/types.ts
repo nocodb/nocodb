@@ -1,4 +1,5 @@
 import type { ScriptActionType, ScriptInputType, ScriptViewActionType } from '~/lib/enum'
+import type { IconMapKey } from '~/utils/iconUtils'
 
 interface ScriptConfigItemBase {
   type: 'table' | 'field' | 'view' | 'text' | 'number' | 'select'
@@ -202,6 +203,18 @@ export type ScriptPlaygroundItem =
   | ScriptTablePlaygroundItem
   | ScriptInspectPlaygroundItem
   | ScriptInputRequestPlaygroundItem
+  | WorkflowStepItem
+
+export interface WorkflowStepItem {
+  type: 'workflow-step'
+  content: {
+    title: string
+    description?: string
+    color: string
+    icon?: IconMapKey
+    children: ScriptPlaygroundItem[]
+  }
+}
 
 export interface DynamicInputProps {
   content: InputContent

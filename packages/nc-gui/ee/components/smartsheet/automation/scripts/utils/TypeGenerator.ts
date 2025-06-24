@@ -9,6 +9,60 @@ declare let console: {
   error(...args: Array<unknown>): void
 }
 
+type WorkflowStepBuilder = { red: any; blue: any; green: any; yellow: any; purple: any; orange: any; gray: any; columns: any; grid: any; layout: any; sidebar: any; arrowUp: any; arrowDown: any; arrowLeft: any; arrowRight: any; arrowUpLeft: any; arrowUpRight: any; arrowDownLeft: any; arrowDownRight: any; chevronUp: any; chevronDown: any; chevronLeft: any; chevronRight: any; chevronsUp: any; chevronsDown: any; chevronsLeft: any; chevronsRight: any; cornerUpLeft: any; cornerUpRight: any; cornerDownLeft: any; cornerDownRight: any; cornerLeftUp: any; cornerLeftDown: any; cornerRightUp: any; cornerRightDown: any; play: any; pause: any; stop: any; skipForward: any; skipBack: any; fastForward: any; rewind: any; shuffle: any; repeat: any; playCircle: any; pauseCircle: any; arrowUpCircle: any; arrowDownCircle: any; arrowLeftCircle: any; arrowRightCircle: any; add: any; remove: any; close: any; check: any; edit: any; edit2: any; edit3: any; delete: any; trash: any; trash2: any; copy: any; cut: any; save: any; addCircle: any; removeCircle: any; closeCircle: any; checkCircle: any; addSquare: any; removeSquare: any; closeSquare: any; checkSquare: any; file: any; fileText: any; filePlus: any; fileMinus: any; fileSearch: any; folder: any; folderPlus: any; folderMinus: any; document: any; mail: any; message: any; messageSquare: any; phone: any; phoneCall: any; phoneIncoming: any; phoneOutgoing: any; phoneMissed: any; phoneForwarded: any; phoneOff: any; user: any; users: any; userPlus: any; userMinus: any; userCheck: any; userX: any; smartphone: any; tablet: any; monitor: any; tv: any; camera: any; cameraOff: any; video: any; videoOff: any; mic: any; micOff: any; volume: any; volume1: any; volume2: any; volumeX: any; speaker: any; mute: any; headphone: any; wifi: any; wifiOff: any; bluetooth: any; cast: any; airplay: any; cloud: any; cloudOff: any; cloudSnow: any; uploadCloud: any; downloadCloud: any; upload: any; download: any; database: any; server: any; hardDrive: any; barChart: any; barChart2: any; pieChart: any; trendingUp: any; trendingDown: any; activity: any; type: any; bold: any; italic: any; underline: any; alignLeft: any; alignCenter: any; alignRight: any; alignJustify: any; heading1: any; heading2: any; heading3: any; quote: any; list: any; numberList: any; checkList: any; menu: any; home: any; search: any; searchDuo: any; filter: any; settings: any; settingsDuo: any; sliders: any; more: any; moreVertical: any; bell: any; bellOff: any; notification: any; alert: any; alertFilled: any; alertTriangle: any; alertOctagon: any; info: any; lock: any; unlock: any; key: any; shield: any; shieldOff: any; eye: any; eyeOff: any; logIn: any; logOut: any; circle: any; square: any; triangle: any; hexagon: any; octagon: any; star: any; heart: any; target: any; crosshair: any; tool: any; wrench: any; paintRoller: any; penTool: any; crop: any; move: any; maximize: any; maximize2: any; minimize: any; minimize2: any; zoomIn: any; zoomOut: any; rotateCw: any; rotateCcw: any; refreshCw: any; refreshCcw: any; refresh: any; toggleLeft: any; toggleRight: any; link: any; link2: any; externalLink: any; share: any; share2: any; send: any; briefcase: any; dollarSign: any; creditCard: any; package: any; box: any; clipboard: any; calendar: any; clock: any; bookmark: any; printer: any; inbox: any; code: any; codeBlock: any; terminal: any; command: any; gitBranch: any; gitCommit: any; gitPullRequest: any; globe: any; mapPin: any; navigation: any; navigation2: any; compass: any; smile: any; frown: any; thumbsUp: any; thumbsDown: any; power: any; battery: any; batteryCharging: any; zap: any; zapOff: any; droplet: any; moon: any; disc: any; film: any; radio: any; book: any; bookOpen: any; hash: any; atSign: any; percent: any; slash: any; layers: any; flag: any; award: any; loader: any; mousePointer: any; image: any; paperclip: any; pocket: any; autoAwesome: any; magic: any; ai: any; rss: any; webhook: any; megaphone: any; conditions: any; integration: any; base: any; baseDuo: any; github: any; gitlab: any; instagram: any; linkedin: any; youtube: any; chrome: any; openai: any; claude: any; gemini: any; groq: any; ollama: any; slack: any; discord: any; teams: any; telegram: any; whatsapp: any; twitter: any; facebook: any; gmail: any; outlook: any; googleDrive: any; dropbox: any; asana: any; jira: any; trello: any; miro: any; figma: any; framer: any; bitbucket: any; salesforce: any; hubspot: any; pipedrive: any; zoho: any; dynamics: any; greenhouse: any; lever: any; workday: any; zendesk: any; freshdesk: any; intercom: any; mailchimp: any; surveymonkey: any; typeform: any; stripe: any; quickbooks: any; twilio: any; twitch: any; start: () => string };
+
+/**
+ * Creates a workflow step with the given title and optional description.
+ * Returns a builder object that allows chaining colors, icons, and calling start().
+ * 
+ * @param title - The title of the workflow step
+ * @param options - Optional configuration object
+ * @param options.description - Optional description for the step
+ * @returns A builder object with color properties, icon properties, and start() method
+ * 
+ * @example
+ * // Basic step
+ * step("Process Data").start()
+ * 
+ * // Step with icon and color
+ * step("AI Processing").openai.blue.start()
+ * 
+ * // Step with description
+ * step("Send Email", { description: "Send notification to users" }).mail.green.start()
+ */
+declare function step(title: string, options?: { description?: string }): WorkflowStepBuilder;
+
+/**
+ * Clears all currently active workflow steps.
+ * Use this to reset the workflow display.
+ * 
+ * @example
+ * workflow.clear()
+ */
+declare function workflowClear(): void;
+
+/**
+ * Workflow API for creating visual workflow steps with icons and colors.
+ * 
+ * @example
+ * // Basic step
+ * workflow.step("Process Data").start()
+ * 
+ * // Step with icon and color
+ * workflow.step("AI Processing").openai.blue.start()
+ * 
+ * // Step with description
+ * workflow.step("Send Email", { description: "Send notification to users" }).mail.green.start()
+ * 
+ * // Clear all steps
+ * workflow.clear()
+ * 
+ * // Available colors: red, blue, green, yellow, purple, orange, gray
+ * // Available icons: 200+ icons including openai, slack, github, database, etc.
+ */
+declare const workflow: { step: typeof step; clear: typeof workflowClear };
+
+
 /**
  * Configuration options for button inputs
  * @template T The type of value that the button will return when selected

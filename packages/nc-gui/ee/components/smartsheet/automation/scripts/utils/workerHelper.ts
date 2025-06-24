@@ -163,6 +163,507 @@ function generateV3ToV2Converter() {
   `
 }
 
+function generateWorkflowStepAPI() {
+  return `
+  let __nc_currentStepId = null;
+  
+  const colorProperties = {
+    red: 'red', blue: 'blue', green: 'green', yellow: 'yellow', 
+    purple: 'purple', orange: 'orange', gray: 'gray'
+  };
+  
+  const iconProperties = {
+  // Layout & Structure
+  columns: 'ncColumns',
+  grid: 'ncGrid',
+  layout: 'ncLayout',
+  sidebar: 'ncSidebar',
+  
+  // Navigation & Arrows
+  arrowUp: 'ncArrowUp',
+  arrowDown: 'ncArrowDown2',
+  arrowLeft: 'ncArrowLeft',
+  arrowRight: 'ncArrowRight',
+  arrowUpLeft: 'ncArrowUpLeft',
+  arrowUpRight: 'ncArrowUpRight',
+  arrowDownLeft: 'ncArrowDownLeft',
+  arrowDownRight: 'ncArrowDownRight',
+  chevronUp: 'ncChevronUp',
+  chevronDown: 'ncChevronDown',
+  chevronLeft: 'ncChevronLeft',
+  chevronRight: 'ncChevronRight',
+  chevronsUp: 'ncChevronsUp',
+  chevronsDown: 'ncChevronsDown',
+  chevronsLeft: 'ncChevronsLeft',
+  chevronsRight: 'ncChevronsRight',
+  cornerUpLeft: 'ncCornerUpLeft',
+  cornerUpRight: 'ncCornerUpRight',
+  cornerDownLeft: 'ncCornerDownLeft',
+  cornerDownRight: 'ncCornerDownRight',
+  cornerLeftUp: 'ncCornerLeftUp',
+  cornerLeftDown: 'ncCornerLeftDown',
+  cornerRightUp: 'ncCornerRightUp',
+  cornerRightDown: 'ncCornerRightDown',
+  
+  // Actions & Controls
+  play: 'ncPlay',
+  pause: 'ncPause',
+  stop: 'ncStopCircle',
+  skipForward: 'ncSkipForward',
+  skipBack: 'ncSkipBack',
+  fastForward: 'ncFastForward',
+  rewind: 'ncRewind',
+  shuffle: 'ncShuffle',
+  repeat: 'ncRepeat',
+  
+  // Media Controls (Circle variants)
+  playCircle: 'ncPlayCircle',
+  pauseCircle: 'ncPauseCircle',
+  arrowUpCircle: 'ncArrowUpCircle',
+  arrowDownCircle: 'ncArrowDownCircle',
+  arrowLeftCircle: 'ncArrowLeftCircle',
+  arrowRightCircle: 'ncArrowRightCircle',
+  
+  // Basic Actions
+  add: 'ncPlus',
+  remove: 'ncMinus',
+  close: 'ncX',
+  check: 'ncCheck',
+  edit: 'ncEdit',
+  edit2: 'ncEdit2',
+  edit3: 'ncEdit3',
+  delete: 'ncDelete',
+  trash: 'ncTrash',
+  trash2: 'ncTrash2',
+  copy: 'ncCopy',
+  cut: 'ncScissors',
+  save: 'ncSave2',
+  
+  // Circle Actions
+  addCircle: 'ncPlusCircle',
+  removeCircle: 'ncMinusCircle',
+  closeCircle: 'ncXCircle',
+  checkCircle: 'ncCheckCircle',
+  
+  // Square Actions
+  addSquare: 'ncPlusSquare',
+  removeSquare: 'ncMinusSquare',
+  closeSquare: 'ncXSquare',
+  checkSquare: 'ncCheckSquare',
+  
+  // Files & Documents
+  file: 'ncFile',
+  fileText: 'ncFileText',
+  filePlus: 'ncFilePlus',
+  fileMinus: 'ncFileMinus',
+  fileSearch: 'ncFileSearch',
+  folder: 'ncFolder',
+  folderPlus: 'ncFolderPlus',
+  folderMinus: 'ncFolderMinus',
+  document: 'ncFileText',
+  
+  // Communication
+  mail: 'ncMail',
+  message: 'ncMessageCircle',
+  messageSquare: 'ncMessageSquare',
+  phone: 'ncPhone',
+  phoneCall: 'ncPhoneCall',
+  phoneIncoming: 'ncPhoneIncoming',
+  phoneOutgoing: 'ncPhoneOutgoing',
+  phoneMissed: 'ncPhoneMissed',
+  phoneForwarded: 'ncPhoneForwarded',
+  phoneOff: 'ncPhoneOff',
+  
+  // Users & People
+  user: 'ncUser',
+  users: 'ncUsers',
+  userPlus: 'ncUserPlus',
+  userMinus: 'ncUserMinus',
+  userCheck: 'ncUserCheck',
+  userX: 'ncUserX',
+  
+  // Technology & Devices
+  smartphone: 'ncSmartphone',
+  tablet: 'ncTablet',
+  monitor: 'ncMonitor',
+  tv: 'ncTv',
+  camera: 'ncCamera',
+  cameraOff: 'ncCameraOff',
+  video: 'ncVideo',
+  videoOff: 'ncVideoOff',
+  mic: 'ncMic',
+  micOff: 'ncMicOff',
+  
+  // Audio & Volume
+  volume: 'ncVolume',
+  volume1: 'ncVolume1',
+  volume2: 'ncVolume2',
+  volumeX: 'ncVolumeX',
+  speaker: 'ncVolume2',
+  mute: 'ncVolumeX',
+  headphone: 'ncHeadphone',
+  
+  // Network & Connectivity
+  wifi: 'ncWifi',
+  wifiOff: 'ncWifiOff',
+  bluetooth: 'ncBluetooth',
+  cast: 'ncCast',
+  airplay: 'ncAirplay',
+  
+  // Cloud & Storage
+  cloud: 'ncCloud',
+  cloudOff: 'ncCloudOff',
+  cloudSnow: 'ncCloudSnow',
+  uploadCloud: 'ncUploadCloud',
+  downloadCloud: 'ncDownloadCloud',
+  upload: 'ncUpload',
+  download: 'ncDownload',
+  
+  // Data & Analytics
+  database: 'ncDatabase',
+  server: 'ncServer',
+  hardDrive: 'ncHardDrive',
+  barChart: 'ncBarChart',
+  barChart2: 'ncBarChart2',
+  pieChart: 'ncPieChart',
+  trendingUp: 'ncTrendingUp',
+  trendingDown: 'ncTrendingDown',
+  activity: 'ncActivity',
+  
+  // Text & Formatting
+  type: 'ncType',
+  bold: 'ncBold',
+  italic: 'ncItalic',
+  underline: 'ncUnderline',
+  alignLeft: 'ncAlignLeft',
+  alignCenter: 'ncAlignCenter',
+  alignRight: 'ncAlignRight',
+  alignJustify: 'ncAlignJustify',
+  heading1: 'ncHeading1',
+  heading2: 'ncHeading2',
+  heading3: 'ncHeading3',
+  quote: 'ncQuote',
+  
+  // Lists & Organization
+  list: 'ncList',
+  numberList: 'ncNumberList',
+  checkList: 'ncCheckList',
+  menu: 'ncMenu',
+  
+  // Navigation & Interface
+  home: 'ncHome',
+  search: 'ncSearch',
+  searchDuo: 'ncSearchDuo',
+  filter: 'ncFilter',
+  settings: 'ncSettings',
+  settingsDuo: 'ncSettingsDuo',
+  sliders: 'sliders',
+  more: 'ncMoreHorizontal',
+  moreVertical: 'ncMoreVertical',
+  
+  // Status & Notifications
+  bell: 'ncBell',
+  bellOff: 'ncBellOff',
+  notification: 'ncNotificationDuo',
+  alert: 'ncAlertCircle',
+  alertFilled: 'ncAlertCircleFilled',
+  alertTriangle: 'ncAlertTriangle',
+  alertOctagon: 'ncAlertOctagon',
+  info: 'ncInfo',
+  
+  // Security & Privacy
+  lock: 'ncLock',
+  unlock: 'ncUnlock',
+  key: 'ncKey',
+  shield: 'ncShield',
+  shieldOff: 'ncShieldOff',
+  eye: 'ncEye',
+  eyeOff: 'ncEyeOff',
+  
+  // Authentication
+  logIn: 'ncLogIn',
+  logOut: 'ncLogOut',
+  
+  // Shapes & Symbols
+  circle: 'ncCircle',
+  square: 'ncSquare',
+  triangle: 'ncTriangle',
+  hexagon: 'ncHexagon',
+  octagon: 'ncOctagon',
+  star: 'ncStar',
+  heart: 'ncHeart',
+  target: 'ncTarget',
+  crosshair: 'ncCrosshair',
+  
+  // Tools & Utilities
+  tool: 'ncTool',
+  wrench: 'ncTool',
+  paintRoller: 'ncPaintRoller',
+  penTool: 'ncPenTool',
+  crop: 'ncCrop',
+  move: 'ncMove',
+  
+  // Size & View Controls
+  maximize: 'ncMaximize',
+  maximize2: 'ncMaximize2',
+  minimize: 'ncMinimize',
+  minimize2: 'ncMinimize2',
+  zoomIn: 'ncZoomIn',
+  zoomOut: 'ncZoomOut',
+  
+  // Rotation & Transform
+  rotateCw: 'ncRotateCw',
+  rotateCcw: 'ncRotateCcw',
+  refreshCw: 'ncRefreshCw',
+  refreshCcw: 'ncRefreshCcw',
+  refresh: 'ncRefreshCw',
+  
+  // Toggle & Switch
+  toggleLeft: 'ncToggleLeft',
+  toggleRight: 'ncToggleRight',
+  
+  // Links & Sharing
+  link: 'ncLink',
+  link2: 'ncLink2',
+  externalLink: 'ncExternalLink',
+  share: 'ncShare',
+  share2: 'ncShare2',
+  send: 'ncSend',
+  
+  // Business & Finance
+  briefcase: 'ncBriefcase',
+  dollarSign: 'ncDollarSign',
+  creditCard: 'ncCreditCard',
+  package: 'ncPackage',
+  box: 'ncBox',
+  
+  // Office & Productivity
+  clipboard: 'ncClipboard',
+  calendar: 'ncCalendar',
+  clock: 'ncClock',
+  bookmark: 'ncBookmark',
+  printer: 'ncPrinter',
+  inbox: 'ncInbox',
+  
+  // Development & Code
+  code: 'ncCode',
+  codeBlock: 'ncCodeBlock',
+  terminal: 'ncTerminal',
+  command: 'ncCommand',
+  gitBranch: 'ncGitBranch',
+  gitCommit: 'ncGitCommit',
+  gitPullRequest: 'ncGitPullRequest',
+  
+  // Geography & Location
+  globe: 'ncGlobe',
+  mapPin: 'ncMapPin',
+  navigation: 'ncNavigation',
+  navigation2: 'ncNavigation2',
+  compass: 'ncCompass',
+  
+  // Emotions & Reactions
+  smile: 'ncSmile',
+  frown: 'ncFrown',
+  thumbsUp: 'ncThumbsUp',
+  thumbsDown: 'ncThumbsDown',
+  
+  // Energy & Power
+  power: 'ncPower',
+  battery: 'ncBattery',
+  batteryCharging: 'ncBatteryCharging',
+  zap: 'ncZap',
+  zapOff: 'ncZapOff',
+  
+  // Nature & Elements
+  droplet: 'ncDroplet',
+  moon: 'ncMoon',
+  
+  // Entertainment & Media
+  disc: 'ncDisc',
+  film: 'ncFilm',
+  radio: 'ncRadio',
+  
+  // Learning & Knowledge
+  book: 'ncBook',
+  bookOpen: 'ncBookOpen',
+  
+  // Symbols & Characters
+  hash: 'ncHash',
+  atSign: 'ncAtSign',
+  percent: 'ncPercent',
+  slash: 'ncSlash',
+  
+  // Organization & Structure
+  layers: 'ncLayers',
+  flag: 'ncFlag',
+  award: 'ncAward',
+  
+  // Interface Elements
+  loader: 'ncLoader',
+  mousePointer: 'ncMousePointer',
+  image: 'ncImage',
+  paperclip: 'ncPaperclip',
+  pocket: 'ncPocket',
+  
+  // Special/Unique
+  autoAwesome: 'ncAutoAwesome',
+  magic: 'ncAutoAwesome',
+  ai: 'ncAutoAwesome',
+  rss: 'ncRss',
+  webhook: 'ncWebhook',
+  megaphone: 'ncMegaPhoneDuo',
+  conditions: 'ncConditions',
+  integration: 'ncIntegrationDuo',
+  base: 'ncBaseOutline',
+  baseDuo: 'ncBaseOutlineDuo',
+  
+  // Social Media & Platforms
+  github: 'ncGithub',
+  gitlab: 'ncGitlab',
+  instagram: 'ncInstagram',
+  linkedin: 'ncLinkedin',
+  youtube: 'ncYoutube',
+  chrome: 'ncChrome',
+  
+  // Logo Icons - AI & Tools
+  openai: 'ncLogoOpenAi',
+  claude: 'ncLogoClaudeAi',
+  gemini: 'ncLogoGeminiAi',
+  groq: 'ncLogoGroqAi',
+  ollama: 'ncLogoOllama',
+  
+  // Logo Icons - Communication
+  slack: 'ncLogoSlack',
+  discord: 'ncLogoDiscord',
+  teams: 'ncLogoTeams',
+  telegram: 'ncLogoTelegram',
+  whatsapp: 'ncLogoWhatsapp',
+  twitter: 'ncLogoTwitter',
+  facebook: 'ncLogoFacebook',
+  
+  // Logo Icons - Productivity
+  gmail: 'ncLogoGmail',
+  outlook: 'ncLogoOutlook',
+  googleDrive: 'ncLogoGoogleDrive',
+  dropbox: 'ncLogoDropbox',
+  box: 'ncLogoBoxLogo',
+  
+  // Logo Icons - Project Management
+  asana: 'ncLogoAsana',
+  jira: 'ncLogoJira',
+  trello: 'ncLogoTrello',
+  miro: 'ncLogoMiro',
+  
+  // Logo Icons - Design & Development
+  figma: 'ncLogoFigma',
+  framer: 'ncLogoFramer',
+  bitbucket: 'ncLogoBitbucket',
+  
+  // Logo Icons - Business & CRM
+  salesforce: 'ncLogoSalesforce',
+  hubspot: 'ncLogoHubspot',
+  pipedrive: 'ncLogoPipedrive',
+  zoho: 'ncLogoZoho',
+  dynamics: 'ncLogoMsDynamics',
+  
+  // Logo Icons - HR & Recruiting
+  greenhouse: 'ncLogoGreenhouse',
+  lever: 'ncLogoLever',
+  workday: 'ncLogoWorkday',
+  
+  // Logo Icons - Support & Service
+  zendesk: 'ncLogoZendesk',
+  freshdesk: 'ncLogoFreshdesk',
+  intercom: 'ncLogoIntercom',
+  
+  // Logo Icons - Marketing & Analytics
+  mailchimp: 'ncLogoMailchimp',
+  surveymonkey: 'ncLogoSurveyMonkey',
+  typeform: 'ncLogoTypeform',
+  
+  // Logo Icons - Finance & Payments
+  stripe: 'ncLogoStripe',
+  quickbooks: 'ncLogoQuickbooks',
+  
+  // Logo Icons - Communication & APIs
+  twilio: 'ncLogoTwilio',
+  
+  // Logo Icons - Entertainment
+  twitch: 'ncLogoTwitch',
+};
+  
+  const createStepProxy = (title, options = {}) => {
+    const executeStep = () => {
+      if (__nc_currentStepId) {
+        self.postMessage({
+          type: '${ScriptActionType.WORKFLOW_STEP_END}',
+          payload: { stepId: __nc_currentStepId }
+        });
+      }
+      
+      const stepId = Math.random().toString(36).substr(2, 9);
+      __nc_currentStepId = stepId;
+      
+      const payload = {
+        stepId,
+        title,
+        description: options.description,
+        icon: options.icon,
+        color: options.color
+      };
+      
+      Object.keys(payload).forEach(key => {
+        if (payload[key] === undefined) delete payload[key];
+      });      
+      self.postMessage({
+        type: '${ScriptActionType.WORKFLOW_STEP_START}',
+        payload
+      });
+      
+      return stepId;
+    };
+    
+    return new Proxy({}, {
+      get(target, prop) {
+        // Handle start execution
+        if (prop === 'start') {
+          return executeStep;
+        }
+        
+        // Handle color properties
+        if (prop in colorProperties) {
+          return createStepProxy(title, { 
+            ...options, 
+            color: colorProperties[prop] 
+          });
+        }
+        
+        // Handle icon properties  
+        if (prop in iconProperties) {
+          return createStepProxy(title, { 
+            ...options, 
+            icon: iconProperties[prop] 
+          });
+        }
+        
+        return target[prop];
+      }
+    });
+  };
+  
+  const step = (title, options = {}) => createStepProxy(title, options);
+  const workflowClear = () => {
+    if (__nc_currentStepId) {
+      self.postMessage({
+        type: '${ScriptActionType.WORKFLOW_STEP_END}',
+        payload: { stepId: __nc_currentStepId }
+      });
+    }
+  }
+  const workflow = { step, clear: workflowClear };
+  `
+}
+
 function generalHelpers() {
   return `
     const padZero = (val, isSSS = false) => {
@@ -1572,7 +2073,7 @@ function generateInputMethods(): string {
           const id = Math.random().toString(36).substr(2, 9);
           self.postMessage({ 
             type: '${ScriptActionType.INPUT}', 
-            payload: { type: '${ScriptInputType.TEXT}', label, id } 
+            payload: { type: '${ScriptInputType.TEXT}', label, id, stepId: __nc_currentStepId } 
           });
           function handler(event) {
             if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
@@ -1596,7 +2097,7 @@ function generateInputMethods(): string {
           
           self.postMessage({ 
             type: '${ScriptActionType.INPUT}', 
-            payload: { type: '${ScriptInputType.SELECT}', label, options: processedOptions, id } 
+            payload: { type: '${ScriptInputType.SELECT}', label, options: processedOptions, id, stepId: __nc_currentStepId } 
           });
           function handler(event) {
             if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
@@ -1613,7 +2114,7 @@ function generateInputMethods(): string {
           
           const processedOptions = options.map(option => {
             if (typeof option === 'string') {
-              return { label: option, value: option, variant: 'default' };
+              return { label: option, value: option, variant: 'default', stepId: __nc_currentStepId };
             }
             return option;
           });
@@ -1643,7 +2144,8 @@ function generateInputMethods(): string {
               accept: options.allowedFileTypes?.join(',') || '', 
               hasHeaderRow: options.hasHeaderRow,
               useRawValues: options.useRawValues
-            } 
+            },
+            stepId: __nc_currentStepId
           });
           function handler(event) {
             if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
@@ -1667,7 +2169,8 @@ function generateInputMethods(): string {
           const id = Math.random().toString(36).substr(2, 9);
           self.postMessage({
             type: '${ScriptActionType.INPUT}',
-            payload: { type: '${ScriptInputType.TABLE}', label, id }
+            payload: { type: '${ScriptInputType.TABLE}', label, id },
+            stepId: __nc_currentStepId
           })
           function handler(event) {
             if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
@@ -1701,7 +2204,8 @@ function generateInputMethods(): string {
           
           self.postMessage({
             type: '${ScriptActionType.INPUT}',
-            payload: { type: '${ScriptInputType.VIEW}', tableId, label, id }
+            payload: { type: '${ScriptInputType.VIEW}', tableId, label, id },
+            stepId: __nc_currentStepId
           })
           function handler(event) {
             if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
@@ -1735,7 +2239,8 @@ function generateInputMethods(): string {
           
           self.postMessage({
             type: '${ScriptActionType.INPUT}',
-            payload: { type: '${ScriptInputType.FIELD}', tableId, label, id }
+            payload: { type: '${ScriptInputType.FIELD}', tableId, label, id },
+            stepId: __nc_currentStepId
           })
           function handler(event) {
             if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
@@ -1783,7 +2288,8 @@ function generateInputMethods(): string {
           
           self.postMessage({
             type: '${ScriptActionType.INPUT}',
-            payload: { type: '${ScriptInputType.RECORD}', tableId, viewId, records, label, id, options: { fields: options?.fields ? fieldsToSelect : [] } }
+            payload: { type: '${ScriptInputType.RECORD}', tableId, viewId, records, label, id, options: { fields: options?.fields ? fieldsToSelect : [] } },
+            stepId: __nc_currentStepId
           });
           
           function handler(event) {
@@ -1838,13 +2344,13 @@ function generateConsoleOverride(): string {
   return `
     self.console = {
       log: (...args) => {
-        self.postMessage({ type: '${ScriptActionType.LOG}', payload: { args } });
+        self.postMessage({ type: '${ScriptActionType.LOG}', payload: { args, stepId: __nc_currentStepId } });
       },
       error: (...args) => {
-        self.postMessage({ type: '${ScriptActionType.ERROR}', payload: { args } });
+        self.postMessage({ type: '${ScriptActionType.ERROR}', payload: { args, stepId: __nc_currentStepId } });
       },
       warn: (...args) => {
-        self.postMessage({ type: '${ScriptActionType.WARN}', payload: { args } });
+        self.postMessage({ type: '${ScriptActionType.WARN}', payload: { args, stepId: __nc_currentStepId } });
       },
     };
   `
@@ -1856,19 +2362,19 @@ function generateOutput(): string {
       text: (message, type) => {
         self.postMessage({ 
           type: '${ScriptActionType.OUTPUT}', 
-          payload: { message: JSON.stringify({ action: 'text', args: [message, type] }) } 
+          payload: { message: JSON.stringify({ action: 'text', args: [message, type] }), stepId: __nc_currentStepId } 
         });
       },
       markdown: (content) => {
         self.postMessage({ 
           type: '${ScriptActionType.OUTPUT}', 
-          payload: { message: JSON.stringify({ action: 'markdown', args: [content] }) } 
+          payload: { message: JSON.stringify({ action: 'markdown', args: [content] }), stepId: __nc_currentStepId } 
         });
       },
       table: (data) => {
         self.postMessage({ 
           type: '${ScriptActionType.OUTPUT}', 
-          payload: { message: JSON.stringify({ action: 'table', args: [data] }) } 
+          payload: { message: JSON.stringify({ action: 'table', args: [data] }), stepId: __nc_currentStepId } 
         });
       },
       clear: () => {
@@ -1880,7 +2386,7 @@ function generateOutput(): string {
       inspect: (data) => {
         self.postMessage({ 
           type: '${ScriptActionType.OUTPUT}', 
-          payload: { message: JSON.stringify({ action: 'inspect', args: [data] }) } 
+          payload: { message: JSON.stringify({ action: 'inspect', args: [data] }), stepId: __nc_currentStepId } 
         });
       }
     };
@@ -1966,6 +2472,7 @@ export function createWorkerCode(userCode: string, custom?: string): string {
     ${generateConsoleOverride()}
     ${generateOutput()}
     ${generateProgressAPIs()}
+    ${generateWorkflowStepAPI()}
     ${generateV3ToV2Converter()}
     ${generateInputMethods()}
     ${generateApiProxy()}

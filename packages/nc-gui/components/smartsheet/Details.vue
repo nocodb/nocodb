@@ -12,7 +12,7 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
-const { blockTableAndFieldPermissions } = useEeConfig()
+const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
 
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
@@ -28,7 +28,7 @@ const indicator = h(LoadingOutlined, {
 const shouldShowTab = computed(() => {
   return {
     field: isUIAllowed('fieldAdd') && !isSqlView.value,
-    permissions: isEeUI && isUIAllowed('fieldAdd') && !isSqlView.value && !blockTableAndFieldPermissions.value,
+    permissions: isEeUI && isUIAllowed('fieldAdd') && !isSqlView.value,
     webhook: isUIAllowed('hookList') && !isSqlView.value,
   }
 })
@@ -38,6 +38,10 @@ const openedSubTab = computed({
     return openedViewsTab.value
   },
   set(val) {
+    if (val === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) {
+      return
+    }
+
     onViewsTabChange(val)
   },
 })
@@ -48,7 +52,8 @@ watch(
     // Re-enable this check for first render
 
     const fieldTabCondition = openedSubTab.value !== 'field' || shouldShowTab.value.field
-    const permissionsTabCondition = openedSubTab.value !== 'permissions' || shouldShowTab.value.permissions
+    const permissionsTabCondition =
+      openedSubTab.value !== 'permissions' || (shouldShowTab.value.permissions && !blockTableAndFieldPermissions.value)
     const webhookTabCondition = openedSubTab.value !== 'webhook' || shouldShowTab.value.webhook
 
     if (

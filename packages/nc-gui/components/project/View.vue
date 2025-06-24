@@ -27,7 +27,7 @@ const { automations } = storeToRefs(automationStore)
 
 const { $e, $api } = useNuxtApp()
 
-const { blockTableAndFieldPermissions } = useEeConfig()
+const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -52,7 +52,7 @@ const { isUIAllowed, baseRoles } = useRoles()
 
 const { base } = storeToRefs(useBase())
 
-const { projectPageTab } = storeToRefs(useConfigStore())
+const { projectPageTab: _projectPageTab } = storeToRefs(useConfigStore())
 
 const { isMobileMode } = useGlobal()
 
@@ -65,6 +65,19 @@ const userCount = computed(() =>
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
+
+const projectPageTab = computed({
+  get() {
+    return _projectPageTab.value
+  },
+  set(value) {
+    if (value === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) {
+      return
+    }
+
+    _projectPageTab.value = value
+  },
+})
 
 watch(
   () => route.value.query?.page,
@@ -82,7 +95,7 @@ watch(
         projectPageTab.value = 'allTable'
       } else if (newVal === 'allScripts' && isAutomationEnabled.value && isEeUI) {
         projectPageTab.value = 'allScripts'
-      } else if (newVal === 'permissions') {
+      } else if (newVal === 'permissions' && !blockTableAndFieldPermissions.value && isEeUI) {
         projectPageTab.value = 'permissions'
       } else {
         projectPageTab.value = 'base-settings'
@@ -240,7 +253,7 @@ onMounted(() => {
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !blockTableAndFieldPermissions" key="permissions">
+        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id" key="permissions">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />

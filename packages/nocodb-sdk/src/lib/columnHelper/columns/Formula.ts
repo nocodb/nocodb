@@ -4,6 +4,8 @@ import AbstractColumnHelper, {
 import { parseProp } from '~/lib/helperFunctions';
 import { ColumnHelper } from '../column-helper';
 import { ComputedTypePasteError } from '~/lib/error';
+import { FormulaDataTypes } from '~/lib/formulaHelpers';
+import { ncIsNaN } from '~/lib/is';
 
 export class FormulaHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -15,9 +17,21 @@ export class FormulaHelper extends AbstractColumnHelper {
   };
 
   serializeValue(
-    _value: any,
+    value: any,
     params: SerializerOrParserFnProps['params']
-  ): null {
+  ): string | null {
+    if (params.serializeSearchQuery) {
+      const dataType =
+        (params.col?.colOptions as any)?.parsed_tree?.dataType ??
+        FormulaDataTypes.STRING;
+
+      if (dataType === FormulaDataTypes.NUMERIC) {
+        return ncIsNaN(value) ? '' : value;
+      }
+
+      return value;
+    }
+
     if (params.isMultipleCellPaste) {
       return undefined;
     } else {

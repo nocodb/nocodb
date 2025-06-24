@@ -13,6 +13,8 @@ export class LinksHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): Record<string, any> | null {
+    if (params.serializeSearchQuery) return null;
+
     if (!isMm(params.col)) throw new SilentTypeConversionError();
 
     let parsedVal = value;

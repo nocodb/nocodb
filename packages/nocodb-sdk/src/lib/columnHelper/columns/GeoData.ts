@@ -1,15 +1,20 @@
 import { SilentTypeConversionError } from '~/lib/error';
 import { convertGeoNumberToString } from '~/lib/geoDataUtils';
 import { ncIsNaN, ncIsString } from '~/lib/is';
-import AbstractColumnHelper from '../column.interface';
+import AbstractColumnHelper, {
+  SerializerOrParserFnProps,
+} from '../column.interface';
 
 export class GeoDataHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
-  serializeValue(value: any): string | null {
+  serializeValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string | null {
     value = this.parseValue(value);
 
-    if (value === null) {
+    if (!params.serializeSearchQuery && value === null) {
       throw new SilentTypeConversionError();
     }
 

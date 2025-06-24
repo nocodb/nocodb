@@ -127,6 +127,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
           meta: tableMeta,
           metas: metas.value,
         })
+        console.log('searchQuery in try block')
       } catch {
         /**
          * If it is a virtual column, then send query as it is

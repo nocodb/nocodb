@@ -433,6 +433,9 @@ const isSearchableColumn = (column: ColumnType) => {
       UITypes.Button,
       UITypes.LastModifiedTime,
       UITypes.CreatedTime,
+      UITypes.Barcode,
+      UITypes.QrCode,
+      UITypes.Order,
     ].includes(column?.uidt as UITypes)
   )
 }

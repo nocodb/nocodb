@@ -1,5 +1,16 @@
 import type { ColumnType, FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
-import { ColumnHelper, NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere, isNumericCol } from 'nocodb-sdk'
+import {
+  ColumnHelper,
+  FormulaDataTypes,
+  NcApiVersion,
+  UITypes,
+  ViewLockType,
+  ViewTypes,
+  extractFilterFromXwhere,
+  isNumericCol,
+  isVirtualCol,
+  ncIsNaN,
+} from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { EventBusEnum, type SmartsheetStoreEvents } from '#imports'
 
@@ -100,8 +111,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       return search.value.query?.trim() && !isMobileMode.value && (isGrid.value || isGallery.value)
     })
 
-    const getValidSearchQueryForColumn = (col: ColumnType, query?: string, meta?: TableType) => {
-      if (!query && !ncIsNumber(query)) return ''
+    const getValidSearchQueryForColumn = (col: ColumnType, query?: string, tableMeta?: TableType) => {
+      if (!isValidValue(query)) return ''
 
       let searchQuery = query
 
@@ -113,18 +124,31 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
           col,
           isMysql,
           isPg,
-          meta,
+          meta: tableMeta,
           metas: metas.value,
         })
       } catch {
         /**
-         * We don't have to anything if serializeValue is not valid for current column
+         * If it is a virtual column, then send query as it is
          */
+        if (!isVirtualCol(col)) {
+          searchQuery = ''
+          /**
+           * We don't have to anything if serializeValue is not valid for current column
+           */
+          console.log('invalid search query for column', col.title, searchQuery)
+        } else {
+          if (col.uidt === UITypes.Formula && getFormulaColDataType(col) === FormulaDataTypes.NUMERIC) {
+            searchQuery = ncIsNaN(searchQuery) ? '' : searchQuery
+          } else {
+            searchQuery = query
+          }
+        }
       }
 
-      if (!searchQuery && !ncIsNumber(searchQuery)) return ''
+      if (!isValidValue(searchQuery)) return ''
 
-      return searchQuery
+      return searchQuery ?? ''
     }
 
     const xWhere = computed(() => {
@@ -142,12 +166,15 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
       if (!search.value.query.trim()) return where
 
-      const searchQuery = getValidSearchQueryForColumn(col, search.value.query.trim(), meta.value as TableType)
+      let searchQuery = search.value.query.trim()
 
-      if (!searchQuery && !ncIsNumber(searchQuery)) return where
+      searchQuery = getValidSearchQueryForColumn(col, searchQuery, meta.value as TableType)
+
+      if (!isValidValue(searchQuery)) return where
 
       // concat the where clause if query is present
       if (
+        (col.uidt !== UITypes.Formula || getFormulaColDataType(col) !== FormulaDataTypes.NUMERIC) &&
         !isNumericCol(col) &&
         sqlUi.value &&
         ['text', 'string'].includes(sqlUi.value.getAbstractType(col)) &&
@@ -258,7 +285,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       totalRowsWithoutSearchQuery,
       fetchTotalRowsWithSearchQuery,
       gridEditEnabled,
-      getValidSearchQueryForColumn
+      getValidSearchQueryForColumn,
     }
   },
   'smartsheet-store',

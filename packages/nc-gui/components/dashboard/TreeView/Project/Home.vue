@@ -272,7 +272,7 @@ const openBaseHomePage = async () => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <DashboardTreeViewProjectHomeSearchInput :placeholder="`Search table, view${showCreateNewAsDropdown ? ', script' : ''}`" />
+      <DashboardTreeViewProjectHomeSearchInput placeholder="Search table, view" />
 
       <div class="nc-project-home-section pt-1 !pb-2 xs:hidden flex flex-col gap-2">
         <div
@@ -348,7 +348,7 @@ const openBaseHomePage = async () => {
                     <template v-if="sourceIndex === 0"></template>
                     <a-collapse
                       v-else-if="source && source.enabled"
-                      v-model:activeKey="activeKey"
+                      v-model:active-key="activeKey"
                       v-e="['c:source:toggle-expand']"
                       class="!mx-0 !px-0 nc-sidebar-source-node"
                       :class="[{ hidden: searchActive && !!filterQuery }]"

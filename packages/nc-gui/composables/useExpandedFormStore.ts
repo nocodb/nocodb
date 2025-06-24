@@ -177,7 +177,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
       const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
-      if (!rowId || !base.value.fk_workspace_id || !meta.value.base_id) return
+      if (!rowId || !meta.value.base_id) return
 
       try {
         if (showLoading) {
@@ -185,7 +185,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         }
 
         const response = await $api.internal.getOperation(
-          base.value.fk_workspace_id,
+          base.value.fk_workspace_id ?? NO_SCOPE,
           (meta.value.base_id as string) ?? (base.value.id as string),
           {
             operation: 'recordAuditList',

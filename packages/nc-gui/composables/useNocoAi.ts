@@ -169,6 +169,11 @@ export const useNocoAi = createSharedComposable(() => {
     return []
   }
 
+  const completeScript = async (body: any) => {
+    const res = await $api.ai.completion(activeProjectId.value, body)
+    return res
+  }
+
   const predictNextFormulas = async (
     tableId: string,
     history?: string[],
@@ -383,5 +388,6 @@ export const useNocoAi = createSharedComposable(() => {
     repairFormula,
     predictViews,
     aiIntegrations,
+    completeScript,
   }
 })

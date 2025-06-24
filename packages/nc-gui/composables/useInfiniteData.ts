@@ -132,11 +132,15 @@ export function useInfiniteData(args: {
       }
     : useSmartsheetStoreOrThrow()
 
-  const { isGroupBy } = useViewGroupByOrThrow()
+  const { isGroupBy } = disableSmartsheet ? { isGroupBy: computed(() => false) } : useViewGroupByOrThrow()
 
   const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
-  const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
+  const { getEvaluatedRowMetaRowColorInfo } = disableSmartsheet
+    ? {
+        getEvaluatedRowMetaRowColorInfo: () => {},
+      }
+    : useViewRowColorRender()
 
   const selectedAllRecords = ref(false)
 

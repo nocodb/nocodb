@@ -17,7 +17,7 @@ interface Props extends Partial<NcListProps> {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emits = defineEmits(['update:selectedUsers', 'update:open'])
+const emits = defineEmits(['update:selectedUsers', 'update:open', 'escape'])
 
 const selectedUsers = useVModel(props, 'selectedUsers', emits)
 
@@ -153,6 +153,7 @@ defineExpose({
     :filter-option="filterOption"
     empty-description="No users found"
     @change="handleUpdateValue($event)"
+    @escape="onEsc"
   >
     <template #listItemExtraLeft="{ isSelected }">
       <NcCheckbox :checked="isSelected" />

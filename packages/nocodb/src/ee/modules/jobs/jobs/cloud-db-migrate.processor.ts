@@ -95,18 +95,17 @@ export class CloudDbMigrateProcessor {
         useDbServers.push(...matchingDbServers);
       } else {
         // check if there is available dbServer with no conditions
-        const availableDbServers = dbServers
-          .filter((dbServer) => {
-            if (
-              dbServer.max_tenant_count &&
-              dbServer.current_tenant_count >= dbServer.max_tenant_count
-            ) {
-              return false;
-            }
+        const availableDbServers = dbServers.filter((dbServer) => {
+          if (
+            dbServer.max_tenant_count &&
+            dbServer.current_tenant_count >= dbServer.max_tenant_count
+          ) {
+            return false;
+          }
 
-            return true;
-          })
-          .filter((dbServer) => !dbServer.conditions);
+          // check if server has no conditions
+          return !dbServer.conditions;
+        });
 
         if (availableDbServers.length > 0) {
           useDbServers.push(...availableDbServers);

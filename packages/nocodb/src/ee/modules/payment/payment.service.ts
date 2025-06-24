@@ -1104,7 +1104,7 @@ export class PaymentService {
     await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {
       workspaceId: workspaceOrOrg.id,
       conditions: {
-        plan_id: plan.title,
+        plan: plan.title,
       },
     });
 

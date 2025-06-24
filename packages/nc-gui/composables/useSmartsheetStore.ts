@@ -1,5 +1,5 @@
 import type { ColumnType, FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
-import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere } from 'nocodb-sdk'
+import { ColumnHelper, NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere, isNumericCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { EventBusEnum, type SmartsheetStoreEvents } from '#imports'
 
@@ -21,9 +21,13 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const { user, isMobileMode } = useGlobal()
 
+    const { metas } = useMetas()
+
     const { activeView: view, activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
 
     const baseStore = useBase()
+
+    const { isMysql, isPg } = baseStore
 
     const { sqlUis, base } = storeToRefs(baseStore)
 
@@ -96,6 +100,33 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       return search.value.query?.trim() && !isMobileMode.value && (isGrid.value || isGallery.value)
     })
 
+    const getValidSearchQueryForColumn = (col: ColumnType, query?: string, meta?: TableType) => {
+      if (!query && !ncIsNumber(query)) return ''
+
+      let searchQuery = query
+
+      try {
+        /**
+         * This method can throw errors. so it's important to use a try-catch block when calling it.
+         */
+        searchQuery = ColumnHelper.serializeValue(searchQuery, {
+          col,
+          isMysql,
+          isPg,
+          meta,
+          metas: metas.value,
+        })
+      } catch {
+        /**
+         * We don't have to anything if serializeValue is not valid for current column
+         */
+      }
+
+      if (!searchQuery && !ncIsNumber(searchQuery)) return ''
+
+      return searchQuery
+    }
+
     const xWhere = computed(() => {
       let where
 
@@ -111,11 +142,20 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
       if (!search.value.query.trim()) return where
 
+      const searchQuery = getValidSearchQueryForColumn(col, search.value.query.trim(), meta.value as TableType)
+
+      if (!searchQuery && !ncIsNumber(searchQuery)) return where
+
       // concat the where clause if query is present
-      if (sqlUi.value && ['text', 'string'].includes(sqlUi.value.getAbstractType(col)) && col.dt !== 'bigint') {
-        where = `${where ? `${where}~and` : ''}(${col.title},like,%${search.value.query.trim()}%)`
+      if (
+        !isNumericCol(col) &&
+        sqlUi.value &&
+        ['text', 'string'].includes(sqlUi.value.getAbstractType(col)) &&
+        col.dt !== 'bigint'
+      ) {
+        where = `${where ? `${where}~and` : ''}(${col.title},like,%${searchQuery}%)`
       } else {
-        where = `${where ? `${where}~and` : ''}(${col.title},eq,${search.value.query.trim()})`
+        where = `${where ? `${where}~and` : ''}(${col.title},eq,${searchQuery})`
       }
 
       return where
@@ -218,6 +258,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       totalRowsWithoutSearchQuery,
       fetchTotalRowsWithSearchQuery,
       gridEditEnabled,
+      getValidSearchQueryForColumn
     }
   },
   'smartsheet-store',

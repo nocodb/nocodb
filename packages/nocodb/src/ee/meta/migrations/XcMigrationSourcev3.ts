@@ -43,6 +43,7 @@ import * as nc_042_api_automation_grace_period from './v3/nc_042_api_automation_
 import * as nc_043_subscription_schedules from './v3/nc_043_subscription_schedules';
 import * as nc_044_script_col_rename from './v3/nc_044_script_col_rename';
 import * as nc_045_workspace_connect from './v3/nc_045_workspace_connect';
+import * as nc_046_workspace_connect_refactor from './v3/nc_046_workspace_connect_refactor';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -97,6 +98,7 @@ export default class XcMigrationSourcev3 {
       'nc_043_subscription_schedules',
       'nc_044_script_col_rename',
       'nc_045_workspace_connect',
+      'nc_046_workspace_connect_refactor',
     ]);
   }
 
@@ -196,6 +198,8 @@ export default class XcMigrationSourcev3 {
         return nc_044_script_col_rename;
       case 'nc_045_workspace_connect':
         return nc_045_workspace_connect;
+      case 'nc_046_workspace_connect_refactor':
+        return nc_046_workspace_connect_refactor;
     }
   }
 }

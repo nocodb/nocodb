@@ -35,7 +35,31 @@ export class CloudDbMigrateProcessor {
       return;
     }
 
+    let workspace;
     try {
+      workspace = await Workspace.get(workspaceId);
+      if (!workspace) {
+        logBasic('Workspace not found');
+        return;
+      }
+
+      if (workspace.fk_db_instance_id) {
+        logBasic('Workspace already has a db server');
+
+        await this.telemetryService.sendSystemEvent({
+          event_type: 'payment_alert',
+          payment_type: 'upgrade_failed',
+          message: `Database migration failed for workspace ${workspace.title}`,
+          workspace: { id: workspace.id, title: workspace.title },
+          extra: {
+            job_id: job.id,
+            error_message: 'Already has a db server',
+          },
+        });
+
+        return;
+      }
+
       const dbServers = await DbServer.list({});
 
       if (dbServers.length === 0) {
@@ -43,22 +67,58 @@ export class CloudDbMigrateProcessor {
         return;
       }
 
-      const matchingDbServers = dbServers.filter((dbServer) => {
-        if (!dbServer.conditions) return true;
+      const useDbServers: DbServer[] = [];
 
-        // check if dbServer.conditions is a subset of conditions
-        return Object.keys(dbServer.conditions).every(
-          (key) => conditions[key] === dbServer.conditions[key],
-        );
-      });
+      const matchingDbServers = dbServers
+        .filter((dbServer) => {
+          if (
+            // 0 or null means no limit
+            dbServer.max_tenant_count &&
+            dbServer.current_tenant_count >= dbServer.max_tenant_count
+          ) {
+            return false;
+          }
 
-      if (matchingDbServers.length === 0) {
+          return true;
+        })
+        .filter((dbServer) => {
+          // if dbServer has no conditions, skip
+          if (!dbServer.conditions) return false;
+
+          // check if required conditions are met
+          return Object.keys(conditions).every(
+            (key) => conditions[key] === dbServer.conditions[key],
+          );
+        });
+
+      if (matchingDbServers.length > 0) {
+        useDbServers.push(...matchingDbServers);
+      } else {
+        // check if there is available dbServer with no conditions
+        const availableDbServers = dbServers.filter((dbServer) => {
+          if (
+            dbServer.max_tenant_count &&
+            dbServer.current_tenant_count >= dbServer.max_tenant_count
+          ) {
+            return false;
+          }
+
+          // check if server has no conditions
+          return !dbServer.conditions;
+        });
+
+        if (availableDbServers.length > 0) {
+          useDbServers.push(...availableDbServers);
+        }
+      }
+
+      if (useDbServers.length === 0) {
         logBasic('No matching DbServer found');
         return;
       }
 
       // use dbServer with minimum tenants
-      let dbServer = matchingDbServers.sort(
+      let dbServer = useDbServers.sort(
         (a, b) => a.current_tenant_count - b.current_tenant_count,
       )[0];
 
@@ -83,6 +143,19 @@ export class CloudDbMigrateProcessor {
       const dataDbUrl = this.dbConfigToJdbcUrl(dataDbConfig);
       const targetDbUrl = this.dbConfigToJdbcUrl(targetDbConfig, workspaceId);
 
+      await this.telemetryService.sendSystemEvent({
+        event_type: 'payment_alert',
+        payment_type: 'upgrade_started',
+        message: `Database migration started for workspace ${workspace.title}`,
+        workspace: { id: workspace.id, title: workspace.title },
+        extra: {
+          job_id: job.id,
+          db_server_id: dbServer.id,
+          schema_count: schemas.length,
+          conditions,
+        },
+      });
+
       const response = await axios.post(`${NC_MIGRATOR_URL}/api/v1/migrate`, {
         sourceUrl: dataDbUrl,
         targetUrl: targetDbUrl,
@@ -94,33 +167,79 @@ export class CloudDbMigrateProcessor {
       let lastLog = '';
 
       const getStatus = async (resolve, reject) => {
-        const response = await axios.get(
-          `${NC_MIGRATOR_URL}/api/v1/migrate/${jobId}/status`,
-        );
-        const { status, message, progress } = response.data;
+        try {
+          const response = await axios.get(
+            `${NC_MIGRATOR_URL}/api/v1/migrate/${jobId}/status`,
+          );
+          const { status, message, progress } = response.data;
 
-        const log = `${message} - ${progress}%`;
+          const log = `${message} - ${progress}%`;
 
-        if (log !== lastLog) {
-          logBasic(log);
-          lastLog = log;
-        }
+          if (log !== lastLog) {
+            logBasic(log);
+            lastLog = log;
+          }
 
-        if (status === 'completed') {
-          await Workspace.update(workspaceId, {
-            fk_db_instance_id: dbServer.id,
-            db_job_id: null,
+          if (status === 'completed') {
+            await DbServer.incrementTenantCount(dbServer.id);
+
+            await Workspace.update(workspaceId, {
+              fk_db_instance_id: dbServer.id,
+              db_job_id: null,
+            });
+
+            await this.telemetryService.sendSystemEvent({
+              event_type: 'payment_alert',
+              payment_type: 'upgrade_completed',
+              message: `Database migration completed successfully for workspace ${workspace.title}`,
+              workspace: { id: workspace.id, title: workspace.title },
+              extra: {
+                job_id: job.id,
+                migrator_job_id: jobId,
+                db_server_id: dbServer.id,
+                schema_count: schemas.length,
+              },
+            });
+
+            resolve(true);
+          } else if (status === 'failed') {
+            await Workspace.update(workspaceId, {
+              db_job_id: null,
+            });
+
+            // Send upgrade_failed notification
+            await this.telemetryService.sendSystemEvent({
+              event_type: 'payment_alert',
+              payment_type: 'upgrade_failed',
+              message: `Database migration failed for workspace ${workspace.title}: ${message}`,
+              workspace: { id: workspace.id, title: workspace.title },
+              extra: {
+                job_id: job.id,
+                migrator_job_id: jobId,
+                error_message: message,
+                progress,
+              },
+            });
+
+            reject(new Error(message));
+          } else {
+            setTimeout(() => getStatus(resolve, reject), 1000);
+          }
+        } catch (statusError) {
+          // Send upgrade_failed notification for status check errors
+          await this.telemetryService.sendSystemEvent({
+            event_type: 'payment_alert',
+            payment_type: 'upgrade_failed',
+            message: `Database migration status check failed for workspace ${workspace.title}: ${statusError.message}`,
+            workspace: { id: workspace.id, title: workspace.title },
+            extra: {
+              job_id: job.id,
+              migrator_job_id: jobId,
+              error_message: statusError.message,
+              error_type: 'status_check_failed',
+            },
           });
-
-          resolve(true);
-        } else if (status === 'failed') {
-          await Workspace.update(workspaceId, {
-            db_job_id: null,
-          });
-
-          reject(new Error(message));
-        } else {
-          setTimeout(() => getStatus(resolve, reject), 1000);
+          reject(statusError);
         }
       };
 
@@ -129,6 +248,23 @@ export class CloudDbMigrateProcessor {
       await Workspace.update(workspaceId, {
         db_job_id: null,
       });
+
+      // Send upgrade_failed notification for general errors
+      if (workspace) {
+        await this.telemetryService.sendSystemEvent({
+          event_type: 'payment_alert',
+          payment_type: 'upgrade_failed',
+          message: `Database migration failed for workspace ${workspace.title}: ${error.message}`,
+          workspace: { id: workspace.id, title: workspace.title },
+          extra: {
+            job_id: job.id,
+            error_message: error.message,
+            error_type: axios.isAxiosError(error)
+              ? 'axios_error'
+              : 'general_error',
+          },
+        });
+      }
 
       if (axios.isAxiosError(error)) {
         throw new Error(error.response?.data?.error || 'Something went wrong');

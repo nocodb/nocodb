@@ -21,6 +21,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
 import { NocoJobsService } from '~/services/noco-jobs.service';
+import { TelemetryService } from '~/services/telemetry.service';
 
 const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder');
 
@@ -31,6 +32,7 @@ export class PaymentService {
   constructor(
     private readonly appHooksService: AppHooksService,
     private readonly nocoJobsService: NocoJobsService,
+    private readonly telemetryService: TelemetryService,
   ) {}
 
   async getPlans() {
@@ -342,6 +344,22 @@ export class PaymentService {
           plan_title: plan.title,
           period: price.recurring.interval,
         },
+      },
+    });
+
+    await this.telemetryService.sendSystemEvent({
+      event_type: 'payment_alert',
+      payment_type: 'payment_triggered',
+      message: `Payment checkout initiated for ${workspaceOrOrg.title} (${plan.title})`,
+      user: { id: user.id, email: user.email },
+      workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
+      extra: {
+        checkout_session_id: session.id,
+        plan_id,
+        plan_title: plan.title,
+        price_id,
+        seat_count: seat,
+        period: price.recurring.interval,
       },
     });
 
@@ -1365,6 +1383,20 @@ export class PaymentService {
           req,
         });
       }
+
+      await this.telemetryService.sendSystemEvent({
+        event_type: 'payment_alert',
+        payment_type: 'upgrade_requested',
+        message: `Upgrade requested for ${workspace.title} due to ${payload.limitOrFeature} limit`,
+        user: req.user ? { id: req.user.id, email: req.user.email } : undefined,
+        workspace: { id: workspace.id, title: workspace.title },
+        extra: {
+          limit_or_feature: payload.limitOrFeature,
+          requester_type: req.user?.id ? 'authenticated' : 'anonymous',
+          requester_name: requester.display_name || 'Unknown',
+          owner_count: owners.length,
+        },
+      });
     }
 
     return true;
@@ -1397,10 +1429,31 @@ export class PaymentService {
               (obj as Stripe.Invoice).subscription as string,
             );
 
+          const workspaceOrOrgId = subRec.fk_workspace_id || subRec.fk_org_id;
+          const workspaceOrOrg = await getWorkspaceOrOrg(
+            workspaceOrOrgId,
+            Noco.ncMeta,
+          );
+
           await this.updateNextInvoice(
             subRec.id,
             await this.getNextInvoice(subRec.fk_workspace_id),
           );
+
+          if (workspaceOrOrg) {
+            await this.telemetryService.sendSystemEvent({
+              event_type: 'payment_alert',
+              payment_type: 'payment_succeeded',
+              message: `Payment successful for ${workspaceOrOrg.title}`,
+              workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
+              extra: {
+                subscription_id: subRec.id,
+                stripe_subscription_id: subRec.stripe_subscription_id,
+                invoice_id: (obj as Stripe.Invoice).id,
+                amount_paid: (obj as Stripe.Invoice).amount_paid,
+              },
+            });
+          }
 
           this.logger.log(
             `Invoice paid; next invoice scheduled for subscription ${subRec.id}`,
@@ -1419,6 +1472,26 @@ export class PaymentService {
             );
 
           const wid = subRec.fk_workspace_id || subRec.fk_org_id;
+          const workspaceOrOrg = await getWorkspaceOrOrg(wid, Noco.ncMeta);
+
+          // Send upgrade_failed notification for payment failure
+          if (workspaceOrOrg) {
+            await this.telemetryService.sendSystemEvent({
+              event_type: 'payment_alert',
+              payment_type: 'upgrade_failed',
+              message: `Payment failed for ${workspaceOrOrg.title}. No plan applied.`,
+              workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
+              extra: {
+                subscription_id: subRec.id,
+                stripe_subscription_id: subRec.stripe_subscription_id,
+                invoice_id: (obj as Stripe.Invoice).id,
+                failure_reason:
+                  (obj as Stripe.Invoice).last_finalization_error?.message ||
+                  'Payment failed',
+              },
+            });
+          }
+
           this.logger.log(`Payment failed for ${wid}. No plan applied.`);
           break;
         }
@@ -1457,6 +1530,21 @@ export class PaymentService {
               .unix(stripeSub.billing_cycle_anchor)
               .utc()
               .toISOString(),
+          });
+
+          await this.telemetryService.sendSystemEvent({
+            event_type: 'payment_alert',
+            payment_type: 'subscription_created',
+            message: `Subscription created for ${workspaceOrOrg.title} (${stripeSub.metadata.plan_title})`,
+            workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
+            extra: {
+              subscription_id: subRec.id,
+              stripe_subscription_id: stripeSub.id,
+              plan_title: stripeSub.metadata.plan_title,
+              seat_count: seatCount,
+              period,
+              price_id: price.id,
+            },
           });
 
           await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {

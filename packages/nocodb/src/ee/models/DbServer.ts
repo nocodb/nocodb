@@ -15,7 +15,7 @@ export default class DbServer {
   id?: string;
   title?: string;
   is_shared?: boolean;
-  max_tenants?: number;
+  max_tenant_count?: number;
   current_tenant_count?: number;
   config?: Record<string, any>;
   conditions?: string | Record<string, any>;
@@ -64,7 +64,7 @@ export default class DbServer {
       'id',
       'title',
       'is_shared',
-      'max_tenants',
+      'max_tenant_count',
       'current_tenant_count',
       'config',
       'conditions',
@@ -97,7 +97,7 @@ export default class DbServer {
     const updateObj: Record<string, any> = extractProps(dbServer, [
       'title',
       'is_shared',
-      'max_tenants',
+      'max_tenant_count',
       'current_tenant_count',
       'conditions',
     ]);
@@ -164,7 +164,9 @@ export default class DbServer {
       RootScopes.ROOT,
       MetaTable.DB_SERVERS,
       {
-        current_tenant_count: () => 'current_tenant_count + 1',
+        current_tenant_count: ncMeta.knexConnection.raw(
+          'current_tenant_count + 1',
+        ),
       },
       dbServerId,
     );
@@ -184,7 +186,9 @@ export default class DbServer {
       RootScopes.ROOT,
       MetaTable.DB_SERVERS,
       {
-        current_tenant_count: () => 'GREATEST(current_tenant_count - 1, 0)',
+        current_tenant_count: ncMeta.knexConnection.raw(
+          'GREATEST(current_tenant_count - 1, 0)',
+        ),
       },
       dbServerId,
     );

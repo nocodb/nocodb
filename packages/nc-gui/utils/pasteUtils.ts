@@ -1,5 +1,5 @@
-import { ColumnHelper } from 'nocodb-sdk'
-import { type ColumnType, type TableType, UITypes } from 'nocodb-sdk'
+import { ColumnHelper, UITypes } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 
 export const valueToCopy = (
   rowObj: Row,

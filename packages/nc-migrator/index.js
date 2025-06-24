@@ -174,7 +174,6 @@ async function startMigration(sourceUrl, targetUrl, schemas, jobId) {
     targetUrl = targetUrl.replace(/-pooler(\.[^.]+\.neon\.tech)/, '$1');
 
     let databaseCreated = false;
-    let dumpFile = null;
     let targetDbName = null;
     let createDbUrl = null;
 
@@ -216,38 +215,18 @@ async function startMigration(sourceUrl, targetUrl, schemas, jobId) {
         
         addJobStep(jobId, 'Target resource set up successfully');
 
-        updateJobStatus(jobId, 'running', 40, 'Preparing data to migrate to your upgraded workspace...');
+        updateJobStatus(jobId, 'running', 40, 'Starting direct data migration to your upgraded workspace...');
+        addJobStep(jobId, 'Starting direct data migration to your upgraded workspace...');
 
-        // Create temporary dump file
-        dumpFile = path.join('/tmp', `migration_${jobId}.dump`);
-        
-        // Dump schemas
+        // Use piped approach for faster migration (no intermediate file)
         const schemaArgs = schemas.map(s => `--schema="${s}"`).join(' ');
-        const dumpCommand = `pg_dump ${schemaArgs} --no-owner --no-privileges --format=custom --file="${dumpFile}" "${sourceUrl}"`;
+        const pipedMigrationCommand = `pg_dump ${schemaArgs} --no-owner --no-privileges --format=plain "${sourceUrl}" | psql "${targetUrl}"`;
         
-        await executeCommand(dumpCommand, jobId, sourceUrl, targetUrl);
-        
-        updateJobStatus(jobId, 'running', 70, 'Starting data migration to your upgraded workspace...');
-        addJobStep(jobId, 'Starting data migration to your upgraded workspace...');
-
-        // Restore to target database
-        const restoreCommand = `pg_restore --no-owner --no-privileges --verbose --dbname="${targetUrl}" "${dumpFile}"`;
-        
-        await executeCommand(restoreCommand, jobId, sourceUrl, targetUrl);
+        await executeCommand(pipedMigrationCommand, jobId, sourceUrl, targetUrl);
         
         addJobStep(jobId, 'Data migration to your upgraded workspace completed successfully');
 
-        updateJobStatus(jobId, 'running', 90, 'Cleaning up temporary files...');
-        
-        // Cleanup dump file
-        if (dumpFile) {
-            try {
-                await fs.unlink(dumpFile);
-                addJobStep(jobId, 'Temporary files cleaned up');
-            } catch (cleanupError) {
-                console.warn(`[${jobId}] Warning: Could not clean up temporary files: ${cleanupError.message}`);
-            }
-        }
+        updateJobStatus(jobId, 'running', 90, 'Finalizing migration...');
 
         updateJobStatus(jobId, 'completed', 100, `Your workspace has been upgraded successfully`);
         addJobStep(jobId, 'Your workspace has been upgraded successfully');
@@ -270,16 +249,7 @@ async function startMigration(sourceUrl, targetUrl, schemas, jobId) {
         // Cleanup operations
         const cleanupPromises = [];
 
-        // 1. Cleanup dump file if it exists
-        if (dumpFile) {
-            cleanupPromises.push(
-                fs.unlink(dumpFile).catch(cleanupError => {
-                    console.warn(`[${jobId}] Warning: Could not clean up dump file: ${cleanupError.message}`);
-                })
-            );
-        }
-
-        // 2. Cleanup target database if we created it
+        // Cleanup target database if we created it
         if (databaseCreated && targetDbName && createDbUrl) {
             cleanupPromises.push(
                 cleanupTargetDatabase(targetDbName, createDbUrl, jobId, sourceUrl, targetUrl)

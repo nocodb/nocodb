@@ -411,10 +411,7 @@ export const useBases = defineStore('basesStore', () => {
         newViewId !== oldViewId
       )
 
-      if (!showProjectList.value && shouldShowProjectList) {
-        showProjectList.value = shouldShowProjectList
-        return
-      }
+      if (showProjectList.value === shouldShowProjectList) return
 
       showProjectList.value = shouldShowProjectList
     },

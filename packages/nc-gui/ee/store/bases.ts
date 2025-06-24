@@ -454,10 +454,7 @@ export const useBases = defineStore('basesStore', () => {
         newAutomationId !== oldAutomationId
       )
 
-      if (!showProjectList.value && shouldShowProjectList) {
-        showProjectList.value = shouldShowProjectList
-        return
-      }
+      if (showProjectList.value === shouldShowProjectList) return
 
       showProjectList.value = shouldShowProjectList
     },

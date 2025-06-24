@@ -131,6 +131,12 @@ export class TelemetryService {
         message: string
         error_details?: any
         affected_resources?: string[]
+      - event_type: payment_alert
+        payment_type: 'payment_triggered' | 'payment_succeeded' | 'upgrade_started' | 'schema_migrating' | 'upgrade_completed' | 'upgrade_failed'
+        message: string
+        user: { id: string; email: string }
+        workspace: { title: string; id: string }
+        extra?: object
   */
   public async sendSystemEvent({
     event_type,

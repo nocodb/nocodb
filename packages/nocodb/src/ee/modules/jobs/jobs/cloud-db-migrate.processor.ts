@@ -107,6 +107,8 @@ export class CloudDbMigrateProcessor {
         }
 
         if (status === 'completed') {
+          await DbServer.incrementTenantCount(dbServer.id);
+
           await Workspace.update(workspaceId, {
             fk_db_instance_id: dbServer.id,
             db_job_id: null,

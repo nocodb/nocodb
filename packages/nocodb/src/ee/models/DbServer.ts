@@ -164,7 +164,9 @@ export default class DbServer {
       RootScopes.ROOT,
       MetaTable.DB_SERVERS,
       {
-        current_tenant_count: () => 'current_tenant_count + 1',
+        current_tenant_count: ncMeta.knexConnection.raw(
+          'current_tenant_count + 1',
+        ),
       },
       dbServerId,
     );
@@ -184,7 +186,9 @@ export default class DbServer {
       RootScopes.ROOT,
       MetaTable.DB_SERVERS,
       {
-        current_tenant_count: () => 'GREATEST(current_tenant_count - 1, 0)',
+        current_tenant_count: ncMeta.knexConnection.raw(
+          'GREATEST(current_tenant_count - 1, 0)',
+        ),
       },
       dbServerId,
     );

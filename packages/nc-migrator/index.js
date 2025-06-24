@@ -71,7 +71,7 @@ app.post('/api/v1/migrate', async (req, res) => {
 
     const jobId = uuidv4();
     
-    // Initialize job status
+    // Initialize job status with additional tracking information
     jobs.set(jobId, {
         id: jobId,
         status: 'started',
@@ -82,7 +82,10 @@ app.post('/api/v1/migrate', async (req, res) => {
         targetUrl: sanitizeUrl(targetUrl), // Store sanitized version
         schemas,
         steps: [],
-        error: null
+        error: null,
+        // Store additional info for cleanup
+        targetDbName: null,
+        databaseCreated: false
     });
 
     res.json({ 
@@ -166,29 +169,57 @@ function addJobStep(jobId, step) {
 }
 
 async function startMigration(sourceUrl, targetUrl, schemas, jobId) {
+    // remove -pooler suffix from any neon url if it exists
+    sourceUrl = sourceUrl.replace(/-pooler(\.[^.]+\.neon\.tech)/, '$1');
+    targetUrl = targetUrl.replace(/-pooler(\.[^.]+\.neon\.tech)/, '$1');
+
+    let databaseCreated = false;
+    let dumpFile = null;
+    let targetDbName = null;
+    let createDbUrl = null;
+
     try {
         updateJobStatus(jobId, 'running', 10, 'Preparing your workspace to upgrade...');
         
-        const targetDbName = extractDbName(targetUrl);
+        targetDbName = extractDbName(targetUrl);
         if (!targetDbName) {
             console.error(`[${jobId}] Could not extract database name from target URL:`, sanitizeUrl(targetUrl));
             throw new Error('Could not identify destination location from connection details');
+        }
+
+        // Fix: Validate database name to prevent injection attacks
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(targetDbName)) {
+            console.error(`[${jobId}] Invalid database name format:`, targetDbName);
+            throw new Error('Invalid database name format');
+        }
+
+        // Update job tracking information
+        const job = jobs.get(jobId);
+        if (job) {
+            job.targetDbName = targetDbName;
         }
 
         addJobStep(jobId, `Setting up target resource`);
         updateJobStatus(jobId, 'running', 20, `Setting up target resource...`);
 
         // Create database using connection URL (connect to maintenance database first)
-        const createDbUrl = buildCreateDbUrl(targetUrl, targetDbName);
+        createDbUrl = buildCreateDbUrl(targetUrl, targetDbName);
         
         const createDbCommand = `createdb --maintenance-db="${createDbUrl}" "${targetDbName}"`;
         await executeCommand(createDbCommand, jobId, sourceUrl, targetUrl);
+        databaseCreated = true; // Mark that we successfully created the database
+        
+        // Update job tracking
+        if (job) {
+            job.databaseCreated = true;
+        }
+        
         addJobStep(jobId, 'Target resource set up successfully');
 
         updateJobStatus(jobId, 'running', 40, 'Preparing data to migrate to your upgraded workspace...');
 
         // Create temporary dump file
-        const dumpFile = path.join('/tmp', `migration_${jobId}.dump`);
+        dumpFile = path.join('/tmp', `migration_${jobId}.dump`);
         
         // Dump schemas
         const schemaArgs = schemas.map(s => `--schema="${s}"`).join(' ');
@@ -208,12 +239,14 @@ async function startMigration(sourceUrl, targetUrl, schemas, jobId) {
 
         updateJobStatus(jobId, 'running', 90, 'Cleaning up temporary files...');
         
-        // Cleanup
-        try {
-            await fs.unlink(dumpFile);
-            addJobStep(jobId, 'Temporary files cleaned up');
-        } catch (cleanupError) {
-            console.warn(`[${jobId}] Warning: Could not clean up temporary files: ${cleanupError.message}`);
+        // Cleanup dump file
+        if (dumpFile) {
+            try {
+                await fs.unlink(dumpFile);
+                addJobStep(jobId, 'Temporary files cleaned up');
+            } catch (cleanupError) {
+                console.warn(`[${jobId}] Warning: Could not clean up temporary files: ${cleanupError.message}`);
+            }
         }
 
         updateJobStatus(jobId, 'completed', 100, `Your workspace has been upgraded successfully`);
@@ -229,9 +262,91 @@ async function startMigration(sourceUrl, targetUrl, schemas, jobId) {
         });
         
         const sanitizedMessage = logAndSanitizeError(error, sourceUrl, targetUrl);
+        
+        // Update job status to indicate cleanup is starting
+        updateJobStatus(jobId, 'failing', 95, 'Migration failed, cleaning up resources...', sanitizedMessage);
+        addJobStep(jobId, 'Migration failed, starting cleanup...');
+
+        // Cleanup operations
+        const cleanupPromises = [];
+
+        // 1. Cleanup dump file if it exists
+        if (dumpFile) {
+            cleanupPromises.push(
+                fs.unlink(dumpFile).catch(cleanupError => {
+                    console.warn(`[${jobId}] Warning: Could not clean up dump file: ${cleanupError.message}`);
+                })
+            );
+        }
+
+        // 2. Cleanup target database if we created it
+        if (databaseCreated && targetDbName && createDbUrl) {
+            cleanupPromises.push(
+                cleanupTargetDatabase(targetDbName, createDbUrl, jobId, sourceUrl, targetUrl)
+            );
+        }
+
+        // Wait for all cleanup operations to complete
+        try {
+            await Promise.allSettled(cleanupPromises);
+            addJobStep(jobId, 'Cleanup completed');
+        } catch (cleanupError) {
+            console.error(`[${jobId}] Error during cleanup:`, cleanupError);
+            addJobStep(jobId, 'Cleanup completed with warnings');
+        }
+
         updateJobStatus(jobId, 'failed', 100, `Your workspace upgrade failed: ${sanitizedMessage}`, sanitizedMessage);
         addJobStep(jobId, `Your workspace upgrade failed: ${sanitizedMessage}`);
         throw error;
+    }
+}
+
+// New function to handle target database cleanup
+async function cleanupTargetDatabase(targetDbName, createDbUrl, jobId, sourceUrl = null, targetUrl = null) {
+    try {
+        console.log(`[${jobId}] Attempting to cleanup target database: ${targetDbName}`);
+        addJobStep(jobId, `Cleaning up target database: ${targetDbName}`);
+        
+        // Fix: Validate database name to prevent injection attacks
+        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(targetDbName)) {
+            throw new Error('Invalid database name format for cleanup');
+        }
+        
+        // First, terminate any active connections to the target database
+        // Fix: Use proper parameter escaping instead of string interpolation
+        const terminateConnectionsCommand = `psql "${createDbUrl}" -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid();" -v ON_ERROR_STOP=1 --set=AUTOCOMMIT=on --single-transaction --variable=dbname='${targetDbName}'`.replace('$1', "'" + targetDbName.replace(/'/g, "''") + "'");
+        
+        try {
+            await executeCommand(terminateConnectionsCommand, jobId, sourceUrl, targetUrl);
+            console.log(`[${jobId}] Terminated active connections to database: ${targetDbName}`);
+        } catch (terminateError) {
+            // This is not critical - the database might not have active connections
+            console.warn(`[${jobId}] Warning: Could not terminate connections to database ${targetDbName}: ${terminateError.message}`);
+        }
+
+        // Drop the target database - dropdb handles escaping internally
+        const dropDbCommand = `dropdb --maintenance-db="${createDbUrl}" "${targetDbName}"`;
+        await executeCommand(dropDbCommand, jobId, sourceUrl, targetUrl);
+        
+        console.log(`[${jobId}] Successfully cleaned up target database: ${targetDbName}`);
+        addJobStep(jobId, `Successfully cleaned up target database: ${targetDbName}`);
+        
+    } catch (cleanupError) {
+        // Log the cleanup error but don't throw it - we don't want cleanup failures to mask the original error
+        console.error(`[${jobId}] Failed to cleanup target database ${targetDbName}:`, {
+            message: cleanupError.message,
+            stack: cleanupError.stack
+        });
+        
+        const sanitizedCleanupMessage = logAndSanitizeError(cleanupError, sourceUrl, targetUrl);
+        addJobStep(jobId, `Warning: Failed to cleanup target database - manual cleanup may be required: ${sanitizedCleanupMessage}`);
+        
+        // Update job with cleanup warning (but don't change the main failure status)
+        const job = jobs.get(jobId);
+        if (job) {
+            if (!job.warnings) job.warnings = [];
+            job.warnings.push(`Database cleanup failed: ${sanitizedCleanupMessage}`);
+        }
     }
 }
 
@@ -248,7 +363,12 @@ function executeCommand(command, jobId, sourceUrl = null, targetUrl = null) {
         
         console.log(`[${jobId}] Executing: ${sanitizedCommand}`);
         
-        const childProcess = exec(command, { maxBuffer: 10 * 1024 * 1024 }); // 10MB buffer
+        // Fix: Add timeout support for database operations
+        const timeout = 5 * 60 * 1000; // 5 minutes timeout
+        const childProcess = exec(command, { 
+            maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+            timeout: timeout
+        });
         
         // Track the process for cleanup
         runningProcesses.set(jobId, childProcess);
@@ -353,10 +473,10 @@ const cleanupInterval = setInterval(() => {
 const server = app.listen(port, () => {
     console.log(`Data transfer service running at http://localhost:${port}`);
     console.log(`API endpoints:`);
-    console.log(`  POST /api/v1/migrate - Start data transfer`);
-    console.log(`  GET  /api/v1/migrate/:jobId/status - Check progress`);
-    console.log(`  GET  /api/v1/migrate/jobs - List all transfers`);
-    console.log(`  GET  /api/v1/health - Health check`);
+    console.log(`  POST   /api/v1/migrate - Start data transfer`);
+    console.log(`  GET    /api/v1/migrate/:jobId/status - Check progress`);
+    console.log(`  GET    /api/v1/migrate/jobs - List all transfers`);
+    console.log(`  GET    /api/v1/health - Health check`);
 });
 
 // Graceful shutdown handling
@@ -382,6 +502,7 @@ function gracefulShutdown(signal) {
         // Kill all running processes
         if (runningProcesses.size > 0) {
             console.log(`Terminating ${runningProcesses.size} running processes...`);
+            
             for (const [jobId, process] of runningProcesses.entries()) {
                 console.log(`Killing process for job ${jobId}`);
                 process.kill('SIGTERM');

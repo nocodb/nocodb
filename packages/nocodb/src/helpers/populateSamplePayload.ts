@@ -96,9 +96,9 @@ export async function populateSamplePayloadV2(
   const samplePayload = {
     type: `${scope}.after.${operation}`,
     id: uuidv4(),
-    ...(includeUser &&
-      isEE &&
-      sampleUser && { user: sanitizeUserForHook(sampleUser) }),
+    ...(includeUser && isEE && sampleUser
+      ? { user: sanitizeUserForHook(sampleUser) }
+      : {}),
     data: {
       table_id: model.id,
       table_name: model.title,

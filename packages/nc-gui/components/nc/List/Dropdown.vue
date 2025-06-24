@@ -54,9 +54,7 @@ const onEsc = (e: KeyboardEvent) => {
   <NcDropdown v-model:visible="vModelIsOpen" :disabled="disabled">
     <div
       v-if="defaultSlotWrapper"
-      :tabindex="!disabled ? -1 : undefined"
-      ref="triggerRef"
-      class="border-1 rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none !outline-none focus:!outline-none !ring-0"
+      class="border-1 rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none"
       :class="[
         defaultSlotWrapperClass,
         {
@@ -70,9 +68,23 @@ const onEsc = (e: KeyboardEvent) => {
         },
       ]"
     >
+      <button
+        ref="triggerRef"
+        type="button"
+        tabindex="-1"
+        class="sr-only outline-none ring-0 shadow-none focus:(outline-none shadow-none)"
+      ></button>
+
       <slot name="default" :is-open="vModelIsOpen"> </slot>
     </div>
-    <div v-else tabindex="-1" ref="triggerRef" class="!outline-none !focus:outline-none !ring-0" :class="defaultSlotWrapperClass">
+    <div v-else :class="defaultSlotWrapperClass">
+      <button
+        ref="triggerRef"
+        type="button"
+        tabindex="-1"
+        class="sr-only outline-none ring-0 shadow-none focus:(outline-none shadow-none)"
+      ></button>
+
       <slot name="default" :is-open="vModelIsOpen"> </slot>
     </div>
 

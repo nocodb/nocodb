@@ -58,6 +58,11 @@ const shouldSkipAuditsScroll = ref(false)
 function initLoadMoreAudits() {
   shouldSkipAuditsScroll.value = true
   loadMoreAudits()
+
+  // Restore focus to the modal container to ensure escape key handling works
+  nextTick(() => {
+    document.querySelector('.nc-drawer-expanded-form.active > div[tabindex="0"]')?.focus?.()
+  })
 }
 
 watch(

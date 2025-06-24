@@ -572,6 +572,8 @@ export class McpService {
         },
       );
 
+      /*
+      TODO: Enable once audit is ready
       server.tool(
         'readAuditLogs',
         {
@@ -591,7 +593,7 @@ export class McpService {
         async ({ tableId, rowId, limit = 25, offset = 0 }) => {
           limit = Math.max(1, Math.min(limit || 25, 1000));
           try {
-            const audits = await this.auditService.auditOnlyList({
+            const audits = await this.auditService.recordAuditList({
               query: {
                 row_id: rowId,
                 fk_model_id: tableId,
@@ -617,7 +619,7 @@ export class McpService {
             };
           }
         },
-      );
+      );*/
     }
   }
 }

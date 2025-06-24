@@ -21,7 +21,6 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 const isForm = inject(IsFormInj)!
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
-const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 
 const inputRef = ref<HTMLInputElement>()
 const vModel = useVModel(props, 'modelValue', emits)

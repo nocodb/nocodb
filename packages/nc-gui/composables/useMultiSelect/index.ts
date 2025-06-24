@@ -261,7 +261,7 @@ export function useMultiSelect(
 
           const textToCopy = valueToCopy(rowObj, columnObj)
 
-          await copy(textToCopy)
+          await copy(isValidValue(textToCopy) ? textToCopy : '')
           message.toast(
             t(`msg.toast.nCellCopied`, {
               n: 1,

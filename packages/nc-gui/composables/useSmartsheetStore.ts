@@ -147,7 +147,6 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         }
       }
 
-      console.log('searchQuery', searchQuery)
       if (!isValidValue(searchQuery)) return ''
 
       return searchQuery ?? ''

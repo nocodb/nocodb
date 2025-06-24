@@ -4,7 +4,6 @@ import AbstractColumnHelper, {
 import { parseProp } from '~/lib/helperFunctions';
 import { ColumnHelper } from '../column-helper';
 import { ComputedTypePasteError } from '~/lib/error';
-import { serializeStringValue } from '../utils';
 
 export class FormulaHelper extends AbstractColumnHelper {
   columnDefaultMeta = {

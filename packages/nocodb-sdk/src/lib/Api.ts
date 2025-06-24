@@ -14312,6 +14312,31 @@ export class Api<
       }),
 
     /**
+     * @description AI Completion
+     *
+     * @tags Ai
+     * @name Completion
+     * @summary AI Completion
+     * @request POST:/api/v2/ai/bases/{baseId}/completion
+     * @response `200` `object` OK
+     */
+    completion: (
+      baseId: IdType,
+      data: {
+        schema?: object;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v2/ai/bases/${baseId}/completion`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description AI Schema
      *
      * @tags Ai

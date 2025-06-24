@@ -316,6 +316,8 @@ export default defineNuxtConfig({
         '@floating-ui/vue',
         'validator',
         '@stripe/stripe-js',
+        'monacopilot',
+        'esbuild-wasm'
       ],
       esbuildOptions: {
         define: {

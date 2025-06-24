@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import * as monaco from 'monaco-editor'
 import { Pane, Splitpanes } from 'splitpanes'
+import { registerCompletion } from 'monacopilot'
 import { TypeGenerator } from '~/components/smartsheet/automation/scripts/utils/TypeGenerator'
 
 const editorRef = ref<HTMLDivElement | null>(null)
@@ -8,6 +9,12 @@ const editorRef = ref<HTMLDivElement | null>(null)
 let editor: monaco.editor.IStandaloneCodeEditor
 
 const { activeAutomation, activeBaseSchema } = storeToRefs(useAutomationStore())
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const { appInfo } = useGlobal()
+
+const isAIFeatureEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_FEATURES))
 
 const { libCode, code, config, configValue, isSettingsOpen, shouldShowSettings, isCreateEditScriptAllowed } =
   useScriptStoreOrThrow()
@@ -21,6 +28,8 @@ const updateTypes = () => {
     { content: libCode.value ?? '' },
   ])
 }
+
+const { completeScript } = useNocoAi()
 
 async function setupMonacoEditor() {
   if (!editorRef.value) return
@@ -57,7 +66,7 @@ async function setupMonacoEditor() {
     autoIndent: 'full',
     automaticLayout: true,
     suggestOnTriggerCharacters: true,
-    wordBasedSuggestions: 'allDocuments',
+    wordBasedSuggestions: 'currentDocument',
     quickSuggestions: true,
     tabCompletion: 'on',
     parameterHints: {
@@ -68,10 +77,27 @@ async function setupMonacoEditor() {
       bottom: 6,
     },
     overviewRulerBorder: false,
-    renderIndentGuides: false,
     wrappingStrategy: 'advanced',
     renderLineHighlight: 'none',
   })
+
+  if (isAIFeatureEnabled.value) {
+    registerCompletion(monaco, editor, {
+      language: 'typescript',
+      endpoint: appInfo.value?.ncSiteUrl,
+      allowFollowUpCompletions: true,
+      requestHandler: async ({ body }) => {
+        const res = await completeScript({
+          ...body,
+          schema: activeBaseSchema.value,
+        })
+        const processedCompletion = res.completion.trim().replace(/\t/g, '    ') // Convert tabs to spaces
+        return {
+          completion: processedCompletion,
+        }
+      },
+    })
+  }
 
   editor.onDidChangeModelContent(() => {
     code.value = editor.getValue()

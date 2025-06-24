@@ -82,18 +82,33 @@ export const replaceConfigValues = (scriptContent: string, configValues: Record<
         switch (value.type) {
           case 'table': {
             const table = base.getTable(value.value)
+            if (!table) {
+              return
+            }
             config[key] = table
             break
           }
           case 'view': {
             const table = base.getTable(value.tableId)
+            if (!table) {
+              return
+            }
             const view = table.getView(value.value)
+            if (!view) {
+              return
+            }
             config[key] = view
             break
           }
           case 'field': {
             const table = base.getTable(value.tableId)
+            if (!table) {
+              return
+            }
             const field = table.getField(value.value)
+            if (!field) {
+              return
+            }
             config[key] = field
             break
           }

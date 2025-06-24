@@ -673,6 +673,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                           <template #overlay>
                             <NcMenu variant="small">
                               <PermissionsTooltip
+                                v-if="hasEditPermission && !isPublic && !isSyncedTable"
                                 :entity="PermissionEntity.TABLE"
                                 :entity-id="meta?.id"
                                 :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -680,7 +681,6 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                               >
                                 <template #default="{ isAllowed }">
                                   <NcMenuItem
-                                    v-if="hasEditPermission && !isPublic && !isSyncedTable"
                                     v-e="['c:kanban:add-new-record']"
                                     data-testid="nc-kanban-context-menu-add-new-record"
                                     :disabled="!isAllowed"
@@ -980,6 +980,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                 </span>
                               </div>
                               <PermissionsTooltip
+                                v-if="isUIAllowed('dataInsert') && !isSyncedTable"
                                 :entity="PermissionEntity.TABLE"
                                 :entity-id="meta?.id"
                                 :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -987,7 +988,6 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                               >
                                 <template #default="{ isAllowed }">
                                   <NcButton
-                                    v-if="isUIAllowed('dataInsert') && !isSyncedTable"
                                     size="xs"
                                     type="secondary"
                                     :disabled="!isAllowed"
@@ -1221,6 +1221,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
             </NcMenuItem>
             <NcDivider />
             <PermissionsTooltip
+              v-if="contextMenuTarget"
               :entity="PermissionEntity.TABLE"
               :entity-id="meta?.id"
               :permission="PermissionKey.TABLE_RECORD_DELETE"
@@ -1228,7 +1229,6 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
             >
               <template #default="{ isAllowed }">
                 <NcMenuItem
-                  v-if="contextMenuTarget"
                   v-e="['a:kanban:delete-record']"
                   :class="{
                     '!text-red-600 !hover:bg-red-50': isAllowed,

@@ -77,6 +77,7 @@ const showCol = (col: ColumnType) => {
       >
         <template #title>{{ $t('msg.info.fieldReadonly') }}</template>
         <PermissionsTooltip
+          v-if="col.title"
           class="w-full"
           :tooltip-style="{ zIndex: '1049' }"
           :entity="PermissionEntity.FIELD"
@@ -89,7 +90,6 @@ const showCol = (col: ColumnType) => {
         >
           <template #default="{ isAllowed }">
             <SmartsheetDivDataCell
-              v-if="col.title"
               class="flex-1 bg-white px-1 min-h-8 flex items-center relative"
               :class="{
                 'w-full': props.forceVerticalMode,

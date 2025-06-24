@@ -823,17 +823,14 @@ export default {
                   </div>
                 </NcMenuItem>
                 <PermissionsTooltip
+                  v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
                   :entity="PermissionEntity.TABLE"
                   :entity-id="meta?.id"
                   :permission="PermissionKey.TABLE_RECORD_ADD"
                   placement="right"
                 >
                   <template #default="{ isAllowed }">
-                    <NcMenuItem
-                      v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
-                      :disabled="!isAllowed"
-                      @click="!isNew ? onDuplicateRow() : () => {}"
-                    >
+                    <NcMenuItem :disabled="!isAllowed" @click="!isNew ? onDuplicateRow() : () => {}">
                       <div
                         v-e="['c:row-expand:duplicate']"
                         class="flex gap-2 items-center"
@@ -855,6 +852,7 @@ export default {
                   "
                 />
                 <PermissionsTooltip
+                  v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
                   :entity="PermissionEntity.TABLE"
                   :entity-id="meta?.id"
                   :permission="PermissionKey.TABLE_RECORD_DELETE"
@@ -862,7 +860,6 @@ export default {
                 >
                   <template #default="{ isAllowed }">
                     <NcMenuItem
-                      v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
                       :class="{
                         '!text-red-500 !hover:bg-red-50': isAllowed,
                       }"

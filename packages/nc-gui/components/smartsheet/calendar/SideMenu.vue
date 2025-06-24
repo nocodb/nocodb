@@ -460,6 +460,7 @@ const selectOption = (option) => {
         <div class="flex-1" />
 
         <PermissionsTooltip
+          v-if="isUIAllowed('dataEdit') && props.visible && !isSyncedTable"
           :entity="PermissionEntity.TABLE"
           :entity-id="meta?.id"
           :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -467,7 +468,6 @@ const selectOption = (option) => {
           show-overlay
         >
           <NcButton
-            v-if="isUIAllowed('dataEdit') && props.visible && !isSyncedTable"
             v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
             data-testid="nc-calendar-side-menu-new-btn"
             class="!h-7 !rounded-md"

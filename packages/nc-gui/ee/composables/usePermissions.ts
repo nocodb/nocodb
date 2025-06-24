@@ -21,6 +21,8 @@ export const usePermissions = () => {
   const baseStore = useBase()
   const { base } = storeToRefs(baseStore)
 
+  const { blockTableAndFieldPermissions } = useEeConfig()
+
   // Use centralized permission options from SDK
   const permissionOptions = PermissionOptions
 
@@ -70,6 +72,11 @@ export const usePermissions = () => {
       userRole?: string
     },
   ) => {
+    // If table and field permissions feature is not enabled, then we allow all permissions
+    if (blockTableAndFieldPermissions.value) {
+      return true
+    }
+
     let currentUserRole = options?.userRole
 
     if (!currentUserRole) {

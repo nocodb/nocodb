@@ -55,6 +55,8 @@ const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
 
 const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
 
+const { blockTableAndFieldPermissions } = useEeConfig()
+
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
 const setAsDisplayValue = async () => {
@@ -568,7 +570,9 @@ const onDeleteColumn = () => {
     </NcMenuItem>
 
     <NcTooltip
-      v-if="isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
+      v-if="
+        isEeUI && !blockTableAndFieldPermissions && isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey
+      "
       :disabled="showEditRestrictedColumnTooltip(column)"
       placement="right"
       :arrow="false"
@@ -762,7 +766,7 @@ const onDeleteColumn = () => {
         :use-meta-fields="meta?.id !== view?.fk_model_id"
       />
       <DlgFieldPermissions
-        v-if="column && meta"
+        v-if="column && meta && isEeUI && !blockTableAndFieldPermissions"
         key="dfp"
         v-model:visible="showFieldPermissionsModal"
         :field-id="column.id!"

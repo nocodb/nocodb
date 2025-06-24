@@ -49,9 +49,9 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockCurrentUserFilter = computed(() => false)
 
-  const blockRowColoring = computed(() => false)
+  const blockRowColoring = computed(() => true)
 
-  const blockTableAndFieldPermissions = computed(() => false)
+  const blockTableAndFieldPermissions = computed(() => true)
 
   const getLimit = (..._args: any[]) => {}
 

@@ -416,7 +416,9 @@ export function constructWebHookData(
     return {
       type: `${scope}.${hook.event}.${hook.operation}`,
       id: uuidv4(),
-      ...(includeUser && isEE && user && { user: sanitizeUserForHook(user) }),
+      ...(includeUser && isEE && user
+        ? { user: sanitizeUserForHook(user) }
+        : {}),
       data: {
         table_id: model.id,
         table_name: model.title,

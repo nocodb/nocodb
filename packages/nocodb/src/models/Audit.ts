@@ -129,15 +129,19 @@ export default class Audit {
       cursor?: string;
     },
   ): Promise<PagedResponseImpl<Audit>> {
-    if (!context.workspace_id || !context.base_id || !fk_model_id || !row_id) {
+    if (!context.base_id || !fk_model_id || !row_id) {
       return new PagedResponseImpl([], {}, { pageInfo: { isLastPage: true } });
     }
 
     const [id, _created_at] = cursor?.split('|') ?? [];
 
-    const query = Noco.ncAudit
-      .knex(MetaTable.AUDIT)
-      .where('fk_workspace_id', context.workspace_id)
+    const query = Noco.ncAudit.knex(MetaTable.AUDIT);
+
+    if (context.workspace_id) {
+      query.where('fk_workspace_id', context.workspace_id);
+    }
+
+    query
       .where('base_id', context.base_id)
       .where('fk_model_id', fk_model_id)
       .where('row_id', row_id)
@@ -190,7 +194,7 @@ export default class Audit {
   ) {
     const offset = (Math.max(1, page ?? 1) - 1) * this.limit;
 
-    if (!context.workspace_id || !context.base_id) {
+    if (!context.base_id) {
       console.error('Invalid context for baseAuditList', context);
       return [];
     }
@@ -213,7 +217,9 @@ export default class Audit {
         },
         xcCondition: {
           _and: [
-            { fk_workspace_id: { eq: context.workspace_id } },
+            ...(context.workspace_id
+              ? [{ fk_workspace_id: { eq: context.workspace_id } }]
+              : []),
             { base_id: { eq: context.base_id } },
             { version: { eq: 1 } },
             ...(user ? [{ user: { eq: user } }] : []),

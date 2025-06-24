@@ -48,7 +48,7 @@ export class CloudDbMigrateProcessor {
 
         await this.telemetryService.sendSystemEvent({
           event_type: 'payment_alert',
-          payment_type: 'upgrade_failed',
+          payment_type: 'migration_failed',
           message: `Database migration failed for workspace ${workspace.title}`,
           workspace: { id: workspace.id, title: workspace.title },
           extra: {
@@ -145,7 +145,7 @@ export class CloudDbMigrateProcessor {
 
       await this.telemetryService.sendSystemEvent({
         event_type: 'payment_alert',
-        payment_type: 'upgrade_started',
+        payment_type: 'migration_started',
         message: `Database migration started for workspace ${workspace.title}`,
         workspace: { id: workspace.id, title: workspace.title },
         extra: {
@@ -190,7 +190,7 @@ export class CloudDbMigrateProcessor {
 
             await this.telemetryService.sendSystemEvent({
               event_type: 'payment_alert',
-              payment_type: 'upgrade_completed',
+              payment_type: 'migration_completed',
               message: `Database migration completed successfully for workspace ${workspace.title}`,
               workspace: { id: workspace.id, title: workspace.title },
               extra: {
@@ -210,7 +210,7 @@ export class CloudDbMigrateProcessor {
             // Send upgrade_failed notification
             await this.telemetryService.sendSystemEvent({
               event_type: 'payment_alert',
-              payment_type: 'upgrade_failed',
+              payment_type: 'migration_failed',
               message: `Database migration failed for workspace ${workspace.title}`,
               workspace: { id: workspace.id, title: workspace.title },
               extra: {
@@ -229,7 +229,7 @@ export class CloudDbMigrateProcessor {
           // Send upgrade_failed notification for status check errors
           await this.telemetryService.sendSystemEvent({
             event_type: 'payment_alert',
-            payment_type: 'upgrade_failed',
+            payment_type: 'migration_n_failed',
             message: `Database migration status check failed for workspace ${workspace.title}: ${statusError.message}`,
             workspace: { id: workspace.id, title: workspace.title },
             extra: {
@@ -253,7 +253,7 @@ export class CloudDbMigrateProcessor {
       if (workspace) {
         await this.telemetryService.sendSystemEvent({
           event_type: 'payment_alert',
-          payment_type: 'upgrade_failed',
+          payment_type: 'migration_failed',
           message: `Database migration failed for workspace ${workspace.title}: ${error.message}`,
           workspace: { id: workspace.id, title: workspace.title },
           extra: {

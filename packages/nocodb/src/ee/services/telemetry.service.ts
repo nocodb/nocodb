@@ -132,7 +132,7 @@ export class TelemetryService {
         error_details?: any
         affected_resources?: string[]
       - event_type: payment_alert
-        payment_type: 'payment_triggered' | 'payment_succeeded' | 'upgrade_started' | 'schema_migrating' | 'upgrade_completed' | 'upgrade_failed'
+        payment_type: 'payment_triggered' | 'payment_succeeded' | 'migration_started' | 'migration_completed' | 'migration_failed'
         message: string
         user: { id: string; email: string }
         workspace: { title: string; id: string }

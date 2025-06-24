@@ -1478,7 +1478,7 @@ export class PaymentService {
           if (workspaceOrOrg) {
             await this.telemetryService.sendSystemEvent({
               event_type: 'payment_alert',
-              payment_type: 'upgrade_failed',
+              payment_type: 'payment_failed',
               message: `Payment failed for ${workspaceOrOrg.title}. No plan applied.`,
               workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
               extra: {

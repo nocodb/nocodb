@@ -126,6 +126,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
           isPg,
           meta: tableMeta,
           metas: metas.value,
+          serializeSearchQuery: true,
         })
       } catch {
         /**
@@ -146,6 +147,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         }
       }
 
+      console.log('searchQuery', searchQuery)
       if (!isValidValue(searchQuery)) return ''
 
       return searchQuery ?? ''

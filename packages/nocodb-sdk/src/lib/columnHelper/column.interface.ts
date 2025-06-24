@@ -82,5 +82,6 @@ export interface SerializerOrParserFnProps {
     isUnderLookup?: boolean;
     rowId?: string | null;
     isMultipleCellPaste?: boolean;
+    serializeSearchQuery?: boolean;
   };
 }

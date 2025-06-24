@@ -194,7 +194,7 @@ export default class Audit {
   ) {
     const offset = (Math.max(1, page ?? 1) - 1) * this.limit;
 
-    if (!context.workspace_id || !context.base_id) {
+    if (!context.base_id) {
       console.error('Invalid context for baseAuditList', context);
       return [];
     }
@@ -217,7 +217,9 @@ export default class Audit {
         },
         xcCondition: {
           _and: [
-            { fk_workspace_id: { eq: context.workspace_id } },
+            ...(context.workspace_id
+              ? [{ fk_workspace_id: { eq: context.workspace_id } }]
+              : []),
             { base_id: { eq: context.base_id } },
             { version: { eq: 1 } },
             ...(user ? [{ user: { eq: user } }] : []),

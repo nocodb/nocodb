@@ -1,7 +1,7 @@
-import { generateObject, type LanguageModel } from 'ai';
+import { generateObject, generateText, type LanguageModel } from 'ai';
 import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import {
-  type AiGenerateObjectArgs,
+  type AiGenerateObjectArgs, type AiGenerateTextArgs,
   AiIntegration,
 } from '@noco-integrations/core';
 
@@ -50,6 +50,52 @@ export class AmazonBedrockAiIntegration extends AiIntegration {
         model: this.model.modelId,
       },
       data: response.object as T,
+    };
+  }
+  
+  public async generateText(args: AiGenerateTextArgs){
+    const { prompt, messages, customModel } = args;
+
+    if (!this.model || customModel) {
+      const config = this.config;
+
+      const model = customModel || config?.models?.[0];
+
+      if (!model) {
+        throw new Error('Integration not configured properly');
+      }
+
+      const apiKey = config.apiKey;
+
+      if (!apiKey) {
+        throw new Error('Integration not configured properly');
+      }
+
+      const customBedrock = createAmazonBedrock({
+        region: config.region,
+        accessKeyId: config.accessKeyId,
+        secretAccessKey: config.secretAccessKey,
+        sessionToken: config.sessionToken,
+      });
+
+      this.model = customBedrock(model) as LanguageModel;
+    }
+
+    const response = await generateText({
+      model: this.model,
+      prompt,
+      messages,
+      temperature: 0.5,
+    });
+
+    return {
+      usage: {
+        input_tokens: response.usage.promptTokens,
+        output_tokens: response.usage.completionTokens,
+        total_tokens: response.usage.totalTokens,
+        model: this.model.modelId,
+      },
+      data: response.text,
     };
   }
 

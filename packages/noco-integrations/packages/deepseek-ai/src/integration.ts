@@ -1,8 +1,9 @@
-import { generateObject, type LanguageModel } from 'ai';
+import { generateObject, generateText, type LanguageModel } from 'ai';
 import { createDeepSeek } from '@ai-sdk/deepseek';
 import {
   type AiGenerateObjectArgs,
-  AiIntegration,
+  type AiGenerateTextArgs,
+  AiIntegration
 } from '@noco-integrations/core';
 
 export class DeepseekAiIntegration extends AiIntegration {
@@ -46,6 +47,50 @@ export class DeepseekAiIntegration extends AiIntegration {
         model: this.model.modelId,
       },
       data: response.object as T,
+    };
+  }
+  
+  public async generateText(args: AiGenerateTextArgs) {
+    const { prompt, messages, customModel, system } = args;
+
+    if (!this.model || customModel) {
+      const config = this.config;
+
+      const model = customModel || config?.models?.[0];
+
+      if (!model) {
+        throw new Error('Integration not configured properly');
+      }
+
+      const apiKey = config.apiKey;
+
+      if (!apiKey) {
+        throw new Error('Integration not configured properly');
+      }
+      
+      const customDeepseek = createDeepSeek({
+        apiKey,
+      });
+
+      this.model = customDeepseek(model) as LanguageModel;
+    }
+
+    const response = await generateText({
+      model: this.model,
+      prompt,
+      messages,
+      system,
+      temperature: 0.5,
+    });
+
+    return {
+      usage: {
+        input_tokens: response.usage.promptTokens,
+        output_tokens: response.usage.completionTokens,
+        total_tokens: response.usage.totalTokens,
+        model: this.model.modelId,
+      },
+      data: response.text,
     };
   }
 

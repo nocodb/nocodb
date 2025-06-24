@@ -332,5 +332,14 @@ export default defineNuxtConfig({
     ],
   },
 
+  nitro: {
+    prerender: {
+      concurrency: 1,
+    },
+  },
+  experimental: {
+    payloadExtraction: true,
+  },
+
   compatibilityDate: '2024-12-04',
 })

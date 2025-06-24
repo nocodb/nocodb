@@ -12,6 +12,8 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
+const { blockTableAndFieldPermissions } = useEeConfig()
+
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -21,6 +23,14 @@ const indicator = h(LoadingOutlined, {
     fontSize: '2rem',
   },
   spin: true,
+})
+
+const shouldShowTab = computed(() => {
+  return {
+    field: isUIAllowed('fieldAdd') && !isSqlView.value,
+    permissions: isEeUI && isUIAllowed('fieldAdd') && !isSqlView.value && !blockTableAndFieldPermissions.value,
+    webhook: isUIAllowed('hookList') && !isSqlView.value,
+  }
 })
 
 const openedSubTab = computed({
@@ -36,12 +46,15 @@ watch(
   [openedSubTab, isBaseRolesLoaded],
   () => {
     // Re-enable this check for first render
+
+    const fieldTabCondition = openedSubTab.value !== 'field' || shouldShowTab.value.field
+    const permissionsTabCondition = openedSubTab.value !== 'permissions' || shouldShowTab.value.permissions
+    const webhookTabCondition = openedSubTab.value !== 'webhook' || shouldShowTab.value.webhook
+
     if (
       // check page access only after base roles are loaded
       isBaseRolesLoaded.value &&
-      ((['field', 'permissions'].includes(openedSubTab.value) && !isUIAllowed('fieldAdd')) ||
-        (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) ||
-        (['field', 'permissions', 'webhook'].includes(openedSubTab.value) && isSqlView.value))
+      (!fieldTabCondition || !webhookTabCondition || !permissionsTabCondition)
     ) {
       onViewsTabChange('relation')
     }
@@ -63,7 +76,7 @@ watch(
     }"
   >
     <NcTabs v-model:active-key="openedSubTab" centered class="nc-details-tab">
-      <a-tab-pane v-if="isUIAllowed('fieldAdd') && !isSqlView" key="field">
+      <a-tab-pane v-if="shouldShowTab.field" key="field">
         <template #tab>
           <div class="tab" data-testid="nc-fields-tab">
             <GeneralIcon icon="ncList" class="tab-icon" :class="{}" />
@@ -72,7 +85,7 @@ watch(
         </template>
         <LazySmartsheetDetailsFields />
       </a-tab-pane>
-      <a-tab-pane v-if="isUIAllowed('fieldAdd') && !isSqlView" key="permissions">
+      <a-tab-pane v-if="shouldShowTab.permissions" key="permissions">
         <template #tab>
           <div class="tab" data-testid="nc-permissions-tab">
             <GeneralIcon icon="ncLock" class="tab-icon" :class="{}" />
@@ -112,7 +125,7 @@ watch(
         </div>
       </a-tab-pane>
 
-      <a-tab-pane v-if="isUIAllowed('hookList') && !isSqlView" key="webhook">
+      <a-tab-pane v-if="shouldShowTab.webhook" key="webhook">
         <template #tab>
           <div class="tab" data-testid="nc-webhooks-tab">
             <GeneralIcon icon="ncWebhook" class="tab-icon" :class="{}" />

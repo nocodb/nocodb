@@ -27,6 +27,8 @@ const { automations } = storeToRefs(automationStore)
 
 const { $e, $api } = useNuxtApp()
 
+const { blockTableAndFieldPermissions } = useEeConfig()
+
 const currentBase = computedAsync(async () => {
   let base
   if (props.baseId) {
@@ -238,7 +240,7 @@ onMounted(() => {
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id" key="permissions">
+        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !blockTableAndFieldPermissions" key="permissions">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />

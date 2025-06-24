@@ -10,9 +10,13 @@ export class LookupHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
   serializeValue(
-    _value: any,
+    value: any,
     params: SerializerOrParserFnProps['params']
-  ): null {
+  ): string | null {
+    if (params.serializeSearchQuery) {
+      return this.parseValue(value, params);
+    }
+
     if (params.isMultipleCellPaste) {
       return undefined;
     } else {

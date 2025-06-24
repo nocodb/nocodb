@@ -1,13 +1,14 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
 import {
+  FormulaDataTypes,
   RelationTypes,
   UITypes,
   dateFormats,
   hideExtraFieldsMetaKey,
   isDateOrDateTimeCol,
   isLinksOrLTAR,
+  isNumericCol,
   isSystemColumn,
-  isVirtualCol,
   ncIsNaN,
   parseStringDateTime,
   timeFormats,
@@ -38,7 +39,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // state
     const { metas, getMeta } = useMetas()
 
-    const { base } = storeToRefs(useBase())
+    const { base, sqlUis } = storeToRefs(useBase())
 
     const { getBaseRoles } = useBases()
 
@@ -113,7 +114,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { sharedView } = useSharedView()
 
-    const { getViewColumns } = useSmartsheetStoreOrThrow()
+    const { getViewColumns, getValidSearchQueryForColumn } = useSmartsheetStoreOrThrow()
 
     const baseId = base.value?.id || (sharedView.value?.view as any)?.base_id
 
@@ -122,8 +123,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const relatedTableMeta = computed<TableType>(() => {
       return metas.value?.[colOptions.value?.fk_related_model_id as string]
     })
-
-    const { sqlUis } = storeToRefs(useBase())
 
     const sqlUi = computed(() =>
       (relatedTableMeta.value as TableType)?.source_id
@@ -347,16 +346,28 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         ...(relatedTableDisplayValueColumn.value ? [relatedTableDisplayValueColumn.value] : []),
         ...(fields.value || []),
       ]
-        .filter((col) => {
-          return !isVirtualCol(col)
-        })
+        .filter((col) => isSearchableColumn(col))
         .map((field: ColumnType): string => {
           let operator = 'like'
           let query = searchQuery.trim()
 
+          const isDateOrDateTime = isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) && isDateOrDateTimeCol(field)
+
+          if (!isDateOrDateTime) {
+            query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value)
+          }
+
+          if (!isValidValue(query)) return ''
+
           if (isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) && isDateOrDateTimeCol(field)) {
             operator = 'eq,exactDate'
-          } else if (sqlUi.value && ['text', 'string'].includes(sqlUi.value.getAbstractType(field)) && field.dt !== 'bigint') {
+          } else if (
+            (field.uidt !== UITypes.Formula || getFormulaColDataType(field) !== FormulaDataTypes.NUMERIC) &&
+            !isNumericCol(field) &&
+            sqlUi.value &&
+            ['text', 'string'].includes(sqlUi.value.getAbstractType(field)) &&
+            field.dt !== 'bigint'
+          ) {
             operator = 'like'
             if (!query) return ''
 

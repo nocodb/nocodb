@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn } from 'nocodb-sdk'
 
 const reloadData = inject(ReloadViewDataHookInj)!
 
@@ -44,14 +43,7 @@ const isSearchResultVisible = computed(() => {
   )
 })
 
-const columns = computed(
-  () =>
-    (meta.value as TableType)?.columns?.filter(
-      (column) =>
-        !isSystemColumn(column) &&
-        ![UITypes.Links, UITypes.Rollup, UITypes.DateTime, UITypes.Date, UITypes.Button].includes(column?.uidt as UITypes),
-    ) ?? [],
-)
+const columns = computed(() => (meta.value as TableType)?.columns?.filter((column) => isSearchableColumn(column)) ?? [])
 
 watch(
   () => activeView.value?.id,

@@ -1,5 +1,5 @@
 import { ColumnHelper } from 'nocodb-sdk'
-import type { type ColumnType, type TableType, UITypes } from 'nocodb-sdk'
+import type { ColumnType, TableType, UITypes } from 'nocodb-sdk'
 
 export const valueToCopy = (
   rowObj: Row,
@@ -20,6 +20,7 @@ export const valueToCopy = (
   if (option?.skipUidt?.includes(columnObj.uidt as UITypes)) {
     return textToCopy
   }
+
   return ColumnHelper.parseValue(textToCopy, {
     col: columnObj,
     isMysql,

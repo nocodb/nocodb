@@ -145,7 +145,9 @@ export default defineNuxtConfig({
         ignoreTryCatch: true,
       },
       minify: true,
-      rollupOptions: {},
+      rollupOptions: {
+        maxParallelFileOps: 1,
+      },
     },
     plugins: [
       VueI18nPlugin({

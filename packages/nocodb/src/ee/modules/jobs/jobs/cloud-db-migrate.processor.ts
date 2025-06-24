@@ -43,6 +43,23 @@ export class CloudDbMigrateProcessor {
         return;
       }
 
+      if (workspace.fk_db_instance_id) {
+        logBasic('Workspace already has a db server');
+
+        await this.telemetryService.sendSystemEvent({
+          event_type: 'payment_alert',
+          payment_type: 'upgrade_failed',
+          message: `Database migration failed for workspace ${workspace.title}`,
+          workspace: { id: workspace.id, title: workspace.title },
+          extra: {
+            job_id: job.id,
+            error_message: 'Already has a db server',
+          },
+        });
+
+        return;
+      }
+
       const dbServers = await DbServer.list({});
 
       if (dbServers.length === 0) {
@@ -50,22 +67,59 @@ export class CloudDbMigrateProcessor {
         return;
       }
 
-      const matchingDbServers = dbServers.filter((dbServer) => {
-        if (!dbServer.conditions) return true;
+      const useDbServers: DbServer[] = [];
 
-        // check if dbServer.conditions is a subset of conditions
-        return Object.keys(dbServer.conditions).every(
-          (key) => conditions[key] === dbServer.conditions[key],
-        );
-      });
+      const matchingDbServers = dbServers
+        .filter((dbServer) => {
+          if (
+            // 0 or null means no limit
+            dbServer.max_tenant_count &&
+            dbServer.current_tenant_count >= dbServer.max_tenant_count
+          ) {
+            return false;
+          }
 
-      if (matchingDbServers.length === 0) {
+          return true;
+        })
+        .filter((dbServer) => {
+          // if dbServer has no conditions, skip
+          if (!dbServer.conditions) return false;
+
+          // check if required conditions are met
+          return Object.keys(conditions).every(
+            (key) => conditions[key] === dbServer.conditions[key],
+          );
+        });
+
+      if (matchingDbServers.length > 0) {
+        useDbServers.push(...matchingDbServers);
+      } else {
+        // check if there is available dbServer with no conditions
+        const availableDbServers = dbServers
+          .filter((dbServer) => {
+            if (
+              dbServer.max_tenant_count &&
+              dbServer.current_tenant_count >= dbServer.max_tenant_count
+            ) {
+              return false;
+            }
+
+            return true;
+          })
+          .filter((dbServer) => !dbServer.conditions);
+
+        if (availableDbServers.length > 0) {
+          useDbServers.push(...availableDbServers);
+        }
+      }
+
+      if (useDbServers.length === 0) {
         logBasic('No matching DbServer found');
         return;
       }
 
       // use dbServer with minimum tenants
-      let dbServer = matchingDbServers.sort(
+      let dbServer = useDbServers.sort(
         (a, b) => a.current_tenant_count - b.current_tenant_count,
       )[0];
 
@@ -80,19 +134,6 @@ export class CloudDbMigrateProcessor {
         db_job_id: `${job.id}`,
       });
 
-      // Send upgrade_started notification
-      await this.telemetryService.sendSystemEvent({
-        event_type: 'payment_alert',
-        payment_type: 'upgrade_started',
-        message: `Database migration started for workspace ${workspace.title}`,
-        workspace: { id: workspace.id, title: workspace.title },
-        extra: {
-          job_id: job.id,
-          db_server_id: dbServer.id,
-          conditions,
-        },
-      });
-
       const bases = await Base.listByWorkspace(workspaceId);
 
       const schemas = bases.map((base) => base.id);
@@ -103,16 +144,16 @@ export class CloudDbMigrateProcessor {
       const dataDbUrl = this.dbConfigToJdbcUrl(dataDbConfig);
       const targetDbUrl = this.dbConfigToJdbcUrl(targetDbConfig, workspaceId);
 
-      // Send schema_migrating notification
       await this.telemetryService.sendSystemEvent({
         event_type: 'payment_alert',
-        payment_type: 'schema_migrating',
-        message: `Schema migration in progress for workspace ${workspace.title} (${schemas.length} schemas)`,
+        payment_type: 'upgrade_started',
+        message: `Database migration started for workspace ${workspace.title}`,
         workspace: { id: workspace.id, title: workspace.title },
         extra: {
           job_id: job.id,
+          db_server_id: dbServer.id,
           schema_count: schemas.length,
-          schemas,
+          conditions,
         },
       });
 
@@ -148,7 +189,6 @@ export class CloudDbMigrateProcessor {
               db_job_id: null,
             });
 
-            // Send upgrade_completed notification
             await this.telemetryService.sendSystemEvent({
               event_type: 'payment_alert',
               payment_type: 'upgrade_completed',

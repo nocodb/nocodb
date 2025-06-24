@@ -73,22 +73,14 @@ export class DbServerController {
     return updatedDbServer;
   }
 
-  @Post('/internal/db-server/:dbServerId/workspace/:workspaceId/migrate')
+  @Post('/internal/db-server/workspace/:workspaceId/migrate')
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async migrate(
-    @Param('dbServerId') dbServerId: string,
     @Param('workspaceId') workspaceId: string,
     @Body() body: { conditions?: Record<string, string> },
   ) {
-    const dbServer = await DbServer.getWithConfig(dbServerId);
-    if (!dbServer) NcError.genericNotFound('DbServer', dbServerId);
-
     const workspace = await Workspace.get(workspaceId);
     if (!workspace) NcError.genericNotFound('Workspace', workspaceId);
-
-    if (workspace.fk_db_instance_id === dbServerId) {
-      NcError.badRequest('Workspace already has this db server');
-    }
 
     const job = await this.jobsService.add(JobTypes.CloudDbMigrate, {
       workspaceId,

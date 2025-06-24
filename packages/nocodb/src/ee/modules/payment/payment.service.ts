@@ -1534,7 +1534,7 @@ export class PaymentService {
 
           await this.telemetryService.sendSystemEvent({
             event_type: 'payment_alert',
-            payment_type: 'payment_triggered',
+            payment_type: 'subscription_created',
             message: `Subscription created for ${workspaceOrOrg.title} (${stripeSub.metadata.plan_title})`,
             workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
             extra: {

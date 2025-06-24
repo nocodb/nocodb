@@ -211,12 +211,12 @@ export class CloudDbMigrateProcessor {
             await this.telemetryService.sendSystemEvent({
               event_type: 'payment_alert',
               payment_type: 'upgrade_failed',
-              message: `Database migration failed for workspace ${workspace.title}: ${message}`,
+              message: `Database migration failed for workspace ${workspace.title}`,
               workspace: { id: workspace.id, title: workspace.title },
               extra: {
                 job_id: job.id,
                 migrator_job_id: jobId,
-                error_message: message,
+                error_message: message?.slice(0, 255),
                 progress,
               },
             });
@@ -235,7 +235,7 @@ export class CloudDbMigrateProcessor {
             extra: {
               job_id: job.id,
               migrator_job_id: jobId,
-              error_message: statusError.message,
+              error_message: statusError.message?.slice(0, 255),
               error_type: 'status_check_failed',
             },
           });

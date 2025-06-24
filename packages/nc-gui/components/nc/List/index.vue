@@ -367,10 +367,7 @@ defineExpose({
               },
             ]"
           >
-            <div
-              v-bind="wrapperProps"
-              :class="wrapperClassName"
-            >
+            <div v-bind="wrapperProps" :class="wrapperClassName">
               <NcTooltip
                 v-for="{ data: option, index: idx } in virtualList"
                 :key="idx"

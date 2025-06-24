@@ -22,8 +22,6 @@ const { t } = useI18n()
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 
-const workspaceStore = useWorkspace()
-
 const { activeTables } = storeToRefs(useTablesStore())
 
 const { getPermissionSummaryLabel } = usePermissions()

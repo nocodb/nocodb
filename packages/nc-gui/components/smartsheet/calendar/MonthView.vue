@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type dayjs from 'dayjs'
-import { UITypes, PermissionEntity, PermissionKey } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 
 const emit = defineEmits(['newRecord', 'expandRecord'])
 

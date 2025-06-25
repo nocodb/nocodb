@@ -130,8 +130,8 @@ const usersToShow = computed(() => {
       <template #overlay>
         <PermissionsUserSelectorList
           ref="userSelectorListRef"
-          :open="isDropdownOpen"
           v-model:selected-users="selectedUsers"
+          :open="isDropdownOpen"
           :base-id="baseId"
           :permission-label="permissionLabel"
           :permission-description="permissionDescription"

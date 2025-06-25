@@ -606,20 +606,18 @@ const handleOpenNewRecordForm = () => {
         :permission="PermissionKey.TABLE_RECORD_ADD"
         show-overlay
       >
-        <template #default="{ isAllowed }">
-          <NcButton
-            v-if="isUIAllowed('dataInsert') && !isSyncedTable"
-            size="xs"
-            type="secondary"
-            class="ml-4"
-            @click="handleOpenNewRecordForm"
-          >
-            <div class="flex items-center gap-2">
-              <component :is="iconMap.plus" class="" />
-              {{ $t('activity.newRecord') }}
-            </div>
-          </NcButton>
-        </template>
+        <NcButton
+          v-if="isUIAllowed('dataInsert') && !isSyncedTable"
+          size="xs"
+          type="secondary"
+          class="ml-4"
+          @click="handleOpenNewRecordForm"
+        >
+          <div class="flex items-center gap-2">
+            <component :is="iconMap.plus" class="" />
+            {{ $t('activity.newRecord') }}
+          </div>
+        </NcButton>
       </PermissionsTooltip>
     </div>
   </div>

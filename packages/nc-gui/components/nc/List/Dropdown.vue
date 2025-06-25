@@ -65,7 +65,7 @@ const vModelIsOpen = computed({
     <slot v-else name="default" :is-open="vModelIsOpen"> </slot>
 
     <template #overlay>
-      <slot name="overlay" :isOpen="vModelIsOpen" :onClose="() => (vModelIsOpen = false)"></slot>
+      <slot name="overlay" :is-open="vModelIsOpen" :on-close="() => (vModelIsOpen = false)"></slot>
     </template>
   </NcDropdown>
 </template>

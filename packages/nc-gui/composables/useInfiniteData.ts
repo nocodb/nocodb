@@ -433,8 +433,6 @@ export function useInfiniteData(args: {
       const data = formatData(response.list, response.pageInfo, params, path, getEvaluatedRowMetaRowColorInfo)
 
       loadAggCommentsCount(data, path)
-      await syncCount(path, false)
-      callbacks?.reloadAggregate?.({ path })
 
       return data
     } catch (error: any) {
@@ -686,7 +684,9 @@ export function useInfiniteData(args: {
     dataCache.cachedRows.value = newCachedRows
 
     dataCache.totalRows.value = Math.max(0, (dataCache.totalRows.value || 0) - invalidIndexes.length)
+    dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - invalidIndexes.length)
     callbacks?.syncVisibleData?.()
+    callbacks?.reloadAggregate?.({ path })
   }
 
   const willSortOrderChange = ({
@@ -1107,6 +1107,7 @@ export function useInfiniteData(args: {
       }
 
       dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
+      dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
       await syncCount(path)
       callbacks?.syncVisibleData?.()
     } catch (e: any) {
@@ -1195,9 +1196,11 @@ export function useInfiniteData(args: {
               tempTotalRows: number,
               tempChunkStates: Array<'loading' | 'loaded' | undefined>,
               path: Array<number>,
+              tempActualTotalRows: number,
             ) => {
               dataCache.cachedRows.value = new Map(tempLocalCache)
               dataCache.totalRows.value = tempTotalRows
+              dataCache.actualTotalRows.value = tempActualTotalRows
               dataCache.chunkStates.value = tempChunkStates
 
               await deleteRowById(id, undefined, path)
@@ -1210,6 +1213,7 @@ export function useInfiniteData(args: {
                 }
               }
               dataCache.totalRows.value = dataCache.totalRows.value! - 1
+              dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
               callbacks?.syncVisibleData?.()
             },
             args: [
@@ -1218,6 +1222,7 @@ export function useInfiniteData(args: {
               clone(dataCache.totalRows.value),
               clone(dataCache.chunkStates.value),
               clone(path),
+              clone(dataCache.actualTotalRows.value),
             ],
           },
           redo: {
@@ -1229,9 +1234,11 @@ export function useInfiniteData(args: {
               tempChunkStates: Array<'loading' | 'loaded' | undefined>,
               rowID: string,
               path: Array<number>,
+              tempActualTotalRows: number,
             ) => {
               dataCache.cachedRows.value = new Map(tempLocalCache)
               dataCache.totalRows.value = tempTotalRows
+              dataCache.actualTotalRows.value = tempActualTotalRows
               dataCache.chunkStates.value = tempChunkStates
 
               row.row = { ...pkData, ...row.row }
@@ -1257,6 +1264,7 @@ export function useInfiniteData(args: {
               clone(dataCache.chunkStates.value),
               clone(beforeRowID),
               clone(path),
+              clone(dataCache.actualTotalRows.value),
             ],
           },
           scope: defineViewScope({ view: viewMeta.value }),
@@ -1346,9 +1354,11 @@ export function useInfiniteData(args: {
               previousCache: Map<number, Row>,
               tempTotalRows: number,
               path: Array<number>,
+              tempActualTotalRows: number,
             ) => {
               dataCache.cachedRows.value = new Map(previousCache)
               dataCache.totalRows.value = tempTotalRows
+              dataCache.actualTotalRows.value = tempActualTotalRows
 
               await updateRowProperty(
                 { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
@@ -1364,6 +1374,7 @@ export function useInfiniteData(args: {
               clone(new Map(dataCache.cachedRows.value)),
               clone(dataCache.totalRows.value),
               clone(path),
+              clone(dataCache.actualTotalRows.value),
             ],
           },
           redo: {

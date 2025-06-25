@@ -254,7 +254,7 @@ interface Users {
   invitationToken?: string
 }
 
-type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation'
+type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation' | 'permissions'
 
 type NcButtonSize = 'xxsmall' | 'xsmall' | 'small' | 'medium' | 'xs'
 

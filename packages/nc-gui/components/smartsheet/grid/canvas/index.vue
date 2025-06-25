@@ -2662,13 +2662,14 @@ defineExpose({
     </template>
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
       <PermissionsTooltip
+        v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord"
         :entity="PermissionEntity.TABLE"
         :entity-id="meta?.id"
         :permission="PermissionKey.TABLE_RECORD_ADD"
         show-overlay
       >
         <template #default="{ isAllowed }">
-          <NcDropdown v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord" :disabled="!isAllowed">
+          <NcDropdown :disabled="!isAllowed">
             <div class="flex shadow-nc-sm rounded-lg">
               <NcButton
                 v-if="isMobileMode"

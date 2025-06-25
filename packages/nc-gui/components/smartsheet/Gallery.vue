@@ -399,6 +399,7 @@ const handleOpenNewRecordForm = () => {
           </NcMenuItem>
           <NcDivider />
           <PermissionsTooltip
+            v-if="contextMenuTarget?.index !== undefined"
             :entity="PermissionEntity.TABLE"
             :entity-id="meta?.id"
             :permission="PermissionKey.TABLE_RECORD_DELETE"
@@ -406,7 +407,6 @@ const handleOpenNewRecordForm = () => {
           >
             <template #default="{ isAllowed }">
               <NcMenuItem
-                v-if="contextMenuTarget?.index !== undefined"
                 :class="{
                   '!text-red-600 !hover:bg-red-50': isAllowed,
                 }"
@@ -600,16 +600,14 @@ const handleOpenNewRecordForm = () => {
       </div>
     </NcDropdown>
     <div class="sticky bottom-4 w-[fit-content]">
-      <PermissionsTooltip :entity="PermissionEntity.TABLE" :entity-id="meta?.id" :permission="PermissionKey.TABLE_RECORD_ADD">
+      <PermissionsTooltip
+        v-if="isUIAllowed('dataInsert') && !isSyncedTable"
+        :entity="PermissionEntity.TABLE"
+        :entity-id="meta?.id"
+        :permission="PermissionKey.TABLE_RECORD_ADD"
+      >
         <template #default="{ isAllowed }">
-          <NcButton
-            v-if="isUIAllowed('dataInsert') && !isSyncedTable"
-            size="xs"
-            type="secondary"
-            class="ml-4"
-            :disabled="!isAllowed"
-            @click="handleOpenNewRecordForm"
-          >
+          <NcButton size="xs" type="secondary" class="ml-4" :disabled="!isAllowed" @click="handleOpenNewRecordForm">
             <div class="flex items-center gap-2">
               <component :is="iconMap.plus" class="" />
               {{ $t('activity.newRecord') }}

@@ -105,6 +105,10 @@ const contextMenuPath = computed(() => {
     : contextMenuTarget.value?.path
 })
 
+const isContextMenuTargetValid = computed(() => {
+  return contextMenuCol.value !== null && contextMenuRow.value !== null && contextMenuPath.value !== null
+})
+
 const selectedRows = computed(() => {
   if (!contextMenuPath.value) return []
   const dataCache = getDataCache(contextMenuPath.value)
@@ -247,6 +251,7 @@ const execBulkAction = async (path: Array<number>) => {
       </NcMenuItem>
 
       <PermissionsTooltip
+        v-if="contextMenuCol == null && !isDataReadOnly && contextMenuPath !== null && selectedRows.length"
         :entity="PermissionEntity.TABLE"
         :entity-id="meta?.id"
         :permission="PermissionKey.TABLE_RECORD_DELETE"
@@ -254,7 +259,6 @@ const execBulkAction = async (path: Array<number>) => {
       >
         <template #default="{ isAllowed }">
           <NcMenuItem
-            v-if="contextMenuCol == null && !isDataReadOnly && contextMenuPath !== null && selectedRows.length"
             key="selete-selected-rows"
             class="nc-base-menu-item"
             :class="{
@@ -277,6 +281,7 @@ const execBulkAction = async (path: Array<number>) => {
       </PermissionsTooltip>
     </template>
     <PermissionsTooltip
+      v-if="vSelectedAllRecords && !isGroupBy"
       :entity="PermissionEntity.TABLE"
       :entity-id="meta?.id"
       :permission="PermissionKey.TABLE_RECORD_DELETE"
@@ -284,7 +289,6 @@ const execBulkAction = async (path: Array<number>) => {
     >
       <template #default="{ isAllowed }">
         <NcMenuItem
-          v-if="vSelectedAllRecords && !isGroupBy"
           key="delete-all-rows"
           class="nc-base-menu-item"
           :class="{
@@ -328,7 +332,7 @@ const execBulkAction = async (path: Array<number>) => {
         </template>
       </PermissionsTooltip>
       <PermissionsTooltip
-        v-if="contextMenuCol !== null && contextMenuRow !== null && contextMenuPath !== null"
+        v-if="contextMenuCol !== null && contextMenuRow !== null && contextMenuPath !== null && !isInsertBelowDisabled"
         :entity="PermissionEntity.TABLE"
         :entity-id="meta?.id"
         :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -336,7 +340,6 @@ const execBulkAction = async (path: Array<number>) => {
       >
         <template #default="{ isAllowed }">
           <NcMenuItem
-            v-if="!isInsertBelowDisabled"
             key="insert-below"
             class="nc-base-menu-item"
             data-testid="context-menu-item-add-below"
@@ -496,6 +499,7 @@ const execBulkAction = async (path: Array<number>) => {
     <template v-if="hasEditPermission && !isDataReadOnly">
       <NcDivider v-if="!(!contextMenuCol !== null && (selectedRows.length || vSelectedAllRecords))" />
       <PermissionsTooltip
+        v-if="contextMenuPath !== null && contextMenuCol !== null && contextMenuRow != null"
         :entity="PermissionEntity.TABLE"
         :entity-id="meta?.id"
         :permission="PermissionKey.TABLE_RECORD_DELETE"
@@ -503,12 +507,7 @@ const execBulkAction = async (path: Array<number>) => {
       >
         <template #default="{ isAllowed }">
           <NcMenuItem
-            v-if="
-              contextMenuPath !== null &&
-              contextMenuCol !== null &&
-              contextMenuRow != null &&
-              (selection.isSingleCell() || selection.isSingleRow())
-            "
+            v-if="selection.isSingleCell() || selection.isSingleRow()"
             key="delete-row"
             class="nc-base-menu-item"
             :class="{
@@ -524,7 +523,7 @@ const execBulkAction = async (path: Array<number>) => {
             </div>
           </NcMenuItem>
           <NcMenuItem
-            v-else-if="contextMenuCol !== null && contextMenuRow !== null && contextMenuPath"
+            v-else
             key="delete-selected-row"
             class="nc-base-menu-item"
             :class="{

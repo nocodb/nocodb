@@ -909,5 +909,3 @@ textarea:focus {
   }
 }
 </style>
-
-<style lang="scss"></style>

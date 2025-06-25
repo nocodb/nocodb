@@ -26,8 +26,6 @@ const isDropdownOpen = ref(false)
 
 const containerRef = ref<HTMLElement | null>(null)
 
-const tagRefs = ref<HTMLElement[]>([])
-
 const baseUsers = computed(() => {
   return basesUser.value.get(props.baseId) || []
 })
@@ -41,8 +39,6 @@ const selectedUsersList = computed(() => {
 
 const visibleUsers = ref<User[]>([])
 const hiddenCount = ref(0)
-
-const tagMaxWidth = computed(() => {})
 
 async function calculateVisibleUsers() {
   await nextTick()
@@ -157,9 +153,8 @@ watch(selectedUsersList, () => {
         <div v-else ref="containerRef" class="flex items-center flex-1 overflow-hidden">
           <!-- Show first few users as tags -->
           <a-tag
-            v-for="(user, index) of visibleUsers"
+            v-for="user of visibleUsers"
             :key="user?.id"
-            ref="el => tagRefs.value[index] = el"
             class="rounded-tag !pl-0"
             color="'#ccc'"
             :class="{

@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import type { TableType } from 'nocodb-sdk'
-
 interface Props {
   visible: boolean
   baseId: string

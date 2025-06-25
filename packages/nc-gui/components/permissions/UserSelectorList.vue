@@ -137,7 +137,7 @@ defineExpose({
     :list="roleFilteredUsers"
     option-label-key="email"
     option-value-key="id"
-    :item-height="54"
+    :item-height="52"
     search-input-placeholder="Search user"
     is-multi-select
     show-search-always

@@ -1261,7 +1261,7 @@ export function useCanvasTable({
     }
 
     if (column.id && !isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)) {
-      message.info('You do not have permission to edit this field')
+      message.toast('You do not have permission to edit this field')
       return null
     }
 

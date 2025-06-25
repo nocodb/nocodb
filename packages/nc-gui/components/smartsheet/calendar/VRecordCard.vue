@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
   dragging: false,
 })
 
-const emit = defineEmits(['resize-start'])
+const emit = defineEmits(['resizeStart'])
 
 const rowColorInfo = computed(() => {
   return extractRowBackgroundColorStyle(props.record as Row)
@@ -49,7 +49,7 @@ const rowColorInfo = computed(() => {
     <div
       v-if="resize"
       class="absolute w-full h-1 z-20 top-0 cursor-row-resize"
-      @mousedown.stop="emit('resize-start', 'left', $event, record)"
+      @mousedown.stop="emit('resizeStart', 'left', $event, record)"
     ></div>
     <div
       :class="{
@@ -84,7 +84,7 @@ const rowColorInfo = computed(() => {
     <div
       v-if="resize"
       class="absolute cursor-row-resize w-full bottom-0 w-full h-1"
-      @mousedown.stop="emit('resize-start', 'right', $event, record)"
+      @mousedown.stop="emit('resizeStart', 'right', $event, record)"
     ></div>
   </div>
 </template>

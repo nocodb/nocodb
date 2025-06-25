@@ -46,7 +46,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
       >
         {{ $t('activity.markAllAsRead') }}
       </div>
-      <NcTabs v-model:activeKey="notificationTab">
+      <NcTabs v-model:active-key="notificationTab">
         <a-tab-pane key="unread">
           <template #tab>
             <span

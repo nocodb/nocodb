@@ -11,8 +11,8 @@ interface Props {
 interface Emit {
   'update:activeItem': (hookLog: HookLogType) => void
   'reload': () => void
-  'page-size-change': (pageSize: number) => void
-  'page-change': (page: number) => void
+  'pageSizeChange': (pageSize: number) => void
+  'pageChange': (page: number) => void
 }
 
 defineProps<Props>()
@@ -47,8 +47,8 @@ const emit = defineEmits<Emit>()
         :page-size="logPaginationData.pageSize"
         :total="+logPaginationData.totalRows"
         show-less-items
-        @update:page-size="emit('page-size-change', $event)"
-        @update:current="emit('page-change', $event)"
+        @update:page-size="emit('pageSizeChange', $event)"
+        @update:current="emit('pageChange', $event)"
       />
     </div>
   </div>

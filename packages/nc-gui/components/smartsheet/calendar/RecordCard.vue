@@ -21,7 +21,7 @@ const props = withDefaults(defineProps<Props>(), {
   dragging: false,
 })
 
-const emit = defineEmits(['resize-start'])
+const emit = defineEmits(['resizeStart'])
 
 const rowColorInfo = computed(() => {
   return extractRowBackgroundColorStyle(props.record as Row)
@@ -74,7 +74,7 @@ const rowColorInfo = computed(() => {
     <div
       v-if="(position === 'leftRounded' || position === 'rounded') && resize"
       class="mt-0.7 w-2 h-7.1 -left-1 absolute resize"
-      @mousedown.stop="emit('resize-start', 'left', $event, record)"
+      @mousedown.stop="emit('resizeStart', 'left', $event, record)"
     ></div>
 
     <div class="overflow-hidden items-center justify-center gap-2 flex w-full">
@@ -107,7 +107,7 @@ const rowColorInfo = computed(() => {
     <div
       v-if="(position === 'rightRounded' || position === 'rounded') && resize"
       class="absolute mt-0.3 h-7.1 w-2 right-0 resize"
-      @mousedown.stop="emit('resize-start', 'right', $event, record)"
+      @mousedown.stop="emit('resizeStart', 'right', $event, record)"
     ></div>
   </div>
 </template>

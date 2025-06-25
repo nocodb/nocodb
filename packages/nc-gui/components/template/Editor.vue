@@ -904,7 +904,7 @@ function getErrorByTableName(tableName: string) {
 
       <a-collapse
         v-if="data.tables && data.tables.length"
-        v-model:activeKey="expansionPanel"
+        v-model:active-key="expansionPanel"
         class="template-collapse !rounded-lg !overflow-hidden"
         accordion
         expand-icon-position="right"
@@ -1091,7 +1091,7 @@ function getErrorByTableName(tableName: string) {
       <a-form ref="formRef" :model="data" name="template-editor-form" @keydown.enter="emit('import')">
         <a-collapse
           v-if="data.tables && data.tables.length"
-          v-model:activeKey="expansionPanel"
+          v-model:active-key="expansionPanel"
           class="template-collapse !rounded-lg !overflow-hidden"
           accordion
           expand-icon-position="right"

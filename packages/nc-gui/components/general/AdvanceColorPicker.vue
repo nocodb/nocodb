@@ -112,7 +112,7 @@ watch(
 
 <template>
   <div class="nc-advance-color-picker w-[336px] pt-2" click.stop>
-    <NcTabs v-model:activeKey="isDefaultColorTab" class="nc-advance-color-picker-tab w-full">
+    <NcTabs v-model:active-key="isDefaultColorTab" class="nc-advance-color-picker-tab w-full">
       <a-tab-pane key="true">
         <template #tab>
           <div class="tab" data-testid="nc-default-colors-tab">{{ $t('labels.defaultColours') }}</div>

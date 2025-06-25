@@ -62,7 +62,7 @@ watch(
       'nc-details-tab-left-sidebar-close': !isLeftSidebarOpen,
     }"
   >
-    <NcTabs v-model:activeKey="openedSubTab" centered class="nc-details-tab">
+    <NcTabs v-model:active-key="openedSubTab" centered class="nc-details-tab">
       <a-tab-pane v-if="isUIAllowed('fieldAdd') && !isSqlView" key="field">
         <template #tab>
           <div class="tab" data-testid="nc-fields-tab">

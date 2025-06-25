@@ -1219,8 +1219,6 @@ export function useCanvasTable({
   function makeCellEditable(row: number | Row, clickedColumn: CanvasGridColumn, showEditCellRestrictionTooltip = true) {
     const column = metaColumnById.value[clickedColumn.id]
 
-    console.log('makeCellEditable', showEditCellRestrictionTooltip, clickedColumn)
-
     row = typeof row === 'number' ? cachedRows.value.get(row)! : row
 
     if (!row || !column) return null

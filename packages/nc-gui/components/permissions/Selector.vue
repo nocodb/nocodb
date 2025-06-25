@@ -6,6 +6,7 @@ const props = defineProps<{
   base: BaseType
   config: PermissionConfig
   mode?: 'inline' | 'full'
+  horizontal?: boolean
   selectWidth?: string
 }>()
 
@@ -122,8 +123,8 @@ const mode = computed(() => props.mode || 'full')
 
 <template>
   <div v-if="mode === 'full'">
-    <div class="flex flex-col gap-1">
-      <label class="text-sm font-medium text-nc-content-gray-subtle mb-1">
+    <div class="flex gap-1" :class="horizontal ? 'flex-row items-center gap-3' : 'flex-col'">
+      <label class="text-sm font-medium text-nc-content-gray-subtle" :class="horizontal ? 'flex-1' : 'mb-1'">
         {{ permissionLabel }}
       </label>
 

@@ -14,6 +14,7 @@ const visible = useVModel(props, 'visible', emits)
 const { $e } = useNuxtApp()
 
 const baseStore = useBase()
+const { navigateToProjectPage } = baseStore
 const { base } = storeToRefs(baseStore)
 
 // Permission configuration for field edit
@@ -25,6 +26,11 @@ const editPermissionConfig: PermissionConfig = {
 
 const handlePermissionSave = () => {
   $e('a:field:permissions')
+}
+
+const onNavigateToPermissionsOverview = () => {
+  navigateToProjectPage({ page: 'permissions' })
+  visible.value = false
 }
 </script>
 
@@ -55,7 +61,11 @@ const handlePermissionSave = () => {
       </div>
 
       <div class="space-y-6">
-        <PermissionsSelector :base="base" :config="editPermissionConfig" @save="handlePermissionSave" />
+        <PermissionsSelector :base="base" :config="editPermissionConfig" horizontal @save="handlePermissionSave" />
+      </div>
+
+      <div class="flex justify-end mt-6">
+        <NcButton type="ghost" size="small" @click="onNavigateToPermissionsOverview">Go to Permissions Overview</NcButton>
       </div>
     </div>
   </GeneralModal>

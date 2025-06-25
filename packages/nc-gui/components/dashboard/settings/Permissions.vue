@@ -49,27 +49,27 @@ const columns = [
     title: t('general.name'),
     name: 'Name',
     width: 320,
-    padding: '0px 12px',
+    padding: '0px 32px',
   },
   {
     key: 'create_records',
     title: 'Create records',
     name: 'Create records',
     padding: '0px 12px',
-    minWidth: 150,
+    justify: 'justify-center',
   },
   {
     key: 'delete_records',
     title: 'Delete records',
     name: 'Delete records',
-    minWidth: 150,
     padding: '0px 12px',
+    justify: 'justify-center',
   },
   {
-    key: 'field_permissions',
-    title: 'Field Permissions',
-    name: 'Field Permissions',
-    minWidth: 150,
+    key: 'context_actions',
+    title: '',
+    name: '',
+    justify: 'justify-end',
     padding: '0px 12px',
   },
 ] as NcTableColumnProps[]
@@ -92,6 +92,14 @@ const getTableData = (): (TableType & { type: string })[] => {
   }
 
   return data
+}
+
+const onRowClick = (record: TableType & { type: string }) => {
+  if (!record?.id) return
+
+  if (record.type === 'table') {
+    openFieldPermissionsModal(record.id!)
+  }
 }
 
 // Watch for reload prop changes
@@ -150,6 +158,7 @@ watch(
         row-height="44px"
         header-row-height="44px"
         class="nc-base-permissions flex-1"
+        @row-click="onRowClick"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="record.type === 'table'">
@@ -168,10 +177,7 @@ watch(
                   {{ record?.title }}
                 </NcTooltip>
               </div>
-              <div
-                v-else-if="record.type === 'field_permissions'"
-                class="w-full flex items-center gap-3 max-w-full text-gray-600 pl-6"
-              >
+              <div v-else-if="record.type === 'context_actions'" class="w-full flex gap-3 max-w-full text-gray-600 pl-6">
                 <GeneralIcon icon="ncLock" class="flex-none h-4 w-4" />
                 <span class="text-sm">{{ record.title }}</span>
               </div>
@@ -179,7 +185,7 @@ watch(
 
             <!-- Create Records Column -->
             <template v-if="column.key === 'create_records'">
-              <div v-if="record.type === 'table'" class="w-full flex items-center gap-2">
+              <div v-if="record.type === 'table'" class="w-full flex justify-center gap-2">
                 <PermissionsInlineTableSelector
                   :base="base!"
                   :table-id="record.id"
@@ -191,7 +197,7 @@ watch(
 
             <!-- Delete Records Column -->
             <template v-if="column.key === 'delete_records'">
-              <div v-if="record.type === 'table'" class="w-full flex items-center gap-2">
+              <div v-if="record.type === 'table'" class="w-full flex justify-center gap-2">
                 <PermissionsInlineTableSelector
                   :base="base!"
                   :table-id="record.id"
@@ -201,15 +207,23 @@ watch(
               </div>
             </template>
 
-            <!-- Field Permissions Column -->
-            <template v-if="column.key === 'field_permissions'">
-              <div v-if="record.type === 'table'" class="w-full flex items-center gap-2">
-                <NcButton size="small" type="text" @click="openFieldPermissionsModal(record.id)">
-                  <div class="flex items-center gap-2 text-primary">
-                    <GeneralIcon icon="ncEdit" class="flex-none h-4 w-4" />
-                    <span class="text-sm">Modify</span>
-                  </div>
-                </NcButton>
+            <template v-if="column.key === 'context_actions'">
+              <div v-if="record.type === 'table'" class="w-full flex justify-end gap-2">
+                <NcDropdown>
+                  <NcButton size="small" type="secondary" @click.stop>
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="threeDotVertical" class="flex-none h-4 w-4" />
+                    </div>
+                  </NcButton>
+                  <template #overlay>
+                    <NcMenu variant="small">
+                      <NcMenuItem @click="openFieldPermissionsModal(record.id)">
+                        <GeneralIcon icon="ncMaximize2" class="flex-none h-4 w-4" />
+                        <span>View field permissions</span>
+                      </NcMenuItem>
+                    </NcMenu>
+                  </template>
+                </NcDropdown>
               </div>
             </template>
           </template>

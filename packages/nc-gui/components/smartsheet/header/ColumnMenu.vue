@@ -761,6 +761,7 @@ const onDeleteColumn = () => {
         v-model:visible="showFieldPermissionsModal"
         :field-id="column.id!"
         :field-title="column.title!"
+        :field-uidt="column.uidt!"
       />
     </div>
   </NcMenu>

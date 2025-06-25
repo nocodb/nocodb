@@ -5,6 +5,7 @@ const props = defineProps<{
   visible: boolean
   fieldId: string
   fieldTitle: string
+  fieldUidt: string
 }>()
 
 const emits = defineEmits(['update:visible'])
@@ -48,25 +49,27 @@ const onNavigateToPermissionsOverview = () => {
     class="!w-[30rem]"
     @keydown.esc="visible = false"
   >
-    <div>
-      <div class="flex items-center justify-between mb-6">
-        <div class="text-base text-nc-content-gray-emphasis leading-6 font-bold">Field permissions</div>
-        <NcButton type="text" size="small" @click="visible = false">
-          <GeneralIcon icon="close" class="w-4 h-4" />
-        </NcButton>
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <GeneralIcon icon="lock" class="w-5 h-5 flex items-center" />
+          <div class="text-nc-content-gray-subtle2 font-bold">Field permissions</div>
+          <div class="flex items-center bg-nc-bg-gray-medium px-1 gap-1 rounded-md">
+            <component :is="getUIDTIcon(fieldUidt || 'SingleLineText')" class="flex-none h-4 w-4 text-nc-content-gray-subtle" />
+            <div>{{ fieldTitle }}</div>
+          </div>
+        </div>
       </div>
 
-      <div class="text-sm text-nc-content-gray-muted mb-6">
-        Limit who can edit the <span class="font-semibold">{{ fieldTitle }}</span> field
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <PermissionsSelector :base="base" :config="editPermissionConfig" @save="handlePermissionSave" />
+        </div>
       </div>
+    </div>
 
-      <div class="space-y-6">
-        <PermissionsSelector :base="base" :config="editPermissionConfig" horizontal @save="handlePermissionSave" />
-      </div>
-
-      <div class="flex justify-end mt-6">
-        <NcButton type="ghost" size="small" @click="onNavigateToPermissionsOverview">Go to Permissions Overview</NcButton>
-      </div>
+    <div class="flex justify-end mt-6">
+      <NcButton type="ghost" size="small" @click="onNavigateToPermissionsOverview">Go to Permissions Overview</NcButton>
     </div>
   </GeneralModal>
 </template>

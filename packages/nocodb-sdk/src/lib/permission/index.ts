@@ -100,18 +100,18 @@ export const PermissionRoleMap = {
 export const PermissionMeta = {
   [PermissionKey.TABLE_RECORD_ADD]: {
     minimumRole: PermissionRole.EDITOR,
-    label: 'Who can create records?',
+    label: 'Who can create records in this table',
     description: 'can create records',
   },
   [PermissionKey.TABLE_RECORD_DELETE]: {
     minimumRole: PermissionRole.EDITOR,
-    label: 'Who can delete records?',
+    label: 'Who can delete records in this table',
     description: 'can delete records',
   },
   [PermissionKey.RECORD_FIELD_EDIT]: {
     minimumRole: PermissionRole.EDITOR,
-    label: 'Who can edit this field?',
-    description: 'can edit this field',
+    label: 'Who can edit records in this field',
+    description: 'can edit records',
   },
 }
 

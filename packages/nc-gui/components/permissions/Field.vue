@@ -30,6 +30,13 @@ const customFieldPermissionsCount = computed(() => {
 // NcTable columns configuration
 const fieldPermissionsColumns = [
   {
+    key: 'field_modified',
+    title: '',
+    name: '',
+    width: 30,
+    justify: 'justify-end',
+  },
+  {
     key: 'field_name',
     title: 'Field Name',
     name: 'Field Name',
@@ -55,22 +62,37 @@ const fieldPermissionsData = computed(() => {
     field_title: field.title,
   }))
 })
+
+const isFieldModified = (fieldId: string) => {
+  const editPermissions = permissionsByEntity.value[`field_${fieldId}`] || []
+  const hasEditPermissions = editPermissions.find((p) => p.permission === PermissionKey.RECORD_FIELD_EDIT)
+  return hasEditPermissions
+}
+
+const { $e } = useNuxtApp()
+
+const handlePermissionSave = () => {
+  $e('a:field:permissions')
+}
 </script>
 
 <template>
-  <div class="border-t border-gray-200 pt-6">
+  <div class="border-t border-nc-border-gray-light pt-6">
     <div class="flex items-center justify-between mb-4">
-      <h3 class="text-lg text-nc-content-gray-subtle2 leading-6 font-bold">Field Permissions</h3>
-      <div class="flex items-center gap-4">
-        <span class="text-sm text-blue-600">
-          {{ customFieldPermissionsCount }}/{{ visibleFields.length }} fields have custom permissions
-        </span>
+      <h3 class="text-nc-content-gray-subtle2 leading-6 font-bold">Field Permissions</h3>
+      <div class="flex items-center gap-2">
+        <template v-if="customFieldPermissionsCount > 0">
+          <div class="text-primary">•</div>
+          <span class="text-sm text-nc-content-gray-subtle">
+            {{ customFieldPermissionsCount }}/{{ visibleFields.length }} fields have custom permissions
+          </span>
+        </template>
         <slot name="actions" />
       </div>
     </div>
 
     <!-- Field Permissions Table -->
-    <div class="border border-gray-200 rounded-lg overflow-hidden px-4">
+    <div class="border border-nc-border-gray-medium rounded-lg overflow-hidden">
       <NcTable
         :is-data-loading="false"
         :columns="fieldPermissionsColumns"
@@ -81,6 +103,11 @@ const fieldPermissionsData = computed(() => {
         class="nc-field-permissions-table"
       >
         <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'field_modified'">
+            <div class="flex w-full">
+              <div v-if="isFieldModified(record.field_id!)" class="text-primary">•</div>
+            </div>
+          </template>
           <template v-if="column.key === 'field_name'">
             <div class="flex items-center gap-3">
               <component :is="getUIDTIcon(record.field_icon || '')" class="flex-none h-4 w-4 text-nc-content-gray-subtle" />
@@ -97,6 +124,7 @@ const fieldPermissionsData = computed(() => {
               :field-title="record.field_title!"
               :permission-type="PermissionKey.RECORD_FIELD_EDIT"
               :current-value="getPermissionSummaryLabel('field', record.field_id!, PermissionKey.RECORD_FIELD_EDIT)"
+              @save="handlePermissionSave"
             />
           </template>
         </template>
@@ -107,10 +135,10 @@ const fieldPermissionsData = computed(() => {
 
 <style scoped>
 :deep(.nc-table-header) {
-  background-color: #f8fafc;
+  @apply bg-nc-bg-gray-light;
 }
 
 :deep(.nc-table-row:hover) {
-  background-color: #f8fafc;
+  @apply bg-nc-bg-gray-light;
 }
 </style>

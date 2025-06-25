@@ -9,12 +9,14 @@ interface Props {
    * Class to be applied to the default slot wrapper.
    */
   defaultSlotWrapperClass?: string
+  disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isOpen: undefined,
   defaultSlotWrapper: true,
   defaultSlotWrapperClass: '',
+  disabled: false,
 })
 
 const emits = defineEmits(['update:isOpen'])
@@ -39,15 +41,16 @@ const vModelIsOpen = computed({
 </script>
 
 <template>
-  <NcDropdown v-model:visible="vModelIsOpen">
+  <NcDropdown v-model:visible="vModelIsOpen" :disabled="disabled">
     <div
       v-if="defaultSlotWrapper"
-      class="flex-1 border-1 border-nc-gray-medium rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all cursor-pointer select-none"
+      class="flex-1 border-1 border-nc-gray-medium rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none"
       :class="[
         defaultSlotWrapperClass,
         {
-          'border-brand-500 shadow-selected': vModelIsOpen,
-          'shadow-default hover:shadow-hover': !vModelIsOpen,
+          'cursor-pointer': !disabled,
+          'border-brand-500 shadow-selected': vModelIsOpen && !disabled,
+          'shadow-default hover:shadow-hover': !vModelIsOpen && !disabled,
         },
       ]"
     >
@@ -56,7 +59,7 @@ const vModelIsOpen = computed({
     <slot v-else name="default" :is-open="vModelIsOpen"> </slot>
 
     <template #overlay>
-      <slot name="overlay" :isOpen="vModelIsOpen"></slot>
+      <slot name="overlay" :isOpen="vModelIsOpen" :onClose="() => (vModelIsOpen = false)"></slot>
     </template>
   </NcDropdown>
 </template>

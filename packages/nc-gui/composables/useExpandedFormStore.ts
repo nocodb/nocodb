@@ -1,5 +1,13 @@
 import type { AuditType, ColumnType, MetaType, PlanLimitExceededDetailsType, TableType } from 'nocodb-sdk'
-import { PlanLimitTypes, ViewTypes, isReadOnlyColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  PermissionEntity,
+  PermissionKey,
+  PlanLimitTypes,
+  ViewTypes,
+  isReadOnlyColumn,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 
@@ -65,6 +73,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const { isUIAllowed } = useRoles()
 
     const { handleUpgradePlan, isPaymentEnabled } = useEeConfig()
+
+    const { isAllowed } = usePermissions()
+
+    const isAllowedAddNewRecord = computed(() => {
+      return meta.value?.id && isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD)
+    })
+
+    const getIsAllowedEditField = (fieldId: string) => {
+      return fieldId && isAllowed(PermissionEntity.FIELD, fieldId, PermissionKey.RECORD_FIELD_EDIT)
+    }
 
     // getters
     const displayValue = computed(() => {
@@ -774,6 +792,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       fieldsFromParent,
       fields,
       hiddenFields,
+      isAllowedAddNewRecord,
+      getIsAllowedEditField,
+      meta,
     }
   },
   'expanded-form-store',

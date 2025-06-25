@@ -1661,7 +1661,7 @@ export function useInfiniteData(args: {
     return false
   }
 
-  async function syncCount(path: Array<number> = [], throwError = true): Promise<void> {
+  async function syncCount(path: Array<number> = []): Promise<void> {
     if (!isPublic?.value && (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id)) return
 
     const dataCache = getDataCache(path)
@@ -1710,14 +1710,8 @@ export function useInfiniteData(args: {
       callbacks?.syncVisibleData?.()
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)
-
-      if (throwError) {
-        message.error(`Failed to sync count: ${errorMessage}`)
-
-        throw error
-      } else {
-        console.error(`Failed to sync count: ${errorMessage}`)
-      }
+      message.error(`Failed to sync count: ${errorMessage}`)
+      throw error
     }
   }
 

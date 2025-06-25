@@ -101,9 +101,10 @@ watch(
         <PermissionsModalContent
           v-if="meta?.id"
           :table-id="meta.id"
-          class="!p-4"
+          class="!px-4 !pb-4"
           permissions-table-wrapper-class="max-w-250"
           permissions-field-wrapper-class="max-w-250 !top-4"
+          permissions-table-toolbar-class-name="pt-4"
           style="height: calc(100vh - (var(--topbar-height) * 2))"
         />
       </a-tab-pane>

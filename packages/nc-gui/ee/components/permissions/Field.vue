@@ -4,6 +4,7 @@ import type { TableType } from 'nocodb-sdk'
 
 interface Props {
   tableData: TableType
+  tableToolbarClassName?: string
 }
 
 const props = defineProps<Props>()
@@ -77,7 +78,10 @@ const handlePermissionSave = () => {
     :data="fieldPermissionsData"
     :bordered="false"
     row-height="56px"
+    disable-table-scroll
+    force-sticky-header
     header-row-height="44px"
+    :table-toolbar-class-name="tableToolbarClassName"
     class="nc-field-permissions-table flex-1"
   >
     <template #tableToolbar>

@@ -13,6 +13,7 @@ interface Props {
   bordered?: boolean
   isDataLoading?: boolean
   stickyHeader?: boolean
+  forceStickyHeader?: boolean
   stickyFirstColumn?: boolean
   disableTableScroll?: boolean
   headerRowClassName?: string
@@ -36,6 +37,7 @@ const props = withDefaults(defineProps<Props>(), {
   bordered: true,
   isDataLoading: false,
   stickyHeader: true,
+  forceStickyHeader: false,
   disableTableScroll: false,
   headerRowClassName: '',
   bodyRowClassName: '',
@@ -217,7 +219,16 @@ watch(
     }"
   >
     <template v-if="$slots.tableToolbar">
-      <div ref="tableToolbarRef" class="nc-table-toolbar pb-4" :class="tableToolbarClassName">
+      <div
+        ref="tableToolbarRef"
+        class="nc-table-toolbar pb-4"
+        :class="[
+          tableToolbarClassName,
+          {
+            'sticky z-5 top-0 bg-white': forceStickyHeader,
+          },
+        ]"
+      >
         <slot name="tableToolbar" />
       </div>
     </template>
@@ -239,6 +250,10 @@ watch(
         class="w-full max-w-full"
         :class="{
           '!sticky top-0 z-5': stickyHeader && !disableTableScroll,
+          '!sticky z-5': forceStickyHeader,
+        }"
+        :style="{
+          ...(forceStickyHeader ? { top: `${tableToolbarHeight}px` } : {}),
         }"
       >
         <thead>

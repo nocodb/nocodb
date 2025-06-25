@@ -5,6 +5,7 @@ interface Props {
   tableId: string
   permissionsFieldWrapperClass?: string
   permissionsTableWrapperClass?: string
+  permissionsTableToolbarClassName?: string
 }
 
 const props = defineProps<Props>()
@@ -48,8 +49,8 @@ defineExpose({
 </script>
 
 <template>
-  <div class="flex-1 p-6 nc-scrollbar-thin relative w-full h-full flex flex-col gap-8">
-    <div v-if="isLoading" class="flex items-center justify-center py-8">
+  <div class="flex-1 px-6 pb-6 nc-scrollbar-thin relative w-full h-full flex flex-col gap-8">
+    <div v-if="isLoading" class="flex items-center justify-center py-8 mt-6">
       <GeneralLoader size="large" />
     </div>
 
@@ -57,7 +58,7 @@ defineExpose({
       <PermissionsTable
         :table-id="tableId"
         :base="base"
-        class="!gap-4 min-w-[540px] mx-auto w-full"
+        class="!gap-4 min-w-[540px] mx-auto w-full mt-6"
         :class="permissionsTableWrapperClass"
         placement="bottomLeft"
       >
@@ -71,8 +72,8 @@ defineExpose({
         </template>
       </PermissionsTable>
 
-      <div class="flex h-full sticky top-6 min-w-[540px] mx-auto w-full" :class="permissionsFieldWrapperClass">
-        <PermissionsField :table-data="tableData">
+      <div class="flex min-w-[540px] mx-auto w-full" :class="permissionsFieldWrapperClass">
+        <PermissionsField :table-data="tableData" :table-toolbar-class-name="permissionsTableToolbarClassName">
           <template #actions>
             <!-- <NcButton type="secondary" size="small">
                         <div class="flex items-center gap-2">

@@ -188,6 +188,8 @@ const generateOptionsCoalesce = () => {
 };
 
 export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
+  return {};
+  // TODO: Optimize the Query
   const key = `${CacheScope.BASE_SCHEMA}:${context.base_id}`;
 
   const baseSchema = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);

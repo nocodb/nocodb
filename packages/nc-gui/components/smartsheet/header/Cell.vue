@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, UITypesName, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import {
+  UITypes,
+  UITypesName,
+  partialUpdateAllowedTypes,
+  readonlyMetaAllowedTypes,
+  PermissionEntity,
+  PermissionKey,
+} from 'nocodb-sdk'
 
 interface Props {
   column: ColumnType
@@ -9,6 +16,7 @@ interface Props {
   hideIcon?: boolean
   hideIconTooltip?: boolean
   isHiddenCol?: boolean
+  showLockIcon?: boolean
 }
 
 const props = defineProps<Props>()
@@ -37,11 +45,19 @@ const column = toRef(props, 'column')
 
 const { isUIAllowed, isMetaReadOnly } = useRoles()
 
+const { isAllowed } = usePermissions()
+
 provide(ColumnInj, column)
 
 const editColumnDropdown = ref(false)
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
+
+const isAllowedToEditField = computed(() => {
+  if (!props.showLockIcon || !column.value?.id) return true
+
+  return isAllowed(PermissionEntity.FIELD, column.value.id, PermissionKey.RECORD_FIELD_EDIT)
+})
 
 const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
 
@@ -206,6 +222,12 @@ const onClick = (e: Event) => {
       </NcTooltip>
 
       <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
+
+      <GeneralIcon
+        v-if="!isAllowedToEditField"
+        icon="ncLock"
+        class="nc-column-lock-icon flex-none !ml-1 w-3.5 h-3.5 opacity-90"
+      />
 
       <GeneralIcon
         v-if="isExpandedForm && !isExpandedBulkUpdateForm && !isMobileMode && isUIAllowed('fieldEdit') && !hideMenu"

@@ -9,6 +9,8 @@ import {
   type TableType,
   isLinksOrLTAR,
   readonlyMetaAllowedTypes,
+  PermissionEntity,
+  PermissionKey,
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, UITypesName, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 
@@ -19,6 +21,7 @@ const props = defineProps<{
   hideIcon?: boolean
   hideIconTooltip?: boolean
   isHiddenCol?: boolean
+  showLockIcon?: boolean
 }>()
 
 const { t } = useI18n()
@@ -43,9 +46,17 @@ const enableDescription = ref(false)
 
 provide(ColumnInj, column)
 
+const isAllowedToEditField = computed(() => {
+  if (!props.showLockIcon || !column.value?.id) return true
+
+  return isAllowed(PermissionEntity.FIELD, column.value.id, PermissionKey.RECORD_FIELD_EDIT)
+})
+
 const { metas } = useMetas()
 
 const { isUIAllowed, isMetaReadOnly } = useRoles()
+
+const { isAllowed } = usePermissions()
 
 const meta = inject(MetaInj, ref())
 
@@ -254,6 +265,13 @@ const onClick = (e: Event) => {
       </NcTooltip>
 
       <span v-if="isVirtualColRequired(column, meta?.columns || []) || required" class="text-red-500">&nbsp;*</span>
+
+      <GeneralIcon
+        v-if="!isAllowedToEditField"
+        icon="ncLock"
+        class="nc-column-lock-icon flex-none !ml-1 w-3.5 h-3.5 opacity-90"
+      />
+
       <GeneralIcon
         v-if="isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm && !hideMenu"
         icon="arrowDown"

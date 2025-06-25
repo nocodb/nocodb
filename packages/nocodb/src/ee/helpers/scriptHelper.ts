@@ -4,10 +4,11 @@ import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { transformFieldConfig } from '~/utils/transformProperties';
 import NocoCache from '~/cache/NocoCache';
+import { processConcurrently } from '~/utils';
+import { Base, Model } from '~/models';
 
 const colOptionsHandlers = {
   [UITypes.Barcode]: {
-    condition: UITypes.Barcode,
     table: MetaTable.COL_BARCODE,
     fields: {
       barcode_value_field_id: 'fk_barcode_value_column_id',
@@ -16,7 +17,6 @@ const colOptionsHandlers = {
     aggregate: false,
   },
   [UITypes.QrCode]: {
-    condition: UITypes.QrCode,
     table: MetaTable.COL_QRCODE,
     fields: {
       qrcode_value_field_id: 'fk_qr_value_column_id',
@@ -24,7 +24,6 @@ const colOptionsHandlers = {
     aggregate: false,
   },
   [UITypes.Links]: {
-    condition: UITypes.Links,
     table: MetaTable.COL_RELATIONS,
     fields: {
       relation_type: 'type',
@@ -34,7 +33,6 @@ const colOptionsHandlers = {
     aggregate: false,
   },
   [UITypes.LinkToAnotherRecord]: {
-    condition: UITypes.LinkToAnotherRecord,
     table: MetaTable.COL_RELATIONS,
     fields: {
       relation_type: 'type',
@@ -44,7 +42,6 @@ const colOptionsHandlers = {
     aggregate: false,
   },
   [UITypes.Lookup]: {
-    condition: UITypes.Lookup,
     table: MetaTable.COL_LOOKUP,
     fields: {
       related_field_id: 'fk_relation_column_id',
@@ -53,7 +50,6 @@ const colOptionsHandlers = {
     aggregate: false,
   },
   [UITypes.Rollup]: {
-    condition: UITypes.Rollup,
     table: MetaTable.COL_ROLLUP,
     fields: {
       related_field_id: 'fk_relation_column_id',
@@ -63,7 +59,6 @@ const colOptionsHandlers = {
     aggregate: false,
   },
   [UITypes.Formula]: {
-    condition: UITypes.Formula,
     table: MetaTable.COL_FORMULA,
     fields: {
       formula: 'formula_raw',
@@ -71,25 +66,20 @@ const colOptionsHandlers = {
     aggregate: false,
   },
   [UITypes.SingleSelect]: {
-    condition: UITypes.SingleSelect,
     table: MetaTable.COL_SELECT_OPTIONS,
     fields: {
-      choices:
-        "json_agg(jsonb_build_object('title', title, 'color', color, 'id', id))",
+      choices: 'SELECT_OPTIONS_AGGREGATE', // Special marker for aggregation
     },
     aggregate: true,
   },
   [UITypes.MultiSelect]: {
-    condition: UITypes.MultiSelect,
     table: MetaTable.COL_SELECT_OPTIONS,
     fields: {
-      choices:
-        "json_agg(jsonb_build_object('title', title, 'color', color, 'id', id))",
+      choices: 'SELECT_OPTIONS_AGGREGATE',
     },
     aggregate: true,
   },
   [UITypes.Button]: {
-    condition: UITypes.Button,
     table: MetaTable.COL_BUTTON,
     fields: {
       label: 'label',
@@ -106,7 +96,6 @@ const colOptionsHandlers = {
     aggregate: false,
   },
   [UITypes.LongText]: {
-    condition: UITypes.LongText,
     table: MetaTable.COL_LONG_TEXT,
     fields: {
       prompt: 'prompt_raw',
@@ -117,75 +106,123 @@ const colOptionsHandlers = {
   },
 };
 
-const generateColumnOptionsCTEs = (knex) => {
-  const ctes = {};
+async function getBaseModels(context: NcContext, ncMeta = Noco.ncMeta) {
+  return (
+    await Model.list(context, { base_id: context.base_id }, ncMeta)
+  ).filter((m) => !m.mm);
+}
 
-  Object.entries(colOptionsHandlers).forEach(([uiType, config]) => {
-    const cteName = `col_options_${uiType
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '_')}`;
+async function getModelViews(modelIds: string[], ncMeta = Noco.ncMeta) {
+  if (modelIds.length === 0) return {};
 
-    if (config?.aggregate) {
-      ctes[cteName] = (qb) => {
-        const fieldMappings = Object.entries(config.fields)
-          .map(([key, value]) => {
-            return `'${key}', ${value}`;
-          })
-          .join(', ');
+  const views = await ncMeta.knex
+    .select('fk_model_id', 'id', 'title', 'type', 'description')
+    .from(MetaTable.VIEWS)
+    .whereIn('fk_model_id', modelIds);
 
-        qb.select(
-          'fk_column_id',
-          knex.raw(`to_json(jsonb_build_object(${fieldMappings})) as options`),
-        )
-          .from(config.table)
-          .groupBy('fk_column_id');
-      };
-    } else {
-      ctes[cteName] = (qb) => {
-        const fieldMappings = Object.entries(config.fields)
-          .map(([key, value]) => {
-            return `'${key}', ${value}`;
-          })
-          .join(', ');
-
-        qb.select(
-          'fk_column_id',
-          knex.raw(`to_json(jsonb_build_object(${fieldMappings})) as options`),
-        ).from(config.table);
-      };
+  const viewsByModel = {};
+  views.forEach((view) => {
+    if (!viewsByModel[view.fk_model_id]) {
+      viewsByModel[view.fk_model_id] = [];
     }
-  });
-
-  return ctes;
-};
-
-const generateOptionsJoins = (knex, qb) => {
-  Object.entries(colOptionsHandlers).forEach(([uiType, config]) => {
-    const cteName = `col_options_${uiType
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '_')}`;
-    const alias = `opt_${uiType.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-
-    qb.leftJoin(`${cteName} as ${alias}`, function () {
-      this.on(`${alias}.fk_column_id`, '=', 'c.id').andOn(
-        knex.raw('c.uidt'),
-        '=',
-        knex.raw(`'${config.condition}'`),
-      );
+    viewsByModel[view.fk_model_id].push({
+      id: view.id,
+      name: view.title,
+      type: viewTypeAlias[view.type] || view.type,
+      description: view.description,
     });
   });
 
-  return qb;
-};
+  return viewsByModel;
+}
 
-const generateOptionsCoalesce = () => {
-  const optionAliases = Object.keys(colOptionsHandlers).map(
-    (uiType) =>
-      `opt_${uiType.toLowerCase().replace(/[^a-z0-9]/g, '_')}.options`,
+async function getModelColumns(modelIds: string[], ncMeta = Noco.ncMeta) {
+  if (modelIds.length === 0) return {};
+
+  return await ncMeta.knex
+    .select(
+      'fk_model_id',
+      'id',
+      'title',
+      'uidt',
+      'pk',
+      'pv',
+      'cdf',
+      'meta',
+      'system',
+      'description',
+      'order',
+    )
+    .from(MetaTable.COLUMNS)
+    .whereIn('fk_model_id', modelIds)
+    .orderBy(['fk_model_id', 'order']);
+}
+
+async function getColumnOptions(columnIds: string[], ncMeta = Noco.ncMeta) {
+  if (columnIds.length === 0) return {};
+
+  const optionsMap = {};
+
+  const optionEntries = Object.entries(colOptionsHandlers);
+
+  const optionResults = await processConcurrently(
+    optionEntries,
+    async ([uiType, config]) => {
+      if (config.aggregate) {
+        const selectOptions = await ncMeta.knex
+          .select('fk_column_id', 'title', 'color', 'id')
+          .from(config.table)
+          .whereIn('fk_column_id', columnIds);
+
+        return { uiType, config, options: selectOptions, aggregate: true };
+      } else {
+        const fieldSelects = ['fk_column_id', ...Object.values(config.fields)];
+        const options = await ncMeta.knex
+          .select(fieldSelects)
+          .from(config.table)
+          .whereIn('fk_column_id', columnIds);
+
+        return { uiType, config, options, aggregate: false };
+      }
+    },
+    5,
   );
 
-  return `COALESCE(${optionAliases.join(', ')})`;
-};
+  optionResults.forEach(({ config, options, aggregate }) => {
+    if (aggregate) {
+      options.forEach((option) => {
+        if (!optionsMap[option.fk_column_id]) {
+          optionsMap[option.fk_column_id] = { choices: [] };
+        }
+        optionsMap[option.fk_column_id].choices.push({
+          title: option.title,
+          color: option.color,
+          id: option.id,
+        });
+      });
+    } else {
+      options.forEach((option) => {
+        if (!optionsMap[option.fk_column_id]) {
+          optionsMap[option.fk_column_id] = {};
+        }
+
+        Object.entries(config.fields).forEach(([key, field]) => {
+          optionsMap[option.fk_column_id][key] = option[field];
+        });
+      });
+    }
+  });
+
+  return optionsMap;
+}
+
+async function getBaseCollaborators(context: NcContext, ncMeta = Noco.ncMeta) {
+  return await ncMeta.knex
+    .select('u.id', 'u.email', 'u.display_name as name')
+    .from(`${MetaTable.PROJECT_USERS} as bu`)
+    .join(`${MetaTable.USERS} as u`, 'bu.fk_user_id', 'u.id')
+    .where('bu.base_id', context.base_id);
+}
 
 export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
   return {};
@@ -193,163 +230,69 @@ export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
   const key = `${CacheScope.BASE_SCHEMA}:${context.base_id}`;
 
   const baseSchema = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-
   if (baseSchema) {
     return baseSchema;
   }
 
-  // Generate CTEs for column options
-  const optionsCTEs = generateColumnOptionsCTEs(ncMeta.knex);
+  const [baseInfo, models] = await Promise.all([
+    Base.get(context, context.base_id),
+    getBaseModels(context, ncMeta),
+  ]);
 
-  let queryBuilder = ncMeta.knex;
+  const modelIds = models.map((model) => model.id);
 
-  Object.entries(optionsCTEs).forEach(([cteName, cteBuilder]) => {
-    queryBuilder = queryBuilder.with(cteName, cteBuilder);
+  const [viewsByModel, columns, collaborators] = await Promise.all([
+    getModelViews(modelIds, ncMeta),
+    getModelColumns(modelIds, ncMeta),
+    getBaseCollaborators(context, ncMeta),
+  ]);
+
+  const columnIds = columns.map((col) => col.id);
+  const columnOptions = await getColumnOptions(columnIds, ncMeta);
+
+  const columnsByModel = {};
+  columns.forEach((column) => {
+    if (!columnsByModel[column.fk_model_id]) {
+      columnsByModel[column.fk_model_id] = [];
+    }
+
+    const transformedColumn = {
+      id: column.id,
+      name: column.title,
+      type: column.uidt,
+      primary_key: column.pk,
+      primary_value: column.pv,
+      default_value: column.cdf,
+      meta: column.meta,
+      is_system_field: column.system,
+      options: columnOptions[column.id] || null,
+      description: column.description,
+      order: column.order,
+    };
+
+    columnsByModel[column.fk_model_id].push(
+      transformFieldConfig(transformedColumn),
+    );
   });
 
-  const finalQuery = queryBuilder
-    // Base models CTE
-    .with('base_models', (qb) => {
-      qb.select('id', 'title', 'description')
-        .from(`${MetaTable.MODELS}`)
-        .where('base_id', context.base_id)
-        .where('mm', false);
-    })
-
-    // Views aggregation CTE
-    .with('model_views', (qb) => {
-      qb.select(
-        'fk_model_id',
-        ncMeta.knex.raw(`
-          json_agg(
-            jsonb_build_object(
-              'id', id,
-              'name', title,
-              'type', type,
-              'description', description
-            )
-          ) as views_json
-        `),
-      )
-        .from(MetaTable.VIEWS)
-        .whereIn('fk_model_id', function () {
-          this.select('id').from('base_models');
-        })
-        .groupBy('fk_model_id');
-    })
-
-    // Columns with options CTE
-    .with('model_columns', (qb) => {
-      let columnsQuery = qb
-        .select(
-          'c.fk_model_id',
-          ncMeta.knex.raw(`
-          json_agg(
-            jsonb_build_object(
-              'id', c.id,
-              'name', c.title,
-              'type', c.uidt,
-              'primary_key', c.pk,
-              'primary_value', c.pv,
-              'default_value', c.cdf,
-              'meta', c.meta,
-              'is_system_field', c.system,
-              'options', ${generateOptionsCoalesce()},
-              'description', c.description,
-              'order', c."order"
-            )
-            ORDER BY c."order" NULLS LAST
-          ) as columns_json
-        `),
-        )
-        .from(`${MetaTable.COLUMNS} as c`)
-        .whereIn('c.fk_model_id', function () {
-          this.select('id').from('base_models');
-        });
-
-      // Add all the LEFT JOINs for column options
-      columnsQuery = generateOptionsJoins(ncMeta.knex, columnsQuery);
-
-      columnsQuery.groupBy('c.fk_model_id');
-    })
-
-    // Base tables CTE - combining models with their views and columns
-    .with('base_tables', (qb) => {
-      qb.select(
-        'bm.id',
-        'bm.title',
-        'bm.description',
-        ncMeta.knex.raw("COALESCE(mv.views_json, '[]'::json) as views"),
-        ncMeta.knex.raw("COALESCE(mc.columns_json, '[]'::json) as fields"),
-      )
-        .from('base_models as bm')
-        .leftJoin('model_views as mv', 'bm.id', 'mv.fk_model_id')
-        .leftJoin('model_columns as mc', 'bm.id', 'mc.fk_model_id');
-    })
-
-    // Base users CTE
-    .with('base_users', (qb) => {
-      qb.select(
-        ncMeta.knex.raw(`
-          COALESCE(
-            json_agg(
-              DISTINCT jsonb_build_object(
-                'id', u.id,
-                'email', u.email,
-                'name', u.display_name
-              )
-            ),
-            '[]'::json
-          ) as base_collaborators
-        `),
-      )
-        .from(`${MetaTable.PROJECT_USERS} as bu`)
-        .join(`${MetaTable.USERS} as u`, 'bu.fk_user_id', 'u.id')
-        .where('bu.base_id', context.base_id);
-    })
-    .select(
-      ncMeta.knex.raw(
-        `
-        jsonb_build_object(
-          'id', (?)::text,
-          'name', (SELECT title FROM ${MetaTable.PROJECT} WHERE id = ?)::text,
-          'tables', COALESCE(
-            (SELECT json_agg(
-              jsonb_build_object(
-                'id', bt.id,
-                'description', bt.description,
-                'name', bt.title,
-                'views', bt.views,
-                'fields', bt.fields
-              )
-            ) FROM base_tables bt),
-            '[]'::json
-          ),
-          'collaborators', (SELECT base_collaborators FROM base_users)
-        ) as result
-      `,
-        [context.base_id, context.base_id],
-      ),
-    )
-    .first();
-
-  const result = (await finalQuery)?.result;
-
-  result.tables = result.tables.map((table) => {
-    table.fields = table.fields.map((field) => {
-      return transformFieldConfig(field);
-    });
-
-    table.views = table.views.map((view) => {
-      view.type = viewTypeAlias[view.type];
-      return view;
-    });
-
-    return table;
-  });
+  const result = {
+    id: context.base_id,
+    name: baseInfo.title,
+    tables: models.map((model) => ({
+      id: model.id,
+      name: model.title,
+      description: model.description,
+      views: viewsByModel[model.id] || [],
+      fields: columnsByModel[model.id] || [],
+    })),
+    collaborators: collaborators.map((user) => ({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    })),
+  };
 
   await NocoCache.set(key, result);
-
   await NocoCache.appendToList(
     CacheScope.BASE_SCHEMA,
     ['ws', context.workspace_id],

@@ -392,8 +392,8 @@ export class ColumnPageObject extends BasePage {
     // when clicked on the dropdown cell header
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').scrollIntoViewIfNeeded();
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
-    await expect(await this.rootPage.locator('li[role="menuitem"]:has-text("Edit"):visible').last()).toBeVisible();
-    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit"):visible').last().click();
+    await expect(await this.rootPage.locator('li[role="menuitem"]:has-text("Edit"):visible').first()).toBeVisible();
+    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit"):visible').first().click();
 
     await this.get().waitFor({ state: 'visible' });
 

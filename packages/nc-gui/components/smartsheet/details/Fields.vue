@@ -1930,7 +1930,6 @@ onBeforeRouteUpdate((_to, from, next) => {
                         v-else
                         :trigger="['click']"
                         overlay-class-name="nc-field-item-action-dropdown nc-dropdown-table-explorer"
-                        @update:visible="onFieldOptionUpdate"
                         @click.stop
                       >
                         <NcButton
@@ -2099,7 +2098,6 @@ onBeforeRouteUpdate((_to, from, next) => {
                         v-else
                         :trigger="['click']"
                         overlay-class-name="nc-field-item-action-dropdown-display-column nc-dropdown-table-explorer-display-column"
-                        @update:visible="onFieldOptionUpdate"
                         @click.stop
                       >
                         <NcButton

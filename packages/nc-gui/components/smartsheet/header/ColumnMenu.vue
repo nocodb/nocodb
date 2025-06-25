@@ -573,7 +573,7 @@ const onDeleteColumn = () => {
       @click="onFieldPermissions"
     >
       <div class="nc-column-field-permissions nc-header-menu-item">
-        <GeneralIcon icon="lock" class="opacity-80 !w-4.25 !h-4.25" />
+        <GeneralIcon icon="ncLock" class="opacity-80 !w-4.25 !h-4.25" />
         Edit field permissions
       </div>
     </NcMenuItem>

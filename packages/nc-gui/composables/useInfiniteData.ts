@@ -138,7 +138,7 @@ export function useInfiniteData(args: {
 
   const { getEvaluatedRowMetaRowColorInfo } = disableSmartsheet
     ? {
-        getEvaluatedRowMetaRowColorInfo: () => {},
+        getEvaluatedRowMetaRowColorInfo: (_row: any) => ({}),
       }
     : useViewRowColorRender()
 
@@ -433,6 +433,7 @@ export function useInfiniteData(args: {
       const data = formatData(response.list, response.pageInfo, params, path, getEvaluatedRowMetaRowColorInfo)
 
       loadAggCommentsCount(data, path)
+      syncCount(path)
 
       return data
     } catch (error: any) {

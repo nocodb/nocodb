@@ -811,7 +811,7 @@ export function useCanvasRender({
           groupPath,
           selection.value.start.row,
           rowHeight.value,
-          isAddingEmptyRowAllowed.value,
+          isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value,
         ) -
         scrollTop.value +
         COLUMN_HEADER_HEIGHT_IN_PX
@@ -2231,7 +2231,13 @@ export function useCanvasRender({
     let targetRowLine
     if (isGroupBy.value) {
       targetRowLine =
-        calculateGroupRowTop(cachedGroups.value, path, targetRowIndex.value, rowHeight.value, isAddingEmptyRowAllowed.value) -
+        calculateGroupRowTop(
+          cachedGroups.value,
+          path,
+          targetRowIndex.value,
+          rowHeight.value,
+          isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value,
+        ) -
         scrollTop.value +
         // add column header height since it's not included
         COLUMN_HEADER_HEIGHT_IN_PX
@@ -2413,7 +2419,7 @@ export function useCanvasRender({
       yOffset += rowHeight.value
     }
 
-    if (isAddingEmptyRowAllowed.value && !isMobileMode.value) {
+    if (isAddingEmptyRowAllowed.value && !isMobileMode.value && isAddingEmptyRowPermitted.value) {
       const isNewRowHovered = isBoxHovered(
         {
           x: 0,
@@ -2628,7 +2634,11 @@ export function useCanvasRender({
         missingChunks.push(i)
       }
       const groupHeaderY = currentOffset
-      const groupHeight = calculateGroupHeight(group, rowHeight.value, isAddingEmptyRowAllowed.value)
+      const groupHeight = calculateGroupHeight(
+        group,
+        rowHeight.value,
+        isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value,
+      )
       const groupBottom = groupHeaderY + groupHeight
 
       // Skip if group is fully outside viewport
@@ -2665,7 +2675,7 @@ export function useCanvasRender({
           // If the group is at top, then use startIndex, else use endIndex
           const gHeight = Array.from({ length: startIndex }, (_, g) => {
             const group = groups.get(g)
-            return calculateGroupHeight(group!, rowHeight.value, isAddingEmptyRowAllowed.value)
+            return calculateGroupHeight(group!, rowHeight.value, isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value)
           }).reduce((sum, c) => sum + c, 0)
 
           // todo:  figure out the 2px difference which is not expected
@@ -2732,7 +2742,7 @@ export function useCanvasRender({
               group.groupCount,
               height.value - groupHeaderY - GROUP_HEADER_HEIGHT - GROUP_EXPANDED_BOTTOM_PADDING,
               true,
-              isAddingEmptyRowAllowed.value,
+              isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value,
             )
 
             const {
@@ -3250,7 +3260,7 @@ export function useCanvasRender({
         totalGroups.value,
         height.value,
         false,
-        isAddingEmptyRowAllowed.value,
+        isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value,
       )
 
       const { missingChunks, postRenderCbk: _postRenderCbk } = renderGroups(ctx, {

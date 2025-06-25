@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { ExpandedFormMode, ViewTypes } from 'nocodb-sdk'
+import { ExpandedFormMode, PermissionEntity, PermissionKey, ViewTypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'
@@ -802,14 +802,28 @@ export default {
                     {{ $t('labels.copyRecordURL') }}
                   </div>
                 </NcMenuItem>
-                <NcMenuItem v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView" @click="!isNew ? onDuplicateRow() : () => {}">
-                  <div v-e="['c:row-expand:duplicate']" class="flex gap-2 items-center" data-testid="nc-expanded-form-duplicate">
-                    <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
-                    <span class="-ml-0.25">
-                      {{ $t('labels.duplicateRecord') }}
-                    </span>
-                  </div>
-                </NcMenuItem>
+                <PermissionsTooltip
+                  :entity="PermissionEntity.TABLE"
+                  :entity-id="meta?.id"
+                  :permission="PermissionKey.TABLE_RECORD_ADD"
+                  placement="right"
+                >
+                  <NcMenuItem
+                    v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
+                    @click="!isNew ? onDuplicateRow() : () => {}"
+                  >
+                    <div
+                      v-e="['c:row-expand:duplicate']"
+                      class="flex gap-2 items-center"
+                      data-testid="nc-expanded-form-duplicate"
+                    >
+                      <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
+                      <span class="-ml-0.25">
+                        {{ $t('labels.duplicateRecord') }}
+                      </span>
+                    </div>
+                  </NcMenuItem>
+                </PermissionsTooltip>
                 <NcDivider
                   v-if="
                     isUIAllowed('dataEdit', {
@@ -817,22 +831,29 @@ export default {
                     }) && !isSqlView
                   "
                 />
-                <NcMenuItem
-                  v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
-                  class="!text-red-500 !hover:bg-red-50"
-                  @click="!isNew && onDeleteRowClick()"
+                <PermissionsTooltip
+                  :entity="PermissionEntity.TABLE"
+                  :entity-id="meta?.id"
+                  :permission="PermissionKey.TABLE_RECORD_DELETE"
+                  placement="right"
                 >
-                  <div v-e="['c:row-expand:delete']" class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">
-                    <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
-                    <span class="-ml-0.25">
-                      {{
-                        $t('general.deleteEntity', {
-                          entity: $t('objects.record').toLowerCase(),
-                        })
-                      }}
-                    </span>
-                  </div>
-                </NcMenuItem>
+                  <NcMenuItem
+                    v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
+                    class="!text-red-500 !hover:bg-red-50"
+                    @click="!isNew && onDeleteRowClick()"
+                  >
+                    <div v-e="['c:row-expand:delete']" class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">
+                      <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
+                      <span class="-ml-0.25">
+                        {{
+                          $t('general.deleteEntity', {
+                            entity: $t('objects.record').toLowerCase(),
+                          })
+                        }}
+                      </span>
+                    </div>
+                  </NcMenuItem>
+                </PermissionsTooltip>
               </NcMenu>
             </template>
           </NcDropdown>

@@ -16,7 +16,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   // State
   const dashboards = ref<Map<string, DashboardType[]>>(new Map())
-  const activeDashboard = ref<DashboardType | null>(null)
   const isLoadingDashboard = ref(false)
   const isEditingDashboard = ref(false)
 
@@ -26,6 +25,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
   })
 
   const activeDashboardId = computed(() => route.params.dashboardId as string)
+
+  const activeDashboard = computed(() => {
+    if (!activeDashboardId.value) return null
+    return activeBaseDashboards.value.find((a) => a.id === activeDashboardId.value)
+  })
 
   // Actions
   const loadDashboards = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {

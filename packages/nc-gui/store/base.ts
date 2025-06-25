@@ -272,7 +272,7 @@ export const useBase = defineStore('baseStore', () => {
       },
       query: {
         page,
-        action,
+        ...(action ? { action } : {}),
       },
     })
   }

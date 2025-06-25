@@ -308,7 +308,7 @@ export const useBase = defineStore('baseStore', () => {
       baseId: route.value.params.baseId,
       query: {
         page,
-        action,
+        ...(action ? { action } : {}),
       },
     })
   }

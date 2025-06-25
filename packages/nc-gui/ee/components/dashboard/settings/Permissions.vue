@@ -26,6 +26,8 @@ const { activeTables } = storeToRefs(useTablesStore())
 
 const { getPermissionSummaryLabel } = usePermissions()
 
+const { projectPageTab } = storeToRefs(useConfigStore())
+
 const searchQuery = ref<string>('')
 
 // Modal state
@@ -136,18 +138,24 @@ const removeActionQuery = (action: string) => {
   })
 }
 
+watch(projectPageTab, () => {
+  if (!searchQuery.value) return
+
+  searchQuery.value = ''
+})
+
 watch(
   () => route.value.query.action,
   (action) => {
-    if (!action || !action.startsWith('permissions-')) return removeActionQuery(action)
+    if (!action || !(action as string).startsWith('permissions-')) return removeActionQuery(action as string)
 
-    const tableId = action.split('-')[1]
+    const tableId = (action as string).split('-')[1]
 
     if (!tableId) return
 
     openFieldPermissionsModal(tableId)
 
-    removeActionQuery(action)
+    removeActionQuery(action as string)
   },
   { immediate: true },
 )

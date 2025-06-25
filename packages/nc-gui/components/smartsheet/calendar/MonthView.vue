@@ -854,17 +854,18 @@ const addRecord = (date: dayjs.Dayjs) => {
                 :entity="PermissionEntity.TABLE"
                 :entity-id="meta?.id"
                 :permission="PermissionKey.TABLE_RECORD_ADD"
-                show-overlay
               >
-                <NcButton
-                  :class="{
-                    '!block': isDateSelected(day.date),
-                    '!hidden': !isDateSelected(day.date),
-                  }"
-                  class="!group-hover:block !w-6 !h-6 !rounded"
-                  size="xsmall"
-                  type="secondary"
-                  @click="
+                <template #default="{ isAllowed }">
+                  <NcButton
+                    :class="{
+                      '!block': isDateSelected(day.date),
+                      '!hidden': !isDateSelected(day.date),
+                    }"
+                    class="!group-hover:block !w-6 !h-6 !rounded"
+                    size="xsmall"
+                    type="secondary"
+                    :disabled="!isAllowed"
+                    @click="
                 () => {
                   const record = {
                     row: {
@@ -879,9 +880,10 @@ const addRecord = (date: dayjs.Dayjs) => {
                   emit('newRecord', record)
                 }
               "
-                >
-                  <component :is="iconMap.plus" />
-                </NcButton>
+                  >
+                    <component :is="iconMap.plus" />
+                  </NcButton>
+                </template>
               </PermissionsTooltip>
               <span
                 :class="{

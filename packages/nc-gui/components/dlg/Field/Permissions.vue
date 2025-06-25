@@ -39,7 +39,7 @@ const handlePermissionSave = () => {
     :mask-style="{
       'background-color': 'rgba(0, 0, 0, 0.08)',
     }"
-    wrap-class-name="nc-modal-field-permissions"
+    wrap-class-name="nc-modal-single-field-permissions"
     :footer="null"
     class="!w-[30rem]"
     @keydown.esc="visible = false"

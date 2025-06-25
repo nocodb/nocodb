@@ -1,202 +1,139 @@
 <script lang="ts" setup>
-import { type BaseType, PermissionGrantedType, PermissionRole } from 'nocodb-sdk'
+import type { BaseType } from 'nocodb-sdk'
 
 const props = defineProps<{
   base: BaseType
   config: PermissionConfig
+  mode?: 'inline' | 'full'
+  selectWidth?: string
 }>()
 
 const emits = defineEmits(['save'])
 
-const { $api, $e } = useNuxtApp()
+const baseRef = toRef(props, 'base')
 
-const basesStore = useBases()
+// Convert the config to the format expected by usePermissionSelector
+const permissionSelectorConfig = computed<PermissionSelectorConfig>(() => ({
+  entity: props.config.entity,
+  entityId: props.config.entityId,
+  permission: props.config.permission,
+  label: props.config.label,
+  description: props.config.description || 'have this permission',
+  minimumRole: props.config.minimumRole,
+}))
 
-const { basesUser } = storeToRefs(basesStore)
+// Create a dummy currentValue ref since Selector doesn't use display values
+const currentValue = ref('')
 
-const permissionOptions = [
-  {
-    value: 'editors_and_up',
-    label: 'Editors and up',
-    description: 'Collaborators with Editor, Creator, or Owner permissions (default setting)',
-  },
-  { value: 'creators_and_up', label: 'Creators and up', description: 'Collaborators with Creator or Owner permissions' },
-  {
-    value: 'specific_users',
-    label: 'Specific users',
-    description: 'A specific list of collaborators with Editor, Creator, or Owner permissions',
-  },
-  { value: 'nobody', label: 'Nobody', description: 'No collaborators' },
-]
+// Use the permission selector composable
+const {
+  currentOption,
+  permissionOptions,
+  isLoading,
+  showUserSelector,
+  userSelectorSelectedUsers,
+  selectedUsers,
+  onPermissionChange: handlePermissionChange,
+  handleUserSelectorSave: handleUserSave,
+} = usePermissionSelector(baseRef, permissionSelectorConfig, currentValue)
 
-const currentPermission = ref('editors_and_up')
-const selectedUsers = ref<PermissionSelectorUser[]>([])
-const isLoading = ref(false)
-
-// User selector modal
-const showUserSelector = ref(false)
-const userSelectorSelectedUsers = ref<Set<string>>(new Set())
+const { getPermissionTextColor } = usePermissions()
 
 const selectedUserNames = computed(() => {
   return selectedUsers.value.map((user) => user.display_name || user.email).join(', ')
 })
 
-// Handle opening user selector
-const openUserSelector = () => {
-  userSelectorSelectedUsers.value = new Set(selectedUsers.value.map((user) => user.id))
-  showUserSelector.value = true
-}
+// Dropdown state for overlay pattern
+const isDropdownOpen = ref(false)
+const dropdownRef = ref(null)
 
-const saveState = async () => {
-  if (!props.base.fk_workspace_id || !props.base.id) return
-
-  isLoading.value = true
-  try {
-    let granted_type
-    let granted_role
-    let subjects
-
-    if (currentPermission.value === 'creators_and_up') {
-      granted_type = PermissionGrantedType.ROLE
-      granted_role = PermissionRole.CREATOR
-    } else if (currentPermission.value === 'specific_users') {
-      granted_type = PermissionGrantedType.USER
-      subjects = selectedUsers.value.map((user) => ({
-        type: 'user',
-        id: user.id,
-      }))
-    } else if (currentPermission.value === 'nobody') {
-      granted_type = PermissionGrantedType.NOBODY
-    } else {
-      granted_type = PermissionGrantedType.ROLE
-      granted_role = PermissionRole.EDITOR
-    }
-
-    if (currentPermission.value === 'editors_and_up') {
-      await $api.internal.postOperation(
-        props.base.fk_workspace_id,
-        props.base.id,
-        {
-          operation: 'dropPermission',
-        },
-        {
-          entity: props.config.entity,
-          entity_id: props.config.entityId,
-          permission: props.config.permission,
-        },
-      )
-    } else {
-      await $api.internal.postOperation(
-        props.base.fk_workspace_id,
-        props.base.id,
-        {
-          operation: 'setPermission',
-        },
-        {
-          entity: props.config.entity,
-          entity_id: props.config.entityId,
-          permission: props.config.permission,
-          granted_type,
-          granted_role,
-          subjects,
-        },
-      )
-    }
-
-    emits('save')
-    $e('a:permissions:save')
-
-    await basesStore.loadProject(props.base.id, true)
-  } catch (e: any) {
-    message.error('Failed to save permissions')
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Handle user selector save
-const handleUserSelectorSave = (data: { selectedUsers: PermissionSelectorUser[] }) => {
-  currentPermission.value = 'specific_users'
-  selectedUsers.value = data.selectedUsers
-  saveState()
-}
-
+// Handle permission change and emit save event
 const onPermissionChange = (value: string) => {
-  if (value === 'specific_users') {
-    openUserSelector()
-  } else {
-    currentPermission.value = value
-    saveState()
-  }
+  handlePermissionChange(value)
+  emits('save')
+  isDropdownOpen.value = false
 }
 
-// Initialize permission state from props
-const initializePermissionState = async () => {
-  if (!props.base.permissions) {
+// Handle user selector save and emit save event
+const handleUserSelectorSave = (data: { selectedUsers: PermissionSelectorUser[] }) => {
+  handleUserSave(data)
+  emits('save')
+}
+
+// Close dropdown when clicking outside
+onClickOutside(dropdownRef, (e) => {
+  if ((e.target as HTMLElement)?.closest('.nc-permission-selector-dropdown')) {
     return
   }
+  isDropdownOpen.value = false
+})
 
-  const permission = props.base.permissions?.find(
-    (perm) =>
-      perm.entity === props.config.entity &&
-      perm.entity_id === props.config.entityId &&
-      perm.permission === props.config.permission,
-  )
-
-  if (permission) {
-    if (permission.granted_type === PermissionGrantedType.USER) {
-      currentPermission.value = 'specific_users'
-      // Map basesUser data to PermissionSelectorUser format
-      const baseUsers = basesUser.value.get(props.base.id!) || []
-      selectedUsers.value = baseUsers
-        .filter((user) => permission.subjects?.some((subject) => subject.type === 'user' && subject.id === user.id))
-        .map((user) => ({
-          id: user.id,
-          email: user.email,
-          display_name: user.display_name,
-        }))
-    } else if (permission.granted_type === PermissionGrantedType.ROLE) {
-      currentPermission.value = 'creators_and_up'
-    } else if (permission.granted_type === PermissionGrantedType.NOBODY) {
-      currentPermission.value = 'nobody'
-    } else {
-      currentPermission.value = 'editors_and_up'
-    }
-  } else {
-    currentPermission.value = 'editors_and_up'
-  }
+// Handle same value selection to close dropdown
+const closeOnClickOption = (optionValue: string) => {
+  if (isLoading.value || optionValue !== currentOption.value?.value) return
+  isDropdownOpen.value = false
 }
 
-watch(
-  () => props.base,
-  () => {
-    initializePermissionState()
-  },
-  { immediate: true },
-)
+// Default props
+const mode = computed(() => props.mode || 'full')
 </script>
 
 <template>
-  <div class="space-y-3">
+  <div v-if="mode === 'full'" class="space-y-3">
     <div class="flex items-center justify-between">
       <label class="text-sm font-medium text-nc-content-gray-emphasis">
         {{ config.label }}
       </label>
-      <NcSelect
-        :value="currentPermission"
-        class="w-48"
-        :options="permissionOptions"
-        :loading="isLoading"
-        @change="onPermissionChange"
-      />
+
+      <div ref="dropdownRef" class="nc-permission-selector relative flex items-center" @click="isDropdownOpen = !isDropdownOpen">
+        <div
+          class="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 border"
+          :class="getPermissionTextColor(currentOption?.value)"
+        >
+          <GeneralIcon :icon="currentOption?.icon || 'role_editor'" class="flex-none h-4 w-4" />
+          <span class="font-medium text-sm">{{ currentOption?.label || 'Editors & up' }}</span>
+          <span v-if="currentOption?.isDefault" class="text-xs text-gray-500">(DEFAULT)</span>
+          <GeneralIcon icon="arrowDown" class="flex-none h-3 w-3 text-gray-400" />
+        </div>
+
+        <a-select
+          :value="currentOption?.value"
+          :open="isDropdownOpen"
+          :dropdown-match-select-width="false"
+          dropdown-class-name="!rounded-lg !h-fit max-w-[350px] nc-permission-selector-dropdown"
+          class="!absolute top-0 left-0 w-full h-full z-10 opacity-0"
+          @change="onPermissionChange"
+        >
+          <a-select-option
+            v-for="option in permissionOptions"
+            :key="option.value"
+            :value="option.value"
+            :disabled="isLoading"
+            @click="closeOnClickOption(option.value)"
+          >
+            <div class="flex flex-col w-full gap-1 py-1">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <GeneralIcon :icon="option.icon" class="flex-none h-4 w-4" :class="getPermissionTextColor(option.value)" />
+                  <span class="font-medium" :class="getPermissionTextColor(option.value)">{{ option.label }}</span>
+                  <span v-if="option.isDefault" class="text-xs text-gray-500">(DEFAULT)</span>
+                </div>
+                <GeneralLoader v-if="isLoading" size="medium" />
+                <GeneralIcon v-else-if="option.value === currentOption?.value" icon="check" class="text-primary h-4 w-4" />
+              </div>
+              <div class="text-xs text-gray-500">{{ option.description }}</div>
+            </div>
+          </a-select-option>
+        </a-select>
+      </div>
     </div>
 
-    <div v-if="currentPermission === 'specific_users'">
+    <div v-if="currentOption?.value === 'specific_users'">
       <div>
         Only <span class="font-bold">{{ selectedUserNames }}</span> {{ config.description || 'have this permission' }}
       </div>
       <div class="flex items-center gap-2">
-        <NcButton type="secondary" size="small" @click="openUserSelector">
+        <NcButton type="secondary" size="small" @click="showUserSelector = true">
           <div class="flex items-center gap-2">
             <GeneralIcon icon="edit" class="w-4 h-4" />
             <span>Change selected users</span>
@@ -204,15 +141,105 @@ watch(
         </NcButton>
       </div>
     </div>
-
-    <PermissionsUserSelector
-      v-if="base.id"
-      v-model:visible="showUserSelector"
-      :selected-users="userSelectorSelectedUsers"
-      :base-id="base.id"
-      :permission-label="config.label"
-      :permission-description="config.description"
-      @save="handleUserSelectorSave"
-    />
   </div>
+
+  <div v-else class="flex items-center gap-2">
+    <div ref="dropdownRef" class="nc-permission-selector relative flex items-center" @click="isDropdownOpen = !isDropdownOpen">
+      <div
+        class="flex items-center gap-1.5 px-2 py-1 bg-gray-50 rounded cursor-pointer hover:bg-gray-100 border text-sm"
+        :class="getPermissionTextColor(currentOption?.value)"
+      >
+        <GeneralIcon :icon="currentOption?.icon || 'role_editor'" class="flex-none h-3.5 w-3.5" />
+        <span class="font-medium">{{ currentOption?.label || 'Editors & up' }}</span>
+        <GeneralIcon icon="arrowDown" class="flex-none h-3 w-3 text-gray-400" />
+      </div>
+
+      <a-select
+        :value="currentOption?.value"
+        :open="isDropdownOpen"
+        :dropdown-match-select-width="false"
+        dropdown-class-name="!rounded-lg !h-fit max-w-[350px] nc-permission-selector-dropdown"
+        class="!absolute top-0 left-0 w-full h-full z-10 opacity-0"
+        @change="onPermissionChange"
+      >
+        <a-select-option
+          v-for="option in permissionOptions"
+          :key="option.value"
+          :value="option.value"
+          :disabled="isLoading"
+          @click="closeOnClickOption(option.value)"
+        >
+          <div class="flex flex-col w-full gap-1 py-1">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <GeneralIcon :icon="option.icon" class="flex-none h-4 w-4" :class="getPermissionTextColor(option.value)" />
+                <span class="font-medium" :class="getPermissionTextColor(option.value)">{{ option.label }}</span>
+                <span v-if="option.isDefault" class="text-xs text-gray-500">(DEFAULT)</span>
+              </div>
+              <GeneralLoader v-if="isLoading" size="medium" />
+              <GeneralIcon v-else-if="option.value === currentOption?.value" icon="check" class="text-primary h-4 w-4" />
+            </div>
+            <div class="text-xs text-gray-500">{{ option.description }}</div>
+          </div>
+        </a-select-option>
+      </a-select>
+    </div>
+
+    <!-- Inline specific users display -->
+    <div v-if="currentOption?.value === 'specific_users'" class="flex items-center gap-1">
+      <!-- Field selector style: compact user count -->
+      <NcButton v-if="config.entity === 'field'" type="text" size="small" @click="showUserSelector = true">
+        <div class="flex items-center gap-1">
+          <span class="text-xs">{{ selectedUsers.length }} users</span>
+          <GeneralIcon icon="edit" class="w-3 h-3" />
+        </div>
+      </NcButton>
+
+      <!-- Table selector style: user names display -->
+      <template v-else>
+        <span class="text-xs text-nc-content-gray-muted">{{ selectedUserNames || 'No users selected' }}</span>
+        <NcButton type="text" size="small" @click="showUserSelector = true">
+          <GeneralIcon icon="edit" class="w-3 h-3" />
+        </NcButton>
+      </template>
+    </div>
+  </div>
+
+  <!-- User Selector Modal (shared by both modes) -->
+  <PermissionsUserSelector
+    v-if="base.id"
+    v-model:visible="showUserSelector"
+    :selected-users="userSelectorSelectedUsers"
+    :base-id="base.id"
+    :permission-label="config.label"
+    :permission-description="config.description"
+    @save="handleUserSelectorSave"
+  />
 </template>
+
+<style lang="scss">
+.ant-select-item-option-content {
+  white-space: normal;
+}
+.nc-permission-selector-dropdown {
+  .rc-virtual-list-holder {
+    &::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    &::-webkit-scrollbar-track-piece {
+      width: 0px;
+    }
+    &::-webkit-scrollbar {
+      @apply bg-transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      width: 4px;
+      @apply bg-gray-200 rounded-md;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      @apply bg-gray-300;
+    }
+  }
+}
+</style>

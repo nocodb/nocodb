@@ -6,6 +6,8 @@ interface Props {
 }
 
 defineProps<Props>()
+
+defineEmits(['update:visible'])
 </script>
 
 <template>

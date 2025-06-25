@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, type TableType } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean

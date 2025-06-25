@@ -1,11 +1,12 @@
 import type { DashboardType } from 'nocodb-sdk'
+import { DlgDashboardCreate } from '#components'
 
 export const useDashboardStore = defineStore('dashboard', () => {
   const { $api, $e } = useNuxtApp()
   const route = useRoute()
   const { ncNavigateTo } = useGlobal()
   const bases = useBases()
-  const { openedProject } = storeToRefs(bases)
+  const { activeProjectId } = storeToRefs(bases)
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -16,18 +17,12 @@ export const useDashboardStore = defineStore('dashboard', () => {
   // State
   const dashboards = ref<Map<string, DashboardType[]>>(new Map())
   const activeDashboard = ref<DashboardType | null>(null)
-  const isLoading = ref(false)
   const isLoadingDashboard = ref(false)
   const isEditingDashboard = ref(false)
 
-  // Getters
-  const isDashboardActive = computed(() => {
-    return route.path.endsWith('dashboards/')
-  })
-
   const activeBaseDashboards = computed(() => {
-    if (!openedProject.value?.id) return []
-    return dashboards.value.get(openedProject.value.id) || []
+    if (!activeProjectId.value) return []
+    return dashboards.value.get(activeProjectId.value) || []
   })
 
   const activeDashboardId = computed(() => route.params.dashboardId as string)
@@ -44,7 +39,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
 
     try {
-      isLoading.value = true
+      isLoadingDashboard.value = true
 
       const response = (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
         operation: 'dashboardList',
@@ -54,20 +49,27 @@ export const useDashboardStore = defineStore('dashboard', () => {
       return response
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
       return []
     } finally {
-      isLoading.value = false
+      isLoadingDashboard.value = false
     }
   }
 
   const loadDashboard = async (dashboardId: string, showLoader = true) => {
-    if (!openedProject.value?.id || !activeDashboardId.value || !dashboardId || !isDashboardEnabled.value) return null
+    if (
+      !activeProjectId.value ||
+      !activeDashboardId.value ||
+      !dashboardId ||
+      !isDashboardEnabled.value ||
+      !activeWorkspaceId.value
+    )
+      return null
 
     let dashboard: null | DashboardType = null
 
-    if (dashboards.value.get(openedProject.value.id)?.find((a) => a.id === dashboardId)) {
-      dashboard = (dashboards.value.get(openedProject.value.id) ?? []).find((a) => a.id === dashboardId) || null
+    if (dashboards.value.get(activeProjectId.value)?.find((a) => a.id === dashboardId)) {
+      dashboard = (dashboards.value.get(activeProjectId.value) ?? []).find((a) => a.id === dashboardId) || null
     }
 
     try {
@@ -77,19 +79,19 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
       dashboard =
         dashboard ||
-        ((await $api.internal.getOperation(activeWorkspaceId.value, openedProject.value?.id, {
+        ((await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
           operation: 'dashboardGet',
           id: dashboardId,
         })) as unknown as DashboardType)
 
-      if (activeDashboardId.value) {
-        activeDashboard.value = dashboard
-      }
-
       return dashboard
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
+      ncNavigateTo({
+        workspaceId: activeWorkspaceId.value,
+        baseId: activeProjectId.value,
+      })
       return null
     } finally {
       if (showLoader) {
@@ -101,8 +103,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const createDashboard = async (baseId: string, dashboardData: Partial<DashboardType>) => {
     if (!activeWorkspaceId.value) return null
     try {
-      isLoading.value = true
-
       const created = await $api.internal.postOperation(
         activeWorkspaceId.value,
         baseId,
@@ -113,16 +113,20 @@ export const useDashboardStore = defineStore('dashboard', () => {
       )
 
       const baseDashboards = dashboards.value.get(baseId) || []
-      baseDashboards.push(created)
+      baseDashboards.push(created as any)
       dashboards.value.set(baseId, baseDashboards)
+
+      ncNavigateTo({
+        workspaceId: activeWorkspaceId.value,
+        baseId: activeProjectId.value,
+        dashboardId: created.id,
+      })
 
       return created
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
-    } finally {
-      isLoading.value = false
     }
   }
 
@@ -136,8 +140,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
   ) => {
     if (!activeWorkspaceId.value) return null
     try {
-      isLoading.value = true
-
       const dashboard = dashboards.value.get(baseId)?.find((a) => a.id === dashboardId)
       const updated = options?.skipNetworkCall
         ? {
@@ -171,18 +173,14 @@ export const useDashboardStore = defineStore('dashboard', () => {
       return updated
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
-    } finally {
-      isLoading.value = false
     }
   }
 
   const deleteDashboard = async (baseId: string, dashboardId: string) => {
     if (!activeWorkspaceId.value) return null
     try {
-      isLoading.value = true
-
       await $api.internal.postOperation(
         activeWorkspaceId.value,
         baseId,
@@ -199,8 +197,22 @@ export const useDashboardStore = defineStore('dashboard', () => {
       const filtered = baseDashboards.filter((a) => a.id !== dashboardId)
       dashboards.value.set(baseId, filtered)
 
-      if (activeDashboard.value?.id === dashboardId) {
-        activeDashboard.value = null
+      if (activeDashboardId.value === dashboardId) {
+        const nextDashboard = filtered[0]
+        if (nextDashboard) {
+          ncNavigateTo({
+            workspaceId: activeWorkspaceId.value,
+            baseId: activeProjectId.value,
+            dashboardId: nextDashboard.id,
+          })
+        }
+      }
+
+      if (!filtered.length) {
+        ncNavigateTo({
+          workspaceId: activeWorkspaceId.value,
+          baseId: activeProjectId.value,
+        })
       }
 
       return true
@@ -208,8 +220,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e))
       return false
-    } finally {
-      isLoading.value = false
     }
   }
 
@@ -259,7 +269,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     if (!baseId) return
     const isDlgOpen = ref(true)
 
-    const { close } = useDialog(resolveComponent('DlgDashboardCreate'), {
+    const { close } = useDialog(DlgDashboardCreate, {
       'modelValue': isDlgOpen,
       'baseId': baseId,
       'onUpdate:modelValue': () => closeDialog(),
@@ -300,20 +310,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
   }
 
-  watch(isDashboardActive, async (isActive) => {
-    if (!openedProject.value?.id) return
-    if (isActive) {
-      await loadDashboards({ baseId: openedProject.value.id })
-    }
-  })
-
   // Watch for active dashboard changes
   watch(activeDashboardId, async (dashboardId) => {
-    if (!openedProject.value?.id || !isDashboardEnabled.value) return
+    if (!activeProjectId.value || !isDashboardEnabled.value) return
     if (dashboardId) {
       await loadDashboard(dashboardId)
-    } else {
-      activeDashboard.value = null
     }
   })
 
@@ -321,12 +322,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
     // State
     dashboards,
     activeDashboard,
-    isLoading,
     isLoadingDashboard,
     isEditingDashboard,
 
     // Getters
-    isDashboardActive,
     activeBaseDashboards,
     activeDashboardId,
 

@@ -16,7 +16,7 @@ export default class Dashboard implements DashboardType {
   id?: string;
   title: string;
   description?: string;
-  fk_base_id: string;
+  base_id: string;
   fk_workspace_id?: string;
   meta?: any;
   order?: number;
@@ -105,7 +105,7 @@ export default class Dashboard implements DashboardType {
       'id',
       'title',
       'description',
-      'fk_base_id',
+      'base_id',
       'meta',
       'created_by',
       'owned_by',

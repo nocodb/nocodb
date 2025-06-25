@@ -10,7 +10,7 @@ const route = router.currentRoute
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
-const { openNewDashboardModal } = useDashboard()
+const { openNewDashboardModal } = useDashboardStore()
 
 const { openNewScriptModal } = useAutomationStore()
 

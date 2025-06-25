@@ -2,7 +2,7 @@ export interface DashboardType {
   id?: string;
   title: string;
   description?: string;
-  fk_base_id: string;
+  base_id: string;
   fk_workspace_id?: string;
   meta?: any;
   order?: number;

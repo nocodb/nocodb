@@ -56,7 +56,7 @@ const { isUIAllowed } = useRoles()
         role="button"
         class="nc-base-view-all-dashboards-btn"
         data-testid="proj-view-btn__add-new-script"
-        @click="openNewDashboardModal"
+        @click="openNewDashboardModal({ baseId: openedProject?.id })"
       >
         <div class="icon-wrapper">
           <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-brand-500" />

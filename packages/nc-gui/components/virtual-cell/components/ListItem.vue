@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { UITypes, isVirtualCol, parseStringDateTime, PermissionEntity, PermissionKey } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, UITypes, isVirtualCol, parseStringDateTime } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -136,14 +136,14 @@ const displayValue = computed(() => {
                       class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
                       :column="field"
                       :hide-menu="true"
-                      :hide-icon-tooltip="true"
+                      hide-icon-tooltip
                     />
                     <LazySmartsheetHeaderCell
                       v-else
                       class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
                       :column="field"
                       :hide-menu="true"
-                      :hide-icon-tooltip="true"
+                      hide-icon-tooltip
                     />
                   </template>
                   <div class="nc-link-record-cell flex w-full max-w-full">

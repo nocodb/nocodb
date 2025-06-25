@@ -170,7 +170,7 @@ onBeforeUnmount(() => {
       </NcPageHeader>
     </template>
 
-    <NcTabs v-model:activeKey="tab">
+    <NcTabs v-model:active-key="tab">
       <template #leftExtra>
         <div class="w-3"></div>
       </template>

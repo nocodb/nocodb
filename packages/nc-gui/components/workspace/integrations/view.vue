@@ -70,7 +70,7 @@ onBeforeMount(() => {
 
       <SmartsheetTopbarCmdK v-if="!isNewSidebarEnabled" />
     </div>
-    <NcTabs v-model:activeKey="activeViewTab">
+    <NcTabs v-model:active-key="activeViewTab">
       <template #leftExtra>
         <div class="w-3"></div>
       </template>

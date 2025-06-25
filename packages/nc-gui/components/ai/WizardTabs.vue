@@ -20,7 +20,7 @@ const { aiLoading } = useNocoAi()
 
 <template>
   <NcTabs
-    v-model:activeKey="activeTab"
+    v-model:active-key="activeTab"
     theme="ai"
     class="nc-ai-wizard-tabs"
     :class="{

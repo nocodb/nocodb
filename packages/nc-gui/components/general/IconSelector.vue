@@ -274,7 +274,7 @@ watch(isOpen, (newValue) => {
       <slot name="default" :is-open="isOpen" :icon="vIcon" :icon-type="vIconType"> </slot>
       <template #overlay>
         <div class="pt-2 h-[320px]">
-          <NcTabs v-model:activeKey="activeTab" class="nc-icon-selector-dropdown-tabs h-full">
+          <NcTabs v-model:active-key="activeTab" class="nc-icon-selector-dropdown-tabs h-full">
             <template #leftExtra>
               <div class="w-0"></div>
             </template>
@@ -347,7 +347,7 @@ watch(isOpen, (newValue) => {
                 </div>
                 <div class="flex-1">
                   <a-upload-dragger
-                    v-model:fileList="fileList"
+                    v-model:file-list="fileList"
                     name="file"
                     accept="image/*"
                     :disabled="isUploadingImage"

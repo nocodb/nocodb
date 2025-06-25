@@ -19,7 +19,7 @@ watch(tab, (newValue) => {
 
 <template>
   <div class="flex flex-col bg-white !h-full w-full rounded-br-2xl overflow-hidden">
-    <NcTabs v-model:activeKey="tab" class="h-full">
+    <NcTabs v-model:active-key="tab" class="h-full">
       <a-tab-pane v-if="props.showFieldsTab" key="fields" class="w-full h-full">
         <template #tab>
           <div v-e="['c:row-expand:fields']" class="flex items-center gap-2">

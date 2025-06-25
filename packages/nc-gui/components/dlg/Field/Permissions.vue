@@ -14,6 +14,8 @@ const visible = useVModel(props, 'visible', emits)
 
 const { $e } = useNuxtApp()
 
+const meta = inject(MetaInj, ref({} as TableType))
+
 const baseStore = useBase()
 const { navigateToProjectPage } = baseStore
 const { base } = storeToRefs(baseStore)
@@ -30,7 +32,11 @@ const handlePermissionSave = () => {
 }
 
 const onNavigateToPermissionsOverview = () => {
-  navigateToProjectPage({ page: 'permissions' })
+  navigateToProjectPage({
+    page: 'permissions',
+    action: meta.value?.id ? `permissions-${meta.value.id}` : undefined,
+  })
+
   visible.value = false
 }
 </script>
@@ -60,7 +66,7 @@ const onNavigateToPermissionsOverview = () => {
 
     <div class="flex justify-end mt-5">
       <NcButton type="secondary" size="small" @click="onNavigateToPermissionsOverview">
-        {{ $t('activity.goToPermissionsOverview') }}
+        {{ $t('title.editAllFieldPermissions') }}
       </NcButton>
     </div>
   </NcModal>

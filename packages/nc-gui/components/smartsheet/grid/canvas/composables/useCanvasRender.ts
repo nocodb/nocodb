@@ -194,8 +194,6 @@ export function useCanvasRender({
 
   const { isRowColouringEnabled } = useViewRowColorRender()
 
-  const { isAllowed } = usePermissions()
-
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
 
   const fixedColsWidth = computed(() => fixedCols.value.reduce((sum, col) => sum + parseCellWidth(col.width), 1))
@@ -730,8 +728,29 @@ export function useCanvasRender({
 
     let borderColor = '#3366ff'
 
-    if (!isAllowed(PermissionEntity.FIELD, activeState.col.id, PermissionKey.RECORD_FIELD_EDIT)) {
+    if (!activeState.col.isCellEditable) {
       borderColor = '#9AA2AF'
+
+      const boxRect = {
+        x: activeState.x,
+        y: activeState.y,
+        height: activeState.height,
+        width: activeState.width,
+      }
+
+      const isHovered = isBoxHovered(boxRect, mousePosition)
+
+      if (isHovered) {
+        tryShowTooltip({
+          mousePosition,
+          text: t('objects.permissions.editFieldTooltipTitle'),
+          description: t('objects.permissions.editFieldTooltip'),
+          rect: {
+            ...boxRect,
+          },
+          placement: 'bottom',
+        })
+      }
     }
 
     if (activeState.col.fixed || !isInFixedArea) {

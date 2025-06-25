@@ -568,7 +568,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
               <div class="nc-form-section-title">Permissions</div>
               <div class="nc-form-section-body">
                 <DashboardSettingsDataSourcesSourceRestrictions
-                  v-model:allowMetaWrite="allowMetaWrite"
+                  v-model:allow-meta-write="allowMetaWrite"
                   v-model:allowDataWrite="allowDataWrite"
                 />
               </div>

@@ -14,7 +14,7 @@ const props = defineProps<{
   newRecordSubmitBtnText?: string
 }>()
 
-const emits = defineEmits(['copy:record-url', 'delete:row', 'save'])
+const emits = defineEmits(['copyRecordUrl', 'deleteRow', 'save'])
 
 const rowId = toRef(props, 'rowId')
 const fields = toRef(props, 'fields')
@@ -78,7 +78,7 @@ export default {
                     {{ $t('general.reload') }}
                   </div>
                 </NcMenuItem>
-                <NcMenuItem v-if="rowId" @click="!isNew ? emits('copy:record-url') : () => {}">
+                <NcMenuItem v-if="rowId" @click="!isNew ? emits('copyRecordUrl') : () => {}">
                   <div v-e="['c:row-expand:copy-url']" class="flex gap-2 items-center" data-testid="nc-expanded-form-copy-url">
                     <component :is="iconMap.copy" class="cursor-pointer nc-duplicate-row" />
                     {{ $t('labels.copyRecordURL') }}
@@ -89,7 +89,7 @@ export default {
                   v-if="isUIAllowed('dataEdit') && !isNew"
                   v-e="['c:row-expand:delete']"
                   class="!text-red-500 !hover:bg-red-50"
-                  @click="!isNew && emits('delete:row')"
+                  @click="!isNew && emits('deleteRow')"
                 >
                   <div data-testid="nc-expanded-form-delete">
                     <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />

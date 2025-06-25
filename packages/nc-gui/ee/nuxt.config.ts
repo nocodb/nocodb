@@ -317,7 +317,7 @@ export default defineNuxtConfig({
         'validator',
         '@stripe/stripe-js',
         'monacopilot',
-        'esbuild-wasm'
+        'esbuild-wasm',
       ],
       esbuildOptions: {
         define: {

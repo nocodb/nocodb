@@ -111,7 +111,7 @@ onBeforeMount(async () => {
       <div v-else class="flex h-full">
         <div class="min-w-80 border-r-1 h-full">
           <WebhookCallLogList
-            v-model:activeItem="activeItem"
+            v-model:active-item="activeItem"
             :hook-logs="hookLogs"
             :log-pagination-data="logPaginationData"
             @page-size-change="loadHookLogs(undefined, $event)"

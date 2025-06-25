@@ -209,7 +209,7 @@ const saveSamlProvider = async () => {
             <span class="text-xs text-gray-500">{{ $t('msg.info.idpPaste') }}</span>
           </div>
 
-          <a-tabs v-model:activeKey="activeTabKey" class="!pl-0 min-h-53">
+          <a-tabs v-model:active-key="activeTabKey" class="!pl-0 min-h-53">
             <a-tab-pane key="metaDataURL">
               <template #tab>
                 <div data-test-id="nc-saml-metadata-url-tab" class="text-sm">{{ $t('labels.metadataUrl') }}</div>

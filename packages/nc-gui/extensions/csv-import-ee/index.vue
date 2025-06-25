@@ -1180,7 +1180,7 @@ const errorMsgsTableColumns = [
             </div>
           </div>
           <a-upload-dragger
-            v-model:fileList="fileList"
+            v-model:file-list="fileList"
             name="file"
             accept=".csv"
             class="nc-csv-file-uploader !flex-1"

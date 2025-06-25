@@ -1,7 +1,7 @@
 import type { DashboardType } from 'nocodb-sdk'
 
 export const useDashboardStore = defineStore('dashboard', () => {
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
   const route = useRoute()
   const { ncNavigateTo } = useGlobal()
   const bases = useBases()
@@ -243,6 +243,63 @@ export const useDashboardStore = defineStore('dashboard', () => {
     })
   }
 
+  async function openNewDashboardModal({
+    baseId,
+    e,
+    loadBasesOnClose,
+    scrollOnCreate,
+    navigateToNewDashboard = true,
+  }: {
+    baseId?: string
+    e?: string
+    loadBasesOnClose?: boolean
+    scrollOnCreate?: boolean
+    navigateToNewDashboard?: boolean
+  }) {
+    if (!baseId) return
+    const isDlgOpen = ref(true)
+
+    const { close } = useDialog(resolveComponent('DlgDashboardCreate'), {
+      'modelValue': isDlgOpen,
+      'baseId': baseId,
+      'onUpdate:modelValue': () => closeDialog(),
+      'onCreated': async (dashboard: DashboardType) => {
+        closeDialog()
+
+        if (loadBasesOnClose) {
+          await loadDashboards({ baseId, force: true })
+        }
+
+        $e(e ?? 'a:dashboard:create')
+
+        if (!dashboard) return
+
+        if (scrollOnCreate) {
+          setTimeout(() => {
+            const newDashboardDom = document.querySelector(`[data-dashboard-id="${dashboard.id}"]`)
+            if (!newDashboardDom) return
+
+            // Scroll to the script node
+            newDashboardDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+          }, 1000)
+        }
+
+        if (navigateToNewDashboard) {
+          ncNavigateTo({
+            workspaceId: activeWorkspaceId.value,
+            baseId,
+            dashboardId: dashboard.id,
+          })
+        }
+      },
+    })
+
+    function closeDialog() {
+      isDlgOpen.value = false
+      close(1000)
+    }
+  }
+
   watch(isDashboardActive, async (isActive) => {
     if (!openedProject.value?.id) return
     if (isActive) {
@@ -280,6 +337,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     updateDashboard,
     deleteDashboard,
     openDashboard,
+    openNewDashboardModal,
   }
 })
 

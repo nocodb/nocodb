@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { InternalController as InternalControllerCE } from 'src/controllers/internal.controller';
 import { DataReflectionService } from '~/services/data-reflection.service';
+import { DashboardsService } from '~/services/dashboards.service';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
 import { SyncModuleService } from '~/integrations/sync/module/services/sync.service';
 import { McpTokenService } from '~/services/mcp.service';

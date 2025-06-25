@@ -4,17 +4,11 @@ import dayjs from 'dayjs'
 
 const dashboardStore = useDashboardStore()
 
-const { loadDashboards, openDashboard } = dashboardStore
+const { loadDashboards, openDashboard, openNewDashboardModal } = dashboardStore
 
 const { activeBaseDashboards, isLoading } = storeToRefs(dashboardStore)
 
 const { openedProject } = storeToRefs(useBases())
-
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
-
-const { ncNavigateTo } = useGlobal()
-
-const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -41,32 +35,6 @@ const customRow = (record: Record<string, any>) => ({
     openDashboard(record as DashboardType)
   },
 })
-
-async function openNewDashboardModal() {
-  const isDlgOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgDashboardCreate'), {
-    'modelValue': isDlgOpen,
-    'baseId': openedProject.value.id!,
-    'onUpdate:modelValue': () => closeDialog(),
-    'onCreated': async (dashboard: DashboardType) => {
-      closeDialog()
-
-      ncNavigateTo({
-        workspaceId: activeWorkspaceId.value,
-        baseId: openedProject.value.id!,
-        dashboardId: dashboard.id,
-      })
-
-      $e('a:dashboard:create')
-    },
-  })
-
-  function closeDialog() {
-    isDlgOpen.value = false
-    close(1000)
-  }
-}
 
 onMounted(async () => {
   await loadDashboards({ baseId: openedProject.value?.id })

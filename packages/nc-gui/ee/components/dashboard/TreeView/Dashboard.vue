@@ -9,7 +9,7 @@ const baseId = toRef(props, 'baseId')
 
 const { loadDashboards } = useDashboardStore()
 
-const isExpanded = ref(false)
+const isExpanded = ref(true)
 
 const onExpand = async () => {
   loadDashboards({ baseId: baseId.value })

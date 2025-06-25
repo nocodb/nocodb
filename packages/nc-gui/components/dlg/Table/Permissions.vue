@@ -70,10 +70,10 @@ const handlePermissionSave = () => {
 
       <div class="space-y-6">
         <!-- Create Records Permission -->
-        <PermissionsPermissionSelector :base="base" :config="createPermissionConfig" @save="handlePermissionSave" />
+        <PermissionsSelector :base="base" :config="createPermissionConfig" @save="handlePermissionSave" />
 
         <!-- Delete Records Permission -->
-        <PermissionsPermissionSelector :base="base" :config="deletePermissionConfig" @save="handlePermissionSave" />
+        <PermissionsSelector :base="base" :config="deletePermissionConfig" @save="handlePermissionSave" />
       </div>
     </div>
   </GeneralModal>

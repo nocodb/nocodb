@@ -455,6 +455,13 @@ const changeTitleField = () => {
   changeTitleFieldMenu.value = true
 }
 
+const showFieldPermissionsModal = ref(false)
+
+const onFieldPermissions = () => {
+  isOpen.value = false
+  showFieldPermissionsModal.value = true
+}
+
 const onDeleteColumn = () => {
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
@@ -557,6 +564,17 @@ const onDeleteColumn = () => {
       <div class="nc-column-edit-description nc-header-menu-item">
         <GeneralIcon icon="ncAlignLeft" class="opacity-80 !w-4.25 !h-4.25" />
         {{ $t('labels.editDescription') }}
+      </div>
+    </NcMenuItem>
+
+    <NcMenuItem
+      v-if="isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
+      title="Edit field permissions"
+      @click="onFieldPermissions"
+    >
+      <div class="nc-column-field-permissions nc-header-menu-item">
+        <GeneralIcon icon="lock" class="opacity-80 !w-4.25 !h-4.25" />
+        Edit Field Permissions
       </div>
     </NcMenuItem>
 
@@ -736,6 +754,13 @@ const onDeleteColumn = () => {
         key="dcxx"
         v-model:value="changeTitleFieldMenu"
         :use-meta-fields="meta?.id !== view?.fk_model_id"
+      />
+      <DlgFieldPermissions
+        v-if="column && meta"
+        key="dfp"
+        v-model:visible="showFieldPermissionsModal"
+        :field-id="column.id!"
+        :field-title="column.title!"
       />
     </div>
   </NcMenu>

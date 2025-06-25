@@ -36,18 +36,12 @@ const onNavigateToPermissionsOverview = () => {
 </script>
 
 <template>
-  <GeneralModal
+  <NcModal
     v-model:visible="visible"
-    :class="{ active: visible }"
-    :mask-closable="true"
-    :keyboard="true"
-    :mask-style="{
-      'background-color': 'rgba(0, 0, 0, 0.08)',
-    }"
+    size="xs"
+    height="auto"
+    :show-separator="false"
     wrap-class-name="nc-modal-single-field-permissions"
-    :footer="null"
-    class="!w-[30rem]"
-    @keydown.esc="visible = false"
   >
     <div class="flex flex-col gap-4">
       <div class="flex items-center justify-between">
@@ -71,5 +65,5 @@ const onNavigateToPermissionsOverview = () => {
     <div class="flex justify-end mt-6">
       <NcButton type="ghost" size="small" @click="onNavigateToPermissionsOverview">Go to Permissions Overview</NcButton>
     </div>
-  </GeneralModal>
+  </NcModal>
 </template>

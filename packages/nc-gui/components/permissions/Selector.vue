@@ -2,14 +2,21 @@
 import type { BaseType } from 'nocodb-sdk'
 import { PermissionMeta, PermissionOptionValue, PermissionRolePower } from 'nocodb-sdk'
 import PermissionsInlineUserSelector from './InlineUserSelector.vue'
+import type { NcDropdownPlacement } from '#imports'
 
-const props = defineProps<{
+interface Props {
   base: BaseType
   config: PermissionConfig
   mode?: 'inline' | 'full'
   horizontal?: boolean
   readonly?: boolean
-}>()
+  borderOnHover?: boolean
+  placement?: NcDropdownPlacement
+}
+const props = withDefaults(defineProps<Props>(), {
+  borderOnHover: false,
+  placement: 'bottomRight',
+})
 
 const emits = defineEmits(['save'])
 
@@ -136,8 +143,9 @@ const handleClickDropdown = (e: MouseEvent) => {
         <NcListDropdown
           v-model:is-open="isOpenPermissionDropdown"
           :default-slot-wrapper-class="`${!readonly ? 'w-[165px]' : '!px-0 !border-0'}`"
-          :placement="horizontal ? 'bottomRight' : 'bottomLeft'"
+          :placement="placement"
           :disabled="readonly"
+          :border-on-hover="borderOnHover"
           @click="handleClickDropdown"
         >
           <div
@@ -149,7 +157,7 @@ const handleClickDropdown = (e: MouseEvent) => {
             <GeneralIcon
               v-if="!readonly"
               icon="chevronDown"
-              class="flex-none h-4 w-4 text-nc-content-gray-muted transition-transform"
+              class="flex-none h-4 w-4 transition-transform"
               :class="{ 'transform rotate-180': isOpenPermissionDropdown }"
             />
           </div>

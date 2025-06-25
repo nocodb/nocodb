@@ -10,6 +10,7 @@ interface Props {
    */
   defaultSlotWrapperClass?: string
   disabled?: boolean
+  borderOnHover?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -17,6 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
   defaultSlotWrapper: true,
   defaultSlotWrapperClass: '',
   disabled: false,
+  borderOnHover: false,
 })
 
 const emits = defineEmits(['update:isOpen'])
@@ -44,13 +46,17 @@ const vModelIsOpen = computed({
   <NcDropdown v-model:visible="vModelIsOpen" :disabled="disabled">
     <div
       v-if="defaultSlotWrapper"
-      class="border-1 border-nc-gray-medium rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none"
+      class="border-1 rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none"
       :class="[
         defaultSlotWrapperClass,
         {
           'cursor-pointer': !disabled,
           'border-brand-500 shadow-selected': vModelIsOpen && !disabled,
-          'shadow-default hover:shadow-hover': !vModelIsOpen && !disabled,
+          'shadow-default hover:shadow-hover': !vModelIsOpen && !disabled && !borderOnHover,
+          'hover:(border-brand-500 shadow-selected)': vModelIsOpen && !disabled && borderOnHover,
+          'hover:(shadow-default hover:shadow-hover)': !vModelIsOpen && !disabled && borderOnHover,
+          'border-transparent hover:(border-nc-gray-medium)': (borderOnHover || vModelIsOpen) && !disabled,
+          'border-nc-gray-medium': !borderOnHover,
         },
       ]"
     >

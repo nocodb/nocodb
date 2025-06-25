@@ -7,6 +7,7 @@ interface Props {
   required?: boolean | number
   hideMenu?: boolean
   hideIcon?: boolean
+  hideIconTooltip?: boolean
   isHiddenCol?: boolean
 }
 
@@ -162,7 +163,9 @@ const onClick = (e: Event) => {
           v-if="isGrid"
           class="flex items-center"
           placement="bottom"
-          :disabled="isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false"
+          :disabled="
+            hideIconTooltip || (isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false)
+          "
         >
           <template #title> {{ columnTypeName }} </template>
           <SmartsheetHeaderCellIcon

@@ -17,6 +17,7 @@ const props = defineProps<{
   hideMenu?: boolean
   required?: boolean | number
   hideIcon?: boolean
+  hideIconTooltip?: boolean
   isHiddenCol?: boolean
 }>()
 
@@ -230,7 +231,7 @@ const onClick = (e: Event) => {
       }"
     >
       <template v-if="column && !props.hideIcon">
-        <NcTooltip v-if="isGrid" class="flex items-center" placement="bottom">
+        <NcTooltip v-if="isGrid" :disabled="hideIconTooltip" class="flex items-center" placement="bottom">
           <template #title> {{ columnTypeName }} </template>
           <LazySmartsheetHeaderVirtualCellIcon />
         </NcTooltip>

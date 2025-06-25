@@ -164,7 +164,7 @@ const handleClickDropdown = (e: MouseEvent) => {
               :class="{ 'transform rotate-180': isOpenPermissionDropdown }"
             />
           </div>
-          <template #overlay>
+          <template #overlay="{ onEsc }">
             <NcList
               v-model:open="isOpenPermissionDropdown"
               :value="currentOption?.value || PermissionOptionValue.EDITORS_AND_UP"
@@ -177,6 +177,7 @@ const handleClickDropdown = (e: MouseEvent) => {
               variant="medium"
               wrapper-class-name="!h-auto"
               @update:value="onPermissionChange"
+              @escape="onEsc"
             >
               <template #listItem="{ option }">
                 <div class="w-full flex flex-col">

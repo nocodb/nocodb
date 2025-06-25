@@ -6,6 +6,7 @@ interface Emits {
   (e: 'update:value', value: RawValueType): void
   (e: 'update:open', open: boolean): void
   (e: 'change', option: NcListItemType): void
+  (e: 'escape', e: KeyboardEvent): void
 }
 
 const props = withDefaults(defineProps<NcListProps>(), {
@@ -307,11 +308,12 @@ defineExpose({
 <template>
   <div
     ref="listRef"
-    tabindex="0"
+    tabindex="-1"
     class="flex flex-col nc-list-root pt-2 w-64 !focus:(shadow-none outline-none)"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex])"
+    @keydown.esc="emits('escape', $event)"
   >
     <template v-if="isSearchEnabled">
       <div

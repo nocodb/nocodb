@@ -28,6 +28,8 @@ const isControlled = computed(() => props.isOpen !== undefined)
 
 const innerIsOpen = ref(false)
 
+const triggerRef = ref<HTMLElement | null>(null)
+
 const vModelIsOpen = computed({
   get() {
     return isControlled.value ? !!props.isOpen : innerIsOpen.value
@@ -40,13 +42,21 @@ const vModelIsOpen = computed({
     }
   },
 })
+
+const onEsc = (e: KeyboardEvent) => {
+  nextTick(() => {
+    triggerRef.value?.focus()
+  })
+}
 </script>
 
 <template>
   <NcDropdown v-model:visible="vModelIsOpen" :disabled="disabled">
     <div
       v-if="defaultSlotWrapper"
-      class="border-1 rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none"
+      tabindex="-1"
+      ref="triggerRef"
+      class="border-1 rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none outline-none focus:outline-none"
       :class="[
         defaultSlotWrapperClass,
         {
@@ -62,10 +72,12 @@ const vModelIsOpen = computed({
     >
       <slot name="default" :is-open="vModelIsOpen"> </slot>
     </div>
-    <slot v-else name="default" :is-open="vModelIsOpen"> </slot>
+    <div v-else tabindex="-1" ref="triggerRef" class="outline-none focus:outline-none" :class="defaultSlotWrapperClass">
+      <slot name="default" :is-open="vModelIsOpen"> </slot>
+    </div>
 
     <template #overlay>
-      <slot name="overlay" :is-open="vModelIsOpen" :on-close="() => (vModelIsOpen = false)"></slot>
+      <slot name="overlay" :is-open="vModelIsOpen" :on-close="() => (vModelIsOpen = false)" :on-esc="onEsc"></slot>
     </template>
   </NcDropdown>
 </template>

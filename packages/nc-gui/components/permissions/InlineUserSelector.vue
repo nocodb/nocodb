@@ -166,7 +166,7 @@ const selectedBelowMinimumRoleUsers = computed(() => {
         />
       </div>
 
-      <template #overlay>
+      <template #overlay="{ onEsc }">
         <PermissionsUserSelectorList
           v-model:selected-users="selectedUsers"
           :open="isDropdownOpen"
@@ -179,6 +179,7 @@ const selectedBelowMinimumRoleUsers = computed(() => {
           :readonly="readonly"
           :close-on-select="false"
           :disabled-users="selectedBelowMinimumRoleUsers"
+          @escape="onEsc"
         >
         </PermissionsUserSelectorList>
       </template>

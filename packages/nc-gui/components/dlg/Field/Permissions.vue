@@ -23,7 +23,6 @@ const editPermissionConfig: PermissionConfig = {
   permission: PermissionKey.RECORD_FIELD_EDIT,
   label: 'Who can edit this field?',
   description: 'can edit this field',
-  minimumRole: 'editor',
 }
 
 const handlePermissionSave = () => {

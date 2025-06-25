@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { PermissionRoleMap, PermissionRolePower } from 'nocodb-sdk'
+import type { PermissionKey } from 'nocodb-sdk'
+import { PermissionMinimumRole, PermissionRoleMap, PermissionRolePower } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -7,7 +8,7 @@ const props = defineProps<{
   baseId: string
   permissionLabel: string
   permissionDescription?: string
-  minimumRole?: string
+  permission?: PermissionKey
 }>()
 
 const emits = defineEmits(['update:visible', 'save'])
@@ -30,20 +31,30 @@ const baseUsers = computed(() => {
   return basesUser.value.get(props.baseId) || []
 })
 
-// Filter users based on minimum role requirement
+// Filter users based on minimum role requirement from PermissionMinimumRole
 const roleFilteredUsers = computed(() => {
-  if (!props.minimumRole) return baseUsers.value
+  if (!props.permission) return baseUsers.value
 
-  const minimumRolePower = PermissionRolePower[PermissionRoleMap[props.minimumRole]]
+  const minimumRole = PermissionMinimumRole[props.permission]
+  if (!minimumRole) return baseUsers.value
+
+  const minimumRolePower = PermissionRolePower[minimumRole]
   if (!minimumRolePower) return baseUsers.value
 
   return baseUsers.value.filter((user) => {
     if (!user.roles) return false
 
-    // Split roles string and check each role
-    const userRoles = user.roles.split(',').map((r) => r.trim())
-    return userRoles.some((role) => {
-      const mappedRole = PermissionRoleMap[role]
+    if (typeof user.roles === 'string') {
+      const userRoles = (user.roles as string).split(',').map((r) => r.trim())
+      return userRoles.some((role) => {
+        const mappedRole = PermissionRoleMap[role as keyof typeof PermissionRoleMap]
+        const rolePower = PermissionRolePower[mappedRole]
+        return rolePower && rolePower >= minimumRolePower
+      })
+    }
+
+    return Object.keys(user.roles).some((role) => {
+      const mappedRole = PermissionRoleMap[role as keyof typeof PermissionRoleMap]
       const rolePower = PermissionRolePower[mappedRole]
       return rolePower && rolePower >= minimumRolePower
     })

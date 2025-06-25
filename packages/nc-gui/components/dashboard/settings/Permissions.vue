@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
+import { PermissionKey } from 'nocodb-sdk'
 
 interface Props {
   state: string
@@ -159,7 +160,7 @@ watch(
                 class="w-full flex items-center gap-3 max-w-full text-gray-800"
                 data-testid="permissions-table-name"
               >
-                <GeneralTableIcon :meta="record as any" class="flex-none h-4 w-4 !text-nc-content-gray-subtle" />
+                <GeneralTableIcon :meta="record" class="flex-none h-4 w-4 !text-nc-content-gray-subtle" />
                 <NcTooltip class="truncate font-weight-600 max-w-[calc(100%_-_28px)]" show-on-truncate-only>
                   <template #title>
                     {{ record?.title }}
@@ -182,9 +183,8 @@ watch(
                 <PermissionsInlineTableSelector
                   :base="base!"
                   :table-id="record.id"
-                  permission-type="TABLE_RECORD_ADD"
-                  :current-value="getPermissionSummaryLabel('table', record.id, 'TABLE_RECORD_ADD')"
-                  minimum-role="editor"
+                  :permission-type="PermissionKey.TABLE_RECORD_ADD"
+                  :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_RECORD_ADD)"
                 />
               </div>
             </template>
@@ -195,9 +195,8 @@ watch(
                 <PermissionsInlineTableSelector
                   :base="base!"
                   :table-id="record.id"
-                  permission-type="TABLE_RECORD_DELETE"
-                  :current-value="getPermissionSummaryLabel('table', record.id, 'TABLE_RECORD_DELETE')"
-                  minimum-role="editor"
+                  :permission-type="PermissionKey.TABLE_RECORD_DELETE"
+                  :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_RECORD_DELETE)"
                 />
               </div>
             </template>

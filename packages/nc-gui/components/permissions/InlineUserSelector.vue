@@ -24,6 +24,10 @@ const { basesUser } = storeToRefs(basesStore)
 // Dropdown state
 const isDropdownOpen = ref(false)
 
+const containerRef = ref<HTMLElement | null>(null)
+
+const tagRefs = ref<HTMLElement[]>([])
+
 const baseUsers = computed(() => {
   return basesUser.value.get(props.baseId) || []
 })
@@ -34,6 +38,40 @@ const selectedUsersList = computed(() => {
     .map((userId) => baseUsers.value.find((user) => user.id === userId))
     .filter((user) => user !== null)
 })
+
+const visibleUsers = ref<User[]>([])
+const hiddenCount = ref(0)
+
+const tagMaxWidth = computed(() => {})
+
+async function calculateVisibleUsers() {
+  await nextTick()
+
+  const containerWidth = containerRef.value?.offsetWidth ? containerRef.value.offsetWidth - 100 : 0
+  let usedWidth = 0
+  let count = 0
+
+  for (const selectedUser of selectedUsersList.value) {
+    const tagWidth = Math.min(
+      estimateTagWidth({
+        text: selectedUser.display_name?.trim() || extractNameFromEmail(selectedUser.email),
+        iconWidth: 20,
+        paddingX: 16,
+      }),
+      selectedUsersList.value.length === 1 ? containerWidth : containerWidth / 2,
+    )
+
+    if (usedWidth + tagWidth <= containerWidth) {
+      usedWidth += tagWidth + 10
+      count++
+    } else {
+      break
+    }
+  }
+
+  visibleUsers.value = selectedUsersList.value.slice(0, count)
+  hiddenCount.value = selectedUsersList.value.length - count
+}
 
 // Handle save
 const handleSave = async () => {
@@ -64,10 +102,6 @@ watch(isDropdownOpen, (isOpen) => {
     // Save changes when dropdown closes
     handleSave()
   }
-})
-
-const usersToShow = computed(() => {
-  return selectedUsersList.value.slice(0, 2)
 })
 
 const selectedBelowMinimumRoleUsers = computed(() => {
@@ -101,6 +135,15 @@ const selectedBelowMinimumRoleUsers = computed(() => {
     })
   })
 })
+
+onMounted(() => {
+  window.addEventListener('resize', calculateVisibleUsers)
+  calculateVisibleUsers()
+})
+
+watch(selectedUsersList, () => {
+  calculateVisibleUsers()
+})
 </script>
 
 <template>
@@ -111,17 +154,16 @@ const selectedBelowMinimumRoleUsers = computed(() => {
         <div v-if="selectedUsers.size === 0" class="font-medium flex-1 text-gray-500 truncate">
           -no users selected- (Nobody {{ permissionDescription }})
         </div>
-        <div v-else class="flex items-center flex-1 overflow-hidden">
+        <div v-else ref="containerRef" class="flex items-center flex-1 overflow-hidden">
           <!-- Show first few users as tags -->
           <a-tag
-            v-for="user in usersToShow"
+            v-for="(user, index) of visibleUsers"
             :key="user?.id"
+            ref="el => tagRefs.value[index] = el"
             class="rounded-tag !pl-0"
             color="'#ccc'"
             :class="{
-              'max-w-2/3': usersToShow.length === 1,
-              'max-w-1/2': usersToShow.length === 2,
-              'max-w-1/3': usersToShow.length > 2,
+              'max-w-1/2': visibleUsers.length >= 1,
             }"
           >
             <span
@@ -152,10 +194,10 @@ const selectedBelowMinimumRoleUsers = computed(() => {
           </a-tag>
           <!-- Show +X more if there are additional users -->
           <div
-            v-if="selectedUsers.size > 2"
+            v-if="hiddenCount > 0"
             class="flex items-center gap-1 pr-2 py-0.5 !text-caption text-nc-content-gray-subtle2 truncate"
           >
-            + {{ selectedUsers.size - 2 }} more
+            + {{ hiddenCount }} more
           </div>
         </div>
 

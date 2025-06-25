@@ -65,9 +65,11 @@ const onNavigateToPermissionsOverview = () => {
     </div>
 
     <div class="flex justify-end mt-5">
-      <NcButton type="secondary" size="small" @click="onNavigateToPermissionsOverview">
-        {{ $t('title.editAllFieldPermissions') }}
-      </NcButton>
+      <NcTooltip :title="$t('tooltip.viewAndEditPermissionsForAllFieldsInThisTable')" placement="left" :arrow="false">
+        <NcButton type="secondary" size="small" @click="onNavigateToPermissionsOverview">
+          {{ $t('general.manageAllFields') }}
+        </NcButton>
+      </NcTooltip>
     </div>
   </NcModal>
 </template>

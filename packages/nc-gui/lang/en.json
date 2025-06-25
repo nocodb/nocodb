@@ -407,7 +407,8 @@
     "contactSupport": "Contact Support",
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
-    "permissions": "Permissions"
+    "permissions": "Permissions",
+    "manageAllFields": "Manage all fields"
   },
   "objects": {
     "script": "Script",
@@ -655,7 +656,6 @@
   "title": {
     "editTablePermissions": "Edit table permissions",
     "editFieldPermissions": "Edit field permissions",
-    "editAllFieldPermissions": "Edit all field permissions",
     "confirmSnapshotRestore": "Confirm Snapshot Restore",
     "urlFilters": "URL Filters",
     "creatingScript": "Creating Script",
@@ -1741,7 +1741,8 @@
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
-    "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited"
+    "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
+    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
   },
   "placeholder": {
     "searchIcons": "Search icons",

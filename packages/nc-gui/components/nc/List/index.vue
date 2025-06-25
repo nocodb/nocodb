@@ -21,6 +21,7 @@ const props = withDefaults(defineProps<NcListProps>(), {
   minItemsForSearch: 4,
   listWrapperClassName: '',
   containerClassName: '',
+  wrapperClassName: '',
   itemClassName: '',
   itemTooltipPlacement: 'right',
   isLocked: false,
@@ -366,7 +367,10 @@ defineExpose({
               },
             ]"
           >
-            <div v-bind="wrapperProps">
+            <div
+              v-bind="wrapperProps"
+              :class="wrapperClassName"
+            >
               <NcTooltip
                 v-for="{ data: option, index: idx } in virtualList"
                 :key="idx"

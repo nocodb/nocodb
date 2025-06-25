@@ -175,6 +175,7 @@ const handleClickDropdown = (e: MouseEvent) => {
               :item-height="48"
               class="!w-auto"
               variant="medium"
+              wrapper-class-name="!h-auto"
               @update:value="onPermissionChange"
             >
               <template #listItem="{ option }">

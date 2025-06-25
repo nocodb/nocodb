@@ -19,10 +19,7 @@ const { t } = useI18n()
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 
-const { projectPageTab } = storeToRefs(useConfigStore())
-
 const workspaceStore = useWorkspace()
-const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const { activeTables } = storeToRefs(useTablesStore())
 

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { PlanFeatureTypes, PlanTitles, ProjectRoles, type TableType, type ViewType, WorkspaceUserRoles } from 'nocodb-sdk'
-import { ViewTypes, viewTypeAlias, PermissionEntity, PermissionKey } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
 const props = withDefaults(
@@ -284,6 +284,7 @@ const isDefaultView = computed(() => view.value?.is_default)
           <template v-for="(dialog, type) in quickImportDialogs">
             <PermissionsTooltip
               v-if="isUIAllowed(`${type}TableImport`) && !isPublicView"
+              :key="type"
               :entity="PermissionEntity.TABLE"
               :entity-id="table.id"
               :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -291,7 +292,7 @@ const isDefaultView = computed(() => view.value?.is_default)
               :description="$t('objects.permissions.uploadDataTooltip')"
             >
               <template #default="{ isAllowed }">
-                <NcMenuItem :disabled="!isAllowed" :key="type" @click="onImportClick(dialog)">
+                <NcMenuItem :disabled="!isAllowed" @click="onImportClick(dialog)">
                   <div
                     v-e="[
                       `a:upload:${type}`,

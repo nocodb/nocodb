@@ -102,16 +102,22 @@ export const PermissionMeta = {
     minimumRole: PermissionRole.EDITOR,
     label: 'Who can create records',
     description: 'can create records',
+    userSelectorDescription:
+      'Only members selected here will be able to create records.',
   },
   [PermissionKey.TABLE_RECORD_DELETE]: {
     minimumRole: PermissionRole.EDITOR,
     label: 'Who can delete records',
     description: 'can delete records',
+    userSelectorDescription:
+      'Only members selected here will be able to delete records.',
   },
   [PermissionKey.RECORD_FIELD_EDIT]: {
     minimumRole: PermissionRole.EDITOR,
     label: 'Who can edit data in this field',
     description: 'can edit records',
+    userSelectorDescription:
+      'Only members selected here will be able to edit values in the {{field}} field.',
   },
 };
 

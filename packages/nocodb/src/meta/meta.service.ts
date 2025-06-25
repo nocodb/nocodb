@@ -338,6 +338,8 @@ export class MetaService {
       [MetaTable.SNAPSHOT]: 'snap',
       [MetaTable.SCRIPTS]: 'scr',
       [MetaTable.SYNC_CONFIGS]: 'sync',
+      [MetaTable.PERMISSIONS]: 'perm',
+      [MetaTable.PERMISSION_USERS]: 'peru',
     };
 
     const prefix = prefixMap[target] || 'nc';

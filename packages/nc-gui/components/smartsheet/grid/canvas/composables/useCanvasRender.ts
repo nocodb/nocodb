@@ -811,7 +811,7 @@ export function useCanvasRender({
           groupPath,
           selection.value.start.row,
           rowHeight.value,
-          isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value,
+          isAddingEmptyRowAllowed.value,
         ) -
         scrollTop.value +
         COLUMN_HEADER_HEIGHT_IN_PX
@@ -1728,7 +1728,7 @@ export function useCanvasRender({
     }
 
     // Add New Row
-    if (isAddingEmptyRowAllowed.value && !isMobileMode.value && !removeInlineAddRecord.value && isAddingEmptyRowPermitted.value) {
+    if (isAddingEmptyRowAllowed.value && !isMobileMode.value && !removeInlineAddRecord.value) {
       const isNewRowHovered = isBoxHovered(
         {
           x: 0,
@@ -1738,7 +1738,7 @@ export function useCanvasRender({
         },
         mousePosition,
       )
-      ctx.fillStyle = isNewRowHovered ? '#F9F9FA' : '#ffffff'
+      ctx.fillStyle = isNewRowHovered && isAddingEmptyRowPermitted.value ? '#F9F9FA' : '#ffffff'
       ctx.fillRect(0, yOffset, adjustedWidth, COLUMN_HEADER_HEIGHT_IN_PX)
       // Bottom border for new row
       ctx.strokeStyle = '#f4f4f5'
@@ -1749,18 +1749,36 @@ export function useCanvasRender({
 
       spriteLoader.renderIcon(ctx, {
         icon: 'ncPlus',
-        color: isNewRowHovered ? '#000000' : '#4a5268',
+        color: isNewRowHovered && isAddingEmptyRowPermitted.value ? '#000000' : '#4a5268',
         x: 16,
         y: yOffset + 9,
         size: 14,
       })
-      elementMap.addElement({
-        y: yOffset,
-        x: 0,
-        height: COLUMN_HEADER_HEIGHT_IN_PX,
-        path: [],
-        type: ElementTypes.ADD_NEW_ROW,
-      })
+
+      if (isNewRowHovered && !isAddingEmptyRowPermitted.value) {
+        tryShowTooltip({
+          mousePosition,
+          text: t('objects.permissions.addNewRecordTooltipTitle'),
+          description: t('objects.permissions.addNewRecordTooltip'),
+          rect: {
+            x: 0,
+            y: yOffset,
+            width: adjustedWidth,
+            height: COLUMN_HEADER_HEIGHT_IN_PX,
+            targetWidth: 258,
+          },
+        })
+      }
+
+      if (isAddingEmptyRowPermitted.value) {
+        elementMap.addElement({
+          y: yOffset,
+          x: 0,
+          height: COLUMN_HEADER_HEIGHT_IN_PX,
+          path: [],
+          type: ElementTypes.ADD_NEW_ROW,
+        })
+      }
     }
 
     if (warningRow) {
@@ -2231,13 +2249,7 @@ export function useCanvasRender({
     let targetRowLine
     if (isGroupBy.value) {
       targetRowLine =
-        calculateGroupRowTop(
-          cachedGroups.value,
-          path,
-          targetRowIndex.value,
-          rowHeight.value,
-          isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value,
-        ) -
+        calculateGroupRowTop(cachedGroups.value, path, targetRowIndex.value, rowHeight.value, isAddingEmptyRowAllowed.value) -
         scrollTop.value +
         // add column header height since it's not included
         COLUMN_HEADER_HEIGHT_IN_PX
@@ -2419,7 +2431,7 @@ export function useCanvasRender({
       yOffset += rowHeight.value
     }
 
-    if (isAddingEmptyRowAllowed.value && !isMobileMode.value && isAddingEmptyRowPermitted.value) {
+    if (isAddingEmptyRowAllowed.value && !isMobileMode.value) {
       const isNewRowHovered = isBoxHovered(
         {
           x: 0,
@@ -2442,7 +2454,7 @@ export function useCanvasRender({
           topLeft: 0,
         },
         {
-          backgroundColor: isNewRowHovered ? '#F9F9FA' : '#ffffff',
+          backgroundColor: isNewRowHovered && isAddingEmptyRowPermitted.value ? '#F9F9FA' : '#ffffff',
           borders: {
             bottom: true,
           },
@@ -2452,7 +2464,7 @@ export function useCanvasRender({
       )
       spriteLoader.renderIcon(ctx, {
         icon: isAddNewRecordGridMode.value ? 'ncPlus' : 'form',
-        color: isNewRowHovered ? '#000000' : '#4a5268',
+        color: isNewRowHovered && isAddingEmptyRowPermitted.value ? '#000000' : '#4a5268',
         x: 16 + level * 13,
         y: yOffset + 9,
         size: 14,
@@ -2469,11 +2481,26 @@ export function useCanvasRender({
 
       spriteLoader.renderIcon(ctx, {
         icon: 'chevronDown',
-        color: isNewRowHovered ? '#000000' : '#4a5268',
+        color: isNewRowHovered && isAddingEmptyRowPermitted.value ? '#000000' : '#4a5268',
         x: 16 + 20 + level * 13 + renderedWidth + 12,
         y: yOffset + 10,
         size: 14,
       })
+
+      if (isNewRowHovered && !isAddingEmptyRowPermitted.value) {
+        tryShowTooltip({
+          mousePosition,
+          text: t('objects.permissions.addNewRecordTooltipTitle'),
+          description: t('objects.permissions.addNewRecordTooltip'),
+          rect: {
+            x: level * 13,
+            y: yOffset,
+            height: COLUMN_HEADER_HEIGHT_IN_PX,
+            width: adjustedWidth,
+            targetWidth: 258,
+          },
+        })
+      }
 
       elementMap.addElement({
         x: 16 + 20 + level * 13 + renderedWidth + 12,
@@ -2487,16 +2514,18 @@ export function useCanvasRender({
         type: ElementTypes.EDIT_NEW_ROW_METHOD,
       })
 
-      elementMap.addElement({
-        y: yOffset,
-        x: level * 13,
-        group,
-        level,
-        height: COLUMN_HEADER_HEIGHT_IN_PX,
-        path: group.nestedIn,
-        groupPath: group?.path,
-        type: ElementTypes.ADD_NEW_ROW,
-      })
+      if (isAddingEmptyRowPermitted.value) {
+        elementMap.addElement({
+          y: yOffset,
+          x: level * 13,
+          group,
+          level,
+          height: COLUMN_HEADER_HEIGHT_IN_PX,
+          path: group.nestedIn,
+          groupPath: group?.path,
+          type: ElementTypes.ADD_NEW_ROW,
+        })
+      }
 
       yOffset += COLUMN_HEADER_HEIGHT_IN_PX
     }
@@ -2634,11 +2663,7 @@ export function useCanvasRender({
         missingChunks.push(i)
       }
       const groupHeaderY = currentOffset
-      const groupHeight = calculateGroupHeight(
-        group,
-        rowHeight.value,
-        isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value,
-      )
+      const groupHeight = calculateGroupHeight(group, rowHeight.value, isAddingEmptyRowAllowed.value)
       const groupBottom = groupHeaderY + groupHeight
 
       // Skip if group is fully outside viewport
@@ -2675,7 +2700,7 @@ export function useCanvasRender({
           // If the group is at top, then use startIndex, else use endIndex
           const gHeight = Array.from({ length: startIndex }, (_, g) => {
             const group = groups.get(g)
-            return calculateGroupHeight(group!, rowHeight.value, isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value)
+            return calculateGroupHeight(group!, rowHeight.value, isAddingEmptyRowAllowed.value)
           }).reduce((sum, c) => sum + c, 0)
 
           // todo:  figure out the 2px difference which is not expected
@@ -2742,7 +2767,7 @@ export function useCanvasRender({
               group.groupCount,
               height.value - groupHeaderY - GROUP_HEADER_HEIGHT - GROUP_EXPANDED_BOTTOM_PADDING,
               true,
-              isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value,
+              isAddingEmptyRowAllowed.value,
             )
 
             const {
@@ -3260,7 +3285,7 @@ export function useCanvasRender({
         totalGroups.value,
         height.value,
         false,
-        isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value,
+        isAddingEmptyRowAllowed.value,
       )
 
       const { missingChunks, postRenderCbk: _postRenderCbk } = renderGroups(ctx, {

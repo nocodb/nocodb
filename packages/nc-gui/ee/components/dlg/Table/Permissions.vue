@@ -42,7 +42,7 @@ const onNavigateToPermissionsOverview = () => {
         </div>
       </template>
     </PermissionsTable>
-    <div class="flex justify-end mt-5">
+    <div class="flex justify-start mt-5">
       <NcButton type="secondary" size="small" @click="onNavigateToPermissionsOverview">
         {{ $t('title.editFieldPermissions') }}
       </NcButton>

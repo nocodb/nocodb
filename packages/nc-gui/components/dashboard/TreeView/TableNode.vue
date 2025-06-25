@@ -55,6 +55,8 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { showRecordPlanLimitExceededModal, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
 
+const { isTableAndFieldPermissionsEnabled } = usePermissions()
+
 // todo: temp
 const { baseTables } = storeToRefs(useTablesStore())
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
@@ -645,6 +647,7 @@ async function onRename() {
                   </NcMenuItem>
                   <NcMenuItem
                     v-if="
+                      isTableAndFieldPermissionsEnabled &&
                       isEeUI &&
                       isUIAllowed('tableDuplicate', {
                         source,

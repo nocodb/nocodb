@@ -79,7 +79,15 @@ watch(
             <div>{{ $t('general.permissions') }}</div>
           </div>
         </template>
-        <div>permissions</div>
+
+        <PermissionsModalContent
+          v-if="meta?.id"
+          :table-id="meta.id"
+          class="!p-4"
+          permissions-table-wrapper-class="max-w-250"
+          permissions-field-wrapper-class="max-w-250 !top-4"
+          style="height: calc(100vh - (var(--topbar-height) * 2))"
+        />
       </a-tab-pane>
       <a-tab-pane key="relation">
         <template #tab>

@@ -41,14 +41,15 @@ const contentRef = ref()
 
       <div class="h-[calc(100%_-_50px)] flex">
         <!-- Content -->
-        <div class="flex-1 p-6 nc-scrollbar-thin relative">
-          <PermissionsModalContent
-            v-if="vVisible"
-            ref="contentRef"
-            :table-id="tableId"
-            class="max-w-[720px] min-w-[540px] mx-auto"
-          />
-        </div>
+        <PermissionsModalContent
+          v-if="vVisible"
+          ref="contentRef"
+          :table-id="tableId"
+          permissions-table-wrapper-class="max-w-[720px]"
+          permissions-field-wrapper-class="max-w-[720px]"
+        />
+        <div v-else class="flex-1">&nbsp;</div>
+
         <div class="w-[320px] h-full p-5 bg-nc-bg-gray-extralight">
           <PermissionsSupportedDocs />
           <NcDivider class="!my-4" />

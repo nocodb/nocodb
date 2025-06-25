@@ -33,7 +33,9 @@ const handlePermissionSave = () => {
   <div class="flex flex-col gap-5">
     <div class="flex items-center justify-between">
       <slot name="title">
-        <div class="text-nc-content-gray-emphasis text-bodyBold">{{ $t('title.tablePermissions') }}</div>
+        <div class="text-nc-content-gray-emphasis text-bodyBold min-h-8 flex items-center">
+          {{ $t('title.tablePermissions') }}
+        </div>
       </slot>
       <slot name="actions" />
     </div>

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
 import {
+  PermissionEntity,
+  PermissionKey,
   UITypes,
   UITypesName,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
-  PermissionEntity,
-  PermissionKey,
 } from 'nocodb-sdk'
 
 interface Props {

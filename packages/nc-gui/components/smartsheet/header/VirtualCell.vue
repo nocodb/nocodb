@@ -5,12 +5,12 @@ import {
   type FormulaType,
   type LinkToAnotherRecordType,
   type LookupType,
+  PermissionEntity,
+  PermissionKey,
   type RollupType,
   type TableType,
   isLinksOrLTAR,
   readonlyMetaAllowedTypes,
-  PermissionEntity,
-  PermissionKey,
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, UITypesName, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 
@@ -46,6 +46,8 @@ const enableDescription = ref(false)
 
 provide(ColumnInj, column)
 
+const { isAllowed } = usePermissions()
+
 const isAllowedToEditField = computed(() => {
   if (!props.showLockIcon || !column.value?.id) return true
 
@@ -55,8 +57,6 @@ const isAllowedToEditField = computed(() => {
 const { metas } = useMetas()
 
 const { isUIAllowed, isMetaReadOnly } = useRoles()
-
-const { isAllowed } = usePermissions()
 
 const meta = inject(MetaInj, ref())
 

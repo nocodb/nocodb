@@ -153,7 +153,7 @@ defineExpose({
     :filter-option="filterOption"
     empty-description="No users found"
     @change="handleUpdateValue($event)"
-    @escape="onEsc"
+    @escape="emits('escape', $event)"
   >
     <template #listItemExtraLeft="{ isSelected }">
       <NcCheckbox :checked="isSelected" />

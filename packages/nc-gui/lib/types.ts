@@ -513,6 +513,8 @@ type CursorType = CSSProperties['cursor']
 
 type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
 
+type MakeCellEditableFn = (row: Row, clickedColumn: CanvasGridColumn, showEditCellRestrictionTooltip?: boolean) => void
+
 interface CellRenderFn {
   (ctx: CanvasRenderingContext2D, options: CellRendererOptions): void | { x?: number; y?: number }
 }
@@ -540,7 +542,7 @@ interface CellRenderer {
       path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: MakeCellEditableFn
     selected: boolean
     imageLoader: ImageWindowLoader
     cellRenderStore: CellRenderStore
@@ -567,7 +569,7 @@ interface CellRenderer {
       path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: MakeCellEditableFn
     cellRenderStore: CellRenderStore
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
     allowLocalUrl?: boolean
@@ -589,7 +591,7 @@ interface CellRenderer {
       path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: MakeCellEditableFn
     selected: boolean
     imageLoader: ImageWindowLoader
     cellRenderStore: CellRenderStore
@@ -884,4 +886,5 @@ export type {
   MultiSelectRawValueType,
   RawValueType,
   NcDropdownPlacement,
+  MakeCellEditableFn,
 }

@@ -156,8 +156,8 @@
     "upgradeToUploadWsImageSubtitle": "আপনার বর্তমান {activePlan} প্ল্যান কেবল আইকন ও ইমোজি অনুমতি দেয়। কাস্টম ছবি ওয়ার্কস্পেস অবতার হিসেবে আপলোড করতে {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
-    "upgradeToUseRowColoring": "Upgrade to use row coloring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
+    "upgradeToUseRowColoring": "Upgrade to use row colouring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "Script",

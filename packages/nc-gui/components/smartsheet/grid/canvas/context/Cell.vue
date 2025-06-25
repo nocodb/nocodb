@@ -105,10 +105,6 @@ const contextMenuPath = computed(() => {
     : contextMenuTarget.value?.path
 })
 
-const isContextMenuTargetValid = computed(() => {
-  return contextMenuCol.value !== null && contextMenuRow.value !== null && contextMenuPath.value !== null
-})
-
 const selectedRows = computed(() => {
   if (!contextMenuPath.value) return []
   const dataCache = getDataCache(contextMenuPath.value)

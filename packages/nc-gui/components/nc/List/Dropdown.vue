@@ -43,7 +43,7 @@ const vModelIsOpen = computed({
   },
 })
 
-const onEsc = (e: KeyboardEvent) => {
+const onEsc = (_e: KeyboardEvent) => {
   nextTick(() => {
     triggerRef.value?.focus()
   })

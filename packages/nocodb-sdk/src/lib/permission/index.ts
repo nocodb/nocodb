@@ -44,10 +44,10 @@ export interface PermissionOption {
 
 export const PermissionOptions: PermissionOption[] = [
   {
-    value: PermissionOptionValue.VIEWERS_AND_UP,
-    label: 'Viewers and up',
-    description: 'Members with Viewer, Editor, Creator or Owner role',
-    icon: 'role_viewer',
+    value: PermissionOptionValue.CREATORS_AND_UP,
+    label: 'Creators & up',
+    description: 'Members with Creator or Owner role',
+    icon: 'role_creator',
   },
   {
     value: PermissionOptionValue.EDITORS_AND_UP,
@@ -57,10 +57,10 @@ export const PermissionOptions: PermissionOption[] = [
     isDefault: true,
   },
   {
-    value: PermissionOptionValue.CREATORS_AND_UP,
-    label: 'Creators & up',
-    description: 'Members with Creator or Owner role',
-    icon: 'role_creator',
+    value: PermissionOptionValue.VIEWERS_AND_UP,
+    label: 'Viewers and up',
+    description: 'Members with Viewer, Editor, Creator or Owner role',
+    icon: 'role_viewer',
   },
   {
     value: PermissionOptionValue.SPECIFIC_USERS,

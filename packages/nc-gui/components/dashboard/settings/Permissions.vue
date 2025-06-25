@@ -48,22 +48,23 @@ const columns = [
     key: 'name',
     title: t('general.name'),
     name: 'Name',
-    width: 320,
     padding: '0px 32px',
   },
   {
     key: 'create_records',
     title: 'Create records',
     name: 'Create records',
+    minWidth: 180,
+    basis: '25%',
     padding: '0px 12px',
-    justify: 'justify-center',
   },
   {
     key: 'delete_records',
     title: 'Delete records',
     name: 'Delete records',
+    minWidth: 180,
+    basis: '25%',
     padding: '0px 12px',
-    justify: 'justify-center',
   },
   {
     key: 'context_actions',
@@ -71,6 +72,7 @@ const columns = [
     name: '',
     justify: 'justify-end',
     padding: '0px 12px',
+    width: 60,
   },
 ] as NcTableColumnProps[]
 

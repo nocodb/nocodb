@@ -53,7 +53,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { showRecordPlanLimitExceededModal } = useEeConfig()
+const { showRecordPlanLimitExceededModal, blockTableAndFieldPermissions } = useEeConfig()
 
 // todo: temp
 const { baseTables } = storeToRefs(useTablesStore())
@@ -642,6 +642,8 @@ async function onRename() {
                   </NcMenuItem>
                   <NcMenuItem
                     v-if="
+                      isEeUI &&
+                      !blockTableAndFieldPermissions &&
                       isUIAllowed('tableDuplicate', {
                         source,
                       }) &&
@@ -711,7 +713,7 @@ async function onRename() {
       :base-id="base.id"
     />
     <DlgTablePermissions
-      v-if="table.id"
+      v-if="table.id && isEeUI && !blockTableAndFieldPermissions"
       v-model:visible="isTablePermissionsDialogVisible"
       :table-id="table.id"
       :title="table.title"

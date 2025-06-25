@@ -53,8 +53,15 @@ const showCol = (col: ColumnType) => {
           :column="col"
           class="nc-expanded-cell-header h-full flex-none"
           :is-hidden-col="isHiddenCol"
+          show-lock-icon
         />
-        <LazySmartsheetHeaderCell v-else :column="col" class="nc-expanded-cell-header flex-none" :is-hidden-col="isHiddenCol" />
+        <LazySmartsheetHeaderCell
+          v-else
+          :column="col"
+          class="nc-expanded-cell-header flex-none"
+          :is-hidden-col="isHiddenCol"
+          show-lock-icon
+        />
       </div>
 
       <a-skeleton-input

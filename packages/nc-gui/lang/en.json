@@ -832,7 +832,9 @@
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
     "duplicatesFound": "Duplicates found",
-    "matchingResultsInRecords": "Matching results in {count} records"
+    "matchingResultsInRecords": "Matching results in {count} records",
+    "tablePermissions": "Table permissions",
+    "fieldPermissions": "Field permissions"
   },
   "labels": {
     "crossBase": "Link to external base",
@@ -1649,7 +1651,8 @@
     "addConditionGroup": "Add condition group",
     "pending": "Pending",
     "goToPage": "Go to Page",
-    "changePlan": "ChangePlan"
+    "changePlan": "ChangePlan",
+    "goToPermissionsOverview": "Go to Permissions Overview"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

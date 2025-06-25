@@ -404,16 +404,21 @@ const handleOpenNewRecordForm = () => {
             :permission="PermissionKey.TABLE_RECORD_DELETE"
             placement="right"
           >
-            <NcMenuItem
-              v-if="contextMenuTarget?.index !== undefined"
-              class="!text-red-600 !hover:bg-red-50"
-              @click="deleteRow(contextMenuTarget.index)"
-            >
-              <div v-e="['a:row:delete']" class="flex items-center gap-2">
-                <component :is="iconMap.delete" class="flex" />
-                {{ $t('activity.deleteRow') }}
-              </div>
-            </NcMenuItem>
+            <template #default="{ isAllowed }">
+              <NcMenuItem
+                v-if="contextMenuTarget?.index !== undefined"
+                :class="{
+                  '!text-red-600 !hover:bg-red-50': isAllowed,
+                }"
+                :disabled="!isAllowed"
+                @click="deleteRow(contextMenuTarget.index)"
+              >
+                <div v-e="['a:row:delete']" class="flex items-center gap-2">
+                  <component :is="iconMap.delete" class="flex" />
+                  {{ $t('activity.deleteRow') }}
+                </div>
+              </NcMenuItem>
+            </template>
           </PermissionsTooltip>
         </NcMenu>
       </template>
@@ -595,19 +600,26 @@ const handleOpenNewRecordForm = () => {
       </div>
     </NcDropdown>
     <div class="sticky bottom-4 w-[fit-content]">
-      <PermissionsTooltip :entity="PermissionEntity.TABLE" :entity-id="meta?.id" :permission="PermissionKey.TABLE_RECORD_ADD">
-        <NcButton
-          v-if="isUIAllowed('dataInsert') && !isSyncedTable"
-          size="xs"
-          type="secondary"
-          class="ml-4"
-          @click="handleOpenNewRecordForm"
-        >
-          <div class="flex items-center gap-2">
-            <component :is="iconMap.plus" class="" />
-            {{ $t('activity.newRecord') }}
-          </div>
-        </NcButton>
+      <PermissionsTooltip
+        :entity="PermissionEntity.TABLE"
+        :entity-id="meta?.id"
+        :permission="PermissionKey.TABLE_RECORD_ADD"
+        show-overlay
+      >
+        <template #default="{ isAllowed }">
+          <NcButton
+            v-if="isUIAllowed('dataInsert') && !isSyncedTable"
+            size="xs"
+            type="secondary"
+            class="ml-4"
+            @click="handleOpenNewRecordForm"
+          >
+            <div class="flex items-center gap-2">
+              <component :is="iconMap.plus" class="" />
+              {{ $t('activity.newRecord') }}
+            </div>
+          </NcButton>
+        </template>
       </PermissionsTooltip>
     </div>
   </div>

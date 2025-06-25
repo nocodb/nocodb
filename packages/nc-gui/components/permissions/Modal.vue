@@ -71,7 +71,7 @@ watch(
         <div class="flex items-center">
           <GeneralIcon icon="ncLock" class="!text-green-700 !h-5 !w-5" />
         </div>
-        <div class="flex-1 text-base font-weight-700">Permissions for {{ tableData?.title }}</div>
+        <div class="flex-1 text-xl font-weight-700">Permissions for {{ tableData?.title }}</div>
 
         <div class="flex items-center gap-3">
           <NcButton size="small" type="text" @click="vVisible = false">

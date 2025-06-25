@@ -13,16 +13,12 @@ const createPermissionConfig: PermissionConfig = {
   entity: PermissionEntity.TABLE,
   entityId: props.tableId,
   permission: PermissionKey.TABLE_RECORD_ADD,
-  label: 'Who can create records?',
-  description: 'can create records',
 }
 
 const deletePermissionConfig: PermissionConfig = {
   entity: PermissionEntity.TABLE,
   entityId: props.tableId,
   permission: PermissionKey.TABLE_RECORD_DELETE,
-  label: 'Who can delete records?',
-  description: 'can delete records',
 }
 
 const handlePermissionSave = () => {

@@ -21,8 +21,6 @@ const editPermissionConfig: PermissionConfig = {
   entity: PermissionEntity.FIELD,
   entityId: props.fieldId,
   permission: PermissionKey.RECORD_FIELD_EDIT,
-  label: 'Who can edit this field?',
-  description: 'can edit this field',
 }
 
 const handlePermissionSave = () => {

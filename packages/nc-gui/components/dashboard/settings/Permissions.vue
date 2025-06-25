@@ -160,7 +160,7 @@ watch(
                 class="w-full flex items-center gap-3 max-w-full text-gray-800"
                 data-testid="permissions-table-name"
               >
-                <GeneralTableIcon :meta="record" class="flex-none h-4 w-4 !text-nc-content-gray-subtle" />
+                <GeneralTableIcon :meta="(record as TableType)" class="flex-none h-4 w-4 !text-nc-content-gray-subtle" />
                 <NcTooltip class="truncate font-weight-600 max-w-[calc(100%_-_28px)]" show-on-truncate-only>
                   <template #title>
                     {{ record?.title }}

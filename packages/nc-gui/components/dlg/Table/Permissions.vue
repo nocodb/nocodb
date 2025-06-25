@@ -27,7 +27,7 @@ const onNavigateToPermissionsOverview = () => {
     :show-separator="false"
     wrap-class-name="nc-modal-single-table-permissions"
   >
-    <PermissionsTable :table-id="tableId" :base="base">
+    <PermissionsTable :table-id="tableId" :base="base" horizontal>
       <template #title>
         <div class="flex-1 flex items-center gap-2 text-nc-content-gray-emphasis">
           <GeneralIcon icon="ncLock" class="w-5 h-5 flex-none" />

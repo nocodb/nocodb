@@ -57,6 +57,8 @@ const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
 
 const { showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
 
+const { isTableAndFieldPermissionsEnabled } = usePermissions()
+
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
 const setAsDisplayValue = async () => {
@@ -573,7 +575,13 @@ const onDeleteColumn = () => {
     </NcMenuItem>
 
     <NcTooltip
-      v-if="isEeUI && isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
+      v-if="
+        isTableAndFieldPermissionsEnabled &&
+        isEeUI &&
+        isUIAllowed('fieldAlter') &&
+        !isSqlView &&
+        column.uidt !== UITypes.ForeignKey
+      "
       :disabled="showEditRestrictedColumnTooltip(column)"
       placement="right"
       :arrow="false"

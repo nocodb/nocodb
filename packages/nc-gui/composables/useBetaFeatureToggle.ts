@@ -191,6 +191,15 @@ const FEATURES = [
     version: 1,
     isEE: true,
   },
+  {
+    id: 'table_and_field_permissions',
+    title: 'Table and Field Permissions',
+    description: 'Allows user to manage table and field permissions.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

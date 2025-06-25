@@ -62,6 +62,8 @@ const userCount = computed(() =>
   activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0,
 )
 
+const { isTableAndFieldPermissionsEnabled } = usePermissions()
+
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
@@ -95,7 +97,12 @@ watch(
         projectPageTab.value = 'allTable'
       } else if (newVal === 'allScripts' && isAutomationEnabled.value && isEeUI) {
         projectPageTab.value = 'allScripts'
-      } else if (newVal === 'permissions' && !blockTableAndFieldPermissions.value && isEeUI) {
+      } else if (
+        newVal === 'permissions' &&
+        !blockTableAndFieldPermissions.value &&
+        isEeUI &&
+        isTableAndFieldPermissionsEnabled.value
+      ) {
         projectPageTab.value = 'permissions'
       } else {
         projectPageTab.value = 'base-settings'
@@ -253,7 +260,10 @@ onMounted(() => {
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id" key="permissions">
+        <a-tab-pane
+          v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && isTableAndFieldPermissionsEnabled"
+          key="permissions"
+        >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />

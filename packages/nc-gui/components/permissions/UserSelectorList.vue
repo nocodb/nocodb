@@ -73,7 +73,7 @@ const roleFilteredUsers = computed(() => {
       })
     }
 
-    return Object.keys(user.roles).some((role) => {
+    return Object.keys(user.roles ?? {}).some((role) => {
       const mappedRole = PermissionRoleMap[role as keyof typeof PermissionRoleMap]
       const rolePower = PermissionRolePower[mappedRole]
       return (rolePower && rolePower >= minimumRolePower) || selectedUsers.value.has(user.id)

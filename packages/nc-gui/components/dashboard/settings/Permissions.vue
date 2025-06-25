@@ -120,20 +120,6 @@ watch(
   },
 )
 
-watch(
-  projectPageTab,
-  () => {
-    if (projectPageTab.value === 'permissions') {
-      until(() => !!activeWorkspace.value)
-        .toBeTruthy()
-        .then(() => {})
-    }
-  },
-  {
-    immediate: true,
-  },
-)
-
 /**
  * Reset search query on unmount
  */
@@ -248,5 +234,3 @@ onBeforeUnmount(() => {
     :table-id="selectedTableForPermissions"
   />
 </template>
-
-<style scoped></style>

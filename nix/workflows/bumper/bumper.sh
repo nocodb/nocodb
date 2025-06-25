@@ -40,6 +40,7 @@ nix_hash() {
 ## MAIN ##
 ##########
 whoami=$(id)
+
 echo $whoami
 
 if [ ! -w "$package_path" ] || [ ! -r "$package_path" ]; then

@@ -1,6 +1,13 @@
 <script lang="ts" setup>
 import type { PermissionKey, WorkspaceUserRoles } from 'nocodb-sdk'
-import { PermissionMeta, PermissionRoleMap, PermissionRolePower, WorkspaceRolesToProjectRoles, ProjectRoles } from 'nocodb-sdk'
+import {
+  PermissionMeta,
+  PermissionRoleMap,
+  PermissionRolePower,
+  WorkspaceRolesToProjectRoles,
+  ProjectRoles,
+  OrderedProjectRoles,
+} from 'nocodb-sdk'
 import type { NcListProps } from '#imports'
 
 interface Props extends Partial<NcListProps> {
@@ -35,6 +42,8 @@ const {
   ...restProps
 } = props
 
+const { baseRoles } = useRoles()
+
 const basesStore = useBases()
 
 const { basesUser } = storeToRefs(basesStore)
@@ -51,6 +60,8 @@ const baseUsers = computed(() => {
         : ProjectRoles.NO_ACCESS),
   }))
 })
+
+const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
 // Filter users based on minimum role requirement from PermissionMeta
 const roleFilteredUsers = computed(() => {
@@ -125,6 +136,29 @@ const filterOption = (input: string, option: NcListItemType) => {
   return antSelectFilterOption(input, option, ['email', 'display_name'])
 }
 
+const isRoleInherited = (user: NcListItemType) => {
+  if (!isEeUI || !accessibleRoles.value.includes(user.roles)) return false
+
+  const inheritedRole =
+    user.workspace_roles && WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles]
+      ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles]
+      : null
+
+  return inheritedRole && inheritedRole === user.roles
+}
+
+watch(
+  baseRoles,
+  (br) => {
+    const currentRoleIndex = OrderedProjectRoles.findIndex((role) => br && Object.keys(br).includes(role))
+
+    accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
+  },
+  {
+    immediate: true,
+  },
+)
+
 defineExpose({
   selectAll,
   clearAll,
@@ -170,7 +204,15 @@ defineExpose({
       <template v-else>{{ option.email ?? option.id }} </template>
     </template>
     <template #listItemExtraRight="{ option }">
-      <RolesBadge :border="false" :role="option.roles" />
+      <div class="flex items-center gap-1">
+        <NcTooltip v-if="isRoleInherited(option)" class="uppercase text-[10px] leading-4 text-gray-500" placement="bottom">
+          <template #title>
+            {{ $t('tooltip.roleInheritedFromWorkspace') }}
+          </template>
+          (WS)
+        </NcTooltip>
+        <RolesBadge :border="false" :role="option.roles" />
+      </div>
     </template>
     <template #listItemSelectedIcon> </template>
     <template v-if="showListFooter" #listFooter>

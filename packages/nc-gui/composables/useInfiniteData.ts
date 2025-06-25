@@ -433,7 +433,8 @@ export function useInfiniteData(args: {
       const data = formatData(response.list, response.pageInfo, params, path, getEvaluatedRowMetaRowColorInfo)
 
       loadAggCommentsCount(data, path)
-      syncCount(path)
+      await syncCount(path, false)
+      callbacks?.reloadAggregate?.({ path })
 
       return data
     } catch (error: any) {
@@ -1649,7 +1650,7 @@ export function useInfiniteData(args: {
     return false
   }
 
-  async function syncCount(path: Array<number> = []): Promise<void> {
+  async function syncCount(path: Array<number> = [], throwError = true): Promise<void> {
     if (!isPublic?.value && (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id)) return
 
     const dataCache = getDataCache(path)
@@ -1698,8 +1699,14 @@ export function useInfiniteData(args: {
       callbacks?.syncVisibleData?.()
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)
-      message.error(`Failed to sync count: ${errorMessage}`)
-      throw error
+
+      if (throwError) {
+        message.error(`Failed to sync count: ${errorMessage}`)
+
+        throw error
+      } else {
+        console.error(`Failed to sync count: ${errorMessage}`)
+      }
     }
   }
 

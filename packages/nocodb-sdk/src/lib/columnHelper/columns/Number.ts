@@ -19,7 +19,7 @@ export class NumberHelper extends AbstractColumnHelper {
     value = serializeIntValue(value);
 
     if (value === null) {
-      if (params.isMultipleCellPaste) {
+      if (params.isMultipleCellPaste || params.serializeSearchQuery) {
         return null;
       } else {
         throw new SilentTypeConversionError();

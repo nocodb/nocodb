@@ -181,6 +181,20 @@ useEventListener(tableWrapper, 'scroll', () => {
 const onRowClick = (record: Record<string, any>, recordIndex: number) => {
   emit('rowClick', record, recordIndex)
 }
+
+/**
+ * We have to reset page if `page * pageSize` is greater than totalRows
+ */
+watch(
+  () => paginationData.value.pageSize,
+  () => {
+    if (paginationData.value.page === 1) return
+
+    if (paginationData.value.page! * paginationData.value.pageSize! > data.value.length) {
+      paginationData.value.page = 1
+    }
+  },
+)
 </script>
 
 <template>

@@ -301,6 +301,15 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
     return
   }
 
+  if (ignoreNavigation && toggleIsExpanded) {
+    if (isNewSidebarEnabled.value) {
+      ignoreNavigation = false
+      toggleIsExpanded = false
+    } else {
+      $e('c:base:expand')
+    }
+  }
+
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   if (isNewSidebarEnabled.value && !cmdOrCtrl && activeProjectId.value === base.id) {
@@ -703,7 +712,6 @@ defineExpose({
                 </NcButton>
 
                 <NcButton
-                  v-e="['c:base:expand']"
                   type="text"
                   size="xxsmall"
                   class="nc-sidebar-node-btn nc-sidebar-expand !xs:opacity-100 !mr-0 mt-0.5"
@@ -746,7 +754,7 @@ defineExpose({
                   <template v-if="sourceIndex === 0"></template>
                   <a-collapse
                     v-else-if="source && source.enabled"
-                    v-model:activeKey="activeKey"
+                    v-model:active-key="activeKey"
                     v-e="['c:source:toggle-expand']"
                     class="!mx-0 !px-0 nc-sidebar-source-node"
                     :class="[{ hidden: searchActive && !!filterQuery }]"

@@ -23,7 +23,7 @@ const automationStore = useAutomationStore()
 
 const { loadAutomations } = automationStore
 
-const { automations, isAutomationActive } = storeToRefs(automationStore)
+const { automations } = storeToRefs(automationStore)
 
 const { $e, $api } = useNuxtApp()
 
@@ -99,8 +99,6 @@ const { navigateToProjectPage } = useBase()
 watch(projectPageTab, () => {
   $e(`a:project:view:tab-change:${projectPageTab.value}`)
 
-  if (isAutomationActive.value) return
-
   navigateToProjectPage({
     page: projectPageTab.value as any,
   })
@@ -173,7 +171,7 @@ onMounted(() => {
         height: 'calc(100% - var(--topbar-height))',
       }"
     >
-      <a-tabs v-model:activeKey="projectPageTab" class="w-full">
+      <a-tabs v-model:active-key="projectPageTab" class="w-full">
         <template #leftExtra>
           <div class="w-3"></div>
         </template>

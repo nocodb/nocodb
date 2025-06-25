@@ -298,6 +298,8 @@ import NcOllama from '~icons/nc-icons/ollama'
 import NcGroq from '~icons/nc-icons/groq'
 import NcPosthog from '~icons/nc-icons/posthog'
 import NcNocodbPg from '~icons/nc-icons/nocodb-pg'
+import NcStopCircle from '~icons/nc-icons/stop-circle'
+import NcEnter from '~icons/nc-icons/enter'
 
 // Buttons Icons V2
 
@@ -559,6 +561,7 @@ import NcVerticalAlignTop from '~icons/nc-icons/align-vertical-top.svg'
 import NcVerticalAlignCenter from '~icons/nc-icons/align-vertical-center.svg'
 import NcVerticalAlignBottom from '~icons/nc-icons/align-vertical-bottom.svg'
 import NcAngleRotateCw from '~icons/nc-icons/angle-rotate-cw.svg'
+import NcCheckCircle2 from '~icons/nc-icons/check-2.svg'
 
 import NcSlash1 from '~icons/nc-icons/slash1'
 
@@ -736,6 +739,8 @@ import NcNotificationDuo from '~icons/nc-icons-v2/notification-duo.svg'
 import NcLayout from '~icons/nc-icons-v2/layout.svg'
 import NcPlusCircleSolid from '~icons/nc-icons-v2/plus-circle-solid.svg'
 import NcHeadphone from '~icons/nc-icons-v2/headphone'
+import NcPaintRoller from '~icons/nc-icons-v2/paint-roller.svg'
+import NcConditions from '~icons/nc-icons-v2/conditions.svg'
 
 import MdiNcCheckBold from '~icons/nc-icons/mdi-check-bold'
 import MdiNcCropSquare from '~icons/nc-icons/mdi-crop-square'
@@ -1118,6 +1123,7 @@ export const iconMap = {
   'shrink': h('span', { class: 'material-symbols' }, 'close_fullscreen'),
   'check': NcCheck,
   'circleCheck': MdiCheckboxMarkedCircle,
+  'circleCheck3': NcCheckCircle2,
   'acl': h('span', { class: 'material-symbols' }, 'shield'),
   'sync': MsSync,
   'warning': MaterialSymbolsWarningOutlineRounded,
@@ -1368,7 +1374,7 @@ export const iconMap = {
   'ncKey2': NcKeyIcon,
   'ncCornerDownRight': NcCornerDownRightIcon,
   'ncArrowRight2': NcArrowRightIcon,
-  'ncStopCircle': NcStopCircleIcon,
+  'ncStopCircle2': NcStopCircleIcon,
   'ncLogOut': NcLogOutIcon,
   'ncArrowLeftCircle': NcArrowLeftCircleIcon,
   'ncBarChart2': NcBarChart2Icon,
@@ -1562,6 +1568,7 @@ export const iconMap = {
   'ncSpanner': NcSpanner,
   'ncScript': NcScript,
   'youtube': NcYoutube2Icon,
+  'ncEnter': NcEnter,
   'ncAutoAwesome': h(NcAutoAwesome, { stroke: 'transparent' }),
   'ncPlusAi': h(NcPlusAi, { stroke: 'transparent' }),
   'ncPlusMultiple': NcPlusMultiple,
@@ -1687,7 +1694,10 @@ export const iconMap = {
   'ncLogoZohoColored': h(NcLogoZohoColored, { stroke: 'transparent' }),
   'ncLogoZoho': h(NcLogoZoho, { stroke: 'transparent' }),
   'ncSendAlt': h(NcSendAlt, { stroke: 'transparent' }),
+  'ncStopCircle': h(NcStopCircle, { stroke: 'transparent' }),
   'ncAiPlay': AiPlayIcon,
+  'ncPaintRoller': NcPaintRoller,
+  'ncConditions': NcConditions,
   'mdi-check-bold': MdiNcCropSquare,
   'mdi-crop-square': MdiNcCheckBold,
   'mdi-check-circle-outline': MdiNcCheckCircleOutline,
@@ -4303,6 +4313,14 @@ export const searchableMap = {
   ncHeadphone: {
     icon: NcHeadphone,
     keywords: ['headphone', 'call'],
+  },
+  ncPaintRoller: {
+    icon: NcPaintRoller,
+    keywords: ['paint', 'roller', 'color', 'paintbrush'],
+  },
+  ncConditions: {
+    icon: NcConditions,
+    keywords: ['conditions', 'filter', 'rule'],
   },
 }
 

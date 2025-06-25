@@ -387,7 +387,7 @@ if (isKanban.value) {
 provide(IsExpandedFormOpenInj, isExpanded)
 
 const triggerRowLoad = async (rowId?: string) => {
-  await Promise.allSettled([loadComments(rowId, false), loadAudits(rowId), _loadRow(rowId)])
+  await Promise.allSettled([loadComments(rowId, false), _loadRow(rowId)])
   isLoading.value = false
 }
 
@@ -407,6 +407,10 @@ onMounted(async () => {
     await triggerRowLoad(props.rowId)
   } else {
     _row.value = props.row
+  }
+
+  if (activeViewMode.value === ExpandedFormMode.DISCUSSION) {
+    await loadAudits(rowId.value, false)
   }
 
   isLoading.value = false
@@ -855,8 +859,8 @@ export default {
             :is-loading="isLoading"
             :is-saving="isSaving"
             :new-record-submit-btn-text="newRecordSubmitBtnText"
-            @copy:record-url="copyRecordUrl()"
-            @delete:row="onDeleteRowClick()"
+            @copy-record-url="copyRecordUrl()"
+            @delete-row="onDeleteRowClick()"
             @save="save()"
             @update:model-value="emits('update:modelValue', $event)"
             @created-record="emits('createdRecord', $event)"
@@ -874,8 +878,8 @@ export default {
             :is-loading="isLoading"
             :is-saving="isSaving"
             :new-record-submit-btn-text="newRecordSubmitBtnText"
-            @copy:record-url="copyRecordUrl()"
-            @delete:row="onDeleteRowClick()"
+            @copy-record-url="copyRecordUrl()"
+            @delete-row="onDeleteRowClick()"
             @save="save()"
             @update:model-value="emits('update:modelValue', $event)"
             @created-record="emits('createdRecord', $event)"

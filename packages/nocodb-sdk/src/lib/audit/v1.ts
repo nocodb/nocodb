@@ -124,17 +124,23 @@ enum AuditV1OperationTypes {
   DATA_IMPORT = 'DATA_IMPORT',
   DATA_EXPORT = 'DATA_EXPORT',
   USER_PROFILE_UPDATE = 'USER_PROFILE_UPDATE',
+
+  SCRIPT_CREATE = 'SCRIPT_CREATE',
+  SCRIPT_UPDATE = 'SCRIPT_UPDATE',
+  SCRIPT_DELETE = 'SCRIPT_DELETE',
+
+  SCRIPT_DUPLICATE = 'SCRIPT_DUPLICATE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
   AuditV1OperationTypes
 ).reduce((acc, key) => {
   // Convert snake_case or UPPER_SNAKE_CASE to readable format
-  const readableKey = key
+  // Capitalize each word
+  acc[key] = key
     .replace(/_/g, ' ') // Replace underscores with spaces
     .toLowerCase() // Convert to lowercase
-    .replace(/\b[a-z]/g, (char) => char.toUpperCase()); // Capitalize each word
-  acc[key] = readableKey;
+    .replace(/\b[a-z]/g, (char) => char.toUpperCase());
   return acc;
 }, {} as Record<string, string>);
 
@@ -250,6 +256,13 @@ export const auditV1OperationsCategory: Record<
     value: 'ORG',
     types: Object.values(AuditV1OperationTypes).filter((key) =>
       key.startsWith('ORG_')
+    ),
+  },
+  SCRIPT: {
+    label: 'general.script',
+    value: 'SCRIPT',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('SCRIPT_')
     ),
   },
 };
@@ -864,6 +877,32 @@ export interface DataImportPayload {
   import_type: 'excel' | 'csv';
 }
 
+export interface ScriptCreatePayload {
+  script_title: string;
+  script_id: string;
+  script_content: string;
+  script_description: string;
+  script_config: string;
+}
+
+export interface ScriptUpdatePayload extends UpdatePayload {
+  script_title: string;
+  script_id: string;
+}
+
+export interface ScriptDeletePayload {
+  script_title: string;
+  script_id: string;
+}
+
+export interface ScriptDuplicatePayload {
+  duplicated_script_title: string;
+  duplicated_script_id: string;
+  source_script_title: string;
+  source_script_id: string;
+  error?: string;
+}
+
 export interface AuditV1<T = any> {
   // auto generated
   id?: string;
@@ -1018,6 +1057,18 @@ const descriptionTemplates = {
     audit: AuditV1<FilterCreatePayload>
   ) =>
     `Filter with column '${audit.details.filter_field_id}' and operation '${audit.details.filter_comparison_op}' has been created`,
+  [AuditV1OperationTypes.SCRIPT_CREATE]: (
+    audit: AuditV1<ScriptCreatePayload>
+  ) => `Script '${audit.details.script_title}' has been created`,
+  [AuditV1OperationTypes.SCRIPT_UPDATE]: (
+    audit: AuditV1<ScriptUpdatePayload>
+  ) => `Script '${audit.details.script_title}' has been updated`,
+  [AuditV1OperationTypes.SCRIPT_DELETE]: (
+    audit: AuditV1<ScriptDeletePayload>
+  ) => `Script '${audit.details.script_title}' has been deleted`,
+  [AuditV1OperationTypes.SCRIPT_DUPLICATE]: (
+    audit: AuditV1<ScriptDuplicatePayload>
+  ) => `Script '${audit.details.source_script_title}' has been duplicated`,
 };
 
 function auditDescription(audit: AuditV1) {

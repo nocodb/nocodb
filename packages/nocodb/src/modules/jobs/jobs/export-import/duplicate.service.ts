@@ -38,6 +38,7 @@ export class DuplicateService {
         excludeData?: boolean;
         excludeViews?: boolean;
         excludeHooks?: boolean;
+        excludeScripts?: boolean;
       };
       // override duplicated base
       base?: any;
@@ -80,7 +81,7 @@ export class DuplicateService {
       bases.map((p) => p.title),
     );
 
-    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
     req.ncParentAuditId = parentAuditId;
 

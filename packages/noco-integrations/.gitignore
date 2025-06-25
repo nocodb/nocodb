@@ -58,8 +58,11 @@ logs
 .yarn-integrity
 
 # pnpm
-.pnpm-store/ 
+.pnpm-store/
 
 dist/
 
 next-local/
+
+# Build optimization
+.build-checksums.json

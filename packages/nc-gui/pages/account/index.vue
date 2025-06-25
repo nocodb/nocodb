@@ -49,8 +49,8 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 
           <div class="h-full bg-white nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
             <NcMenu
-              v-model:openKeys="openKeys"
-              v-model:selectedKeys="selectedKeys"
+              v-model:open-keys="openKeys"
+              v-model:selected-keys="selectedKeys"
               :inline-indent="16"
               class="tabs-menu h-full"
               mode="inline"

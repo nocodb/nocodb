@@ -5,7 +5,7 @@ const { user, signOut, appInfo } = useGlobal()
 // So watcher in users store is triggered
 useUsers()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { isFeatureEnabled, isExperimentalFeatureModalOpen } = useBetaFeatureToggle()
 
 const { leftSidebarState } = storeToRefs(useSidebarStore())
 
@@ -57,8 +57,6 @@ const isMounted = ref(false)
 onMounted(() => {
   isMounted.value = true
 })
-
-const isExperimentalFeatureModalOpen = ref(false)
 
 const openExperimentationMenu = () => {
   isMenuOpen.value = false
@@ -256,7 +254,6 @@ const accountUrl = computed(() => {
           </NcMenu>
         </template>
       </NcDropdown>
-      <DashboardFeatureExperimentation v-model:value="isExperimentalFeatureModalOpen" />
       <LazyNotificationMenu v-if="!isMiniSidebar" />
     </div>
 

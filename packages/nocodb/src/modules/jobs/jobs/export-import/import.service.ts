@@ -11,6 +11,7 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import papaparse from 'papaparse';
+import { MetaTable } from 'src/cli';
 import { elapsedTime, initTime } from '../../helpers';
 import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { Readable } from 'stream';
@@ -22,6 +23,7 @@ import type {
   User,
   View,
 } from '~/models';
+import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import { sanitizeColumnName } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import {
@@ -51,6 +53,7 @@ import { TablesService } from '~/services/tables.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import Noco from '~/Noco';
 
 @Injectable()
 export class ImportService {
@@ -90,6 +93,18 @@ export class ImportService {
     throw new NotImplementedException();
   }
 
+  async importScripts(
+    _context: NcContext,
+    _param: {
+      user: User;
+      baseId: string;
+      data: Array<any>;
+      req: NcRequest;
+    },
+  ) {
+    // Not Implemented
+  }
+
   async importModels(
     context: NcContext,
     param: {
@@ -103,9 +118,22 @@ export class ImportService {
               views: any[];
               hooks?: any[];
               comments?: any[];
+              rowColorConditions?: {
+                filters?: any[];
+                rowColorConditions?: any[];
+              };
             }[];
           }
-        | { model: any; views: any[]; hooks?: any[]; comments?: any[] }[];
+        | {
+            model: any;
+            views: any[];
+            hooks?: any[];
+            comments?: any[];
+            rowColorConditions?: {
+              filters?: any[];
+              rowColorConditions?: any[];
+            };
+          }[];
       req: NcRequest;
       externalModels?: Model[];
       existingModel?: Model;
@@ -113,6 +141,8 @@ export class ImportService {
     },
   ) {
     const hrTime = initTime();
+
+    const ncMeta = Noco.ncMeta;
 
     // structured id to db id
     const idMap = new Map<string, string>();
@@ -1443,6 +1473,12 @@ export class ImportService {
       for (const view of viewsData) {
         const viewData = withoutId({
           ...view,
+          meta: RowColorViewHelpers.withContext(context).mapMetaColumn({
+            meta: view.meta,
+            idMap: {
+              get: getIdOrExternalId,
+            } as any,
+          }),
         });
 
         const vw = await this.createView(
@@ -1571,6 +1607,37 @@ export class ImportService {
             req: param.req,
           });
         }
+      }
+    }
+
+    // create row color info
+    for (const data of param.data) {
+      if (param.existingModel) break;
+      if (data.rowColorConditions?.rowColorConditions?.length > 0) {
+        await ncMeta.bulkMetaInsert(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.ROW_COLOR_CONDITIONS,
+          data.rowColorConditions.rowColorConditions.map((rc) => {
+            return {
+              ...rc,
+              fk_view_id: getIdOrExternalId(rc.fk_view_id),
+            };
+          }),
+        );
+      }
+      if (data.rowColorConditions?.filters?.length > 0) {
+        await ncMeta.bulkMetaInsert(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          data.rowColorConditions.filters.map((flt) => {
+            return {
+              ...flt,
+              fk_column_id: getIdOrExternalId(flt.fk_column_id),
+            };
+          }),
+        );
       }
     }
 

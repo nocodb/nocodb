@@ -122,6 +122,7 @@ import {
 } from '~/utils';
 import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
+import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 
 dayjs.extend(utc);
 
@@ -211,6 +212,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       extractOnlyPrimaries,
       extractOrderColumn,
       apiVersion,
+      skipSubstitutingColumnIds:
+        this.context.api_version === NcApiVersion.V3 &&
+        query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
     });
 
     await this.selectObject({
@@ -226,6 +230,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       data = await this.execAndParse(qb, null, {
         first: true,
         apiVersion,
+        skipSubstitutingColumnIds:
+          this.context.api_version === NcApiVersion.V3 &&
+          query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
       });
     } catch (e) {
       if (
@@ -408,6 +415,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       validateFormula?: boolean;
       throwErrorIfInvalidParams?: boolean;
       limitOverride?: number;
+      skipSubstitutingColumnIds?: boolean;
     } = {},
   ): Promise<any> {
     const {
@@ -565,7 +573,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     let data;
     try {
       data = await this.execAndParse(qb, undefined, {
-        apiVersion: args.apiVersion,
+        apiVersion: args.apiVersion ?? this.context.api_version,
+        skipSubstitutingColumnIds: options.skipSubstitutingColumnIds,
       });
     } catch (e) {
       if (validateFormula || !haveFormulaColumn(columns)) throw e;
@@ -2645,7 +2654,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  async chunkList(args: { pks: string[]; chunkSize?: number }) {
+  async chunkList(args: {
+    pks: string[];
+    chunkSize?: number;
+    apiVersion?: NcApiVersion;
+  }) {
     const { pks, chunkSize = 1000 } = args;
 
     const data = [];
@@ -2656,6 +2669,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const chunkData = await this.list(
         {
           pks: chunk.join(','),
+          apiVersion: args.apiVersion,
         },
         {
           limitOverride: chunk.length,
@@ -3775,7 +3789,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // disable external source audit in cloud
     if (!req.ncParentAuditId && (await this.isDataAuditEnabled())) {
-      parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+      parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
       await Audit.insert(
         await generateAuditV1Payload<DataBulkDeletePayload>(
@@ -3880,7 +3894,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await this.handleHooks('after.bulkDelete', null, data, req);
     }
 
-    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
     // disable external source audit in cloud
     if (await this.isDataAuditEnabled()) {
@@ -3948,7 +3962,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     if (newData && newData.length > 0) {
-      const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+      const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
       // disable external source audit in cloud
       if (await this.isDataAuditEnabled()) {
@@ -5337,7 +5351,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         if (alias) {
           if (ltarMap[key]) {
             // Handle LTAR/Lookup columns
-            if (ncIsArray(value) && value.length > 0 && ncIsObject(value[0])) {
+            if (
+              ncIsArray(value) &&
+              value.length > 0 &&
+              ncIsObject(value.filter((k) => k)[0])
+            ) {
               // Transform array of objects
               item[alias] = value.map((arrVal) =>
                 transformObject(arrVal, idToAliasMap),
@@ -6320,6 +6338,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             UITypes.PhoneNumber,
             UITypes.Email,
             UITypes.JSON,
+            UITypes.Currency,
           ].includes(column.uidt as UITypes))
       ) {
         data[column.column_name] = (

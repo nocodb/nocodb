@@ -8,7 +8,7 @@ interface Props {
   dragging?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   resize: true,
   selected: false,
   hover: false,
@@ -16,7 +16,11 @@ withDefaults(defineProps<Props>(), {
   dragging: false,
 })
 
-const emit = defineEmits(['resize-start'])
+const emit = defineEmits(['resizeStart'])
+
+const rowColorInfo = computed(() => {
+  return extractRowBackgroundColorStyle(props.record as Row)
+})
 </script>
 
 <template>
@@ -26,6 +30,8 @@ const emit = defineEmits(['resize-start'])
         hover || dragging
           ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
           : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)',
+
+      ...rowColorInfo.rowBgColor,
     }"
     :class="{
       'bg-maroon-50': color === 'maroon',
@@ -38,12 +44,12 @@ const emit = defineEmits(['resize-start'])
       'z-90': hover,
       '!bg-nc-bg-gray-light': hover || dragging,
     }"
-    class="relative flex gap-1 border-1 relative rounded-md h-full"
+    class="relative flex-none flex gap-1 border-1 rounded-md h-full overflow-hidden"
   >
     <div
       v-if="resize"
       class="absolute w-full h-1 z-20 top-0 cursor-row-resize"
-      @mousedown.stop="emit('resize-start', 'left', $event, record)"
+      @mousedown.stop="emit('resizeStart', 'left', $event, record)"
     ></div>
     <div
       :class="{
@@ -55,10 +61,11 @@ const emit = defineEmits(['resize-start'])
         'bg-purple-500': color === 'purple',
         'bg-gray-900': color === 'gray',
       }"
-      class="h-full min-h-3 w-1.25 -ml-0.25 rounded-l-md"
+      class="h-full min-h-3 w-1.25 -ml-0.25"
+      :style="rowColorInfo.rowLeftBorderColor"
     ></div>
 
-    <div class="flex overflow-x-hidden whitespace-nowrap text-ellipsis pt-1 w-full truncate text-ellipsis flex-col gap-1">
+    <div class="flex overflow-x-hidden whitespace-nowrap text-ellipsis pt-1 w-full truncate flex-col gap-1">
       <div class="truncate">
         <NcTooltip
           class="break-word whitespace-nowrap overflow-hidden text-ellipsis pr-1"
@@ -77,7 +84,7 @@ const emit = defineEmits(['resize-start'])
     <div
       v-if="resize"
       class="absolute cursor-row-resize w-full bottom-0 w-full h-1"
-      @mousedown.stop="emit('resize-start', 'right', $event, record)"
+      @mousedown.stop="emit('resizeStart', 'right', $event, record)"
     ></div>
   </div>
 </template>

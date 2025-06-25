@@ -350,6 +350,8 @@ const isDeleteOrUpdateAllowed = (user) => {
         :custom-row="customRow"
         class="flex-1 nc-collaborators-list max-w-full"
         body-row-class-name="!cursor-default"
+        :pagination="true"
+        :pagination-offset="25"
       >
         <template #emptyText>
           <a-empty :description="$t('title.noMembersFound')" />

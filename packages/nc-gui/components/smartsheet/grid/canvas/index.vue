@@ -29,7 +29,6 @@ import {
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
-  ROW_META_COLUMN_WIDTH,
 } from './utils/constants'
 import { calculateGroupRowTop, comparePath, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
 import { CanvasElement, ElementTypes } from './utils/CanvasElement'
@@ -252,8 +251,9 @@ const { floatingStyles } = useFloating(targetReference, tooltipRef, {
 })
 const { tryShowTooltip, hideTooltip } = tooltipStore
 
-let selectedRowInfo: { index: number | null | undefined; path: Array<number> } = {
+let selectedRowInfo: { index: number | null | undefined; isSelectionStarted: boolean; path: Array<number> } = {
   index: null,
+  isSelectionStarted: false,
   path: [],
 }
 
@@ -340,6 +340,8 @@ const {
   removeInlineAddRecord,
   upgradeModalInlineState,
   isRowDraggingEnabled,
+  rowMetaColumnWidth,
+  rowColouringBorderWidth,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -753,14 +755,16 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
 
   const initialX = currentX
 
+  const rowColouringBoxTotalWidth = rowColouringBorderWidth.value ? rowColouringBorderWidth.value + 8 : 0
+
   if (readOnly.value || !(isHover || isChecked || isRowCellSelected)) {
     regions.push({
       x: currentX,
-      width: ROW_META_COLUMN_WIDTH / 2 - 8,
+      width: rowMetaColumnWidth.value / 2 - 8,
       action: 'none',
     })
 
-    currentX += ROW_META_COLUMN_WIDTH / 2 - 8 + 16
+    currentX += rowMetaColumnWidth.value / 2 - 8 + 16
   } else if ((isHover || isChecked || isRowCellSelected) && isRowDraggingEnabled.value) {
     regions.push({
       x: currentX,
@@ -791,11 +795,11 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
     const ctx = defaultOffscreen2DContext
 
     const { width: commentCountWidth } = renderSingleLineText(ctx, {
-      x: initialX + ROW_META_COLUMN_WIDTH / 2 - 4,
+      x: initialX + rowMetaColumnWidth.value / 2 - 4 - rowColouringBoxTotalWidth,
       y: 0,
       render: false,
       text: commentCount,
-      maxWidth: ROW_META_COLUMN_WIDTH / 2,
+      maxWidth: rowMetaColumnWidth.value / 2 - rowColouringBoxTotalWidth,
       fontFamily: `600 ${reduceFontSize ? '10px' : '12px'} Inter`,
       textAlign: 'center',
       isTagLabel: true,
@@ -803,13 +807,13 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
     })
 
     regions.push({
-      x: initialX + ROW_META_COLUMN_WIDTH - 4 - Math.max(20, commentCountWidth + 8),
+      x: initialX + rowMetaColumnWidth.value - 4 - Math.max(20, commentCountWidth + 8) - rowColouringBoxTotalWidth,
       width: Math.max(20, commentCountWidth + 8),
       action: 'comment',
     })
   } else {
     regions.push({
-      x: initialX + ROW_META_COLUMN_WIDTH - 4 - 20,
+      x: initialX + rowMetaColumnWidth.value - 4 - 20 - rowColouringBoxTotalWidth,
       width: 20,
       action: 'comment',
     })
@@ -852,6 +856,7 @@ const handleRowMetaClick = ({
             selectedRowInfo = {
               index: row.rowMeta.rowIndex,
               path,
+              isSelectionStarted: false,
             }
           }
 
@@ -964,7 +969,7 @@ async function handleMouseDown(e: MouseEvent) {
   // Handle all Column Header Operations
   if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
     // If x less than 80px, use is hovering over the row meta column
-    if (x > ROW_META_COLUMN_WIDTH) {
+    if (x > rowMetaColumnWidth.value) {
       // If the user is trying to resize the column
       // If the user is trying to resize column, we will set the resizeableColumn to column object
       // The below operation will not interfere with other column operations
@@ -1007,7 +1012,7 @@ async function handleMouseDown(e: MouseEvent) {
   if (!row) return
   // onMouseDown event, we only handle the fillHandler and selectionHandler
   // and rowReorder. Other events should be handled in onMouseUp
-  if (x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13) {
+  if (x < rowMetaColumnWidth.value + groupByColumns.value.length * 13) {
     if (clickType !== MouseClickType.SINGLE_CLICK) return
     handleRowMetaClick({ e, row, x, onlyDrag: true, group })
     return
@@ -1152,7 +1157,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   if (mouseUpListener) {
     document.removeEventListener('mouseup', mouseUpListener)
     mouseUpListener = null
-    selectedRowInfo = { index: null, path: [] }
+    selectedRowInfo = { index: null, path: [], isSelectionStarted: false }
   }
 
   await onMouseUpFillHandlerEnd()
@@ -1164,7 +1169,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   if (editEnabled.value) return
 
   if (onMouseUpSelectionHandler(e)) {
-    if (y <= COLUMN_HEADER_HEIGHT_IN_PX || y > height.value - 36 || x <= ROW_META_COLUMN_WIDTH) {
+    if (y <= COLUMN_HEADER_HEIGHT_IN_PX || y > height.value - 36 || x <= rowMetaColumnWidth.value) {
       // DO_NOTHING_HERE
     } else {
       requestAnimationFrame(triggerRefreshCanvas)
@@ -1199,7 +1204,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   // Handle all Column Header Operations
   if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
     // If x less than 80px, use is hovering over the row meta column
-    if (x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13) {
+    if (x < rowMetaColumnWidth.value + groupByColumns.value.length * 13) {
       // If the click is not normal single click, return
       if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value || isGroupBy.value) return
       if (isBoxHovered({ x: isRowDraggingEnabled.value ? 4 + 26 : 10, y: 8, height: 16, width: 16 }, mousePosition)) {
@@ -1466,7 +1471,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     return
   }
 
-  if (x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13) {
+  if (x < rowMetaColumnWidth.value + groupByColumns.value.length * 13) {
     if (!row) return
     if (![MouseClickType.SINGLE_CLICK, MouseClickType.RIGHT_CLICK].includes(clickType)) return
 
@@ -1855,7 +1860,7 @@ const handleMouseMove = (e: MouseEvent) => {
 
   // check if hovering row meta column and set cursor
   if (
-    mousePosition.x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13 &&
+    mousePosition.x < rowMetaColumnWidth.value + groupByColumns.value.length * 13 &&
     mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX
   ) {
     // handle hovering on the aggregation dropdown
@@ -1887,15 +1892,29 @@ const handleMouseMove = (e: MouseEvent) => {
 
       const selectionEnd = Math.min(selectionStart + MAX_SELECTED_ROWS, Math.max(selectedRowInfo.index, row.rowMeta.rowIndex))
 
+      /**
+       * If selection is started and the selection is not changed, then don't do anything
+       */
+      if (selectionStart === selectionEnd && selectionStart === selectedRowInfo.index && selectedRowInfo.isSelectionStarted) {
+        return
+      }
+
       const dataCache = getDataCache(element.groupPath)
 
       dataCache.cachedRows.value.forEach((row) => {
         if (row.rowMeta.rowIndex >= selectionStart && row.rowMeta.rowIndex <= selectionEnd) {
           row.rowMeta.selected = true
-        } else {
+        } else if (selectedRowInfo.isSelectionStarted) {
+          /**
+           * If it is first drag selection, then we should not unselect other rows until we move cursor to next or prev row
+           */
           row.rowMeta.selected = false
         }
       })
+
+      if (!selectedRowInfo.isSelectionStarted) {
+        selectedRowInfo.isSelectionStarted = true
+      }
 
       requestAnimationFrame(triggerRefreshCanvas)
     }

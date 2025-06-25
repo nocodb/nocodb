@@ -160,6 +160,10 @@ export const parseTimeValue = (
   }
 
   if (!d.isValid()) {
+    d = dayjs(`1999-01-01 ${value}`);
+  }
+
+  if (!d.isValid()) {
     // return empty string for invalid time
     return null;
   }

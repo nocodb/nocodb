@@ -76,6 +76,15 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'row_action',
+    title: 'Row Actions',
+    description: 'Allows user to execute script on a row.',
+    enabled: false,
+    version: 0,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
     id: 'integrations',
     title: 'Integrations',
     description: 'Enable dynamic integrations.',
@@ -208,6 +217,8 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
 
   const isEngineeringModeOn = ref(false)
 
+  const isExperimentalFeatureModalOpen = ref(false)
+
   const saveFeatures = () => {
     try {
       const featuresToSave = features.value.map((feature) => ({
@@ -293,7 +304,6 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
   }
 
   onMounted(() => {
-    initializeFeatures()
     window.addEventListener('storage', handleStorageEvent)
   })
 
@@ -306,5 +316,7 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     toggleFeature,
     isFeatureEnabled,
     isEngineeringModeOn,
+    isExperimentalFeatureModalOpen,
+    initializeFeatures,
   }
 })

@@ -155,7 +155,9 @@
     "upgradeToUploadWsImage": "वर्कस्पेस इमेज अपलोड करने के लिए अपग्रेड करें",
     "upgradeToUploadWsImageSubtitle": "आपका मौजूदा {activePlan} प्लान केवल आइकन और इमोजी की अनुमति देता है। कस्टम इमेज को वर्कस्पेस अवतार के रूप में अपलोड करने के लिए {plan} प्लान में अपग्रेड करें।",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
-    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user."
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
+    "upgradeToUseRowColoring": "Upgrade to use row coloring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "Script",
@@ -572,6 +574,14 @@
       "storageUsedGB": "Storage Used (GB)",
       "webhookCallsMonthly": "Webhook calls (monthly)",
       "apiCallsMonthly": "API calls (monthly)"
+    },
+    "coloring": {
+      "usingSingleSelectField": "Using Single select field",
+      "usingSingleSelectFieldDescription": "Colour records based on single select field",
+      "usingSingleSelectFieldTooltip": "No single select field found. Add one to enable select-field based row colouring.",
+      "usingConditions": "Using Conditions",
+      "usingConditionsDescription": "Colour records based on conditions",
+      "colourRecordsByField": "Colour records by field"
     }
   },
   "datatype": {
@@ -820,7 +830,8 @@
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
-    "duplicatesFound": "Duplicates found"
+    "duplicatesFound": "Duplicates found",
+    "matchingResultsInRecords": "Matching results in {count} records"
   },
   "labels": {
     "crossBase": "Link to external base",
@@ -1256,6 +1267,7 @@
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Include views",
+    "includeScripts": "Include scripts",
     "includeWebhook": "Include webhook",
     "includeComments": "Include comments",
     "zoomInToViewColumns": "कॉलम देखने के लिए ज़ूम इन करें",
@@ -1343,7 +1355,13 @@
     "dataApiV2": "Data APIs V2",
     "metaApiV2": "Meta APIs V2",
     "showExtraFields": "Show additional fields",
-    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records"
+    "showExtraFieldsDescription": "Display extra fields alongside the display value when selecting linked records",
+    "includeUser": "Include User",
+    "removeColouring": "Remove colouring",
+    "backgroundColour": "Background colour",
+    "addColour": "Add Colour",
+    "defaultColours": "Default colours",
+    "customColours": "Custom colours"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1631,6 +1649,7 @@
     "changePlan": "प्लान बदलें"
   },
   "tooltip": {
+    "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
     "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
     "currentDateNotAvail": "डेटा स्रोत या डेटा प्रकार के लिए वर्तमान तिथि विकल्प उपलब्ध नहीं है",
@@ -1696,7 +1715,8 @@
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation"
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table"
   },
   "placeholder": {
     "searchIcons": "आइकन खोजें",
@@ -2311,6 +2331,8 @@
     },
     "noAccess": "No Access",
     "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
-    "tryAgain": "Try Again"
+    "tryAgain": "Try Again",
+    "internalUrlsNotAllowed": "Internal URLs are not allowed",
+    "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls"
   }
 }

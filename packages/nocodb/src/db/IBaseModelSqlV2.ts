@@ -9,6 +9,8 @@ import type {
   NcApiVersion,
   NcContext,
   NcRequest,
+  PermissionEntity,
+  PermissionKey,
   RelationTypes,
 } from 'nocodb-sdk';
 import type { Column, Model, View } from '~/models';
@@ -285,6 +287,14 @@ export interface IBaseModelSqlV2 {
   ): Promise<void>;
 
   getNestedColumn(column: Column): Promise<Column | any>;
+
+  checkPermission(params: {
+    entity: PermissionEntity;
+    entityId: string | string[];
+    permission: PermissionKey;
+    user: any;
+    req: any;
+  }): Promise<void>;
 
   get viewId(): string;
   get dbDriver(): CustomKnex;

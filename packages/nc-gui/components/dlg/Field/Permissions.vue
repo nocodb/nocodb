@@ -43,7 +43,7 @@ const onNavigateToPermissionsOverview = () => {
     :show-separator="false"
     wrap-class-name="nc-modal-single-field-permissions"
   >
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-4 w-full">
       <div class="flex items-center justify-between">
         <div class="flex-1 flex items-center gap-2 text-nc-content-gray-emphasis">
           <GeneralIcon icon="ncLock" class="w-5 h-5 flex-none" />
@@ -55,11 +55,7 @@ const onNavigateToPermissionsOverview = () => {
         </div>
       </div>
 
-      <div class="flex flex-col gap-4">
-        <div class="flex flex-col gap-2">
-          <PermissionsSelector :base="base" :config="editPermissionConfig" @save="handlePermissionSave" />
-        </div>
-      </div>
+      <PermissionsSelector :base="base" :config="editPermissionConfig" @save="handlePermissionSave" horizontal />
     </div>
 
     <div class="flex justify-end mt-5">

@@ -1,4 +1,4 @@
-import { UITypes, isAIPromptCol, isLinksOrLTAR, isOrderCol, isReadonly, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, UITypes, isAIPromptCol, isLinksOrLTAR, isOrderCol, isReadonly, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { ButtonType, ColumnType, TableType, UserType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
@@ -160,6 +160,7 @@ export function useCanvasTable({
 }) {
   const { metas, getMeta, getPartialMeta } = useMetas()
   const { getBaseRoles } = useBases()
+  const { isAllowed } = usePermissions()
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref<{
@@ -276,6 +277,10 @@ export function useCanvasTable({
     () => isDataEditAllowed.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
   )
 
+  const isAddingEmptyRowPermitted = computed(() =>
+    meta.value?.id ? isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD) : true,
+  )
+
   const isAddingColumnAllowed = computed(() => !readOnly.value && isFieldEditAllowed.value && !isSqlView.value)
 
   const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
@@ -374,7 +379,7 @@ export function useCanvasTable({
               ? false
               : !!f.pv,
           readonly: f.readonly || isDataReadOnly.value || isSqlView.value || isPublicView.value,
-          isCellEditable: !isReadonly(f),
+          isCellEditable: !isReadonly(f) && isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT),
           pv: !!f.pv,
           virtual: isVirtualCol(f),
           aggregation: formatAggregation(gridViewCol.aggregation, aggregations.value[f.title], f),
@@ -805,6 +810,7 @@ export function useCanvasTable({
     getRows,
     draggedRowGroupPath,
     isAddingEmptyRowAllowed,
+    isAddingEmptyRowPermitted,
     removeInlineAddRecord,
     upgradeModalInlineState,
     rowMetaColumnWidth,
@@ -1244,6 +1250,11 @@ export function useCanvasTable({
       return null
     }
 
+    if (column.id && !isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)) {
+      message.info('You do not have permission to edit this field')
+      return null
+    }
+
     if (column.readonly) {
       message.info(t('msg.info.fieldReadonly'))
       return null
@@ -1370,6 +1381,7 @@ export function useCanvasTable({
     meta,
     view,
     isAddingEmptyRowAllowed,
+    isAddingEmptyRowPermitted,
     isAddingColumnAllowed,
     getCellPosition,
 

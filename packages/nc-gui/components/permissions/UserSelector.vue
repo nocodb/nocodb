@@ -97,7 +97,7 @@ const userSelectorListRef = ref()
         :permission-label="permissionLabel"
         :permission-description="permissionDescription"
         :permission="permission"
-        :is-open="visible"
+        :open="visible"
         list-class-name="!w-auto"
       >
       </PermissionsUserSelectorList>

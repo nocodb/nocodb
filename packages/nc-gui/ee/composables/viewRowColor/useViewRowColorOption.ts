@@ -82,6 +82,8 @@ export function useViewRowColorOption(params: {
   }
 
   const onRowColorSelectChange = async (columnChanged?: boolean = false) => {
+    isLoadingFilter.value = true
+
     if (rowColorInfo.value.fk_column_id) {
       await $api.dbView.viewRowColorSelectAdd(params.view.value.id, rowColorInfo.value)
       eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
@@ -91,6 +93,8 @@ export function useViewRowColorOption(params: {
       }
     }
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+
+    isLoadingFilter.value = false
   }
 
   const onRowColorConditionAdd = async () => {

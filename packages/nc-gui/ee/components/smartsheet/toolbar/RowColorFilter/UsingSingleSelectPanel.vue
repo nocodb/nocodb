@@ -5,6 +5,7 @@ import { SmartsheetHeaderIcon } from '#components'
 interface Props {
   modelValue?: Ref<any>
   columns?: ComputedRef<ColumnType[]>
+  isLoadingFilter?: Ref<boolean>
 }
 
 interface Emits {
@@ -24,7 +25,8 @@ const props = defineProps({
     is_set_as_background: false,
     fk_column_id: '',
   }),
-  columns: [],
+  columns: computed(() => []),
+  isLoadingFilter: ref(false),
 } as Props as any)
 
 const emits = defineEmits<Emits>()
@@ -82,6 +84,7 @@ const hasPermission = computed(() => !isLocked.value && isUIAllowed('rowColourUp
         <NcSwitch
           v-model:checked="vModel.is_set_as_background"
           placement="right"
+          :loading="props.isLoadingFilter"
           :disabled="!hasPermission"
           @change="emits('change')"
         >

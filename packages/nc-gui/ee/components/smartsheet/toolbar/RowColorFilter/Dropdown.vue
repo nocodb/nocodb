@@ -44,7 +44,20 @@ const {
   viewFieldsMap: fieldsMap,
 })
 
-const open = ref(false)
+const { showUpgradeToUseRowColoring } = useEeConfig()
+
+const openLocal = ref(false)
+
+const open = computed({
+  get: () => {
+    return openLocal.value
+  },
+  set: (value) => {
+    if (value && showUpgradeToUseRowColoring()) return
+
+    openLocal.value = value
+  },
+})
 
 const rowColoringMode = computed({
   set: (value) => {
@@ -122,6 +135,7 @@ watch(open, (value) => {
             v-model="rowColorInfo"
             :columns="selectColumns"
             :filter-per-view-limit="filterPerViewLimit"
+            :is-loading-filter="isLoadingFilter"
             @change="onRowColorSelectChange"
             @remove="onRemoveRowColoringMode"
           />

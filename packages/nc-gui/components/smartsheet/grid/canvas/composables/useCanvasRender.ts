@@ -711,7 +711,13 @@ export function useCanvasRender({
 
   const renderActiveState = (
     ctx: CanvasRenderingContext2D,
-    activeState: { x: number; y: number; width: number; height: number; col: CanvasGridColumn } | null,
+    activeState: {
+      x: number
+      y: number
+      width: number
+      height: number
+      col: CanvasGridColumn
+    } | null,
   ) => {
     if (!activeState) return
 
@@ -732,7 +738,7 @@ export function useCanvasRender({
 
       const isHovered = isBoxHovered(boxRect, mousePosition)
 
-      if (isHovered) {
+      if (isHovered && activeState.col.id !== editEnabled.value?.column?.id) {
         tryShowTooltip({
           mousePosition,
           text: t('objects.permissions.editFieldTooltipTitle'),
@@ -1243,7 +1249,13 @@ export function useCanvasRender({
       group?: CanvasGroup
     },
   ) {
-    let activeState: { col: any; x: number; y: number; width: number; height: number } | null = null
+    let activeState: {
+      col: any
+      x: number
+      y: number
+      width: number
+      height: number
+    } | null = null
     const renderRedBorders: {
       rowIndex: number
       column: CanvasGridColumn
@@ -1638,7 +1650,13 @@ export function useCanvasRender({
     const visibleCols = columns.value.slice(startColIndex, endColIndex)
     let yOffset = -partialRowHeight.value + 33
 
-    let activeState: { col: any; x: number; y: number; width: number; height: number } | null = null
+    let activeState: {
+      col: any
+      x: number
+      y: number
+      width: number
+      height: number
+    } | null = null
 
     let initialXOffset = 1
     for (let i = 0; i < startColIndex; i++) {

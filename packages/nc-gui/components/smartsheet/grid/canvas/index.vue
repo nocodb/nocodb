@@ -2550,7 +2550,12 @@ defineExpose({
               willChange: 'top, left, width, height',
             }"
             class="nc-canvas-table-editable-cell-wrapper pointer-events-auto"
-            :class="{ [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped.isStuck }"
+            :class="{
+              [`row-height-${rowHeightEnum ?? 1}`]: true,
+              'on-stick ': isClamped.isStuck,
+              'border-[#3366ff]': isClamped.isStuck && editEnabled.isCellEditable,
+              'border-[#9AA2AF]': isClamped.isStuck && !editEnabled.isCellEditable,
+            }"
           >
             <div
               ref="activeCellElement"
@@ -2735,7 +2740,7 @@ defineExpose({
   @apply sticky !text-small !leading-[18px] overflow-hidden;
 
   &.on-stick {
-    @apply bg-white border-2 !rounded border-[#3366ff];
+    @apply bg-white border-2 !rounded;
   }
 
   &.row-height-1 {

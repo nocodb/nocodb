@@ -5,6 +5,8 @@ defineProps<{
   fieldTitle: string
   fieldUidt: string
 }>()
+
+defineEmits(['update:visible'])
 </script>
 
 <template>

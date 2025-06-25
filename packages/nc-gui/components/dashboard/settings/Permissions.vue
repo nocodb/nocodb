@@ -6,6 +6,8 @@ interface Props {
 }
 
 defineProps<Props>()
+
+defineEmits(['update:state', 'update:reload'])
 </script>
 
 <template>

@@ -4,6 +4,8 @@ defineProps<{
   tableId: string
   title?: string
 }>()
+
+defineEmits(['update:visible'])
 </script>
 
 <template>

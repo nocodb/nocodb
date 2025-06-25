@@ -416,7 +416,7 @@ const showCreateNewAsDropdown = computed(() => {
                     <template v-if="baseIndex === 0"></template>
                     <a-collapse
                       v-else-if="source && source.enabled"
-                      v-model:activeKey="activeKey"
+                      v-model:active-key="activeKey"
                       class="!mx-0 !px-0"
                       :class="[{ hidden: searchActive && !!filterQuery }]"
                       expand-icon-position="right"

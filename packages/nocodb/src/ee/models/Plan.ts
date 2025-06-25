@@ -212,6 +212,7 @@ export const GenericFeatures = {
   [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]: false,
   [PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER]: false,
   [PlanFeatureTypes.FEATURE_ROW_COLOUR]: false,
+  [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]: false,
 } as const;
 
 export const GraceLimits = {
@@ -259,6 +260,7 @@ const legacyLimitAndFeatures = {
   [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]: true,
   [PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER]: true,
   [PlanFeatureTypes.FEATURE_ROW_COLOUR]: true,
+  [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]: true,
 };
 
 export const FreePlan = Plan.prepare({

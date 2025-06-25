@@ -20,6 +20,7 @@ import {
 } from '~/utils/internal-type';
 import { ColumnsService } from '~/services/columns.service';
 import { AuditsService } from '~/services/audits.service';
+import { PermissionsService } from '~/services/permissions.service';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 
 @Controller()
@@ -34,6 +35,7 @@ export class InternalController extends InternalControllerCE {
     private readonly scriptsService: ScriptsService,
     private readonly columnsService: ColumnsService,
     private readonly integrationsService: IntegrationsService,
+    private readonly permissionsService: PermissionsService,
   ) {
     super(mcpService, aclMiddleware, auditsService);
   }
@@ -70,6 +72,8 @@ export class InternalController extends InternalControllerCE {
       baseSchema: 'base',
       workspaceAuditList: 'workspace',
       duplicateScript: 'base',
+      setPermission: 'base',
+      dropPermission: 'base',
     };
   }
 
@@ -258,6 +262,16 @@ export class InternalController extends InternalControllerCE {
           payload.id,
           req,
         );
+
+      case 'setPermission':
+        return await this.permissionsService.setPermission(
+          context,
+          payload,
+          req,
+        );
+
+      case 'dropPermission':
+        return await this.permissionsService.dropPermission(context, payload);
 
       default:
         return await super.internalAPIPost(

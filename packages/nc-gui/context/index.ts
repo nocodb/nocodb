@@ -29,6 +29,7 @@ export const IsExpandedBulkUpdateFormOpenInj: InjectionKey<Ref<boolean>> = Symbo
 export const CellValueInj: InjectionKey<Ref<any>> = Symbol('cell-value-injection')
 export const ActiveViewInj: InjectionKey<Ref<ViewType>> = Symbol('active-view-injection')
 export const ReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('readonly-injection')
+export const IsAllowedInj: InjectionKey<Ref<boolean>> = Symbol('is-allowed-injection')
 export const RawReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('raw-readonly-injection')
 export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')

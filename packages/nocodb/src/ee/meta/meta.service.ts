@@ -101,6 +101,8 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.SUBSCRIPTIONS]: 'sub',
       [MetaTable.ROW_COLOR_CONDITIONS]: 'rc',
       [MetaTable.DB_SERVERS]: 'db',
+      [MetaTable.PERMISSIONS]: 'perm',
+      [MetaTable.PERMISSION_SUBJECTS]: 'pers',
     };
 
     const prefix = prefixMap[target] || 'nc';
@@ -273,7 +275,8 @@ export class MetaService extends MetaServiceCE {
     }
 
     for (const d of Array.isArray(data) ? data : [data]) {
-      const id = d?.id || (await this.genNanoid(target));
+      const id =
+        d?.id || (ignoreIdGeneration ? null : await this.genNanoid(target));
       const tempObj = {
         ...d,
         ...(ignoreIdGeneration ? {} : { id }),

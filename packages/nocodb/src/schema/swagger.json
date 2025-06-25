@@ -25898,6 +25898,61 @@
           "fk_custom_url_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "ID of custom url"
+          },
+          "permissions": {
+            "description": "List of permissions for the base",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "entity": {
+                  "type": "string",
+                  "description": "Permission entity"
+                },
+                "entity_id": {
+                  "type": "string",
+                  "description": "ID of the entity"
+                },
+                "permission": {
+                  "type": "string",
+                  "description": "Permission key"
+                },
+                "granted_type": {
+                  "type": "string",
+                  "description": "Type of permission granted"
+                },
+                "granted_role": {
+                  "type": "string",
+                  "description": "Role to which permission is granted",
+                  "nullable": true
+                },
+                "subjects": {
+                  "type": "array",
+                  "description": "List of subjects (users or groups) for the permission",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": ["user", "group"],
+                        "description": "Type of the subject"
+                      },
+                      "id": {
+                        "type": "string",
+                        "description": "ID of the subject"
+                      }
+                    },
+                    "required": ["type", "id"]
+                  }
+                }
+              },
+              "required": [
+                "entity",
+                "entity_id",
+                "permission",
+                "granted_type"
+              ]
+            }
           }
         },
         "x-stoplight": {

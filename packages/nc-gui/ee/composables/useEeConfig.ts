@@ -160,6 +160,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_ROW_COLOUR)
   })
 
+  const blockTableAndFieldPermissions = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS)
+  })
+
   /** Helper functions */
   function getLimit(type: PlanLimitTypes, workspace?: NcWorkspace | null) {
     if (!isPaymentEnabled.value) return Infinity
@@ -706,6 +710,21 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseTableAndFieldPermissions = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockTableAndFieldPermissions.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseTableAndFieldPermissions'),
+      content: t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     getLimit,
@@ -754,5 +773,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCurrentUserFilter,
     blockRowColoring,
     showUpgradeToUseRowColoring,
+    blockTableAndFieldPermissions,
+    showUpgradeToUseTableAndFieldPermissions,
   }
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes, type ViewType } from 'nocodb-sdk'
+import { type ColumnType, PermissionEntity, PermissionKey, UITypes, type ViewType } from 'nocodb-sdk'
 
 /* interface */
 
@@ -165,12 +165,21 @@ export default {
             <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 nc-files-no-attachment relative">
               <span class="text-base font-black"> No Attachment </span>
               <span class="text-xs mt-3 w-[210px] text-center"> There are no attachments to display in this field </span>
-              <NcButton type="secondary" size="small" class="mt-3" :disabled="readOnly" @click="openFilePicker()">
-                <template #icon>
-                  <GeneralIcon icon="upload" />
+              <PermissionsTooltip
+                class="mt-3"
+                :entity="PermissionEntity.FIELD"
+                :entity-id="selectedFieldId"
+                :permission="PermissionKey.RECORD_FIELD_EDIT"
+              >
+                <template #default="{ isAllowed }">
+                  <NcButton type="secondary" size="small" :disabled="readOnly || !isAllowed" @click="openFilePicker()">
+                    <template #icon>
+                      <GeneralIcon icon="upload" />
+                    </template>
+                    Upload Attachment
+                  </NcButton>
                 </template>
-                Upload Attachment
-              </NcButton>
+              </PermissionsTooltip>
 
               <div class="px-4 py-3 overflow-hidden absolute top-0 left-0">
                 <NcDropdownSelect

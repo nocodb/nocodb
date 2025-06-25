@@ -41,6 +41,10 @@ export interface RenderRectangleProps {
   y: number
   width: number
   height: number
+  /**
+   * This is used to show tooltip in targeted width area
+   */
+  targetWidth?: number
 }
 
 export interface RenderTagProps extends RenderRectangleProps {

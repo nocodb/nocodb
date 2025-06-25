@@ -22,6 +22,7 @@ import { TelemetryController } from '~/controllers/telemetry.controller';
 import { SSOClientService } from '~/services/sso-client.service';
 import { SsoClientController } from '~/controllers/sso-client.controller';
 import { OrgSSOClientService } from '~/services/org-sso-client.service';
+import { PermissionsService } from '~/services/permissions.service';
 
 /* Datas */
 import { DataOptService } from '~/services/data-opt/data-opt.service';
@@ -61,6 +62,7 @@ export const nocoModuleEeMetadata = {
     OrgSSOClientService,
     OrgsService,
     DataReflectionService,
+    PermissionsService,
 
     /* Workspaces */
     WorkspacesService,
@@ -79,7 +81,6 @@ export const nocoModuleEeMetadata = {
     CustomUrlsController,
 
     /* Metas */
-
     TelemetryController,
     SsoClientController,
 

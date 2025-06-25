@@ -39,6 +39,7 @@ import {
   Hook,
   Integration,
   Model,
+  Permission,
   Sort,
   Source,
   SyncSource,
@@ -594,6 +595,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       base_id: req.ncBaseId,
       api_version: context.api_version,
     };
+
+    if (req.ncBaseId && !isInternalWorkspaceScope) {
+      req.permissions = await Permission.list(req.context, req.ncBaseId);
+    }
 
     await this.additionalValidation({ req, res, next });
 

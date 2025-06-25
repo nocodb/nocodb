@@ -13,6 +13,8 @@ import {
   isVirtualCol,
   NcErrorType,
   ncIsUndefined,
+  PermissionEntity,
+  PermissionKey,
   PlanLimitTypes,
   RelationTypes,
   UITypes,
@@ -57,6 +59,7 @@ import {
   Filter,
   Model,
   ModelStat,
+  Permission,
 } from '~/models';
 import { getSingleQueryReadFn } from '~/services/data-opt/pg-helpers';
 import { canUseOptimisedQuery, removeBlankPropsAndMask } from '~/utils';
@@ -83,6 +86,7 @@ import {
   populatePk,
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
+import { getProjectRole } from '~/utils/roleHelper';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -945,7 +949,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   async prepareNocoData(
     data,
     isInsertData = false,
-    cookie?: { user?: any },
+    cookie?: { user?: any; permissions?: Permission[] },
     oldData?,
     extra?: {
       ncOrder?: BigNumber;
@@ -954,8 +958,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       raw?: boolean;
     },
   ) {
-    if (this.isDatabricks) {
-      for (const column of this.model.columns) {
+    for (const column of this.model.columns) {
+      if (this.isDatabricks) {
         if (column.unique && data[column.column_name]) {
           const query = this.dbDriver(this.tnPath)
             .select(1)
@@ -972,6 +976,20 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             );
           }
         }
+      }
+
+      if (
+        data[column.column_name] !== undefined &&
+        // if inserting data with column default value, skip permission check
+        !(isInsertData && column.cdf === data[column.column_name])
+      ) {
+        await this.checkPermission({
+          entity: PermissionEntity.FIELD,
+          entityId: column.id,
+          permission: PermissionKey.RECORD_FIELD_EDIT,
+          user: cookie?.user,
+          req: cookie,
+        });
       }
     }
 
@@ -1054,6 +1072,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       });
     }
 
+    await this.checkPermission({
+      entity: PermissionEntity.TABLE,
+      entityId: this.model.id,
+      permission: PermissionKey.TABLE_RECORD_ADD,
+      user: req?.user,
+      req,
+    });
+
     await this.handleHooks('before.insert', null, data, req);
   }
 
@@ -1098,6 +1124,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         operation: 'insert',
       });
     }
+
+    await this.checkPermission({
+      entity: PermissionEntity.TABLE,
+      entityId: this.model.id,
+      permission: PermissionKey.TABLE_RECORD_ADD,
+      user: req?.user,
+      req,
+    });
 
     await this.handleHooks('before.bulkInsert', null, data, req);
   }
@@ -3233,6 +3267,30 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     await this.handleRichTextMentions(prevData, newData, req);
   }
 
+  public async beforeDelete(data: any, _trx: any, req): Promise<void> {
+    await this.checkPermission({
+      entity: PermissionEntity.TABLE,
+      entityId: this.model.id,
+      permission: PermissionKey.TABLE_RECORD_DELETE,
+      user: req?.user,
+      req,
+    });
+
+    return super.beforeDelete(data, _trx, req);
+  }
+
+  public async beforeBulkDelete(_data: any, _trx: any, req): Promise<void> {
+    await this.checkPermission({
+      entity: PermissionEntity.TABLE,
+      entityId: this.model.id,
+      permission: PermissionKey.TABLE_RECORD_DELETE,
+      user: req?.user,
+      req,
+    });
+
+    return super.beforeBulkDelete(_data, _trx, req);
+  }
+
   public async bulkUpdateAudit({
     rowIds,
     req,
@@ -3384,6 +3442,56 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         fk_model_id: this.model.id,
         count,
       });
+    }
+  }
+
+  async checkPermission(params: {
+    entity: PermissionEntity;
+    entityId: string | string[];
+    permission: PermissionKey;
+    user: any;
+    req: any;
+  }) {
+    const { entity, entityId, permission, user, req } = params;
+
+    const permissionObj = req?.permissions?.find(
+      (p) =>
+        p.entity === entity &&
+        (Array.isArray(entityId)
+          ? entityId.includes(p.entity_id)
+          : p.entity_id === entityId) &&
+        p.permission === permission,
+    );
+
+    let errorMessage = 'You are not allowed for this action';
+
+    switch (permission) {
+      case PermissionKey.TABLE_RECORD_ADD:
+        errorMessage = 'You are not allowed to insert into this table';
+        break;
+      case PermissionKey.TABLE_RECORD_DELETE:
+        errorMessage = 'You are not allowed to delete records from this table';
+        break;
+      case PermissionKey.RECORD_FIELD_EDIT:
+        errorMessage = 'You are not allowed to edit this field';
+        break;
+      default:
+        errorMessage = 'You are not allowed to access this table';
+    }
+
+    if (permissionObj) {
+      if (!user) {
+        NcError.forbidden(errorMessage);
+      }
+
+      const hasPermission = Permission.isAllowed(permissionObj, {
+        id: user.id,
+        role: getProjectRole(user),
+      });
+
+      if (!hasPermission) {
+        NcError.forbidden(errorMessage);
+      }
     }
   }
 }

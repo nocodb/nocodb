@@ -18,6 +18,7 @@ import {
   CustomUrl,
   DataReflection,
   MCPToken,
+  Permission,
   Source,
 } from '~/models';
 import NocoCache from '~/cache/NocoCache';
@@ -32,6 +33,7 @@ const logger = new Logger('Base');
 
 export default class Base extends BaseCE {
   public type?: 'database';
+  public permissions?: Permission[];
 
   public static castType(base: Base): Base {
     return base && new Base(base);
@@ -275,6 +277,8 @@ export default class Base extends BaseCE {
 
     if (base) {
       base = this.castType(base);
+
+      base.permissions = await Permission.list(context, base.id, ncMeta);
     }
 
     return base as BaseCE;

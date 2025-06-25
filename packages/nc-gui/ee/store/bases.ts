@@ -228,7 +228,7 @@ export const useBases = defineStore('basesStore', () => {
   function isProjectPopulated(baseId: string) {
     const base = bases.value.get(baseId)
     if (!base) return false
-    return !!(base.sources?.length && tableStore.baseTables.get(baseId))
+    return !!(base.sources?.length && tableStore.baseTables.get(baseId) && base.permissions?.length)
   }
 
   // actions

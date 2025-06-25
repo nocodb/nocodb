@@ -21,7 +21,14 @@ import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import validateParams from '~/helpers/validateParams';
 import { NcError } from '~/helpers/catchError';
-import { Base, BaseUser, PresignedUrl, Subscription, User } from '~/models';
+import {
+  Base,
+  BaseUser,
+  Permission,
+  PresignedUrl,
+  Subscription,
+  User,
+} from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Workspace from '~/models/Workspace';
 import { UsersService } from '~/services/users/users.service';
@@ -295,7 +302,7 @@ export class WorkspaceUsersService {
 
     const transaction = await ncMeta.startTransaction();
 
-    const cacheTransaction = [];
+    const cacheTransaction: (() => Promise<any>)[] = [];
 
     try {
       // get all bases workspaceUser is part of and delete them
@@ -316,7 +323,24 @@ export class WorkspaceUsersService {
           transaction,
         );
 
-        cacheTransaction.push(`${CacheScope.BASE_USER}:${base.id}:${userId}`);
+        await Permission.removeSubjectBase(
+          {
+            workspace_id: workspaceId,
+            base_id: base.id,
+          },
+          { type: 'user', id: userId },
+          transaction,
+        );
+
+        cacheTransaction.push(() =>
+          NocoCache.del(`${CacheScope.BASE_USER}:${base.id}:${userId}`),
+        );
+        cacheTransaction.push(() =>
+          Permission.clearBaseCache({
+            workspace_id: workspaceId,
+            base_id: base.id,
+          }),
+        );
       }
 
       const res = await WorkspaceUser.softDelete(
@@ -325,8 +349,8 @@ export class WorkspaceUsersService {
         transaction,
       );
 
-      cacheTransaction.push(
-        `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
+      cacheTransaction.push(() =>
+        NocoCache.del(`${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`),
       );
 
       await this.paymentService.reseatSubscription(
@@ -348,7 +372,7 @@ export class WorkspaceUsersService {
       await transaction.rollback();
 
       // rollback cache
-      await NocoCache.del(cacheTransaction);
+      await Promise.all(cacheTransaction.map((fn) => fn()));
 
       throw e;
     }

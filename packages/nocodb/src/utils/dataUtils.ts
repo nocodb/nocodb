@@ -165,7 +165,14 @@ export function batchUpdate(
       `CASE ?? ${filteredData
         .map(() => 'WHEN ? THEN ?')
         .join(' ')} ELSE ?? END`,
-      [pk, ...filteredData.flatMap((row) => [row[pk], row[column]]), column],
+      [
+        pk,
+        ...filteredData.flatMap((row) => [
+          row[pk],
+          typeof row[column] === 'object' ? row[column] : `${row[column]}`,
+        ]),
+        column,
+      ],
     );
   });
 

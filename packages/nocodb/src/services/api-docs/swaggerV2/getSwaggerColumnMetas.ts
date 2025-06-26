@@ -1,4 +1,5 @@
 import { UITypes } from 'nocodb-sdk';
+import { FormulaDataTypes } from 'nocodb-sdk';
 import type { Base, Column, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
@@ -35,6 +36,36 @@ export default async (
           }
           break;
         case UITypes.Formula:
+          // Extract type from parsed tree if available
+          if (c.colOptions?.parsed_tree?.dataType) {
+            const formulaDataType = c.colOptions.parsed_tree.dataType;
+            switch (formulaDataType) {
+              case FormulaDataTypes.NUMERIC:
+                field.type = 'number';
+                break;
+              case FormulaDataTypes.STRING:
+                field.type = 'string';
+                break;
+              case FormulaDataTypes.DATE:
+                field.type = 'string';
+                field.format = 'date-time';
+                break;
+              case FormulaDataTypes.BOOLEAN:
+              case FormulaDataTypes.LOGICAL:
+              case FormulaDataTypes.COND_EXP:
+                field.type = 'boolean';
+                break;
+              case FormulaDataTypes.NULL:
+              case FormulaDataTypes.UNKNOWN:
+              default:
+                field.type = 'string';
+                break;
+            }
+          } else {
+            // Fallback to string if no parsed tree available
+            field.type = 'string';
+          }
+          break;
         case UITypes.Lookup:
           field.type = 'object';
           break;
@@ -48,9 +79,42 @@ export default async (
             $ref: `#/components/schemas/Attachment`,
           };
           break;
+        case UITypes.Checkbox:
+          field.type = 'boolean';
+          break;
+        case UITypes.Number:
+        case UITypes.Decimal:
+        case UITypes.Currency:
+        case UITypes.Percent:
+        case UITypes.Duration:
+        case UITypes.Rating:
+        case UITypes.Year:
+        case UITypes.Count:
+        case UITypes.ID:
+        case UITypes.Order:
+          field.type = 'number';
+          break;
+        case UITypes.Date:
+        case UITypes.DateTime:
+        case UITypes.Time:
+          field.type = 'string';
+          field.format = c.uidt === UITypes.Date ? 'date' : 'date-time';
+          break;
+        case UITypes.Email:
+          field.type = 'string';
+          field.format = 'email';
+          break;
+        case UITypes.URL:
+          field.type = 'string';
+          field.format = 'uri';
+          break;
+        case UITypes.JSON:
+          field.type = 'object';
+          break;
         case UITypes.LastModifiedTime:
         case UITypes.CreatedTime:
           field.type = 'string';
+          field.format = 'date-time';
           break;
         case UITypes.LastModifiedBy:
         case UITypes.CreatedBy:
@@ -75,4 +139,5 @@ export interface SwaggerColumn {
   $ref?: any;
   column: Column;
   items?: any;
+  format?: string;
 }

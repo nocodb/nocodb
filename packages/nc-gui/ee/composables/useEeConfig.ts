@@ -775,5 +775,6 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseRowColoring,
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
+    isUnderLoyaltyCutoffDate,
   }
 })

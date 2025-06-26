@@ -35,7 +35,7 @@ const rowHeight = inject(RowHeightInj, ref())
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
-const clientMousePosition = inject(ClientMousePositionInj)
+const clientMousePosition = inject(ClientMousePositionInj, reactive({ clientX: 0, clientY: 0 }))
 
 const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 

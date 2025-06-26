@@ -157,7 +157,9 @@
     "upgradeToUseCurrentUserFilter": "현재 사용자를 기준으로 필터링하도록 업그레이드",
     "upgradeToUseCurrentUserFilterSubtitle": "현재 사용자를 기반으로 데이터를 표시하는 필터를 사용하려면 {plan} 플랜으로 업그레이드합니다.",
     "upgradeToUseRowColoring": "Upgrade to use row colouring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data."
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data.",
+    "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
+    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data."
   },
   "general": {
     "script": "스크립트",
@@ -404,7 +406,9 @@
     "changelog": "변경 기록",
     "contactSupport": "도움 받기",
     "proceedImport": "가져오기 진행",
-    "inserting": "삽입"
+    "inserting": "삽입",
+    "permissions": "Permissions",
+    "manageAllFields": "Manage all fields"
   },
   "objects": {
     "script": "스크립트",
@@ -582,6 +586,19 @@
       "usingConditions": "조건 사용",
       "usingConditionsDescription": "조건에 따른 색상 기록",
       "colourRecordsByField": "필드별 레코드 색상 지정"
+    },
+    "permissions": {
+      "addNewRecordTooltipTitle": "Create record restricted",
+      "addNewRecordTooltip": "You do not have permission to create records in this table",
+      "deleteRecordTooltipTitle": "Delete record restricted",
+      "deleteRecordTooltip": "You do not have permission to delete records in this table",
+      "editFieldTooltipTitle": "Edit restricted",
+      "editFieldTooltip": "You do not have permission to edit this field",
+      "generalPermissionTooltipTitle": "Permission restricted",
+      "generalPermissionTooltip": "You do not have permission to perform this action",
+      "uploadDataTooltip": "You do not have permission to upload data into this table",
+      "formCannotAcceptSubmissions": "Form cannot accept submissions.",
+      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
     }
   },
   "datatype": {
@@ -637,6 +654,8 @@
     "isNotNull": "null 값이 아님"
   },
   "title": {
+    "editTablePermissions": "Edit table permissions",
+    "editFieldPermissions": "Edit field permissions",
     "confirmSnapshotRestore": "스냅샷 복원 확인",
     "urlFilters": "URL 필터",
     "creatingScript": "스크립트 만들기",
@@ -831,7 +850,9 @@
     "filteredByLoggedInUser": "로그인한 사용자별로 필터링됨",
     "hideExtensions": "확장 프로그램 숨기기",
     "duplicatesFound": "중복이 발견되었습니다.",
-    "matchingResultsInRecords": "{count} 레코드의 결과 일치"
+    "matchingResultsInRecords": "{count} 레코드의 결과 일치",
+    "tablePermissions": "Table permissions",
+    "fieldPermissions": "Field permissions"
   },
   "labels": {
     "crossBase": "외부 베이스에 대한 링크",
@@ -907,6 +928,8 @@
     "fieldID": "필드 ID",
     "addDescription": "설명 추가",
     "editDescription": "설명 편집",
+    "editTableDescription": "Edit table description",
+    "editFieldDescription": "Edit field description",
     "urlFormula": "URL 수식",
     "selectIcon": "없음",
     "selectAWebhook": "--웹훅 선택--",
@@ -1646,7 +1669,8 @@
     "addConditionGroup": "조건 그룹 추가",
     "pending": "보류 중",
     "goToPage": "페이지로 이동",
-    "changePlan": "체인지플랜"
+    "changePlan": "체인지플랜",
+    "goToPermissionsOverview": "Go to Permissions Overview"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1716,7 +1740,9 @@
     "youDontHaveAccessToCreateNewTable": "새 테이블을 만들 수 있는 액세스 권한이 없습니다.",
     "youDontHaveAccessToCreateNewView": "새 보기를 만들 수 있는 액세스 권한이 없습니다.",
     "youDontHaveAccessToCreateNewAutomation": "새 자동화를 만들 수 있는 액세스 권한이 없습니다",
-    "formViewCreationNotSupportedForSyncedTable": "동기화된 테이블에 대해 양식 보기 생성이 지원되지 않습니다."
+    "formViewCreationNotSupportedForSyncedTable": "동기화된 테이블에 대해 양식 보기 생성이 지원되지 않습니다.",
+    "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
+    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",

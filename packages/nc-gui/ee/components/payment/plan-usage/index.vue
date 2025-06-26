@@ -19,8 +19,22 @@ const activeWorkspace = computed(() =>
 const { paymentState, workspaceSeatCount, activeSubscription, onManageSubscription, plansAvailable, updateSubscription } =
   usePaymentStoreOrThrow()
 
-const { getLimit, getStatLimit, activePlanTitle, navigateToPricing, isLoyaltyDiscountAvailable, gracePeriodEndDate } =
-  useEeConfig()
+const {
+  getLimit,
+  getStatLimit,
+  activePlanTitle,
+  navigateToPricing,
+  isLoyaltyDiscountAvailable,
+  gracePeriodEndDate,
+  isUnderLoyaltyCutoffDate,
+} = useEeConfig()
+
+const loyalGracePeriod = computed(
+  () =>
+    isUnderLoyaltyCutoffDate.value &&
+    activeWorkspace.value?.loyal &&
+    activeWorkspace.value?.payment?.plan.title === PlanTitles.FREE,
+)
 
 const paymentInitiated = computed(() => paymentState.value === PaymentState.PAYMENT)
 
@@ -81,7 +95,7 @@ const getTooltipPrefix = (value: number, total: number) => {
 
 const recordInfo = computed(() => {
   const value = getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
-  const total = getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) ?? 1000
+  const total = loyalGracePeriod ? 1000 : getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) ?? 1000
   const showWarningStatus = (value / total) * 100 > 80
 
   return {
@@ -100,7 +114,7 @@ const recordInfo = computed(() => {
 
 const storageInfo = computed(() => {
   const value = getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000
-  const total = getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000
+  const total = loyalGracePeriod ? 1 : getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000
   const showWarningStatus = (value / total) * 100 > 80
 
   return {
@@ -119,7 +133,7 @@ const storageInfo = computed(() => {
 
 const automationInfo = computed(() => {
   const value = getStatLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)
-  const total = getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)
+  const total = loyalGracePeriod.value ? 100 : getLimit(PlanLimitTypes.LIMIT_AUTOMATION_RUN)
   const showWarningStatus = (value / total) * 100 > 80
 
   return {
@@ -138,7 +152,7 @@ const automationInfo = computed(() => {
 
 const apiCallsInfo = computed(() => {
   const value = getStatLimit(PlanLimitTypes.LIMIT_API_CALL)
-  const total = getLimit(PlanLimitTypes.LIMIT_API_CALL)
+  const total = loyalGracePeriod.value ? 1000 : getLimit(PlanLimitTypes.LIMIT_API_CALL)
   const showWarningStatus = (value / total) * 100 > 80
 
   return {
@@ -334,7 +348,8 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
             }}
           </template>
           <template #value
-            >{{ workspaceSeatCount }} of {{ formatTotalLimit(getLimit(PlanLimitTypes.LIMIT_EDITOR)) }} editors</template
+            >{{ workspaceSeatCount }} of
+            {{ formatTotalLimit(loyalGracePeriod ? 3 : getLimit(PlanLimitTypes.LIMIT_EDITOR)) }} editors</template
           >
         </PaymentPlanUsageRow>
         <PaymentPlanUsageRow

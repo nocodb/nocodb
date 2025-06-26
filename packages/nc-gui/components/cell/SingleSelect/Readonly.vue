@@ -1,14 +1,13 @@
 <script lang="ts" setup>
-import type { SelectOptionType } from 'nocodb-sdk'
-import { getOptions } from './utils'
+import { getOptions, type LocalSelectOptionType } from './utils'
 
 interface Props {
   modelValue?: string | undefined
   rowIndex?: number
-  selectOptions?: (SelectOptionType & { value?: string })[]
+  options?: LocalSelectOptionType[]
 }
 
-const { modelValue, selectOptions } = defineProps<Props>()
+const { modelValue, options: selectOptions } = defineProps<Props>()
 
 const column = inject(ColumnInj)!
 

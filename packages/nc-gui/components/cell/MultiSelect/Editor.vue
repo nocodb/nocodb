@@ -332,11 +332,10 @@ onMounted(() => {
     forcedNextTick(() => {
       const key = canvasCellEventData.keyboardKey
       if (key && isSinglePrintableKey(key)) {
-        onFocus()
         searchVal.value = key
-      } else if (key === 'Enter') {
-        onFocus()
       }
+
+      onFocus()
     })
   }
 })

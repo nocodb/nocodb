@@ -72,12 +72,14 @@ export const SingleSelectCellRenderer: CellRenderer = {
       text,
     })
   },
-  async handleClick({ row, column, makeCellEditable }) {
-    if (column.readonly || column.columnObj?.readonly || !column?.isCellEditable) return false
+
+  async handleClick({ row, column, makeCellEditable, selected }) {
+    if (column.readonly || column.columnObj?.readonly || !column?.isCellEditable || !selected) return false
 
     makeCellEditable(row, column)
     return true
   },
+
   async handleKeyDown({ e, row, column, makeCellEditable }) {
     if (column.readonly || column.columnObj?.readonly || !column?.isCellEditable) return false
     if (e.key.length === 1 || e.key === 'Enter') {

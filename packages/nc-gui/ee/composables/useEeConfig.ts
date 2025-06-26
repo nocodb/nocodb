@@ -716,7 +716,7 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseTableAndFieldPermissions'),
       content: t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
-        plan: PlanTitles.BUSINESS,
+        plan: PlanTitles.TEAM,
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,

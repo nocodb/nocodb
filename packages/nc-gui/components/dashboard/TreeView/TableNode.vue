@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type BaseType, type TableType, ViewTypes, PlanFeatureTypes } from 'nocodb-sdk'
+import { type BaseType, type TableType, ViewTypes, PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 import type { SidebarTableNode } from '~/lib/types'
 
@@ -53,7 +53,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { showRecordPlanLimitExceededModal, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
+const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 const { isTableAndFieldPermissionsEnabled } = usePermissions()
 
@@ -673,7 +673,11 @@ async function onRename() {
                           <LazyPaymentUpgradeBadge
                             :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
                             :title="$t('upgrade.upgradeToUseTableAndFieldPermissions')"
-                            :content="$t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle')"
+                            :content="
+                              $t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
+                                plan: PlanTitles.TEAM,
+                              })
+                            "
                             :onClickCallback="
                               () => {
                                 isOptionsOpen = false

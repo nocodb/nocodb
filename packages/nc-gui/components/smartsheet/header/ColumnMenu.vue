@@ -3,6 +3,7 @@ import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import {
   PlanLimitTypes,
   PlanFeatureTypes,
+  PlanTitles,
   RelationTypes,
   UITypes,
   isLinksOrLTAR,
@@ -59,8 +60,6 @@ const { gridViewCols } = useViewColumnsOrThrow()
 const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
 
 const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
-
-const { showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
 
 const { isTableAndFieldPermissionsEnabled } = usePermissions()
 
@@ -612,7 +611,11 @@ const onDeleteColumn = () => {
               <LazyPaymentUpgradeBadge
                 :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
                 :title="$t('upgrade.upgradeToUseTableAndFieldPermissions')"
-                :content="$t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle')"
+                :content="
+                  $t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
+                    plan: PlanTitles.TEAM,
+                  })
+                "
                 :onClickCallback="
                   () => {
                     isOpen = false

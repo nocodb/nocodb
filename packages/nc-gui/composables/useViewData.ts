@@ -109,8 +109,6 @@ export function useViewData(
       viewMeta?.value?.id as string,
     )
     paginationData.value.totalRows = count
-
-    console.log('syncCount', count)
   }
 
   async function syncPagination() {

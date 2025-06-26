@@ -9,7 +9,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { stringifyMetaProp } from '~/utils/modelUtils';
 import { NcError } from '~/helpers/catchError';
 import { ModelStat } from '~/models';
-import { getWorkspaceDbInstance } from '~/utils/cloudDb';
+import { getWorkspaceDbServer } from '~/utils/cloudDb';
 
 export default class Source extends SourceCE implements SourceType {
   is_local?: BoolType;
@@ -89,7 +89,7 @@ export default class Source extends SourceCE implements SourceType {
 
   public async getConnectionConfig(): Promise<any> {
     if (this.fk_workspace_id) {
-      const dbInstance = await getWorkspaceDbInstance(this.fk_workspace_id);
+      const dbInstance = await getWorkspaceDbServer(this.fk_workspace_id);
       if (dbInstance) {
         return dbInstance.config;
       }

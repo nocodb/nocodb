@@ -156,8 +156,8 @@
     "upgradeToUploadWsImageSubtitle": "គម្រោង {activePlan} បច្ចុប្បន្នអនុញ្ញាតបានតែរូបតំណាងនិងអ៊ីមូជី។ សូមធ្វើបច្ចុប្បន្នភាពទៅគម្រោង {plan} ដើម្បីផ្ទុករូបភាពផ្ទាល់ខ្លួនជារូបអាវ៉ាតារ Workspace របស់អ្នក។",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
-    "upgradeToUseRowColoring": "Upgrade to use row coloring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
+    "upgradeToUseRowColoring": "Upgrade to use row colouring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "Script",

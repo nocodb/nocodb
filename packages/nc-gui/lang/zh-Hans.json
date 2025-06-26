@@ -156,8 +156,8 @@
     "upgradeToUploadWsImageSubtitle": "您当前的 {activePlan} 套餐仅允许使用图标和表情符号。升级到 {plan} 套餐即可上传自定义图像作为工作区头像。",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
-    "upgradeToUseRowColoring": "Upgrade to use row coloring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
+    "upgradeToUseRowColoring": "Upgrade to use row colouring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "Script",

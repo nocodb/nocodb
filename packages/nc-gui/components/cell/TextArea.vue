@@ -46,7 +46,7 @@ const readOnly = computed(() => readOnlyInj.value || column.value.readonly)
 
 const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
-const clientMousePosition = inject(ClientMousePositionInj, reactive({ clientX: 0, clientY: 0 }))
+const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const canvasSelectCell = inject(CanvasSelectCellInj, null)
 

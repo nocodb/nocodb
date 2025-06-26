@@ -20,10 +20,13 @@ interface Props {
   disabled?: boolean
   removeClick?: boolean
   featureEnabledCallback?: () => boolean
+  onClickCallback?: () => void
+  size?: 'xs' | 'sm' | 'md' | 'lg'
 }
 
 const props = withDefaults(defineProps<Props>(), {
   planTitle: PlanTitles.TEAM,
+  size: 'sm',
 })
 
 const { disabled, removeClick } = toRefs(props)
@@ -51,6 +54,10 @@ const showUpgradeModal = (e?: MouseEvent) => {
 
   if (isFeatureEnabled.value || !isPaymentEnabled.value) return
 
+  if (props.onClickCallback) {
+    props.onClickCallback()
+  }
+
   handleUpgradePlan({
     title: props.title,
     content: props.content,
@@ -68,7 +75,7 @@ planUpgraderClick.on(() => {
 <template>
   <NcBadge
     v-if="!isFeatureEnabled && isPaymentEnabled"
-    size="sm"
+    :size="size"
     :border="false"
     class="nc-upgrade-badge cursor-pointer select-none"
     :class="`nc-upgrade-${planTitle}-badge`"

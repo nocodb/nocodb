@@ -973,7 +973,7 @@
     "sharedBase": "Shared Base",
     "fieldID": "Field ID",
     "addDescription": "Add description",
-    "editDescription": "Edit table description",
+    "editDescription": "Edit description",
     "editTableDescription": "Edit table description",
     "editFieldDescription": "Edit field description",
     "urlFormula": "URL Formula",

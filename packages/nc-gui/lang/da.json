@@ -156,8 +156,8 @@
     "upgradeToUploadWsImageSubtitle": "Din nuværende {activePlan}-plan tillader kun ikoner og emojis. Opgrader til {plan}-planen for at uploade et brugerdefineret billede som arbejdsområdets avatar.",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
-    "upgradeToUseRowColoring": "Upgrade to use row coloring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
+    "upgradeToUseRowColoring": "Upgrade to use row colouring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "Script",

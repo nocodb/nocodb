@@ -1,5 +1,6 @@
 import {
   GRACE_PERIOD_DURATION,
+  LOYALTY_GRACE_PERIOD_END_DATE,
   NON_SEAT_ROLES,
   PlanFeatureTypes,
   PlanLimitTypes,
@@ -15,6 +16,7 @@ import Plan, {
   GenericFeatures,
   GenericLimits,
   GraceLimits,
+  LegacyFreePlan,
 } from '~/models/Plan';
 
 async function getLimit(
@@ -305,15 +307,21 @@ async function getWorkspaceOrOrg(
 }
 
 async function getActivePlanAndSubscription(
-  workspaceOrOrgId: string,
+  workspace: Workspace,
   ncMeta = Noco.ncMeta,
 ) {
   const subscription = await Subscription.getByWorkspaceOrOrg(
-    workspaceOrOrgId,
+    workspace.fk_org_id || workspace.id,
     ncMeta,
   );
 
-  if (!subscription) return { plan: FreePlan };
+  if (!subscription) {
+    if (dayjs().isBefore(dayjs(LOYALTY_GRACE_PERIOD_END_DATE))) {
+      return { plan: LegacyFreePlan };
+    }
+
+    return { plan: FreePlan };
+  }
 
   const plan = await Plan.get(subscription.fk_plan_id, ncMeta);
 

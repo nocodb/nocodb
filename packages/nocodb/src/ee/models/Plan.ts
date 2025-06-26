@@ -294,3 +294,30 @@ export const FreePlan = Plan.prepare({
   },
   free: true,
 });
+
+export const LegacyFreePlan = Plan.prepare({
+  title: PlanTitles.FREE,
+  description: 'Free plan',
+  meta: {
+    ...GenericLimits,
+    ...GenericFeatures,
+    // Free plan specific limits
+    [PlanLimitTypes.LIMIT_EDITOR]: 3,
+    [PlanLimitTypes.LIMIT_COMMENTER]: 10,
+    [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000,
+    [PlanLimitTypes.LIMIT_API_CALL]: 1000,
+    [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 100,
+    [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 0,
+    [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 14,
+    [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 1,
+    [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 1000,
+    [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
+    [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: 50,
+    [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: 1,
+    [PlanLimitTypes.LIMIT_AI_TOKEN]: 0,
+    [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 0,
+    [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]: true,
+    ...legacyLimitAndFeatures,
+  },
+  free: true,
+});

@@ -39,7 +39,7 @@ const isAllowed = inject(IsAllowedInj, ref(true))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
-const clientMousePosition = inject(ClientMousePositionInj, reactive({ clientX: 0, clientY: 0 }))
+const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const cellEventHook = inject(CellEventHookInj, null)

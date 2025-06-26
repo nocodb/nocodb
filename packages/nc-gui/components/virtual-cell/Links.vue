@@ -6,7 +6,7 @@ import { ref } from 'vue'
 import { forcedNextTick } from '../../utils/browserUtils'
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
-const clientMousePosition = inject(ClientMousePositionInj, reactive({ clientX: 0, clientY: 0 }))
+const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 
 const value = inject(CellValueInj, ref(0))
 

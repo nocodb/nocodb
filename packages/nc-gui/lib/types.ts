@@ -6,6 +6,8 @@ import {
   type FilterType,
   type MetaType,
   type PaginatedType,
+  type PermissionEntity,
+  type PermissionKey,
   type PublicAttachmentScope,
   type Roles,
   type RolesObj,
@@ -18,6 +20,7 @@ import {
 import type { Composer, I18n } from 'vue-i18n'
 import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
+import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
 import type { ImageWindowLoader } from '../components/smartsheet/grid/canvas/loaders/ImageLoader'
 import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/SpriteLoader'
 import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
@@ -74,7 +77,7 @@ type Filter = FilterType & {
   readOnly?: boolean
 }
 
-type NocoI18n = I18n<{}, unknown, unknown, string, false>
+type NocoI18n = I18n<Record<string, unknown>, Record<string, unknown>, Record<string, unknown>, string, false>
 
 interface ThemeConfig extends AntTheme {
   primaryColor: string
@@ -251,7 +254,7 @@ interface Users {
   invitationToken?: string
 }
 
-type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation'
+type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation' | 'permissions'
 
 type NcButtonSize = 'xxsmall' | 'xsmall' | 'small' | 'medium' | 'xs'
 
@@ -510,6 +513,8 @@ type CursorType = CSSProperties['cursor']
 
 type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
 
+type MakeCellEditableFn = (row: Row, clickedColumn: CanvasGridColumn, showEditCellRestrictionTooltip?: boolean) => void
+
 interface CellRenderFn {
   (ctx: CanvasRenderingContext2D, options: CellRendererOptions): void | { x?: number; y?: number }
 }
@@ -537,7 +542,7 @@ interface CellRenderer {
       path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: MakeCellEditableFn
     selected: boolean
     imageLoader: ImageWindowLoader
     cellRenderStore: CellRenderStore
@@ -564,7 +569,7 @@ interface CellRenderer {
       path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: MakeCellEditableFn
     cellRenderStore: CellRenderStore
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
     allowLocalUrl?: boolean
@@ -586,7 +591,7 @@ interface CellRenderer {
       path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
-    makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+    makeCellEditable: MakeCellEditableFn
     selected: boolean
     imageLoader: ImageWindowLoader
     cellRenderStore: CellRenderStore
@@ -657,6 +662,7 @@ type CanvasEditEnabledType = {
   height: number | string
   fixed: boolean
   path: Array<number>
+  isCellEditable?: boolean
 } | null
 
 type CanvasCellEventDataInjType = ExtractInjectedReactive<typeof CanvasCellEventDataInj>
@@ -695,6 +701,131 @@ interface RowColouringEvaluatedResultType {
   rawColor: string | undefined
   borderColor: string | null
 }
+
+interface PermissionConfig {
+  entity: PermissionEntity
+  entityId: string
+  entityTitle?: string
+  permission: PermissionKey
+}
+
+interface PermissionSelectorUser {
+  id: string
+  email: string
+  display_name?: string | null
+}
+
+// NcList type starts here
+
+type MultiSelectRawValueType = Array<string | number>
+
+type RawValueType = string | number | MultiSelectRawValueType
+
+interface NcListItemType {
+  value?: RawValueType
+  label?: string
+  ncItemDisabled?: boolean
+  ncItemTooltip?: string
+  [key: string]: any
+}
+
+/**
+ * Props interface for the List component
+ */
+interface NcListProps {
+  /** The currently selected value */
+  value: RawValueType
+  /** The list of items to display */
+  list: NcListItemType[]
+  /**
+   * The key to use for accessing the value from a list item
+   * @default 'value'
+   */
+  optionValueKey?: string
+  /**
+   * The key to use for accessing the label from a list item
+   * @default 'label'
+   */
+  optionLabelKey?: string
+  /** Whether the list is open or closed */
+  open?: boolean
+  /**
+   * Whether to close the list after an item is selected
+   * @default true
+   */
+  closeOnSelect?: boolean
+  /** Placeholder text for the search input */
+  searchInputPlaceholder?: string
+  /** Show search input box always */
+  showSearchAlways?: boolean
+  /** Whether to show the currently selected option */
+  showSelectedOption?: boolean
+  /**
+   * The height of each item in the list, used for virtual list rendering.
+   * @default 38
+   */
+  itemHeight?: number
+  variant?: 'default' | 'small' | 'medium'
+  /** Custom filter function for list items */
+  filterOption?: (input: string, option: NcListItemType, index: Number) => boolean
+  /**
+   * Indicates whether the component allows multiple selections.
+   */
+  isMultiSelect?: boolean
+  /**
+   * The minimum number of items required in the list to enable search functionality.
+   */
+  minItemsForSearch?: number
+  /**
+   * Whether the list is locked and cannot be interacted with
+   */
+  isLocked?: boolean
+
+  /**
+   * Whether input should have border
+   */
+  inputBordered?: boolean
+
+  listWrapperClassName?: string
+
+  containerClassName?: string
+
+  wrapperClassName?: string
+
+  itemClassName?: string
+
+  itemTooltipPlacement?: TooltipPlacement
+
+  /**
+   * Whether to hide the top divider
+   */
+  hideTopDivider?: boolean
+
+  emptyDescription?: string
+
+  /**
+   * This will remove side padding and rounded corners from the list item
+   */
+  itemFullWidth?: boolean
+
+  /**
+   * Whether to stop propagation on item click
+   */
+  stopPropagationOnItemClick?: boolean
+}
+
+// NcList type ends here
+
+type NcDropdownPlacement =
+  | 'bottom'
+  | 'top'
+  | 'bottomLeft'
+  | 'bottomRight'
+  | 'topLeft'
+  | 'topRight'
+  | 'topCenter'
+  | 'bottomCenter'
+  | 'right'
 
 export type {
   User,
@@ -750,4 +881,12 @@ export type {
   CloudFeaturesType,
   CanvasScrollToCellFn,
   RowColouringEvaluatedResultType,
+  PermissionConfig,
+  PermissionSelectorUser,
+  NcListProps,
+  NcListItemType,
+  MultiSelectRawValueType,
+  RawValueType,
+  NcDropdownPlacement,
+  MakeCellEditableFn,
 }

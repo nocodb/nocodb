@@ -95,10 +95,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
     // For types in ViewPageType type
     if (!route.value.params?.slugs || route.value.params.slugs?.length === 0) return 'view'
 
-    if (route.value.params.slugs[0] === 'webhook') return 'webhook'
-    if (route.value.params.slugs[0] === 'field') return 'field'
-    if (route.value.params.slugs[0] === 'api') return 'api'
-    if (route.value.params.slugs[0] === 'relation') return 'relation'
+    if (['field', 'permissions', 'relation', 'api', 'webhook'].includes(route.value.params.slugs[0] as ViewPageType)) {
+      return route.value.params.slugs[0] as ViewPageType
+    }
 
     return 'view'
   })

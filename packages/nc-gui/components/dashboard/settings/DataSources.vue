@@ -201,6 +201,10 @@ const moveBase = async (e: any) => {
 watch(
   projectPageTab,
   () => {
+    if (searchQuery.value) {
+      searchQuery.value = ''
+    }
+
     if (projectPageTab.value === 'data-source') {
       loadBases()
     }

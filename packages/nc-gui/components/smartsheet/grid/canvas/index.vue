@@ -2,6 +2,8 @@
 import {
   type ColumnReqType,
   type ColumnType,
+  PermissionEntity,
+  PermissionKey,
   PlanLimitTypes,
   type TableType,
   UITypes,
@@ -309,6 +311,7 @@ const {
   view,
   isAddingColumnAllowed,
   isAddingEmptyRowAllowed,
+  isAddingEmptyRowPermitted,
   // Selections
   isSelectedOnlyScript,
   isSelectedOnlyAI,
@@ -2010,6 +2013,8 @@ async function expandRows({
     'newColumns': newColumns,
     'cellsOverwritten': cellsOverwritten,
     'rowsUpdated': rowsUpdated,
+    'isAddingEmptyRowPermitted': isAddingEmptyRowPermitted.value,
+    'meta': meta.value,
     'onUpdate:expand': closeDialog,
     'onUpdate:modelValue': closeDlg,
   })
@@ -2545,7 +2550,12 @@ defineExpose({
               willChange: 'top, left, width, height',
             }"
             class="nc-canvas-table-editable-cell-wrapper pointer-events-auto"
-            :class="{ [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped.isStuck }"
+            :class="{
+              [`row-height-${rowHeightEnum ?? 1}`]: true,
+              'on-stick ': isClamped.isStuck,
+              'border-[#3366ff]': isClamped.isStuck && editEnabled.isCellEditable,
+              'border-[#9AA2AF]': isClamped.isStuck && !editEnabled.isCellEditable,
+            }"
           >
             <div
               ref="activeCellElement"
@@ -2571,7 +2581,8 @@ defineExpose({
                     :row="editEnabled.row"
                     :path="editEnabled.path"
                     active
-                    :read-only="!isDataEditAllowed"
+                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable"
+                    :is-allowed="editEnabled.isCellEditable"
                     @save="
                       updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state, undefined, undefined, editEnabled.path)
                     "
@@ -2585,7 +2596,8 @@ defineExpose({
                     :path="editEnabled.path"
                     active
                     edit-enabled
-                    :read-only="!isDataEditAllowed"
+                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable"
+                    :is-allowed="editEnabled.isCellEditable"
                     @update:model-value="updateValue"
                     @save="updateOrSaveRow?.(...$event)"
                     @save-with-state="updateOrSaveRow?.(...$event)"
@@ -2654,61 +2666,71 @@ defineExpose({
       </NcDropdown>
     </template>
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
-      <NcDropdown v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord">
-        <div class="flex shadow-nc-sm rounded-lg">
-          <NcButton
-            v-if="isMobileMode"
-            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="nc-grid-add-new-row"
-            size="small"
-            type="secondary"
-            :shadow="false"
-            @click.stop="onNewRecordToFormClick()"
-          >
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="plus" />
-              New Record
+      <PermissionsTooltip
+        v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord"
+        :entity="PermissionEntity.TABLE"
+        :entity-id="meta?.id"
+        :permission="PermissionKey.TABLE_RECORD_ADD"
+        show-overlay
+      >
+        <template #default="{ isAllowed }">
+          <NcDropdown :disabled="!isAllowed">
+            <div class="flex shadow-nc-sm rounded-lg">
+              <NcButton
+                v-if="isMobileMode"
+                v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
+                class="nc-grid-add-new-row"
+                size="small"
+                type="secondary"
+                :shadow="false"
+                @click.stop="onNewRecordToFormClick()"
+              >
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="plus" />
+                  New Record
+                </div>
+              </NcButton>
+              <NcButton
+                v-else
+                v-e="[isAddNewRecordGridMode && !isGroupBy ? 'c:row:add:grid' : 'c:row:add:form']"
+                class="nc-grid-add-new-row"
+                size="small"
+                :class="{
+                  '!rounded-r-none !border-r-0': !isGroupBy,
+                }"
+                type="secondary"
+                :shadow="false"
+                @click.stop="isAddNewRecordGridMode && !isGroupBy ? addEmptyRow() : onNewRecordToFormClick()"
+              >
+                <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
+                  <GeneralIcon icon="plus" />
+                  <template v-if="isAddNewRecordGridMode || isGroupBy">
+                    {{ $t('activity.newRecord') }}
+                  </template>
+                  <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}</template>
+                </div>
+              </NcButton>
+              <NcButton
+                v-if="!isMobileMode && !isGroupBy"
+                size="small"
+                class="!rounded-l-none nc-add-record-more-info"
+                type="secondary"
+                :shadow="false"
+              >
+                <GeneralIcon icon="arrowUp" />
+              </NcButton>
             </div>
-          </NcButton>
-          <NcButton
-            v-else
-            v-e="[isAddNewRecordGridMode && !isGroupBy ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="nc-grid-add-new-row"
-            size="small"
-            :class="{
-              '!rounded-r-none !border-r-0': !isGroupBy,
-            }"
-            type="secondary"
-            :shadow="false"
-            @click.stop="isAddNewRecordGridMode && !isGroupBy ? addEmptyRow() : onNewRecordToFormClick()"
-          >
-            <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
-              <GeneralIcon icon="plus" />
-              <template v-if="isAddNewRecordGridMode || isGroupBy">
-                {{ $t('activity.newRecord') }}
-              </template>
-              <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}</template>
-            </div>
-          </NcButton>
-          <NcButton
-            v-if="!isMobileMode && !isGroupBy"
-            size="small"
-            class="!rounded-l-none nc-add-record-more-info"
-            type="secondary"
-            :shadow="false"
-          >
-            <GeneralIcon icon="arrowUp" />
-          </NcButton>
-        </div>
 
-        <template #overlay>
-          <AddNewRowMenu
-            :path="openAddNewRowDropdown"
-            :on-new-record-to-grid-click="onNewRecordToGridClick"
-            :on-new-record-to-form-click="onNewRecordToFormClick"
-          />
+            <template #overlay>
+              <AddNewRowMenu
+                :path="openAddNewRowDropdown"
+                :on-new-record-to-grid-click="onNewRecordToGridClick"
+                :on-new-record-to-form-click="onNewRecordToFormClick"
+              />
+            </template>
+          </NcDropdown>
         </template>
-      </NcDropdown>
+      </PermissionsTooltip>
     </div>
   </div>
 </template>
@@ -2718,7 +2740,7 @@ defineExpose({
   @apply sticky !text-small !leading-[18px] overflow-hidden;
 
   &.on-stick {
-    @apply bg-white border-2 !rounded border-[#3366ff];
+    @apply bg-white border-2 !rounded;
   }
 
   &.row-height-1 {

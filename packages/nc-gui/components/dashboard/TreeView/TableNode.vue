@@ -53,7 +53,9 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { showRecordPlanLimitExceededModal } = useEeConfig()
+const { showRecordPlanLimitExceededModal, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
+
+const { isTableAndFieldPermissionsEnabled } = usePermissions()
 
 // todo: temp
 const { baseTables } = storeToRefs(useTablesStore())
@@ -66,10 +68,9 @@ const source = computed(() => {
 })
 
 const isTableDeleteDialogVisible = ref(false)
+const isTablePermissionsDialogVisible = ref(false)
 
 const isOptionsOpen = ref(false)
-
-const isSyncModalOpen = ref(false)
 
 const input = ref<HTMLInputElement>()
 
@@ -328,6 +329,14 @@ async function onDuplicate() {
   isOptionsOpen.value = false
 }
 
+async function onPermissions(_table: SidebarTableNode) {
+  isOptionsOpen.value = false
+
+  if (showUpgradeToUseTableAndFieldPermissions()) return
+
+  isTablePermissionsDialogVisible.value = true
+}
+
 // TODO: Should find a way to render the components without using the `nextTick` function
 const refreshViews = async () => {
   isExpanded.value = false
@@ -583,7 +592,7 @@ async function onRename() {
                   <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
                     <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
                     <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
-                    {{ $t('labels.editDescription') }}
+                    {{ $t('labels.editTableDescription') }}
                   </div>
                 </NcMenuItem>
 
@@ -608,24 +617,10 @@ async function onRename() {
                   </NcMenuItem>
 
                   <NcMenuItem
-                    v-if="isUIAllowed('tableDescriptionEdit', { roles: baseRole, source })"
-                    :data-testid="`sidebar-table-description-${table.title}`"
-                    class="nc-table-description"
-                    @click="openTableDescriptionDialog(table)"
-                  >
-                    <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
-                      <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
-                      <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
-                      {{ $t('labels.editDescription') }}
-                    </div>
-                  </NcMenuItem>
-
-                  <NcMenuItem
                     v-if="
                       isUIAllowed('tableDuplicate', {
                         source,
                       }) &&
-                      base.sources?.[sourceIndex] &&
                       (source?.is_meta || source?.is_local)
                     "
                     :data-testid="`sidebar-table-duplicate-${table.title}`"
@@ -634,6 +629,37 @@ async function onRename() {
                     <div v-e="['c:table:duplicate']" class="flex gap-2 items-center">
                       <GeneralIcon icon="duplicate" class="opacity-80" />
                       {{ $t('general.duplicate') }} {{ $t('objects.table').toLowerCase() }}
+                    </div>
+                  </NcMenuItem>
+                  <NcDivider />
+
+                  <NcMenuItem
+                    v-if="isUIAllowed('tableDescriptionEdit', { roles: baseRole, source })"
+                    :data-testid="`sidebar-table-description-${table.title}`"
+                    class="nc-table-description"
+                    @click="openTableDescriptionDialog(table)"
+                  >
+                    <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
+                      <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
+                      <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
+                      {{ $t('labels.editTableDescription') }}
+                    </div>
+                  </NcMenuItem>
+                  <NcMenuItem
+                    v-if="
+                      isTableAndFieldPermissionsEnabled &&
+                      isEeUI &&
+                      isUIAllowed('tableDuplicate', {
+                        source,
+                      }) &&
+                      (source?.is_meta || source?.is_local)
+                    "
+                    :data-testid="`sidebar-table-permissions-${table.title}`"
+                    @click="onPermissions(table)"
+                  >
+                    <div v-e="['c:table:permissions']" class="flex gap-2 items-center">
+                      <GeneralIcon icon="ncLock" class="opacity-80" />
+                      {{ $t('title.editTablePermissions') }}
                     </div>
                   </NcMenuItem>
                   <NcDivider />
@@ -691,13 +717,12 @@ async function onRename() {
       :table-id="table.id"
       :base-id="base.id"
     />
-    <LazyDashboardSettingsSyncEdit
-      v-if="table && table.id && table.synced && base?.id && isSyncModalOpen"
-      v-model:open="isSyncModalOpen"
+    <DlgTablePermissions
+      v-if="table.id && isEeUI"
+      v-model:visible="isTablePermissionsDialogVisible"
       :table-id="table.id"
-      :base-id="base.id"
+      :title="table.title"
     />
-
     <DashboardTreeViewViewsList v-if="isExpanded" :table-id="table.id" :base-id="base.id" @deleted="refreshViews" />
   </div>
 </template>

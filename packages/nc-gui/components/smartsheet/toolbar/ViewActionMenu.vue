@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { PlanFeatureTypes, PlanTitles, ProjectRoles, type TableType, type ViewType, WorkspaceUserRoles } from 'nocodb-sdk'
-import { ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
 const props = withDefaults(
@@ -282,21 +282,37 @@ const isDefaultView = computed(() => view.value?.is_default)
           </NcMenuItemLabel>
 
           <template v-for="(dialog, type) in quickImportDialogs">
-            <NcMenuItem v-if="isUIAllowed(`${type}TableImport`) && !isPublicView" :key="type" @click="onImportClick(dialog)">
-              <div
-                v-e="[
-                  `a:upload:${type}`,
-                  {
-                    sidebar: props.inSidebar,
-                  },
-                ]"
-                :class="{ disabled: lockType === LockType.Locked }"
-                class="nc-base-menu-item"
-              >
-                <component :is="importAlias[type].icon" v-if="importAlias[type]?.icon" class="opacity-80" />
-                {{ importAlias[type]?.title }}
-              </div>
-            </NcMenuItem>
+            <PermissionsTooltip
+              v-if="isUIAllowed(`${type}TableImport`) && !isPublicView"
+              :key="type"
+              :entity="PermissionEntity.TABLE"
+              :entity-id="table.id"
+              :permission="PermissionKey.TABLE_RECORD_ADD"
+              placement="right"
+              :description="$t('objects.permissions.uploadDataTooltip')"
+            >
+              <template #default="{ isAllowed }">
+                <NcMenuItem :disabled="!isAllowed" @click="onImportClick(dialog)">
+                  <div
+                    v-e="[
+                      `a:upload:${type}`,
+                      {
+                        sidebar: props.inSidebar,
+                      },
+                    ]"
+                    :class="{ disabled: lockType === LockType.Locked }"
+                    class="nc-base-menu-item"
+                  >
+                    <component
+                      :is="importAlias[type].icon"
+                      v-if="importAlias[type]?.icon"
+                      :class="{ 'opacity-80': isAllowed, '!opacity-50': !isAllowed }"
+                    />
+                    {{ importAlias[type]?.title }}
+                  </div>
+                </NcMenuItem>
+              </template>
+            </PermissionsTooltip>
           </template>
         </NcSubMenu>
       </template>

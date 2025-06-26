@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onKeyDown } from '@vueuse/core'
+import { PermissionEntity, PermissionKey, type TableType } from 'nocodb-sdk'
 
 const props = defineProps<{
   newRows: number
@@ -7,15 +8,19 @@ const props = defineProps<{
   newColumns: number
   cellsOverwritten: number
   rowsUpdated: number
+  isAddingEmptyRowPermitted: boolean
+  meta: TableType
 }>()
 
 const emit = defineEmits(['update:expand', 'cancel', 'update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
+const { isAddingEmptyRowPermitted } = toRefs(props)
+
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
-const expand = ref(true)
+const expand = ref(isAddingEmptyRowPermitted.value)
 
 const updateExpand = () => {
   if (
@@ -76,20 +81,23 @@ const close = () => {
       </div>
 
       <a-radio-group v-if="(newRows ?? 0) > 0" v-model:value="expand">
-        <a-radio
-          data-testid="nc-table-expand-yes"
-          :style="{
-            display: 'flex',
-            height: '30px',
-            lineHeight: '30px',
-          }"
-          :value="true"
-        >
-          <div class="nc-content-gray">
-            <span class="font-semibold"> Expand </span>
-            table to accommodate all pasted cells
-          </div>
-        </a-radio>
+        <PermissionsTooltip :entity="PermissionEntity.TABLE" :entity-id="meta?.id" :permission="PermissionKey.TABLE_RECORD_ADD">
+          <a-radio
+            data-testid="nc-table-expand-yes"
+            :style="{
+              display: 'flex',
+              height: '30px',
+              lineHeight: '30px',
+            }"
+            :value="true"
+            :disabled="!isAddingEmptyRowPermitted"
+          >
+            <div class="nc-content-gray">
+              <span class="font-semibold"> Expand </span>
+              table to accommodate all pasted cells
+            </div>
+          </a-radio>
+        </PermissionsTooltip>
         <a-radio
           data-testid="nc-table-expand-no"
           :style="{

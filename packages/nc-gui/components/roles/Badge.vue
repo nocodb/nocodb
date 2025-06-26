@@ -11,6 +11,8 @@ const props = withDefaults(
     iconOnly?: boolean
     size?: 'xs' | 'sm' | 'md' | 'lg'
     disabled?: boolean
+    ncBadgeClass?: string
+    showTooltip?: boolean
   }>(),
   {
     clickable: false,
@@ -19,6 +21,8 @@ const props = withDefaults(
     size: 'sm',
     iconOnly: false,
     showIcon: true,
+    ncBadgeClass: '',
+    showTooltip: false,
   },
 )
 
@@ -48,31 +52,35 @@ const roleProperties = computed(() => {
       'cursor-pointer': clickableRef,
     }"
   >
-    <NcBadge class="!px-2 w-full" :color="roleProperties.color" :border="borderRef" :size="sizeSelect">
-      <div
-        class="badge-text w-full flex items-center justify-between gap-2"
-        :class="{
-          'text-purple-700': roleProperties.color === 'purple',
-          'text-blue-700': roleProperties.color === 'blue',
-          'text-green-700': roleProperties.color === 'green',
-          'text-orange-700': roleProperties.color === 'orange',
-          'text-yellow-700': roleProperties.color === 'yellow',
-          'text-red-700': roleProperties.color === 'red',
-          'text-maroon-700': roleProperties.color === 'maroon',
-          'text-gray-400': !roleProperties.color === 'grey',
-          'text-gray-300': !roleProperties.color,
-          sizeSelect,
-        }"
-      >
-        <div class="flex items-center gap-2">
-          <GeneralIcon v-if="showIcon" :icon="roleProperties.icon" />
-          <span v-if="!iconOnly" class="flex whitespace-nowrap">
-            {{ $t(`objects.roleType.${roleProperties.label}`) }}
-          </span>
+    <NcTooltip :disabled="!showTooltip">
+      <template #title> {{ $t(`objects.roleType.${roleProperties.label}`) }}</template>
+
+      <NcBadge class="!px-2 w-full" :class="ncBadgeClass" :color="roleProperties.color" :border="borderRef" :size="sizeSelect">
+        <div
+          class="badge-text w-full flex items-center justify-between gap-2"
+          :class="{
+            'text-purple-700': roleProperties.color === 'purple',
+            'text-blue-700': roleProperties.color === 'blue',
+            'text-green-700': roleProperties.color === 'green',
+            'text-orange-700': roleProperties.color === 'orange',
+            'text-yellow-700': roleProperties.color === 'yellow',
+            'text-red-700': roleProperties.color === 'red',
+            'text-maroon-700': roleProperties.color === 'maroon',
+            'text-gray-400': !roleProperties.color === 'grey',
+            'text-gray-300': !roleProperties.color,
+            sizeSelect,
+          }"
+        >
+          <div class="flex items-center gap-2">
+            <GeneralIcon v-if="showIcon" :icon="roleProperties.icon" />
+            <span v-if="!iconOnly" class="flex whitespace-nowrap">
+              {{ $t(`objects.roleType.${roleProperties.label}`) }}
+            </span>
+          </div>
+          <GeneralIcon v-if="clickableRef" icon="arrowDown" class="flex-none" />
         </div>
-        <GeneralIcon v-if="clickableRef" icon="arrowDown" class="flex-none" />
-      </div>
-    </NcBadge>
+      </NcBadge>
+    </NcTooltip>
     <!--
     <a-tooltip v-if="inheritRef" placement="bottom">
       <div class="text-gray-400 text-xs p-1 rounded-md">Workspace Role</div>

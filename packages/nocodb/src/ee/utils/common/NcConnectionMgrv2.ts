@@ -16,7 +16,10 @@ import { DbMux } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { DbMuxStatus } from '~/utils/globals';
 import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
-import { getWorkspaceDbInstance } from '~/utils/cloudDb';
+import {
+  getWorkspaceDbConnection,
+  getWorkspaceDbServer,
+} from '~/utils/cloudDb';
 
 export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
   protected static dataKnex?: XKnex;
@@ -52,9 +55,11 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
     }
 
     if (source.isMeta()) {
-      const dbInstance = await getWorkspaceDbInstance(source.fk_workspace_id);
-      if (dbInstance) {
-        return XKnex(dbInstance.config);
+      const dbConnection = await getWorkspaceDbConnection(
+        source.fk_workspace_id,
+      );
+      if (dbConnection) {
+        return dbConnection;
       }
 
       // if data db is set, use it for generating knex connection
@@ -206,11 +211,12 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
   }
 
   public static async getWorkspaceSqlClient(workspaceId: string) {
-    const dbInstance = await getWorkspaceDbInstance(workspaceId);
-    if (dbInstance) {
+    const dbServer = await getWorkspaceDbServer(workspaceId);
+    const dbConnection = await getWorkspaceDbConnection(workspaceId);
+    if (dbServer) {
       return SqlClientFactory.create({
-        knex: XKnex(dbInstance.config),
-        ...dbInstance.config,
+        knex: dbConnection,
+        ...dbServer.config,
       });
     }
   }

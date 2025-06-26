@@ -22,7 +22,7 @@ import { DataReflectionService } from '~/services/data-reflection.service';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { ColumnsService } from '~/services/columns.service';
 import { isEE } from '~/utils';
-import { getWorkspaceDbInstance } from '~/utils/cloudDb';
+import { getWorkspaceDbServer } from '~/utils/cloudDb';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -97,7 +97,7 @@ export class BasesService extends BasesServiceCE {
       baseBody.prefix = `nc_${ranId}__`;
       baseBody.is_meta = true;
 
-      const workspaceDbInstance = await getWorkspaceDbInstance(
+      const workspaceDbInstance = await getWorkspaceDbServer(
         baseBody.fk_workspace_id,
       );
 

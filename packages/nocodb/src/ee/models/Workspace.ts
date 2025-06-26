@@ -34,9 +34,8 @@ import {
   UsageStat,
 } from '~/models';
 import { getActivePlanAndSubscription } from '~/helpers/paymentHelpers';
-import {
-  cleanBaseSchemaCacheForWorkspace,
-} from '~/helpers/scriptHelper';
+import { cleanBaseSchemaCacheForWorkspace } from '~/helpers/scriptHelper';
+import { resetWorkspaceDbServer } from '~/utils/cloudDb';
 
 const logger = new Logger('Workspace');
 
@@ -269,6 +268,11 @@ export default class Workspace implements WorkspaceType {
 
     if (updateCreatedAt) {
       updateObject.created_at = ncMeta.now();
+    }
+
+    // if updated workspace has db instance id, reset db server cache
+    if (workspace.fk_db_instance_id) {
+      await resetWorkspaceDbServer(workspace.id);
     }
 
     const res = await ncMeta.metaUpdate(

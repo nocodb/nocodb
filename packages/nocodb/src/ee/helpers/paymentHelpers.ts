@@ -316,7 +316,10 @@ async function getActivePlanAndSubscription(
   );
 
   if (!subscription) {
-    if (dayjs().isBefore(dayjs(LOYALTY_GRACE_PERIOD_END_DATE))) {
+    if (
+      workspace.loyal &&
+      dayjs().isBefore(dayjs(LOYALTY_GRACE_PERIOD_END_DATE))
+    ) {
       return { plan: LegacyFreePlan };
     }
 

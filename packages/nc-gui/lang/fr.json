@@ -157,7 +157,9 @@
     "upgradeToUseCurrentUserFilter": "Passez à la version supérieure pour filtrer par l'utilisateur actuel",
     "upgradeToUseCurrentUserFilterSubtitle": "Passez au plan {plan} pour utiliser des filtres affichant les données en fonction de l’utilisateur actuel.",
     "upgradeToUseRowColoring": "Mettre à niveau pour utiliser la coloration des lignes",
-    "upgradeToUseRowColoringSubtitle": "Passez au plan {plan} pour colorer les lignes en fonction des valeurs de champ ou des conditions, ce qui facilitera l'analyse et la hiérarchisation de vos données."
+    "upgradeToUseRowColoringSubtitle": "Passez au plan {plan} pour colorer les lignes en fonction des valeurs de champ ou des conditions, ce qui facilitera l'analyse et la hiérarchisation de vos données.",
+    "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
+    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data."
   },
   "general": {
     "script": "Script",
@@ -404,7 +406,9 @@
     "changelog": "Journal des modifications",
     "contactSupport": "Contacter le support",
     "proceedImport": "Procéder à l'import",
-    "inserting": "Insertion en cours"
+    "inserting": "Insertion en cours",
+    "permissions": "Permissions",
+    "manageAllFields": "Manage all fields"
   },
   "objects": {
     "script": "Script",
@@ -582,6 +586,19 @@
       "usingConditions": "Using Conditions",
       "usingConditionsDescription": "Colour records based on conditions",
       "colourRecordsByField": "Colour records by field"
+    },
+    "permissions": {
+      "addNewRecordTooltipTitle": "Create record restricted",
+      "addNewRecordTooltip": "You do not have permission to create records in this table",
+      "deleteRecordTooltipTitle": "Delete record restricted",
+      "deleteRecordTooltip": "You do not have permission to delete records in this table",
+      "editFieldTooltipTitle": "Edit restricted",
+      "editFieldTooltip": "You do not have permission to edit this field",
+      "generalPermissionTooltipTitle": "Permission restricted",
+      "generalPermissionTooltip": "You do not have permission to perform this action",
+      "uploadDataTooltip": "You do not have permission to upload data into this table",
+      "formCannotAcceptSubmissions": "Form cannot accept submissions.",
+      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
     }
   },
   "datatype": {
@@ -637,6 +654,8 @@
     "isNotNull": "est non null"
   },
   "title": {
+    "editTablePermissions": "Edit table permissions",
+    "editFieldPermissions": "Edit field permissions",
     "confirmSnapshotRestore": "Confirmer la restauration de l'instantané",
     "urlFilters": "Filtres d'URL",
     "creatingScript": "Création du script",
@@ -831,7 +850,9 @@
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
     "duplicatesFound": "Duplicates found",
-    "matchingResultsInRecords": "Matching results in {count} records"
+    "matchingResultsInRecords": "Matching results in {count} records",
+    "tablePermissions": "Table permissions",
+    "fieldPermissions": "Field permissions"
   },
   "labels": {
     "crossBase": "Link to external base",
@@ -907,6 +928,8 @@
     "fieldID": "Champ identifiant",
     "addDescription": "Ajouter une description",
     "editDescription": "Modifier la description",
+    "editTableDescription": "Edit table description",
+    "editFieldDescription": "Edit field description",
     "urlFormula": "Formule URL",
     "selectIcon": "aucun",
     "selectAWebhook": "--selectionner un webhook--",
@@ -1646,7 +1669,8 @@
     "addConditionGroup": "Ajouter un groupe de conditions",
     "pending": "En cours",
     "goToPage": "Aller à la page",
-    "changePlan": "Changer le plan"
+    "changePlan": "Changer le plan",
+    "goToPermissionsOverview": "Go to Permissions Overview"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1716,7 +1740,9 @@
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
-    "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table"
+    "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
+    "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
+    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
   },
   "placeholder": {
     "searchIcons": "Rechercher des icônes",

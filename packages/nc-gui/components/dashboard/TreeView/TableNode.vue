@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type BaseType, type TableType, ViewTypes, PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
+import { type BaseType, PlanFeatureTypes, PlanTitles, type TableType, ViewTypes } from 'nocodb-sdk'
 
 import type { SidebarTableNode } from '~/lib/types'
 
@@ -678,7 +678,7 @@ async function onRename() {
                                 plan: PlanTitles.TEAM,
                               })
                             "
-                            :onClickCallback="
+                            :on-click-callback="
                               () => {
                                 isOptionsOpen = false
                               }

@@ -1,16 +1,16 @@
 <script lang="ts" setup>
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import {
-  PlanLimitTypes,
   PlanFeatureTypes,
+  PlanLimitTypes,
   PlanTitles,
   RelationTypes,
   UITypes,
+  columnTypeName,
+  isCrossBaseLink,
   isLinksOrLTAR,
   isSupportedDisplayValueColumn,
   isSystemColumn,
-  columnTypeName,
-  isCrossBaseLink,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
@@ -616,7 +616,7 @@ const onDeleteColumn = () => {
                     plan: PlanTitles.TEAM,
                   })
                 "
-                :onClickCallback="
+                :on-click-callback="
                   () => {
                     isOpen = false
                   }

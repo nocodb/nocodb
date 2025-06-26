@@ -303,8 +303,8 @@ export const UserFieldCellRenderer: CellRenderer = {
     })
   },
 
-  async handleClick({ row, column, mousePosition, getCellPosition, makeCellEditable }) {
-    if (column.readonly || !column?.isCellEditable || isCreatedOrLastModifiedByCol(column.uidt)) return false
+  async handleClick({ row, column, mousePosition, getCellPosition, makeCellEditable, selected }) {
+    if (column.readonly || !column?.isCellEditable || isCreatedOrLastModifiedByCol(column.uidt) || !selected) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10

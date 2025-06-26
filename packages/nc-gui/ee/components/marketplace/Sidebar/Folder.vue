@@ -23,8 +23,6 @@ const onLeave = (el: Element) => {
   element.style.height = `${element.scrollHeight}px`
   element.style.opacity = '1'
 
-  element.offsetHeight
-
   element.style.height = '0'
   element.style.opacity = '0'
 }

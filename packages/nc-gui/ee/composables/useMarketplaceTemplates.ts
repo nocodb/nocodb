@@ -230,7 +230,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
     { deep: true },
   )
 
-  watch(activeCategory, (newCategory) => {
+  watch(activeCategory, () => {
     applyCategoryFilters()
     loadTemplates(true)
   })

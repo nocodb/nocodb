@@ -348,7 +348,8 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
             }}
           </template>
           <template #value
-            >{{ workspaceSeatCount }} of {{ formatTotalLimit(getLimit(PlanLimitTypes.LIMIT_EDITOR)) }} editors</template
+            >{{ workspaceSeatCount }} of
+            {{ formatTotalLimit(loyalGracePeriod ? 3 : getLimit(PlanLimitTypes.LIMIT_EDITOR)) }} editors</template
           >
         </PaymentPlanUsageRow>
         <PaymentPlanUsageRow

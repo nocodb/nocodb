@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { LoadingOutlined } from '@ant-design/icons-vue'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 const { onViewsTabChange } = useViewsStore()
@@ -97,6 +98,15 @@ watch(
           <div class="tab" data-testid="nc-permissions-tab">
             <GeneralIcon icon="ncLock" class="tab-icon" :class="{}" />
             <div>{{ $t('general.permissions') }}</div>
+
+            <LazyPaymentUpgradeBadge
+              :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+              :title="$t('upgrade.upgradeToUseTableAndFieldPermissions')"
+              :content="$t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle')"
+              size="xs"
+              :plan-title="PlanTitles.BUSINESS"
+              remove-click
+            />
           </div>
         </template>
 

@@ -157,7 +157,9 @@
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
     "upgradeToUseRowColoring": "Upgrade to use row colouring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data."
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data.",
+    "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
+    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data."
   },
   "general": {
     "script": "Script",
@@ -404,7 +406,9 @@
     "changelog": "Changelog",
     "contactSupport": "Contact Support",
     "proceedImport": "Proceed Import",
-    "inserting": "Inserting"
+    "inserting": "Inserting",
+    "permissions": "Permissions",
+    "manageAllFields": "Manage all fields"
   },
   "objects": {
     "script": "Script",
@@ -582,6 +586,19 @@
       "usingConditions": "Using Conditions",
       "usingConditionsDescription": "Colour records based on conditions",
       "colourRecordsByField": "Colour records by field"
+    },
+    "permissions": {
+      "addNewRecordTooltipTitle": "Create record restricted",
+      "addNewRecordTooltip": "You do not have permission to create records in this table",
+      "deleteRecordTooltipTitle": "Delete record restricted",
+      "deleteRecordTooltip": "You do not have permission to delete records in this table",
+      "editFieldTooltipTitle": "Edit restricted",
+      "editFieldTooltip": "You do not have permission to edit this field",
+      "generalPermissionTooltipTitle": "Permission restricted",
+      "generalPermissionTooltip": "You do not have permission to perform this action",
+      "uploadDataTooltip": "You do not have permission to upload data into this table",
+      "formCannotAcceptSubmissions": "Form cannot accept submissions.",
+      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
     }
   },
   "datatype": {
@@ -637,6 +654,8 @@
     "isNotNull": "não é nulo"
   },
   "title": {
+    "editTablePermissions": "Edit table permissions",
+    "editFieldPermissions": "Edit field permissions",
     "confirmSnapshotRestore": "Confirmar Restauração do Snapshot",
     "urlFilters": "Filtros de URL",
     "creatingScript": "Criando Script",
@@ -831,7 +850,9 @@
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
     "duplicatesFound": "Duplicates found",
-    "matchingResultsInRecords": "Matching results in {count} records"
+    "matchingResultsInRecords": "Matching results in {count} records",
+    "tablePermissions": "Table permissions",
+    "fieldPermissions": "Field permissions"
   },
   "labels": {
     "crossBase": "Link to external base",
@@ -907,6 +928,8 @@
     "fieldID": "ID do Campo",
     "addDescription": "Adicionar descrição",
     "editDescription": "Editar descrição",
+    "editTableDescription": "Edit table description",
+    "editFieldDescription": "Edit field description",
     "urlFormula": "Fórmula URL",
     "selectIcon": "nenhum",
     "selectAWebhook": "--selecione um webhook--",
@@ -1646,7 +1669,8 @@
     "addConditionGroup": "Adicionar grupo de condições",
     "pending": "Pendente",
     "goToPage": "Ir para a página",
-    "changePlan": "Alterar plano"
+    "changePlan": "Alterar plano",
+    "goToPermissionsOverview": "Go to Permissions Overview"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1716,7 +1740,9 @@
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
-    "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table"
+    "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
+    "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
+    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
   },
   "placeholder": {
     "searchIcons": "Pesquisar ícones",

@@ -1,13 +1,12 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
-import type { SelectOptionType } from 'nocodb-sdk'
-import { getOptions } from './utils'
+import { getOptions, type LocalSelectOptionType } from './utils'
 
 interface Props {
   modelValue?: string | undefined
   rowIndex?: number
   disableOptionCreation?: boolean
-  selectOptions?: (SelectOptionType & { value?: string })[]
+  selectOptions?: LocalSelectOptionType[]
 }
 
 const { modelValue, disableOptionCreation, selectOptions } = defineProps<Props>()

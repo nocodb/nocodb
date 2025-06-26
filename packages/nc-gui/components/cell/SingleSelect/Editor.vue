@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
-import { getOptions, type LocalSelectOptionType } from './utils'
+import { type LocalSelectOptionType, getOptions } from './utils'
 
 interface Props {
   modelValue?: string | undefined

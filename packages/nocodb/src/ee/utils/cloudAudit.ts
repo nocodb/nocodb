@@ -6,8 +6,12 @@ import {
 } from '@aws-sdk/client-kinesis';
 import { createClient } from '@clickhouse/client';
 import { NO_SCOPE } from 'nocodb-sdk';
+import sizeof from 'object-sizeof';
 import type { NcContext } from '~/interface/config';
 import type { Audit } from '~/models';
+
+// 1MB limit for Kinesis records with margin
+const KINESIS_RECORD_SIZE_LIMIT = 1000 * 1000;
 
 const kinesisConfig = {
   region: process.env.NC_KINESIS_REGION,
@@ -214,6 +218,25 @@ export async function getChWorkspaceAudit(
   return result.data ?? [];
 }
 
+async function insertAuditToClickHouse(audit: Audit | Audit[]) {
+  if (
+    !auditClickhouseConfig.url ||
+    !auditClickhouseConfig.username ||
+    !auditClickhouseConfig.password ||
+    !clickhouseAuditTable
+  ) {
+    return;
+  }
+
+  audit = Array.isArray(audit) ? audit : [audit];
+
+  await clickhouseClient.insert({
+    table: clickhouseAuditTable,
+    values: audit,
+    format: 'JSONEachRow',
+  });
+}
+
 export async function pushAuditToKinesis(audits: Audit | Audit[]) {
   if (
     !kinesisConfig.region ||
@@ -225,6 +248,14 @@ export async function pushAuditToKinesis(audits: Audit | Audit[]) {
   }
 
   if (!Array.isArray(audits)) {
+    const recordSize = sizeof(audits);
+
+    if (recordSize > KINESIS_RECORD_SIZE_LIMIT) {
+      // Record too large for Kinesis, insert directly to ClickHouse
+      await insertAuditToClickHouse(audits);
+      return;
+    }
+
     await kinesisClient.send(
       new PutRecordCommand({
         StreamName: streamName,
@@ -233,14 +264,46 @@ export async function pushAuditToKinesis(audits: Audit | Audit[]) {
       }),
     );
   } else {
-    await kinesisClient.send(
-      new PutRecordsCommand({
-        StreamName: streamName,
-        Records: audits.map((result) => ({
-          Data: new TextEncoder().encode(JSON.stringify(result)),
-          PartitionKey: 'audit',
-        })),
-      }),
-    );
+    // Separate oversized records and normal records
+    const oversizedRecords: Audit[] = [];
+    const normalRecords: Audit[] = [];
+
+    audits.forEach((audit) => {
+      const recordSize = sizeof(audit);
+      if (recordSize > KINESIS_RECORD_SIZE_LIMIT) {
+        oversizedRecords.push(audit);
+      } else {
+        normalRecords.push(audit);
+      }
+    });
+
+    // Insert oversized records directly to ClickHouse
+    if (oversizedRecords.length > 0) {
+      await insertAuditToClickHouse(oversizedRecords);
+    }
+
+    // Process normal records through Kinesis if any exist
+    if (normalRecords.length > 0) {
+      // Chunk normal records into batches of 100 (500 is the max limit for Kinesis)
+      const chunkSize = 100;
+      const chunks = [];
+
+      for (let i = 0; i < normalRecords.length; i += chunkSize) {
+        chunks.push(normalRecords.slice(i, i + chunkSize));
+      }
+
+      // Send each chunk separately
+      for (const chunk of chunks) {
+        await kinesisClient.send(
+          new PutRecordsCommand({
+            StreamName: streamName,
+            Records: chunk.map((result) => ({
+              Data: new TextEncoder().encode(JSON.stringify(result)),
+              PartitionKey: 'audit',
+            })),
+          }),
+        );
+      }
+    }
   }
 }

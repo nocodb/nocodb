@@ -59,7 +59,14 @@ export function useViewData(
 
   const { $api } = useNuxtApp()
 
-  const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+  const {
+    sorts,
+    nestedFilters,
+    whereQueryFromUrl,
+    fetchTotalRowsWithSearchQuery,
+    totalRowsWithSearchQuery,
+    totalRowsWithoutSearchQuery,
+  } = useSmartsheetStoreOrThrow()
 
   const { isUIAllowed } = useRoles()
 
@@ -102,6 +109,8 @@ export function useViewData(
       viewMeta?.value?.id as string,
     )
     paginationData.value.totalRows = count
+
+    console.log('syncCount', count)
   }
 
   async function syncPagination() {
@@ -160,6 +169,61 @@ export function useViewData(
     }
   }
 
+  const syncViewCountController = ref()
+
+  async function syncViewSearchCount(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+    /**
+     * No need to sync view search count if fetchTotalRowsWithSearchQuery is false
+     */
+    if (!fetchTotalRowsWithSearchQuery.value) return
+
+    if (syncViewCountController.value) {
+      syncViewCountController.value.cancel()
+    }
+
+    const CancelToken = axios.CancelToken
+
+    syncViewCountController.value = CancelToken.source()
+
+    try {
+      const response = !isPublic.value
+        ? await api.dbViewRow.list(
+            'noco',
+            base.value.id!,
+            metaId.value!,
+            viewMeta.value!.id!,
+            {
+              ...params,
+              offset: 0,
+              limit: 1,
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+              where: whereQueryFromUrl.value as string,
+              include_row_color: true,
+            } as any,
+            {
+              cancelToken: syncViewCountController.value.token,
+            },
+          )
+        : await fetchSharedViewData({
+            offset: 0,
+            limit: 1,
+            sortsArr: sorts.value,
+            filtersArr: nestedFilters.value,
+            where: whereQueryFromUrl.value as string,
+          })
+
+      totalRowsWithoutSearchQuery.value = response.pageInfo?.totalRows ?? 0
+    } catch (e: any) {
+      // if the request is canceled, then do nothing
+      if (e.code === 'ERR_CANCELED') {
+        return
+      }
+      // No need to show error message here
+      console.error(e)
+    }
+  }
+
   const controller = ref()
 
   async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}, shouldShowLoading = true) {
@@ -197,6 +261,8 @@ export function useViewData(
             },
           )
         : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, where: where?.value })
+
+      syncViewSearchCount(params)
     } catch (error) {
       // if the request is canceled, then do nothing
       if (error.code === 'ERR_CANCELED') {
@@ -217,6 +283,8 @@ export function useViewData(
     }
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo || paginationData.value || {}
+
+    totalRowsWithSearchQuery.value = paginationData.value.totalRows ?? 0
 
     // if public then update sharedPaginationData
     if (isPublic.value) {

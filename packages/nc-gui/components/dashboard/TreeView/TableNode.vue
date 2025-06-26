@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type BaseType, type TableType, ViewTypes } from 'nocodb-sdk'
+import { type BaseType, PlanFeatureTypes, PlanTitles, type TableType, ViewTypes } from 'nocodb-sdk'
 
 import type { SidebarTableNode } from '~/lib/types'
 
@@ -53,7 +53,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { showRecordPlanLimitExceededModal, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
+const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 const { isTableAndFieldPermissionsEnabled } = usePermissions()
 
@@ -331,8 +331,6 @@ async function onDuplicate() {
 
 async function onPermissions(_table: SidebarTableNode) {
   isOptionsOpen.value = false
-
-  if (showUpgradeToUseTableAndFieldPermissions()) return
 
   isTablePermissionsDialogVisible.value = true
 }
@@ -645,7 +643,7 @@ async function onRename() {
                       {{ $t('labels.editTableDescription') }}
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem
+                  <PaymentUpgradeBadgeProvider
                     v-if="
                       isTableAndFieldPermissionsEnabled &&
                       isEeUI &&
@@ -654,14 +652,43 @@ async function onRename() {
                       }) &&
                       (source?.is_meta || source?.is_local)
                     "
-                    :data-testid="`sidebar-table-permissions-${table.title}`"
-                    @click="onPermissions(table)"
+                    :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
                   >
-                    <div v-e="['c:table:permissions']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="ncLock" class="opacity-80" />
-                      {{ $t('title.editTablePermissions') }}
-                    </div>
-                  </NcMenuItem>
+                    <template #default="{ click }">
+                      <NcMenuItem
+                        :data-testid="`sidebar-table-permissions-${table.title}`"
+                        class="nc-table-permissions"
+                        @click="
+                          click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
+                            onPermissions(table)
+                          })
+                        "
+                      >
+                        <div v-e="['c:table:permissions']" class="flex gap-2 items-center w-full">
+                          <GeneralIcon icon="ncLock" class="opacity-80" />
+                          <div class="flex-1">
+                            {{ $t('title.editTablePermissions') }}
+                          </div>
+
+                          <LazyPaymentUpgradeBadge
+                            :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+                            :title="$t('upgrade.upgradeToUseTableAndFieldPermissions')"
+                            :content="
+                              $t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
+                                plan: PlanTitles.TEAM,
+                              })
+                            "
+                            :on-click-callback="
+                              () => {
+                                isOptionsOpen = false
+                              }
+                            "
+                            size="xs"
+                          />
+                        </div>
+                      </NcMenuItem>
+                    </template>
+                  </PaymentUpgradeBadgeProvider>
                   <NcDivider />
 
                   <NcMenuItem @click="onDuplicate">
@@ -736,5 +763,9 @@ async function onRename() {
   &:not(.nc-info-icon) {
     @apply text-primary text-opacity-60;
   }
+}
+
+:deep(.nc-menu-item-inner) {
+  @apply !w-full;
 }
 </style>

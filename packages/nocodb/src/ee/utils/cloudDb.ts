@@ -43,7 +43,13 @@ export const getWorkspaceDbConnection = async (
   });
 };
 
-export const resetWorkspaceDbServer = (workspaceId: string) => {
+export const resetWorkspaceDbServer = async (workspaceId: string) => {
+  const dbServer = await getWorkspaceDbConnection(workspaceId);
+  if (dbServer) {
+    // destroy db server connection - ignore errors
+    await dbServer.destroy().catch(() => {});
+  }
+
   DB_SERVER_CACHE.delete(workspaceId);
   DB_SERVER_CONNECTION_CACHE.delete(workspaceId);
 };

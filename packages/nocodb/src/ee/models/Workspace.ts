@@ -272,7 +272,7 @@ export default class Workspace implements WorkspaceType {
 
     // if updated workspace has db instance id, reset db server cache
     if (workspace.fk_db_instance_id) {
-      resetWorkspaceDbServer(workspace.id);
+      await resetWorkspaceDbServer(workspace.id);
     }
 
     const res = await ncMeta.metaUpdate(

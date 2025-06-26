@@ -64,11 +64,11 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
                 'border-nc-border-maroon': item.content.color === 'maroon',
                 'border-nc-border-gray-medium': !item.content.color,
               }"
-              class="step-header px-4 py-3 border-b border-gray-200"
+              class="step-header px-4 py-4 border-b border-gray-200"
             >
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-4">
                 <div v-if="item.content.icon" class="step-icon">
-                  <GeneralIcon :icon="item.content.icon" class="w-5 h-5 text-gray-600" />
+                  <GeneralIcon :icon="item.content.icon" class="w-6 h-6" />
                 </div>
                 <div
                   :class="{
@@ -82,12 +82,12 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
                     'text-nc-content-maroon-dark': item.content.color === 'maroon',
                     'text-nc-content-gray-emphasis': !item.content.color,
                   }"
-                  class="font-medium"
+                  class="text-subHeading2"
                 >
                   {{ item.content.title }}
                 </div>
               </div>
-              <div v-if="item.content.description" class="text-sm text-gray-600 mt-1">
+              <div v-if="item.content.description" class="text-caption mt-4 text-nc-content-gray-subtle">
                 {{ item.content.description }}
               </div>
             </div>

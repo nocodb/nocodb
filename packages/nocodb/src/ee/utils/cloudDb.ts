@@ -3,7 +3,7 @@ import { DbServer, Workspace } from '~/models';
 import SimpleLRUCache from '~/utils/cache';
 
 const DB_SERVER_CACHE = new SimpleLRUCache(1000);
-const DB_SERVER_CONNECTION_CACHE = new SimpleLRUCache(100);
+const DB_SERVER_CONNECTION_CACHE = new SimpleLRUCache(1000);
 
 export const getWorkspaceDbServer = async (
   workspaceId: string,

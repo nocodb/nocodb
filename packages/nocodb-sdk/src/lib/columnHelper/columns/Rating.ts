@@ -23,7 +23,7 @@ export class RatingHelper extends AbstractColumnHelper {
     const res = serializeIntValue(value ?? 0);
 
     if (res === null) {
-      if (params.isMultipleCellPaste) {
+      if (params.isMultipleCellPaste || params.serializeSearchQuery) {
         return null;
       } else {
         throw new SilentTypeConversionError();
@@ -31,6 +31,10 @@ export class RatingHelper extends AbstractColumnHelper {
     }
 
     if (res) {
+      if (params.serializeSearchQuery) {
+        return res;
+      }
+
       return Math.min(
         res,
         parseProp(params.col.meta)?.max || this.columnDefaultMeta.max

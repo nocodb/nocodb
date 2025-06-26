@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import { type ColumnType, PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 import type { Row } from '~/lib/types'
 
 const emit = defineEmits(['expandRecord', 'newRecord'])
@@ -1085,7 +1085,8 @@ const expandRecord = (record: Row) => {
               </NcMenu>
             </template>
           </NcDropdown>
-          <NcButton
+
+          <div
             v-else-if="
               !isPublic && isUIAllowed('dataEdit') && [UITypes.DateTime, UITypes.Date].includes(calDataType) && !isSyncedTable
             "
@@ -1093,31 +1094,43 @@ const expandRecord = (record: Row) => {
               '!block': hour.isSame(selectedTime),
               '!hidden': !hour.isSame(selectedTime),
             }"
-            class="!group-hover:block mr-10 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
-            size="xsmall"
-            type="secondary"
-            @click="
-          () => {
-            let record = {
-              row: {
-                [calendarRange[0].fk_from_col!.title!]: hour.format('YYYY-MM-DD HH:mm:ssZ'),
-              },
-            }
-
-            if (calendarRange[0].fk_to_col) {
-              record = {
-                row: {
-                  ...record.row,
-                  [calendarRange[0].fk_to_col!.title!]: hour.add(1, 'hour').format('YYYY-MM-DD HH:mm:ssZ'),
-                },
-              }
-            }
-            emit('newRecord', record)
-          }
-        "
+            class="!group-hover:block mr-10 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block relative"
           >
-            <component :is="iconMap.plus" class="h-4 w-4" />
-          </NcButton>
+            <PermissionsTooltip
+              :entity="PermissionEntity.TABLE"
+              :entity-id="meta?.id"
+              :permission="PermissionKey.TABLE_RECORD_ADD"
+              placement="left"
+            >
+              <template #default="{ isAllowed }">
+                <NcButton
+                  size="xsmall"
+                  type="secondary"
+                  :disabled="!isAllowed"
+                  @click="
+                  () => {
+                    let record = {
+                      row: {
+                        [calendarRange[0].fk_from_col!.title!]: hour.format('YYYY-MM-DD HH:mm:ssZ'),
+                      },
+                    }
+
+                    if (calendarRange[0].fk_to_col) {
+                      record = {
+                        row: {
+                          ...record.row,
+                          [calendarRange[0].fk_to_col!.title!]: hour.add(1, 'hour').format('YYYY-MM-DD HH:mm:ssZ'),
+                        },
+                      }
+                    }
+                    emit('newRecord', record)
+                }"
+                >
+                  <component :is="iconMap.plus" class="h-4 w-4" />
+                </NcButton>
+              </template>
+            </PermissionsTooltip>
+          </div>
 
           <NcDropdown v-if="isOverflowAcrossHourRange(hour).isOverflow">
             <NcButton

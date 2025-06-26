@@ -343,6 +343,8 @@ const handleScroll = (e) => {
           :custom-row="customRow"
           :bordered="false"
           class="flex-1 nc-collaborators-list"
+          :pagination="true"
+          :pagination-offset="25"
         >
           <template #emptyText>
             <a-empty :description="$t('title.noMembersFound')" />

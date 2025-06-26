@@ -23,7 +23,5 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <span class="hidden"></span>
+  <NcSpanHidden />
 </template>
-
-<style lang="scss" scoped></style>

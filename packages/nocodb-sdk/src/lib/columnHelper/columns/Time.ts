@@ -15,10 +15,14 @@ export class TimeHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string | null {
+    if (params.serializeSearchQuery) {
+      return this.parseValue(value, params);
+    }
+
     value = serializeTimeValue(value, params);
 
     if (value === null) {
-      if (params.isMultipleCellPaste) {
+      if (params.isMultipleCellPaste || params.serializeSearchQuery) {
         return null;
       } else {
         throw new SilentTypeConversionError();

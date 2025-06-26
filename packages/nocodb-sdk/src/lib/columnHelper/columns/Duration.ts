@@ -16,7 +16,7 @@ export class DurationHelper extends AbstractColumnHelper {
     value = serializeDurationValue(value, params.col);
 
     if (value === null) {
-      if (params.isMultipleCellPaste) {
+      if (params.isMultipleCellPaste || params.serializeSearchQuery) {
         return null;
       } else {
         throw new SilentTypeConversionError();

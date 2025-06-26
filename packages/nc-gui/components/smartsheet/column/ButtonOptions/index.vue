@@ -70,7 +70,7 @@ const isScriptButtonEnabled = computed(() => {
     return true
   }
 
-  return isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS)
+  return isFeatureEnabled(FEATURE_FLAG.ROW_ACTION)
 })
 
 const buttonTypes = computed(() => [

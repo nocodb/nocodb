@@ -680,8 +680,8 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                   <div class="nc-form-section-title">Permissions</div>
                   <div class="nc-form-section-body">
                     <DashboardSettingsDataSourcesSourceRestrictions
-                      v-model:allowMetaWrite="allowMetaWrite"
-                      v-model:allowDataWrite="allowDataWrite"
+                      v-model:allow-meta-write="allowMetaWrite"
+                      v-model:allow-data-write="allowDataWrite"
                     />
                   </div>
                 </div>

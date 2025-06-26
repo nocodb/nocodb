@@ -25,6 +25,8 @@ const { $api } = useNuxtApp()
 
 const { t } = useI18n()
 
+const { projectPageTab } = storeToRefs(useConfigStore())
+
 const { isPaymentEnabled, showUserPlanLimitExceededModal } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
@@ -277,6 +279,12 @@ const isOnlyOneOwner = computed(() => {
 const isDeleteOrUpdateAllowed = (user) => {
   return !(isOnlyOneOwner.value && user.roles === ProjectRoles.OWNER)
 }
+
+watch(projectPageTab, () => {
+  if (!userSearchText.value) return
+
+  userSearchText.value = ''
+})
 </script>
 
 <template>
@@ -350,6 +358,8 @@ const isDeleteOrUpdateAllowed = (user) => {
         :custom-row="customRow"
         class="flex-1 nc-collaborators-list max-w-full"
         body-row-class-name="!cursor-default"
+        :pagination="true"
+        :pagination-offset="25"
       >
         <template #emptyText>
           <a-empty :description="$t('title.noMembersFound')" />

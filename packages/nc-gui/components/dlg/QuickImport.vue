@@ -738,7 +738,7 @@ watch(
           @change="onChange"
         />
         <div v-else>
-          <NcTabs v-model:activeKey="activeTab" class="nc-quick-import-tabs" @update:active-key="handleResetImportError">
+          <NcTabs v-model:active-key="activeTab" class="nc-quick-import-tabs" @update:active-key="handleResetImportError">
             <a-tab-pane :key="ImportTypeTabs.upload" :disabled="preImportLoading" class="!h-full">
               <template #tab>
                 <div class="flex gap-2 items-center">
@@ -747,7 +747,7 @@ watch(
               </template>
               <div class="relative mt-5">
                 <a-upload-dragger
-                  v-model:fileList="importState.fileList"
+                  v-model:file-list="importState.fileList"
                   name="file"
                   class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-gray-200"
                   :class="{

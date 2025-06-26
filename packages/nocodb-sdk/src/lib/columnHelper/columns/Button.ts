@@ -13,6 +13,8 @@ export class ButtonHelper extends AbstractColumnHelper {
     _value: any,
     params: SerializerOrParserFnProps['params']
   ): string | null {
+    if (params.serializeSearchQuery) return null;
+
     if (params.isMultipleCellPaste) {
       return undefined;
     } else {

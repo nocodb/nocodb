@@ -55,6 +55,10 @@ const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
 
 const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
 
+const { showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
+
+const { isTableAndFieldPermissionsEnabled } = usePermissions()
+
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
 const setAsDisplayValue = async () => {
@@ -455,6 +459,16 @@ const changeTitleField = () => {
   changeTitleFieldMenu.value = true
 }
 
+const showFieldPermissionsModal = ref(false)
+
+const onFieldPermissions = () => {
+  isOpen.value = false
+
+  if (showUpgradeToUseTableAndFieldPermissions()) return
+
+  showFieldPermissionsModal.value = true
+}
+
 const onDeleteColumn = () => {
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
@@ -556,9 +570,32 @@ const onDeleteColumn = () => {
     >
       <div class="nc-column-edit-description nc-header-menu-item">
         <GeneralIcon icon="ncAlignLeft" class="opacity-80 !w-4.25 !h-4.25" />
-        {{ $t('labels.editDescription') }}
+        {{ $t('labels.editFieldDescription') }}
       </div>
     </NcMenuItem>
+
+    <NcTooltip
+      v-if="
+        isTableAndFieldPermissionsEnabled &&
+        isEeUI &&
+        isUIAllowed('fieldAlter') &&
+        !isSqlView &&
+        column.uidt !== UITypes.ForeignKey
+      "
+      :disabled="showEditRestrictedColumnTooltip(column)"
+      placement="right"
+      :arrow="false"
+    >
+      <template #title>
+        {{ $t('tooltip.dataInThisFieldCantBeManuallyEdited') }}
+      </template>
+      <NcMenuItem :disabled="!showEditRestrictedColumnTooltip(column)" title="Edit field permissions" @click="onFieldPermissions">
+        <div class="nc-column-field-permissions nc-header-menu-item">
+          <GeneralIcon icon="ncLock" class="opacity-80 !w-4.25 !h-4.25" />
+          {{ $t('title.editFieldPermissions') }}
+        </div>
+      </NcMenuItem>
+    </NcTooltip>
 
     <NcMenuItem
       v-if="[UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)"
@@ -736,6 +773,14 @@ const onDeleteColumn = () => {
         key="dcxx"
         v-model:value="changeTitleFieldMenu"
         :use-meta-fields="meta?.id !== view?.fk_model_id"
+      />
+      <DlgFieldPermissions
+        v-if="column && meta && isEeUI"
+        key="dfp"
+        v-model:visible="showFieldPermissionsModal"
+        :field-id="column.id!"
+        :field-title="column.title!"
+        :field-uidt="column.uidt!"
       />
     </div>
   </NcMenu>

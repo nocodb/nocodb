@@ -76,6 +76,15 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'row_action',
+    title: 'Row Actions',
+    description: 'Allows user to execute script on a row.',
+    enabled: false,
+    version: 0,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
     id: 'integrations',
     title: 'Integrations',
     description: 'Enable dynamic integrations.',
@@ -180,6 +189,15 @@ const FEATURES = [
     description: 'Allows user to create custom links using existing fields.',
     enabled: false,
     version: 1,
+    isEE: true,
+  },
+  {
+    id: 'table_and_field_permissions',
+    title: 'Table and Field Permissions',
+    description: 'Allows user to manage table and field permissions.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
     isEE: true,
   },
 ] as const

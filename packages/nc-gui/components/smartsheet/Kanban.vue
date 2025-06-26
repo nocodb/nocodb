@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
-import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
 interface Attachment {
@@ -121,17 +121,8 @@ const isRequiredGroupingFieldColumn = computed(() => {
   return !!groupingFieldColumn.value?.rqd
 })
 
-const allRowsRowOnly = computed(() => {
-  return Array.from(formattedData.value.values())
-    .flatMap((rowArray) => rowArray)
-    .map((k) => k.row)
-})
+const { isRowColouringEnabled } = useViewRowColorRender()
 
-const { getLeftBorderColor, getRowColor, getEvaluatedRowMetaRowColorInfo, isRowColouringEnabled } = useViewRowColorRender({
-  meta,
-  view,
-  rows: allRowsRowOnly,
-})
 const kanbanContainerRef = ref()
 
 const selectedStackTitle = ref('')
@@ -494,33 +485,12 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
   // || isTouchEvent(event) // allow drag and drop for touch devices for now
 }
 
-const handleOpenNewRecordForm = (_stackTitle?: string) => {
+const handleOpenNewRecordForm = (stackTitle?: string) => {
   if (showRecordPlanLimitExceededModal()) return
 
+  selectedStackTitle.value = stackTitle ?? ''
+
   openNewRecordFormHook.trigger()
-}
-
-const getRowColorStyle = (row) => {
-  const rowColor = getRowColor(row)
-  if (rowColor) {
-    return {
-      'background-color': `${rowColor} !important`,
-    }
-  }
-  return {}
-}
-
-const getCardBorderColor = (row) => {
-  const rowColorInfo = getEvaluatedRowMetaRowColorInfo(row)
-  if (rowColorInfo.rowBorderColor) {
-    return {
-      'border-color': `${rowColorInfo.rowBorderColor} !important`,
-    }
-  }
-
-  return {
-    'border-color': `${themeV3Colors.gray[200]} !important`,
-  }
 }
 </script>
 
@@ -702,22 +672,27 @@ const getCardBorderColor = (row) => {
 
                           <template #overlay>
                             <NcMenu variant="small">
-                              <NcMenuItem
+                              <PermissionsTooltip
                                 v-if="hasEditPermission && !isPublic && !isSyncedTable"
-                                v-e="['c:kanban:add-new-record']"
-                                data-testid="nc-kanban-context-menu-add-new-record"
-                                @click="
-                                  () => {
-                                    selectedStackTitle = stack.title
-                                    handleOpenNewRecordForm(stack.title)
-                                  }
-                                "
+                                :entity="PermissionEntity.TABLE"
+                                :entity-id="meta?.id"
+                                :permission="PermissionKey.TABLE_RECORD_ADD"
+                                placement="right"
                               >
-                                <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.plus" class="flex-none w-4 h-4" />
-                                  {{ $t('activity.newRecord') }}
-                                </div>
-                              </NcMenuItem>
+                                <template #default="{ isAllowed }">
+                                  <NcMenuItem
+                                    v-e="['c:kanban:add-new-record']"
+                                    data-testid="nc-kanban-context-menu-add-new-record"
+                                    :disabled="!isAllowed"
+                                    @click="handleOpenNewRecordForm(stack.title)"
+                                  >
+                                    <div class="flex gap-2 items-center">
+                                      <component :is="iconMap.plus" class="flex-none w-4 h-4" />
+                                      {{ $t('activity.newRecord') }}
+                                    </div>
+                                  </NcMenuItem>
+                                </template>
+                              </PermissionsTooltip>
                               <NcMenuItem
                                 v-if="stack.title !== null && hasEditPermission && !isPublic && !isLocked"
                                 v-e="['c:kanban:rename-stack']"
@@ -835,8 +810,8 @@ const getCardBorderColor = (row) => {
                                     '!cursor-default': !hasEditPermission || isPublic,
                                   }"
                                   :style="{
-                                    ...getRowColorStyle(record.row),
-                                    ...getCardBorderColor(record.row),
+                                    ...extractRowBackgroundColorStyle(record).rowBgColor,
+                                    ...extractRowBackgroundColorStyle(record).rowBorderColor,
                                   }"
                                   @click="expandFormClick($event, record)"
                                   @contextmenu="showContextMenu($event, record)"
@@ -906,11 +881,7 @@ const getCardBorderColor = (row) => {
                                     <div
                                       v-if="isRowColouringEnabled"
                                       class="w-1 flex-none min-h-4 rounded-sm"
-                                      :style="{
-                                        ...(getLeftBorderColor(record.row)
-                                          ? { 'background-color': `${getLeftBorderColor(record.row)} !important` }
-                                          : {}),
-                                      }"
+                                      :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
                                     ></div>
                                     <div class="flex-1 flex flex-col gap-3 !children:pointer-events-none">
                                       <h2
@@ -1008,23 +979,28 @@ const getCardBorderColor = (row) => {
                                   {{ $t('title.looksLikeThisStackIsEmpty') }}
                                 </span>
                               </div>
-                              <NcButton
+                              <PermissionsTooltip
                                 v-if="isUIAllowed('dataInsert') && !isSyncedTable"
-                                size="xs"
-                                type="secondary"
-                                @click="
-                                  () => {
-                                    selectedStackTitle = stack.title
-                                    handleOpenNewRecordForm(stack.title)
-                                  }
-                                "
+                                :entity="PermissionEntity.TABLE"
+                                :entity-id="meta?.id"
+                                :permission="PermissionKey.TABLE_RECORD_ADD"
+                                placement="right"
                               >
-                                <div class="flex items-center gap-2">
-                                  <component :is="iconMap.plus" v-if="!isPublic && !isLocked" />
+                                <template #default="{ isAllowed }">
+                                  <NcButton
+                                    size="xs"
+                                    type="secondary"
+                                    :disabled="!isAllowed"
+                                    @click="handleOpenNewRecordForm(stack.title)"
+                                  >
+                                    <div class="flex items-center gap-2">
+                                      <component :is="iconMap.plus" v-if="!isPublic && !isLocked" />
 
-                                  {{ $t('activity.newRecord') }}
-                                </div>
-                              </NcButton>
+                                      {{ $t('activity.newRecord') }}
+                                    </div>
+                                  </NcButton>
+                                </template>
+                              </PermissionsTooltip>
                             </div>
                           </template>
                         </Draggable>
@@ -1032,23 +1008,27 @@ const getCardBorderColor = (row) => {
                     </a-layout-content>
                     <a-layout-footer v-if="formattedData.get(stack.title)" class="border-t-1 border-gray-100">
                       <div class="flex items-center justify-between">
-                        <NcButton
+                        <PermissionsTooltip
                           v-if="isUIAllowed('dataInsert') && !isSyncedTable"
-                          size="xs"
-                          type="secondary"
-                          @click="
-                            () => {
-                              selectedStackTitle = stack.title
-                              handleOpenNewRecordForm(stack.title)
-                            }
-                          "
+                          :entity="PermissionEntity.TABLE"
+                          :entity-id="meta?.id"
+                          :permission="PermissionKey.TABLE_RECORD_ADD"
                         >
-                          <div class="flex items-center gap-2">
-                            <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
+                          <template #default="{ isAllowed }">
+                            <NcButton
+                              size="xs"
+                              type="secondary"
+                              :disabled="!isAllowed"
+                              @click="handleOpenNewRecordForm(stack.title)"
+                            >
+                              <div class="flex items-center gap-2">
+                                <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
 
-                            {{ $t('activity.newRecord') }}
-                          </div>
-                        </NcButton>
+                                {{ $t('activity.newRecord') }}
+                              </div>
+                            </NcButton>
+                          </template>
+                        </PermissionsTooltip>
                         <div v-else>&nbsp;</div>
 
                         <!-- Record Count -->
@@ -1240,22 +1220,34 @@ const getCardBorderColor = (row) => {
               </div>
             </NcMenuItem>
             <NcDivider />
-            <NcMenuItem
+            <PermissionsTooltip
               v-if="contextMenuTarget"
-              v-e="['a:kanban:delete-record']"
-              class="!text-red-600 !hover:bg-red-50"
-              @click="deleteRow(contextMenuTarget)"
+              :entity="PermissionEntity.TABLE"
+              :entity-id="meta?.id"
+              :permission="PermissionKey.TABLE_RECORD_DELETE"
+              placement="right"
             >
-              <div class="flex items-center gap-2 nc-kanban-context-menu-item">
-                <component :is="iconMap.delete" class="flex" />
-                <!-- Delete Record -->
-                {{
-                  $t('general.deleteEntity', {
-                    entity: $t('objects.record').toLowerCase(),
-                  })
-                }}
-              </div>
-            </NcMenuItem>
+              <template #default="{ isAllowed }">
+                <NcMenuItem
+                  v-e="['a:kanban:delete-record']"
+                  :class="{
+                    '!text-red-600 !hover:bg-red-50': isAllowed,
+                  }"
+                  :disabled="!isAllowed"
+                  @click="deleteRow(contextMenuTarget)"
+                >
+                  <div class="flex items-center gap-2 nc-kanban-context-menu-item">
+                    <component :is="iconMap.delete" class="flex" />
+                    <!-- Delete Record -->
+                    {{
+                      $t('general.deleteEntity', {
+                        entity: $t('objects.record').toLowerCase(),
+                      })
+                    }}
+                  </div>
+                </NcMenuItem>
+              </template>
+            </PermissionsTooltip>
           </NcMenu>
         </template>
       </NcDropdown>

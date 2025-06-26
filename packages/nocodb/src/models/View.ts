@@ -54,6 +54,7 @@ import {
 import { CustomUrl, LinkToAnotherRecordColumn } from '~/models';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { isEE } from '~/utils';
+import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -428,7 +429,7 @@ export default class View implements ViewType {
 
       if (copyFromView) {
         // generate parent audit id and add it to req object
-        const eventId = await ncMeta.genNanoid(MetaTable.AUDIT);
+        const eventId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
         req.ncParentAuditId = eventId;
         Noco.appHooksService.emit(AppEvents.VIEW_DUPLICATE_START, {
           sourceView: copyFromView,
@@ -626,6 +627,10 @@ export default class View implements ViewType {
 
       cleanCommandPaletteCache(context.workspace_id).catch(() => {
         logger.error('Failed to clean command palette cache');
+      });
+
+      cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+        logger.error('Failed to clean base schema cache');
       });
 
       if (copyFromView) {
@@ -1453,6 +1458,10 @@ export default class View implements ViewType {
       logger.error('Failed to clean command palette cache');
     });
 
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
+
     return view;
   }
 
@@ -1550,6 +1559,10 @@ export default class View implements ViewType {
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
+    });
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
     });
   }
 
@@ -2344,7 +2357,7 @@ export default class View implements ViewType {
       // copy from view
       if (copyFromView) {
         // generate parent audit id and add it to req object
-        const eventId = await ncMeta.genNanoid(MetaTable.AUDIT);
+        const eventId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
         req.ncParentAuditId = eventId;
         Noco.appHooksService.emit(AppEvents.VIEW_DUPLICATE_START, {
           sourceView: copyFromView,

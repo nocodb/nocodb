@@ -3,11 +3,19 @@ import AbstractColumnHelper, {
 } from '~/lib/columnHelper/column.interface';
 import { SilentTypeConversionError } from '~/lib/error';
 import { parseJsonValue, serializeJsonValue } from '../utils';
+import { ncIsString } from '~/lib/is';
 
 export class JsonHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
-  serializeValue(value: any): string | null {
+  serializeValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string | null {
+    if (params.serializeSearchQuery) {
+      return ncIsString(value) ? value : null;
+    }
+
     value = serializeJsonValue(value);
 
     if (value === null) {

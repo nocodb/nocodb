@@ -163,3 +163,28 @@ export const handleOnEscRichTextEditor = (event: KeyboardEvent, editor?: Editor)
     }
   }
 }
+
+export const estimateTagWidth = ({
+  text,
+  fontSize = 14,
+  fontWeight = 600,
+  paddingX = 16, // left + right padding
+  iconWidth = 0, // icon width (if you have icon)
+  border = 2,
+}: {
+  text: string
+  fontSize?: number
+  fontWeight?: number
+  paddingX?: number
+  iconWidth?: number
+  border?: number
+}) => {
+  // Dummy average char width per font-weight/font-size
+  const avgCharWidth = fontWeight >= 600 ? fontSize * 0.6 : fontSize * 0.5
+
+  const textWidth = text.length * avgCharWidth
+
+  const totalWidth = textWidth + paddingX + iconWidth + border
+
+  return totalWidth
+}

@@ -212,7 +212,7 @@ const onReady = () => {
 
 <template>
   <div class="nc-container flex flex-col h-full" @drop="onDrop" @dragover.prevent>
-    <LazySmartsheetTopbar />
+    <SmartsheetTopbar />
     <div style="height: calc(100% - var(--topbar-height))">
       <Splitpanes
         v-if="openedViewsTab === 'view'"
@@ -225,7 +225,7 @@ const onReady = () => {
         @resized="onResized"
       >
         <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
-          <LazySmartsheetToolbar v-if="!isForm" />
+          <SmartsheetToolbar v-if="!isForm" />
           <div
             :style="{ height: isForm || isMobileMode ? '100%' : 'calc(100% - var(--toolbar-height))' }"
             class="flex flex-row w-full"
@@ -233,16 +233,16 @@ const onReady = () => {
             <Transition name="layout" mode="out-in">
               <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
                 <div class="h-full flex-1 min-w-0 min-h-0 bg-white">
-                  <LazySmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
+                  <SmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
 
                   <template v-if="activeView && meta">
-                    <LazySmartsheetGallery v-if="isGallery" />
+                    <SmartsheetGallery v-if="isGallery" />
 
-                    <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
+                    <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
-                    <LazySmartsheetKanban v-else-if="isKanban" />
+                    <SmartsheetKanban v-else-if="isKanban" />
 
-                    <LazySmartsheetCalendar v-else-if="isCalendar" />
+                    <SmartsheetCalendar v-else-if="isCalendar" />
 
                     <LazySmartsheetMap v-else-if="isMap" />
                   </template>

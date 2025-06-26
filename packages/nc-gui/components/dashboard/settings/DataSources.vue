@@ -201,6 +201,10 @@ const moveBase = async (e: any) => {
 watch(
   projectPageTab,
   () => {
+    if (searchQuery.value) {
+      searchQuery.value = ''
+    }
+
     if (projectPageTab.value === 'data-source') {
       loadBases()
     }
@@ -355,7 +359,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
             </NcButton>
           </div>
 
-          <NcTabs v-model:activeKey="openedTab" class="nc-source-tab w-full h-[calc(100%_-_58px)] max-h-[calc(100%_-_58px)]">
+          <NcTabs v-model:active-key="openedTab" class="nc-source-tab w-full h-[calc(100%_-_58px)] max-h-[calc(100%_-_58px)]">
             <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="edit">
               <template #tab>
                 <div class="tab" data-testid="nc-connection-tab">

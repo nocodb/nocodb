@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type BaseType, type TableType, ViewTypes, PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
+import { type BaseType, type TableType, ViewTypes, PlanFeatureTypes } from 'nocodb-sdk'
 
 import type { SidebarTableNode } from '~/lib/types'
 
@@ -679,7 +679,6 @@ async function onRename() {
                                 isOptionsOpen = false
                               }
                             "
-                            :plan-title="PlanTitles.BUSINESS"
                             size="xs"
                           />
                         </div>

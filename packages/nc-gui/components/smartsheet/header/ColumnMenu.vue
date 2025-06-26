@@ -2,7 +2,6 @@
 import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import {
   PlanLimitTypes,
-  PlanTitles,
   PlanFeatureTypes,
   RelationTypes,
   UITypes,
@@ -620,7 +619,6 @@ const onDeleteColumn = () => {
                   }
                 "
                 size="xs"
-                :plan-title="PlanTitles.BUSINESS"
               />
             </div>
           </NcMenuItem>

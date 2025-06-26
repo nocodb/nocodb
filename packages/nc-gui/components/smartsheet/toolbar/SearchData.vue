@@ -64,7 +64,7 @@ watch(
 
 function onPressEnter() {
   reloadData.trigger({ shouldShowLoading: false, offset: 0 })
-  reloadAggregate.trigger()
+  reloadAggregate?.trigger()
 }
 
 const displayColumn = computed(() => {

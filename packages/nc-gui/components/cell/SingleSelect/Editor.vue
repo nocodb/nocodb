@@ -1,16 +1,15 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
-import type { SelectOptionType } from 'nocodb-sdk'
-import { getOptions } from './utils'
+import { getOptions, type LocalSelectOptionType } from './utils'
 
 interface Props {
   modelValue?: string | undefined
   rowIndex?: number
   disableOptionCreation?: boolean
-  selectOptions?: (SelectOptionType & { value?: string })[]
+  options?: LocalSelectOptionType[]
 }
 
-const { modelValue, disableOptionCreation, selectOptions } = defineProps<Props>()
+const { modelValue, disableOptionCreation, options: selectOptions } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -283,11 +282,10 @@ onMounted(() => {
     forcedNextTick(() => {
       const key = canvasCellEventData.keyboardKey
       if (key && isSinglePrintableKey(key)) {
-        onFocus()
         searchVal.value = key
-      } else if (key === 'Enter') {
-        onFocus()
       }
+
+      onFocus()
     })
   }
 })
@@ -380,7 +378,13 @@ onMounted(() => {
         :class="`nc-select-option-${column.title}-${op.title}`"
         @click.stop
       >
-        <a-tag class="rounded-tag !h-[22px] max-w-full" :color="op.color">
+        <a-tag
+          class="rounded-tag max-w-full"
+          :color="op.color"
+          :class="{
+            '!h-[22px]': isGrid && !isExpandedForm,
+          }"
+        >
           <span
             :style="{
               color: getSelectTypeOptionTextColor(op.color),

@@ -196,7 +196,7 @@ const lastOpenColumnDropdownField = ref<ColumnType | null>(null)
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 const isEditColumnDescription = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
-const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
+const clientMousePosition = reactive(clientMousePositionDefaultValue)
 const paddingLessUITypes = new Set([
   UITypes.LongText,
   UITypes.DateTime,

@@ -6,10 +6,10 @@ interface Props {
   modelValue?: string | undefined
   rowIndex?: number
   disableOptionCreation?: boolean
-  selectOptions?: LocalSelectOptionType[]
+  options?: LocalSelectOptionType[]
 }
 
-const { modelValue, disableOptionCreation, selectOptions } = defineProps<Props>()
+const { modelValue, disableOptionCreation, options: selectOptions } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -378,7 +378,13 @@ onMounted(() => {
         :class="`nc-select-option-${column.title}-${op.title}`"
         @click.stop
       >
-        <a-tag class="rounded-tag !h-[22px] max-w-full" :color="op.color">
+        <a-tag
+          class="rounded-tag max-w-full"
+          :color="op.color"
+          :class="{
+            '!h-[22px]': isGrid && !isExpandedForm,
+          }"
+        >
           <span
             :style="{
               color: getSelectTypeOptionTextColor(op.color),

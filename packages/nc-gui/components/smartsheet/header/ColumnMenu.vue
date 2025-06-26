@@ -1,13 +1,19 @@
 <script lang="ts" setup>
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import {
-  type ColumnReqType,
-  type ColumnType,
+  PlanLimitTypes,
+  PlanTitles,
+  PlanFeatureTypes,
+  RelationTypes,
+  UITypes,
+  isLinksOrLTAR,
+  isSupportedDisplayValueColumn,
+  isSystemColumn,
   columnTypeName,
   isCrossBaseLink,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
-import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSupportedDisplayValueColumn, isSystemColumn } from 'nocodb-sdk'
 import { SmartsheetStoreEvents } from '#imports'
 
 const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean; column: ColumnType }>()
@@ -464,8 +470,6 @@ const showFieldPermissionsModal = ref(false)
 const onFieldPermissions = () => {
   isOpen.value = false
 
-  if (showUpgradeToUseTableAndFieldPermissions()) return
-
   showFieldPermissionsModal.value = true
 }
 
@@ -589,12 +593,39 @@ const onDeleteColumn = () => {
       <template #title>
         {{ $t('tooltip.dataInThisFieldCantBeManuallyEdited') }}
       </template>
-      <NcMenuItem :disabled="!showEditRestrictedColumnTooltip(column)" title="Edit field permissions" @click="onFieldPermissions">
-        <div class="nc-column-field-permissions nc-header-menu-item">
-          <GeneralIcon icon="ncLock" class="opacity-80 !w-4.25 !h-4.25" />
-          {{ $t('title.editFieldPermissions') }}
-        </div>
-      </NcMenuItem>
+
+      <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
+        <template #default="{ click }">
+          <NcMenuItem
+            :disabled="!showEditRestrictedColumnTooltip(column)"
+            @click="
+              click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
+                onFieldPermissions()
+              })
+            "
+          >
+            <div class="nc-column-field-permissions nc-header-menu-item w-full">
+              <GeneralIcon icon="ncLock" class="opacity-80 !w-4.25 !h-4.25" />
+              <div class="flex-1">
+                {{ $t('title.editFieldPermissions') }}
+              </div>
+
+              <LazyPaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+                :title="$t('upgrade.upgradeToUseTableAndFieldPermissions')"
+                :content="$t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle')"
+                :onClickCallback="
+                  () => {
+                    isOpen = false
+                  }
+                "
+                size="xs"
+                :plan-title="PlanTitles.BUSINESS"
+              />
+            </div>
+          </NcMenuItem>
+        </template>
+      </PaymentUpgradeBadgeProvider>
     </NcTooltip>
 
     <NcMenuItem

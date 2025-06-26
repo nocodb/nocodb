@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
 import NcLayout from '~icons/nc-icons/layout'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string
@@ -268,6 +269,14 @@ onMounted(() => {
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />
               <div>{{ $t('general.permissions') }}</div>
+              <LazyPaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+                :title="$t('upgrade.upgradeToUseTableAndFieldPermissions')"
+                :content="$t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle')"
+                size="xs"
+                :plan-title="PlanTitles.BUSINESS"
+                remove-click
+              />
             </div>
           </template>
           <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />

@@ -289,7 +289,7 @@ export const useBase = defineStore('baseStore', () => {
     page,
     action,
   }: {
-    page: 'all-table' | 'collaborator' | 'data-source' | 'permissions'
+    page: 'overview' | 'collaborator' | 'data-source' | 'permissions'
     action?: string
   }) => {
     // await router.push({

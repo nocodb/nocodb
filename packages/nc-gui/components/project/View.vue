@@ -82,8 +82,8 @@ watch(
         projectPageTab.value = 'syncs'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
-      } else if (newVal === 'allTable') {
-        projectPageTab.value = 'allTable'
+      } else if (newVal === 'overview') {
+        projectPageTab.value = 'overview'
       } else if (
         newVal === 'permissions' &&
         !blockTableAndFieldPermissions.value &&
@@ -99,7 +99,7 @@ watch(
     if (isAdminPanel.value) {
       projectPageTab.value = 'collaborator'
     } else {
-      projectPageTab.value = 'allTable'
+      projectPageTab.value = 'overview'
     }
   },
   { immediate: true },
@@ -185,7 +185,7 @@ onMounted(() => {
         <template #leftExtra>
           <div class="w-3"></div>
         </template>
-        <a-tab-pane v-if="!isAdminPanel" key="allTable">
+        <a-tab-pane v-if="!isAdminPanel" key="overview">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__all-tables">
               <GeneralIcon icon="ncMultiCircle" />

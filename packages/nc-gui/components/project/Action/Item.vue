@@ -11,7 +11,7 @@ defineProps<{
     role="button"
     class="nc-base-view-all-table-btn"
     :class="{
-      disabled: disabled,
+      disabled,
     }"
   >
     <div class="icon-wrapper">

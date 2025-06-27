@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import NcLayout from '~icons/nc-icons/layout'
 
 const props = defineProps<{
   baseId?: string
@@ -21,8 +20,7 @@ const { isSharedBase } = useBase()
 
 const { $e, $api } = useNuxtApp()
 
-const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions, blockUseScripts, showUpgradeToUseScripts } =
-  useEeConfig()
+const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -65,10 +63,6 @@ const projectPageTab = computed({
   },
   set(value) {
     if (value === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) {
-      return
-    }
-
-    if (value === 'allScripts' && showUpgradeToUseScripts()) {
       return
     }
 

@@ -1,3 +1,3 @@
 <template>
-  <ProjectView tab="allScripts" />
+  <ProjectView />
 </template>

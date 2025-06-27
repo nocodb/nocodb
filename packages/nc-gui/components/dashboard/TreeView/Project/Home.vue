@@ -316,7 +316,7 @@ const openBaseHomePage = async () => {
             }"
           >
             <GeneralIcon icon="home1" class="!h-4 w-4" />
-            <div>Overview</div>
+            <div>{{ $t('general.overview') }}</div>
           </div>
         </NcButton>
       </div>
@@ -325,7 +325,7 @@ const openBaseHomePage = async () => {
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
       <div class="nc-project-home-section">
         <div class="nc-project-home-section-header !cursor-pointer" @click.stop="isExpanded = !isExpanded">
-          <div class="flex-1">Tables</div>
+          <div class="flex-1">{{ $t('objects.tables') }}</div>
 
           <GeneralIcon
             icon="chevronRight"

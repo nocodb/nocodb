@@ -1,7 +1,7 @@
 <script setup lang="ts">
 defineProps<{
   disabled?: boolean
-  label?: string
+  label: string
   subtext?: string
 }>()
 </script>
@@ -21,7 +21,7 @@ defineProps<{
       <div class="label">
         <slot name="label">{{ label }}</slot>
       </div>
-      <div class="subtext">
+      <div v-if="$slots.subtext || subtext" class="subtext">
         <slot name="subtext">{{ subtext }}</slot>
       </div>
     </div>

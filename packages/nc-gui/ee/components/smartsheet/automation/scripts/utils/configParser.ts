@@ -14,7 +14,9 @@ export const isInputConfigCall = (node: any) => {
 export const extractObjectValue = (node: any) => {
   if (!node) return undefined
 
-  if (node.type === 'Literal') {
+  if (node.type === 'TemplateLiteral') {
+    return node.quasis[0].value.cooked
+  } else if (node.type === 'Literal') {
     return node.value
   } else if (node.type === 'ArrayExpression') {
     return node.elements.map((element: any) => extractObjectValue(element))

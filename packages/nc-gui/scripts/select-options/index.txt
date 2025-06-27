@@ -1,0 +1,57 @@
+const config = input.config({
+  title: 'Get Single or Multiple Select Options',
+  description: 'This script outputs all options for a single or multiple select field.',
+  items: [
+    input.config.table('sourceTable', {
+      label: 'Table with the single or multiple select field'
+    }),
+    input.config.field('selectField', {
+      label: 'Single or Multiple Select Field',
+      parentTable: 'sourceTable'
+    }),
+    input.config.select('outputFormat', {
+      label: 'Output Format',
+      description: 'Choose how you want each option to be displayed.',
+      options: [
+        { label: 'List', value: 'list' },
+        { label: 'Table', value: 'table' },
+        { label: 'Comma Separated', value: 'commaSeparated' }
+      ]
+    })
+  ]
+});
+
+// Extract configuration values
+const table = config.sourceTable;
+const field = config.selectField as Field;
+const format = config.outputFormat;
+
+
+if (![UITypes.SingleSelect, UITypes.MultiSelect].includes(field.type)) {
+    throw new Error("Please select a Select Field")
+}
+
+// Get all available choices from the select field
+const choices = field.options.choices;
+
+// Output the choices based on the selected format
+switch (format) {
+  case 'list':
+    choices.forEach(choice => {
+      output.markdown(choice.title);
+    });
+    break;
+
+  case 'table':
+    const tableData = choices.map(choice => ({
+      'Option Name': choice.title
+    }));
+    output.table(tableData);
+    break;
+
+  case 'commaSeparated':
+    const optionNames = choices.map(choice => choice.title);
+    const commaSeparatedList = optionNames.join(', ');
+    output.markdown(commaSeparatedList);
+    break;
+}

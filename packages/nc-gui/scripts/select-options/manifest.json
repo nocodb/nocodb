@@ -1,0 +1,21 @@
+{
+  "id": "select-options",
+  "title": "Get Single or Multiple Select Options",
+  "subTitle": "Output all of the options for a single or multiple select field.",
+  "description": "select-options/description.md",
+  "entry": "select-options/index.txt",
+  "version": "0.1",
+  "iconUrl": "select-options/assets/icon.svg",
+  "publisher": {
+    "name": "NocoDB",
+    "email": "contact@nocodb.com",
+    "url": "https://www.nocodb.com",
+    "icon": {
+      "src": "select-options/assets/publisher-icon.svg",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "links": [],
+  "order": 5
+}

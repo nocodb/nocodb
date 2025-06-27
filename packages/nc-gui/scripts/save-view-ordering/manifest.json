@@ -1,0 +1,21 @@
+{
+  "id": "save-view-ordering",
+  "title": "Save view ordering to field",
+  "subTitle": "Saves the record ordering of a particular view to a specified number field in the table",
+  "description": "save-view-ordering/description.md",
+  "entry": "save-view-ordering/index.txt",
+  "version": "0.1",
+  "iconUrl": "save-view-ordering/assets/icon.svg",
+  "publisher": {
+    "name": "NocoDB",
+    "email": "contact@nocodb.com",
+    "url": "https://www.nocodb.com",
+    "icon": {
+      "src": "save-view-ordering/assets/publisher-icon.svg",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "links": [],
+  "order": 6
+}

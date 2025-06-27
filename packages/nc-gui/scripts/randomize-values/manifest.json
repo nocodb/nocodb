@@ -1,0 +1,21 @@
+{
+  "id": "randomize-values",
+  "title": "Randomize Values",
+  "subTitle": "Randomize values for empty fields",
+  "description": "randomize-values/description.md",
+  "entry": "randomize-values/index.txt",
+  "version": "0.1",
+  "iconUrl": "randomize-values/assets/icon.svg",
+  "publisher": {
+    "name": "NocoDB",
+    "email": "contact@nocodb.com",
+    "url": "https://www.nocodb.com",
+    "icon": {
+      "src": "randomize-values/assets/publisher-icon.svg",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "links": [],
+  "order": 3
+}

@@ -1,0 +1,1 @@
+This script will list all invalid emails for a field you pick.

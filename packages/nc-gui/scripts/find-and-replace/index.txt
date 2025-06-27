@@ -64,10 +64,10 @@ if (!replacements.length) {
       },
     }))
 
-    // Only up to 50 updates are allowed at one time, so do it in batches
+    // Only up to 10 updates are allowed at one time, so do it in batches
     while (updates.length > 0) {
-      await table.updateRecordsAsync(updates.slice(0, 50))
-      updates = updates.slice(50)
+      await table.updateRecordsAsync(updates.slice(0, 10))
+      updates = updates.slice(10)
     }
   }
 }

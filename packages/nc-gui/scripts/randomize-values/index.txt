@@ -1,0 +1,245 @@
+let settings = input.config({
+    title: "Randomize Field Values",
+    description: `This script will randomize values for a selected field. The following field types are supported:
+- Number
+- Currency
+- Percent
+- Rating
+- Date
+- User
+- Single/Multiple Select`,
+    items: [
+        input.config.table("selectedTable", { label: "Select Table" }),
+        input.config.field("selectedField", {
+            parentTable: "selectedTable",
+            label: "Field to Randomize",
+        }),
+    ],
+});
+
+let { selectedTable, selectedField } = settings as {
+    selectedTable: Table,
+    selectedField: Field
+};
+
+output.text(`Starting randomization of '${selectedField.name}' field in '${selectedTable.name}' table...`);
+
+let valueRange: Record<string, any>;
+
+switch (selectedField.type) {
+    case UITypes.Currency: {
+        valueRange = await getValueRange(async () => {
+            let minValue = await promptForNumber("Enter the minimum currency value:");
+            let maxValue = await promptForNumber("Enter the maximum currency value:");
+            return await confirmValueRange(minValue, maxValue);
+        });
+        await updateSelectedField((record) => randomBetween(valueRange.min, valueRange.max, identity));
+        break;
+    }
+    case UITypes.Date: {
+        valueRange = await getValueRange(async () => {
+            let earliestDate = await promptForDate("Enter the earliest date:");
+            let latestDate = await promptForDate("Enter the latest date:");
+            return await confirmValueRange(earliestDate, latestDate);
+        });
+        await updateSelectedField((record) => randomDateBetween(valueRange.min, valueRange.max));
+        break;
+    }
+    case UITypes.DateTime: {
+        valueRange = await getValueRange(async () => {
+            let earliestDateTime = await promptForDate("Enter the earliest date/time:");
+            let latestDateTime = await promptForDate("Enter the latest date/time:");
+            return await confirmValueRange(earliestDateTime, latestDateTime);
+        });
+        await updateSelectedField((record) => randomDateBetween(valueRange.min, valueRange.max));
+        break;
+    }
+    case UITypes.MultiSelect: {
+        valueRange = await getValueRange(async () => {
+            let minSelections = await promptForNumber("Enter minimum number of selections:");
+            let maxSelections = await promptForNumber("Enter maximum number of selections:");
+            return await confirmValueRange(minSelections, maxSelections);
+        });
+
+        if (!selectedField.options) {
+            throw new Error('Multi-select field is missing options configuration');
+        }
+
+        const fieldOptions = selectedField.options;
+        if (fieldOptions.choices.length < valueRange.min) {
+            output.text(`❌ Error: Field only has ${fieldOptions.choices.length} choices, but minimum requirement is ${valueRange.min}.`);
+            break;
+        }
+
+        await updateSelectedField((record) => {
+            const availableChoices = fieldOptions.choices.map((choice) => choice.title);
+            let numberOfSelections = randomBetween(valueRange.min, Math.min(valueRange.max, availableChoices.length), Math.ceil);
+            let shuffledChoices = shuffleArray(availableChoices);
+            return shuffledChoices.slice(0, numberOfSelections);
+        });
+        break;
+    }
+    case UITypes.Number: {
+        valueRange = await getValueRange(async () => {
+            let minNumber = await promptForNumber("Enter the minimum number:");
+            let maxNumber = await promptForNumber("Enter the maximum number:");
+            return await confirmValueRange(minNumber, maxNumber);
+        });
+        await updateSelectedField((record) => randomBetween(valueRange.min, valueRange.max));
+        break;
+    }
+    case UITypes.Percent: {
+        valueRange = await getValueRange(async () => {
+            let minPercent = await promptForNumber("Enter the minimum percentage:");
+            let maxPercent = await promptForNumber("Enter the maximum percentage:");
+            return await confirmValueRange(minPercent, maxPercent);
+        });
+        await updateSelectedField((record) => randomBetween(valueRange.min, valueRange.max));
+        break;
+    }
+    case UITypes.Rating: {
+        if (!selectedField.options) {
+            throw new Error('Rating field is missing options configuration');
+        }
+        const ratingOptions = selectedField.options;
+        await updateSelectedField((record) => randomBetween(1, ratingOptions.max_value));
+        break;
+    }
+    case UITypes.User: {
+        await updateSelectedField(
+            (record) =>
+                base.activeCollaborators[
+                    randomBetween(0, base.activeCollaborators.length, Math.floor)
+                ]
+        );
+        break;
+    }
+    case UITypes.SingleSelect: {
+        if (!selectedField.options) {
+            throw new Error('Single-select field is missing options configuration');
+        }
+        const selectOptions = selectedField.options;
+        await updateSelectedField(
+            (record) =>
+                selectOptions.choices[randomBetween(0, selectOptions.choices.length, Math.floor)].title
+        );
+        break;
+    }
+    default: {
+        output.text(
+            `❌ Field '${selectedField.name}' (type: ${selectedField.type}) cannot be randomized with this script. Please select a supported field type or customize the script to handle this field type.`
+        );
+        break;
+    }
+}
+
+output.text("✅ Randomization complete! Run the script again to randomize another field.");
+
+// Utility Functions
+
+function identity(value) {
+    return value;
+}
+
+function randomBetween(min, max, roundingFunction = Math.round) {
+    return roundingFunction((max - min) * Math.random()) + min;
+}
+
+function shuffleArray(originalArray) {
+    let shuffledArray = originalArray.slice(0);
+    for (let i = shuffledArray.length - 1; i > 0; i--) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
+        [shuffledArray[i], shuffledArray[randomIndex]] = [shuffledArray[randomIndex], shuffledArray[i]];
+    }
+    return shuffledArray;
+}
+
+/**
+ * Generate a random date between two dates
+ * @param {Date} startDate - The earliest possible date
+ * @param {Date} endDate - The latest possible date
+ */
+function randomDateBetween(startDate, endDate) {
+    return new Date(Math.round(randomBetween(startDate.getTime(), endDate.getTime())));
+}
+
+async function promptForNumber(promptText) {
+    return Number(await input.textAsync(promptText));
+}
+
+async function promptForDate(promptText) {
+    return new Date(await input.textAsync(promptText));
+}
+
+async function confirmValueRange(minValue, maxValue) {
+    const confirmed = await input.buttonsAsync(
+        `Confirm randomization range: ${minValue} to ${maxValue}`,
+        [
+            { label: "✅ Confirm", value: true },
+            { label: "❌ Cancel", value: false },
+        ]
+    );
+
+    if (confirmed) {
+        return { min: minValue, max: maxValue };
+    }
+    return null;
+}
+
+async function getValueRange(rangeInputFunction) {
+    let range;
+    do {
+        range = await rangeInputFunction();
+    } while (!range);
+    return range;
+}
+
+/**
+ * Update the selected field for all records that have empty values
+ * @param {(record: Record) => any} valueGeneratorFunction - Function to generate new values
+ */
+async function updateSelectedField(valueGeneratorFunction) {
+    let recordUpdates = [];
+    let processedCount = 0;
+
+    const recordQuery = await selectedTable.selectRecordsAsync({ fields: [selectedField] });
+
+    // Load all records
+    while (recordQuery.hasMoreRecords) {
+        await recordQuery.loadMoreRecords();
+    }
+
+    output.text(`📊 Processing ${recordQuery.records.length} records...`);
+
+    // Process records that have empty values
+    for (let record of recordQuery.records) {
+        const currentValue = record.getCellValue(selectedField);
+        if (!currentValue || (Array.isArray(currentValue) && currentValue.length === 0)) {
+            const newValue = valueGeneratorFunction(record);
+            recordUpdates.push({
+                id: record.id,
+                fields: { [selectedField.id]: newValue }
+            });
+            processedCount++;
+        }
+    }
+
+    if (recordUpdates.length === 0) {
+        output.text("ℹ️  No empty records found to update.");
+        return;
+    }
+
+    output.text(`🔄 Updating ${recordUpdates.length} records with empty values...`);
+
+    // Update records in batches of 10
+    for (let batchStart = 0; batchStart < recordUpdates.length; batchStart += 10) {
+        const batchEnd = Math.min(batchStart + 10, recordUpdates.length);
+        const currentBatch = recordUpdates.slice(batchStart, batchEnd);
+
+        output.text(`📝 Updating batch ${Math.floor(batchStart / 10) + 1}/${Math.ceil(recordUpdates.length / 10)} (records ${batchStart + 1}-${batchEnd})`);
+
+        await selectedTable.updateRecordsAsync(currentBatch);
+    }
+
+    output.text(`✅ Successfully updated ${recordUpdates.length} records.`);
+}

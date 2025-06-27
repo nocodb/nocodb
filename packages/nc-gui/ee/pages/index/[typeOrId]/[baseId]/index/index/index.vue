@@ -154,7 +154,7 @@ function onDropZoneClick(e: MouseEvent) {
 
 watch(
   [() => isSharedBase.value, () => activeTables.value.length],
-  (newIsSharedBase, newActiveTablesLength) => {
+  ([newIsSharedBase, newActiveTablesLength]) => {
     if (!newIsSharedBase || (newIsSharedBase && !newActiveTablesLength)) return
 
     openTable(activeTables.value[0]!)

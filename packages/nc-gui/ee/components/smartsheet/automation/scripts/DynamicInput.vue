@@ -134,9 +134,9 @@ watch(
         type="text"
         :disabled="isResolved"
         class="nc-input-sm nc-input-shadow"
-        @keyup.enter="onChange"
+        @keydown.enter="onChange"
       />
-      <NcButton v-if="!isResolved" type="primary" size="small" :disabled="!inputValue" @click="resolveInput">
+      <NcButton v-if="!isResolved" type="primary" size="small" :disabled="!inputValue" @click="onChange">
         <div class="flex gap-2 items-center">
           Next
           <div

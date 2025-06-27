@@ -156,10 +156,10 @@
     "upgradeToUploadWsImageSubtitle": "현재 {activePlan} 요금제는 아이콘과 이모티콘만 허용합니다. {plan} 플랜으로 업그레이드하여 사용자 지정 이미지를 작업 영역 아바타로 업로드합니다.",
     "upgradeToUseCurrentUserFilter": "현재 사용자를 기준으로 필터링하도록 업그레이드",
     "upgradeToUseCurrentUserFilterSubtitle": "현재 사용자를 기반으로 데이터를 표시하는 필터를 사용하려면 {plan} 플랜으로 업그레이드합니다.",
-    "upgradeToUseRowColoring": "Upgrade to use row colouring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data.",
-    "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
-    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data."
+    "upgradeToUseRowColoring": "행 색상 지정을 사용하도록 업그레이드",
+    "upgradeToUseRowColoringSubtitle": "{plan} 플랜으로 업그레이드하여 필드 값 또는 조건에 따라 행의 색상을 지정하면 데이터를 더 쉽게 스캔하고 우선 순위를 지정할 수 있습니다.",
+    "upgradeToUseTableAndFieldPermissions": "테이블 및 필드 권한을 사용하도록 업그레이드",
+    "upgradeToUseTableAndFieldPermissionsSubtitle": "{plan} 플랜으로 업그레이드하여 테이블 및 필드 권한을 사용하면 데이터를 더 쉽게 관리할 수 있습니다."
   },
   "general": {
     "script": "스크립트",
@@ -407,8 +407,8 @@
     "contactSupport": "도움 받기",
     "proceedImport": "가져오기 진행",
     "inserting": "삽입",
-    "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "permissions": "권한",
+    "manageAllFields": "모든 필드 관리"
   },
   "objects": {
     "script": "스크립트",
@@ -588,17 +588,17 @@
       "colourRecordsByField": "필드별 레코드 색상 지정"
     },
     "permissions": {
-      "addNewRecordTooltipTitle": "Create record restricted",
-      "addNewRecordTooltip": "You do not have permission to create records in this table",
-      "deleteRecordTooltipTitle": "Delete record restricted",
-      "deleteRecordTooltip": "You do not have permission to delete records in this table",
-      "editFieldTooltipTitle": "Edit restricted",
-      "editFieldTooltip": "You do not have permission to edit this field",
-      "generalPermissionTooltipTitle": "Permission restricted",
-      "generalPermissionTooltip": "You do not have permission to perform this action",
-      "uploadDataTooltip": "You do not have permission to upload data into this table",
-      "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "addNewRecordTooltipTitle": "제한된 레코드 만들기",
+      "addNewRecordTooltip": "이 테이블에서 레코드를 만들 수 있는 권한이 없습니다",
+      "deleteRecordTooltipTitle": "삭제 레코드 제한",
+      "deleteRecordTooltip": "이 테이블의 레코드를 삭제할 수 있는 권한이 없습니다",
+      "editFieldTooltipTitle": "편집 제한",
+      "editFieldTooltip": "이 필드를 편집할 수 있는 권한이 없습니다.",
+      "generalPermissionTooltipTitle": "권한 제한",
+      "generalPermissionTooltip": "이 작업을 수행할 수 있는 권한이 없습니다",
+      "uploadDataTooltip": "이 테이블에 데이터를 업로드할 수 있는 권한이 없습니다",
+      "formCannotAcceptSubmissions": "양식은 제출을 수락할 수 없습니다.",
+      "formCannotAcceptSubmissionsDescription": "특정 회원만 이 양식에 대한 응답을 제출할 수 있는 권한이 있습니다."
     }
   },
   "datatype": {
@@ -654,8 +654,8 @@
     "isNotNull": "null 값이 아님"
   },
   "title": {
-    "editTablePermissions": "Edit table permissions",
-    "editFieldPermissions": "Edit field permissions",
+    "editTablePermissions": "테이블 권한 편집",
+    "editFieldPermissions": "필드 권한 편집",
     "confirmSnapshotRestore": "스냅샷 복원 확인",
     "urlFilters": "URL 필터",
     "creatingScript": "스크립트 만들기",
@@ -851,8 +851,8 @@
     "hideExtensions": "확장 프로그램 숨기기",
     "duplicatesFound": "중복이 발견되었습니다.",
     "matchingResultsInRecords": "{count} 레코드의 결과 일치",
-    "tablePermissions": "Table permissions",
-    "fieldPermissions": "Field permissions"
+    "tablePermissions": "테이블 사용 권한",
+    "fieldPermissions": "필드 권한"
   },
   "labels": {
     "crossBase": "외부 베이스에 대한 링크",
@@ -928,8 +928,8 @@
     "fieldID": "필드 ID",
     "addDescription": "설명 추가",
     "editDescription": "설명 편집",
-    "editTableDescription": "Edit table description",
-    "editFieldDescription": "Edit field description",
+    "editTableDescription": "테이블 설명 편집",
+    "editFieldDescription": "필드 설명 편집",
     "urlFormula": "URL 수식",
     "selectIcon": "없음",
     "selectAWebhook": "--웹훅 선택--",
@@ -1379,7 +1379,7 @@
     "metaApiV2": "메타 API V2",
     "showExtraFields": "추가 필드 표시",
     "showExtraFieldsDescription": "연결된 레코드를 선택할 때 표시 값과 함께 추가 필드를 표시합니다",
-    "includeUser": "Include User",
+    "includeUser": "사용자 포함",
     "removeColouring": "색상 제거",
     "backgroundColour": "배경색",
     "addColour": "색상 추가",
@@ -1670,10 +1670,10 @@
     "pending": "보류 중",
     "goToPage": "페이지로 이동",
     "changePlan": "체인지플랜",
-    "goToPermissionsOverview": "Go to Permissions Overview"
+    "goToPermissionsOverview": "Permissions Overview(권한 개요)로 이동합니다."
   },
   "tooltip": {
-    "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
+    "includeUserHint": "웹훅을 트리거한 사용자는 페이로드에 'user' 개체로 포함됩니다.",
     "crossBase": "다른 기준에 있는 테이블의 레코드 링크",
     "leaveWorkspace": "각 작업 영역에는 소유자가 한 명 이상 있어야 합니다. 작업 영역을 나가기 전에 다른 사용자를 소유자로 지정하십시오. 마지막 구성원인 경우 대신 작업 영역을 삭제하는 것이 좋습니다.",
     "currentDateNotAvail": "데이터 소스 또는 데이터 유형에 대해 현재 날짜 옵션을 사용할 수 없습니다",
@@ -1741,8 +1741,8 @@
     "youDontHaveAccessToCreateNewView": "새 보기를 만들 수 있는 액세스 권한이 없습니다.",
     "youDontHaveAccessToCreateNewAutomation": "새 자동화를 만들 수 있는 액세스 권한이 없습니다",
     "formViewCreationNotSupportedForSyncedTable": "동기화된 테이블에 대해 양식 보기 생성이 지원되지 않습니다.",
-    "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
-    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
+    "dataInThisFieldCantBeManuallyEdited": "이 필드의 데이터는 수동으로 편집할 수 없습니다",
+    "viewAndEditPermissionsForAllFieldsInThisTable": "이 표의 모든 필드에 대한 보기 및 편집 권한"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",
@@ -2358,7 +2358,7 @@
     "noAccess": "접근 금지",
     "noAccessDescription": "작업 영역에 액세스할 수 없습니다. 액세스 권한을 요청하려면 관리자에게 문의하십시오.",
     "tryAgain": "다시 시도",
-    "internalUrlsNotAllowed": "Internal URLs are not allowed",
-    "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls"
+    "internalUrlsNotAllowed": "내부 URL은 허용되지 않습니다",
+    "cyclicCallsWarning": "이 URL은 순환 호출을 유발할 수 있는 동일한 NocoDB 인스턴스를 가리킵니다"
   }
 }

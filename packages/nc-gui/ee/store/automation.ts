@@ -13,6 +13,8 @@ export const useAutomationStore = defineStore('automation', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
+  const { showUpgradeToUseScripts } = useEeConfig()
+
   // State
   const automations = ref<Map<string, ScriptType[]>>(new Map())
   const isUpdatingAutomation = ref(false)
@@ -34,7 +36,7 @@ export const useAutomationStore = defineStore('automation', () => {
 
   const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
 
-  const activeBaseSchema = ref({})
+  const activeBaseSchema = ref(null)
   // Actions
   const loadAutomations = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
     if (!isAutomationEnabled.value) return []
@@ -289,9 +291,9 @@ export const useAutomationStore = defineStore('automation', () => {
 
   const updateBaseSchema = async () => {
     try {
-      /* activeBaseSchema.value = await $api.internal.getOperation(activeWorkspaceId.value!, activeProjectId.value, {
+      activeBaseSchema.value = await $api.internal.getOperation(activeWorkspaceId.value!, activeProjectId.value, {
         operation: 'baseSchema',
-      }) */
+      })
     } catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
@@ -352,7 +354,7 @@ export const useAutomationStore = defineStore('automation', () => {
     loadAutomationsOnClose?: boolean
     scrollOnCreate?: boolean
   }) {
-    if (!baseId) return
+    if (!baseId || showUpgradeToUseScripts()) return
 
     const isDlgOpen = ref(true)
 

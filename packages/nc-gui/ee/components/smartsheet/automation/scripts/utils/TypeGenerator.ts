@@ -2923,7 +2923,7 @@ declare interface ConfigItem {}
 
   private generateRecordQueryResultInterface(
     tableName: string,
-    fields: {
+    _fields: {
       id: string
       name: string
       type: keyof typeof UITypes

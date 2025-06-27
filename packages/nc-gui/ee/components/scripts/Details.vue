@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { marked } from 'marked'
-import { PlanFeatureTypes } from 'nocodb-sdk'
 
 interface Prop {
   modelValue: boolean
@@ -27,8 +26,6 @@ const { openedProject } = storeToRefs(bases)
 const { getScriptAssetsURL, getScriptContent, createAutomation } = automationStore
 
 const { availableScripts, descriptionContent, isMarketVisible } = storeToRefs(automationStore)
-
-const { blockAddNewScript, navigateToPricing, isWsOwner } = useEeConfig()
 
 const onBack = () => {
   vModel.value = false
@@ -115,27 +112,11 @@ const detailsBody = computed(() => {
           <div class="text-small leading-[18px] text-gray-500 truncate">{{ activeScript.subTitle }}</div>
         </div>
         <div class="self-start flex items-center gap-2.5">
-          <NcButton v-if="!blockAddNewScript" size="small" class="w-full" @click="onAddScript(activeScript)">
+          <NcButton size="small" class="w-full" @click="onAddScript(activeScript)">
             <div class="flex items-center justify-center gap-1 -ml-3px">
               <GeneralIcon icon="plus" /> {{ $t('general.add') }} {{ $t('general.script') }}
             </div>
           </NcButton>
-          <NcTooltip v-else>
-            <template #title>
-              {{ $t('upgrade.upgradeToAddMoreScripts') }}
-            </template>
-            <NcButton
-              size="small"
-              class="w-full nc-upgrade-plan-btn"
-              @click="navigateToPricing({ limitOrFeature: PlanFeatureTypes.FEATURE_SCRIPTS })"
-            >
-              <div class="flex items-center justify-center gap-2">
-                <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4" />
-
-                {{ isWsOwner ? $t('upgrade.upgradeToAdd') : $t('upgrade.requestUpgradeToAdd') }}
-              </div>
-            </NcButton>
-          </NcTooltip>
           <NcButton size="small" type="text" @click="vModel = false">
             <GeneralIcon icon="close" class="text-gray-600" />
           </NcButton>

@@ -75,7 +75,7 @@ const colOptionsHandlers = {
     table: MetaTable.COL_SELECT_OPTIONS,
     fields: {
       choices:
-        "json_agg(jsonb_build_object('title', title, 'color', color, 'id', id))",
+        "json_agg(jsonb_build_object('title', co.title, 'color', co.color, 'id', co.id))",
     },
     aggregate: true,
   },
@@ -84,7 +84,7 @@ const colOptionsHandlers = {
     table: MetaTable.COL_SELECT_OPTIONS,
     fields: {
       choices:
-        "json_agg(jsonb_build_object('title', title, 'color', color, 'id', id))",
+        "json_agg(jsonb_build_object('title', co.title, 'color', co.color, 'id', co.id))",
     },
     aggregate: true,
   },
@@ -117,7 +117,7 @@ const colOptionsHandlers = {
   },
 };
 
-const generateColumnOptionsCTEs = (knex) => {
+const generateColumnOptionsCTEs = (knex, context: NcContext) => {
   const ctes = {};
 
   Object.entries(colOptionsHandlers).forEach(([uiType, config]) => {
@@ -129,29 +129,35 @@ const generateColumnOptionsCTEs = (knex) => {
       ctes[cteName] = (qb) => {
         const fieldMappings = Object.entries(config.fields)
           .map(([key, value]) => {
+            // For aggregate fields, use the value as-is since it's already a complete SQL expression
             return `'${key}', ${value}`;
           })
           .join(', ');
 
         qb.select(
-          'fk_column_id',
+          'co.fk_column_id',
           knex.raw(`to_json(jsonb_build_object(${fieldMappings})) as options`),
         )
-          .from(config.table)
-          .groupBy('fk_column_id');
+          .from(`${config.table} as co`)
+          .where('co.base_id', context.base_id)
+          .where('co.fk_workspace_id', context.workspace_id)
+          .groupBy('co.fk_column_id');
       };
     } else {
       ctes[cteName] = (qb) => {
         const fieldMappings = Object.entries(config.fields)
           .map(([key, value]) => {
-            return `'${key}', ${value}`;
+            return `'${key}', co.${value}`;
           })
           .join(', ');
 
         qb.select(
-          'fk_column_id',
+          'co.fk_column_id',
           knex.raw(`to_json(jsonb_build_object(${fieldMappings})) as options`),
-        ).from(config.table);
+        )
+          .from(`${config.table} as co`)
+          .where('co.base_id', context.base_id)
+          .where('co.fk_workspace_id', context.workspace_id);
       };
     }
   });
@@ -188,7 +194,6 @@ const generateOptionsCoalesce = () => {
 };
 
 export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
-  return {};
   // TODO: Optimize the Query
   const key = `${CacheScope.BASE_SCHEMA}:${context.base_id}`;
 
@@ -199,7 +204,7 @@ export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
   }
 
   // Generate CTEs for column options
-  const optionsCTEs = generateColumnOptionsCTEs(ncMeta.knex);
+  const optionsCTEs = generateColumnOptionsCTEs(ncMeta.knex, context);
 
   let queryBuilder = ncMeta.knex;
 
@@ -210,32 +215,32 @@ export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
   const finalQuery = queryBuilder
     // Base models CTE
     .with('base_models', (qb) => {
-      qb.select('id', 'title', 'description')
-        .from(`${MetaTable.MODELS}`)
-        .where('base_id', context.base_id)
-        .where('mm', false);
+      qb.select('m.id', 'm.title', 'm.description')
+        .from(`${MetaTable.MODELS} as m`)
+        .where('m.base_id', context.base_id)
+        .where('m.fk_workspace_id', context.workspace_id)
+        .where('m.mm', false);
     })
 
     // Views aggregation CTE
     .with('model_views', (qb) => {
       qb.select(
-        'fk_model_id',
+        'v.fk_model_id',
         ncMeta.knex.raw(`
           json_agg(
             jsonb_build_object(
-              'id', id,
-              'name', title,
-              'type', type,
-              'description', description
+              'id', v.id,
+              'name', v.title,
+              'type', v.type,
+              'description', v.description
             )
           ) as views_json
         `),
       )
-        .from(MetaTable.VIEWS)
-        .whereIn('fk_model_id', function () {
-          this.select('id').from('base_models');
-        })
-        .groupBy('fk_model_id');
+        .from(`${MetaTable.VIEWS} as v`)
+        .where('v.base_id', context.base_id)
+        .where('v.fk_workspace_id', context.workspace_id)
+        .groupBy('v.fk_model_id');
     })
 
     // Columns with options CTE
@@ -263,9 +268,8 @@ export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
         `),
         )
         .from(`${MetaTable.COLUMNS} as c`)
-        .whereIn('c.fk_model_id', function () {
-          this.select('id').from('base_models');
-        });
+        .where('c.base_id', context.base_id)
+        .where('c.fk_workspace_id', context.workspace_id);
 
       // Add all the LEFT JOINs for column options
       columnsQuery = generateOptionsJoins(ncMeta.knex, columnsQuery);
@@ -305,14 +309,15 @@ export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
       )
         .from(`${MetaTable.PROJECT_USERS} as bu`)
         .join(`${MetaTable.USERS} as u`, 'bu.fk_user_id', 'u.id')
-        .where('bu.base_id', context.base_id);
+        .where('bu.base_id', context.base_id)
+        .where('bu.fk_workspace_id', context.workspace_id);
     })
     .select(
       ncMeta.knex.raw(
         `
         jsonb_build_object(
           'id', (?)::text,
-          'name', (SELECT title FROM ${MetaTable.PROJECT} WHERE id = ?)::text,
+          'name', (SELECT p.title FROM ${MetaTable.PROJECT} as p WHERE p.id = ?)::text,
           'tables', COALESCE(
             (SELECT json_agg(
               jsonb_build_object(

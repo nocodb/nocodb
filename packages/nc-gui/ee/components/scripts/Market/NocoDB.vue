@@ -33,8 +33,6 @@ const { showScriptDetails, getScriptAssetsURL, getScriptContent, createAutomatio
 
 const { availableScripts } = storeToRefs(automationStore)
 
-const { blockAddNewScript } = useEeConfig()
-
 const filteredAvailableScripts = computed(() =>
   (availableScripts.value || []).filter(
     (scr) =>
@@ -100,13 +98,7 @@ const onAddScript = async (scr: any) => {
                 {{ scr.subTitle }}
               </div>
             </div>
-            <NcButton
-              v-if="!blockAddNewScript"
-              size="small"
-              type="secondary"
-              class="flex-none !px-7px"
-              @click.stop="onAddScript(scr)"
-            >
+            <NcButton size="small" type="secondary" class="flex-none !px-7px" @click.stop="onAddScript(scr)">
               <div class="flex items-center gap-1 -ml-3px text-small">
                 <GeneralIcon icon="plus" />
                 {{ $t('general.add') }}

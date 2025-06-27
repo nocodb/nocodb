@@ -34,7 +34,7 @@ const { completeScript } = useNocoAi()
 async function setupMonacoEditor() {
   if (!editorRef.value) return
 
-  // updateTypes()
+  updateTypes()
 
   const model = monaco.editor.createModel(code.value, 'typescript')
 
@@ -117,7 +117,7 @@ onMounted(async () => {
 
 watch(activeBaseSchema, (newVal) => {
   if (newVal) {
-    // updateTypes()
+    updateTypes()
   }
 })
 

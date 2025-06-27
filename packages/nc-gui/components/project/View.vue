@@ -27,7 +27,8 @@ const { automations } = storeToRefs(automationStore)
 
 const { $e, $api } = useNuxtApp()
 
-const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
+const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions, blockUseScripts, showUpgradeToUseScripts } =
+  useEeConfig()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -77,6 +78,10 @@ const projectPageTab = computed({
       return
     }
 
+    if (value === 'allScripts' && showUpgradeToUseScripts()) {
+      return
+    }
+
     _projectPageTab.value = value
   },
 })
@@ -95,7 +100,7 @@ watch(
         projectPageTab.value = 'data-source'
       } else if (newVal === 'allTable') {
         projectPageTab.value = 'allTable'
-      } else if (newVal === 'allScripts' && isAutomationEnabled.value && isEeUI) {
+      } else if (newVal === 'allScripts' && isAutomationEnabled.value && isEeUI && !blockUseScripts.value) {
         projectPageTab.value = 'allScripts'
       } else if (
         newVal === 'permissions' &&

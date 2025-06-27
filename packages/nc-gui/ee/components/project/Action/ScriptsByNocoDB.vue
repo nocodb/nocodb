@@ -24,6 +24,7 @@ const isActionVisible = computed(() => {
   <div v-if="isActionVisible" class="flex">
     <ProjectActionItem
       :label="$t('labels.scriptsByNocoDB')"
+      :subtext="$t('msg.subText.scriptsByNocoDB')"
       class="nc-base-view-all-scripts-btn"
       data-testid="proj-view-btn__add-new-template-script"
       @click="openMarketPlace"

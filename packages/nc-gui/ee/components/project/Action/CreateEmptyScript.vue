@@ -37,11 +37,12 @@ const isActionVisible = computed(() => {
     v-if="isActionVisible"
     class="nc-base-view-all-scripts-btn"
     :label="label"
+    :subtext="$t('msg.subText.startFromScratch')"
     data-testid="proj-view-btn__add-new-script"
     @click="openNewScriptModal"
   >
     <template #icon>
-      <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-brand-500" />
+      <GeneralIcon icon="ncScript" class="!h-8 !w-8 !text-brand-500" />
     </template>
   </ProjectActionItem>
 </template>

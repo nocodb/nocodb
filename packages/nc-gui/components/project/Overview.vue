@@ -74,7 +74,7 @@ const onCreateSyncClick = () => {
 <template>
   <div class="nc-all-tables-view px-6 pt-6">
     <div
-      class="flex flex-row gap-6 pb-2 flex-wrap"
+      class="flex flex-row gap-6 pb-2 flex-wrap max-w-[1000px]"
       :class="{
         'pointer-events-none': base?.isLoading,
       }"
@@ -82,7 +82,7 @@ const onCreateSyncClick = () => {
       <ProjectActionItem
         v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
         :label="$t('dashboards.create_new_table')"
-        :subtext="$t('msg.subText.createNewTable')"
+        :subtext="$t('msg.subText.startFromScratch')"
         data-testid="proj-view-btn__add-new-table"
         @click="openTableCreateDialog()"
       >

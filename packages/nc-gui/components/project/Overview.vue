@@ -122,7 +122,6 @@ const onCreateSyncClick = () => {
 
         <ProjectActionItem
           v-e="['c:table:create-source']"
-          class="nc-base-view-all-table-btn"
           data-testid="proj-view-btn__create-source"
           :disabled="isDataSourceLimitReached"
           :label="$t('labels.connectDataSource')"
@@ -138,7 +137,6 @@ const onCreateSyncClick = () => {
       <ProjectActionItem
         v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
         v-e="['c:table:create-sync']"
-        class="nc-base-view-all-table-btn"
         data-testid="proj-view-btn__create-sync"
         :label="$t('labels.syncData')"
         :subtext="$t('msg.subText.syncData')"
@@ -175,36 +173,3 @@ const onCreateSyncClick = () => {
     />
   </div>
 </template>
-
-<style lang="scss" scoped>
-.nc-base-view-all-table-btn {
-  @apply flex-none flex flex-col gap-y-3 p-4 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[230px] max-w-[245px] cursor-pointer text-gray-800 hover:(bg-gray-100 border-gray-200) transition-all duration-300;
-  &:hover {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
-  }
-
-  .icon-wrapper {
-    @apply w-8 h-8 flex items-center;
-  }
-
-  .nc-icon {
-    @apply flex-none h-10 w-10;
-  }
-
-  .label {
-    @apply text-base font-bold whitespace-nowrap text-gray-800;
-  }
-
-  .subtext {
-    @apply text-xs text-gray-600;
-  }
-}
-
-.nc-base-view-all-table-btn.disabled {
-  @apply bg-gray-50 text-gray-400 hover:(bg-gray-50 text-gray-400) cursor-not-allowed;
-}
-
-.nc-text-icon {
-  @apply flex-none w-5 h-5 rounded bg-white text-gray-800 text-[6px] leading-4 font-weight-800 flex items-center justify-center;
-}
-</style>

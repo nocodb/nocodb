@@ -217,6 +217,7 @@ export enum CacheScope {
   DB_SERVERS = 'dbServers',
   PERMISSION = 'permission',
   PERMISSION_USER = 'permissionUser',
+  TABLE_ORDER = 'tableOrder',
 }
 
 export enum CacheGetType {

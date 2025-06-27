@@ -122,9 +122,10 @@ import {
   remapWithAlias,
   removeBlankPropsAndMask,
 } from '~/utils';
-import { MetaTable } from '~/utils/globals';
+import { CacheScope, MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
+import NocoCache from '~/cache/NocoCache';
 
 dayjs.extend(utc);
 
@@ -4351,13 +4352,40 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return null;
     }
 
+    const cacheKey = `${this.model.id}_${orderColumn.id}`;
+
+    const cachedOrder = await NocoCache.getHashField(
+      CacheScope.TABLE_ORDER,
+      cacheKey,
+    );
+
+    if (cachedOrder) {
+      const newOrder = new BigNumber(cachedOrder).plus(ORDER_STEP_INCREMENT);
+
+      await NocoCache.setHashField(
+        CacheScope.TABLE_ORDER,
+        cacheKey,
+        newOrder.toString(),
+      );
+
+      return newOrder;
+    }
+
     const orderQuery = await this.dbDriver(this.tnPath)
       .max(`${orderColumn.column_name} as max_order`)
       .first();
 
     const order = new BigNumber(orderQuery ? orderQuery['max_order'] || 0 : 0);
 
-    return order.plus(ORDER_STEP_INCREMENT);
+    const newOrder = order.plus(ORDER_STEP_INCREMENT);
+
+    await NocoCache.setHashField(
+      CacheScope.TABLE_ORDER,
+      cacheKey,
+      newOrder.toString(),
+    );
+
+    return newOrder;
   }
 
   // method for validating otpions if column is single/multi select

@@ -2452,8 +2452,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       const columns = await this.model.getColumns(this.context);
 
-      let order = await this.getHighestOrderInTable();
-
       const insertedDatas = [];
       const updatedDatas = [];
 
@@ -2479,19 +2477,30 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const dataWithPks = [];
       const dataWithoutPks = [];
 
+      // First pass: separate data with and without PKs
       for (const data of preparedDatas) {
         const pkValues = this.extractPksValues(data, true);
         if (pkValues !== 'N/A' && pkValues !== undefined) {
           dataWithPks.push({ pk: pkValues, data });
         } else {
-          await this.prepareNocoData(data, true, cookie, null, {
-            ncOrder: order,
-            undo,
-          });
-          order = order?.plus(1);
-          // const insertObj = this.handleValidateBulkInsert(data, columns);
           dataWithoutPks.push(data);
         }
+      }
+
+      // Get order values for all records that need them (without PKs)
+      const order =
+        dataWithoutPks.length > 0
+          ? await this.getHighestOrderInTable(dataWithoutPks.length)
+          : null;
+      let orderIndex = 0;
+
+      // Second pass: prepare data for insertion
+      for (const data of dataWithoutPks) {
+        await this.prepareNocoData(data, true, cookie, null, {
+          ncOrder: order?.plus(orderIndex),
+          undo,
+        });
+        orderIndex++;
       }
 
       // Check which records with PKs exist in the database
@@ -2505,18 +2514,31 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       const toInsert = [...dataWithoutPks];
       const toUpdate = [];
+      const recordsNeedingInsert = [];
 
+      // Separate existing records from new ones that need insertion
       for (const { pk, data } of dataWithPks) {
         if (existingPkSet.has(pk)) {
           await this.prepareNocoData(data, false, cookie);
           toUpdate.push(data);
         } else {
+          recordsNeedingInsert.push(data);
+        }
+      }
+
+      // Get order values for records with PKs that need to be inserted
+      if (recordsNeedingInsert.length > 0) {
+        const insertOrder = await this.getHighestOrderInTable(
+          recordsNeedingInsert.length,
+        );
+        let insertOrderIndex = 0;
+
+        for (const data of recordsNeedingInsert) {
           await this.prepareNocoData(data, true, cookie, null, {
-            ncOrder: order,
+            ncOrder: insertOrder?.plus(insertOrderIndex),
             undo,
           });
-          order = order?.plus(1);
-          // const insertObj = this.handleValidateBulkInsert(data, columns);
+          insertOrderIndex++;
           toInsert.push(data);
         }
       }
@@ -4343,7 +4365,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  public async getHighestOrderInTable(): Promise<BigNumber> {
+  public async getHighestOrderInTable(count: number = 1): Promise<BigNumber> {
     const orderColumn = this.model.columns.find(
       (c) => c.uidt === UITypes.Order,
     );
@@ -4360,32 +4382,37 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     );
 
     if (cachedOrder) {
-      const newOrder = new BigNumber(cachedOrder).plus(ORDER_STEP_INCREMENT);
-
-      await NocoCache.setHashField(
+      // Use atomic increment to reserve the next `count` order values
+      const incrementBy = count * ORDER_STEP_INCREMENT;
+      const newMaxOrder = await NocoCache.incrHashField(
         CacheScope.TABLE_ORDER,
         cacheKey,
-        newOrder.toString(),
+        incrementBy,
       );
 
-      return newOrder;
+      // Return the first order value in the reserved range
+      return new BigNumber(newMaxOrder - incrementBy + ORDER_STEP_INCREMENT);
     }
 
+    // Cache miss - fetch from database and initialize cache
     const orderQuery = await this.dbDriver(this.tnPath)
       .max(`${orderColumn.column_name} as max_order`)
       .first();
 
-    const order = new BigNumber(orderQuery ? orderQuery['max_order'] || 0 : 0);
+    const currentMaxOrder = new BigNumber(
+      orderQuery ? orderQuery['max_order'] || 0 : 0,
+    );
+    const nextOrder = currentMaxOrder.plus(ORDER_STEP_INCREMENT);
+    const reservedUpTo = nextOrder.plus((count - 1) * ORDER_STEP_INCREMENT);
 
-    const newOrder = order.plus(ORDER_STEP_INCREMENT);
-
+    // Initialize cache with the highest reserved order
     await NocoCache.setHashField(
       CacheScope.TABLE_ORDER,
       cacheKey,
-      newOrder.toString(),
+      reservedUpTo.toString(),
     );
 
-    return newOrder;
+    return nextOrder;
   }
 
   // method for validating otpions if column is single/multi select
@@ -6232,10 +6259,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       if (!before) {
-        const highestOrder = await this.getHighestOrderInTable();
+        const highestOrder = await this.getHighestOrderInTable(amount);
 
         return Array.from({ length: amount }).map((_, i) => {
-          return highestOrder.plus(i + 1);
+          return highestOrder.plus(i);
         });
       }
 

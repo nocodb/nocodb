@@ -142,7 +142,7 @@
     "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
     "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
     "upgradeToSeeMoreRecordSubtitle": "연결된 소스에 대한 완벽한 가시성을 확보하십시오. 팀 플랜으로 업그레이드하여 모든 항목을 봅니다.",
-    "upgradeToSeeMoreRecordInlineSubtitle": "{total} 항목 중 {limit} 보고 있습니다. Team 플랜으로 업그레이드하여 나머지 {remaining} 항목에 대한 액세스를 잠금 해제하세요.",
+    "upgradeToSeeMoreRecordInlineSubtitle": "{total} 항목 중 {limit} 보고 있습니다. Plus 플랜으로 업그레이드하여 나머지 {remaining} 항목에 대한 액세스를 잠금 해제하세요.",
     "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
     "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
     "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",

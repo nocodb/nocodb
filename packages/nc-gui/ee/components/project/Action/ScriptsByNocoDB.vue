@@ -5,15 +5,24 @@ const automationStore = useAutomationStore()
 
 const { isMarketVisible, isDetailsVisible, detailsScriptId } = storeToRefs(automationStore)
 
+const { isSharedBase } = storeToRefs(useBase())
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
+
 const openMarketPlace = () => {
   isMarketVisible.value = true
 }
+
+const isActionVisible = computed(() => {
+  return isAutomationEnabled.value && isUIAllowed('scriptCreateOrEdit') && !isSharedBase.value
+})
 </script>
 
 <template>
-  <div class="flex">
+  <div v-if="isActionVisible" class="flex">
     <ProjectActionItem
-      v-if="isUIAllowed('scriptCreateOrEdit')"
       :label="$t('labels.scriptsByNocoDB')"
       class="nc-base-view-all-scripts-btn"
       data-testid="proj-view-btn__add-new-template-script"

@@ -9,6 +9,12 @@ const { openNewScriptModal: _openNewScriptModal } = automationStore
 
 const { openedProject } = storeToRefs(useBases())
 
+const { isSharedBase } = storeToRefs(useBase())
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
+
 const label = computed(() => {
   return `${t('general.create')} ${t('general.empty')} ${t('objects.script')}`
 })
@@ -20,11 +26,15 @@ async function openNewScriptModal() {
     scrollOnCreate: true,
   })
 }
+
+const isActionVisible = computed(() => {
+  return isAutomationEnabled.value && isUIAllowed('scriptCreateOrEdit') && !isSharedBase.value
+})
 </script>
 
 <template>
   <ProjectActionItem
-    v-if="isUIAllowed('scriptCreateOrEdit')"
+    v-if="isActionVisible"
     class="nc-base-view-all-scripts-btn"
     :label="label"
     data-testid="proj-view-btn__add-new-script"

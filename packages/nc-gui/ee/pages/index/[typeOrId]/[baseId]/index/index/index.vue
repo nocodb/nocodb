@@ -3,7 +3,12 @@ import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import type { SourceType } from 'nocodb-sdk'
 
 const baseStore = useBase()
-const { base, sources } = storeToRefs(baseStore)
+const { base, sources, isSharedBase } = storeToRefs(baseStore)
+
+const tablesStore = useTablesStore()
+const { openTable } = tablesStore
+
+const { activeTables } = storeToRefs(tablesStore)
 
 const { isMobileMode } = useGlobal()
 
@@ -146,8 +151,20 @@ function onDropZoneClick(e: MouseEvent) {
   open()
 }
 */
+
+watch(
+  [() => isSharedBase.value, () => activeTables.value.length],
+  (newIsSharedBase, newActiveTablesLength) => {
+    if (!newIsSharedBase || (newIsSharedBase && !newActiveTablesLength)) return
+
+    openTable(activeTables.value[0]!)
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
-  <ProjectView v-if="!isMobileMode" />
+  <ProjectView v-if="!isMobileMode && !isSharedBase" />
 </template>

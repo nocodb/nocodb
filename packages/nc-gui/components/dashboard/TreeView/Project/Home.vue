@@ -274,7 +274,7 @@ const openBaseHomePage = async () => {
 
       <DashboardTreeViewProjectHomeSearchInput placeholder="Search table, view" />
 
-      <div class="nc-project-home-section pt-1 !pb-2 xs:hidden flex flex-col gap-2">
+      <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 xs:hidden flex flex-col gap-2">
         <div
           v-if="isUIAllowed('tableCreate', { roles: base.project_role, source: base?.sources?.[0] })"
           class="flex items-center w-full"

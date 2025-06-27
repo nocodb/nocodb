@@ -2,7 +2,7 @@ import type { ScriptType } from 'nocodb-sdk'
 import { createWorkerCode, generateIntegrationsCode } from '~/components/smartsheet/automation/scripts/utils/workerHelper'
 import { generateLibCode } from '~/components/smartsheet/automation/scripts/utils/editorUtils'
 import { replaceConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
-import type { CallApiAction, ScriptPlaygroundItem, ViewActionPayload } from '~/lib/types'
+import type { CallApiAction, ScriptPlaygroundItem, ViewActionPayload, WorkflowStepItem } from '~/lib/types'
 import { ScriptActionType } from '~/lib/enum'
 
 export const useScriptExecutor = createSharedComposable(() => {
@@ -50,6 +50,8 @@ export const useScriptExecutor = createSharedComposable(() => {
     >
   >(new Map())
 
+  const activeSteps = ref<Map<string, WorkflowStepItem>>(new Map())
+
   const fieldIDRowMapping = computed(() => {
     const _fieldIDRowMapping = new Map<string, string>()
     activeExecutions.value.forEach((execution) => {
@@ -61,53 +63,124 @@ export const useScriptExecutor = createSharedComposable(() => {
   })
 
   const actions = {
-    log: (scriptId: string, ...args: any[]) => {
+    log: (scriptId: string, stepId?: string, ...args: any[]) => {
       const execution = activeExecutions.value.get(scriptId)
       if (execution) {
-        execution.playground.push({ type: 'text', content: args.join(' '), style: 'log' })
+        const item = { type: 'text' as const, content: args.join(' '), style: 'log' as const }
+
+        if (stepId) {
+          const step = activeSteps.value.get(stepId)
+          if (step) {
+            step.content.children.push(item)
+            return
+          }
+        }
+
+        execution.playground.push(item)
       }
     },
-    error: (scriptId: string, ...args: any[]) => {
+    error: (scriptId: string, stepId?: string, ...args: any[]) => {
       const execution = activeExecutions.value.get(scriptId)
       if (execution) {
-        execution.playground.push({ type: 'text', content: args.join(' '), style: 'error' })
+        const item = { type: 'text' as const, content: args.join(' '), style: 'error' as const }
+
+        if (stepId) {
+          const step = activeSteps.value.get(stepId)
+          if (step) {
+            step.content.children.push(item)
+            return
+          }
+        }
+
+        execution.playground.push(item)
       }
     },
-    warn: (scriptId: string, ...args: any[]) => {
+    warn: (scriptId: string, stepId?: string, ...args: any[]) => {
       const execution = activeExecutions.value.get(scriptId)
       if (execution) {
-        execution.playground.push({ type: 'text', content: args.join(' '), style: 'warning' })
+        const item = { type: 'text' as const, content: args.join(' '), style: 'warning' as const }
+
+        if (stepId) {
+          const step = activeSteps.value.get(stepId)
+          if (step) {
+            step.content.children.push(item)
+            return
+          }
+        }
+
+        execution.playground.push(item)
       }
     },
     output: {
-      text: (scriptId: string, message: string, type: 'log' | 'error' | 'warning' = 'log') => {
+      text: (scriptId: string, message: string, type: 'log' | 'error' | 'warning' = 'log', stepId?: string) => {
         const execution = activeExecutions.value.get(scriptId)
         if (execution) {
-          execution.playground.push({ type: 'text', content: message, style: type })
+          const item = { type: 'text' as const, content: message, style: type }
+
+          if (stepId) {
+            const step = activeSteps.value.get(stepId)
+            if (step) {
+              step.content.children.push(item)
+              return
+            }
+          }
+
+          execution.playground.push(item)
         }
       },
-      markdown: (scriptId: string, content: string) => {
+      markdown: (scriptId: string, content: string, stepId?: string) => {
         const execution = activeExecutions.value.get(scriptId)
         if (execution) {
-          execution.playground.push({ type: 'markdown', content })
+          const item = { type: 'markdown' as const, content }
+
+          if (stepId) {
+            const step = activeSteps.value.get(stepId)
+            if (step) {
+              step.content.children.push(item)
+              return
+            }
+          }
+
+          execution.playground.push(item)
         }
       },
-      table: (scriptId: string, data: any[] | object) => {
+      table: (scriptId: string, data: any[] | object, stepId?: string) => {
         const execution = activeExecutions.value.get(scriptId)
         if (execution) {
-          execution.playground.push({ type: 'table', content: data })
+          const item = { type: 'table' as const, content: data }
+
+          if (stepId) {
+            const step = activeSteps.value.get(stepId)
+            if (step) {
+              step.content.children.push(item)
+              return
+            }
+          }
+
+          execution.playground.push(item)
         }
       },
       clear: (scriptId: string) => {
         const execution = activeExecutions.value.get(scriptId)
         if (execution) {
           execution.playground = []
+          activeSteps.value.clear()
         }
       },
-      inspect: (scriptId: string, data: any) => {
+      inspect: (scriptId: string, data: any, stepId?: string) => {
         const execution = activeExecutions.value.get(scriptId)
         if (execution) {
-          execution.playground.push({ type: 'inspect', content: data })
+          const item = { type: 'inspect' as const, content: data }
+
+          if (stepId) {
+            const step = activeSteps.value.get(stepId)
+            if (step) {
+              step.content.children.push(item)
+              return
+            }
+          }
+
+          execution.playground.push(item)
         }
       },
     },
@@ -154,16 +227,40 @@ export const useScriptExecutor = createSharedComposable(() => {
   }
 
   function handleWorkerMessage(scriptId: string, message: any, worker: Worker, onWorkerDone: () => void) {
+    const execution = activeExecutions.value.get(scriptId)
+    if (!execution) {
+      return
+    }
     switch (message.type) {
+      case ScriptActionType.WORKFLOW_STEP_START: {
+        const stepItem: WorkflowStepItem = {
+          type: 'workflow-step',
+          content: {
+            ...message.payload,
+            children: [],
+          },
+        }
+        activeSteps.value.set(message.payload.stepId, stepItem)
+        execution.playground.push(stepItem)
+        break
+      }
+      case ScriptActionType.WORKFLOW_STEP_END: {
+        const step = activeSteps.value.get(message.payload.stepId)
+        if (step) {
+          activeSteps.value.delete(message.payload.stepId)
+        }
+        break
+      }
+
       case ScriptActionType.LOG:
       case ScriptActionType.ERROR:
       case ScriptActionType.WARN:
-        actions[message.type](scriptId, ...message.payload.args)
+        actions[message.type as any](scriptId, message.payload.stepId, ...message.payload.args)
         break
       case ScriptActionType.OUTPUT: {
         const { action, args } = JSON.parse(message.payload.message)
         if (action in actions.output) {
-          ;(actions.output as any)[action](scriptId, ...args)
+          ;(actions.output as any)[action](scriptId, ...args, message.payload.stepId)
         }
         break
       }
@@ -171,28 +268,34 @@ export const useScriptExecutor = createSharedComposable(() => {
         handleApiCall(worker, message)
         break
       case ScriptActionType.INPUT: {
-        const execution = activeExecutions.value.get(scriptId)
-        if (execution) {
-          execution.playground.push({
-            type: 'input-request',
-            content: message.payload,
-            id: message.payload.id,
-            resolve: (
-              value:
-                | string
-                | Record<string, any>
-                | {
-                    file: File
-                    parsedContents: any
-                  },
-            ) => {
-              if (typeof value === 'object') {
-                value = JSON.stringify(value)
-              }
-              worker.postMessage({ type: ScriptActionType.INPUT_RESOLVED, payload: { id: message.payload.id, value } })
-            },
-          })
+        const inputItem = {
+          type: 'input-request' as const,
+          content: message.payload,
+          id: message.payload.id,
+          resolve: (
+            value:
+              | string
+              | Record<string, any>
+              | {
+                  file: File
+                  parsedContents: any
+                },
+          ) => {
+            if (typeof value === 'object') {
+              value = JSON.stringify(value)
+            }
+            worker.postMessage({ type: ScriptActionType.INPUT_RESOLVED, payload: { id: message.payload.id, value } })
+          },
         }
+
+        if (message.payload.stepId) {
+          const step = activeSteps.value.get(message.payload.stepId)
+          if (step) {
+            step.content.children.push(inputItem)
+            break
+          }
+        }
+        execution.playground.push(inputItem)
         break
       }
 
@@ -283,6 +386,7 @@ export const useScriptExecutor = createSharedComposable(() => {
         break
       }
       case ScriptActionType.DONE:
+        activeSteps.value.clear()
         onWorkerDone()
         break
       default:
@@ -555,6 +659,7 @@ export const useScriptExecutor = createSharedComposable(() => {
     isRunning,
     isFinished,
     activeExecutions,
+    activeSteps,
     libCode,
     fieldIDRowMapping,
   }

@@ -124,11 +124,6 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
-  // TODO: @DarkPhoenix2704
-  const blockAddNewScript = computed(() => {
-    return false
-  })
-
   const blockAddNewExternalSource = computed(() => {
     return (
       isPaymentEnabled.value &&
@@ -162,6 +157,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockTableAndFieldPermissions = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS)
+  })
+
+  const blockAddNewScript = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_SCRIPTS)
   })
 
   /** Helper functions */
@@ -725,6 +724,21 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToAddScripts = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAddNewScript.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseScripts'),
+      content: t('upgrade.upgradeToUseScriptsSubtitle', {
+        plan: PlanTitles.TEAM,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_SCRIPTS,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     getLimit,
@@ -750,7 +764,6 @@ export const useEeConfig = createSharedComposable(() => {
     isAllowToAddExtension,
     blockAddNewExtension,
     blockAddNewAttachment,
-    blockAddNewScript,
     showStoragePlanLimitExceededModal,
     blockAddNewExternalSource,
     showExternalSourcePlanLimitExceededModal,
@@ -776,5 +789,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
     isUnderLoyaltyCutoffDate,
+    blockAddNewScript,
+    showUpgradeToAddScripts,
   }
 })

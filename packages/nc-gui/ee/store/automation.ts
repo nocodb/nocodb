@@ -13,6 +13,8 @@ export const useAutomationStore = defineStore('automation', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
+  const { showUpgradeToAddScripts } = useEeConfig()
+
   // State
   const automations = ref<Map<string, ScriptType[]>>(new Map())
   const isUpdatingAutomation = ref(false)
@@ -352,7 +354,7 @@ export const useAutomationStore = defineStore('automation', () => {
     loadAutomationsOnClose?: boolean
     scrollOnCreate?: boolean
   }) {
-    if (!baseId) return
+    if (!baseId || showUpgradeToAddScripts()) return
 
     const isDlgOpen = ref(true)
 

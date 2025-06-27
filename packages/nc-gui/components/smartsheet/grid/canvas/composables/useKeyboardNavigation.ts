@@ -184,7 +184,12 @@ export function useKeyboardNavigation({
       switch (e.keyCode) {
         case 82: {
           // ALT + R
-          if (isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value && !removeInlineAddRecord.value) {
+          if (
+            isAddingEmptyRowAllowed.value &&
+            isAddingEmptyRowPermitted.value &&
+            !removeInlineAddRecord.value &&
+            isAddingEmptyRowPermitted.value
+          ) {
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow(undefined, undefined, undefined, defaultData, groupPath)
             activeCell.value.row = totalRows.value
@@ -354,7 +359,7 @@ export function useKeyboardNavigation({
         let isAdded = false
         e.preventDefault()
         if (!e.shiftKey && activeCell.value.row === lastRow && activeCell.value.column === lastCol) {
-          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
+          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value && isAddingEmptyRowPermitted.value) {
             addEmptyRow(undefined, false, undefined, defaultData, groupPath)
             isAdded = true
           }

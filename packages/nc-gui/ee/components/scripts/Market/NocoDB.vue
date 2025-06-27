@@ -33,6 +33,8 @@ const { showScriptDetails, getScriptAssetsURL, getScriptContent, createAutomatio
 
 const { availableScripts } = storeToRefs(automationStore)
 
+const { showUpgradeToUseScripts } = useEeConfig()
+
 const filteredAvailableScripts = computed(() =>
   (availableScripts.value || []).filter(
     (scr) =>
@@ -47,6 +49,10 @@ const onScriptClick = (scriptId: string) => {
 }
 
 const onAddScript = async (scr: any) => {
+  if (showUpgradeToUseScripts()) {
+    return
+  }
+
   const content = getScriptContent(scr.id)
 
   await createAutomation(openedProject.value?.id, {

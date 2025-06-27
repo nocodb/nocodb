@@ -2207,7 +2207,7 @@ const onNavigate = async (dir: NavigateDir) => {
     case NavigateDir.NEXT:
       if (activeCell.value.row < dataCache.totalRows.value - 1) {
         activeCell.value.row++
-      } else {
+      } else if (isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value && !removeInlineAddRecord.value) {
         addEmptyRow(undefined, false, undefined, defaultData, path)
         activeCell.value.row++
       }

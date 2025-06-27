@@ -831,7 +831,7 @@ export function useCopyPaste({
     const col = columns.value[ctx.col]
     const rowObj = cachedRows.value.get(ctx.row)
 
-    if (!col || !col?.columnObj || !rowObj) return
+    if (!col || !col?.columnObj || !rowObj || !col.isCellEditable) return
     const columnObj = col.columnObj
 
     if (

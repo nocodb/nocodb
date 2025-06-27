@@ -53,7 +53,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockTableAndFieldPermissions = computed(() => true)
 
-  const blockAddNewScript = computed(() => false)
+  const blockUseScripts = computed(() => false)
 
   const getLimit = (..._args: any[]) => {}
 
@@ -103,7 +103,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseTableAndFieldPermissions = (..._args: any[]) => {}
 
-  const showUpgradeToAddScripts = (..._args: any[]) => {}
+  const showUpgradeToUseScripts = (..._args: any[]) => {}
 
   return {
     getLimit,
@@ -152,7 +152,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseRowColoring,
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
-    blockAddNewScript,
-    showUpgradeToAddScripts,
+    blockUseScripts,
+    showUpgradeToUseScripts,
   }
 })

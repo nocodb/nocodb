@@ -159,7 +159,7 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS)
   })
 
-  const blockAddNewScript = computed(() => {
+  const blockUseScripts = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_SCRIPTS)
   })
 
@@ -724,8 +724,8 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToAddScripts = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (!blockAddNewScript.value) return
+  const showUpgradeToUseScripts = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockUseScripts.value) return
 
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseScripts'),
@@ -789,7 +789,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
     isUnderLoyaltyCutoffDate,
-    blockAddNewScript,
-    showUpgradeToAddScripts,
+    blockUseScripts,
+    showUpgradeToUseScripts,
   }
 })

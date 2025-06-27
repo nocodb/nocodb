@@ -28,7 +28,7 @@ const { getScriptAssetsURL, getScriptContent, createAutomation } = automationSto
 
 const { availableScripts, descriptionContent, isMarketVisible } = storeToRefs(automationStore)
 
-const { blockAddNewScript, navigateToPricing, isWsOwner } = useEeConfig()
+const { blockUseScripts, navigateToPricing, isWsOwner } = useEeConfig()
 
 const onBack = () => {
   vModel.value = false
@@ -115,7 +115,7 @@ const detailsBody = computed(() => {
           <div class="text-small leading-[18px] text-gray-500 truncate">{{ activeScript.subTitle }}</div>
         </div>
         <div class="self-start flex items-center gap-2.5">
-          <NcButton v-if="!blockAddNewScript" size="small" class="w-full" @click="onAddScript(activeScript)">
+          <NcButton v-if="!blockUseScripts" size="small" class="w-full" @click="onAddScript(activeScript)">
             <div class="flex items-center justify-center gap-1 -ml-3px">
               <GeneralIcon icon="plus" /> {{ $t('general.add') }} {{ $t('general.script') }}
             </div>

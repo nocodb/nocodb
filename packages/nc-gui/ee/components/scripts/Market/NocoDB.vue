@@ -33,7 +33,7 @@ const { showScriptDetails, getScriptAssetsURL, getScriptContent, createAutomatio
 
 const { availableScripts } = storeToRefs(automationStore)
 
-const { blockAddNewScript } = useEeConfig()
+const { blockUseScripts } = useEeConfig()
 
 const filteredAvailableScripts = computed(() =>
   (availableScripts.value || []).filter(
@@ -101,7 +101,7 @@ const onAddScript = async (scr: any) => {
               </div>
             </div>
             <NcButton
-              v-if="!blockAddNewScript"
+              v-if="!blockUseScripts"
               size="small"
               type="secondary"
               class="flex-none !px-7px"

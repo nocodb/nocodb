@@ -16,7 +16,7 @@ import bgImage from '~/assets/img/loyalty-bg.png'
     <div class="flex flex-col gap-1.5">
       <span class="font-bold text-base">Loyalty Discount Unlocked! Save upto 55%!</span>
       <span class="text-sm text-nc-content-gray-muted">
-        Thanks for being with us during technical preview. Get the Team plan capped at
+        Thanks for being with us during technical preview. Get the Plus plan capped at
         <span class="font-bold mr-1">$48</span>(was <span class="line-through decoration-red-500 font-bold">$108</span>) and the
         Business plan capped at <span class="font-bold mr-1">$96</span>(was
         <span class="line-through decoration-red-500 font-bold">$216</span>) for the year.

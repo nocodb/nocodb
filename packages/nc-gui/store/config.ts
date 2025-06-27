@@ -18,7 +18,7 @@ export const useConfigStore = defineStore('configStore', () => {
 
   const isMobileMode = ref(isViewPortMobile())
 
-  const projectPageTab = ref<'overview' | 'collaborator' | 'data-source' | 'base-settings' | 'syncs' | 'permissions'>('overview')
+  const projectPageTab = ref<ProjectPageType>('overview')
 
   const onViewPortResize = () => {
     isMobileMode.value = isViewPortMobile()

@@ -238,6 +238,7 @@ const openBaseHomePage = async () => {
       id: base.value.id!,
       type: 'database',
       isSharedBase: isSharedBase.value,
+      projectPage: !isUIAllowed('projectOverviewTab') ? 'collaborator' : undefined,
     })}`,
     cmdOrCtrl
       ? {

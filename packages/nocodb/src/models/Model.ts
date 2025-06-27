@@ -643,7 +643,11 @@ export default class Model implements TableType {
     );
 
     // Delete FileReference
-    await FileReference.bulkDelete(context, { fk_model_id: this.id }, ncMeta);
+    await FileReference.bulkDelete(
+      context,
+      { base_id: context.base_id, fk_model_id: this.id },
+      ncMeta,
+    );
 
     await NocoCache.deepDel(
       `${CacheScope.MODEL}:${this.id}`,

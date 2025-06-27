@@ -1268,7 +1268,11 @@ export default class Column<T = any> implements ColumnType {
     }
 
     // Delete FileReference
-    await FileReference.bulkDelete(context, { fk_column_id: col.id }, ncMeta);
+    await FileReference.bulkDelete(
+      context,
+      { base_id: context.base_id, fk_column_id: col.id },
+      ncMeta,
+    );
 
     // Columns
     await ncMeta.metaDelete(

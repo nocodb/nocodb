@@ -57,10 +57,6 @@ export class PagedResponseImpl<T> {
         this.pageInfo.offset = offset;
         delete this.pageInfo.page;
       }
-
-      if (offset && offset >= +count) {
-        NcError.invalidOffsetValue(offset);
-      }
     }
 
     if (additionalProps) Object.assign(this, additionalProps);

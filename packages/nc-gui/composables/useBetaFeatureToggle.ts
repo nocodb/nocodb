@@ -70,9 +70,8 @@ const FEATURES = [
     id: 'nocodb_scripts',
     title: 'NocoDB Scripts',
     description: 'Enable NocoDB Scripts to automate repetitive workflow',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
+    enabled: true,
+    version: 2,
     isEE: true,
   },
   {
@@ -179,9 +178,8 @@ const FEATURES = [
     id: 'table_and_field_permissions',
     title: 'Table and Field Permissions',
     description: 'Allows user to manage table and field permissions.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
+    enabled: true,
+    version: 2,
     isEE: true,
   },
 ] as const

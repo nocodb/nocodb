@@ -30,7 +30,7 @@ if (config.orderingField.type !== UITypes.Number) {
 
 const { sourceTable, sourceView, orderingField } = config;
 
-output.markdown(`#### Assigning ordering from view "${sourceView.name}" to field "${orderingField.name}""`);
+output.markdown(`#### Assigning ordering from view "${sourceView.name}" to field "${orderingField.name}"`);
 
 // Process records in chunks to avoid loading everything into memory
 const queryResult = await sourceView.selectRecordsAsync();
@@ -38,9 +38,14 @@ const UPDATE_BATCH_SIZE = 10;
 let orderNumber = 1;
 let totalProcessed = 0;
 
-do {
+while (true) {
     // Get only the new records from this chunk (not already processed)
     const newRecords = queryResult.records.slice(totalProcessed);
+
+    // If no new records to process, we're done
+    if (newRecords.length === 0) {
+        break;
+    }
 
     output.markdown(`Processing chunk of ${newRecords.length} new records (starting from order ${orderNumber})`);
 
@@ -69,11 +74,10 @@ do {
 
     totalProcessed += recordUpdates.length;
 
-    // Load next chunk if more records exist
+    // Try to load more records if available
     if (queryResult.hasMoreRecords) {
         await queryResult.loadMoreRecords();
     }
-
-} while (queryResult.hasMoreRecords);
+}
 
 output.markdown(`**Done!** Successfully assigned ordering numbers to ${totalProcessed} records.`);

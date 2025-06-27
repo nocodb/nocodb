@@ -151,22 +151,6 @@ const FEATURES = [
     isEngineering: true,
   },
   {
-    id: 'expanded_form_file_preview_mode',
-    title: 'Expanded form file preview mode',
-    description: 'Preview mode allows you to see attachments inline',
-    enabled: true,
-    version: 2,
-    isEE: true,
-  },
-  {
-    id: 'expanded_form_discussion_mode',
-    title: 'Expanded form discussion mode',
-    description: 'Discussion mode allows you to see the comments and records audits combined in one place',
-    enabled: true,
-    version: 2,
-    isEE: true,
-  },
-  {
     id: 'language',
     title: 'Language',
     description: 'Community/AI Translated',

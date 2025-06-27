@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { marked } from 'marked'
-import { PlanFeatureTypes } from 'nocodb-sdk'
 
 interface Prop {
   modelValue: boolean

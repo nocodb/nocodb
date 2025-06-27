@@ -25,7 +25,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  planTitle: PlanTitles.TEAM,
+  planTitle: PlanTitles.PLUS,
   size: 'sm',
 })
 

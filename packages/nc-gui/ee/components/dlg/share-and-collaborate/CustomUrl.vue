@@ -270,7 +270,7 @@ watch(
               :feature="PlanFeatureTypes.FEATURE_CUSTOM_URL"
               :content="
                 $t('upgrade.upgradeToAddCustomUrlSubtitle', {
-                  plan: getPlanTitle(PlanTitles.TEAM),
+                  plan: getPlanTitle(PlanTitles.PLUS),
                 })
               "
             />

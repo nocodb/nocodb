@@ -30,7 +30,7 @@ const goCheckout = async (workspaceId: string) => {
   await loadPlans()
 
   const plan =
-    plansAvailable.value.find((p) => p.title === planTitle) || plansAvailable.value.filter((p) => p.title === PlanTitles.TEAM)[0]
+    plansAvailable.value.find((p) => p.title === planTitle) || plansAvailable.value.filter((p) => p.title === PlanTitles.PLUS)[0]
 
   if (!plan) {
     return

@@ -77,7 +77,7 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
               :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION"
               :content="
                 $t('upgrade.upgradeToAccessFieldValidationSubtitle', {
-                  plan: getPlanTitle(PlanTitles.TEAM),
+                  plan: getPlanTitle(PlanTitles.PLUS),
                 })
               "
             />

@@ -670,7 +670,7 @@ export const useEeConfig = createSharedComposable(() => {
       title: t('upgrade.upgradeToUploadWsImage'),
       content: t('upgrade.upgradeToUploadWsImageSubtitle', {
         activePlan: activePlanTitle.value,
-        plan: PlanTitles.TEAM,
+        plan: PlanTitles.PLUS,
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO,
@@ -700,7 +700,7 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseRowColoring'),
       content: t('upgrade.upgradeToUseRowColoringSubtitle', {
-        plan: PlanTitles.TEAM,
+        plan: PlanTitles.PLUS,
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_ROW_COLOUR,
@@ -715,7 +715,7 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseTableAndFieldPermissions'),
       content: t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
-        plan: PlanTitles.TEAM,
+        plan: PlanTitles.PLUS,
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
@@ -730,7 +730,7 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseScripts'),
       content: t('upgrade.upgradeToUseScriptsSubtitle', {
-        plan: PlanTitles.TEAM,
+        plan: PlanTitles.PLUS,
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_SCRIPTS,

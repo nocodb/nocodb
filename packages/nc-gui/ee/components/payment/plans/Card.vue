@@ -7,14 +7,14 @@ const props = defineProps<{
   activeBtnPlanTitle?: PlanTitles
 }>()
 
-const popularPlan = PlanTitles.TEAM
+const popularPlan = PlanTitles.PLUS
 
 // Todo: remove comingSoonPlans when we launch this
 const comingSoonPlans = [PlanTitles.ENTERPRISE]
 
 const planTitleToDescHeader = {
   [PlanTitles.FREE]: 'For Personal Applications',
-  [PlanTitles.TEAM]: 'For Small Teams',
+  [PlanTitles.PLUS]: 'For Small Teams',
   [PlanTitles.BUSINESS]: 'For Scaling Applications',
   [PlanTitles.ENTERPRISE]: 'For Established Organizations',
 }
@@ -62,7 +62,7 @@ const upgradePlanBtnType = computed(() => {
           ({{ activeSubscription.period === 'year' ? 'Annually' : 'Monthly' }})
         </span>
         <span
-          v-if="!activeSubscription && plan.title === PlanTitles.TEAM"
+          v-if="!activeSubscription && plan.title === PlanTitles.PLUS"
           class="inline-block bg-nc-bg-brand text-nc-content-brand rounded-md text-sm font-normal px-1"
         >
           {{ $t('title.mostPopular') }}
@@ -101,9 +101,9 @@ const upgradePlanBtnType = computed(() => {
         }"
       >
         Loyalty pricing capped at
-        <span class="line-through decoration-red-500 font-bold mr-1">{{ plan.title === PlanTitles.TEAM ? '$108' : '$216' }}</span>
+        <span class="line-through decoration-red-500 font-bold mr-1">{{ plan.title === PlanTitles.PLUS ? '$108' : '$216' }}</span>
 
-        {{ plan.title === PlanTitles.TEAM ? '$48' : '$96' }}
+        {{ plan.title === PlanTitles.PLUS ? '$48' : '$96' }}
       </div>
       <div class="text-nc-content-gray-muted text-xs leading-[18px] font-500">
         {{ plan.title === PlanTitles.ENTERPRISE ? 'Starting at $1000 / month' : 'For first year' }}

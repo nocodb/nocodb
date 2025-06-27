@@ -97,7 +97,7 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
               :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING"
               :content="
                 $t('upgrade.upgradeToAccessFieldValidationSubtitle', {
-                  plan: getPlanTitle(PlanTitles.TEAM),
+                  plan: getPlanTitle(PlanTitles.PLUS),
                 })
               "
             />

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
+
 const props = defineProps<{
   baseId: string
 }>()
@@ -130,9 +132,19 @@ watch(activeAutomationId, () => {
           :class="isAutomationOpened ? 'text-brand-600 !font-semibold' : 'text-gray-700'"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
         >
-          Automations
+          {{ $t('general.automations') }}
         </div>
         <div class="flex-1" />
+        <PaymentUpgradeBadge
+          :feature="PlanFeatureTypes.FEATURE_SCRIPTS"
+          :title="$t('upgrade.upgradeToUseScripts')"
+          :content="
+            $t('upgrade.upgradeToUseScriptsSubtitle', {
+              plan: PlanTitles.TEAM,
+            })
+          "
+          size="xs"
+        />
 
         <div class="flex items-center">
           <NcButton
@@ -160,8 +172,18 @@ watch(activeAutomationId, () => {
       class="nc-project-home-section-header w-full cursor-pointer"
       @click.stop="onExpand"
     >
-      <div>Automations</div>
+      <div>{{ $t('general.automations') }}</div>
       <div class="flex-1" />
+      <PaymentUpgradeBadge
+        :feature="PlanFeatureTypes.FEATURE_SCRIPTS"
+        :title="$t('upgrade.upgradeToUseScripts')"
+        :content="
+          $t('upgrade.upgradeToUseScriptsSubtitle', {
+            plan: PlanTitles.TEAM,
+          })
+        "
+        size="xs"
+      />
       <GeneralIcon
         icon="chevronRight"
         class="flex-none nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 text-[20px]"

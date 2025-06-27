@@ -398,7 +398,7 @@ export const useScriptExecutor = createSharedComposable(() => {
     maxConcurrent: 10,
     autoStart: true,
     priorityLevels: 3,
-    timeout: 60000,
+    timeout: 60000 * 5, // 5 minutes
     rateLimit: {
       enabled: true,
       maxRequestsPerWindow: 20,

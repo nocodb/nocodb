@@ -58,7 +58,7 @@ export default class Script extends ScriptCE implements ScriptType {
 
       if (script) {
         script = prepareForResponse(script, ['meta', 'config']);
-        NocoCache.set(`${CacheScope.SCRIPTS}:${scriptId}`, script);
+        await NocoCache.set(`${CacheScope.SCRIPTS}:${scriptId}`, script);
       }
     }
 
@@ -89,15 +89,18 @@ export default class Script extends ScriptCE implements ScriptType {
           },
         },
       );
+
+      scriptsList = scriptsList
+        .map((script) => {
+          script = prepareForResponse(script, ['meta', 'config']);
+          return new Script(script);
+        })
+        .sort((a, b) => a.order - b.order);
+
       await NocoCache.setList(CacheScope.SCRIPTS, [baseId], scriptsList);
     }
 
-    return scriptsList
-      .map((script) => {
-        script = prepareForResponse(script, ['meta', 'config']);
-        return new Script(script);
-      })
-      .sort((a, b) => a.order - b.order);
+    return scriptsList;
   }
 
   static async delete(context: NcContext, scriptId: any, ncMeta = Noco.ncMeta) {

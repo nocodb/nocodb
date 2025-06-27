@@ -75,7 +75,8 @@ export default class Subscription {
       );
       await NocoCache.set(
         `${CacheScope.SUBSCRIPTIONS_ALIAS}:${
-          subscription.fk_org_id || subscription.fk_workspace_id
+          // subscription.fk_org_id || subscription.fk_workspace_id
+          subscription.fk_workspace_id
         }`,
         key,
       );
@@ -188,7 +189,8 @@ export default class Subscription {
     );
     await NocoCache.del(
       `${CacheScope.SUBSCRIPTIONS_ALIAS}:${
-        subscription.fk_org_id || subscription.fk_workspace_id
+        // subscription.fk_org_id || subscription.fk_workspace_id
+        subscription.fk_workspace_id
       }`,
     );
 
@@ -318,11 +320,11 @@ export default class Subscription {
                     eq: workspaceOrOrgId,
                   },
                 },
-                {
-                  fk_org_id: {
-                    eq: workspaceOrOrgId,
-                  },
-                },
+                // {
+                // fk_org_id: {
+                //   eq: workspaceOrOrgId,
+                // },
+                // },
               ],
             },
             {

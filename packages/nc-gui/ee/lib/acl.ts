@@ -90,6 +90,7 @@ const rolePermissions = {
       moveWorkspaceToOrg: true,
       createConnectionDetails: true,
       workspaceAuditList: true,
+      workspaceSSO: true,
     },
   },
   [WorkspaceUserRoles.CREATOR]: {

@@ -212,7 +212,7 @@ onBeforeUnmount(() => {
         </a-tab-pane>
       </template>
 
-      <template v-if="isWorkspaceSsoAvail">
+      <template v-if="isWorkspaceSsoAvail && isUIAllowed('workspaceSSO')">
         <a-tab-pane key="sso" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">

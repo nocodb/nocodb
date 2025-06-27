@@ -253,10 +253,9 @@ export class PaymentService {
       if (customerSubscription.data.length) {
         const subscription = customerSubscription.data.find(
           (s) =>
-            ((s.metadata.fk_workspace_id &&
-              s.metadata.fk_workspace_id === workspaceOrOrg.id) ||
-              (s.metadata.fk_org_id &&
-                s.metadata.fk_org_id === workspaceOrOrg.id)) &&
+            // TODO: add org support
+            s.metadata.fk_workspace_id &&
+            s.metadata.fk_workspace_id === workspaceOrOrg.id &&
             ['active', 'trialing', 'incomplete'].includes(s.status),
         );
 
@@ -1059,10 +1058,9 @@ export class PaymentService {
 
     const subscriptionData = subscriptions.data.find(
       (s) =>
-        ((s.metadata.fk_workspace_id &&
-          s.metadata.fk_workspace_id === workspaceOrOrg.id) ||
-          (s.metadata.fk_org_id &&
-            s.metadata.fk_org_id === workspaceOrOrg.id)) &&
+        // TODO: add org support
+        s.metadata.fk_workspace_id &&
+        s.metadata.fk_workspace_id === workspaceOrOrg.id &&
         ['active', 'trialing', 'incomplete'].includes(s.status),
     );
 
@@ -1429,7 +1427,8 @@ export class PaymentService {
               (obj as Stripe.Invoice).subscription as string,
             );
 
-          const workspaceOrOrgId = subRec.fk_workspace_id || subRec.fk_org_id;
+          // TODO: add org support
+          const workspaceOrOrgId = subRec.fk_workspace_id;
           const workspaceOrOrg = await getWorkspaceOrOrg(
             workspaceOrOrgId,
             Noco.ncMeta,
@@ -1471,7 +1470,8 @@ export class PaymentService {
               (obj as Stripe.Invoice).subscription as string,
             );
 
-          const wid = subRec.fk_workspace_id || subRec.fk_org_id;
+          // TODO: add org support
+          const wid = subRec.fk_workspace_id;
           const workspaceOrOrg = await getWorkspaceOrOrg(wid, Noco.ncMeta);
 
           // Send upgrade_failed notification for payment failure
@@ -1499,8 +1499,9 @@ export class PaymentService {
         case 'customer.subscription.created': {
           const stripeSub = obj as Stripe.Subscription;
           const planId = stripeSub.metadata.fk_plan_id;
-          const workspaceOrOrgId =
-            stripeSub.metadata.fk_workspace_id || stripeSub.metadata.fk_org_id!;
+
+          // TODO: add org support
+          const workspaceOrOrgId = stripeSub.metadata.fk_workspace_id;
           const workspaceOrOrg = await getWorkspaceOrOrg(
             workspaceOrOrgId,
             Noco.ncMeta,
@@ -1585,7 +1586,8 @@ export class PaymentService {
           );
           if (!subRec) NcError.genericNotFound('Subscription', stripeSub.id);
 
-          const workspaceOrOrgId = subRec.fk_workspace_id || subRec.fk_org_id!;
+          // TODO: add org support
+          const workspaceOrOrgId = subRec.fk_workspace_id;
           const workspaceOrOrg = await getWorkspaceOrOrg(
             workspaceOrOrgId,
             Noco.ncMeta,
@@ -1692,10 +1694,8 @@ export class PaymentService {
             this.logger.warn(`No Subscription found for schedule ${sched.id}`);
             break;
           }
-          await this.clearScheduledDowngrade(
-            subRec.fk_workspace_id || subRec.fk_org_id!,
-            false,
-          );
+          // TODO: add org support
+          await this.clearScheduledDowngrade(subRec.fk_workspace_id, false);
           break;
         }
 

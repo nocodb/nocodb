@@ -33,9 +33,7 @@ const removeColumnId = (colId: string) => {
   <div class="w-full flex items-center justify-between h-[28px]">
     <label class="cursor-pointer flex items-center" @click.prevent="triggerField = !triggerField">
       <NcSwitch :checked="triggerField" class="nc-check-box-trigger-field">
-        <span class="!text-gray-700 font-semibold">
-          {{ $t('general.trigger') }} {{ $t('activity.forUpdatesInSpecificFields').toLowerCase() }}
-        </span>
+        <span class="!text-gray-700 font-semibold"> Trigger only when specific fields change </span>
       </NcSwitch>
     </label>
     <NcDropdown v-if="triggerField" v-model:visible="isDropdownOpen" overlay-class-name="!pt-0">
@@ -68,7 +66,7 @@ const removeColumnId = (colId: string) => {
           </template>
 
           <template #listItem="{ option }">
-            <div class="flex items-center w-full truncate gap-3 text-nc-content-gray-subtle2 hover:text-black transition-colors">
+            <div class="flex items-center w-full truncate gap-3 text-nc-content-gray-subtle hover:text-black transition-colors">
               <SmartsheetHeaderVirtualCellIcon v-if="isVirtualCol(option)" :column-meta="option" />
               <SmartsheetHeaderCellIcon v-else :column-meta="option" />
 
@@ -76,7 +74,7 @@ const removeColumnId = (colId: string) => {
                 <template #title>
                   {{ option?.title }}
                 </template>
-                <div class="flex-1 font-semibold leading-5 text-small">
+                <div class="flex-1 font-550 leading-5 text-small">
                   {{ option?.title }}
                 </div>
               </NcTooltip>

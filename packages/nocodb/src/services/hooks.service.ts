@@ -290,17 +290,7 @@ export class HooksService {
   ) {
     const model = await Model.getByIdOrName(context, { id: param.tableId });
 
-    if (param.version === 'v2') {
-      return await populateSamplePayloadV2(
-        context,
-        model,
-        false,
-        param.operation,
-        'records',
-        param.includeUser,
-        param.user,
-      );
-    } else {
+    if (param.version === 'v1') {
       return await populateSamplePayload(
         context,
         model,
@@ -308,6 +298,16 @@ export class HooksService {
         param.operation,
       );
     }
+
+    return await populateSamplePayloadV2(
+      context,
+      model,
+      false,
+      param.operation,
+      'records',
+      param.includeUser,
+      param.user,
+    );
   }
 
   async tableSampleData(
@@ -331,6 +331,7 @@ export class HooksService {
         param.operation,
       );
     }
+
     return await populateSamplePayloadV2(
       context,
       model,

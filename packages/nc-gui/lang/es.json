@@ -394,6 +394,7 @@
     "total": "Total",
     "downgrade": "Degradar",
     "upgrade": "Mejorar",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "Reactivar",
     "left": "restantes",
@@ -408,7 +409,9 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "Script",
@@ -686,6 +689,7 @@
     "termsOfService": "Condiciones del servicio",
     "updateSelectedRows": "Actualizar registros seleccionados",
     "noFiltersAdded": "No hay filtros añadidos",
+    "noFieldsSelected": "No fields selected",
     "editCards": "Editar tarjetas",
     "noFieldsFound": "No se han encontrado campos",
     "displayValue": "Mostrar valor",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "Solo puedes restaurar en espacios de trabajo donde tengas acceso de creador o superior.",
     "currentWorkspace": "Espacio de trabajo actual",
     "currentBase": "Current base",
+    "sendMeEverything": "Send me everything",
     "latitude": "Latitud",
     "longitude": "Longitud",
     "failed": "Fallido",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "Clic para resolver",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "Abrir en una nueva pestaña",
     "copyIFrameCode": "Copiar código IFrame",
     "onCondition": "En Condición",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "Descarga masiva",
     "attachFile": "Adjuntar archivo",
     "viewAttachment": "Ver adjuntos",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "Excediendo el límite",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "Los filtros de URL se aplican a partir de los parámetros de la URL y se combinan con los filtros de vista establecidos desde la barra de herramientas.",
     "urlFilterError": "Filtro de URL no válido. Se ignoró porque no se pudo aplicar.",
     "dropYourDocHere": "Suelta tu documento aquí",

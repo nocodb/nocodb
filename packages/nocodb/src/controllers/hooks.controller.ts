@@ -123,7 +123,7 @@ export class HooksController {
   async tableSampleData(
     @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
-    @Param('operation') operation: HookType['operation'],
+    @Param('operation') operation: HookType['operation'][0],
     @Param('version') version: HookType['version'],
     @Query('includeUser') includeUser: string,
   ) {

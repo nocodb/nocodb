@@ -347,10 +347,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
                 : $t('objects.currentPlan.numberOfBilledUsers')
             }}
           </template>
-          <template #value
-            >{{ workspaceSeatCount }} of
-            {{ formatTotalLimit(loyalGracePeriod ? 3 : getLimit(PlanLimitTypes.LIMIT_EDITOR)) }} editors</template
-          >
+          <template #value>{{ workspaceSeatCount }} Paid Users</template>
         </PaymentPlanUsageRow>
         <PaymentPlanUsageRow
           :plan-meta="activePlanMeta"

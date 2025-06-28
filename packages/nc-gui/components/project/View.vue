@@ -227,7 +227,7 @@ onMounted(() => {
           key="allScripts"
         >
           <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__all-tables">
+            <div class="tab-title" data-testid="proj-view-tab__all-scripts">
               <GeneralIcon icon="ncScript" />
               <div>{{ $t('labels.allScripts') }}</div>
               <div

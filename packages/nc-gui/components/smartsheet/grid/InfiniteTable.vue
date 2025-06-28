@@ -859,6 +859,8 @@ async function expandRows({
     'newColumns': newColumns,
     'cellsOverwritten': cellsOverwritten,
     'rowsUpdated': rowsUpdated,
+    'isAddingEmptyRowPermitted': true,
+    'meta': meta.value,
     'onUpdate:expand': closeDialog,
     'onUpdate:modelValue': closeDlg,
   })

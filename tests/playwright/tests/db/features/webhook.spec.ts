@@ -866,7 +866,8 @@ test.describe.serial('Webhook', () => {
     // Test webhook without include_user option (default)
     await webhook.create({
       title: 'hook-without-user',
-      event: 'On Record Insert',
+      event: 'Record',
+      operation: 'insert',
     });
 
     await clearServerData({ request });
@@ -908,7 +909,8 @@ test.describe.serial('Webhook', () => {
     // Test webhook without include_user option (default)
     await webhook.create({
       title: 'hook-without-user-update',
-      event: 'On Record Update',
+      event: 'Record',
+      operation: 'update',
     });
 
     await clearServerData({ request });

@@ -81,7 +81,7 @@ const removeColumnId = (colId: string) => {
       >
         <SmartsheetHeaderVirtualCellIcon v-if="isVirtualCol(col)" :column-meta="col" />
         <SmartsheetHeaderCellIcon v-else :column-meta="col" />
-        <div class="text-[13px] font-medium leading-4.5">
+        <div class="text-[13px] font-default leading-4.5">
           {{ col.title }}
         </div>
 

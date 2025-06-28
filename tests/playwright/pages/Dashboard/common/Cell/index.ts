@@ -387,6 +387,7 @@ export class CellPageObject extends BasePage {
     // For HM/MM columns
     else {
       await cell.locator('.nc-datatype-link').click();
+      await this.rootPage.locator('.nc-links-dropdown.active').waitFor({ state: 'visible' });
       await this.rootPage
         .locator(`[data-testid="nc-child-list-item"]`)
         .last()

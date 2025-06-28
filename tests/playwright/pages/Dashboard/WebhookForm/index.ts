@@ -80,11 +80,26 @@ export class WebhookFormPage extends BasePage {
       await dropdownHookOperation.click();
       const modal = this.rootPage.locator(`[data-testid="nc-dropdown-hook-operation-modal"]`);
       await modal.waitFor({ state: 'visible' });
-      await modal
-        .locator(`[data-testid="nc-dropdown-hook-operation-option"][data-testvalue="sendMeEverything"]`)
-        .click();
+
+      const sendMeEverythingLocator = modal.locator(
+        `[data-testid="nc-dropdown-hook-operation-option"][data-testvalue="sendMeEverything"] input`
+      );
+
+      await sendMeEverythingLocator.waitFor({ state: 'visible' });
+
+      // If it is already checked, then uncheck it to uncheck all operations
+      if (await sendMeEverythingLocator.isChecked()) {
+        await sendMeEverythingLocator.click();
+      } else {
+        // If it is not checked, then check it to check all operations and then uncheck it to uncheck all operations
+        await sendMeEverythingLocator.click();
+        await sendMeEverythingLocator.click();
+      }
 
       await modal.locator(`[data-testid="nc-dropdown-hook-operation-option"][data-testvalue="${operation}"]`).click();
+      // close the dropdown
+      await dropdownHookOperation.click();
+      await modal.waitFor({ state: 'hidden' });
     }
     if (url) {
       await this.get().locator(`.nc-text-field-hook-url-path`).fill(url);

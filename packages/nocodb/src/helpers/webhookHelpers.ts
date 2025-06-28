@@ -1143,3 +1143,53 @@ export async function getAffectedColumns(
     return undefined;
   }
 }
+
+export async function getNotEmptyColumns(
+  context: NcContext,
+  {
+    hookName,
+    newData,
+    model,
+  }: {
+    hookName: string;
+    newData: any;
+    model: Model;
+  },
+) {
+  if (hookName !== 'after.insert' && hookName !== 'after.bulkInsert') {
+    return undefined;
+  }
+  let notEmptyCols = [];
+  const observeSingle = (next) => {
+    notEmptyCols = notEmptyCols.concat(
+      Object.keys(next)
+        .map((key) => {
+          if (
+            next[key] !== null &&
+            typeof next[key] !== 'undefined' &&
+            key !== ''
+          ) {
+            return key;
+          }
+          return undefined;
+        })
+        .filter((k) => k),
+    );
+  };
+  if (Array.isArray(newData)) {
+    for (let i = 0; i < newData.length; i++) {
+      observeSingle(newData[i]);
+    }
+  } else {
+    observeSingle(newData);
+  }
+  if (notEmptyCols.length) {
+    notEmptyCols = [...new Set(notEmptyCols)];
+    const columns = await model.getColumns(context);
+    return notEmptyCols.map(
+      (title) => columns.find((col) => col.title === title).id,
+    );
+  } else {
+    return undefined;
+  }
+}

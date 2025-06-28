@@ -25,7 +25,9 @@ const webhooksStore = useWebhooksStore()
 const { hooks } = toRefs(webhooksStore)
 
 const manualHooks = computed(() => {
-  return hooks.value.filter((hook) => hook.event === 'manual' && hook.active)
+  return hooks.value.filter((hook) =>
+    hook.version === 'v3' ? hook.operation?.includes('trigger') : hook.event === 'manual' && hook.active,
+  )
 })
 
 const eventList = ref<Record<string, any>[]>([
@@ -59,7 +61,6 @@ const editWebhook = () => {
 }
 
 const onSelectWebhook = (hook: HookType) => {
-  console.log(vModel.value)
   vModel.value.fk_webhook_id = hook.id
   selectedWebhook.value = hook
   isWebHookSelectionDropdownOpen.value = false

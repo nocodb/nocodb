@@ -590,7 +590,9 @@ onMounted(async () => {
                   disruptions."
           >
             <template #action>
-              <NcButton type="link" size="xsmall" class="!font-bold" @click="isV3ModalOpen = true"> Upgrade to v3 </NcButton>
+              <NcButton type="link" size="xsmall" class="!font-bold" @click="isV3ModalOpen = true">
+                {{ $t('general.upgrade') }}
+              </NcButton>
             </template>
           </NcAlert>
 

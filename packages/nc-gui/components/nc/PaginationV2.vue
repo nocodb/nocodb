@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { UseVirtualList } from '@vueuse/components'
-import NcTooltip from '~/components/nc/Tooltip.vue'
 import type { NcButtonProps } from './Button.vue'
+import NcTooltip from '~/components/nc/Tooltip.vue'
 
 const props = withDefaults(
   defineProps<{

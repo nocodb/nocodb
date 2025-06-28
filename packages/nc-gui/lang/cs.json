@@ -394,6 +394,7 @@
     "total": "Celkem",
     "downgrade": "Přejít na nižší tarif",
     "upgrade": "Upgradovat",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "Znovu aktivovat",
     "left": "zbývá",
@@ -408,7 +409,9 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "Skript",
@@ -686,6 +689,7 @@
     "termsOfService": "Smluvní podmínky",
     "updateSelectedRows": "Aktualizovat vybrané záznamy",
     "noFiltersAdded": "Nepřidány žádné filtry",
+    "noFieldsSelected": "No fields selected",
     "editCards": "Upravit karty",
     "noFieldsFound": "Žádná pole nebyla nalezena",
     "displayValue": "Zobrazovaná hodnota",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "Obnovovat lze pouze do pracovních prostorů, kde máte oprávnění tvůrce nebo vyšší.",
     "currentWorkspace": "Aktuální pracovní prostor",
     "currentBase": "Current base",
+    "sendMeEverything": "Send me everything",
     "latitude": "Zeměpisná šířka",
     "longitude": "Zeměpisná délka",
     "failed": "Neúspěšné",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "Kliknutím vyřešíte",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "Otevřít v nové kartě",
     "copyIFrameCode": "Zkopírovat kód IFrame",
     "onCondition": "Za podmínky",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "Hromadné stahování",
     "attachFile": "Připojit soubor",
     "viewAttachment": "Zobrazit přílohy",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "Překročen limit",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "Filtry URL jsou použity z parametrů URL a kombinují se s filtry zobrazení nastavenými na panelu nástrojů.",
     "urlFilterError": "Neplatný filtr URL. Byl ignorován, protože jej nelze použít.",
     "dropYourDocHere": "Sem přetáhněte svůj dokument",

@@ -394,6 +394,7 @@
     "total": "Total",
     "downgrade": "Retrogradare",
     "upgrade": "Upgrade",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "Reactivează",
     "left": "rămase",
@@ -408,7 +409,9 @@
     "proceedImport": "Continuă importul",
     "inserting": "Se inserează",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "Script",
@@ -686,6 +689,7 @@
     "termsOfService": "Termeni și condiții",
     "updateSelectedRows": "Actualizează înregistrările selectate",
     "noFiltersAdded": "Nu au fost adăugate filtre",
+    "noFieldsSelected": "No fields selected",
     "editCards": "Editează Carduri",
     "noFieldsFound": "Nu au fost găsite câmpuri",
     "displayValue": "Afișează Valoarea",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "Puteți restaura doar în spațiile de lucru unde aveți acces de creator sau superior.",
     "currentWorkspace": "Spațiul de lucru curent",
     "currentBase": "Bază curentă",
+    "sendMeEverything": "Send me everything",
     "latitude": "Latitudine",
     "longitude": "Longitudine",
     "failed": "Eșuat",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "Fă clic pentru a rezolva",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "Deschide într-o filă nouă",
     "copyIFrameCode": "Copiază codul IFrame",
     "onCondition": "Pe condiție",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "Descărcare în bloc",
     "attachFile": "Atașează fișier",
     "viewAttachment": "Vizualizează atașamentele",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "Depășește limita",
     "filteredByCurrentUser": "Filtrat după utilizatorul curent",
     "navigateToBaseToCreateTable": "Navighează la o bază pentru a crea un tabel",
-    "navigateToBaseToCreateAutomation": "Navigați la o bază pentru a crea o automatizare",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navighează la un tabel pentru a crea o vizualizare",
     "youDontHaveAccessToCreateNewTable": "Nu aveți acces pentru a crea un tabel nou",
     "youDontHaveAccessToCreateNewView": "Nu aveți acces pentru a crea o vizualizare nouă",
-    "youDontHaveAccessToCreateNewAutomation": "Nu aveți acces pentru a crea o nouă automatizare",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Crearea unei vizualizări de formular nu este disponibilă pentru un tabel sincronizat",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluează recursiv",
     "evaluateRecursivelyTooltip": "Evaluați recursiv această căutare pentru relațiile Has Many auto referențiale (doar în Enterprise Edition + PostgreSQL)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "Filtrele URL sunt aplicate din parametrii URL și se combină cu filtrele vizualizării setate din bara de instrumente.",
     "urlFilterError": "Filtru URL invalid. A fost ignorat deoarece nu a putut fi aplicat.",
     "dropYourDocHere": "Trage documentul aici",

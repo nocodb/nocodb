@@ -251,7 +251,7 @@ onKeyStroke('Enter', () => {
           </div>
 
           <div
-            v-if="isScriptsEnabled"
+            v-if="isScriptsEnabled && isEeUI"
             class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
             @click="options.includeScripts = !options.includeScripts"
           >

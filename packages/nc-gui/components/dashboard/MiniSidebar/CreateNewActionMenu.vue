@@ -224,7 +224,7 @@ const hasAutomationCreateAccess = computed(() => {
             </NcSubMenu>
           </NcTooltip>
 
-          <template v-if="isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS)">
+          <template v-if="isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS) && isEeUI">
             <NcDivider />
             <NcTooltip
               :title="

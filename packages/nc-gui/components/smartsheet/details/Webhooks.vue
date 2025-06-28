@@ -255,7 +255,7 @@ const getHookTypeText = (hook: HookType) => {
   <div class="nc-webhook-wrapper w-full p-4">
     <div class="max-w-250 h-full w-full mx-auto">
       <div v-if="activeView && !isHooksLoading">
-        <div class="flex gap-4 border-1 border-nc-border-gray-medium rounded-lg p-4">
+        <div class="flex gap-4 border-1 nc-border-gray-medium bg-orange-50 rounded-lg p-4">
           <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium w-6 h-6" />
           <div class="flex-1">
             <div class="text-nc-content-gray font-bold text-base leading-6">

@@ -394,6 +394,7 @@
     "total": "合計",
     "downgrade": "ダウングレード",
     "upgrade": "アップグレード",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "再開",
     "left": "残り",
@@ -408,7 +409,9 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "スクリプト",
@@ -686,6 +689,7 @@
     "termsOfService": "利用規約",
     "updateSelectedRows": "選択したレコードを更新",
     "noFiltersAdded": "フィルターが追加されていません",
+    "noFieldsSelected": "No fields selected",
     "editCards": "カード編集",
     "noFieldsFound": "フィールドが見つかりません",
     "displayValue": "表示値",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "復元できるのは、あなたが作成者権限以上を持つワークスペースのみです。",
     "currentWorkspace": "現在のワークスペース",
     "currentBase": "現在のベース",
+    "sendMeEverything": "Send me everything",
     "latitude": "緯度",
     "longitude": "経度",
     "failed": "失敗",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "クリックして解決",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "新しいタブで開く",
     "copyIFrameCode": "IFrameコードをコピー",
     "onCondition": "条件で",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "一括ダウンロード",
     "attachFile": "ファイルを添付",
     "viewAttachment": "添付ファイルを表示",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "上限を超えています",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "URLフィルターはURLパラメーターから適用され、ツールバーで設定したビューフィルターと組み合わされます。",
     "urlFilterError": "無効なURLフィルターです。適用できないため無視されました。",
     "dropYourDocHere": "ここにドキュメントをドロップしてください",

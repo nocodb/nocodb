@@ -21,6 +21,7 @@ interface Props {
   filterOption?: (column: ColumnType) => boolean
   visibilityError?: Record<string, string>
   disableAddNewFilter?: boolean
+  hiddenAddNewFilter?: boolean
   isViewFilter?: boolean
   readOnly?: boolean
   queryFilter?: boolean
@@ -40,6 +41,7 @@ const props = withDefaults(defineProps<Props>(), {
   actionBtnType: 'text',
   visibilityError: () => ({}),
   disableAddNewFilter: false,
+  hiddenAddNewFilter: false,
   isViewFilter: false,
   readOnly: false,
   isColourFilter: false,
@@ -351,11 +353,6 @@ const updateFilterValue = (value: string, filter: Filter, index: number) => {
   saveOrUpdateDebounced(filter, index)
 }
 
-defineExpose({
-  applyChanges,
-  parentId,
-})
-
 const scrollToBottom = () => {
   wrapperDomRef.value?.scrollTo({
     top: wrapperDomRef.value.scrollHeight,
@@ -576,6 +573,13 @@ eventBus.on(async (event) => {
       loadAllFilters: true,
     })
   }
+})
+
+defineExpose({
+  applyChanges,
+  parentId,
+  addFilterGroup,
+  addFilter,
 })
 </script>
 
@@ -988,13 +992,14 @@ eventBus.on(async (event) => {
       <div class="flex">
         <template v-if="isEeUI && !isPublic">
           <div
-            v-if="!readOnly && filtersCount < getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW)"
+            v-if="!readOnly && filtersCount < getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW) && !hiddenAddNewFilter"
             class="flex gap-2"
             :class="{
               'mt-1 mb-2': filters.length,
             }"
           >
             <NcButton
+              v-if="!hiddenAddNewFilter"
               size="small"
               :type="actionBtnType"
               :disabled="disableAddNewFilter || isLockedView || readOnly"
@@ -1027,7 +1032,7 @@ eventBus.on(async (event) => {
           </div>
         </template>
 
-        <template v-else-if="!readOnly">
+        <template v-else-if="!readOnly && !hiddenAddNewFilter">
           <div
             ref="addFiltersRowDomRef"
             class="flex gap-2"

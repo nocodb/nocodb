@@ -16,6 +16,8 @@ import { DatasService } from '~/services/datas.service';
 import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 
+const SUPPORTED_HOOK_VERSION = ['v3'];
+
 @Injectable()
 export class HooksService {
   constructor(
@@ -58,8 +60,15 @@ export class HooksService {
       req: NcRequest;
     },
   ) {
-    validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+    if (!SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)) {
+      NcError.badRequest('hook version is deprecated / not supported anymore');
+    }
 
+    if (!param.hook?.trigger_field) {
+      param.hook.trigger_field = false;
+    }
+
+    validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
     this.validateHookPayload(param.hook.notification);
 
     const hook = await Hook.insert(context, {
@@ -117,6 +126,14 @@ export class HooksService {
       req: NcRequest;
     },
   ) {
+    if (!SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)) {
+      NcError.badRequest('hook version is deprecated / not supported anymore');
+    }
+
+    if (!param.hook?.trigger_field) {
+      param.hook.trigger_field = false;
+    }
+
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
     const hook = await Hook.get(context, param.hookId);
@@ -239,12 +256,13 @@ export class HooksService {
         hook: new Hook(hook),
         model: model,
         view: null,
-        prevData: null,
+        prevData: data?.previous_rows ?? null,
         newData: data.rows,
         user: user,
         testFilters: (hook as any)?.filters,
         throwErrorOnFailure: true,
         testHook: true,
+        hookName: hook.event + '.' + hook.operation[0],
       });
     } catch (e) {
       throw e;
@@ -272,17 +290,7 @@ export class HooksService {
   ) {
     const model = await Model.getByIdOrName(context, { id: param.tableId });
 
-    if (param.version === 'v2') {
-      return await populateSamplePayloadV2(
-        context,
-        model,
-        false,
-        param.operation,
-        'records',
-        param.includeUser,
-        param.user,
-      );
-    } else {
+    if (param.version === 'v1') {
       return await populateSamplePayload(
         context,
         model,
@@ -290,13 +298,23 @@ export class HooksService {
         param.operation,
       );
     }
+
+    return await populateSamplePayloadV2(
+      context,
+      model,
+      false,
+      param.operation,
+      'records',
+      param.includeUser,
+      param.user,
+    );
   }
 
   async tableSampleData(
     context: NcContext,
     param: {
       tableId: string;
-      operation: HookType['operation'];
+      operation: HookType['operation'][number];
       version: any; // HookType['version'];
       includeUser?: boolean;
     },
@@ -313,6 +331,7 @@ export class HooksService {
         param.operation,
       );
     }
+
     return await populateSamplePayloadV2(
       context,
       model,
@@ -320,6 +339,8 @@ export class HooksService {
       param.operation,
       undefined,
       param.includeUser,
+      undefined,
+      param.version,
     );
   }
 

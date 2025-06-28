@@ -26,8 +26,6 @@ export const useEeConfig = createSharedComposable(() => {
 
   const { isUIAllowed } = useRoles()
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
-
   const workspaceStore = useWorkspace()
 
   const { activeWorkspace, activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
@@ -38,7 +36,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   /** Ref or Computed value */
 
-  const isPaymentEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PAYMENT))
+  const isPaymentEnabled = computed(() => appInfo.value?.isCloud && !appInfo.value?.isOnPrem)
 
   // Will only consider ws owner not super admin
   const isWsOwner = computed(() =>

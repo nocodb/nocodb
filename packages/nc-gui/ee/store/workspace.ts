@@ -45,8 +45,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { user: currentUser } = useGlobal()
 
-  const { isPaymentEnabled } = useEeConfig()
-
   const collaborators = ref<WorkspaceUserType[] | null>()
 
   const allCollaborators = ref<WorkspaceUserType[] | null>()
@@ -335,7 +333,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     } catch (e) {
       const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
-      if (isPaymentEnabled && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+      if (appInfo.value?.isCloud && !appInfo.value?.isOnPrem && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
         throw e
       } else {
         message.error(errorInfo.message)

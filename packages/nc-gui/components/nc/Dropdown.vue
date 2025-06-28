@@ -74,6 +74,11 @@ const onVisibleUpdate = (event: boolean) => {
   }
 }
 
+/**
+ * If we have not passed a visible prop, then `@update:visible` will not be called.
+ * So we need to use this method to update the local state of the dropdown.
+ * @param isVisible - the new visibility state of the dropdown
+ */
 const onVisibilityChange = (isVisible: boolean) => {
   if (!ncIsUndefined(props.visible)) return
 

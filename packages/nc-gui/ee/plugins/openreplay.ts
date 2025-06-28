@@ -15,6 +15,7 @@ export default defineNuxtPlugin(() => {
           projectKey: 'WX6JlrfCDKS1uuuzhbYm',
           ingestPoint: 'https://opr.nocodb.com/ingest',
           resourceBaseHref: 'https://cdn.nocodb.com',
+          inlineCss: 3,
         })
 
         tracker.start()

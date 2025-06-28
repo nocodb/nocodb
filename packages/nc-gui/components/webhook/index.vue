@@ -11,6 +11,7 @@ interface Props {
   hook?: HookType
   showUpgradeModal?: boolean
   sampleDataV2?: any
+  stickyScroll?: boolean
 }
 
 const props = defineProps<Props>()
@@ -352,7 +353,7 @@ const validators = computed(() => {
 
               let matched = false
               try {
-                const webhookUrl = new URL(hookRef.value.notification.payload.path)
+                const webhookUrl = new URL(hookRef.notification.payload.path)
                 const siteUrlObj = new URL(siteUrl)
 
                 // Check if the hostname matches exactly
@@ -1399,10 +1400,7 @@ const webhookV2AndV3Diff = computed(() => {
                       hideCursorInOverviewRuler: true,
                       lineDecorationsWidth: 12,
                       lineNumbersMinChars: 0,
-                      roundedSelection: false,
-                      selectOnLineNumbers: false,
                       scrollBeyondLastLine: false,
-                      contextmenu: false,
                       renderLineHighlight: 'none',
                       lineNumbers: 'off',
                       glyphMargin: false,

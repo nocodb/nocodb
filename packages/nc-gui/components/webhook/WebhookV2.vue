@@ -9,6 +9,7 @@ interface Props {
   value: boolean
   eventList: Record<string, any>[]
   hook?: HookType
+  stickyScroll?: boolean
 }
 
 const props = defineProps<Props>()
@@ -28,6 +29,8 @@ const { $api } = useNuxtApp()
 
 const { api } = useApi()
 
+const { appInfo } = useGlobal()
+
 const modalVisible = useVModel(props, 'value')
 
 const { hooks } = storeToRefs(useWebhooksStore())
@@ -43,7 +46,13 @@ const isV3ModalOpen = ref(false)
 const useForm = Form.useForm
 
 const hookRef = reactive<
-  Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation?: string; condition: boolean }
+  Omit<HookType, 'notification'> & {
+    notification: Record<string, any> & {
+      include_user: boolean
+    }
+    eventOperation?: string
+    condition: boolean
+  }
 >({
   id: '',
   title: defaultHookName,
@@ -52,6 +61,7 @@ const hookRef = reactive<
   eventOperation: undefined,
   notification: {
     type: 'URL',
+    include_user: false,
     payload: {
       method: 'POST',
       body: '{{ json event }}',
@@ -213,6 +223,8 @@ const methodList = [
   { title: 'PATCH' },
 ]
 
+const showCyclicCallsWarning = ref(false)
+
 const validators = computed(() => {
   return {
     'title': [fieldRequiredValidator()],
@@ -220,7 +232,44 @@ const validators = computed(() => {
     'notification.type': [fieldRequiredValidator()],
     ...(hookRef.notification.type === 'URL' && {
       'notification.payload.method': [fieldRequiredValidator()],
-      'notification.payload.path': [fieldRequiredValidator()],
+      'notification.payload.path': [
+        fieldRequiredValidator(),
+        {
+          validator: (_: any, path: string) => {
+            return new Promise<void>((resolve, reject) => {
+              showCyclicCallsWarning.value = false
+              const siteUrl = appInfo.value?.ncSiteUrl
+
+              if (!path || !siteUrl) {
+                resolve()
+                return
+              }
+
+              let matched = false
+              try {
+                const webhookUrl = new URL(hookRef.notification.payload.path)
+                const siteUrlObj = new URL(siteUrl)
+
+                // Check if the hostname matches exactly
+                matched = webhookUrl.hostname === siteUrlObj.hostname
+              } catch (e) {
+                // If URL parsing fails, fall back to simple includes check
+                matched = path.includes(siteUrl)
+              }
+
+              if (matched) {
+                if (appInfo.value?.isCloud) {
+                  reject(new Error(t('msg.internalUrlsNotAllowed')))
+                } else {
+                  showCyclicCallsWarning.value = true
+                }
+              }
+
+              resolve()
+            })
+          },
+        },
+      ],
     }),
     ...(hookRef.notification.type === 'Email' && {
       'notification.payload.to': [fieldRequiredValidator()],
@@ -291,6 +340,7 @@ function setHook(newHook: HookType) {
     ...newHook,
     notification: {
       ...notification,
+      include_user: notification?.include_user ?? false,
       payload: notification.payload,
     },
   })
@@ -302,6 +352,7 @@ function onEventChange() {
   Object.assign(hookRef, {
     ...hookRef,
     notification: {
+      ...hookRef.notification,
       type,
       payload,
     },
@@ -426,6 +477,11 @@ async function loadSampleData() {
     meta?.value?.id as string,
     hookRef?.operation || 'insert',
     hookRef.version!,
+    {
+      query: {
+        includeUser: (!!hookRef.notification?.include_user).toString(),
+      },
+    },
   )
 }
 
@@ -506,6 +562,11 @@ onMounted(async () => {
       titleDomRef.value?.select()
     })
 })
+
+const toggleIncludeUser = async () => {
+  hookRef.notification.include_user = !hookRef.notification.include_user
+  await loadSampleData()
+}
 </script>
 
 <template>
@@ -701,13 +762,17 @@ onMounted(async () => {
                     </a-form-item>
 
                     <a-form-item class="w-2/3" v-bind="validateInfos['notification.payload.path']">
-                      <a-input
-                        v-model:value="hookRef.notification.payload.path"
-                        :disabled="true"
-                        size="medium"
-                        placeholder="http://example.com"
-                        class="nc-text-field-hook-url-path nc-input-shadow h-9 !rounded-lg"
-                      />
+                      <div class="flex flex-col gap-2">
+                        <a-input
+                          v-model:value="hookRef.notification.payload.path"
+                          size="medium"
+                          placeholder="http://example.com"
+                          class="nc-text-field-hook-url-path nc-input-shadow h-9 !rounded-lg"
+                        />
+                        <div v-if="showCyclicCallsWarning" class="text-xs text-warning pl-2">
+                          {{ $t('msg.cyclicCallsWarning') }}
+                        </div>
+                      </div>
                     </a-form-item>
                   </div>
                 </div>
@@ -764,6 +829,9 @@ onMounted(async () => {
                             wrappingStrategy: 'advanced',
                             renderLineHighlight: 'none',
                             tabSize: 4,
+                            stickyScroll: {
+                              enabled: props.stickyScroll,
+                            },
                           }"
                         />
                       </div>
@@ -838,6 +906,22 @@ onMounted(async () => {
               />
             </div>
 
+            <div v-if="isEeUI">
+              <div>
+                <div class="w-full cursor-pointer flex items-center" @click.prevent="toggleIncludeUser">
+                  <NcSwitch :checked="Boolean(hookRef.notification.include_user)" class="nc-check-box-include-user">
+                    <span class="!text-gray-700 font-semibold">{{ $t('labels.includeUser') }}</span>
+                  </NcSwitch>
+                  <NcTooltip>
+                    <template #title>
+                      {{ $t('tooltip.includeUserHint') }}
+                    </template>
+                    <GeneralIcon icon="info" class="text-gray-400 ml-1" />
+                  </NcTooltip>
+                </div>
+              </div>
+            </div>
+
             <a-form-item v-if="formInput[hookRef.notification.type] && hookRef.notification.payload">
               <div class="flex flex-col gap-4">
                 <div v-for="(input, i) in formInput[hookRef.notification.type]" :key="i">
@@ -891,10 +975,9 @@ onMounted(async () => {
                     hideCursorInOverviewRuler: true,
                     lineDecorationsWidth: 12,
                     lineNumbersMinChars: 0,
-                    roundedSelection: false,
-                    selectOnLineNumbers: false,
                     scrollBeyondLastLine: false,
-                    contextmenu: false,
+                    renderLineHighlight: 'none',
+                    lineNumbers: 'off',
                     glyphMargin: false,
                     folding: false,
                     bracketPairColorization: { enabled: false },
@@ -904,8 +987,8 @@ onMounted(async () => {
                       verticalScrollbarSize: 6,
                     },
                     wrappingStrategy: 'advanced',
-                    renderLineHighlight: 'none',
                     tabSize: 4,
+                    readOnly: true,
                   }"
                   :monaco-custom-theme="{
                     base: 'vs',

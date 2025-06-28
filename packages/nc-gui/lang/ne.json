@@ -394,6 +394,7 @@
     "total": "कुल",
     "downgrade": "डाउनग्रेड",
     "upgrade": "अपग्रेड",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "पुनः सक्रिय गर्नुहोस्",
     "left": "बाँकी",
@@ -408,7 +409,9 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "स्क्रिप्ट",
@@ -686,6 +689,7 @@
     "termsOfService": "सेवा सर्तहरू",
     "updateSelectedRows": "चयन गरिएका रेकर्डहरू अपडेट गर्नुहोस्",
     "noFiltersAdded": "कुनै फिल्टरहरू थपिएन",
+    "noFieldsSelected": "No fields selected",
     "editCards": "कार्डहरू सम्पादन गर्नुहोस्",
     "noFieldsFound": "कुनै क्षेत्र भेटिएन",
     "displayValue": "प्रदर्शन मान",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "तपाईंले सिर्जनाकर्ता पहुँच वा सो भन्दा माथि भएको कार्यक्षेत्रमा मात्र पुनर्स्थापना गर्न सक्नुहुन्छ।",
     "currentWorkspace": "हालको कार्यक्षेत्र",
     "currentBase": "Current base",
+    "sendMeEverything": "Send me everything",
     "latitude": "अक्षांश",
     "longitude": "देशान्तर",
     "failed": "असफल",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "समाधान गर्न क्लिक गर्नुहोस्",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "नयाँ ट्याबमा खोल्नुहोस्",
     "copyIFrameCode": "IFrame कोड प्रतिलिपि गर्नुहोस्",
     "onCondition": "अवस्थामा",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "थोक डाउनलोड",
     "attachFile": "फाइल सम्बद्ध गर्नुहोस्",
     "viewAttachment": "संलग्नहरू हेर्नुहोस्",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "सीमितता नाघ्दै",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "URL फिल्टरहरू URL प्यारामिटरहरूबाट लागू हुन्छन् र टुलबारमार्फत सेट गरिएको दृश्य फिल्टरहरूसँग मिलेर काम गर्छन्।",
     "urlFilterError": "अवैध URL फिल्टर। लागू गर्न नसकिने भएकाले उपेक्षा गरियो।",
     "dropYourDocHere": "आफ्नो कागजात यहाँ छोड्नुहोस्",

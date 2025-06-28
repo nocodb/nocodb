@@ -394,6 +394,7 @@
     "total": "ಒಟ್ಟು",
     "downgrade": "ಡೌನ್‌ಗ್ರೇಡ್",
     "upgrade": "ಅಪ್ಗ್ರೇಡ್",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "ಮರುಸಕ್ರಿಯಗೊಳಿಸಿ",
     "left": "ಉಳಿದೆ",
@@ -408,7 +409,9 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "ಸ್ಕ್ರಿಪ್ಟ್",
@@ -686,6 +689,7 @@
     "termsOfService": "ಸೇವಾ ಷರತ್ತುಗಳು",
     "updateSelectedRows": "ಆಯ್ದ ದಾಖಲೆಗಳನ್ನು ನವೀಕರಿಸಿ",
     "noFiltersAdded": "ಫಿಲ್ಟರ್‌ಗಳನ್ನು ಸೇರಿಸಲಾಗಿಲ್ಲ",
+    "noFieldsSelected": "No fields selected",
     "editCards": "ಕಾರ್ಡ್‌ಗಳನ್ನು ಸಂಪಾದಿಸು",
     "noFieldsFound": "ಕ್ಷೇತ್ರಗಳು ಕಂಡುಬಂದಿಲ್ಲ",
     "displayValue": "ಪ್ರದರ್ಶನ ಚಿಲುಮೆ",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "ನೀವು ರಚನಾ ಪ್ರವೇಶ ಅಥವಾ ಹೆಚ್ಚಿನ ಅನುಮತಿ ಇರುವ ವರ್ಕ್‌ಸ್ಪೇಸ್‌ಗಳಿಗೆ ಮಾತ್ರ ಪುನಸ್ಥಾಪಿಸಬಹುದು.",
     "currentWorkspace": "ಪ್ರಸ್ತುತ ವರ್ಕ್‌ಸ್ಪೇಸ್",
     "currentBase": "Current base",
+    "sendMeEverything": "Send me everything",
     "latitude": "ಅಕ್ಷಾಂಶ",
     "longitude": "ರೇಖಾಂಶ",
     "failed": "ವಿಫಲವಾಗಿದೆ",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "ಪರಿಹರಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "ಹೊಸ ಟ್ಯಾಬ್‌ನಲ್ಲಿ ಓಪನ್ ಮಾಡಿ",
     "copyIFrameCode": "IFrame ಕೋಡ್ ನಕಲು ಮಾಡಿ",
     "onCondition": "ಶರ್ತದ ಮೇಲೆ",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "ವಿಸ್ತು ಪಡಿಸು ಡೌನ್ಲೋಡ್",
     "attachFile": "ಫೈಲ್ ಅಟಾಚ್ ಮಾಡಿ",
     "viewAttachment": "ಅಟಾಚ್‌ಮೆಂಟ್‌ಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "ಮಿತಿಯನ್ನು ಮೀರುತ್ತಿದೆ",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "URL ಪರಾಮೀಟರ್‌ಗಳಿಂದ URL ಫಿಲ್ಟರ್‌ಗಳನ್ನು ಅನ್ವಯಿಸಲಾಗಿದ್ದು, ಟೂಲ್ಬಾರ್‌ನಲ್ಲಿ ಹೊಂದಿರುವ ದೃಶ್ಯ ಫಿಲ್ಟರ್‌ಗಳೊಂದಿಗೆ ಸಂಯೋಜಿಸಲಾಗುತ್ತದೆ.",
     "urlFilterError": "ಅಮಾನ್ಯ URL ಫಿಲ್ಟರ್. ಅನ್ವಯಿಸಲಾಗದ ಕಾರಣ ನಿರ್ಲಕ್ಷಿಸಲಾಗಿದೆ.",
     "dropYourDocHere": "ನಿಮ್ಮ ಡಾಕ್ಯುಮೆಂಟ್ ಅನ್ನು ಇಲ್ಲಿ ಬಿಡಿ",

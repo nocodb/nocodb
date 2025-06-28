@@ -42,7 +42,6 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
     return payload
   }
 
-  console.log(route.name)
 
   if (route.name?.toString().includes('index-typeOrId-marketplace')) {
     payload.pop()

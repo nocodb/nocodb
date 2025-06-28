@@ -1337,7 +1337,7 @@ const webhookV2AndV3Diff = computed(() => {
                     <NcSwitch :checked="Boolean(hookRef.notification.include_user)" class="nc-check-box-include-user">
                       <span class="!text-gray-700 font-semibold">{{ $t('labels.includeUser') }}</span>
                     </NcSwitch>
-                    <NcTooltip>
+                    <NcTooltip class="flex">
                       <template #title>
                         {{ $t('tooltip.includeUserHint') }}
                       </template>

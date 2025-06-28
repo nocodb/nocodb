@@ -910,9 +910,9 @@ const toggleIncludeUser = async () => {
               <div>
                 <div class="w-full cursor-pointer flex items-center" @click.prevent="toggleIncludeUser">
                   <NcSwitch :checked="Boolean(hookRef.notification.include_user)" class="nc-check-box-include-user">
-                    <span class="!text-gray-700 font-semibold">{{ $t('labels.includeUser') }}</span>
+                    <span class="!text-gray-700 font-semibold">{{ $t('labels.includeUser') }}</span> jkl
                   </NcSwitch>
-                  <NcTooltip>
+                  <NcTooltip class="flex">
                     <template #title>
                       {{ $t('tooltip.includeUserHint') }}
                     </template>

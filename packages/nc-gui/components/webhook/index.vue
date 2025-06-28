@@ -96,7 +96,7 @@ let hookRef = reactive<
   id: '',
   title: defaultHookName,
   event: undefined,
-  operation: [],
+  operation: ['insert', 'update', 'delete'],
   eventOperation: undefined,
   notification: {
     type: 'URL',
@@ -159,7 +159,7 @@ const teamsChannels = ref<Record<string, any>[]>([])
 const discordChannels = ref<Record<string, any>[]>([])
 
 const mattermostChannels = ref<Record<string, any>[]>([])
-const sendMeEverythingChecked = ref(false)
+const sendMeEverythingChecked = ref(true)
 
 const filterRef = ref()
 

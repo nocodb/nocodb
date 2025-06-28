@@ -394,6 +394,7 @@
     "total": "Total",
     "downgrade": "Retourner à une version inférieure",
     "upgrade": "Passer à une version supérieure",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "Réactiver",
     "left": "restant",
@@ -408,7 +409,9 @@
     "proceedImport": "Procéder à l'import",
     "inserting": "Insertion en cours",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "Script",
@@ -686,6 +689,7 @@
     "termsOfService": "Conditions d'utilisation",
     "updateSelectedRows": "Mettre à jour les enregistrements sélectionnés",
     "noFiltersAdded": "Aucun filtre ajouté",
+    "noFieldsSelected": "No fields selected",
     "editCards": "Modifier les cartes",
     "noFieldsFound": "Aucun champ trouvé",
     "displayValue": "Afficher la valeur",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "Vous pouvez uniquement restaurer dans des espaces de travail où vous avez un accès créateur ou supérieur.",
     "currentWorkspace": "Espace de travail courant",
     "currentBase": "Current base",
+    "sendMeEverything": "Send me everything",
     "latitude": "Latitude",
     "longitude": "Longitude",
     "failed": "En erreur",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "Cliquer pour résoudre",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "Ouvrir dans un nouvel onglet",
     "copyIFrameCode": "Copier le code IFrame",
     "onCondition": "Sur condition",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "Téléchargement en masse",
     "attachFile": "Joindre un fichier",
     "viewAttachment": "Voir les pièces jointes",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "Limite dépassée",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "Les filtres d'URL sont appliqués à partir des paramètres d'URL et se combinent avec les filtres de vue définis via la barre d'outils.",
     "urlFilterError": "Filtre URL invalide. Ignoré car il n'a pas pu être appliqué.",
     "dropYourDocHere": "Déposer votre document ici",

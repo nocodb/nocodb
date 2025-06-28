@@ -1,0 +1,23 @@
+{
+  "name": "@nocodb/openreplay-cdn-builder",
+  "version": "1.0.0",
+  "description": "Simple OpenReplay CDN builder for NocoDB",
+  "private": true,
+  "scripts": {
+    "build": "node build.js"
+  },
+  "keywords": [
+    "openreplay",
+    "cdn",
+    "nocodb"
+  ],
+  "author": "NocoDB",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "@openreplay/tracker": "latest"
+  },
+  "devDependencies": {
+    "@rspack/core": "^1.0.0",
+    "@rspack/cli": "^1.0.0"
+  }
+}

@@ -49,11 +49,6 @@ export class WebhookFormPage extends BasePage {
       key: 'Content-Type',
       value: 'application/json',
     });
-    // uncheck send everything
-    const dropdownHookOperation = this.get().locator(`[data-testid="nc-dropdown-hook-operation"]`);
-    await dropdownHookOperation.click();
-    const modal = this.rootPage.locator(`[data-testid="nc-dropdown-hook-operation-modal"]`);
-    await modal.locator(`[data-testid="nc-dropdown-hook-operation-option"][data-testvalue="sendMeEverything"]`).click();
 
     await this.configureWebhook({ title, event, operation, url });
     await this.save();
@@ -79,10 +74,16 @@ export class WebhookFormPage extends BasePage {
       const modal = this.rootPage.locator(`.nc-modal-hook-event`);
       await modal.locator(`.ant-select-item:has-text("${event}")`).click();
     }
+
     if (operation && operation !== 'trigger') {
       const dropdownHookOperation = this.get().locator(`[data-testid="nc-dropdown-hook-operation"]`);
       await dropdownHookOperation.click();
       const modal = this.rootPage.locator(`[data-testid="nc-dropdown-hook-operation-modal"]`);
+      await modal.waitFor({ state: 'visible' });
+      await modal
+        .locator(`[data-testid="nc-dropdown-hook-operation-option"][data-testvalue="sendMeEverything"]`)
+        .click();
+
       await modal.locator(`[data-testid="nc-dropdown-hook-operation-option"][data-testvalue="${operation}"]`).click();
     }
     if (url) {

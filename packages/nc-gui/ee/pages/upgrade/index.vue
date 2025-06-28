@@ -13,7 +13,7 @@ const route = router.currentRoute
 const planTitle = (route.value.query.plan as string) ?? ''
 const paymentMode = route.value.query.paymentMode as 'month' | 'year'
 
-const { hideSidebar, showTopbar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+const { hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
 
 const { loadPlans, plansAvailable } = useProvidePaymentStore()
 
@@ -51,9 +51,7 @@ const navigateToApp = () => {
 }
 
 onMounted(() => {
-  if (isNewSidebarEnabled.value) {
-    hideSidebar.value = true
-  }
+  hideSidebar.value = true
 
   showTopbar.value = true
 

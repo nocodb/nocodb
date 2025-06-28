@@ -3,7 +3,7 @@ import { PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
 
 const { $e } = useNuxtApp()
 
-const { hideMiniSidebar, hideSidebar, showTopbar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+const { hideMiniSidebar, hideSidebar, showTopbar } = storeToRefs(useSidebarStore())
 
 const { appInfo } = useGlobal()
 
@@ -27,10 +27,8 @@ const {
 const frameLoaded = ref(false)
 
 onMounted(() => {
-  if (isNewSidebarEnabled.value) {
-    hideSidebar.value = true
-    hideMiniSidebar.value = true
-  }
+  hideSidebar.value = true
+  hideMiniSidebar.value = true
 
   showTopbar.value = true
 

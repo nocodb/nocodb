@@ -37,8 +37,6 @@ const { basesUser } = storeToRefs(useBases())
 
 const { isUIAllowed } = useRoles()
 
-const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
-
 const automationStore = useAutomationStore()
 
 const { duplicateAutomation } = automationStore
@@ -243,12 +241,8 @@ const deleteScript = () => {
 
 <template>
   <a-menu-item
-    :class="{
-      '!pl-13.5 !xs:(pl-12)': !isNewSidebarEnabled,
-      '!pl-2 !xs:(pl-2)': isNewSidebarEnabled,
-    }"
     :data-testid="`view-sidebar-script-${vModel.title}`"
-    class="nc-sidebar-node !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-gray-700 !flex !items-center hover:(!bg-gray-200 !text-gray-700) cursor-pointer"
+    class="nc-sidebar-node !rounded-md !px-0.75 !pl-2 !xs:(pl-2) !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-gray-700 !flex !items-center hover:(!bg-gray-200 !text-gray-700) cursor-pointer"
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
   >

@@ -7,12 +7,6 @@ const props = defineProps<{
 
 const baseId = toRef(props, 'baseId')
 
-const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
-
-const { ncNavigateTo } = useGlobal()
-
-const workspaceStore = useWorkspace()
-
 const automationStore = useAutomationStore()
 
 const { loadAutomations } = automationStore
@@ -20,36 +14,13 @@ const { loadAutomations } = automationStore
 const { isMarketVisible, isDetailsVisible, detailsScriptId, activeAutomationId, activeAutomation, automations } =
   storeToRefs(automationStore)
 
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
 const bases = useBases()
 
 const { openedProject } = storeToRefs(bases)
 
-const isAutomationOpened = computed(() => {
-  return openedProject.value?.id === baseId.value
-})
-
 const isOptionsOpen = ref(false)
 
 const isExpanded = ref(true)
-
-const openAutomations = () => {
-  if (!isExpanded.value) {
-    loadAutomations({ baseId: baseId.value })
-    isOptionsOpen.value = true
-    isExpanded.value = true
-  } else if (isExpanded.value && isNewSidebarEnabled.value) {
-    isOptionsOpen.value = false
-    isExpanded.value = false
-  }
-
-  if (isNewSidebarEnabled.value) return
-
-  ncNavigateTo({
-    workspaceId: activeWorkspaceId.value ?? 'nc',
-    baseId: baseId.value,
-  })
-}
 
 const onExpand = async () => {
   loadAutomations({ baseId: baseId.value })
@@ -98,80 +69,8 @@ watch(activeAutomationId, () => {
 </script>
 
 <template>
-  <div
-    class="nc-tree-item nc-automation-node-wrapper text-sm select-none w-full nc-base-tree-automation"
-    :class="{
-      'nc-automation-node-wrapper': !isNewSidebarEnabled,
-      'nc-project-home-section': isNewSidebarEnabled,
-    }"
-  >
-    <div v-if="!isNewSidebarEnabled" class="flex items-center py-0.5">
-      <div
-        v-e="['a:automation:open']"
-        class="flex-none flex-1 pl-7.5 xs:(pl-6) flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-gray-200"
-        :class="{
-          'hover:bg-gray-200': false,
-          '!bg-primary-selected': isAutomationOpened,
-        }"
-        @click="openAutomations"
-      >
-        <div class="flex flex-row h-full items-center">
-          <div class="flex w-auto">
-            <LazyGeneralEmojiPicker size="small" readonly>
-              <template #default>
-                <GeneralIcon
-                  icon="ncAutomation"
-                  class="w-4 text-sm"
-                  :class="isAutomationOpened ? '!text-brand-600/85' : '!text-gray-600/75'"
-                />
-              </template>
-            </LazyGeneralEmojiPicker>
-          </div>
-        </div>
-
-        <div
-          :class="isAutomationOpened ? 'text-brand-600 !font-semibold' : 'text-gray-700'"
-          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-        >
-          {{ $t('general.automations') }}
-        </div>
-        <div class="flex-1" />
-        <PaymentUpgradeBadge
-          :feature="PlanFeatureTypes.FEATURE_SCRIPTS"
-          :title="$t('upgrade.upgradeToUseScripts')"
-          :content="
-            $t('upgrade.upgradeToUseScriptsSubtitle', {
-              plan: PlanTitles.PLUS,
-            })
-          "
-        />
-
-        <div class="flex items-center">
-          <NcButton
-            v-e="['c:automation:toggle-expand']"
-            type="text"
-            size="xxsmall"
-            class="nc-sidebar-node-btn nc-sidebar-expand !xs:opacity-100"
-            :class="{
-              '!opacity-100': isOptionsOpen,
-            }"
-            @click.stop="onExpand"
-          >
-            <GeneralIcon
-              icon="chevronRight"
-              class="flex-none nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 text-[20px]"
-              :class="{ '!rotate-90': isExpanded }"
-            />
-          </NcButton>
-        </div>
-      </div>
-    </div>
-    <div
-      v-else
-      v-e="['c:automation:toggle-expand']"
-      class="nc-project-home-section-header w-full cursor-pointer"
-      @click.stop="onExpand"
-    >
+  <div class="nc-tree-item nc-automation-node-wrapper nc-project-home-section text-sm select-none w-full nc-base-tree-automation">
+    <div v-e="['c:automation:toggle-expand']" class="nc-project-home-section-header w-full cursor-pointer" @click.stop="onExpand">
       <div>{{ $t('general.automations') }}</div>
       <div class="flex-1" />
       <PaymentUpgradeBadge
@@ -185,8 +84,8 @@ watch(activeAutomationId, () => {
       />
       <GeneralIcon
         icon="chevronRight"
-        class="flex-none nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 text-[20px]"
-        :class="{ '!rotate-90': isExpanded, 'text-nc-content-gray-muted': isNewSidebarEnabled }"
+        class="flex-none nc-sidebar-source-node-btns text-nc-content-gray-muted cursor-pointer transform transition-transform duration-200 text-[20px]"
+        :class="{ '!rotate-90': isExpanded }"
       />
     </div>
     <DashboardTreeViewAutomationList v-if="isExpanded" :base-id="baseId!" />

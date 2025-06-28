@@ -24,7 +24,6 @@ const {
   hideMiniSidebar,
   hideSidebar,
   showTopbar,
-  isNewSidebarEnabled,
   miniSidebarWidth,
 } = storeToRefs(useSidebarStore())
 
@@ -216,13 +215,7 @@ function onResize(widthPercent: any) {
 }
 
 const isMiniSidebarVisible = computed(() => {
-  return (
-    isNewSidebarEnabled.value &&
-    !hideMiniSidebar.value &&
-    slots.sidebar &&
-    !isSharedBase.value &&
-    (!isMobileMode.value || isLeftSidebarOpen.value)
-  )
+  return !hideMiniSidebar.value && slots.sidebar && !isSharedBase.value && (!isMobileMode.value || isLeftSidebarOpen.value)
 })
 </script>
 
@@ -262,12 +255,11 @@ const isMiniSidebarVisible = computed(() => {
         >
           <div
             ref="wrapperRef"
-            class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !sm:(max-w-140) absolute overflow-visible"
+            class="nc-sidebar-wrapper relative nc-new-sidebar flex flex-col h-full justify-center !sm:(max-w-140) absolute overflow-visible"
             :class="{
               'mobile': isMobileMode,
               'minimized-height': !isLeftSidebarOpen,
               'hide-sidebar': ['hiddenStart', 'hiddenEnd', 'peekCloseEnd'].includes(sidebarState),
-              'nc-new-sidebar': isNewSidebarEnabled,
             }"
             :style="{
               width: sidebarState === 'hiddenEnd' ? '0px' : `${sidebarWidth}px`,

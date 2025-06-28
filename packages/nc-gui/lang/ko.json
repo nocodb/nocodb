@@ -394,6 +394,7 @@
     "total": "합계",
     "downgrade": "다운그레이드",
     "upgrade": "업그레이드",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "업그레이드 요청",
     "reactivate": "재활성화",
     "left": "왼쪽",
@@ -408,7 +409,9 @@
     "proceedImport": "가져오기 진행",
     "inserting": "삽입",
     "permissions": "권한",
-    "manageAllFields": "모든 필드 관리"
+    "manageAllFields": "모든 필드 관리",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "스크립트",
@@ -686,6 +689,7 @@
     "termsOfService": "서비스 이용 약관",
     "updateSelectedRows": "선택한 항목 업데이트",
     "noFiltersAdded": "추가한 필터 없음",
+    "noFieldsSelected": "No fields selected",
     "editCards": "카드 편집",
     "noFieldsFound": "필드를 찾을 수 없습니다.",
     "displayValue": "값 표시",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "Creator 액세스 권한이 있는 작업 영역 이상으로만 복원할 수 있습니다.",
     "currentWorkspace": "현재 작업공간",
     "currentBase": "현재 베이스",
+    "sendMeEverything": "Send me everything",
     "latitude": "위도",
     "longitude": "경도",
     "failed": "실패",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "배경색",
     "addColour": "색상 추가",
     "defaultColours": "기본 색상",
-    "customColours": "사용자 정의 색상"
+    "customColours": "사용자 정의 색상",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "새 탭에서 열기",
     "copyIFrameCode": "IFrame 코드 복사",
     "onCondition": "조건에 따라",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "대량 다운로드",
     "attachFile": "파일 첨부",
     "viewAttachment": "첨부 파일 보기",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "한도 초과",
     "filteredByCurrentUser": "현재 사용자를 기준으로 필터링됨",
     "navigateToBaseToCreateTable": "테이블을 만들기 위해 프로젝트로 이동합니다.",
-    "navigateToBaseToCreateAutomation": "프로젝트로 이동하여 자동화를 생성합니다.",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "테이블로 이동하여 뷰를 생성합니다",
     "youDontHaveAccessToCreateNewTable": "새 테이블을 만들 수 있는 액세스 권한이 없습니다.",
     "youDontHaveAccessToCreateNewView": "새 보기를 만들 수 있는 액세스 권한이 없습니다.",
-    "youDontHaveAccessToCreateNewAutomation": "새 자동화를 만들 수 있는 액세스 권한이 없습니다",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "동기화된 테이블에 대해 양식 보기 생성이 지원되지 않습니다.",
     "dataInThisFieldCantBeManuallyEdited": "이 필드의 데이터는 수동으로 편집할 수 없습니다",
     "viewAndEditPermissionsForAllFieldsInThisTable": "이 표의 모든 필드에 대한 보기 및 편집 권한"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "\"{email}\"가 있는 사용자는 이미 액세스 권한이 있습니다.",
     "evaluateRecursively": "재귀적으로 평가",
     "evaluateRecursivelyTooltip": "이 조회를 재귀적으로 평가하여 자체 참조 관계가 많음(Enterprise Edition + PostgreSQL만 해당)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "URL 필터는 URL 매개 변수에서 적용되며 도구 모음을 통해 설정된 보기 필터와 결합됩니다.",
     "urlFilterError": "URL 필터가 잘못되었습니다. 적용할 수 없으므로 무시됩니다.",
     "dropYourDocHere": "여기에 문서를 놓습니다",

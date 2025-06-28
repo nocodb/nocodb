@@ -36,6 +36,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isIntegrationsPageOpened = computed(() => route.value.name === 'index-typeOrId-integrations')
 
+  const isMarketplacePageOpened = computed(() => false)
+
   const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
 
   const isWorkspaceLoading = ref(true)
@@ -255,6 +257,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  const navigateToMarketplace = async (..._args: any[]) => {}
+
   function setLoadingState(isLoading = false) {
     isWorkspaceLoading.value = isLoading
   }
@@ -387,6 +391,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspaceTeamAdd,
     workspaceTeamUpdate,
     workspaceTeamRemove,
+
+    // Templates
+    navigateToMarketplace,
+    isMarketplacePageOpened,
   }
 })
 

@@ -99,7 +99,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isIntegrationsPageOpened = computed(() => route.value.name === 'index-typeOrId-integrations')
 
-  const isMarketplacePageOpened = computed(() => route.value.name === 'index-typeOrId-marketplace')
+  const isMarketplacePageOpened = computed(() => (route.value.name as string)?.startsWith('index-typeOrId-marketplace'))
 
   const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
 

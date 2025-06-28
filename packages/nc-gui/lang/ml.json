@@ -394,6 +394,7 @@
     "total": "മൊത്തം",
     "downgrade": "ഡൗൺഗ്രേഡ്",
     "upgrade": "അപ്‌ഗ്രേഡ്",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "വീண்டும் സജ്ജീകരിക്കുക",
     "left": "ബാക്കി",
@@ -408,7 +409,9 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "സ്‌ക്രിപ്റ്റ്",
@@ -686,6 +689,7 @@
     "termsOfService": "സേവന നിബന്ധനകൾ",
     "updateSelectedRows": "തിരഞ്ഞെടുത്ത റെക്കോർഡുകൾ അപ്‌ഡേറ്റ് ചെയ്യുക",
     "noFiltersAdded": "ഫിൽട്ടറുകൾ ചേർത്തിട്ടില്ല",
+    "noFieldsSelected": "No fields selected",
     "editCards": "കാർഡ് കൈകാര്യം ചെയ്യുക",
     "noFieldsFound": "ഫീൽഡുകൾ കണ്ടെത്തിയില്ല",
     "displayValue": "പ്രദർശന മൂല്യം",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "ക്രിയേറ്റർ അല്ലെങ്കിൽ അതിന് മുകളിലുള്ള ആക്‌സസ് ഉള്ള വര്‍ക്ക്‌സ്‌പേസുകളിലേക്കു മാത്രമേ റസ്റ്റോർ ചെയ്യാന്‍ കഴിയൂ.",
     "currentWorkspace": "നിലവിലുള്ള വർക്ക്സ്പേസ്",
     "currentBase": "Current base",
+    "sendMeEverything": "Send me everything",
     "latitude": "അക്ഷാംശം",
     "longitude": "രേഖാംശം",
     "failed": "പരാജയം",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "പരിഹരിക്കാൻ ക്ലിക് ചെയ്യുക",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "ഒരു പുതിയ ടാബിൽ തുറക്കുക",
     "copyIFrameCode": "IFrame കോഡ് പകർത്തുക",
     "onCondition": "രൂപകം പാലിക്കുക",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "കൂറ്റൻ ഡൗൺലോഡ്",
     "attachFile": "ഫയൽ ബന്ധിപ്പിക്കുക",
     "viewAttachment": "അറ്റാച്ചുമെന്റുകൾ കാണുക",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "പരിധി മറികടക്കുന്നു",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "URL പാരാമീറ്ററുകളിൽ നിന്ന് URL ഫിൽറ്ററുകൾ പ്രയോഗിക്കുകയും, ടൂൾബാറില്‍ സജ്ജീകരിച്ച കാഴ്ച ഫിൽറ്ററുകളുമായി ചേർക്കുകയും ചെയ്യുന്നു.",
     "urlFilterError": "അസാധുവായ URL ഫിൽറ്റർ. പ്രയോഗിക്കാൻ കഴിയാത്തതിനാൽ അവഗണിച്ചു.",
     "dropYourDocHere": "നിങ്ങളുടെ ഡോക്യുമെന്റ്这里? Need Malayalam: നിങ്ങളുടെ ഡോക്യുമെന്റ് ഇവിടെ ഇടുക",

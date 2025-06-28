@@ -63,7 +63,7 @@ const close = () => {
     <div class="flex justify-between w-full text-base font-semibold mb-2 text-nc-content-gray-emphasis items-center">
       {{ 'Do you want to expand this table ?' }}
     </div>
-    <div data-testid="nc-expand-table-modal" class="flex flex-col">
+    <div data-testid="nc-expand-upsert-modal" class="flex flex-col">
       <div class="mb-2 nc-content-gray">
         To accommodate your pasted data, we need to
         <span v-if="cellsOverwritten && rowsUpdated" class="font-bold">

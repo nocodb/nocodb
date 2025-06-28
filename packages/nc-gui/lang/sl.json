@@ -394,6 +394,7 @@
     "total": "Skupaj",
     "downgrade": "Znižaj paket",
     "upgrade": "Nadgradi",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "Ponovno aktiviraj",
     "left": "preostalo",
@@ -408,7 +409,9 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "Skripta",
@@ -686,6 +689,7 @@
     "termsOfService": "Pogoji uporabe",
     "updateSelectedRows": "Posodobi izbrane zapise",
     "noFiltersAdded": "Brez dodanih filtrov",
+    "noFieldsSelected": "No fields selected",
     "editCards": "Uredi kartice",
     "noFieldsFound": "Ni najdenih polj",
     "displayValue": "Prikaži vrednost",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "Obnovitev je možna samo v delovnih prostorih, kjer imate dovoljenja ustvarjalca ali višja.",
     "currentWorkspace": "Trenutni delovni prostor",
     "currentBase": "Current base",
+    "sendMeEverything": "Send me everything",
     "latitude": "Zemljepisna širina",
     "longitude": "Zemljepisna dolžina",
     "failed": "Ni uspelo",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "Kliknite za razrešitev",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "Odpri v novem zavihku",
     "copyIFrameCode": "Kopiraj IFrame kodo",
     "onCondition": "Na pogoj",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "Prenos v razsutem stanju",
     "attachFile": "Pripni datoteko",
     "viewAttachment": "Ogled priponk",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "Prekoračena omejitev",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "URL filtri se uporabijo iz parametrov URL in se združijo s filtri pogleda, nastavljenimi prek orodne vrstice.",
     "urlFilterError": "Neveljaven URL filter. Prezrt, ker ga ni bilo mogoče uporabiti.",
     "dropYourDocHere": "Spustite dokument sem",

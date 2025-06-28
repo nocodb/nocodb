@@ -625,6 +625,18 @@ export class AtImportProcessor {
             continue;
           }
 
+          // not supported datatype: pure button field
+          // allow button based fields
+          if (ncCol.uidt === UITypes.Button) {
+            updateMigrationSkipLog(
+              tblSchema[i].name,
+              ncName.title,
+              col.type,
+              'column type not supported yet',
+            );
+            continue;
+          }
+
           // change from default 'tinytext' as airtable allows more than 255 characters
           // for single line text column type
           if (col.type === 'text') ncCol.dt = 'text';

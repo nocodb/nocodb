@@ -15,6 +15,9 @@ try {
     init({
       clientIdCb: (id) => {
         clientId = id
+        if (typeof window !== 'undefined') {
+          ;(window as any).ncClientId = clientId
+        }
         initPostHog(id)
       },
     })

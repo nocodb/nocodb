@@ -2,7 +2,8 @@
 import { defineNuxtPlugin } from '#app'
 
 export default defineNuxtPlugin(() => {
-  const { appInfo } = useGlobal()
+  let tracker: any
+  const { appInfo, user } = useGlobal()
 
   watch([() => appInfo.value?.isCloud, () => appInfo.value?.isOnPrem], ([isCloud, isOnPrem]) => {
     if (isCloud && !isOnPrem) {
@@ -10,7 +11,7 @@ export default defineNuxtPlugin(() => {
       script.src = 'https://cdn.nocodb.com/lib/or.min.js'
       script.async = true
       script.onload = () => {
-        const tracker = new (window as any).OpenReplay({
+        tracker = new (window as any).OpenReplay({
           // TODO: make these part of appInfo
           projectKey: 'WX6JlrfCDKS1uuuzhbYm',
           ingestPoint: 'https://opr.nocodb.com/ingest',
@@ -19,8 +20,20 @@ export default defineNuxtPlugin(() => {
         })
 
         tracker.start()
+
+        // if ((window as any).ncClientId) {
+        //   tracker.setUserID((window as any).ncClientId)
+        // }
       }
       document.head.appendChild(script)
     }
   })
+
+  watch(
+    () => user.value?.email,
+    (email) => {
+      if (!tracker) return
+      tracker?.setUserID(email || (window as any).ncClientId)
+    },
+  )
 })

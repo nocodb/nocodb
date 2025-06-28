@@ -2,15 +2,20 @@
 import { onKeyDown } from '@vueuse/core'
 import { PermissionEntity, PermissionKey, type TableType } from 'nocodb-sdk'
 
-const props = defineProps<{
-  newRows: number
-  modelValue: boolean
-  newColumns: number
-  cellsOverwritten: number
-  rowsUpdated: number
-  isAddingEmptyRowPermitted: boolean
-  meta: TableType
-}>()
+const props = withDefaults(
+  defineProps<{
+    newRows: number
+    modelValue: boolean
+    newColumns: number
+    cellsOverwritten: number
+    rowsUpdated: number
+    isAddingEmptyRowPermitted?: boolean
+    meta: TableType
+  }>(),
+  {
+    isAddingEmptyRowPermitted: true,
+  },
+)
 
 const emit = defineEmits(['update:expand', 'cancel', 'update:modelValue'])
 

@@ -10,8 +10,8 @@ export default defineNuxtPlugin(() => {
       script.src = 'https://cdn.nocodb.com/lib/or.min.js'
       script.async = true
       script.onload = () => {
-        // temporary test value
         ;(window as any).OpenReplay.init({
+          // TODO: make these part of appInfo
           projectKey: 'WX6JlrfCDKS1uuuzhbYm',
           ingestPoint: 'https://opr.nocodb.com/ingest',
         })

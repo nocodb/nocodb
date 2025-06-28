@@ -341,7 +341,8 @@ export class BaseUsersService extends BaseUsersServiceCE {
       }
 
       await this.paymentService.reseatSubscription(
-        workspace.fk_org_id ?? workspace.id,
+        // TODO: add support for orgs
+        workspace.id,
         transaction,
       );
 
@@ -509,7 +510,8 @@ export class BaseUsersService extends BaseUsersServiceCE {
       );
 
       await this.paymentService.reseatSubscription(
-        workspace.fk_org_id ?? workspace.id,
+        // TODO: add support for orgs
+        workspace.id,
         transaction,
       );
 
@@ -635,7 +637,8 @@ export class BaseUsersService extends BaseUsersServiceCE {
       await BaseUser.delete(context, base_id, param.userId, transaction);
 
       await this.paymentService.reseatSubscription(
-        workspace.fk_org_id ?? workspace.id,
+        // TODO: add support for orgs
+        workspace.id,
         transaction,
       );
 

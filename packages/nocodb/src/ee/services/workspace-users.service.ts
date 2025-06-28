@@ -202,7 +202,8 @@ export class WorkspaceUsersService {
       );
 
       await this.paymentService.reseatSubscription(
-        workspace.fk_org_id ?? workspace.id,
+        // TODO: add support for orgs
+        workspace.id,
         transaction,
       );
 
@@ -354,7 +355,8 @@ export class WorkspaceUsersService {
       );
 
       await this.paymentService.reseatSubscription(
-        workspace.fk_org_id ?? workspace.id,
+        // TODO: add support for orgs
+        workspace.id,
         transaction,
       );
 
@@ -608,7 +610,8 @@ export class WorkspaceUsersService {
       }
 
       await this.paymentService.reseatSubscription(
-        workspace.fk_org_id ?? workspace.id,
+        // TODO: add support for orgs
+        workspace.id,
         transaction,
       );
 

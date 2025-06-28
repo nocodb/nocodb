@@ -624,7 +624,8 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
       // TODO: remove optional chaining on cloud only code updated
       await this.paymentService?.reseatSubscription(
-        workspace.fk_org_id ?? workspace.id,
+        // TODO: add support for orgs
+        workspace.id,
         transaction,
       );
 

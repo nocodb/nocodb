@@ -305,7 +305,8 @@ export class BasesService extends BasesServiceCE {
       await Base.softDelete(context, param.baseId, ncMeta);
 
       await this.paymentService.reseatSubscription(
-        workspace.fk_org_id ?? workspace.id,
+        // TODO: add support for orgs
+        workspace.id,
         ncMeta,
       );
 

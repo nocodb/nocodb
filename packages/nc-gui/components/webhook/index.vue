@@ -185,7 +185,7 @@ const toggleOperation = (operation: string) => {
   sendMeEverythingChecked.value = hookRef.event === 'after' && ops?.length === operationsEnum.value?.length
 }
 
-const toggleSendMeEverythingChecked = (evt: Event) => {
+const toggleSendMeEverythingChecked = (_evt: Event) => {
   sendMeEverythingChecked.value = !sendMeEverythingChecked.value
   hookRef.operation = sendMeEverythingChecked.value ? [...operationsEnum.value.map((k) => k.value)] : []
   if (!sendMeEverythingChecked.value) {
@@ -298,7 +298,7 @@ const formInput = ref({
   ],
 })
 
-const notificationList = computed(() => {
+const _notificationList = computed(() => {
   return isEeUI
     ? [{ type: 'URL', text: t('datatype.URL') }]
     : [
@@ -719,7 +719,7 @@ const getDefaultHookName = (hooks: HookType[]) => {
   return extractNextDefaultName([...hooks.map((el) => el?.title || '')], defaultHookName)
 }
 
-const getNotificationIconName = (type: string): keyof typeof iconMap => {
+const _getNotificationIconName = (type: string): keyof typeof iconMap => {
   switch (type) {
     case 'URL':
       return 'link2'

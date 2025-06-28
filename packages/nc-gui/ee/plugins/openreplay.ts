@@ -10,14 +10,14 @@ export default defineNuxtPlugin(() => {
       script.src = 'https://cdn.nocodb.com/lib/or.min.js'
       script.async = true
       script.onload = () => {
-        const tracker = (window as any).OpenReplay({
+        const tracker = new (window as any).OpenReplay({
           // TODO: make these part of appInfo
           projectKey: 'WX6JlrfCDKS1uuuzhbYm',
           ingestPoint: 'https://opr.nocodb.com/ingest',
           resourceBaseHref: 'https://cdn.nocodb.com',
         })
 
-        tracker.start();
+        tracker.start()
       }
       document.head.appendChild(script)
     }

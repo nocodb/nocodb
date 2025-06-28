@@ -9,9 +9,11 @@ const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: save
 
 const selectedHook = ref<undefined | HookType>()
 
-const { hooks, isHooksLoading } = storeToRefs(useWebhooksStore())
+const webhooksStore = useWebhooksStore()
 
-const { loadHooksList, deleteHook: _deleteHook, copyHook, saveHooks } = useWebhooksStore()
+const { hooks, isHooksLoading, hasV2Webhooks } = storeToRefs(webhooksStore)
+
+const { loadHooksList, deleteHook: _deleteHook, copyHook, saveHooks } = webhooksStore
 
 const { activeView } = storeToRefs(useViewsStore())
 
@@ -255,24 +257,19 @@ const getHookTypeText = (hook: HookType) => {
   <div class="nc-webhook-wrapper w-full p-4">
     <div class="max-w-250 h-full w-full mx-auto">
       <div v-if="activeView && !isHooksLoading">
-        <div
-          v-if="hooks.some((hook) => hook.version === 'v2')"
-          class="flex gap-4 border-1 nc-border-gray-medium bg-orange-50 rounded-lg p-4"
+        <NcAlert
+          v-if="hasV2Webhooks"
+          type="warning"
+          :message="$t('msg.webhookV2Deprecated')"
+          :description="$t('msg.webhookV2DeprecatedDesc')"
+          class="bg-nc-bg-orange-light"
         >
-          <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium w-6 h-6" />
-          <div class="flex-1">
-            <div class="text-nc-content-gray font-bold text-base leading-6">
-              {{ $t('msg.webhookV2Deprecated') }}
-            </div>
-            <div class="text-nc-content-gray-muted mt-1 font-default leading-5">
-              {{ $t('msg.webhookV2DeprecatedDesc') }}
-            </div>
-          </div>
-
-          <NcButton type="text" size="small" class="!text-brand-500 btn-goto-docs">
-            {{ $t('activity.goToDocs') }}
-          </NcButton>
-        </div>
+          <template #action>
+            <NcButton type="link" size="small" class="!hover:underline !font-bold">
+              {{ $t('activity.goToDocs') }}
+            </NcButton>
+          </template>
+        </NcAlert>
 
         <div class="w-full mb-4 mt-6 flex justify-between gap-3">
           <div class="flex-1 flex gap-2">

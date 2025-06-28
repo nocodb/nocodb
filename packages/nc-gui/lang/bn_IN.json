@@ -394,6 +394,7 @@
     "total": "মোট",
     "downgrade": "ডাউনগ্রেড",
     "upgrade": "আপগ্রেড",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "পুনরায় সক্রিয় করুন",
     "left": "বাকি",
@@ -408,7 +409,9 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "স্ক্রিপ্ট",
@@ -686,6 +689,7 @@
     "termsOfService": "পরিষেবার শর্তাবলী",
     "updateSelectedRows": "নির্বাচিত রেকর্ড আপডেট করুন",
     "noFiltersAdded": "কোনও ফিল্টার যোগ করা হয়নি",
+    "noFieldsSelected": "No fields selected",
     "editCards": "কার্ড সম্পাদনা করুন",
     "noFieldsFound": "কোনও ক্ষেত্র পাওয়া যায়নি",
     "displayValue": "ডিসপ্লে মান",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "আপনি শুধুমাত্র সেই ওয়ার্কস্পেসে রিস্টোর করতে পারেন যেখানে আপনার ক্রিয়েটর অথবা তার উপরের অনুমতি রয়েছে।",
     "currentWorkspace": "বর্তমান ওয়ার্কস্পেস",
     "currentBase": "Current base",
+    "sendMeEverything": "Send me everything",
     "latitude": "অক্ষাংশ",
     "longitude": "দ্রাঘিমাংশ",
     "failed": "ব্যর্থ",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "সমাধান করতে ক্লিক করুন",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "নতুন ট্যাবে খুলুন",
     "copyIFrameCode": "আইফ্রেম কোড কপি করুন",
     "onCondition": "অবস্থায়",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "বাল্ক ডাউনলোড",
     "attachFile": "ফাইল সংযুক্ত করুন",
     "viewAttachment": "সংযুক্তি দেখুন",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "সীমা অতিক্রম করেছে",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "URL প্যারামিটার থেকে URL ফিল্টার প্রয়োগ হয় এবং টুলবারে সেট করা ভিউ ফিল্টারের সাথে মিলিত হয়।",
     "urlFilterError": "অবৈধ URL ফিল্টার। প্রয়োগ করা যায়নি, উপেক্ষা করা হয়েছে।",
     "dropYourDocHere": "আপনার ডকুমেন্টটি এখানে ছেড়ে দিন",

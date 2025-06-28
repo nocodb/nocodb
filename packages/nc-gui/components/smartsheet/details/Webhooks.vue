@@ -383,7 +383,6 @@ const getHookTypeText = (hook: HookType) => {
                 {{ dayjs(hook.created_at).format('DD MMM YYYY') }}
               </template>
               <template v-if="column.key === 'action'">
-                <!-- TODO: disable edit for v2 and add migration -->
                 <NcDropdown v-model:visible="isOpenContextMenu[hook.id]" overlay-class-name="nc-webhook-item-action-dropdown">
                   <template #default="{ visible }">
                     <NcButton

@@ -394,6 +394,7 @@
     "total": "Összesen",
     "downgrade": "Lefokozás",
     "upgrade": "Frissítés",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "Újraaktiválás",
     "left": "hátralévő",
@@ -408,7 +409,9 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "Szkript",
@@ -686,6 +689,7 @@
     "termsOfService": "Szolgáltatási feltételek",
     "updateSelectedRows": "Kiválasztott rekordok frissítése",
     "noFiltersAdded": "Nincsenek szűrők hozzáadva",
+    "noFieldsSelected": "No fields selected",
     "editCards": "Kártyák szerkesztése",
     "noFieldsFound": "Nincsenek mezők",
     "displayValue": "Megjelenítési érték",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "Csak olyan munkaterületre állíthat vissza, ahol legalább létrehozói jogosultsága van.",
     "currentWorkspace": "Aktuális munkaterület",
     "currentBase": "Current base",
+    "sendMeEverything": "Send me everything",
     "latitude": "Szélesség",
     "longitude": "Hosszúság",
     "failed": "Sikertelen",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "Kattintson a megoldáshoz",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "Új lapon való megnyitás",
     "copyIFrameCode": "IFrame kód másolása",
     "onCondition": "Feltétel alapján",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "Tömeges letöltés",
     "attachFile": "Fájl csatolása",
     "viewAttachment": "Mellékletek megtekintése",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "Túllépi a határt",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "Az URL-szűrők az URL paramétereiből származnak, és összevonódnak az eszköztáron beállított nézetszűrőkkel.",
     "urlFilterError": "Érvénytelen URL-szűrő. Figyelmen kívül hagyva, mivel nem alkalmazható.",
     "dropYourDocHere": "Dobja ide a dokumentumot",

@@ -314,7 +314,7 @@ export class HooksService {
     context: NcContext,
     param: {
       tableId: string;
-      operation: HookType['operation'][0];
+      operation: HookType['operation'][number];
       version: any; // HookType['version'];
       includeUser?: boolean;
     },

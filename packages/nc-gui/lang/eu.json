@@ -394,6 +394,7 @@
     "total": "Guztira",
     "downgrade": "Maila jaitsi",
     "upgrade": "Eguneratu",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "Berreaktibatu",
     "left": "geratzen",
@@ -408,7 +409,9 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "Script",
@@ -686,6 +689,7 @@
     "termsOfService": "Zerbitzuaren baldintzak",
     "updateSelectedRows": "Eguneratu Hautatutako Erregistroak",
     "noFiltersAdded": "Ez da iragazkirik gehitu",
+    "noFieldsSelected": "No fields selected",
     "editCards": "Kartutzeko Txartelak",
     "noFieldsFound": "Eremurik ez da aurkitu",
     "displayValue": "Bistaratzeko Balioa",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "Soilik sortzaile baimena edo handiagoa duzun workspace-etan berreskuratu dezakezu.",
     "currentWorkspace": "Uneko workspace-a",
     "currentBase": "Current base",
+    "sendMeEverything": "Send me everything",
     "latitude": "Latitudea",
     "longitude": "Longitudea",
     "failed": "Huts",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "Egin klik ebazteko",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "Ireki fitxa berri batean",
     "copyIFrameCode": "IFrame kodea kopiatu",
     "onCondition": "Baldintzapean",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "Deskarga Masiboa",
     "attachFile": "Fitxategia Erantsi",
     "viewAttachment": "Eranskinak Ikusi",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "Muga gaindituta",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "URL iragazkiak URL parametroetatik aplikatzen dira eta tresna-barran ezarritako ikuspegi iragazkiekin konbinatzen dira.",
     "urlFilterError": "URL iragazki baliogabea. Baztertuta aplikatu ezin zenez.",
     "dropYourDocHere": "Arrastatu zure dokumentua hona",

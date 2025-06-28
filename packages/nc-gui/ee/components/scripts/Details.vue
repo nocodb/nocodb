@@ -238,7 +238,7 @@ const detailsBody = computed(() => {
     @apply max-w-[768px] mx-auto;
 
     p {
-      @apply !m-0 !leading-5;
+      @apply !leading-5;
     }
 
     ul {

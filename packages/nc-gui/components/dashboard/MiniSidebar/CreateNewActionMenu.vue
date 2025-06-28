@@ -224,7 +224,7 @@ const hasAutomationCreateAccess = computed(() => {
             </NcSubMenu>
           </NcTooltip>
 
-          <template v-if="isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS)">
+          <template v-if="isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS) && isEeUI">
             <NcDivider />
             <NcTooltip
               :title="
@@ -240,8 +240,8 @@ const hasAutomationCreateAccess = computed(() => {
                 :disabled="!isBaseHomePage || !hasAutomationCreateAccess"
                 @click="openNewScriptModal({ baseId: openedProject?.id })"
               >
-                <GeneralIcon icon="ncPlay" />
-                {{ $t('general.automation') }}
+                <GeneralIcon icon="ncScript" />
+                {{ $t('general.scripts') }}
               </NcMenuItem>
             </NcTooltip>
           </template>

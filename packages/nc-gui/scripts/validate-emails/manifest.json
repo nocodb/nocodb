@@ -1,0 +1,21 @@
+{
+  "id": "validate-emails",
+  "title": "Validate Emails",
+  "subTitle": "Check for invalid email addresses in a field",
+  "description": "validate-emails/description.md",
+  "entry": "validate-emails/index.txt",
+  "version": "0.1",
+  "iconUrl": "validate-emails/assets/icon.svg",
+  "publisher": {
+    "name": "NocoDB",
+    "email": "contact@nocodb.com",
+    "url": "https://www.nocodb.com",
+    "icon": {
+      "src": "validate-emails/assets/publisher-icon.svg",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "links": [],
+  "order": 4
+}

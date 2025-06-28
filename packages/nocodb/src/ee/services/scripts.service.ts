@@ -110,6 +110,7 @@ export class ScriptsService {
       title: newTitle,
       script: script.script,
       description: script.description,
+      created_by: req.user.id
     });
 
     this.appHooksService.emit(AppEvents.SCRIPT_DUPLICATE, {

@@ -1,0 +1,160 @@
+let settings = input.config({
+    title: "Validate emails",
+    description: "This script will list all invalid emails for a field you pick.",
+    items: [
+        input.config.table("table", { label: "Table" }),
+        input.config.field("field", {
+            parentTable: "table",
+            label: "Email field",
+        }),
+    ],
+});
+
+let { table, field } = settings as {
+    table: Table,
+    field: Field
+};
+
+let emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+// Function to validate a single email
+function validateEmail(email: string) {
+    if (!email || typeof email !== 'string') {
+        return { isValid: false, error: 'Empty or invalid data type' };
+    }
+
+    // Trim whitespace
+    email = email.trim();
+
+    if (email === '') {
+        return { isValid: false, error: 'Empty after trimming whitespace' };
+    }
+
+    // Check length (email addresses shouldn't be longer than 254 characters)
+    if (email.length > 254) {
+        return { isValid: false, error: 'Email too long (>254 characters)' };
+    }
+
+    // Check for multiple @ symbols
+    if ((email.match(/@/g) || []).length !== 1) {
+        return { isValid: false, error: 'Invalid number of @ symbols' };
+    }
+
+    // Validate against regex
+    if (!emailRegex.test(email)) {
+        return { isValid: false, error: 'Invalid email format' };
+    }
+
+    // Check for consecutive dots
+    if (email.includes('..')) {
+        return { isValid: false, error: 'Consecutive dots not allowed' };
+    }
+
+    // Check if starts or ends with dot
+    let [localPart, domain] = email.split('@');
+    if (localPart.startsWith('.') || localPart.endsWith('.')) {
+        return { isValid: false, error: 'Local part cannot start or end with dot' };
+    }
+
+    if (domain.startsWith('.') || domain.endsWith('.')) {
+        return { isValid: false, error: 'Domain cannot start or end with dot' };
+    }
+
+    return { isValid: true, error: null };
+}
+
+// Function to handle multiple emails in one cell
+function validateMultipleEmails(cellValue) {
+    if (!cellValue || typeof cellValue !== 'string') {
+        return [{ email: cellValue, isValid: false, error: 'Empty or invalid data type' }];
+    }
+
+    // Check if multiple emails are present (separated by common delimiters)
+    let emails = [];
+    let delimiters = /[,;|\n\r]/;
+
+    if (delimiters.test(cellValue)) {
+        // Multiple emails detected
+        emails = cellValue.split(delimiters).map(email => email.trim()).filter(email => email !== '');
+    } else {
+        // Single email
+        emails = [cellValue.trim()];
+    }
+
+    return emails.map(email => {
+        let validation = validateEmail(email);
+        return {
+            email: email,
+            isValid: validation.isValid,
+            error: validation.error
+        };
+    });
+}
+
+// Fetch records from the selected table
+let queryResult = await table.selectRecordsAsync({
+    fields: [field],
+});
+
+// Handle pagination - load all records if there are more pages
+while (queryResult.hasMoreRecords) {
+    await queryResult.loadMoreRecords();
+}
+
+// Array to store validation results
+let results = [];
+let totalEmailsChecked = 0;
+let totalInvalidEmails = 0;
+
+// Process each record
+for (let record of queryResult.records) {
+    let recordName = record.name || record.id;
+    let cellValue = record.getCellValue(field);
+
+    // Validate emails in this cell
+    let emailValidations = validateMultipleEmails(cellValue);
+
+    for (let validation of emailValidations) {
+        totalEmailsChecked++;
+
+        if (!validation.isValid) {
+            totalInvalidEmails++;
+            results.push({
+                Record: recordName,
+                Email: validation.email || '(empty)',
+                Error: validation.error,
+                'Original Cell Value': cellValue || '(empty)'
+            });
+        }
+    }
+}
+
+// Display results
+if (results.length === 0) {
+    output.text(
+        `✅ All emails are valid! (${totalEmailsChecked} emails in ${queryResult.records.length} records validated)`
+    );
+} else {
+    output.text(
+        `❌ ${totalInvalidEmails} invalid emails found in ${results.length} entries. (${totalEmailsChecked} total emails in ${queryResult.records.length} records validated)`
+    );
+
+    // Group results by error type for better readability
+    let errorGroups = {};
+    for (let result of results) {
+        if (!errorGroups[result.Error]) {
+            errorGroups[result.Error] = [];
+        }
+        errorGroups[result.Error].push(result);
+    }
+
+    // Display grouped results
+    for (let [errorType, items] of Object.entries(errorGroups)) {
+        output.markdown(`\n**${errorType}** (${items.length} ${items.length === 1 ? 'email' : 'emails'}):`);
+        output.table(items.map(item => ({
+            Record: item.Record,
+            Email: item.Email,
+            'Original Cell Value': item['Original Cell Value']
+        })));
+    }
+}

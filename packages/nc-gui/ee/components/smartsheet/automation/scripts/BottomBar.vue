@@ -88,21 +88,13 @@ onUnmounted(() => {
       <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts">
         <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
           <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
-          APIs
+          Script Docs
         </div>
       </NuxtLink>
-
-      <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts">
+      <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts/examples">
         <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
           <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
           Example Scripts
-        </div>
-      </NuxtLink>
-
-      <NuxtLink target="_blank" class="nc-docs-link" href="https://nocodb.com/docs/scripts/api/base">
-        <div class="flex items-center text-nc-content-gray-subtle text-bodySmBold gap-2 px-2">
-          <GeneralIcon icon="ncBookOpen" class="w-4 h-4 text-nc-content-gray-subtle" />
-          Script Docs
         </div>
       </NuxtLink>
     </div>

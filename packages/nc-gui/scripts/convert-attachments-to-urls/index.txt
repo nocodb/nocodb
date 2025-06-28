@@ -6,7 +6,7 @@
  */
 
 // Script configuration - allows users to select table, view, and fields
-const config = await input.config({
+const config = input.config({
   title: '📎 Convert attachments to URLs',
   description: 'Output comma-separated URLs for all attachments and write to another field for each record. Can be used for sending URLs to third-party integration services.',
   items: [

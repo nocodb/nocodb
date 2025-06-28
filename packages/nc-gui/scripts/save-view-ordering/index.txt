@@ -1,0 +1,83 @@
+const config = input.config({
+    title: 'Save view ordering to field',
+    description: `A script to save the record ordering of a particular view to a specified field in the table.
+
+This ordering can then be applied to other views by sorting on that field.
+
+Useful when you want to apply the order from one view to another view after manually reordering records.`,
+    items: [
+        input.config.table('sourceTable', {
+            label: 'Table',
+            description: 'The table containing the view you want to save the ordering from'
+        }),
+        input.config.view('sourceView', {
+            label: 'Source View',
+            description: 'The view whose ordering you want to save to a field',
+            parentTable: 'sourceTable'
+        }),
+        input.config.field('orderingField', {
+            label: 'Order field',
+            description: 'The field you want to save the ordering to, this must be a number field.',
+            parentTable: 'sourceTable'
+        })
+    ]
+});
+
+if (config.orderingField.type !== UITypes.Number) {
+    output.markdown(`**Error**: Order field must be of type number.`);
+    return;
+}
+
+const { sourceTable, sourceView, orderingField } = config;
+
+output.markdown(`#### Assigning ordering from view "${sourceView.name}" to field "${orderingField.name}"`);
+
+// Process records in chunks to avoid loading everything into memory
+const queryResult = await sourceView.selectRecordsAsync();
+const UPDATE_BATCH_SIZE = 10;
+let orderNumber = 1;
+let totalProcessed = 0;
+
+while (true) {
+    // Get only the new records from this chunk (not already processed)
+    const newRecords = queryResult.records.slice(totalProcessed);
+
+    // If no new records to process, we're done
+    if (newRecords.length === 0) {
+        break;
+    }
+
+    output.markdown(`Processing chunk of ${newRecords.length} new records (starting from order ${orderNumber})`);
+
+    // Prepare updates for current chunk
+    const recordUpdates = [];
+    for (const record of newRecords) {
+        recordUpdates.push({
+            id: record.id,
+            fields: { [orderingField.name]: orderNumber }
+        });
+        orderNumber++;
+    }
+
+    // Update records in batches of 10 within this chunk
+    let chunkProcessed = 0;
+    while (chunkProcessed < recordUpdates.length) {
+        const batchStart = chunkProcessed;
+        const batchEnd = Math.min(chunkProcessed + UPDATE_BATCH_SIZE, recordUpdates.length);
+        const currentBatch = recordUpdates.slice(batchStart, batchEnd);
+
+        output.markdown(`  → Updating records ${totalProcessed + batchStart + 1} to ${totalProcessed + batchEnd}`);
+
+        await sourceTable.updateRecordsAsync(currentBatch);
+        chunkProcessed = batchEnd;
+    }
+
+    totalProcessed += recordUpdates.length;
+
+    // Try to load more records if available
+    if (queryResult.hasMoreRecords) {
+        await queryResult.loadMoreRecords();
+    }
+}
+
+output.markdown(`**Done!** Successfully assigned ordering numbers to ${totalProcessed} records.`);

@@ -86,7 +86,7 @@ onMounted(() => {
         tableId: parentTableValue || '',
       }
     } else if (item.type === 'text' || item.type === 'number' || item.type === 'select') {
-      configValue.value[item.key] = configValue.value[item.key] || { type: item.type, value: '' }
+      configValue.value[item.key] = configValue.value[item.key]
     }
   })
 })
@@ -109,7 +109,7 @@ onMounted(() => {
         <div class="text-subHeading2 text-nc-content-gray-emphasis">
           {{ config?.title || 'Script Settings' }}
         </div>
-        <div v-if="config?.description" class="text-nc-content-gray-subtle2 text-body mt-2">
+        <div v-if="config?.description" class="text-nc-content-gray-subtle2 whitespace-pre-wrap text-body mt-2">
           {{ config?.description }}
         </div>
       </div>

@@ -1213,6 +1213,14 @@ export class PaymentService {
       scheduleId = sched.id;
     } else {
       sched = await stripe.subscriptionSchedules.retrieve(scheduleId);
+
+      // if the schedule is not active, we need to create a new one
+      if (!['not_started', 'active'].includes(sched.status)) {
+        sched = await stripe.subscriptionSchedules.create({
+          from_subscription: stripeSub.id,
+        });
+        scheduleId = sched.id;
+      }
     }
 
     const firstPhase = sched.phases[0];

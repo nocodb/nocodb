@@ -951,13 +951,22 @@ onMounted(async () => {
     </div>
   </NcModal>
 
-  <Webhook v-if="isV3ModalOpen" v-model:value="modalVisible" :hook="hook" :event-list="eventList" @close="closeModal()" />
+  <Webhook
+    v-if="isV3ModalOpen"
+    v-model:value="modalVisible"
+    :hook="hook"
+    show-upgrade-modal
+    :event-list="eventList"
+    :sample-data-v2="sampleData"
+    @close="closeModal()"
+    @cancel="isV3ModalOpen = false"
+  />
 </template>
 
 <style lang="scss">
 .nc-modal-webhook-create-edit {
   z-index: 1050;
-  a {
+  a:not(.nc-link) {
     @apply !no-underline !text-gray-700 !hover:text-primary;
   }
   .nc-modal {

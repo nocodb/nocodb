@@ -144,7 +144,7 @@ watch(
     // If page is defined or overview tab is visible then return
     if (!newIsSharedBase && (newPage || isOverviewTabVisible)) return
 
-    openTable(activeTables.value[0]!)
+    openTable(activeTables.value[0]!, true)
   },
   {
     immediate: true,

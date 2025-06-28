@@ -221,6 +221,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     viewId,
     query,
     automationId,
+    replace,
   }: {
     workspaceId?: string
     baseId?: string
@@ -228,6 +229,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     viewId?: string
     automationId?: string
     query?: string
+    replace?: boolean
   }) => {
     const tablePath = tableId ? `/${tableId}${viewId ? `/${viewId}` : ''}` : ''
     const automationPath = automationId ? `/automations/${automationId}` : ''
@@ -248,7 +250,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     // if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
     //   location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}${state.appInfo.value.dashboardPath}#${path}`
     // } else {
-    navigateTo(path)
+    navigateTo(path, { replace })
     // }
   }
 

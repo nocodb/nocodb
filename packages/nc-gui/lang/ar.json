@@ -394,6 +394,7 @@
     "total": "الإجمالي",
     "downgrade": "تخفيض",
     "upgrade": "ترقية",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "إعادة تنشيط",
     "left": "متبقٍ",
@@ -408,7 +409,9 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "سكربت",
@@ -686,6 +689,7 @@
     "termsOfService": "شروط الخدمة",
     "updateSelectedRows": "تحديث السجلات المحددة",
     "noFiltersAdded": "لم يتم إضافة فلاتر",
+    "noFieldsSelected": "No fields selected",
     "editCards": "تعديل البطاقات",
     "noFieldsFound": "لم يتم العثور على حقول",
     "displayValue": "عرض القيمة",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "يمكنك الاستعادة فقط إلى مساحات العمل التي تمتلك فيها صلاحية منشئ أو أعلى.",
     "currentWorkspace": "مساحة العمل الحالية",
     "currentBase": "Current base",
+    "sendMeEverything": "Send me everything",
     "latitude": "خط العرض",
     "longitude": "خط الطول",
     "failed": "فشل",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "انقر للحل",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "افتح في علامة تبويب جديدة",
     "copyIFrameCode": "انسخ كود IFrame",
     "onCondition": "في حالة الشرط",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "تنزيل مجمّع",
     "attachFile": "إرفاق ملف",
     "viewAttachment": "عرض المرفقات",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "تجاوز الحد",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "يتم تطبيق فلاتر الرابط من معلمات URL وتُدمج مع فلاتر العرض المُعيّنة عبر شريط الأدوات.",
     "urlFilterError": "مُرشّح رابط غير صالح. تم تجاهله لعدم إمكانية تطبيقه.",
     "dropYourDocHere": "أسقط مستندك هنا",

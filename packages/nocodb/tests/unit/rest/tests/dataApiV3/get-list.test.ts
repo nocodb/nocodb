@@ -490,7 +490,7 @@ describe('dataApiV3', () => {
 
         expect(rsp.body).to.have.property('next');
         expect(rsp.body.next).to.include(
-          `${textBasedUrlPrefix}/${table.id}/records?page=2&viewId=${gridView.id}`,
+          `${textBasedUrlPrefix}/${table.id}/records?viewId=${gridView.id}&page=2`,
         );
 
         await updateView(testContext.context, {
@@ -516,7 +516,7 @@ describe('dataApiV3', () => {
 
         expect(rsp.body).to.have.property('next');
         expect(rsp.body.next).to.include(
-          `${textBasedUrlPrefix}/${table.id}/records?page=2`,
+          `${textBasedUrlPrefix}/${table.id}/records?viewId=${gridView.id}&page=2`,
         );
 
         // use count api to verify since we are not including count in pageInfo
@@ -551,7 +551,7 @@ describe('dataApiV3', () => {
 
         expect(rsp.body).to.have.property('next');
         expect(rsp.body.next).to.include(
-          `${textBasedUrlPrefix}/${table.id}/records?page=2`,
+          `${textBasedUrlPrefix}/${table.id}/records?viewId=${gridView.id}&page=2`,
         );
 
         // use count api to verify since we are not including count in pageInfo

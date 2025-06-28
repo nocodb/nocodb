@@ -48,7 +48,7 @@ export class SnapshotProcessor {
     } catch (err) {
       await Snapshot.delete(context, snapshot.id);
 
-      this.telemetryService.sendSystemEvent({
+      await this.telemetryService.sendSystemEvent({
         event_type: 'priority_error',
         error_trigger: 'createSnapshot',
         error_type: err?.name,

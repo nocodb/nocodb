@@ -126,6 +126,10 @@ export class CellPageObject extends BasePage {
   }
 
   async verify({ index, columnHeader, value }: CellProps & { value: string | string[] }) {
+    if (this.parent instanceof GridPage) {
+      await this.parent.waitForRowSaveSpinnerToDisappear(index);
+    }
+
     const _verify = async text => {
       // await expect
       //   .poll(async () => {

@@ -394,6 +394,7 @@
     "total": "סך הכל",
     "downgrade": "הנמך",
     "upgrade": "שדרג",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "הפעל מחדש",
     "left": "נותרו",
@@ -408,7 +409,9 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "סקריפט",
@@ -686,6 +689,7 @@
     "termsOfService": "תנאי השירות",
     "updateSelectedRows": "עדכון רשומות נבחרות",
     "noFiltersAdded": "לא נוספו מסננים",
+    "noFieldsSelected": "No fields selected",
     "editCards": "עריכת כרטיסים",
     "noFieldsFound": "לא נמצאו שדות",
     "displayValue": "ערך מוצג",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "ניתן לשחזר רק לסביבות עבודה שבהן יש לך גישת יוצר ומעלה.",
     "currentWorkspace": "סביבת עבודה נוכחית",
     "currentBase": "Current base",
+    "sendMeEverything": "Send me everything",
     "latitude": "קו רוחב",
     "longitude": "קו אורך",
     "failed": "נכשל",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "לחץ כדי לפתור",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "פתח בכרטיסייה חדשה",
     "copyIFrameCode": "העתק קוד IFrame",
     "onCondition": "בתנאי",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "הורדת המון",
     "attachFile": "צרף קובץ",
     "viewAttachment": "הצג קבצים מצורפים",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "חורג מהמגבלה",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "מסנני URL מוחלים מפרמטרי ה-URL ומשולבים עם מסנני התצוגה שהוגדרו באמצעות סרגל הכלים.",
     "urlFilterError": "מסנן URL לא תקין. ההתעלם מכיוון שלא ניתן היה ליישם אותו.",
     "dropYourDocHere": "גרור את המסמך שלך כאן",

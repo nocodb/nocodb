@@ -67,11 +67,22 @@ onClickOutside(overlayWrapperDomRef, () => {
 const onVisibleUpdate = (event: boolean) => {
   localIsVisible.value = event
 
-  if (visible !== undefined) {
+  if (visible.value !== undefined) {
     visible.value = event
   } else {
     emits('update:visible', event)
   }
+}
+
+/**
+ * If we have not passed a visible prop, then `@update:visible` will not be called.
+ * So we need to use this method to update the local state of the dropdown.
+ * @param isVisible - the new visibility state of the dropdown
+ */
+const onVisibilityChange = (isVisible: boolean) => {
+  if (!ncIsUndefined(props.visible)) return
+
+  localIsVisible.value = isVisible
 }
 
 watch(
@@ -94,6 +105,7 @@ watch(
     :overlay-class-name="overlayClassNameComputed"
     :overlay-style="overlayStyle"
     @update:visible="onVisibleUpdate"
+    @visible-change="onVisibilityChange"
   >
     <slot :visible="localIsVisible" :on-change="onVisibleUpdate" />
 

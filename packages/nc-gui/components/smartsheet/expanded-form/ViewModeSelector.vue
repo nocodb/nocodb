@@ -19,8 +19,6 @@ const { isUIAllowed } = useRoles()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const { isNew, commentsDrawer, baseRoles } = useExpandedFormStoreOrThrow()

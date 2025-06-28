@@ -284,7 +284,6 @@ export class MetaService extends MetaServiceCE {
       };
       insertObj.push(tempObj);
     }
-
     await this.knexConnection.batchInsert(target, insertObj);
 
     return insertObj;

@@ -41,7 +41,8 @@ test.describe('Button column', () => {
 
     await webhook.create({
       title: 'hook-1',
-      event: 'Manual Trigger',
+      event: 'Manual',
+      operation: 'trigger',
     });
     await clearServerData({ request });
 

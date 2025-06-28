@@ -394,6 +394,7 @@
     "total": "សរុប",
     "downgrade": "បន្ថយកម្រិត",
     "upgrade": "អាប់ក្រេដ",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "ដំណើរការឡើងវិញ",
     "left": "នៅសល់",
@@ -408,7 +409,9 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "ស្គ្រីប",
@@ -686,6 +689,7 @@
     "termsOfService": "ល័ក្ខខ័ណ្ឌសេវាកម្ម",
     "updateSelectedRows": "ធ្វើបច្ចុប្បន្នភាពកំណត់ត្រាដែលបានជ្រើស",
     "noFiltersAdded": "គ្មានតម្រងបានបន្ថែម",
+    "noFieldsSelected": "No fields selected",
     "editCards": "កែប្រែប័ណ្ណ",
     "noFieldsFound": "រកមិនឃើញវាល",
     "displayValue": "តម្លៃបង្ហាញ",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "អ្នកអាចស្ដារឡើងវិញបានតែទៅ workspace ដែលអ្នកមានសិទ្ធិ Creator ឬខ្ពស់ជាងនេះប៉ុណ្ណោះ។",
     "currentWorkspace": "workspace បច្ចុប្បន្ន",
     "currentBase": "Current base",
+    "sendMeEverything": "Send me everything",
     "latitude": "រយៈទទឹង",
     "longitude": "រយៈបណ្ដោយ",
     "failed": "បរាជ័យ",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "ចុចដើម្បីដោះស្រាយ",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "បើកនៅក្នុងផ្ទាំងថ្មី",
     "copyIFrameCode": "ចម្លងកូដ IFrame",
     "onCondition": "ដើម្បីមានលក្ខខណ្ឌ",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "ទាញយកក្នុងចំណោមផ្ទាល់",
     "attachFile": "ភ្ជាប់ឯកសារ",
     "viewAttachment": "មើលឯកសារភ្ជាប់",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "លើសកំណត់",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "តម្រង URL ត្រូវបានអនុវត្តពីប៉ារ៉ាម៉ែត្រ URL និងបញ្ចូលជាមួយ តម្រងទិដ្ឋភាពដែលបានកំណត់តាមរបារ​ឧបករណ៍។",
     "urlFilterError": "តម្រង URL មិនត្រឹមត្រូវ។ ត្រូវបានអធ្យាស្រ័យព្រោះមិនអាចអនុវត្តបាន។",
     "dropYourDocHere": "ទម្លាក់ឯកសាររបស់អ្នកទីនេះ",

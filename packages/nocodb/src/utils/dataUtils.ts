@@ -169,7 +169,9 @@ export function batchUpdate(
         pk,
         ...filteredData.flatMap((row) => [
           row[pk],
-          typeof row[column] === 'object' ? row[column] : `${row[column]}`,
+          typeof row[column] === 'object' || typeof row[column] === 'boolean'
+            ? row[column]
+            : `${row[column]}`,
         ]),
         column,
       ],

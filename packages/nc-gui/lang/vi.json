@@ -394,6 +394,7 @@
     "total": "Tổng cộng",
     "downgrade": "Hạ cấp",
     "upgrade": "Nâng cấp",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "Kích hoạt lại",
     "left": "còn lại",
@@ -408,7 +409,9 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "Script",
@@ -686,6 +689,7 @@
     "termsOfService": "Điều khoản dịch vụ",
     "updateSelectedRows": "Cập nhật các bản ghi đã chọn",
     "noFiltersAdded": "Không thêm bộ lọc nào",
+    "noFieldsSelected": "No fields selected",
     "editCards": "Chỉnh sửa thẻ",
     "noFieldsFound": "Không tìm thấy trường nào",
     "displayValue": "Hiển thị giá trị",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "Bạn chỉ có thể khôi phục vào những không gian làm việc mà bạn có quyền tạo trở lên.",
     "currentWorkspace": "Không gian làm việc hiện tại",
     "currentBase": "Current base",
+    "sendMeEverything": "Send me everything",
     "latitude": "Vĩ độ",
     "longitude": "Kinh độ",
     "failed": "Thất bại",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "Nhấp để đánh dấu đã giải quyết",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "Mở trong tab mới",
     "copyIFrameCode": "Sao chép mã IFrame",
     "onCondition": "Trong Điều kiện",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "Tải xuống hàng loạt",
     "attachFile": "Đính kèm Tệp",
     "viewAttachment": "Xem Tệp đính kèm",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "Vượt quá giới hạn",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "Bộ lọc URL được lấy từ tham số URL và kết hợp với bộ lọc chế độ xem trên thanh công cụ.",
     "urlFilterError": "Bộ lọc URL không hợp lệ. Bỏ qua vì không thể áp dụng.",
     "dropYourDocHere": "Thả tài liệu của bạn vào đây",

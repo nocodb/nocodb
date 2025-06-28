@@ -240,15 +240,23 @@ const getHookTypeText = (hook: HookType) => {
     const prefix = hook.event === 'after' ? `${t('general.after')} ` : ''
 
     if (operations.length === 1) {
+      if (operations[0] === 'trigger') {
+        return t('general.trigger')
+      }
+
       return `${prefix}${operations[0]}`
     }
 
     return t('labels.sendAllEvents')
   }
-  return (
-    v2EventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text?.join(' ') ||
-    `Before ${hook.operation}`
-  )
+
+  const result = v2EventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text
+
+  if (result && result.includes('Manual Trigger')) {
+    return 'Manual Trigger'
+  }
+
+  return result?.join(' ') || `Before ${hook.operation}`
 }
 </script>
 
@@ -364,12 +372,9 @@ const getHookTypeText = (hook: HookType) => {
                   </template>
                 </NcTooltip>
 
-                <NcTooltip class="-mr-2">
-                  <NcBadge v-if="hook.version === 'v2'" color="orange" :border="false">
-                    <div class="flex items-center gap-1 text-nc-content-orange-dark">
-                      <GeneralIcon icon="ncAlertTriangle" />
-                    </div>
-                  </NcBadge>
+                <NcTooltip v-if="hook.version === 'v2'" class="-mr-2 flex">
+                  <GeneralIcon icon="ncAlertTriangle" class="flex-none text-nc-content-orange-dark" />
+
                   <template #title> Port this webhook from v2 to v3 </template>
                 </NcTooltip>
               </template>

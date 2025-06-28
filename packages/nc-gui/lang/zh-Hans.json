@@ -394,6 +394,7 @@
     "total": "总计",
     "downgrade": "降级",
     "upgrade": "升级",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "重新激活",
     "left": "剩余",
@@ -408,7 +409,9 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "脚本",
@@ -686,6 +689,7 @@
     "termsOfService": "服务条款",
     "updateSelectedRows": "更新选定记录",
     "noFiltersAdded": "未添加过滤器",
+    "noFieldsSelected": "No fields selected",
     "editCards": "编辑卡片",
     "noFieldsFound": "无可用字段",
     "displayValue": "显示值",
@@ -888,6 +892,7 @@
     "snapshotBaseRestoreMessage": "您只能在拥有创建者及以上权限的工作区中恢复。",
     "currentWorkspace": "当前工作区",
     "currentBase": "Current base",
+    "sendMeEverything": "Send me everything",
     "latitude": "纬度",
     "longitude": "经度",
     "failed": "失败",
@@ -1384,7 +1389,8 @@
     "backgroundColour": "Background colour",
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
-    "customColours": "Custom colours"
+    "customColours": "Custom colours",
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "点击解决",
@@ -1427,6 +1433,8 @@
     "openInANewTab": "在新标签页中打开",
     "copyIFrameCode": "复制 IFrame 代码",
     "onCondition": "条件",
+    "basedOnConditions": "Based on Conditions",
+    "forUpdatesInSpecificFields": "For updates in specific fields",
     "bulkDownload": "批量下载",
     "attachFile": "添加文件",
     "viewAttachment": "查看附件",
@@ -1735,11 +1743,11 @@
     "exceedingLimit": "超出限制",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1814,6 +1822,8 @@
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
+    "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
+    "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "URL 筛选器通过 URL 参数应用，并与工具栏中设置的视图筛选器组合。",
     "urlFilterError": "无效的 URL 筛选器，已忽略，因为无法应用。",
     "dropYourDocHere": "将文档拖放到这里",

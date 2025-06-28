@@ -240,8 +240,8 @@ const hasAutomationCreateAccess = computed(() => {
                 :disabled="!isBaseHomePage || !hasAutomationCreateAccess"
                 @click="openNewScriptModal({ baseId: openedProject?.id })"
               >
-                <GeneralIcon icon="ncPlay" />
-                {{ $t('general.automation') }}
+                <GeneralIcon icon="ncScript" />
+                {{ $t('general.scripts') }}
               </NcMenuItem>
             </NcTooltip>
           </template>

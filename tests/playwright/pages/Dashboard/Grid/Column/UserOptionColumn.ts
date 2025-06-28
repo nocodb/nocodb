@@ -97,7 +97,10 @@ export class UserOptionColumnPageObject extends BasePage {
     await this.rootPage.locator('.nc-dropdown-user-select-cell.active').waitFor({ state: 'visible' });
 
     expect(await this.rootPage.getByTestId(`select-option-${columnTitle}-undefined`).count()).toEqual(totalCount);
-    await this.column.get().locator('.nc-cell-user').click();
+
+    // Press `Escape` to close the dropdown
+    await this.rootPage.keyboard.press('Escape');
+    await this.rootPage.locator('.nc-dropdown-user-select-cell.active').waitFor({ state: 'hidden' });
 
     // Press `Cancel` to close edit modal
     await this.column.get().locator('button:has-text("Cancel")').click();

@@ -1,0 +1,80 @@
+name: "OpenReplay : CDN Build & Deploy"
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+    inputs:
+      force_build:
+        type: boolean
+        description: 'Force build even without changes'
+        required: false
+        default: false
+
+  # Triggered on push to main when OpenReplay related files change
+  push:
+    branches: [ develop ]
+    paths:
+      - 'scripts/ee/openreplay-cdn/**'
+      - '.github/workflows/openreplay-cdn-build.yml'
+
+jobs:
+  openreplay-cdn-build:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22.12.0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Build OpenReplay CDN bundle
+        run: |
+          cd scripts/ee/openreplay-cdn
+          npm install
+          npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Deploy to CDN
+        uses: pranavxc/s3-deploy@2cdf96df65b6c97ee09a5771958582b77f22b738
+        with:
+          folder: scripts/ee/openreplay-cdn/dist/
+          bucket: ${{ secrets.CDN_BUCKET }}
+          dist-id: ${{ secrets.CDN_DIST_ID }}
+          invalidation: /lib/*
+
+      - name: Summary
+        run: |
+          echo "## 🎉 OpenReplay CDN Build Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📍 CDN URLs:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Bundle:** \`${{ secrets.CDN_URL }}/lib/or.min.js\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔧 Usage:" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`html" >> $GITHUB_STEP_SUMMARY
+          echo "<script src=\"${{ secrets.CDN_URL }}/lib/or.min.js\"></script>" >> $GITHUB_STEP_SUMMARY
+          echo "<script>" >> $GITHUB_STEP_SUMMARY
+          echo "  const tracker = new OpenReplay({" >> $GITHUB_STEP_SUMMARY
+          echo "    projectKey: 'YOUR_PROJECT_KEY'" >> $GITHUB_STEP_SUMMARY
+          echo "  });" >> $GITHUB_STEP_SUMMARY
+          echo "  tracker.start();" >> $GITHUB_STEP_SUMMARY
+          echo "</script>" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

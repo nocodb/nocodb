@@ -1372,6 +1372,35 @@ export class PaymentService {
     }
   }
 
+  async migrateDb(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
+    try {
+      const subRec = await Subscription.getByWorkspaceOrOrg(
+        workspaceOrOrgId,
+        ncMeta,
+      );
+      if (!subRec) NcError.genericNotFound('Subscription', workspaceOrOrgId);
+
+      const plan = await Plan.get(subRec.fk_plan_id, ncMeta);
+      if (!plan) NcError.genericNotFound('Plan', subRec.fk_plan_id);
+
+      await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {
+        workspaceId: workspaceOrOrgId,
+        conditions: {
+          plan: plan.title,
+        },
+      });
+    } catch (err) {
+      this.telemetryService.sendSystemEvent({
+        event_type: 'priority_error',
+        error_trigger: 'migrateDb',
+        error_type: err?.name,
+        message: err?.message,
+        error_details: err?.stack,
+        affected_resources: [workspaceOrOrgId],
+      });
+    }
+  }
+
   async requestUpgrade(
     workspaceOrOrgId: string,
     payload: {
@@ -1497,6 +1526,8 @@ export class PaymentService {
             Noco.ncMeta,
           );
 
+          this.migrateDb(workspaceOrOrgId).catch(() => {});
+
           await this.updateNextInvoice(
             subRec.id,
             await this.getNextInvoice(subRec.fk_workspace_id),
@@ -1608,13 +1639,6 @@ export class PaymentService {
               seat_count: seatCount,
               period,
               price_id: price.id,
-            },
-          });
-
-          await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {
-            workspaceId: workspaceOrOrg.id,
-            conditions: {
-              plan: stripeSub.metadata.plan_title,
             },
           });
 

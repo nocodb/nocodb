@@ -105,7 +105,7 @@ const formattedPayload = computed(() => {
   }
 
   .content {
-    @apply flex-grow max-h-117 overflow-auto flex flex-col;
+    @apply flex-grow max-h-117 overflow-auto nc-scrollbar-thin flex flex-col;
 
     & > div:not(:last-child) {
       @apply border-b border-gray-200;

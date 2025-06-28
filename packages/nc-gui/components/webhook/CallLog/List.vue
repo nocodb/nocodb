@@ -23,7 +23,6 @@ const emit = defineEmits<Emit>()
 <template>
   <div class="container">
     <template v-for="(log, i) of hookLogs" :key="log.id">
-      <a-divider v-if="i" class="!my-0" />
       <div
         class="item"
         :class="{
@@ -31,17 +30,28 @@ const emit = defineEmits<Emit>()
         }"
         @click="emit('update:activeItem', log)"
       >
-        <div class="icon-wrapper">
-          <GeneralIcon v-if="log.error" icon="ncAlertCircleFilled h-[20px] w-[20px]"></GeneralIcon>
-          <GeneralIcon v-else icon="checkFill" class="text-white h-[20px] w-[20px]"></GeneralIcon>
+        <div class="icon-wrapper flex children:flex-none">
+          <GeneralIcon v-if="log.error" icon="alertTriangleSolid" class="h-5 w-5 text-nc-content-red-dark"></GeneralIcon>
+          <GeneralIcon v-else icon="checkFill" class="text-white h-5 w-5"></GeneralIcon>
         </div>
         <div class="flex flex-col">
-          <h4 class="font-weight-bold">{{ hookLogFormatter(log.created_at) }}</h4>
-          <span class="text-gray-600 text-small1">Executed in {{ log.execution_time }} ms</span>
+          <h4 class="font-bold">
+            {{ hookLogFormatter(log.created_at) }}
+          </h4>
+          <span class="text-nc-content-gray-subtle2 text-small1">
+            <template v-if="log.error"> Error occurred {{ log.error_code ?? '' }}</template>
+            <template v-else> Executed in {{ log.execution_time }} ms </template>
+          </span>
         </div>
       </div>
+      <a-divider
+        class="!my-0"
+        :class="{
+          invisible: activeItem === log || (i < hookLogs.length - 1 && hookLogs[i + 1] === activeItem),
+        }"
+      />
     </template>
-    <div class="flex flex-col items-center gap-2">
+    <div class="flex flex-col items-center gap-2 flex-1 justify-end pt-2">
       <NcPagination
         :current="logPaginationData.page"
         :page-size="logPaginationData.pageSize"
@@ -56,10 +66,10 @@ const emit = defineEmits<Emit>()
 
 <style scoped lang="scss">
 .container {
-  @apply p-2 h-full overflow-auto;
+  @apply p-2 h-full overflow-auto nc-scrollbar-thin flex flex-col;
 
   .item {
-    @apply cursor-pointer flex gap-3 p-3 rounded-lg;
+    @apply cursor-pointer flex gap-2 p-3 rounded-lg;
     &:hover {
       @apply bg-gray-50;
     }

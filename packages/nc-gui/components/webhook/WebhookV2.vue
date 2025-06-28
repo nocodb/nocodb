@@ -586,26 +586,16 @@ onMounted(async () => {
             </div>
           </a-form-item>
 
-          <a-form-item>
-            <a-card>
-              <div class="flex flex-row">
-                <div class="px-4">
-                  <!-- TODO: better icon -->
-                  <GeneralIcon icon="alertTriangleSolid" class="text-orange-500 mt-1 w-6 h-6 nc-pending" />
-                </div>
-                <div>
-                  <div class="font-bold">This webhook will be deprecated</div>
-                  <span>
-                    This version of webhooks will be discontinued soon. Upgrade to v3 to retain your webhook settings and avoid
-                    disruptions.
-                  </span>
-                </div>
-                <div>
-                  <a-button type="link" @click="isV3ModalOpen = true"><span class="font-bold">Upgrade to v3</span></a-button>
-                </div>
-              </div>
-            </a-card>
-          </a-form-item>
+          <NcAlert
+            type="warning"
+            message="This webhook will be deprecated"
+            description="This version of webhooks will be discontinued soon. Upgrade to v3 to retain your webhook settings and avoid
+                  disruptions."
+          >
+            <template #action>
+              <NcButton type="link" size="xsmall" class="!font-bold" @click="isV3ModalOpen = true"> Upgrade to v3 </NcButton>
+            </template>
+          </NcAlert>
 
           <a-form class="flex flex-col gap-8" :model="hookRef" name="create-or-edit-webhook">
             <div class="flex flex-col gap-4">

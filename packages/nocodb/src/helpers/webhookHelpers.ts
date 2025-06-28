@@ -1,17 +1,24 @@
+import { Logger } from '@nestjs/common';
+import axios from 'axios';
+import dayjs from 'dayjs';
+import isBetween from 'dayjs/plugin/isBetween';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import Handlebars from 'handlebars';
 import handlebarsHelpers from 'handlebars-helpers-v2';
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
+import {
+  ColumnHelper,
+  HookOperationCode,
+  isDateMonthFormat,
+  UITypes,
+} from 'nocodb-sdk';
 import { useAgent } from 'request-filtering-agent';
-import { Logger } from '@nestjs/common';
-import dayjs from 'dayjs';
-import { ColumnHelper, isDateMonthFormat, UITypes } from 'nocodb-sdk';
-import isBetween from 'dayjs/plugin/isBetween';
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import { v4 as uuidv4 } from 'uuid';
 import NcPluginMgrv2 from './NcPluginMgrv2';
-import type { AxiosResponse } from 'axios';
 import type { HookType } from 'jsep';
+import type { HookType as NcHookType } from 'nocodb-sdk';
 import type {
   ColumnType,
   FormColumnType,
@@ -22,11 +29,12 @@ import type {
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { Column, FormView, Hook, Model, View } from '~/models';
+import type { AxiosResponse } from 'axios';
 import { Filter, HookLog, Source } from '~/models';
-import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
 import { isEE, isOnPrem } from '~/utils';
 import { parseMetaProp } from '~/utils/modelUtils';
+import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 
 handlebarsHelpers({ handlebars: Handlebars });
 
@@ -641,6 +649,7 @@ export async function invokeWebhook(
     hook: Hook;
     model: Model;
     view: View;
+    hookName: string;
     prevData;
     newData;
     user;
@@ -655,6 +664,7 @@ export async function invokeWebhook(
     view,
     prevData,
     user,
+    hookName,
     testFilters = null,
     throwErrorOnFailure = false,
     testHook = false,
@@ -758,6 +768,7 @@ export async function invokeWebhook(
           ) {
             hookLog = {
               ...hook,
+              operation: hookName.split('.')?.[1] as any,
               fk_hook_id: hook.id,
               type: notification.type,
               payload: JSON.stringify(parsedPayload),
@@ -790,6 +801,7 @@ export async function invokeWebhook(
           ) {
             hookLog = {
               ...hook,
+              operation: hookName.split('.')?.[1] as any,
               fk_hook_id: hook.id,
               type: notification.type,
               payload: JSON.stringify(requestPayload),
@@ -819,6 +831,7 @@ export async function invokeWebhook(
           ) {
             hookLog = {
               ...hook,
+              operation: hookName.split('.')?.[1] as any,
               fk_hook_id: hook.id,
               type: notification.type,
               payload: JSON.stringify(notification?.payload),
@@ -858,6 +871,7 @@ export async function invokeWebhook(
     ) {
       hookLog = {
         ...hook,
+        operation: hookName.split('.')?.[1] as any,
         type: notification.type,
         payload: JSON.stringify(
           reqPayload
@@ -1002,4 +1016,31 @@ export function transformDataForMailRendering(
 function parseHrtimeToMilliSeconds(hrtime) {
   const milliseconds = (hrtime[0] + hrtime[1] / 1e6).toFixed(3);
   return milliseconds;
+}
+
+export function operationArrToCode(value: NcHookType['operation']) {
+  let result = 0;
+  for (const operation of value) {
+    result += HookOperationCode[operation];
+  }
+  return result.toString();
+}
+export function operationCodeToArr(code: number | string) {
+  const numberCode = typeof code === 'number' ? code : Number(code);
+  const result: NcHookType['operation'] = [];
+  for (const operation of Object.keys(HookOperationCode)) {
+    const operationCode = HookOperationCode[operation];
+    if ((numberCode & operationCode) === operationCode) {
+      result.push(operation as any);
+    }
+  }
+  return result;
+}
+export function compareOperationCode(param: {
+  code: string | number;
+  operation: string;
+}) {
+  const numberCode =
+    typeof param.code === 'number' ? param.code : Number(param.code);
+  return (HookOperationCode[param.operation] & numberCode) === numberCode;
 }

@@ -157,7 +157,8 @@ test.describe.serial('Webhook', () => {
     // after insert hook
     await webhook.create({
       title: 'hook-1',
-      event: 'On Record Insert',
+      event: 'Record',
+      operation: 'insert',
     });
     await clearServerData({ request });
     await dashboard.grid.addNewRow({
@@ -190,7 +191,8 @@ test.describe.serial('Webhook', () => {
     // after update hook
     await webhook.create({
       title: 'hook-2',
-      event: 'On Record Update',
+      event: 'Record',
+      operation: 'update',
     });
 
     await clearServerData({ request });
@@ -225,7 +227,8 @@ test.describe.serial('Webhook', () => {
     // after delete hook
     await webhook.create({
       title: 'hook-3',
-      event: 'On Record Delete',
+      event: 'Record',
+      operation: 'delete',
     });
     await clearServerData({ request });
     await dashboard.grid.addNewRow({
@@ -259,16 +262,30 @@ test.describe.serial('Webhook', () => {
     //  - verify trigger after delete
 
     await webhook.open({ index: 0 });
+    // toggle off insert
     await webhook.configureWebhook({
       title: 'hook-1-modified',
-      event: 'On Record Delete',
+      event: 'Record',
+      operation: 'insert',
+    });
+    await webhook.configureWebhook({
+      title: 'hook-1-modified',
+      event: 'Record',
+      operation: 'delete',
     });
     await webhook.save();
     await webhook.close();
     await webhook.open({ index: 1 });
+    // toggle off update
     await webhook.configureWebhook({
       title: 'hook-2-modified',
-      event: 'On Record Delete',
+      event: 'Record',
+      operation: 'update',
+    });
+    await webhook.configureWebhook({
+      title: 'hook-2-modified',
+      event: 'Record',
+      operation: 'delete',
     });
     await webhook.save();
     await webhook.close();

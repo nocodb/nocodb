@@ -340,15 +340,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
         }
       }
 
-      await this.paymentService.reseatSubscription(
-        // TODO: add support for orgs
-        workspace.id,
-        transaction,
-      );
-
       await transaction.commit();
-
-      await Promise.all(postOperations.map((fn) => fn()));
     } catch (e) {
       await transaction.rollback();
 
@@ -369,6 +361,14 @@ export class BaseUsersService extends BaseUsersServiceCE {
 
       throw e;
     }
+
+    await this.paymentService.reseatSubscription(
+      // TODO: add support for orgs
+      workspace.id,
+      ncMeta,
+    );
+
+    await Promise.all(postOperations.map((fn) => fn()));
 
     if (emails.length === 1) {
       return {
@@ -509,17 +509,17 @@ export class BaseUsersService extends BaseUsersServiceCE {
         transaction,
       );
 
-      await this.paymentService.reseatSubscription(
-        // TODO: add support for orgs
-        workspace.id,
-        transaction,
-      );
-
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
       throw e;
     }
+
+    await this.paymentService.reseatSubscription(
+      // TODO: add support for orgs
+      workspace.id,
+      ncMeta,
+    );
 
     await this.mailService.sendMail({
       mailEvent: MailEvent.BASE_ROLE_UPDATE,
@@ -636,17 +636,17 @@ export class BaseUsersService extends BaseUsersServiceCE {
       }
       await BaseUser.delete(context, base_id, param.userId, transaction);
 
-      await this.paymentService.reseatSubscription(
-        // TODO: add support for orgs
-        workspace.id,
-        transaction,
-      );
-
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
       throw e;
     }
+
+    await this.paymentService.reseatSubscription(
+      // TODO: add support for orgs
+      workspace.id,
+      ncMeta,
+    );
 
     this.appHooksService.emit(AppEvents.PROJECT_USER_DELETE, {
       base,

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import dayjs from 'dayjs';
+import { nanoid } from 'nanoid';
 import {
   AppEvents,
   LoyaltyPriceReverseLookupKeyMap,
@@ -20,6 +21,7 @@ import {
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
+import { acquireLock, releaseLock } from '~/helpers/lockHelpers';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { TelemetryService } from '~/services/telemetry.service';
 
@@ -652,76 +654,129 @@ export class PaymentService {
     }
   }
 
-  async reseatSubscription(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
-    const existingSub = await Subscription.getByWorkspaceOrOrg(
-      workspaceOrOrgId,
-      ncMeta,
-    );
-    if (!existingSub) return;
+  async reseatSubscriptionAwaited(
+    workspaceOrOrgId: string,
+    ncMeta = Noco.ncMeta,
+    initiator?: string,
+  ) {
+    const lockId = nanoid();
+    const lockKey = `reseatSubscription:${workspaceOrOrgId}`;
+    let lockAcquired = false;
 
-    const seatCount = await this.getSeatCount(workspaceOrOrgId, ncMeta);
-    if (existingSub.seat_count === seatCount) return;
+    try {
+      // Acquire lock with retry logic
+      lockAcquired = await acquireLock(lockKey, lockId);
 
-    const stripeSub = await stripe.subscriptions.retrieve(
-      existingSub.stripe_subscription_id,
-    );
-    if (!stripeSub) throw new Error('Stripe subscription not found');
+      if (!lockAcquired) {
+        // we use soft lock, so we proceed even if not acquired
+        this.logger.warn(
+          `Failed to acquire lock for workspace ${workspaceOrOrgId} after maximum wait time`,
+        );
+      }
 
-    if (
-      stripeSub.metadata.fk_workspace_id &&
-      stripeSub.metadata.fk_workspace_id !== existingSub.fk_workspace_id
-    ) {
-      throw new Error('Subscription does not belong to the workspace');
-    }
-    if (
-      stripeSub.metadata.fk_org_id &&
-      stripeSub.metadata.fk_org_id !== existingSub.fk_org_id
-    ) {
-      throw new Error('Subscription does not belong to the org');
-    }
-
-    await stripe.subscriptions.update(stripeSub.id, {
-      items: [
-        {
-          id: stripeSub.items.data[0].id,
-          price: existingSub.stripe_price_id,
-          quantity: seatCount,
-        },
-      ],
-      ...(existingSub.period === 'year' || existingSub.stripe_schedule_id
-        ? { proration_behavior: 'always_invoice' }
-        : {}),
-    });
-
-    await Subscription.update(
-      existingSub.id,
-      { seat_count: seatCount },
-      ncMeta,
-    );
-
-    // if there is a schedule, update it too
-    if (existingSub.stripe_schedule_id) {
-      const stripePrice = await stripe.prices.retrieve(
-        existingSub.schedule_stripe_price_id,
-      );
-
-      // update the schedule
-      await this.schedulePlanChange(
+      const existingSub = await Subscription.getByWorkspaceOrOrg(
         workspaceOrOrgId,
-        stripePrice,
-        await Plan.get(existingSub.schedule_fk_plan_id, ncMeta),
-        {
-          scheduleType: existingSub.schedule_type,
-        },
         ncMeta,
       );
-    }
+      if (!existingSub) return;
 
-    // update the next invoice
-    await this.updateNextInvoice(
-      existingSub.id,
-      await this.getNextInvoice(workspaceOrOrgId, ncMeta),
-      ncMeta,
+      const seatCount = await this.getSeatCount(workspaceOrOrgId, ncMeta);
+      if (existingSub.seat_count === seatCount) return;
+
+      const stripeSub = await stripe.subscriptions.retrieve(
+        existingSub.stripe_subscription_id,
+      );
+      if (!stripeSub) throw new Error('Stripe subscription not found');
+
+      if (
+        stripeSub.metadata.fk_workspace_id &&
+        stripeSub.metadata.fk_workspace_id !== existingSub.fk_workspace_id
+      ) {
+        throw new Error('Subscription does not belong to the workspace');
+      }
+      if (
+        stripeSub.metadata.fk_org_id &&
+        stripeSub.metadata.fk_org_id !== existingSub.fk_org_id
+      ) {
+        throw new Error('Subscription does not belong to the org');
+      }
+
+      await stripe.subscriptions.update(stripeSub.id, {
+        items: [
+          {
+            id: stripeSub.items.data[0].id,
+            price: existingSub.stripe_price_id,
+            quantity: seatCount,
+          },
+        ],
+        ...(existingSub.period === 'year' || existingSub.stripe_schedule_id
+          ? { proration_behavior: 'always_invoice' }
+          : {}),
+      });
+
+      await Subscription.update(
+        existingSub.id,
+        { seat_count: seatCount },
+        ncMeta,
+      );
+
+      // if there is a schedule, update it too
+      if (existingSub.stripe_schedule_id) {
+        const stripePrice = await stripe.prices.retrieve(
+          existingSub.schedule_stripe_price_id,
+        );
+
+        // update the schedule
+        await this.schedulePlanChange(
+          workspaceOrOrgId,
+          stripePrice,
+          await Plan.get(existingSub.schedule_fk_plan_id, ncMeta),
+          {
+            scheduleType: existingSub.schedule_type,
+          },
+          ncMeta,
+        );
+      }
+
+      // update the next invoice
+      await this.updateNextInvoice(
+        existingSub.id,
+        await this.getNextInvoice(workspaceOrOrgId, ncMeta),
+        ncMeta,
+      );
+    } catch (err) {
+      const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
+      await this.telemetryService.sendSystemEvent({
+        event_type: 'priority_error',
+        error_trigger: 'reseatSubscription',
+        error_type: err?.name,
+        message: err?.message,
+        error_details: err?.stack,
+        affected_resources: [
+          workspaceOrOrgId,
+          workspaceOrOrg?.title,
+          initiator,
+        ],
+      });
+      throw err; // Re-throw to ensure proper error handling
+    } finally {
+      // Always release the lock if we acquired it
+      if (lockAcquired) {
+        await releaseLock(lockKey, lockId);
+      }
+    }
+  }
+
+  async reseatSubscription(
+    workspaceOrOrgId: string,
+    ncMeta = Noco.ncMeta,
+    initiator?: string,
+  ) {
+    // we don't want to block the request
+    this.reseatSubscriptionAwaited(workspaceOrOrgId, ncMeta, initiator).catch(
+      () => {
+        // we handle the error in the promise
+      },
     );
   }
 

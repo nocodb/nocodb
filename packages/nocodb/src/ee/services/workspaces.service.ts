@@ -622,25 +622,25 @@ export class WorkspacesService implements OnApplicationBootstrap {
       // todo: unlink any base linked
       await Workspace.softDelete(param.workspaceId, transaction);
 
-      // TODO: remove optional chaining on cloud only code updated
-      await this.paymentService?.reseatSubscription(
-        // TODO: add support for orgs
-        workspace.id,
-        transaction,
-      );
-
       await transaction.commit();
-
-      this.appHooksService.emit(AppEvents.WORKSPACE_DELETE, {
-        workspace,
-        req: param.req,
-      });
-
-      return true;
     } catch (e) {
       await transaction.rollback();
       throw e;
     }
+
+    // TODO: remove optional chaining on cloud only code updated
+    await this.paymentService?.reseatSubscription(
+      // TODO: add support for orgs
+      workspace.id,
+      ncMeta,
+    );
+
+    this.appHooksService.emit(AppEvents.WORKSPACE_DELETE, {
+      workspace,
+      req: param.req,
+    });
+
+    return true;
   }
 
   async moveProject(param: {

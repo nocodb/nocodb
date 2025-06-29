@@ -26,6 +26,8 @@ const setMetadatas = ({
   if (params?.viewTitle) {
     tracker.setMetadata('view_id', params.viewTitle)
   }
+
+  tracker.setMetadata('domain', window.location.hostname)
 }
 
 export default defineNuxtPlugin(() => {
@@ -37,8 +39,13 @@ export default defineNuxtPlugin(() => {
   const route = router.currentRoute
 
   watch(
-    [() => appInfo.value?.isCloud, () => appInfo.value?.isOnPrem, () => user.value?.email],
-    ([isCloud, isOnPrem, email]) => {
+    [() => appInfo.value?.isCloud, () => appInfo.value?.isOnPrem, () => user.value?.email, () => appInfo.value?.openReplayKey],
+    ([isCloud, isOnPrem, email, openReplayKey]) => {
+      // skip if OpenReplay key is not present
+      if (!openReplayKey) {
+        return
+      }
+
       // skip if on-prem
       if (isOnPrem) {
         return
@@ -54,40 +61,43 @@ export default defineNuxtPlugin(() => {
         return
       }
 
-      if (!tracker) {
-        const script = document.createElement('script')
-        script.src = 'https://cdn.nocodb.com/lib/or.min.js'
-        script.async = true
-        script.onload = () => {
-          tracker = new (window as any).OpenReplay({
-            // TODO: make these part of appInfo
-            projectKey: 'WX6JlrfCDKS1uuuzhbYm',
-            ingestPoint: 'https://opr.nocodb.com/ingest',
-            resourceBaseHref: 'https://cdn.nocodb.com',
-            inlineCss: 3,
-          })
+      try {
+        if (!tracker) {
+          const script = document.createElement('script')
+          script.src = 'https://cdn.nocodb.com/lib/or.min.js'
+          script.async = true
+          script.onload = () => {
+            tracker = new (window as any).OpenReplay({
+              projectKey: openReplayKey,
+              ingestPoint: 'https://opr.nocodb.com/ingest',
+              resourceBaseHref: 'https://cdn.nocodb.com',
+              inlineCss: 3,
+            })
 
-          tracker.start()
+            tracker.start()
 
-          if ((window as any).ncClientId) {
-            tracker.setUserID((window as any).ncClientId)
+            if ((window as any).ncClientId) {
+              tracker.setUserID((window as any).ncClientId)
+            }
+
+            setMetadatas({
+              user: user.value,
+              params: route.value?.params,
+              tracker,
+            })
+            ;(window as any).orTracker = tracker
           }
 
+          document.head.appendChild(script)
+        } else if (tracker) {
           setMetadatas({
             user: user.value,
             params: route.value?.params,
             tracker,
           })
-          ;(window as any).orTracker = tracker
         }
-
-        document.head.appendChild(script)
-      } else if (tracker) {
-        setMetadatas({
-          user: user.value,
-          params: route.value?.params,
-          tracker,
-        })
+      } catch (_e) {
+        console.log('OR Init failed', _e.message)
       }
     },
     {
@@ -102,10 +112,14 @@ export default defineNuxtPlugin(() => {
 
     if (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type)) return
 
-    setMetadatas({
-      user: user.value,
-      params: route.value?.params,
-      tracker,
-    })
+    try {
+      setMetadatas({
+        user: user.value,
+        params: route.value?.params,
+        tracker,
+      })
+    } catch (_e) {
+      // ignore errors
+    }
   })
 })

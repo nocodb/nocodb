@@ -135,12 +135,23 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     try {
       // todo: pagination
       const { list, pageInfo: _ } = await $api.workspace.list()
+
+      const newWorkspaceIds = new Set(list?.map((w) => w.id) ?? [])
+
+      // Update or insert current workspaces
       for (const workspace of list ?? []) {
         const oldData = workspaces.value.has(workspace.id!) ? workspaces.value.get(workspace.id!) : {}
         workspaces.value.set(workspace.id!, {
           ...oldData,
           ...workspace,
         })
+      }
+
+      // Remove stale workspaces
+      for (const existingId of workspaces.value.keys()) {
+        if (!newWorkspaceIds.has(existingId)) {
+          workspaces.value.delete(existingId)
+        }
       }
 
       isWorkspacesLoading.value = false

@@ -141,19 +141,14 @@ const updateColor = (index: number, field: string, value: string) => {
               <template #root-header>
                 <div class="flex justify-between w-full pb-2">
                   <div class="flex-grow">
-                    <template v-if="!disabled && !isLockedView">
-                      <GeneralAdvanceColorPickerDropdown
-                        v-model="rowColorConfig.color"
-                        :disabled="readOnlyFilter"
-                        @change="updateColor(i, 'color', $event)"
-                      >
+                    <template v-if="!readOnlyFilter">
+                      <GeneralAdvanceColorPickerDropdown v-model="rowColorConfig.color" @change="updateColor(i, 'color', $event)">
                         <NcButton
                           type="text"
                           size="small"
                           :style="{
                             'background-color': rowColorConfig.color,
                           }"
-                          :disabled="readOnlyFilter"
                         >
                           <span
                             :style="{
@@ -170,7 +165,7 @@ const updateColor = (index: number, field: string, value: string) => {
                         type="text"
                         size="small"
                         :style="{
-                          'background-color': getLighterTint(rowColorConfig.color, { saturationMod: 15 }),
+                          'background-color': rowColorConfig.color,
                         }"
                         :disabled="true"
                       >

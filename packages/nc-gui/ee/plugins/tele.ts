@@ -8,13 +8,22 @@ import type { NuxtApp } from '#app'
 // todo: generate client id and keep it in cookie(share across sub-domains)
 let clientId: string | null = null
 let isTeleEnabled = false
-let phClient: PostHog | void
+// let phClient: PostHog | void
 
 try {
   if (process.env.NC_ON_PREM !== 'true') {
     init({
       clientIdCb: (id) => {
         clientId = id
+        if (typeof window !== 'undefined') {
+          ;(window as any).ncClientId = clientId
+
+          // set tracker client id if tracker defined
+          if ((window as any).orTracker) {
+            ;(window as any).orTracker.setUserID(clientId)
+          }
+        }
+
         initPostHog(id)
       },
     })
@@ -24,25 +33,26 @@ try {
 function initPostHog(clientId: string) {
   try {
     if (!isTeleEnabled) return
-    if (!phClient) {
-      phClient = posthog.init('phc_XIYhmt76mLGNt1iByEFoTEbsyuYeZ0o7Q5Ang4G7msr', {
-        api_host: 'https://app.posthog.com',
-        session_recording: {
-          maskAllInputs: true,
-          maskTextSelector: ":not([data-rec='true'])",
-          maskTextFn: (text: string) => {
-            if (!text?.trim()) return text
-            if (text.length <= 2) return text.replace(/./g, '*')
-            return text.replace(/^(.{3})([\s\S]*)/g, (_, m1, m2) => {
-              return m1 + (m2 ? '*'.repeat(m2.length) : '')
-            })
-          },
-        },
-        autocapture: false,
-        capture_pageview: false,
-      })
-    }
-    posthog.identify(clientId)
+    // todo: remove posthog session recording
+    // if (!phClient) {
+    //   phClient = posthog.init('phc_XIYhmt76mLGNt1iByEFoTEbsyuYeZ0o7Q5Ang4G7msr', {
+    //     api_host: 'https://app.posthog.com',
+    //     session_recording: {
+    //       maskAllInputs: true,
+    //       maskTextSelector: ":not([data-rec='true'])",
+    //       maskTextFn: (text: string) => {
+    //         if (!text?.trim()) return text
+    //         if (text.length <= 2) return text.replace(/./g, '*')
+    //         return text.replace(/^(.{3})([\s\S]*)/g, (_, m1, m2) => {
+    //           return m1 + (m2 ? '*'.repeat(m2.length) : '')
+    //         })
+    //       },
+    //     },
+    //     autocapture: false,
+    //     capture_pageview: false,
+    //   })
+    // }
+    // posthog.identify(clientId)
   } catch (e) {
     // console.log(e)
     // ignore error

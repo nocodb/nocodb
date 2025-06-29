@@ -4,9 +4,10 @@ module.exports = {
   output: {
     filename: 'lib/or.min.js',
     library: {
-      name: 'OpenReplay',
-      type: 'umd',
+      name: 'OpenReplay', // this makes it window.OpenReplay
+      type: 'window',     // outputs to global window
+      export: 'default',
     },
-    globalObject: 'this'
-  }
+  },
+  devtool: false,
 };

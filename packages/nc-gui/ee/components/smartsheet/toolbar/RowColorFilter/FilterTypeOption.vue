@@ -114,9 +114,9 @@ const listOptions = computed<ListOptionType[]>(() => [
 
     <GeneralLockedViewFooter
       v-if="isLocked || !hasPermission"
-      @on-open="isOpenVModel = false"
       :show-icon="isLocked"
       :show-unlock-button="isLocked"
+      @on-open="isOpenVModel = false"
     >
       <template v-if="!isLocked" #title>
         Editing restricted for <span class="capitalize"> {{ Object.keys(user.base_roles)?.[0] ?? ProjectRoles.NO_ACCESS }}</span>

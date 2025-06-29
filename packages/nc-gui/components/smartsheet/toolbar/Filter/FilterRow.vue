@@ -311,16 +311,16 @@ function onValueChange(value: any, prevValue: any, index: number) {
       filter: vModel.value,
       type: 'value',
       prevValue,
-      value: value,
-      index: index,
+      value,
+      index,
     })
   } else {
     emits('change', {
       filter: { ...vModel.value },
       type: 'value',
       prevValue,
-      value: value,
-      index: index,
+      value,
+      index,
     })
   }
 

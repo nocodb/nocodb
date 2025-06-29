@@ -36,8 +36,6 @@ export async function acquireLock(
           60, // 1 minute expiration
         );
 
-        logger.log(`Acquiring lock ${lockKey} for ${lockId}`);
-
         // Small delay to ensure cache consistency
         await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -47,8 +45,6 @@ export async function acquireLock(
           CacheGetType.TYPE_OBJECT,
         );
         if (verifyLock && verifyLock.lockId === lockId) {
-          logger.log(`Acquired lock ${lockKey} for ${lockId}`);
-
           return true;
         }
       }
@@ -80,8 +76,6 @@ export async function releaseLock(
     // Only release if we own the lock
     if (existingLock && existingLock.lockId === lockId) {
       await NocoCache.del(lockKey);
-
-      logger.log(`Released lock ${lockKey}`);
     }
   } catch (error) {
     logger.warn(`Failed to release lock ${lockKey}: ${error.message}`);

@@ -66,7 +66,7 @@ onMounted(() => {
   <GeneralModal v-model:visible="vModel" class="!w-[30rem]" wrap-class-name="nc-modal-upgrade-ws">
     <div class="flex flex-col gap-4">
       <div class="flex items-center gap-2">
-        <GeneralIcon icon="ncAirplay" class="w-5 h-5" />
+        <GeneralIcon icon="nocodb1" class="w-5 h-5" />
         <div class="text-lg font-bold self-center">Upgrading Workspace</div>
       </div>
 

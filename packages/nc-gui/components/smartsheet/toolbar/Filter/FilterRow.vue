@@ -56,6 +56,25 @@ const logicalOps = [
 const slots = useSlots()
 const filterPrevComparisonOp = ref('')
 
+const isFilterSaving = ref(false)
+
+const localFilterValue = ref('')
+
+/**
+ * We are using debounce to save filter value so we have to sync the value from localFilterValue to vModel.value.value
+ */
+watch(
+  () => vModel.value.value,
+  () => {
+    if (localFilterValue.value && vModel.value.value !== localFilterValue.value) {
+      vModel.value.value = localFilterValue.value
+    }
+  },
+  {
+    deep: true,
+  },
+)
+
 const slotHasChildren = (name?: string) => {
   return (slots[name ?? 'default']?.()?.length ?? 0) > 0
 }
@@ -271,41 +290,50 @@ const onFkValueColIdChanged = (fk_value_col_id: string) => {
   }
 }
 
-const saveOrUpdateDebounced = useCachedDebouncedFunction(
-  onValueChange,
-  500,
-  (filter: ColumnFilterType, prevValue: any, i: number) => i,
-)
+const saveOrUpdateDebounced = useDebounceFn(onValueChange, 500)
 
-function onValueChange(filter: ColumnFilterType, prevValue: any, index: number) {
+function onValueChange(value: any, prevValue: any, index: number) {
+  if (!vModel.value.id && isFilterSaving.value) {
+    saveOrUpdateDebounced(value, prevValue, index)
+    return
+  }
+
+  if (!vModel.value.id) {
+    isFilterSaving.value = true
+  } else {
+    isFilterSaving.value = false
+  }
+
+  vModel.value.value = value as any
+
   if (props.handler?.rowChange) {
     props.handler?.rowChange({
-      filter: filter,
+      filter: vModel.value,
       type: 'value',
       prevValue,
-      value: filter.value,
+      value: value,
       index: index,
     })
   } else {
     emits('change', {
-      filter: { ...filter },
+      filter: { ...vModel.value },
       type: 'value',
       prevValue,
-      value: filter.value,
+      value: value,
       index: index,
     })
   }
+
+  localFilterValue.value = ''
 }
 
 const updateFilterValue = (value: string) => {
   const prevValue = vModel.value.value
+  const currentValue = value
+  localFilterValue.value = value
   vModel.value.value = value as any
 
-  if (!vModel.value.id) {
-    onValueChange(vModel.value, prevValue, props.index)
-  } else {
-    saveOrUpdateDebounced(vModel.value, prevValue, props.index)
-  }
+  saveOrUpdateDebounced(currentValue, prevValue, props.index)
 }
 
 const onDelete = () => {

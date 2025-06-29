@@ -152,6 +152,11 @@ export class UtilsService extends UtilsServiceCE {
     // in cloud decide telemetry enabled or not based on PostHog API key presence
     result.teleEnabled = !!process.env.NC_CLOUD_POSTHOG_API_KEY;
 
+    // if OpenReplay key is present, include it in the result
+    if (process.env.NC_OPENREPLAY_KEY) {
+      result.openReplayKey = process.env.NC_OPENREPLAY_KEY;
+    }
+
     const cognitoConfig = this.configService.get('cognito', {
       infer: true,
     });

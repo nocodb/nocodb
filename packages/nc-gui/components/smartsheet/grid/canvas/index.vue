@@ -1925,8 +1925,16 @@ const handleMouseMove = (e: MouseEvent) => {
 }
 
 const handleMouseLeave = () => {
-  activeCursor.value = 'auto'
+  setCursor('auto')
   hideTooltip()
+
+  // Reset hover row on mouse leave from canvas
+  hoverRow.value = {
+    path: [],
+    rowIndex: -2,
+  }
+
+  requestAnimationFrame(triggerRefreshCanvas)
 }
 
 const reloadViewDataHookHandler = withLoading(async (params) => {

@@ -341,6 +341,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       onSuccess: (col?: ColumnType) => Promise<void>,
       columnPosition?: Pick<ColumnReqType, 'column_order'>,
     ) => {
+      // keep the postSaveOrUpdateCbk backup since it might reset if user closed the menu while saving column
+      const postSaveOrUpdateCbkBackup = postSaveOrUpdateCbk
+
       try {
         if (!(await validate())) return
       } catch (e: any) {
@@ -399,7 +402,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             return
           }
 
-          await postSaveOrUpdateCbk?.({ update: true, colId: column.value?.id })
+          await postSaveOrUpdateCbkBackup?.({ update: true, colId: column.value?.id })
 
           if (meta.value?.id && column.value.uidt === UITypes.Attachment && column.value.uidt !== formState.value.uidt) {
             viewsStore.updateViewCoverImageColumnId({
@@ -440,7 +443,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             (c) => c.title === formState.value.title || c.column_name === formState.value.column_name,
           )
 
-          await postSaveOrUpdateCbk?.({ update: false, colId: savedColumn?.id as string, column: savedColumn })
+          await postSaveOrUpdateCbkBackup?.({ update: false, colId: savedColumn?.id as string, column: savedColumn })
 
           /** if LTAR column then force reload related table meta */
           if (isLinksOrLTAR(formState.value) && meta.value?.id !== formState.value.childId) {

@@ -1370,7 +1370,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     // If the click is not normal single click, return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
 
-    if (clickedColumn) {
+    if (clickedColumn && clickedColumn.id !== 'row_number') {
       // if clicked on same aggregation field, close the dropdown
       if (
         prevMenuState.isDropdownVisible &&

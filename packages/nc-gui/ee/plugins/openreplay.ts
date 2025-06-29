@@ -78,12 +78,11 @@ export default defineNuxtPlugin(() => {
             params: route.value?.params,
             tracker,
           })
-
           ;(window as any).orTracker = tracker
         }
 
         document.head.appendChild(script)
-      } else if (tracker){
+      } else if (tracker) {
         setMetadatas({
           user: user.value,
           params: route.value?.params,

@@ -175,7 +175,7 @@ watch(activeWorkspaceId, () => {
           </div>
 
           <div v-if="column.key === 'ip'" class="w-full truncate">
-            {{ audit.ip === '::1' ? 'localhost' : '' }}
+            {{ audit.ip === '::1' ? 'localhost' : audit.ip }}
           </div>
           <div v-if="column.key === 'user_agent'" class="w-full truncate">
             {{ audit.user_agent || '' }}

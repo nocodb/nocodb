@@ -204,7 +204,7 @@
     "socket.io": "^4.8.1",
     "sqlite3": "^5.1.7",
     "stream-json": "^1.9.1",
-    "stripe": "^17.7.0",
+    "stripe": "^18.2.1",
     "tinycolor2": "^1.6.0",
     "twilio": "^4.23.0",
     "unstructured-client": "^0.16.0",

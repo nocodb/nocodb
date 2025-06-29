@@ -25,7 +25,9 @@ import { acquireLock, releaseLock } from '~/helpers/lockHelpers';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { TelemetryService } from '~/services/telemetry.service';
 
-const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder');
+const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder', {
+  apiVersion: '2025-05-28.basil',
+});
 
 @Injectable()
 export class PaymentService {
@@ -828,10 +830,9 @@ export class PaymentService {
       existingSub.id,
       {
         status: canceled.status,
-        canceled_at: dayjs
-          .unix(canceled.current_period_end)
-          .utc()
-          .toISOString(),
+        canceled_at: canceled.cancel_at
+          ? dayjs.unix(canceled.cancel_at).utc().toISOString()
+          : null,
         stripe_schedule_id: null,
         schedule_phase_start: null,
         schedule_stripe_price_id: null,
@@ -935,7 +936,7 @@ export class PaymentService {
           },
         });
       } else {
-        invoice = await stripe.invoices.retrieveUpcoming({
+        invoice = await stripe.invoices.createPreview({
           customer: workspaceOrOrg.stripe_customer_id,
           subscription: subscription.stripe_subscription_id,
         });
@@ -1510,14 +1511,18 @@ export class PaymentService {
     try {
       switch (event.type) {
         case 'invoice.paid': {
+          const invoiceObj = obj as Stripe.Invoice;
+
+          const subscriptionId =
+            typeof invoiceObj.parent.subscription_details.subscription ===
+            'string'
+              ? invoiceObj.parent.subscription_details.subscription
+              : invoiceObj.parent.subscription_details.subscription?.id || '';
+
           const subRec = await Subscription.getByStripeSubscriptionId(
-            (obj as Stripe.Invoice).subscription as string,
+            subscriptionId,
           );
-          if (!subRec)
-            NcError.genericNotFound(
-              'Subscription',
-              (obj as Stripe.Invoice).subscription as string,
-            );
+          if (!subRec) NcError.genericNotFound('Subscription', subscriptionId);
 
           // TODO: add org support
           const workspaceOrOrgId = subRec.fk_workspace_id;
@@ -1555,14 +1560,18 @@ export class PaymentService {
         }
 
         case 'invoice.payment_failed': {
+          const invoiceObj = obj as Stripe.Invoice;
+
+          const subscriptionId =
+            typeof invoiceObj.parent.subscription_details.subscription ===
+            'string'
+              ? invoiceObj.parent.subscription_details.subscription
+              : invoiceObj.parent.subscription_details.subscription?.id || '';
+
           const subRec = await Subscription.getByStripeSubscriptionId(
-            (obj as Stripe.Invoice).subscription as string,
+            subscriptionId,
           );
-          if (!subRec)
-            NcError.genericNotFound(
-              'Subscription',
-              (obj as Stripe.Invoice).subscription as string,
-            );
+          if (!subRec) NcError.genericNotFound('Subscription', subscriptionId);
 
           // TODO: add org support
           const wid = subRec.fk_workspace_id;

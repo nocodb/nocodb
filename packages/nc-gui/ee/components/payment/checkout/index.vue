@@ -40,13 +40,12 @@ const onBack = () => {
 
 const initializeForm = async () => {
   isLoading.value = true
-  removeCheckoutPage()
 
   try {
-    const res: {
+    const res = (await createPaymentForm()) as {
       client_secret?: string
       recover?: boolean
-    } = await createPaymentForm()
+    }
 
     if (res.recover) {
       message.info(`Your subscription has been recovered.`)
@@ -70,8 +69,6 @@ const initializeForm = async () => {
 }
 
 onMounted(() => {
-  removeCheckoutPage()
-
   try {
     redirectRef.value = route.query?.ref === 'billing' ? 'billing' : null
 
@@ -102,21 +99,29 @@ onMounted(() => {
   }
 })
 
-const onChangePaymentMode = (mode) => {
+const onChangePaymentMode = (mode: 'month' | 'year') => {
   onPaymentModeChange(mode)
   initializeForm()
 }
 
-function removeCheckoutPage() {
+async function removeCheckoutPage() {
   if (!checkout.value) return
 
-  checkout.value.unmount()
-  checkout.value.destroy()
-  checkout.value = null
+  try {
+    checkout.value.unmount()
+    await checkout.value.destroy()
+    checkout.value = null
+
+    // Give Stripe a moment to fully clean up
+    await new Promise((resolve) => setTimeout(resolve, 100))
+  } catch (error) {
+    console.warn('Error cleaning up checkout:', error)
+    checkout.value = null
+  }
 }
 
-onBeforeUnmount(() => {
-  removeCheckoutPage()
+onBeforeUnmount(async () => {
+  await removeCheckoutPage()
 })
 </script>
 

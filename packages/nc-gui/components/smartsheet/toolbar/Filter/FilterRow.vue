@@ -280,7 +280,7 @@ const saveOrUpdateDebounced = useCachedDebouncedFunction(
 function onValueChange(filter: ColumnFilterType, prevValue: any, index: number) {
   if (props.handler?.rowChange) {
     props.handler?.rowChange({
-      filter: { ...filter },
+      filter: filter,
       type: 'value',
       prevValue,
       value: filter.value,
@@ -300,7 +300,12 @@ function onValueChange(filter: ColumnFilterType, prevValue: any, index: number) 
 const updateFilterValue = (value: string) => {
   const prevValue = vModel.value.value
   vModel.value.value = value as any
-  saveOrUpdateDebounced(vModel.value, prevValue, props.index)
+
+  if (!vModel.value.id) {
+    onValueChange(vModel.value, prevValue, props.index)
+  } else {
+    saveOrUpdateDebounced(vModel.value, prevValue, props.index)
+  }
 }
 
 const onDelete = () => {

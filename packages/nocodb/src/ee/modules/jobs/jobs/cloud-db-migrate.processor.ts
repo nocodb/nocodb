@@ -161,7 +161,7 @@ export class CloudDbMigrateProcessor {
           );
           const { status, message, progress } = response.data;
 
-          const log = `${message} - ${progress}%`;
+          const log = `${message} : ${progress}%`;
 
           if (log !== lastLog) {
             logBasic(log);

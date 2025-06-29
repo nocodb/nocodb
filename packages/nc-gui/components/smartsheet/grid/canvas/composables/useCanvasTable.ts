@@ -392,7 +392,7 @@ export function useCanvasTable({
               : parseCellWidth(gridViewCol.width) > width.value * (3 / 4)
               ? false
               : !!f.pv,
-          readonly: f.readonly || isDataReadOnly.value || isSqlView.value || isPublicView.value || !isCellEditable,
+          readonly: f.readonly || isDataReadOnly.value || !isDataEditAllowed.value || isPublicView.value || !isCellEditable,
           isCellEditable,
           pv: !!f.pv,
           virtual: isVirtualCol(f),

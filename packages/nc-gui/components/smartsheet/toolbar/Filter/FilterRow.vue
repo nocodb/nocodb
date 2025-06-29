@@ -270,27 +270,39 @@ const onFkValueColIdChanged = (fk_value_col_id: string) => {
     })
   }
 }
-const onValueChange = (value: string) => {
-  const prevValue = vModel.value.value
+
+const saveOrUpdateDebounced = useCachedDebouncedFunction(
+  onValueChange,
+  500,
+  (filter: ColumnFilterType, prevValue: any, i: number) => i,
+)
+
+function onValueChange(filter: ColumnFilterType, prevValue: any, index: number) {
   if (props.handler?.rowChange) {
     props.handler?.rowChange({
-      filter: vModel.value,
+      filter: { ...filter },
       type: 'value',
       prevValue,
-      value,
-      index: props.index,
+      value: filter.value,
+      index: index,
     })
   } else {
-    vModel.value.value = value as any
     emits('change', {
-      filter: { ...vModel.value },
+      filter: { ...filter },
       type: 'value',
       prevValue,
-      value,
-      index: props.index,
+      value: filter.value,
+      index: index,
     })
   }
 }
+
+const updateFilterValue = (value: string) => {
+  const prevValue = vModel.value.value
+  vModel.value.value = value as any
+  saveOrUpdateDebounced(vModel.value, prevValue, props.index)
+}
+
 const onDelete = () => {
   emits('delete', {
     filter: { ...vModel.value },
@@ -482,7 +494,7 @@ const onChangeToDynamic = async () => {
               :filter="vModel"
               :disabled="isDisabled"
               :db-client-type="dbClientType"
-              @update-filter-value="(value) => onValueChange(value)"
+              @update-filter-value="(value) => updateFilterValue(value)"
               @click.stop
             />
             <template v-if="link">

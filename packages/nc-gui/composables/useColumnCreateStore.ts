@@ -52,6 +52,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const disableSubmitBtn = ref(false)
 
+    const isSaving = ref(false)
+
     const isWebhookCreateModalOpen = ref(false)
 
     const isScriptCreateModalOpen = ref(false)
@@ -89,7 +91,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const setPostSaveOrUpdateCbk = (cbk: typeof postSaveOrUpdateCbk) => {
       postSaveOrUpdateCbk = cbk
     }
-
     const defaultType = isMetaReadOnly.value ? UITypes.Formula : UITypes.SingleLineText
 
     const defaultFormState = {
@@ -341,9 +342,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       onSuccess: (col?: ColumnType) => Promise<void>,
       columnPosition?: Pick<ColumnReqType, 'column_order'>,
     ) => {
-      // keep the postSaveOrUpdateCbk backup since it might reset if user closed the menu while saving column
-      const postSaveOrUpdateCbkBackup = postSaveOrUpdateCbk
-
       try {
         if (!(await validate())) return
       } catch (e: any) {
@@ -368,6 +366,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       let oldCol: ColumnType | undefined
 
       try {
+        isSaving.value = true // set saving state
+
         formState.value.table_name = meta.value?.table_name
 
         const refModelId = formState.value.custom?.ref_model_id
@@ -402,7 +402,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             return
           }
 
-          await postSaveOrUpdateCbkBackup?.({ update: true, colId: column.value?.id })
+          await postSaveOrUpdateCbk?.({ update: true, colId: column.value?.id })
 
           if (meta.value?.id && column.value.uidt === UITypes.Attachment && column.value.uidt !== formState.value.uidt) {
             viewsStore.updateViewCoverImageColumnId({
@@ -443,7 +443,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             (c) => c.title === formState.value.title || c.column_name === formState.value.column_name,
           )
 
-          await postSaveOrUpdateCbkBackup?.({ update: false, colId: savedColumn?.id as string, column: savedColumn })
+          await postSaveOrUpdateCbk?.({ update: false, colId: savedColumn?.id as string, column: savedColumn })
 
           /** if LTAR column then force reload related table meta */
           if (isLinksOrLTAR(formState.value) && meta.value?.id !== formState.value.childId) {
@@ -462,6 +462,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         return true
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
+      } finally {
+        isSaving.value = false // reset saving state
       }
     }
 
@@ -527,6 +529,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       tableExplorerColumns,
       defaultFormState,
       isScriptCreateModalOpen,
+      isSaving,
     }
   },
 )

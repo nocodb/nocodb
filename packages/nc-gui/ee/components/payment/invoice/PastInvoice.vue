@@ -15,15 +15,31 @@ const paginatedData = computed(() => {
 })
 
 const getPlanTitle = (record: Stripe.Invoice) => {
-  const planTitle = record?.subscription_details?.metadata?.plan_title || ''
-  const planPeriod = record?.subscription_details?.metadata?.period || ''
+  const planTitle = record?.parent?.subscription_details?.metadata?.plan_title || ''
+  const planPeriod = record?.parent?.subscription_details?.metadata?.period || ''
+
+  const invoiceLines = record?.lines?.data
+  // get last line quantity if it exists
+  const seatCount = invoiceLines?.length > 0 ? invoiceLines[invoiceLines.length - 1].quantity : 0
 
   let returnPlan = ''
 
+  // if seats available
+  // Plan (N seats billed annually/monthly)
   if (planTitle && planPeriod) {
-    returnPlan = `${planTitle} (${planPeriod === 'month' ? 'Monthly' : 'Annual'})`
+    if (seatCount > 0) {
+      returnPlan = `${planTitle} (${seatCount === 1 ? '1 seat' : `${seatCount} seats`} billed ${
+        planPeriod === 'month' ? 'monthly' : 'annually'
+      })`
+    } else {
+      returnPlan = `${planTitle} (${planPeriod === 'month' ? 'Monthly' : 'Annual'})`
+    }
   } else if (planTitle) {
-    returnPlan = planTitle
+    if (seatCount > 0) {
+      returnPlan = `${planTitle} (${seatCount === 1 ? '1 seat' : `${seatCount} seats`})`
+    } else {
+      returnPlan = planTitle
+    }
   }
 
   return returnPlan

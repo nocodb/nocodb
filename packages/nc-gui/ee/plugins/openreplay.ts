@@ -1,9 +1,40 @@
 // enable openreplay session recording in cloud edition and not in enterprise edition
 import { defineNuxtPlugin } from '#app'
+import type { User } from '~/lib/types'
+
+const setMetadatas = ({
+  user,
+  params,
+  tracker,
+}: {
+  user: User | null
+  params: Record<string, any>
+  tracker: { setMetadata: (key: string, value: any) => void }
+}) => {
+  tracker.setMetadata('email', user?.email)
+  tracker.setMetadata('user_id', user?.id)
+
+  if (params?.base_id) {
+    tracker.setMetadata('base_id', params.base_id)
+  }
+  if (params?.typeOrId) {
+    tracker.setMetadata('workspace_id', params.typeOrId)
+  }
+  if (params?.viewId) {
+    tracker.setMetadata('table_id', params.viewId)
+  }
+  if (params?.viewTitle) {
+    tracker.setMetadata('view_id', params.viewTitle)
+  }
+}
 
 export default defineNuxtPlugin(() => {
   let tracker: any
   const { appInfo, user } = useGlobal()
+
+  const router = useRouter()
+
+  const route = router.currentRoute
 
   watch(
     [() => appInfo.value?.isCloud, () => appInfo.value?.isOnPrem, () => user.value?.email],
@@ -23,29 +54,59 @@ export default defineNuxtPlugin(() => {
         return
       }
 
-      const script = document.createElement('script')
-      script.src = 'https://cdn.nocodb.com/lib/or.min.js'
-      script.async = true
-      script.onload = () => {
-        tracker = new (window as any).OpenReplay({
-          // TODO: make these part of appInfo
-          projectKey: 'WX6JlrfCDKS1uuuzhbYm',
-          ingestPoint: 'https://opr.nocodb.com/ingest',
-          resourceBaseHref: 'https://cdn.nocodb.com',
-          inlineCss: 3,
-        })
+      if (!tracker) {
+        const script = document.createElement('script')
+        script.src = 'https://cdn.nocodb.com/lib/or.min.js'
+        script.async = true
+        script.onload = () => {
+          tracker = new (window as any).OpenReplay({
+            // TODO: make these part of appInfo
+            projectKey: 'WX6JlrfCDKS1uuuzhbYm',
+            ingestPoint: 'https://opr.nocodb.com/ingest',
+            resourceBaseHref: 'https://cdn.nocodb.com',
+            inlineCss: 3,
+          })
 
-        tracker.start()
-        if ((window as any).ncClientId) {
-          tracker.setUserID((window as any).ncClientId)
+          tracker.start()
+
+          if ((window as any).ncClientId) {
+            tracker.setUserID((window as any).ncClientId)
+          }
+
+          setMetadatas({
+            user: user.value,
+            params: route.value?.params,
+            tracker,
+          })
+
+          ;(window as any).orTracker = tracker
         }
-        ;(window as any).orTracker = tracker
 
         document.head.appendChild(script)
+      } else if (tracker){
+        setMetadatas({
+          user: user.value,
+          params: route.value?.params,
+          tracker,
+        })
       }
     },
     {
       immediate: true,
     },
   )
+
+  router.afterEach((to, from) => {
+    if (!tracker) {
+      return
+    }
+
+    if (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type)) return
+
+    setMetadatas({
+      user: user.value,
+      params: route.value?.params,
+      tracker,
+    })
+  })
 })

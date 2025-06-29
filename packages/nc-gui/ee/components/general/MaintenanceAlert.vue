@@ -62,6 +62,7 @@ const dismiss = async () => {
       <NuxtLink v-if="maintenance.url" class="!text-nc-content-brand !text-bodyDefaultSm" target="_blank" :href="maintenance.url">
         Learn More
       </NuxtLink>
+      <div v-else class="flex-grow"></div>
       <NcButton size="small" class="!text-nc-content-gray-subtle text-bodyDefaultSm" type="link" @click="dismiss">
         Dismiss
       </NcButton>

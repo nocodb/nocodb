@@ -24,6 +24,7 @@ const {
   isWsOwner,
   getStatLimit,
   getLimit,
+  getHigherPlan,
 } = useEeConfig()
 
 const isLimitReached = computed(() => {
@@ -38,7 +39,7 @@ const contentRef = ref<HTMLDivElement>()
 
 const { height: contentRefHeight } = useElementBounding(contentRef)
 
-const showUpgradeToTeamBanner = computed(() => {
+const showUpgradeToHigherPlanBanner = computed(() => {
   const isNewUser = !activeWorkspace.value?.loyal
 
   let isRecordLimitReaching = false
@@ -56,7 +57,13 @@ const showUpgradeToTeamBanner = computed(() => {
     isStorageLimitReaching = (value / total) * 100 > 70
   }
 
-  return isNewUser && (isRecordLimitReaching || isStorageLimitReaching)
+  const showBanner = isNewUser && (isRecordLimitReaching || isStorageLimitReaching)
+
+  return {
+    showBanner,
+    isRecordLimitReaching,
+    isStorageLimitReaching,
+  }
 })
 
 const showBanner = computed(() => {
@@ -70,7 +77,7 @@ const showBanner = computed(() => {
     showBannerLocal.value &&
     isPaymentEnabled.value &&
     activeWorkspace.value?.id &&
-    (isLimitReached.value || (isFreePlan && (isLoyaltyDiscountAvailable.value || showUpgradeToTeamBanner.value)))
+    (isLimitReached.value || (isFreePlan && isLoyaltyDiscountAvailable.value) || showUpgradeToHigherPlanBanner.value.showBanner)
   )
 })
 
@@ -88,11 +95,43 @@ const timerDate = computed(() => {
   return isLimitReached.value ? gracePeriodEndDate.value : LOYALTY_GRACE_PERIOD_END_DATE
 })
 
-const handleNavigation = () => {
+const getLimitOrFeature = () => {
   if (isLimitReached.value) {
-    navigateToBilling()
+    if (isRecordLimitReached.value) {
+      return PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE
+    }
+
+    return PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE
+  }
+
+  if (isLoyaltyDiscountAvailable.value) {
+    return 'to get discounted deal'
+  }
+
+  if (showUpgradeToHigherPlanBanner.value.showBanner) {
+    if (showUpgradeToHigherPlanBanner.value.isRecordLimitReaching) {
+      return 'to increase the record limit'
+    }
+
+    return 'to increase the storage limit'
+  }
+
+  return `to upgrade to ${getHigherPlan()}`
+}
+
+const handleNavigation = () => {
+  // If the banner is not expanded, expand it and return
+  if (!isSideBannerExpanded.value) {
+    isSideBannerExpanded.value = true
+    return
+  }
+
+  if (isLimitReached.value) {
+    navigateToBilling({
+      limitOrFeature: getLimitOrFeature(),
+    })
   } else {
-    navigateToPricing()
+    navigateToPricing({ limitOrFeature: getLimitOrFeature() })
   }
 }
 
@@ -175,8 +214,8 @@ watch(
                       isLimitReached
                         ? 'Plan Limit Reached'
                         : isLoyaltyDiscountAvailable
-                        ? 'Preview Ending Soon 🎊'
-                        : 'Upgrade to Plus'
+                        ? 'Discounted Deal is Ready!'
+                        : `Upgrade to ${getHigherPlan()}`
                     }}
                   </div>
                 </div>

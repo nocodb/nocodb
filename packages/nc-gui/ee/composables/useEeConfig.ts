@@ -276,12 +276,19 @@ export const useEeConfig = createSharedComposable(() => {
     workspaceId,
     redirectToWorkspace = true,
     limitOrFeature,
+    isBackToBilling = false,
   }: {
     workspaceId?: string
     redirectToWorkspace?: boolean
     limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+    isBackToBilling?: boolean
   } = {}) => {
-    if (!isWsOwner.value) return handleRequestUpgrade({ workspaceId, limitOrFeature })
+    if (!isWsOwner.value) {
+      // If user is not workspace owner and isBackToBilling is true, then we don't need to request upgrade
+      if (isBackToBilling) return
+
+      return handleRequestUpgrade({ workspaceId, limitOrFeature })
+    }
 
     const planCtaBtnQuery = limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? `&activeBtn=${PlanTitles.BUSINESS}` : ''
 
@@ -316,14 +323,21 @@ export const useEeConfig = createSharedComposable(() => {
     autoScroll,
     newTab = false,
     ctaPlan,
+    isBackToPricing = false,
   }: {
     workspaceId?: string
     autoScroll?: 'compare' | 'faq'
     limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
     newTab?: boolean
     ctaPlan?: PlanTitles
+    isBackToPricing?: boolean
   } = {}) => {
-    if (!isWsOwner.value) return handleRequestUpgrade({ workspaceId, limitOrFeature })
+    if (!isWsOwner.value) {
+      // If user is not workspace owner and isBackToPricing is true, then we don't need to request upgrade
+      if (isBackToPricing) return
+
+      return handleRequestUpgrade({ workspaceId, limitOrFeature })
+    }
 
     const paramsObj = {
       ...(autoScroll ? { go: autoScroll } : {}),
@@ -334,7 +348,10 @@ export const useEeConfig = createSharedComposable(() => {
     const searchQuery = new URLSearchParams(paramsObj).toString()
 
     if (newTab) {
-      window.open(`/?pricing=true&workspaceId=${workspaceId || activeWorkspaceId.value}`, '_blank')
+      window.open(
+        `/?pricing=true&workspaceId=${workspaceId || activeWorkspaceId.value}${searchQuery ? `&${searchQuery}` : ''}`,
+        '_blank',
+      )
       return
     }
 
@@ -426,8 +443,14 @@ export const useEeConfig = createSharedComposable(() => {
             rel: 'noopener noreferrer',
             class: 'text-sm leading-6',
             onClick: (e) => {
-              e.preventDefault()
-              navigateToPricing({ autoScroll: 'compare', newTab: true, ctaPlan: higherPlan })
+              /**
+               * If it is owner and not request upgrade, then we need to navigate to pricing page product
+               * else navigate to pricing page of nocodb website
+               */
+              if (isWsOwner.value && !requestUpgrade) {
+                e.preventDefault()
+                navigateToPricing({ autoScroll: 'compare', newTab: true, ctaPlan: higherPlan })
+              }
             },
           },
           t('msg.learnMore'),
@@ -626,7 +649,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
-      limitOrFeature: PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE,
+      limitOrFeature: 'to access webhook logs' as PlanLimitTypes,
     })
 
     return true

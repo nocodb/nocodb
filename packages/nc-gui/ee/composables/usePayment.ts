@@ -25,6 +25,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const { $state, $api } = useNuxtApp()
 
+  const router = useRouter()
+  const route = router.currentRoute
+
   const { navigateToCheckout, isLoyaltyDiscountAvailable } = useEeConfig()
 
   const workspaceStore = useWorkspace()
@@ -323,9 +326,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   watch(
     activeWorkspaceId,
     async () => {
-      if (activeWorkspaceId.value) {
-        await loadWorkspaceSeatCount()
-      }
+      if (route.value.name === 'upgrade' || !activeWorkspaceId.value) return
+
+      await loadWorkspaceSeatCount()
     },
     { immediate: true },
   )

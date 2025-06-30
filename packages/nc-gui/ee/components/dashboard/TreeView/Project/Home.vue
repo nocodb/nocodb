@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { SourceType, TableType } from 'nocodb-sdk'
-import { PlanTitles } from 'nocodb-sdk'
+import { PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
 import Automation from '../Automation.vue'
 
 const router = useRouter()
@@ -530,6 +530,7 @@ const showCreateNewAsDropdown = computed(() => {
                                 class="-my-1 mx-0.5 nc-sidebar-node-btn nc-sidebar-upgrade-badge"
                                 :class="{ 'nc-sidebar-option-open': isBasesOptionsOpen[source!.id!] }"
                                 :plan-title="PlanTitles.BUSINESS"
+                                :limit-or-feature="PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE"
                               />
                             </div>
                             <div

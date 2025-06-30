@@ -32,9 +32,9 @@ const checkout = ref<StripeEmbeddedCheckout | null>(null)
 
 const onBack = () => {
   if (redirectRef.value === 'billing') {
-    navigateToBilling()
+    navigateToBilling({ isBackToBilling: true })
   } else {
-    navigateToPricing()
+    navigateToPricing({ isBackToPricing: true })
   }
 }
 
@@ -82,7 +82,7 @@ onMounted(() => {
       loadWorkspaceSeatCount().then(() => {
         loadPlan(route.params.planId as string).then((plan) => {
           if (!plan) {
-            navigateToPricing()
+            navigateToPricing({ isBackToPricing: true })
             message.error('Plan not found')
             return
           }

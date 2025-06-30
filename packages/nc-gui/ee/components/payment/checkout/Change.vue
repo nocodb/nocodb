@@ -13,7 +13,7 @@ onMounted(() => {
   const planId = route.params.planId as string
 
   if (!planId) {
-    navigateToPricing()
+    navigateToPricing({ isBackToPricing: true })
     return
   }
 
@@ -24,7 +24,7 @@ onMounted(() => {
       plan.value = plansAvailable.value.find((p) => p.id === planId)
 
       if (!plan.value) {
-        navigateToPricing()
+        navigateToPricing({ isBackToPricing: true })
       }
     })
   }

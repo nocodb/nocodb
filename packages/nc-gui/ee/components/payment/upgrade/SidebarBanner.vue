@@ -130,7 +130,7 @@ const handleNavigation = () => {
 
   $e('c:payment:upgrade:sidebar', {
     activePlan: activePlanTitle.value,
-    status: isLimitReached.value ? 'limit-reached' : isLoyaltyDiscountAvailable.value ? 'discounted-deal' : 'upgrade-to-plus',
+    limitOrFeature: getLimitOrFeature(),
   })
 
   if (isLimitReached.value) {

@@ -119,5 +119,3 @@ useEventListener('message', (event) => {
     ></iframe>
   </div>
 </template>
-
-<style></style>

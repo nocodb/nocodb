@@ -33,6 +33,8 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { t } = useI18n()
 
+const { user } = useGlobal()
+
 const { isUIAllowed } = useRoles()
 
 const hasPermission = computed(() => isUIAllowed('rowColourUpdate'))
@@ -110,6 +112,15 @@ const listOptions = computed<ListOptionType[]>(() => [
       <slot name="select"></slot>
     </template>
 
-    <GeneralLockedViewFooter v-if="isLocked" @on-open="isOpenVModel = false" />
+    <GeneralLockedViewFooter
+      v-if="isLocked || !hasPermission"
+      :show-icon="isLocked"
+      :show-unlock-button="isLocked"
+      @on-open="isOpenVModel = false"
+    >
+      <template v-if="!isLocked" #title>
+        Editing restricted for <span class="capitalize"> {{ Object.keys(user.base_roles)?.[0] ?? ProjectRoles.NO_ACCESS }}</span>
+      </template>
+    </GeneralLockedViewFooter>
   </div>
 </template>

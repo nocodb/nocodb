@@ -296,6 +296,8 @@ export function useViewRowColorOption(params: {
     const conditionToUpdate = conditions[colorIndex]!
     const filter = conditionToUpdate.conditions.find((k) => k.id === params.filter!.id)!
 
+    if (!filter) return
+
     filter[params.type] = params.value
     if (params.filter!.fk_column_id) {
       if (['fk_column_id'].includes(params.type)) {

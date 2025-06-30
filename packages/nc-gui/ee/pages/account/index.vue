@@ -18,6 +18,8 @@ const workspaceStore = useWorkspace()
 const { workspacesList } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
+const { isPaymentEnabled } = useEeConfig()
+
 const filteredWorkspaces = computed(() => workspacesList.value.filter((w) => w.roles === WorkspaceUserRoles.OWNER))
 
 const loadingWorkspaces = ref(false)
@@ -223,7 +225,7 @@ onMounted(() => {
 
               <NcDivider class="!mt-0" />
 
-              <template v-if="isFeatureEnabled(FEATURE_FLAG.PAYMENT)">
+              <template v-if="isPaymentEnabled">
                 <div class="text-sm text-nc-content-gray-muted font-semibold ml-4 py-1.5">{{ $t('labels.workspaces') }}</div>
 
                 <template v-if="loadingWorkspaces">

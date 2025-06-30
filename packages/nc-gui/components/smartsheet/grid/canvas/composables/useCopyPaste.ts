@@ -127,8 +127,11 @@ export function useCopyPaste({
 
   const { base } = storeToRefs(useBase())
   const fields = computed(() => (columns.value ?? []).map((c) => c.columnObj))
+
+  const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
+
   const canPasteCell = computed(() => {
-    if (isSqlView.value || isPublic.value) return false
+    if (isSqlView.value || isPublic.value || !hasEditPermission.value) return false
 
     return (
       !editEnabled.value ||
@@ -137,7 +140,6 @@ export function useCopyPaste({
         !(activeCell.value.row === -1 || activeCell.value.column === -1))
     )
   })
-  const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 
   function isPasteable(row?: Row, col?: ColumnType, showInfo = false, avoidLtarRestrictions = false) {
     if (!row || !col) {

@@ -45,8 +45,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { user: currentUser } = useGlobal()
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
-
   const collaborators = ref<WorkspaceUserType[] | null>()
 
   const allCollaborators = ref<WorkspaceUserType[] | null>()
@@ -137,12 +135,23 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     try {
       // todo: pagination
       const { list, pageInfo: _ } = await $api.workspace.list()
+
+      const newWorkspaceIds = new Set(list?.map((w) => w.id) ?? [])
+
+      // Update or insert current workspaces
       for (const workspace of list ?? []) {
         const oldData = workspaces.value.has(workspace.id!) ? workspaces.value.get(workspace.id!) : {}
         workspaces.value.set(workspace.id!, {
           ...oldData,
           ...workspace,
         })
+      }
+
+      // Remove stale workspaces
+      for (const existingId of workspaces.value.keys()) {
+        if (!newWorkspaceIds.has(existingId)) {
+          workspaces.value.delete(existingId)
+        }
       }
 
       isWorkspacesLoading.value = false
@@ -335,7 +344,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     } catch (e) {
       const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
-      if (isFeatureEnabled(FEATURE_FLAG.PAYMENT) && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+      if (appInfo.value?.isCloud && !appInfo.value?.isOnPrem && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
         throw e
       } else {
         message.error(errorInfo.message)

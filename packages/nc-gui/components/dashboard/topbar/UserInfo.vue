@@ -59,7 +59,6 @@ const accountUrl = computed(() => {
 
 <template>
   <div class="flex flex-col border-gray-200 gap-y-1">
-    <LazyGeneralMaintenanceAlert />
     <div class="flex items-center justify-between">
       <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
         <div

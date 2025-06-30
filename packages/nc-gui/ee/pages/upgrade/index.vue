@@ -30,7 +30,8 @@ const goCheckout = async (workspaceId: string) => {
   await loadPlans()
 
   const plan =
-    plansAvailable.value.find((p) => p.title === planTitle) || plansAvailable.value.filter((p) => p.title === PlanTitles.TEAM)[0]
+    plansAvailable.value.find((p) => p.title.toLowerCase() === planTitle.toLowerCase()) ||
+    plansAvailable.value.filter((p) => p.title === PlanTitles.PLUS)[0]
 
   if (!plan) {
     return
@@ -69,7 +70,7 @@ onMounted(() => {
         <div class="px-4 md:px-8 pt-18 md:pt-[120px] pb-10 flex items-center justify-center">
           <div class="nc-workspace-selector-modal">
             <div class="flex flex-col gap-2">
-              <div class="text-nc-content-gray-emphasis text-lg font-700">Select workspace to upgrade to Team Plan</div>
+              <div class="text-nc-content-gray-emphasis text-lg font-700">Select workspace to upgrade to Plus Plan</div>
               <div class="text-sm leading-[18px] text-nc-content-gray-subtle2">
                 Note that you can only upgrade workspaces where you are an owner, and where the workspace is not already on the
                 same plan.

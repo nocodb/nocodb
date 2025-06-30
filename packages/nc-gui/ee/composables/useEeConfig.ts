@@ -26,8 +26,6 @@ export const useEeConfig = createSharedComposable(() => {
 
   const { isUIAllowed } = useRoles()
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
-
   const workspaceStore = useWorkspace()
 
   const { activeWorkspace, activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
@@ -38,7 +36,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   /** Ref or Computed value */
 
-  const isPaymentEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.PAYMENT))
+  const isPaymentEnabled = computed(() => appInfo.value?.isCloud && !appInfo.value?.isOnPrem)
 
   // Will only consider ws owner not super admin
   const isWsOwner = computed(() =>
@@ -636,7 +634,12 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockExternalSourceRecordVisibility = (isExternalSource: boolean = false) => {
     const loyaltyUserValidation = isLoyaltyDiscountAvailable.value ? !isUnderLoyaltyCutoffDate.value : true
-    return isPaymentEnabled.value && isExternalSource && activePlanTitle.value === PlanTitles.FREE && loyaltyUserValidation
+    return (
+      isPaymentEnabled.value &&
+      isExternalSource &&
+      [PlanTitles.FREE, PlanTitles.PLUS].includes(activePlanTitle.value) &&
+      loyaltyUserValidation
+    )
   }
 
   const showAsBluredRecord = (isExternalSource: boolean = false, rowIndex?: number) => {
@@ -653,7 +656,9 @@ export const useEeConfig = createSharedComposable(() => {
 
     handleUpgradePlan({
       title: t('upgrade.upgradeToSeeMoreRecord'),
-      content: t('upgrade.upgradeToSeeMoreRecordSubtitle'),
+      content: t('upgrade.upgradeToSeeMoreRecordSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
       callback,
       maskClosable: false,
       keyboard: false,
@@ -670,7 +675,7 @@ export const useEeConfig = createSharedComposable(() => {
       title: t('upgrade.upgradeToUploadWsImage'),
       content: t('upgrade.upgradeToUploadWsImageSubtitle', {
         activePlan: activePlanTitle.value,
-        plan: PlanTitles.TEAM,
+        plan: PlanTitles.PLUS,
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO,
@@ -700,7 +705,7 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseRowColoring'),
       content: t('upgrade.upgradeToUseRowColoringSubtitle', {
-        plan: PlanTitles.TEAM,
+        plan: PlanTitles.PLUS,
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_ROW_COLOUR,
@@ -715,7 +720,7 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseTableAndFieldPermissions'),
       content: t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
-        plan: PlanTitles.TEAM,
+        plan: PlanTitles.PLUS,
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
@@ -730,7 +735,7 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseScripts'),
       content: t('upgrade.upgradeToUseScriptsSubtitle', {
-        plan: PlanTitles.TEAM,
+        plan: PlanTitles.PLUS,
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_SCRIPTS,

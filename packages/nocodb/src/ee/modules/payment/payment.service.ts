@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import dayjs from 'dayjs';
+import { nanoid } from 'nanoid';
 import {
   AppEvents,
   LoyaltyPriceReverseLookupKeyMap,
@@ -20,10 +21,13 @@ import {
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
+import { acquireLock, releaseLock } from '~/helpers/lockHelpers';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { TelemetryService } from '~/services/telemetry.service';
 
-const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder');
+const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder', {
+  apiVersion: '2025-05-28.basil',
+});
 
 @Injectable()
 export class PaymentService {
@@ -253,10 +257,9 @@ export class PaymentService {
       if (customerSubscription.data.length) {
         const subscription = customerSubscription.data.find(
           (s) =>
-            ((s.metadata.fk_workspace_id &&
-              s.metadata.fk_workspace_id === workspaceOrOrg.id) ||
-              (s.metadata.fk_org_id &&
-                s.metadata.fk_org_id === workspaceOrOrg.id)) &&
+            // TODO: add org support
+            s.metadata.fk_workspace_id &&
+            s.metadata.fk_workspace_id === workspaceOrOrg.id &&
             ['active', 'trialing', 'incomplete'].includes(s.status),
         );
 
@@ -653,76 +656,129 @@ export class PaymentService {
     }
   }
 
-  async reseatSubscription(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
-    const existingSub = await Subscription.getByWorkspaceOrOrg(
-      workspaceOrOrgId,
-      ncMeta,
-    );
-    if (!existingSub) return;
+  async reseatSubscriptionAwaited(
+    workspaceOrOrgId: string,
+    ncMeta = Noco.ncMeta,
+    initiator?: string,
+  ) {
+    const lockId = nanoid();
+    const lockKey = `reseatSubscription:${workspaceOrOrgId}`;
+    let lockAcquired = false;
 
-    const seatCount = await this.getSeatCount(workspaceOrOrgId, ncMeta);
-    if (existingSub.seat_count === seatCount) return;
+    try {
+      // Acquire lock with retry logic
+      lockAcquired = await acquireLock(lockKey, lockId);
 
-    const stripeSub = await stripe.subscriptions.retrieve(
-      existingSub.stripe_subscription_id,
-    );
-    if (!stripeSub) throw new Error('Stripe subscription not found');
+      if (!lockAcquired) {
+        // we use soft lock, so we proceed even if not acquired
+        this.logger.warn(
+          `Failed to acquire lock for workspace ${workspaceOrOrgId} after maximum wait time`,
+        );
+      }
 
-    if (
-      stripeSub.metadata.fk_workspace_id &&
-      stripeSub.metadata.fk_workspace_id !== existingSub.fk_workspace_id
-    ) {
-      throw new Error('Subscription does not belong to the workspace');
-    }
-    if (
-      stripeSub.metadata.fk_org_id &&
-      stripeSub.metadata.fk_org_id !== existingSub.fk_org_id
-    ) {
-      throw new Error('Subscription does not belong to the org');
-    }
-
-    await stripe.subscriptions.update(stripeSub.id, {
-      items: [
-        {
-          id: stripeSub.items.data[0].id,
-          price: existingSub.stripe_price_id,
-          quantity: seatCount,
-        },
-      ],
-      ...(existingSub.period === 'year' || existingSub.stripe_schedule_id
-        ? { proration_behavior: 'always_invoice' }
-        : {}),
-    });
-
-    await Subscription.update(
-      existingSub.id,
-      { seat_count: seatCount },
-      ncMeta,
-    );
-
-    // if there is a schedule, update it too
-    if (existingSub.stripe_schedule_id) {
-      const stripePrice = await stripe.prices.retrieve(
-        existingSub.schedule_stripe_price_id,
-      );
-
-      // update the schedule
-      await this.schedulePlanChange(
+      const existingSub = await Subscription.getByWorkspaceOrOrg(
         workspaceOrOrgId,
-        stripePrice,
-        await Plan.get(existingSub.schedule_fk_plan_id, ncMeta),
-        {
-          scheduleType: existingSub.schedule_type,
-        },
         ncMeta,
       );
-    }
+      if (!existingSub) return;
 
-    // update the next invoice
-    await this.updateNextInvoice(
-      existingSub.id,
-      await this.getNextInvoice(workspaceOrOrgId, ncMeta),
-      ncMeta,
+      const seatCount = await this.getSeatCount(workspaceOrOrgId, ncMeta);
+      if (existingSub.seat_count === seatCount) return;
+
+      const stripeSub = await stripe.subscriptions.retrieve(
+        existingSub.stripe_subscription_id,
+      );
+      if (!stripeSub) throw new Error('Stripe subscription not found');
+
+      if (
+        stripeSub.metadata.fk_workspace_id &&
+        stripeSub.metadata.fk_workspace_id !== existingSub.fk_workspace_id
+      ) {
+        throw new Error('Subscription does not belong to the workspace');
+      }
+      if (
+        stripeSub.metadata.fk_org_id &&
+        stripeSub.metadata.fk_org_id !== existingSub.fk_org_id
+      ) {
+        throw new Error('Subscription does not belong to the org');
+      }
+
+      await stripe.subscriptions.update(stripeSub.id, {
+        items: [
+          {
+            id: stripeSub.items.data[0].id,
+            price: existingSub.stripe_price_id,
+            quantity: seatCount,
+          },
+        ],
+        ...(existingSub.period === 'year' || existingSub.stripe_schedule_id
+          ? { proration_behavior: 'always_invoice' }
+          : {}),
+      });
+
+      await Subscription.update(
+        existingSub.id,
+        { seat_count: seatCount },
+        ncMeta,
+      );
+
+      // if there is a schedule, update it too
+      if (existingSub.stripe_schedule_id) {
+        const stripePrice = await stripe.prices.retrieve(
+          existingSub.schedule_stripe_price_id,
+        );
+
+        // update the schedule
+        await this.schedulePlanChange(
+          workspaceOrOrgId,
+          stripePrice,
+          await Plan.get(existingSub.schedule_fk_plan_id, ncMeta),
+          {
+            scheduleType: existingSub.schedule_type,
+          },
+          ncMeta,
+        );
+      }
+
+      // update the next invoice
+      await this.updateNextInvoice(
+        existingSub.id,
+        await this.getNextInvoice(workspaceOrOrgId, ncMeta),
+        ncMeta,
+      );
+    } catch (err) {
+      const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
+      await this.telemetryService.sendSystemEvent({
+        event_type: 'priority_error',
+        error_trigger: 'reseatSubscription',
+        error_type: err?.name,
+        message: err?.message,
+        error_details: err?.stack,
+        affected_resources: [
+          workspaceOrOrgId,
+          workspaceOrOrg?.title,
+          initiator,
+        ],
+      });
+      throw err; // Re-throw to ensure proper error handling
+    } finally {
+      // Always release the lock if we acquired it
+      if (lockAcquired) {
+        await releaseLock(lockKey, lockId);
+      }
+    }
+  }
+
+  async reseatSubscription(
+    workspaceOrOrgId: string,
+    ncMeta = Noco.ncMeta,
+    initiator?: string,
+  ) {
+    // we don't want to block the request
+    this.reseatSubscriptionAwaited(workspaceOrOrgId, ncMeta, initiator).catch(
+      () => {
+        // we handle the error in the promise
+      },
     );
   }
 
@@ -774,10 +830,9 @@ export class PaymentService {
       existingSub.id,
       {
         status: canceled.status,
-        canceled_at: dayjs
-          .unix(canceled.current_period_end)
-          .utc()
-          .toISOString(),
+        canceled_at: canceled.cancel_at
+          ? dayjs.unix(canceled.cancel_at).utc().toISOString()
+          : null,
         stripe_schedule_id: null,
         schedule_phase_start: null,
         schedule_stripe_price_id: null,
@@ -881,7 +936,7 @@ export class PaymentService {
           },
         });
       } else {
-        invoice = await stripe.invoices.retrieveUpcoming({
+        invoice = await stripe.invoices.createPreview({
           customer: workspaceOrOrg.stripe_customer_id,
           subscription: subscription.stripe_subscription_id,
         });
@@ -1059,10 +1114,9 @@ export class PaymentService {
 
     const subscriptionData = subscriptions.data.find(
       (s) =>
-        ((s.metadata.fk_workspace_id &&
-          s.metadata.fk_workspace_id === workspaceOrOrg.id) ||
-          (s.metadata.fk_org_id &&
-            s.metadata.fk_org_id === workspaceOrOrg.id)) &&
+        // TODO: add org support
+        s.metadata.fk_workspace_id &&
+        s.metadata.fk_workspace_id === workspaceOrOrg.id &&
         ['active', 'trialing', 'incomplete'].includes(s.status),
     );
 
@@ -1160,6 +1214,14 @@ export class PaymentService {
       scheduleId = sched.id;
     } else {
       sched = await stripe.subscriptionSchedules.retrieve(scheduleId);
+
+      // if the schedule is not active, we need to create a new one
+      if (!['not_started', 'active'].includes(sched.status)) {
+        sched = await stripe.subscriptionSchedules.create({
+          from_subscription: stripeSub.id,
+        });
+        scheduleId = sched.id;
+      }
     }
 
     const firstPhase = sched.phases[0];
@@ -1311,6 +1373,35 @@ export class PaymentService {
     }
   }
 
+  async migrateDb(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
+    try {
+      const subRec = await Subscription.getByWorkspaceOrOrg(
+        workspaceOrOrgId,
+        ncMeta,
+      );
+      if (!subRec) NcError.genericNotFound('Subscription', workspaceOrOrgId);
+
+      const plan = await Plan.get(subRec.fk_plan_id, ncMeta);
+      if (!plan) NcError.genericNotFound('Plan', subRec.fk_plan_id);
+
+      await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {
+        workspaceId: workspaceOrOrgId,
+        conditions: {
+          plan: plan.title,
+        },
+      });
+    } catch (err) {
+      this.telemetryService.sendSystemEvent({
+        event_type: 'priority_error',
+        error_trigger: 'migrateDb',
+        error_type: err?.name,
+        message: err?.message,
+        error_details: err?.stack,
+        affected_resources: [workspaceOrOrgId],
+      });
+    }
+  }
+
   async requestUpgrade(
     workspaceOrOrgId: string,
     payload: {
@@ -1420,20 +1511,27 @@ export class PaymentService {
     try {
       switch (event.type) {
         case 'invoice.paid': {
-          const subRec = await Subscription.getByStripeSubscriptionId(
-            (obj as Stripe.Invoice).subscription as string,
-          );
-          if (!subRec)
-            NcError.genericNotFound(
-              'Subscription',
-              (obj as Stripe.Invoice).subscription as string,
-            );
+          const invoiceObj = obj as Stripe.Invoice;
 
-          const workspaceOrOrgId = subRec.fk_workspace_id || subRec.fk_org_id;
+          const subscriptionId =
+            typeof invoiceObj.parent.subscription_details.subscription ===
+            'string'
+              ? invoiceObj.parent.subscription_details.subscription
+              : invoiceObj.parent.subscription_details.subscription?.id || '';
+
+          const subRec = await Subscription.getByStripeSubscriptionId(
+            subscriptionId,
+          );
+          if (!subRec) NcError.genericNotFound('Subscription', subscriptionId);
+
+          // TODO: add org support
+          const workspaceOrOrgId = subRec.fk_workspace_id;
           const workspaceOrOrg = await getWorkspaceOrOrg(
             workspaceOrOrgId,
             Noco.ncMeta,
           );
+
+          this.migrateDb(workspaceOrOrgId).catch(() => {});
 
           await this.updateNextInvoice(
             subRec.id,
@@ -1462,16 +1560,21 @@ export class PaymentService {
         }
 
         case 'invoice.payment_failed': {
-          const subRec = await Subscription.getByStripeSubscriptionId(
-            (obj as Stripe.Invoice).subscription as string,
-          );
-          if (!subRec)
-            NcError.genericNotFound(
-              'Subscription',
-              (obj as Stripe.Invoice).subscription as string,
-            );
+          const invoiceObj = obj as Stripe.Invoice;
 
-          const wid = subRec.fk_workspace_id || subRec.fk_org_id;
+          const subscriptionId =
+            typeof invoiceObj.parent.subscription_details.subscription ===
+            'string'
+              ? invoiceObj.parent.subscription_details.subscription
+              : invoiceObj.parent.subscription_details.subscription?.id || '';
+
+          const subRec = await Subscription.getByStripeSubscriptionId(
+            subscriptionId,
+          );
+          if (!subRec) NcError.genericNotFound('Subscription', subscriptionId);
+
+          // TODO: add org support
+          const wid = subRec.fk_workspace_id;
           const workspaceOrOrg = await getWorkspaceOrOrg(wid, Noco.ncMeta);
 
           // Send upgrade_failed notification for payment failure
@@ -1499,8 +1602,9 @@ export class PaymentService {
         case 'customer.subscription.created': {
           const stripeSub = obj as Stripe.Subscription;
           const planId = stripeSub.metadata.fk_plan_id;
-          const workspaceOrOrgId =
-            stripeSub.metadata.fk_workspace_id || stripeSub.metadata.fk_org_id!;
+
+          // TODO: add org support
+          const workspaceOrOrgId = stripeSub.metadata.fk_workspace_id;
           const workspaceOrOrg = await getWorkspaceOrOrg(
             workspaceOrOrgId,
             Noco.ncMeta,
@@ -1547,13 +1651,6 @@ export class PaymentService {
             },
           });
 
-          await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {
-            workspaceId: workspaceOrOrg.id,
-            conditions: {
-              plan: stripeSub.metadata.plan_title,
-            },
-          });
-
           // mark loyalty used if applicable
           if (
             workspaceOrOrg.entity === 'workspace' &&
@@ -1585,7 +1682,8 @@ export class PaymentService {
           );
           if (!subRec) NcError.genericNotFound('Subscription', stripeSub.id);
 
-          const workspaceOrOrgId = subRec.fk_workspace_id || subRec.fk_org_id!;
+          // TODO: add org support
+          const workspaceOrOrgId = subRec.fk_workspace_id;
           const workspaceOrOrg = await getWorkspaceOrOrg(
             workspaceOrOrgId,
             Noco.ncMeta,
@@ -1692,10 +1790,8 @@ export class PaymentService {
             this.logger.warn(`No Subscription found for schedule ${sched.id}`);
             break;
           }
-          await this.clearScheduledDowngrade(
-            subRec.fk_workspace_id || subRec.fk_org_id!,
-            false,
-          );
+          // TODO: add org support
+          await this.clearScheduledDowngrade(subRec.fk_workspace_id, false);
           break;
         }
 

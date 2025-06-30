@@ -438,7 +438,7 @@ const isDefaultView = computed(() => view.value?.is_default)
                   :limit-or-feature="'to access re-assign view feature.' as PlanFeatureTypes"
                   :content="
                     $t('upgrade.upgradeToAccessReassignViewSubtitle', {
-                      plan: getPlanTitle(PlanTitles.TEAM),
+                      plan: getPlanTitle(PlanTitles.PLUS),
                     })
                   "
                   :callback="

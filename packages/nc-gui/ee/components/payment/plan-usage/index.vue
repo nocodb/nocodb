@@ -95,7 +95,7 @@ const getTooltipPrefix = (value: number, total: number) => {
 
 const recordInfo = computed(() => {
   const value = getStatLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE)
-  const total = loyalGracePeriod ? 1000 : getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) ?? 1000
+  const total = loyalGracePeriod.value ? 1000 : getLimit(PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE) ?? 1000
   const showWarningStatus = (value / total) * 100 > 80
 
   return {
@@ -114,7 +114,7 @@ const recordInfo = computed(() => {
 
 const storageInfo = computed(() => {
   const value = getStatLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000
-  const total = loyalGracePeriod ? 1 : getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000
+  const total = loyalGracePeriod.value ? 1 : getLimit(PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE) / 1000
   const showWarningStatus = (value / total) * 100 > 80
 
   return {
@@ -347,10 +347,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
                 : $t('objects.currentPlan.numberOfBilledUsers')
             }}
           </template>
-          <template #value
-            >{{ workspaceSeatCount }} of
-            {{ formatTotalLimit(loyalGracePeriod ? 3 : getLimit(PlanLimitTypes.LIMIT_EDITOR)) }} editors</template
-          >
+          <template #value>{{ workspaceSeatCount }} Paid {{ workspaceSeatCount === 1 ? 'User' : 'Users' }}</template>
         </PaymentPlanUsageRow>
         <PaymentPlanUsageRow
           :plan-meta="activePlanMeta"

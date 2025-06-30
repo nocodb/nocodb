@@ -70,12 +70,15 @@ useEventListener('message', (event) => {
       return
     }
 
-    if (activePlan.value?.title === PlanTitles.FREE && planTitle === PlanTitles.FREE) {
+    if (
+      activePlan.value?.title.toLowerCase() === PlanTitles.FREE.toLowerCase() &&
+      planTitle.toLowerCase() === PlanTitles.FREE.toLowerCase()
+    ) {
       navigateTo(`/${activeWorkspace.value?.id}/settings?tab=billing`)
       return
     }
 
-    const plan = plansAvailable.value.find((plan) => plan.title === planTitle)
+    const plan = plansAvailable.value.find((plan) => plan.title.toLowerCase() === planTitle.toLowerCase())
 
     if (!plan) return
 

@@ -93,7 +93,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
                   :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING"
                   :content="
                     $t('upgrade.upgradeToAccessFieldValidationSubtitle', {
-                      plan: getPlanTitle(PlanTitles.TEAM),
+                      plan: getPlanTitle(PlanTitles.PLUS),
                     })
                   "
                 />
@@ -166,7 +166,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
                 :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING"
                 :content="
                   $t('upgrade.upgradeToAccessFieldValidationSubtitle', {
-                    plan: getPlanTitle(PlanTitles.TEAM),
+                    plan: getPlanTitle(PlanTitles.PLUS),
                   })
                 "
               />
@@ -223,7 +223,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
                 :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING"
                 :content="
                   $t('upgrade.upgradeToAccessFieldValidationSubtitle', {
-                    plan: getPlanTitle(PlanTitles.TEAM),
+                    plan: getPlanTitle(PlanTitles.PLUS),
                   })
                 "
               />

@@ -146,7 +146,7 @@ const addPlaceholderValidators = (value, type: 'validate' | 'businessEmail') => 
               :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING"
               :content="
                 $t('upgrade.upgradeToAccessFieldValidationSubtitle', {
-                  plan: getPlanTitle(PlanTitles.TEAM),
+                  plan: getPlanTitle(PlanTitles.PLUS),
                 })
               "
             />

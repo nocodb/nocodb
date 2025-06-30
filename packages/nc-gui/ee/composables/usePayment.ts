@@ -121,8 +121,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const getLookupKey = (planTitle: PlanTitles, mode: 'year' | 'month') => {
     let lookupKey = null
 
-    if (planTitle === PlanTitles.TEAM) {
-      lookupKey = mode === 'month' ? PlanPriceLookupKeys.TEAM_MONTHLY : PlanPriceLookupKeys.TEAM_YEARLY
+    if (planTitle === PlanTitles.PLUS) {
+      lookupKey = mode === 'month' ? PlanPriceLookupKeys.PLUS_MONTHLY : PlanPriceLookupKeys.PLUS_YEARLY
     }
 
     if (planTitle === PlanTitles.BUSINESS) {

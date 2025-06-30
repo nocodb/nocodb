@@ -113,7 +113,7 @@ onMounted(() => {
                 :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION"
                 :content="
                   $t('upgrade.upgradeToAddCustomValidationSubtitle', {
-                    plan: getPlanTitle(PlanTitles.TEAM),
+                    plan: getPlanTitle(PlanTitles.PLUS),
                   })
                 "
               />

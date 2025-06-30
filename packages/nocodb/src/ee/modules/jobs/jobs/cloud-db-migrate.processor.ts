@@ -45,18 +45,6 @@ export class CloudDbMigrateProcessor {
 
       if (workspace.fk_db_instance_id) {
         logBasic('Workspace already has a db server');
-
-        await this.telemetryService.sendSystemEvent({
-          event_type: 'payment_alert',
-          payment_type: 'migration_failed',
-          message: `Database migration failed for workspace ${workspace.title}`,
-          workspace: { id: workspace.id, title: workspace.title },
-          extra: {
-            job_id: job.id,
-            error_message: 'Already has a db server',
-          },
-        });
-
         return;
       }
 
@@ -173,7 +161,7 @@ export class CloudDbMigrateProcessor {
           );
           const { status, message, progress } = response.data;
 
-          const log = `${message} - ${progress}%`;
+          const log = `${message} : ${progress}%`;
 
           if (log !== lastLog) {
             logBasic(log);

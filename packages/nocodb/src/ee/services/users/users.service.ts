@@ -754,7 +754,7 @@ export class UsersService extends UsersServiceCE {
     } catch (e) {
       await transaction.rollback();
 
-      this.telemetryService.sendSystemEvent({
+      await this.telemetryService.sendSystemEvent({
         event_type: 'priority_error',
         error_trigger: 'userDelete',
         error_type: e?.name,

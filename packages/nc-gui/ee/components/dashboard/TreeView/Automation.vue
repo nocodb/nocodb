@@ -140,7 +140,7 @@ watch(activeAutomationId, () => {
           :title="$t('upgrade.upgradeToUseScripts')"
           :content="
             $t('upgrade.upgradeToUseScriptsSubtitle', {
-              plan: PlanTitles.TEAM,
+              plan: PlanTitles.PLUS,
             })
           "
           size="xs"
@@ -179,7 +179,7 @@ watch(activeAutomationId, () => {
         :title="$t('upgrade.upgradeToUseScripts')"
         :content="
           $t('upgrade.upgradeToUseScriptsSubtitle', {
-            plan: PlanTitles.TEAM,
+            plan: PlanTitles.PLUS,
           })
         "
         size="xs"

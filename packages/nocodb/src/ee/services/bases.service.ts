@@ -304,16 +304,17 @@ export class BasesService extends BasesServiceCE {
     try {
       await Base.softDelete(context, param.baseId, ncMeta);
 
-      await this.paymentService.reseatSubscription(
-        workspace.fk_org_id ?? workspace.id,
-        ncMeta,
-      );
-
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
       throw e;
     }
+
+    await this.paymentService.reseatSubscription(
+      // TODO: add support for orgs
+      workspace.id,
+      ncMeta,
+    );
 
     this.appHooksService.emit(AppEvents.PROJECT_DELETE, {
       base,

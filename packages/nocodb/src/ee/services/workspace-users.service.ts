@@ -201,11 +201,6 @@ export class WorkspaceUsersService {
         transaction,
       );
 
-      await this.paymentService.reseatSubscription(
-        workspace.fk_org_id ?? workspace.id,
-        transaction,
-      );
-
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
@@ -217,6 +212,12 @@ export class WorkspaceUsersService {
 
       throw e;
     }
+
+    await this.paymentService.reseatSubscription(
+      // TODO: add support for orgs
+      workspace.id,
+      ncMeta,
+    );
 
     this.mailService
       .sendMail({
@@ -304,6 +305,8 @@ export class WorkspaceUsersService {
 
     const cacheTransaction: (() => Promise<any>)[] = [];
 
+    let res;
+
     try {
       // get all bases workspaceUser is part of and delete them
       const workspaceBases = await Base.listByWorkspace(
@@ -343,31 +346,13 @@ export class WorkspaceUsersService {
         );
       }
 
-      const res = await WorkspaceUser.softDelete(
-        workspaceId,
-        userId,
-        transaction,
-      );
+      res = await WorkspaceUser.softDelete(workspaceId, userId, transaction);
 
       cacheTransaction.push(() =>
         NocoCache.del(`${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`),
       );
 
-      await this.paymentService.reseatSubscription(
-        workspace.fk_org_id ?? workspace.id,
-        transaction,
-      );
-
       await transaction.commit();
-
-      this.appHooksService.emit(AppEvents.WORKSPACE_USER_DELETE, {
-        workspace,
-        workspaceUser: workspaceUser,
-        user,
-        req: param.req,
-      } as WorkspaceUserDeleteEvent);
-
-      return res;
     } catch (e) {
       await transaction.rollback();
 
@@ -376,6 +361,21 @@ export class WorkspaceUsersService {
 
       throw e;
     }
+
+    await this.paymentService.reseatSubscription(
+      // TODO: add support for orgs
+      workspace.id,
+      ncMeta,
+    );
+
+    this.appHooksService.emit(AppEvents.WORKSPACE_USER_DELETE, {
+      workspace,
+      workspaceUser: workspaceUser,
+      user,
+      req: param.req,
+    } as WorkspaceUserDeleteEvent);
+
+    return res;
   }
 
   async invite(
@@ -607,11 +607,6 @@ export class WorkspaceUsersService {
         );
       }
 
-      await this.paymentService.reseatSubscription(
-        workspace.fk_org_id ?? workspace.id,
-        transaction,
-      );
-
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
@@ -626,6 +621,12 @@ export class WorkspaceUsersService {
 
       throw e;
     }
+
+    await this.paymentService.reseatSubscription(
+      // TODO: add support for orgs
+      workspace.id,
+      ncMeta,
+    );
 
     // send email and add audit log
     for (const email of emails) {

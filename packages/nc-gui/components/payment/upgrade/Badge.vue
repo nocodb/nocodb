@@ -18,7 +18,7 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  planTitle: PlanTitles.TEAM,
+  planTitle: PlanTitles.PLUS,
 })
 </script>
 

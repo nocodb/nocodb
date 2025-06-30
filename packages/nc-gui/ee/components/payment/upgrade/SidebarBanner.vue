@@ -105,6 +105,12 @@ const getLimitOrFeature = () => {
 }
 
 const handleNavigation = () => {
+  // If the banner is not expanded, expand it and return
+  if (!isSideBannerExpanded.value) {
+    isSideBannerExpanded.value = true
+    return
+  }
+
   if (isLimitReached.value) {
     navigateToBilling({
       limitOrFeature: getLimitOrFeature(),

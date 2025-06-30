@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import { nanoid } from 'nanoid';
 import {
   AppEvents,
+  getUpgradeMessage,
   LoyaltyPriceReverseLookupKeyMap,
   PlanOrder,
   WorkspaceUserRoles,
@@ -1478,7 +1479,9 @@ export class PaymentService {
       await this.telemetryService.sendSystemEvent({
         event_type: 'payment_alert',
         payment_type: 'upgrade_requested',
-        message: `Upgrade requested for ${workspace.title} due to ${payload.limitOrFeature} limit`,
+        message: `Upgrade requested for ${workspace.title} ${getUpgradeMessage(
+          payload.limitOrFeature,
+        )}`,
         user: req.user ? { id: req.user.id, email: req.user.email } : undefined,
         workspace: { id: workspace.id, title: workspace.title },
         extra: {

@@ -4142,7 +4142,7 @@ export class ColumnsService implements IColumnsService {
         column: parentRelCol,
         columnId: parentRelCol.id,
         req: param.req,
-        context,
+        context: refContext,
         columns: await refTable.getCachedColumns(context),
       });
 
@@ -4151,7 +4151,7 @@ export class ColumnsService implements IColumnsService {
         column: savedColumn,
         columnId: savedColumn.id,
         req: param.req,
-        context: refContext,
+        context,
         columns: await table.getCachedColumns(context),
       });
 

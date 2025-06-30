@@ -12,7 +12,14 @@ const _props = withDefaults(
   },
 )
 
-const { isWsOwner, navigateToPricing, isLoyaltyDiscountAvailable, isTopBannerVisible } = useEeConfig()
+const { $e } = useNuxtApp()
+
+const { isWsOwner, navigateToPricing: _navigateToPricing, isLoyaltyDiscountAvailable, isTopBannerVisible } = useEeConfig()
+
+const navigateToPricing = () => {
+  $e('c:payment:banner')
+  _navigateToPricing()
+}
 </script>
 
 <template>

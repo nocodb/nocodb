@@ -268,7 +268,14 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
           <NcButton v-if="activeSubscription" type="link" size="small" class="!hover:underline" @click="onManageSubscription">
             {{ $t('labels.manageSubscription') }}
           </NcButton>
-          <NcButton v-if="!isAnyPlanLimitReached" type="primary" size="small" inner-class="!gap-1" @click="navigateToPricing()">
+          <NcButton
+            v-if="!isAnyPlanLimitReached"
+            v-e="['c:payment:upgrade:billing', { activePlan: activePlanTitle }]"
+            type="primary"
+            size="small"
+            inner-class="!gap-1"
+            @click="navigateToPricing()"
+          >
             <template #icon>
               <GeneralIcon icon="ncArrowUpRight" />
             </template>
@@ -301,7 +308,13 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
               class="!bg-transparent text-nc-content-gray-subtle children:font-500 text-center px-0 underline decoration-dotted"
             />
           </div>
-          <NcButton type="primary" size="small" inner-class="!gap-1" @click="navigateToPricing()">
+          <NcButton
+            v-e="['c:payment:upgrade:billing', { activePlan: activePlanTitle }]"
+            type="primary"
+            size="small"
+            inner-class="!gap-1"
+            @click="navigateToPricing()"
+          >
             <template #icon>
               <GeneralIcon icon="ncArrowUpRight" />
             </template>

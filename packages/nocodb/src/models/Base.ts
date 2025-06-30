@@ -23,9 +23,7 @@ import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { NcError } from '~/helpers/catchError';
-import {
-  cleanBaseSchemaCacheForBase,
-} from '~/helpers/scriptHelper';
+import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 
 const logger = new Logger('Base');
 

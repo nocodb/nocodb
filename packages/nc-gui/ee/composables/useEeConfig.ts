@@ -348,7 +348,10 @@ export const useEeConfig = createSharedComposable(() => {
     const searchQuery = new URLSearchParams(paramsObj).toString()
 
     if (newTab) {
-      window.open(`/?pricing=true&workspaceId=${workspaceId || activeWorkspaceId.value}`, '_blank')
+      window.open(
+        `/?pricing=true&workspaceId=${workspaceId || activeWorkspaceId.value}${searchQuery ? `&${searchQuery}` : ''}`,
+        '_blank',
+      )
       return
     }
 
@@ -440,8 +443,14 @@ export const useEeConfig = createSharedComposable(() => {
             rel: 'noopener noreferrer',
             class: 'text-sm leading-6',
             onClick: (e) => {
-              e.preventDefault()
-              navigateToPricing({ autoScroll: 'compare', newTab: true, ctaPlan: higherPlan })
+              /**
+               * If it is owner and not request upgrade, then we need to navigate to pricing page product
+               * else navigate to pricing page of nocodb website
+               */
+              if (isWsOwner.value && !requestUpgrade) {
+                e.preventDefault()
+                navigateToPricing({ autoScroll: 'compare', newTab: true, ctaPlan: higherPlan })
+              }
             },
           },
           t('msg.learnMore'),

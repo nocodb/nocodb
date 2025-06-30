@@ -54,30 +54,30 @@ export enum PlanFeatureTypes {
 
 export enum PlanTitles {
   FREE = 'Free',
-  TEAM = 'Team',
+  PLUS = 'Plus',
   BUSINESS = 'Business',
   ENTERPRISE = 'Enterprise',
 }
 
 export enum PlanPriceLookupKeys {
-  TEAM_MONTHLY = 'team_monthly',
-  TEAM_YEARLY = 'team_yearly',
+  PLUS_MONTHLY = 'plus_monthly',
+  PLUS_YEARLY = 'plus_yearly',
   BUSINESS_MONTHLY = 'business_monthly',
   BUSINESS_YEARLY = 'business_yearly',
 }
 
 export const LoyaltyPriceLookupKeyMap = {
-  [PlanPriceLookupKeys.TEAM_MONTHLY]: 'loyalty_team_monthly',
-  [PlanPriceLookupKeys.TEAM_YEARLY]: 'loyalty_team_yearly',
+  [PlanPriceLookupKeys.PLUS_MONTHLY]: 'loyalty_plus_monthly',
+  [PlanPriceLookupKeys.PLUS_YEARLY]: 'loyalty_plus_yearly',
   [PlanPriceLookupKeys.BUSINESS_MONTHLY]: 'loyalty_business_monthly',
   [PlanPriceLookupKeys.BUSINESS_YEARLY]: 'loyalty_business_yearly',
 };
 
 export const LoyaltyPriceReverseLookupKeyMap = {
-  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.TEAM_MONTHLY]]:
-    PlanPriceLookupKeys.TEAM_MONTHLY,
-  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.TEAM_YEARLY]]:
-    PlanPriceLookupKeys.TEAM_YEARLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.PLUS_MONTHLY]]:
+    PlanPriceLookupKeys.PLUS_MONTHLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.PLUS_YEARLY]]:
+    PlanPriceLookupKeys.PLUS_YEARLY,
   [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.BUSINESS_MONTHLY]]:
     PlanPriceLookupKeys.BUSINESS_MONTHLY,
   [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.BUSINESS_YEARLY]]:
@@ -95,8 +95,8 @@ export const PlanMeta = {
     border: '#E7E7E9',
     chartFillColor: '#6A7184',
   },
-  [PlanTitles.TEAM]: {
-    title: PlanTitles.TEAM,
+  [PlanTitles.PLUS]: {
+    title: PlanTitles.PLUS,
     color: '#EDF9FF',
     accent: '#AFE5FF',
     primary: '#207399',
@@ -107,13 +107,13 @@ export const PlanMeta = {
   },
   [PlanTitles.BUSINESS]: {
     title: PlanTitles.BUSINESS,
-    color: '#FFF5EF',
-    accent: '#FDCDAD',
-    primary: '#C86827',
-    bgLight: '#FFF5EF',
-    bgDark: '#FEE6D6',
-    border: '#FDCDAD',
-    chartFillColor: '#C86827',
+    color: '#FAF5FF',
+    accent: '#FEB0E8',
+    primary: '#972377',
+    bgLight: '#FAF5FF',
+    bgDark: '#FED8F4',
+    border: '#FEB0E8',
+    chartFillColor: '#972377',
   },
   [PlanTitles.ENTERPRISE]: {
     title: PlanTitles.ENTERPRISE,
@@ -129,7 +129,7 @@ export const PlanMeta = {
 
 export const PlanOrder = {
   [PlanTitles.FREE]: 0,
-  [PlanTitles.TEAM]: 1,
+  [PlanTitles.PLUS]: 1,
   [PlanTitles.BUSINESS]: 2,
   [PlanTitles.ENTERPRISE]: 3,
 };
@@ -143,8 +143,8 @@ export const PlanOrderToPlan = Object.entries(PlanOrder).reduce(
 );
 
 export const HigherPlan = {
-  [PlanTitles.FREE]: PlanTitles.TEAM,
-  [PlanTitles.TEAM]: PlanTitles.BUSINESS,
+  [PlanTitles.FREE]: PlanTitles.PLUS,
+  [PlanTitles.PLUS]: PlanTitles.BUSINESS,
   [PlanTitles.BUSINESS]: PlanTitles.ENTERPRISE,
 } as Record<string, PlanTitles>;
 

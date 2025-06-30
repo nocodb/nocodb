@@ -219,7 +219,7 @@ export class DuplicateProcessor {
         error: err.message,
       });
 
-      this.telemetryService.sendSystemEvent({
+      await this.telemetryService.sendSystemEvent({
         event_type: 'priority_error',
         error_trigger: 'duplicateBase',
         error_type: err?.name,
@@ -428,7 +428,7 @@ export class DuplicateProcessor {
         }
       }
 
-      this.telemetryService.sendSystemEvent({
+      await this.telemetryService.sendSystemEvent({
         event_type: 'priority_error',
         error_trigger: 'duplicateModel',
         error_type: e?.name,

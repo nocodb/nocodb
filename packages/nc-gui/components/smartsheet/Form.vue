@@ -1063,7 +1063,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
                                     :content="
                                       $t('upgrade.upgradeToAddCustomBannerSubtitle', {
-                                        plan: getPlanTitle(PlanTitles.TEAM),
+                                        plan: getPlanTitle(PlanTitles.PLUS),
                                       })
                                     "
                                   />
@@ -1181,7 +1181,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                           :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
                                           :content="
                                             $t('upgrade.upgradeToAddCustomLogoSubtitle', {
-                                              plan: getPlanTitle(PlanTitles.TEAM),
+                                              plan: getPlanTitle(PlanTitles.PLUS),
                                             })
                                           "
                                           class="-my-1"
@@ -1865,7 +1865,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING"
                                     :content="
                                       $t('upgrade.upgradeToHideFormBrandingSubtitle', {
-                                        plan: getPlanTitle(PlanTitles.TEAM),
+                                        plan: getPlanTitle(PlanTitles.PLUS),
                                       })
                                     "
                                   />
@@ -1940,7 +1940,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                       :feature="PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION"
                                       :content="
                                         $t('upgrade.upgradeToAddRedirectUrlSubtitle', {
-                                          plan: getPlanTitle(PlanTitles.TEAM),
+                                          plan: getPlanTitle(PlanTitles.PLUS),
                                         })
                                       "
                                     />

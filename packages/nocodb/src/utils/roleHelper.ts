@@ -2,6 +2,11 @@ import { OrderedProjectRoles } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import type { ProjectRoles } from 'nocodb-sdk';
 
+/**
+ * Get the power of the project role of the user.
+ * @param user - The user object.
+ * @returns The power of the project role of the user.
+ */
 export function getProjectRolePower(user: any) {
   const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
 
@@ -29,6 +34,11 @@ export function getProjectRolePower(user: any) {
   return ind;
 }
 
+/**
+ * Get the most powerful role of the user.
+ * @param user - The user object.
+ * @returns The most powerful role of the user.
+ */
 export function getProjectRole(user) {
   if (!user.base_roles) {
     return null;
@@ -48,6 +58,12 @@ export function getProjectRole(user) {
   return role;
 }
 
+/**
+ * Check if the user has the minimum role to access the resource.
+ * @param user - The user object.
+ * @param minimumRole - The minimum role to access the resource.
+ * @returns True if the user has the minimum role, false otherwise.
+ */
 export function hasMinimumRole(user: any, minimumRole: ProjectRoles): boolean {
   const power = getProjectRolePower(user);
   const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();

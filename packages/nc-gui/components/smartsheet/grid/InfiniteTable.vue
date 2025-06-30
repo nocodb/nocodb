@@ -4,6 +4,7 @@ import {
   type ColumnReqType,
   type ColumnType,
   PlanLimitTypes,
+  PlanTitles,
   type TableType,
   UITypes,
   type ViewType,
@@ -3143,6 +3144,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
             <div>
               {{
                 $t('upgrade.upgradeToSeeMoreRecordInlineSubtitle', {
+                  plan: PlanTitles.BUSINESS,
                   limit: 100,
                   total: Math.max(props.totalRows, props.actualTotalRows),
                   remaining: Math.max(props.totalRows, props.actualTotalRows) - 100,

@@ -1299,7 +1299,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
           const columnWidth = parseCellWidth(clickedColumn.width)
           const iconOffsetX = xOffset + columnWidth - 24
           // check if clicked on the column menu icon
-          if (y <= 21 && y >= 9 && iconOffsetX <= x && iconOffsetX + 14 >= x) {
+          if (y <= COLUMN_HEADER_HEIGHT_IN_PX && y > 0 && iconOffsetX <= x && iconOffsetX + 14 >= x) {
             if (isFieldNotEditable) return
 
             // if menu already in open state then close it on second click
@@ -1370,7 +1370,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     // If the click is not normal single click, return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
 
-    if (clickedColumn) {
+    if (clickedColumn && clickedColumn.id !== 'row_number') {
       // if clicked on same aggregation field, close the dropdown
       if (
         prevMenuState.isDropdownVisible &&

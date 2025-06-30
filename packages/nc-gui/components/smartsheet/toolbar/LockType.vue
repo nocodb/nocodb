@@ -59,7 +59,7 @@ const { getPlanTitle } = useEeConfig()
               :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
               :content="
                 $t('upgrade.upgradeToAccessPersonalViewSubtitle', {
-                  plan: getPlanTitle(PlanTitles.TEAM),
+                  plan: getPlanTitle(PlanTitles.PLUS),
                 })
               "
               :callback="

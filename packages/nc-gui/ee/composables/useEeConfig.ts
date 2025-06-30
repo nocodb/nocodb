@@ -276,12 +276,19 @@ export const useEeConfig = createSharedComposable(() => {
     workspaceId,
     redirectToWorkspace = true,
     limitOrFeature,
+    isBackToBilling = false,
   }: {
     workspaceId?: string
     redirectToWorkspace?: boolean
     limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+    isBackToBilling?: boolean
   } = {}) => {
-    if (!isWsOwner.value) return handleRequestUpgrade({ workspaceId, limitOrFeature })
+    if (!isWsOwner.value) {
+      // If user is not workspace owner and isBackToBilling is true, then we don't need to request upgrade
+      if (isBackToBilling) return
+
+      return handleRequestUpgrade({ workspaceId, limitOrFeature })
+    }
 
     const planCtaBtnQuery = limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? `&activeBtn=${PlanTitles.BUSINESS}` : ''
 

@@ -88,9 +88,27 @@ const timerDate = computed(() => {
   return isLimitReached.value ? gracePeriodEndDate.value : LOYALTY_GRACE_PERIOD_END_DATE
 })
 
+const getLimitOrFeature = () => {
+  if (isLimitReached.value) {
+    if (isRecordLimitReached.value) {
+      return PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE
+    }
+
+    return PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE
+  }
+
+  if (isLoyaltyDiscountAvailable.value) {
+    return 'to get discounted deal'
+  }
+
+  return 'to upgrade to Plus'
+}
+
 const handleNavigation = () => {
   if (isLimitReached.value) {
-    navigateToBilling()
+    navigateToBilling({
+      limitOrFeature: getLimitOrFeature(),
+    })
   } else {
     navigateToPricing()
   }

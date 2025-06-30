@@ -86,7 +86,7 @@ useEventListener('message', (event) => {
 
     onSelectPlan(plan, !planCardClick)
   } else if (type === 'navigateToBilling') {
-    navigateToBilling()
+    navigateToBilling({ isBackToBilling: true })
   } else if (type === 'frameLoaded') {
     frameLoaded.value = true
     const scrollTo = route?.query?.go

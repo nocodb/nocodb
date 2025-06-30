@@ -32,7 +32,7 @@ const checkout = ref<StripeEmbeddedCheckout | null>(null)
 
 const onBack = () => {
   if (redirectRef.value === 'billing') {
-    navigateToBilling()
+    navigateToBilling({ isBackToBilling: true })
   } else {
     navigateToPricing()
   }

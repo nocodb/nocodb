@@ -649,7 +649,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
-      limitOrFeature: PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE,
+      limitOrFeature: 'to access webhook logs' as PlanLimitTypes,
     })
 
     return true

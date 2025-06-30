@@ -173,6 +173,7 @@ const showUserWillChargedWarning = computed(() => {
   return (
     !appInfo.value?.isOnPrem &&
     isPaymentEnabled.value &&
+    isPaidPlan.value &&
     !NON_SEAT_ROLES.includes(inviteData.roles) &&
     !isInviteButtonDisabled.value &&
     !emailValidation.isError

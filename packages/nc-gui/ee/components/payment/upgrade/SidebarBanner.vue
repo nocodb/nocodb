@@ -175,7 +175,7 @@ watch(
                       isLimitReached
                         ? 'Plan Limit Reached'
                         : isLoyaltyDiscountAvailable
-                        ? 'Preview Ending Soon 🎊'
+                        ? 'Discounted Deal is Ready!'
                         : 'Upgrade to Plus'
                     }}
                   </div>

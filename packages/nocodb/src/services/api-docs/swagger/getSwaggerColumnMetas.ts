@@ -11,7 +11,11 @@ export default async (
   base: Base,
   ncMeta = Noco.ncMeta,
 ): Promise<SwaggerColumn[]> => {
-  const dbType = await base.getSources().then((b) => b?.[0]?.type);
+  // extract dbtype based on column source
+  const dbType = await base.getSources().then((sources) => {
+    const sourceId = columns[0]?.source_id;
+    return sources.find((s) => s.id === sourceId)?.type || sources[0]?.type;
+  });
   return Promise.all(
     columns.map(async (c) => {
       const field: SwaggerColumn = {
@@ -77,46 +81,27 @@ export default async (
           field.type = 'object';
           break;
         case UITypes.Rollup:
-        case UITypes.Links:
           field.type = 'number';
+          break;
+        case UITypes.Links:
+          field.type = 'integer';
           break;
         case UITypes.Attachment:
           field.type = 'array';
           field.items = {
-            type: 'object',
+            $ref: `#/components/schemas/Attachment`,
           };
-          break;
-        case UITypes.Checkbox:
-          field.type = 'boolean';
-          break;
-        case UITypes.Number:
-        case UITypes.Decimal:
-        case UITypes.Currency:
-        case UITypes.Percent:
-        case UITypes.Duration:
-        case UITypes.Rating:
-        case UITypes.Year:
-        case UITypes.Count:
-        case UITypes.ID:
-        case UITypes.Order:
-          field.type = 'number';
-          break;
-        case UITypes.Date:
-        case UITypes.DateTime:
-        case UITypes.Time:
-          field.type = 'string';
-          field.format = c.uidt === UITypes.Date ? 'date' : 'date-time';
+          field.virtual = false;
           break;
         case UITypes.Email:
           field.type = 'string';
           field.format = 'email';
+          field.virtual = false;
           break;
         case UITypes.URL:
           field.type = 'string';
           field.format = 'uri';
-          break;
-        case UITypes.JSON:
-          field.type = 'object';
+          field.virtual = false;
           break;
         case UITypes.LastModifiedTime:
         case UITypes.CreatedTime:

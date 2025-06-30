@@ -13,12 +13,12 @@ import {
   ViewTypes,
   YearValidationType,
 } from 'nocodb-sdk';
+import { ViewRowColorService } from './view-row-color.service';
 import type { NcContext } from '~/interface/config';
 import type { FormView, FormViewColumn } from '~/models';
 import { Base, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getFeature } from '~/helpers/paymentHelpers';
-import { ViewRowColorService } from './view-row-color.service';
 
 @Injectable()
 export class PublicMetasService extends PublicMetasServiceCE {

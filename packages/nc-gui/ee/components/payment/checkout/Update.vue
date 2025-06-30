@@ -140,7 +140,7 @@ const isLoading = ref(false)
 
 const handleProceed = async () => {
   if (!changes.value.plan && !changes.value.period) {
-    navigateToPricing()
+    navigateToPricing({ isBackToPricing: true })
     return
   }
 
@@ -174,12 +174,20 @@ const onCancelSubscription = async () => {
       <PaymentCheckoutHeader
         v-if="changes.change === 'upgrade'"
         :title="changes.plan || !changes.period || changes.period === 'year' ? 'Upgrade Plan' : 'Change Billing Period'"
-        @back="navigateToPricing()"
+        @back="navigateToPricing({ isBackToPricing: true })"
       />
 
-      <PaymentCheckoutHeader v-else-if="changes.change === 'downgrade'" title="Downgrade Plan" @back="navigateToPricing()" />
+      <PaymentCheckoutHeader
+        v-else-if="changes.change === 'downgrade'"
+        title="Downgrade Plan"
+        @back="navigateToPricing({ isBackToPricing: true })"
+      />
 
-      <PaymentCheckoutHeader v-else-if="changes.change === 'cancel'" title="Downgrade to Free Plan" @back="navigateToPricing()" />
+      <PaymentCheckoutHeader
+        v-else-if="changes.change === 'cancel'"
+        title="Downgrade to Free Plan"
+        @back="navigateToPricing({ isBackToPricing: true })"
+      />
 
       <NcDivider class="!mb-0 !mt-6" />
     </div>
@@ -423,7 +431,7 @@ const onCancelSubscription = async () => {
       v-if="changes.change === 'cancel'"
       class="flex items-center justify-end gap-2 py-6 border-t-1 border-nc-border-gray-medium"
     >
-      <NcButton class="w-1/2" type="secondary" @click="navigateToPricing()"> Cancel </NcButton>
+      <NcButton class="w-1/2" type="secondary" @click="navigateToPricing({ isBackToPricing: true })"> Cancel </NcButton>
       <NcButton
         class="w-1/2"
         type="danger"
@@ -435,7 +443,7 @@ const onCancelSubscription = async () => {
       </NcButton>
     </div>
     <div v-else class="flex items-center justify-end gap-2 py-6 border-t-1 border-nc-border-gray-medium">
-      <NcButton class="w-1/2" type="secondary" @click="navigateToPricing()"> Cancel </NcButton>
+      <NcButton class="w-1/2" type="secondary" @click="navigateToPricing({ isBackToPricing: true })"> Cancel </NcButton>
       <NcButton class="w-1/2" :loading="isLoading" :disabled="!changes.plan && !changes.period" @click="handleProceed">
         Proceed
       </NcButton>

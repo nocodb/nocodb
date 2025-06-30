@@ -323,14 +323,21 @@ export const useEeConfig = createSharedComposable(() => {
     autoScroll,
     newTab = false,
     ctaPlan,
+    isBackToPricing = false,
   }: {
     workspaceId?: string
     autoScroll?: 'compare' | 'faq'
     limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
     newTab?: boolean
     ctaPlan?: PlanTitles
+    isBackToPricing?: boolean
   } = {}) => {
-    if (!isWsOwner.value) return handleRequestUpgrade({ workspaceId, limitOrFeature })
+    if (!isWsOwner.value) {
+      // If user is not workspace owner and isBackToPricing is true, then we don't need to request upgrade
+      if (isBackToPricing) return
+
+      return handleRequestUpgrade({ workspaceId, limitOrFeature })
+    }
 
     const paramsObj = {
       ...(autoScroll ? { go: autoScroll } : {}),

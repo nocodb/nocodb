@@ -91,7 +91,7 @@ useEventListener('message', (event) => {
     frameLoaded.value = true
     const scrollTo = route?.query?.go
     if (scrollTo) {
-      nextTick(() => {
+      forcedNextTick(() => {
         sendIframeMessage({
           type: 'scrollTo',
           id: scrollTo,

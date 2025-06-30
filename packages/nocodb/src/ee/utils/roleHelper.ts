@@ -7,6 +7,11 @@ import {
 import { NcError } from 'src/helpers/catchError';
 import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 
+/**
+ * Get the power of the project role of the user.
+ * @param user - The user object.
+ * @returns The power of the project role of the user.
+ */
 export function getProjectRolePower(user: any) {
   const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
   const reverseOrderedWorkspaceRoles = [...OrderedWorkspaceRoles].reverse();
@@ -47,6 +52,11 @@ export function getProjectRolePower(user: any) {
   return ind;
 }
 
+/**
+ * Get the most powerful role of the user.
+ * @param user - The user object.
+ * @returns The most powerful role of the user.
+ */
 export function getProjectRole(user) {
   if (!user?.base_roles) {
     return null;
@@ -65,6 +75,12 @@ export function getProjectRole(user) {
 
   return role;
 }
+
+/**
+ * Get the power of the workspace role of the user.
+ * @param user - The user object.
+ * @returns The power of the workspace role of the user.
+ */
 export function getWorkspaceRolePower(user: any) {
   const reverseOrderedWorkspaceRoles = [...OrderedWorkspaceRoles].reverse();
 
@@ -91,6 +107,11 @@ export function getWorkspaceRolePower(user: any) {
   return ind;
 }
 
+/**
+ * Map the workspace roles object to the project roles object.
+ * @param wsRoles - The workspace roles object.
+ * @returns The project roles object.
+ */
 export function mapWorkspaceRolesObjToProjectRolesObj(wsRoles: any) {
   wsRoles = extractRolesObj(wsRoles);
   let baseRoles = null;
@@ -103,6 +124,12 @@ export function mapWorkspaceRolesObjToProjectRolesObj(wsRoles: any) {
   return baseRoles;
 }
 
+/**
+ * Check if the user has the minimum role to access the resource.
+ * @param user - The user object.
+ * @param minimumRole - The minimum role to access the resource.
+ * @returns True if the user has the minimum role, false otherwise.
+ */
 export function hasMinimumRole(user: any, minimumRole: ProjectRoles): boolean {
   const power = getProjectRolePower(user);
   const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();

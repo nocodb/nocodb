@@ -214,7 +214,7 @@ watch(
                       isLimitReached
                         ? 'Plan Limit Reached'
                         : isLoyaltyDiscountAvailable
-                        ? 'Discounted Deal is Ready!'
+                        ? 'Discounted Deal is Ready! 🎊'
                         : `Upgrade to ${getHigherPlan()}`
                     }}
                   </div>

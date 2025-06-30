@@ -1,6 +1,14 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
-import { PlanTitles, ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
+import {
+  PlanTitles,
+  PlanLimitTypes,
+  ProjectRoles,
+  RoleColors,
+  RoleIcons,
+  RoleLabels,
+  WorkspaceRolesToProjectRoles,
+} from 'nocodb-sdk'
 import type { BaseType, SourceType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import Automation from './Automation.vue'
@@ -951,6 +959,7 @@ defineExpose({
                                 'nc-sidebar-option-open': isBasesOptionsOpen[source!.id!]
                               }"
                               :plan-title="PlanTitles.BUSINESS"
+                              :limit-or-feature="PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE"
                             />
                           </div>
                           <div

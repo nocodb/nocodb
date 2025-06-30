@@ -7,8 +7,11 @@ import { PlanMeta, PlanTitles } from 'nocodb-sdk'
 interface Props {
   /** Required plan to access new feature */
   planTitle?: PlanTitles
-  /** Feature to check */
+  /** Feature to check and show upgrade badge if not available */
   feature?: PlanFeatureTypes
+  /**
+   * If feature is not provided, then it's important to provide limitOrFeature to send this info to backend for upgrade request
+   */
   limitOrFeature?: PlanFeatureTypes | PlanLimitTypes
   /** Title to show in upgrade modal */
   title?: string

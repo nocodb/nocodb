@@ -1,3 +1,5 @@
+import type { ProjectRoles } from 'nocodb-sdk'
+
 export interface ExtensionManifest {
   id: string
   title: string
@@ -29,6 +31,12 @@ export interface ExtensionManifest {
   type: 'extension'
   beta?: boolean
   onPrem?: boolean
+  /**
+   * The minimum access role required to access the extension.
+   * @default ProjectRoles.CREATOR
+   * Todo: @rameshmane7218
+   */
+  minAccessRole?: ProjectRoles
 }
 
 export interface ScriptManifest {

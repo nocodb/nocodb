@@ -411,7 +411,17 @@ const showFilterInput = (filter: Filter) => {
   }
 }
 
+const eventBusHandler = async (event) => {
+  if (event === SmartsheetStoreEvents.FIELD_UPDATE) {
+    await loadFilters({
+      loadAllFilters: true,
+    })
+  }
+}
+
 onMounted(async () => {
+  eventBus.on(eventBusHandler)
+
   await Promise.all([
     (async () => {
       if (!initialModelValue)
@@ -428,6 +438,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  eventBus.off(eventBusHandler)
   if (parentId.value) delete allFilters.value[parentId.value]
 })
 
@@ -566,14 +577,6 @@ const changeToDynamic = async (filter, i) => {
   filter.dynamic = isDynamicFilterAllowed(filter) && showFilterInput(filter)
   await saveOrUpdate(filter, i)
 }
-
-eventBus.on(async (event) => {
-  if (event === SmartsheetStoreEvents.FIELD_UPDATE) {
-    await loadFilters({
-      loadAllFilters: true,
-    })
-  }
-})
 
 defineExpose({
   applyChanges,

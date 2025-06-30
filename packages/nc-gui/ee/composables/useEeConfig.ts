@@ -634,7 +634,12 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockExternalSourceRecordVisibility = (isExternalSource: boolean = false) => {
     const loyaltyUserValidation = isLoyaltyDiscountAvailable.value ? !isUnderLoyaltyCutoffDate.value : true
-    return isPaymentEnabled.value && isExternalSource && activePlanTitle.value === PlanTitles.FREE && loyaltyUserValidation
+    return (
+      isPaymentEnabled.value &&
+      isExternalSource &&
+      [PlanTitles.FREE, PlanTitles.PLUS].includes(activePlanTitle.value) &&
+      loyaltyUserValidation
+    )
   }
 
   const showAsBluredRecord = (isExternalSource: boolean = false, rowIndex?: number) => {

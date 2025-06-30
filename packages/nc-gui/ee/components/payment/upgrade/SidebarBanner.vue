@@ -24,6 +24,7 @@ const {
   isWsOwner,
   getStatLimit,
   getLimit,
+  getHigherPlan,
 } = useEeConfig()
 
 const isLimitReached = computed(() => {
@@ -38,7 +39,7 @@ const contentRef = ref<HTMLDivElement>()
 
 const { height: contentRefHeight } = useElementBounding(contentRef)
 
-const showUpgradeToTeamBanner = computed(() => {
+const showUpgradeToHigherPlanBanner = computed(() => {
   const isNewUser = !activeWorkspace.value?.loyal
 
   let isRecordLimitReaching = false
@@ -56,7 +57,13 @@ const showUpgradeToTeamBanner = computed(() => {
     isStorageLimitReaching = (value / total) * 100 > 70
   }
 
-  return isNewUser && (isRecordLimitReaching || isStorageLimitReaching)
+  const showBanner = isNewUser && (isRecordLimitReaching || isStorageLimitReaching)
+
+  return {
+    showBanner,
+    isRecordLimitReaching,
+    isStorageLimitReaching,
+  }
 })
 
 const showBanner = computed(() => {
@@ -70,7 +77,7 @@ const showBanner = computed(() => {
     showBannerLocal.value &&
     isPaymentEnabled.value &&
     activeWorkspace.value?.id &&
-    (isLimitReached.value || (isFreePlan && (isLoyaltyDiscountAvailable.value || showUpgradeToTeamBanner.value)))
+    (isLimitReached.value || (isFreePlan && isLoyaltyDiscountAvailable.value) || showUpgradeToHigherPlanBanner.value.showBanner)
   )
 })
 
@@ -101,7 +108,15 @@ const getLimitOrFeature = () => {
     return 'to get discounted deal'
   }
 
-  return 'to upgrade to Plus'
+  if (showUpgradeToHigherPlanBanner.value.showBanner) {
+    if (showUpgradeToHigherPlanBanner.value.isRecordLimitReaching) {
+      return 'to increase the record limit'
+    }
+
+    return 'to increase the storage limit'
+  }
+
+  return `to upgrade to ${getHigherPlan()}`
 }
 
 const handleNavigation = () => {
@@ -200,7 +215,7 @@ watch(
                         ? 'Plan Limit Reached'
                         : isLoyaltyDiscountAvailable
                         ? 'Discounted Deal is Ready!'
-                        : 'Upgrade to Plus'
+                        : `Upgrade to ${getHigherPlan()}`
                     }}
                   </div>
                 </div>

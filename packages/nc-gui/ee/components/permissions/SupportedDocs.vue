@@ -1,16 +1,16 @@
 <script lang="ts" setup>
 const supportedDocs = [
   {
-    title: 'Permissions Manager',
-    href: 'https://docs.nocodb.com',
+    title: 'Permissions Overview',
+    href: 'https://nocodb.com/docs/product-docs/roles-and-permissions/roles-permissions-overview',
   },
   {
     title: 'Setting up Table Permissions',
-    href: 'https://docs.nocodb.com',
+    href: 'https://nocodb.com/docs/product-docs/roles-and-permissions/table-permissions',
   },
   {
     title: 'Setting up Field Permissions',
-    href: 'https://docs.nocodb.com',
+    href: 'https://nocodb.com/docs/product-docs/roles-and-permissions/field-permissions',
   },
 ] as {
   title: string

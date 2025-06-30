@@ -1522,9 +1522,19 @@ export class PaymentService {
               ? invoiceObj.parent.subscription_details.subscription
               : invoiceObj.parent.subscription_details.subscription?.id || '';
 
-          const subRec = await Subscription.getByStripeSubscriptionId(
-            subscriptionId,
-          );
+          let subRec: Subscription;
+          let attempt = 0;
+
+          // Retry as subscription sometimes takes a while to be created
+          while (attempt < 10) {
+            subRec = await Subscription.getByStripeSubscriptionId(
+              subscriptionId,
+            );
+            if (subRec) break;
+            attempt++;
+            await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
+          }
+
           if (!subRec) NcError.genericNotFound('Subscription', subscriptionId);
 
           // TODO: add org support
@@ -1804,6 +1814,7 @@ export class PaymentService {
     } catch (err) {
       this.logger.error(`Error handling webhook ${event.type}`);
       console.error(err);
+      throw err;
     }
   }
 }

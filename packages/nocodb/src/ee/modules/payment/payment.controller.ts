@@ -70,6 +70,14 @@ export class PaymentController {
   }
 
   @UseGuards(AuthGuard('basic'))
+  @Delete('/api/internal/payment/:workspaceOrOrgId/reseat')
+  async reseatSubscription(
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+  ) {
+    return this.paymentService.reseatSubscriptionAwaited(workspaceOrOrgId);
+  }
+
+  @UseGuards(AuthGuard('basic'))
   @Get('/api/internal/payment/plan')
   async getAllPlans() {
     return this.paymentService.getPlans();

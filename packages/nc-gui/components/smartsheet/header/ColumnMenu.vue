@@ -613,7 +613,7 @@ const onDeleteColumn = () => {
                 :title="$t('upgrade.upgradeToUseTableAndFieldPermissions')"
                 :content="
                   $t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
-                    plan: PlanTitles.TEAM,
+                    plan: PlanTitles.PLUS,
                   })
                 "
                 :on-click-callback="

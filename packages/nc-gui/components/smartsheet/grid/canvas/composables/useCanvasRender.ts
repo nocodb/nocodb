@@ -1,5 +1,5 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { AllAggregations, type ColumnType, type TableType, UITypes, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
+import { AllAggregations, type ColumnType, PlanTitles, type TableType, UITypes, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
 import type { Composer } from 'vue-i18n'
 import tinycolor from 'tinycolor2'
 import {
@@ -1126,6 +1126,7 @@ export function useCanvasRender({
       x: width.value / 2,
       y: yOffset,
       text: t('upgrade.upgradeToSeeMoreRecordInlineSubtitle', {
+        plan: PlanTitles.BUSINESS,
         limit: 100,
         total: totalRecords,
         remaining: totalRecords - 100,

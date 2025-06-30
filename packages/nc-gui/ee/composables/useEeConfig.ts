@@ -656,7 +656,9 @@ export const useEeConfig = createSharedComposable(() => {
 
     handleUpgradePlan({
       title: t('upgrade.upgradeToSeeMoreRecord'),
-      content: t('upgrade.upgradeToSeeMoreRecordSubtitle'),
+      content: t('upgrade.upgradeToSeeMoreRecordSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
       callback,
       maskClosable: false,
       keyboard: false,

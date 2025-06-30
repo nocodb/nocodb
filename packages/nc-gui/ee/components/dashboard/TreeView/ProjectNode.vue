@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
-import { ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
+import { PlanTitles, ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import type { BaseType, SourceType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 import Automation from './Automation.vue'
@@ -941,11 +941,16 @@ defineExpose({
                                 !(source.id && sourceRenameHelpers[source.id]?.editMode)
                               "
                               :title="$t('upgrade.upgradeToSeeMoreRecord')"
-                              :content="$t('upgrade.upgradeToSeeMoreRecordSubtitle')"
+                              :content="
+                                $t('upgrade.upgradeToSeeMoreRecordSubtitle', {
+                                  plan: PlanTitles.BUSINESS,
+                                })
+                              "
                               class="-my-1 mx-0.5 nc-sidebar-node-btn nc-sidebar-upgrade-badge"
                               :class="{
                                 'nc-sidebar-option-open': isBasesOptionsOpen[source!.id!]
                               }"
+                              :plan-title="PlanTitles.BUSINESS"
                             />
                           </div>
                           <div

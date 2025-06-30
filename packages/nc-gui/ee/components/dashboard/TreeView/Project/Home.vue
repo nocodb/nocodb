@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { SourceType, TableType } from 'nocodb-sdk'
+import { PlanTitles } from 'nocodb-sdk'
 import Automation from '../Automation.vue'
 
 const router = useRouter()
@@ -521,11 +522,14 @@ const showCreateNewAsDropdown = computed(() => {
                                   !(source.id && sourceRenameHelpers[source.id]?.editMode)
                                 "
                                 :title="$t('upgrade.upgradeToSeeMoreRecord')"
-                                :content="$t('upgrade.upgradeToSeeMoreRecordSubtitle')"
+                                :content="
+                                  $t('upgrade.upgradeToSeeMoreRecordSubtitle', {
+                                    plan: PlanTitles.BUSINESS,
+                                  })
+                                "
                                 class="-my-1 mx-0.5 nc-sidebar-node-btn nc-sidebar-upgrade-badge"
-                                :class="{
-                                'nc-sidebar-option-open': isBasesOptionsOpen[source!.id!]
-                              }"
+                                :class="{ 'nc-sidebar-option-open': isBasesOptionsOpen[source!.id!] }"
+                                :plan-title="PlanTitles.BUSINESS"
                               />
                             </div>
                             <div

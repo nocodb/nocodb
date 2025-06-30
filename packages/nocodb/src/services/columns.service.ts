@@ -4105,10 +4105,13 @@ export class ColumnsService implements IColumnsService {
         ...crossBaseLinkProps,
       });
 
-
       const parentRelCol = await Column.insert(refContext, {
         title: getUniqueColumnAliasName(
-          await refTable.getColumns(refContext),
+          [
+            ...(await refTable.getColumns(refContext)),
+            // if self ref include saved column
+            ...(table.id === refTable.id ? [savedColumn] : []),
+          ],
           pluralize(table.title),
         ),
         uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,

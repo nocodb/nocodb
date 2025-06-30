@@ -347,7 +347,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
                 : $t('objects.currentPlan.numberOfBilledUsers')
             }}
           </template>
-          <template #value>{{ workspaceSeatCount }} Paid Users</template>
+          <template #value>{{ workspaceSeatCount }} Paid {{ workspaceSeatCount === 1 ? 'User' : 'Users' }}</template>
         </PaymentPlanUsageRow>
         <PaymentPlanUsageRow
           :plan-meta="activePlanMeta"

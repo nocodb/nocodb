@@ -61,6 +61,11 @@ export default defineNuxtPlugin(() => {
         return
       }
 
+      // if nocodb email skip
+      if (email.endsWith('@nocodb.com')) {
+        return
+      }
+
       try {
         if (!tracker) {
           const script = document.createElement('script')

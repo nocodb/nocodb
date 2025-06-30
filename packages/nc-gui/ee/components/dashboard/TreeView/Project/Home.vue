@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { SourceType, TableType } from 'nocodb-sdk'
-import { PlanTitles, PlanLimitTypes } from 'nocodb-sdk'
+import { PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
 import Automation from '../Automation.vue'
 
 const router = useRouter()

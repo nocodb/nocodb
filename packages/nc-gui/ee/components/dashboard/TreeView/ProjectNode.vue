@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
 import {
-  PlanTitles,
   PlanLimitTypes,
+  PlanTitles,
   ProjectRoles,
   RoleColors,
   RoleIcons,

@@ -58,6 +58,7 @@ export default class Workspace implements WorkspaceType {
   infra_meta?: string | Record<string, any>;
   fk_org_id?: string;
   stripe_customer_id?: string;
+  segment_code?: number;
 
   payment?: {
     subscription?: Subscription;
@@ -206,6 +207,7 @@ export default class Workspace implements WorkspaceType {
       'loyal',
       'loyalty_discount_used',
       'fk_db_instance_id',
+      'segment_code',
     ]);
 
     // stringify meta if it is an object
@@ -256,6 +258,7 @@ export default class Workspace implements WorkspaceType {
       'loyalty_discount_used',
       'fk_db_instance_id',
       'db_job_id',
+      'segment_code',
     ]);
 
     // stringify meta if it is an object

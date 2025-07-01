@@ -24,6 +24,7 @@ import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { extractProps } from '~/helpers/extractProps';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Workspace } from '~/models';
 
 const ajv = new Ajv();
 
@@ -70,11 +71,29 @@ export class PaymentController {
   }
 
   @UseGuards(AuthGuard('basic'))
-  @Delete('/api/internal/payment/:workspaceOrOrgId/reseat')
+  @Post('/api/internal/payment/:workspaceOrOrgId/reseat')
   async reseatSubscription(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
   ) {
     return this.paymentService.reseatSubscriptionAwaited(workspaceOrOrgId);
+  }
+
+  @UseGuards(AuthGuard('basic'))
+  @Post('/api/internal/payment/:workspaceOrOrgId/update')
+  async updateWorkspacePaymentMetadata(
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Body()
+    payload: {
+      segment_code?: number;
+      loyal?: boolean;
+      loyalty_discount_used?: boolean;
+    },
+  ) {
+    return Workspace.update(workspaceOrOrgId, {
+      loyal: payload.loyal,
+      loyalty_discount_used: payload.loyalty_discount_used,
+      segment_code: payload.segment_code,
+    });
   }
 
   @UseGuards(AuthGuard('basic'))

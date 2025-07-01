@@ -290,8 +290,14 @@ async function getWorkspaceOrOrg(
       entity: 'workspace';
       loyal?: boolean;
       loyalty_discount_used?: boolean;
+      segment_code?: number;
     })
-  | (Org & { entity: 'org'; loyal?: boolean; loyalty_discount_used?: boolean })
+  | (Org & {
+      entity: 'org';
+      loyal?: boolean;
+      loyalty_discount_used?: boolean;
+      segment_code?: number;
+    })
 > {
   const workspace = await Workspace.get(workspaceOrOrgId, null, ncMeta);
 

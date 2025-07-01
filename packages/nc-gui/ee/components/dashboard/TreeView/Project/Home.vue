@@ -262,6 +262,14 @@ const openBaseHomePage = async () => {
 }
 
 const isVisibleCreateNew = ref(false)
+
+const hasTableCreatePermission = computed(() => {
+  return isUIAllowed('tableCreate', {
+    roles: base.value.project_role || base.value.workspace_role,
+    source: base.value?.sources?.[0],
+  })
+})
+
 /**
  * Show create new dropdown only if their is more than one entity enabled (table, scripts, dashboard)
  */
@@ -300,10 +308,7 @@ const showCreateNewAsDropdown = computed(() => {
       <DashboardTreeViewProjectHomeSearchInput :placeholder="`Search table, view${showCreateNewAsDropdown ? ', script' : ''}`" />
 
       <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 xs:hidden flex flex-col gap-2">
-        <div
-          v-if="isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] })"
-          class="flex items-center w-full xs:hidden"
-        >
+        <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
           <NcDropdown v-if="showCreateNewAsDropdown" v-model:visible="isVisibleCreateNew">
             <NcButton
               type="text"
@@ -406,7 +411,7 @@ const showCreateNewAsDropdown = computed(() => {
                   <DashboardTreeViewTableList
                     :base="base"
                     :source-index="0"
-                    :show-create-table-btn="showCreateNewAsDropdown"
+                    :show-create-table-btn="showCreateNewAsDropdown && hasTableCreatePermission"
                     @create-table="addNewProjectChildEntity"
                   />
                 </div>

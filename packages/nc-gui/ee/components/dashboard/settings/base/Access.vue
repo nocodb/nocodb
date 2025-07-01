@@ -8,7 +8,7 @@ const { blockPrivateBases, showUpgradeToUsePrivateBases } = useEeConfig()
 const { base } = storeToRefs(useBase())
 
 const baseAccessValue = computed({
-  get: () => !!base.value?.default_role,
+  get: () => base.value?.default_role === ProjectRoles.NO_ACCESS,
   set: (value) => {
     // If private base is selected and user don't have access to it then don't allow to select it
     if (value && showUpgradeToUsePrivateBases()) return

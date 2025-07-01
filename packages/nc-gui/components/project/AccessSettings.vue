@@ -6,6 +6,8 @@ const props = defineProps<{
   baseId?: string
 }>()
 
+const { isPrivateBase } = storeToRefs(useBase())
+
 const basesStore = useBases()
 const { getBaseUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
 const { activeProjectId, bases, basesUser } = storeToRefs(basesStore)
@@ -328,6 +330,23 @@ watch(projectPageTab, () => {
     </div>
 
     <div class="nc-content-max-w h-full flex flex-col items-center gap-6 px-6 pt-6">
+      <NcAlert v-if="isPrivateBase" type="info" :message="$t('title.privateBase')">
+        <template #icon>
+          <GeneralIcon icon="ncUser" class="w-6 h-6 text-nc-content-gray-subtle" />
+        </template>
+        <template #description>
+          {{ $t('title.privateBaseAlertDescription') }}
+        </template>
+
+        <template #action>
+          <NcButton type="secondary" size="small" class="!mt-[-4px]" inner-class="!gap-1.5" icon-position="right">
+            <template #icon>
+              <GeneralIcon icon="ncArrowUpRight" class="w-4 h-4" />
+            </template>
+            {{ $t('activity.goToBaseAccess') }}
+          </NcButton>
+        </template>
+      </NcAlert>
       <div v-if="!isAdminPanel" class="w-full flex justify-between items-center max-w-full gap-3">
         <a-input
           v-model:value="userSearchText"

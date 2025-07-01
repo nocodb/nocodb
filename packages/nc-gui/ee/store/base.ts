@@ -1,5 +1,5 @@
 import type { BaseType, OracleUi, SourceType, TableType } from 'nocodb-sdk'
-import { SqlUiFactory } from 'nocodb-sdk'
+import { ProjectRoles, SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type Record from '~icons/nc-icons/record'
@@ -73,6 +73,8 @@ export const useBase = defineStore('baseStore', () => {
       return defaultMeta
     }
   })
+
+  const isPrivateBase = computed(() => base.value.default_role === ProjectRoles.NO_ACCESS)
 
   const sqlUis = computed(() => {
     const temp: Record<string, any> = {}
@@ -347,6 +349,7 @@ export const useBase = defineStore('baseStore', () => {
     navigateToProjectPage,
     forcedProjectId,
     idUserMap,
+    isPrivateBase,
   }
 })
 

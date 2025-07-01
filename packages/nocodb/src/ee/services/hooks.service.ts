@@ -29,8 +29,13 @@ export class HooksService extends HooksServiceCE {
       hook: HookReqType;
       req: NcRequest;
     },
+    option?: {
+      isTableDuplicate?: boolean;
+    },
   ) {
-    validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+    if (!option?.isTableDuplicate) {
+      validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+    }
 
     const model = await Model.get(context, param.tableId);
 
@@ -92,6 +97,6 @@ export class HooksService extends HooksServiceCE {
       );
     }
 
-    return await super.hookCreate(context, param);
+    return await super.hookCreate(context, param, option);
   }
 }

@@ -28,7 +28,7 @@ function update_workspace(){
         then
             echo "skip updating service : ${SVC}" 
         else
-            DEPLOY_OUT=$(aws ecs update-service --cluster ${CLUSTER} --service ${SVC} --force-new-deployment --region=us-east-2 )
+            DEPLOY_OUT=$(aws ecs update-service --cluster ${CLUSTER} --service ${SVC} --force-new-deployment --region us-east-2 )
             echo "updated service : ${SVC}"
         fi
     done
@@ -84,7 +84,7 @@ function checkStatus(){
 function prewarm_asg(){
     if [[ ! "${ASG_NAME}" ]]; then echo "ASG_NAME variables must be set for pre-warming"; log_and_exit  ; fi
     # Get the current desired count
-    prev_count=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_NAME} --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
+    prev_count=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_NAME} --region us-east-2 --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
 
     # Double the current count
     new_count=$((prev_count * 2))
@@ -92,12 +92,12 @@ function prewarm_asg(){
     echo "${ENVIRONMENT}: prewarming initiating. previous_count: ${prev_count} new_count: ${new_count} "
 
     # Update the desired count to be double
-    aws autoscaling set-desired-capacity --auto-scaling-group-name ${ASG_NAME} --desired-capacity $new_count
+    aws autoscaling set-desired-capacity --auto-scaling-group-name ${ASG_NAME} --region us-east-2 --desired-capacity $new_count
 
     # Wait for the new instances to launch with doubled count
     timeout=10
     while [[ $timeout -gt 0 ]]; do
-        current_count=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_NAME} --query 'AutoScalingGroups[0].Instances[?LifecycleState==`InService`].InstanceId' --output text | wc -w)
+        current_count=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_NAME} --region us-east-2 --query 'AutoScalingGroups[0].Instances[?LifecycleState==`InService`].InstanceId' --output text | wc -w)
         
         if [[ $current_count -eq $new_count ]]; then
             break
@@ -129,7 +129,7 @@ function zero_downtime_worker_deployment(){
     echo "Getting current worker tasks for service: ${WORKERS_SERVICE_NAME}"
     
     # Get current task ARNs for the worker service
-    CURRENT_TASKS=$(aws ecs list-tasks --cluster ${CLUSTER} --service-name ${WORKERS_SERVICE_NAME} --region=us-east-2 --query 'taskArns[]' --output text 2>/dev/null)
+    CURRENT_TASKS=$(aws ecs list-tasks --cluster ${CLUSTER} --service-name ${WORKERS_SERVICE_NAME} --region us-east-2 --query 'taskArns[]' --output text 2>/dev/null)
     
     if [[ ! -z "${CURRENT_TASKS}" ]]; then
         echo "Found current worker tasks: ${CURRENT_TASKS}"
@@ -141,7 +141,7 @@ function zero_downtime_worker_deployment(){
             --tasks ${CURRENT_TASKS} \
             --protection-enabled \
             --expires-in-minutes 300 \
-            --region=us-east-2 || {
+            --region us-east-2 || {
                 echo "Warning: Failed to enable task protection. Proceeding without protection."
             }
         
@@ -155,7 +155,7 @@ function zero_downtime_worker_deployment(){
     
     # 2. Trigger force deployment for workers
     echo "Triggering force deployment for worker service: ${WORKERS_SERVICE_NAME}"
-    aws ecs update-service --cluster ${CLUSTER} --service ${WORKERS_SERVICE_NAME} --force-new-deployment --region=us-east-2
+    aws ecs update-service --cluster ${CLUSTER} --service ${WORKERS_SERVICE_NAME} --force-new-deployment --region us-east-2
     
     # 3. Wait for new instances to come up and be healthy
     echo "Waiting for new worker instances to be healthy..."
@@ -209,7 +209,7 @@ function perform_rollout(){
     message "${ENVIRONMENT}: Image with tag:${STAGE_TAG} will be launched. digest: ${latest_remote_digest}"
 
     # TODO: prewarm ASG to have additional instances. update only desired 
-    ALL_SVS=$( aws ecs list-services --cluster ${CLUSTER}  --region=us-east-2  | jq -r '.serviceArns[] | split("/") | .[2]')
+    ALL_SVS=$( aws ecs list-services --cluster ${CLUSTER} --region us-east-2 | jq -r '.serviceArns[] | split("/") | .[2]')
     update_workspace 
     check_status_all_workspaces 
     message "${ENVIRONMENT}: deployment executed successfully."

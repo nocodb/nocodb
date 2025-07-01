@@ -28,7 +28,7 @@ export class DataTableService extends DataTableServiceCE {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    if (view.type !== ViewTypes.GRID) {
+    if (view && view.type !== ViewTypes.GRID) {
       NcError.badRequest('Aggregation is only supported on grid views');
     }
 
@@ -48,8 +48,6 @@ export class DataTableService extends DataTableServiceCE {
       bulkFilterList = JSON.parse(bulkFilterList);
     } catch (e) {}
 
-    const data = await baseModel.bulkAggregate(listArgs, bulkFilterList, view);
-
-    return data;
+    return await baseModel.bulkAggregate(listArgs, bulkFilterList, view);
   }
 }

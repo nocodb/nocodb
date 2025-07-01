@@ -860,18 +860,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             })
             .filter(Boolean);
         } else {
-          viewColumns = columns
-            .filter(
-              (col) =>
-                !isSystemColumn(col) &&
-                !isLinksOrLTAR(col) &&
-                !isVirtualCol(col),
-            )
-            .map((col) => ({
-              fk_column_id: col.id,
-              aggregation: null,
-              show: true,
-            }));
+          viewColumns = [];
         }
       }
 

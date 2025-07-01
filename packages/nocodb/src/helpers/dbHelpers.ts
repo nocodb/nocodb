@@ -440,7 +440,7 @@ export function shouldSkipField(
   pkAndPvOnly = false,
 ) {
   if (fieldsSet && !pkAndPvOnly) {
-    return !fieldsSet.has(column.title);
+    return !fieldsSet.has(column.title) && !fieldsSet.has(column.id);
   } else {
     if (!pkAndPvOnly && column.system && isCreatedOrLastModifiedByCol(column))
       return true;

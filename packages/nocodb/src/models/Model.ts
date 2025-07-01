@@ -1140,9 +1140,14 @@ export default class Model implements TableType {
   }
 
   async getAliasColObjMap(context: NcContext, columns?: Column[]) {
-    return (columns || (await this.getColumns(context))).reduce(
-      (sortAgg, c) => ({ ...sortAgg, [c.title]: c }),
+    const mapColumns = columns || (await this.getColumns(context));
+    const idReduce = mapColumns.reduce(
+      (sortAgg, c) => ({ ...sortAgg, [c.id]: c }),
       {},
+    );
+    return mapColumns.reduce(
+      (sortAgg, c) => ({ ...sortAgg, [c.title]: c }),
+      idReduce,
     );
   }
 

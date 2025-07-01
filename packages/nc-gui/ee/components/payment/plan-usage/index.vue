@@ -2,6 +2,8 @@
 import { PlanLimitTypes, PlanMeta, PlanTitles } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
+const { $e } = useNuxtApp()
+
 const { t } = useI18n()
 
 const route = useRoute()
@@ -180,7 +182,7 @@ const isAnyPlanLimitReached = computed(() => {
 
 const confirmOpen = ref(false)
 
-const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
+const onUpdateSubscription = async (planId: string, stripePriceId: string, type: 'revert' | 'reactivate', newPlan?: string) => {
   confirmOpen.value = true
 
   const { close } = useDialog(resolveComponent('NcModalConfirm'), {
@@ -191,6 +193,11 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
     'onCancel': closeDialog,
     'onOk': async () => {
       await updateSubscription(planId, stripePriceId)
+
+      $e(`a:payment:billing:${type === 'revert' ? 'revert-scheduled-plan-change' : 'reactivate-plan'}`, {
+        newPlan: newPlan ?? activePlanTitle.value,
+      })
+
       window.location.reload()
     },
     'update:visible': closeDialog,
@@ -228,7 +235,14 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
             type="link"
             size="small"
             class="!p-0 mt-[-4px]"
-            @click="onUpdateSubscription(activeSubscription.fk_plan_id, activeSubscription.stripe_price_id)"
+            @click="
+              onUpdateSubscription(
+                activeSubscription.fk_plan_id,
+                activeSubscription.stripe_price_id,
+                'revert',
+                scheduledChangeInfo?.plan?.title,
+              )
+            "
           >
             Revert
           </NcButton>
@@ -251,7 +265,14 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
             type="link"
             size="small"
             class="!p-0 mt-[-4px]"
-            @click="onUpdateSubscription(activeSubscription.fk_plan_id, activeSubscription.stripe_price_id)"
+            @click="
+              onUpdateSubscription(
+                activeSubscription.fk_plan_id,
+                activeSubscription.stripe_price_id,
+                'reactivate',
+                activePlanTitle,
+              )
+            "
           >
             Reactivate {{ activePlanTitle }} Plan
           </NcButton>

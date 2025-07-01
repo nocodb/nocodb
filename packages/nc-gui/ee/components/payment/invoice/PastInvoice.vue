@@ -133,7 +133,11 @@ onMounted(() => {
             </span>
           </template>
           <template v-if="column.key === 'invoice'">
-            <a :href="record.invoice_pdf" class="!no-underline !hover:underline font-700 text-small text-nc-content-brand">
+            <a
+              v-e="['c:payment:billing:view-invoice']"
+              :href="record.invoice_pdf"
+              class="!no-underline !hover:underline font-700 text-small text-nc-content-brand"
+            >
               View invoice
             </a>
           </template>

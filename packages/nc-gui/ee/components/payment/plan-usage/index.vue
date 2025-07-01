@@ -274,7 +274,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
             type="primary"
             size="small"
             inner-class="!gap-1"
-            @click="navigateToPricing()"
+            @click="navigateToPricing({ triggerEvent: false })"
           >
             <template #icon>
               <GeneralIcon icon="ncArrowUpRight" />
@@ -313,7 +313,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
             type="primary"
             size="small"
             inner-class="!gap-1"
-            @click="navigateToPricing()"
+            @click="navigateToPricing({ triggerEvent: false })"
           >
             <template #icon>
               <GeneralIcon icon="ncArrowUpRight" />

@@ -18,7 +18,7 @@ const { isWsOwner, navigateToPricing: _navigateToPricing, isLoyaltyDiscountAvail
 
 const navigateToPricing = () => {
   $e('c:payment:banner')
-  _navigateToPricing()
+  _navigateToPricing({ triggerEvent: false })
 }
 </script>
 

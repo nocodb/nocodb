@@ -241,7 +241,7 @@ export const useEeConfig = createSharedComposable(() => {
     showMessage = true,
   }: {
     workspaceId?: string
-    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes | string
     showMessage?: boolean
   }) => {
     try {
@@ -281,7 +281,7 @@ export const useEeConfig = createSharedComposable(() => {
   }: {
     workspaceId?: string
     redirectToWorkspace?: boolean
-    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes | string
     isBackToBilling?: boolean
     triggerEvent?: boolean
   } = {}) => {
@@ -348,7 +348,7 @@ export const useEeConfig = createSharedComposable(() => {
   }: {
     workspaceId?: string
     autoScroll?: 'compare' | 'faq'
-    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes | string
     newTab?: boolean
     ctaPlan?: PlanTitles
     isBackToPricing?: boolean

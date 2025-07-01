@@ -113,10 +113,11 @@ function prewarm_asg(){
 function wait_for_new_tasks(){
     local service_name=${1}
     local protected_tasks=${2}
+    local min_new_tasks=${3:-1}  # Optional: minimum new tasks required (default: 1)
     local retry_count=0
-    local max_retries=20
+    local max_retries=30
     
-    echo "Waiting for new tasks to start (different from protected tasks)..."
+    echo "Waiting for ${min_new_tasks} new tasks to start (different from protected tasks)..." >&2
     
     while [[ ${retry_count} -lt ${max_retries} ]]; do
         # Get all current running tasks for the service
@@ -136,18 +137,26 @@ function wait_for_new_tasks(){
                 local running_new_tasks=$(aws ecs describe-tasks --cluster ${CLUSTER} --tasks ${new_tasks} --region us-east-2 --query 'tasks[?lastStatus==`RUNNING`].taskArn' --output text 2>/dev/null)
                 
                 if [[ ! -z "${running_new_tasks}" ]]; then
-                    echo "New worker tasks are now running: ${running_new_tasks}"
-                    return 0
+                    # Count the number of running new tasks
+                    local running_count=$(echo "${running_new_tasks}" | wc -w)
+                    echo "Found ${running_count} new running tasks: ${running_new_tasks}" >&2
+                    
+                    if [[ ${running_count} -ge ${min_new_tasks} ]]; then
+                        echo "Minimum task requirement met (${running_count} >= ${min_new_tasks})" >&2
+                        return 0
+                    else
+                        echo "Waiting for more tasks... (${running_count}/${min_new_tasks})" >&2
+                    fi
                 fi
             fi
         fi
         
         retry_count=$((retry_count+1))
-        echo "Waiting for new tasks to be running... Retry ${retry_count}/${max_retries}"
+        echo "Waiting for new tasks to be running... Retry ${retry_count}/${max_retries}" >&2
         sleep 30
     done
     
-    echo "Warning: Timeout waiting for new worker tasks to start. Proceeding anyway..."
+    echo "Warning: Timeout waiting for new worker tasks to start. Proceeding anyway..." >&2
     message "${ENVIRONMENT}: Warning - Timeout waiting for new worker tasks for ${service_name}"
     return 1
 }
@@ -201,7 +210,18 @@ function zero_downtime_worker_deployment(){
     
     # 3. Wait for new instances to come up and be healthy (different from protected tasks)
     echo "Waiting for new worker instances to be running..."
-    wait_for_new_tasks "${WORKERS_SERVICE_NAME}" "${CURRENT_TASKS}"
+    
+    # Count the number of protected tasks to ensure we have the same capacity
+    if [[ ! -z "${CURRENT_TASKS}" ]]; then
+        PROTECTED_TASK_COUNT=$(echo ${CURRENT_TASKS} | wc -w)
+        echo "Protected tasks count: ${PROTECTED_TASK_COUNT}. Waiting for same number of new tasks..."
+    else
+        PROTECTED_TASK_COUNT=1
+        echo "No protected tasks found. Waiting for at least 1 new task..."
+    fi
+    
+    wait_for_new_tasks "${WORKERS_SERVICE_NAME}" "${CURRENT_TASKS}" ${PROTECTED_TASK_COUNT}
+    NEW_TASKS_STARTED=$?
     
     # 4. Add worker group ID to new workers
     echo "Assigning worker group ID to new workers: ${WORKER_GROUP_ID}"
@@ -216,14 +236,17 @@ function zero_downtime_worker_deployment(){
     echo "Waiting 10 seconds for new workers to be fully ready..."
     sleep 10
     
-    # 6. Stop other worker groups (old workers)
-    echo "Stopping old worker groups (preserving group: ${WORKER_GROUP_ID})"
-    curl -u ${API_CREDENTIALS} ${HOST_NAME}/internal/workers/stop-other-worker-groups -XPOST \
-        -H "Content-Type: application/json" \
-        -d "{\"workerGroupId\":\"${WORKER_GROUP_ID}\"}" || {
-            message "${ENVIRONMENT}: Failed to stop other worker groups"
-            return 1
-        }
+
+    # 6. Stop other worker groups (old workers) - only if new tasks started
+    if [ $NEW_TASKS_STARTED -eq 0 ]; then
+      echo "Stopping old worker groups (preserving group: ${WORKER_GROUP_ID})"
+      curl -u ${API_CREDENTIALS} ${HOST_NAME}/internal/workers/stop-other-worker-groups -XPOST \
+          -H "Content-Type: application/json" \
+          -d "{\"workerGroupId\":\"${WORKER_GROUP_ID}\"}" || {
+              message "${ENVIRONMENT}: Failed to stop other worker groups"
+              return 1
+          }
+    fi
   
     message "${ENVIRONMENT}: Zero-downtime worker deployment completed successfully with group ID: ${WORKER_GROUP_ID}"
 }

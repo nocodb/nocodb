@@ -126,23 +126,26 @@ const baseAccessValue = computed({
   },
 })
 
-const baseAccessOptions = [
-  {
-    label: t('general.default'),
-    value: 'false',
-    icon: 'ncUsers',
-    subtext: t('title.baseAccessDefaultSubtext'),
-  },
-  {
-    label: t('general.private'),
-    value: 'true',
-    icon: 'ncUser',
-    subtext: t('title.baseAccessPrivateSubtext'),
-  },
-] as (NcListItemType & { icon: IconMapKey })[]
+const baseAccessOptions = computed(
+  () =>
+    [
+      {
+        label: t('general.default'),
+        value: 'false',
+        icon: 'ncUsers',
+        subtext: t('title.baseAccessDefaultSubtext'),
+      },
+      {
+        label: t('general.private'),
+        value: 'true',
+        icon: 'ncUser',
+        subtext: t('title.baseAccessPrivateSubtext'),
+      },
+    ] as (NcListItemType & { icon: IconMapKey })[],
+)
 
 const selectedBaseAccessOption = computed(() => {
-  return baseAccessOptions.find((option) => option.value === (formState.value.is_private?.toString() || 'false'))!
+  return baseAccessOptions.value.find((option) => option.value === (formState.value.is_private?.toString() || 'false'))!
 })
 </script>
 

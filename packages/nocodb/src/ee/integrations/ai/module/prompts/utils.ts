@@ -280,8 +280,14 @@ A list of column titles from the schema where the response to the dynamic input 
 4. **Realistic Context**  
    Do not request data that has no basis in the schema (e.g., no asking for a phone number if no contact field exists).
 
-5. **Minimum Requirement**  
-   Both \`dynamic_input\` and \`output_columns\` must contain **at least one valid column**.
+5. **Mandatory Output Field(s)** ⚠️  
+You must include **at least one valid column** in the \`output_columns\` list.  
+If no column is selected, the result is **incomplete and invalid**.
+
+- The \`dynamic_input\` is **useless** without a target output.
+- Always map your output to a meaningful column from the schema.
+- If no valid output is possible, **do not generate a configuration at all.**
+
 
 6. **Unique & Relevant**  
    All columns in the output must be **unique** and relevant to the query context.
@@ -364,6 +370,10 @@ A list of column titles from the schema where the response to the dynamic input 
 
 ---
 
+🚨 DO NOT leave \`output_columns\` empty under any circumstances. Every dynamic input must produce at least one field in the output.
+
+---
+
 ${
   existingColumns?.length
     ? `### 📂 Existing Columns\n${existingColumns
@@ -372,7 +382,10 @@ ${
     : ''
 }
 
-⚠️ YOU MAY ONLY USE THE COLUMNS FROM THE PROVIDED SCHEMA. DO NOT INVENT COLUMNS OR MAKE ASSUMPTIONS ABOUT DATA NOT PRESENT.
+⚠️ YOU MAY ONLY USE COLUMNS FROM THE PROVIDED SCHEMA.  
+- Do NOT invent new columns.  
+- Do NOT reuse input placeholders as output fields.  
+- Do NOT leave \`output_columns\` empty.
 `.trim();
 
 export const predictNextButtonsPrompt = (

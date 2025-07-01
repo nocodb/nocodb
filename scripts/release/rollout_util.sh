@@ -110,6 +110,48 @@ function prewarm_asg(){
     message "${ENVIRONMENT}: prewarming completed successfully. previous_count: ${prev_count} new_count: ${new_count} "
 }
 
+function wait_for_new_tasks(){
+    local service_name=${1}
+    local protected_tasks=${2}
+    local retry_count=0
+    local max_retries=20
+    
+    echo "Waiting for new tasks to start (different from protected tasks)..."
+    
+    while [[ ${retry_count} -lt ${max_retries} ]]; do
+        # Get all current running tasks for the service
+        local all_current_tasks=$(aws ecs list-tasks --cluster ${CLUSTER} --service-name ${service_name} --region us-east-2 --query 'taskArns[]' --output text 2>/dev/null)
+        
+        if [[ ! -z "${all_current_tasks}" ]]; then
+            # Check if we have any new tasks (not in protected list)
+            local new_tasks=""
+            for task in ${all_current_tasks}; do
+                if [[ ! "${protected_tasks}" =~ "${task}" ]]; then
+                    new_tasks="${new_tasks} ${task}"
+                fi
+            done
+            
+            if [[ ! -z "${new_tasks}" ]]; then
+                # Check if new tasks are in RUNNING state
+                local running_new_tasks=$(aws ecs describe-tasks --cluster ${CLUSTER} --tasks ${new_tasks} --region us-east-2 --query 'tasks[?lastStatus==`RUNNING`].taskArn' --output text 2>/dev/null)
+                
+                if [[ ! -z "${running_new_tasks}" ]]; then
+                    echo "New worker tasks are now running: ${running_new_tasks}"
+                    return 0
+                fi
+            fi
+        fi
+        
+        retry_count=$((retry_count+1))
+        echo "Waiting for new tasks to be running... Retry ${retry_count}/${max_retries}"
+        sleep 30
+    done
+    
+    echo "Warning: Timeout waiting for new worker tasks to start. Proceeding anyway..."
+    message "${ENVIRONMENT}: Warning - Timeout waiting for new worker tasks for ${service_name}"
+    return 1
+}
+
 function zero_downtime_worker_deployment(){
     echo "zero_downtime_worker_deployment: Expected variables to be set CLUSTER=${CLUSTER} WORKERS_SERVICE_NAME=${WORKERS_SERVICE_NAME} HOST_NAME=${HOST_NAME} API_CREDENTIALS=$([[ ! -z "$API_CREDENTIALS" ]] && echo "***value-set***" || echo "Empty")"
 
@@ -157,9 +199,9 @@ function zero_downtime_worker_deployment(){
     echo "Triggering force deployment for worker service: ${WORKERS_SERVICE_NAME}"
     aws ecs update-service --cluster ${CLUSTER} --service ${WORKERS_SERVICE_NAME} --force-new-deployment --region us-east-2
     
-    # 3. Wait for new instances to come up and be healthy
-    echo "Waiting for new worker instances to be healthy..."
-    checkStatus "${WORKERS_SERVICE_NAME}"
+    # 3. Wait for new instances to come up and be healthy (different from protected tasks)
+    echo "Waiting for new worker instances to be running..."
+    wait_for_new_tasks "${WORKERS_SERVICE_NAME}" "${CURRENT_TASKS}"
     
     # 4. Add worker group ID to new workers
     echo "Assigning worker group ID to new workers: ${WORKER_GROUP_ID}"

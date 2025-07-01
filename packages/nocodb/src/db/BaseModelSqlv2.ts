@@ -81,6 +81,7 @@ import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
 import {
   _wherePk,
   applyPaginate,
+  dataWrapper,
   extractSortsObject,
   formatDataForAudit,
   getCompositePkValue,
@@ -4196,42 +4197,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   // todo: handle composite primary key
   public extractPksValues(data: any, asString = false) {
-    // if data is not object return as it is
-    if (!data || typeof data !== 'object') {
-      if (asString && !ncIsNull(data) && !ncIsUndefined(data)) {
-        return `${data}`;
-      }
-      return data;
-    }
-
-    // data can be still inserted without PK
-
-    // if composite primary key return an object with all the primary keys
-    if (this.model.primaryKeys.length > 1) {
-      const pkValues = {};
-      for (const pk of this.model.primaryKeys) {
-        pkValues[pk.title] =
-          data[pk.title] ?? data[pk.column_name] ?? data[pk.id];
-      }
-      return asString
-        ? Object.values(pkValues)
-            .map((val) => val?.toString?.().replaceAll('_', '\\_'))
-            .join('___')
-        : pkValues;
-    } else if (this.model.primaryKey) {
-      let pkValue;
-      if (typeof data === 'object') {
-        pkValue =
-          data[this.model.primaryKey.title] ??
-          data[this.model.primaryKey.column_name] ??
-          data[this.model.primaryKey.id];
-      } else {
-        pkValue = data;
-      }
-      if (pkValue !== undefined) return asString ? `${pkValue}` : pkValue;
-    } else {
-      return 'N/A';
-    }
+    return dataWrapper(data).extractPksValue(this.model, asString);
   }
 
   protected async errorDelete(_e, _id, _trx, _cookie) {}

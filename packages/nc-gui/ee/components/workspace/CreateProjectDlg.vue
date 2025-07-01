@@ -38,7 +38,7 @@ const form = ref<typeof Form>()
 
 const formState = ref({
   title: '',
-  isPrivate: false,
+  is_private: false,
   meta: {
     iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
   },
@@ -57,6 +57,7 @@ const createProject = async () => {
       title: formState.value.title,
       workspaceId: activeWorkspace.value!.id!,
       meta: formState.value.meta,
+      ...(!blockPrivateBases.value ? { is_private: formState.value.is_private } : {}),
     })
 
     navigateToProject({
@@ -116,12 +117,12 @@ watch(aiMode, () => {
 const isOpenBaseAccessDropdown = ref(false)
 
 const baseAccessValue = computed({
-  get: () => `${formState.value.isPrivate === true}`,
+  get: () => `${formState.value.is_private === true}`,
   set: (value) => {
     // If private base is selected and user don't have access to it then don't allow to select it
     if (value === 'true' && showUpgradeToUsePrivateBases()) return
 
-    formState.value.isPrivate = value === 'true'
+    formState.value.is_private = value === 'true'
   },
 })
 
@@ -141,12 +142,8 @@ const baseAccessOptions = [
 ] as (NcListItemType & { icon: IconMapKey })[]
 
 const selectedBaseAccessOption = computed(() => {
-  return baseAccessOptions.find((option) => option.value === (formState.value.isPrivate?.toString() || 'false'))!
+  return baseAccessOptions.find((option) => option.value === (formState.value.is_private?.toString() || 'false'))!
 })
-
-const onBaseAccessChange = (value: RawValueType) => {
-  formState.value.isPrivate = value === 'true'
-}
 </script>
 
 <template>
@@ -192,7 +189,7 @@ const onBaseAccessChange = (value: RawValueType) => {
             />
           </a-form-item>
 
-          <a-form-item name="isPrivate" class="!mb-0">
+          <a-form-item name="is_private" class="!mb-0">
             <template #label>
               <div>{{ t('general.baseAccess') }}</div>
             </template>

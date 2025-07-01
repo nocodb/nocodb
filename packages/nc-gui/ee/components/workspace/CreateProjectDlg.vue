@@ -2,6 +2,7 @@
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import { computed } from '@vue/reactivity'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
@@ -21,6 +22,8 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { navigateToProject } = useGlobal()
 
+const { blockPrivateBases } = useEeConfig()
+
 const nameValidationRules = [
   {
     required: true,
@@ -33,6 +36,7 @@ const form = ref<typeof Form>()
 
 const formState = ref({
   title: '',
+  isPrivate: false,
   meta: {
     iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
   },
@@ -108,6 +112,21 @@ watch(aiMode, () => {
 
   onInit()
 })
+
+const isOpenBaseAccessDropdown = ref(false)
+
+const baseAccessOptions = [
+  { label: 'Public', value: 'false', icon: 'ncUsers', description: 'All members can collaborate based on their workspace role.' },
+  { label: 'Private', value: 'true', icon: 'ncUser', description: 'Restrict access - only invited members can access this base' },
+] as (NcListItemType & { icon: IconMapKey })[]
+
+const selectedBaseAccessOption = computed(() => {
+  return baseAccessOptions.find((option) => option.value === (formState.value.isPrivate.toString() || 'false'))!
+})
+
+const onBaseAccessChange = (value: RawValueType) => {
+  formState.value.isPrivate = value === 'true'
+}
 </script>
 
 <template>
@@ -138,7 +157,7 @@ watch(aiMode, () => {
           :model="formState"
           name="basic"
           layout="vertical"
-          class="w-full !mx-auto"
+          class="w-full !mx-auto flex flex-col gap-5"
           no-style
           autocomplete="off"
           @finish="createProject"
@@ -151,6 +170,52 @@ watch(aiMode, () => {
               class="nc-metadb-base-name nc-input-sm nc-input-shadow"
               placeholder="Title"
             />
+          </a-form-item>
+
+          <a-form-item name="isPrivate" class="!mb-0">
+            <template #label>
+              <div>Base Access</div>
+            </template>
+
+            <NcListDropdown v-model:is-open="isOpenBaseAccessDropdown">
+              <div class="flex-1 flex items-center gap-2 text-nc-content-gray-subtle">
+                <GeneralIcon :icon="selectedBaseAccessOption.icon" class="flex-none h-4 w-4" />
+                <span class="text-captionDropdownDefault">{{ selectedBaseAccessOption.label }}</span>
+              </div>
+              <template #overlay="{ onEsc }">
+                <NcList
+                  v-model:open="isOpenBaseAccessDropdown"
+                  :value="formState.isPrivate ? 'true' : 'false'"
+                  :list="baseAccessOptions"
+                  :item-height="48"
+                  class="!w-auto"
+                  variant="medium"
+                  wrapper-class-name="!h-auto"
+                  @update:value="onBaseAccessChange"
+                  @escape="onEsc"
+                >
+                  <template #listItem="{ option, isSelected }">
+                    <div class="w-full flex flex-col">
+                      <div class="w-full flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-nc-content-gray">
+                          <GeneralIcon :icon="option.icon" class="flex-none h-4 w-4" />
+                          <span class="text-captionDropdownDefault">{{ option.label }}</span>
+                        </div>
+
+                        <PaymentUpgradeBadge
+                          v-if="blockPrivateBases"
+                          :feature="PlanFeatureTypes.FEATURE_PRIVATE_BASES"
+                          :plan-title="PlanTitles.BUSINESS"
+                          remove-click
+                        />
+                        <GeneralIcon v-else-if="isSelected" icon="check" class="text-primary h-4 w-4" />
+                      </div>
+                      <div class="text-bodySm text-nc-content-gray-muted ml-6">{{ option.description }}</div>
+                    </div>
+                  </template>
+                </NcList>
+              </template>
+            </NcListDropdown>
           </a-form-item>
         </a-form>
 

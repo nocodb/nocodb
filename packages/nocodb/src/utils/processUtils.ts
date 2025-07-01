@@ -11,13 +11,13 @@ export function handleUncaughtErrors(process: NodeJS.Process) {
       }
     }
     if (!handled) {
-      console.log(err);
+      console.error(err);
       // do not process exit (prevent cloud crash)
       // process.exit(1);
     }
   });
   process.on('unhandledRejection', (err) => {
-    console.log(err);
+    console.error(err);
     // do not process exit (prevent cloud crash)
   })
 }

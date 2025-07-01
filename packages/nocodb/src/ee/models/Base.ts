@@ -1,5 +1,5 @@
 import BaseCE from 'src/models/Base';
-import {ProjectReqType, ProjectRoles, WorkspaceUserRoles} from 'nocodb-sdk';
+import { ProjectReqType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { BaseType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
@@ -531,19 +531,27 @@ export default class Base extends BaseCE {
               ProjectRoles.NO_ACCESS,
             ).orWhereNull(`${MetaTable.PROJECT_USERS}.roles`);
           });
-        }).orWhere(function () {
-          this.where(
-            `${MetaTable.WORKSPACE_USER}.roles`,
-            '=',
-            WorkspaceUserRoles.NO_ACCESS,
-          )
-            .andWhere(
-              `${MetaTable.PROJECT_USERS}.roles`,
-              '!=',
-              ProjectRoles.NO_ACCESS,
+        })
+          .orWhere(function () {
+            this.where(
+              `${MetaTable.WORKSPACE_USER}.roles`,
+              '=',
+              WorkspaceUserRoles.NO_ACCESS,
             )
-            .whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
-        });
+              .andWhere(
+                `${MetaTable.PROJECT_USERS}.roles`,
+                '!=',
+                ProjectRoles.NO_ACCESS,
+              )
+              .whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
+          })
+          // if default base role defined at the base level consider it to check access
+          .andWhere(function () {
+            this.whereNotNull(`${MetaTable.PROJECT}.default_role`).orWhereNot(
+              `${MetaTable.PROJECT}.default_role`,
+              ProjectRoles.NO_ACCESS,
+            );
+          });
       });
 
     const bases = await baseListQb;

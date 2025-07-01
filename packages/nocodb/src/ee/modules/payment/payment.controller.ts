@@ -79,12 +79,19 @@ export class PaymentController {
   }
 
   @UseGuards(AuthGuard('basic'))
-  @Post('/api/internal/payment/:workspaceOrOrgId/assign-segment-code')
-  async assignSegmentCode(
+  @Post('/api/internal/payment/:workspaceOrOrgId/update')
+  async updateWorkspacePaymentMetadata(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
-    @Body() payload: { segment_code: number },
+    @Body()
+    payload: {
+      segment_code?: number;
+      loyal?: boolean;
+      loyalty_discount_used?: boolean;
+    },
   ) {
     return Workspace.update(workspaceOrOrgId, {
+      loyal: payload.loyal,
+      loyalty_discount_used: payload.loyalty_discount_used,
       segment_code: payload.segment_code,
     });
   }

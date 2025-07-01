@@ -100,6 +100,22 @@ useEventListener('message', (event) => {
     }
   }
 })
+
+const embedPage = computed(() => {
+  let page = 'pricing'
+
+  if (isLoyaltyDiscountAvailable.value && activeWorkspace.value?.segment_code === 7) {
+    page = 'loyalty-pricing-2'
+  } else if (isLoyaltyDiscountAvailable.value) {
+    page = 'loyalty-pricing'
+  }
+
+  return `${appInfo.value.marketingRootUrl}/${page}?inApp=true&workspace=${activeWorkspace.value?.title}&plan=${
+    activePlan.value?.title
+  }&paymentMode=${paymentMode.value}&isLoyaltyWorkspace=${isLoyaltyDiscountAvailable.value}${
+    route.query?.activeBtn ? `&CTA=${route.query?.activeBtn}` : ''
+  }`
+})
 </script>
 
 <template>
@@ -107,16 +123,7 @@ useEventListener('message', (event) => {
     <div v-if="!frameLoaded" class="w-full p-[20%] flex items-center justify-center">
       <GeneralLoader size="xlarge" />
     </div>
-    <iframe
-      v-show="frameLoaded"
-      :src="`${appInfo.marketingRootUrl}/${isLoyaltyDiscountAvailable ? 'loyalty-' : ''}pricing?inApp=true&workspace=${
-        activeWorkspace?.title
-      }&plan=${activePlan?.title}&paymentMode=${paymentMode}&isLoyaltyWorkspace=${isLoyaltyDiscountAvailable}${
-        route?.query?.activeBtn ? `&CTA=${route?.query?.activeBtn}` : ''
-      }`"
-      width="100%"
-      style="border: none; height: calc(100vh - 56px)"
-    ></iframe>
+    <iframe v-show="frameLoaded" :src="embedPage" width="100%" style="border: none; height: calc(100vh - 56px)"></iframe>
   </div>
 </template>
 

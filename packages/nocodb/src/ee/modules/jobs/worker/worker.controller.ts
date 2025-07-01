@@ -46,10 +46,22 @@ export class WorkerController {
     }
   }
 
-  @Post('/internal/workers/pause-and-exit')
+  @Post('/internal/workers/assign-worker-group')
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
-  async pauseAndExit() {
-    await JobsRedis.publish(InstanceTypes.WORKER, InstanceCommands.RESET);
+  async assignWorkerGroup(@Body() body: { workerGroupId: string }) {
+    await JobsRedis.emitWorkerCommand(
+      InstanceCommands.ASSIGN_WORKER_GROUP,
+      body.workerGroupId,
+    );
+  }
+
+  @Post('/internal/workers/stop-other-worker-groups')
+  @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
+  async stopOtherWorkerGroups(@Body() body: { workerGroupId: string }) {
+    await JobsRedis.emitWorkerCommand(
+      InstanceCommands.STOP_OTHER_WORKER_GROUPS,
+      body.workerGroupId,
+    );
   }
 
   @Get('/internal/workers/status')

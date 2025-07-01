@@ -95,8 +95,9 @@ export const InstanceTypes = {
 export enum InstanceCommands {
   RESUME_LOCAL = 'resumeLocal',
   PAUSE_LOCAL = 'pauseLocal',
-  RESET = 'reset',
   RELEASE = 'release',
+  ASSIGN_WORKER_GROUP = 'assignWorkerGroup',
+  STOP_OTHER_WORKER_GROUPS = 'stopOtherWorkerGroups',
 }
 
 export interface JobData {

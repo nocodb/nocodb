@@ -13,6 +13,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 @Injectable()
 export class JobsService extends JobsServiceCE implements OnModuleInit {
   protected logger = new Logger(JobsService.name);
+  protected workerGroupId: string | null = null;
 
   constructor(
     @InjectQueue(JOBS_QUEUE) public readonly jobsQueue: Queue,
@@ -83,33 +84,37 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
     };
 
     if (process.env.NC_WORKER_CONTAINER === 'true') {
-      JobsRedis.workerCallbacks[InstanceCommands.RESET] = async () => {
-        this.logger.log('Finishing local queue and stopping worker');
+      const assignWorkerGroup = async (workerGroupId: string) => {
+        if (this.workerGroupId) {
+          this.logger.log(
+            `Worker group id already assigned: ${this.workerGroupId}`,
+          );
+          return;
+        }
 
-        let runningFor = 0;
+        this.workerGroupId = workerGroupId;
+        this.logger.log(`Worker group id assigned: ${this.workerGroupId}`);
+      };
 
-        setInterval(() => {
-          runningFor += 1;
-          this.telemetryService
-            .sendSystemEvent({
-              event_type: 'worker_alert',
-              alert_type: 'warning',
-              message: `Worker is running after pause and shutdown for ${runningFor} minutes`,
-            })
-            .catch((err) => {
-              this.logger.error(err);
-            });
-        }, 60 * 1000).unref(); // every minute
+      const stopOtherWorkerGroups = async (preserveGroupId: string) => {
+        if (this.workerGroupId === preserveGroupId) {
+          this.logger.log(
+            `Worker group id is the same as the one to preserve: ${preserveGroupId}`,
+          );
+          return;
+        }
 
-        // fallback to shutdown after an hour
-        setTimeout(() => {
-          process.exit(0);
-        }, 1 * 60 * 60 * 1000).unref();
+        this.logger.log(`Stopping worker from group: ${preserveGroupId}`);
 
         this.jobsQueue.whenCurrentJobsFinished().then(() => {
-          process.exit(0);
+          process.kill(process.pid, 'SIGINT');
         });
       };
+
+      JobsRedis.workerCallbacks[InstanceCommands.ASSIGN_WORKER_GROUP] =
+        assignWorkerGroup;
+      JobsRedis.workerCallbacks[InstanceCommands.STOP_OTHER_WORKER_GROUPS] =
+        stopOtherWorkerGroups;
 
       JobsRedis.workerCallbacks[InstanceCommands.RELEASE] = sourceReleaseCmd;
     } else {

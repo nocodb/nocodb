@@ -209,7 +209,6 @@ const onBaseAccessChange = (value: RawValueType) => {
                   :list="baseAccessOptions"
                   :item-height="48"
                   class="!w-auto"
-                  variant="medium"
                   wrapper-class-name="!h-auto"
                   @escape="onEsc"
                 >
@@ -226,6 +225,8 @@ const onBaseAccessChange = (value: RawValueType) => {
                           :feature="PlanFeatureTypes.FEATURE_PRIVATE_BASES"
                           :plan-title="PlanTitles.BUSINESS"
                           remove-click
+                          size="sm"
+                          class="!font-normal"
                         />
                         <GeneralIcon v-else-if="isSelected" icon="check" class="text-primary h-4 w-4" />
                       </div>

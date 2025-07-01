@@ -121,9 +121,9 @@ const baseAccessValue = computed({
   get: () => `${formState.value.default_role === ProjectRoles.NO_ACCESS}`,
   set: (value) => {
     // If private base is selected and user don't have access to it then don't allow to select it
-    if (value === 'true' && showUpgradeToUsePrivateBases()) return
+    if (value === 'no-access' && showUpgradeToUsePrivateBases()) return
 
-    formState.value.default_role = value === 'true' ? ProjectRoles.NO_ACCESS : null
+    formState.value.default_role = value === 'no-access' ? ProjectRoles.NO_ACCESS : null
   },
 })
 
@@ -132,13 +132,13 @@ const baseAccessOptions = computed(
     [
       {
         label: t('general.default'),
-        value: 'false',
+        value: '',
         icon: 'ncUsers',
         subtext: t('title.baseAccessDefaultSubtext'),
       },
       {
         label: t('general.private'),
-        value: 'true',
+        value: 'no-access',
         icon: 'ncUser',
         subtext: t('title.baseAccessPrivateSubtext'),
       },
@@ -146,7 +146,7 @@ const baseAccessOptions = computed(
 )
 
 const selectedBaseAccessOption = computed(() => {
-  return baseAccessOptions.value.find((option) => option.value === (formState.value.is_private?.toString() || 'false'))!
+  return baseAccessOptions.value.find((option) => option.value === (formState.value.default_role?.toString() || ''))!
 })
 </script>
 
@@ -197,7 +197,6 @@ const selectedBaseAccessOption = computed(() => {
             <template #label>
               <div>{{ t('general.baseAccess') }}</div>
             </template>
-
             <NcListDropdown v-model:is-open="isOpenBaseAccessDropdown">
               <div class="flex-1 flex items-center gap-2 text-nc-content-gray-subtle">
                 <GeneralIcon :icon="selectedBaseAccessOption.icon" class="flex-none h-4 w-4" />

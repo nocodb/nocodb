@@ -59,8 +59,15 @@ export class HooksService {
       hook: HookReqType;
       req: NcRequest;
     },
+    option?: {
+      isTableDuplicate?: boolean;
+    },
   ) {
-    if (!SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)) {
+    // if isTableDuplicate, we let v2 to be created
+    if (
+      !option?.isTableDuplicate &&
+      !SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)
+    ) {
       NcError.badRequest('hook version is deprecated / not supported anymore');
     }
 
@@ -68,13 +75,23 @@ export class HooksService {
       param.hook.trigger_field = false;
     }
 
-    validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+    if (!option?.isTableDuplicate) {
+      validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+    }
     this.validateHookPayload(param.hook.notification);
 
-    const hook = await Hook.insert(context, {
-      ...param.hook,
-      fk_model_id: param.tableId,
-    } as any);
+    // if version is not in SUPPORTED_HOOK_VERSION, that means it's a duplicate table activity
+    // then we use v2 insert
+    // otherwise v3 insert
+    const hook = !SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)
+      ? await Hook.insertV2(context, {
+          ...param.hook,
+          fk_model_id: param.tableId,
+        } as any)
+      : await Hook.insert(context, {
+          ...param.hook,
+          fk_model_id: param.tableId,
+        } as any);
 
     this.appHooksService.emit(AppEvents.WEBHOOK_CREATE, {
       hook,

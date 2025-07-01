@@ -182,11 +182,7 @@ function zero_downtime_worker_deployment(){
             message "${ENVIRONMENT}: Failed to stop other worker groups"
             return 1
         }
-    
-    # 7. Allow time for old workers to complete current jobs and shut down gracefully
-    echo "Waiting 30 seconds for old workers to complete current jobs and shut down gracefully..."
-    sleep 30
-    
+  
     message "${ENVIRONMENT}: Zero-downtime worker deployment completed successfully with group ID: ${WORKER_GROUP_ID}"
 }
 

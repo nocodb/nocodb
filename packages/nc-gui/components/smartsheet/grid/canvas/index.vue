@@ -1299,7 +1299,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
           const columnWidth = parseCellWidth(clickedColumn.width)
           const iconOffsetX = xOffset + columnWidth - 24 + groupByColumns.value.length * 13
           // check if clicked on the column menu icon
-          if (y <= COLUMN_HEADER_HEIGHT_IN_PX && y > 0 && iconOffsetX <= x && iconOffsetX + 14 >= x) {
+          if (iconOffsetX <= x && iconOffsetX + 14 >= x) {
             if (isFieldNotEditable) return
 
             // if menu already in open state then close it on second click

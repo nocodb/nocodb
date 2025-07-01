@@ -256,6 +256,8 @@ export class DatasService {
       apiVersion,
       includeSortAndFilterColumns: includeSortAndFilterColumns,
       includeRowColorColumns: param.includeRowColorColumns,
+      skipSubstitutingColumnIds:
+        query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
     });
 
     const listArgs: any = dependencyFields;

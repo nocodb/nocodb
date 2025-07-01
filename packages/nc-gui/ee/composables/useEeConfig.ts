@@ -489,7 +489,7 @@ export const useEeConfig = createSharedComposable(() => {
                */
               if (isWsOwner.value && !requestUpgrade) {
                 e.preventDefault()
-                navigateToPricing({ autoScroll: 'compare', newTab: true, ctaPlan: higherPlan })
+                navigateToPricing({ autoScroll: 'compare', newTab: true, ctaPlan: higherPlan, triggerEvent: false })
               }
 
               $e('c:payment:upgrade:modal:learn-more', {

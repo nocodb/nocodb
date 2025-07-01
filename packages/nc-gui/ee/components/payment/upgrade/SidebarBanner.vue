@@ -138,7 +138,7 @@ const handleNavigation = () => {
       limitOrFeature: getLimitOrFeature(),
     })
   } else {
-    navigateToPricing({ limitOrFeature: getLimitOrFeature() })
+    navigateToPricing({ limitOrFeature: getLimitOrFeature(), triggerEvent: false })
   }
 }
 

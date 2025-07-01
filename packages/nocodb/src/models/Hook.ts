@@ -81,15 +81,17 @@ export default class Hook implements HookType {
         MetaTable.HOOKS,
         hookId,
       );
-      const hookTriggerFields = await ncMeta.metaList2(
-        hook.fk_workspace_id,
-        hook.base_id,
-        MetaTable.HOOK_TRIGGER_FIELDS,
-        { condition: { fk_hook_id: hookId } },
-      );
-      hook.trigger_fields = hookTriggerFields.map(
-        (field) => field.fk_column_id,
-      );
+      if (hook) {
+        const hookTriggerFields = await ncMeta.metaList2(
+          hook.fk_workspace_id,
+          hook.base_id,
+          MetaTable.HOOK_TRIGGER_FIELDS,
+          { condition: { fk_hook_id: hookId } },
+        );
+        hook.trigger_fields = hookTriggerFields.map(
+          (field) => field.fk_column_id,
+        );
+      }
       await NocoCache.set(`${CacheScope.HOOK}:${hookId}`, hook);
     }
     return hook && new Hook(hook);
@@ -236,6 +238,88 @@ export default class Hook implements HookType {
     // new hook will set as version 3
     insertObj.version = 'v3';
     insertObj.operation = operationArrToCode(insertObj.operation) as any;
+
+    const { id } = await ncMeta.metaInsert2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.HOOKS,
+      insertObj,
+    );
+    if (hook.trigger_fields && hook.trigger_fields.length > 0) {
+      await ncMeta.bulkMetaInsert(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.HOOK_TRIGGER_FIELDS,
+        hook.trigger_fields.map((colId) => {
+          return {
+            fk_hook_id: id,
+            fk_column_id: colId,
+          };
+        }),
+        true,
+      );
+    }
+
+    await NocoCache.incrHashField(
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE,
+      1,
+    );
+
+    return this.get(context, id, ncMeta).then(async (hook) => {
+      await NocoCache.appendToList(
+        CacheScope.HOOK,
+        [hook.fk_model_id],
+        `${CacheScope.HOOK}:${id}`,
+      );
+      return hook;
+    });
+  }
+
+  // temporary
+  // TODO: remove after v2 has been sunsetted
+  public static async insertV2(
+    context: NcContext,
+    hook: Partial<Hook>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const insertObj: Partial<Hook> & { operation?: string | string[] } =
+      extractProps(hook, [
+        'fk_model_id',
+        'title',
+        'description',
+        'env',
+        'type',
+        'event',
+        'operation',
+        'async',
+        'url',
+        'headers',
+        'condition',
+        'notification',
+        'retries',
+        'retry_interval',
+        'timeout',
+        'active',
+        'base_id',
+        'version',
+        'source_id',
+        'trigger_field',
+      ]);
+
+    if (insertObj.notification && typeof insertObj.notification === 'object') {
+      insertObj.notification = JSON.stringify(insertObj.notification);
+    }
+
+    const model = await Model.getByIdOrName(
+      context,
+      { id: hook.fk_model_id },
+      ncMeta,
+    );
+
+    if (!insertObj.source_id) {
+      insertObj.source_id = model.source_id;
+    }
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,

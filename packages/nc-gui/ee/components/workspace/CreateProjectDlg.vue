@@ -2,7 +2,7 @@
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import { computed } from '@vue/reactivity'
-import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
@@ -38,7 +38,7 @@ const form = ref<typeof Form>()
 
 const formState = ref({
   title: '',
-  is_private: false,
+  default_role: null as ProjectRoles | null,
   meta: {
     iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
   },
@@ -57,7 +57,7 @@ const createProject = async () => {
       title: formState.value.title,
       workspaceId: activeWorkspace.value!.id!,
       meta: formState.value.meta,
-      ...(!blockPrivateBases.value ? { is_private: formState.value.is_private } : {}),
+      ...(!blockPrivateBases.value ? { default_role: formState.value.default_role } : {}),
     })
 
     navigateToProject({
@@ -90,6 +90,7 @@ const onInit = () => {
 
     formState.value = {
       title: t('objects.project'),
+      default_role: null,
       meta: {
         iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
       },
@@ -117,12 +118,12 @@ watch(aiMode, () => {
 const isOpenBaseAccessDropdown = ref(false)
 
 const baseAccessValue = computed({
-  get: () => `${formState.value.is_private === true}`,
+  get: () => `${!!formState.value.default_role}`,
   set: (value) => {
     // If private base is selected and user don't have access to it then don't allow to select it
     if (value === 'true' && showUpgradeToUsePrivateBases()) return
 
-    formState.value.is_private = value === 'true'
+    formState.value.default_role = value === 'true' ? ProjectRoles.NO_ACCESS : null
   },
 })
 

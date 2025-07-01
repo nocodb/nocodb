@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, ProjectRoles } from 'nocodb-sdk'
 
 const { t } = useI18n()
 
@@ -8,13 +8,13 @@ const { blockPrivateBases, showUpgradeToUsePrivateBases } = useEeConfig()
 const { base } = storeToRefs(useBase())
 
 const baseAccessValue = computed({
-  get: () => base.value?.is_private === true,
+  get: () => !!base.value?.default_role,
   set: (value) => {
     // If private base is selected and user don't have access to it then don't allow to select it
     if (value && showUpgradeToUsePrivateBases()) return
 
     // Todo: @rameshmane7218 update backend
-    base.value.is_private = value
+    base.value.default_role = value ? ProjectRoles.NO_ACCESS : null
   },
 })
 

@@ -117,7 +117,7 @@ const isOpenBaseAccessDropdown = ref(false)
 
 const baseAccessOptions = [
   {
-    label: t('general.public'),
+    label: t('general.default'),
     value: 'false',
     icon: 'ncUsers',
     subtext: t('title.baseAccessDefaultSubtext'),
@@ -131,7 +131,7 @@ const baseAccessOptions = [
 ] as (NcListItemType & { icon: IconMapKey })[]
 
 const selectedBaseAccessOption = computed(() => {
-  return baseAccessOptions.find((option) => option.value === (formState.value.isPrivate.toString() || 'false'))!
+  return baseAccessOptions.find((option) => option.value === (formState.value.isPrivate?.toString() || 'false'))!
 })
 
 const onBaseAccessChange = (value: RawValueType) => {
@@ -220,7 +220,7 @@ const onBaseAccessChange = (value: RawValueType) => {
                         />
                         <GeneralIcon v-else-if="isSelected" icon="check" class="text-primary h-4 w-4" />
                       </div>
-                      <div class="text-bodySm text-nc-content-gray-muted ml-6">{{ option.description }}</div>
+                      <div class="text-bodySm text-nc-content-gray-muted ml-6">{{ option.subtext }}</div>
                     </div>
                   </template>
                 </NcList>

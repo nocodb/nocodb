@@ -221,6 +221,10 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         </template>
         <template #action>
           <NcButton
+            v-e="[
+              'c:payment:billing:revert-scheduled-plan-change',
+              { activePlan: activePlanTitle, newPlan: scheduledChangeInfo?.plan?.title },
+            ]"
             type="link"
             size="small"
             class="!p-0 mt-[-4px]"
@@ -238,6 +242,12 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string) => {
         </template>
         <template #action>
           <NcButton
+            v-e="[
+              'c:payment:billing:reactivate-plan',
+              {
+                activePlan: activePlanTitle,
+              },
+            ]"
             type="link"
             size="small"
             class="!p-0 mt-[-4px]"

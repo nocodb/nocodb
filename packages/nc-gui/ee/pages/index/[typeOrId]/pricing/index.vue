@@ -69,7 +69,8 @@ useEventListener('message', (event) => {
 
     if (planTitle === 'Enterprise') {
       $e(`c:payment:pricing:${planCardClick ? 'plan-card' : 'compare-features'}:choose-plan`, {
-        plan: planTitle,
+        activePlan: activePlan.value?.title || PlanTitles.FREE,
+        newPlan: planTitle,
         paymentMode: paymentModeInput,
       })
       openNewTab('https://cal.com/nocodb')
@@ -88,7 +89,8 @@ useEventListener('message', (event) => {
     }
 
     $e(`c:payment:pricing:${planCardClick ? 'plan-card' : 'compare-features'}:choose-plan`, {
-      plan: planTitle,
+      activePlan: activePlan.value?.title || PlanTitles.FREE,
+      newPlan: planTitle,
       paymentMode: paymentModeInput,
     })
 

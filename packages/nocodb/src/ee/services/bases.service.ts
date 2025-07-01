@@ -90,7 +90,12 @@ export class BasesService extends BasesServiceCE {
         );
       }
     }
-    await this.validateDefaultRoleFeature(context, param);
+    await this.validateDefaultRoleFeature(
+      {
+        workspace_id: (param.base as any).fk_workspace_id,
+      },
+      param,
+    );
 
     const baseId = await this.metaService.genNanoid(MetaTable.PROJECT);
 
@@ -259,7 +264,7 @@ export class BasesService extends BasesServiceCE {
   }
 
   private async validateDefaultRoleFeature(
-    context: NcContext,
+    context: Pick<NcContext, 'workspace_id'>,
     param: { base: ProjectReqType | ProjectUpdateReqType },
   ) {
     // check if marked as private, only allow if user upgraded to pain plan

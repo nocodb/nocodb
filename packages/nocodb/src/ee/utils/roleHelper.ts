@@ -114,11 +114,11 @@ export function getWorkspaceRolePower(user: any) {
  * @param wsRoles - The workspace roles object.
  * @returns The project roles object.
  */
-export function mapWorkspaceRolesObjToProjectRolesObj(
+export async function mapWorkspaceRolesObjToProjectRolesObj(
   context: NcContext,
   wsRoles: any,
   baseId?: string,
-): Record<ProjectRoles, boolean> | null {
+): Promise<Record<ProjectRoles, boolean> | null> {
   // TODO: later return corresponding ProjectRoles if defaultRole is provided
   //   now we only support private base so return `no-access` role
   if (baseId && wsRoles) {

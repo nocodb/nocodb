@@ -41,7 +41,7 @@ export default class Base implements BaseType {
   public is_meta: boolean | number = false;
   public sources?: Source[];
   public linked_db_projects?: Base[];
-  public default_role?: string;
+  public default_role?: 'no-access';
 
   // shared base props
   uuid?: string;

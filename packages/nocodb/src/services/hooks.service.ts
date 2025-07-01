@@ -80,15 +80,16 @@ export class HooksService {
     }
     this.validateHookPayload(param.hook.notification);
 
-    const hook = !option?.isTableDuplicate
-      ? await Hook.insert(context, {
-          ...param.hook,
-          fk_model_id: param.tableId,
-        } as any)
-      : await Hook.insertV2(context, {
-          ...param.hook,
-          fk_model_id: param.tableId,
-        } as any);
+    const hook =
+      !option?.isTableDuplicate || (param.hook as any).version !== 'v2'
+        ? await Hook.insert(context, {
+            ...param.hook,
+            fk_model_id: param.tableId,
+          } as any)
+        : await Hook.insertV2(context, {
+            ...param.hook,
+            fk_model_id: param.tableId,
+          } as any);
 
     this.appHooksService.emit(AppEvents.WEBHOOK_CREATE, {
       hook,

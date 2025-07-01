@@ -331,13 +331,19 @@ export class ImportService {
           ...rest,
         });
 
-        const hk = await this.hooksService.hookCreate(context, {
-          tableId: table.id,
-          hook: {
-            ...hookData,
-          } as any,
-          req: param.req,
-        });
+        const hk = await this.hooksService.hookCreate(
+          context,
+          {
+            tableId: table.id,
+            hook: {
+              ...hookData,
+            } as any,
+            req: param.req,
+          },
+          {
+            isTableDuplicate: true,
+          },
+        );
 
         if (!hk) continue;
 

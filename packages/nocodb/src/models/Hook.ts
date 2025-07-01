@@ -274,6 +274,88 @@ export default class Hook implements HookType {
     });
   }
 
+  // temporary
+  // TODO: remove after v2 has been sunsetted
+  public static async insertV2(
+    context: NcContext,
+    hook: Partial<Hook>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const insertObj: Partial<Hook> & { operation?: string | string[] } =
+      extractProps(hook, [
+        'fk_model_id',
+        'title',
+        'description',
+        'env',
+        'type',
+        'event',
+        'operation',
+        'async',
+        'url',
+        'headers',
+        'condition',
+        'notification',
+        'retries',
+        'retry_interval',
+        'timeout',
+        'active',
+        'base_id',
+        'version',
+        'source_id',
+        'trigger_field',
+      ]);
+
+    if (insertObj.notification && typeof insertObj.notification === 'object') {
+      insertObj.notification = JSON.stringify(insertObj.notification);
+    }
+
+    const model = await Model.getByIdOrName(
+      context,
+      { id: hook.fk_model_id },
+      ncMeta,
+    );
+
+    if (!insertObj.source_id) {
+      insertObj.source_id = model.source_id;
+    }
+
+    const { id } = await ncMeta.metaInsert2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.HOOKS,
+      insertObj,
+    );
+    if (hook.trigger_fields && hook.trigger_fields.length > 0) {
+      await ncMeta.bulkMetaInsert(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.HOOK_TRIGGER_FIELDS,
+        hook.trigger_fields.map((colId) => {
+          return {
+            fk_hook_id: id,
+            fk_column_id: colId,
+          };
+        }),
+        true,
+      );
+    }
+
+    await NocoCache.incrHashField(
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE,
+      1,
+    );
+
+    return this.get(context, id, ncMeta).then(async (hook) => {
+      await NocoCache.appendToList(
+        CacheScope.HOOK,
+        [hook.fk_model_id],
+        `${CacheScope.HOOK}:${id}`,
+      );
+      return hook;
+    });
+  }
+
   public static async update(
     context: NcContext,
     hookId: string,

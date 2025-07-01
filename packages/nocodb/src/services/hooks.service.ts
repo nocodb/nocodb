@@ -59,8 +59,15 @@ export class HooksService {
       hook: HookReqType;
       req: NcRequest;
     },
+    option?: {
+      isTableDuplicate?: boolean;
+    },
   ) {
-    if (!SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)) {
+    // if isTableDuplicate, we let v2 to be created
+    if (
+      !option?.isTableDuplicate &&
+      !SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)
+    ) {
       NcError.badRequest('hook version is deprecated / not supported anymore');
     }
 
@@ -68,13 +75,20 @@ export class HooksService {
       param.hook.trigger_field = false;
     }
 
-    validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+    if (!option?.isTableDuplicate) {
+      validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+    }
     this.validateHookPayload(param.hook.notification);
 
-    const hook = await Hook.insert(context, {
-      ...param.hook,
-      fk_model_id: param.tableId,
-    } as any);
+    const hook = !option?.isTableDuplicate
+      ? await Hook.insert(context, {
+          ...param.hook,
+          fk_model_id: param.tableId,
+        } as any)
+      : await Hook.insertV2(context, {
+          ...param.hook,
+          fk_model_id: param.tableId,
+        } as any);
 
     this.appHooksService.emit(AppEvents.WEBHOOK_CREATE, {
       hook,

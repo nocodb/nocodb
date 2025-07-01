@@ -24,6 +24,7 @@ import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { extractProps } from '~/helpers/extractProps';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Workspace } from '~/models';
 
 const ajv = new Ajv();
 
@@ -70,11 +71,22 @@ export class PaymentController {
   }
 
   @UseGuards(AuthGuard('basic'))
-  @Delete('/api/internal/payment/:workspaceOrOrgId/reseat')
+  @Post('/api/internal/payment/:workspaceOrOrgId/reseat')
   async reseatSubscription(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
   ) {
     return this.paymentService.reseatSubscriptionAwaited(workspaceOrOrgId);
+  }
+
+  @UseGuards(AuthGuard('basic'))
+  @Post('/api/internal/payment/:workspaceOrOrgId/assign-segment-code')
+  async assignSegmentCode(
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Body() payload: { segment_code: number },
+  ) {
+    return Workspace.update(workspaceOrOrgId, {
+      segment_code: payload.segment_code,
+    });
   }
 
   @UseGuards(AuthGuard('basic'))

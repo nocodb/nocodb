@@ -81,15 +81,17 @@ export default class Hook implements HookType {
         MetaTable.HOOKS,
         hookId,
       );
-      const hookTriggerFields = await ncMeta.metaList2(
-        hook.fk_workspace_id,
-        hook.base_id,
-        MetaTable.HOOK_TRIGGER_FIELDS,
-        { condition: { fk_hook_id: hookId } },
-      );
-      hook.trigger_fields = hookTriggerFields.map(
-        (field) => field.fk_column_id,
-      );
+      if (hook) {
+        const hookTriggerFields = await ncMeta.metaList2(
+          hook.fk_workspace_id,
+          hook.base_id,
+          MetaTable.HOOK_TRIGGER_FIELDS,
+          { condition: { fk_hook_id: hookId } },
+        );
+        hook.trigger_fields = hookTriggerFields.map(
+          (field) => field.fk_column_id,
+        );
+      }
       await NocoCache.set(`${CacheScope.HOOK}:${hookId}`, hook);
     }
     return hook && new Hook(hook);

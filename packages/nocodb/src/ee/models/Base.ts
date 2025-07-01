@@ -1,5 +1,5 @@
 import BaseCE from 'src/models/Base';
-import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import {ProjectReqType, ProjectRoles, WorkspaceUserRoles} from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { BaseType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
@@ -34,7 +34,7 @@ const logger = new Logger('Base');
 export default class Base extends BaseCE {
   public type?: 'database';
   public permissions?: Permission[];
-  is_private?: boolean;
+  public default_role?: 'no-access';
 
   public static castType(base: Base): Base {
     return base && new Base(base);
@@ -124,7 +124,7 @@ export default class Base extends BaseCE {
       'color',
       'order',
       'is_snapshot',
-      'is_private',
+      'default_role',
     ]);
 
     if (!insertObj.order) {
@@ -207,6 +207,7 @@ export default class Base extends BaseCE {
       'fk_workspace_id',
       'is_snapshot',
       'fk_custom_url_id',
+      'default_role',
     ]);
 
     // stringify meta

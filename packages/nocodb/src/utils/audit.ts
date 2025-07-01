@@ -328,7 +328,7 @@ export const extractRefColumnIfFound = async ({
   if (column.uidt === UITypes.Button) {
     const hookId = column.fk_webhook_id;
 
-    const hook = await Hook.get(context, hookId);
+    const hook = hookId && (await Hook.get(context, hookId));
 
     return {
       webhook_id: hookId,

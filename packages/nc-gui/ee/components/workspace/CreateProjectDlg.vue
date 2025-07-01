@@ -24,7 +24,7 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { navigateToProject } = useGlobal()
 
-const { blockPrivateBases } = useEeConfig()
+const { blockPrivateBases, showUpgradeToUsePrivateBases } = useEeConfig()
 
 const nameValidationRules = [
   {
@@ -115,6 +115,16 @@ watch(aiMode, () => {
 
 const isOpenBaseAccessDropdown = ref(false)
 
+const baseAccessValue = computed({
+  get: () => `${formState.value.isPrivate === true}`,
+  set: (value) => {
+    // If private base is selected and user don't have access to it then don't allow to select it
+    if (value === 'true' && showUpgradeToUsePrivateBases()) return
+
+    formState.value.isPrivate = value === 'true'
+  },
+})
+
 const baseAccessOptions = [
   {
     label: t('general.default'),
@@ -195,13 +205,12 @@ const onBaseAccessChange = (value: RawValueType) => {
               <template #overlay="{ onEsc }">
                 <NcList
                   v-model:open="isOpenBaseAccessDropdown"
-                  :value="formState.isPrivate ? 'true' : 'false'"
+                  v-model:value="baseAccessValue"
                   :list="baseAccessOptions"
                   :item-height="48"
                   class="!w-auto"
                   variant="medium"
                   wrapper-class-name="!h-auto"
-                  @update:value="onBaseAccessChange"
                   @escape="onEsc"
                 >
                   <template #listItem="{ option, isSelected }">
@@ -213,7 +222,7 @@ const onBaseAccessChange = (value: RawValueType) => {
                         </div>
 
                         <PaymentUpgradeBadge
-                          v-if="blockPrivateBases"
+                          v-if="blockPrivateBases && option.value === 'true'"
                           :feature="PlanFeatureTypes.FEATURE_PRIVATE_BASES"
                           :plan-title="PlanTitles.BUSINESS"
                           remove-click

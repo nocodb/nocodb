@@ -1,6 +1,6 @@
 import { ncIsUndefined } from 'nocodb-sdk';
 import type { Knex } from 'knex';
-import {MAX_CONCURRENT_TRANSFORMS} from "~/constants";
+import { MAX_CONCURRENT_TRANSFORMS } from '~/constants';
 
 export function getAliasGenerator(prefix = '__nc_') {
   let aliasC = 0;

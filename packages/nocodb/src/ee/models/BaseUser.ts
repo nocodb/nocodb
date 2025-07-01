@@ -237,6 +237,8 @@ export default class BaseUser extends BaseUserCE {
     },
     ncMeta = Noco.ncMeta,
   ) {
+    const base = await Base.get(context, base_id, ncMeta);
+
     const cachedList = await NocoCache.getList(CacheScope.BASE_USER, [base_id]);
     let { list: baseUsers } = cachedList;
     const { isNoneList } = cachedList;
@@ -306,6 +308,13 @@ export default class BaseUser extends BaseUserCE {
         'base_id',
         'id',
       ]);
+    }
+
+    // if default_role is not present, override workspace roles with the default roles
+    if (base.default_role) {
+      for (const user of baseUsers) {
+        user.workspace_roles = base.default_role;
+      }
     }
 
     if (!include_ws_deleted) {

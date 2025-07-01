@@ -3,8 +3,12 @@ import { BasesService as BasesServiceCE } from 'src/services/bases.service';
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
-import { AppEvents, IntegrationsType } from 'nocodb-sdk';
-import type { ProjectReqType, UserType } from 'nocodb-sdk';
+import { AppEvents, IntegrationsType, PlanFeatureTypes } from 'nocodb-sdk';
+import type {
+  ProjectReqType,
+  ProjectUpdateReqType,
+  UserType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -17,7 +21,7 @@ import { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TablesService } from '~/services/tables.service';
-import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
+import { getFeature, getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { DataReflectionService } from '~/services/data-reflection.service';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -86,6 +90,7 @@ export class BasesService extends BasesServiceCE {
         );
       }
     }
+    await this.validateDefaultRoleFeature(context, param);
 
     const baseId = await this.metaService.genNanoid(MetaTable.PROJECT);
 
@@ -253,6 +258,23 @@ export class BasesService extends BasesServiceCE {
     return base;
   }
 
+  private async validateDefaultRoleFeature(
+    context: NcContext,
+    param: { base: ProjectReqType | ProjectUpdateReqType },
+  ) {
+    // check if marked as private, only allow if user upgraded to pain plan
+    // Todo: update error message and type
+    if (
+      param.base.default_role &&
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_PRIVATE_BASES,
+        context.workspace_id,
+      ))
+    ) {
+      NcError.badRequest('Private bases are only allowed for paid users');
+    }
+  }
+
   async baseSoftDelete(
     context: NcContext,
     param: { baseId: any; user: UserType; req: NcRequest },
@@ -324,6 +346,25 @@ export class BasesService extends BasesServiceCE {
     });
 
     return true;
+  }
+
+  async baseUpdate(
+    context: NcContext,
+    param: {
+      baseId: string;
+      base: ProjectUpdateReqType;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    validatePayload(
+      'swagger.json#/components/schemas/ProjectUpdateReq',
+      param.base,
+    );
+
+    await this.validateDefaultRoleFeature(context, param);
+
+    return super.baseUpdate(context, param);
   }
 
   protected async validateProjectTitle(

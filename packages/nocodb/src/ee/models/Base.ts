@@ -34,6 +34,7 @@ const logger = new Logger('Base');
 export default class Base extends BaseCE {
   public type?: 'database';
   public permissions?: Permission[];
+  is_private?: boolean;
 
   public static castType(base: Base): Base {
     return base && new Base(base);
@@ -123,6 +124,7 @@ export default class Base extends BaseCE {
       'color',
       'order',
       'is_snapshot',
+      'is_private',
     ]);
 
     if (!insertObj.order) {

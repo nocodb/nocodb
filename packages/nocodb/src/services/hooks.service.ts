@@ -80,16 +80,18 @@ export class HooksService {
     }
     this.validateHookPayload(param.hook.notification);
 
-    const hook =
-      !option?.isTableDuplicate || (param.hook as any).version !== 'v2'
-        ? await Hook.insert(context, {
-            ...param.hook,
-            fk_model_id: param.tableId,
-          } as any)
-        : await Hook.insertV2(context, {
-            ...param.hook,
-            fk_model_id: param.tableId,
-          } as any);
+    // if version is not in SUPPORTED_HOOK_VERSION, that means it's a duplicate table activity
+    // then we use v2 insert
+    // otherwise v3 insert
+    const hook = !SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)
+      ? await Hook.insertV2(context, {
+          ...param.hook,
+          fk_model_id: param.tableId,
+        } as any)
+      : await Hook.insert(context, {
+          ...param.hook,
+          fk_model_id: param.tableId,
+        } as any);
 
     this.appHooksService.emit(AppEvents.WEBHOOK_CREATE, {
       hook,

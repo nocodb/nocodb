@@ -12,6 +12,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
+const { t } = useI18n()
+
 const workspaceStore = useWorkspace()
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
@@ -43,8 +45,6 @@ const formState = ref({
 })
 
 const creating = ref(false)
-
-const { t } = useI18n()
 
 const createProject = async () => {
   if (formState.value.title) {
@@ -116,8 +116,18 @@ watch(aiMode, () => {
 const isOpenBaseAccessDropdown = ref(false)
 
 const baseAccessOptions = [
-  { label: 'Public', value: 'false', icon: 'ncUsers', description: 'All members can collaborate based on their workspace role.' },
-  { label: 'Private', value: 'true', icon: 'ncUser', description: 'Restrict access - only invited members can access this base' },
+  {
+    label: t('general.public'),
+    value: 'false',
+    icon: 'ncUsers',
+    subtext: t('title.baseAccessDefaultSubtext'),
+  },
+  {
+    label: t('general.private'),
+    value: 'true',
+    icon: 'ncUser',
+    subtext: t('title.baseAccessPrivateSubtext'),
+  },
 ] as (NcListItemType & { icon: IconMapKey })[]
 
 const selectedBaseAccessOption = computed(() => {
@@ -174,7 +184,7 @@ const onBaseAccessChange = (value: RawValueType) => {
 
           <a-form-item name="isPrivate" class="!mb-0">
             <template #label>
-              <div>Base Access</div>
+              <div>{{ t('general.baseAccess') }}</div>
             </template>
 
             <NcListDropdown v-model:is-open="isOpenBaseAccessDropdown">

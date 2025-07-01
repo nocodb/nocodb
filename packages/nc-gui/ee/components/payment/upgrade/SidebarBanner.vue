@@ -128,7 +128,7 @@ const handleNavigation = () => {
     return
   }
 
-  $e('c:payment:upgrade:sidebar', {
+  $e('c:payment:sidebar:upgrade', {
     activePlan: activePlanTitle.value,
     limitOrFeature: getLimitOrFeature(),
   })

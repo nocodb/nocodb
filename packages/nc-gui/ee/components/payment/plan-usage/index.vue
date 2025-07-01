@@ -301,7 +301,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string, type:
           </NcButton>
           <NcButton
             v-if="!isAnyPlanLimitReached"
-            v-e="['c:payment:upgrade:billing', { activePlan: activePlanTitle }]"
+            v-e="['c:payment:billing:upgrade', { activePlan: activePlanTitle }]"
             type="primary"
             size="small"
             inner-class="!gap-1"
@@ -340,7 +340,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string, type:
             />
           </div>
           <NcButton
-            v-e="['c:payment:upgrade:billing', { activePlan: activePlanTitle }]"
+            v-e="['c:payment:billing:upgrade', { activePlan: activePlanTitle }]"
             type="primary"
             size="small"
             inner-class="!gap-1"

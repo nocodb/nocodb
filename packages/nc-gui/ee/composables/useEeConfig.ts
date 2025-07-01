@@ -161,6 +161,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_SCRIPTS)
   })
 
+  const blockPrivateBases = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_PRIVATE_BASES)
+  })
+
   /** Helper functions */
   function getLimit(type: PlanLimitTypes, workspace?: NcWorkspace | null) {
     if (!isPaymentEnabled.value) return Infinity
@@ -812,6 +816,21 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUsePrivateBases = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockPrivateBases.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUsePrivateBases'),
+      content: t('upgrade.upgradeToUsePrivateBasesSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_PRIVATE_BASES,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     getLimit,
@@ -864,5 +883,7 @@ export const useEeConfig = createSharedComposable(() => {
     isUnderLoyaltyCutoffDate,
     blockUseScripts,
     showUpgradeToUseScripts,
+    blockPrivateBases,
+    showUpgradeToUsePrivateBases,
   }
 })

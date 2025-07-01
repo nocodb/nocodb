@@ -53,8 +53,13 @@ const searchInputRef = ref()
 const isCreateProjectOpen = ref(false)
 
 const starredProjectList = computed(() => basesList.value.filter((base) => base.starred))
-const nonStarredProjectList = computed(() => basesList.value.filter((base) => !base.starred))
-const privateProjectList = computed(() => basesList.value.filter((base) => base.default_role === ProjectRoles.NO_ACCESS))
+const nonStarredProjectList = computed(() =>
+  basesList.value.filter((base) => !base.starred && base.default_role !== ProjectRoles.NO_ACCESS),
+)
+// Todo: @rameshmane7218 if project is starred and private then it should be shown in both starred and private list (active project node state we have to handle)
+const privateProjectList = computed(() =>
+  basesList.value.filter((base) => !base.starred && base.default_role === ProjectRoles.NO_ACCESS),
+)
 
 const filteredStarredProjectList = computed(() =>
   starredProjectList.value.filter((base) => searchCompare(base.title, searchQuery.value)),

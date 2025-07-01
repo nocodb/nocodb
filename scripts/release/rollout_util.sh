@@ -110,31 +110,89 @@ function prewarm_asg(){
     message "${ENVIRONMENT}: prewarming completed successfully. previous_count: ${prev_count} new_count: ${new_count} "
 }
 
+function zero_downtime_worker_deployment(){
+    echo "zero_downtime_worker_deployment: Expected variables to be set CLUSTER=${CLUSTER} WORKERS_SERVICE_NAME=${WORKERS_SERVICE_NAME} HOST_NAME=${HOST_NAME} API_CREDENTIALS=$([[ ! -z "$API_CREDENTIALS" ]] && echo "***value-set***" || echo "Empty")"
 
-# calls api to perform pause and exit the worker pods. the worker pods will pause and wait till any inflight jobs which are in progress
-# once the instance exits, ecs takes care of adding new instance with new image 
-function pause_workers_and_gracefully_shutdown(){
-    echo "pause_workers_and_gracefully_shutdown: Expected varibles to be set CLUSTER=${CLUSTER} WORKERS_SERVICE_NAME=${WORKERS_SERVICE_NAME} HOST_NAME=${HOST_NAME} API_CREDENTIALS=$([[ ! -z "$API_CREDENTIALS" ]] && echo "***value-set***" || echo "Empty")"
+    if [[ ! "${CLUSTER}" || ! "${WORKERS_SERVICE_NAME}" || ! "${HOST_NAME}" || ! "${API_CREDENTIALS}" ]]; then 
+        echo "WORKERS_SERVICE_NAME not set, skipping worker deployment"
+        return 0
+    fi
 
-    if [[ ! "${CLUSTER}" || ! "${WORKERS_SERVICE_NAME}" || ! "${HOST_NAME}" || ! "${API_CREDENTIALS}" ]]; then log_and_exit "CLUSTER=${CLUSTER} WORKERS_SERVICE_NAME=${WORKERS_SERVICE_NAME} HOST_NAME=${HOST_NAME} API_CREDENTIALS variables must be set" ; fi
-    # 0. fetch capacity details
-    # Replace these placeholders with your values
-    # CURRENT_DESIRED_COUNT=$(aws ecs describe-services --cluster $CLUSTER --services $WORKERS_SERVICE_NAME --query 'services[0].desiredCount' --output text)
-    # NEW_DESIRED_COUNT=$((CURRENT_DESIRED_COUNT + 1 ))
     HOST_NAME=${HOST_NAME:-https://staging.noco.ws}
+    
+    # Generate a unique worker group ID for new workers
+    WORKER_GROUP_ID="deploy-$(date +%s)-$(openssl rand -hex 4)"
+    
+    message "${ENVIRONMENT}: Starting zero-downtime worker deployment with group ID: ${WORKER_GROUP_ID}"
 
-    # 1. trigger pause and exit 
-    curl -u ${API_CREDENTIALS} ${HOST_NAME}/internal/workers/pause-and-exit -XPOST || exit 1
-
-    # 2. update desired to double 
-    # Update the service with the new desired count
-    # aws ecs update-service --cluster $CLUSTER --service $WORKERS_SERVICE_NAME --desired-count $NEW_DESIRED_COUNT
-    message "${ENVIRONMENT}: workers pod rollout triggered"
+    # 1. Get current worker tasks and enable task protection
+    echo "Getting current worker tasks for service: ${WORKERS_SERVICE_NAME}"
+    
+    # Get current task ARNs for the worker service
+    CURRENT_TASKS=$(aws ecs list-tasks --cluster ${CLUSTER} --service-name ${WORKERS_SERVICE_NAME} --region=us-east-2 --query 'taskArns[]' --output text 2>/dev/null)
+    
+    if [[ ! -z "${CURRENT_TASKS}" ]]; then
+        echo "Found current worker tasks: ${CURRENT_TASKS}"
+        
+        # Enable task protection to prevent termination during force deployment
+        echo "Enabling task protection for current worker tasks"
+        aws ecs update-task-protection \
+            --cluster ${CLUSTER} \
+            --tasks ${CURRENT_TASKS} \
+            --protection-enabled \
+            --expires-in-minutes 300 \
+            --region=us-east-2 || {
+                echo "Warning: Failed to enable task protection. Proceeding without protection."
+            }
+        
+        message "${ENVIRONMENT}: Current workers are running with task protection enabled, proceeding with zero-downtime deployment"
+        PROTECTED_TASKS="${CURRENT_TASKS}"
+    else
+        echo "No current tasks found for worker service"
+        message "${ENVIRONMENT}: No current workers found, proceeding with standard deployment"
+        PROTECTED_TASKS=""
+    fi
+    
+    # 2. Trigger force deployment for workers
+    echo "Triggering force deployment for worker service: ${WORKERS_SERVICE_NAME}"
+    aws ecs update-service --cluster ${CLUSTER} --service ${WORKERS_SERVICE_NAME} --force-new-deployment --region=us-east-2
+    
+    # 3. Wait for new instances to come up and be healthy
+    echo "Waiting for new worker instances to be healthy..."
+    checkStatus "${WORKERS_SERVICE_NAME}"
+    
+    # 4. Add worker group ID to new workers
+    echo "Assigning worker group ID to new workers: ${WORKER_GROUP_ID}"
+    curl -u ${API_CREDENTIALS} ${HOST_NAME}/internal/workers/assign-worker-group -XPOST \
+        -H "Content-Type: application/json" \
+        -d "{\"workerGroupId\":\"${WORKER_GROUP_ID}\"}" || {
+            message "${ENVIRONMENT}: Failed to assign worker group ID"
+            return 1
+        }
+    
+    # 5. Wait for id to propagate to new workers
+    echo "Waiting 10 seconds for new workers to be fully ready..."
+    sleep 10
+    
+    # 6. Stop other worker groups (old workers)
+    echo "Stopping old worker groups (preserving group: ${WORKER_GROUP_ID})"
+    curl -u ${API_CREDENTIALS} ${HOST_NAME}/internal/workers/stop-other-worker-groups -XPOST \
+        -H "Content-Type: application/json" \
+        -d "{\"workerGroupId\":\"${WORKER_GROUP_ID}\"}" || {
+            message "${ENVIRONMENT}: Failed to stop other worker groups"
+            return 1
+        }
+    
+    # 7. Allow time for old workers to complete current jobs and shut down gracefully
+    echo "Waiting 30 seconds for old workers to complete current jobs and shut down gracefully..."
+    sleep 30
+    
+    message "${ENVIRONMENT}: Zero-downtime worker deployment completed successfully with group ID: ${WORKER_GROUP_ID}"
 }
 
 function perform_rollout(){
     PROMOTE_IMAGE_BEFORE_ROLLOUT=${1:-false}
-    PAUSE_AND_SHUTDOWN_WORKERS=${2:-false}
+
     if [[ ! "${ENVIRONMENT}" || ! "${CLUSTER}" ]]; then echo "CLUSTER and ENVIRONMENT variables must be set for check status"; log_and_exit  ; fi
 
     global_retry_count=0
@@ -150,14 +208,12 @@ function perform_rollout(){
     latest_remote_digest=$(aws ecr batch-get-image --region us-east-2 --repository-name ${REPO_NAME:-nocohub} --image-ids imageTag=${STAGE_TAG} --output text --query images[].imageId )
     message "${ENVIRONMENT}: Image with tag:${STAGE_TAG} will be launched. digest: ${latest_remote_digest}"
 
-    # if [[ "${PAUSE_AND_SHUTDOWN_WORKERS}" == "true" ]]
-    # then
-    #     pause_workers_and_gracefully_shutdown
-    # fi
-
     # TODO: prewarm ASG to have additional instances. update only desired 
     ALL_SVS=$( aws ecs list-services --cluster ${CLUSTER}  --region=us-east-2  | jq -r '.serviceArns[] | split("/") | .[2]')
     update_workspace 
     check_status_all_workspaces 
     message "${ENVIRONMENT}: deployment executed successfully."
+
+    zero_downtime_worker_deployment
+    message "${ENVIRONMENT}: zero downtime worker deployment executed successfully."
 }

@@ -160,4 +160,23 @@ export type WidgetType =
   | TextWidgetType
   | IframeWidgetType;
 
+export interface IWidget {
+  id?: string;
+  title: string;
+  description?: string;
+  fk_dashboard_id: string;
+  type: WidgetTypes;
+  config?: any;
+  meta?: any;
+  order?: number;
+  position?: {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  };
+  created_at?: string;
+  updated_at?: string;
+}
+
 export * from './validation';

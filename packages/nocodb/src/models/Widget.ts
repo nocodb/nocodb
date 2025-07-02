@@ -1,4 +1,4 @@
-import type { WidgetType } from 'nocodb-sdk';
+import type { IWidget, WidgetType, WidgetTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -10,13 +10,12 @@ import {
   MetaTable,
 } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
-
-export default class Widget implements WidgetType {
+export default class Widget implements IWidget {
   id?: string;
   title: string;
   description?: string;
   fk_dashboard_id: string;
-  type: any; // WidgetTypes from SDK
+  type: WidgetTypes;
   config?: any;
   meta?: any;
   order?: number;
@@ -37,7 +36,7 @@ export default class Widget implements WidgetType {
     context: NcContext,
     widgetId: string,
     ncMeta = Noco.ncMeta,
-  ) {
+  ): Promise<Widget | null> {
     let widget =
       widgetId &&
       (await NocoCache.get(
@@ -64,7 +63,7 @@ export default class Widget implements WidgetType {
     context: NcContext,
     dashboardId: string,
     ncMeta = Noco.ncMeta,
-  ) {
+  ): Promise<Widget[]> {
     const cachedList = await NocoCache.getList(CacheScope.WIDGET, [
       dashboardId,
     ]);
@@ -101,7 +100,7 @@ export default class Widget implements WidgetType {
     context: NcContext,
     widget: Partial<Widget>,
     ncMeta = Noco.ncMeta,
-  ) {
+  ): Promise<Widget> {
     let insertObj = extractProps(widget, [
       'id',
       'title',
@@ -141,7 +140,7 @@ export default class Widget implements WidgetType {
     widgetId: string,
     widget: Partial<Widget>,
     ncMeta = Noco.ncMeta,
-  ) {
+  ): Promise<Widget> {
     let updateObj = extractProps(widget, [
       'title',
       'description',
@@ -172,7 +171,7 @@ export default class Widget implements WidgetType {
     context: NcContext,
     widgetId: string,
     ncMeta = Noco.ncMeta,
-  ) {
+  ): Promise<void> {
     await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,

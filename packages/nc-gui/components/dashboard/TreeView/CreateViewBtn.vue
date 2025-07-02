@@ -186,14 +186,16 @@ async function onOpenModal({
         </NcMenuItem>
         <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
           <NcDivider />
-          <NcMenuItem data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
-            <div class="item">
-              <div class="item-inner">
-                <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
-                <div>{{ $t('labels.aiSuggested') }}</div>
+          <NcTooltip :title="`Auto suggest views for ${table?.title || 'the current table'}`" placement="right">
+            <NcMenuItem data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
+              <div class="item">
+                <div class="item-inner">
+                  <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
+                  <div>{{ $t('labels.useNocoAI') }}</div>
+                </div>
               </div>
-            </div>
-          </NcMenuItem>
+            </NcMenuItem>
+          </NcTooltip>
         </template>
       </NcMenu>
     </template>

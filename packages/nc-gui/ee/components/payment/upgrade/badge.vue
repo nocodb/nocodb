@@ -81,7 +81,7 @@ planUpgraderClick.on(() => {
     :size="size"
     :border="false"
     class="nc-upgrade-badge cursor-pointer select-none"
-    :class="`nc-upgrade-${planTitle}-badge`"
+    :class="`nc-upgrade-${planTitle}-badge nc-size-${size}`"
     :style="{
       'color': disabled ? activePlanMeta.accent : activePlanMeta.primary,
       '--nc-badge-bg-light': activePlanMeta.bgDark,
@@ -97,5 +97,9 @@ planUpgraderClick.on(() => {
 <style lang="scss" scoped>
 .nc-upgrade-badge {
   @apply bg-[var(--nc-badge-bg-light)] hover:bg-[var(--nc-badge-bg-dark)] group-hover:bg-[var(--nc-badge-bg-dark)] font-semibold transition-colors duration-200;
+
+  &.nc-size-xs {
+    @apply text-bodyDefaultSm font-normal;
+  }
 }
 </style>

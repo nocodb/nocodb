@@ -30,8 +30,10 @@ export const useBase = defineStore('baseStore', () => {
   const tablesStore = useTablesStore()
 
   const automationStore = useAutomationStore()
+  const dashboardStore = useDashboardStore()
 
   const { loadAutomations } = automationStore
+  const { loadDashboards } = dashboardStore
 
   const { blockPrivateBases } = useEeConfig()
 
@@ -139,6 +141,7 @@ export const useBase = defineStore('baseStore', () => {
     if (base.value.id) {
       await tablesStore.loadProjectTables(base.value.id, true)
       await loadAutomations({ baseId: base.value.id || baseId.value })
+      await loadDashboards({ baseId: base.value.id || baseId.value })
 
       // tables.value = basesStore.baseTableList[base.value.id]
       //   await api.dbTable.list(base.value.id, {

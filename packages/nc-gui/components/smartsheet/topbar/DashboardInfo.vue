@@ -78,7 +78,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
             <LazyGeneralEmojiPicker v-if="!isMobileMode" readonly size="xsmall" class="mr-1">
               <template #default>
                 <GeneralIcon
-                  icon="ncBarChart2"
+                  icon="dashboards"
                   class="min-w-5"
                   :class="{
                     '!text-gray-500': !isMobileMode,

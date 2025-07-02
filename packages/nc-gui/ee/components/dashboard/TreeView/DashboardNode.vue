@@ -242,7 +242,11 @@ const deleteDashboard = () => {
             @emoji-selected="emits('selectIcon', $event)"
           >
             <template #default>
-              <GeneralIcon icon="ncBarChart2" class="w-4 text-nc-content-gray-subtle !text-[16px]" />
+              <GeneralIcon
+                icon="dashboards"
+                :class="activeDashboardId === vModel.id ? '!text-brand-600/85' : '!text-gray-600/75'"
+                class="w-4 text-nc-content-gray-subtle !text-[16px]"
+              />
             </template>
           </LazyGeneralEmojiPicker>
         </div>

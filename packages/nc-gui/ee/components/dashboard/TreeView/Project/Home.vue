@@ -354,7 +354,7 @@ const showCreateNewAsDropdown = computed(() => {
                   data-testid="create-new-script"
                   @click="openNewDashboardModal({ baseId: base.id })"
                 >
-                  <GeneralIcon icon="ncBarChart2" />
+                  <GeneralIcon icon="dashboards" />
                   New Dashboard
                 </NcMenuItem>
               </NcMenu>

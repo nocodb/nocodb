@@ -93,7 +93,7 @@ function openDashboardCreateDialog() {
           <div>
             <LazyGeneralEmojiPicker :emoji="option?.meta?.icon" readonly size="xsmall">
               <template #default>
-                <GeneralIcon icon="ncBarChart2" class="min-w-4 !text-gray-500" />
+                <GeneralIcon icon="dashboards" class="min-w-4 !text-gray-500" />
               </template>
             </LazyGeneralEmojiPicker>
           </div>

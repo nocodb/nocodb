@@ -104,7 +104,7 @@ const { isUIAllowed } = useRoles()
             data-testid="proj-view-list__item-title"
           >
             <div class="min-w-6 flex items-center justify-center">
-              <GeneralIcon icon="ncBarChart2" class="flex-none text-gray-600" />
+              <GeneralIcon icon="dashboards" class="flex-none text-gray-600" />
             </div>
             <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>
               <template #title>

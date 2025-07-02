@@ -603,6 +603,7 @@ import NcAutoAwesome from '~icons/nc-icons/auto_awesome'
 import NcPlusAi from '~icons/nc-icons/plus-ai'
 import NcPlusMultiple from '~icons/nc-icons/plus-multiple'
 import NcPlusSquareSolid from '~icons/nc-icons/plus-square-solid'
+import NcDashboards from '~icons/nc-icons/dashboards'
 
 /* file types */
 
@@ -1302,6 +1303,7 @@ export const iconMap = {
   'iconTwitter': NcTwitterIcon,
   'iconDiscord': NcDiscordIcon,
   'attachFile': MdiNcAttachFile,
+  'dashboards': NcDashboards,
 
   // Nc-IconsV2 Buttons
   'ncColumns': NcColumnsIcon,

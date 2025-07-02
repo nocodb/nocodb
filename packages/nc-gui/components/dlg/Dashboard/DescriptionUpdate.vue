@@ -113,7 +113,7 @@ const updateDescription = async (undo = false) => {
   <NcModal v-model:visible="dialogShow" size="small" :show-separator="false">
     <template #header>
       <div class="flex flex-row items-center gap-x-2">
-        <GeneralIcon icon="ncBarChart2" class="mt-0.5 !text-2xl" />
+        <GeneralIcon icon="dashboards" class="mt-0.5 !text-2xl" />
 
         <span class="text-gray-900 font-semibold">
           {{ dashboard?.title }}

@@ -39,9 +39,7 @@ const colors = computed(() => {
       <div class="text-nc-content-gray-emphasis flex-1 text-subHeading2">
         {{ widget.title }}
       </div>
-      <NcButton v-if="isEditing" type="text" size="small">
-        <GeneralIcon icon="threeDotVertical" />
-      </NcButton>
+      <SmartsheetDashboardWidgetsCommonContext v-if="isEditing" :widget="widget" />
     </div>
     <div v-if="widget.description" class="text-nc-content-gray-subtle2 text-bodyDefaultSm">
       {{ widget.description }}

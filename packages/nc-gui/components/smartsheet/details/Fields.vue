@@ -1530,7 +1530,7 @@ onBeforeRouteUpdate((_to, from, next) => {
               width: rightPanelWidth ? `calc(100% - ${rightPanelWidth}px)` : undefined,
             }"
           >
-            <div v-if="aiMode" class="pt-3 bg-nc-bg-gray-extralight border-b-1 border-b-nc-border-gray-medium overflow-x-scroll">
+            <div v-if="aiMode" class="pt-3 bg-nc-bg-gray-extralight border-b-1 border-b-nc-border-gray-medium">
               <!-- Ai field wizard  -->
               <AiWizardTabs v-model:active-tab="activeAiTab" show-close-btn @close="disableAiMode()">
                 <template #AutoSuggestedContent>

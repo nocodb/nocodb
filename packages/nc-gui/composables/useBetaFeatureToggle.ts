@@ -49,9 +49,8 @@ const FEATURES = [
     id: 'ai_features',
     title: 'AI features',
     description: 'Unlock AI features to enhance your NocoDB experience.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
+    enabled: true,
+    version: 2,
     isEE: true,
   },
   {

@@ -99,7 +99,7 @@ const baseAccessOptions = computed(() => [
                     })
                   "
                   size="sm"
-                  class="!font-normal"
+                  class="!font-normal !text-bodyDefaultSm"
                 />
               </div>
               <div

@@ -3680,7 +3680,8 @@
             "enum": [
               "no-access", 
               ""
-            ]
+            ],
+            "nullable": true
           }
         },
         "required": [
@@ -3752,7 +3753,8 @@
             "enum": [
               "no-access",
               ""
-            ]
+            ],
+            "nullable": true
           }
         }
       },

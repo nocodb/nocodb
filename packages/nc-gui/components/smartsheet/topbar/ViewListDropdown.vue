@@ -241,12 +241,14 @@ async function onOpenModal({
 
                 <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
                   <NcDivider />
-                  <a-menu-item data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
-                    <div class="nc-viewlist-submenu-popup-item">
-                      <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
-                      <div>{{ $t('labels.aiSuggested') }}</div>
-                    </div>
-                  </a-menu-item>
+                  <NcTooltip :title="`Auto suggest views for ${activeTable?.title || 'the current table'}`" placement="right">
+                    <a-menu-item data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
+                      <div class="nc-viewlist-submenu-popup-item">
+                        <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
+                        <div>{{ $t('labels.useNocoAI') }}</div>
+                      </div>
+                    </a-menu-item>
+                  </NcTooltip>
                 </template>
               </a-sub-menu>
             </a-menu>

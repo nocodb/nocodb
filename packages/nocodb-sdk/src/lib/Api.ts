@@ -2781,14 +2781,7 @@ export interface HookType {
    * Hook Operation
    * @example insert
    */
-  operation?:
-    | 'insert'
-    | 'update'
-    | 'delete'
-    | 'bulkInsert'
-    | 'bulkUpdate'
-    | 'bulkDelete'
-    | 'trigger';
+  operation?: ('insert' | 'update' | 'delete' | 'trigger')[];
   /**
    * Retry Count
    * @example 10
@@ -2813,9 +2806,12 @@ export interface HookType {
   type?: string;
   /**
    * Hook Version
-   * @example v2
+   * @example v3
    */
-  version?: 'v1' | 'v2';
+  version?: 'v1' | 'v2' | 'v3';
+  /** Is this hook only trigger when some fields are affected */
+  trigger_field?: boolean;
+  trigger_fields?: string[];
 }
 
 /**
@@ -2851,14 +2847,7 @@ export interface HookReqType {
    * Hook Operation
    * @example insert
    */
-  operation:
-    | 'insert'
-    | 'update'
-    | 'delete'
-    | 'bulkInsert'
-    | 'bulkUpdate'
-    | 'bulkDelete'
-    | 'trigger';
+  operation: ('insert' | 'update' | 'delete' | 'trigger')[];
   /**
    * Retry Count
    * @example 10
@@ -2883,6 +2872,9 @@ export interface HookReqType {
   type?: string | null;
   /** Is this hook assoicated with some filters */
   condition?: BoolType;
+  /** Is this hook only trigger when some fields are affected */
+  trigger_field?: boolean;
+  trigger_fields?: string[];
 }
 
 /**
@@ -2932,14 +2924,7 @@ export interface HookLogType {
    * Hook Operation
    * @example insert
    */
-  operation?:
-    | 'insert'
-    | 'update'
-    | 'delete'
-    | 'bulkInsert'
-    | 'bulkUpdate'
-    | 'bulkDelete'
-    | 'trigger';
+  operation?: 'insert' | 'update' | 'delete' | 'trigger';
   /**
    * Hook Payload
    * @example {"method":"POST","body":"{{ json data }}","headers":[{}],"parameters":[{}],"auth":"","path":"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b"}
@@ -3671,6 +3656,26 @@ export interface BaseType {
   title?: string;
   /** ID of custom url */
   fk_custom_url_id?: StringOrNullType;
+  /** List of permissions for the base */
+  permissions?: {
+    /** Permission entity */
+    entity: string;
+    /** ID of the entity */
+    entity_id: string;
+    /** Permission key */
+    permission: string;
+    /** Type of permission granted */
+    granted_type: string;
+    /** Role to which permission is granted */
+    granted_role?: string | null;
+    /** List of subjects (users or groups) for the permission */
+    subjects?: {
+      /** Type of the subject */
+      type: 'user' | 'group';
+      /** ID of the subject */
+      id: string;
+    }[];
+  }[];
 }
 
 /**
@@ -12973,7 +12978,7 @@ export class Api<
         | 'bulkInsert'
         | 'bulkUpdate'
         | 'bulkDelete',
-      version: 'v1' | 'v2',
+      version: 'v1' | 'v2' | 'v3',
       params: RequestParams = {}
     ) =>
       this.request<

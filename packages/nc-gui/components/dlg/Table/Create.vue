@@ -36,8 +36,6 @@ const { loadProjectTables, addTable } = useTablesStore()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const onTableCreate = async (table: TableType) => {
   // await loadProject(props.baseId)
 
@@ -59,7 +57,14 @@ const onAiTableCreate = async (table: TableType) => {
   await openTable(table)
 }
 
-const { aiIntegrationAvailable, aiLoading, aiError, generateTables, predictNextTables: _predictNextTables } = useNocoAi()
+const {
+  isAiFeaturesEnabled,
+  aiIntegrationAvailable,
+  aiLoading,
+  aiError,
+  generateTables,
+  predictNextTables: _predictNextTables,
+} = useNocoAi()
 
 const aiMode = ref(false)
 
@@ -430,7 +435,7 @@ const handleRefreshOnError = () => {
         </a> -->
 
         <AiToggleButton
-          v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)"
+          v-if="isAiFeaturesEnabled"
           :ai-mode="aiMode"
           :ai-loading="aiLoading"
           :off-tooltip="`Auto suggest tables for ${base?.title || 'the current base'}`"

@@ -86,8 +86,6 @@ const { viewsByTable } = storeToRefs(useViewsStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const { selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId, coverImageColumnId, baseId } = toRefs(props)
 
 const meta = ref<TableType | undefined>()
@@ -162,7 +160,7 @@ const typeAlias = computed(
     }[props.type]),
 )
 
-const { aiIntegrationAvailable, aiLoading, aiError, predictViews: _predictViews, createViews } = useNocoAi()
+const { isAiFeaturesEnabled, aiIntegrationAvailable, aiLoading, aiError, predictViews: _predictViews, createViews } = useNocoAi()
 
 const aiMode = ref(false)
 
@@ -884,7 +882,7 @@ const getPluralName = (name: string) => {
         </a> -->
 
         <AiToggleButton
-          v-if="!isAIViewCreateMode && isNecessaryColumnsPresent && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)"
+          v-if="!isAIViewCreateMode && isNecessaryColumnsPresent && isAiFeaturesEnabled"
           :ai-mode="aiMode"
           :ai-loading="aiLoading"
           :off-tooltip="`Auto suggest views for ${meta?.title || 'the current table'}`"

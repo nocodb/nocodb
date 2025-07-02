@@ -21,6 +21,8 @@ const viewsStore = useViewsStore()
 const { loadViews, onOpenViewCreateModal } = viewsStore
 const { activeView } = storeToRefs(viewsStore)
 
+const { isAiFeaturesEnabled } = useNocoAi()
+
 const isVisibleCreateNew = ref(false)
 
 const baseCreateDlg = ref(false)
@@ -214,7 +216,7 @@ const hasAutomationCreateAccess = computed(() => {
                 <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.calendar') }}</div>
               </NcMenuItem>
-              <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+              <template v-if="isAiFeaturesEnabled">
                 <NcDivider />
                 <NcMenuItem data-testid="mini-sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
                   <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />

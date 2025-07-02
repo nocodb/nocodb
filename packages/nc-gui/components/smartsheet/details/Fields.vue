@@ -83,8 +83,6 @@ const { getMeta } = useMetas()
 
 const { meta, view, eventBus } = useSmartsheetStoreOrThrow()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
@@ -95,7 +93,7 @@ const viewsStore = useViewsStore()
 
 const { openedViewsTab } = storeToRefs(viewsStore)
 
-const { aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
+const { isAiFeaturesEnabled, isAiBetaFeaturesEnabled, aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
 
 const localMetaColumns = ref<ColumnType[] | undefined>([])
 
@@ -1407,7 +1405,7 @@ onBeforeRouteUpdate((_to, from, next) => {
             </NcDropdown>
           </div>
           <div class="flex gap-2">
-            <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+            <template v-if="isAiFeaturesEnabled">
               <div class="nc-fields-add-new-field-btn-wrapper rounded-lg shadow-nc-sm">
                 <NcTooltip>
                   <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
@@ -1426,7 +1424,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                     </div>
                   </NcButton>
                 </NcTooltip>
-                <NcTooltip :title="aiMode ? 'Disable AI suggestions' : 'Suggest fields using AI'">
+                <NcTooltip :title="aiMode ? $t('labels.disableNocoAI') : ''" :disabled="!aiMode">
                   <NcDropdown :trigger="['hover']" placement="bottomRight" overlay-class-name="!border-purple-200">
                     <NcButton
                       size="small"
@@ -1460,7 +1458,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           {{ $t('labels.autoSuggestFormulas') }}
                         </NcMenuItem>
                         <NcMenuItem
-                          v-show="!isForm"
+                          v-show="!isForm && isAiBetaFeaturesEnabled"
                           class="!children:w-full !text-nc-content-purple-dark"
                           @click="toggleAiMode('button')"
                         >

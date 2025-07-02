@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
+import { extractRolesObj, NcApiVersion, OrgUserRoles } from 'nocodb-sdk';
 import type {
   BaseUpdateV3Type,
   BaseV3Type,
@@ -122,6 +122,9 @@ export class BasesV3Service {
       'swagger-v3.json#/components/schemas/BaseCreate',
       param.base,
       true,
+      {
+        api_version: NcApiVersion.V3,
+      } as any,
     );
 
     const base = {
@@ -140,6 +143,7 @@ export class BasesV3Service {
     const res = await this.basesService.baseCreate({
       ...param,
       base,
+      apiVersion: NcApiVersion.V3,
     });
     return this.getProjectWithInfo(
       { workspace_id: res.fk_workspace_id, base_id: RootScopes.WORKSPACE },

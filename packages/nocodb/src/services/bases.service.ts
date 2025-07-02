@@ -10,6 +10,7 @@ import {
   SqlUiFactory,
 } from 'nocodb-sdk';
 import type {
+  NcApiVersion,
   ProjectReqType,
   ProjectUpdateReqType,
   UserType,
@@ -186,10 +187,22 @@ export class BasesService {
   }
 
   async baseCreate(
-    param: { base: ProjectReqType; user: any; req: any },
+    param: {
+      base: ProjectReqType;
+      user: any;
+      req: any;
+      apiVersion?: NcApiVersion;
+    },
     ncMeta = Noco.ncMeta,
   ) {
-    validatePayload('swagger.json#/components/schemas/ProjectReq', param.base);
+    validatePayload(
+      'swagger.json#/components/schemas/ProjectReq',
+      param.base,
+      false,
+      {
+        api_version: param?.apiVersion,
+      } as any,
+    );
 
     const baseId = await this.metaService.genNanoid(MetaTable.PROJECT);
 

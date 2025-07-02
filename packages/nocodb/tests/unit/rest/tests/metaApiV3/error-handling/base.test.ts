@@ -5,7 +5,7 @@ import init from '../../../../init';
 import { createUser } from '../../../../factory/user';
 
 export default function () {
-  describe(`Base v3`, () => {
+  describe(`error-handling: Base v3`, () => {
     let context: Awaited<ReturnType<typeof init>>;
 
     beforeEach(async () => {
@@ -13,27 +13,32 @@ export default function () {
     });
 
     describe.only('create base', () => {
-      const API_PREFIX = '/api/v3/meta/workspaces'
+      const API_PREFIX = '/api/v3/meta/workspaces';
       it('will handle workspace not found', async () => {
         const result = await request(context.app)
           .post(`${API_PREFIX}/NOT_EXISTS_WS/bases`)
           .set('xc-token', context.xc_token)
           .send({
-            title: 'MyBase'
+            title: 'MyBase',
           })
           .expect(404);
 
-        expect(result.body.error).to.eq('WORKSPACE_NOT_FOUND')
-        expect(result.body.message).to.eq(`Workspace 'NOT_EXISTS_WS' not found`)
-      })
+        expect(result.body.error).to.eq('WORKSPACE_NOT_FOUND');
+        expect(result.body.message).to.eq(
+          `Workspace 'NOT_EXISTS_WS' not found`,
+        );
+      });
 
       it('will handle user has no access', async () => {
         const workspaceId = context.fk_workspace_id;
-        const { token, user } = await createUser({ app: context.app }, {
-          email: 'test2@example.com',
-          password: 'A1234abh2@dsad',
-          roles: 'editor'
-        });
+        const { token } = await createUser(
+          { app: context.app },
+          {
+            email: 'test2@example.com',
+            password: 'A1234abh2@dsad',
+            roles: 'editor',
+          },
+        );
 
         const xc_token = (
           await request(context.app)
@@ -46,27 +51,30 @@ export default function () {
           .post(`${API_PREFIX}/${workspaceId}/bases`)
           .set('xc-token', xc_token)
           .send({
-            title: 'MyBase'
+            title: 'MyBase',
           })
           .expect(403);
 
-        expect(result.body.error).to.eq('FORBIDDEN')
-        expect(result.body.message.startsWith('Forbidden - You do not have permission to perform the action "baseCreate" ')).to.eq(true)
-      })
+        expect(result.body.error).to.eq('FORBIDDEN');
+        expect(
+          result.body.message.startsWith(
+            'Forbidden - You do not have permission to perform the action "baseCreate" ',
+          ),
+        ).to.eq(true);
+      });
 
-      it.only('will base title empty', async () => {
+      it.only('will handle base title empty', async () => {
         const workspaceId = context.fk_workspace_id;
         const result = await request(context.app)
           .post(`${API_PREFIX}/${workspaceId}/bases`)
           .set('xc-token', context.xc_token)
           .send({
-            title: ''
+            title: '',
           })
           .expect(400);
-        console.log(result.body)
-        expect(result.body.error).to.eq('WORKSPACE_NOT_FOUND')
-        expect(result.body.message).to.eq(`Invalid request body`)
-      })
-    })
+        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.message).to.eq(`Invalid request body`);
+      });
+    });
   });
 }

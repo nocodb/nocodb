@@ -1,3 +1,5 @@
+import { ChartWidgetConfig } from './chart';
+
 export interface DashboardType {
   id?: string;
   title: string;
@@ -20,13 +22,6 @@ export enum WidgetTypes {
   IFRAME = 'iframe',
 }
 
-export enum ChartTypes {
-  BAR = 'bar',
-  LINE = 'line',
-  PIE = 'pie',
-  DONUT = 'donut',
-  SCATTER = 'scatter',
-}
 export enum WidgetSourceTypes {
   VIEW = 'view',
   MODEL = 'model',
@@ -36,44 +31,17 @@ export enum WidgetSourceTypes {
 export type WidgetDataSource =
   | {
       fk_model_id: string;
-      type: WidgetSourceTypes.MODEL;
+      type: WidgetDataSourceTypes.MODEL;
     }
   | {
       fk_view_id: string;
       fk_model_id?: string;
-      type: WidgetSourceTypes.VIEW;
+      type: WidgetDataSourceTypes.VIEW;
     }
   | {
       fk_model_id: string;
-      type: WidgetSourceTypes.FILTER;
+      type: WidgetDataSourceTypes.FILTER;
     };
-
-export const WidgetChartLabelMap = {
-  [ChartTypes.BAR]: 'Bar Chart',
-  [ChartTypes.LINE]: 'Line Chart',
-  [ChartTypes.PIE]: 'Pie Chart',
-  [ChartTypes.DONUT]: 'Donut Chart',
-  [ChartTypes.SCATTER]: 'Scatter Plot',
-  [WidgetTypes.TABLE]: 'Table',
-  [WidgetTypes.METRIC]: 'Metric',
-  [WidgetTypes.TEXT]: 'Text',
-  [WidgetTypes.IFRAME]: 'IFrame',
-};
-export interface ChartWidgetConfig {
-  chartType: ChartTypes;
-  dataSource?: WidgetDataSource;
-  xAxis?: {
-    column_id: string;
-    label?: string;
-  };
-  yAxis?: {
-    column_id: string;
-    aggregation?: 'sum' | 'avg' | 'count' | 'min' | 'max';
-    label?: string;
-  }[];
-  groupBy?: string[];
-  limit?: number;
-}
 
 export interface TableWidgetConfig {
   dataSource?: WidgetDataSource;
@@ -192,3 +160,4 @@ export interface IWidget {
 }
 
 export * from './validation';
+export * from './chart';

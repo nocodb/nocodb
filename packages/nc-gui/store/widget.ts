@@ -105,10 +105,7 @@ export const useWidgetStore = defineStore('widget', () => {
   // Actions
   const loadWidgets = async ({ dashboardId, force = false }: { dashboardId: string; force?: boolean }) => {
     if (!activeWorkspaceId.value || !openedProject.value?.id) {
-      // Return placeholder data for testing when no workspace/project
-      const placeholderWidgets = createPlaceholderWidgets(dashboardId)
-      widgets.value.set(dashboardId, placeholderWidgets)
-      return placeholderWidgets
+      return []
     }
 
     const existingWidgets = widgets.value.get(dashboardId)
@@ -124,17 +121,11 @@ export const useWidgetStore = defineStore('widget', () => {
         dashboardId,
       })) as WidgetType[]
 
-      // If no widgets exist, create placeholder widgets for testing
-      const widgetsToUse = response.length === 0 ? createPlaceholderWidgets(dashboardId) : response
-
-      widgets.value.set(dashboardId, widgetsToUse)
-      return widgetsToUse
+      widgets.value.set(dashboardId, response)
+      return response
     } catch (e) {
       console.error(e)
-      // Return placeholder data on error for testing
-      const placeholderWidgets = createPlaceholderWidgets(dashboardId)
-      widgets.value.set(dashboardId, placeholderWidgets)
-      return placeholderWidgets
+      return []
     } finally {
       isLoading.value = false
     }
@@ -146,12 +137,10 @@ export const useWidgetStore = defineStore('widget', () => {
     try {
       isLoadingWidget.value = true
 
-      const widget = (await $api.internal.getOperation(activeWorkspaceId.value, openedProject.value.id, {
+      return (await $api.internal.getOperation(activeWorkspaceId.value, openedProject.value.id, {
         operation: 'widgetGet',
         widgetId,
       })) as WidgetType
-
-      return widget
     } catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e))

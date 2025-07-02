@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { WidgetType } from 'nocodb-sdk'
 import MetricWidget from './Widgets/Metrics/index.vue'
+import PlaceholderImage from '~/assets/img/dashboards/placeholder.svg'
 // Stores
 const dashboardStore = useDashboardStore()
 const widgetStore = useWidgetStore()
@@ -8,7 +9,6 @@ const widgetStore = useWidgetStore()
 const { isEditingDashboard } = storeToRefs(dashboardStore)
 const { activeDashboardWidgets, selectedWidget } = storeToRefs(widgetStore)
 
-// Convert widgets to grid layout items
 const layout = computed({
   get: () => {
     return activeDashboardWidgets.value.map((widget) => ({
@@ -35,14 +35,12 @@ const layout = computed({
   },
 })
 
-// Handle widget selection
 const handleWidgetClick = (widget: WidgetType) => {
   if (isEditingDashboard.value) {
     selectedWidget.value = widget
   }
 }
 
-// Render widget component based on type
 const getWidgetComponent = (widget: WidgetType) => {
   switch (widget.type) {
     case 'metric':
@@ -60,6 +58,9 @@ const getWidgetComponent = (widget: WidgetType) => {
   <div
     class="bg-white w-full overflow-y-scroll h-full rounded-lg p-4"
     style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.12)"
+    :class="{
+      'flex flex-col items-center justify-center': !activeDashboardWidgets.length,
+    }"
     @click="selectedWidget = null"
   >
     <GridLayout
@@ -93,15 +94,14 @@ const getWidgetComponent = (widget: WidgetType) => {
         </div>
       </template>
     </GridLayout>
-
-    <!-- Empty state when no widgets -->
     <div
-      v-if="activeDashboardWidgets.length === 0"
-      class="empty-state flex flex-col items-center justify-center h-64 text-nc-content-gray-500"
+      v-if="!activeDashboardWidgets.length && !isEditingDashboard"
+      class="empty-state flex flex-col h-full items-center justify-center h-64 text-nc-content-gray-500"
     >
-      <GeneralIcon icon="dashboard" class="w-12 h-12 mb-4" />
-      <h3 class="text-lg font-medium mb-2">No widgets yet</h3>
-      <p class="text-sm text-center">Start building your dashboard by adding widgets from the toolbar above.</p>
+      <img :src="PlaceholderImage" class="w-120 mb-4" />
+      <h3 class="text-lg font-medium mb-2">Get started with Dashboards</h3>
+      <p class="text-sm text-center">Start building your dashboard by adding widgets from the widget bar.</p>
+      <NcButton @click="dashboardStore.isEditingDashboard = true">Edit Dashboard</NcButton>
     </div>
   </div>
 </template>

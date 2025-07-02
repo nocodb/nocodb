@@ -107,6 +107,7 @@ const rolePermissions = {
       csvTableImport: true,
       excelTableImport: true,
       hookTrigger: true,
+      recordAuditList: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -124,7 +125,6 @@ const rolePermissions = {
 
       commentList: true,
       commentCount: true,
-      recordAuditList: true,
       newUser: true,
     },
   },

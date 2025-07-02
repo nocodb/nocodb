@@ -67,9 +67,23 @@ You can define one or more views per table. Available view types:
 **Grid View Rules:**
 - Must include **at least one filter or grouping**.
 - Filters must use one of these operators:
-  - Comparison: allof, anyof, nallof, nanyof, eq, neq, gt, gte, lt, lte, like, nlike
-  - Null checks: blank, notblank
-  - Boolean checks: checked, notchecked
+  - **Comparison**: \`eq\`, \`neq\`, \`gt\`, \`gte\`, \`lt\`, \`lte\`, \`allof\`, \`anyof\`, \`nallof\`, \`nanyof\`, \`like\`, \`nlike\`, \`isWithin\`
+  - **Null checks**: \`blank\`, \`notblank\`
+  - **Boolean checks**: \`checked\`, \`notchecked\`
+- **Date Filters:**
+  - When filtering a \`Date\` or \`DateTime\` column, you may add \`comparison_sub_op\` to define dynamic ranges.
+  - Supported \`comparison_sub_op\` values:
+    - \`today\`, \`tomorrow\`, \`yesterday\`
+    - \`oneWeekAgo\`, \`oneWeekFromNow\`, \`oneMonthAgo\`, \`oneMonthFromNow\`
+    - \`daysAgo\`, \`daysFromNow\` *(requires a number in \`value\`)*
+    - \`exactDate\` *(requires a date string in \`value\`)*
+    - \`isWithin\` may use:
+      - \`pastWeek\`, \`nextWeek\`
+      - \`pastMonth\`, \`nextMonth\`
+      - \`pastYear\`, \`nextYear\`
+      - \`pastNumberOfDays\`, \`nextNumberOfDays\` *(requires number in \`value\`)*
+  - Use \`null\` as the \`value\` when the sub-op implies a dynamic date (e.g., \`today\`, \`pastMonth\`).
+
 - Use only **one logical operator** per view (e.g., \`and\`, \`or\`).
 - Grouping and sorting must refer to real columns.
 
@@ -88,7 +102,7 @@ You can define one or more views per table. Available view types:
 **General View Rules:**
 - No duplicate views.
 - Each view must make sense for its table.
-- Filters must use **fixed (non-dynamic) values**.
+- Filters must use **fixed (non-dynamic) values**, unless using \`comparison_sub_op\` with date columns.
 - Use descriptive titles — optionally add emojis if appropriate.
 - Do not generate empty or placeholder views.
 
@@ -114,23 +128,109 @@ You can define one or more views per table. Available view types:
         { "title": "Population", "type": "Number" },
         { "title": "Capital", "type": "Checkbox" }
       ]
+    },
+    {
+      "title": "Tasks",
+      "columns": [
+        { "title": "Title", "type": "SingleLineText" },
+        { "title": "Due Date", "type": "Date" }
+      ]
     }
   ],
   "relationships": [
     { "from": "Countries", "to": "Cities", "type": "hm" }
   ],
   "views": [
-    { "type": "grid", "table": "Countries", "title": "All Countries by Region 🌍", "gridGroupBy": ["Region"] },
-    { "type": "kanban", "table": "Countries", "title": "Country Regions Kanban", "kanbanGroupBy": "Region" },
-    { "type": "grid", "table": "Cities", "title": "Capital Cities", "filters": [{ "comparison_op": "checked", "logical_op": "and", "value": "true", "column": "Capital" }] },
-    { "type": "grid", "table": "Cities", "title": "Cities by Population", "sorts": [{ "column": "Population", "order": "desc" }] },
-    { "type": "gallery", "table": "Countries", "title": "Countries Gallery 🖼" },
-    { "type": "form", "table": "Cities", "title": "City Data Entry Form 📝" }
+    {
+      "type": "grid",
+      "table": "Countries",
+      "title": "All Countries by Region 🌍",
+      "gridGroupBy": ["Region"]
+    },
+    {
+      "type": "kanban",
+      "table": "Countries",
+      "title": "Country Regions Kanban",
+      "kanbanGroupBy": "Region"
+    },
+    {
+      "type": "grid",
+      "table": "Cities",
+      "title": "Capital Cities",
+      "filters": [
+        {
+          "column": "Capital",
+          "comparison_op": "checked",
+          "logical_op": "and"
+        }
+      ]
+    },
+    {
+      "type": "grid",
+      "table": "Cities",
+      "title": "Cities by Population",
+      "sorts": [
+        { "column": "Population", "order": "desc" }
+      ]
+    },
+    {
+      "type": "gallery",
+      "table": "Countries",
+      "title": "Countries Gallery 🖼"
+    },
+    {
+      "type": "form",
+      "table": "Cities",
+      "title": "City Data Entry Form 📝"
+    },
+    {
+      "type": "grid",
+      "table": "Tasks",
+      "title": "Tasks Due Today 📅",
+      "filters": [
+        {
+          "column": "Due Date",
+          "comparison_op": "eq",
+          "comparison_sub_op": "today",
+          "value": null,
+          "logical_op": "and"
+        }
+      ]
+    },
+    {
+      "type": "grid",
+      "table": "Tasks",
+      "title": "Upcoming Tasks (Next 7 Days)",
+      "filters": [
+        {
+          "column": "Due Date",
+          "comparison_op": "isWithin",
+          "comparison_sub_op": "nextWeek",
+          "value": null,
+          "logical_op": "and"
+        }
+      ]
+    },
+    {
+      "type": "grid",
+      "table": "Tasks",
+      "title": "Old Tasks (Before July 10)",
+      "filters": [
+        {
+          "column": "Due Date",
+          "comparison_op": "lt",
+          "comparison_sub_op": "exactDate",
+          "value": "2025-07-10",
+          "logical_op": "and"
+        }
+      ]
+    }
   ]
 }
 \`\`\`
 
 ---
+
 Return only a valid JSON schema that strictly follows these rules.
 `;
 

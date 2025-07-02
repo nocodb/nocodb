@@ -10,8 +10,8 @@ const { selectedWidget } = storeToRefs(useWidgetStore())
 const isConditionDropdownOpen = ref(false)
 
 const selectedDataSourceType = ref(selectedWidget.value?.config?.dataSource?.type || 'model')
-const selectedModelId = ref(selectedWidget.value?.config?.dataSource?.fk_model_id || '')
-const selectedViewId = ref(selectedWidget.value?.config?.dataSource?.fk_view_id || '')
+const selectedModelId = ref(selectedWidget.value?.config?.dataSource?.fk_model_id || null)
+const selectedViewId = ref(selectedWidget.value?.config?.dataSource?.fk_view_id || null)
 
 const filters = ref([])
 
@@ -40,14 +40,14 @@ const updateDataSource = () => {
 
 const onDataSourceTypeChange = (newValue) => {
   if (newValue !== 'view') {
-    selectedViewId.value = ''
+    selectedViewId.value = null
   }
   updateDataSource()
 }
 
 const onDataChange = (type: 'model' | 'view') => {
   if (type === 'model') {
-    selectedViewId.value = ''
+    selectedViewId.value = null
   }
   updateDataSource()
 }
@@ -57,7 +57,7 @@ const onDataChange = (type: 'model' | 'view') => {
   <GroupedSettings title="Source">
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Table</label>
-      <NSelectTable v-model:value="selectedModelId" @update:value="onDataChange('model')" />
+      <NSelectTable v-model:value="selectedModelId" placeholder="Select source " @update:value="onDataChange('model')" />
     </div>
 
     <div class="flex flex-col gap-2 flex-1 min-w-0">
@@ -75,7 +75,12 @@ const onDataChange = (type: 'model' | 'view') => {
 
     <div v-if="selectedDataSourceType === 'view'" class="flex flex-col gap-2 flex-1 min-w-0">
       <label>View</label>
-      <NSelectView v-model:value="selectedViewId" :table-id="selectedModelId" @update:value="onDataChange('view')" />
+      <NSelectView
+        v-model:value="selectedViewId"
+        :disabled="!selectedModelId"
+        :table-id="selectedModelId"
+        @update:value="onDataChange('view')"
+      />
     </div>
 
     <div v-if="selectedDataSourceType === 'filter'" class="flex flex-col gap-2 flex-1 min-w-0">

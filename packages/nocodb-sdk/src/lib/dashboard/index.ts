@@ -87,6 +87,19 @@ export interface MetricWidgetConfig {
     column_id?: string;
     aggregation: 'sum' | 'avg' | 'count' | 'min' | 'max';
   };
+  appearance: {
+    type: 'default' | 'filled' | 'coloured';
+    theme:
+      | 'gray'
+      | 'red'
+      | 'green'
+      | 'yellow'
+      | 'pink'
+      | 'blue'
+      | 'orange'
+      | 'maroon'
+      | 'purple';
+  };
 }
 
 export interface TextWidgetConfig {

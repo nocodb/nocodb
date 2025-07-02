@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import MetricsWidgetConfig from './Widgets/Metrics/Config.vue'
+import MetricsWidgetConfig from './Widgets/Metrics/Config/index.vue'
 const widgetStore = useWidgetStore()
 const { selectedWidget } = storeToRefs(widgetStore)
 

@@ -9,9 +9,9 @@ const { selectedWidget } = storeToRefs(useWidgetStore())
 
 const selectedValue = ref(selectedWidget.value?.config?.metric?.aggregation === 'count' ? 'count' : 'summary')
 const selectedAggregationType = ref(selectedWidget.value?.config?.metric?.aggregation || 'count')
-const selectedFieldId = ref(selectedWidget.value?.config?.metric?.column_id || '')
+const selectedFieldId = ref(selectedWidget.value?.config?.metric?.column_id || null)
 
-const modelId = computed(() => selectedWidget.value?.config?.dataSource?.fk_model_id || '')
+const modelId = computed(() => selectedWidget.value?.config?.dataSource?.fk_model_id || null)
 
 const aggregationMap = {
   count: 'Record Count',
@@ -43,9 +43,15 @@ const handleChange = (type: 'field' | 'aggregation') => {
   emit('update:aggregation', aggregation)
 }
 
+watch(modelId, () => {
+  selectedValue.value = 'count'
+  selectedFieldId.value = null
+  selectedAggregationType.value = null
+})
+
 watch(selectedValue, () => {
   const aggregation = {
-    aggregation: selectedValue.value,
+    type: selectedValue.value,
   }
   if (selectedValue.value === 'count') {
     aggregation.column_id = null
@@ -69,15 +75,23 @@ watch(selectedValue, () => {
   <div v-if="selectedValue === 'summary'" class="flex gap-2 flex-1 min-w-0">
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Field</label>
-      <NSelectField v-model:value="selectedFieldId" v-model:table-id="modelId" @update:value="handleChange('field')" />
+      <NSelectField
+        :key="modelId"
+        v-model:value="selectedFieldId"
+        :disabled="!modelId"
+        :table-id="modelId"
+        @update:value="handleChange('field')"
+      />
     </div>
 
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Type</label>
       <a-select
         v-model:value="selectedAggregationType"
+        :disabled="!selectedFieldId"
         :options="aggregationOptions"
         class="nc-select-shadow"
+        placeholder="Aggregation"
         @update:value="handleChange('aggregation')"
       >
         <template #suffixIcon>

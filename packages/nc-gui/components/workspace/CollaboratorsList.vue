@@ -381,7 +381,7 @@ const handleScroll = (e) => {
                     :tooltip-style="{ width: '180px' }"
                     :overlay-inner-style="{ width: '180px' }"
                   >
-                    <div v-if="activePlanTitle !== PlanTitles.FREE" class="text-nc-content-gray-default">
+                    <div v-if="activePlanTitle === PlanTitles.FREE" class="text-nc-content-gray-default">
                       <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
                     </div>
                     <NcBadge

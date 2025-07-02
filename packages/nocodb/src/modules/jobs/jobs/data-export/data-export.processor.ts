@@ -30,6 +30,7 @@ export class DataExportProcessor {
       user: _user,
       exportAs,
       ncSiteUrl,
+      password,
     } = job.data;
 
     if (exportAs !== 'csv') NcError.notImplemented(`Export as ${exportAs}`);
@@ -43,6 +44,11 @@ export class DataExportProcessor {
     const view = await View.get(context, viewId);
 
     if (!view) NcError.viewNotFound(viewId);
+
+    // Verify password if the view is password protected
+    if (view.password && view.password !== password) {
+      NcError.invalidSharedViewPassword();
+    }
 
     // date time as containing folder YYYY-MM-DD/HH
     const dateFolder = moment().format('YYYY-MM-DD/HH');

@@ -184,6 +184,7 @@ export interface DataExportJobData extends JobData {
   viewId: string;
   exportAs: 'csv' | 'json' | 'xlsx';
   ncSiteUrl: string;
+  password?: string;
 }
 
 export interface ThumbnailGeneratorJobData extends JobData {

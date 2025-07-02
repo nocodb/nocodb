@@ -133,8 +133,11 @@ export const UITypesSearchTerms = {
     'description',
     'comments',
     'memo',
+    'Rich text',
+    'formatted text',
+    'styled text',
+    'html text',
   ],
-  RichText: ['Rich text', 'formatted text', 'styled text', 'html text'],
   [UITypes.Attachment]: ['Attachment', 'file', 'document', 'image', 'upload'],
   [UITypes.Checkbox]: ['Checkbox', 'yes/no', 'true/false', 'completed', 'done'],
   [UITypes.MultiSelect]: [

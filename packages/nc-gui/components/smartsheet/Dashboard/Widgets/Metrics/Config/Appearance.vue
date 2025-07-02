@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import GroupedSettings from '../../Common/GroupedSettings.vue'
+import { colorColoured, colorFilled } from './color'
 
 const emit = defineEmits<{
   'update:appearance': [source: any]
@@ -9,11 +10,29 @@ const { selectedWidget } = storeToRefs(useWidgetStore())
 
 const appearanceType = ref(selectedWidget.value?.config?.appearance?.type || 'default')
 
+const appearanceTheme = ref(selectedWidget.value?.config?.appearance?.theme || 'grey')
+
 const onAppearanceTypeChange = () => {
   emit('update:appearance', {
     type: appearanceType.value,
   })
 }
+
+const onAppearanceThemeChange = (color: string) => {
+  appearanceTheme.value = color
+  emit('update:appearance', {
+    theme: color,
+  })
+}
+
+const colors = computed(() => {
+  if (appearanceType.value === 'coloured') {
+    return colorColoured
+  } else if (appearanceType.value === 'filled') {
+    return colorFilled
+  }
+  return []
+})
 </script>
 
 <template>
@@ -24,6 +43,29 @@ const onAppearanceTypeChange = () => {
         <a-radio value="filled">Filled</a-radio>
         <a-radio value="coloured">Coloured text</a-radio>
       </a-radio-group>
+    </div>
+
+    <div v-if="appearanceType !== 'default'" class="grid grid-cols-3 gap-2">
+      <div
+        v-for="color in colors"
+        :key="color.value"
+        class="flex flex-col border-2 rounded-lg cursor-pointer gap-2 p-4"
+        :class="{
+          'border-nc-fill-primary rounded-lg': color.id === appearanceTheme,
+          ' border-nc-bg-default': color.id !== appearanceTheme,
+        }"
+        @click="onAppearanceThemeChange(color.id)"
+      >
+        <div
+          :style="{ backgroundColor: color.fill }"
+          class="px-3 py-2 rounded-lg flex flex-col text-captionBold items-center justify-center"
+        >
+          123
+        </div>
+        <div :style="{ color: color.color }" class="text-xs text-nc-content-gray text-caption text-center">
+          {{ color.title }}
+        </div>
+      </div>
     </div>
   </GroupedSettings>
 </template>

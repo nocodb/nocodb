@@ -29,6 +29,16 @@ const handleConfigUpdate = async (type: string, updates: any) => {
         },
       },
     })
+  } else if (type === 'appearance') {
+    await updateWidget(activeDashboardId.value, selectedWidget.value?.id, {
+      config: {
+        ...selectedWidget.value?.config,
+        appearance: {
+          ...selectedWidget.value?.config?.appearance,
+          ...updates,
+        },
+      },
+    })
   }
 }
 </script>

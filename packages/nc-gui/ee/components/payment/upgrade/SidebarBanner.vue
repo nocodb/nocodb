@@ -198,7 +198,7 @@ watch(
         >
           <div ref="contentRef" class="flex flex-col gap-4">
             <div class="flex flex-col gap-1.5">
-              <div class="flex gap-2 items-center justify-between">
+              <div class="flex gap-1 items-center justify-between">
                 <div class="flex-1 flex gap-2">
                   <GeneralIcon
                     v-if="!isLoyaltyDiscountAvailable"
@@ -209,7 +209,7 @@ watch(
                       'text-nc-content-brand': !isLimitReached,
                     }"
                   />
-                  <div class="text-base font-700 text-nc-content-gray">
+                  <div class="text-sm font-700 text-nc-content-gray">
                     {{
                       isLimitReached
                         ? 'Plan Limit Reached'

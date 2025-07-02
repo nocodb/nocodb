@@ -9,30 +9,14 @@ const widgetStore = useWidgetStore()
 const { isEditingDashboard } = storeToRefs(dashboardStore)
 const { activeDashboardWidgets, selectedWidget } = storeToRefs(widgetStore)
 
-const layout = computed({
-  get: () => {
-    return activeDashboardWidgets.value.map((widget) => ({
-      x: widget.position?.x || 0,
-      y: widget.position?.y || 0,
-      w: widget.position?.w || 2,
-      h: widget.position?.h || 2,
-      i: widget.id!,
-    }))
-  },
-  set: (newLayout) => {
-    // Update widget positions when layout changes
-    newLayout.forEach((item) => {
-      const widget = activeDashboardWidgets.value.find((w) => w.id === item.i)
-      if (widget && dashboardStore.activeDashboard?.id) {
-        widgetStore.updateWidgetPosition(dashboardStore.activeDashboard.id, item.i, {
-          x: item.x,
-          y: item.y,
-          w: item.w,
-          h: item.h,
-        })
-      }
-    })
-  },
+const layout = computed(() => {
+  return activeDashboardWidgets.value.map((widget) => ({
+    x: widget.position?.x || 0,
+    y: widget.position?.y || 0,
+    w: widget.position?.w || 2,
+    h: widget.position?.h || 2,
+    i: widget.id!,
+  }))
 })
 
 const handleWidgetClick = (widget: WidgetType) => {
@@ -50,6 +34,64 @@ const getWidgetComponent = (widget: WidgetType) => {
       return 'div'
     default:
       return 'div'
+  }
+}
+
+const handleMove = (i: string, newX: number, newY: number) => {
+  const widget = activeDashboardWidgets.value.find((w) => w.id === i)
+  if (widget) {
+    widgetStore.updateWidget(
+      dashboardStore.activeDashboard.id,
+      i,
+      {
+        position: {
+          ...widget.position,
+          x: newX,
+          y: newY,
+        },
+      },
+      { skipNetworkCall: true },
+    )
+  }
+}
+
+const handleMoved = (i: string, newX: number, newY: number) => {
+  const widget = activeDashboardWidgets.value.find((w) => w.id === i)
+  if (widget) {
+    widgetStore.updateWidgetPosition(dashboardStore.activeDashboard.id, i, {
+      ...widget.position,
+      x: newX,
+      y: newY,
+    })
+  }
+}
+
+const handleResize = (i: string, newH: number, newW: number) => {
+  const widget = activeDashboardWidgets.value.find((w) => w.id === i)
+  if (widget) {
+    widgetStore.updateWidget(
+      dashboardStore.activeDashboard.id,
+      i,
+      {
+        position: {
+          ...widget.position,
+          w: newW,
+          h: newH,
+        },
+      },
+      { skipNetworkCall: true },
+    )
+  }
+}
+
+const handleResized = (i: string, newH: number, newW: number) => {
+  const widget = activeDashboardWidgets.value.find((w) => w.id === i)
+  if (widget) {
+    widgetStore.updateWidgetPosition(dashboardStore.activeDashboard.id, i, {
+      ...widget.position,
+      w: newW,
+      h: newH,
+    })
   }
 }
 </script>
@@ -72,7 +114,19 @@ const getWidgetComponent = (widget: WidgetType) => {
       :vertical-compact="false"
       use-css-transforms
     >
-      <template #item="{ item }">
+      <GridItem
+        v-for="item in layout"
+        :key="item.i"
+        :x="item.x"
+        :y="item.y"
+        :w="item.w"
+        :h="item.h"
+        :i="item.i"
+        @move="(i, x, y) => handleMove(i, x, y)"
+        @moved="(i, x, y) => handleMoved(i, x, y)"
+        @resize="(i, h, w) => handleResize(i, h, w)"
+        @resized="(i, h, w) => handleResized(i, h, w)"
+      >
         <div
           class="widget-container h-full w-full"
           :class="{
@@ -92,13 +146,13 @@ const getWidgetComponent = (widget: WidgetType) => {
             :is-editing="isEditingDashboard"
           />
         </div>
-      </template>
+      </GridItem>
     </GridLayout>
     <div
       v-if="!activeDashboardWidgets.length && !isEditingDashboard"
       class="empty-state flex flex-col h-full items-center justify-center h-64 text-nc-content-gray-500"
     >
-      <img :src="PlaceholderImage" class="w-120 mb-4" />
+      <img :src="PlaceholderImage" class="w-120 mb-4" alt="Start building your dashboard" />
       <h3 class="text-lg font-medium mb-2">Get started with Dashboards</h3>
       <p class="text-sm text-center">Start building your dashboard by adding widgets from the widget bar.</p>
       <NcButton @click="dashboardStore.isEditingDashboard = true">Edit Dashboard</NcButton>

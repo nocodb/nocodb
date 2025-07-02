@@ -1,11 +1,12 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
+const { isUIAllowed } = useRoles()
 const { base, showBaseAccessRequestOverlay } = storeToRefs(useBase())
 
 const { updateProject } = useBases()
 
-const { navigateToPricing } = useEeConfig()
+const { isWsOwner, navigateToPricing } = useEeConfig()
 
 const handleConvertToSharedBase = async () => {
   try {
@@ -23,19 +24,35 @@ const handleConvertToSharedBase = async () => {
   <div v-if="showBaseAccessRequestOverlay" class="nc-smartsheet-access-request-overlay">
     <div class="nc-smartsheet-access-request-modal">
       <div class="flex flex-col gap-2 text-nc-content-gray-emphasis">
-        <h2 class="my-0 text-subHeading2">This Private Base has been locked.</h2>
-        <div class="text-body">To unlock, please upgrade to the Business plan or convert this Base to a Shared Base.</div>
+        <h2 class="my-0 text-subHeading2">{{ $t('title.thisPrivateBaseHasBeenLocked') }}</h2>
+        <div class="text-body">
+          {{ $t('title.thisPrivateBaseHasBeenLockedSubtext', { plan: PlanTitles.BUSINESS }) }}
+        </div>
       </div>
       <div class="flex flex-col gap-2">
         <NcButton
           type="primary"
           size="small"
           class="w-full"
-          @click="navigateToPricing({ limitOrFeature: PlanFeatureTypes.FEATURE_PRIVATE_BASES })"
+          @click="navigateToPricing({ limitOrFeature: PlanFeatureTypes.FEATURE_PRIVATE_BASES, ctaPlan: PlanTitles.BUSINESS })"
         >
-          Upgrade to Business
+          {{
+            isWsOwner
+              ? $t('labels.upgradeToPlan', {
+                  plan: PlanTitles.BUSINESS,
+                })
+              : $t('general.requestUpgrade')
+          }}
         </NcButton>
-        <NcButton type="text" size="small" class="w-full" @click="handleConvertToSharedBase">Convert to Shared Base</NcButton>
+        <NcButton
+          v-if="isUIAllowed('baseMiscSettings')"
+          type="text"
+          size="small"
+          class="w-full"
+          @click="handleConvertToSharedBase"
+        >
+          {{ $t('activity.convertToSharedBase') }}
+        </NcButton>
       </div>
     </div>
   </div>

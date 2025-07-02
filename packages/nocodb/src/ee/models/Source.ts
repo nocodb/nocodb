@@ -88,7 +88,7 @@ export default class Source extends SourceCE implements SourceType {
   }
 
   public async getConnectionConfig(): Promise<any> {
-    if (this.fk_workspace_id) {
+    if (this.isMeta() && this.fk_workspace_id) {
       const dbInstance = await getWorkspaceDbServer(this.fk_workspace_id);
       if (dbInstance) {
         return dbInstance.config;

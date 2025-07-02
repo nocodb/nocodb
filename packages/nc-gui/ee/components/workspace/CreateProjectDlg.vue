@@ -118,12 +118,12 @@ watch(aiMode, () => {
 const isOpenBaseAccessDropdown = ref(false)
 
 const baseAccessValue = computed({
-  get: () => `${formState.value.default_role === ProjectRoles.NO_ACCESS}`,
+  get: () => formState.value.default_role ?? '',
   set: (value) => {
     // If private base is selected and user don't have access to it then don't allow to select it
-    if (value === 'no-access' && showUpgradeToUsePrivateBases()) return
+    if (value === ProjectRoles.NO_ACCESS && showUpgradeToUsePrivateBases()) return
 
-    formState.value.default_role = value === 'no-access' ? ProjectRoles.NO_ACCESS : null
+    formState.value.default_role = value === ProjectRoles.NO_ACCESS ? ProjectRoles.NO_ACCESS : null
   },
 })
 
@@ -138,7 +138,7 @@ const baseAccessOptions = computed(
       },
       {
         label: t('general.private'),
-        value: 'no-access',
+        value: ProjectRoles.NO_ACCESS,
         icon: 'ncUser',
         subtext: t('title.baseAccessPrivateSubtext'),
       },

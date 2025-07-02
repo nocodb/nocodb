@@ -54,11 +54,14 @@ const exportFile = async (exportType: ExportTypes) => {
     if (isPublicView.value) {
       if (!selectedView.value.uuid) return
 
-      jobData = await $api.public.exportData(selectedView.value.uuid, exportType, {
+      // Pass the password in the params object
+      const params = {
         headers: {
           'xc-password': sharedViewPassword.value,
         },
-      })
+      }
+
+      jobData = await $api.public.exportData(selectedView.value.uuid, exportType, {}, params)
     } else {
       jobData = await $api.export.data(selectedView.value.id, exportType, {})
     }

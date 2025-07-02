@@ -67,8 +67,6 @@ export class PublicDataExportController {
       user: req.user,
       exportAs,
       ncSiteUrl: req.ncSiteUrl,
-      // Pass the password to the job so it can be used for authentication in the processor
-      password: req.headers?.['xc-password'] as string,
     });
 
     return {

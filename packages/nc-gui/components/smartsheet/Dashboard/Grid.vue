@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import type { WidgetType } from 'nocodb-sdk'
+import { ChartTypes, type ChartWidgetConfig, type WidgetType, WidgetTypes } from 'nocodb-sdk'
 import MetricWidget from './Widgets/Metrics/index.vue'
+import DonutChartWidget from './Widgets/DonutChart/index.vue'
+import PieChartWidget from './Widgets/PieChart/index.vue'
 import PlaceholderImage from '~/assets/img/dashboards/placeholder.svg'
 // Stores
 const dashboardStore = useDashboardStore()
@@ -27,10 +29,15 @@ const handleWidgetClick = (widget: WidgetType) => {
 
 const getWidgetComponent = (widget: WidgetType) => {
   switch (widget.type) {
-    case 'metric':
+    case WidgetTypes.METRIC:
       return MetricWidget
-    case 'chart':
-      // Will be implemented later for chart widgets
+    case WidgetTypes.CHART:
+      switch ((widget.config as ChartWidgetConfig).chartType) {
+        case ChartTypes.PIE:
+          return PieChartWidget
+        case ChartTypes.DONUT:
+          return DonutChartWidget
+      }
       return 'div'
     default:
       return 'div'
@@ -41,7 +48,7 @@ const handleMove = (i: string, newX: number, newY: number) => {
   const widget = activeDashboardWidgets.value.find((w) => w.id === i)
   if (widget) {
     widgetStore.updateWidget(
-      dashboardStore.activeDashboard.id,
+      dashboardStore.activeDashboardId,
       i,
       {
         position: {
@@ -58,7 +65,7 @@ const handleMove = (i: string, newX: number, newY: number) => {
 const handleMoved = (i: string, newX: number, newY: number) => {
   const widget = activeDashboardWidgets.value.find((w) => w.id === i)
   if (widget) {
-    widgetStore.updateWidgetPosition(dashboardStore.activeDashboard.id, i, {
+    widgetStore.updateWidgetPosition(dashboardStore.activeDashboardId, i, {
       ...widget.position,
       x: newX,
       y: newY,

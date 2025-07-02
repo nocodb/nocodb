@@ -1,4 +1,4 @@
-import { ChartWidgetConfig } from './chart';
+import { ChartTypes, ChartWidgetConfig } from './charts';
 
 export interface DashboardType {
   id?: string;
@@ -22,7 +22,19 @@ export enum WidgetTypes {
   IFRAME = 'iframe',
 }
 
-export enum WidgetSourceTypes {
+export const WidgetChartLabelMap = {
+  [ChartTypes.BAR]: 'Bar Chart',
+  [ChartTypes.LINE]: 'Line Chart',
+  [ChartTypes.PIE]: 'Pie Chart',
+  [ChartTypes.DONUT]: 'Donut Chart',
+  [ChartTypes.SCATTER]: 'Scatter Plot',
+  [WidgetTypes.TABLE]: 'Table',
+  [WidgetTypes.METRIC]: 'Metric',
+  [WidgetTypes.TEXT]: 'Text',
+  [WidgetTypes.IFRAME]: 'IFrame',
+};
+
+export enum WidgetDataSourceTypes {
   VIEW = 'view',
   MODEL = 'model',
   FILTER = 'filter',
@@ -159,5 +171,4 @@ export interface IWidget {
   updated_at?: string;
 }
 
-export * from './validation';
-export * from './chart';
+export * from './charts';

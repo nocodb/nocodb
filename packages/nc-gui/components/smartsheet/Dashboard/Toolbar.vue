@@ -25,17 +25,6 @@ const getDefaultConfig = (widgetType: WidgetTypes, type?: ChartTypes) => {
           type: 'model',
           fk_model_id: '',
         },
-        xAxis: {
-          column_id: '',
-          label: 'X Axis',
-        },
-        yAxis: [
-          {
-            column_id: '',
-            aggregation: 'count',
-            label: 'Y Axis',
-          },
-        ],
       }
     case WidgetTypes.TEXT:
       return {
@@ -82,12 +71,12 @@ const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SC
 
 <template>
   <div class="dashboard-toolbar bg-white border-b-1 border-nc-border-gray-medium h-12 p-2 gap-2 flex">
-    <NcButton size="small" type="text" @click="addTextWidget">
+    <!--    <NcButton size="small" type="text" @click="addTextWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="cellText" class="w-5 h-5" />
         Text
       </div>
-    </NcButton>
+    </NcButton> -->
     <NcButton size="small" type="text" @click="addNumberWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <div class="text-nc-content-gray font-bold leading-3.5 px-2 py-1 border-1 border-nc-border-gray-medium rounded-md">
@@ -96,7 +85,7 @@ const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SC
         Number
       </div>
     </NcButton>
-    <NcButton size="small" type="text" @click="addBarChartWidget">
+    <!--    <NcButton size="small" type="text" @click="addBarChartWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="ncChartBar" class="w-5 h-5" />
         Bar Chart
@@ -107,7 +96,7 @@ const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SC
         <GeneralIcon icon="ncChartLine" class="w-5 h-5" />
         Line Chart
       </div>
-    </NcButton>
+    </NcButton> -->
     <NcButton size="small" type="text" @click="addPieChartWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="ncChartPie" class="w-5 h-5" />
@@ -120,12 +109,12 @@ const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SC
         Donut
       </div>
     </NcButton>
-    <NcButton size="small" type="text" @click="addScatterPlotWidget">
+    <!--    <NcButton size="small" type="text" @click="addScatterPlotWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="ncChartScatterPlot" class="w-5 h-5" />
         Scatter Plot
       </div>
-    </NcButton>
+    </NcButton> -->
   </div>
 </template>
 

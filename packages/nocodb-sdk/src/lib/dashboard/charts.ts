@@ -1,4 +1,4 @@
-import { WidgetDataSource, WidgetTypes } from '~/lib';
+import { WidgetDataSource } from './';
 
 export enum ChartTypes {
   BAR = 'bar',
@@ -7,18 +7,6 @@ export enum ChartTypes {
   DONUT = 'donut',
   SCATTER = 'scatter',
 }
-
-export const WidgetChartLabelMap = {
-  [ChartTypes.BAR]: 'Bar Chart',
-  [ChartTypes.LINE]: 'Line Chart',
-  [ChartTypes.PIE]: 'Pie Chart',
-  [ChartTypes.DONUT]: 'Donut Chart',
-  [ChartTypes.SCATTER]: 'Scatter Plot',
-  [WidgetTypes.TABLE]: 'Table',
-  [WidgetTypes.METRIC]: 'Metric',
-  [WidgetTypes.TEXT]: 'Text',
-  [WidgetTypes.IFRAME]: 'IFrame',
-};
 
 interface BaseChartConfig {
   chartType: ChartTypes;
@@ -72,7 +60,7 @@ export interface DonutChartConfig extends BaseChartConfig {
   chartType: ChartTypes.DONUT;
   dataSource?: WidgetDataSource;
   data: PieChartDataConfig;
-  appearance: PieChartAppearance;
+  appearance: PieChartAppearanceConfig;
   permissions: PieChatPermissionConfig;
 }
 

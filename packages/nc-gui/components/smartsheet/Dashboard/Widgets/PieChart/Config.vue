@@ -39,6 +39,16 @@ const handleConfigUpdate = async (type: string, updates: any) => {
         },
       },
     })
+  } else if (type === 'permission') {
+    await updateWidget(activeDashboardId.value, selectedWidget.value?.id, {
+      config: {
+        ...selectedWidget.value?.config,
+        permission: {
+          ...selectedWidget.value?.config?.permission,
+          ...updates,
+        },
+      },
+    })
   }
 }
 </script>
@@ -48,9 +58,10 @@ const handleConfigUpdate = async (type: string, updates: any) => {
     <template #data>
       <SmartsheetDashboardWidgetsCommonDataText @update:widget="handleConfigUpdate('text', $event)" />
       <SmartsheetDashboardWidgetsCommonDataSource @update:source="handleConfigUpdate('dataSource', $event)" />
-      <GroupedSettings title="Display">
+      <GroupedSettings title="Data">
         <SmartsheetDashboardWidgetsCommonDataAggregation @update:aggregation="handleConfigUpdate('metric', $event)" />
       </GroupedSettings>
+      <SmartsheetDashboardWidgetsCommonDataPermission @update:permission="handleConfigUpdate('permission', $event)" />
     </template>
     <template #appearance> </template>
   </SmartsheetDashboardWidgetsCommonConfig>

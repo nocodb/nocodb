@@ -100,6 +100,9 @@ export class BasesV3Service {
       'swagger-v3.json#/components/schemas/BaseUpdate',
       param.base,
       true,
+      {
+        api_version: NcApiVersion.V3,
+      } as any,
     );
     const meta = param.base.meta as unknown as Record<string, unknown>;
 
@@ -108,7 +111,10 @@ export class BasesV3Service {
       meta.icon_color = undefined;
     }
 
-    await this.basesService.baseUpdate(context, param);
+    await this.basesService.baseUpdate(context, {
+      ...param,
+      apiVersion: NcApiVersion.V3,
+    });
     return this.getProjectWithInfo(context, { baseId: param.baseId });
   }
 

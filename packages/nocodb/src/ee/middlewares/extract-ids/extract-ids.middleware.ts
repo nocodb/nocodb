@@ -10,6 +10,7 @@ import {
   extractRolesObj,
   NcApiVersion,
   OrgUserRoles,
+  PlanFeatureTypes,
   ProjectRoles,
   SourceRestriction,
   ViewLockType,
@@ -59,6 +60,7 @@ import SSOClient from '~/models/SSOClient';
 import {
   checkIfEmailAllowedNonSSO,
   checkIfWorkspaceSSOAvail,
+  getFeature,
 } from '~/helpers/paymentHelpers';
 import MCPToken from '~/models/MCPToken';
 
@@ -814,6 +816,23 @@ export class AclMiddleware implements NestInterceptor {
       //     Object.keys(roles).filter((k) => roles[k]),
       //   )} : Not allowed`,
       // );
+    }
+
+    // if base scope and current base is private check if user have active plan
+    // if not then block access to non-base related write operations
+    if (
+      scope === 'base' &&
+      req.ncBaseId &&
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_PRIVATE_BASES,
+        req.ncWorkspaceId,
+      )) &&
+      !['baseUpdate', 'baseDelete'].includes(permissionName) &&
+      ['POST', 'DELETE', 'PUT', 'PATCH'].includes(req.method)
+    ) {
+      NcError.forbidden(
+        `Please upgrade your plan to access private bases or make the base to default`,
+      );
     }
 
     // check if permission have source level permission restriction

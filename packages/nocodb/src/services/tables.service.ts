@@ -537,8 +537,12 @@ export class TablesService {
     if (!param.table.title && param.table.table_name) {
       param.table.title = param.table.table_name;
     }
-
-    validatePayload('swagger.json#/components/schemas/TableReq', param.table);
+    validatePayload(
+      'swagger.json#/components/schemas/TableReq',
+      param.table,
+      false,
+      context,
+    );
 
     const tableCreatePayLoad: Omit<TableReqType, 'columns'> & {
       columns: (ColumnType & { cn?: string })[];
@@ -679,7 +683,9 @@ export class TablesService {
     }
 
     if (!tableCreatePayLoad.title) {
-      NcError.badRequest('Missing table `title` property in request body');
+      NcError.get(context).invalidRequestBody(
+        'Missing table `title` property in request body',
+      );
     }
 
     if (!tableCreatePayLoad.table_name) {
@@ -693,7 +699,7 @@ export class TablesService {
         source_id: source.id,
       }))
     ) {
-      NcError.badRequest('Duplicate table alias');
+      NcError.get(context).invalidRequestBody('Duplicate table alias');
     }
 
     if (source.type === 'databricks') {
@@ -714,14 +720,14 @@ export class TablesService {
 
     // validate table name
     if (/^\s+|\s+$/.test(tableCreatePayLoad.table_name)) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         'Leading or trailing whitespace not allowed in table names',
       );
     }
     const specialCharRegex = /[./\\]/g;
     if (specialCharRegex.test(param.table.table_name)) {
       const match = param.table.table_name.match(specialCharRegex);
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         'Following characters are not allowed ' +
           match.map((m) => JSON.stringify(m)).join(', '),
       );
@@ -742,7 +748,7 @@ export class TablesService {
         source_id: source.id,
       }))
     ) {
-      NcError.badRequest('Duplicate table name');
+      NcError.get(context).invalidRequestBody('Duplicate table name');
     }
 
     if (!tableCreatePayLoad.title) {
@@ -766,7 +772,7 @@ export class TablesService {
     }
 
     if (tableCreatePayLoad.table_name.length > tableNameLengthLimit) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `Table name exceeds ${tableNameLengthLimit} characters`,
       );
     }
@@ -812,7 +818,7 @@ export class TablesService {
       }
 
       if (column.title && column.title.length > 255) {
-        NcError.badRequest(
+        NcError.get(context).invalidRequestBody(
           `Column title ${column.title} exceeds 255 characters`,
         );
       }

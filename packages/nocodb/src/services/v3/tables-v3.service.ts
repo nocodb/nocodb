@@ -151,6 +151,7 @@ export class TablesV3Service {
       'swagger-v3.json#/components/schemas/TableCreate',
       param.table,
       true,
+      context,
     );
 
     const tableCreateReq: any = param.table;

@@ -121,4 +121,9 @@ export class NcErrorV1 extends NcErrorBase {
   zodError(param: { message: string; errors: ZodError | ZodError[] }): never {
     throw new NcZodError(param);
   }
+
+  override invalidRequestBody(message: string): never {
+    // backward compatibility for v1 and v2 apis
+    return this.badRequest(message);
+  }
 }

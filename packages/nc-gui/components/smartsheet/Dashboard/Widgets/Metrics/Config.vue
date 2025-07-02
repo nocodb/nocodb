@@ -21,13 +21,8 @@ watchEffect(() => {})
       <SmartsheetDashboardWidgetsCommonDataText />
       <SmartsheetDashboardWidgetsCommonDataSource />
       <GroupedSettings title="Display">
-        <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <label>Label</label>
-        </div>
+        <SmartsheetDashboardWidgetsCommonDataAggregation />
       </GroupedSettings>
-    </template>
-    <template #appearance>
-      <SmartsheetDashboardWidgetsCommonDataText />
     </template>
   </SmartsheetDashboardWidgetsCommonConfig>
 </template>

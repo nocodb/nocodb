@@ -1145,6 +1145,9 @@ export default class Model implements TableType {
       (sortAgg, c) => ({ ...sortAgg, [c.id]: c }),
       {},
     );
+
+    // 2nd reduce start by using idReduce props
+    // if title is same as column id, even if it's a different column, it'll take priority over id
     return mapColumns.reduce(
       (sortAgg, c) => ({ ...sortAgg, [c.title]: c }),
       idReduce,

@@ -81,7 +81,7 @@ export default class Hook implements HookType {
         MetaTable.HOOKS,
         hookId,
       );
-      if (hook) {
+      if (hookId && hook) {
         const hookTriggerFields = await ncMeta.metaList2(
           hook.fk_workspace_id,
           hook.base_id,

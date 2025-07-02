@@ -43,6 +43,7 @@ const disableTooltip = computed(() => {
     }"
     :title="aiMode ? onTooltip : offTooltip"
     :disabled="disableTooltip"
+    hide-on-click
   >
     <NcButton
       type="text"

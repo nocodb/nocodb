@@ -10,11 +10,9 @@ let editor: monaco.editor.IStandaloneCodeEditor
 
 const { activeAutomation, activeBaseSchema } = storeToRefs(useAutomationStore())
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const { appInfo } = useGlobal()
 
-const isAIFeatureEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_FEATURES))
+const { isAiFeaturesEnabled } = useNocoAi()
 
 const { libCode, code, config, configValue, isSettingsOpen, shouldShowSettings, isCreateEditScriptAllowed } =
   useScriptStoreOrThrow()
@@ -81,7 +79,7 @@ async function setupMonacoEditor() {
     renderLineHighlight: 'none',
   })
 
-  if (isAIFeatureEnabled.value) {
+  if (isAiFeaturesEnabled.value) {
     registerCompletion(monaco, editor, {
       language: 'typescript',
       endpoint: appInfo.value?.ncSiteUrl,

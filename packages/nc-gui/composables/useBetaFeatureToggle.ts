@@ -54,6 +54,15 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'ai_beta_features',
+    title: 'AI beta features',
+    description: 'Unlock AI beta features to enhance your NocoDB experience.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
     id: 'nocodb_scripts',
     title: 'NocoDB Scripts',
     description: 'Enable NocoDB Scripts to automate repetitive workflow',

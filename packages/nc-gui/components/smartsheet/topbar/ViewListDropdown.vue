@@ -19,7 +19,7 @@ const { activeView, views } = storeToRefs(viewsStore)
 
 const { navigateToView, onOpenViewCreateModal } = viewsStore
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { isAiFeaturesEnabled } = useNocoAi()
 
 const isOpen = ref<boolean>(false)
 
@@ -239,7 +239,7 @@ async function onOpenModal({
                   </div>
                 </a-menu-item>
 
-                <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+                <template v-if="isAiFeaturesEnabled">
                   <NcDivider />
                   <NcTooltip :title="`Auto suggest views for ${activeTable?.title || 'the current table'}`" placement="right">
                     <a-menu-item data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">

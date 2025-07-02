@@ -50,7 +50,7 @@ const {
   defaultFormState,
 } = useColumnCreateStoreOrThrow()
 
-const { aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
+const { isAiFeaturesEnabled, isAiBetaFeaturesEnabled, aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
 
 const {
   aiMode: aiAutoSuggestMode,
@@ -185,7 +185,7 @@ const uiFilters = (t: UiTypesType) => {
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
-  const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isFeatureEnabled(FEATURE_FLAG.AI_FEATURES) && !isEdit.value : true
+  const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isAiBetaFeaturesEnabled.value && !isEdit.value : true
   const isAllowToAddInFormView = isForm.value ? !formViewHiddenColTypes.includes(t.name) : true
 
   const showLTAR =
@@ -712,7 +712,7 @@ watch(activeAiTab, (newValue) => {
             <div class="flex-1 text-base font-bold text-nc-content-gray">{{ $t('general.new') }} {{ $t('objects.field') }}</div>
 
             <AiToggleButton
-              v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)"
+              v-if="isAiFeaturesEnabled"
               :ai-mode="aiAutoSuggestMode"
               :ai-loading="aiLoading"
               :off-tooltip="`Auto suggest fields for ${meta?.title || 'the current table'}`"

@@ -28,7 +28,7 @@ function update_workspace(){
         then
             echo "skip updating service : ${SVC}" 
         else
-            DEPLOY_OUT=$(aws ecs update-service --cluster ${CLUSTER} --service ${SVC} --force-new-deployment --region=us-east-2 )
+            DEPLOY_OUT=$(aws ecs update-service --cluster ${CLUSTER} --service ${SVC} --force-new-deployment --region us-east-2 )
             echo "updated service : ${SVC}"
         fi
     done
@@ -84,7 +84,7 @@ function checkStatus(){
 function prewarm_asg(){
     if [[ ! "${ASG_NAME}" ]]; then echo "ASG_NAME variables must be set for pre-warming"; log_and_exit  ; fi
     # Get the current desired count
-    prev_count=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_NAME} --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
+    prev_count=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_NAME} --region us-east-2 --query 'AutoScalingGroups[0].DesiredCapacity' --output text)
 
     # Double the current count
     new_count=$((prev_count * 2))
@@ -92,12 +92,12 @@ function prewarm_asg(){
     echo "${ENVIRONMENT}: prewarming initiating. previous_count: ${prev_count} new_count: ${new_count} "
 
     # Update the desired count to be double
-    aws autoscaling set-desired-capacity --auto-scaling-group-name ${ASG_NAME} --desired-capacity $new_count
+    aws autoscaling set-desired-capacity --auto-scaling-group-name ${ASG_NAME} --region us-east-2 --desired-capacity $new_count
 
     # Wait for the new instances to launch with doubled count
     timeout=10
     while [[ $timeout -gt 0 ]]; do
-        current_count=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_NAME} --query 'AutoScalingGroups[0].Instances[?LifecycleState==`InService`].InstanceId' --output text | wc -w)
+        current_count=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_NAME} --region us-east-2 --query 'AutoScalingGroups[0].Instances[?LifecycleState==`InService`].InstanceId' --output text | wc -w)
         
         if [[ $current_count -eq $new_count ]]; then
             break
@@ -110,31 +110,150 @@ function prewarm_asg(){
     message "${ENVIRONMENT}: prewarming completed successfully. previous_count: ${prev_count} new_count: ${new_count} "
 }
 
+function wait_for_new_tasks(){
+    local service_name=${1}
+    local protected_tasks=${2}
+    local min_new_tasks=${3:-1}  # Optional: minimum new tasks required (default: 1)
+    local retry_count=0
+    local max_retries=30
+    
+    echo "Waiting for ${min_new_tasks} new tasks to start (different from protected tasks)..." >&2
+    
+    while [[ ${retry_count} -lt ${max_retries} ]]; do
+        # Get all current running tasks for the service
+        local all_current_tasks=$(aws ecs list-tasks --cluster ${CLUSTER} --service-name ${service_name} --region us-east-2 --query 'taskArns[]' --output text 2>/dev/null)
+        
+        if [[ ! -z "${all_current_tasks}" ]]; then
+            # Check if we have any new tasks (not in protected list)
+            local new_tasks=""
+            for task in ${all_current_tasks}; do
+                if [[ ! "${protected_tasks}" =~ "${task}" ]]; then
+                    new_tasks="${new_tasks} ${task}"
+                fi
+            done
+            
+            if [[ ! -z "${new_tasks}" ]]; then
+                # Check if new tasks are in RUNNING state
+                local running_new_tasks=$(aws ecs describe-tasks --cluster ${CLUSTER} --tasks ${new_tasks} --region us-east-2 --query 'tasks[?lastStatus==`RUNNING`].taskArn' --output text 2>/dev/null)
+                
+                if [[ ! -z "${running_new_tasks}" ]]; then
+                    # Count the number of running new tasks
+                    local running_count=$(echo "${running_new_tasks}" | wc -w)
+                    echo "Found ${running_count} new running tasks: ${running_new_tasks}" >&2
+                    
+                    if [[ ${running_count} -ge ${min_new_tasks} ]]; then
+                        echo "Minimum task requirement met (${running_count} >= ${min_new_tasks})" >&2
+                        return 0
+                    else
+                        echo "Waiting for more tasks... (${running_count}/${min_new_tasks})" >&2
+                    fi
+                fi
+            fi
+        fi
+        
+        retry_count=$((retry_count+1))
+        echo "Waiting for new tasks to be running... Retry ${retry_count}/${max_retries}" >&2
+        sleep 30
+    done
+    
+    echo "Warning: Timeout waiting for new worker tasks to start. Proceeding anyway..." >&2
+    message "${ENVIRONMENT}: Warning - Timeout waiting for new worker tasks for ${service_name}"
+    return 1
+}
 
-# calls api to perform pause and exit the worker pods. the worker pods will pause and wait till any inflight jobs which are in progress
-# once the instance exits, ecs takes care of adding new instance with new image 
-function pause_workers_and_gracefully_shutdown(){
-    echo "pause_workers_and_gracefully_shutdown: Expected varibles to be set CLUSTER=${CLUSTER} WORKERS_SERVICE_NAME=${WORKERS_SERVICE_NAME} HOST_NAME=${HOST_NAME} API_CREDENTIALS=$([[ ! -z "$API_CREDENTIALS" ]] && echo "***value-set***" || echo "Empty")"
+function zero_downtime_worker_deployment(){
+    echo "zero_downtime_worker_deployment: Expected variables to be set CLUSTER=${CLUSTER} WORKERS_SERVICE_NAME=${WORKERS_SERVICE_NAME} HOST_NAME=${HOST_NAME} API_CREDENTIALS=$([[ ! -z "$API_CREDENTIALS" ]] && echo "***value-set***" || echo "Empty")"
 
-    if [[ ! "${CLUSTER}" || ! "${WORKERS_SERVICE_NAME}" || ! "${HOST_NAME}" || ! "${API_CREDENTIALS}" ]]; then log_and_exit "CLUSTER=${CLUSTER} WORKERS_SERVICE_NAME=${WORKERS_SERVICE_NAME} HOST_NAME=${HOST_NAME} API_CREDENTIALS variables must be set" ; fi
-    # 0. fetch capacity details
-    # Replace these placeholders with your values
-    # CURRENT_DESIRED_COUNT=$(aws ecs describe-services --cluster $CLUSTER --services $WORKERS_SERVICE_NAME --query 'services[0].desiredCount' --output text)
-    # NEW_DESIRED_COUNT=$((CURRENT_DESIRED_COUNT + 1 ))
+    if [[ ! "${CLUSTER}" || ! "${WORKERS_SERVICE_NAME}" || ! "${HOST_NAME}" || ! "${API_CREDENTIALS}" ]]; then 
+        echo "WORKERS_SERVICE_NAME not set, skipping worker deployment"
+        return 0
+    fi
+
     HOST_NAME=${HOST_NAME:-https://staging.noco.ws}
+    
+    # Generate a unique worker group ID for new workers
+    WORKER_GROUP_ID="deploy-$(date +%s)-$(openssl rand -hex 4)"
+    
+    message "${ENVIRONMENT}: Starting zero-downtime worker deployment with group ID: ${WORKER_GROUP_ID}"
 
-    # 1. trigger pause and exit 
-    curl -u ${API_CREDENTIALS} ${HOST_NAME}/internal/workers/pause-and-exit -XPOST || exit 1
+    # 1. Get current worker tasks and enable task protection
+    echo "Getting current worker tasks for service: ${WORKERS_SERVICE_NAME}"
+    
+    # Get current task ARNs for the worker service
+    CURRENT_TASKS=$(aws ecs list-tasks --cluster ${CLUSTER} --service-name ${WORKERS_SERVICE_NAME} --region us-east-2 --query 'taskArns[]' --output text 2>/dev/null)
+    
+    if [[ ! -z "${CURRENT_TASKS}" ]]; then
+        echo "Found current worker tasks: ${CURRENT_TASKS}"
+        
+        # Enable task protection to prevent termination during force deployment
+        echo "Enabling task protection for current worker tasks"
+        aws ecs update-task-protection \
+            --cluster ${CLUSTER} \
+            --tasks ${CURRENT_TASKS} \
+            --protection-enabled \
+            --expires-in-minutes 300 \
+            --region us-east-2 || {
+                echo "Warning: Failed to enable task protection. Proceeding without protection."
+            }
+        
+        message "${ENVIRONMENT}: Current workers are running with task protection enabled, proceeding with zero-downtime deployment"
+        PROTECTED_TASKS="${CURRENT_TASKS}"
+    else
+        echo "No current tasks found for worker service"
+        message "${ENVIRONMENT}: No current workers found, proceeding with standard deployment"
+        PROTECTED_TASKS=""
+    fi
+    
+    # 2. Trigger force deployment for workers
+    echo "Triggering force deployment for worker service: ${WORKERS_SERVICE_NAME}"
+    aws ecs update-service --cluster ${CLUSTER} --service ${WORKERS_SERVICE_NAME} --force-new-deployment --region us-east-2
+    
+    # 3. Wait for new instances to come up and be healthy (different from protected tasks)
+    echo "Waiting for new worker instances to be running..."
+    
+    # Count the number of protected tasks to ensure we have the same capacity
+    if [[ ! -z "${CURRENT_TASKS}" ]]; then
+        PROTECTED_TASK_COUNT=$(echo ${CURRENT_TASKS} | wc -w)
+        echo "Protected tasks count: ${PROTECTED_TASK_COUNT}. Waiting for same number of new tasks..."
+    else
+        PROTECTED_TASK_COUNT=1
+        echo "No protected tasks found. Waiting for at least 1 new task..."
+    fi
+    
+    wait_for_new_tasks "${WORKERS_SERVICE_NAME}" "${CURRENT_TASKS}" ${PROTECTED_TASK_COUNT}
+    NEW_TASKS_STARTED=$?
+    
+    # 4. Add worker group ID to new workers
+    echo "Assigning worker group ID to new workers: ${WORKER_GROUP_ID}"
+    curl -u ${API_CREDENTIALS} ${HOST_NAME}/internal/workers/assign-worker-group -XPOST \
+        -H "Content-Type: application/json" \
+        -d "{\"workerGroupId\":\"${WORKER_GROUP_ID}\"}" || {
+            message "${ENVIRONMENT}: Failed to assign worker group ID"
+            return 1
+        }
+    
+    # 5. Wait for id to propagate to new workers
+    echo "Waiting 10 seconds for new workers to be fully ready..."
+    sleep 10
+    
 
-    # 2. update desired to double 
-    # Update the service with the new desired count
-    # aws ecs update-service --cluster $CLUSTER --service $WORKERS_SERVICE_NAME --desired-count $NEW_DESIRED_COUNT
-    message "${ENVIRONMENT}: workers pod rollout triggered"
+    # 6. Stop other worker groups (old workers) - only if new tasks started
+    if [ $NEW_TASKS_STARTED -eq 0 ]; then
+      echo "Stopping old worker groups (preserving group: ${WORKER_GROUP_ID})"
+      curl -u ${API_CREDENTIALS} ${HOST_NAME}/internal/workers/stop-other-worker-groups -XPOST \
+          -H "Content-Type: application/json" \
+          -d "{\"workerGroupId\":\"${WORKER_GROUP_ID}\"}" || {
+              message "${ENVIRONMENT}: Failed to stop other worker groups"
+              return 1
+          }
+    fi
+  
+    message "${ENVIRONMENT}: Zero-downtime worker deployment completed successfully with group ID: ${WORKER_GROUP_ID}"
 }
 
 function perform_rollout(){
     PROMOTE_IMAGE_BEFORE_ROLLOUT=${1:-false}
-    PAUSE_AND_SHUTDOWN_WORKERS=${2:-false}
+
     if [[ ! "${ENVIRONMENT}" || ! "${CLUSTER}" ]]; then echo "CLUSTER and ENVIRONMENT variables must be set for check status"; log_and_exit  ; fi
 
     global_retry_count=0
@@ -150,14 +269,12 @@ function perform_rollout(){
     latest_remote_digest=$(aws ecr batch-get-image --region us-east-2 --repository-name ${REPO_NAME:-nocohub} --image-ids imageTag=${STAGE_TAG} --output text --query images[].imageId )
     message "${ENVIRONMENT}: Image with tag:${STAGE_TAG} will be launched. digest: ${latest_remote_digest}"
 
-    # if [[ "${PAUSE_AND_SHUTDOWN_WORKERS}" == "true" ]]
-    # then
-    #     pause_workers_and_gracefully_shutdown
-    # fi
-
     # TODO: prewarm ASG to have additional instances. update only desired 
-    ALL_SVS=$( aws ecs list-services --cluster ${CLUSTER}  --region=us-east-2  | jq -r '.serviceArns[] | split("/") | .[2]')
+    ALL_SVS=$( aws ecs list-services --cluster ${CLUSTER} --region us-east-2 | jq -r '.serviceArns[] | split("/") | .[2]')
     update_workspace 
     check_status_all_workspaces 
     message "${ENVIRONMENT}: deployment executed successfully."
+
+    zero_downtime_worker_deployment
+    message "${ENVIRONMENT}: zero downtime worker deployment executed successfully."
 }

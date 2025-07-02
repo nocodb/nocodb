@@ -24,5 +24,3 @@ ASG_NAME=nocohub-noco_to_main
 # prewarm_asg
 # function call in rollout_util.sh file
 perform_rollout false
-
-pause_workers_and_gracefully_shutdown

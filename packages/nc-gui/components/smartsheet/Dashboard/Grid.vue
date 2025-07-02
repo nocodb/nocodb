@@ -57,7 +57,11 @@ const getWidgetComponent = (widget: WidgetType) => {
 </script>
 
 <template>
-  <div class="bg-white w-full overflow-y-scroll h-full rounded-lg p-4" style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.12)">
+  <div
+    class="bg-white w-full overflow-y-scroll h-full rounded-lg p-4"
+    style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.12)"
+    @click="selectedWidget = null"
+  >
     <GridLayout
       v-model:layout="layout"
       :col-num="4"
@@ -74,7 +78,7 @@ const getWidgetComponent = (widget: WidgetType) => {
             'cursor-pointer': isEditingDashboard,
             'selected': selectedWidget?.id === item.i,
           }"
-          @click="
+          @click.stop="
             () => {
               const widget = activeDashboardWidgets.find((w) => w.id === item.i)
               if (widget) handleWidgetClick(widget)

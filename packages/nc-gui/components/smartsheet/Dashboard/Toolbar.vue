@@ -8,50 +8,57 @@ const { activeDashboard } = storeToRefs(dashboardStore)
 
 const getDefaultConfig = (widgetType: WidgetTypes, type?: ChartTypes) => {
   switch (widgetType) {
-    case 'metric':
+    case WidgetTypes.METRIC:
       return {
-        component: {
-          title: 'Number Widget',
-          description: '',
+        dataSource: {
+          type: 'model',
+          fk_model_id: '',
         },
-        appearance: {
-          fontSize: 'large',
-          textColor: '',
-          backgroundColor: '',
-        },
-        source: {
-          tableId: '',
-          viewId: '',
-          type: 'all_records',
+        metric: {
           aggregation: 'count',
-          columnId: '',
-          filters: [],
         },
       }
-    default:
+    case WidgetTypes.CHART:
       return {
         chartType: type,
-        component: {
-          title: 'Chart Widget',
-          description: '',
+        dataSource: {
+          type: 'model',
+          fk_model_id: '',
         },
-        source: {
-          tableId: '',
-          viewId: '',
-          type: 'all_records',
-          aggregation: 'count',
-          columnId: '',
-          filters: [],
+        xAxis: {
+          column_id: '',
+          label: 'X Axis',
         },
+        yAxis: [
+          {
+            column_id: '',
+            aggregation: 'count',
+            label: 'Y Axis',
+          },
+        ],
       }
+    case WidgetTypes.TEXT:
+      return {
+        content: 'Enter your text here...',
+        format: 'plain',
+      }
+    default:
+      return {}
   }
 }
 
 const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
   if (!activeDashboard.value?.id) return
 
+  const getWidgetTitle = (widgetType: WidgetTypes, chartType?: ChartTypes) => {
+    if (widgetType === WidgetTypes.CHART && chartType) {
+      return `${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart`
+    }
+    return `${widgetType.charAt(0).toUpperCase() + widgetType.slice(1)}`
+  }
+
   const newWidget: Partial<WidgetType> = {
-    title: `${type} Widget`,
+    title: getWidgetTitle(widgetType, type),
     type: widgetType,
     position: {
       x: 0,

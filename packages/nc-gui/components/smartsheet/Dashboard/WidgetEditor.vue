@@ -1,23 +1,8 @@
 <script setup lang="ts">
 import MetricsWidgetConfig from './Widgets/Metrics/Config.vue'
 const widgetStore = useWidgetStore()
-const dashboardStore = useDashboardStore()
 const { selectedWidget } = storeToRefs(widgetStore)
-const { activeDashboard } = storeToRefs(dashboardStore)
 
-// Handle config updates
-const handleConfigUpdate = async (config: any) => {
-  if (selectedWidget.value && activeDashboard.value?.id) {
-    await widgetStore.updateWidget(activeDashboard.value.id, selectedWidget.value.id!, { config })
-  }
-}
-
-// Close editor
-const closeEditor = () => {
-  selectedWidget.value = null
-}
-
-// Get config component based on widget type
 const getConfigComponent = () => {
   if (!selectedWidget.value) return null
 
@@ -25,7 +10,6 @@ const getConfigComponent = () => {
     case 'metric':
       return MetricsWidgetConfig
     case 'chart':
-      // Will be implemented later for chart widgets
       return null
     default:
       return null
@@ -38,7 +22,7 @@ const getConfigComponent = () => {
     v-if="selectedWidget"
     class="widget-editor-panel w-80 bg-white border-l border-nc-content-gray-300 h-full overflow-hidden flex flex-col"
   >
-    <component :is="getConfigComponent()" :widget="selectedWidget" @update:config="handleConfigUpdate" />
+    <component :is="getConfigComponent()" :widget="selectedWidget" />
   </div>
 </template>
 

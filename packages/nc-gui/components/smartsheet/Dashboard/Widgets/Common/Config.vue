@@ -11,8 +11,15 @@ const chartLabel = computed(() => {
   return WidgetChartLabelMap[selectedWidget.value?.type as WidgetTypes]
 })
 
+const { updateWidget } = useWidgetStore()
+const { activeDashboard } = storeToRefs(useDashboardStore())
+
 const handleConfigUpdate = async (config: any) => {
-  console.log('handleConfigUpdate', config)
+  if (selectedWidget.value && activeDashboard.value?.id) {
+    await updateWidget(activeDashboard.value.id, selectedWidget.value.id, {
+      config: { ...selectedWidget.value.config, ...config },
+    })
+  }
 }
 </script>
 

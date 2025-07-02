@@ -83,11 +83,10 @@ export interface TableWidgetConfig {
 export interface MetricWidgetConfig {
   dataSource?: WidgetDataSource;
   metric: {
+    type: 'count' | 'summary';
     column_id?: string;
     aggregation: 'sum' | 'avg' | 'count' | 'min' | 'max';
-    label?: string;
   };
-  filters?: any[];
 }
 
 export interface TextWidgetConfig {

@@ -5,8 +5,6 @@ const { isEditingDashboard } = storeToRefs(useDashboardStore())
 <template>
   <div v-if="isEditingDashboard" class="flex gap-2 items-center justify-center">
     <NcButton type="secondary" size="small" @click="isEditingDashboard = false"> Cancel </NcButton>
-
-    <NcButton type="secondary" class="!text-nc-content-brand" size="small"> Save changes </NcButton>
   </div>
 
   <div v-else class="flex gap-2 items-center justify-center">

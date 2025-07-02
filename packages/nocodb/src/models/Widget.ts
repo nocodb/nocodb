@@ -86,13 +86,14 @@ export default class Widget implements IWidget {
       for (let widget of widgetsList) {
         widget = prepareForResponse(widget, ['config', 'meta', 'position']);
       }
+      widgetsList.sort(
+        (a, b) =>
+          (a.order != null ? a.order : Infinity) -
+          (b.order != null ? b.order : Infinity),
+      );
       await NocoCache.setList(CacheScope.WIDGET, [dashboardId], widgetsList);
     }
-    widgetsList.sort(
-      (a, b) =>
-        (a.order != null ? a.order : Infinity) -
-        (b.order != null ? b.order : Infinity),
-    );
+
     return widgetsList?.map((w) => new Widget(w));
   }
 
@@ -118,18 +119,18 @@ export default class Widget implements IWidget {
 
     insertObj = prepareForDb(insertObj, ['config', 'meta', 'position']);
 
-    const { id } = await ncMeta.metaInsert2(
+    const insertRes = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
       MetaTable.WIDGETS,
       insertObj,
     );
 
-    return Widget.get(context, id, ncMeta).then(async (widget) => {
+    return Widget.get(context, insertRes.id, ncMeta).then(async (widget) => {
       await NocoCache.appendToList(
         CacheScope.WIDGET,
         [widget.fk_dashboard_id],
-        `${CacheScope.WIDGET}:${id}`,
+        `${CacheScope.WIDGET}:${insertRes.id}`,
       );
       return widget;
     });
@@ -162,7 +163,10 @@ export default class Widget implements IWidget {
       widgetId,
     );
 
-    await NocoCache.update(`${CacheScope.WIDGET}:${widgetId}`, updateObj);
+    await NocoCache.update(
+      `${CacheScope.WIDGET}:${widgetId}`,
+      prepareForResponse(updateObj, ['config', 'meta', 'position']),
+    );
 
     return await this.get(context, widgetId);
   }

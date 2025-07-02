@@ -22,86 +22,6 @@ export const useWidgetStore = defineStore('widget', () => {
 
   const selectedWidget = ref<WidgetType | null>(null)
 
-  // Create placeholder data for testing
-  const createPlaceholderWidgets = (dashboardId: string): WidgetType[] => {
-    return [
-      {
-        id: 'widget-1',
-        title: 'Total Records',
-        type: 'metric',
-        fk_dashboard_id: dashboardId,
-        position: {
-          x: 0,
-          y: 0,
-          w: 2,
-          h: 2,
-        },
-        config: {
-          component: {
-            title: 'Total Records',
-            description: 'Total number of records in the database',
-          },
-          appearance: {
-            fontSize: 'large',
-            textColor: '#1f2937',
-            backgroundColor: '',
-          },
-          source: {
-            type: 'all_records',
-            aggregation: 'count',
-            viewId: '',
-            columnId: '',
-            filters: [],
-          },
-          display: {
-            showLabel: true,
-            showComparison: true,
-            comparisonPeriod: 'previous_period',
-          },
-        },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-      {
-        id: 'widget-2',
-        title: 'Average Revenue',
-        type: 'metric',
-        fk_dashboard_id: dashboardId,
-        position: {
-          x: 2,
-          y: 0,
-          w: 2,
-          h: 2,
-        },
-        config: {
-          component: {
-            title: 'Average Revenue',
-            description: 'Average revenue per customer',
-          },
-          appearance: {
-            fontSize: 'large',
-            textColor: '#059669',
-            backgroundColor: '#f0fdf4',
-          },
-          source: {
-            type: 'all_records',
-            aggregation: 'avg',
-            viewId: '',
-            columnId: 'revenue',
-            filters: [],
-          },
-          display: {
-            showLabel: true,
-            showComparison: false,
-            comparisonPeriod: 'previous_period',
-          },
-        },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-    ]
-  }
-
   // Actions
   const loadWidgets = async ({ dashboardId, force = false }: { dashboardId: string; force?: boolean }) => {
     if (!activeWorkspaceId.value || !openedProject.value?.id) {
@@ -183,7 +103,7 @@ export const useWidgetStore = defineStore('widget', () => {
   }
 
   const updateWidget = async (
-    dashboardId: string,
+    dashboardId = activeDashboardId.value,
     widgetId: string,
     updates: Partial<WidgetType>,
     options?: {
@@ -219,6 +139,10 @@ export const useWidgetStore = defineStore('widget', () => {
       if (index !== -1) {
         dashboardWidgets[index] = updated as unknown as WidgetType
         widgets.value.set(dashboardId, dashboardWidgets)
+      }
+
+      if (selectedWidget.value?.id === widgetId) {
+        selectedWidget.value = updated as unknown as WidgetType
       }
 
       return updated

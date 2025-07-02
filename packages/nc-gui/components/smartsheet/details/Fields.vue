@@ -1190,19 +1190,21 @@ const onAiFieldAdd = (field: PredictedFieldType) => {
     }
   }
 
+  const uidt =
+    fieldPredictionMode.value === 'formula'
+      ? UITypes.Formula
+      : fieldPredictionMode.value === 'button'
+      ? UITypes.Button
+      : field.type
+
   onFieldAdd(
     updateDefaultColumnValues({
       title: field.title,
-      uidt:
-        fieldPredictionMode.value === 'formula'
-          ? UITypes.Formula
-          : fieldPredictionMode.value === 'button'
-          ? UITypes.Button
-          : field.type,
+      uidt,
       column_name: field.title.toLowerCase().replace(/\\W/g, '_'),
       ...(field.formula ? { formula_raw: field.formula } : {}),
       ...(field.colOptions ? { colOptions: field.colOptions } : {}),
-      meta: ColumnHelper.getColumnDefaultMeta(field.type as UITypes),
+      meta: ColumnHelper.getColumnDefaultMeta(uidt),
       ...(fieldPredictionMode.value === 'button'
         ? {
             type: ButtonActionsType.Ai,

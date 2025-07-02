@@ -11,6 +11,7 @@ import {
 import { z } from 'zod';
 import type { NcContext } from '~/interface/config';
 import type { AiIntegration } from '@noco-local-integrations/core';
+import type { Column } from '~/models';
 import { Base, Integration, Model } from '~/models';
 import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
 import {
@@ -252,6 +253,70 @@ export class AiUtilsService {
     return data;
   }
 
+  formulaUidtHelper(columns: Column[]): string {
+    const lines: string[] = [];
+
+    const stringTypes = new Set([
+      UITypes.SingleLineText,
+      UITypes.LongText,
+      UITypes.Email,
+      UITypes.URL,
+      UITypes.PhoneNumber,
+      UITypes.Time,
+    ]);
+
+    const numericTypes = new Set([
+      UITypes.Number,
+      UITypes.Decimal,
+      UITypes.Currency,
+      UITypes.Rating,
+    ]);
+
+    const convertibleToNumber = new Set([
+      UITypes.Percent,
+      UITypes.Duration,
+      UITypes.Year,
+    ]);
+
+    for (const col of columns) {
+      const { title, uidt, colOptions } = col;
+
+      if (stringTypes.has(uidt)) {
+        lines.push(`"${title}": is a string`);
+      } else if (numericTypes.has(uidt)) {
+        lines.push(`"${title}": is a number`);
+      } else if (convertibleToNumber.has(uidt)) {
+        lines.push(
+          `"${title}": is a string which can be converted to a number using VALUE() function`,
+        );
+      } else if (uidt === UITypes.Checkbox) {
+        lines.push(`"${title}": is a boolean`);
+      } else if (uidt === UITypes.Date) {
+        lines.push(`"${title}": is a date`);
+      } else if (uidt === UITypes.DateTime) {
+        lines.push(`"${title}": is a datetime`);
+      } else if (uidt === UITypes.SingleSelect && colOptions?.options?.length) {
+        const options = colOptions.options
+          .map((o) => `"${o.title}"`)
+          .join(', ');
+        lines.push(
+          `"${title}": is a string with one of the following options or null. options: ${options}`,
+        );
+      } else if (uidt === UITypes.MultiSelect && colOptions?.options?.length) {
+        const options = colOptions.options
+          .map((o) => `"${o.title}"`)
+          .join(', ');
+        lines.push(
+          `"${title}": is a string with one or more of the following options (comma separated) or null. options: ${options}`,
+        );
+      } else {
+        lines.push(`"${title}": is a string`);
+      }
+    }
+
+    return lines.join('\n');
+  }
+
   async predictNextFormulas(
     context: NcContext,
     params: {
@@ -301,6 +366,7 @@ export class AiUtilsService {
           role: 'system',
           content: formulasSystemMessage(
             columns.filter((c) => !isVirtualCol(c)).map((c) => c.title),
+            this.formulaUidtHelper(columns),
           ),
         },
         {
@@ -559,7 +625,10 @@ export class AiUtilsService {
       messages: [
         {
           role: 'system',
-          content: formulasSystemMessage(columns.map((c) => c.title)),
+          content: formulasSystemMessage(
+            columns.map((c) => c.title),
+            this.formulaUidtHelper(columns),
+          ),
         },
         {
           role: 'user',
@@ -612,7 +681,10 @@ export class AiUtilsService {
       messages: [
         {
           role: 'system',
-          content: formulasSystemMessage(columns.map((c) => c.title)),
+          content: formulasSystemMessage(
+            columns.map((c) => c.title),
+            this.formulaUidtHelper(columns),
+          ),
         },
         {
           role: 'user',

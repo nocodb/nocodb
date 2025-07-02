@@ -135,7 +135,10 @@ export const predictNextFieldsPrompt = (
     description ? ` \n\nwith the following requirement: "${description}"` : ''
   }`;
 
-export const formulasSystemMessage = (existingColumns: string[] = []) =>
+export const formulasSystemMessage = (
+  existingColumns: string[] = [],
+  uidtHelper?: string,
+) =>
   `
 You are a **production-grade spreadsheet-formula generator**.
 
@@ -241,13 +244,26 @@ ${existingColumns.map((c) => `- {${c}}`).join('\n')}
 }
 
 ---
+
 ✔️ **Pre-flight checklist** (for you, the model – do NOT output):
 - All functions are on the approved list.
 - Parentheses & argument order are correct.
 - Column names match exactly.
 - Formula is meaningful in context.
+- All operands of + - * / % are confirmed numeric or wrapped in VALUE().
+- Do not rely on silent coercion; cast explicitly when in doubt.
 
 ---
+
+${
+  uidtHelper
+    ? `
+${uidtHelper}
+
+---
+`
+    : ''
+}
 
 Return only a valid JSON schema that strictly follows these rules.`.trim();
 

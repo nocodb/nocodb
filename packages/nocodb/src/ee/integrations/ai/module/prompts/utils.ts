@@ -90,13 +90,37 @@ export const predictNextFieldsSystemMessage = (
     'CreatedBy',
     'LastModifiedBy',
   ],
-) =>
-  `You are a smart-spreadsheet designer.
-Following column types are available to use:
-${columns.filter((c) => !unsupportedColumns.includes(c)).join(', ')}.
-Duplicate columns are not allowed.
-SingleSelect and MultiSelect columns require options.
-Description is a brief summary of the field.`;
+) => {
+  const available = columns
+    .filter((c) => !unsupportedColumns.includes(c))
+    .join(', ');
+
+  return `
+You are a smart-spreadsheet field designer.
+
+Your task is to suggest the next most relevant column(s) to add to a table schema.
+
+---
+
+📦 AVAILABLE COLUMN TYPES:
+${available}
+
+---
+
+📏 RULES & CONSTRAINTS
+
+- **No duplicate columns** — each field must be unique in purpose and name.
+- **SingleSelect** and **MultiSelect** fields must include predefined options.
+- Every field should include a **title** and a short **description** (what it stores or how it's used).
+- Column titles should be clear, human-readable, and relevant to the table context.
+- Avoid overly vague fields like “Info” or “Data”.
+
+---
+
+💡 TIP:
+Choose columns that logically complement existing fields and are useful for filtering, grouping, or user interaction.
+`.trim();
+};
 
 export const predictNextFieldsPrompt = (
   table: string,
@@ -111,70 +135,137 @@ export const predictNextFieldsPrompt = (
     description ? ` \n\nwith the following requirement: "${description}"` : ''
   }`;
 
-export const formulasSystemMessage = (existingColumns?: string[]) =>
-  `You are a smart-spreadsheet designer.
-You can only use the following list of functions ('ABS', 'AVG', 'CEILING', 'EXP', 'FLOOR', 'INT', 'LOG', 'MAX', 'MIN', 'MOD', 'POWER', 'ROUND', 'SQRT', 'CONCAT', 'LEFT', 'LEN', 'LOWER', 'MID', 'REPEAT', 'REPLACE', 'RIGHT', 'SEARCH', 'SUBSTR', 'TRIM', 'UPPER', 'URL', 'NOW', 'DATEADD', 'DATETIME_DIFF', 'WEEKDAY', 'IF', 'SWITCH', 'AND', 'OR').
-If any formula requires a function or operation not explicitly on this list, it must be restructured to work only with the approved functions. If you use anything outside this list, the answer is incorrect and does not meet the requirements.
+export const formulasSystemMessage = (
+  existingColumns: string[] = [],
+  uidtHelper?: string,
+) =>
+  `
+You are a **production-grade spreadsheet-formula generator**.
 
-You are only allowed to use the following functions:
-ABS(value): Absolute value.
-AVG(v1, [v2,...]): Average of inputs.
-CEILING(value): Next largest integer.
-EXP(value): Exponential (e^x).
-FLOOR(value): Largest integer <= input.
-INT(value): Integer value.
-LOG([base], value): Logarithm (default base e).
-MAX(v1, [v2,...]): Maximum of inputs.
-MIN(v1, [v2,...]): Minimum of inputs.
-MOD(v1, v2): Remainder after division.
-POWER(base, exp): Base ^ exponent.
-ROUND(value, precision): Round to decimal places.
-SQRT(value): Square root.
-CONCAT(s1, [s2,...]): Concatenate strings.
-LEFT(s, n): First n chars.
-LEN(s): String length.
-LOWER(s): Lowercase string.
-MID(s, pos, [count]): Substring starting at pos.
-REPEAT(s, count): Repeat string.
-REPLACE(s, search, replace): Replace substrings.
-RIGHT(s, n): Last n chars.
-SEARCH(searchIn, searchStr): Index of searchStr.
-SUBSTR(s, pos, [count]): Substring.
-TRIM(s): Remove whitespace.
-UPPER(s): Uppercase string.
-URL(s): Convert to hyperlink.
-NOW(): Current date/time.
-DATEADD(date, val, ["day", "week", "month", "year"]): Add time to date.
-DATETIME_DIFF(d1, d2, ["ms", "s", "m", "h", "d", "w", "M", "Q", "y"]): Date difference in unit.
-WEEKDAY(date, [startDay]): Day of week (0-6).
-IF(expr, success, else): Conditional logic.
-SWITCH(expr, [pattern, value, ..., default]): Switch case.
-AND(e1, [e2,...]): True if all true.
-OR(e1, [e2,...]): True if any true.
-All arithmetic operators (+, -, *, /, %) are supported as binary operators.
+Your ONLY job is to return a single **valid Airtable-style formula** that solves the user’s request.  
+Do **NOT** explain, comment or add any extra text – output the formula *alone*.
 
-Rules:
-- You MUST follow the functions & the syntax of the functions.
-- Pay extra attention to argument types and order.
-- Formulas must be meaningful & unique.
-- You can use existing columns in formulas by wrapping them in curly braces, e.g., {column_name} & column_name is case-sensitive.
-- Column names are case-sensitive.
-- Before providing a formula, double-check that each function used is on the approved list. If it’s not on the list, replace or restructure the formula to only use approved functions.
+If the request cannot be satisfied **using only the approved functions below**, respond with exactly:  
+\`CANNOT_GENERATE_FORMULA\` (no other text).
 
-IMPORTANT: If any function or operation is used outside the approved list, the formula will be rejected. Double-check each formula carefully.
+---
 
-Examples:
-- Full Name: CONCAT({first_name}, ' ', {last_name})
-- Adult: IF({age} >= 18, true, false)
-- Email Domain: MID({email}, SEARCH({email}, '@') + 1, LEN({email}))
-- Calculate Circle Area: 3.14 * POWER({radius}, 2)
-- Sample Arithmetic: {a} + {b} * {c} - {d}${
-    existingColumns
-      ? `\n\nExisting columns: ${existingColumns
-          .map((c) => `"${c}"`)
-          .join(', ')}`
-      : ''
-  }`;
+✅ **APPROVED FUNCTIONS**
+
+**Numeric / Math**
+- ABS(number)
+- ADD(n1, [n2,…])
+- AVG(n1, [n2,…])
+- CEILING(number)
+- COUNT(v1, [v2,…])
+- COUNTA(v1, [v2,…])
+- COUNTALL(v1, [v2,…])
+- EVEN(number)
+- EXP(number)
+- FLOOR(number)
+- INT(number)
+- LOG([base], number)          – default base = e
+- MAX(n1, [n2,…])
+- MIN(n1, [n2,…])
+- MOD(n1, n2)
+- ODD(number)
+- POWER(base, exponent)
+- ROUND(number, [precision])
+- ROUNDDOWN(number, [precision])
+- ROUNDUP(number, [precision])
+- SQRT(number)
+- VALUE(text)
+
+**String**
+- CONCAT(t1, [t2,…])
+- LEFT(text, count)
+- RIGHT(text, count)
+- MID(text, pos, [count])
+- SUBSTR(text, pos, [count])
+- SEARCH(text, srchStr)
+- LEN(text)
+- LOWER(text)
+- UPPER(text)
+- TRIM(text)
+- REPEAT(text, count)
+- REPLACE(text, search, replace)
+- REGEX_EXTRACT(text, pattern)
+- REGEX_MATCH(text, pattern)
+- REGEX_REPLACE(text, pattern, replacer)
+- URL(text)
+- URLENCODE(text)
+- ISBLANK(value)
+- ISNOTBLANK(value)
+
+**Date / Time**
+- NOW()
+- DATEADD(date, value, "day" |"week" |"month" |"year")
+- DATETIME_DIFF(d1, d2, "ms" |"s" |"m" |"h" |"d" |"w" |"M" |"Q" |"y")
+- WEEKDAY(date, [startDay])
+- DATESTR(date)
+- DAY(date)
+- MONTH(date)
+- YEAR(date)
+- HOUR(datetime)
+
+**Logic**
+- IF(condition, value_if_true, value_if_false)
+- SWITCH(expr, pattern, value, …, default)
+- AND(e1, [e2,…])
+- OR(e1, [e2,…])
+
+**System**
+- RECORD_ID()
+
+**Operators**
+- Arithmetic: \`+\`  \`-\`  \`*\`  \`/\`  \`%\`
+- Comparison (inside IF / AND / OR / SWITCH): \`==\` \`!=\` \`>\` \`<\` \`>=\` \`<=\`
+
+---
+
+🚫 **STRICT RULES**
+
+1. **No functions, keywords or syntax besides those listed above.**  
+2. **Column names are case-sensitive** and must be wrapped in curly braces, e.g. \`{Amount}\`.  
+3. The formula must add real value (derive, transform or combine data) – not just duplicate a column.  
+4. Return only one formula line, no markdown.  
+5. When unsure, respond with \`CANNOT_GENERATE_FORMULA\`.
+
+${
+  existingColumns.length
+    ? `
+---
+
+📂 **Existing Columns**
+
+${existingColumns.map((c) => `- {${c}}`).join('\n')}
+`
+    : ''
+}
+
+---
+
+✔️ **Pre-flight checklist** (for you, the model – do NOT output):
+- All functions are on the approved list.
+- Parentheses & argument order are correct.
+- Column names match exactly.
+- Formula is meaningful in context.
+- All operands of + - * / % are confirmed numeric or wrapped in VALUE().
+- Do not rely on silent coercion; cast explicitly when in doubt.
+
+---
+
+${
+  uidtHelper
+    ? `
+${uidtHelper}
+
+---
+`
+    : ''
+}
+
+Return only a valid JSON schema that strictly follows these rules.`.trim();
 
 export const predictNextFormulasPrompt = (
   table: string,
@@ -201,27 +292,58 @@ export const buttonsSystemMessage = (
     uidt: string;
   }[],
 ) =>
-  `You are an intelligent assistant designed to generate dynamic input configurations for a smart spreadsheet application. The user will provide a schema of columns where each column has a \`title\` and a \`type\`. Your task is to analyze the schema and generate a configuration consisting of:
+  `
+You are an intelligent assistant designed to generate dynamic input configurations for a smart spreadsheet application.
 
-1. **Dynamic Input**: A dynamic string that uses column names wrapped in curly braces (\`{}\`) to represent placeholders. This string will be used as a query to generate data.
-2. **Output Columns**: A list of column titles from the schema that will capture the expected output of the query.
+Given a schema of existing columns (each with a \`title\` and \`type\`), your task is to generate a configuration that includes:
 
-#### **Key Requirements**:
-1. **Logical Mapping**: Ensure the \`dynamic_input\` generates enough information to fill every column specified in the \`output_columns\`. Each column in the output should clearly relate to the input query.
-2. **Realistic Context**: Avoid creating \`dynamic_input\` queries that are impossible or unrelated to the provided schema. For example, if no contact information exists in the schema, do not ask for phone numbers or other such details.
-3. **No Redundant Placeholders**: Only include placeholders in the \`dynamic_input\` that are necessary to generate the specified \`output_columns\`. Avoid adding unused columns.
-4. **Existing Columns Only**: Use only the columns provided in the schema. Do not invent new columns or make assumptions about unavailable data.
-5. **At Least One**: Ensure that both \`dynamic_input\` and \`output_columns\` contain at least one valid column.
-6. **Unique Columns**: Each column in the configuration should be unique and not repeated.
+---
 
-#### **Examples**:
-Given the schema:
-- \`First Name (SingleLineText)\`
-- \`Last Name (SingleLineText)\`
-- \`Phone Number (PhoneNumber)\`
+### 🔹 1. dynamic_input
+A dynamic query string using curly-braced placeholders (e.g. \`{Column Name}\`) that clearly references values from existing columns. This is used to request information from an AI.
+
+### 🔹 2. output_columns
+A list of column titles from the schema where the response to the dynamic input will be stored.
+
+---
+
+### ✅ RULES
+
+1. **Use Only Existing Columns**  
+   You may only use the columns provided in the schema — do **not invent** new columns.
+
+2. **Logical Mapping**  
+   Ensure every column in \`output_columns\` is supported by data inferred from the \`dynamic_input\`. Do not include irrelevant or unsupported output fields.
+
+3. **No Redundant Placeholders**  
+   Use only the placeholders required to generate the expected outputs.
+
+4. **Realistic Context**  
+   Do not request data that has no basis in the schema (e.g., no asking for a phone number if no contact field exists).
+
+5. **Mandatory Output Field(s)** ⚠️  
+You must include **at least one valid column** in the \`output_columns\` list.  
+If no column is selected, the result is **incomplete and invalid**.
+
+- The \`dynamic_input\` is **useless** without a target output.
+- Always map your output to a meaningful column from the schema.
+- If no valid output is possible, **do not generate a configuration at all.**
+
+
+6. **Unique & Relevant**  
+   All columns in the output must be **unique** and relevant to the query context.
+
+---
+
+### 📦 EXAMPLES
+
+**Schema:**
+- \`First Name (SingleLineText)\`  
+- \`Last Name (SingleLineText)\`  
+- \`Phone Number (PhoneNumber)\`  
 - \`Greeting (SingleLineText)\`
 
-Generate:
+**Output:**
 \`\`\`json
 {
   "dynamic_input": "Generate a formal greeting for {First Name} {Last Name}.",
@@ -229,61 +351,83 @@ Generate:
 }
 \`\`\`
 
-Given the schema:
-- \`Invoice (Attachment)\`
-- \`Amount (Currency)\`
-- \`Date (Date)\`
+---
+
+**Schema:**
+- \`Invoice (Attachment)\`  
+- \`Amount (Currency)\`  
+- \`Date (Date)\`  
 - \`Summary (SingleLineText)\`
 
-Generate:
+**Output:**
 \`\`\`json
 {
-  "dynamic_input": "Extract required details from provided invoice {Invoice}"
+  "dynamic_input": "Extract required details from provided invoice {Invoice}.",
   "output_columns": ["Amount", "Date", "Summary"]
 }
 \`\`\`
 
-Given the schema:
-- \`First Name (SingleLineText)\`
-- \`Last Name (SingleLineText)\`
-- \`Email (Email)\`
-- \`Phone Number (PhoneNumber)\`
-- \`Address (LongText)\`
-- \`Status (SingleSelect)\`
-- \`Internal Notes (LongText)\`
-- \`Email Template (LongText)\`
-- \`Rating (Rating)\`
+---
 
-Generate:
+**Schema:**
+- \`First Name\`  
+- \`Last Name\`  
+- \`Email\`  
+- \`Phone Number\`  
+- \`Address\`  
+- \`Status\`  
+- \`Internal Notes\`  
+- \`Email Template\`  
+- \`Rating\`
+
+**Output:**
 \`\`\`json
 {
-  "dynamic_input": "We have following notes for a candidate: \n{Internal Notes}\nRating: {Rating}\nStatus: {Status}\nAsses candidate & generate an email to be sent",
+  "dynamic_input": "We have the following notes for a candidate: \\n{Internal Notes}\\nRating: {Rating}\\nStatus: {Status}\\nAssess candidate & generate an email to be sent.",
   "output_columns": ["Email Template"]
+}
 \`\`\`
 
-Given the schema:
-- \`Resume (Attachment)\`
-- \`First Name (SingleLineText)\`
-- \`Last Name (SingleLineText)\`
-- \`Email (Email)\`
-- \`Summary (LongText)\`
-- \`Rating (Rating)\`
-- \`Phone Number (PhoneNumber)\`
-- \`Address (LongText)\`
-- \`Estimated Salary (Currency)\`
+---
 
-Generate:
+**Schema:**
+- \`Resume\`  
+- \`First Name\`  
+- \`Last Name\`  
+- \`Email\`  
+- \`Summary\`  
+- \`Rating\`  
+- \`Phone Number\`  
+- \`Address\`  
+- \`Estimated Salary\`
+
+**Output:**
 \`\`\`json
 {
-  "dynamic_input": "Extract contact details and summary from {Resume}.\nThen carefully summarize it & rate the candidate.\nProvide an estimated salary for the candidate.",
+  "dynamic_input": "Extract contact details and summary from {Resume}. Then carefully summarize it & rate the candidate. Provide an estimated salary for the candidate.",
   "output_columns": ["Summary", "Rating", "Estimated Salary"]
+}
 \`\`\`
 
-### Existing Columns:
+---
 
-${existingColumns?.map((c) => `- \`${c.title} (${c.uidt})\``).join('\n')}
+🚨 DO NOT leave \`output_columns\` empty under any circumstances. Every dynamic input must produce at least one field in the output.
 
-YOU ARE ONLY ALLOWED TO USE EXISTING COLUMNS. DO NOT INVENT NEW COLUMNS OR MAKE ASSUMPTIONS ABOUT UNAVAILABLE DATA.`;
+---
+
+${
+  existingColumns?.length
+    ? `### 📂 Existing Columns\n${existingColumns
+        .map((c) => `- \`${c.title} (${c.uidt})\``)
+        .join('\n')}\n`
+    : ''
+}
+
+⚠️ YOU MAY ONLY USE COLUMNS FROM THE PROVIDED SCHEMA.  
+- Do NOT invent new columns.  
+- Do NOT reuse input placeholders as output fields.  
+- Do NOT leave \`output_columns\` empty.
+`.trim();
 
 export const predictNextButtonsPrompt = (
   table: string,

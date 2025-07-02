@@ -11,17 +11,17 @@ const emit = defineEmits(['update:aiMode'])
 
 const aiMode = useVModel(props, 'aiMode', emit)
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { isAiFeaturesEnabled } = useNocoAi()
 
 onMounted(() => {
-  if (!isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)) {
+  if (!isAiFeaturesEnabled.value) {
     aiMode.value = false
   }
 })
 </script>
 
 <template>
-  <div v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)" class="nc-create-base-wrapper">
+  <div v-if="isAiFeaturesEnabled" class="nc-create-base-wrapper">
     <div v-e="['c:base:create:scratch']" class="nc-create-base" @click="aiMode = false">
       <div class="nc-placeholder-icon-wrapper">
         <component :is="NcCreateBasePlaceholder" class="nc-placeholder-icon stroke-transparent" />

@@ -27,10 +27,10 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { isAiFeaturesEnabled } = useNocoAi()
 
 const isAiButtonEnabled = computed(() => {
-  return isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
+  return isAiFeaturesEnabled.value
 })
 
 const { t } = useI18n()

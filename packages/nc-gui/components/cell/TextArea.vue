@@ -318,7 +318,7 @@ const onCellEvent = (event?: Event) => {
 onMounted(() => {
   cellEventHook?.on(onCellEvent)
 
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value || isEditColumn.value) return
   const position = { clientX: clientMousePosition.clientX, clientY: clientMousePosition.clientY + 2 }
   forcedNextTick(() => {
     if (onCellEvent(canvasCellEventData.event)) return

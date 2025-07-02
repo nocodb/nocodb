@@ -41,15 +41,17 @@ const handleUnlockView = () => {
   <div
     class="nc-locked-view-footer flex items-center gap-1 bg-nc-bg-gray-light pl-3 pr-2 py-1.5 text-nc-content-gray-subtle2 text-small leading-[18px]"
   >
-    <component
-      :is="viewLockIcons[view.lock_type].icon"
-      v-if="view?.lock_type && showIcon"
-      class="flex-none"
-      :class="{
-        'w-4 h-4': view?.lock_type === ViewLockType.Locked,
-        'w-3.5 h-3.5': view?.lock_type !== ViewLockType.Locked,
-      }"
-    />
+    <slot name="icon">
+      <component
+        :is="viewLockIcons[view.lock_type].icon"
+        v-if="view?.lock_type && showIcon"
+        class="flex-none"
+        :class="{
+          'w-4 h-4': view?.lock_type === ViewLockType.Locked,
+          'w-3.5 h-3.5': view?.lock_type !== ViewLockType.Locked,
+        }"
+      />
+    </slot>
 
     <div class="flex-1">
       <slot name="title">

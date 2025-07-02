@@ -83,8 +83,6 @@ const { getMeta } = useMetas()
 
 const { meta, view, eventBus } = useSmartsheetStoreOrThrow()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
@@ -95,7 +93,7 @@ const viewsStore = useViewsStore()
 
 const { openedViewsTab } = storeToRefs(viewsStore)
 
-const { aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
+const { isAiFeaturesEnabled, isAiBetaFeaturesEnabled, aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
 
 const localMetaColumns = ref<ColumnType[] | undefined>([])
 
@@ -1190,19 +1188,21 @@ const onAiFieldAdd = (field: PredictedFieldType) => {
     }
   }
 
+  const uidt =
+    fieldPredictionMode.value === 'formula'
+      ? UITypes.Formula
+      : fieldPredictionMode.value === 'button'
+      ? UITypes.Button
+      : field.type
+
   onFieldAdd(
     updateDefaultColumnValues({
       title: field.title,
-      uidt:
-        fieldPredictionMode.value === 'formula'
-          ? UITypes.Formula
-          : fieldPredictionMode.value === 'button'
-          ? UITypes.Button
-          : field.type,
+      uidt,
       column_name: field.title.toLowerCase().replace(/\\W/g, '_'),
       ...(field.formula ? { formula_raw: field.formula } : {}),
       ...(field.colOptions ? { colOptions: field.colOptions } : {}),
-      meta: ColumnHelper.getColumnDefaultMeta(field.type as UITypes),
+      meta: ColumnHelper.getColumnDefaultMeta(uidt),
       ...(fieldPredictionMode.value === 'button'
         ? {
             type: ButtonActionsType.Ai,
@@ -1405,7 +1405,7 @@ onBeforeRouteUpdate((_to, from, next) => {
             </NcDropdown>
           </div>
           <div class="flex gap-2">
-            <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+            <template v-if="isAiFeaturesEnabled">
               <div class="nc-fields-add-new-field-btn-wrapper rounded-lg shadow-nc-sm">
                 <NcTooltip>
                   <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
@@ -1424,7 +1424,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                     </div>
                   </NcButton>
                 </NcTooltip>
-                <NcTooltip :title="aiMode ? 'Disable AI suggestions' : 'Suggest fields using AI'">
+                <NcTooltip :title="aiMode ? $t('labels.disableNocoAI') : ''" :disabled="!aiMode">
                   <NcDropdown :trigger="['hover']" placement="bottomRight" overlay-class-name="!border-purple-200">
                     <NcButton
                       size="small"
@@ -1458,7 +1458,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           {{ $t('labels.autoSuggestFormulas') }}
                         </NcMenuItem>
                         <NcMenuItem
-                          v-show="!isForm"
+                          v-show="!isForm && isAiBetaFeaturesEnabled"
                           class="!children:w-full !text-nc-content-purple-dark"
                           @click="toggleAiMode('button')"
                         >
@@ -1530,7 +1530,7 @@ onBeforeRouteUpdate((_to, from, next) => {
               width: rightPanelWidth ? `calc(100% - ${rightPanelWidth}px)` : undefined,
             }"
           >
-            <div v-if="aiMode" class="pt-3 bg-nc-bg-gray-extralight border-b-1 border-b-nc-border-gray-medium overflow-x-scroll">
+            <div v-if="aiMode" class="pt-3 bg-nc-bg-gray-extralight border-b-1 border-b-nc-border-gray-medium">
               <!-- Ai field wizard  -->
               <AiWizardTabs v-model:active-tab="activeAiTab" show-close-btn @close="disableAiMode()">
                 <template #AutoSuggestedContent>
@@ -1571,97 +1571,111 @@ onBeforeRouteUpdate((_to, from, next) => {
                         </div>
                       </div>
                     </div>
-                    <div v-else-if="aiModeStep === 'pick'" class="flex gap-3 items-start">
-                      <div class="flex-1 flex gap-2 flex-wrap">
-                        <template v-if="activeTabNonSelectedFields.length">
-                          <template v-for="f of activeTabNonSelectedFields" :key="f.title">
-                            <NcTooltip :disabled="activeTabSelectedFields.length < maxSelectionCount || f.selected">
-                              <template #title>
-                                <div class="w-[150px]">
-                                  You can only select {{ maxSelectionCount }} fields to create at a time.
-                                </div>
-                              </template>
 
-                              <a-tag
-                                class="nc-ai-suggested-tag"
-                                :class="{
-                                  'nc-disabled': loading || (!f.selected && activeTabSelectedFields.length >= maxSelectionCount),
-                                  'nc-selected': f.selected,
-                                }"
-                                :disabled="activeTabSelectedFields.length >= maxSelectionCount"
-                                @click="onToggleTag(f)"
-                              >
-                                <div class="flex flex-row items-center gap-1.5 py-[3px] text-small leading-[18px]">
-                                  <component
-                                    :is="getUIDTIcon(isFormulaPredictionMode ? UITypes.Formula : f.type)"
-                                    v-if="isFormulaPredictionMode || f?.type"
-                                    class="flex-none w-3.5 h-3.5"
-                                    :class="{
-                                      'opacity-60':
-                                        loading || (!f.selected && activeTabSelectedFields.length >= maxSelectionCount),
-                                    }"
-                                  />
+                    <div v-else-if="aiModeStep === 'pick'">
+                      <div class="flex gap-3 items-start">
+                        <div class="flex-1 flex gap-2 flex-wrap">
+                          <template v-if="activeTabNonSelectedFields.length">
+                            <template v-for="f of activeTabNonSelectedFields" :key="f.title">
+                              <NcTooltip :disabled="activeTabSelectedFields.length < maxSelectionCount || f.selected">
+                                <template #title>
+                                  <div class="w-[150px]">
+                                    You can only select {{ maxSelectionCount }} fields to create at a time.
+                                  </div>
+                                </template>
 
-                                  <div>{{ f.title }}</div>
-                                </div>
-                              </a-tag>
-                            </NcTooltip>
+                                <a-tag
+                                  class="nc-ai-suggested-tag"
+                                  :class="{
+                                    'nc-disabled':
+                                      loading || (!f.selected && activeTabSelectedFields.length >= maxSelectionCount),
+                                    'nc-selected': f.selected,
+                                  }"
+                                  :disabled="activeTabSelectedFields.length >= maxSelectionCount"
+                                  @click="onToggleTag(f)"
+                                >
+                                  <div class="flex flex-row items-center gap-1.5 py-[3px] text-small leading-[18px]">
+                                    <component
+                                      :is="getUIDTIcon(isFormulaPredictionMode ? UITypes.Formula : f.type)"
+                                      v-if="isFormulaPredictionMode || f?.type"
+                                      class="flex-none w-3.5 h-3.5"
+                                      :class="{
+                                        'opacity-60':
+                                          loading || (!f.selected && activeTabSelectedFields.length >= maxSelectionCount),
+                                      }"
+                                    />
+
+                                    <div>{{ f.title }}</div>
+                                  </div>
+                                </a-tag>
+                              </NcTooltip>
+                            </template>
                           </template>
-                        </template>
-                        <div v-else-if="activeTabSelectedFields.length" class="text-nc-content-purple-light">
-                          To generate more {{ isFormulaPredictionMode ? 'formula' : '' }} field suggestions, click the + or ⟳ icon
-                          on the right
+                          <div v-else-if="activeTabSelectedFields.length" class="text-nc-content-purple-light">
+                            To generate more {{ isFormulaPredictionMode ? 'formula' : '' }} field suggestions, click the + or ⟳
+                            icon on the right
+                          </div>
+                          <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
                         </div>
-                        <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
+                        <div class="flex items-center gap-1">
+                          <NcTooltip
+                            v-if="
+                              activeTabPredictHistory.length < activeTabSelectedFields.length
+                                ? activeTabPredictHistory.length + activeTabSelectedFields.length < 10
+                                : activeTabPredictHistory.length < 10
+                            "
+                            title="Suggest more"
+                            placement="top"
+                          >
+                            <NcButton
+                              size="xs"
+                              class="!px-1"
+                              type="text"
+                              theme="ai"
+                              :loading="aiLoading && calledFunction === 'predictMore'"
+                              :disabled="loading"
+                              icon-only
+                              @click="predictMore"
+                            >
+                              <template #icon>
+                                <GeneralIcon icon="ncPlusAi" class="!text-current" />
+                              </template>
+                            </NcButton>
+                          </NcTooltip>
+                          <NcTooltip title="Re-suggest" placement="top">
+                            <NcButton
+                              size="xs"
+                              class="!px-1"
+                              type="text"
+                              theme="ai"
+                              :disabled="loading"
+                              :loading="aiLoading && calledFunction === 'predictRefresh'"
+                              @click="predictRefresh"
+                            >
+                              <template #loadingIcon>
+                                <!-- eslint-disable vue/no-lone-template -->
+                                <template></template>
+                              </template>
+                              <GeneralIcon
+                                icon="refresh"
+                                class="!text-current"
+                                :class="{
+                                  'animate-infinite animate-spin': aiLoading && calledFunction === 'predictRefresh',
+                                }"
+                              />
+                            </NcButton>
+                          </NcTooltip>
+                        </div>
                       </div>
-                      <div class="flex items-center gap-1">
-                        <NcTooltip
-                          v-if="
-                            activeTabPredictHistory.length < activeTabSelectedFields.length
-                              ? activeTabPredictHistory.length + activeTabSelectedFields.length < 10
-                              : activeTabPredictHistory.length < 10
-                          "
-                          title="Suggest more"
-                          placement="top"
-                        >
-                          <NcButton
-                            size="xs"
-                            class="!px-1"
-                            type="text"
-                            theme="ai"
-                            :loading="aiLoading && calledFunction === 'predictMore'"
-                            :disabled="loading"
-                            icon-only
-                            @click="predictMore"
-                          >
-                            <template #icon>
-                              <GeneralIcon icon="ncPlusAi" class="!text-current" />
-                            </template>
-                          </NcButton>
-                        </NcTooltip>
-                        <NcTooltip title="Re-suggest" placement="top">
-                          <NcButton
-                            size="xs"
-                            class="!px-1"
-                            type="text"
-                            theme="ai"
-                            :disabled="loading"
-                            :loading="aiLoading && calledFunction === 'predictRefresh'"
-                            @click="predictRefresh"
-                          >
-                            <template #loadingIcon>
-                              <!-- eslint-disable vue/no-lone-template -->
-                              <template></template>
-                            </template>
-                            <GeneralIcon
-                              icon="refresh"
-                              class="!text-current"
-                              :class="{
-                                'animate-infinite animate-spin': aiLoading && calledFunction === 'predictRefresh',
-                              }"
-                            />
-                          </NcButton>
-                        </NcTooltip>
+                      <div v-if="activeTabNonSelectedFields.length" class="-mx-5 -mb-5 pt-5">
+                        <GeneralLockedViewFooter :show-unlock-button="false" class="!px-5">
+                          <template #icon>
+                            <GeneralIcon icon="ncInfo" class="text-nc-content-gray-muted w-3.5 h-3.5" />
+                          </template>
+                          <template #title>
+                            <span class="truncate"> Click on suggested fields to add </span>
+                          </template>
+                        </GeneralLockedViewFooter>
                       </div>
                     </div>
                   </div>
@@ -2024,8 +2038,11 @@ onBeforeRouteUpdate((_to, from, next) => {
                   #header
                 >
                   <div
-                    class="flex px-2 bg-white hover:bg-gray-100 border-b-1 border-gray-200 first:rounded-tl-lg last:border-b-1 pl-5 group"
-                    :class="` ${compareCols(displayColumn, activeField) ? 'selected' : ''}`"
+                    class="flex px-2 bg-white hover:bg-gray-100 border-b-1 border-gray-200 last:border-b-1 pl-5 group"
+                    :class="{
+                      'selected': compareCols(displayColumn, activeField),
+                      'first:rounded-tl-lg': !aiMode,
+                    }"
                     :data-testid="`nc-field-item-${fieldState(displayColumn)?.title || displayColumn.title}`"
                     @click="changeField(displayColumn, $event)"
                   >

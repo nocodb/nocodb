@@ -228,8 +228,7 @@ export function useCanvasTable({
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
-  const { aiIntegrations, generateRows: _generateRows } = useNocoAi()
-  const { isFeatureEnabled } = useBetaFeatureToggle()
+  const { isAiFeaturesEnabled, aiIntegrations, generateRows: _generateRows } = useNocoAi()
   const automationStore = useAutomationStore()
   const tooltipStore = useTooltipStore()
   const { blockExternalSourceRecordVisibility, blockRowColoring } = useEeConfig()
@@ -297,9 +296,7 @@ export function useCanvasTable({
 
   const partialRowHeight = computed(() => scrollTop.value % rowHeight.value)
 
-  const isAiFillMode = computed(
-    () => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES),
-  )
+  const isAiFillMode = computed(() => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isAiFeaturesEnabled.value)
 
   const fetchMetaIds = ref<string[][]>([])
 

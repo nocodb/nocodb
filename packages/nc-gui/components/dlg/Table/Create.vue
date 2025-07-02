@@ -36,8 +36,6 @@ const { loadProjectTables, addTable } = useTablesStore()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const onTableCreate = async (table: TableType) => {
   // await loadProject(props.baseId)
 
@@ -59,7 +57,14 @@ const onAiTableCreate = async (table: TableType) => {
   await openTable(table)
 }
 
-const { aiIntegrationAvailable, aiLoading, aiError, generateTables, predictNextTables: _predictNextTables } = useNocoAi()
+const {
+  isAiFeaturesEnabled,
+  aiIntegrationAvailable,
+  aiLoading,
+  aiError,
+  generateTables,
+  predictNextTables: _predictNextTables,
+} = useNocoAi()
 
 const aiMode = ref(false)
 
@@ -428,33 +433,14 @@ const handleRefreshOnError = () => {
         <!-- <a href="https://docs.nocodb.com/tables/create-table" target="_blank" class="text-[13px]">
           {{ $t('title.docs') }}
         </a> -->
-        <div
-          v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)"
-          :class="{
-            'cursor-wait': aiLoading,
-          }"
-        >
-          <NcButton
-            type="text"
-            size="small"
-            class="-my-1 !text-nc-content-purple-dark hover:text-nc-content-purple-dark"
-            :class="{
-              '!pointer-events-none !cursor-not-allowed': aiLoading,
-              '!bg-nc-bg-purple-dark hover:!bg-gray-100': aiMode,
-            }"
-            @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
-          >
-            <div class="flex items-center justify-center">
-              <GeneralIcon icon="ncAutoAwesome" />
-              <span
-                class="overflow-hidden trasition-all ease duration-200"
-                :class="{ 'w-[0px] invisible': aiMode, 'ml-1 w-[78px]': !aiMode }"
-              >
-                Use NocoAI
-              </span>
-            </div>
-          </NcButton>
-        </div>
+
+        <AiToggleButton
+          v-if="isAiFeaturesEnabled"
+          :ai-mode="aiMode"
+          :ai-loading="aiLoading"
+          :off-tooltip="`Auto suggest tables for ${base?.title || 'the current base'}`"
+          @click="aiMode ? disableAiMode() : toggleAiMode()"
+        />
       </div>
 
       <a-form

@@ -5,11 +5,19 @@ const aiIntegrationNotFound = 'AI integration not found'
 export const useNocoAi = createSharedComposable(() => {
   const { $api } = useNuxtApp()
 
+  const { appInfo } = useGlobal()
+
   const workspaceStore = useWorkspace()
 
   const basesStore = useBases()
 
   const { activeProjectId } = storeToRefs(basesStore)
+
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const isAiFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_FEATURES))
+
+  const isAiBetaFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_BETA_FEATURES))
 
   const aiLoading = ref(false)
 
@@ -389,5 +397,7 @@ export const useNocoAi = createSharedComposable(() => {
     predictViews,
     aiIntegrations,
     completeScript,
+    isAiFeaturesEnabled,
+    isAiBetaFeaturesEnabled,
   }
 })

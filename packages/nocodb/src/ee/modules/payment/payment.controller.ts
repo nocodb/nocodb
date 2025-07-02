@@ -24,7 +24,8 @@ import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { extractProps } from '~/helpers/extractProps';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { Workspace } from '~/models';
+import { Subscription, Workspace } from '~/models';
+import { NcError } from '~/helpers/ncError';
 
 const ajv = new Ajv();
 
@@ -93,6 +94,28 @@ export class PaymentController {
       loyal: payload.loyal,
       loyalty_discount_used: payload.loyalty_discount_used,
       segment_code: payload.segment_code,
+    });
+  }
+
+  @UseGuards(AuthGuard('basic'))
+  @Patch('/api/internal/payment/:workspaceOrOrgId/meta')
+  async updateWorkspaceSubscriptionMeta(
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Body()
+    payload: { [key in PlanLimitTypes]: number } & {
+      [key in PlanFeatureTypes]: boolean;
+    },
+  ) {
+    const subscription = await Subscription.getByWorkspaceOrOrg(
+      workspaceOrOrgId,
+    );
+
+    if (!subscription) {
+      NcError.genericNotFound('Subscription', workspaceOrOrgId);
+    }
+
+    return Subscription.update(subscription.id, {
+      meta: payload,
     });
   }
 

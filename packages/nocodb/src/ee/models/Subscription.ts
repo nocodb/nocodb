@@ -8,6 +8,7 @@ import {
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class Subscription {
   id: string;
@@ -45,6 +46,9 @@ export default class Subscription {
   schedule_period: string | null;
   schedule_type: 'next' | 'year' | null;
 
+  // Extra
+  meta: Record<string, any> | null;
+
   // timestamps
   created_at: string;
   updated_at: string;
@@ -67,6 +71,8 @@ export default class Subscription {
       );
 
       if (!subscription) return null;
+
+      subscription = prepareForResponse(subscription);
 
       await NocoCache.set(key, subscription);
       await NocoCache.set(
@@ -119,7 +125,7 @@ export default class Subscription {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.SUBSCRIPTIONS,
-      insertObj,
+      prepareForDb(insertObj),
     );
 
     return this.get(id, ncMeta);
@@ -158,7 +164,7 @@ export default class Subscription {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.SUBSCRIPTIONS,
-      updateObj,
+      prepareForDb(updateObj),
       subscriptionId,
     );
 
@@ -347,7 +353,7 @@ export default class Subscription {
     )
       return null;
 
-    return new Subscription(subscription);
+    return new Subscription(prepareForResponse(subscription));
   }
 
   public static async getByStripeSubscriptionId(
@@ -374,6 +380,6 @@ export default class Subscription {
 
     if (!subscription) return null;
 
-    return new Subscription(subscription);
+    return new Subscription(prepareForResponse(subscription));
   }
 }

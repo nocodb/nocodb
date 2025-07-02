@@ -335,6 +335,11 @@ async function getActivePlanAndSubscription(
 
   const plan = await Plan.get(subscription.fk_plan_id, ncMeta);
 
+  // if subscription has plan_meta, then merge it with plan for addons
+  if (subscription.meta?.plan_meta) {
+    Object.assign(plan.meta, subscription.meta.plan_meta);
+  }
+
   return { plan, subscription };
 }
 

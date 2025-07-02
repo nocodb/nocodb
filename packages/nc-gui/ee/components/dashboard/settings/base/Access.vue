@@ -7,14 +7,28 @@ const { blockPrivateBases, showUpgradeToUsePrivateBases } = useEeConfig()
 
 const { base } = storeToRefs(useBase())
 
+const { updateProject } = useBases()
+
+const handleUpdateBaseAccess = async () => {
+  try {
+    await updateProject(base.value.id!, {
+      default_role: base.value.default_role,
+    })
+  } catch (e: any) {
+    console.error(e)
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 const baseAccessValue = computed({
   get: () => base.value?.default_role === ProjectRoles.NO_ACCESS,
   set: (value) => {
     // If private base is selected and user don't have access to it then don't allow to select it
     if (value && showUpgradeToUsePrivateBases()) return
 
-    // Todo: @rameshmane7218 update backend
-    base.value.default_role = value ? ProjectRoles.NO_ACCESS : null
+    base.value.default_role = value ? ProjectRoles.NO_ACCESS : ''
+
+    handleUpdateBaseAccess()
   },
 })
 

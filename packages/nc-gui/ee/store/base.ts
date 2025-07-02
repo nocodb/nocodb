@@ -33,6 +33,8 @@ export const useBase = defineStore('baseStore', () => {
 
   const { loadAutomations } = automationStore
 
+  const { blockPrivateBases } = useEeConfig()
+
   // todo: refactor
   const sharedProject = ref<BaseType>()
 
@@ -75,6 +77,10 @@ export const useBase = defineStore('baseStore', () => {
   })
 
   const isPrivateBase = computed(() => base.value.default_role === ProjectRoles.NO_ACCESS)
+
+  const showBaseAccessRequestOverlay = computed(() => {
+    return blockPrivateBases.value && isPrivateBase.value
+  })
 
   const sqlUis = computed(() => {
     const temp: Record<string, any> = {}
@@ -196,6 +202,7 @@ export const useBase = defineStore('baseStore', () => {
     if (baseType.value === 'base') {
       return
     }
+
     if (data.meta && typeof data.meta === 'string') {
       await api.base.update(baseId.value, data)
     } else {
@@ -350,6 +357,7 @@ export const useBase = defineStore('baseStore', () => {
     forcedProjectId,
     idUserMap,
     isPrivateBase,
+    showBaseAccessRequestOverlay,
   }
 })
 

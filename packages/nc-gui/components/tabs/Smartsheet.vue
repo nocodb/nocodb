@@ -46,7 +46,7 @@ const reloadViewMetaEventHook = createEventHook<void | boolean>()
 
 const openNewRecordFormHook = createEventHook<void>()
 
-const { base, isPrivateBase } = storeToRefs(useBase())
+const { base, showBaseAccessRequestOverlay } = storeToRefs(useBase())
 
 const activeSource = computed(() => {
   return meta.value?.source_id && base.value && base.value.sources?.find((source) => source.id === meta.value?.source_id)
@@ -210,15 +210,15 @@ const onReady = () => {
     }, 300)
   }
 }
-
-// Todo: @rameshmane7218 check base role of user
-const showBaseAccessRequest = computed(() => {
-  return isEeUI && blockPrivateBases.value && isPrivateBase.value && false
-})
 </script>
 
 <template>
-  <div class="nc-container relative flex flex-col h-full" @drop="onDrop" @dragover.prevent>
+  <div
+    class="nc-container relative flex flex-col h-full"
+    :class="{ 'children:pointer-events-none': isEeUI && showBaseAccessRequestOverlay }"
+    @drop="onDrop"
+    @dragover.prevent
+  >
     <SmartsheetTopbar />
     <div style="height: calc(100% - var(--topbar-height))">
       <Splitpanes
@@ -264,32 +264,11 @@ const showBaseAccessRequest = computed(() => {
     </div>
     <LazySmartsheetExpandedFormDetached />
     <DetachedExpandedText />
-
-    <div v-if="showBaseAccessRequest" class="nc-smartsheet-access-request-overlay">
-      <div class="nc-smartsheet-access-request-modal">
-        <div class="flex flex-col gap-2 text-nc-content-gray-emphasis">
-          <h2 class="my-0 text-subHeading2">This Private Base has been locked.</h2>
-          <div class="text-body">To unlock, please upgrade to the Business plan or convert this Base to a Shared Base.</div>
-        </div>
-        <div class="flex flex-col gap-2">
-          <NcButton type="primary" size="small" class="w-full">Upgrade to Business</NcButton>
-          <NcButton type="text" size="small" class="w-full">Convert to Shared Base</NcButton>
-        </div>
-      </div>
-    </div>
+    <TabsSmartsheetBaseAccessOverlay />
   </div>
 </template>
 
 <style lang="scss">
-.nc-smartsheet-access-request-overlay {
-  @apply absolute inset-0 bg-white/24 z-500 grid place-items-center px-4;
-  backdrop-filter: blur(16px);
-
-  .nc-smartsheet-access-request-modal {
-    @apply p-6 rounded-2xl bg-white max-w-md flex flex-col gap-5;
-    box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1);
-  }
-}
 :deep(.nc-right-sidebar.ant-layout-sider-collapsed) {
   @apply !w-0 !max-w-0 !min-w-0 overflow-x-hidden;
 }

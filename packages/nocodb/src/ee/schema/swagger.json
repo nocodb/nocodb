@@ -3678,7 +3678,8 @@
             "description": "Default role for the users from Workspace",
             "type": "string",
             "enum": [
-              "no-access"
+              "no-access", 
+              ""
             ]
           }
         },
@@ -3749,7 +3750,8 @@
             "description": "Default role for the users from Workspace",
             "type": "string",
             "enum": [
-              "no-access"
+              "no-access",
+              ""
             ]
           }
         }

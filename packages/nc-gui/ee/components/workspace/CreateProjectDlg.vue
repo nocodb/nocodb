@@ -38,7 +38,7 @@ const form = ref<typeof Form>()
 
 const formState = ref({
   title: '',
-  default_role: null as ProjectRoles | null,
+  default_role: '' as NcProject['default_role'],
   meta: {
     iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
   },
@@ -90,7 +90,7 @@ const onInit = () => {
 
     formState.value = {
       title: t('objects.project'),
-      default_role: null,
+      default_role: '',
       meta: {
         iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
       },
@@ -123,7 +123,7 @@ const baseAccessValue = computed({
     // If private base is selected and user don't have access to it then don't allow to select it
     if (value === ProjectRoles.NO_ACCESS && showUpgradeToUsePrivateBases()) return
 
-    formState.value.default_role = value === ProjectRoles.NO_ACCESS ? ProjectRoles.NO_ACCESS : null
+    formState.value.default_role = value === ProjectRoles.NO_ACCESS ? ProjectRoles.NO_ACCESS : ''
   },
 })
 
@@ -221,12 +221,12 @@ const selectedBaseAccessOption = computed(() => {
                         </div>
 
                         <PaymentUpgradeBadge
-                          v-if="blockPrivateBases && option.value === 'true'"
+                          v-if="blockPrivateBases && option.value === ProjectRoles.NO_ACCESS"
                           :feature="PlanFeatureTypes.FEATURE_PRIVATE_BASES"
                           :plan-title="PlanTitles.BUSINESS"
                           remove-click
                           size="sm"
-                          class="!font-normal"
+                          class="!font-normal !text-bodyDefaultSm"
                         />
                         <GeneralIcon v-else-if="isSelected" icon="check" class="text-primary h-4 w-4" />
                       </div>

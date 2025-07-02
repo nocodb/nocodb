@@ -210,7 +210,7 @@ type NcProject = BaseType & {
   starred?: boolean
   uuid?: string
   users?: User[]
-  default_role?: ProjectRoles | null
+  default_role?: ProjectRoles | string
 }
 
 interface UndoRedoAction {

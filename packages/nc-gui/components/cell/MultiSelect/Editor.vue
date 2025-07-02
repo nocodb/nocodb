@@ -328,7 +328,7 @@ const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
 onMounted(() => {
-  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
+  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value && !isEditColumn.value) {
     forcedNextTick(() => {
       const key = canvasCellEventData.keyboardKey
       if (key && isSinglePrintableKey(key)) {

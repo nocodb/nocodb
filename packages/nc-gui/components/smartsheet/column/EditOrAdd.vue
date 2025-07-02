@@ -1339,7 +1339,7 @@ watch(activeAiTab, (newValue) => {
           />
         </a-form-item>
 
-        <template v-if="props.fromTableExplorer">
+        <template v-if="props.fromTableExplorer || aiAutoSuggestMode">
           <a-form-item
             v-if="!enableDescription"
             :class="{

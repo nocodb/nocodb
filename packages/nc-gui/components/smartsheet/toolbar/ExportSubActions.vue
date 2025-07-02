@@ -9,6 +9,9 @@ const isPublicView = inject(IsPublicInj, ref(false))
 
 const selectedView = inject(ActiveViewInj)!
 
+// Get the shared view password from the injected value
+const sharedViewPassword = inject(SharedViewPasswordInj, ref<string | null>(null))
+
 const urlHelper = (url: string) => {
   if (url.startsWith('http')) {
     return url
@@ -51,7 +54,14 @@ const exportFile = async (exportType: ExportTypes) => {
     if (isPublicView.value) {
       if (!selectedView.value.uuid) return
 
-      jobData = await $api.public.exportData(selectedView.value.uuid, exportType, {})
+      // Pass the password in the params object
+      const params = {
+        headers: {
+          'xc-password': sharedViewPassword.value || '',
+        },
+      }
+
+      jobData = await $api.public.exportData(selectedView.value.uuid, exportType, {}, params)
     } else {
       jobData = await $api.export.data(selectedView.value.id, exportType, {})
     }

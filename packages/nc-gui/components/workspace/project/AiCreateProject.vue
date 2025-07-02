@@ -411,6 +411,7 @@ onMounted(() => {
               class="!w-full !min-h-[120px] !rounded-lg mt-2 overflow-y-auto nc-scrollbar-thin nc-input-shadow nc-ai-input"
               size="middle"
               :disabled="!aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema')"
+              :maxlength="8192"
               @update:value="aiFormState.prompt = $event"
             />
           </div>

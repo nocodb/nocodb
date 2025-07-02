@@ -717,33 +717,14 @@ watch(activeAiTab, (newValue) => {
         >
           <div class="flex items-center gap-3">
             <div class="flex-1 text-base font-bold text-nc-content-gray">{{ $t('general.new') }} {{ $t('objects.field') }}</div>
-            <div
-              :class="{
-                'cursor-wait': aiLoading,
-              }"
-            >
-              <NcButton
-                v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)"
-                type="text"
-                size="small"
-                class="-my-1.5 !text-nc-content-purple-dark hover:text-nc-content-purple-dark"
-                :class="{
-                  '!pointer-events-none !cursor-not-allowed': aiLoading,
-                  '!bg-nc-bg-purple-dark hover:!bg-gray-100': aiAutoSuggestMode,
-                }"
-                @click.stop="aiAutoSuggestMode ? disableAiMode() : toggleAiMode()"
-              >
-                <div class="flex items-center justify-center">
-                  <GeneralIcon icon="ncAutoAwesome" />
-                  <span
-                    class="overflow-hidden trasition-all ease duration-200"
-                    :class="{ 'w-[0px] invisible': aiAutoSuggestMode, 'ml-1 w-[78px]': !aiAutoSuggestMode }"
-                  >
-                    Use NocoAI
-                  </span>
-                </div>
-              </NcButton>
-            </div>
+
+            <AiToggleButton
+              v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)"
+              :ai-mode="aiAutoSuggestMode"
+              :ai-loading="aiLoading"
+              :off-tooltip="`Auto suggest fields for ${meta?.title || 'the current table'}`"
+              @click="aiAutoSuggestMode ? disableAiMode() : toggleAiMode()"
+            />
           </div>
           <template v-if="aiAutoSuggestMode">
             <div v-if="!aiIntegrationAvailable" class="flex items-center gap-3 py-2">

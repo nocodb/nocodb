@@ -1,7 +1,7 @@
 export const colorFilled = [
   {
-    id: 'grey',
-    title: 'Grey',
+    id: 'gray',
+    title: 'Gray',
     color: themeVariables.content['nc-content-gray'].DEFAULT,
     fill: themeVariables.background['nc-bg-gray'].light,
   },
@@ -57,8 +57,8 @@ export const colorFilled = [
 
 export const colorColoured = [
   {
-    id: 'grey',
-    title: 'Grey',
+    id: 'gray',
+    title: 'Gray',
     color: themeVariables.content['nc-content-gray'].DEFAULT,
     fill: 'white',
   },

@@ -1,4 +1,4 @@
-import { populatePk } from 'src/helpers/dbHelpers';
+import { dataWrapper, populatePk } from 'src/helpers/dbHelpers';
 import { isLinksOrLTAR, NcApiVersion, type NcRequest } from 'nocodb-sdk';
 import type { Column } from 'src/models';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
@@ -12,12 +12,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
   ) => {
     try {
       const columns = await baseModel.model.getColumns(baseModel.context);
-
+      const dbDataWrapper = dataWrapper(data);
       // exclude auto increment columns in body
       for (const col of columns) {
         if (col.ai) {
-          const keyName =
-            data?.[col.column_name] !== undefined ? col.column_name : col.title;
+          const keyName = dbDataWrapper.getColumnKeyName(col);
 
           if (data[keyName]) {
             delete data[keyName];

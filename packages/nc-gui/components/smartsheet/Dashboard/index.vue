@@ -32,7 +32,7 @@ watchEffect(() => {
       <SmartsheetDashboardGrid />
     </div>
 
-    <SmartsheetDashboardWidgetEditor v-if="selectedWidget" />
+    <SmartsheetDashboardWidgetEditor v-if="selectedWidget" :key="selectedWidget?.id" />
   </div>
 </template>
 

@@ -44,6 +44,13 @@ export async function getWidgetData(params: {
   const { widget, req } = params;
 
   const handler = await getWidgetHandler({ widget, req });
+
+  const errors = await handler.validateWidgetData(req.context, widget as any);
+
+  if (errors?.length > 0) {
+    NcError.badRequest('Widget validation failed');
+  }
+
   return await handler.getWidgetData({
     widget: widget as any,
     req,

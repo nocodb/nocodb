@@ -61,10 +61,9 @@ export class MetricPgHandler extends MetricCommonHandler {
         baseModelSqlv2: baseModel,
         aggregation: metric.aggregation,
         column: aggregationColumn,
-        alias: 'agg',
+        alias: 'count',
       });
-
-      query = qb.select(aggSql);
+      query = qb.select(baseModel.dbDriver.raw(aggSql));
     }
 
     const data = await baseModel.execAndParse(query, null, {
@@ -74,7 +73,8 @@ export class MetricPgHandler extends MetricCommonHandler {
       first: true,
     });
 
-    console.log(data);
-    return data;
+    return {
+      data: data.count,
+    };
   }
 }

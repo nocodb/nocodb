@@ -24,6 +24,9 @@ export type InternalGETResponseType = Promise<
   | Dashboard[]
   | Widget
   | Widget[]
+  | {
+      data: any;
+    }
 >;
 
 export type InternalPOSTResponseType = Promise<
@@ -48,4 +51,7 @@ export type InternalPOSTResponseType = Promise<
       value: string;
       label: string;
     }[]
+  | {
+      data: any;
+    }
 >;

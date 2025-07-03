@@ -79,13 +79,9 @@ watch(
       }"
       class="text-nc-content-gray-subtle2 text-heading2"
     >
-      <template v-if="isLoading">
-        <div class="flex items-center justify-center">
-          <a-spin size="small" />
-        </div>
-      </template>
+      <template v-if="isLoading"> _ </template>
       <template v-else>
-        {{ widgetData?.value ?? '0' }}
+        {{ widgetData?.data ?? '0' }}
       </template>
     </div>
   </div>

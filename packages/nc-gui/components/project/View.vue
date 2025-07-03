@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
+import { ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string
@@ -49,9 +50,14 @@ const { isMobileMode } = useGlobal()
 
 const baseSettingsState = ref('')
 
-const userCount = computed(() =>
-  activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0,
-)
+const userCount = computed(() => {
+  // if private base and don't have owner permission then return
+  if (base.value?.default_role && !baseRoles.value[ProjectRoles.OWNER]) {
+    return
+  }
+
+  return activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0
+})
 
 const { isTableAndFieldPermissionsEnabled } = usePermissions()
 

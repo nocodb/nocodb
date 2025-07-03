@@ -56,9 +56,8 @@ const baseTypeOptions = computed(() => [
         {{ $t('general.baseType') }}
       </div>
       <div>
-        <!-- Todo: @rameshmane7218 update link  -->
         <a
-          href="https://nocodb.com/docs/product-docs/bases/base-access"
+          href="https://nocodb.com/docs/product-docs/bases/private-base"
           target="_blank"
           rel="noopener noreferrer"
           class="!text-gray-700 text-sm !no-underline !hover:underline"

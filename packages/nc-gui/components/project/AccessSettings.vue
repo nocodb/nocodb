@@ -350,7 +350,7 @@ watch(projectPageTab, () => {
               <template #icon>
                 <GeneralIcon icon="ncArrowUpRight" class="w-4 h-4" />
               </template>
-              {{ $t('activity.goToBaseAccess') }}
+              {{ $t('activity.goToBaseSettings') }}
             </NcButton>
           </template>
         </NcAlert>

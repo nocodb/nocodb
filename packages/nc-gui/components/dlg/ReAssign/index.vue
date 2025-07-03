@@ -75,7 +75,7 @@ const assignView = async () => {
       ...(!isPersonalView.value ? { lock_type: ViewLockType.Personal } : {}),
     })
     vModel.value = false
-    message.success(isPersonalView.value ? 'View assigned as personal view successfully' : 'View reassigned successfully')
+    message.success(isPersonalView.value ? 'View reassigned successfully' : 'View assigned as personal view successfully')
 
     viewsStore
       .loadViews({

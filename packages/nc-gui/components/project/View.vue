@@ -184,7 +184,7 @@ onMounted(() => {
             color="grey"
             :border="false"
           >
-            <GeneralIcon icon="ncBasePrivate" class="w-3.5 h-3.5 mr-1" />
+            <GeneralIcon icon="ncLock" class="w-4 h-4 mr-1" />
             {{ $t('general.private') }}
           </NcBadge>
         </div>

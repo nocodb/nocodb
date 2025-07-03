@@ -9,7 +9,7 @@ const { base } = storeToRefs(useBase())
 
 const { updateProject } = useBases()
 
-const handleUpdateBaseAccess = async () => {
+const handleUpdateBaseType = async () => {
   try {
     await updateProject(base.value.id!, {
       default_role: base.value.default_role,
@@ -20,7 +20,7 @@ const handleUpdateBaseAccess = async () => {
   }
 }
 
-const baseAccessValue = computed({
+const baseTypeValue = computed({
   get: () => base.value?.default_role === ProjectRoles.NO_ACCESS,
   set: (value) => {
     // If private base is selected and user don't have access to it then don't allow to select it
@@ -28,22 +28,22 @@ const baseAccessValue = computed({
 
     base.value.default_role = value ? ProjectRoles.NO_ACCESS : ''
 
-    handleUpdateBaseAccess()
+    handleUpdateBaseType()
   },
 })
 
-const baseAccessOptions = computed(() => [
+const baseTypeOptions = computed(() => [
   {
-    label: t('labels.defaultAccess'),
+    label: t('labels.defaultType'),
     value: false,
     icon: 'ncUsers',
-    subtext: t('title.baseAccessSettingsDefaultSubtext'),
+    subtext: t('title.baseTypeSettingsDefaultSubtext'),
   },
   {
-    label: t('labels.privateAccess'),
+    label: t('labels.privateType'),
     value: true,
     icon: 'ncUser',
-    subtext: t('title.baseAccessSettingsPrivateSubtext'),
+    subtext: t('title.baseTypeSettingsPrivateSubtext'),
     disabled: blockPrivateBases.value,
   },
 ])
@@ -53,7 +53,7 @@ const baseAccessOptions = computed(() => [
   <div data-testid="nc-settings-subtab-visibility" class="item-card flex flex-col w-full">
     <div class="flex items-center justify-between">
       <div class="text-nc-content-gray-emphasis font-semibold text-lg">
-        {{ $t('general.baseAccess') }}
+        {{ $t('general.baseType') }}
       </div>
       <div>
         <!-- Todo: @rameshmane7218 update link  -->
@@ -69,13 +69,13 @@ const baseAccessOptions = computed(() => [
     </div>
 
     <div class="text-nc-content-gray-subtle2 mt-2 leading-5">
-      {{ $t('title.baseAccessTabSubtext') }}
+      {{ $t('title.baseTypeTabSubtext') }}
     </div>
 
     <div class="mt-8">
       <a-form-item class="!w-full">
-        <a-radio-group v-model:value="baseAccessValue" class="nc-base-access-radio-group">
-          <a-radio v-for="(option, idx) of baseAccessOptions" :key="idx" :value="option.value">
+        <a-radio-group v-model:value="baseTypeValue" class="nc-base-access-radio-group">
+          <a-radio v-for="(option, idx) of baseTypeOptions" :key="idx" :value="option.value">
             <div class="w-full flex flex-col">
               <div class="w-full flex items-center gap-2">
                 <div

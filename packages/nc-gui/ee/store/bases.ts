@@ -285,7 +285,12 @@ export const useBases = defineStore('basesStore', () => {
     await loadProject(baseId, true)
   }
 
-  const createProject = async (basePayload: { title: string; workspaceId: string; meta?: Record<string, unknown>; default_role?: string }) => {
+  const createProject = async (basePayload: {
+    title: string
+    workspaceId: string
+    meta?: Record<string, unknown>
+    default_role?: string
+  }) => {
     const result = await api.base.create(
       {
         title: basePayload.title,

@@ -141,16 +141,16 @@ const baseAccessOptions = computed(
   () =>
     [
       {
-        label: t('labels.defaultAccess'),
+        label: t('labels.defaultType'),
         value: '',
         icon: 'ncUsers',
-        subtext: t('title.baseAccessDefaultSubtext'),
+        subtext: t('title.baseTypeDefaultSubtext'),
       },
       {
-        label: t('labels.privateAccess'),
+        label: t('labels.privateType'),
         value: ProjectRoles.NO_ACCESS,
         icon: 'ncUser',
-        subtext: t('title.baseAccessPrivateSubtext'),
+        subtext: t('title.baseTypePrivateSubtext'),
       },
     ] as (NcListItemType & { icon: IconMapKey })[],
 )
@@ -205,7 +205,7 @@ const selectedBaseAccessOption = computed(() => {
 
           <a-form-item name="default_role" class="!mb-0">
             <template #label>
-              <div>{{ t('general.permissions') }}</div>
+              <div>{{ t('general.baseType') }}</div>
             </template>
             <NcListDropdown v-model:is-open="isOpenBaseAccessDropdown">
               <div class="flex-1 flex items-center gap-2 text-nc-content-gray">

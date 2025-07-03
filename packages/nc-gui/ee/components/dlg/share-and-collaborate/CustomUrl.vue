@@ -74,7 +74,7 @@ const isFocused = ref(false)
 
 const isCustomUrlAvailable = ref(true)
 
-const isReadOnly = computed(() => { 
+const isReadOnly = computed(() => {
   return isLocked.value || disabled.value
 })
 

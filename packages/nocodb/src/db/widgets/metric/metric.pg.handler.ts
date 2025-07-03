@@ -16,12 +16,12 @@ export class MetricPgHandler extends MetricCommonHandler {
 
     // Get model
     const model = await Model.getByIdOrName(context, {
-      id: dataSource.fk_model_id,
+      id: widget.fk_model_id,
     });
 
     let view = null;
-    if (dataSource.type === 'view' && dataSource.fk_view_id) {
-      view = await View.get(context, dataSource.fk_view_id);
+    if (dataSource === 'view' && widget.fk_view_id) {
+      view = await View.get(context, widget.fk_view_id);
     }
 
     const source = await Source.get(context, model.source_id);

@@ -113,6 +113,10 @@ export default async function applyAggregation({
   */
   const aggType = validateAggregationColType(column, aggregation);
 
+  if (aggType === false) {
+    NcError.notImplemented(`Aggregation ${aggregation} is not implemented yet`);
+  }
+
   // If the aggregation is not available for the column type, we throw an error.
   if (aggType === 'unknown') {
     NcError.notImplemented(`Aggregation ${aggregation} is not implemented yet`);

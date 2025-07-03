@@ -86,7 +86,7 @@ const baseAccessOptions = computed(() => [
                   }"
                 >
                   <GeneralIcon :icon="option.icon" class="flex-none h-4 w-4" />
-                  <span class="text-captionDropdownDefault">{{ option.label }}</span>
+                  <span class="text-captionBold">{{ option.label }}</span>
                 </div>
 
                 <PaymentUpgradeBadge

@@ -21,7 +21,7 @@ const { copy } = useCopy()
 
 const sharedBase = ref<null | ShareBase>(null)
 
-const { base } = storeToRefs(useBase())
+const { base, isPrivateBase } = storeToRefs(useBase())
 
 const { appInfo } = useGlobal()
 
@@ -141,12 +141,14 @@ const copyCustomUrl = async (custUrl = '') => {
       <div class="flex flex-row w-full justify-between">
         <div class="text-gray-900 font-medium">{{ $t('activity.enablePublicAccess') }}</div>
         <a-switch
+          v-if="!isPrivateBase || isSharedBaseEnabled"
           v-e="['c:share:base:enable:toggle']"
           :checked="isSharedBaseEnabled"
           :loading="isToggleBaseLoading"
           class="ml-2"
           @click="toggleSharedBase"
         />
+        <div v-else class="text-nc-content-gray-muted">{{ $t('labels.sharingRestricted') }}</div>
       </div>
       <div v-if="isSharedBaseEnabled" class="flex flex-col gap-3 w-full mt-3 border-t-1 pt-3 border-gray-100">
         <GeneralCopyUrl v-model:url="url" />

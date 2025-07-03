@@ -26,17 +26,23 @@ interface Props {
    * @returns A promise that resolves to a boolean indicating whether the copy operation was successful.
    */
   copyCustomUrl: (customUrl: string) => Promise<boolean>
+
+  /**
+   * Whether the custom URL is disabled.
+   */
+  disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   backendUrl: '',
   searchQuery: '',
   tooltip: '',
+  disabled: false,
 })
 
 const emits = defineEmits(['updateCustomUrl'])
 
-const { id, backendUrl, searchQuery, tooltip } = toRefs(props)
+const { id, backendUrl, searchQuery, tooltip, disabled } = toRefs(props)
 
 const isLocked = inject(IsLockedInj, ref(false))
 
@@ -67,6 +73,10 @@ const isCopied = ref(false)
 const isFocused = ref(false)
 
 const isCustomUrlAvailable = ref(true)
+
+const isReadOnly = computed(() => { 
+  return isLocked.value || disabled.value
+})
 
 const isOpenCustomUrl = computed(() => {
   return !!customUrl.value || !!customUrlLocal.value || isOpenCustomUrlLocal.value
@@ -287,7 +297,7 @@ watch(
             v-e="['c:share:view:custom-url:toggle']"
             :checked="isOpenCustomUrl"
             :loading="isLoading.customUrl || isLoading.fetchCustomUrl"
-            :disabled="isLocked || isLoading.fetchCustomUrl"
+            :disabled="isReadOnly || isLoading.fetchCustomUrl"
             class="share-custom-url-toggle !mt-0.25"
             data-testid="share-custom-url-toggle"
             size="small"
@@ -328,7 +338,7 @@ watch(
             data-testid="nc-modal-share-view__custom-url"
             :bordered="false"
             autocomplete="off"
-            :disabled="isLocked"
+            :disabled="isReadOnly"
             @focus="isFocused = true"
             @blur="isFocused = false"
             @update:value="onChangeCustomUrl"

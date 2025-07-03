@@ -830,9 +830,12 @@ export class AclMiddleware implements NestInterceptor {
       !['baseUpdate', 'baseDelete'].includes(permissionName) &&
       ['POST', 'DELETE', 'PUT', 'PATCH'].includes(req.method)
     ) {
-      NcError.forbidden(
-        `Please upgrade your plan to access private bases or make the base to default`,
-      );
+      const base = await Base.get(req.context, req.ncBaseId);
+
+      if (base.default_role)
+        NcError.forbidden(
+          `Please upgrade your plan to access private bases or make the base to default`,
+        );
     }
 
     // check if permission have source level permission restriction

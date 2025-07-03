@@ -15,7 +15,7 @@ import {
 } from 'nocodb-sdk';
 import { ViewRowColorService } from './view-row-color.service';
 import type { NcContext } from '~/interface/config';
-import type { FormView, FormViewColumn } from '~/models';
+import type { FormView, FormViewColumn, View } from '~/models';
 import { Base, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getFeature } from '~/helpers/paymentHelpers';
@@ -39,13 +39,7 @@ export class PublicMetasService extends PublicMetasServiceCE {
     if (view.type === ViewTypes.FORM) {
       view = await this.validateFormViewPlanLimitAndFeatures(view, workspace);
     }
-
-    // block non-meta views in private base
-    if (view.type !== ViewTypes.FORM && base.default_role) {
-      NcError.forbidden(
-        'The shared view feature is not available for private bases. Please contact the base owner to request access.',
-      );
-    }
+    this.checkViewBaseType(view, base);
 
     const viewRowColorInfo = await this.viewRowColorService.getByViewId({
       context,
@@ -60,6 +54,15 @@ export class PublicMetasService extends PublicMetasServiceCE {
     return view;
   }
 
+  protected checkViewBaseType(view: View, base: Base) {
+    // block non-meta views in private base
+    if (view.type !== ViewTypes.FORM && base.default_role) {
+      NcError.badRequest(
+        'The shared view feature is not available for private bases. Please contact the base owner to request access.',
+      );
+    }
+  }
+
   async publicSharedBaseGet(
     context: NcContext,
     param: { sharedBaseUuid: string },
@@ -69,13 +72,7 @@ export class PublicMetasService extends PublicMetasServiceCE {
     if (!base) {
       NcError.baseNotFound(param.sharedBaseUuid);
     }
-
-    // block shared base for private base
-    if (base.default_role) {
-      NcError.forbidden(
-        'The shared base feature is not available for private bases. Please contact the base owner to request access.',
-      );
-    }
+    this.checkBaseType(base);
 
     const workspace = await Workspace.get(base.fk_workspace_id, false);
 
@@ -83,6 +80,15 @@ export class PublicMetasService extends PublicMetasServiceCE {
       base_id: base.id,
       workspace,
     };
+  }
+
+  protected checkBaseType(base: Base) {
+    // block shared base for private base
+    if (base.default_role) {
+      NcError.badRequest(
+        'The shared base feature is not available for private bases. Please contact the base owner to request access.',
+      );
+    }
   }
 
   async validateFormViewPlanLimitAndFeatures(

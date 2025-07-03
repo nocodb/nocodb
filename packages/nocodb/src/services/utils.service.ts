@@ -100,7 +100,12 @@ export class UtilsService {
           return response.data
             .map((x) => x.name)
             .filter(
-              (v) => validate(v) && !v.includes('finn') && !v.includes('beta'),
+              (v) =>
+                validate(v) &&
+                !v.includes('finn') &&
+                !v.includes('beta') &&
+                // also filter only XXX.XXX.XXX version. ex: 0.263.8
+                v.match(/^\d+\.\d+\.\d+$/),
             )
             .sort((x, y) => compareVersions(y, x));
         })

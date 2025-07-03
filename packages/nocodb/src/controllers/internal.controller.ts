@@ -159,6 +159,12 @@ export class InternalController {
           context,
           payload.widgetId,
         );
+
+      case 'widgetDataGet':
+        return await this.dashboardsService.widgetDataGet(
+          context,
+          payload.widgetId,
+        );
       default:
         NcError.notFound('Operation');
     }

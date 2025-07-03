@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { NcError } from 'src/helpers/ncError';
+import { WidgetTypes } from 'nocodb-sdk';
+import type { WidgetType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Dashboard from '~/models/Dashboard';
 import Widget from '~/models/Widget';
+import { getWidgetData } from '~/db/widgets';
 
 @Injectable()
 export class DashboardsService {
@@ -107,11 +110,19 @@ export class DashboardsService {
     return await Widget.delete(context, widgetId);
   }
 
-  async widgetDataGet(context: NcContext, widgetId: string) {
+  async widgetDataGet(context: NcContext, widgetId: string, req: NcRequest) {
     const widget = await Widget.get(context, widgetId);
 
     if (!widget) {
       NcError.notFound('Widget not found');
     }
+
+    if (![WidgetTypes.METRIC, WidgetTypes.CHART].includes(widget.type)) {
+      NcError.badRequest(
+        `Data retrieval not supported for widget type: ${widget.type}`,
+      );
+    }
+
+    return await getWidgetData({ widget: widget as WidgetType, req });
   }
 }

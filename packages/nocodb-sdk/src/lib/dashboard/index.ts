@@ -108,8 +108,7 @@ export interface CommonWidgetType {
 }
 
 export interface ChartWidgetType<C extends ChartTypes = ChartTypes>
-  extends Omit<CommonWidgetType, 'type'> {
-  type: C;
+  extends CommonWidgetType {
   config: ChartWidgetConfig<C>;
 }
 

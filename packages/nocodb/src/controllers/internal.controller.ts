@@ -102,6 +102,12 @@ export class InternalController {
           context,
           req.query.widgetId as string,
         );
+      case 'widgetDataGet':
+        return await this.dashboardsService.widgetDataGet(
+          context,
+          req.query.widgetId as string,
+          req,
+        );
       default:
         return NcError.notFound('Operation');
     }
@@ -164,6 +170,7 @@ export class InternalController {
         return await this.dashboardsService.widgetDataGet(
           context,
           payload.widgetId,
+          req,
         );
       default:
         NcError.notFound('Operation');

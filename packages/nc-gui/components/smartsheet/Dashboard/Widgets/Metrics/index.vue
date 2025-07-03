@@ -13,19 +13,43 @@ const props = withDefaults(defineProps<Props>(), {
 
 const widgetRef = toRef(props, 'widget')
 
+const widgetStore = useWidgetStore()
+const widgetData = ref<any>(null)
+const isLoading = ref(false)
+
 const colors = computed(() => {
   const type = (widgetRef.value?.config.appearance as any)?.type ?? 'default'
-  if (type === 'default')
-    return {
-      fill: 'white',
-      color: 'var(--nc-content-gray-subtle2)',
-    }
   if (type === 'filled') {
     return colorFilled.find((c) => c.id === (widgetRef.value?.config.appearance as any)?.theme) ?? colorFilled[0]
-  } else {
+  } else if (type === 'coloured') {
     return colorColoured.find((c) => c.id === (widgetRef.value?.config.appearance as any)?.theme) ?? colorColoured[0]
   }
+
+  return {
+    fill: 'white',
+    color: 'var(--nc-content-gray-subtle2)',
+  }
 })
+
+async function loadData() {
+  if (!widgetRef.value?.id) return
+  isLoading.value = true
+
+  widgetData.value = await widgetStore.loadWidgetData(widgetRef.value.id)
+  isLoading.value = false
+}
+
+onMounted(() => {
+  loadData()
+})
+
+watch(
+  () => widgetRef.value?.config,
+  () => {
+    loadData()
+  },
+  { deep: true },
+)
 </script>
 
 <template>
@@ -55,7 +79,14 @@ const colors = computed(() => {
       }"
       class="text-nc-content-gray-subtle2 text-heading2"
     >
-      100
+      <template v-if="isLoading">
+        <div class="flex items-center justify-center">
+          <a-spin size="small" />
+        </div>
+      </template>
+      <template v-else>
+        {{ widgetData?.value ?? '0' }}
+      </template>
     </div>
   </div>
 </template>

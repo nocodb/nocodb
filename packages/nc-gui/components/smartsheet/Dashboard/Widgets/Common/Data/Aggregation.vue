@@ -11,9 +11,9 @@ const emit = defineEmits<{
 
 const { selectedWidget } = storeToRefs(useWidgetStore())
 
-const selectedValue = ref(selectedWidget.value?.config?.metric?.aggregation === 'count' ? 'count' : 'summary')
-const selectedAggregationType = ref(selectedWidget.value?.config?.metric?.aggregation || 'count')
-const selectedFieldId = ref(selectedWidget.value?.config?.metric?.column_id || null)
+const selectedValue = ref(selectedWidget.value?.config?.metric?.type || 'count')
+const selectedAggregationType = ref(selectedWidget.value?.config?.metric?.aggregation)
+const selectedFieldId = ref(selectedWidget.value?.config?.metric?.column_id)
 
 const modelId = computed(() => selectedWidget.value?.fk_model_id || null)
 

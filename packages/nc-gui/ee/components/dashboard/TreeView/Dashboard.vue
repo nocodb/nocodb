@@ -12,7 +12,7 @@ const { loadDashboards } = useDashboardStore()
 const isExpanded = ref(true)
 
 const onExpand = async () => {
-  loadDashboards({ baseId: baseId.value })
+  await loadDashboards({ baseId: baseId.value })
   isExpanded.value = !isExpanded.value
 }
 </script>

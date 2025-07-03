@@ -3,20 +3,25 @@ import { DlgDashboardCreate } from '#components'
 
 export const useDashboardStore = defineStore('dashboard', () => {
   const { $api, $e } = useNuxtApp()
-  const route = useRoute()
+
   const { ncNavigateTo } = useGlobal()
-  const bases = useBases()
-  const { activeProjectId } = storeToRefs(bases)
-  const workspaceStore = useWorkspace()
-  const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const route = useRoute()
+
+  const baseStore = useBases()
+
+  const { loadProject } = baseStore
+
+  const { activeProjectId, bases } = storeToRefs(baseStore)
+
+  const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   const isDashboardEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.DASHBOARD))
 
   // State
   const dashboards = ref<Map<string, DashboardType[]>>(new Map())
-  const isLoadingDashboard = ref(false)
   const isEditingDashboard = ref(false)
 
   const activeBaseDashboards = computed(() => {
@@ -31,20 +36,15 @@ export const useDashboardStore = defineStore('dashboard', () => {
     return activeBaseDashboards.value.find((a) => a.id === activeDashboardId.value)
   })
 
-  // Actions
   const loadDashboards = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
-    if (!isDashboardEnabled.value) return []
+    if (!isDashboardEnabled.value || !activeWorkspaceId.value) return []
 
-    if (!activeWorkspaceId.value) return []
-
-    const exsistingDashboards = dashboards.value.get(baseId)
-    if (exsistingDashboards && !force) {
-      return exsistingDashboards
+    const existingDashboards = dashboards.value.get(baseId)
+    if (existingDashboards && !force) {
+      return existingDashboards
     }
 
     try {
-      isLoadingDashboard.value = true
-
       const response = (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
         operation: 'dashboardList',
       })) as DashboardType[]
@@ -55,20 +55,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return []
-    } finally {
-      isLoadingDashboard.value = false
     }
   }
 
-  const loadDashboard = async (dashboardId: string, showLoader = true) => {
-    if (
-      !activeProjectId.value ||
-      !activeDashboardId.value ||
-      !dashboardId ||
-      !isDashboardEnabled.value ||
-      !activeWorkspaceId.value
-    )
-      return null
+  const loadDashboard = async (dashboardId: string) => {
+    if (!activeProjectId.value || !dashboardId || !isDashboardEnabled.value || !activeWorkspaceId.value) return null
 
     let dashboard: null | DashboardType = null
 
@@ -77,10 +68,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
 
     try {
-      if (showLoader) {
-        isLoadingDashboard.value = true
-      }
-
       dashboard =
         dashboard ||
         ((await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
@@ -97,10 +84,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
         baseId: activeProjectId.value,
       })
       return null
-    } finally {
-      if (showLoader) {
-        isLoadingDashboard.value = false
-      }
     }
   }
 
@@ -170,10 +153,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
         dashboards.value.set(baseId, baseDashboards)
       }
 
-      if (activeDashboard.value?.id === dashboardId) {
-        activeDashboard.value = updated as unknown as DashboardType
-      }
-
       return updated
     } catch (e) {
       console.error(e)
@@ -222,7 +201,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
       return true
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
       return false
     }
   }
@@ -230,17 +209,14 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const openDashboard = async (dashboard: DashboardType) => {
     if (!dashboard.base_id || !dashboard.id) return
 
-    const basesS = bases.bases
-    const workspaceId = workspaceStore.activeWorkspaceId
-
-    let base = basesS.get(dashboard.base_id)
+    let base = bases.value.get(dashboard.base_id)
     if (!base) {
-      await bases.loadProject(dashboard.base_id)
-      base = basesS.get(dashboard.base_id)
+      await loadProject(dashboard.base_id)
+      base = bases.value.get(dashboard.base_id)
       if (!base) throw new Error('Base not found')
     }
 
-    let workspaceIdOrType = workspaceId
+    let workspaceIdOrType = activeWorkspaceId.value
     if (['nc', 'base'].includes(route.params.typeOrId as string)) {
       workspaceIdOrType = route.params.typeOrId as string
     }
@@ -326,7 +302,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
     // State
     dashboards,
     activeDashboard,
-    isLoadingDashboard,
     isEditingDashboard,
 
     // Getters

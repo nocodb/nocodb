@@ -50,12 +50,15 @@ const activeView = computed<(ViewType & { meta: object & Record<string, any> }) 
   },
 })
 
-const isPublicShared = computed(() => {
-  return !!activeView.value?.uuid
-})
-
 const restrictedSharing = computed(() => {
   return isPrivateBase.value && activeView.value?.type !== ViewTypes.FORM
+})
+
+const isPublicShared = computed(() => {
+  // If base is private, then we have to restrict sharing
+  if (restrictedSharing.value) return false
+
+  return !!activeView.value?.uuid
 })
 
 const isReadOnly = computed(() => {
@@ -364,7 +367,7 @@ const copyCustomUrl = async (custUrl = '') => {
           {{ $t('activity.enabledPublicViewing') }}
         </div>
         <a-switch
-          v-if="!restrictedSharing || isPublicShared"
+          v-if="!restrictedSharing"
           v-e="['c:share:view:enable:toggle']"
           :checked="isPublicShared"
           :disabled="isLocked"

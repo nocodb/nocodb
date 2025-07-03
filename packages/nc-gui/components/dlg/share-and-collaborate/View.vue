@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ViewLockType, type ViewType } from 'nocodb-sdk'
+import { ViewLockType, ViewTypes, type ViewType } from 'nocodb-sdk'
 import { useViewsStore } from '~/store/views'
 
 const { isViewToolbar } = defineProps<{
@@ -27,6 +27,10 @@ const { formStatus, showShareModal } = storeToRefs(useShare())
 const { resetData } = useShare()
 
 const isOpeningManageAccess = ref(false)
+
+const isViewSharingRestricted = computed(() => {
+  return isPrivateBase.value && view.value?.type !== ViewTypes.FORM
+})
 
 const openManageAccess = async () => {
   isOpeningManageAccess.value = true
@@ -66,9 +70,6 @@ watch(showShareModal, (val) => {
     <div class="flex flex-col px-1">
       <div class="flex flex-col gap-2 pb-1 mx-4 mt-3">
         <div class="flex text-base font-medium">{{ $t('activity.share') }}</div>
-        <div v-if="isPrivateBase" class="text-nc-content-gray-emphasis">
-          This is a <strong>Private</strong> Base. Sharing is limited to form views.
-        </div>
       </div>
       <div v-if="isViewToolbar && activeView" class="share-view">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
@@ -88,10 +89,13 @@ watch(showShareModal, (val) => {
             </span>
           </div>
         </div>
-        <div v-if="isLocked" class="flex items-center gap-x-2 px-4 text-nc-content-gray-muted">
+        <div v-if="isLocked || isViewSharingRestricted" class="flex items-center gap-x-2 px-4 text-nc-content-gray-muted">
+          <div v-if="isViewSharingRestricted" class="flex items-center justify-center h-4 w-4">
+            <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
+          </div>
           <component
+            v-if="!isViewSharingRestricted"
             :is="viewLockIcons[view.lock_type].icon"
-            v-if="view?.lock_type"
             class="flex-none"
             :class="{
               'w-4 h-4': view?.lock_type === ViewLockType.Locked,
@@ -101,9 +105,11 @@ watch(showShareModal, (val) => {
 
           <div class="flex-1">
             {{
-              $t('title.viewSettingsCantBeChangedWhenViewIs', {
-                type: $t(viewLockIcons[activeView?.lock_type]?.title).toLowerCase(),
-              })
+              isViewSharingRestricted
+                ? $t('msg.privateBaseViewShareRestrictedMsg')
+                : $t('title.viewSettingsCantBeChangedWhenViewIs', {
+                    type: $t(viewLockIcons[activeView?.lock_type]?.title).toLowerCase(),
+                  })
             }}
           </div>
         </div>
@@ -121,6 +127,12 @@ watch(showShareModal, (val) => {
           >
             {{ base.title }}
           </div>
+        </div>
+        <div v-if="isPrivateBase" class="flex items-center gap-x-2 px-4 text-nc-content-gray-muted">
+          <div class="flex items-center justify-center h-4 w-5">
+            <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
+          </div>
+          <div class="flex-1">{{ $t('msg.privateBaseShareRestrictedMsg') }}</div>
         </div>
         <LazyDlgShareAndCollaborateShareBase />
       </div>

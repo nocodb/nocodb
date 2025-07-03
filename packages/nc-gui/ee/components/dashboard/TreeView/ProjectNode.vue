@@ -739,19 +739,23 @@ defineExpose({
             <template v-if="!editMode">
               <template v-if="isProjectHeader">
                 <div class="flex items-center gap-1">
-                  <GeneralIcon v-if="!isMobileMode" icon="chevronDown" class="flex-none text-nc-content-gray-muted" />
-                  <NcBadge
+                  <NcTooltip
                     v-if="isPrivateBase"
-                    size="xs"
-                    class="!text-bodySm !bg-nc-bg-gray-medium group-hover:!bg-nc-bg-gray-dark !font-normal !text-nc-content-gray-subtle2 !h-[18px]"
-                    :class="{
-                      '!bg-nc-bg-gray-dark': isProjectNodeContextMenuOpen,
-                    }"
-                    color="grey"
-                    :border="false"
+                    :title="$t('title.privateBase')"
+                    @mouseenter="showNodeTooltip = false"
+                    @mouseleave="showNodeTooltip = true"
                   >
-                    {{ $t('general.private') }}
-                  </NcBadge>
+                    <NcBadge
+                      size="sm"
+                      class="!text-bodySm !bg-transparent hover:bg-nc-bg-gray-medium group-hover:hover:!bg-nc-bg-gray-dark !font-normal !text-nc-content-gray-subtle2 !h-5 !w-5 !px-0.5"
+                      rounded="md"
+                      color="grey"
+                      :border="false"
+                    >
+                      <GeneralIcon v-if="isPrivateBase" icon="ncLock" class="flex-none text-nc-content-gray-muted" />
+                    </NcBadge>
+                  </NcTooltip>
+                  <GeneralIcon v-if="!isMobileMode" icon="chevronDown" class="flex-none text-nc-content-gray-muted" />
                 </div>
               </template>
               <template v-else>

@@ -547,15 +547,18 @@ export default class Base extends BaseCE {
       })
       // if private base don't consider workspace role
       .andWhere(function () {
-        this.andWhere(function () {
-          this.whereNotNull(`${MetaTable.PROJECT_USERS}.roles`)
-            .orWhere(
-              `${MetaTable.PROJECT_USERS}.roles`,
-              '!=',
-              ProjectRoles.NO_ACCESS,
-            )
-            .orWhereNull(`${MetaTable.PROJECT_USERS}.roles`);
-        });
+        this.where(function () {
+          this.whereNotNull(`${MetaTable.PROJECT_USERS}.roles`).andWhere(
+            `${MetaTable.PROJECT_USERS}.roles`,
+            '!=',
+            ProjectRoles.NO_ACCESS,
+          );
+        })
+          .orWhereNull(`${MetaTable.PROJECT}.default_role`)
+          .orWhereNot(
+            `${MetaTable.PROJECT}.default_role`,
+            ProjectRoles.NO_ACCESS,
+          );
       });
 
     const bases = await baseListQb;

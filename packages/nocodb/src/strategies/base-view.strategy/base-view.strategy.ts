@@ -12,19 +12,28 @@ export class BaseViewStrategy extends PassportStrategy(Strategy, 'base-view') {
     try {
       let user;
       if (req.headers['xc-shared-base-id']) {
-        const sharedProject = await Base.getByUuid(
+        const sharedBase = await Base.getByUuid(
           req.context,
           req.headers['xc-shared-base-id'],
         );
 
+        // block shared base for private base
+        if (sharedBase.default_role) {
+          return callback(
+            new UnauthorizedException(
+              'Shared base feature is not available for private bases. Please contact the base owner for access.'
+            ),
+          );
+        }
+
         // validate base id
-        if (!sharedProject || req.ncBaseId !== sharedProject.id) {
+        if (!sharedBase || req.ncBaseId !== sharedBase.id) {
           return callback(new UnauthorizedException());
         }
 
         user = {
-          roles: extractRolesObj(sharedProject?.roles),
-          base_roles: extractRolesObj(sharedProject?.roles),
+          roles: extractRolesObj(sharedBase?.roles),
+          base_roles: extractRolesObj(sharedBase?.roles),
         };
       }
 

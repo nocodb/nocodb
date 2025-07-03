@@ -34,8 +34,17 @@ export class PublicMetasService extends PublicMetasServiceCE {
 
     const workspace = await Workspace.get(view.fk_workspace_id, false);
 
+    const base = await Base.get(context, view.fk_base_id);
+
     if (view.type === ViewTypes.FORM) {
       view = await this.validateFormViewPlanLimitAndFeatures(view, workspace);
+    }
+
+    // block non-meta views in private base
+    if (view.type !== ViewTypes.FORM && base.default_role) {
+      NcError.forbidden(
+        'The shared view feature is not available for private bases. Please contact the base owner to request access.',
+      );
     }
 
     const viewRowColorInfo = await this.viewRowColorService.getByViewId({
@@ -59,6 +68,13 @@ export class PublicMetasService extends PublicMetasServiceCE {
 
     if (!base) {
       NcError.baseNotFound(param.sharedBaseUuid);
+    }
+
+    // block shared base for private base
+    if (base.default_role) {
+      NcError.forbidden(
+        'The shared base feature is not available for private bases. Please contact the base owner to request access.',
+      );
     }
 
     const workspace = await Workspace.get(base.fk_workspace_id, false);

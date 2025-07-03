@@ -75,17 +75,17 @@ const baseTypeOptions = computed(() => [
       <a-form-item class="!w-full">
         <a-radio-group v-model:value="baseTypeValue" class="nc-base-access-radio-group">
           <a-radio v-for="(option, idx) of baseTypeOptions" :key="idx" :value="option.value">
-            <div class="w-full flex flex-col">
+            <div class="w-full flex flex-col gap-1">
               <div class="w-full flex items-center gap-2">
                 <div
-                  class="flex items-center gap-2"
+                  class="flex items-center gap-3"
                   :class="{
                     'text-nc-content-inverted-primary-disabled': option.disabled,
                     'text-nc-content-gray': !option.disabled,
                   }"
                 >
                   <GeneralIcon :icon="option.icon" class="flex-none h-4 w-4" />
-                  <span class="text-captionBold">{{ option.label }}</span>
+                  <span class="font-semibold">{{ option.label }}</span>
                 </div>
 
                 <PaymentUpgradeBadge
@@ -98,7 +98,7 @@ const baseTypeOptions = computed(() => [
                 />
               </div>
               <div
-                class="text-bodyDefaultSm ml-6"
+                class="ml-7"
                 :class="{
                   'text-nc-content-inverted-primary-disabled': option.disabled,
                   'text-nc-content-gray-muted': !option.disabled,

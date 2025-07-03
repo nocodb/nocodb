@@ -232,7 +232,9 @@ const selectedBaseAccessOption = computed(() => {
                     <div class="w-full flex flex-col">
                       <div class="w-full flex items-center justify-between">
                         <div class="flex items-center gap-2 text-nc-content-gray">
-                          <GeneralIcon :icon="option.icon" class="flex-none h-3.5 w-3.5" />
+                          <div class="flex items-center justify-center h-4 w-4">
+                            <GeneralIcon :icon="option.icon" class="flex-none h-3.5 w-3.5" />
+                          </div>
                           <span class="text-captionDropdownDefault">{{ option.label }}</span>
                         </div>
 

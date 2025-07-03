@@ -42,7 +42,7 @@ const baseTypeOptions = computed(() => [
   {
     label: t('labels.privateType'),
     value: true,
-    icon: 'ncUser',
+    icon: 'ncBasePrivate',
     subtext: t('title.baseTypeSettingsPrivateSubtext'),
     disabled: blockPrivateBases.value,
   },

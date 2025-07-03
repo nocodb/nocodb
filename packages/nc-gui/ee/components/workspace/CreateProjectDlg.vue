@@ -143,13 +143,13 @@ const baseAccessOptions = computed(
       {
         label: t('labels.defaultType'),
         value: '',
-        icon: 'ncUsers',
+        icon: 'ncBaseOutline',
         subtext: t('title.baseTypeDefaultSubtext'),
       },
       {
         label: t('labels.privateType'),
         value: ProjectRoles.NO_ACCESS,
-        icon: 'ncUser',
+        icon: 'ncBasePrivate',
         subtext: t('title.baseTypePrivateSubtext'),
       },
     ] as (NcListItemType & { icon: IconMapKey })[],
@@ -209,7 +209,7 @@ const selectedBaseAccessOption = computed(() => {
             </template>
             <NcListDropdown v-model:is-open="isOpenBaseAccessDropdown">
               <div class="flex-1 flex items-center gap-2 text-nc-content-gray">
-                <GeneralIcon :icon="selectedBaseAccessOption.icon" class="flex-none h-4 w-4" />
+                <GeneralIcon :icon="selectedBaseAccessOption.icon" class="flex-none h-3.5 w-3.5" />
                 <span class="text-sm flex-1">{{ selectedBaseAccessOption.label }}</span>
 
                 <GeneralIcon
@@ -232,7 +232,7 @@ const selectedBaseAccessOption = computed(() => {
                     <div class="w-full flex flex-col">
                       <div class="w-full flex items-center justify-between">
                         <div class="flex items-center gap-2 text-nc-content-gray">
-                          <GeneralIcon :icon="option.icon" class="flex-none h-4 w-4" />
+                          <GeneralIcon :icon="option.icon" class="flex-none h-3.5 w-3.5" />
                           <span class="text-captionDropdownDefault">{{ option.label }}</span>
                         </div>
 

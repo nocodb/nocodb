@@ -139,7 +139,7 @@ const onPrecisionChange = (value: number) => {
       </a-form-item>
     </a-col>
 
-    <a-col :span="24" class="mt-4">
+    <a-col :span="24">
       <a-form-item :label="$t('placeholder.precision')">
         <a-select
           v-if="vModel.meta?.precision || vModel.meta?.precision === 0"

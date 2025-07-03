@@ -141,13 +141,13 @@ const baseAccessOptions = computed(
   () =>
     [
       {
-        label: t('general.default'),
+        label: t('labels.defaultAccess'),
         value: '',
         icon: 'ncUsers',
         subtext: t('title.baseAccessDefaultSubtext'),
       },
       {
-        label: t('general.private'),
+        label: t('labels.privateAccess'),
         value: ProjectRoles.NO_ACCESS,
         icon: 'ncUser',
         subtext: t('title.baseAccessPrivateSubtext'),
@@ -203,14 +203,20 @@ const selectedBaseAccessOption = computed(() => {
             />
           </a-form-item>
 
-          <a-form-item name="is_private" class="!mb-0">
+          <a-form-item name="default_role" class="!mb-0">
             <template #label>
-              <div>{{ t('general.baseAccess') }}</div>
+              <div>{{ t('general.permissions') }}</div>
             </template>
             <NcListDropdown v-model:is-open="isOpenBaseAccessDropdown">
               <div class="flex-1 flex items-center gap-2 text-nc-content-gray">
                 <GeneralIcon :icon="selectedBaseAccessOption.icon" class="flex-none h-4 w-4" />
-                <span class="text-sm">{{ selectedBaseAccessOption.label }}</span>
+                <span class="text-sm flex-1">{{ selectedBaseAccessOption.label }}</span>
+
+                <GeneralIcon
+                  icon="ncChevronDown"
+                  class="flex-none h-4 w-4 transition-transform opacity-80"
+                  :class="{ 'transform rotate-180': isOpenBaseAccessDropdown }"
+                />
               </div>
               <template #overlay="{ onEsc }">
                 <NcList

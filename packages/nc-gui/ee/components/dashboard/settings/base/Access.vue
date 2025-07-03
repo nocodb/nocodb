@@ -34,13 +34,13 @@ const baseAccessValue = computed({
 
 const baseAccessOptions = computed(() => [
   {
-    label: t('general.default'),
+    label: t('labels.defaultAccess'),
     value: false,
     icon: 'ncUsers',
     subtext: t('title.baseAccessSettingsDefaultSubtext'),
   },
   {
-    label: t('general.private'),
+    label: t('labels.privateAccess'),
     value: true,
     icon: 'ncUser',
     subtext: t('title.baseAccessSettingsPrivateSubtext'),

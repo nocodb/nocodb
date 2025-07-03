@@ -235,7 +235,7 @@ const selectedBaseAccessOption = computed(() => {
                           <div class="flex items-center justify-center h-4 w-4">
                             <GeneralIcon :icon="option.icon" class="flex-none h-3.5 w-3.5" />
                           </div>
-                          <span class="text-captionDropdownDefault">{{ option.label }}</span>
+                          <span class="text-captionDropdownDefault !font-550">{{ option.label }}</span>
                         </div>
 
                         <PaymentUpgradeBadge

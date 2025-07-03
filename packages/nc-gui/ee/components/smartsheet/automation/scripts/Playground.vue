@@ -276,12 +276,12 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
   }
 
   h1 {
-    @apply text-Heading1 text-nc-content-gray;
+    @apply text-heading1 text-nc-content-gray;
     font-weight: 700;
   }
 
   h2 {
-    @apply text-Heading3 text-nc-content-gray;
+    @apply text-heading3 text-nc-content-gray;
   }
 
   h3 {

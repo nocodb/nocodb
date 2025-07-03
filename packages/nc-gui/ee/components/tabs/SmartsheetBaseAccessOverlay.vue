@@ -60,7 +60,7 @@ const handleConvertToSharedBase = async () => {
 
 <style lang="scss" scoped>
 .nc-smartsheet-access-request-overlay {
-  @apply !pointer-events-auto absolute inset-0 bg-white/24 z-500 grid place-items-center px-4;
+  @apply !pointer-events-auto absolute inset-0 z-500 bg-white/24  grid place-items-center px-4;
   backdrop-filter: blur(16px);
 
   .nc-smartsheet-access-request-modal {

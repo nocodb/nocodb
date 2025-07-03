@@ -121,7 +121,17 @@ const baseAccessValue = computed({
   get: () => formState.value.default_role ?? '',
   set: (value) => {
     // If private base is selected and user don't have access to it then don't allow to select it
-    if (value === ProjectRoles.NO_ACCESS && showUpgradeToUsePrivateBases()) return
+    if (
+      value === ProjectRoles.NO_ACCESS &&
+      showUpgradeToUsePrivateBases({
+        callback: (type) => {
+          if (type === 'ok') {
+            dialogShow.value = false
+          }
+        },
+      })
+    )
+      return
 
     formState.value.default_role = value === ProjectRoles.NO_ACCESS ? ProjectRoles.NO_ACCESS : ''
   },

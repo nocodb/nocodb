@@ -23,7 +23,7 @@ export default function () {
       API_PREFIX = `/api/v3/meta/bases/${initBase.id}`;
     });
 
-    describe.only('table create', () => {
+    describe('table create', () => {
       it(`will handle empty title`, async () => {
         const result = await request(context.app)
           .post(`${API_PREFIX}/tables`)
@@ -55,9 +55,131 @@ export default function () {
         expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
         expect(result.body.message).to.eq('Duplicate table alias');
       });
+      it(`will handle incorrect title`, async () => {
+        const result = await request(context.app)
+          .post(`${API_PREFIX}/tables`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: '~!.,1230856123{}+_',
+          })
+          .expect(400);
+        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.message).to.eq(
+          'Following characters are not allowed "."',
+        );
+      });
+      it(`will handle incorrect title length`, async () => {
+        const result = await request(context.app)
+          .post(`${API_PREFIX}/tables`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title:
+              '0123456789012345678901234567890123456789012345678901234567890123456789',
+          })
+          .expect(400);
+        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.message).to.eq('Table name exceeds 63 characters');
+      });
     });
-    describe('table get', () => {});
-    describe('table update', () => {});
-    describe('table delete', () => {});
+    describe('table get', () => {
+      it(`will handle table not found`, async () => {
+        const result = await request(context.app)
+          .get(`${API_PREFIX}/tables/NOT_FOUND`)
+          .set('xc-token', context.xc_token)
+          .expect(422);
+        expect(result.body.error).to.eq('TABLE_NOT_FOUND');
+        expect(result.body.message).to.eq(`Table 'NOT_FOUND' not found`);
+      });
+    });
+    describe.only('table update', () => {
+      let myTable: any;
+      beforeEach(async () => {
+        const result = await request(context.app)
+          .post(`${API_PREFIX}/tables`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'MyTable',
+          });
+        myTable = result.body;
+      });
+      it(`will handle table not found`, async () => {
+        const result = await request(context.app)
+          .patch(`${API_PREFIX}/tables/NOT_FOUND`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'any',
+          })
+          .expect(422);
+        expect(result.body.error).to.eq('TABLE_NOT_FOUND');
+        expect(result.body.message).to.eq(`Table 'NOT_FOUND' not found`);
+      });
+      it(`will handle title special character`, async () => {
+        const result = await request(context.app)
+          .patch(`${API_PREFIX}/tables/${myTable?.id}`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: '~!.,1230856123{}+_',
+          })
+          .expect(400);
+        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.message).to.eq(
+          'Following characters are not allowed "."',
+        );
+      });
+      it(`will handle empty title`, async () => {
+        const result = await request(context.app)
+          .patch(`${API_PREFIX}/tables/${myTable?.id}`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: '',
+          })
+          .expect(400);
+        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.message).to.eq(
+          'Missing table name `table_name` property in request body',
+        );
+      });
+
+      it(`will handle duplicate alias`, async () => {
+        const _result1 = await request(context.app)
+          .post(`${API_PREFIX}/tables`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'MyTable1',
+          })
+          .expect(200);
+        const result = await request(context.app)
+          .patch(`${API_PREFIX}/tables/${_result1.body.id}`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'MyTable',
+          })
+          .expect(400);
+        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.message).to.eq('Duplicate table alias');
+      });
+      it(`will handle incorrect title length`, async () => {
+        const result = await request(context.app)
+          .patch(`${API_PREFIX}/tables/${myTable?.id}`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title:
+              '0123456789012345678901234567890123456789012345678901234567890123456789',
+          })
+          .expect(400);
+        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.message).to.eq('Table name exceeds 63 characters');
+      });
+    });
+    describe.only('table delete', () => {
+      it(`will handle table not found`, async () => {
+        const result = await request(context.app)
+          .get(`${API_PREFIX}/tables/NOT_FOUND`)
+          .set('xc-token', context.xc_token)
+          .expect(422);
+        expect(result.body.error).to.eq('TABLE_NOT_FOUND');
+        expect(result.body.message).to.eq(`Table 'NOT_FOUND' not found`);
+      });
+    });
   });
 }

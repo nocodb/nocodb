@@ -12,8 +12,12 @@ const widgetData = reactive({
   description: selectedWidget?.description || '',
 })
 
-watch(widgetData, () => {
+const useDebouncedUpdateWidget = useDebounceFn(async () => {
   emit('update:widget', widgetData)
+}, 500)
+
+watch(widgetData, () => {
+  useDebouncedUpdateWidget()
 })
 </script>
 

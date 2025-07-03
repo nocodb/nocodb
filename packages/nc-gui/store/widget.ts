@@ -176,6 +176,21 @@ export const useWidgetStore = defineStore('widget', () => {
     }
   }
 
+  const loadWidgetData = async (widgetId: string) => {
+    if (!activeWorkspaceId.value || !openedProject.value?.id) return null
+
+    try {
+      return (await $api.internal.getOperation(activeWorkspaceId.value, openedProject.value.id, {
+        operation: 'widgetData',
+        widgetId,
+      }))
+    } catch (e) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
+      return null
+    }
+  }
+
   return {
     // State
     widgets,
@@ -192,6 +207,7 @@ export const useWidgetStore = defineStore('widget', () => {
     deleteWidget,
     updateWidgetPosition,
     clearWidgets,
+    loadWidgetData,
   }
 })
 

@@ -524,34 +524,34 @@ export default class Base extends BaseCE {
             `${MetaTable.WORKSPACE_USER}.roles`,
             '!=',
             WorkspaceUserRoles.NO_ACCESS,
-          ).andWhere(function () {
-            this.andWhere(
-              `${MetaTable.PROJECT_USERS}.roles`,
-              '!=',
-              ProjectRoles.NO_ACCESS,
-            ).orWhereNull(`${MetaTable.PROJECT_USERS}.roles`);
-          });
-        })
-          .orWhere(function () {
-            this.where(
-              `${MetaTable.WORKSPACE_USER}.roles`,
-              '=',
-              WorkspaceUserRoles.NO_ACCESS,
-            )
-              .andWhere(
+          )
+            .andWhere(function () {
+              this.andWhere(
                 `${MetaTable.PROJECT_USERS}.roles`,
                 '!=',
                 ProjectRoles.NO_ACCESS,
-              )
-              .whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
-          })
-          // if default base role defined at the base level consider it to check access
-          .andWhere(function () {
-            this.whereNotNull(`${MetaTable.PROJECT}.default_role`).orWhereNot(
-              `${MetaTable.PROJECT}.default_role`,
+              ).orWhereNull(`${MetaTable.PROJECT_USERS}.roles`);
+            })
+            // if default base role defined at the base level consider it to check access
+            .andWhere(function () {
+              this.whereNull(`${MetaTable.PROJECT}.default_role`).orWhereNot(
+                `${MetaTable.PROJECT}.default_role`,
+                ProjectRoles.NO_ACCESS,
+              );
+            });
+        }).orWhere(function () {
+          this.where(
+            `${MetaTable.WORKSPACE_USER}.roles`,
+            '=',
+            WorkspaceUserRoles.NO_ACCESS,
+          )
+            .andWhere(
+              `${MetaTable.PROJECT_USERS}.roles`,
+              '!=',
               ProjectRoles.NO_ACCESS,
-            );
-          });
+            )
+            .whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
+        });
       });
 
     const bases = await baseListQb;

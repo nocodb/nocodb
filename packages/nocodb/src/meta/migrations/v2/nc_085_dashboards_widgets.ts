@@ -19,8 +19,6 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
 
     table.index(['base_id', 'fk_workspace_id'], 'nc_dashboards_context');
-    table.index('created_by', 'nc_dashboards_created_by_idx');
-    table.index('owned_by', 'nc_dashboards_owned_by_idx');
   });
 
   await knex.schema.createTable(MetaTable.WIDGETS, (table) => {
@@ -45,7 +43,6 @@ const up = async (knex: Knex) => {
 
     table.index(['base_id', 'fk_workspace_id'], 'nc_widgets_context');
     table.index('fk_dashboard_id', 'nc_widgets_dashboard_idx');
-    table.index('type', 'nc_widgets_type_idx');
   });
 
   if (!(await knex.schema.hasColumn(MetaTable.FILTER_EXP, 'fk_widget_id'))) {
@@ -58,6 +55,10 @@ const up = async (knex: Knex) => {
 const down = async (knex: Knex) => {
   await knex.schema.dropTable(MetaTable.WIDGETS);
   await knex.schema.dropTable(MetaTable.DASHBOARDS);
+
+  await knex.schema.alterTable(MetaTable.FILTER_EXP, (table) => {
+    table.dropColumn('fk_widget_id');
+  });
 };
 
 export { up, down };

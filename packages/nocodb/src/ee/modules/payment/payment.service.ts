@@ -100,7 +100,8 @@ export class PaymentService {
   }
 
   async syncPlan(planId: string, payload?: { is_active?: boolean }) {
-    const plan = await Plan.get(planId);
+    const plan =
+      (await Plan.get(planId)) || (await Plan.getByStripeProductId(planId));
 
     if (!plan) {
       NcError.genericNotFound('Plan', planId);
@@ -136,8 +137,21 @@ export class PaymentService {
     return await Plan.update(plan.id, plan);
   }
 
+  async syncAllPlans() {
+    const plans = await Plan.getWithCondition({
+      is_active: true,
+    });
+
+    for (const plan of plans) {
+      await this.syncPlan(plan.id);
+    }
+
+    return { message: 'All plans synced' };
+  }
+
   async disablePlan(planId: string) {
-    const plan = await Plan.get(planId);
+    const plan =
+      (await Plan.get(planId)) || (await Plan.getByStripeProductId(planId));
 
     if (!plan) {
       NcError.genericNotFound('Plan', planId);

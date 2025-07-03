@@ -66,6 +66,12 @@ export class PaymentController {
   }
 
   @UseGuards(AuthGuard('basic'))
+  @Patch('/api/internal/payment/plan')
+  async syncAllPlans() {
+    return this.paymentService.syncAllPlans();
+  }
+
+  @UseGuards(AuthGuard('basic'))
   @Delete('/api/internal/payment/plan/:planId')
   async disablePlan(@Param('planId') planId: string) {
     return this.paymentService.disablePlan(planId);

@@ -14,6 +14,7 @@ import { extractProps } from '~/helpers/extractProps';
 export default class Filter extends FilterCE implements FilterType {
   fk_link_col_id?: string;
   fk_value_col_id?: string;
+  fk_widget_id?: string;
 
   public static castType(filter: Filter): Filter {
     return filter && new Filter(filter);
@@ -32,6 +33,7 @@ export default class Filter extends FilterCE implements FilterType {
       'id',
       'fk_view_id',
       'fk_hook_id',
+      'fk_widget_id',
       'fk_parent_column_id',
       'fk_row_color_condition_id',
       'fk_column_id',
@@ -53,6 +55,8 @@ export default class Filter extends FilterCE implements FilterType {
       referencedModelColName = 'fk_hook_id';
     } else if (filter.fk_link_col_id) {
       referencedModelColName = 'fk_link_col_id';
+    } else if (filter.fk_widget_id) {
+      referencedModelColName = 'fk_widget_id';
     } else if (filter.fk_parent_column_id) {
       referencedModelColName = 'fk_parent_column_id';
     } else if (filter.fk_row_color_condition_id) {
@@ -138,12 +142,13 @@ export default class Filter extends FilterCE implements FilterType {
         (filter.fk_view_id ||
           filter.fk_hook_id ||
           filter.fk_link_col_id ||
+          filter.fk_widget_id ||
           filter.fk_row_color_condition_id ||
           filter.fk_parent_column_id)
       )
     ) {
       throw new Error(
-        `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_link_col_id(${filter.fk_link_col_id}), fk_hook_id(${filter.fk_hook_id}, fk_parent_column_id(${filter.fk_parent_column_id})`,
+        `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_link_col_id(${filter.fk_link_col_id}), fk_hook_id(${filter.fk_hook_id}, fk_widget_id(${filter.fk_widget_id}), fk_parent_column_id(${filter.fk_parent_column_id})`,
       );
     }
     const key = `${CacheScope.FILTER_EXP}:${id}`;
@@ -197,6 +202,16 @@ export default class Filter extends FilterCE implements FilterType {
             ),
           );
         }
+        if (filter.fk_widget_id) {
+          p.push(
+            NocoCache.appendToList(
+              CacheScope.FILTER_EXP,
+              [filter.fk_widget_id, filter.fk_parent_id],
+              key,
+            ),
+          );
+        }
+
         if (filter.fk_parent_id) {
           if (filter.fk_view_id) {
             p.push(
@@ -304,4 +319,36 @@ export default class Filter extends FilterCE implements FilterType {
       ?.filter((f) => !f.fk_parent_id)
       ?.map((f) => this.castType(f));
   }
+
+  static rootFilterListByWidget? = async (
+    context: NcContext,
+    { widgetId }: { widgetId: string },
+    ncMeta = Noco.ncMeta,
+  ) => {
+    const cachedList = await NocoCache.getList(
+      CacheScope.FILTER_EXP,
+      [widgetId],
+      { key: 'order' },
+    );
+
+    let { list: filterObjs } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !filterObjs.length) {
+      filterObjs = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          condition: { fk_widget_id: widgetId },
+          orderBy: {
+            order: 'asc',
+          },
+        },
+      );
+      await NocoCache.setList(CacheScope.FILTER_EXP, [widgetId], filterObjs);
+    }
+    return filterObjs
+      ?.filter((f) => !f.fk_parent_id)
+      ?.map((f) => this.castType(f));
+  };
 }

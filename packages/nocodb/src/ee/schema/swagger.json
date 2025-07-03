@@ -4602,6 +4602,10 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to row color conditions"
           },
+          "fk_widget_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Widget"
+          },
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"

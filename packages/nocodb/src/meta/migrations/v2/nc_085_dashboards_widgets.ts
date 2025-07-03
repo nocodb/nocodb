@@ -44,6 +44,12 @@ const up = async (knex: Knex) => {
     table.index('fk_dashboard_id', 'nc_widgets_dashboard_idx');
     table.index('type', 'nc_widgets_type_idx');
   });
+
+  if (!(await knex.schema.hasColumn(MetaTable.FILTER_EXP, 'fk_widget_id'))) {
+    await knex.schema.alterTable(MetaTable.FILTER_EXP, (table) => {
+      table.string('fk_widget_id', 20).index();
+    });
+  }
 };
 
 const down = async (knex: Knex) => {

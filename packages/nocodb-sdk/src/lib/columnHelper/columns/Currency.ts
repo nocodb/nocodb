@@ -1,5 +1,5 @@
 import { SilentTypeConversionError } from '~/lib/error';
-import { parseCurrencyValue, serializeCurrencyValue } from '..';
+import { parseCurrencyValue, precisionFormats, serializeCurrencyValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
@@ -10,6 +10,7 @@ export class CurrencyHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     currency_locale: 'en-US',
     currency_code: 'USD',
+    precision: precisionFormats[1],
   };
 
   serializeValue(

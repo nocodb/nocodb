@@ -208,9 +208,9 @@ const selectedBaseAccessOption = computed(() => {
               <div>{{ t('general.baseAccess') }}</div>
             </template>
             <NcListDropdown v-model:is-open="isOpenBaseAccessDropdown">
-              <div class="flex-1 flex items-center gap-2 text-nc-content-gray-subtle">
+              <div class="flex-1 flex items-center gap-2 text-nc-content-gray">
                 <GeneralIcon :icon="selectedBaseAccessOption.icon" class="flex-none h-4 w-4" />
-                <span class="text-captionDropdownDefault">{{ selectedBaseAccessOption.label }}</span>
+                <span class="text-sm">{{ selectedBaseAccessOption.label }}</span>
               </div>
               <template #overlay="{ onEsc }">
                 <NcList

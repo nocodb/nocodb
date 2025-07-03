@@ -1,5 +1,5 @@
 import { WidgetTypes } from 'nocodb-sdk';
-import { MetricPgHandler } from './metric/metric.pg.handler';
+import { MetricCommonHandler } from './metric/metric.common.handler';
 import type { NcRequest, WidgetType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/ncError';
 import { Model, Source } from '~/models';
@@ -23,7 +23,7 @@ async function getWidgetHandler(params: {
 
   switch (widget.type) {
     case WidgetTypes.METRIC:
-      return new MetricPgHandler();
+      return new MetricCommonHandler();
     case WidgetTypes.CHART:
       switch (widget.config.chartType) {
         default:

@@ -1,6 +1,8 @@
-import type { NcContext, WidgetType, WidgetTypes } from 'nocodb-sdk';
-import { Column, Model, View } from '~/models';
-import { validateAggregationColType } from '~/db/aggregation';
+import { formatAggregation } from 'nocodb-sdk';
+import type { NcContext, NcRequest, WidgetType, WidgetTypes } from 'nocodb-sdk';
+import { Column, Filter, Model, Source, View } from '~/models';
+import applyAggregation, { validateAggregationColType } from '~/db/aggregation';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 export class MetricCommonHandler {
   async validateWidgetData(
@@ -74,5 +76,87 @@ export class MetricCommonHandler {
     }
 
     return errors.length > 0 ? errors : undefined;
+  }
+
+  async getWidgetData(params: {
+    widget: WidgetType<WidgetTypes.METRIC>;
+    req: NcRequest;
+  }) {
+    const { widget, req } = params;
+    const context = req.context;
+    const { config } = widget;
+    const { dataSource, metric } = config;
+
+    // Get model
+    const model = await Model.getByIdOrName(context, {
+      id: widget.fk_model_id,
+    });
+
+    let view = null;
+    if (dataSource === 'view' && widget.fk_view_id) {
+      view = await View.get(context, widget.fk_view_id);
+    }
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    const filters = await Filter.rootFilterListByWidget(context, {
+      widgetId: widget.id,
+    });
+
+    const qb = baseModel.dbDriver(baseModel.tnPath);
+
+    await baseModel.applySortAndFilter({
+      table: model,
+      qb,
+      filters,
+      view,
+      skipSort: true,
+      sort: '',
+      where: '',
+    });
+
+    let query;
+    let aggregationColumn;
+
+    if (metric.type === 'count') {
+      query = qb.count();
+    } else {
+      aggregationColumn = await Column.get(context, {
+        colId: metric.column_id,
+      });
+      const aggSql = await applyAggregation({
+        baseModelSqlv2: baseModel,
+        aggregation: metric.aggregation,
+        column: aggregationColumn,
+        alias: 'count',
+      });
+      query = qb.select(baseModel.dbDriver.raw(aggSql));
+    }
+
+    const data = await baseModel.execAndParse(query, null, {
+      skipDateConversion: true,
+      skipAttachmentConversion: true,
+      skipUserConversion: true,
+      first: true,
+    });
+
+    if (metric.type === 'summary') {
+      data.count = formatAggregation(
+        metric.aggregation,
+        data.count,
+        aggregationColumn,
+      );
+    }
+
+    return {
+      data: data.count,
+    };
   }
 }

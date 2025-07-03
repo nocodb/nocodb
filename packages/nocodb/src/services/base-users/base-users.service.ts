@@ -153,7 +153,7 @@ export class BaseUsersService {
           ));
 
         // if old role is owner and there is only one owner then restrict update
-        if (targetUser && this.isOldRoleIsOwner(targetUser)) {
+        if (targetUser && this.isOldRoleIsOwner(targetUser, base)) {
           const baseUsers = await BaseUser.getUsersList(
             context,
             {
@@ -161,7 +161,7 @@ export class BaseUsersService {
             },
             ncMeta,
           );
-          this.checkMultipleOwnerExist(baseUsers);
+          this.checkMultipleOwnerExist(baseUsers, base);
           await this.ensureBaseOwner(context, {
             baseUsers,
             ignoreUserId: user.id,
@@ -192,9 +192,10 @@ export class BaseUsersService {
               user: user,
               base: base,
               oldRole: (getProjectRole(baseUser) ??
-                WorkspaceRolesToProjectRoles[
-                  (baseUser as any)?.workspace_roles
-                ]) as ProjectRoles,
+                this.getInheritedBaseRole({
+                  base,
+                  workspaceRole: (baseUser as any)?.workspace_roles,
+                })) as ProjectRoles,
               newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
             },
           });
@@ -229,9 +230,10 @@ export class BaseUsersService {
                 user: user,
                 base: base,
                 oldRole: (getProjectRole(baseUser) ??
-                  WorkspaceRolesToProjectRoles[
-                    (baseUser as any)?.workspace_roles
-                  ]) as ProjectRoles,
+                  this.getInheritedBaseRole({
+                    base,
+                    workspaceRole: (baseUser as any)?.workspace_roles,
+                  })) as ProjectRoles,
                 newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
               },
             });
@@ -329,6 +331,30 @@ export class BaseUsersService {
     }
   }
 
+  protected getInheritedBaseRole({
+    base,
+    workspaceRole,
+  }: {
+    workspaceRole: string | Record<string, boolean>;
+    base: Base;
+  }) {
+    if (base?.default_role) return base?.default_role;
+
+    if (
+      workspaceRole !== null &&
+      workspaceRole !== undefined &&
+      typeof workspaceRole === 'object'
+    ) {
+      const wsRole = Object.keys(workspaceRole).filter(
+        (role) => workspaceRole?.[role],
+      )[0];
+
+      return wsRole && WorkspaceRolesToProjectRoles[wsRole];
+    }
+
+    return WorkspaceRolesToProjectRoles[workspaceRole];
+  }
+
   async baseUserUpdate(
     context: NcContext,
     param: {
@@ -391,7 +417,7 @@ export class BaseUsersService {
     }
 
     // if old role is owner and there is only one owner then restrict update
-    if (this.isOldRoleIsOwner(targetUser)) {
+    if (this.isOldRoleIsOwner(targetUser, base)) {
       const baseUsers = await BaseUser.getUsersList(
         context,
         {
@@ -399,7 +425,7 @@ export class BaseUsersService {
         },
         ncMeta,
       );
-      this.checkMultipleOwnerExist(baseUsers);
+      await this.checkMultipleOwnerExist(baseUsers, base);
       await this.ensureBaseOwner(context, {
         baseUsers,
         ignoreUserId: param.userId,
@@ -443,9 +469,10 @@ export class BaseUsersService {
         user: user,
         base,
         oldRole: (getProjectRole(targetUser) ??
-          WorkspaceRolesToProjectRoles[
-            (targetUser as any)?.workspace_roles
-          ]) as ProjectRoles,
+          this.getInheritedBaseRole({
+            base,
+            workspaceRole: (targetUser as any)?.workspace_roles,
+          })) as ProjectRoles,
         newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
       },
     });
@@ -463,11 +490,12 @@ export class BaseUsersService {
       msg: 'User has been updated successfully',
     };
   }
+
   /**
    * Checks if the user's current role is OWNER.
    * This considers both base roles and workspace roles.
    */
-  protected isOldRoleIsOwner(targetUser) {
+  protected isOldRoleIsOwner(targetUser, base: Base) {
     // Check if a base role is defined and if it includes the OWNER role.
     if (targetUser.base_roles) {
       const baseRole = getProjectRole(targetUser);
@@ -478,9 +506,13 @@ export class BaseUsersService {
 
     // Check if workspace_roles are present and if OWNER role is derived from them.
     if ((targetUser as { workspace_roles?: string }).workspace_roles) {
-      return extractRolesObj(
-        (targetUser as { workspace_roles?: string }).workspace_roles,
-      )?.[WorkspaceUserRoles.OWNER];
+      return !!extractRolesObj(
+        this.getInheritedBaseRole({
+          workspaceRole: (targetUser as { workspace_roles?: string })
+            .workspace_roles,
+          base,
+        }),
+      )?.[ProjectRoles.OWNER];
     }
 
     // Return false if no OWNER role is found.
@@ -491,13 +523,22 @@ export class BaseUsersService {
    * Ensures that at least one owner exists among the base users.
    * Throws a bad request error if no valid owner is found.
    */
-  protected checkMultipleOwnerExist(baseUsers: (Partial<User> & BaseUser)[]) {
+  protected checkMultipleOwnerExist(
+    baseUsers: (Partial<User> & BaseUser)[],
+    base: Base,
+  ) {
     const ownersCount = baseUsers.filter((u) => {
       // Check if the user has an explicit OWNER role in base roles.
       if (u.roles?.includes(ProjectRoles.OWNER)) return true;
 
       // If no base roles, check if the workspace role maps to an OWNER role.
+      // if default role is set, it will be used as the user role
       if (!u.roles && (u as { workspace_roles?: string }).workspace_roles) {
+        // if default role assigned consider default role since workspace role will be overridden by default role
+        if (base.default_role) {
+          return (base.default_role as ProjectRoles) === ProjectRoles.OWNER;
+        }
+
         return (
           WorkspaceRolesToProjectRoles[
             (
@@ -529,14 +570,18 @@ export class BaseUsersService {
       ignoreUserId,
       baseId,
       req,
+      base: _base,
     }: {
       baseUsers: (Partial<User> & BaseUser)[];
       ignoreUserId: string;
       baseId: string;
       req: NcRequest;
+      base?: Base;
     },
     ncMeta = Noco.ncMeta,
   ) {
+    const base = _base || (await Base.get(context, baseId, ncMeta));
+
     // Check if at least one user (excluding ignored user) has an assigned OWNER role.
     const ownerUser = baseUsers.find(
       (u) => u.id !== ignoreUserId && u.roles?.includes(ProjectRoles.OWNER),
@@ -551,8 +596,10 @@ export class BaseUsersService {
     const derivedOwner = baseUsers.find(
       (u) =>
         u.id !== ignoreUserId &&
-        (u as { workspace_roles?: string }).workspace_roles ===
-          WorkspaceUserRoles.OWNER,
+        this.getInheritedBaseRole({
+          base: base,
+          workspaceRole: (u as { workspace_roles?: string }).workspace_roles,
+        }) === ProjectRoles.OWNER,
     );
 
     // If no derived owner is found, return early.
@@ -643,7 +690,7 @@ export class BaseUsersService {
     }
 
     // if old role is owner and there is only one owner then restrict to delete
-    if (this.isOldRoleIsOwner(baseUser)) {
+    if (this.isOldRoleIsOwner(baseUser, base)) {
       const baseUsers = await BaseUser.getUsersList(
         context,
         {
@@ -651,7 +698,7 @@ export class BaseUsersService {
         },
         ncMeta,
       );
-      this.checkMultipleOwnerExist(baseUsers);
+      this.checkMultipleOwnerExist(baseUsers, base);
       await this.ensureBaseOwner(
         context,
         {

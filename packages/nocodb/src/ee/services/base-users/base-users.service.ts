@@ -135,7 +135,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
             ));
 
           // if old role is owner and there is only one owner then restrict update
-          if (targetUser && this.isOldRoleIsOwner(targetUser)) {
+          if (targetUser && this.isOldRoleIsOwner(targetUser, base)) {
             const baseUsers = await BaseUser.getUsersList(
               context,
               {
@@ -143,7 +143,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
               },
               ncMeta,
             );
-            this.checkMultipleOwnerExist(baseUsers);
+            this.checkMultipleOwnerExist(baseUsers, base);
             await this.ensureBaseOwner(context, {
               baseUsers,
               ignoreUserId: user.id,
@@ -472,7 +472,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       }
 
       // if old role is owner and there is only one owner then restrict update
-      if (this.isOldRoleIsOwner(targetUser)) {
+      if (this.isOldRoleIsOwner(targetUser, base)) {
         const baseUsers = await BaseUser.getUsersList(
           context,
           {
@@ -480,7 +480,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
           },
           transaction,
         );
-        this.checkMultipleOwnerExist(baseUsers);
+        this.checkMultipleOwnerExist(baseUsers, base);
         await this.ensureBaseOwner(
           context,
           {
@@ -527,10 +527,12 @@ export class BaseUsersService extends BaseUsersServiceCE {
         req: param.req,
         user: user,
         base,
-        oldRole: (getProjectRole(targetUser) ??
-          WorkspaceRolesToProjectRoles[
-            (targetUser as any)?.workspace_roles
-          ]) as ProjectRoles,
+        oldRole:
+          getProjectRole(targetUser) ??
+          this.getInheritedBaseRole({
+            workspaceRole: (targetUser as any)?.workspace_roles,
+            base,
+          }),
         newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
       },
     });
@@ -606,7 +608,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       }
 
       // if old role is owner and there is only one owner then restrict to delete
-      if (this.isOldRoleIsOwner(baseUser)) {
+      if (this.isOldRoleIsOwner(baseUser, base)) {
         const baseUsers = await BaseUser.getUsersList(
           context,
           {
@@ -614,7 +616,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
           },
           transaction,
         );
-        this.checkMultipleOwnerExist(baseUsers);
+        this.checkMultipleOwnerExist(baseUsers, base);
         await this.ensureBaseOwner(
           context,
           {

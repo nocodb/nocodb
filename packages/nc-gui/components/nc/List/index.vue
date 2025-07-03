@@ -392,7 +392,9 @@ defineExpose({
                 ]"
                 :placement="itemTooltipPlacement"
                 :disabled="!option?.ncItemTooltip"
-                @mouseover="handleResetHoverEffect(true, idx)"
+                :attrs="{
+                  onMouseover: () => handleResetHoverEffect(true, idx),
+                }"
                 @click="handleSelectOption(option, idx, $event)"
               >
                 <template #title>{{ option.ncItemTooltip }} </template>

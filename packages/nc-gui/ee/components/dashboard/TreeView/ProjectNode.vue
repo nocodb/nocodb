@@ -34,7 +34,7 @@ const route = router.currentRoute
 
 const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
-const { isSharedBase } = storeToRefs(useBase())
+const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
 const { setMenuContext, duplicateTable, contextMenuTarget, tableRenameId } = inject(TreeViewInj)!
@@ -738,7 +738,21 @@ defineExpose({
 
             <template v-if="!editMode">
               <template v-if="isProjectHeader">
-                <GeneralIcon v-if="!isMobileMode" icon="chevronDown" class="flex-none text-nc-content-gray-muted" />
+                <div class="flex items-center gap-1">
+                  <GeneralIcon v-if="!isMobileMode" icon="chevronDown" class="flex-none text-nc-content-gray-muted" />
+                  <NcBadge
+                    v-if="isPrivateBase"
+                    size="xs"
+                    class="!text-bodySm !bg-nc-bg-gray-medium group-hover:!bg-nc-bg-gray-dark !font-normal !text-nc-content-gray-subtle2 !h-[18px]"
+                    :class="{
+                      '!bg-nc-bg-gray-dark': isProjectNodeContextMenuOpen,
+                    }"
+                    color="grey"
+                    :border="false"
+                  >
+                    {{ $t('general.private') }}
+                  </NcBadge>
+                </div>
               </template>
               <template v-else>
                 <NcDropdown v-if="!isSharedBase" v-model:visible="isOptionsOpen" :trigger="['click']">

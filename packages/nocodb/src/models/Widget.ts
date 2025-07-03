@@ -8,6 +8,7 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { Filter } from '~/models';
@@ -62,7 +63,12 @@ export default class Widget implements IWidget {
       }
     }
 
-    if (widget) {
+    // If called from extractIds middleware, we don't want to fetch filters
+    if (
+      widget &&
+      context.workspace_id !== RootScopes.BYPASS &&
+      context.base_id !== RootScopes.BYPASS
+    ) {
       widget.filters = await Filter.rootFilterListByWidget(context, {
         widgetId: widget.id,
       });

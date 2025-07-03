@@ -121,6 +121,7 @@ onMounted(async () => {
         v-model:value="selectedViewId"
         :disabled="!selectedModelId"
         :table-id="selectedModelId"
+        label-default-view-as-default
         @update:value="onDataChange('view')"
       />
     </div>

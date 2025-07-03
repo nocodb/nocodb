@@ -431,6 +431,7 @@ const disablePersonalView = computed(() => {
           <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
             <template #default="{ click }">
               <NcMenuItem
+                inner-class="w-full"
                 :disabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))"
                 @click="click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS, () => openReAssignDlg())"
               >
@@ -441,11 +442,12 @@ const disablePersonalView = computed(() => {
                       sidebar: props.inSidebar,
                     },
                   ]"
-                  class="flex flex-row items-center gap-x-3"
+                  class="w-full flex flex-row items-center gap-x-3"
                 >
                   <div>
                     {{ $t('labels.reAssignView') }}
                   </div>
+                  <div class="flex-1 w-full" />
                   <LazyPaymentUpgradeBadge
                     :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
                     :limit-or-feature="'to access re-assign personal view feature.' as PlanFeatureTypes"
@@ -454,15 +456,9 @@ const disablePersonalView = computed(() => {
                         plan: getPlanTitle(PlanTitles.PLUS),
                       })
                     "
-                    :callback="
-                      (type) => {
-                        if (type !== 'ok') return
-                        emits('closeModal')
-                      }
-                    "
+                    :on-click-callback="() => emits('closeModal')"
                     size="xs"
                   />
-                  <div class="flex flex-grow"></div>
                 </div>
               </NcMenuItem>
             </template>
@@ -472,6 +468,7 @@ const disablePersonalView = computed(() => {
           <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
             <template #default="{ click }">
               <NcMenuItem
+                inner-class="w-full"
                 :disabled="!isViewOwner"
                 @click="click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS, () => openReAssignDlg())"
               >
@@ -482,11 +479,12 @@ const disablePersonalView = computed(() => {
                       sidebar: props.inSidebar,
                     },
                   ]"
-                  class="flex flex-row items-center gap-x-3"
+                  class="w-full flex flex-row items-center gap-x-3"
                 >
                   <div>
                     {{ $t('labels.assignAsPersonalView') }}
                   </div>
+                  <div class="flex-1 w-full" />
                   <LazyPaymentUpgradeBadge
                     :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
                     :limit-or-feature="'to access assign as personal view feature.' as PlanFeatureTypes"
@@ -495,15 +493,9 @@ const disablePersonalView = computed(() => {
                         plan: getPlanTitle(PlanTitles.PLUS),
                       })
                     "
-                    :callback="
-                      (type) => {
-                        if (type !== 'ok') return
-                        emits('closeModal')
-                      }
-                    "
+                    :on-click-callback="() => emits('closeModal')"
                     size="xs"
                   />
-                  <div class="flex flex-grow"></div>
                 </div>
               </NcMenuItem>
             </template>

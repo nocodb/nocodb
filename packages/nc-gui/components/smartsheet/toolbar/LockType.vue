@@ -62,12 +62,7 @@ const { getPlanTitle } = useEeConfig()
                   plan: getPlanTitle(PlanTitles.PLUS),
                 })
               "
-              :callback="
-                (type) => {
-                  if (type !== 'ok') return
-                  emit('cancel')
-                }
-              "
+              :on-click-callback="() => emit('cancel')"
               size="xs"
             />
             <span v-else />

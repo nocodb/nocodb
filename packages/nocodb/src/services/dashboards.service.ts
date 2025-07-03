@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { NcError } from 'src/helpers/ncError';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Dashboard from '~/models/Dashboard';
 import Widget from '~/models/Widget';
@@ -11,9 +12,13 @@ export class DashboardsService {
 
   async dashboardGet(context: NcContext, dashboardId: string) {
     const dashboard = await Dashboard.get(context, dashboardId);
-    if (dashboard) {
-      await dashboard.getWidgets(context);
+
+    if (!dashboard) {
+      NcError.notFound('Dashboard not found');
     }
+
+    await dashboard.getWidgets(context);
+
     return dashboard;
   }
 
@@ -34,21 +39,45 @@ export class DashboardsService {
   async dashboardUpdate(
     context: NcContext,
     dashboardId: string,
-    dashboard: Partial<Dashboard>,
+    updateObj: Partial<Dashboard>,
   ) {
-    return await Dashboard.update(context, dashboardId, dashboard);
+    const dashboard = await Dashboard.get(context, dashboardId);
+
+    if (!dashboard) {
+      NcError.notFound('Dashboard not found');
+    }
+
+    return await Dashboard.update(context, dashboardId, updateObj);
   }
 
   async dashboardDelete(context: NcContext, dashboardId: string) {
+    const dashboard = await Dashboard.get(context, dashboardId);
+
+    if (!dashboard) {
+      NcError.notFound('Dashboard not found');
+    }
+
     return await Dashboard.delete(context, dashboardId);
   }
 
   async widgetList(context: NcContext, dashboardId: string) {
+    const dashboard = await Dashboard.get(context, dashboardId);
+
+    if (!dashboard) {
+      NcError.notFound('Dashboard not found');
+    }
+
     return await Widget.list(context, dashboardId);
   }
 
   async widgetGet(context: NcContext, widgetId: string) {
-    return await Widget.get(context, widgetId);
+    const widget = await Widget.get(context, widgetId);
+
+    if (!widget) {
+      NcError.notFound('Widget not found');
+    }
+
+    return widget;
   }
 
   async widgetCreate(context: NcContext, widget: Partial<Widget>) {
@@ -58,16 +87,31 @@ export class DashboardsService {
   async widgetUpdate(
     context: NcContext,
     widgetId: string,
-    widget: Partial<Widget>,
+    updateObj: Partial<Widget>,
   ) {
-    return await Widget.update(context, widgetId, widget);
+    const widget = await Widget.get(context, widgetId);
+
+    if (!widget) {
+      NcError.notFound('Widget not found');
+    }
+    return await Widget.update(context, widgetId, updateObj);
   }
 
   async widgetDelete(context: NcContext, widgetId: string) {
-    return await Widget.delete(context, widgetId);
+    const widget = await Widget.get(context, widgetId);
 
+    if (!widget) {
+      NcError.notFound('Widget not found');
+    }
+
+    return await Widget.delete(context, widgetId);
+  }
 
   async widgetDataGet(context: NcContext, widgetId: string) {
-  // use WidgetConfig
+    const widget = await Widget.get(context, widgetId);
+
+    if (!widget) {
+      NcError.notFound('Widget not found');
+    }
   }
 }

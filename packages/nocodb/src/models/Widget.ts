@@ -10,6 +10,7 @@ import {
   MetaTable,
 } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import { Filter } from '~/models';
 export default class Widget implements IWidget {
   id?: string;
   title: string;
@@ -27,6 +28,9 @@ export default class Widget implements IWidget {
     w: number;
     h: number;
   };
+
+  base_id?: string;
+  fk_workspace_id?: string;
   created_at?: string;
   updated_at?: string;
 
@@ -56,6 +60,12 @@ export default class Widget implements IWidget {
         widget = prepareForResponse(widget, ['config', 'meta', 'position']);
         await NocoCache.set(`${CacheScope.WIDGET}:${widget.id}`, widget);
       }
+    }
+
+    if (widget) {
+      widget.filters = await Filter.rootFilterListByWidget(context, {
+        widgetId: widget.id,
+      });
     }
 
     return widget && new Widget(widget);
@@ -96,7 +106,17 @@ export default class Widget implements IWidget {
       await NocoCache.setList(CacheScope.WIDGET, [dashboardId], widgetsList);
     }
 
-    return widgetsList?.map((w) => new Widget(w));
+    if (!widgetsList.length) {
+      return [];
+    }
+
+    for (const widget of widgetsList) {
+      widget.filters = await Filter.rootFilterListByWidget(context, {
+        widgetId: widget.id,
+      });
+    }
+
+    return widgetsList;
   }
 
   static async insert(

@@ -48,10 +48,16 @@ export const useWidgetStore = defineStore('widget', () => {
     if (!activeWorkspaceId.value || !openedProject.value?.id) return null
 
     try {
-      return (await $api.internal.getOperation(activeWorkspaceId.value, openedProject.value.id, {
+      const widget = (await $api.internal.getOperation(activeWorkspaceId.value, openedProject.value.id, {
         operation: 'widgetGet',
         widgetId,
       })) as WidgetType
+
+      if (selectedWidget.value?.id === widgetId) {
+        selectedWidget.value = widget as unknown as WidgetType
+      }
+
+      return widget
     } catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))

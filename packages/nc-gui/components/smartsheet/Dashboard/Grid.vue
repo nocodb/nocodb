@@ -192,6 +192,10 @@ const handleResized = (i: string, newH: number, newW: number) => {
   background-color: #f5f5f5;
 }
 
+:deep(.vgl-item__resizer) {
+  @apply opacity-0;
+}
+
 .widget-container {
   transition: all 0.2s ease;
 

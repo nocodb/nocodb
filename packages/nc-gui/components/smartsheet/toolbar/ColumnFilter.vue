@@ -7,10 +7,12 @@ interface Props {
   parentId?: string
   autoSave: boolean
   hookId?: string
+  widgetId?: string
   showLoading?: boolean
   modelValue?: FilterType[] | null
   webHook?: boolean
   link?: boolean
+  widget?: boolean
   draftFilter?: Partial<FilterType>
   isOpen?: boolean
   rootMeta?: any
@@ -34,6 +36,8 @@ const props = withDefaults(defineProps<Props>(), {
   showLoading: true,
   parentId: undefined,
   hookId: undefined,
+  widgetId: undefined,
+  widget: false,
   webHook: false,
   link: false,
   linkColId: undefined,
@@ -66,9 +70,11 @@ const {
   parentId,
   autoSave,
   hookId,
+  widgetId,
   showLoading,
   webHook,
   link,
+  widget,
   linkColId,
   parentColId,
   visibilityError,
@@ -101,7 +107,13 @@ const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
 const { $e } = useNuxtApp()
 
-const { nestedFilters, isForm, eventBus } = useSmartsheetStoreOrThrow()
+const { nestedFilters, isForm, eventBus } = widget.value
+  ? {
+      nestedFilters: ref([]),
+      isForm: ref(false),
+      eventBus: null,
+    }
+  : useSmartsheetStoreOrThrow()
 
 const currentFilters = modelValue.value || (!link.value && !webHook.value && nestedFilters.value) || []
 
@@ -148,6 +160,8 @@ const {
   props.nestedLevel > 0,
   webHook.value,
   link.value,
+  widget.value,
+  widgetId,
   linkColId,
   fieldsToFilter,
   parentColId,
@@ -247,10 +261,18 @@ watch(
   () => activeView.value?.id,
   (n, o) => {
     // if nested no need to reload since it will get reloaded from parent
-    if (!nested.value && n !== o && (hookId?.value || !webHook.value) && (linkColId?.value || !link.value))
+    if (
+      !nested.value &&
+      n !== o &&
+      (hookId?.value || !webHook.value) &&
+      (linkColId?.value || !link.value) &&
+      (widgetId.value || !widget.value)
+    )
       loadFilters({
         hookId: hookId.value,
         isWebhook: webHook.value,
+        widgetId: widgetId.value,
+        isWidget: widget.value,
         linkColId: unref(linkColId),
         isLink: link.value,
       })
@@ -420,7 +442,7 @@ const eventBusHandler = async (event) => {
 }
 
 onMounted(async () => {
-  eventBus.on(eventBusHandler)
+  eventBus?.on?.(eventBusHandler)
 
   await Promise.all([
     (async () => {
@@ -428,6 +450,8 @@ onMounted(async () => {
         await loadFilters({
           hookId: hookId?.value,
           isWebhook: webHook.value,
+          isWidget: widget.value,
+          widgetId: widgetId.value,
           linkColId: unref(linkColId),
           isLink: link.value,
         })
@@ -438,7 +462,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
-  eventBus.off(eventBusHandler)
+  eventBus?.off?.(eventBusHandler)
   if (parentId.value) delete allFilters.value[parentId.value]
 })
 
@@ -685,6 +709,8 @@ defineExpose({
                   :show-loading="false"
                   :root-meta="rootMeta"
                   :link-col-id="linkColId"
+                  :widget-id="widgetId"
+                  :widget="widget"
                   :parent-col-id="parentColId"
                   :filter-option="filterOption"
                   :visibility-error="visibilityError"
@@ -802,6 +828,7 @@ defineExpose({
                 }"
                 class="nc-filter-field-select min-w-32 max-h-8"
                 :columns="fieldsToFilter"
+                :disable-smartsheet="!!widget"
                 :disabled="filter.readOnly || isLockedView || readOnly"
                 :meta="meta"
                 @click.stop
@@ -888,6 +915,7 @@ defineExpose({
                   <SmartsheetToolbarFieldListAutoCompleteDropdown
                     v-if="showFilterInput(filter)"
                     v-model="filter.fk_value_col_id"
+                    :disable-smartsheet="widget"
                     class="nc-filter-field-select min-w-32 w-full max-h-8"
                     :columns="dynamicColumns(filter)"
                     :meta="rootMeta"

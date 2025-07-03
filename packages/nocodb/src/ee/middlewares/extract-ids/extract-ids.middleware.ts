@@ -63,6 +63,7 @@ import {
   getFeature,
 } from '~/helpers/paymentHelpers';
 import MCPToken from '~/models/MCPToken';
+import Widget from '~/models/Widget';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -351,6 +352,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = filter.base_id;
       req.ncSourceId = filter.source_id;
+    } else if (params.widgetId) {
+      const widget = await Widget.get(context, params.widgetId);
+
+      if (!widget) {
+        NcError.genericNotFound('Widget', params.widgetId);
+      }
+
+      req.ncBaseId = widget.base_id;
     } else if (params.sortId) {
       const sort = await Sort.get(context, params.sortId);
 

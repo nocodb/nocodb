@@ -93,6 +93,7 @@ const handleFilterChange = async (filter) => {
     comparison: filter.comparison_op,
     comparison_sub_op: filter.comparison_sub_op,
     link: !!props.link.value,
+    widget: !!props.widget.value,
     webHook: !!props.webHook.value,
   })
 }
@@ -340,6 +341,7 @@ const onFilterDelete = async (
                 :db-client-type="dbClientType"
                 :web-hook="webHook"
                 :link="link"
+                :widget="widget"
                 :is-form="isForm"
                 :is-public="isPublic"
                 :filter-per-view-limit="filterPerViewLimit"
@@ -367,6 +369,7 @@ const onFilterDelete = async (
                 :is-locked-view="isLockedView"
                 :db-client-type="dbClientType"
                 :web-hook="webHook"
+                :widget="widget"
                 :link="link"
                 :handler="handler"
                 :is-colour-filter="isColourFilter"
@@ -453,7 +456,7 @@ const onFilterDelete = async (
           </NcButton>
 
           <NcButton
-            v-if="!link && !webHook && nestedLevel < MAX_NESTED_LEVEL"
+            v-if="!link && !webHook && !widget && nestedLevel < MAX_NESTED_LEVEL"
             class="nc-btn-focus"
             :class="{ 'pointer-events-none': isLoadingFilter }"
             :type="actionBtnType"

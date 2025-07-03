@@ -13,6 +13,7 @@ interface Props {
 
   webHook?: boolean
   link?: boolean
+  widget?: boolean
   disabled?: boolean
   // some view is different when locked view but not disabled
   isLockedView?: boolean
@@ -383,7 +384,7 @@ const onChangeToDynamic = async () => {
     </template>
     <template v-else>
       <NcSelect
-        v-e="['c:filter:logical-op:select', { link: !!link, webHook: !!webHook }]"
+        v-e="['c:filter:logical-op:select', { link: !!link, webHook: !!webHook, widget: !!widget }]"
         v-bind="logicalOpsProps"
         :value="vModel.logical_op"
         :dropdown-match-select-width="false"
@@ -416,6 +417,7 @@ const onChangeToDynamic = async () => {
     <template v-if="!slotHasChildren('fieldInaccessibleError')">
       <SmartsheetToolbarFieldListAutoCompleteDropdown
         :value="vModel.fk_column_id"
+        :disable-smartsheet="widget"
         v-bind="columnSelectProps"
         class="nc-filter-field-select min-w-32 max-h-8"
         :class="{
@@ -430,7 +432,7 @@ const onChangeToDynamic = async () => {
       />
       <NcSelect
         v-if="comparisonOps && comparisonOps.length > 0"
-        v-e="['c:filter:comparison-op:select', { link: !!link, webHook: !!webHook }]"
+        v-e="['c:filter:comparison-op:select', { link: !!link, webHook: !!webHook, widget: !!widget }]"
         v-bind="comparisonOpsProps"
         :value="vModel.comparison_op"
         :dropdown-match-select-width="false"
@@ -468,7 +470,7 @@ const onChangeToDynamic = async () => {
       <template v-else>
         <template v-if="comparisonSubOps && comparisonSubOps.length > 0">
           <NcSelect
-            v-e="['c:filter:sub-comparison-op:select', { link: !!link, webHook: !!webHook }]"
+            v-e="['c:filter:sub-comparison-op:select', { link: !!link, webHook: !!webHook, widget: !!widget }]"
             :value="vModel.comparison_sub_op"
             v-bind="comparisonSubOpsProps"
             :dropdown-match-select-width="false"
@@ -509,6 +511,7 @@ const onChangeToDynamic = async () => {
               <SmartsheetToolbarFieldListAutoCompleteDropdown
                 v-if="showFilterInput"
                 v-model="vModel.fk_value_col_id"
+                :disable-smartsheet="widget"
                 class="nc-filter-field-select min-w-32 w-full max-h-8"
                 :columns="dynamicColumns"
                 :meta="meta"
@@ -594,7 +597,7 @@ const onChangeToDynamic = async () => {
         <!-- if locked view, do not hide the button -->
         <NcButton
           v-if="!vModel.readOnly && !disabled"
-          v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
+          v-e="['c:filter:delete', { link: !!link, webHook: !!webHook, widget: !!widget }]"
           v-bind="deleteButtonProps"
           type="text"
           size="small"

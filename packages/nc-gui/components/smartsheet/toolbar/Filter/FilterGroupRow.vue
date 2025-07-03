@@ -14,6 +14,7 @@ interface Props {
   actionBtnType?: 'text' | 'secondary'
   webHook?: boolean
   link?: boolean
+  widget?: boolean
   isForm?: boolean
   isPublic?: boolean
   isFullWidth?: boolean
@@ -144,6 +145,7 @@ const onDelete = () => {
         :action-btn-type="actionBtnType"
         :web-hook="webHook"
         :link="link"
+        :widget="widget"
         :is-form="isForm"
         :is-public="isPublic"
         :filter-per-view-limit="filterPerViewLimit"
@@ -197,7 +199,7 @@ const onDelete = () => {
             <NcButton
               v-if="!vModel.readOnly && !disabled"
               :key="index"
-              v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
+              v-e="['c:filter:delete', { link: !!link, webHook: !!webHook, widget: !!widget }]"
               type="text"
               size="small"
               :disabled="isLockedView"

@@ -5,7 +5,13 @@ const emit = defineEmits<{
   'update:source': [source: any]
 }>()
 
-const { selectedWidget } = storeToRefs(useWidgetStore())
+const widgetStore = useWidgetStore()
+
+const { updateWidget } = widgetStore
+
+const { selectedWidget } = storeToRefs(widgetStore)
+
+const { getMeta } = useMetas()
 
 const isConditionDropdownOpen = ref(false)
 
@@ -13,7 +19,18 @@ const selectedDataSourceType = ref(selectedWidget.value?.config?.dataSource || '
 const selectedModelId = ref(selectedWidget.value?.fk_model_id || null)
 const selectedViewId = ref(selectedWidget.value?.fk_view_id || null)
 
-const filters = ref([])
+const meta = ref()
+
+watch(selectedModelId, async () => {
+  if (!selectedModelId.value) {
+    return
+  }
+  meta.value = await getMeta(selectedModelId.value)
+})
+
+provide(MetaInj, meta)
+
+const filters = ref(selectedWidget.value?.config?.filters || [])
 
 const updateDataSource = () => {
   const dataSource = { type: selectedDataSourceType.value }
@@ -50,6 +67,32 @@ const onDataChange = (type: 'model' | 'view') => {
   }
   updateDataSource()
 }
+
+const useDebouncedGetWidget = useDebounceFn(async () => {
+  await updateWidget(
+    undefined,
+    selectedWidget.value?.id,
+    {
+      filters: filters.value,
+    },
+    {
+      skipNetworkCall: true,
+    },
+  )
+}, 500)
+
+watch(
+  filters,
+  async () => {
+    await useDebouncedGetWidget()
+  },
+  { deep: true },
+)
+
+onMounted(async () => {
+  meta.value = await getMeta(selectedModelId.value)
+  filters.value = selectedWidget.value?.filters || []
+})
 </script>
 
 <template>
@@ -123,12 +166,15 @@ const onDataChange = (type: 'model' | 'view') => {
             }"
           >
             <SmartsheetToolbarColumnFilter
-              ref="fieldVisibilityRef"
-              :value="filters"
+              v-if="meta"
+              v-model="filters"
               class="w-full"
+              :widget-id="selectedWidget!.id"
+              :widget="true"
               :auto-save="true"
               data-testid="nc-filter-menu"
               :show-loading="false"
+              @update:filters-length="isConditionDropdownOpen = $event > 0"
             />
           </div>
         </template>

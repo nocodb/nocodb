@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import TabbedSelect from '../TabbedSelect.vue'
 
+defineProps<{
+  showCountAggregation: boolean
+}>()
+
 const emit = defineEmits<{
   'update:aggregation': [aggregation: any]
 }>()
@@ -53,10 +57,14 @@ watch(selectedValue, () => {
   const aggregation = {
     type: selectedValue.value,
   }
+  selectedFieldId.value = null
+
   if (selectedValue.value === 'count') {
     aggregation.column_id = null
     aggregation.aggregation = null
+    selectedAggregationType.value = 'count'
   } else if (selectedValue.value === 'summary') {
+    selectedAggregationType.value = null
     aggregation.column_id = selectedFieldId.value
     aggregation.aggregation = selectedAggregationType.value
   }
@@ -90,6 +98,26 @@ watch(selectedValue, () => {
         v-model:value="selectedAggregationType"
         :disabled="!selectedFieldId"
         :options="aggregationOptions"
+        class="nc-select-shadow"
+        placeholder="Aggregation"
+        @update:value="handleChange('aggregation')"
+      >
+        <template #suffixIcon>
+          <GeneralIcon icon="arrowDown" class="text-gray-700" />
+        </template>
+      </a-select>
+    </div>
+  </div>
+
+  <div v-if="showCountAggregation && selectedValue === 'count'" class="flex gap-2 flex-1 min-w-0">
+    <div class="flex flex-col gap-2 flex-1 min-w-0">
+      <label>Aggregate</label>
+      <a-select
+        v-model:value="selectedAggregationType"
+        :options="[
+          { value: 'count', label: 'Count' },
+          { value: 'distinct', label: 'Distinct' },
+        ]"
         class="nc-select-shadow"
         placeholder="Aggregation"
         @update:value="handleChange('aggregation')"

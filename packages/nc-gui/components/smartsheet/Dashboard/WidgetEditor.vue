@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ChartTypes, WidgetTypes } from 'nocodb-sdk'
+import { ChartTypes, type ChartWidgetConfig, WidgetTypes } from 'nocodb-sdk'
 import MetricsWidgetConfig from './Widgets/Metrics/Config/index.vue'
-import PieChartWidgetConfig from './Widgets/PieChart/Config.vue'
+import PieChartWidgetConfig from './Widgets/PieChart/Config/index.vue'
 import DonutChartWidgetConfig from './Widgets/DonutChart/Config.vue'
 const widgetStore = useWidgetStore()
 const { selectedWidget } = storeToRefs(widgetStore)

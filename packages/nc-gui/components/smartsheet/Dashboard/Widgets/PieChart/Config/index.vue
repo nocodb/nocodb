@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import GroupedSettings from '../Common/GroupedSettings.vue'
+import GroupedSettings from '../../Common/GroupedSettings.vue'
 
 const widgetStore = useWidgetStore()
 const { selectedWidget } = storeToRefs(widgetStore)
@@ -7,6 +7,9 @@ const { updateWidget } = useWidgetStore()
 const { activeDashboardId } = storeToRefs(useDashboardStore())
 
 const handleConfigUpdate = async (type: string, updates: any) => {
+  if (!selectedWidget.value?.id || !activeDashboardId.value) {
+    return
+  }
   if (type === 'text') {
     await updateWidget(activeDashboardId.value, selectedWidget.value?.id, updates)
   } else if (type === 'dataSource') {
@@ -19,13 +22,29 @@ const handleConfigUpdate = async (type: string, updates: any) => {
         },
       },
     })
-  } else if (type === 'metric') {
+  } else if (type === 'data.value') {
     await updateWidget(activeDashboardId.value, selectedWidget.value?.id, {
       config: {
         ...selectedWidget.value?.config,
-        metric: {
-          ...selectedWidget.value?.config?.metric,
-          ...updates,
+        data: {
+          ...selectedWidget.value?.config?.data,
+          value: {
+            ...selectedWidget.value?.config?.data?.value,
+            ...updates,
+          },
+        },
+      },
+    })
+  } else if (type === 'data.category') {
+    await updateWidget(activeDashboardId.value, selectedWidget.value?.id, {
+      config: {
+        ...selectedWidget.value?.config,
+        data: {
+          ...selectedWidget.value?.config?.data,
+          category: {
+            ...selectedWidget.value?.config?.data?.category,
+            ...updates,
+          },
         },
       },
     })
@@ -59,7 +78,14 @@ const handleConfigUpdate = async (type: string, updates: any) => {
       <SmartsheetDashboardWidgetsCommonDataText @update:widget="handleConfigUpdate('text', $event)" />
       <SmartsheetDashboardWidgetsCommonDataSource @update:source="handleConfigUpdate('dataSource', $event)" />
       <GroupedSettings title="Data">
-        <SmartsheetDashboardWidgetsCommonDataAggregation @update:aggregation="handleConfigUpdate('metric', $event)" />
+        <SmartsheetDashboardWidgetsPieChartConfigCategory @update:category="handleConfigUpdate('data.category', $event)" />
+        <div class="flex flex-col gap-4 pt-3">
+          <div class="text-nc-content-gray text-bodyBold">Value</div>
+          <SmartsheetDashboardWidgetsCommonDataAggregation
+            :show-count-aggregation="true"
+            @update:aggregation="handleConfigUpdate('data.value', $event)"
+          />
+        </div>
       </GroupedSettings>
       <SmartsheetDashboardWidgetsCommonDataPermission @update:permission="handleConfigUpdate('permission', $event)" />
     </template>

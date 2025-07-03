@@ -54,7 +54,7 @@ export class PublicMetasService extends PublicMetasServiceCE {
     return view;
   }
 
-  protected checkViewBaseType(view: View, base: Base) {
+  public checkViewBaseType(view: View, base: Base) {
     // block non-meta views in private base
     if (view.type !== ViewTypes.FORM && base.default_role) {
       NcError.badRequest(
@@ -82,7 +82,7 @@ export class PublicMetasService extends PublicMetasServiceCE {
     };
   }
 
-  protected checkBaseType(base: Base) {
+  public checkBaseType(base: Base) {
     // block shared base for private base
     if (base.default_role) {
       NcError.badRequest(

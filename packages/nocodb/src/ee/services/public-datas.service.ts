@@ -2,7 +2,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ViewTypes } from 'nocodb-sdk';
 import { PublicDatasService as PublicDatasServiceCE } from 'src/services/public-datas.service';
 import type { NcContext } from '~/interface/config';
-import { Model, Source, View } from '~/models';
+import { Base, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
@@ -10,6 +10,7 @@ import { DataOptService } from '~/services/data-opt/data-opt.service';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { DatasService } from '~/services/datas.service';
 import { AttachmentsService } from '~/services/attachments.service';
+import { PublicMetasService } from '~/services/public-metas.service';
 
 @Injectable()
 export class PublicDatasService extends PublicDatasServiceCE {
@@ -19,8 +20,9 @@ export class PublicDatasService extends PublicDatasServiceCE {
     protected readonly jobsService: IJobsService,
     private readonly dataOptService: DataOptService,
     protected readonly attachmentsService: AttachmentsService,
+    protected readonly publicMetasService: PublicMetasService,
   ) {
-    super(dataService, jobsService, attachmentsService);
+    super(dataService, jobsService, attachmentsService, publicMetasService);
   }
 
   async bulkAggregate(
@@ -39,6 +41,10 @@ export class PublicDatasService extends PublicDatasServiceCE {
     if (view.type !== ViewTypes.GRID) {
       NcError.notFound('Not found');
     }
+
+    const base = await Base.get(context, view.base_id);
+
+    this.publicMetasService.checkViewBaseType(view, base);
 
     if (view.password && view.password !== param.password) {
       return NcError.invalidSharedViewPassword();
@@ -98,6 +104,10 @@ export class PublicDatasService extends PublicDatasServiceCE {
     ) {
       NcError.notFound('Not found');
     }
+
+    const base = await Base.get(context, view.base_id);
+
+    this.publicMetasService.checkViewBaseType(view, base);
 
     if (view.password && view.password !== password) {
       return NcError.invalidSharedViewPassword();

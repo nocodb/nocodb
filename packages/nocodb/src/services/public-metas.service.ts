@@ -45,6 +45,10 @@ export class PublicMetasService {
       NcError.invalidSharedViewPassword();
     }
 
+    const base = await Base.get(context, view.base_id);
+
+    this.checkViewBaseType(view, base);
+
     view.lock_type = ViewLockType.Collaborative;
 
     await view.getFilters(context);
@@ -242,14 +246,16 @@ export class PublicMetasService {
       NcError.baseNotFound(param.sharedBaseUuid);
     }
 
+    this.checkBaseType(base);
+
     return { base_id: base.id };
   }
 
-  protected checkBaseType(_base: Base) {
+  public checkBaseType(_base: Base) {
     // placeholder for future checks
   }
 
-  protected checkViewBaseType(_view: View, _base: Base) {
+  public checkViewBaseType(_view: View, _base: Base) {
     // placeholder for future checks
   }
 }

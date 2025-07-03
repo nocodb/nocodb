@@ -90,6 +90,22 @@ export default class Plan {
     return this.prepare(plan);
   }
 
+  public static async getByStripeProductId(
+    stripeProductId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const plan = await ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.PLANS,
+      {
+        stripe_product_id: stripeProductId,
+      },
+    );
+
+    return this.prepare(plan);
+  }
+
   public static async insert(plan: Partial<Plan>, ncMeta = Noco.ncMeta) {
     const insertObj: Record<string, any> = extractProps(plan, [
       'title',

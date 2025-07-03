@@ -34,7 +34,7 @@ export class PublicMetasService extends PublicMetasServiceCE {
 
     const workspace = await Workspace.get(view.fk_workspace_id, false);
 
-    const base = await Base.get(context, view.fk_base_id);
+    const base = await Base.get(context, view.base_id);
 
     if (view.type === ViewTypes.FORM) {
       view = await this.validateFormViewPlanLimitAndFeatures(view, workspace);

@@ -36,7 +36,7 @@ const baseTypeOptions = computed(() => [
   {
     label: t('labels.defaultType'),
     value: false,
-    icon: 'ncUsers',
+    icon: 'ncBaseOutline',
     subtext: t('title.baseTypeSettingsDefaultSubtext'),
   },
   {

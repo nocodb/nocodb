@@ -75,7 +75,7 @@ const baseAccessOptions = computed(() => [
     <div class="mt-8">
       <a-form-item class="!w-full">
         <a-radio-group v-model:value="baseAccessValue" class="nc-base-access-radio-group">
-          <a-radio v-for="(option, idx) of baseAccessOptions" :key="idx" :value="option.value" :disabled="option.disabled">
+          <a-radio v-for="(option, idx) of baseAccessOptions" :key="idx" :value="option.value">
             <div class="w-full flex flex-col">
               <div class="w-full flex items-center gap-2">
                 <div
@@ -93,12 +93,8 @@ const baseAccessOptions = computed(() => [
                   v-if="blockPrivateBases && option.value"
                   :feature="PlanFeatureTypes.FEATURE_PRIVATE_BASES"
                   :plan-title="PlanTitles.BUSINESS"
-                  :content="
-                    t('upgrade.upgradeToUsePrivateBasesSubtitle', {
-                      plan: PlanTitles.BUSINESS,
-                    })
-                  "
                   size="sm"
+                  remove-click
                   class="!font-normal !text-bodyDefaultSm"
                 />
               </div>

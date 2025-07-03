@@ -33,6 +33,8 @@ const searchQuery = ref('')
 const selectedUser = ref()
 const userSelectMenu = ref(false)
 
+const isPersonalView = computed(() => props.view?.lock_type === ViewLockType.Personal)
+
 const currentOwner = computed(() => {
   return (
     (props.view && basesUser.value.get(props.view.base_id)?.find((u) => u.id === props.view.owned_by)) || {
@@ -52,9 +54,15 @@ const filterdBaseUsers = computed(() => {
   }
 
   // exclude current owner from the list
-  return users.filter(
-    (u) => u.id !== currentOwner.value?.id && u.roles !== ProjectRoles.NO_ACCESS && u.roles !== ProjectRoles.VIEWER,
-  )
+  return users.filter((u) => {
+    const restrictAccessTo = u.roles !== ProjectRoles.NO_ACCESS && u.roles !== ProjectRoles.VIEWER
+
+    if (isPersonalView.value) {
+      return u.id !== currentOwner.value?.id && restrictAccessTo
+    }
+
+    return restrictAccessTo
+  })
 })
 
 const { api, isLoading } = useApi()
@@ -64,23 +72,20 @@ const assignView = async () => {
     if (!selectedUser.value) return
     await api.dbView.update(props.view.id, {
       owned_by: selectedUser.value.id,
+      ...(!isPersonalView.value ? { lock_type: ViewLockType.Personal } : {}),
     })
     vModel.value = false
-    message.success('View reassigned successfully')
+    message.success(isPersonalView.value ? 'View reassigned successfully' : 'View assigned as personal view successfully')
 
-    // if personal view then redirect to default view and reload view list
-    if (props.view.lock_type === ViewLockType.Personal) {
-      // then reload the view list
-      viewsStore
-        .loadViews({
-          ignoreLoading: true,
-          tableId: props.view.fk_model_id,
-          force: true,
-        })
-        .catch(() => {
-          // ignore
-        })
-    }
+    viewsStore
+      .loadViews({
+        ignoreLoading: true,
+        tableId: props.view.fk_model_id,
+        force: true,
+      })
+      .catch(() => {
+        // ignore
+      })
   } catch (e) {
     await message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -99,18 +104,20 @@ const inputEl = (el: HTMLInputElement) => {
 <template>
   <NcModal v-model:visible="vModel" wrap-class-name="nc-modal-re-assign" width="448px">
     <div class="mb-5">
-      <div class="flex text-base font-bold mb-2 text-nc-content-gray-emphasis">{{ $t('labels.reAssignThisView') }}</div>
+      <div class="flex text-base font-bold mb-2 text-nc-content-gray-emphasis">
+        {{ isPersonalView ? $t('labels.reAssignThisView') : $t('labels.assignAsPersonalView') }}
+      </div>
       <div class="flex text-sm text-nc-content-gray-subtle">
-        {{ $t('title.reAssignViewModalSubtitle') }}
+        {{ isPersonalView ? $t('title.reAssignViewModalSubtitle') : $t('title.assignAsPersonalViewModalSubtitle') }}
       </div>
     </div>
 
-    <div class="mb-5">
+    <div v-if="isPersonalView" class="mb-5">
       <div class="mb-2 text-nc-content-gray">{{ $t('labels.currentOwner') }}</div>
       <UserItem :user="currentOwner" class="bg-nc-bg-gray-light rounded-lg px-4" />
     </div>
     <div class="mb-5">
-      <div class="mb-2 text-nc-content-gray">{{ $t('labels.newOwner') }}</div>
+      <div class="mb-2 text-nc-content-gray">{{ isPersonalView ? $t('labels.newOwner') : $t('labels.selectOwner') }}</div>
       <div
         class="rounded-lg border-1"
         :class="{

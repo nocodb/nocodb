@@ -9,6 +9,8 @@ const emit = defineEmits(['update:value'])
 
 const { t } = useI18n()
 
+const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
+
 const vModel = useVModel(props, 'value', emit)
 
 const validators = {
@@ -145,7 +147,7 @@ currencyLocales().then((locales) => {
         <a-select v-model:value="vModelPrecision" class="w-52" dropdown-class-name="nc-dropdown-currency-cell-code">
           <a-select-option v-for="precision of [0, 1, 2, 3, 4, 5]" :key="precision" :value="precision">
             <div class="flex gap-2 w-full justify-between items-center">
-              0{{ precision ?? 2 > 0 ? `.${'000000'.substring(0, precision ?? 2)}` : '' }}
+              {{ (precisionFormatsDisplay as any)[precision] }}
               <component
                 :is="iconMap.check"
                 v-if="vModelPrecision === precision"

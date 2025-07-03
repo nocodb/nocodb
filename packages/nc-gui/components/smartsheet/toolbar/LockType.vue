@@ -68,6 +68,7 @@ const { getPlanTitle } = useEeConfig()
                   emit('cancel')
                 }
               "
+              size="xs"
             />
             <span v-else />
           </template>

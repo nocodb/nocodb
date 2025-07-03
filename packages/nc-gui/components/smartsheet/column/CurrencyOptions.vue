@@ -59,6 +59,15 @@ function filterOption(input: string, option: { value: string; key: string }) {
   return searchCompare([option.value, option.key], input)
 }
 
+const vModelPrecision = computed({
+  get: () => {
+    return vModel.value.meta.precision ?? 2
+  },
+  set: (precision: number) => {
+    vModel.value.meta.precision = precision
+  },
+})
+
 // set default value
 vModel.value.meta = {
   ...ColumnHelper.getColumnDefaultMeta(UITypes.Currency),
@@ -121,6 +130,25 @@ currencyLocales().then((locales) => {
               <component
                 :is="iconMap.check"
                 v-if="vModel.meta.currency_code === currencyCode"
+                id="nc-selected-item-icon"
+                class="text-primary w-4 h-4"
+              />
+            </div>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+    </a-col>
+  </a-row>
+  <a-row :gutter="8">
+    <a-col :span="12">
+      <a-form-item v-bind="validateInfos['meta.precision']" :label="$t('placeholder.precision')">
+        <a-select v-model:value="vModelPrecision" class="w-52" dropdown-class-name="nc-dropdown-currency-cell-code">
+          <a-select-option v-for="precision of [0, 1, 2, 3, 4, 5]" :key="precision" :value="precision">
+            <div class="flex gap-2 w-full justify-between items-center">
+              0{{ precision ?? 2 > 0 ? `.${'000000'.substring(0, precision ?? 2)}` : '' }}
+              <component
+                :is="iconMap.check"
+                v-if="vModelPrecision === precision"
                 id="nc-selected-item-icon"
                 class="text-primary w-4 h-4"
               />

@@ -23,6 +23,8 @@ const currency = computed(() => {
     return new Intl.NumberFormat(currencyMeta.value.currency_locale || 'en-US', {
       style: 'currency',
       currency: currencyMeta.value.currency_code || 'USD',
+      minimumFractionDigits: currencyMeta.value.precision ?? 2,
+      maximumFractionDigits: currencyMeta.value.precision ?? 2,
     }).format(props.modelValue)
   } catch (e) {
     return props.modelValue

@@ -22,6 +22,8 @@ export const CurrencyRenderer: CellRenderer = {
       formattedValue = new Intl.NumberFormat(currencyMeta.currency_locale || 'en-US', {
         style: 'currency',
         currency: currencyMeta.currency_code || 'USD',
+        minimumFractionDigits: currencyMeta.precision ?? 2,
+        maximumFractionDigits: currencyMeta.precision ?? 2,
       }).format(value)
     } catch (e) {
       formattedValue = value.toString()

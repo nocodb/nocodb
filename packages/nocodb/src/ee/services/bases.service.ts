@@ -3,7 +3,12 @@ import { BasesService as BasesServiceCE } from 'src/services/bases.service';
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
-import { AppEvents, IntegrationsType, PlanFeatureTypes } from 'nocodb-sdk';
+import {
+  AppEvents,
+  IntegrationsType,
+  PlanFeatureTypes,
+  ProjectRoles,
+} from 'nocodb-sdk';
 import type {
   ProjectReqType,
   ProjectUpdateReqType,
@@ -369,6 +374,10 @@ export class BasesService extends BasesServiceCE {
 
     await this.validateDefaultRoleFeature(context, param);
 
+    if (param.base.default_role) {
+      await this.addBaseOwnerIfMissing(context, param);
+    }
+
     return super.baseUpdate(context, param);
   }
 
@@ -377,4 +386,58 @@ export class BasesService extends BasesServiceCE {
     _data: Partial<Base>,
     _project: Base,
   ) {}
+
+  /**
+   * Ensures the current user is an owner in the given base.
+   * - Blocks the action if the user lacks base-level owner rights.
+   * - Adds the user as owner(Workspace level owner) if no owner exists in the base.
+   */
+  protected async addBaseOwnerIfMissing(
+    context: NcContext,
+    param: {
+      baseId: string;
+      base: ProjectUpdateReqType;
+      user: UserType;
+      req: NcRequest;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    // if user does not have Owner role, then block the request
+    if (!param.req.user?.base_roles?.[ProjectRoles.OWNER as string]) {
+      NcError.forbidden('Only base owners can set the default role');
+    }
+
+    // check if current user is there in baseUser table
+    const baseUser = await BaseUser.get(context, param.baseId, param.user?.id);
+
+    if (baseUser?.roles) return;
+
+    // if not, check if there is any base user with owner role
+    const ownerUser = await ncMeta
+      .knex(MetaTable.PROJECT_USERS)
+      .where('base_id', param.baseId)
+      .where('roles', ProjectRoles.OWNER)
+      .first();
+
+    // if owner user exists, block the request
+    if (ownerUser) {
+      NcError.forbidden(
+        'Only the base owner can modify the default role. Current workspace owner is not registered as base owner.',
+      );
+    }
+
+    // else add the current user as base owner and proceed with the update
+    if (!baseUser) {
+      await BaseUser.insert(context, {
+        fk_user_id: param.user.id,
+        base_id: param.baseId,
+        roles: ProjectRoles.OWNER,
+      });
+    } else if (!baseUser?.roles) {
+      // if user is already there but roles set as `null` / empty string, update the role to owner
+      await BaseUser.update(context, param.baseId, param.user.id, {
+        roles: ProjectRoles.OWNER,
+      });
+    }
+  }
 }

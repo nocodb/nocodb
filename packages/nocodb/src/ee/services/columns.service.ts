@@ -80,7 +80,12 @@ export class ColumnsService extends ColumnsServiceCE {
       param.column.title = param.column.column_name;
     }
 
-    validatePayload('swagger.json#/components/schemas/ColumnReq', param.column);
+    validatePayload(
+      'swagger.json#/components/schemas/ColumnReq',
+      param.column,
+      false,
+      context,
+    );
 
     const model = await Model.get(context, param.tableId);
 

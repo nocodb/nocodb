@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { isLinksOrLTAR, NcApiVersion, UITypes } from 'nocodb-sdk';
+import { NcError } from 'src/helpers/ncError';
 import type {
   ColumnReqType,
   FieldUpdateV3Type,
@@ -86,9 +87,11 @@ export class ColumnsV3Service {
   }
 
   async columnGet(context: NcContext, param: { columnId: string }) {
-    return columnBuilder().build(
-      await Column.get(context, { colId: param.columnId }),
-    );
+    const column = await Column.get(context, { colId: param.columnId });
+    if (!column) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+    return columnBuilder().build(column);
   }
 
   async columnAdd(
@@ -105,6 +108,7 @@ export class ColumnsV3Service {
       'swagger-v3.json#/components/schemas/CreateField',
       param.column,
       true,
+      context,
     );
 
     const column = columnV3ToV2Builder().build(

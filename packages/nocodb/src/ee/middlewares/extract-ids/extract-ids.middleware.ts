@@ -834,7 +834,7 @@ export class AclMiddleware implements NestInterceptor {
 
       if (base.default_role)
         NcError.forbidden(
-          `Please upgrade your plan to access private bases or make the base to default`,
+          `Please upgrade your plan to access private base or make the base to default`,
         );
     }
 

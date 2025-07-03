@@ -273,7 +273,6 @@ export class BasesService extends BasesServiceCE {
     param: { base: ProjectReqType | ProjectUpdateReqType },
   ) {
     // check if marked as private, only allow if user upgraded to pain plan
-    // Todo: update error message and type
     if (
       param.base.default_role &&
       !(await getFeature(
@@ -281,7 +280,9 @@ export class BasesService extends BasesServiceCE {
         context.workspace_id,
       ))
     ) {
-      NcError.badRequest('Private bases are only allowed for paid users');
+      NcError.badRequest(
+        'Setting a default role (private base) is only available on paid plans. Please upgrade your workspace plan to enable this feature.',
+      );
     }
   }
 

@@ -1,5 +1,5 @@
 import BaseCE from 'src/models/Base';
-import { ProjectReqType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { BaseType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';

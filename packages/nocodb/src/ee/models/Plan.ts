@@ -147,7 +147,7 @@ export default class Plan {
       planId,
     );
 
-    await NocoCache.update(`${CacheScope.PLANS}:${planId}`, this.prepare(plan));
+    await NocoCache.del(`${CacheScope.PLANS}:${planId}`);
 
     return true;
   }

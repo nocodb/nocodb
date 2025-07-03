@@ -2,18 +2,16 @@ import type { WidgetType } from 'nocodb-sdk'
 
 export const useWidgetStore = defineStore('widget', () => {
   const { $api } = useNuxtApp()
-  const route = useRoute()
+
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+  const { activeDashboardId } = storeToRefs(useDashboardStore())
+
   const bases = useBases()
+
   const { openedProject } = storeToRefs(bases)
 
-  // State
-  const widgets = ref<Map<string, WidgetType[]>>(new Map())
-  const isLoading = ref(false)
-  const isLoadingWidget = ref(false)
-
-  // Getters
-  const activeDashboardId = computed(() => route.params.dashboardId as string)
+  const widgets = ref<Map<string, WidgetType[]>>(new Map<string, WidgetType[]>())
 
   const activeDashboardWidgets = computed(() => {
     if (!activeDashboardId.value) return []
@@ -22,7 +20,6 @@ export const useWidgetStore = defineStore('widget', () => {
 
   const selectedWidget = ref<WidgetType | null>(null)
 
-  // Actions
   const loadWidgets = async ({ dashboardId, force = false }: { dashboardId: string; force?: boolean }) => {
     if (!activeWorkspaceId.value || !openedProject.value?.id) {
       return []
@@ -34,8 +31,6 @@ export const useWidgetStore = defineStore('widget', () => {
     }
 
     try {
-      isLoading.value = true
-
       const response = (await $api.internal.getOperation(activeWorkspaceId.value, openedProject.value.id, {
         operation: 'widgetList',
         dashboardId,
@@ -46,8 +41,6 @@ export const useWidgetStore = defineStore('widget', () => {
     } catch (e) {
       console.error(e)
       return []
-    } finally {
-      isLoading.value = false
     }
   }
 
@@ -55,18 +48,14 @@ export const useWidgetStore = defineStore('widget', () => {
     if (!activeWorkspaceId.value || !openedProject.value?.id) return null
 
     try {
-      isLoadingWidget.value = true
-
       return (await $api.internal.getOperation(activeWorkspaceId.value, openedProject.value.id, {
         operation: 'widgetGet',
         widgetId,
       })) as WidgetType
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
-    } finally {
-      isLoadingWidget.value = false
     }
   }
 
@@ -74,9 +63,7 @@ export const useWidgetStore = defineStore('widget', () => {
     if (!activeWorkspaceId.value || !openedProject.value?.id) return null
 
     try {
-      isLoading.value = true
-
-      const created = await $api.internal.postOperation(
+      const created = (await $api.internal.postOperation(
         activeWorkspaceId.value,
         openedProject.value.id,
         {
@@ -86,7 +73,7 @@ export const useWidgetStore = defineStore('widget', () => {
           ...widgetData,
           fk_dashboard_id: dashboardId,
         },
-      )
+      )) as WidgetType
 
       const dashboardWidgets = widgets.value.get(dashboardId) || []
       dashboardWidgets.push(created)
@@ -95,10 +82,8 @@ export const useWidgetStore = defineStore('widget', () => {
       return created
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
-    } finally {
-      isLoading.value = false
     }
   }
 
@@ -113,8 +98,6 @@ export const useWidgetStore = defineStore('widget', () => {
     if (!activeWorkspaceId.value || !openedProject.value?.id) return null
 
     try {
-      isLoading.value = true
-
       const widget = widgets.value.get(dashboardId)?.find((w) => w.id === widgetId)
       const updated = options?.skipNetworkCall
         ? {
@@ -148,10 +131,8 @@ export const useWidgetStore = defineStore('widget', () => {
       return updated
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
-    } finally {
-      isLoading.value = false
     }
   }
 
@@ -159,8 +140,6 @@ export const useWidgetStore = defineStore('widget', () => {
     if (!activeWorkspaceId.value || !openedProject.value?.id) return null
 
     try {
-      isLoading.value = true
-
       await $api.internal.postOperation(
         activeWorkspaceId.value,
         openedProject.value.id,
@@ -180,10 +159,8 @@ export const useWidgetStore = defineStore('widget', () => {
       return true
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
       return false
-    } finally {
-      isLoading.value = false
     }
   }
 
@@ -202,8 +179,6 @@ export const useWidgetStore = defineStore('widget', () => {
   return {
     // State
     widgets,
-    isLoading,
-    isLoadingWidget,
 
     // Getters
     activeDashboardWidgets,

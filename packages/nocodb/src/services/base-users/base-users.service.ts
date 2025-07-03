@@ -352,7 +352,7 @@ export class BaseUsersService {
       return wsRole && WorkspaceRolesToProjectRoles[wsRole];
     }
 
-    return WorkspaceRolesToProjectRoles[workspaceRole];
+    return WorkspaceRolesToProjectRoles[workspaceRole as string];
   }
 
   async baseUserUpdate(

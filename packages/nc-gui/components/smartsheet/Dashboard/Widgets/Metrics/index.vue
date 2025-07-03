@@ -36,7 +36,12 @@ const colors = computed(() => {
     }"
   >
     <div class="flex items-center mb-2">
-      <div class="text-nc-content-gray-emphasis flex-1 text-subHeading2">
+      <div
+        :style="{
+          color: colors.color,
+        }"
+        class="text-nc-content-gray-emphasis flex-1 text-subHeading2"
+      >
         {{ widget.title }}
       </div>
       <SmartsheetDashboardWidgetsCommonContext v-if="isEditing" :widget="widget" />

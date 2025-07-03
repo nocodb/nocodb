@@ -22,13 +22,20 @@ import { genPgAggregateQuery } from '~/db/aggregations/pg';
 import { genMysql2AggregatedQuery } from '~/db/aggregations/mysql2';
 import { genSqlite3AggregateQuery } from '~/db/aggregations/sqlite3';
 
-const validateColType = (column: Column, aggregation: string) => {
+export const validateAggregationColType = (
+  column: Column,
+  aggregation: string,
+  throwError = true,
+) => {
   const agg = getAvailableAggregations(
     column.uidt,
     column.colOptions?.parsed_tree,
   );
 
   if (!agg.includes(aggregation)) {
+    if (!throwError) {
+      return false;
+    }
     NcError.badRequest(
       `Aggregation ${aggregation} is not available for column type ${column.uidt}`,
     );
@@ -104,7 +111,7 @@ export default async function applyAggregation({
   - attachment   - attachment aggregations like attachment size.
   - unknown      - if the aggregation is not supported yet
   */
-  const aggType = validateColType(column, aggregation);
+  const aggType = validateAggregationColType(column, aggregation);
 
   // If the aggregation is not available for the column type, we throw an error.
   if (aggType === 'unknown') {

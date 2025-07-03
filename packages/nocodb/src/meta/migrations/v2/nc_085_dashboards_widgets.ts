@@ -30,6 +30,9 @@ const up = async (knex: Knex) => {
     table.string('base_id', 20);
     table.string('fk_dashboard_id', 20).notNullable();
 
+    table.string('fk_model_id', 20);
+    table.string('fk_view_id', 20);
+
     table.string('title', 255).notNullable();
     table.text('description');
     table.string('type', 50).notNullable();

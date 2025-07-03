@@ -19,6 +19,8 @@ export default class Widget implements IWidget {
   config?: any;
   meta?: any;
   order?: number;
+  fk_model_id?: string;
+  fk_view_id?: string;
   position?: {
     x: number;
     y: number;
@@ -111,6 +113,8 @@ export default class Widget implements IWidget {
       'config',
       'meta',
       'position',
+      'fk_model_id',
+      'fk_view_id',
     ]);
 
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.WIDGETS, {
@@ -150,6 +154,8 @@ export default class Widget implements IWidget {
       'meta',
       'order',
       'position',
+      'fk_model_id',
+      'fk_view_id',
     ]);
 
     updateObj = prepareForDb(updateObj, ['config', 'meta', 'position']);

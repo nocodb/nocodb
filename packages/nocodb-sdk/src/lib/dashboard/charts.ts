@@ -1,4 +1,4 @@
-import { WidgetDataSource } from './';
+import { WidgetDataSourceTypes } from './';
 
 export enum ChartTypes {
   BAR = 'bar',
@@ -10,7 +10,7 @@ export enum ChartTypes {
 
 interface BaseChartConfig {
   chartType: ChartTypes;
-  dataSource?: WidgetDataSource;
+  dataSource?: WidgetDataSourceTypes;
 }
 
 interface PieChartDataConfig {
@@ -50,7 +50,7 @@ interface PieChatPermissionConfig {
 
 export interface PieChartConfig extends BaseChartConfig {
   chartType: ChartTypes.PIE;
-  dataSource?: WidgetDataSource;
+  dataSource?: WidgetDataSourceTypes;
   data: PieChartDataConfig;
   appearance: PieChartAppearanceConfig;
   permissions: PieChatPermissionConfig;
@@ -58,7 +58,7 @@ export interface PieChartConfig extends BaseChartConfig {
 
 export interface DonutChartConfig extends BaseChartConfig {
   chartType: ChartTypes.DONUT;
-  dataSource?: WidgetDataSource;
+  dataSource?: WidgetDataSourceTypes;
   data: PieChartDataConfig;
   appearance: PieChartAppearanceConfig;
   permissions: PieChatPermissionConfig;
@@ -66,22 +66,28 @@ export interface DonutChartConfig extends BaseChartConfig {
 
 export interface BarChartConfig extends BaseChartConfig {
   chartType: ChartTypes.BAR;
-  dataSource?: WidgetDataSource;
+  dataSource?: WidgetDataSourceTypes;
 }
 
 export interface LineChartConfig extends BaseChartConfig {
   chartType: ChartTypes.LINE;
-  dataSource?: WidgetDataSource;
+  dataSource?: WidgetDataSourceTypes;
 }
 
 export interface ScatterPlotConfig extends BaseChartConfig {
   chartType: ChartTypes.SCATTER;
-  dataSource?: WidgetDataSource;
+  dataSource?: WidgetDataSourceTypes;
 }
 
-export type ChartWidgetConfig =
-  | BarChartConfig
-  | LineChartConfig
-  | PieChartConfig
-  | DonutChartConfig
-  | ScatterPlotConfig;
+export type ChartWidgetConfig<T extends ChartTypes = ChartTypes> =
+  T extends ChartTypes.PIE
+    ? PieChartConfig
+    : T extends ChartTypes.DONUT
+    ? DonutChartConfig
+    : T extends ChartTypes.BAR
+    ? BarChartConfig
+    : T extends ChartTypes.LINE
+    ? LineChartConfig
+    : T extends ChartTypes.SCATTER
+    ? ScatterPlotConfig
+    : never;

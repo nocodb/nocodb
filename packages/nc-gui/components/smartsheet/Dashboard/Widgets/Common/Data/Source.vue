@@ -9,9 +9,9 @@ const { selectedWidget } = storeToRefs(useWidgetStore())
 
 const isConditionDropdownOpen = ref(false)
 
-const selectedDataSourceType = ref(selectedWidget.value?.config?.dataSource?.type || 'model')
-const selectedModelId = ref(selectedWidget.value?.config?.dataSource?.fk_model_id || null)
-const selectedViewId = ref(selectedWidget.value?.config?.dataSource?.fk_view_id || null)
+const selectedDataSourceType = ref(selectedWidget.value?.config?.dataSource || 'model')
+const selectedModelId = ref(selectedWidget.value?.fk_model_id || null)
+const selectedViewId = ref(selectedWidget.value?.fk_view_id || null)
 
 const filters = ref([])
 
@@ -34,7 +34,6 @@ const updateDataSource = () => {
     }
   }
 
-  console.log(dataSource)
   emit('update:source', dataSource)
 }
 

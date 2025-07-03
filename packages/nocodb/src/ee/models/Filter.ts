@@ -320,11 +320,11 @@ export default class Filter extends FilterCE implements FilterType {
       ?.map((f) => this.castType(f));
   }
 
-  static rootFilterListByWidget? = async (
+  static async rootFilterListByWidget(
     context: NcContext,
     { widgetId }: { widgetId: string },
     ncMeta = Noco.ncMeta,
-  ) => {
+  ) {
     const cachedList = await NocoCache.getList(
       CacheScope.FILTER_EXP,
       [widgetId],
@@ -350,5 +350,5 @@ export default class Filter extends FilterCE implements FilterType {
     return filterObjs
       ?.filter((f) => !f.fk_parent_id)
       ?.map((f) => this.castType(f));
-  };
+  }
 }

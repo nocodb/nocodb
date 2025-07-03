@@ -40,28 +40,13 @@ export enum WidgetDataSourceTypes {
   FILTER = 'filter',
 }
 
-export type WidgetDataSource =
-  | {
-      fk_model_id: string;
-      type: WidgetDataSourceTypes.MODEL;
-    }
-  | {
-      fk_view_id: string;
-      fk_model_id?: string;
-      type: WidgetDataSourceTypes.VIEW;
-    }
-  | {
-      fk_model_id: string;
-      type: WidgetDataSourceTypes.FILTER;
-    };
-
 export interface TableWidgetConfig {
-  dataSource?: WidgetDataSource;
+  dataSource?: WidgetDataSourceTypes;
   columns?: string[];
 }
 
 export interface MetricWidgetConfig {
-  dataSource?: WidgetDataSource;
+  dataSource?: WidgetDataSourceTypes;
   metric: {
     type: 'count' | 'summary';
     column_id?: string;
@@ -106,6 +91,8 @@ export interface CommonWidgetType {
   title: string;
   description?: string;
   fk_dashboard_id: string;
+  fk_model_id?: string;
+  fk_view_id?: string;
   type: WidgetTypes;
   config?: WidgetConfig;
   meta?: any;
@@ -120,9 +107,10 @@ export interface CommonWidgetType {
   updated_at?: string;
 }
 
-export interface ChartWidgetType extends CommonWidgetType {
-  type: WidgetTypes.CHART;
-  config: ChartWidgetConfig;
+export interface ChartWidgetType<C extends ChartTypes = ChartTypes>
+  extends Omit<CommonWidgetType, 'type'> {
+  type: C;
+  config: ChartWidgetConfig<C>;
 }
 
 export interface TableWidgetType extends CommonWidgetType {
@@ -145,18 +133,44 @@ export interface IframeWidgetType extends CommonWidgetType {
   config: IframeWidgetConfig;
 }
 
-export type WidgetType =
-  | ChartWidgetType
-  | TableWidgetType
-  | MetricWidgetType
-  | TextWidgetType
-  | IframeWidgetType;
+export type WidgetType<T extends WidgetTypes = WidgetTypes> =
+  T extends WidgetTypes.CHART
+    ? ChartWidgetType
+    : T extends WidgetTypes.TABLE
+    ? TableWidgetType
+    : T extends WidgetTypes.METRIC
+    ? MetricWidgetType
+    : T extends WidgetTypes.TEXT
+    ? TextWidgetType
+    : T extends WidgetTypes.IFRAME
+    ? IframeWidgetType
+    : never;
+
+export type Widget<
+  T extends WidgetType = WidgetType,
+  C extends ChartTypes = ChartTypes
+> = T extends ChartWidgetType
+  ? ChartWidgetType<C>
+  : T extends TableWidgetType
+  ? TableWidgetType
+  : T extends MetricWidgetType
+  ? MetricWidgetType
+  : T extends TextWidgetType
+  ? TextWidgetType
+  : T extends IframeWidgetType
+  ? IframeWidgetType
+  : never;
 
 export interface IWidget {
   id?: string;
   title: string;
   description?: string;
   fk_dashboard_id: string;
+
+  // fk_model_id && fk_view_id
+  fk_model_id?: string;
+  fk_view_id?: string;
+
   type: WidgetTypes;
   config?: any;
   meta?: any;

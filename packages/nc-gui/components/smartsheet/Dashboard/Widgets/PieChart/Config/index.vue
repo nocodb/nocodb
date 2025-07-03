@@ -14,12 +14,11 @@ const handleConfigUpdate = async (type: string, updates: any) => {
     await updateWidget(activeDashboardId.value, selectedWidget.value?.id, updates)
   } else if (type === 'dataSource') {
     await updateWidget(activeDashboardId.value, selectedWidget.value?.id, {
+      fk_model_id: updates?.fk_model_id,
+      fk_view_id: updates?.fk_view_id,
       config: {
         ...selectedWidget.value?.config,
-        dataSource: {
-          ...selectedWidget.value?.config?.dataSource,
-          ...updates,
-        },
+        dataSource: selectedWidget.value?.config?.dataSource,
       },
     })
   } else if (type === 'data.value') {

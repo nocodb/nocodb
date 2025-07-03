@@ -15,7 +15,7 @@ const selectedValue = ref(selectedWidget.value?.config?.metric?.aggregation === 
 const selectedAggregationType = ref(selectedWidget.value?.config?.metric?.aggregation || 'count')
 const selectedFieldId = ref(selectedWidget.value?.config?.metric?.column_id || null)
 
-const modelId = computed(() => selectedWidget.value?.config?.dataSource?.fk_model_id || null)
+const modelId = computed(() => selectedWidget.value?.fk_model_id || null)
 
 const aggregationMap = {
   count: 'Record Count',

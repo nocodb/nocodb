@@ -5,7 +5,7 @@ const emit = defineEmits<{
 
 const { selectedWidget } = storeToRefs(useWidgetStore())
 
-const modelId = computed(() => selectedWidget.value?.config?.dataSource?.fk_model_id || null)
+const modelId = computed(() => selectedWidget.value?.fk_model_id || null)
 const selectedFieldId = ref(selectedWidget.value?.config?.data?.category?.column_id || null)
 const selectedOrderValue = ref(selectedWidget.value?.config?.data?.category?.orderBy || 'default')
 const includeEmptyRecords = ref(selectedWidget.value?.config?.data?.category?.includeEmptyRecords || false)

@@ -18,7 +18,7 @@ const eeConfigState = createGlobalState(() => {
 export const useEeConfig = createSharedComposable(() => {
   const { t } = useI18n()
 
-  const { $state, $api } = useNuxtApp()
+  const { $state, $api, $e } = useNuxtApp()
 
   const baseURL = $api.instance.defaults.baseURL
 
@@ -241,7 +241,7 @@ export const useEeConfig = createSharedComposable(() => {
     showMessage = true,
   }: {
     workspaceId?: string
-    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes | string
     showMessage?: boolean
   }) => {
     try {
@@ -277,17 +277,37 @@ export const useEeConfig = createSharedComposable(() => {
     redirectToWorkspace = true,
     limitOrFeature,
     isBackToBilling = false,
+    triggerEvent = true,
   }: {
     workspaceId?: string
     redirectToWorkspace?: boolean
-    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes | string
     isBackToBilling?: boolean
+    triggerEvent?: boolean
   } = {}) => {
+    if (isBackToBilling) {
+      triggerEvent = false
+    }
+
     if (!isWsOwner.value) {
       // If user is not workspace owner and isBackToBilling is true, then we don't need to request upgrade
       if (isBackToBilling) return
 
+      if (triggerEvent) {
+        $e('c:payment:request-upgrade', {
+          activePlan: activePlanTitle.value,
+          limitOrFeature,
+        })
+      }
+
       return handleRequestUpgrade({ workspaceId, limitOrFeature })
+    }
+
+    if (triggerEvent) {
+      $e('c:payment:upgrade', {
+        activePlan: activePlanTitle.value,
+        limitOrFeature,
+      })
     }
 
     const planCtaBtnQuery = limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? `&activeBtn=${PlanTitles.BUSINESS}` : ''
@@ -324,19 +344,39 @@ export const useEeConfig = createSharedComposable(() => {
     newTab = false,
     ctaPlan,
     isBackToPricing = false,
+    triggerEvent = true,
   }: {
     workspaceId?: string
     autoScroll?: 'compare' | 'faq'
-    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes | string
     newTab?: boolean
     ctaPlan?: PlanTitles
     isBackToPricing?: boolean
+    triggerEvent?: boolean
   } = {}) => {
+    if (isBackToPricing) {
+      triggerEvent = false
+    }
+
     if (!isWsOwner.value) {
       // If user is not workspace owner and isBackToPricing is true, then we don't need to request upgrade
       if (isBackToPricing) return
 
+      if (triggerEvent) {
+        $e('c:payment:upgrade', {
+          activePlan: activePlanTitle.value,
+          limitOrFeature,
+        })
+      }
+
       return handleRequestUpgrade({ workspaceId, limitOrFeature })
+    }
+
+    if (triggerEvent) {
+      $e('c:payment:upgrade', {
+        activePlan: activePlanTitle.value,
+        limitOrFeature,
+      })
     }
 
     const paramsObj = {
@@ -449,8 +489,13 @@ export const useEeConfig = createSharedComposable(() => {
                */
               if (isWsOwner.value && !requestUpgrade) {
                 e.preventDefault()
-                navigateToPricing({ autoScroll: 'compare', newTab: true, ctaPlan: higherPlan })
+                navigateToPricing({ autoScroll: 'compare', newTab: true, ctaPlan: higherPlan, triggerEvent: false })
               }
+
+              $e('c:payment:upgrade:modal:learn-more', {
+                activePlan: activePlanTitle.value,
+                limitOrFeature,
+              })
             },
           },
           t('msg.learnMore'),

@@ -14,7 +14,7 @@ const { navigateToPricing } = useEeConfig()
     <PaymentMoreInfoCard :title="$t('title.helpAndSupport')" :subtitle="$t('title.helpAndSupportSubtitle')">
       <template #action>
         <nuxt-link no-ref to="mailto:support@nocodb.com" target="_blank">
-          <NcButton type="secondary" size="small" inner-class="!gap-2">
+          <NcButton v-e="['c:payment:billing:contact-sales']" type="secondary" size="small" inner-class="!gap-2">
             <template #icon>
               <GeneralIcon icon="ncMail" />
             </template>
@@ -26,7 +26,13 @@ const { navigateToPricing } = useEeConfig()
 
     <PaymentMoreInfoCard :title="$t('title.faq')" :subtitle="$t('title.faqSubtitle')">
       <template #action>
-        <NcButton type="secondary" inner-class="!gap-2" size="small" @click="navigateToPricing({ autoScroll: 'faq' })">
+        <NcButton
+          v-e="['c:payment:billing:faq']"
+          type="secondary"
+          inner-class="!gap-2"
+          size="small"
+          @click="navigateToPricing({ autoScroll: 'faq', triggerEvent: false })"
+        >
           <template #icon>
             <GeneralIcon icon="ncExternalLink" />
           </template>

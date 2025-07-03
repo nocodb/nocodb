@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { PlanTitles } from 'nocodb-sdk'
 
+const { $e } = useNuxtApp()
+
 const { hideMiniSidebar, hideSidebar, showTopbar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const { appInfo } = useGlobal()
@@ -66,6 +68,11 @@ useEventListener('message', (event) => {
     const { planTitle, paymentMode: paymentModeInput, planCardClick = true } = data
 
     if (planTitle === 'Enterprise') {
+      $e(`c:payment:pricing:${planCardClick ? 'plan-card' : 'compare-features'}:choose-plan`, {
+        activePlan: activePlan.value?.title || PlanTitles.FREE,
+        newPlan: planTitle,
+        paymentMode: paymentModeInput,
+      })
       openNewTab('https://cal.com/nocodb')
       return
     }
@@ -74,9 +81,18 @@ useEventListener('message', (event) => {
       activePlan.value?.title.toLowerCase() === PlanTitles.FREE.toLowerCase() &&
       planTitle.toLowerCase() === PlanTitles.FREE.toLowerCase()
     ) {
+      $e('c:payment:pricing:choose-current-plan:navigate-to-billing', {
+        activePlan: activePlan.value?.title || PlanTitles.FREE,
+      })
       navigateTo(`/${activeWorkspace.value?.id}/settings?tab=billing`)
       return
     }
+
+    $e(`c:payment:pricing:${planCardClick ? 'plan-card' : 'compare-features'}:choose-plan`, {
+      activePlan: activePlan.value?.title || PlanTitles.FREE,
+      newPlan: planTitle,
+      paymentMode: paymentModeInput,
+    })
 
     const plan = plansAvailable.value.find((plan) => plan.title.toLowerCase() === planTitle.toLowerCase())
 
@@ -86,6 +102,7 @@ useEventListener('message', (event) => {
 
     onSelectPlan(plan, !planCardClick)
   } else if (type === 'navigateToBilling') {
+    $e('c:payment:pricing:navigate-to-billing')
     navigateToBilling({ isBackToBilling: true })
   } else if (type === 'frameLoaded') {
     frameLoaded.value = true
@@ -126,5 +143,3 @@ const embedPage = computed(() => {
     <iframe v-show="frameLoaded" :src="embedPage" width="100%" style="border: none; height: calc(100vh - 56px)"></iframe>
   </div>
 </template>
-
-<style></style>

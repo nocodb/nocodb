@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { LOYALTY_GRACE_PERIOD_END_DATE, PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
 
+const { $e } = useNuxtApp()
+
 const route = useRoute()
 
 const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
@@ -126,12 +128,17 @@ const handleNavigation = () => {
     return
   }
 
+  $e('c:payment:sidebar:upgrade', {
+    activePlan: activePlanTitle.value,
+    limitOrFeature: getLimitOrFeature(),
+  })
+
   if (isLimitReached.value) {
     navigateToBilling({
       limitOrFeature: getLimitOrFeature(),
     })
   } else {
-    navigateToPricing({ limitOrFeature: getLimitOrFeature() })
+    navigateToPricing({ limitOrFeature: getLimitOrFeature(), triggerEvent: false })
   }
 }
 

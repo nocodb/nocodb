@@ -6,6 +6,8 @@ const props = defineProps<{
   plan: PaymentPlan
 }>()
 
+const { $e } = useNuxtApp()
+
 const { navigateToPricing, getLimit } = useEeConfig()
 
 const {
@@ -146,6 +148,12 @@ const handleProceed = async () => {
 
   isLoading.value = true
 
+  $e(`a:payment:checkout:update-subscription`, {
+    activePlan: activePlan.value?.title,
+    newPlan: changes.value.plan,
+    newPeriod: changes.value.period,
+  })
+
   try {
     await updateSubscription(props.plan.id, undefined, changes.value.change === 'upgrade' && changes.value.plan)
   } catch (e: any) {
@@ -157,6 +165,10 @@ const handleProceed = async () => {
 
 const onCancelSubscription = async () => {
   isLoading.value = true
+
+  $e(`a:payment:checkout:cancel-subscription`, {
+    activePlan: activePlan.value?.title,
+  })
 
   try {
     await cancelSubscription()

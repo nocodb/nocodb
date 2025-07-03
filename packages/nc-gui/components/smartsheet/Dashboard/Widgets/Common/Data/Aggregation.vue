@@ -94,24 +94,21 @@ watch(selectedValue, () => {
 
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Type</label>
-      <a-select
+
+      <NSelectAggregation
         v-model:value="selectedAggregationType"
-        :disabled="!selectedFieldId"
-        :options="aggregationOptions"
-        class="nc-select-shadow"
-        placeholder="Aggregation"
+        :disabled="!modelId"
+        :table-id="modelId"
+        :column-id="selectedFieldId"
         @update:value="handleChange('aggregation')"
-      >
-        <template #suffixIcon>
-          <GeneralIcon icon="arrowDown" class="text-gray-700" />
-        </template>
-      </a-select>
+      />
     </div>
   </div>
 
   <div v-if="showCountAggregation && selectedValue === 'count'" class="flex gap-2 flex-1 min-w-0">
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Aggregate</label>
+
       <a-select
         v-model:value="selectedAggregationType"
         :options="[

@@ -194,6 +194,7 @@ const permissionScopes = {
     'widgetCreate',
     'widgetUpdate',
     'widgetDelete',
+    'widgetDataGet',
   ],
 };
 
@@ -280,6 +281,7 @@ const rolePermissions:
       // Widget
       widgetList: true,
       widgetGet: true,
+      widgetDataGet: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -735,6 +737,7 @@ const permissionDescriptions: Record<string, string> = {
   widgetCreate: 'create a new widget',
   widgetUpdate: 'update widget details',
   widgetDelete: 'delete a widget',
+  widgetDataGet: 'view widget data',
 };
 
 // Human-readable descriptions for roles

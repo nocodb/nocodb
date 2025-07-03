@@ -65,5 +65,9 @@ export class DashboardsService {
 
   async widgetDelete(context: NcContext, widgetId: string) {
     return await Widget.delete(context, widgetId);
+
+
+  async widgetDataGet(context: NcContext, widgetId: string) {
+  // use WidgetConfig
   }
 }

@@ -49,6 +49,7 @@ export class InternalController {
       widgetCreate: 'base',
       widgetUpdate: 'base',
       widgetDelete: 'base',
+      widgetDataGet: 'base',
     };
   }
 

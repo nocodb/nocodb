@@ -26,6 +26,10 @@ const gotoFeed = () => navigateToFeed()
         active: isFeedPageOpened,
       }"
     >
+      <span
+        v-if="isNewFeedAvailable"
+        class="bg-red-500 w-2 h-2 border-1 border-white rounded-[6px] absolute top-[5px] left-[15px]"
+      ></span>
       <GeneralIcon icon="megaPhone" class="h-4 w-4" />
     </div>
   </div>

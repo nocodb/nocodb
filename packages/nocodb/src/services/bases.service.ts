@@ -103,6 +103,7 @@ export class BasesService {
       'status',
       'order',
       'description',
+      'default_role',
     ]);
     await this.validateProjectTitle(context, data, base);
 

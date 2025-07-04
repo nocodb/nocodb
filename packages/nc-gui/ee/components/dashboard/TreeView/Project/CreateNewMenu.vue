@@ -16,15 +16,18 @@ const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_
 
 <template>
   <NcMenu variant="large" @click="vVisible = false">
-    <div class="flex flex-row items-center">
+    <div class="nc-menu-item-combo">
       <NcMenuItem inner-class="w-full !opacity-100" data-testid="create-new-dashboard">
         <GeneralIcon icon="table" class="!w-4 !h-4" />
         Dashboard
       </NcMenuItem>
+      <div class="h-7 w-px flex-none bg-nc-border-gray-medium" />
 
-      <NcSubMenu class="py-0" data-testid="mini-sidebar-view-create" variant="small" @click.stop>
+      <NcSubMenu variant="medium" title-class="!p-0 hover:bg-brand-100" @click.stop>
         <template #title>
-          <GeneralIcon icon="table" />
+          <div class="flex items-center justify-center h-8 w-8 rounded-lg">
+            <GeneralIcon icon="ncChevronRight" />
+          </div>
         </template>
         <template #expandIcon> </template>
         <NcMenuItemLabel>
@@ -36,26 +39,29 @@ const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_
         </NcMenuItem>
       </NcSubMenu>
     </div>
-
-    <NcSubMenu
-      class="py-0"
-      data-testid="mini-sidebar-view-create"
-      variant="small"
-      inner-class="w-full"
-      @click="emits('newTable')"
-    >
-      <template #title>
-        <GeneralIcon icon="table" />
+    <NcMenuComboWrapper>
+      <template #ncMenuItem>
+        <NcMenuItem inner-class="w-full !opacity-100" data-testid="create-new-dashboard">
+          <GeneralIcon icon="table" class="!w-4 !h-4" />
+          Dashboard
+        </NcMenuItem>
       </template>
-      <template #expandIcon> </template>
-      <NcMenuItemLabel>
-        <span class="normal-case"> Import Options </span>
-      </NcMenuItemLabel>
-      <NcMenuItem inner-class="w-full !opacity-100" data-testid="create-new-dashboard">
-        <GeneralIcon icon="ncImport" class="!w-4 !h-4" />
-        Import from CSV
-      </NcMenuItem>
-    </NcSubMenu>
+      <template #ncSubMenu>
+        <NcSubMenu variant="medium" title-class="!p-0 hover:bg-brand-100" @click.stop>
+          <template #title>
+            <GeneralIcon icon="ncChevronRight" />
+          </template>
+          <template #expandIcon> </template>
+          <NcMenuItemLabel>
+            <span class="normal-case"> Import Options </span>
+          </NcMenuItemLabel>
+          <NcMenuItem inner-class="w-full !opacity-100" data-testid="create-new-dashboard">
+            <GeneralIcon icon="ncImport" class="!w-4 !h-4" />
+            Import from CSV
+          </NcMenuItem>
+        </NcSubMenu>
+      </template>
+    </NcMenuComboWrapper>
 
     <NcMenuItem inner-class="w-full !opacity-100" data-testid="create-new-dashboard" :selectable="false">
       <GeneralIcon icon="ncTable" class="!w-4 !h-4" />
@@ -93,4 +99,12 @@ const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_
   </NcMenu>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss">
+.nc-menu-item-combo {
+  @apply mx-1 flex flex-row items-center hover:bg-gray-100 rounded-lg;
+
+  .ant-dropdown-menu-submenu-title {
+    @apply !px-0 !w-8;
+  }
+}
+</style>

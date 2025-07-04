@@ -23,7 +23,7 @@ import { TypeConversionError } from '../../../../../error/type-conversion.error'
 import type { SuppressedError } from '../../../../../error/suppressed.error'
 import { EDIT_INTERACTABLE } from '../utils/constants'
 
-const MAX_ROWS = 200
+const MAX_ROWS = 5000
 
 export function useCopyPaste({
   activeCell,

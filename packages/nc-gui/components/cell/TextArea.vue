@@ -103,7 +103,7 @@ const height = computed(() => {
 })
 
 const localRowHeight = computed(() => {
-  if (readOnly.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 6
+  if (readOnly.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 4
 
   return rowHeight.value
 })

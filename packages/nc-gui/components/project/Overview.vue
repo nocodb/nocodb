@@ -76,44 +76,36 @@ const onCreateSyncClick = () => {
 <template>
   <div class="nc-all-tables-view px-6 pt-6">
     <div
-      class="flex flex-row gap-x-6 pb-2 overflow-x-auto nc-scrollbar-thin"
+      class="flex flex-row gap-6 pb-2 flex-wrap"
       :class="{
         'pointer-events-none': base?.isLoading,
       }"
     >
-      <div
+      <ProjectActionItem
         v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
-        role="button"
-        class="nc-base-view-all-table-btn"
+        :label="$t('dashboards.create_new_table')"
+        :subtext="$t('msg.subText.createNewTable')"
         data-testid="proj-view-btn__add-new-table"
         @click="openTableCreateDialog()"
       >
-        <div class="icon-wrapper">
+        <template #icon>
           <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-brand-500" />
-        </div>
-        <div class="flex flex-col gap-1">
-          <div class="label">{{ $t('dashboards.create_new_table') }}</div>
-          <div class="subtext">{{ $t('msg.subText.createNewTable') }}</div>
-        </div>
-      </div>
+        </template>
+      </ProjectActionItem>
 
-      <div
+      <ProjectActionItem
         v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
         v-e="['c:table:import']"
-        role="button"
-        class="nc-base-view-all-table-btn"
         data-testid="proj-view-btn__import-data"
+        :label="$t('activity.import') + ' ' + $t('general.data')"
+        :subtext="$t('msg.subText.importData')"
         @click="isImportModalOpen = true"
       >
-        <div class="icon-wrapper">
+        <template #icon>
           <GeneralIcon icon="download" class="!h-7.5 !w-7.5 !text-orange-700" />
-        </div>
-        <div class="flex flex-col gap-1">
-          <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
+        </template>
+      </ProjectActionItem>
 
-          <div class="subtext">{{ $t('msg.subText.importData') }}</div>
-        </div>
-      </div>
       <NcTooltip
         v-if="isUIAllowed('sourceCreate')"
         placement="bottom"
@@ -123,41 +115,35 @@ const onCreateSyncClick = () => {
         <template #title>
           {{ $t('tooltip.reachedSourceLimit') }}
         </template>
-        <div
+
+        <ProjectActionItem
           v-e="['c:table:create-source']"
-          role="button"
           class="nc-base-view-all-table-btn"
           data-testid="proj-view-btn__create-source"
-          :class="{
-            disabled: isDataSourceLimitReached,
-          }"
+          :disabled="isDataSourceLimitReached"
+          :label="$t('labels.connectDataSource')"
+          :subtext="$t('msg.subText.connectExternalData')"
           @click="onCreateBaseClick"
         >
-          <div class="icon-wrapper">
+          <template #icon>
             <GeneralIcon icon="server1" class="!h-7 !w-7 !text-green-700" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <div class="label">{{ $t('labels.connectDataSource') }}</div>
-            <div class="subtext">{{ $t('msg.subText.connectExternalData') }}</div>
-          </div>
-        </div>
+          </template>
+        </ProjectActionItem>
       </NcTooltip>
-      <div
+
+      <ProjectActionItem
         v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
         v-e="['c:table:create-sync']"
-        role="button"
         class="nc-base-view-all-table-btn"
         data-testid="proj-view-btn__create-sync"
+        :label="$t('labels.syncData')"
+        :subtext="$t('msg.subText.syncData')"
         @click="onCreateSyncClick"
       >
-        <div class="icon-wrapper">
+        <template #icon>
           <GeneralIcon icon="ncZap" class="!h-7 !w-7 !text-green-700" />
-        </div>
-        <div class="flex flex-col gap-1">
-          <div class="label">Sync Data</div>
-          <div class="subtext">With internal or external sources</div>
-        </div>
-      </div>
+        </template>
+      </ProjectActionItem>
     </div>
     <div
       v-if="base?.isLoading"

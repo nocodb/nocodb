@@ -180,11 +180,11 @@ onMounted(() => {
           <NcBadge
             v-if="isPrivateBase"
             size="xs"
-            class="!text-caption !bg-nc-bg-gray-medium !text-nc-content-gray-subtle2"
+            class="!text-bodySm !bg-nc-bg-gray-medium !text-nc-content-gray-subtle2"
             color="grey"
             :border="false"
           >
-            <GeneralIcon icon="ncLock" class="w-4 h-4 mr-1" />
+            <GeneralIcon icon="ncLock" class="w-3.5 h-3.5 mr-1" />
             {{ $t('general.private') }}
           </NcBadge>
         </div>

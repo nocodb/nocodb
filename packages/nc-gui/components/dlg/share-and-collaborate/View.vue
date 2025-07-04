@@ -9,7 +9,7 @@ const { isViewToolbar } = defineProps<{
 const isLocked = inject(IsLockedInj, ref(false))
 
 const baseStore = useBase()
-const { base } = storeToRefs(baseStore)
+const { base, isPrivateBase } = storeToRefs(baseStore)
 const { navigateToProjectPage } = baseStore
 const { activeView } = storeToRefs(useViewsStore())
 
@@ -64,8 +64,11 @@ watch(showShareModal, (val) => {
     :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
   >
     <div class="flex flex-col px-1">
-      <div class="flex flex-row justify-between items-center pb-1 mx-4 mt-3">
+      <div class="flex flex-col gap-2 pb-1 mx-4 mt-3">
         <div class="flex text-base font-medium">{{ $t('activity.share') }}</div>
+        <div v-if="isPrivateBase" class="text-nc-content-gray-emphasis">
+          This is a <strong>Private</strong> Base. Sharing is limited to form views.
+        </div>
       </div>
       <div v-if="isViewToolbar && activeView" class="share-view">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">

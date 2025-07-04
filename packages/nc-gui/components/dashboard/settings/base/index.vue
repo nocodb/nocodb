@@ -10,7 +10,7 @@ const hasPermissionForMigrate = computed(() => isUIAllowed('baseMiscSettings') &
 const router = useRouter()
 
 const activeMenu = ref(
-  hasPermissionForBaseAccess.value ? 'baseAccess' : hasPermissionForSnapshots.value ? 'snapshots' : 'visibility',
+  hasPermissionForBaseAccess.value ? 'baseType' : hasPermissionForSnapshots.value ? 'snapshots' : 'visibility',
 )
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
@@ -22,7 +22,7 @@ const selectMenu = (option: string) => {
     return
   }
 
-  if (!hasPermissionForBaseAccess.value && option === 'baseAccess') {
+  if (!hasPermissionForBaseAccess.value && option === 'baseType') {
     return
   }
 
@@ -37,7 +37,7 @@ const selectMenu = (option: string) => {
 
 onMounted(() => {
   const query = router.currentRoute.value.query
-  if (query && query.tab && ['baseAccess', 'snapshots', 'visibility', 'mcp'].includes(query.tab as string)) {
+  if (query && query.tab && ['baseType', 'snapshots', 'visibility', 'mcp'].includes(query.tab as string)) {
     selectMenu(query.tab as string)
   }
 })
@@ -52,15 +52,15 @@ onMounted(() => {
           v-if="hasPermissionForBaseAccess"
           data-testid="base-access-tab"
           :class="{
-            'active-menu': activeMenu === 'baseAccess',
+            'active-menu': activeMenu === 'baseType',
           }"
           class="gap-3 hover:bg-gray-100 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
-          @click="selectMenu('baseAccess')"
+          @click="selectMenu('baseType')"
         >
           <GeneralIcon icon="ncUsers" />
 
           <span>
-            {{ $t('general.baseAccess') }}
+            {{ $t('general.baseType') }}
           </span>
         </div>
         <div
@@ -125,7 +125,7 @@ onMounted(() => {
     <!-- Data Pane -->
 
     <div class="flex flex-col flex-1 max-w-[760px]">
-      <DashboardSettingsBaseAccess v-if="activeMenu === 'baseAccess'" />
+      <DashboardSettingsBaseAccess v-if="activeMenu === 'baseType'" />
       <DashboardSettingsBaseSnapshots v-if="activeMenu === 'snapshots'" />
       <DashboardSettingsBaseVisibility v-if="activeMenu === 'visibility'" />
       <DashboardSettingsBaseMigrate v-if="activeMenu === 'migrate'" />

@@ -3,13 +3,15 @@ const { isUIAllowed } = useRoles()
 
 const hasPermissionForBaseAccess = computed(() => isEeUI && isUIAllowed('baseMiscSettings'))
 
-const hasPermissionForSnapshots = computed(() => isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot'))
+const hasPermissionForSnapshots = computed(() => isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot'))
 
 const hasPermissionForMigrate = computed(() => isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
 
 const router = useRouter()
 
-const activeMenu = ref(isEeUI && hasPermissionForSnapshots.value ? 'snapshots' : 'visibility')
+const activeMenu = ref(
+  hasPermissionForBaseAccess.value ? 'baseAccess' : hasPermissionForSnapshots.value ? 'snapshots' : 'visibility',
+)
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -62,7 +64,7 @@ onMounted(() => {
           </span>
         </div>
         <div
-          v-if="isEeUI && hasPermissionForSnapshots"
+          v-if="hasPermissionForSnapshots"
           data-testid="snapshots-tab"
           :class="{
             'active-menu': activeMenu === 'snapshots',

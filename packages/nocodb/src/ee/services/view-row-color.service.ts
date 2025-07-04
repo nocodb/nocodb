@@ -25,6 +25,7 @@ import { View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
+import { extractProps } from '~/helpers/extractProps';
 
 @Injectable()
 export class ViewRowColorService extends ViewRowColorServiceCE {
@@ -183,7 +184,17 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       const rowColoringConditionId = rowColoringCondition.id;
 
       const filterToInsert = {
-        ...params.filter,
+        ...extractProps(params.filter as any, [
+          'comparison_op',
+          'comparison_sub_op',
+          'value',
+          'fk_parent_id',
+          'is_group',
+          'logical_op',
+          'base_id',
+          'source_id',
+          'order',
+        ]),
         fk_row_color_condition_id: rowColoringConditionId,
       } as Filter;
 

@@ -5,9 +5,11 @@ const hasPermissionForBaseAccess = computed(() => isEeUI && isUIAllowed('baseMis
 
 const hasPermissionForSnapshots = computed(() => isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot'))
 
-const hasPermissionForMigrate = computed(() => isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
+const hasPermissionForMigrate = computed(() => !isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
 
 const router = useRouter()
+
+const allTabs = ['baseType', 'snapshots', 'visibility', 'mcp', 'migrate']
 
 const activeMenu = ref(
   hasPermissionForBaseAccess.value ? 'baseType' : hasPermissionForSnapshots.value ? 'snapshots' : 'visibility',
@@ -17,7 +19,7 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isMCPEnabled = computed(() => isUIAllowed('baseMiscSettings') && isFeatureEnabled(FEATURE_FLAG.MODEL_CONTEXT_PROTOCOL))
 
-const selectMenu = (option: string) => {
+const selectMenu = (option: string, updateQuery = true) => {
   if (!hasPermissionForSnapshots.value && option === 'snapshots') {
     return
   }
@@ -26,21 +28,37 @@ const selectMenu = (option: string) => {
     return
   }
 
-  router.push({
-    query: {
-      ...router.currentRoute.value.query,
-      tab: option,
-    },
-  })
+  if (!hasPermissionForMigrate.value && option === 'migrate') {
+    return
+  }
+
+  if (updateQuery) {
+    router.push({
+      query: {
+        ...router.currentRoute.value.query,
+        tab: option,
+      },
+    })
+  }
   activeMenu.value = option
 }
 
 onMounted(() => {
   const query = router.currentRoute.value.query
-  if (query && query.tab && ['baseType', 'snapshots', 'visibility', 'mcp'].includes(query.tab as string)) {
+
+  if (query && query.tab && allTabs.includes(query.tab as string)) {
     selectMenu(query.tab as string)
   }
 })
+
+watch(
+  () => router.currentRoute.value.query.tab,
+  (tab) => {
+    if (tab && allTabs.includes(tab as string) && tab !== activeMenu.value) {
+      selectMenu(tab as string, false)
+    }
+  },
+)
 </script>
 
 <template>
@@ -109,7 +127,7 @@ onMounted(() => {
         </div>
 
         <div
-          v-if="!isEeUI && hasPermissionForMigrate"
+          v-if="hasPermissionForMigrate"
           :class="{
             'active-menu': activeMenu === 'migrate',
           }"

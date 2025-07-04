@@ -6,6 +6,8 @@ const props = defineProps<{
   baseId?: string
 }>()
 
+const router = useRouter()
+
 const { isPrivateBase, base } = storeToRefs(useBase())
 
 const basesStore = useBases()
@@ -287,6 +289,16 @@ const isDeleteOrUpdateAllowed = (user) => {
   return !(isOnlyOneOwner.value && user.roles === ProjectRoles.OWNER)
 }
 
+const goToBaseSettings = () => {
+  router.push({
+    query: {
+      ...router.currentRoute.value.query,
+      page: 'base-settings',
+      tab: 'baseType',
+    },
+  })
+}
+
 watch(projectPageTab, () => {
   if (!userSearchText.value) return
 
@@ -346,7 +358,14 @@ watch(projectPageTab, () => {
           </template>
 
           <template #action>
-            <NcButton type="secondary" size="small" class="!mt-[-4px]" inner-class="!gap-1.5" icon-position="right">
+            <NcButton
+              type="secondary"
+              size="small"
+              class="!mt-[-4px]"
+              inner-class="!gap-1.5"
+              icon-position="right"
+              @click="goToBaseSettings"
+            >
               <template #icon>
                 <GeneralIcon icon="ncArrowUpRight" class="w-4 h-4" />
               </template>

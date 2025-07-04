@@ -21,15 +21,14 @@ const gotoFeed = () => navigateToFeed()
     @click="gotoFeed"
   >
     <div
-      class="nc-mini-sidebar-btn"
+      class="nc-mini-sidebar-btn relative"
       :class="{
         active: isFeedPageOpened,
       }"
     >
-      <span
-        v-if="isNewFeedAvailable"
-        class="bg-red-500 w-2 h-2 border-1 border-white rounded-[6px] absolute top-[5px] left-[15px]"
-      ></span>
+      <div v-if="isNewFeedAvailable" class="flex justify-center items-center w-3 absolute top-0.5 right-0.5">
+        <div class="w-2.5 h-2.5 pulsing-dot bg-nc-fill-red-medium border-2 border-white rounded-full"></div>
+      </div>
       <GeneralIcon icon="megaPhone" class="h-4 w-4" />
     </div>
   </div>
@@ -56,9 +55,9 @@ const gotoFeed = () => navigateToFeed()
     >
       <div class="flex flex-1 w-full items-center gap-2">
         <GeneralIcon icon="megaPhone" class="!h-4" />
-        <span v-if="!isMiniSidebar" class="">{{ $t('labels.whatsNew') }}!</span>
+        <span class="">{{ $t('labels.whatsNew') }}!</span>
       </div>
-      <div v-if="isNewFeedAvailable && !isMiniSidebar" class="flex justify-center items-center w-4">
+      <div v-if="isNewFeedAvailable" class="flex justify-center items-center w-4">
         <div class="w-3 h-3 pulsing-dot bg-nc-fill-red-medium border-2 border-white rounded-full"></div>
       </div>
     </div>

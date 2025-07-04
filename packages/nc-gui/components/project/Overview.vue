@@ -79,89 +79,81 @@ const onCreateSyncClick = () => {
     }"
   >
     <div class="text-subHeading2 text-nc-content-gray mb-5">{{ $t('labels.actions') }}</div>
+
     <div
       class="flex flex-row gap-6 flex-wrap max-w-[1000px]"
       :class="{
         'pointer-events-none': base?.isLoading,
       }"
     >
-      <ProjectActionItem
-        v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
-        :label="$t('dashboards.create_new_table')"
-        :subtext="$t('msg.subText.startFromScratch')"
-        data-testid="proj-view-btn__add-new-table"
-        @click="openTableCreateDialog()"
-      >
-        <template #icon>
-          <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-brand-500" />
-        </template>
-      </ProjectActionItem>
-
-      <ProjectActionItem
-        v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
-        v-e="['c:table:import']"
-        data-testid="proj-view-btn__import-data"
-        :label="`${$t('activity.import')} ${$t('general.data')}`"
-        :subtext="$t('msg.subText.importData')"
-        @click="isImportModalOpen = true"
-      >
-        <template #icon>
-          <GeneralIcon icon="download" class="!h-7.5 !w-7.5 !text-orange-700" />
-        </template>
-      </ProjectActionItem>
-
-      <NcTooltip
-        v-if="isUIAllowed('sourceCreate')"
-        placement="bottom"
-        :disabled="!isDataSourceLimitReached"
-        class="flex-none flex"
-      >
-        <template #title>
-          {{ $t('tooltip.reachedSourceLimit') }}
-        </template>
-
+      <template v-if="base?.isLoading">
+        <ProjectActionItem v-for="item of ncArrayFrom(7)" :key="item" is-loading label="loading" />
+      </template>
+      <template v-else>
         <ProjectActionItem
-          v-e="['c:table:create-source']"
-          data-testid="proj-view-btn__create-source"
-          :disabled="isDataSourceLimitReached"
-          :label="$t('labels.connectDataSource')"
-          :subtext="$t('msg.subText.connectExternalData')"
-          @click="onCreateBaseClick"
+          v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+          :label="$t('dashboards.create_new_table')"
+          :subtext="$t('msg.subText.startFromScratch')"
+          data-testid="proj-view-btn__add-new-table"
+          @click="openTableCreateDialog()"
         >
           <template #icon>
-            <GeneralIcon icon="server1" class="!h-7 !w-7 !text-green-700" />
+            <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-brand-500" />
           </template>
         </ProjectActionItem>
-      </NcTooltip>
 
-      <ProjectActionItem
-        v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
-        v-e="['c:table:create-sync']"
-        data-testid="proj-view-btn__create-sync"
-        :label="$t('labels.syncData')"
-        :subtext="$t('msg.subText.syncData')"
-        @click="onCreateSyncClick"
-      >
-        <template #icon>
-          <GeneralIcon icon="ncZap" class="!h-7 !w-7 !text-green-700" />
-        </template>
-      </ProjectActionItem>
-      <ProjectActionCreateEmptyScript />
-      <ProjectActionScriptsByNocoDB />
-    </div>
-    <div
-      v-if="base?.isLoading"
-      class="flex items-center justify-center text-center mt-4"
-      :style="{
-        height: 'calc(100vh - var(--topbar-height) - 15.2rem)',
-      }"
-    >
-      <div>
-        <GeneralLoader size="xlarge" />
-        <div class="mt-2">
-          {{ $t('general.loading') }}
-        </div>
-      </div>
+        <ProjectActionItem
+          v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+          v-e="['c:table:import']"
+          data-testid="proj-view-btn__import-data"
+          :label="`${$t('activity.import')} ${$t('general.data')}`"
+          :subtext="$t('msg.subText.importData')"
+          @click="isImportModalOpen = true"
+        >
+          <template #icon>
+            <GeneralIcon icon="download" class="!h-7.5 !w-7.5 !text-orange-700" />
+          </template>
+        </ProjectActionItem>
+
+        <NcTooltip
+          v-if="isUIAllowed('sourceCreate')"
+          placement="bottom"
+          :disabled="!isDataSourceLimitReached"
+          class="flex-none flex"
+        >
+          <template #title>
+            {{ $t('tooltip.reachedSourceLimit') }}
+          </template>
+
+          <ProjectActionItem
+            v-e="['c:table:create-source']"
+            data-testid="proj-view-btn__create-source"
+            :disabled="isDataSourceLimitReached"
+            :label="$t('labels.connectDataSource')"
+            :subtext="$t('msg.subText.connectExternalData')"
+            @click="onCreateBaseClick"
+          >
+            <template #icon>
+              <GeneralIcon icon="server1" class="!h-7 !w-7 !text-green-700" />
+            </template>
+          </ProjectActionItem>
+        </NcTooltip>
+
+        <ProjectActionItem
+          v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+          v-e="['c:table:create-sync']"
+          data-testid="proj-view-btn__create-sync"
+          :label="$t('labels.syncData')"
+          :subtext="$t('msg.subText.syncData')"
+          @click="onCreateSyncClick"
+        >
+          <template #icon>
+            <GeneralIcon icon="ncZap" class="!h-7 !w-7 !text-green-700" />
+          </template>
+        </ProjectActionItem>
+        <ProjectActionCreateEmptyScript />
+        <ProjectActionScriptsByNocoDB />
+      </template>
     </div>
 
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />

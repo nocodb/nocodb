@@ -160,7 +160,11 @@
     "upgradeToUseRowColoring": "Upgrade to use row colouring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data.",
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
-    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data."
+    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
+    "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
+    "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them."
   },
   "general": {
     "script": "Script",
@@ -412,7 +416,9 @@
     "permissions": "Permissions",
     "manageAllFields": "Manage all fields",
     "automations": "Automations",
-    "record": "Record"
+    "record": "Record",
+    "overview": "Overview",
+    "baseType": "Base Type"
   },
   "objects": {
     "script": "Script",
@@ -658,6 +664,7 @@
     "isNotNull": "nu este nul"
   },
   "title": {
+    "accessRestricted": "Access Restricted",
     "editTablePermissions": "Edit table permissions",
     "editFieldPermissions": "Edit field permissions",
     "confirmSnapshotRestore": "Confirmă restaurarea instantaneului",
@@ -858,7 +865,16 @@
     "duplicatesFound": "Duplicate găsite",
     "matchingResultsInRecords": "Potrivirea rezultatelor în {count} înregistrări",
     "tablePermissions": "Table permissions",
-    "fieldPermissions": "Field permissions"
+    "fieldPermissions": "Field permissions",
+    "baseTypeDefaultSubtext": "Workspace members can collaborate based on their role.",
+    "baseTypePrivateSubtext": "Invite-only base. Only you can view and manage its members.",
+    "baseTypeTabSubtext": "Control who can view and interact with this base. Choose an access level that fits your privacy needs.",
+    "baseTypeSettingsDefaultSubtext": "Everyone in the workspace can access this base, based on their role.",
+    "baseTypeSettingsPrivateSubtext": "Only you and members invited to this base can view and interact with it.",
+    "privateBase": "Private Base",
+    "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
+    "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
     "crossBase": "Legătură către bază externă",
@@ -1394,7 +1410,12 @@
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
     "customColours": "Custom colours",
-    "sendAllEvents": "Send all events"
+    "sendAllEvents": "Send all events",
+    "useNocoAI": "Use NocoAI",
+    "disableNocoAI": "Disable NocoAI",
+    "defaultType": "Default",
+    "privateType": "Private",
+    "sharingRestricted": "Sharing restricted"
   },
   "activity": {
     "clickToResolve": "Fă clic pentru a rezolva",
@@ -1682,7 +1703,9 @@
     "pending": "În așteptare",
     "goToPage": "Mergi la pagină",
     "changePlan": "Schimbă planul",
-    "goToPermissionsOverview": "Go to Permissions Overview"
+    "goToPermissionsOverview": "Go to Permissions Overview",
+    "goToBaseSettings": "Go to Base Settings",
+    "convertToSharedBase": "Convert to Shared Base"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1823,6 +1846,7 @@
     "emptyTablePlaceholderSubtitle": "Este posibil ca tabelele să nu fi fost încă adăugate sau să fie ascunse în funcție de accesul tău."
   },
   "msg": {
+    "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluează recursiv",
     "evaluateRecursivelyTooltip": "Evaluați recursiv această căutare pentru relațiile Has Many auto referențiale (doar în Enterprise Edition + PostgreSQL)",
@@ -1957,6 +1981,8 @@
     "saveChanges": "Dorești să salvezi modificările?",
     "tooLargeFieldEntity": "Câmpul este prea mare pentru a fi convertit la {entity}",
     "roleRequired": "Rol necesar",
+    "privateBaseShareRestrictedMsg": "This base is set as Private and cannot be shared publicly.",
+    "privateBaseViewShareRestrictedMsg": "Views within a Private base cannot be shared publicly.",
     "warning": {
       "webhookDelete": "Câmpurile butonului care se bazează pe acest webhook vor fi afectate",
       "calendarNoFields": "Vizualizarea calendarului necesită configurarea unui câmp de dată sau de dată și oră. Încearcă să configurezi o vizualizare de calendar după adăugarea unui câmp de dată/dată și oră!",
@@ -2365,9 +2391,11 @@
       "mcpUrlCopied": "URL-ul MCP a fost copiat în clipboard"
     },
     "subText": {
-      "createNewTable": "Porniți de la zero.",
+      "startFromScratch": "Start from scratch.",
       "importData": "Din fișiere și surse externe.",
-      "connectExternalData": "În timp real către baze de date externe."
+      "connectExternalData": "În timp real către baze de date externe.",
+      "syncData": "With internal or external sources",
+      "scriptsByNocoDB": "Ready to use scripts by NocoDB"
     },
     "noAccess": "Fără acces",
     "noAccessDescription": "Nu aveți acces la niciun spațiu de lucru. Vă rugăm să contactați administratorul pentru a solicita acces.",

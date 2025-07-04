@@ -418,7 +418,7 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseAccess": "Base Access"
+    "baseType": "Base Type"
   },
   "objects": {
     "script": "Script",
@@ -866,11 +866,11 @@
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
     "fieldPermissions": "Field permissions",
-    "baseAccessDefaultSubtext": "Workspace members can collaborate based on their role.",
-    "baseAccessPrivateSubtext": "Invite-only base. Only you can view and manage its members.",
-    "baseAccessTabSubtext": "Control who can view and interact with this base. Choose an access level that fits your privacy needs.",
-    "baseAccessSettingsDefaultSubtext": "Everyone in the workspace can access this base, based on their role.",
-    "baseAccessSettingsPrivateSubtext": "Only you and members invited to this base can view and interact with it.",
+    "baseTypeDefaultSubtext": "Workspace members can collaborate based on their role.",
+    "baseTypePrivateSubtext": "Invite-only base. Only you can view and manage its members.",
+    "baseTypeTabSubtext": "Control who can view and interact with this base. Choose an access level that fits your privacy needs.",
+    "baseTypeSettingsDefaultSubtext": "Everyone in the workspace can access this base, based on their role.",
+    "baseTypeSettingsPrivateSubtext": "Only you and members invited to this base can view and interact with it.",
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This is an invite only base, only you and members invited to this base can view and interact with it.",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
@@ -1413,8 +1413,8 @@
     "sendAllEvents": "Send all events",
     "useNocoAI": "Use NocoAI",
     "disableNocoAI": "Disable NocoAI",
-    "defaultAccess": "Default access",
-    "privateAccess": "Private access",
+    "defaultType": "Default",
+    "privateType": "Private",
     "sharingRestricted": "Sharing restricted"
   },
   "activity": {
@@ -1704,7 +1704,7 @@
     "goToPage": "Go to Page",
     "changePlan": "ChangePlan",
     "goToPermissionsOverview": "Go to Permissions Overview",
-    "goToBaseAccess": "Go to Base Access",
+    "goToBaseSettings": "Go to Base Settings",
     "convertToSharedBase": "Convert to Shared Base"
   },
   "tooltip": {

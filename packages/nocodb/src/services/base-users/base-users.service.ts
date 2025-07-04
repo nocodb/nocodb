@@ -153,7 +153,7 @@ export class BaseUsersService {
           ));
 
         // if old role is owner and there is only one owner then restrict update
-        if (targetUser && this.isOldRoleIsOwner(targetUser, base)) {
+        if (targetUser && this.isOldRoleIsOwner(targetUser)) {
           const baseUsers = await BaseUser.getUsersList(
             context,
             {
@@ -417,7 +417,7 @@ export class BaseUsersService {
     }
 
     // if old role is owner and there is only one owner then restrict update
-    if (this.isOldRoleIsOwner(targetUser, base)) {
+    if (this.isOldRoleIsOwner(targetUser)) {
       const baseUsers = await BaseUser.getUsersList(
         context,
         {
@@ -495,7 +495,7 @@ export class BaseUsersService {
    * Checks if the user's current role is OWNER.
    * This considers both base roles and workspace roles.
    */
-  protected isOldRoleIsOwner(targetUser, base: Base) {
+  protected isOldRoleIsOwner(targetUser) {
     // Check if a base role is defined and if it includes the OWNER role.
     if (targetUser.base_roles) {
       const baseRole = getProjectRole(targetUser);
@@ -506,13 +506,9 @@ export class BaseUsersService {
 
     // Check if workspace_roles are present and if OWNER role is derived from them.
     if ((targetUser as { workspace_roles?: string }).workspace_roles) {
-      return !!extractRolesObj(
-        this.getInheritedBaseRole({
-          workspaceRole: (targetUser as { workspace_roles?: string })
-            .workspace_roles,
-          base,
-        }),
-      )?.[ProjectRoles.OWNER];
+      return extractRolesObj(
+        (targetUser as { workspace_roles?: string }).workspace_roles,
+      )?.[WorkspaceUserRoles.OWNER];
     }
 
     // Return false if no OWNER role is found.
@@ -536,7 +532,8 @@ export class BaseUsersService {
       if (!u.roles && (u as { workspace_roles?: string }).workspace_roles) {
         // if default role assigned consider default role since workspace role will be overridden by default role
         if (base.default_role) {
-          return (base.default_role as ProjectRoles) === ProjectRoles.OWNER;
+          // return false since `default_role` never be owner
+          return false;
         }
 
         return (
@@ -690,7 +687,7 @@ export class BaseUsersService {
     }
 
     // if old role is owner and there is only one owner then restrict to delete
-    if (this.isOldRoleIsOwner(baseUser, base)) {
+    if (this.isOldRoleIsOwner(baseUser)) {
       const baseUsers = await BaseUser.getUsersList(
         context,
         {

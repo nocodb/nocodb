@@ -76,13 +76,11 @@ watch(
     if (!('baseId' in route.value.params)) return
     // if (route.value.name !== 'index-typeOrId-baseId-index-index') return
     if (newVal && newVal !== oldVal) {
-      if (newVal === 'collaborator') {
-        projectPageTab.value = 'collaborator'
-      } else if (newVal === 'syncs') {
+      if (newVal === 'syncs') {
         projectPageTab.value = 'syncs'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
-      } else if (newVal === 'overview') {
+      } else if (newVal === 'overview' && isUIAllowed('projectOverviewTab')) {
         projectPageTab.value = 'overview'
       } else if (
         newVal === 'permissions' &&
@@ -91,12 +89,15 @@ watch(
         isTableAndFieldPermissionsEnabled.value
       ) {
         projectPageTab.value = 'permissions'
-      } else {
+      } else if (newVal === 'base-settings') {
         projectPageTab.value = 'base-settings'
+      } else {
+        projectPageTab.value = 'collaborator'
       }
       return
     }
-    if (isAdminPanel.value) {
+
+    if (isAdminPanel.value || !isUIAllowed('projectOverviewTab')) {
       projectPageTab.value = 'collaborator'
     } else {
       projectPageTab.value = 'overview'
@@ -185,7 +186,11 @@ onMounted(() => {
         <template #leftExtra>
           <div class="w-3"></div>
         </template>
-        <a-tab-pane v-if="!isAdminPanel" key="overview" class="nc-project-overview-tab-content">
+        <a-tab-pane
+          v-if="!isAdminPanel && isUIAllowed('projectOverviewTab')"
+          key="overview"
+          class="nc-project-overview-tab-content"
+        >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__all-tables">
               <GeneralIcon icon="ncMultiCircle" />

@@ -80,7 +80,7 @@ const onCreateSyncClick = () => {
   >
     <div class="text-subHeading2 text-nc-content-gray mb-5">{{ $t('labels.actions') }}</div>
     <div
-      class="flex flex-row gap-6 pb-2 flex-wrap max-w-[1000px]"
+      class="flex flex-row gap-6 flex-wrap max-w-[1000px]"
       :class="{
         'pointer-events-none': base?.isLoading,
       }"

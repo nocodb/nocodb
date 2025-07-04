@@ -143,7 +143,6 @@ export class PieChartCommonHandler {
     let view = null;
     if (dataSource === 'view' && widget.fk_view_id) {
       view = await View.get(context, widget.fk_view_id);
-      console.log(view);
     }
     const source = await Source.get(context, model.source_id);
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChartTypes, ChartWidgetType } from 'nocodb-sdk'
+import type { ChartTypes, type ChartWidgetType } from 'nocodb-sdk'
 
 interface Props {
   widget: ChartWidgetType<ChartTypes.PIE>
@@ -21,7 +21,7 @@ const chartConfig = computed(() => {
 })
 
 const chartSize = computed(() => {
-  const size = chartConfig.value?.appearance?.size ?? 'large'
+  const size = chartConfig.value?.appearance?.size ?? 'medium'
   const sizeMap = {
     small: { height: '250px', radius: '45%' },
     medium: { height: '350px', radius: '60%' },
@@ -55,7 +55,7 @@ const legendConfig = computed(() => {
         }
       : undefined,
     textStyle: {
-      fontSize: 13,
+      fontSize: 12,
       color: '#666',
     },
     itemGap: 15,
@@ -73,7 +73,7 @@ const chartColors = computed(() => {
 })
 
 const chartOption = computed<ECOption>(() => {
-  if (!widgetData.value?.data) {
+  if (!widgetData.value?.data || widgetData.value.data.length === 0) {
     return {}
   }
 
@@ -130,20 +130,23 @@ const chartOption = computed<ECOption>(() => {
 async function loadData() {
   if (!widgetRef.value?.id) return
 
-  widgetData.value = {
-    data: [
-      { name: 'Category 1', value: 100 },
-      { name: 'Category 2', value: 200 },
-      { name: 'Category 3', value: 150 },
-      { name: 'Category 4', value: 80 },
-      { name: 'Category 5', value: 300 },
-      { name: 'Category 6', value: 120 },
-      { name: 'Category 7', value: 90 },
-    ],
+  isLoading.value = true
+  try {
+    const rawData = await widgetStore.loadWidgetData(widgetRef.value.id)
+
+    if (rawData?.data && Array.isArray(rawData.data)) {
+      widgetData.value = rawData
+    } else {
+      widgetData.value = { data: [] }
+    }
+  } catch (error) {
+    console.error('Failed to load chart data:', error)
+    widgetData.value = { data: [] }
+  } finally {
+    isLoading.value = false
   }
 }
 
-// Lifecycle hooks
 onMounted(() => {
   loadData()
 })

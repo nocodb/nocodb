@@ -113,7 +113,7 @@ onBeforeMount(async () => {
             class="p-3 h-full flex flex-col gap-3 children:(border-b-1 border-nc-border-medium) overflow-auto nc-scrollbar-thin"
           >
             <a-skeleton
-              v-for="(_row, idx) of ncArrayFrom(7)"
+              v-for="idx in 7"
               :key="idx"
               :loading="isLoading"
               active
@@ -147,7 +147,7 @@ onBeforeMount(async () => {
             <div class="flex gap-x-5">
               <div class="min-w-80 flex-1">
                 <a-skeleton
-                  v-for="(_row, idx) of ncArrayFrom(3)"
+                  v-for="idx in 3"
                   :key="idx"
                   :loading="isLoading"
                   active
@@ -161,7 +161,7 @@ onBeforeMount(async () => {
               </div>
               <div class="min-w-80 flex-1">
                 <a-skeleton
-                  v-for="(_row, idx) of ncArrayFrom(2)"
+                  v-for="idx in 2"
                   :key="idx"
                   :loading="isLoading"
                   active

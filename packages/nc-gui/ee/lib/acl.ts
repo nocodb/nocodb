@@ -169,6 +169,8 @@ const rolePermissions = {
 
       // Row colouring
       rowColourUpdate: true,
+
+      projectOverviewTab: true,
     },
   },
   [ProjectRoles.EDITOR]: {

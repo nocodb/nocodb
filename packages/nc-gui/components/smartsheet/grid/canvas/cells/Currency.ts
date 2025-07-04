@@ -1,5 +1,5 @@
-import { renderSingleLineText, renderTagLabel } from '../utils/canvas'
 import { roundUpToPrecision } from 'nocodb-sdk'
+import { renderSingleLineText, renderTagLabel } from '../utils/canvas'
 
 export const CurrencyRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -23,7 +23,7 @@ export const CurrencyRenderer: CellRenderer = {
     try {
       // Round the value to the specified precision
       const roundedValue = roundUpToPrecision(Number(value), currencyMeta.precision ?? 2)
-      
+
       formattedValue = new Intl.NumberFormat(currencyMeta.currency_locale || 'en-US', {
         style: 'currency',
         currency: currencyMeta.currency_code || 'USD',

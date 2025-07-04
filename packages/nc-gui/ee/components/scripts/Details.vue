@@ -27,6 +27,8 @@ const { getScriptAssetsURL, getScriptContent, createAutomation } = automationSto
 
 const { availableScripts, descriptionContent, isMarketVisible } = storeToRefs(automationStore)
 
+const { showUpgradeToUseScripts } = useEeConfig()
+
 const onBack = () => {
   vModel.value = false
   isMarketVisible.value = true
@@ -37,6 +39,10 @@ const scriptContent = computed(() => {
 })
 
 const onAddScript = async (scr: any) => {
+  if (showUpgradeToUseScripts()) {
+    return
+  }
+
   const script = await createAutomation(openedProject.value?.id, {
     title: scr.title,
     script: scriptContent.value,

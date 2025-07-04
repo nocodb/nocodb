@@ -222,7 +222,7 @@ const sourceIdToIconMap = computed(() => {
         </div>
         <div class="flex flex-col gap-1">
           <div class="label">{{ $t('dashboards.create_new_table') }}</div>
-          <div class="subtext">{{ $t('msg.subText.createNewTable') }}</div>
+          <div class="subtext">{{ $t('msg.subText.startFromScratch') }}</div>
         </div>
       </div>
 
@@ -350,7 +350,7 @@ const sourceIdToIconMap = computed(() => {
               </div>
             </NcButton>
             <template v-if="column.key === 'name'">
-              <ProjectAllTablesViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
+              <ProjectAllTablesViewRowLegacy v-if="isRecordAView(record)" :column="column" :record="record" />
               <div
                 v-else
                 class="w-full flex items-center gap-3 max-w-full text-gray-800"
@@ -379,7 +379,7 @@ const sourceIdToIconMap = computed(() => {
               </NcTooltip>
             </div>
             <template v-if="column.key === 'sourceName'">
-              <ProjectAllTablesViewRow v-if="isRecordAView(record)" :column="column" :record="record" />
+              <ProjectAllTablesViewRowLegacy v-if="isRecordAView(record)" :column="column" :record="record" />
               <div v-else class="w-full flex justify-center items-center max-w-full" data-testid="proj-view-list__item-type">
                 <div class="w-8 h-8 flex justify-center items-center">
                   <component

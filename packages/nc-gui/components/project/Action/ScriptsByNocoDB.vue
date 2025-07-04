@@ -1,3 +1,3 @@
 <template>
-  <ProjectView />
+  <NcSpanHidden />
 </template>

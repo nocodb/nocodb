@@ -160,7 +160,11 @@
     "upgradeToUseRowColoring": "Upgrade to use row colouring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data.",
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
-    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data."
+    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
+    "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
+    "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them."
   },
   "general": {
     "script": "脚本",
@@ -412,7 +416,9 @@
     "permissions": "权限",
     "manageAllFields": "Manage all fields",
     "automations": "自动化",
-    "record": "Record"
+    "record": "Record",
+    "overview": "Overview",
+    "baseType": "Base Type"
   },
   "objects": {
     "script": "脚本",
@@ -658,6 +664,7 @@
     "isNotNull": "不为空（Not Null）"
   },
   "title": {
+    "accessRestricted": "Access Restricted",
     "editTablePermissions": "编辑表格权限",
     "editFieldPermissions": "编辑列权限",
     "confirmSnapshotRestore": "确认恢复快照",
@@ -858,7 +865,16 @@
     "duplicatesFound": "发现重复项",
     "matchingResultsInRecords": "找到 {count} 条匹配结果",
     "tablePermissions": "表格权限",
-    "fieldPermissions": "列权限"
+    "fieldPermissions": "列权限",
+    "baseTypeDefaultSubtext": "Workspace members can collaborate based on their role.",
+    "baseTypePrivateSubtext": "Invite-only base. Only you can view and manage its members.",
+    "baseTypeTabSubtext": "Control who can view and interact with this base. Choose an access level that fits your privacy needs.",
+    "baseTypeSettingsDefaultSubtext": "Everyone in the workspace can access this base, based on their role.",
+    "baseTypeSettingsPrivateSubtext": "Only you and members invited to this base can view and interact with it.",
+    "privateBase": "Private Base",
+    "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
+    "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
     "crossBase": "链接其他项目",
@@ -1394,7 +1410,12 @@
     "addColour": "Add Colour",
     "defaultColours": "默认颜色",
     "customColours": "自定义颜色",
-    "sendAllEvents": "Send all events"
+    "sendAllEvents": "Send all events",
+    "useNocoAI": "Use NocoAI",
+    "disableNocoAI": "Disable NocoAI",
+    "defaultType": "Default",
+    "privateType": "Private",
+    "sharingRestricted": "Sharing restricted"
   },
   "activity": {
     "clickToResolve": "点击解决",
@@ -1682,7 +1703,9 @@
     "pending": "待处理",
     "goToPage": "转到页面",
     "changePlan": "更改套餐",
-    "goToPermissionsOverview": "转到权限概览"
+    "goToPermissionsOverview": "转到权限概览",
+    "goToBaseSettings": "Go to Base Settings",
+    "convertToSharedBase": "Convert to Shared Base"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1823,6 +1846,7 @@
     "emptyTablePlaceholderSubtitle": "暂无表格"
   },
   "msg": {
+    "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} 现在可以访问 {scope}",
     "evaluateRecursively": "递归计算",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
@@ -1957,6 +1981,8 @@
     "saveChanges": "要保存更改吗？",
     "tooLargeFieldEntity": "字段太大，无法转换为 {entity}",
     "roleRequired": "角色要求",
+    "privateBaseShareRestrictedMsg": "This base is set as Private and cannot be shared publicly.",
+    "privateBaseViewShareRestrictedMsg": "Views within a Private base cannot be shared publicly.",
     "warning": {
       "webhookDelete": "依赖该网络钩子的按钮字段将受到影响",
       "calendarNoFields": "日历视图需要设置日期或日期时间字段。请尝试在添加日期/日期时间字段后设置日历视图！",
@@ -2365,9 +2391,11 @@
       "mcpUrlCopied": "已复制 MCP URL"
     },
     "subText": {
-      "createNewTable": "从头开始。",
+      "startFromScratch": "Start from scratch.",
       "importData": "来自文件和外部来源。",
-      "connectExternalData": "实时连接到外部数据库。"
+      "connectExternalData": "实时连接到外部数据库。",
+      "syncData": "With internal or external sources",
+      "scriptsByNocoDB": "Ready to use scripts by NocoDB"
     },
     "noAccess": "没有访问权限",
     "noAccessDescription": "您无权访问任何工作区，请联系管理员申请访问权限。",

@@ -412,7 +412,8 @@
     "permissions": "Permissions",
     "manageAllFields": "Manage all fields",
     "automations": "Automations",
-    "record": "Record"
+    "record": "Record",
+    "overview": "Overview"
   },
   "objects": {
     "script": "Script",

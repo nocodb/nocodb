@@ -203,19 +203,10 @@ onMounted(() => {
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__all-tables">
               <NcLayout />
-              <div>{{ $t('labels.allTables') }}</div>
-              <div
-                class="tab-info"
-                :class="{
-                  'bg-primary-selected': projectPageTab === 'allTable',
-                  'bg-gray-50': projectPageTab !== 'allTable',
-                }"
-              >
-                {{ activeTables.length }}
-              </div>
+              <div>{{ $t('general.overview') }}</div>
             </div>
           </template>
-          <ProjectAllTables />
+          <ProjectOverview />
         </a-tab-pane>
         <a-tab-pane
           v-if="!isAdminPanel && isAutomationEnabled && isEeUI && isUIAllowed('scriptList') && !isSharedBase"

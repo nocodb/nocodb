@@ -1,3 +1,3 @@
 <template>
-<NcSpanHidden />
+  <NcSpanHidden />
 </template>

@@ -52,7 +52,11 @@ const legendConfig = computed(() => {
     formatter: showCountInLegend
       ? (name: string) => {
           const item = widgetData.value?.data?.find((d: any) => d.name === name)
-          return item ? `${name}: ${item.value}` : name
+          if (item) {
+            const displayValue = item.formatted_value !== undefined ? item.formatted_value : item.value
+            return `${name}: ${displayValue}`
+          }
+          return name
         }
       : undefined,
     textStyle: {
@@ -84,7 +88,15 @@ const chartOption = computed<ECOption>(() => {
     color: chartColors.value,
     tooltip: {
       trigger: 'item',
-      formatter: '{a} <br/>{b}: {c} ({d}%)',
+      formatter: (params: any) => {
+        const dataItem = widgetData.value?.data?.find((d: any) => d.name === params.name)
+        if (dataItem) {
+          // Use formatted_value if available, otherwise use value
+          const displayValue = dataItem.formatted_value !== undefined ? dataItem.formatted_value : dataItem.value
+          return `${params.seriesName} <br/>${params.name}: ${displayValue} (${params.percent}%)`
+        }
+        return `${params.seriesName} <br/>${params.name}: ${params.value} (${params.percent}%)`
+      },
       backgroundColor: 'rgba(50, 50, 50, 0.9)',
       textStyle: {
         color: '#fff',

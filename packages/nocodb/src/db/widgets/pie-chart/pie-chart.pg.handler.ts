@@ -114,9 +114,10 @@ export class PieChartPgHandler extends PieChartCommonHandler {
 
     const formattedData = rawData.map((row: any) => {
       let value = row[aggregationAlias];
+      let formattedValue = value;
 
       if (chartData.value.type === 'summary' && aggregationColumn) {
-        value = formatAggregation(
+        formattedValue = formatAggregation(
           chartData.value.aggregation,
           value,
           aggregationColumn,
@@ -126,6 +127,7 @@ export class PieChartPgHandler extends PieChartCommonHandler {
       return {
         name: row.category || 'Unknown',
         value: value || 0,
+        formatted_value: formattedValue,
         category: row.category,
       };
     });

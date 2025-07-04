@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { CommonAggregations, UITypes, getAvailableAggregations } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
-
-const props = defineProps<{
-  tableId: string
-  columnId: string
-  modelValue?: string
-  placeholder?: string
-  size?: 'small' | 'middle' | 'large'
-}>()
+import type { NSelectProps } from './types'
+const props = withDefaults(
+  defineProps<NSelectProps & { tableId?: string; columnId?: string; filterOption?: (t: string) => boolean }>(),
+  {
+    placeholder: '- select aggregation -',
+  },
+)
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
@@ -58,6 +57,9 @@ async function fetchColumnMetadata() {
   } finally {
     isLoading.value = false
     availableAggregations.value = availableAggregations.value.filter((agg) => agg !== CommonAggregations.None)
+    if (props.filterOption) {
+      availableAggregations.value = availableAggregations.value.filter(props.filterOption)
+    }
   }
 }
 

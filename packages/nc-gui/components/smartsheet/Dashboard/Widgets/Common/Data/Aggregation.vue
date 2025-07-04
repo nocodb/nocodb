@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { AllAggregations, WidgetTypes } from 'nocodb-sdk'
 import TabbedSelect from '../TabbedSelect.vue'
 
 const emit = defineEmits<{
@@ -7,9 +8,15 @@ const emit = defineEmits<{
 
 const { selectedWidget } = storeToRefs(useWidgetStore())
 
-const selectedValue = ref(selectedWidget.value?.config?.metric?.type || 'count')
-const selectedAggregationType = ref(selectedWidget.value?.config?.metric?.aggregation)
-const selectedFieldId = ref(selectedWidget.value?.config?.metric?.column_id)
+const selectedValue = ref(
+  selectedWidget.value?.config?.metric?.type || selectedWidget.value?.config?.data?.value?.type || 'count',
+)
+const selectedAggregationType = ref(
+  selectedWidget.value?.config?.metric?.aggregation || selectedWidget.value?.config?.data?.value?.aggregation,
+)
+const selectedFieldId = ref(
+  selectedWidget.value?.config?.metric?.column_id || selectedWidget.value?.config?.data?.value?.column_id,
+)
 
 const modelId = computed(() => selectedWidget.value?.fk_model_id || null)
 
@@ -24,6 +31,7 @@ const handleChange = (type: 'field' | 'aggregation') => {
   }
   if (type === 'field') {
     aggregation.aggregation = null
+    aggregation.column_id = selectedFieldId.value
   }
 
   if (type === 'aggregation') {
@@ -32,6 +40,27 @@ const handleChange = (type: 'field' | 'aggregation') => {
   }
 
   emit('update:aggregation', aggregation)
+}
+
+const filterAggregation = (value: string) => {
+  if (selectedWidget.value?.type === WidgetTypes.METRIC) {
+    return true
+  }
+  return [
+    AllAggregations.Sum,
+    AllAggregations.Min,
+    AllAggregations.Max,
+    AllAggregations.Avg,
+    AllAggregations.Median,
+    AllAggregations.Count,
+    AllAggregations.CountUnique,
+    AllAggregations.CountEmpty,
+    AllAggregations.CountFilled,
+    AllAggregations.Checked,
+    AllAggregations.Unchecked,
+    AllAggregations.DateRange,
+    AllAggregations.MonthRange,
+  ].includes(value)
 }
 
 watch(modelId, () => {
@@ -71,10 +100,10 @@ watch(selectedValue, () => {
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Field</label>
       <NSelectField
-        :key="modelId"
+        :key="modelId!"
         v-model:value="selectedFieldId"
         :disabled="!modelId"
-        :table-id="modelId"
+        :table-id="modelId!"
         @update:value="handleChange('field')"
       />
     </div>
@@ -87,6 +116,7 @@ watch(selectedValue, () => {
         :disabled="!modelId"
         :table-id="modelId"
         :column-id="selectedFieldId"
+        :filter-option="filterAggregation"
         @update:value="handleChange('aggregation')"
       />
     </div>

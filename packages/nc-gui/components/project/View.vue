@@ -189,7 +189,7 @@ onMounted(() => {
         <a-tab-pane v-if="!isAdminPanel" key="allTable">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__all-tables">
-              <NcLayout />
+              <GeneralIcon icon="ncMultiCircle" />
               <div>{{ $t('general.overview') }}</div>
             </div>
           </template>

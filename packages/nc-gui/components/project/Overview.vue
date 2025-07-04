@@ -16,8 +16,6 @@ const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
 
-const { t } = useI18n()
-
 const { showExternalSourcePlanLimitExceededModal } = useEeConfig()
 
 const isImportModalOpen = ref(false)
@@ -97,7 +95,7 @@ const onCreateSyncClick = () => {
         v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
         v-e="['c:table:import']"
         data-testid="proj-view-btn__import-data"
-        :label="$t('activity.import') + ' ' + $t('general.data')"
+        :label="`${$t('activity.import')} ${$t('general.data')}`"
         :subtext="$t('msg.subText.importData')"
         @click="isImportModalOpen = true"
       >

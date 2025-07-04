@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import NcLayout from '~icons/nc-icons/layout'
 
 const props = defineProps<{
   baseId?: string

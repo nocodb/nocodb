@@ -244,4 +244,12 @@ export class PublicMetasService {
 
     return { base_id: base.id };
   }
+
+  protected checkBaseType(_base: Base) {
+    // placeholder for future checks
+  }
+
+  protected checkViewBaseType(_view: View, _base: Base) {
+    // placeholder for future checks
+  }
 }

@@ -134,6 +134,19 @@ enum AuditV1OperationTypes {
   SCRIPT_DELETE = 'SCRIPT_DELETE',
 
   SCRIPT_DUPLICATE = 'SCRIPT_DUPLICATE',
+
+  DASHBOARD_CREATE = 'DASHBOARD_CREATE',
+  DASHBOARD_UPDATE = 'DASHBOARD_UPDATE',
+  DASHBOARD_DELETE = 'DASHBOARD_DELETE',
+
+  DASHBOARD_DUPLICATE = 'DASHBOARD_DUPLICATE',
+  DASHBOARD_DUPLICATE_ERROR = 'DASHBOARD_DUPLICATE_ERROR',
+
+  WIDGET_CREATE = 'WIDGET_CREATE',
+  WIDGET_UPDATE = 'WIDGET_UPDATE',
+  WIDGET_DELETE = 'WIDGET_DELETE',
+  WIDGET_DUPLICATE = 'WIDGET_DUPLICATE',
+  WIDGET_DUPLICATE_ERROR = 'WIDGET_DUPLICATE_ERROR',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -267,6 +280,20 @@ export const auditV1OperationsCategory: Record<
     value: 'SCRIPT',
     types: Object.values(AuditV1OperationTypes).filter((key) =>
       key.startsWith('SCRIPT_')
+    ),
+  },
+  DASHBOARD: {
+    label: 'objects.dashboard',
+    value: 'DASHBOARD',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('DASHBOARD_')
+    ),
+  },
+  WIDGET: {
+    label: 'objects.widget',
+    value: 'WIDGET',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('WIDGET_')
     ),
   },
 };
@@ -911,6 +938,59 @@ export interface ScriptDuplicatePayload {
   error?: string;
 }
 
+export interface DashboardCreatePayload {
+  dashboard_title: string;
+  dashboard_id: string;
+  dashboard_description: string;
+}
+
+export interface DashboardUpdatePayload extends UpdatePayload {
+  dashboard_title: string;
+  dashboard_id: string;
+  dashboard_description: string;
+}
+
+export interface DashboardDeletePayload {
+  dashboard_title: string;
+  dashboard_id: string;
+}
+
+export interface DashboardDuplicatePayload {
+  duplicated_dashboard_title: string;
+  duplicated_dashboard_id: string;
+  source_dashboard_title: string;
+  source_dashboard_id: string;
+  error?: string;
+}
+
+export interface WidgetCreatePayload {
+  widget_title: string;
+  widget_id: string;
+  widget_type: string;
+  widget_description: string;
+  widget_config: string;
+}
+
+export interface WidgetUpdatePayload extends UpdatePayload {
+  widget_title: string;
+  widget_id: string;
+  widget_type: string;
+}
+
+export interface WidgetDeletePayload {
+  widget_title: string;
+  widget_id: string;
+  widget_type: string;
+}
+
+export interface WidgetDuplicatePayload {
+  duplicated_widget_title: string;
+  duplicated_widget_id: string;
+  source_widget_title: string;
+  source_widget_id: string;
+  error?: string;
+}
+
 export interface AuditV1<T = any> {
   // auto generated
   id?: string;
@@ -1077,6 +1157,32 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.SCRIPT_DUPLICATE]: (
     audit: AuditV1<ScriptDuplicatePayload>
   ) => `Script '${audit.details.source_script_title}' has been duplicated`,
+
+  [AuditV1OperationTypes.DASHBOARD_CREATE]: (
+    audit: AuditV1<DashboardCreatePayload>
+  ) => `Dashboard '${audit.details.dashboard_title}' has been created`,
+  [AuditV1OperationTypes.DASHBOARD_UPDATE]: (
+    audit: AuditV1<DashboardUpdatePayload>
+  ) => `Dashboard '${audit.details.dashboard_title}' has been updated`,
+  [AuditV1OperationTypes.DASHBOARD_DELETE]: (
+    audit: AuditV1<DashboardDeletePayload>
+  ) => `Dashboard '${audit.details.dashboard_title}' has been deleted`,
+  [AuditV1OperationTypes.DASHBOARD_DUPLICATE]: (
+    audit: AuditV1<DashboardDuplicatePayload>
+  ) =>
+    `Dashboard '${audit.details.source_dashboard_title}' has been duplicated`,
+  [AuditV1OperationTypes.WIDGET_CREATE]: (
+    audit: AuditV1<WidgetCreatePayload>
+  ) => `Widget '${audit.details.widget_title}' has been created`,
+  [AuditV1OperationTypes.WIDGET_UPDATE]: (
+    audit: AuditV1<WidgetUpdatePayload>
+  ) => `Widget '${audit.details.widget_title}' has been updated`,
+  [AuditV1OperationTypes.WIDGET_DELETE]: (
+    audit: AuditV1<WidgetDeletePayload>
+  ) => `Widget '${audit.details.widget_title}' has been deleted`,
+  [AuditV1OperationTypes.WIDGET_DUPLICATE]: (
+    audit: AuditV1<WidgetDuplicatePayload>
+  ) => `Widget '${audit.details.duplicated_widget_title}' has been duplicated`,
 };
 
 function auditDescription(audit: AuditV1) {

@@ -146,24 +146,28 @@ export class InternalController {
           context,
           payload.dashboardId,
           payload,
+          req,
         );
       case 'dashboardDelete':
         return await this.dashboardsService.dashboardDelete(
           context,
           payload.dashboardId,
+          req,
         );
       case 'widgetCreate':
-        return await this.dashboardsService.widgetCreate(context, payload);
+        return await this.dashboardsService.widgetCreate(context, payload, req);
       case 'widgetUpdate':
         return await this.dashboardsService.widgetUpdate(
           context,
           payload.widgetId,
           payload,
+          req,
         );
       case 'widgetDelete':
         return await this.dashboardsService.widgetDelete(
           context,
           payload.widgetId,
+          req,
         );
 
       case 'widgetDataGet':

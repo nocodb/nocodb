@@ -208,6 +208,22 @@ export enum AppEvents {
   SCRIPT_DELETE = 'script.delete',
   SCRIPT_UPDATE = 'script.update',
   SCRIPT_DUPLICATE = 'script.duplicate',
+
+  DASHBOARD_CREATE = 'dashboard.create',
+  DASHBOARD_UPDATE = 'dashboard.update',
+  DASHBOARD_DELETE = 'dashboard.delete',
+
+  DASHBOARD_DUPLICATE_START = 'dashboard.duplicate.start',
+  DASHBOARD_DUPLICATE_COMPLETE = 'dashboard.duplicate.complete',
+  DASHBOARD_DUPLICATE_FAIL = 'dashboard.duplicate.fail',
+
+  WIDGET_CREATE = 'widget.create',
+  WIDGET_UPDATE = 'widget.update',
+  WIDGET_DELETE = 'widget.delete',
+
+  WIDGET_DUPLICATE_START = 'widget.duplicate.start',
+  WIDGET_DUPLICATE_COMPLETE = 'widget.duplicate.complete',
+  WIDGET_DUPLICATE_FAIL = 'widget.duplicate.fail',
 }
 
 export enum ClickhouseTables {
@@ -487,8 +503,8 @@ export enum NcApiVersion {
 }
 
 export enum HookOperationCode {
-  insert = 1 << 0,  // 1
-  update = 1 << 1,  // 2
-  delete = 1 << 2,  // 4
+  insert = 1 << 0, // 1
+  update = 1 << 1, // 2
+  delete = 1 << 2, // 4
   trigger = 1 << 3, // 8
 }

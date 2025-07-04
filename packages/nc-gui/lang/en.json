@@ -866,7 +866,8 @@
     "tablePermissions": "Table permissions",
     "fieldPermissions": "Field permissions",
     "baseAccessDefaultSubtext": "All members can collaborate based on their workspace role.",
-    "baseAccessPrivateSubtext": "Restrict access - only invited members can access this base"
+    "baseAccessPrivateSubtext": "Restrict access - only invited members can access this base",
+    "baseAccessTabSubtext": "Control who can view and interact with this base. Choose an access level that fits your privacy needs."
   },
   "labels": {
     "crossBase": "Link to external base",

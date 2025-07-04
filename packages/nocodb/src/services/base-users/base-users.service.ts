@@ -859,4 +859,11 @@ export class BaseUsersService {
 
     return true;
   }
+
+  protected isUserManagementRestricted(_params: {
+    base: Base;
+    req: NcRequest;
+  }) {
+    // placeholder for future logic
+  }
 }

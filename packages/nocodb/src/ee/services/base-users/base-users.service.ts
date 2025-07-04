@@ -36,6 +36,25 @@ export class BaseUsersService extends BaseUsersServiceCE {
     super(appHooksService, mailService);
   }
 
+  // restrict user management for non-owner users in private bases
+  protected isUserManagementRestricted({
+    base,
+    req,
+  }: {
+    base: Base;
+    req: NcRequest;
+  }) {
+    // if non-private base then allow user management
+    if (!base.default_role) return;
+
+    // if user is base owner then allow user management
+    if (req.user?.base_roles?.[ProjectRoles.OWNER]) return;
+
+    throw NcError.forbidden(
+      'User management is restricted to base owners in private bases',
+    );
+  }
+
   async userInvite(
     context: NcContext,
     param: {
@@ -50,6 +69,15 @@ export class BaseUsersService extends BaseUsersServiceCE {
       'swagger.json#/components/schemas/ProjectUserReq',
       param.baseUser,
     );
+
+    const base = await Base.get(context, param.baseId, ncMeta);
+
+    this.isUserManagementRestricted({
+      base,
+      req: param.req,
+    });
+
+    // restrict user management for non-owners in private bases
 
     if (
       getProjectRolePower({
@@ -87,8 +115,6 @@ export class BaseUsersService extends BaseUsersServiceCE {
         'Invalid email address : ' + invalidEmails.join(', '),
       );
     }
-
-    const base = await Base.get(context, param.baseId, ncMeta);
 
     if (!base) {
       return NcError.baseNotFound(param.baseId);
@@ -404,6 +430,11 @@ export class BaseUsersService extends BaseUsersServiceCE {
       return NcError.baseNotFound(param.baseId);
     }
 
+    this.isUserManagementRestricted({
+      base,
+      req: param.req,
+    });
+
     const workspace = await Workspace.get(base.fk_workspace_id, false, ncMeta);
 
     if (!workspace) {
@@ -567,17 +598,23 @@ export class BaseUsersService extends BaseUsersServiceCE {
       NcError.badRequest("Admin can't delete themselves!");
     }
 
+    const base = await Base.get(context, base_id);
+
+    if (!base) {
+      NcError.baseNotFound(base_id);
+    }
+
+    this.isUserManagementRestricted({
+      base,
+      req: param.req,
+    });
+
     const user = await User.get(param.userId);
 
     if (!user) {
       NcError.userNotFound(param.userId);
     }
 
-    const base = await Base.get(context, base_id);
-
-    if (!base) {
-      NcError.baseNotFound(base_id);
-    }
 
     const workspace = await Workspace.get(base.fk_workspace_id);
 

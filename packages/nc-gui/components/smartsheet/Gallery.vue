@@ -505,13 +505,19 @@ const handleOpenNewRecordForm = () => {
                     </div>
                   </template>
 
-                  <div class="flex-1 flex content-stretch gap-3">
+                  <div class="flex-1 flex content-stretch gap-3 w-full">
                     <div
                       v-if="isRowColouringEnabled"
                       class="w-1 flex-none min-h-4 rounded-sm"
                       :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
                     ></div>
-                    <div class="flex-1 flex flex-col gap-3 !children:pointer-events-none">
+                    <div
+                      class="flex-1 flex flex-col gap-3 !children:pointer-events-none"
+                      :class="{
+                        'w-[calc(100%_-_16px)]': isRowColouringEnabled,
+                        'w-full': !isRowColouringEnabled,
+                      }"
+                    >
                       <h2
                         v-if="displayField"
                         class="nc-card-display-value-wrapper"

@@ -17,7 +17,7 @@ const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_
 </script>
 
 <template>
-  <NcMenu variant="medium" @click="vVisible = false">
+  <NcMenu variant="large" @click="vVisible = false">
     <div class="flex flex-row items-center">
       <NcMenuItem inner-class="w-full !opacity-100" data-testid="create-new-dashboard">
         <GeneralIcon icon="table" class="!w-4 !h-4" />
@@ -86,7 +86,7 @@ const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_
           }
         "
       >
-        <GeneralIcon icon="ncScript" />
+        <GeneralIcon icon="ncAutomation" />
         Automation
         <div class="flex-1 w-full" />
         <NcBadge :border="false" size="xs" class="!text-brand-600 !bg-brand-50"> Soon </NcBadge>

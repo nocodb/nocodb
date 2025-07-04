@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import TabbedSelect from '../TabbedSelect.vue'
 
-defineProps<{
-  showCountAggregation: boolean
-}>()
-
 const emit = defineEmits<{
   'update:aggregation': [aggregation: any]
 }>()
@@ -21,15 +17,6 @@ const aggregationMap = {
   count: 'Record Count',
   summary: 'Field Summary',
 } as const
-
-const aggregationOptions = [
-  { value: 'distinct', label: 'Distinct' },
-  { value: 'sum', label: 'Sum' },
-  { value: 'avg', label: 'Average' },
-  { value: 'median', label: 'Median' },
-  { value: 'min', label: 'Minimum' },
-  { value: 'max', label: 'Maximum' },
-]
 
 const handleChange = (type: 'field' | 'aggregation') => {
   const aggregation = {
@@ -102,27 +89,6 @@ watch(selectedValue, () => {
         :column-id="selectedFieldId"
         @update:value="handleChange('aggregation')"
       />
-    </div>
-  </div>
-
-  <div v-if="showCountAggregation && selectedValue === 'count'" class="flex gap-2 flex-1 min-w-0">
-    <div class="flex flex-col gap-2 flex-1 min-w-0">
-      <label>Aggregate</label>
-
-      <a-select
-        v-model:value="selectedAggregationType"
-        :options="[
-          { value: 'count', label: 'Count' },
-          { value: 'distinct', label: 'Distinct' },
-        ]"
-        class="nc-select-shadow"
-        placeholder="Aggregation"
-        @update:value="handleChange('aggregation')"
-      >
-        <template #suffixIcon>
-          <GeneralIcon icon="arrowDown" class="text-gray-700" />
-        </template>
-      </a-select>
     </div>
   </div>
 </template>

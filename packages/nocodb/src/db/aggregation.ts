@@ -8,19 +8,13 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import type {
-  BarcodeColumn,
-  FormulaColumn,
-  QrCodeColumn,
-  RollupColumn,
-} from '~/models';
+import type { BarcodeColumn, QrCodeColumn } from '~/models';
 import { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import genRollupSelectv2 from '~/db/genRollupSelectv2';
-import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { genPgAggregateQuery } from '~/db/aggregations/pg';
 import { genMysql2AggregatedQuery } from '~/db/aggregations/mysql2';
 import { genSqlite3AggregateQuery } from '~/db/aggregations/sqlite3';
+import { getColumnNameQuery } from '~/db/getColumnNameQuery';
 
 export const validateAggregationColType = (
   column: Column,
@@ -97,7 +91,7 @@ export default async function applyAggregation({
     return;
   }
 
-  const { context, dbDriver: knex, model } = baseModelSqlv2;
+  const { context, dbDriver: knex } = baseModelSqlv2;
 
   /*
   All aggregations are not available for all UITypes. We validate the column type
@@ -132,19 +126,6 @@ export default async function applyAggregation({
     });
   }
 
-  let column_name_query = column.column_name;
-
-  if (column.uidt === UITypes.CreatedTime && !column.column_name)
-    column_name_query = 'created_at';
-  if (column.uidt === UITypes.LastModifiedTime && !column.column_name)
-    column_name_query = 'updated_at';
-  if (column.uidt === UITypes.CreatedBy && !column.column_name)
-    column_name_query = 'created_by';
-  if (column.uidt === UITypes.LastModifiedBy && !column.column_name)
-    column_name_query = 'updated_by';
-
-  const parsedFormulaType = column.colOptions?.parsed_tree?.dataType;
-
   /* The following column types require special handling for aggregation:
    * - Links
    * - Rollup
@@ -154,44 +135,13 @@ export default async function applyAggregation({
    * These column types require special handling because they are virtual columns and do not have a direct column name.
    * We generate the select query for these columns and use the generated query for aggregation.
    * */
-  switch (column.uidt) {
-    case UITypes.Links:
-    case UITypes.Rollup:
-      column_name_query = (
-        await genRollupSelectv2({
-          baseModelSqlv2,
-          knex,
-          columnOptions: (await column.getColOptions(context)) as RollupColumn,
-        })
-      ).builder;
-      break;
+  const column_name_query = await getColumnNameQuery({
+    baseModelSqlv2,
+    column,
+    context,
+  });
 
-    case UITypes.Formula:
-      {
-        const formula = await column.getColOptions<FormulaColumn>(context);
-        if (formula.error) {
-          aggregation = CommonAggregations.None;
-        } else {
-          column_name_query = (
-            await baseModelSqlv2.getSelectQueryBuilderForFormula(column)
-          ).builder;
-        }
-      }
-      break;
-
-    case UITypes.LinkToAnotherRecord:
-    case UITypes.Lookup:
-      column_name_query = (
-        await generateLookupSelectQuery({
-          baseModelSqlv2,
-          column: column,
-          alias: null,
-          model,
-          isAggregation: true,
-        })
-      ).builder as string;
-      break;
-  }
+  const parsedFormulaType = column.colOptions?.parsed_tree?.dataType;
 
   if (knex.client.config.client === 'pg') {
     return genPgAggregateQuery({

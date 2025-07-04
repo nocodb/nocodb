@@ -1,4 +1,5 @@
 import { WidgetDataSourceTypes } from './';
+import { type AllAggregations } from '~/lib';
 
 export enum ChartTypes {
   BAR = 'bar',
@@ -21,13 +22,12 @@ interface PieChartDataConfig {
   };
   value:
     | {
-        type: 'field';
-        aggregation: 'distinct' | 'count';
+        type: 'count';
       }
     | {
         type: 'summary';
         column_id: string;
-        aggregation: 'sum' | 'avg' | 'count' | 'min' | 'max';
+        aggregation: typeof AllAggregations;
       };
 }
 

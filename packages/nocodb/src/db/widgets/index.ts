@@ -1,5 +1,6 @@
-import { WidgetTypes } from 'nocodb-sdk';
+import { ChartTypes, WidgetTypes } from 'nocodb-sdk';
 import { MetricCommonHandler } from './metric/metric.common.handler';
+import { PieChartCommonHandler } from './pie-chart/pie-chart.common.handler';
 import type { NcRequest, WidgetType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/ncError';
 import { Model, Source } from '~/models';
@@ -26,6 +27,8 @@ async function getWidgetHandler(params: {
       return new MetricCommonHandler();
     case WidgetTypes.CHART:
       switch (widget.config.chartType) {
+        case ChartTypes.PIE:
+          return new PieChartCommonHandler();
         default:
           NcError.notImplemented('Chart widget');
       }

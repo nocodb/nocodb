@@ -10,20 +10,23 @@ const getDefaultConfig = (widgetType: WidgetTypes, type?: ChartTypes) => {
   switch (widgetType) {
     case WidgetTypes.METRIC:
       return {
-        dataSource: {
-          type: 'model',
-          fk_model_id: '',
-        },
+        dataSource: 'model',
         metric: {
-          aggregation: 'count',
+          type: 'count',
         },
       }
     case WidgetTypes.CHART:
       return {
         chartType: type,
-        dataSource: {
-          type: 'model',
-          fk_model_id: '',
+        dataSource: 'model',
+        data: {
+          value: {
+            type: 'count',
+          },
+          category: {
+            includeEmptyRecords: false,
+            orderBy: 'default',
+          },
         },
       }
     case WidgetTypes.TEXT:

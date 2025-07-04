@@ -21,7 +21,7 @@ export class BaseViewStrategy extends PassportStrategy(Strategy, 'base-view') {
         if (sharedBase.default_role) {
           return callback(
             new UnauthorizedException(
-              'Shared base feature is not available for private bases. Please contact the base owner for access.'
+              'Shared base feature is not available for private bases. Please contact the base owner for access.',
             ),
           );
         }

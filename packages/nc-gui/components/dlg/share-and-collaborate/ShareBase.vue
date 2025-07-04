@@ -157,6 +157,7 @@ const copyCustomUrl = async (custUrl = '') => {
           :id="sharedBase.fk_custom_url_id"
           :backend-url="appInfo.ncSiteUrl"
           :copy-custom-url="copyCustomUrl"
+          :disabled="isPrivateBase"
           @update-custom-url="createShareBase(undefined, $event)"
         />
         <div

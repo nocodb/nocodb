@@ -93,7 +93,7 @@ const chartOption = computed<ECOption>(() => {
         if (dataItem) {
           // Use formatted_value if available, otherwise use value
           const displayValue = dataItem.formatted_value !== undefined ? dataItem.formatted_value : dataItem.value
-          return `${params.seriesName} <br/>${params.name}: ${displayValue} (${params.percent}%)`
+          return `${params.name} <br/>${displayValue} (${params.percent}%)`
         }
         return `${params.seriesName} <br/>${params.name}: ${params.value} (${params.percent}%)`
       },

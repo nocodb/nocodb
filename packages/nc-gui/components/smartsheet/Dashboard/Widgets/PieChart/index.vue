@@ -82,7 +82,7 @@ const chartOption = computed<ECOption>(() => {
     return {}
   }
 
-  const showPercentageOnChart = chartConfig.value?.appearance?.showPercentageOnChart ?? false
+  const showPercentageOnChart = chartConfig.value?.appearance?.showPercentageOnChart ?? true
 
   return {
     color: chartColors.value,

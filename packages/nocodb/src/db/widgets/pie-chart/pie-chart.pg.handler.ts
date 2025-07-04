@@ -45,11 +45,20 @@ export class PieChartPgHandler extends PieChartCommonHandler {
       widgetId: widget.id,
     });
 
-    const qb = baseModel.dbDriver(baseModel.tnPath);
+    const categoryColumnNameQuery = await getColumnNameQuery({
+      baseModelSqlv2: baseModel,
+      column: categoryColumn,
+      context: req.context,
+    });
+
+    let aggregationColumn = null;
+    const aggregationAlias = 'value';
+
+    const subQuery = baseModel.dbDriver(baseModel.tnPath);
 
     await baseModel.applySortAndFilter({
       table: model,
-      qb,
+      qb: subQuery,
       filters,
       view,
       skipSort: true,
@@ -57,23 +66,22 @@ export class PieChartPgHandler extends PieChartCommonHandler {
       where: '',
     });
 
-    const categoryColumnNameQuery = await getColumnNameQuery({
-      baseModelSqlv2: baseModel,
-      column: categoryColumn,
-      context: req.context,
-    });
+    if (!chartData.category?.includeEmptyRecords) {
+      subQuery.whereNotNull(categoryColumnNameQuery);
+      subQuery.where(categoryColumnNameQuery, '!=', '');
+    }
 
-    qb.groupBy(categoryColumnNameQuery);
-
-    qb.select(
+    subQuery.groupBy(categoryColumnNameQuery);
+    subQuery.select(
       baseModel.dbDriver.raw('?? as ??', [categoryColumnNameQuery, 'category']),
     );
 
-    let aggregationColumn = null;
-    const aggregationAlias = 'value';
+    subQuery.count('* as record_count');
 
+    let aggregationExpression = '';
     if (chartData.value.type === 'count') {
-      qb.count(`* as ${aggregationAlias}`);
+      subQuery.count(`* as ${aggregationAlias}`);
+      aggregationExpression = 'COUNT(*)';
     } else if (chartData.value.type === 'summary') {
       aggregationColumn = await Column.get(context, {
         colId: chartData.value.column_id,
@@ -86,34 +94,115 @@ export class PieChartPgHandler extends PieChartCommonHandler {
         alias: aggregationAlias,
       });
 
-      qb.select(baseModel.dbDriver.raw(aggSql));
+      subQuery.select(baseModel.dbDriver.raw(aggSql));
+
+      // Extract the expression part (everything before 'AS')
+      const aggParts = aggSql.split(' AS ');
+      aggregationExpression = aggParts[0];
     }
 
-    if (
-      chartData.category.orderBy &&
-      chartData.category.orderBy !== 'default'
-    ) {
-      if (chartData.category.orderBy === 'asc') {
-        qb.orderBy(categoryColumnNameQuery, 'ASC');
-      } else if (chartData.category.orderBy === 'desc') {
-        qb.orderBy(categoryColumnNameQuery, 'DESC');
-      }
+    // Add row number for ranking
+    if (chartData.category.orderBy === 'asc') {
+      subQuery.select(
+        baseModel.dbDriver.raw(`ROW_NUMBER() OVER (ORDER BY ?? ASC) as rn`, [
+          categoryColumnNameQuery,
+        ]),
+      );
+    } else if (chartData.category.orderBy === 'desc') {
+      subQuery.select(
+        baseModel.dbDriver.raw(`ROW_NUMBER() OVER (ORDER BY ?? DESC) as rn`, [
+          categoryColumnNameQuery,
+        ]),
+      );
     } else {
-      qb.orderBy(aggregationAlias, 'DESC');
+      // Default: order by aggregation expression DESC
+      subQuery.select(
+        baseModel.dbDriver.raw(
+          `ROW_NUMBER() OVER (ORDER BY ${aggregationExpression} DESC) as rn`,
+        ),
+      );
     }
 
-    if (!chartData.category?.includeEmptyRecords) {
-      qb.whereNotNull(categoryColumnNameQuery);
-      qb.where(categoryColumnNameQuery, '!=', '');
+    // Main query that uses the subquery
+    const mainQuery = baseModel.dbDriver
+      .select('*')
+      .select(
+        baseModel.dbDriver.raw(`
+        CASE 
+          WHEN rn <= 20 THEN category
+          ELSE 'Others'
+        END as final_category
+      `),
+      )
+      .select(
+        baseModel.dbDriver.raw(`
+        CASE 
+          WHEN rn <= 20 THEN ${aggregationAlias}
+          ELSE 0
+        END as final_value
+      `),
+      )
+      .select(
+        baseModel.dbDriver.raw(`
+        CASE 
+          WHEN rn > 20 THEN ${aggregationAlias}
+          ELSE 0
+        END as others_value
+      `),
+      )
+      .select(
+        baseModel.dbDriver.raw(`
+        CASE 
+          WHEN rn <= 20 THEN record_count
+          ELSE 0
+        END as final_count
+      `),
+      )
+      .select(
+        baseModel.dbDriver.raw(`
+        CASE 
+          WHEN rn > 20 THEN record_count
+          ELSE 0
+        END as others_count
+      `),
+      )
+      .from(baseModel.dbDriver.raw(`(${subQuery.toString()}) as ranked_data`));
+
+    // Final aggregation
+    const finalQuery = baseModel.dbDriver
+      .select('final_category as category')
+      .select(
+        baseModel.dbDriver.raw('SUM(final_value) + SUM(others_value) as value'),
+      )
+      .select(
+        baseModel.dbDriver.raw('SUM(final_count) + SUM(others_count) as count'),
+      )
+      .from(
+        baseModel.dbDriver.raw(`(${mainQuery.toString()}) as categorized_data`),
+      )
+      .groupBy('final_category')
+      .having(
+        baseModel.dbDriver.raw('SUM(final_value) + SUM(others_value) > 0'),
+      );
+
+    // Apply ordering based on category orderBy setting
+    if (chartData.category.orderBy === 'asc') {
+      finalQuery.orderBy('final_category', 'ASC');
+    } else if (chartData.category.orderBy === 'desc') {
+      finalQuery.orderBy('final_category', 'DESC');
+    } else {
+      // Default: order by value DESC (current behavior)
+      finalQuery.orderBy('value', 'DESC');
     }
-    const rawData = await baseModel.execAndParse(qb, null, {
+
+    const rawData = await baseModel.execAndParse(finalQuery, null, {
       skipDateConversion: true,
       skipAttachmentConversion: true,
       skipUserConversion: true,
     });
 
     const formattedData = rawData.map((row: any) => {
-      let value = row[aggregationAlias];
+      const value = row.value;
       let formattedValue = value;
 
       if (chartData.value.type === 'summary' && aggregationColumn) {
@@ -127,7 +216,8 @@ export class PieChartPgHandler extends PieChartCommonHandler {
       return {
         name: row.category || 'Unknown',
         value: value || 0,
-        formatted_value: formattedValue,
+        formattedValue: formattedValue,
+        count: row.count || 0,
         category: row.category,
       };
     });

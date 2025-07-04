@@ -7,8 +7,10 @@ import {
   isVirtualCol,
   NcApiVersion,
   type NcContext,
+  ncIsNull,
   ncIsNullOrUndefined,
   ncIsNumber,
+  ncIsUndefined,
   parseProp,
   RelationTypes,
   UITypes,
@@ -438,7 +440,7 @@ export function shouldSkipField(
   pkAndPvOnly = false,
 ) {
   if (fieldsSet && !pkAndPvOnly) {
-    return !fieldsSet.has(column.title);
+    return !fieldsSet.has(column.title) && !fieldsSet.has(column.id);
   } else {
     if (!pkAndPvOnly && column.system && isCreatedOrLastModifiedByCol(column))
       return true;
@@ -663,3 +665,72 @@ export function generateRecursiveCTE(_params: {
 }) {
   return false;
 }
+
+export const dataWrapper = (data: any) => {
+  return {
+    getByTitleOrId: (column: { id: string; title: string }) => {
+      return data?.[column.title] ?? data?.[column.id];
+    },
+    getByColumnNameTitleOrId: (column: {
+      column_name: string;
+      id: string;
+      title: string;
+    }) => {
+      return (
+        data?.[column.column_name] ?? data?.[column.title] ?? data?.[column.id]
+      );
+    },
+    getColumnKeyName: (column: {
+      column_name: string;
+      id: string;
+      title: string;
+    }) => {
+      if (!ncIsNullOrUndefined(data?.[column.column_name])) {
+        return column.column_name;
+      }
+      if (!ncIsNullOrUndefined(data?.[column.title])) {
+        return column.title;
+      }
+      return column.id;
+    },
+
+    extractPksValue: (model: Model, asString: boolean = false) => {
+      // if data is not object return as it is
+      if (!data || typeof data !== 'object') {
+        if (asString && !ncIsNull(data) && !ncIsUndefined(data)) {
+          return `${data}`;
+        }
+        return data;
+      }
+
+      // data can be still inserted without PK
+
+      // if composite primary key return an object with all the primary keys
+      if (model.primaryKeys.length > 1) {
+        const pkValues = {};
+        for (const pk of model.primaryKeys) {
+          pkValues[pk.title] =
+            data[pk.title] ?? data[pk.column_name] ?? data[pk.id];
+        }
+        return asString
+          ? Object.values(pkValues)
+              .map((val) => val?.toString?.().replaceAll('_', '\\_'))
+              .join('___')
+          : pkValues;
+      } else if (model.primaryKey) {
+        let pkValue;
+        if (typeof data === 'object') {
+          pkValue =
+            data[model.primaryKey.title] ??
+            data[model.primaryKey.column_name] ??
+            data[model.primaryKey.id];
+        } else {
+          pkValue = data;
+        }
+        if (pkValue !== undefined) return asString ? `${pkValue}` : pkValue;
+      } else {
+        return 'N/A';
+      }
+    },
+  };
+};

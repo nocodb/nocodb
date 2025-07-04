@@ -57,7 +57,7 @@ export class PublicMetasService extends PublicMetasServiceCE {
   public checkViewBaseType(view: View, base: Base) {
     // block non-meta views in private base
     if (view.type !== ViewTypes.FORM && base.default_role) {
-      NcError.badRequest(
+      NcError.notFound(
         'The shared view feature is not available for private bases. Please contact the base owner to request access.',
       );
     }
@@ -85,7 +85,7 @@ export class PublicMetasService extends PublicMetasServiceCE {
   public checkBaseType(base: Base) {
     // block shared base for private base
     if (base.default_role) {
-      NcError.badRequest(
+      NcError.notFound(
         'The shared base feature is not available for private bases. Please contact the base owner to request access.',
       );
     }

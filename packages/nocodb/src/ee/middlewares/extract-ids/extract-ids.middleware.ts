@@ -823,16 +823,18 @@ export class AclMiddleware implements NestInterceptor {
     if (
       scope === 'base' &&
       req.ncBaseId &&
-      !(await getFeature(
-        PlanFeatureTypes.FEATURE_PRIVATE_BASES,
-        req.ncWorkspaceId,
-      )) &&
       !['baseUpdate', 'baseDelete'].includes(permissionName) &&
       ['POST', 'DELETE', 'PUT', 'PATCH'].includes(req.method)
     ) {
       const base = await Base.get(req.context, req.ncBaseId);
 
-      if (base.default_role)
+      if (
+        base.default_role &&
+        !(await getFeature(
+          PlanFeatureTypes.FEATURE_PRIVATE_BASES,
+          req.ncWorkspaceId,
+        ))
+      )
         NcError.forbidden(
           `Please upgrade your plan to access private base or make the base to default`,
         );

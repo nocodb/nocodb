@@ -310,7 +310,7 @@ export default class BaseUser extends BaseUserCE {
       ]);
     }
 
-    // if default_role is not present, override workspace roles with the default roles
+    // if default_role is present, override workspace roles with the default roles
     if (base.default_role) {
       for (const user of baseUsers) {
         user.workspace_roles = base.default_role;

@@ -144,6 +144,8 @@ const onCreateSyncClick = () => {
           <GeneralIcon icon="ncZap" class="!h-7 !w-7 !text-green-700" />
         </template>
       </ProjectActionItem>
+      <ProjectActionCreateEmptyScript />
+      <ProjectActionScriptsByNocoDB />
     </div>
     <div
       v-if="base?.isLoading"

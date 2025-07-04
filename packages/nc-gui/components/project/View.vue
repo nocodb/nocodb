@@ -57,6 +57,8 @@ const { isTableAndFieldPermissionsEnabled } = usePermissions()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
+
 const projectPageTab = computed({
   get() {
     return _projectPageTab.value
@@ -80,7 +82,7 @@ watch(
         projectPageTab.value = 'syncs'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
-      } else if (newVal === 'overview' && isUIAllowed('projectOverviewTab')) {
+      } else if (newVal === 'overview' && isOverviewTabVisible.value) {
         projectPageTab.value = 'overview'
       } else if (
         newVal === 'permissions' &&
@@ -97,7 +99,7 @@ watch(
       return
     }
 
-    if (isAdminPanel.value || !isUIAllowed('projectOverviewTab')) {
+    if (isAdminPanel.value || !isOverviewTabVisible.value) {
       projectPageTab.value = 'collaborator'
     } else {
       projectPageTab.value = 'overview'
@@ -186,11 +188,7 @@ onMounted(() => {
         <template #leftExtra>
           <div class="w-3"></div>
         </template>
-        <a-tab-pane
-          v-if="!isAdminPanel && isUIAllowed('projectOverviewTab')"
-          key="overview"
-          class="nc-project-overview-tab-content"
-        >
+        <a-tab-pane v-if="!isAdminPanel && isOverviewTabVisible" key="overview" class="nc-project-overview-tab-content">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__all-tables">
               <GeneralIcon icon="ncMultiCircle" />

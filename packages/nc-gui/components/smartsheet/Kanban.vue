@@ -864,6 +864,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                             v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                                             :key="attachment.path"
                                             class="h-52"
+                                            image-class="!w-full"
                                             :object-fit="coverImageObjectFitStyle"
                                             :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
                                           />

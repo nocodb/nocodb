@@ -185,7 +185,7 @@ onMounted(() => {
         <template #leftExtra>
           <div class="w-3"></div>
         </template>
-        <a-tab-pane v-if="!isAdminPanel" key="overview">
+        <a-tab-pane v-if="!isAdminPanel" key="overview" class="nc-project-overview-tab-content">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__all-tables">
               <GeneralIcon icon="ncMultiCircle" />
@@ -288,7 +288,9 @@ onMounted(() => {
   @apply pt-2 pb-3;
 }
 :deep(.ant-tabs-content) {
-  @apply nc-content-max-w;
+  &:not(:has(.nc-project-overview-tab-content)) {
+    @apply nc-content-max-w;
+  }
 }
 :deep(.ant-tabs-tab .tab-title) {
   @apply text-gray-500;

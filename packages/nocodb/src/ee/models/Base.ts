@@ -533,16 +533,10 @@ export default class Base extends BaseCE {
           });
         }).orWhere(function () {
           this.where(
-            `${MetaTable.WORKSPACE_USER}.roles`,
-            '=',
-            WorkspaceUserRoles.NO_ACCESS,
-          )
-            .andWhere(
-              `${MetaTable.PROJECT_USERS}.roles`,
-              '!=',
-              ProjectRoles.NO_ACCESS,
-            )
-            .whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
+            `${MetaTable.PROJECT_USERS}.roles`,
+            '!=',
+            ProjectRoles.NO_ACCESS,
+          ).whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
         });
       })
       // if private base don't consider workspace role

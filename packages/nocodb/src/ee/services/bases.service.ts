@@ -6,6 +6,7 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   IntegrationsType,
+  ncIsUndefined,
   PlanFeatureTypes,
   ProjectRoles,
 } from 'nocodb-sdk';
@@ -375,6 +376,14 @@ export class BasesService extends BasesServiceCE {
 
     await this.validateDefaultRoleFeature(context, param);
 
+    // if user does not have Owner role, then block the request
+    // param.base.default_role is string empty when public, and undefined for any other requests
+    if (
+      !ncIsUndefined(param.base.default_role) &&
+      !param.req.user?.base_roles?.[ProjectRoles.OWNER as string]
+    ) {
+      NcError.forbidden('Only base owners can set the default role');
+    }
     if (param.base.default_role) {
       await this.addBaseOwnerIfMissing(context, param);
     }

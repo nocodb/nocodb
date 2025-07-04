@@ -169,7 +169,7 @@ export class ColumnsService extends ColumnsServiceCE {
             const existingFilter = await Filter.get(context, filter.id);
 
             if (existingFilter.fk_link_col_id !== colId) {
-              NcError.badRequest('Filter not found');
+              NcError.get(context).invalidRequestBody('Filter not found');
             }
             if (filter.status === 'update') {
               await Filter.update(context, filter.id, {
@@ -195,7 +195,7 @@ export class ColumnsService extends ColumnsServiceCE {
             const existingFilter = await Filter.get(context, filter.id);
 
             if (existingFilter.fk_link_col_id !== colId) {
-              NcError.badRequest('Filter not found');
+              NcError.get(context).invalidRequestBody('Filter not found');
             }
 
             await applyFilterCrud(filter.children, filter.id);

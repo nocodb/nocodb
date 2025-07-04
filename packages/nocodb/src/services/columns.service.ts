@@ -325,7 +325,7 @@ export class ColumnsService implements IColumnsService {
     );
 
     if (table.synced && column.readonly && !param.forceUpdateSystem) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `The column '${
           column.title || column.column_name
         }' is a synced column and cannot be updated.`,
@@ -431,13 +431,13 @@ export class ColumnsService implements IColumnsService {
       param.column.column_name &&
       param.column.column_name.length > mxColumnLength
     ) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `Column name ${param.column.column_name} exceeds ${mxColumnLength} characters`,
       );
     }
 
     if (param.column.title && param.column.title.length > 255) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `Column title ${param.column.title} exceeds 255 characters`,
       );
     }
@@ -453,7 +453,7 @@ export class ColumnsService implements IColumnsService {
         exclude_id: param.columnId,
       }))
     ) {
-      NcError.badRequest('Duplicate column name');
+      NcError.get(context).invalidRequestBody('Duplicate column name');
     }
     if (
       param.column.title &&
@@ -464,7 +464,7 @@ export class ColumnsService implements IColumnsService {
       }))
     ) {
       // This error will be thrown if there are more than one column linking to the same table. You have to delete one of them
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `Duplicate column alias for table ${table.title} and column is ${param.column.title}. Please change the name of this column and retry.`,
       );
     }

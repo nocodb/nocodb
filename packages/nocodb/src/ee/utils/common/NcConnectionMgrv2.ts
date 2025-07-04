@@ -196,11 +196,13 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
   }
 
   public static async getSqlClient(source: Source, _knex = null) {
-    const workspaceSqlClient = await this.getWorkspaceSqlClient(
-      source.fk_workspace_id,
-    );
-    if (workspaceSqlClient) {
-      return workspaceSqlClient;
+    if (source.isMeta() && source.fk_workspace_id) {
+      const workspaceSqlClient = await this.getWorkspaceSqlClient(
+        source.fk_workspace_id,
+      );
+      if (workspaceSqlClient) {
+        return workspaceSqlClient;
+      }
     }
 
     const knex = _knex || (await this.get(source));

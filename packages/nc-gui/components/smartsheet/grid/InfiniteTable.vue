@@ -3158,7 +3158,12 @@ const headerFilteredOrSortedClass = (colId: string) => {
             </a>
             <NcButton
               size="small"
-              @click="navigateToPricing({ limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE })"
+              @click="
+                navigateToPricing({
+                  limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
+                  ctaPlan: PlanTitles.BUSINESS,
+                })
+              "
             >
               {{ isWsOwner ? $t('general.upgrade') : t('general.requestUpgrade') }}
             </NcButton>

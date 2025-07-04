@@ -493,7 +493,7 @@ export const useEeConfig = createSharedComposable(() => {
                */
               if (isWsOwner.value && !requestUpgrade) {
                 e.preventDefault()
-                navigateToPricing({ autoScroll: 'compare', newTab: true, ctaPlan: higherPlan, triggerEvent: false })
+                navigateToPricing({ autoScroll: 'compare', newTab: true, ctaPlan: newPlanTitle, triggerEvent: false })
               }
 
               $e('c:payment:upgrade:modal:learn-more', {
@@ -546,7 +546,7 @@ export const useEeConfig = createSharedComposable(() => {
               slots.value = {}
             }
           } else {
-            navigateToPricing({ limitOrFeature, ctaPlan: higherPlan })
+            navigateToPricing({ limitOrFeature, ctaPlan: newPlanTitle })
             closeDialog()
             callback?.('ok')
           }
@@ -735,6 +735,7 @@ export const useEeConfig = createSharedComposable(() => {
       maskClosable: false,
       keyboard: false,
       limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
+      requiredPlan: PlanTitles.BUSINESS,
     })
 
     return true
@@ -765,6 +766,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.BUSINESS,
       }),
       callback,
+      requiredPlan: PlanTitles.BUSINESS,
       limitOrFeature: PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER,
     })
 
@@ -825,6 +827,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.BUSINESS,
       }),
       callback,
+      requiredPlan: PlanTitles.BUSINESS,
       limitOrFeature: PlanFeatureTypes.FEATURE_PRIVATE_BASES,
     })
 

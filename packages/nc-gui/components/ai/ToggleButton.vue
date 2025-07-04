@@ -16,8 +16,6 @@ const props = withDefaults(defineProps<Props>(), {
   offTooltip: '',
 })
 
-const emits = defineEmits(['update:aiMode'])
-
 const { t } = useI18n()
 
 const { aiLoading, aiMode, offTooltip } = toRefs(props)

@@ -865,8 +865,8 @@
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
     "fieldPermissions": "Field permissions",
-    "baseAccessDefaultSubtext": "All members can collaborate based on their workspace role.",
-    "baseAccessPrivateSubtext": "Restrict access - only invited members can access this base",
+    "baseAccessDefaultSubtext": "Workspace members can collaborate based on their role.",
+    "baseAccessPrivateSubtext": "Invite-only base. Only you can view and manage its members.",
     "baseAccessTabSubtext": "Control who can view and interact with this base. Choose an access level that fits your privacy needs.",
     "baseAccessSettingsDefaultSubtext": "Everyone in the workspace can access this base, based on their role.",
     "baseAccessSettingsPrivateSubtext": "Only you and members invited to this base can view and interact with it.",
@@ -1409,7 +1409,11 @@
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
     "customColours": "Custom colours",
-    "sendAllEvents": "Send all events"
+    "sendAllEvents": "Send all events",
+    "useNocoAI": "Use NocoAI",
+    "disableNocoAI": "Disable NocoAI",
+    "defaultAccess": "Default access",
+    "privateAccess": "Private access"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

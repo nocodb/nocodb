@@ -163,8 +163,8 @@
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
     "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
-    "upgradeToUsePrivateBases": "Upgrade to use private bases",
-    "upgradeToUsePrivateBasesSubtitle": "Upgrade to the {plan} plan to use private bases."
+    "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
+    "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them."
   },
   "general": {
     "script": "Script",
@@ -872,7 +872,7 @@
     "baseTypeSettingsDefaultSubtext": "Everyone in the workspace can access this base, based on their role.",
     "baseTypeSettingsPrivateSubtext": "Only you and members invited to this base can view and interact with it.",
     "privateBase": "Private Base",
-    "privateBaseAlertDescription": "This is an invite only base, only you and members invited to this base can view and interact with it.",
+    "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },

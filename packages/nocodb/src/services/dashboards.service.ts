@@ -132,7 +132,7 @@ export class DashboardsService {
 
     this.appHooksService.emit(AppEvents.WIDGET_CREATE, {
       context,
-      widget,
+      widget: widget as WidgetType,
       user: context.user,
       req,
     });
@@ -156,8 +156,8 @@ export class DashboardsService {
 
     this.appHooksService.emit(AppEvents.WIDGET_UPDATE, {
       context,
-      oldWidget: widget,
-      widget: updatedWidget,
+      oldWidget: widget as WidgetType,
+      widget: updatedWidget as WidgetType,
       user: context.user,
       req,
     });
@@ -175,7 +175,7 @@ export class DashboardsService {
 
     this.appHooksService.emit(AppEvents.WIDGET_DELETE, {
       context,
-      widget,
+      widget: widget as WidgetType,
       user: context.user,
       req,
     });

@@ -50,6 +50,7 @@ export enum PlanFeatureTypes {
   FEATURE_CURRENT_USER_FILTER = 'feature_current_user_filter',
   FEATURE_ROW_COLOUR = 'feature_row_colour',
   FEATURE_TABLE_AND_FIELD_PERMISSIONS = 'feature_table_and_field_permissions',
+  FEATURE_PRIVATE_BASES = 'feature_private_bases',
 }
 
 export enum PlanTitles {
@@ -221,6 +222,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_ROW_COLOUR]: 'to use row colouring.',
   [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]:
     'to use table and field permissions.',
+  [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: 'to use private bases.',
 };
 
 export const getUpgradeMessage = (

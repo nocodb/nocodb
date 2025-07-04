@@ -1,11 +1,9 @@
-import { ChartTypes, formatAggregation } from 'nocodb-sdk';
-import type { NcContext, NcRequest, WidgetType, WidgetTypes } from 'nocodb-sdk';
-import { Column, Filter, Model, Source, View } from '~/models';
-import applyAggregation, { validateAggregationColType } from '~/db/aggregation';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { getColumnNameQuery } from '~/db/getColumnNameQuery';
+import { ChartTypes } from 'nocodb-sdk';
+import type { NcContext, WidgetType, WidgetTypes } from 'nocodb-sdk';
+import { Column, Model, View } from '~/models';
+import { validateAggregationColType } from '~/db/aggregation';
 
-export class PieChartCommonHandler {
+export class DonutChartCommonHandler {
   async validateWidgetData(
     context: NcContext,
     widget: WidgetType<WidgetTypes.CHART>,
@@ -16,8 +14,8 @@ export class PieChartCommonHandler {
       errors.push({ path, message });
     };
 
-    if (widget.config.chartType !== ChartTypes.PIE) {
-      addError('chartType', 'Chart type must be pie');
+    if (widget.config.chartType !== ChartTypes.DONUT) {
+      addError('chartType', 'Chart type must be donut');
       return errors;
     }
 

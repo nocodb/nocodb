@@ -1,6 +1,7 @@
 import { ChartTypes, WidgetTypes } from 'nocodb-sdk';
 import { MetricCommonHandler } from './metric/metric.common.handler';
 import { PieChartPgHandler } from './pie-chart/pie-chart.pg.handler';
+import { DonutChartPgHandler } from './donut-chart/donut-chart.pg.handler';
 import type { NcRequest, WidgetType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/ncError';
 import { Model, Source } from '~/models';
@@ -32,6 +33,11 @@ async function getWidgetHandler(params: {
             NcError.notImplemented('Widget');
           }
           return new PieChartPgHandler();
+        case ChartTypes.DONUT:
+          if (source.type !== 'pg') {
+            NcError.notImplemented('Widget');
+          }
+          return new DonutChartPgHandler();
         default:
           NcError.notImplemented('Chart widget');
       }

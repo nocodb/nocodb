@@ -14,16 +14,10 @@ const { integrations } = useProvideIntegrationViewStore()
 const basesStore = useBases()
 
 const { openedProject, activeProjectId, basesUser, bases } = storeToRefs(basesStore)
-const { activeTables, activeTable } = storeToRefs(useTablesStore())
+const { activeTable } = storeToRefs(useTablesStore())
 const { activeWorkspace } = storeToRefs(useWorkspace())
 
 const { isSharedBase } = useBase()
-
-const automationStore = useAutomationStore()
-
-const { loadAutomations } = automationStore
-
-const { automations } = storeToRefs(automationStore)
 
 const { $e, $api } = useNuxtApp()
 
@@ -40,8 +34,6 @@ const currentBase = computedAsync(async () => {
 
   return base
 })
-
-const scripts = computed(() => automations.value.get(currentBase.value?.id))
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
@@ -65,8 +57,6 @@ const userCount = computed(() =>
 const { isTableAndFieldPermissionsEnabled } = usePermissions()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
 
 const projectPageTab = computed({
   get() {
@@ -95,8 +85,6 @@ watch(
         projectPageTab.value = 'data-source'
       } else if (newVal === 'allTable') {
         projectPageTab.value = 'allTable'
-      } else if (newVal === 'allScripts' && isAutomationEnabled.value && isEeUI) {
-        projectPageTab.value = 'allScripts'
       } else if (
         newVal === 'permissions' &&
         !blockTableAndFieldPermissions.value &&
@@ -154,7 +142,6 @@ watch(
 
 onMounted(async () => {
   await until(() => !!currentBase.value?.id).toBeTruthy()
-  loadAutomations({ baseId: currentBase.value?.id })
   if (props.tab) {
     projectPageTab.value = props.tab
   }
@@ -207,27 +194,6 @@ onMounted(() => {
             </div>
           </template>
           <ProjectOverview />
-        </a-tab-pane>
-        <a-tab-pane
-          v-if="!isAdminPanel && isAutomationEnabled && isEeUI && isUIAllowed('scriptList') && !isSharedBase"
-          key="allScripts"
-        >
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__all-scripts">
-              <GeneralIcon icon="ncScript" />
-              <div>{{ $t('labels.allScripts') }}</div>
-              <div
-                class="tab-info"
-                :class="{
-                  'bg-primary-selected': projectPageTab === 'allScripts',
-                  'bg-gray-50': projectPageTab !== 'allScripts',
-                }"
-              >
-                {{ scripts?.length }}
-              </div>
-            </div>
-          </template>
-          <ProjectAllScripts />
         </a-tab-pane>
         <!-- <a-tab-pane v-if="defaultBase" key="erd" tab="Base ERD" force-render class="pt-4 pb-12">
           <ErdView :source-id="defaultBase!.id" class="!h-full" />

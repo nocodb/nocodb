@@ -67,6 +67,8 @@ export const useBase = defineStore('baseStore', () => {
 
   const isPrivateBase = computed(() => false)
 
+  const showBaseAccessRequestOverlay = computed(() => false)
+
   const sqlUis = computed(() => {
     const temp: Record<string, any> = {}
     for (const source of sources.value) {
@@ -311,6 +313,7 @@ export const useBase = defineStore('baseStore', () => {
     navigateToProjectPage,
     idUserMap,
     isPrivateBase,
+    showBaseAccessRequestOverlay,
   }
 })
 

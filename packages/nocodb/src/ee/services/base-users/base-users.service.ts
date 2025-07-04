@@ -72,6 +72,10 @@ export class BaseUsersService extends BaseUsersServiceCE {
 
     const base = await Base.get(context, param.baseId, ncMeta);
 
+    if (!base) {
+      return NcError.baseNotFound(param.baseId);
+    }
+
     this.isUserManagementRestricted({
       base,
       req: param.req,
@@ -116,10 +120,6 @@ export class BaseUsersService extends BaseUsersServiceCE {
       );
     }
 
-    if (!base) {
-      return NcError.baseNotFound(param.baseId);
-    }
-
     const workspace = await Workspace.get(base.fk_workspace_id, false, ncMeta);
 
     if (!workspace) {
@@ -161,7 +161,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
             ));
 
           // if old role is owner and there is only one owner then restrict update
-          if (targetUser && this.isOldRoleIsOwner(targetUser, base)) {
+          if (targetUser && this.isOldRoleIsOwner(targetUser)) {
             const baseUsers = await BaseUser.getUsersList(
               context,
               {
@@ -503,7 +503,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       }
 
       // if old role is owner and there is only one owner then restrict update
-      if (this.isOldRoleIsOwner(targetUser, base)) {
+      if (this.isOldRoleIsOwner(targetUser)) {
         const baseUsers = await BaseUser.getUsersList(
           context,
           {
@@ -558,12 +558,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
         req: param.req,
         user: user,
         base,
-        oldRole:
-          getProjectRole(targetUser) ??
-          this.getInheritedBaseRole({
-            workspaceRole: (targetUser as any)?.workspace_roles,
-            base,
-          }),
+        oldRole: getProjectRole(targetUser),
         newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
       },
     });
@@ -615,7 +610,6 @@ export class BaseUsersService extends BaseUsersServiceCE {
       NcError.userNotFound(param.userId);
     }
 
-
     const workspace = await Workspace.get(base.fk_workspace_id);
 
     if (!workspace) {
@@ -645,7 +639,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       }
 
       // if old role is owner and there is only one owner then restrict to delete
-      if (this.isOldRoleIsOwner(baseUser, base)) {
+      if (this.isOldRoleIsOwner(baseUser)) {
         const baseUsers = await BaseUser.getUsersList(
           context,
           {

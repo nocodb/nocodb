@@ -2,11 +2,10 @@ import {
   extractRolesObj,
   OrderedProjectRoles,
   OrderedWorkspaceRoles,
-  ProjectRoles,
   WorkspaceRolesToProjectRoles,
 } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
-import type { NcContext, WorkspaceUserRoles } from 'nocodb-sdk';
+import type { NcContext, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { Base } from '~/models';
 
 /**
@@ -114,23 +113,9 @@ export function getWorkspaceRolePower(user: any) {
  * @param wsRoles - The workspace roles object.
  * @returns The project roles object.
  */
-export async function mapWorkspaceRolesObjToProjectRolesObj(
-  context: NcContext,
+export function mapWorkspaceRolesObjToProjectRolesObj(
   wsRoles: any,
-  baseId?: string,
-): Promise<Record<ProjectRoles, boolean> | null> {
-  // TODO: later return corresponding ProjectRoles if defaultRole is provided
-  //   now we only support private base so return `no-access` role
-  if (baseId && wsRoles) {
-    const base = await Base.get(context, baseId);
-    if (base?.default_role) {
-      return { [ProjectRoles.NO_ACCESS]: true } as Record<
-        ProjectRoles,
-        boolean
-      >;
-    }
-  }
-
+): Record<ProjectRoles, boolean> | null {
   wsRoles = extractRolesObj(wsRoles);
   let baseRoles = null;
   if (wsRoles) {

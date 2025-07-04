@@ -1,6 +1,7 @@
 import { ProjectRoles } from 'nocodb-sdk';
 import { BaseUser as BaseUserCE } from 'src/models';
 import { Logger } from '@nestjs/common';
+import { WorkspaceRoles } from 'nocodb-sdk-v2';
 import type { BaseType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import {
@@ -313,7 +314,9 @@ export default class BaseUser extends BaseUserCE {
     // if default_role is present, override workspace roles with the default roles
     if (base.default_role) {
       for (const user of baseUsers) {
-        user.workspace_roles = base.default_role;
+        // TODO: later return corresponding WorkspaceRole if defaultRole is provided
+        //   now we only support `no-access` role(private base)
+        user.workspace_roles = WorkspaceRoles.WorkspaceLevelNoAccess;
       }
     }
 

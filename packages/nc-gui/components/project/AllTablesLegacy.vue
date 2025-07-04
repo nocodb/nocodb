@@ -222,7 +222,7 @@ const sourceIdToIconMap = computed(() => {
         </div>
         <div class="flex flex-col gap-1">
           <div class="label">{{ $t('dashboards.create_new_table') }}</div>
-          <div class="subtext">{{ $t('msg.subText.createNewTable') }}</div>
+          <div class="subtext">{{ $t('msg.subText.startFromScratch') }}</div>
         </div>
       </div>
 

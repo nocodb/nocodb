@@ -2366,10 +2366,11 @@
       "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
-      "createNewTable": "Start from scratch.",
+      "startFromScratch": "Start from scratch.",
       "importData": "From files & external sources.",
       "connectExternalData": "In realtime to external databases.",
-      "syncData": "With internal or external sources"
+      "syncData": "With internal or external sources",
+      "scriptsByNocoDB": "Ready to use scripts by NocoDB"
     },
     "noAccess": "No Access",
     "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",

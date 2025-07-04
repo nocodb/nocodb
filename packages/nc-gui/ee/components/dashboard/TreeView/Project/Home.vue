@@ -338,8 +338,8 @@ const showCreateNewAsDropdown = computed(() => {
             <template #overlay>
               <DashboardTreeViewProjectCreateNewMenu
                 v-model:visible="isVisibleCreateNew"
-                @newTable="addNewProjectChildEntity"
-                @newScript="openNewScriptModal({ baseId: base.id })"
+                @new-table="addNewProjectChildEntity"
+                @new-script="openNewScriptModal({ baseId: base.id })"
               />
             </template>
           </NcDropdown>

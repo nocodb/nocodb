@@ -9,8 +9,6 @@ const emits = defineEmits(['@update:visible', 'newTable', 'newScript'])
 
 const vVisible = useVModel(props, 'visible', emits)
 
-const {} = toRefs(props)
-
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
@@ -43,8 +41,8 @@ const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_
       class="py-0"
       data-testid="mini-sidebar-view-create"
       variant="small"
-      @click="emits('newTable')"
       inner-class="w-full"
+      @click="emits('newTable')"
     >
       <template #title>
         <GeneralIcon icon="table" />

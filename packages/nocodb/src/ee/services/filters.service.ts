@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { FiltersService as FiltersServiceCE } from 'src/services/filters.service';
 import { AppEvents, isLinksOrLTAR } from 'nocodb-sdk';
-import type { FilterReqType, UserType } from 'nocodb-sdk';
+import type { FilterReqType, UserType, WidgetType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
@@ -136,9 +136,14 @@ export class FiltersService extends FiltersServiceCE {
 
     this.appHooksService.emit(AppEvents.FILTER_CREATE, {
       filter,
+      column:
+        param.filter.fk_column_id &&
+        (await Column.get(context, {
+          colId: param.filter.fk_column_id,
+        })),
       widget:
         param.filter.fk_widget_id &&
-        (await Widget.get(context, param.filter.fk_widget_id)),
+        ((await Widget.get(context, param.filter.fk_widget_id)) as WidgetType),
       req: param.req,
       context,
     });

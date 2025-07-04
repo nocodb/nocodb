@@ -59,6 +59,7 @@ import type {
   ViewDuplicatePayload,
   ViewRenamePayload,
   ViewUpdatePayload,
+  WidgetType,
   WorkspaceUserDeletePayload,
 } from 'nocodb-sdk';
 import type {
@@ -165,6 +166,7 @@ import {
   transformToSnakeCase,
 } from '~/utils';
 import { extractProps } from '~/helpers/extractProps';
+import Widget from '~/models/Widget';
 
 async function filterOutUnnecessaryMetas(
   column: ColumnType | Column,
@@ -2099,6 +2101,18 @@ export class AppHooksListenerService
                   })
                 )?.id,
             };
+          } else if (param.filter.fk_widget_id) {
+            event = AuditV1OperationTypes.WIDGET_FILTER_CREATE;
+            filterPayload = {
+              widget_title:
+                param['widget']?.title ||
+                (await Widget.get(param.context, param.filter.fk_widget_id))
+                  .title,
+              widget_id:
+                param['widget']?.id ||
+                (await Widget.get(param.context, param.filter.fk_widget_id))
+                  ?.id,
+            };
           }
 
           await this.auditInsert(
@@ -2109,6 +2123,7 @@ export class AppHooksListenerService
                     'fk_link_col_id',
                     'link_col_id',
                     'fk_column_id',
+                    'fk_widget_id',
                   ]),
                 ) as { filter_comparison_op: string }),
                 filter_id: param.filter.id,
@@ -2174,6 +2189,18 @@ export class AppHooksListenerService
                   })
                 )?.id,
             };
+          } else if (param.filter.fk_widget_id) {
+            event = AuditV1OperationTypes.WIDGET_FILTER_UPDATE;
+            filterPayload = {
+              widget_title:
+                (param as unknown as { widget: WidgetType }).widget?.title ||
+                (await Widget.get(param.context, param.filter.fk_widget_id))
+                  .title,
+              widget_id:
+                (param as unknown as { widget: WidgetType }).widget?.id ||
+                (await Widget.get(param.context, param.filter.fk_widget_id))
+                  ?.id,
+            };
           }
 
           const payloadDiff = populateUpdatePayloadDiff({
@@ -2209,6 +2236,7 @@ export class AppHooksListenerService
                     'link_col_id',
                     'fk_link_col_id',
                     'fk_column_id',
+                    'fk_widget_id',
                     'column_id',
                   ]),
                 ),
@@ -2220,6 +2248,7 @@ export class AppHooksListenerService
                 ('hook' in param && param.hook?.fk_model_id) ||
                 ('view' in param && param.view?.fk_model_id) ||
                 ('linkColumn' in param && param.linkColumn?.fk_model_id) ||
+                ('widget' in param && param.widget?.fk_model_id) ||
                 param.column?.fk_model_id,
               source_id: param.filter.source_id,
               context: param.context,
@@ -2267,6 +2296,18 @@ export class AppHooksListenerService
                   })
                 )?.id,
             };
+          } else if (param.filter.fk_widget_id) {
+            event = AuditV1OperationTypes.WIDGET_FILTER_DELETE;
+            filterPayload = {
+              widget_title:
+                ('widget' in param && param.widget?.title) ||
+                (await Widget.get(param.context, param.filter.fk_widget_id))
+                  .title,
+              widget_id:
+                ('widget' in param && param.widget?.id) ||
+                (await Widget.get(param.context, param.filter.fk_widget_id))
+                  ?.id,
+            };
           }
 
           const filterField =
@@ -2284,6 +2325,7 @@ export class AppHooksListenerService
                     'fk_column_id',
                     'link_col_id',
                     'fk_link_col_id',
+                    'fk_widget_id',
                   ]),
                 ),
                 filter_id: param.filter.id,
@@ -2295,6 +2337,7 @@ export class AppHooksListenerService
               fk_model_id:
                 param['hook']?.fk_model_id ||
                 param['view']?.fk_model_id ||
+                param['widget']?.fk_model_id ||
                 filterField?.fk_model_id,
               req: param.req,
             }),

@@ -73,6 +73,10 @@ enum AuditV1OperationTypes {
   LINK_FILTER_UPDATE = 'LINK_FILTER_UPDATE',
   LINK_FILTER_DELETE = 'LINK_FILTER_DELETE',
 
+  WIDGET_FILTER_CREATE = 'WIDGET_FILTER_CREATE',
+  WIDGET_FILTER_UPDATE = 'WIDGET_FILTER_UPDATE',
+  WIDGET_FILTER_DELETE = 'WIDGET_FILTER_DELETE',
+
   VIEW_SORT_CREATE = 'VIEW_SORT_CREATE',
   VIEW_SORT_UPDATE = 'VIEW_SORT_UPDATE',
   VIEW_SORT_DELETE = 'VIEW_SORT_DELETE',
@@ -686,6 +690,10 @@ export type FilterPayload =
   | {
       link_field_title: string;
       link_field_id: string;
+    }
+  | {
+      widget_title: string;
+      widget_id: string;
     };
 
 export type FilterCreatePayload = FilterPayload & {

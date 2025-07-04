@@ -14,7 +14,7 @@ const basesStore = useBases()
 const { getBaseUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
 const { activeProjectId, bases, basesUser } = storeToRefs(basesStore)
 
-const { orgRoles, baseRoles, loadRoles } = useRoles()
+const { orgRoles, baseRoles, loadRoles, isUIAllowed } = useRoles()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Project')
 
@@ -349,7 +349,7 @@ watch(projectPageTab, () => {
       </div>
 
       <div class="nc-content-max-w h-full flex flex-col items-center gap-6 px-6 pt-6">
-        <NcAlert v-if="isPrivateBase" type="info" :message="$t('title.privateBase')">
+        <NcAlert v-if="isEeUI && isPrivateBase" type="info" :message="$t('title.privateBase')" class="bg-nc-bg-gray-extralight">
           <template #icon>
             <GeneralIcon icon="ncUser" class="w-6 h-6 text-nc-content-gray-subtle" />
           </template>
@@ -357,7 +357,7 @@ watch(projectPageTab, () => {
             {{ $t('title.privateBaseAlertDescription') }}
           </template>
 
-          <template #action>
+          <template #action v-if="isUIAllowed('manageBaseType')">
             <NcButton
               type="secondary"
               size="small"

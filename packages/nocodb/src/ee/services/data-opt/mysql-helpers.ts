@@ -113,7 +113,7 @@ export async function extractColumns({
     if (
       // if ast is `true` then extract primary key and primary value
       !((ast === true || ast === 1) && (column.pv || column.pk)) &&
-      !ast?.[column.title]
+      !(ast?.[column.title] ?? ast?.[column.id])
     )
       continue;
 
@@ -126,7 +126,7 @@ export async function extractColumns({
         getAlias,
         params: params?.nested?.[column.title],
         baseModel,
-        ast: ast?.[column.title],
+        ast: ast?.[column.title] ?? ast?.[column.id],
         throwErrorIfInvalidParams,
         validateFormula,
         columns,

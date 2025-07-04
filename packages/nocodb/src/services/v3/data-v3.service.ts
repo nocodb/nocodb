@@ -153,7 +153,16 @@ export class DataV3Service {
       if (!requestedFields) {
         return true; // No field selection, include all non-PK fields
       }
-      return requestedFields.includes(key);
+      if (requestedFields.includes(key)) {
+        return true;
+      }
+      const foundColumn = columns.find((c) => c.title === key || c.id === key);
+      if (foundColumn) {
+        return (
+          requestedFields.includes(foundColumn.id) ||
+          requestedFields.includes(foundColumn.title)
+        );
+      }
     };
 
     const fields = { ...record };

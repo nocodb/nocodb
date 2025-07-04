@@ -87,7 +87,7 @@ const onCreateSyncClick = () => {
       }"
     >
       <template v-if="base?.isLoading">
-        <ProjectActionItem v-for="item of ncArrayFrom(7)" :key="item" is-loading label="loading" />
+        <ProjectActionItem v-for="item in 7" :key="item" is-loading label="loading" />
       </template>
       <template v-else>
         <ProjectActionItem

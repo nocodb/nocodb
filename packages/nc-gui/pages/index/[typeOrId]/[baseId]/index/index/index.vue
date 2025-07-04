@@ -2,6 +2,9 @@
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import type { SourceType } from 'nocodb-sdk'
 
+const router = useRouter()
+const route = router.currentRoute
+
 const baseStore = useBase()
 const { base, sources, isSharedBase } = storeToRefs(baseStore)
 
@@ -14,6 +17,8 @@ const { isMobileMode } = useGlobal()
 const { files, reset } = useFileDialog()
 
 const { $e } = useNuxtApp()
+
+const { isUIAllowed } = useRoles()
 
 type QuickImportTypes = 'excel' | 'json' | 'csv'
 
@@ -117,19 +122,45 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
   }
 }
 
+const hideProjectViewPage = computed(() => {
+  return isSharedBase.value || isMobileMode.value
+})
+
+const showProjectViewPage = computed(() => {
+  return activeTables.value.length === 0 || !!route.value.query.page || isUIAllowed('projectOverviewTab')
+})
+
 watch(
-  [() => isSharedBase.value, () => activeTables.value.length],
-  ([newIsSharedBase, newActiveTablesLength]) => {
-    if (!newIsSharedBase || (newIsSharedBase && !newActiveTablesLength)) return
+  [
+    () => isSharedBase.value,
+    () => activeTables.value.length,
+    () => isUIAllowed('projectOverviewTab'),
+    () => route.value.query.page,
+  ],
+  ([newIsSharedBase, newActiveTablesLength, isOverviewTabVisible, newPage]) => {
+    // If no tables are active then return
+    if (!newActiveTablesLength || !activeTables.value[0]?.base_id) return
+
+    // If page is defined or overview tab is visible then return
+    if (!newIsSharedBase && (newPage || isOverviewTabVisible)) return
 
     openTable(activeTables.value[0]!)
   },
   {
     immediate: true,
+    flush: 'pre',
   },
 )
 </script>
 
 <template>
-  <ProjectView v-if="!isMobileMode && !isSharedBase" />
+  <ProjectView v-if="!hideProjectViewPage && showProjectViewPage" />
+  <div
+    v-else-if="!hideProjectViewPage"
+    class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-gray-200 h-[var(--topbar-height)]"
+  >
+    <div class="flex-1 flex flex-row items-center gap-x-3">
+      <GeneralOpenLeftSidebarBtn />
+    </div>
+  </div>
 </template>

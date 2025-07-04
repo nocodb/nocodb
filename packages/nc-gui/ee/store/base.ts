@@ -1,5 +1,5 @@
 import type { BaseType, OracleUi, SourceType, TableType } from 'nocodb-sdk'
-import { SqlUiFactory } from 'nocodb-sdk'
+import { ProjectRoles, SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type Record from '~icons/nc-icons/record'
@@ -32,6 +32,8 @@ export const useBase = defineStore('baseStore', () => {
   const automationStore = useAutomationStore()
 
   const { loadAutomations } = automationStore
+
+  const { blockPrivateBases } = useEeConfig()
 
   // todo: refactor
   const sharedProject = ref<BaseType>()
@@ -72,6 +74,12 @@ export const useBase = defineStore('baseStore', () => {
     } catch (e) {
       return defaultMeta
     }
+  })
+
+  const isPrivateBase = computed(() => base.value.default_role === ProjectRoles.NO_ACCESS)
+
+  const showBaseAccessRequestOverlay = computed(() => {
+    return blockPrivateBases.value && isPrivateBase.value
   })
 
   const sqlUis = computed(() => {
@@ -194,6 +202,7 @@ export const useBase = defineStore('baseStore', () => {
     if (baseType.value === 'base') {
       return
     }
+
     if (data.meta && typeof data.meta === 'string') {
       await api.base.update(baseId.value, data)
     } else {
@@ -347,6 +356,8 @@ export const useBase = defineStore('baseStore', () => {
     navigateToProjectPage,
     forcedProjectId,
     idUserMap,
+    isPrivateBase,
+    showBaseAccessRequestOverlay,
   }
 })
 

@@ -1,5 +1,5 @@
 import UserCE from 'src/models/User';
-import { extractRolesObj, type UserType } from 'nocodb-sdk';
+import { extractRolesObj, ProjectRoles, type UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
@@ -11,7 +11,7 @@ import {
   MetaTable,
   RootScopes,
 } from '~/utils/globals';
-import { BaseUser, OrgUser, WorkspaceUser } from '~/models';
+import { Base, BaseUser, OrgUser, WorkspaceUser } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { mapWorkspaceRolesObjToProjectRolesObj } from '~/utils/roleHelper';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
@@ -447,7 +447,7 @@ export default class User extends UserCE implements UserType {
 
     if (!user) NcError.userNotFound(userId);
 
-    const [workspaceRoles, baseRoles, orgRoles] = await Promise.all([
+    const [workspaceRoles, _baseRoles, orgRoles] = await Promise.all([
       // extract workspace evel roles
       new Promise((resolve) => {
         if (args.workspaceId ?? context.workspace_id) {
@@ -510,6 +510,19 @@ export default class User extends UserCE implements UserType {
         }
       }) as Promise<ReturnType<typeof extractRolesObj> | null>,
     ]);
+    let baseRoles = _baseRoles;
+
+    if (!baseRoles && args.baseId) {
+      // TODO: later return corresponding ProjectRoles if defaultRole is provided
+      //   now we only support private base so return `no-access` role
+      const base = await Base.get(context, args.baseId);
+      if (base?.default_role) {
+        baseRoles = { [ProjectRoles.NO_ACCESS]: true } as Record<
+          ProjectRoles,
+          boolean
+        >;
+      }
+    }
 
     return {
       ...sanitiseUserObj(user),

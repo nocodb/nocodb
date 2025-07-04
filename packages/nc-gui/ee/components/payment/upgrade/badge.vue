@@ -16,7 +16,7 @@ interface Props {
   /** Title to show in upgrade modal */
   title?: string
   /** Content to show in upgrade modal */
-  content: string
+  content?: string
   /** Callback will be triggered on click upgrade plan modal buttons or close modal */
   callback?: (type: 'ok' | 'cancel') => void
 
@@ -30,6 +30,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   planTitle: PlanTitles.PLUS,
   size: 'sm',
+  content: '',
 })
 
 const { disabled, removeClick } = toRefs(props)

@@ -55,6 +55,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockUseScripts = computed(() => false)
 
+  const blockPrivateBases = computed(() => true)
+
   const getLimit = (..._args: any[]) => {}
 
   const getStatLimit = (..._args: any[]) => {}
@@ -105,6 +107,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseScripts = (..._args: any[]) => {}
 
+  const showUpgradeToUsePrivateBases = (..._args: any[]) => {}
+
   return {
     getLimit,
     getStatLimit,
@@ -154,5 +158,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseTableAndFieldPermissions,
     blockUseScripts,
     showUpgradeToUseScripts,
+    blockPrivateBases,
+    showUpgradeToUsePrivateBases,
   }
 })

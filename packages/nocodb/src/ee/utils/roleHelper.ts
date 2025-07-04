@@ -5,7 +5,8 @@ import {
   WorkspaceRolesToProjectRoles,
 } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
-import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import type { NcContext, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import { Base } from '~/models';
 
 /**
  * Get the power of the project role of the user.
@@ -112,7 +113,9 @@ export function getWorkspaceRolePower(user: any) {
  * @param wsRoles - The workspace roles object.
  * @returns The project roles object.
  */
-export function mapWorkspaceRolesObjToProjectRolesObj(wsRoles: any) {
+export function mapWorkspaceRolesObjToProjectRolesObj(
+  wsRoles: any,
+): Record<ProjectRoles, boolean> | null {
   wsRoles = extractRolesObj(wsRoles);
   let baseRoles = null;
   if (wsRoles) {

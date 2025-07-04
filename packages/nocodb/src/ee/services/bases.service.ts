@@ -3,8 +3,18 @@ import { BasesService as BasesServiceCE } from 'src/services/bases.service';
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
-import { AppEvents, IntegrationsType } from 'nocodb-sdk';
-import type { ProjectReqType, UserType } from 'nocodb-sdk';
+import {
+  AppEvents,
+  IntegrationsType,
+  ncIsUndefined,
+  PlanFeatureTypes,
+  ProjectRoles,
+} from 'nocodb-sdk';
+import type {
+  ProjectReqType,
+  ProjectUpdateReqType,
+  UserType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -17,7 +27,7 @@ import { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TablesService } from '~/services/tables.service';
-import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
+import { getFeature, getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { DataReflectionService } from '~/services/data-reflection.service';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -86,6 +96,12 @@ export class BasesService extends BasesServiceCE {
         );
       }
     }
+    await this.validateDefaultRoleFeature(
+      {
+        workspace_id: (param.base as any).fk_workspace_id,
+      },
+      param,
+    );
 
     const baseId = await this.metaService.genNanoid(MetaTable.PROJECT);
 
@@ -253,6 +269,24 @@ export class BasesService extends BasesServiceCE {
     return base;
   }
 
+  private async validateDefaultRoleFeature(
+    context: Pick<NcContext, 'workspace_id'>,
+    param: { base: ProjectReqType | ProjectUpdateReqType },
+  ) {
+    // check if marked as private, only allow if user upgraded to pain plan
+    if (
+      param.base.default_role &&
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_PRIVATE_BASES,
+        context.workspace_id,
+      ))
+    ) {
+      NcError.badRequest(
+        'Setting a default role (private base) is only available on paid plans. Please upgrade your workspace plan to enable this feature.',
+      );
+    }
+  }
+
   async baseSoftDelete(
     context: NcContext,
     param: { baseId: any; user: UserType; req: NcRequest },
@@ -326,9 +360,94 @@ export class BasesService extends BasesServiceCE {
     return true;
   }
 
+  async baseUpdate(
+    context: NcContext,
+    param: {
+      baseId: string;
+      base: ProjectUpdateReqType;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    validatePayload(
+      'swagger.json#/components/schemas/ProjectUpdateReq',
+      param.base,
+    );
+
+    await this.validateDefaultRoleFeature(context, param);
+
+    // if user does not have Owner role, then block the request
+    // param.base.default_role is string empty when public, and undefined for any other requests
+    if (
+      !ncIsUndefined(param.base.default_role) &&
+      !param.req.user?.base_roles?.[ProjectRoles.OWNER as string]
+    ) {
+      NcError.forbidden('Only base owners can set the default role');
+    }
+    if (param.base.default_role) {
+      await this.addBaseOwnerIfMissing(context, param);
+    }
+
+    return super.baseUpdate(context, param);
+  }
+
   protected async validateProjectTitle(
     _context: NcContext,
     _data: Partial<Base>,
     _project: Base,
   ) {}
+
+  /**
+   * Ensures the current user is an owner in the given base.
+   * - Blocks the action if the user lacks base-level owner rights.
+   * - Adds the user as owner(Workspace level owner) if no owner exists in the base.
+   */
+  protected async addBaseOwnerIfMissing(
+    context: NcContext,
+    param: {
+      baseId: string;
+      base: ProjectUpdateReqType;
+      user: UserType;
+      req: NcRequest;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    // if user does not have Owner role, then block the request
+    if (!param.req.user?.base_roles?.[ProjectRoles.OWNER as string]) {
+      NcError.forbidden('Only base owners can set the default role');
+    }
+
+    // check if current user is there in baseUser table
+    const baseUser = await BaseUser.get(context, param.baseId, param.user?.id);
+
+    if (baseUser?.roles) return;
+
+    // if not, check if there is any base user with owner role
+    const ownerUser = await ncMeta
+      .knex(MetaTable.PROJECT_USERS)
+      .where('base_id', param.baseId)
+      .where('roles', ProjectRoles.OWNER)
+      .first();
+
+    // if owner user exists, block the request
+    if (ownerUser) {
+      NcError.forbidden(
+        'Only the base owner can modify the default role. Current workspace owner is not registered as base owner.',
+      );
+    }
+
+    // else add the current user as base owner and proceed with the update
+    if (!baseUser) {
+      await BaseUser.insert(context, {
+        fk_user_id: param.user.id,
+        base_id: param.baseId,
+        roles: ProjectRoles.OWNER,
+      });
+    } else if (!baseUser?.roles) {
+      // if user is already there but roles set as `null` / empty string, update the role to owner
+      await BaseUser.update(context, param.baseId, param.user.id, {
+        roles: ProjectRoles.OWNER,
+      });
+    }
+  }
 }

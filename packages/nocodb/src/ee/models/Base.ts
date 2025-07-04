@@ -34,6 +34,7 @@ const logger = new Logger('Base');
 export default class Base extends BaseCE {
   public type?: 'database';
   public permissions?: Permission[];
+  public default_role?: 'no-access';
 
   public static castType(base: Base): Base {
     return base && new Base(base);
@@ -123,6 +124,7 @@ export default class Base extends BaseCE {
       'color',
       'order',
       'is_snapshot',
+      'default_role',
     ]);
 
     if (!insertObj.order) {
@@ -205,6 +207,7 @@ export default class Base extends BaseCE {
       'fk_workspace_id',
       'is_snapshot',
       'fk_custom_url_id',
+      'default_role',
     ]);
 
     // stringify meta
@@ -530,17 +533,26 @@ export default class Base extends BaseCE {
           });
         }).orWhere(function () {
           this.where(
-            `${MetaTable.WORKSPACE_USER}.roles`,
-            '=',
-            WorkspaceUserRoles.NO_ACCESS,
-          )
-            .andWhere(
-              `${MetaTable.PROJECT_USERS}.roles`,
-              '!=',
-              ProjectRoles.NO_ACCESS,
-            )
-            .whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
+            `${MetaTable.PROJECT_USERS}.roles`,
+            '!=',
+            ProjectRoles.NO_ACCESS,
+          ).whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
         });
+      })
+      // if private base don't consider workspace role
+      .andWhere(function () {
+        this.where(function () {
+          this.whereNotNull(`${MetaTable.PROJECT_USERS}.roles`).andWhere(
+            `${MetaTable.PROJECT_USERS}.roles`,
+            '!=',
+            ProjectRoles.NO_ACCESS,
+          );
+        })
+          .orWhereNull(`${MetaTable.PROJECT}.default_role`)
+          .orWhereNot(
+            `${MetaTable.PROJECT}.default_role`,
+            ProjectRoles.NO_ACCESS,
+          );
       });
 
     const bases = await baseListQb;

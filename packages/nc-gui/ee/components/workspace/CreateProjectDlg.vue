@@ -2,6 +2,7 @@
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import { computed } from '@vue/reactivity'
+import { PlanFeatureTypes, PlanTitles, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
@@ -10,6 +11,8 @@ const props = defineProps<{
 const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
+
+const { t } = useI18n()
 
 const workspaceStore = useWorkspace()
 const { activeWorkspace } = storeToRefs(workspaceStore)
@@ -20,6 +23,8 @@ const { createProject: _createProject } = basesStore
 const { refreshCommandPalette } = useCommandPalette()
 
 const { navigateToProject } = useGlobal()
+
+const { blockPrivateBases, showUpgradeToUsePrivateBases } = useEeConfig()
 
 const nameValidationRules = [
   {
@@ -33,14 +38,13 @@ const form = ref<typeof Form>()
 
 const formState = ref({
   title: '',
+  default_role: '' as NcProject['default_role'],
   meta: {
     iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
   },
 })
 
 const creating = ref(false)
-
-const { t } = useI18n()
 
 const createProject = async () => {
   if (formState.value.title) {
@@ -53,6 +57,7 @@ const createProject = async () => {
       title: formState.value.title,
       workspaceId: activeWorkspace.value!.id!,
       meta: formState.value.meta,
+      ...(!blockPrivateBases.value ? { default_role: formState.value.default_role } : {}),
     })
 
     navigateToProject({
@@ -85,6 +90,7 @@ const onInit = () => {
 
     formState.value = {
       title: t('objects.project'),
+      default_role: '',
       meta: {
         iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
       },
@@ -107,6 +113,50 @@ watch(aiMode, () => {
   if (aiMode.value !== false) return
 
   onInit()
+})
+
+const isOpenBaseAccessDropdown = ref(false)
+
+const baseAccessValue = computed({
+  get: () => formState.value.default_role ?? '',
+  set: (value) => {
+    // If private base is selected and user don't have access to it then don't allow to select it
+    if (
+      value === ProjectRoles.NO_ACCESS &&
+      showUpgradeToUsePrivateBases({
+        callback: (type) => {
+          if (type === 'ok') {
+            dialogShow.value = false
+          }
+        },
+      })
+    )
+      return
+
+    formState.value.default_role = value === ProjectRoles.NO_ACCESS ? ProjectRoles.NO_ACCESS : ''
+  },
+})
+
+const baseAccessOptions = computed(
+  () =>
+    [
+      {
+        label: t('labels.defaultType'),
+        value: '',
+        icon: 'ncBaseOutline',
+        subtext: t('title.baseTypeDefaultSubtext'),
+      },
+      {
+        label: t('labels.privateType'),
+        value: ProjectRoles.NO_ACCESS,
+        icon: 'ncBasePrivate',
+        subtext: t('title.baseTypePrivateSubtext'),
+      },
+    ] as (NcListItemType & { icon: IconMapKey })[],
+)
+
+const selectedBaseAccessOption = computed(() => {
+  return baseAccessOptions.value.find((option) => option.value === (formState.value.default_role?.toString() || ''))!
 })
 </script>
 
@@ -138,7 +188,7 @@ watch(aiMode, () => {
           :model="formState"
           name="basic"
           layout="vertical"
-          class="w-full !mx-auto"
+          class="w-full !mx-auto flex flex-col gap-5"
           no-style
           autocomplete="off"
           @finish="createProject"
@@ -151,6 +201,59 @@ watch(aiMode, () => {
               class="nc-metadb-base-name nc-input-sm nc-input-shadow"
               placeholder="Title"
             />
+          </a-form-item>
+
+          <a-form-item name="default_role" class="!mb-0">
+            <template #label>
+              <div>{{ t('general.baseType') }}</div>
+            </template>
+            <NcListDropdown v-model:is-open="isOpenBaseAccessDropdown">
+              <div class="flex-1 flex items-center gap-2 text-nc-content-gray">
+                <GeneralIcon :icon="selectedBaseAccessOption.icon" class="flex-none h-3.5 w-3.5" />
+                <span class="text-sm flex-1">{{ selectedBaseAccessOption.label }}</span>
+
+                <GeneralIcon
+                  icon="ncChevronDown"
+                  class="flex-none h-4 w-4 transition-transform opacity-80"
+                  :class="{ 'transform rotate-180': isOpenBaseAccessDropdown }"
+                />
+              </div>
+              <template #overlay="{ onEsc }">
+                <NcList
+                  v-model:open="isOpenBaseAccessDropdown"
+                  v-model:value="baseAccessValue"
+                  :list="baseAccessOptions"
+                  :item-height="48"
+                  class="!w-auto"
+                  wrapper-class-name="!h-auto"
+                  @escape="onEsc"
+                >
+                  <template #listItem="{ option, isSelected }">
+                    <div class="w-full flex flex-col">
+                      <div class="w-full flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-nc-content-gray">
+                          <div class="flex items-center justify-center h-4 w-4">
+                            <GeneralIcon :icon="option.icon" class="flex-none h-3.5 w-3.5" />
+                          </div>
+                          <span class="text-captionDropdownDefault !font-550">{{ option.label }}</span>
+                        </div>
+
+                        <PaymentUpgradeBadge
+                          v-if="blockPrivateBases && option.value === ProjectRoles.NO_ACCESS"
+                          :feature="PlanFeatureTypes.FEATURE_PRIVATE_BASES"
+                          :plan-title="PlanTitles.BUSINESS"
+                          remove-click
+                          size="sm"
+                          class="!font-normal !text-bodyDefaultSm"
+                        />
+                        <GeneralIcon v-else-if="isSelected" icon="check" class="text-primary h-4 w-4" />
+                      </div>
+                      <div class="text-bodySm text-nc-content-gray-muted ml-6">{{ option.subtext }}</div>
+                    </div>
+                  </template>
+                </NcList>
+              </template>
+            </NcListDropdown>
           </a-form-item>
         </a-form>
 

@@ -35,7 +35,9 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
 
     const { t } = useI18n()
 
-    const { isMysql } = useBase()
+    const baseStore = useBase()
+    const { isMysql } = baseStore
+    const { showBaseAccessRequestOverlay } = storeToRefs(baseStore)
 
     const { getMeta } = useMetas()
 
@@ -535,6 +537,9 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
 
     const updateView = useDebounceFn(
       () => {
+        // On mount form view, rich text component call updateView, so we have to skip it else it will throw error
+        if (showBaseAccessRequestOverlay.value) return
+
         if (isValidRedirectUrl().validateStatus === 'error') {
           formViewData.value = {
             ...formViewData.value,

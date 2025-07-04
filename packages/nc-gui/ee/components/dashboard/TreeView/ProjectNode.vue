@@ -34,7 +34,7 @@ const route = router.currentRoute
 
 const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
-const { isSharedBase } = storeToRefs(useBase())
+const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
 const { setMenuContext, duplicateTable, contextMenuTarget, tableRenameId } = inject(TreeViewInj)!
@@ -738,7 +738,25 @@ defineExpose({
 
             <template v-if="!editMode">
               <template v-if="isProjectHeader">
-                <GeneralIcon v-if="!isMobileMode" icon="chevronDown" class="flex-none text-nc-content-gray-muted" />
+                <div class="flex items-center gap-1">
+                  <NcTooltip
+                    v-if="isPrivateBase"
+                    :title="$t('title.privateBase')"
+                    @mouseenter="showNodeTooltip = false"
+                    @mouseleave="showNodeTooltip = true"
+                  >
+                    <NcBadge
+                      size="sm"
+                      class="!text-bodySm !bg-transparent hover:bg-nc-bg-gray-medium group-hover:hover:!bg-nc-bg-gray-dark !font-normal !text-nc-content-gray-subtle2 !h-5 !w-5 !px-0.5"
+                      rounded="md"
+                      color="grey"
+                      :border="false"
+                    >
+                      <GeneralIcon v-if="isPrivateBase" icon="ncLock" class="flex-none text-nc-content-gray-muted" />
+                    </NcBadge>
+                  </NcTooltip>
+                  <GeneralIcon v-if="!isMobileMode" icon="chevronDown" class="flex-none text-nc-content-gray-muted" />
+                </div>
               </template>
               <template v-else>
                 <NcDropdown v-if="!isSharedBase" v-model:visible="isOptionsOpen" :trigger="['click']">

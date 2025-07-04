@@ -161,6 +161,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_SCRIPTS)
   })
 
+  const blockPrivateBases = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_PRIVATE_BASES)
+  })
+
   /** Helper functions */
   function getLimit(type: PlanLimitTypes, workspace?: NcWorkspace | null) {
     if (!isPaymentEnabled.value) return Infinity
@@ -489,7 +493,7 @@ export const useEeConfig = createSharedComposable(() => {
                */
               if (isWsOwner.value && !requestUpgrade) {
                 e.preventDefault()
-                navigateToPricing({ autoScroll: 'compare', newTab: true, ctaPlan: higherPlan, triggerEvent: false })
+                navigateToPricing({ autoScroll: 'compare', newTab: true, ctaPlan: newPlanTitle, triggerEvent: false })
               }
 
               $e('c:payment:upgrade:modal:learn-more', {
@@ -542,7 +546,7 @@ export const useEeConfig = createSharedComposable(() => {
               slots.value = {}
             }
           } else {
-            navigateToPricing({ limitOrFeature, ctaPlan: higherPlan })
+            navigateToPricing({ limitOrFeature, ctaPlan: newPlanTitle })
             closeDialog()
             callback?.('ok')
           }
@@ -731,6 +735,7 @@ export const useEeConfig = createSharedComposable(() => {
       maskClosable: false,
       keyboard: false,
       limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
+      requiredPlan: PlanTitles.BUSINESS,
     })
 
     return true
@@ -761,6 +766,7 @@ export const useEeConfig = createSharedComposable(() => {
         plan: PlanTitles.BUSINESS,
       }),
       callback,
+      requiredPlan: PlanTitles.BUSINESS,
       limitOrFeature: PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER,
     })
 
@@ -807,6 +813,22 @@ export const useEeConfig = createSharedComposable(() => {
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_SCRIPTS,
+    })
+
+    return true
+  }
+
+  const showUpgradeToUsePrivateBases = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockPrivateBases.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUsePrivateBases'),
+      content: t('upgrade.upgradeToUsePrivateBasesSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      requiredPlan: PlanTitles.BUSINESS,
+      limitOrFeature: PlanFeatureTypes.FEATURE_PRIVATE_BASES,
     })
 
     return true
@@ -864,5 +886,7 @@ export const useEeConfig = createSharedComposable(() => {
     isUnderLoyaltyCutoffDate,
     blockUseScripts,
     showUpgradeToUseScripts,
+    blockPrivateBases,
+    showUpgradeToUsePrivateBases,
   }
 })

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { type ScriptType, type TableType, type ViewType, stringifyRolesObj } from 'nocodb-sdk'
+import { ProjectRoles, type ScriptType, type TableType, type ViewType, stringifyRolesObj } from 'nocodb-sdk'
 import ProjectWrapper from '../ProjectWrapper.vue'
 import { useRouter } from '#app'
 
@@ -53,13 +53,22 @@ const searchInputRef = ref()
 const isCreateProjectOpen = ref(false)
 
 const starredProjectList = computed(() => basesList.value.filter((base) => base.starred))
-const nonStarredProjectList = computed(() => basesList.value.filter((base) => !base.starred))
+const nonStarredProjectList = computed(() =>
+  basesList.value.filter((base) => !base.starred && base.default_role !== ProjectRoles.NO_ACCESS),
+)
+// Todo: @rameshmane7218 if project is starred and private then it should be shown in both starred and private list (active project node state we have to handle)
+const privateProjectList = computed(() =>
+  basesList.value.filter((base) => !base.starred && base.default_role === ProjectRoles.NO_ACCESS),
+)
 
 const filteredStarredProjectList = computed(() =>
   starredProjectList.value.filter((base) => searchCompare(base.title, searchQuery.value)),
 )
 const filteredNonStarredProjectList = computed(() =>
   nonStarredProjectList.value.filter((base) => searchCompare(base.title, searchQuery.value)),
+)
+const filteredPrivateProjectList = computed(() =>
+  privateProjectList.value.filter((base) => searchCompare(base.title, searchQuery.value)),
 )
 
 const openedBase = computed(() => {
@@ -567,6 +576,33 @@ onBeforeUnmount(() => {
                     </div>
                   </template>
                   <template v-if="!isWorkspaceLoading && !filteredStarredProjectList.length" #footer>
+                    <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
+                      {{ $t('placeholder.noResultsFoundForYourSearch') }}
+                    </div>
+                  </template>
+                </Draggable>
+              </div>
+            </div>
+            <div v-if="privateProjectList?.length" class="nc-project-home-section">
+              <div v-if="!isSharedBase" class="nc-project-home-section-header">Private</div>
+              <div>
+                <Draggable
+                  :model-value="privateProjectList"
+                  :disabled="isMobileMode || !isUIAllowed('baseReorder') || privateProjectList?.length < 2"
+                  item-key="private-project"
+                  handle=".base-title-node"
+                  ghost-class="ghost"
+                  :filter="isTouchEvent"
+                  @change="onMove($event, privateProjectList)"
+                >
+                  <template #item="{ element: baseItem }">
+                    <div v-if="searchCompare(baseItem.title, searchQuery)" :key="baseItem.id">
+                      <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
+                        <DashboardTreeViewProjectNode />
+                      </ProjectWrapper>
+                    </div>
+                  </template>
+                  <template v-if="!isWorkspaceLoading && !filteredPrivateProjectList.length" #footer>
                     <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
                       {{ $t('placeholder.noResultsFoundForYourSearch') }}
                     </div>

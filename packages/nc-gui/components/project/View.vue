@@ -73,8 +73,8 @@ const projectPageTab = computed({
 })
 
 watch(
-  () => route.value.query?.page,
-  (newVal, oldVal) => {
+  [() => route.value.query?.page, () => isOverviewTabVisible.value],
+  ([newVal, isOverviewTabVisible], [oldVal, _isOverviewTabVisible]) => {
     if (!('baseId' in route.value.params)) return
     // if (route.value.name !== 'index-typeOrId-baseId-index-index') return
     if (newVal && newVal !== oldVal) {
@@ -82,7 +82,7 @@ watch(
         projectPageTab.value = 'syncs'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
-      } else if (newVal === 'overview' && isOverviewTabVisible.value) {
+      } else if (newVal === 'overview' && isOverviewTabVisible) {
         projectPageTab.value = 'overview'
       } else if (
         newVal === 'permissions' &&
@@ -99,7 +99,7 @@ watch(
       return
     }
 
-    if (isAdminPanel.value || !isOverviewTabVisible.value) {
+    if (isAdminPanel.value || !isOverviewTabVisible) {
       projectPageTab.value = 'collaborator'
     } else {
       projectPageTab.value = 'overview'

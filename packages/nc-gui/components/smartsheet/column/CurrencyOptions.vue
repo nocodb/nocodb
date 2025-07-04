@@ -165,7 +165,7 @@ const onPrecisionChange = (value: number) => {
         </a-select>
       </a-form-item>
     </a-col>
-    
+
     <a-col v-if="isMoney && isPg">
       <span class="text-[#FB8C00]">{{ message }}</span>
     </a-col>

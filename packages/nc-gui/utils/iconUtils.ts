@@ -760,6 +760,7 @@ import MdiNcAttachFile from '~icons/nc-icons/mdi-attach'
 import MdiCloudKeyOutline from '~icons/mdi/cloud-key-outline'
 import NcDiscordForum from '~icons/nc-icons/discord-forum'
 import NcCrown from '~icons/nc-icons-v2/crown'
+import NcMultiCircle from '~icons/nc-icons-v2/multi-circle'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1727,6 +1728,7 @@ export const iconMap = {
   'ncDiscordForum': NcDiscordForum,
   'ncHeadphone': NcHeadphone,
   'ncCrown': NcCrown,
+  'ncMultiCircle': NcMultiCircle,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4327,6 +4329,10 @@ export const searchableMap = {
   ncCrown: {
     icon: NcCrown,
     keywords: ['crown', 'badge', 'award', 'achievement', 'honor', 'paid'],
+  },
+  ncMultiCircle: {
+    icon: NcMultiCircle,
+    keywords: ['multi', 'circle', 'multi-circle', 'multi-circle-outline'],
   },
 }
 

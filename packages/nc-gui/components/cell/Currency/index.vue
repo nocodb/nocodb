@@ -59,10 +59,10 @@ const currency = computed(() => {
     if (vModel.value === null || vModel.value === undefined || isNaN(vModel.value)) {
       return vModel.value
     }
-    
+
     // Round the value to the specified precision
     const roundedValue = roundUpToPrecision(Number(vModel.value), currencyMeta.value.precision ?? 2)
-    
+
     return new Intl.NumberFormat(currencyMeta.value.currency_locale || 'en-US', {
       style: 'currency',
       currency: currencyMeta.value.currency_code || 'USD',

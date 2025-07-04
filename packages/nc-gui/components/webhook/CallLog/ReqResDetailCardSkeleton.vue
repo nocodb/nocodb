@@ -14,7 +14,7 @@ defineProps<Props>()
         <span class="text-gray-500 font-weight-bold text-small1">Header</span>
         <div class="log-details">
           <a-skeleton
-            v-for="(_row, idx) of ncArrayFrom(2)"
+            v-for="idx in 2"
             :key="idx"
             active
             :paragraph="{
@@ -33,7 +33,7 @@ defineProps<Props>()
 
         <div class="log-details">
           <a-skeleton
-            v-for="(_row, idx) of ncArrayFrom(5)"
+            v-for="idx in 5"
             :key="idx"
             active
             :paragraph="{

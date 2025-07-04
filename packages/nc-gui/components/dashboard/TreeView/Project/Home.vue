@@ -238,6 +238,7 @@ const openBaseHomePage = async () => {
       id: base.value.id!,
       type: 'database',
       isSharedBase: isSharedBase.value,
+      projectPage: !isUIAllowed('projectOverviewTab') ? 'collaborator' : undefined,
     })}`,
     cmdOrCtrl
       ? {
@@ -246,6 +247,10 @@ const openBaseHomePage = async () => {
       : undefined,
   )
 }
+
+const hasTableCreatePermission = computed(() => {
+  return isUIAllowed('tableCreate', { roles: base.value.project_role, source: base.value?.sources?.[0] })
+})
 </script>
 
 <template>
@@ -274,11 +279,8 @@ const openBaseHomePage = async () => {
 
       <DashboardTreeViewProjectHomeSearchInput placeholder="Search table, view" />
 
-      <div class="nc-project-home-section pt-1 !pb-2 xs:hidden flex flex-col gap-2">
-        <div
-          v-if="isUIAllowed('tableCreate', { roles: base.project_role, source: base?.sources?.[0] })"
-          class="flex items-center w-full"
-        >
+      <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 xs:hidden flex flex-col gap-2">
+        <div v-if="hasTableCreatePermission" class="flex items-center w-full">
           <NcButton
             type="text"
             size="small"
@@ -316,7 +318,7 @@ const openBaseHomePage = async () => {
             }"
           >
             <GeneralIcon icon="home1" class="!h-4 w-4" />
-            <div>Overview</div>
+            <div>{{ $t('general.overview') }}</div>
           </div>
         </NcButton>
       </div>
@@ -325,7 +327,7 @@ const openBaseHomePage = async () => {
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
       <div class="nc-project-home-section">
         <div class="nc-project-home-section-header !cursor-pointer" @click.stop="isExpanded = !isExpanded">
-          <div class="flex-1">Tables</div>
+          <div class="flex-1">{{ $t('objects.tables') }}</div>
 
           <GeneralIcon
             icon="chevronRight"
@@ -338,7 +340,7 @@ const openBaseHomePage = async () => {
             <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
               <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
                 <div class="transition-height duration-200">
-                  <DashboardTreeViewTableList :base="base" :source-index="0" />
+                  <DashboardTreeViewTableList :base="base" :source-index="0" :show-create-table-btn="hasTableCreatePermission" />
                 </div>
               </div>
 

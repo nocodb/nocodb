@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { isUIAllowed } = useRoles()
 
-const hasPermissionForBaseAccess = computed(() => isEeUI && isUIAllowed('baseMiscSettings'))
+const hasPermissionForBaseAccess = computed(() => isEeUI && isUIAllowed('manageBaseType'))
 
 const hasPermissionForSnapshots = computed(() => isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot'))
 

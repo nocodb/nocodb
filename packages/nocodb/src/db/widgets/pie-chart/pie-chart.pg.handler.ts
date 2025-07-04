@@ -5,6 +5,7 @@ import { Column, Filter, Model, Source, View } from '~/models';
 import applyAggregation from '~/db/aggregation';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { getColumnNameQuery } from '~/db/getColumnNameQuery';
+import conditionV2 from '~/db/conditionV2';
 export class PieChartPgHandler extends PieChartCommonHandler {
   async getWidgetData(params: {
     widget: WidgetType<WidgetTypes.CHART>;
@@ -67,8 +68,14 @@ export class PieChartPgHandler extends PieChartCommonHandler {
     });
 
     if (!chartData.category?.includeEmptyRecords) {
-      subQuery.whereNotNull(categoryColumnNameQuery);
-      subQuery.where(categoryColumnNameQuery, '!=', '');
+      await conditionV2(
+        baseModel,
+        {
+          fk_column_id: categoryColumn.id,
+          comparison_op: 'notempty',
+        },
+        subQuery,
+      );
     }
 
     subQuery.groupBy(categoryColumnNameQuery);

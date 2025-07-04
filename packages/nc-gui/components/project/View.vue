@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
+import { ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string
@@ -16,7 +17,7 @@ const { openedProject, activeProjectId, basesUser, bases } = storeToRefs(basesSt
 const { activeTable } = storeToRefs(useTablesStore())
 const { activeWorkspace } = storeToRefs(useWorkspace())
 
-const { isSharedBase } = useBase()
+const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
 const { $e, $api } = useNuxtApp()
 
@@ -49,9 +50,14 @@ const { isMobileMode } = useGlobal()
 
 const baseSettingsState = ref('')
 
-const userCount = computed(() =>
-  activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0,
-)
+const userCount = computed(() => {
+  // if private base and don't have owner permission then return
+  if (base.value?.default_role && !baseRoles.value[ProjectRoles.OWNER]) {
+    return
+  }
+
+  return activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0
+})
 
 const { isTableAndFieldPermissionsEnabled } = usePermissions()
 
@@ -171,6 +177,16 @@ onMounted(() => {
               {{ currentBase?.title }}
             </span>
           </NcTooltip>
+          <NcBadge
+            v-if="isPrivateBase"
+            size="xs"
+            class="!text-bodySm !bg-nc-bg-gray-medium !text-nc-content-gray-subtle2"
+            color="grey"
+            :border="false"
+          >
+            <GeneralIcon icon="ncLock" class="w-3.5 h-3.5 mr-1" />
+            {{ $t('general.private') }}
+          </NcBadge>
         </div>
       </div>
 

@@ -10,17 +10,19 @@ const props = defineProps<{
   activeTab: TabItem
 }>()
 
+const activeTab = toRef(props, 'activeTab')
+
+useSidebar('nc-right-sidebar')
+
 const { isUIAllowed } = useRoles()
 
 const { metas, getMeta } = useMetas()
 
-useSidebar('nc-right-sidebar')
-
 const { isMobileMode } = useGlobal()
 
-const activeTab = toRef(props, 'activeTab')
-
 const route = useRoute()
+
+const { blockPrivateBases } = useEeConfig()
 
 const meta = computed<TableType | undefined>(() => {
   const viewId = route.params.viewId as string
@@ -44,7 +46,7 @@ const reloadViewMetaEventHook = createEventHook<void | boolean>()
 
 const openNewRecordFormHook = createEventHook<void>()
 
-const { base } = storeToRefs(useBase())
+const { base, showBaseAccessRequestOverlay } = storeToRefs(useBase())
 
 const activeSource = computed(() => {
   return meta.value?.source_id && base.value && base.value.sources?.find((source) => source.id === meta.value?.source_id)
@@ -211,7 +213,12 @@ const onReady = () => {
 </script>
 
 <template>
-  <div class="nc-container flex flex-col h-full" @drop="onDrop" @dragover.prevent>
+  <div
+    class="nc-container relative flex flex-col h-full"
+    :class="{ 'children:pointer-events-none': isEeUI && showBaseAccessRequestOverlay }"
+    @drop="onDrop"
+    @dragover.prevent
+  >
     <SmartsheetTopbar />
     <div style="height: calc(100% - var(--topbar-height))">
       <Splitpanes
@@ -257,6 +264,7 @@ const onReady = () => {
     </div>
     <LazySmartsheetExpandedFormDetached />
     <DetachedExpandedText />
+    <TabsSmartsheetBaseAccessOverlay />
   </div>
 </template>
 

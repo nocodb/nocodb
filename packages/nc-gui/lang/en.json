@@ -871,7 +871,9 @@
     "baseAccessSettingsDefaultSubtext": "Everyone in the workspace can access this base, based on their role.",
     "baseAccessSettingsPrivateSubtext": "Only you and members invited to this base can view and interact with it.",
     "privateBase": "Private Base",
-    "privateBaseAlertDescription": "This is an invite only base, only you and members invited to this base can view and interact with it."
+    "privateBaseAlertDescription": "This is an invite only base, only you and members invited to this base can view and interact with it.",
+    "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
     "crossBase": "Link to external base",
@@ -1696,7 +1698,8 @@
     "goToPage": "Go to Page",
     "changePlan": "ChangePlan",
     "goToPermissionsOverview": "Go to Permissions Overview",
-    "goToBaseAccess": "Go to Base Access"
+    "goToBaseAccess": "Go to Base Access",
+    "convertToSharedBase": "Convert to Shared Base"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

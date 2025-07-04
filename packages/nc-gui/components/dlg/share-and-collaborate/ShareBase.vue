@@ -95,7 +95,11 @@ onMounted(() => {
   }
 })
 
-const isSharedBaseEnabled = computed(() => !!sharedBase.value?.uuid)
+const isSharedBaseEnabled = computed(() => {
+  // If base is private, then we have to restrict sharing
+  if (isPrivateBase.value) return false
+  return !!sharedBase.value?.uuid
+})
 const isToggleBaseLoading = ref(false)
 const isRoleToggleLoading = ref(false)
 
@@ -141,7 +145,7 @@ const copyCustomUrl = async (custUrl = '') => {
       <div class="flex flex-row w-full justify-between">
         <div class="text-gray-900 font-medium">{{ $t('activity.enablePublicAccess') }}</div>
         <a-switch
-          v-if="!isPrivateBase || isSharedBaseEnabled"
+          v-if="!isPrivateBase"
           v-e="['c:share:base:enable:toggle']"
           :checked="isSharedBaseEnabled"
           :loading="isToggleBaseLoading"

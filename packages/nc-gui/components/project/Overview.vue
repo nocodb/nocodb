@@ -78,7 +78,7 @@ const onCreateSyncClick = () => {
       height: 'calc(100vh - var(--topbar-height) - 44px)',
     }"
   >
-    <div class="text-subHeading2 text-nc-content-gray mb-6">{{ $t('labels.actions') }}</div>
+    <div class="text-subHeading2 text-nc-content-gray mb-5">{{ $t('labels.actions') }}</div>
     <div
       class="flex flex-row gap-6 pb-2 flex-wrap max-w-[1000px]"
       :class="{

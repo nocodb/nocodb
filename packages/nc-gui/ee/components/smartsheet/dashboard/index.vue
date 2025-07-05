@@ -1,5 +1,4 @@
 <script setup lang="ts">
-const { isMobileMode } = useGlobal()
 const route = useRoute()
 
 // Stores

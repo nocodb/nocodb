@@ -1,4 +1,4 @@
-import type { IWidget, WidgetType, WidgetTypes } from 'nocodb-sdk';
+import type { IWidget, WidgetTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';

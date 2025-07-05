@@ -5,8 +5,7 @@ import {
   WorkspaceRolesToProjectRoles,
 } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
-import type { NcContext, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
-import { Base } from '~/models';
+import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 
 /**
  * Get the power of the project role of the user.

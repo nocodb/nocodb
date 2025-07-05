@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ChartTypes } from 'nocodb-sdk'
-import type { ChartWidgetType } from 'nocodb-sdk'
+import type { ChartTypes, ChartWidgetType } from 'nocodb-sdk'
 
 interface Props {
   widget: ChartWidgetType<ChartTypes.PIE>
@@ -204,9 +203,7 @@ watch(
           <div class="text-bodyDefaultSm">No data available</div>
         </div>
       </div>
-      <ClientOnly v-else>
-        <VChart class="chart" :style="{ height: chartSize.height }" :option="chartOption" autoresize />
-      </ClientOnly>
+      <VChart v-else class="chart" :style="{ height: chartSize.height }" :option="chartOption" autoresize />
     </div>
   </div>
 </template>

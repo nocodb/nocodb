@@ -342,7 +342,7 @@ export class MetaService {
       [MetaTable.PERMISSIONS]: 'perm',
       [MetaTable.PERMISSION_SUBJECTS]: 'pers',
       [MetaTable.DASHBOARDS]: 'dash',
-      [MetaTable.WIDGETS]: 'wgt'
+      [MetaTable.WIDGETS]: 'wgt',
     };
 
     const prefix = prefixMap[target] || 'nc';

@@ -10,7 +10,7 @@ const props = defineProps<{
 
 const baseId = toRef(props, 'baseId')
 
-const { $e, $api } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -244,10 +244,7 @@ const filteredDashboards = computed(() => {
     :selected-keys="selected"
     class="nc-dashboards-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
-    <div
-      v-if="!dashboards?.length || !filteredDashboards.length"
-      class="nc-project-home-section-item text-gray-500 font-normal"
-    >
+    <div v-if="!dashboards?.length || !filteredDashboards.length" class="nc-project-home-section-item text-gray-500 font-normal">
       {{
         dashboards?.length && !filteredDashboards.length
           ? $t('placeholder.noResultsFoundForYourSearch')

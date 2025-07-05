@@ -75,6 +75,35 @@ export default function () {
         expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
         expect(result.body.message).to.eq(`Invalid request body`);
       });
+
+      it('will handle base title over 50 chars', async () => {
+        const workspaceId = context.fk_workspace_id;
+        const result = await request(context.app)
+          .post(`${API_PREFIX}/${workspaceId}/bases`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'a'.repeat(52),
+          })
+          .expect(400);
+        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.message).to.eq(`Invalid request body`);
+      });
+
+      it('will handle base meta props invalid', async () => {
+        const workspaceId = context.fk_workspace_id;
+        const result = await request(context.app)
+          .post(`${API_PREFIX}/${workspaceId}/bases`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'MyBase',
+            meta: {
+              xIcon: '#234567',
+            },
+          })
+          .expect(400);
+        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.message).to.eq(`'meta' property invalid`);
+      });
     });
 
     describe('base get', () => {

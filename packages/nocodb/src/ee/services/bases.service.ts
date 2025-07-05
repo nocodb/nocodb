@@ -17,6 +17,7 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import { BaseMetaProps } from '~/types/metaProps/base-meta-props';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { getFeature, getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
@@ -231,6 +232,16 @@ export class BasesService extends BasesServiceCE {
     // Limited for consistent behaviour across identifier names for table, view, columns
     if (baseBody?.title.length > 50) {
       NcError.badRequest('Base title exceeds 50 characters');
+    }
+
+    if (baseBody?.meta) {
+      const metaParsed = BaseMetaProps.safeParse(baseBody?.meta);
+      if (metaParsed.error) {
+        NcError.get({ api_version: param.apiVersion } as any).zodError({
+          message: `'meta' property invalid`,
+          errors: metaParsed.error,
+        });
+      }
     }
 
     baseBody.title = DOMPurify.sanitize(baseBody.title);

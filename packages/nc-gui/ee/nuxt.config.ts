@@ -18,7 +18,7 @@ export default defineNuxtConfig({
   },
   modules: ['nuxt-echarts'],
   echarts: {
-    renderer: ['svg', 'canvas'],
+    renderer: ['svg'],
     charts: ['BarChart', 'LineChart', 'PieChart'],
     components: ['DatasetComponent', 'GridComponent', 'TooltipComponent', 'TitleComponent', 'LegendComponent'],
   },

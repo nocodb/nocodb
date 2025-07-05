@@ -1,27 +1,7 @@
 import type { Knex } from 'knex';
-import { MetaTable, MetaTableOldV2 } from '~/utils/globals';
+import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
-  // Drop Legacy Tables
-  if (await knex.schema.hasTable(MetaTableOldV2.LAYOUT)) {
-    await knex.schema.dropTable(MetaTableOldV2.LAYOUT);
-  }
-  if (await knex.schema.hasTable(MetaTableOldV2.WIDGET)) {
-    await knex.schema.dropTable(MetaTableOldV2.WIDGET);
-  }
-  if (
-    await knex.schema.hasTable(
-      MetaTableOldV2.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
-    )
-  ) {
-    await knex.schema.dropTable(
-      MetaTableOldV2.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
-    );
-  }
-  if (await knex.schema.hasTable(MetaTableOldV2.WIDGET_DB_DEPENDENCIES)) {
-    await knex.schema.dropTable(MetaTableOldV2.WIDGET_DB_DEPENDENCIES);
-  }
-
   await knex.schema.createTable(MetaTable.DASHBOARDS, (table) => {
     table.string('id', 20).primary().notNullable();
 

@@ -204,8 +204,9 @@ watch(
           <div class="text-bodyDefaultSm">No data available</div>
         </div>
       </div>
-
-      <VChart v-else class="chart" :style="{ height: chartSize.height }" :option="chartOption" autoresize />
+      <ClientOnly v-else>
+        <VChart class="chart" :style="{ height: chartSize.height }" :option="chartOption" autoresize />
+      </ClientOnly>
     </div>
   </div>
 </template>

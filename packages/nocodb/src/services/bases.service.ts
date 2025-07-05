@@ -29,7 +29,6 @@ import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { TablesService } from '~/services/tables.service';
 import { stringifyMetaProp } from '~/utils/modelUtils';
-import { BaseMetaProps } from '~/types/metaProps/base-meta-props';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -98,13 +97,6 @@ export class BasesService {
 
     // stringify meta prop then only we can make the sanitize function work
     if ('meta' in param.base) {
-      const metaParsed = BaseMetaProps.safeParse(param.base?.meta);
-      if (metaParsed.error) {
-        NcError.get({ api_version: param.apiVersion } as any).zodError({
-          message: `'meta' property invalid`,
-          errors: metaParsed.error,
-        });
-      }
       param.base.meta = stringifyMetaProp(param.base);
     }
 
@@ -219,16 +211,6 @@ export class BasesService {
 
     const baseBody: ProjectReqType & Record<string, any> = param.base;
     baseBody.id = baseId;
-
-    if (baseBody?.meta) {
-      const metaParsed = BaseMetaProps.safeParse(baseBody?.meta);
-      if (metaParsed.error) {
-        NcError.get({ api_version: param.apiVersion } as any).zodError({
-          message: `'meta' property invalid`,
-          errors: metaParsed.error,
-        });
-      }
-    }
 
     if (!baseBody.external) {
       const ranId = nanoid();

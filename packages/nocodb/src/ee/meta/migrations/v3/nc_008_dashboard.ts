@@ -57,7 +57,11 @@ const up = async (knex: Knex) => {
     },
   );
   await knex.schema.alterTable(MetaTable.FILTER_EXP, (table) => {
-    table.string('fk_widget_id', 200).nullable();
+    // In V2 Migration, `fk_widget_id` was added to `filter_exp`
+    if (!knex.schema.hasColumn(MetaTable.FILTER_EXP, 'fk_widget_id')) {
+      table.string('fk_widget_id', 200).nullable();
+    }
+
     table.foreign('fk_widget_id').references(`${MetaTableOldV2.WIDGET}.id`);
   });
 };

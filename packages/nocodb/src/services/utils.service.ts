@@ -102,8 +102,6 @@ export class UtilsService {
             .filter(
               (v) =>
                 validate(v) &&
-                !v.includes('finn') &&
-                !v.includes('beta') &&
                 // also filter only XXX.XXX.XXX version. ex: 0.263.8
                 v.match(/^\d+\.\d+\.\d+$/),
             )

@@ -36,6 +36,7 @@ import {
   Integration,
   PresignedUrl,
   Store,
+  Subscription,
   SyncSource,
   User,
   UserRefreshToken,
@@ -463,6 +464,20 @@ export class UsersService extends UsersServiceCE {
         }
       } else if (workspace.roles !== WorkspaceUserRoles.NO_ACCESS) {
         toBeDeleted.access.workspaces.push(workspace);
+      }
+    }
+
+    for (const workspace of toBeDeleted.workspaces) {
+      // check if workspace have subscription
+      const subscription = await Subscription.getByWorkspaceOrOrg(
+        workspace.id,
+        ncMeta,
+      );
+
+      if (subscription) {
+        NcError.badRequest(
+          'One or more workspaces cannot be deleted as they have an active subscription, you need to cancel the subscription first',
+        );
       }
     }
 

@@ -16,7 +16,7 @@ export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
-  modules: ['nuxt-echarts'],
+  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', 'nuxt-echarts'],
   echarts: {
     renderer: ['canvas'],
     charts: ['BarChart', 'LineChart', 'PieChart'],

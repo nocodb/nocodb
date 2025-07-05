@@ -1,6 +1,6 @@
 import { ChartTypes, formatAggregation } from 'nocodb-sdk';
-import { PieChartCommonHandler } from './pie-chart.common.handler';
 import type { NcRequest, WidgetType, WidgetTypes } from 'nocodb-sdk';
+import { PieChartCommonHandler } from '~/db/widgets/pie-chart/pie-chart.common.handler';
 import { Column, Filter, Model, Source, View } from '~/models';
 import applyAggregation from '~/db/aggregation';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';

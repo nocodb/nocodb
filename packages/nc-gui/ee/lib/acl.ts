@@ -172,6 +172,11 @@ const rolePermissions = {
       rowColourUpdate: true,
 
       projectOverviewTab: true,
+
+      dashboardCreate: true,
+      dashboardEdit: true,
+      dashboardDelete: true,
+      dashboardRename: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -189,11 +194,6 @@ const rolePermissions = {
       // Scripts
       scriptExecute: true,
       scriptList: true,
-
-      dashboardCreate: true,
-      dashboardEdit: true,
-      dashboardDelete: true,
-      dashboardRename: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

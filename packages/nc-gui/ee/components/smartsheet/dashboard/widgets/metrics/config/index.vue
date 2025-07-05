@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import GroupedSettings from '../../Common/GroupedSettings.vue'
+import GroupedSettings from '../../common/GroupedSettings.vue'
 
 const widgetStore = useWidgetStore()
 const { selectedWidget } = storeToRefs(widgetStore)

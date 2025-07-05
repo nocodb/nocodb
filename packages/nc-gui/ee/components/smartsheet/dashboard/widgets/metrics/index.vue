@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { MetricWidgetType } from 'nocodb-sdk'
-import { colorColoured, colorFilled } from './Config/color'
+import { colorColoured, colorFilled } from './config/color'
 
 interface Props {
   widget: MetricWidgetType

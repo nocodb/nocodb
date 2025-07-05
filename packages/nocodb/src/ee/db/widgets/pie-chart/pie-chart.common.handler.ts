@@ -1,9 +1,7 @@
-import { ChartTypes, formatAggregation } from 'nocodb-sdk';
-import type { NcContext, NcRequest, WidgetType, WidgetTypes } from 'nocodb-sdk';
-import { Column, Filter, Model, Source, View } from '~/models';
-import applyAggregation, { validateAggregationColType } from '~/db/aggregation';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { getColumnNameQuery } from '~/db/getColumnNameQuery';
+import { ChartTypes } from 'nocodb-sdk';
+import type { NcContext, WidgetType, WidgetTypes } from 'nocodb-sdk';
+import { Column, Model, View } from '~/models';
+import { validateAggregationColType } from '~/db/aggregation';
 
 export class PieChartCommonHandler {
   async validateWidgetData(

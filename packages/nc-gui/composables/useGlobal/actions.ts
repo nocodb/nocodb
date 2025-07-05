@@ -140,30 +140,25 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     workspaceId: _workspaceId,
     baseId,
     query,
-    dashboardId,
     tableId,
     viewId,
     replace,
   }: {
     workspaceId?: string
     baseId?: string
-    dashboardId?: string
     query?: any
     tableId?: string
     viewId?: string
     replace?: boolean
   }) => {
     const tablePath = tableId ? `/${tableId}${viewId ? `/${viewId}` : ''}` : ''
-    const dashboardPath = dashboardId ? `/dashboards/${dashboardId}` : ''
     const workspaceId = _workspaceId || 'nc'
     let path: string
 
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
 
     if (baseId) {
-      if (dashboardId) {
-        path = `/${workspaceId}/${baseId}${dashboardPath}${queryParams}`
-      } else if (tableId) {
+      if (tableId) {
         path = `/${workspaceId}/${baseId}${tablePath}${queryParams}`
       } else {
         path = `/${workspaceId}/${baseId}${queryParams}`

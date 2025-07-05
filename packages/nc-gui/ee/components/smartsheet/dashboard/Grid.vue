@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ChartTypes, type ChartWidgetConfig, type WidgetType, WidgetTypes } from 'nocodb-sdk'
-import MetricWidget from './Widgets/Metrics/index.vue'
-import DonutChartWidget from './Widgets/DonutChart/index.vue'
-import PieChartWidget from './Widgets/PieChart/index.vue'
+import MetricWidget from './widgets/metrics/index.vue'
+import DonutChartWidget from './widgets/donutchart/index.vue'
+import PieChartWidget from './widgets/piechart/index.vue'
 import PlaceholderImage from '~/assets/img/dashboards/placeholder.svg'
 // Stores
 const dashboardStore = useDashboardStore()

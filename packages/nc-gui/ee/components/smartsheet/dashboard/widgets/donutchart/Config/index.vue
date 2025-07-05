@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import GroupedSettings from '../../Common/GroupedSettings.vue'
+import GroupedSettings from '../../common/GroupedSettings.vue'
 
 const widgetStore = useWidgetStore()
 const { selectedWidget } = storeToRefs(widgetStore)
@@ -77,7 +77,7 @@ const handleConfigUpdate = async (type: string, updates: any) => {
       <SmartsheetDashboardWidgetsCommonDataText @update:widget="handleConfigUpdate('text', $event)" />
       <SmartsheetDashboardWidgetsCommonDataSource @update:source="handleConfigUpdate('dataSource', $event)" />
       <GroupedSettings title="Data">
-        <SmartsheetDashboardWidgetsPieChartConfigCategory @update:category="handleConfigUpdate('data.category', $event)" />
+        <SmartsheetDashboardWidgetsDonutChartConfigCategory @update:category="handleConfigUpdate('data.category', $event)" />
         <div class="flex flex-col gap-4 pt-3">
           <div class="text-nc-content-gray text-bodyBold">Value</div>
           <SmartsheetDashboardWidgetsCommonDataAggregation
@@ -89,7 +89,7 @@ const handleConfigUpdate = async (type: string, updates: any) => {
       <SmartsheetDashboardWidgetsCommonDataPermission @update:permission="handleConfigUpdate('permission', $event)" />
     </template>
     <template #appearance>
-      <SmartsheetDashboardWidgetsPieChartConfigAppearance @update:appearance="handleConfigUpdate('appearance', $event)" />
+      <SmartsheetDashboardWidgetsDonutChartConfigAppearance @update:appearance="handleConfigUpdate('appearance', $event)" />
     </template>
   </SmartsheetDashboardWidgetsCommonConfig>
 </template>

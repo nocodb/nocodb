@@ -1,8 +1,8 @@
 import { ChartTypes, WidgetTypes } from 'nocodb-sdk';
-import { MetricCommonHandler } from './metric/metric.common.handler';
-import { PieChartPgHandler } from './pie-chart/pie-chart.pg.handler';
-import { DonutChartPgHandler } from './donut-chart/donut-chart.pg.handler';
 import type { NcRequest, WidgetType } from 'nocodb-sdk';
+import { MetricCommonHandler } from '~/db/widgets/metric/metric.common.handler';
+import { PieChartPgHandler } from '~/db/widgets/pie-chart/pie-chart.pg.handler';
+import { DonutChartPgHandler } from '~/db/widgets/donut-chart/donut-chart.pg.handler';
 import { NcError } from '~/helpers/ncError';
 import { Model, Source } from '~/models';
 

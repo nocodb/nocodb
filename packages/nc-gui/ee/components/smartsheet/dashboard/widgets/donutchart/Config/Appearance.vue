@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import GroupedSettings from '../../Common/GroupedSettings.vue'
+import GroupedSettings from '../../common/GroupedSettings.vue'
 
 const emit = defineEmits<{
   'update:appearance': [source: any]

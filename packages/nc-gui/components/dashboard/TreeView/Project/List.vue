@@ -125,26 +125,6 @@ function openViewDescriptionDialog(view: ViewType) {
   }
 }
 
-function openDashboardDescriptionDialog(dashboard: DashboardType) {
-  if (!dashboard?.id) return
-
-  $e('c:dashboard:description')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgDashboardDescriptionUpdate'), {
-    'modelValue': isOpen,
-    'dashboard': dashboard,
-    'onUpdate:modelValue': closeDialog,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
 function openTableDescriptionDialog(table: TableType) {
   if (!table || !table.id) return
 
@@ -348,7 +328,6 @@ provide(TreeViewInj, {
   duplicateTable,
   handleTableRename,
   openViewDescriptionDialog,
-  openDashboardDescriptionDialog,
   openTableDescriptionDialog,
   contextMenuTarget,
   tableRenameId,

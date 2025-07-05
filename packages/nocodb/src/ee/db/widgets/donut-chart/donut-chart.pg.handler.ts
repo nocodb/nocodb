@@ -1,6 +1,6 @@
 import { ChartTypes, formatAggregation } from 'nocodb-sdk';
-import { DonutChartCommonHandler } from './donut-chart.common.handler';
 import type { NcRequest, WidgetType, WidgetTypes } from 'nocodb-sdk';
+import { DonutChartCommonHandler } from '~/db/widgets/donut-chart/donut-chart.common.handler';
 import { Column, Filter, Model, Source, View } from '~/models';
 import applyAggregation from '~/db/aggregation';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';

@@ -39,7 +39,7 @@ export class InternalController extends InternalControllerCE {
     private readonly permissionsService: PermissionsService,
     protected readonly dashboardsService: DashboardsService,
   ) {
-    super(mcpService, dashboardsService, aclMiddleware, auditsService);
+    super(mcpService, aclMiddleware, auditsService);
   }
 
   protected async checkAcl(operation: string, req, scope?: string) {
@@ -76,6 +76,18 @@ export class InternalController extends InternalControllerCE {
       duplicateScript: 'base',
       setPermission: 'base',
       dropPermission: 'base',
+
+      dashboardList: 'base',
+      dashboardGet: 'base',
+      dashboardCreate: 'base',
+      dashboardUpdate: 'base',
+      dashboardDelete: 'base',
+      widgetList: 'base',
+      widgetGet: 'base',
+      widgetCreate: 'base',
+      widgetUpdate: 'base',
+      widgetDelete: 'base',
+      widgetDataGet: 'base',
     };
   }
 
@@ -136,6 +148,29 @@ export class InternalController extends InternalControllerCE {
           retentionLimit: limit,
         });
       }
+      case 'dashboardList':
+        return await this.dashboardsService.dashboardList(context, baseId);
+      case 'dashboardGet':
+        return await this.dashboardsService.dashboardGet(
+          context,
+          req.query.dashboardId as string,
+        );
+      case 'widgetList':
+        return await this.dashboardsService.widgetList(
+          context,
+          req.query.dashboardId as string,
+        );
+      case 'widgetGet':
+        return await this.dashboardsService.widgetGet(
+          context,
+          req.query.widgetId as string,
+        );
+      case 'widgetDataGet':
+        return await this.dashboardsService.widgetDataGet(
+          context,
+          req.query.widgetId as string,
+          req,
+        );
       default:
         return await super.internalAPI(
           context,
@@ -274,6 +309,48 @@ export class InternalController extends InternalControllerCE {
 
       case 'dropPermission':
         return await this.permissionsService.dropPermission(context, payload);
+
+      case 'dashboardCreate':
+        return await this.dashboardsService.dashboardCreate(
+          context,
+          payload,
+          req,
+        );
+      case 'dashboardUpdate':
+        return await this.dashboardsService.dashboardUpdate(
+          context,
+          payload.dashboardId,
+          payload,
+          req,
+        );
+      case 'dashboardDelete':
+        return await this.dashboardsService.dashboardDelete(
+          context,
+          payload.dashboardId,
+          req,
+        );
+      case 'widgetCreate':
+        return await this.dashboardsService.widgetCreate(context, payload, req);
+      case 'widgetUpdate':
+        return await this.dashboardsService.widgetUpdate(
+          context,
+          payload.widgetId,
+          payload,
+          req,
+        );
+      case 'widgetDelete':
+        return await this.dashboardsService.widgetDelete(
+          context,
+          payload.widgetId,
+          req,
+        );
+
+      case 'widgetDataGet':
+        return await this.dashboardsService.widgetDataGet(
+          context,
+          payload.widgetId,
+          req,
+        );
 
       default:
         return await super.internalAPIPost(

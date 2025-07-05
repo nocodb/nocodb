@@ -19,8 +19,11 @@ const FEATURES = [
   {
     id: 'dashboard',
     title: 'Dashboard',
+    isEngineering: true,
     description: 'Create and manage dashboards for quick access to your data.',
     enabled: false,
+    version: 1,
+    isEE: true,
   },
   {
     id: 'canvas_group_grid_view',

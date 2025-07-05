@@ -1,6 +1,6 @@
 import type { CSSProperties } from '@vue/runtime-dom'
 
-import type {
+import {
   type BaseType,
   type ColumnType,
   type FilterType,
@@ -8,7 +8,7 @@ import type {
   type PaginatedType,
   type PermissionEntity,
   type PermissionKey,
-  ProjectRoles,
+  type ProjectRoles,
   type PublicAttachmentScope,
   type Roles,
   type RolesObj,

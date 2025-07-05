@@ -56,12 +56,13 @@ const up = async (knex: Knex) => {
       table.timestamps(true, true);
     },
   );
-  await knex.schema.alterTable(MetaTable.FILTER_EXP, (table) => {
+  await knex.schema.alterTable(MetaTable.FILTER_EXP, async (table) => {
     // In V2 Migration, `fk_widget_id` was added to `filter_exp`
-    if (!knex.schema.hasColumn(MetaTable.FILTER_EXP, 'fk_widget_id')) {
+    if (!(await knex.schema.hasColumn(MetaTable.FILTER_EXP, 'fk_widget_id'))) {
       table.string('fk_widget_id', 200).nullable();
     }
 
+    // This fk relation is removed in nc_013_remove_fk_and_add_idx migration
     table.foreign('fk_widget_id').references(`${MetaTableOldV2.WIDGET}.id`);
   });
 };

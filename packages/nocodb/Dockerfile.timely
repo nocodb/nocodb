@@ -60,7 +60,7 @@ RUN pnpm install --prod --shamefully-hoist \
 #############################
 # Binary Dependencies Builder
 #############################
-FROM --platform=$TARGETPLATFORM node:22-slim as bin-builder
+FROM --platform=$TARGETPLATFORM node:22-slim AS bin-builder
 WORKDIR /usr/src/app
 
 # Install node-gyp dependencies and other build tools

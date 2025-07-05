@@ -99,9 +99,9 @@ const up = async (knex: Knex) => {
     `Removed foreign keys and created index for columns in '${MetaTable.FILTER_EXP}'`,
   );
   await knex.schema.alterTable(MetaTable.FILTER_EXP, (table) => {
-    table.dropForeign('fk_widget_id');
     // New V2 Migration for dashboard already adds the index
     // Hence commenting out this line
+    // table.dropForeign('fk_widget_id');
     // table.index('fk_widget_id');
   });
   console.timeEnd(

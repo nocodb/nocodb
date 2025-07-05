@@ -20,10 +20,9 @@ dns.setDefaultResultOrder('ipv4first');
 // Environment variables for cluster configuration
 const NC_CLUSTER_ENABLED = process.env.NC_CLUSTER_ENABLED === 'true';
 const NC_CLUSTER_WORKERS = parseInt(process.env.NC_CLUSTER_WORKERS || '0');
-const NC_CLUSTER_HEALTH_CHECK_TIMEOUT = parseInt(
-  process.env.NC_CLUSTER_HEALTH_CHECK_TIMEOUT || '300000', // 5 minutes
-);
-const PORT = process.env.PORT || 8080;
+const NC_CLUSTER_HEALTH_CHECK_TIMEOUT =
+  parseInt(process.env.NC_CLUSTER_HEALTH_CHECK_TIMEOUT) || 300000;
+const PORT = parseInt(process.env.PORT) || 8080;
 
 // Determine number of workers
 const numCPUs = os.cpus().length;
@@ -281,7 +280,7 @@ if (shouldUseCluster) {
         // Wait for health check to pass
         console.log('Waiting for master worker health check...');
         const isHealthy = await waitForMasterHealth(
-          +PORT,
+          PORT,
           NC_CLUSTER_HEALTH_CHECK_TIMEOUT,
         );
 

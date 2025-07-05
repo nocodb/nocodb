@@ -4,7 +4,7 @@
 ###########
 # Litestream Builder
 ###########
-FROM --platform=$BUILDPLATFORM golang:bookworm as lt-builder
+FROM --platform=$BUILDPLATFORM golang:alpine3.20 as lt-builder
 
 WORKDIR /usr/src/
 
@@ -15,8 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends git make gcc li
 # Build litestream for the target platform
 RUN git clone https://github.com/benbjohnson/litestream.git litestream \
     && cd litestream \
-    && GOARCH=$(echo $TARGETPLATFORM | cut -d '/' -f 2) GOOS=$(echo $TARGETPLATFORM | cut -d '/' -f 1) go install ./cmd/litestream \
-    && cp $GOPATH/bin/litestream /usr/src/lt
+    && GOARCH=$(echo $TARGETPLATFORM | cut -d '/' -f 2) GOOS=$(echo $TARGETPLATFORM | cut -d '/' -f 1) go install ./cmd/litestream
 
 ###########
 # Builder
@@ -98,7 +97,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends dumb-init curl 
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy litestream binary and config file
-COPY --link --from=lt-builder /usr/src/lt /usr/local/bin/litestream
+COPY --link --from=lt-builder /go/bin/litestream /usr/local/bin/litestream
 COPY --link ./docker/litestream.yml /etc/litestream.yml
 
 # Copy production code & main entry file

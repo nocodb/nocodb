@@ -87,7 +87,7 @@ COPY --link --from=lt-builder /usr/local/bin/litestream /usr/local/bin/litestrea
 COPY --link ./docker/litestream.yml /etc/litestream.yml
 
 # Copy production code & main entry file
-COPY --link --from=builder /usr/src/app/      /usr/src/app/
+COPY --link --from=builder /usr/src/app/ /usr/src/app/
 COPY --link --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 
 EXPOSE 8080

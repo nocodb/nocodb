@@ -234,16 +234,6 @@ export class BasesService extends BasesServiceCE {
       NcError.badRequest('Base title exceeds 50 characters');
     }
 
-    if (baseBody?.meta) {
-      const metaParsed = BaseMetaProps.safeParse(baseBody?.meta);
-      if (metaParsed.error) {
-        NcError.get({ api_version: param.apiVersion } as any).zodError({
-          message: `'meta' property invalid`,
-          errors: metaParsed.error,
-        });
-      }
-    }
-
     baseBody.title = DOMPurify.sanitize(baseBody.title);
     baseBody.slug = baseBody.title;
 

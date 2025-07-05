@@ -380,11 +380,14 @@ export class BasesService extends BasesServiceCE {
       base: ProjectUpdateReqType;
       user: UserType;
       req: NcRequest;
+      apiVersion?: NcApiVersion;
     },
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUpdateReq',
       param.base,
+      false,
+      context,
     );
 
     await this.validateDefaultRoleFeature(context, param);

@@ -56,9 +56,15 @@ const up = async (knex: Knex) => {
       table.timestamps(true, true);
     },
   );
+
+  const isWidgetFieldExists = await knex.schema.hasColumn(
+    MetaTable.FILTER_EXP,
+    'fk_widget_id',
+  );
+
   await knex.schema.alterTable(MetaTable.FILTER_EXP, async (table) => {
     // In V2 Migration, `fk_widget_id` was added to `filter_exp`
-    if (!(await knex.schema.hasColumn(MetaTable.FILTER_EXP, 'fk_widget_id'))) {
+    if (!isWidgetFieldExists) {
       table.string('fk_widget_id', 200).nullable();
     }
 

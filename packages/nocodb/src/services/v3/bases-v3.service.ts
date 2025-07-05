@@ -108,7 +108,7 @@ export class BasesV3Service {
 
     if (meta?.icon_color) {
       meta.iconColor = meta.icon_color;
-      meta.icon_color = undefined;
+      delete meta.icon_color;
     }
 
     await this.basesService.baseUpdate(context, {
@@ -143,7 +143,7 @@ export class BasesV3Service {
 
     if (meta?.icon_color) {
       meta.iconColor = meta.icon_color;
-      meta.icon_color = undefined;
+      delete meta.icon_color;
     }
 
     const res = await this.basesService.baseCreate({

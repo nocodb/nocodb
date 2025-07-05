@@ -105,6 +105,17 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
+      # Add Docker buildx setup for multi-platform builds
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - name: Set up QEMU for cross-platform builds
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
       ### main build and deploy starts here ###
       - name: build nc-gui and copy to nocodb
         if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
@@ -159,25 +170,25 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: nocohub
           IMAGE_TAG: ${{ github.event.inputs.tag }}
-          CUSTOM_IMAGE_TAG_ARG: ${{ github.event.inputs.tag && format('-t {0}/nocohub:{1}', steps.login-ecr.outputs.registry, github.event.inputs.tag) || '' }}
-          STAGING_IMAGE_TAG_ARG: ${{ (github.event.inputs.staging == 'true' || github.event_name == 'schedule') && format('-t {0}/nocohub:ws-pre-release', steps.login-ecr.outputs.registry) || '' }}
+          STAGING_TAG: ${{ (github.event.inputs.staging == 'true' || github.event_name == 'schedule') && 'ws-pre-release' || '' }}
           COMMIT_HASH: ${{ github.sha }}
         run: |
-          cd packages/nocodb &&
-          docker build -f src/ee-cloud/Dockerfile-cloud $CUSTOM_IMAGE_TAG_ARG $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH .
-          [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          cd packages/nocodb
+          
+          # Build multi-platform image and push to ECR
+          TAGS=""
+          [[ ! -z "$IMAGE_TAG" ]] && TAGS="$TAGS -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          [[ ! -z "$STAGING_TAG" ]] && TAGS="$TAGS -t $ECR_REGISTRY/$ECR_REPOSITORY:$STAGING_TAG"
+          TAGS="$TAGS -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH"
+          
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --file src/ee-cloud/Dockerfile-cloud \
+            --push \
+            $TAGS \
+            .
 
-          # perform only when staging = "true" and main_only or all
-      - name: Push main image to ECR
-        if: ${{  ( github.event_name == 'schedule' ) || ( github.event.inputs.staging == 'true' && (github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' )) }}
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: nocohub
-          API_CREDENTIALS: ${{ secrets.STAGING_ADMIN }}
-        run: |
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:ws-pre-release
+          # NOTE: Images are now automatically pushed during the buildx build process above
 
       - name: Publish main to staging
         if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.staging == 'true' && (github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' )) }}
@@ -192,25 +203,25 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: nc-sql-executor
           IMAGE_TAG: ${{ github.event.inputs.tag }}
-          CUSTOM_IMAGE_TAG_ARG: ${{ github.event.inputs.tag && format('-t {0}/nocohub:{1}', steps.login-ecr.outputs.registry, github.event.inputs.tag) || '' }}
-          STAGING_IMAGE_TAG_ARG: ${{ (github.event.inputs.staging == 'true' || github.event_name == 'schedule') && format('-t {0}/nc-sql-executor:ws-pre-release', steps.login-ecr.outputs.registry) || '' }}
+          STAGING_TAG: ${{ (github.event.inputs.staging == 'true' || github.event_name == 'schedule') && 'ws-pre-release' || '' }}
           COMMIT_HASH: ${{ github.sha }}
         run: |
           cd packages/nc-sql-executor
           npm run build
-          docker build . $CUSTOM_IMAGE_TAG_ARG $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
-          [[ ! -z "$IMAGE_TAG" ]] && docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+          # Build multi-platform image and push to ECR
+          TAGS=""
+          [[ ! -z "$IMAGE_TAG" ]] && TAGS="$TAGS -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          [[ ! -z "$STAGING_TAG" ]] && TAGS="$TAGS -t $ECR_REGISTRY/$ECR_REPOSITORY:$STAGING_TAG"
+          TAGS="$TAGS -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH"
+          
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --push \
+            $TAGS \
+            .
 
-      # perform only when staging = "true" and main_only or all
-      - name: Push staging image to ECR
-        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.staging == 'true' && ( github.event.inputs.services_to_deploy == 'mux_service_only' || github.event.inputs.services_to_deploy == 'all')) }}
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: nc-sql-executor
-        run: |
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:ws-pre-release
+      # NOTE: Images are now automatically pushed during the buildx build process above
 
       - name: Publish to staging
         if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.staging == 'true' && ( github.event.inputs.services_to_deploy == 'mux_service_only' || github.event.inputs.services_to_deploy == 'all')) }}

@@ -198,6 +198,16 @@ function zero_downtime_worker_deployment(){
         
         message "${ENVIRONMENT}: Current workers are running with task protection enabled, proceeding with zero-downtime deployment"
         PROTECTED_TASKS="${CURRENT_TASKS}"
+ 
+        # Assign worker group ID to old workers (if restarted it will be gone)
+        OLD_WORKER_GROUP_ID="deploy-$(date +%s)-$(openssl rand -hex 4)"
+        echo "Assigning worker group ID to old workers: ${OLD_WORKER_GROUP_ID}"
+        curl -u ${API_CREDENTIALS} ${HOST_NAME}/internal/workers/assign-worker-group -XPOST \
+            -H "Content-Type: application/json" \
+            -d "{\"workerGroupId\":\"${OLD_WORKER_GROUP_ID}\"}" || {
+                message "${ENVIRONMENT}: Failed to assign worker group ID"
+                return 1
+            }
     else
         echo "No current tasks found for worker service"
         message "${ENVIRONMENT}: No current workers found, proceeding with standard deployment"

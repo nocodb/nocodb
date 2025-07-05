@@ -1,3 +1,3 @@
-import { formatAggregation } from 'nocodb-sdk'
+import { formatAggregation, formatBytes } from 'nocodb-sdk'
 
-export { formatAggregation }
+export { formatAggregation, formatBytes }

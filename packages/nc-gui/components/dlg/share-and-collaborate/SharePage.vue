@@ -15,6 +15,8 @@ const viewStore = useViewsStore()
 
 const { metas } = useMetas()
 
+const { isPrivateBase } = storeToRefs(useBase())
+
 const isLocked = inject(IsLockedInj, ref(false))
 
 const { copy } = useCopy()
@@ -48,8 +50,19 @@ const activeView = computed<(ViewType & { meta: object & Record<string, any> }) 
   },
 })
 
+const restrictedSharing = computed(() => {
+  return isPrivateBase.value && activeView.value?.type !== ViewTypes.FORM
+})
+
 const isPublicShared = computed(() => {
+  // If base is private, then we have to restrict sharing
+  if (restrictedSharing.value) return false
+
   return !!activeView.value?.uuid
+})
+
+const isReadOnly = computed(() => {
+  return isLocked.value || restrictedSharing.value
 })
 
 const url = computed(() => {
@@ -354,6 +367,7 @@ const copyCustomUrl = async (custUrl = '') => {
           {{ $t('activity.enabledPublicViewing') }}
         </div>
         <a-switch
+          v-if="!restrictedSharing"
           v-e="['c:share:view:enable:toggle']"
           :checked="isPublicShared"
           :disabled="isLocked"
@@ -362,6 +376,7 @@ const copyCustomUrl = async (custUrl = '') => {
           data-testid="share-view-toggle"
           @click="toggleShare"
         />
+        <div v-else class="text-nc-content-gray-muted">{{ $t('labels.sharingRestricted') }}</div>
       </div>
       <template v-if="isPublicShared">
         <div class="mt-0.5 border-t-1 border-gray-100 pt-3">
@@ -374,6 +389,7 @@ const copyCustomUrl = async (custUrl = '') => {
           :backend-url="appInfo.ncSiteUrl"
           :copy-custom-url="copyCustomUrl"
           :search-query="preFillFormSearchParams && activeView?.type === ViewTypes.FORM ? `?${preFillFormSearchParams}` : ''"
+          :disabled="isReadOnly"
           @update-custom-url="updateSharedView"
         />
         <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
@@ -388,7 +404,7 @@ const copyCustomUrl = async (custUrl = '') => {
               class="share-password-toggle !mt-0.25"
               data-testid="share-password-toggle"
               size="small"
-              :disabled="isLocked"
+              :disabled="isReadOnly"
               @click="togglePasswordProtected"
             />
           </div>
@@ -401,7 +417,7 @@ const copyCustomUrl = async (custUrl = '') => {
                 data-testid="nc-modal-share-view__password"
                 size="small"
                 type="password"
-                :readonly="isLocked"
+                :readonly="isReadOnly"
               />
             </div>
           </Transition>
@@ -422,7 +438,7 @@ const copyCustomUrl = async (custUrl = '') => {
               class="public-password-toggle !mt-0.25"
               data-testid="share-download-toggle"
               size="small"
-              :disabled="isLocked"
+              :disabled="isReadOnly"
             />
           </div>
         </div>
@@ -440,7 +456,7 @@ const copyCustomUrl = async (custUrl = '') => {
                 class="share-language-toggle !mt-0.25"
                 data-testid="share-language-toggle"
                 size="small"
-                :disabled="isLocked"
+                :disabled="isReadOnly"
                 @click="toggleLanguageSet"
               />
             </div>
@@ -450,9 +466,8 @@ const copyCustomUrl = async (custUrl = '') => {
                   v-model:value="withLanguage"
                   data-testid="nc-modal-share-view__Language"
                   :options="languageOptions"
-                  size="small"
-                  class="w-full"
-                  :disabled="isLocked"
+                  class="nc-modal-share-view-language-select w-full nc-select-shadow"
+                  :disabled="isReadOnly"
                 />
               </div>
             </Transition>
@@ -559,6 +574,12 @@ const copyCustomUrl = async (custUrl = '') => {
     .ant-radio + span {
       @apply !flex !pl-4;
     }
+  }
+}
+
+.nc-modal-share-view-language-select.ant-select {
+  .ant-select-selector {
+    @apply !rounded-lg;
   }
 }
 </style>

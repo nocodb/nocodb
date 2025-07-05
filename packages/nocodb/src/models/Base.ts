@@ -23,9 +23,7 @@ import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { NcError } from '~/helpers/catchError';
-import {
-  cleanBaseSchemaCacheForBase,
-} from '~/helpers/scriptHelper';
+import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 
 const logger = new Logger('Base');
 
@@ -43,6 +41,7 @@ export default class Base implements BaseType {
   public is_meta: boolean | number = false;
   public sources?: Source[];
   public linked_db_projects?: Base[];
+  public default_role?: 'no-access';
 
   // shared base props
   uuid?: string;

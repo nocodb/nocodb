@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import NcLayout from '~icons/nc-icons/layout'
+import { ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string
@@ -14,18 +14,14 @@ const { integrations } = useProvideIntegrationViewStore()
 const basesStore = useBases()
 
 const { openedProject, activeProjectId, basesUser, bases } = storeToRefs(basesStore)
-const { activeTables, activeTable } = storeToRefs(useTablesStore())
+const { activeTable } = storeToRefs(useTablesStore())
 const { activeWorkspace } = storeToRefs(useWorkspace())
 
-const { isSharedBase } = useBase()
-
-const automationStore = useAutomationStore()
-
-const { loadAutomations } = automationStore
-
-const { automations } = storeToRefs(automationStore)
+const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
 const { $e, $api } = useNuxtApp()
+
+const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -39,8 +35,6 @@ const currentBase = computedAsync(async () => {
   return base
 })
 
-const scripts = computed(() => automations.value.get(currentBase.value?.id))
-
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
 const router = useRouter()
@@ -50,45 +44,71 @@ const { isUIAllowed, baseRoles } = useRoles()
 
 const { base } = storeToRefs(useBase())
 
-const { projectPageTab } = storeToRefs(useConfigStore())
+const { projectPageTab: _projectPageTab } = storeToRefs(useConfigStore())
 
 const { isMobileMode } = useGlobal()
 
 const baseSettingsState = ref('')
 
-const userCount = computed(() =>
-  activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0,
-)
+const userCount = computed(() => {
+  // if private base and don't have owner permission then return
+  if (base.value?.default_role && !baseRoles.value[ProjectRoles.OWNER]) {
+    return
+  }
+
+  return activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0
+})
+
+const { isTableAndFieldPermissionsEnabled } = usePermissions()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
+const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
+
+const projectPageTab = computed({
+  get() {
+    return _projectPageTab.value
+  },
+  set(value) {
+    if (value === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) {
+      return
+    }
+
+    _projectPageTab.value = value
+  },
+})
 
 watch(
-  () => route.value.query?.page,
-  (newVal, oldVal) => {
+  [() => route.value.query?.page, () => isOverviewTabVisible.value],
+  ([newVal, isOverviewTabVisible], [oldVal, _isOverviewTabVisible]) => {
     if (!('baseId' in route.value.params)) return
     // if (route.value.name !== 'index-typeOrId-baseId-index-index') return
     if (newVal && newVal !== oldVal) {
-      if (newVal === 'collaborator') {
-        projectPageTab.value = 'collaborator'
-      } else if (newVal === 'syncs') {
+      if (newVal === 'syncs') {
         projectPageTab.value = 'syncs'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
-      } else if (newVal === 'allTable') {
-        projectPageTab.value = 'allTable'
-      } else if (newVal === 'allScripts' && isAutomationEnabled.value && isEeUI) {
-        projectPageTab.value = 'allScripts'
-      } else {
+      } else if (newVal === 'overview' && isOverviewTabVisible) {
+        projectPageTab.value = 'overview'
+      } else if (
+        newVal === 'permissions' &&
+        !blockTableAndFieldPermissions.value &&
+        isEeUI &&
+        isTableAndFieldPermissionsEnabled.value
+      ) {
+        projectPageTab.value = 'permissions'
+      } else if (newVal === 'base-settings') {
         projectPageTab.value = 'base-settings'
+      } else {
+        projectPageTab.value = 'collaborator'
       }
       return
     }
-    if (isAdminPanel.value) {
+
+    if (isAdminPanel.value || !isOverviewTabVisible) {
       projectPageTab.value = 'collaborator'
     } else {
-      projectPageTab.value = 'allTable'
+      projectPageTab.value = 'overview'
     }
   },
   { immediate: true },
@@ -130,7 +150,6 @@ watch(
 
 onMounted(async () => {
   await until(() => !!currentBase.value?.id).toBeTruthy()
-  loadAutomations({ baseId: currentBase.value?.id })
   if (props.tab) {
     projectPageTab.value = props.tab
   }
@@ -158,6 +177,16 @@ onMounted(() => {
               {{ currentBase?.title }}
             </span>
           </NcTooltip>
+          <NcBadge
+            v-if="isPrivateBase"
+            size="xs"
+            class="!text-bodySm !bg-nc-bg-gray-medium !text-nc-content-gray-subtle2"
+            color="grey"
+            :border="false"
+          >
+            <GeneralIcon icon="ncLock" class="w-3.5 h-3.5 mr-1" />
+            {{ $t('general.private') }}
+          </NcBadge>
         </div>
       </div>
 
@@ -175,44 +204,14 @@ onMounted(() => {
         <template #leftExtra>
           <div class="w-3"></div>
         </template>
-        <a-tab-pane v-if="!isAdminPanel" key="allTable">
+        <a-tab-pane v-if="!isAdminPanel && isOverviewTabVisible" key="overview" class="nc-project-overview-tab-content">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__all-tables">
-              <NcLayout />
-              <div>{{ $t('labels.allTables') }}</div>
-              <div
-                class="tab-info"
-                :class="{
-                  'bg-primary-selected': projectPageTab === 'allTable',
-                  'bg-gray-50': projectPageTab !== 'allTable',
-                }"
-              >
-                {{ activeTables.length }}
-              </div>
+              <GeneralIcon icon="ncMultiCircle" />
+              <div>{{ $t('general.overview') }}</div>
             </div>
           </template>
-          <ProjectAllTables />
-        </a-tab-pane>
-        <a-tab-pane
-          v-if="!isAdminPanel && isAutomationEnabled && isEeUI && isUIAllowed('scriptList') && !isSharedBase"
-          key="allScripts"
-        >
-          <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__all-tables">
-              <GeneralIcon icon="ncScript" />
-              <div>{{ $t('labels.allScripts') }}</div>
-              <div
-                class="tab-info"
-                :class="{
-                  'bg-primary-selected': projectPageTab === 'allScripts',
-                  'bg-gray-50': projectPageTab !== 'allScripts',
-                }"
-              >
-                {{ scripts?.length }}
-              </div>
-            </div>
-          </template>
-          <ProjectAllScripts />
+          <ProjectOverview />
         </a-tab-pane>
         <!-- <a-tab-pane v-if="defaultBase" key="erd" tab="Base ERD" force-render class="pt-4 pb-12">
           <ErdView :source-id="defaultBase!.id" class="!h-full" />
@@ -235,6 +234,18 @@ onMounted(() => {
             </div>
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
+        </a-tab-pane>
+        <a-tab-pane
+          v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && isTableAndFieldPermissionsEnabled"
+          key="permissions"
+        >
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__permissions">
+              <GeneralIcon icon="ncLock" />
+              <div>{{ $t('general.permissions') }}</div>
+            </div>
+          </template>
+          <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
         </a-tab-pane>
         <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id" key="data-source">
           <template #tab>
@@ -296,7 +307,9 @@ onMounted(() => {
   @apply pt-2 pb-3;
 }
 :deep(.ant-tabs-content) {
-  @apply nc-content-max-w;
+  &:not(:has(.nc-project-overview-tab-content)) {
+    @apply nc-content-max-w;
+  }
 }
 :deep(.ant-tabs-tab .tab-title) {
   @apply text-gray-500;

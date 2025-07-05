@@ -46,7 +46,7 @@ const readOnly = computed(() => readOnlyInj.value || column.value.readonly)
 
 const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
-const clientMousePosition = inject(ClientMousePositionInj)
+const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
@@ -103,7 +103,7 @@ const height = computed(() => {
 })
 
 const localRowHeight = computed(() => {
-  if (readOnly.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 6
+  if (readOnly.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 4
 
   return rowHeight.value
 })

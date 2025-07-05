@@ -156,8 +156,8 @@
     "upgradeToUploadWsImageSubtitle": "നിങ്ങളുടെ നിലവിലെ {activePlan} പ്ലാൻ ഐക്കണുകളും ഇമോജികളും മാത്രം പിന്തുണയ്ക്കുന്നു. വർക്ക്സ്പേസ് അവതാറായി കസ്റ്റം ഇമേജ് അപ്‌ലോഡ് ചെയ്യാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
-    "upgradeToUseRowColoring": "Upgrade to use row coloring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
+    "upgradeToUseRowColoring": "Upgrade to use row colouring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "Script",
@@ -808,8 +808,8 @@
     "youAreLeavingNocoDB": "നിങ്ങൾ NocoDB വിട്ട് പോകുകയാണു",
     "onlyProceedIfYouTrustThisLink": "ഈ ലിങ്ക് വിശ്വസിക്കുന്നുണ്ടെങ്കിൽ മാത്രം തുടരുക.",
     "reAssignViewModalSubtitle": "വീണ്ടും നിയോഗിച്ചാൽ നിലവിലുള്ള ഉടമയ്ക്ക് ഇനി കാഴ്ച സജ്ജീകരണം എഡിറ്റ് ചെയ്യാൻ കഴിയില്ല.",
-    "getMoreFromNocodb": "Get more from NocoDB",
-    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
+    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
+    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
     "loyaltyBannerTitle": "വിശ്വസ്തത ഫലം തരുന്നു — പരിധിയിട്ട നിരക്കുകൾ ആസ്വദിക്കുക!",
     "loyaltyBannerSubtitle": "പരിമിതിയില്ലാത്ത സീറ്റുകൾ, അധിക റെക്കോഡുകൾ, കൂടുതൽ സ്റ്റോറേജ്, കണ്ടീഷണൽ വെബ്‌ഹുക്കുകൾ, SSO, ഇന്റഗ്രേഷനുകൾ തുടങ്ങിയവ അന്ലോക്ക് ചെയ്യുക!",
     "selectTimezone": "ടൈംസോൺ പ്രദർശിപ്പിക്കുക",

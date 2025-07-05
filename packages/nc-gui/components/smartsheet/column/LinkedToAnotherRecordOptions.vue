@@ -541,7 +541,7 @@ const toggleCrossBase = () => {
                 :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER"
                 :content="
                   $t('upgrade.upgradeToAddLimitRecordSelection', {
-                    plan: getPlanTitle(PlanTitles.TEAM),
+                    plan: getPlanTitle(PlanTitles.PLUS),
                   })
                 "
               />

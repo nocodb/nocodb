@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Attachment } from '../../lib/types'
 import type { Row as RowType } from '#imports'
 
@@ -398,16 +398,28 @@ const handleOpenNewRecordForm = () => {
             </div>
           </NcMenuItem>
           <NcDivider />
-          <NcMenuItem
+          <PermissionsTooltip
             v-if="contextMenuTarget?.index !== undefined"
-            class="!text-red-600 !hover:bg-red-50"
-            @click="deleteRow(contextMenuTarget.index)"
+            :entity="PermissionEntity.TABLE"
+            :entity-id="meta?.id"
+            :permission="PermissionKey.TABLE_RECORD_DELETE"
+            placement="right"
           >
-            <div v-e="['a:row:delete']" class="flex items-center gap-2">
-              <component :is="iconMap.delete" class="flex" />
-              {{ $t('activity.deleteRow') }}
-            </div>
-          </NcMenuItem>
+            <template #default="{ isAllowed }">
+              <NcMenuItem
+                :class="{
+                  '!text-red-600 !hover:bg-red-50': isAllowed,
+                }"
+                :disabled="!isAllowed"
+                @click="deleteRow(contextMenuTarget.index)"
+              >
+                <div v-e="['a:row:delete']" class="flex items-center gap-2">
+                  <component :is="iconMap.delete" class="flex" />
+                  {{ $t('activity.deleteRow') }}
+                </div>
+              </NcMenuItem>
+            </template>
+          </PermissionsTooltip>
         </NcMenu>
       </template>
       <div class="flex-1">
@@ -479,6 +491,7 @@ const handleOpenNewRecordForm = () => {
                           v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                           :key="`carousel-${record.rowMeta.rowIndex}-${index}`"
                           class="h-52"
+                          image-class="!w-full"
                           :object-fit="coverImageObjectFitStyle"
                           :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
                           @click="expandFormClick($event, record)"
@@ -493,13 +506,19 @@ const handleOpenNewRecordForm = () => {
                     </div>
                   </template>
 
-                  <div class="flex-1 flex content-stretch gap-3">
+                  <div class="flex-1 flex content-stretch gap-3 w-full">
                     <div
                       v-if="isRowColouringEnabled"
                       class="w-1 flex-none min-h-4 rounded-sm"
                       :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
                     ></div>
-                    <div class="flex-1 flex flex-col gap-3 !children:pointer-events-none">
+                    <div
+                      class="flex-1 flex flex-col gap-3 !children:pointer-events-none"
+                      :class="{
+                        'w-[calc(100%_-_16px)]': isRowColouringEnabled,
+                        'w-full': !isRowColouringEnabled,
+                      }"
+                    >
                       <h2
                         v-if="displayField"
                         class="nc-card-display-value-wrapper"
@@ -587,19 +606,22 @@ const handleOpenNewRecordForm = () => {
         </div>
       </div>
     </NcDropdown>
-    <div class="sticky bottom-4">
-      <NcButton
+    <div class="sticky bottom-4 w-[fit-content]">
+      <PermissionsTooltip
         v-if="isUIAllowed('dataInsert') && !isSyncedTable"
-        size="xs"
-        type="secondary"
-        class="ml-4"
-        @click="handleOpenNewRecordForm"
+        :entity="PermissionEntity.TABLE"
+        :entity-id="meta?.id"
+        :permission="PermissionKey.TABLE_RECORD_ADD"
       >
-        <div class="flex items-center gap-2">
-          <component :is="iconMap.plus" class="" />
-          {{ $t('activity.newRecord') }}
-        </div>
-      </NcButton>
+        <template #default="{ isAllowed }">
+          <NcButton size="xs" type="secondary" class="ml-4" :disabled="!isAllowed" @click="handleOpenNewRecordForm">
+            <div class="flex items-center gap-2">
+              <component :is="iconMap.plus" class="" />
+              {{ $t('activity.newRecord') }}
+            </div>
+          </NcButton>
+        </template>
+      </PermissionsTooltip>
     </div>
   </div>
   <Suspense>

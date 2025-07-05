@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type dayjs from 'dayjs'
-import { UITypes } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 
 const emit = defineEmits(['newRecord', 'expandRecord'])
 
@@ -848,16 +848,24 @@ const addRecord = (date: dayjs.Dayjs) => {
                   </NcMenu>
                 </template>
               </NcDropdown>
-              <NcButton
+
+              <PermissionsTooltip
                 v-else-if="[UITypes.DateTime, UITypes.Date].includes(calDataType) && !isSyncedFromColumn"
-                :class="{
-                  '!block': isDateSelected(day.date),
-                  '!hidden': !isDateSelected(day.date),
-                }"
-                class="!group-hover:block !w-6 !h-6 !rounded"
-                size="xsmall"
-                type="secondary"
-                @click="
+                :entity="PermissionEntity.TABLE"
+                :entity-id="meta?.id"
+                :permission="PermissionKey.TABLE_RECORD_ADD"
+              >
+                <template #default="{ isAllowed }">
+                  <NcButton
+                    :class="{
+                      '!block': isDateSelected(day.date),
+                      '!hidden': !isDateSelected(day.date),
+                    }"
+                    class="!group-hover:block !w-6 !h-6 !rounded"
+                    size="xsmall"
+                    type="secondary"
+                    :disabled="!isAllowed"
+                    @click="
                 () => {
                   const record = {
                     row: {
@@ -872,9 +880,11 @@ const addRecord = (date: dayjs.Dayjs) => {
                   emit('newRecord', record)
                 }
               "
-              >
-                <component :is="iconMap.plus" />
-              </NcButton>
+                  >
+                    <component :is="iconMap.plus" />
+                  </NcButton>
+                </template>
+              </PermissionsTooltip>
               <span
                 :class="{
                   'bg-brand-50 text-brand-500 !font-bold': day.isToday,

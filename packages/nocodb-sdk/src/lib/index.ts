@@ -9,6 +9,7 @@ export * from '~/lib/enums';
 export * from '~/lib/formulaHelpers';
 export * from '~/lib/regex';
 export * from '~/lib/payment';
+export * from '~/lib/permission';
 export {
   default as UITypes,
   UITypesName,
@@ -39,6 +40,7 @@ export {
   isReadOnlyColumn,
   isDateOrDateTimeCol,
   customLinkSupportedTypes,
+  UITypesSearchTerms,
 } from '~/lib/UITypes';
 export { default as CustomAPI, FileType } from '~/lib/CustomAPI';
 export { default as TemplateGenerator } from '~/lib/TemplateGenerator';

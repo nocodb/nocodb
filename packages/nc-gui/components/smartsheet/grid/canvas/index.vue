@@ -2,6 +2,8 @@
 import {
   type ColumnReqType,
   type ColumnType,
+  PermissionEntity,
+  PermissionKey,
   PlanLimitTypes,
   type TableType,
   UITypes,
@@ -184,17 +186,17 @@ const overlayStyle = ref<Record<string, any> | null>(null)
 const openAggregationField = ref<CanvasGridColumn | null>(null)
 const openAddNewRowDropdown = ref<Array<number> | null>(null)
 const openColumnDropdownField = ref<ColumnType | null>(null)
-const isDropdownVisible = ref(false)
+const _isDropdownVisible = ref(false)
 const contextMenuTarget = ref<{ row: number; col: number; path: Array<number> } | null>(null)
 const _isContextMenuOpen = ref(false)
-const isCreateOrEditColumnDropdownOpen = ref(false)
+const _isCreateOrEditColumnDropdownOpen = ref(false)
 const columnEditOrAddProviderRef = ref()
 const editColumn = ref<ColumnType | null>(null)
 const lastOpenColumnDropdownField = ref<ColumnType | null>(null)
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 const isEditColumnDescription = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
-const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
+const clientMousePosition = reactive(clientMousePositionDefaultValue)
 const paddingLessUITypes = new Set([
   UITypes.LongText,
   UITypes.DateTime,
@@ -309,6 +311,7 @@ const {
   view,
   isAddingColumnAllowed,
   isAddingEmptyRowAllowed,
+  isAddingEmptyRowPermitted,
   // Selections
   isSelectedOnlyScript,
   isSelectedOnlyAI,
@@ -399,6 +402,34 @@ function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType)
 }
 
 // Computed
+const isDropdownVisible = computed({
+  get() {
+    return _isDropdownVisible.value
+  },
+  set(value) {
+    // block closing editOrAddMenu if it needs to be keep open
+    // for example while saving/updating column it needs to be in open state to avoid partial save
+    if (!value && _isCreateOrEditColumnDropdownOpen.value && columnEditOrAddProviderRef.value?.shouldKeepModalOpen()) {
+      return
+    }
+    _isDropdownVisible.value = value
+  },
+})
+
+const isCreateOrEditColumnDropdownOpen = computed({
+  get() {
+    return _isCreateOrEditColumnDropdownOpen.value
+  },
+  set(value) {
+    // block closing editOrAddMenu if it needs to be keep open
+    // for example while saving/updating column it needs to be in open state to avoid partial save
+    if (!value && columnEditOrAddProviderRef.value?.shouldKeepModalOpen()) {
+      return
+    }
+    _isCreateOrEditColumnDropdownOpen.value = value
+  },
+})
+
 const noPadding = computed(() => paddingLessUITypes.has(editEnabled.value?.column.uidt as UITypes))
 
 const containerRef = computed(() => scroller.value?.wrapperRef)
@@ -954,7 +985,10 @@ async function handleMouseDown(e: MouseEvent) {
   editColumn.value = null
   columnOrder.value = null
   isCreateOrEditColumnDropdownOpen.value = false
-  overlayStyle.value = null
+  // skip resetting if add/edit column still visible
+  if (!isCreateOrEditColumnDropdownOpen.value) {
+    overlayStyle.value = null
+  }
   contextMenuTarget.value = null
   prevActiveCell = null
 
@@ -1263,9 +1297,9 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
           return
         } else {
           const columnWidth = parseCellWidth(clickedColumn.width)
-          const iconOffsetX = xOffset + columnWidth - 24
+          const iconOffsetX = xOffset + columnWidth - 24 + groupByColumns.value.length * 13
           // check if clicked on the column menu icon
-          if (y <= 21 && y >= 9 && iconOffsetX <= x && iconOffsetX + 14 >= x) {
+          if (iconOffsetX <= x && iconOffsetX + 14 >= x) {
             if (isFieldNotEditable) return
 
             // if menu already in open state then close it on second click
@@ -1336,7 +1370,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     // If the click is not normal single click, return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
 
-    if (clickedColumn) {
+    if (clickedColumn && clickedColumn.id !== 'row_number') {
       // if clicked on same aggregation field, close the dropdown
       if (
         prevMenuState.isDropdownVisible &&
@@ -1922,8 +1956,16 @@ const handleMouseMove = (e: MouseEvent) => {
 }
 
 const handleMouseLeave = () => {
-  activeCursor.value = 'auto'
+  setCursor('auto')
   hideTooltip()
+
+  // Reset hover row on mouse leave from canvas
+  hoverRow.value = {
+    path: [],
+    rowIndex: -2,
+  }
+
+  requestAnimationFrame(triggerRefreshCanvas)
 }
 
 const reloadViewDataHookHandler = withLoading(async (params) => {
@@ -2010,6 +2052,8 @@ async function expandRows({
     'newColumns': newColumns,
     'cellsOverwritten': cellsOverwritten,
     'rowsUpdated': rowsUpdated,
+    'isAddingEmptyRowPermitted': isAddingEmptyRowPermitted.value,
+    'meta': meta.value,
     'onUpdate:expand': closeDialog,
     'onUpdate:modelValue': closeDlg,
   })
@@ -2202,7 +2246,7 @@ const onNavigate = async (dir: NavigateDir) => {
     case NavigateDir.NEXT:
       if (activeCell.value.row < dataCache.totalRows.value - 1) {
         activeCell.value.row++
-      } else {
+      } else if (isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value && !removeInlineAddRecord.value) {
         addEmptyRow(undefined, false, undefined, defaultData, path)
         activeCell.value.row++
       }
@@ -2545,7 +2589,12 @@ defineExpose({
               willChange: 'top, left, width, height',
             }"
             class="nc-canvas-table-editable-cell-wrapper pointer-events-auto"
-            :class="{ [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped.isStuck }"
+            :class="{
+              [`row-height-${rowHeightEnum ?? 1}`]: true,
+              'on-stick ': isClamped.isStuck,
+              'border-[#3366ff]': isClamped.isStuck && editEnabled.isCellEditable,
+              'border-[#9AA2AF]': isClamped.isStuck && !editEnabled.isCellEditable,
+            }"
           >
             <div
               ref="activeCellElement"
@@ -2571,7 +2620,8 @@ defineExpose({
                     :row="editEnabled.row"
                     :path="editEnabled.path"
                     active
-                    :read-only="!isDataEditAllowed"
+                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable"
+                    :is-allowed="editEnabled.isCellEditable"
                     @save="
                       updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state, undefined, undefined, editEnabled.path)
                     "
@@ -2585,7 +2635,8 @@ defineExpose({
                     :path="editEnabled.path"
                     active
                     edit-enabled
-                    :read-only="!isDataEditAllowed"
+                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable"
+                    :is-allowed="editEnabled.isCellEditable"
                     @update:model-value="updateValue"
                     @save="updateOrSaveRow?.(...$event)"
                     @save-with-state="updateOrSaveRow?.(...$event)"
@@ -2611,6 +2662,7 @@ defineExpose({
         }`"
         placement="bottomRight"
         @visible-change="onVisibilityChange"
+        @update:visible="onVisibilityChange"
       >
         <div
           v-if="openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField || openAddNewRowDropdown"
@@ -2654,61 +2706,71 @@ defineExpose({
       </NcDropdown>
     </template>
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
-      <NcDropdown v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord">
-        <div class="flex shadow-nc-sm rounded-lg">
-          <NcButton
-            v-if="isMobileMode"
-            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="nc-grid-add-new-row"
-            size="small"
-            type="secondary"
-            :shadow="false"
-            @click.stop="onNewRecordToFormClick()"
-          >
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="plus" />
-              New Record
+      <PermissionsTooltip
+        v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord"
+        :entity="PermissionEntity.TABLE"
+        :entity-id="meta?.id"
+        :permission="PermissionKey.TABLE_RECORD_ADD"
+        show-overlay
+      >
+        <template #default="{ isAllowed }">
+          <NcDropdown :disabled="!isAllowed">
+            <div class="flex shadow-nc-sm rounded-lg">
+              <NcButton
+                v-if="isMobileMode"
+                v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
+                class="nc-grid-add-new-row"
+                size="small"
+                type="secondary"
+                :shadow="false"
+                @click.stop="onNewRecordToFormClick()"
+              >
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="plus" />
+                  New Record
+                </div>
+              </NcButton>
+              <NcButton
+                v-else
+                v-e="[isAddNewRecordGridMode && !isGroupBy ? 'c:row:add:grid' : 'c:row:add:form']"
+                class="nc-grid-add-new-row"
+                size="small"
+                :class="{
+                  '!rounded-r-none !border-r-0': !isGroupBy,
+                }"
+                type="secondary"
+                :shadow="false"
+                @click.stop="isAddNewRecordGridMode && !isGroupBy ? addEmptyRow() : onNewRecordToFormClick()"
+              >
+                <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
+                  <GeneralIcon icon="plus" />
+                  <template v-if="isAddNewRecordGridMode || isGroupBy">
+                    {{ $t('activity.newRecord') }}
+                  </template>
+                  <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}</template>
+                </div>
+              </NcButton>
+              <NcButton
+                v-if="!isMobileMode && !isGroupBy"
+                size="small"
+                class="!rounded-l-none nc-add-record-more-info"
+                type="secondary"
+                :shadow="false"
+              >
+                <GeneralIcon icon="arrowUp" />
+              </NcButton>
             </div>
-          </NcButton>
-          <NcButton
-            v-else
-            v-e="[isAddNewRecordGridMode && !isGroupBy ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="nc-grid-add-new-row"
-            size="small"
-            :class="{
-              '!rounded-r-none !border-r-0': !isGroupBy,
-            }"
-            type="secondary"
-            :shadow="false"
-            @click.stop="isAddNewRecordGridMode && !isGroupBy ? addEmptyRow() : onNewRecordToFormClick()"
-          >
-            <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
-              <GeneralIcon icon="plus" />
-              <template v-if="isAddNewRecordGridMode || isGroupBy">
-                {{ $t('activity.newRecord') }}
-              </template>
-              <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}</template>
-            </div>
-          </NcButton>
-          <NcButton
-            v-if="!isMobileMode && !isGroupBy"
-            size="small"
-            class="!rounded-l-none nc-add-record-more-info"
-            type="secondary"
-            :shadow="false"
-          >
-            <GeneralIcon icon="arrowUp" />
-          </NcButton>
-        </div>
 
-        <template #overlay>
-          <AddNewRowMenu
-            :path="openAddNewRowDropdown"
-            :on-new-record-to-grid-click="onNewRecordToGridClick"
-            :on-new-record-to-form-click="onNewRecordToFormClick"
-          />
+            <template #overlay>
+              <AddNewRowMenu
+                :path="openAddNewRowDropdown"
+                :on-new-record-to-grid-click="onNewRecordToGridClick"
+                :on-new-record-to-form-click="onNewRecordToFormClick"
+              />
+            </template>
+          </NcDropdown>
         </template>
-      </NcDropdown>
+      </PermissionsTooltip>
     </div>
   </div>
 </template>
@@ -2718,7 +2780,7 @@ defineExpose({
   @apply sticky !text-small !leading-[18px] overflow-hidden;
 
   &.on-stick {
-    @apply bg-white border-2 !rounded border-[#3366ff];
+    @apply bg-white border-2 !rounded;
   }
 
   &.row-height-1 {

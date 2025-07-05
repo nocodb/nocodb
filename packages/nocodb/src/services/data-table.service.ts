@@ -103,7 +103,7 @@ export class DataTableService {
       source,
     });
 
-    if (view.type !== ViewTypes.GRID) {
+    if (view && view.type !== ViewTypes.GRID) {
       NcError.badRequest('Aggregation is only supported on grid views');
     }
 

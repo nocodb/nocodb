@@ -156,8 +156,8 @@
     "upgradeToUploadWsImageSubtitle": "پلن فعلی {activePlan} تنها از آیکن‌ها و ایموجی‌ها پشتیبانی می‌کند. برای بارگذاری تصویر سفارشی به عنوان آواتار ورک‌اسپیس، به پلن {plan} ارتقاء دهید.",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
-    "upgradeToUseRowColoring": "Upgrade to use row coloring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
+    "upgradeToUseRowColoring": "Upgrade to use row colouring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "Script",
@@ -808,8 +808,8 @@
     "youAreLeavingNocoDB": "در حال ترک NocoDB هستید",
     "onlyProceedIfYouTrustThisLink": "تنها در صورتی ادامه دهید که به این لینک اعتماد دارید.",
     "reAssignViewModalSubtitle": "پس از بازتخصیص، مالک فعلی دیگر قادر به ویرایش پیکربندی نما نخواهد بود.",
-    "getMoreFromNocodb": "Get more from NocoDB",
-    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
+    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
+    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
     "loyaltyBannerTitle": "وفاداری سودآور است — از قیمت ثابت لذت ببرید!",
     "loyaltyBannerSubtitle": "صندلی‌های نامحدود، رکوردهای بیشتر، فضای ذخیره‌سازی افزوده، وبهوک‌های شرطی، SSO، یکپارچگی‌ها و بسیار بیشتر را باز کنید!",
     "selectTimezone": "نمایش منطقهٔ زمانی",

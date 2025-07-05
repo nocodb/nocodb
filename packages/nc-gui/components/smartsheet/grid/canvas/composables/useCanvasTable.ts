@@ -1,4 +1,14 @@
-import { UITypes, isAIPromptCol, isLinksOrLTAR, isOrderCol, isReadonly, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  PermissionEntity,
+  PermissionKey,
+  UITypes,
+  isAIPromptCol,
+  isLinksOrLTAR,
+  isOrderCol,
+  isReadonly,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import type { ButtonType, ColumnType, TableType, UserType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
@@ -160,6 +170,7 @@ export function useCanvasTable({
 }) {
   const { metas, getMeta, getPartialMeta } = useMetas()
   const { getBaseRoles } = useBases()
+  const { isAllowed } = usePermissions()
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref<{
@@ -276,6 +287,10 @@ export function useCanvasTable({
     () => isDataEditAllowed.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
   )
 
+  const isAddingEmptyRowPermitted = computed(() =>
+    meta.value?.id ? isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD) : true,
+  )
+
   const isAddingColumnAllowed = computed(() => !readOnly.value && isFieldEditAllowed.value && !isSqlView.value)
 
   const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
@@ -358,6 +373,10 @@ export function useCanvasTable({
           isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
         )
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
+        const isCellEditable =
+          showReadonlyColumnTooltip(f) ||
+          !showEditRestrictedColumnTooltip(f) ||
+          isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT)
 
         return {
           id: f.id,
@@ -373,8 +392,8 @@ export function useCanvasTable({
               : parseCellWidth(gridViewCol.width) > width.value * (3 / 4)
               ? false
               : !!f.pv,
-          readonly: f.readonly || isDataReadOnly.value || isSqlView.value || isPublicView.value,
-          isCellEditable: !isReadonly(f),
+          readonly: f.readonly || isDataReadOnly.value || !isDataEditAllowed.value || isPublicView.value || !isCellEditable,
+          isCellEditable,
           pv: !!f.pv,
           virtual: isVirtualCol(f),
           aggregation: formatAggregation(gridViewCol.aggregation, aggregations.value[f.title], f),
@@ -805,6 +824,7 @@ export function useCanvasTable({
     getRows,
     draggedRowGroupPath,
     isAddingEmptyRowAllowed,
+    isAddingEmptyRowPermitted,
     removeInlineAddRecord,
     upgradeModalInlineState,
     rowMetaColumnWidth,
@@ -1047,6 +1067,7 @@ export function useCanvasTable({
     makeCellEditable,
     expandForm,
     isAddingEmptyRowAllowed,
+    isAddingEmptyRowPermitted,
     addEmptyRow,
     onActiveCellChanged,
     addNewColumn,
@@ -1087,7 +1108,7 @@ export function useCanvasTable({
     for (const row of rows) {
       for (const col of cols) {
         const colObj = col.columnObj
-        if (!row || !colObj || !colObj.title) continue
+        if (!row || !colObj || !colObj.title || !col.isCellEditable) continue
 
         if (isVirtualCol(colObj)) {
           if ((isBt(colObj) || isOo(colObj) || isMm(colObj)) && !isInfoShown) {
@@ -1190,12 +1211,13 @@ export function useCanvasTable({
       width: parseCellWidth(clickedColumn.width) + ([UITypes.LongText, UITypes.Formula].includes(column.uidt) ? 2 : 0) + 2,
       fixed: clickedColumn.fixed,
       path,
+      isCellEditable: clickedColumn.isCellEditable,
     }
     hideTooltip()
     return true
   }
 
-  function makeCellEditable(row: number | Row, clickedColumn: CanvasGridColumn) {
+  function makeCellEditable(row: number | Row, clickedColumn: CanvasGridColumn, showEditCellRestrictionTooltip = true) {
     const column = metaColumnById.value[clickedColumn.id]
 
     row = typeof row === 'number' ? cachedRows.value.get(row)! : row
@@ -1204,7 +1226,9 @@ export function useCanvasTable({
 
     if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
 
-    if (!isDataEditAllowed.value || readOnly.value || isPublicView.value || !isAddingEmptyRowAllowed.value) {
+    const isEditRestricted = column.id && !isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)
+
+    if (!isDataEditAllowed.value || readOnly.value || isPublicView.value || !isAddingEmptyRowAllowed.value || isEditRestricted) {
       if (
         [
           UITypes.LongText,
@@ -1241,6 +1265,13 @@ export function useCanvasTable({
 
     if (column.pk && !row.rowMeta.new) {
       message.info(t('msg.info.editingPKnotSupported'))
+      return null
+    }
+
+    if (isEditRestricted && disableMakeCellEditable(column) && isEditRestricted) {
+      if (showEditCellRestrictionTooltip) {
+        message.toast(t('objects.permissions.editFieldTooltip'))
+      }
       return null
     }
 
@@ -1370,6 +1401,7 @@ export function useCanvasTable({
     meta,
     view,
     isAddingEmptyRowAllowed,
+    isAddingEmptyRowPermitted,
     isAddingColumnAllowed,
     getCellPosition,
 

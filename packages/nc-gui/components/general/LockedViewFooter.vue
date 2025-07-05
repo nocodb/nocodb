@@ -1,9 +1,17 @@
 <script lang="ts" setup>
 import { ViewLockType, type ViewType } from 'nocodb-sdk'
 
-const props = defineProps<{
-  view?: ViewType
-}>()
+const props = withDefaults(
+  defineProps<{
+    view?: ViewType
+    showIcon?: boolean
+    showUnlockButton?: boolean
+  }>(),
+  {
+    showIcon: true,
+    showUnlockButton: true,
+  },
+)
 
 const emits = defineEmits(['onOpen'])
 
@@ -35,7 +43,7 @@ const handleUnlockView = () => {
   >
     <component
       :is="viewLockIcons[view.lock_type].icon"
-      v-if="view?.lock_type"
+      v-if="view?.lock_type && showIcon"
       class="flex-none"
       :class="{
         'w-4 h-4': view?.lock_type === ViewLockType.Locked,
@@ -44,15 +52,17 @@ const handleUnlockView = () => {
     />
 
     <div class="flex-1">
-      {{
-        $t('title.thisViewIsLockType', {
-          type: $t(viewLockIcons[view?.lock_type]?.title).toLowerCase(),
-        })
-      }}
+      <slot name="title">
+        {{
+          $t('title.thisViewIsLockType', {
+            type: $t(viewLockIcons[view?.lock_type]?.title).toLowerCase(),
+          })
+        }}
+      </slot>
     </div>
 
     <NcButton
-      v-if="view?.lock_type === ViewLockType.Locked && isUIAllowed('fieldAdd')"
+      v-if="view?.lock_type === ViewLockType.Locked && isUIAllowed('fieldAdd') && showUnlockButton"
       type="text"
       size="xs"
       class="!text-nc-content-brand !hover:bg-nc-bg-gray-medium"
@@ -66,5 +76,3 @@ const handleUnlockView = () => {
     </NcButton>
   </div>
 </template>
-
-<style lang="scss" scoped></style>

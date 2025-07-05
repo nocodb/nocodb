@@ -24,9 +24,9 @@
   }
 }
 
-.text-Heading1,
-.text-Heading2,
-.text-Heading3,
+.text-heading1,
+.text-heading2,
+.text-heading3,
 .text-subHeading1,
 .text-subHeading2,
 .text-bodyLgBold,
@@ -1397,4 +1397,9 @@ svg.nc-virtual-cell-icon {
   @apply px-1.5 text-small !leading-5 rounded font-700 min-w-5.5;
 
   transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.ant-checkbox-checked:not(.ant-checkbox-disabled) .ant-checkbox-inner {
+  background-color: #3366ff !important;
+  border-color: #3366ff !important;
 }

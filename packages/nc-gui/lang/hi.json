@@ -156,8 +156,8 @@
     "upgradeToUploadWsImageSubtitle": "आपका मौजूदा {activePlan} प्लान केवल आइकन और इमोजी की अनुमति देता है। कस्टम इमेज को वर्कस्पेस अवतार के रूप में अपलोड करने के लिए {plan} प्लान में अपग्रेड करें।",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
-    "upgradeToUseRowColoring": "Upgrade to use row coloring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
+    "upgradeToUseRowColoring": "Upgrade to use row colouring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "Script",
@@ -808,8 +808,8 @@
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
     "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
     "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration.",
-    "getMoreFromNocodb": "Get more from NocoDB",
-    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
+    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
+    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
     "loyaltyBannerTitle": "वफादारी का लाभ उठाएँ — सीमित मूल्य का आनंद लें!",
     "loyaltyBannerSubtitle": "अनलिमिटेड सीटें, अतिरिक्त रिकॉर्ड, अधिक स्टोरेज, सशर्त वेबहुक्स, SSO, इंटीग्रेशन और बहुत कुछ अनलॉक करें!",
     "selectTimezone": "टाइमज़ोन प्रदर्शित करें",

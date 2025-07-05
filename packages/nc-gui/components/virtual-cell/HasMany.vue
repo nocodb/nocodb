@@ -32,7 +32,7 @@ const rowHeight = inject(RowHeightInj, ref())
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
-const clientMousePosition = inject(ClientMousePositionInj)
+const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 
 const listItemsDlg = ref(false)
 

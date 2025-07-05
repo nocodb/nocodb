@@ -282,7 +282,8 @@ const getAst = async (
     }
     let isRequested;
 
-    const isInFields = fields?.length && fields.includes(col.title);
+    const isInFields =
+      fields?.length && (fields.includes(col.title) || fields.includes(col.id));
     const isSortOrFilterColumn =
       includeSortAndFilterColumns &&
       (sortColumnIds.includes(col.id) || filterColumnIds.includes(col.id));

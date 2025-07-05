@@ -584,12 +584,12 @@ export const themeVariables = {
     'nc-content-inverted-primary': {
       DEFAULT: themeV4Colors.base.white,
       hover: themeV4Colors.base.white,
-      disabled: themeV4Colors.gray[400],
+      disabled: themeV4Colors.gray[500],
     },
     'nc-content-inverted-secondary': {
       DEFAULT: themeV4Colors.gray[700],
       hover: themeV4Colors.gray[700],
-      disabled: themeV4Colors.gray[400],
+      disabled: themeV4Colors.gray[500],
     },
     'nc-content-red': {
       dark: themeV4Colors.red[700],

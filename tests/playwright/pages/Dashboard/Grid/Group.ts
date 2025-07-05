@@ -126,9 +126,7 @@ export class GroupPageObject extends BasePage {
 
     const rowCount = index + 1;
 
-    const isRowSaving = this.get({ indexMap }).getByTestId(`row-save-spinner-${rowCount}`);
-    // if required field is present then isRowSaving will be hidden (not present in DOM)
-    await isRowSaving?.waitFor({ state: 'hidden' });
+    await this.grid.waitForRowSaveSpinnerToDisappear(rowCount);
 
     // fallback
     await this.rootPage.waitForTimeout(400);

@@ -1,6 +1,6 @@
 import { ncIsUndefined } from 'nocodb-sdk';
 import type { Knex } from 'knex';
-import {MAX_CONCURRENT_TRANSFORMS} from "~/constants";
+import { MAX_CONCURRENT_TRANSFORMS } from '~/constants';
 
 export function getAliasGenerator(prefix = '__nc_') {
   let aliasC = 0;
@@ -165,7 +165,16 @@ export function batchUpdate(
       `CASE ?? ${filteredData
         .map(() => 'WHEN ? THEN ?')
         .join(' ')} ELSE ?? END`,
-      [pk, ...filteredData.flatMap((row) => [row[pk], row[column]]), column],
+      [
+        pk,
+        ...filteredData.flatMap((row) => [
+          row[pk],
+          typeof row[column] === 'object' || typeof row[column] === 'boolean'
+            ? row[column]
+            : `${row[column]}`,
+        ]),
+        column,
+      ],
     );
   });
 

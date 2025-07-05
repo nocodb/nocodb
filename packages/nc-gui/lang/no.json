@@ -156,8 +156,8 @@
     "upgradeToUploadWsImageSubtitle": "Den nåværende {activePlan}-planen tillater kun ikoner og emojier. Oppgrader til {plan}-planen for å laste opp et eget bilde som arbeidsområde-avatar.",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
-    "upgradeToUseRowColoring": "Upgrade to use row coloring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
+    "upgradeToUseRowColoring": "Upgrade to use row colouring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "Script",
@@ -808,8 +808,8 @@
     "youAreLeavingNocoDB": "Du forlater NocoDB",
     "onlyProceedIfYouTrustThisLink": "Fortsett kun hvis du stoler på denne koblingen.",
     "reAssignViewModalSubtitle": "Når den er tildelt på nytt, vil nåværende eier ikke lenger kunne redigere visningskonfigurasjonen.",
-    "getMoreFromNocodb": "Get more from NocoDB",
-    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
+    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
+    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
     "loyaltyBannerTitle": "Lojalitet lønner seg – nyt fast pris!",
     "loyaltyBannerSubtitle": "Lås opp ubegrensede seter, flere poster, mer lagring, betingede webhooks, SSO, integrasjoner og mye mer!",
     "selectTimezone": "Vis tidssone",

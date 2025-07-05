@@ -730,6 +730,7 @@ import NcLogoZohoColored from '~icons/nc-icons-v2/zoho-colored.svg'
 import NcLogoZoho from '~icons/nc-icons-v2/zoho.svg'
 import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
 import NcBaseOutline from '~icons/nc-icons-v2/base-outline.svg'
+import NcBasePrivate from '~icons/nc-icons-v2/base-private.svg'
 import NcBaseOutlineDuo from '~icons/nc-icons-v2/base-outline-duo.svg'
 import NcSearchDuo from '~icons/nc-icons-v2/search-duo.svg'
 import NcSettingsDuo from '~icons/nc-icons-v2/settings-duo.svg'
@@ -759,6 +760,8 @@ import MdiNcFlagOutline from '~icons/nc-icons/mdi-flag-outline'
 import MdiNcAttachFile from '~icons/nc-icons/mdi-attach'
 import MdiCloudKeyOutline from '~icons/mdi/cloud-key-outline'
 import NcDiscordForum from '~icons/nc-icons/discord-forum'
+import NcCrown from '~icons/nc-icons-v2/crown'
+import NcMultiCircle from '~icons/nc-icons-v2/multi-circle'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1715,6 +1718,7 @@ export const iconMap = {
   'sso': MdiCloudKeyOutline,
   'mcp': NcMCP,
   'ncBaseOutline': NcBaseOutline,
+  'ncBasePrivate': NcBasePrivate,
   'ncBaseOutlineDuo': NcBaseOutlineDuo,
   'ncSearchDuo': NcSearchDuo,
   'ncSettingsDuo': NcSettingsDuo,
@@ -1725,6 +1729,8 @@ export const iconMap = {
   'ncPlusCircleSolid': h(NcPlusCircleSolid, { stroke: 'transparent' }),
   'ncDiscordForum': NcDiscordForum,
   'ncHeadphone': NcHeadphone,
+  'ncCrown': NcCrown,
+  'ncMultiCircle': NcMultiCircle,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4282,6 +4288,10 @@ export const searchableMap = {
     icon: NcBaseOutline,
     keywords: ['base', 'database', 'storage', 'db'],
   },
+  ncBasePrivate: {
+    icon: NcBasePrivate,
+    keywords: ['base', 'database', 'storage', 'db', 'private', 'locked', 'secure'],
+  },
   ncBaseOutlineDuo: {
     icon: NcBaseOutlineDuo,
     keywords: ['base', 'database', 'storage', 'db'],
@@ -4321,6 +4331,14 @@ export const searchableMap = {
   ncConditions: {
     icon: NcConditions,
     keywords: ['conditions', 'filter', 'rule'],
+  },
+  ncCrown: {
+    icon: NcCrown,
+    keywords: ['crown', 'badge', 'award', 'achievement', 'honor', 'paid'],
+  },
+  ncMultiCircle: {
+    icon: NcMultiCircle,
+    keywords: ['multi', 'circle', 'multi-circle', 'multi-circle-outline'],
   },
 }
 

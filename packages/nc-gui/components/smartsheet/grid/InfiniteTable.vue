@@ -4,6 +4,7 @@ import {
   type ColumnReqType,
   type ColumnType,
   PlanLimitTypes,
+  PlanTitles,
   type TableType,
   UITypes,
   type ViewType,
@@ -859,6 +860,8 @@ async function expandRows({
     'newColumns': newColumns,
     'cellsOverwritten': cellsOverwritten,
     'rowsUpdated': rowsUpdated,
+    'isAddingEmptyRowPermitted': true,
+    'meta': meta.value,
     'onUpdate:expand': closeDialog,
     'onUpdate:modelValue': closeDlg,
   })
@@ -3141,6 +3144,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
             <div>
               {{
                 $t('upgrade.upgradeToSeeMoreRecordInlineSubtitle', {
+                  plan: PlanTitles.BUSINESS,
                   limit: 100,
                   total: Math.max(props.totalRows, props.actualTotalRows),
                   remaining: Math.max(props.totalRows, props.actualTotalRows) - 100,
@@ -3156,7 +3160,12 @@ const headerFilteredOrSortedClass = (colId: string) => {
             </a>
             <NcButton
               size="small"
-              @click="navigateToPricing({ limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE })"
+              @click="
+                navigateToPricing({
+                  limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
+                  ctaPlan: PlanTitles.BUSINESS,
+                })
+              "
             >
               {{ isWsOwner ? $t('general.upgrade') : t('general.requestUpgrade') }}
             </NcButton>

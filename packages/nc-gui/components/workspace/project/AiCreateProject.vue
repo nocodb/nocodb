@@ -531,7 +531,7 @@ onMounted(() => {
 
             <div class="rounded-xl border-1 border-purple-100">
               <div
-                v-for="(_row, idx) of ncArrayFrom(7)"
+                v-for="idx in 7"
                 :key="idx"
                 class="px-3 py-2 flex items-center gap-2 border-b-1 border-purple-100 !last-of-type:border-b-0"
               >

@@ -27,6 +27,8 @@ import {
   ncIsNull,
   ncIsObject,
   ncIsUndefined,
+  PermissionEntity,
+  PermissionKey,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -79,6 +81,7 @@ import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
 import {
   _wherePk,
   applyPaginate,
+  dataWrapper,
   extractSortsObject,
   formatDataForAudit,
   getCompositePkValue,
@@ -808,7 +811,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       where?: string;
       filterArrJson?: string | Filter[];
     }>,
-    view: View,
+    view?: View,
   ) {
     try {
       if (!bulkFilterList?.length) {
@@ -819,27 +822,47 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       const columns = await this.model.getColumns(this.context);
 
-      let viewColumns = (
-        await GridViewColumn.list(this.context, this.viewId)
-      ).filter((c) => {
-        const col = this.model.columnsById[c.fk_column_id];
-        return c.show && (view.show_system_fields || !isSystemColumn(col));
-      });
+      let viewColumns: any[];
+      if (this.viewId) {
+        viewColumns = (
+          await GridViewColumn.list(this.context, this.viewId)
+        ).filter((c) => {
+          const col = this.model.columnsById[c.fk_column_id];
+          return c.show && (view?.show_system_fields || !isSystemColumn(col));
+        });
 
-      // By default, the aggregation is done based on the columns configured in the view
-      // If the aggregation parameter is provided, only the columns mentioned in the aggregation parameter are considered
-      // Also the aggregation type from the parameter is given preference over the aggregation type configured in the view
-      if (aggregation?.length) {
-        viewColumns = viewColumns
-          .map((c) => {
-            const agg = aggregation.find((a) => a.field === c.fk_column_id);
-            return new GridViewColumn({
-              ...c,
-              show: !!agg,
-              aggregation: agg ? agg.type : c.aggregation,
-            });
-          })
-          .filter((c) => c.show);
+        // By default, the aggregation is done based on the columns configured in the view
+        // If the aggregation parameter is provided, only the columns mentioned in the aggregation parameter are considered
+        // Also the aggregation type from the parameter is given preference over the aggregation type configured in the view
+        if (aggregation?.length) {
+          viewColumns = viewColumns
+            .map((c) => {
+              const agg = aggregation.find((a) => a.field === c.fk_column_id);
+              return new GridViewColumn({
+                ...c,
+                show: !!agg,
+                aggregation: agg ? agg.type : c.aggregation,
+              });
+            })
+            .filter((c) => c.show);
+        }
+      } else {
+        // If no viewId, use all model columns or those specified in aggregation
+        if (aggregation?.length) {
+          viewColumns = aggregation
+            .map((agg) => {
+              const col = this.model.columnsById[agg.field];
+              if (!col) return null;
+              return {
+                fk_column_id: col.id,
+                aggregation: agg.type,
+                show: true,
+              };
+            })
+            .filter(Boolean);
+        } else {
+          viewColumns = [];
+        }
       }
 
       const aliasColObjMap = await this.model.getAliasColObjMap(
@@ -877,9 +900,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         return {};
       }
 
-      const viewFilterList = await Filter.rootFilterList(this.context, {
-        viewId: this.viewId,
-      });
+      let viewFilterList = [];
+      if (this.viewId) {
+        viewFilterList = await Filter.rootFilterList(this.context, {
+          viewId: this.viewId,
+        });
+      }
 
       const selectors = [] as Array<Knex.Raw>;
       // Generate a knex raw query for each filter in the bulkFilterList
@@ -1000,33 +1026,49 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  async aggregate(args: { filterArr?: Filter[]; where?: string }, view: View) {
+  async aggregate(args: { filterArr?: Filter[]; where?: string }, view?: View) {
     try {
       const { where, aggregation } = this._getListArgs(args as any);
 
       const columns = await this.model.getColumns(this.context);
 
-      let viewColumns = (
-        await GridViewColumn.list(this.context, this.viewId)
-      ).filter((c) => {
-        const col = this.model.columnsById[c.fk_column_id];
-        return c.show && (view.show_system_fields || !isSystemColumn(col));
-      });
+      let viewColumns: any[];
+      if (this.viewId) {
+        viewColumns = (
+          await GridViewColumn.list(this.context, this.viewId)
+        ).filter((c) => {
+          const col = this.model.columnsById[c.fk_column_id];
+          return c.show && (view?.show_system_fields || !isSystemColumn(col));
+        });
 
-      // By default, the aggregation is done based on the columns configured in the view
-      // If the aggregation parameter is provided, only the columns mentioned in the aggregation parameter are considered
-      // Also the aggregation type from the parameter is given preference over the aggregation type configured in the view
-      if (aggregation?.length) {
-        viewColumns = viewColumns
-          .map((c) => {
-            const agg = aggregation.find((a) => a.field === c.fk_column_id);
-            return new GridViewColumn({
-              ...c,
-              show: !!agg,
-              aggregation: agg ? agg.type : c.aggregation,
-            });
-          })
-          .filter((c) => c.show);
+        if (aggregation?.length) {
+          viewColumns = viewColumns
+            .map((c) => {
+              const agg = aggregation.find((a) => a.field === c.fk_column_id);
+              return new GridViewColumn({
+                ...c,
+                show: !!agg,
+                aggregation: agg ? agg.type : c.aggregation,
+              });
+            })
+            .filter((c) => c.show);
+        }
+      } else {
+        if (aggregation?.length) {
+          viewColumns = aggregation
+            .map((agg) => {
+              const col = this.model.columnsById[agg.field];
+              if (!col) return null;
+              return {
+                fk_column_id: col.id,
+                aggregation: agg.type,
+                show: true,
+              };
+            })
+            .filter(Boolean);
+        } else {
+          viewColumns = [];
+        }
       }
 
       const aliasColObjMap = await this.model.getAliasColObjMap(
@@ -4194,42 +4236,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   // todo: handle composite primary key
   public extractPksValues(data: any, asString = false) {
-    // if data is not object return as it is
-    if (!data || typeof data !== 'object') {
-      if (asString && !ncIsNull(data) && !ncIsUndefined(data)) {
-        return `${data}`;
-      }
-      return data;
-    }
-
-    // data can be still inserted without PK
-
-    // if composite primary key return an object with all the primary keys
-    if (this.model.primaryKeys.length > 1) {
-      const pkValues = {};
-      for (const pk of this.model.primaryKeys) {
-        pkValues[pk.title] =
-          data[pk.title] ?? data[pk.column_name] ?? data[pk.id];
-      }
-      return asString
-        ? Object.values(pkValues)
-            .map((val) => val?.toString?.().replaceAll('_', '\\_'))
-            .join('___')
-        : pkValues;
-    } else if (this.model.primaryKey) {
-      let pkValue;
-      if (typeof data === 'object') {
-        pkValue =
-          data[this.model.primaryKey.title] ??
-          data[this.model.primaryKey.column_name] ??
-          data[this.model.primaryKey.id];
-      } else {
-        pkValue = data;
-      }
-      if (pkValue !== undefined) return asString ? `${pkValue}` : pkValue;
-    } else {
-      return 'N/A';
-    }
+    return dataWrapper(data).extractPksValue(this.model, asString);
   }
 
   protected async errorDelete(_e, _id, _trx, _cookie) {}
@@ -4432,6 +4439,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     onlyUpdateAuditLogs?: boolean;
     prevData?: Record<string, any>;
   }) {
+    await this.checkPermission({
+      entity: PermissionEntity.FIELD,
+      entityId: colId,
+      permission: PermissionKey.RECORD_FIELD_EDIT,
+      user: cookie?.user,
+      req: cookie,
+    });
+
     await this.model.getColumns(this.context);
     const column = this.model.columnsById[colId];
 
@@ -4731,6 +4746,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     childId: string;
     cookie?: any;
   }) {
+    await this.checkPermission({
+      entity: PermissionEntity.FIELD,
+      entityId: colId,
+      permission: PermissionKey.RECORD_FIELD_EDIT,
+      user: cookie?.user,
+      req: cookie,
+    });
+
     await this.model.getColumns(this.context);
     const column = this.model.columnsById[colId];
     if (
@@ -6019,6 +6042,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     colId: string;
     rowId: string;
   }) {
+    await this.checkPermission({
+      entity: PermissionEntity.FIELD,
+      entityId: params.colId,
+      permission: PermissionKey.RECORD_FIELD_EDIT,
+      user: params.cookie?.user,
+      req: params.cookie,
+    });
+
     return addOrRemoveLinks(this).addLinks(params);
   }
 
@@ -6028,6 +6059,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     colId: string;
     rowId: string;
   }) {
+    await this.checkPermission({
+      entity: PermissionEntity.FIELD,
+      entityId: params.colId,
+      permission: PermissionKey.RECORD_FIELD_EDIT,
+      user: params.cookie?.user,
+      req: params.cookie,
+    });
+
     return addOrRemoveLinks(this).removeLinks(params);
   }
 
@@ -6958,6 +6997,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async statsUpdate(_args: { count: number }) {}
+
+  async checkPermission(_params: {
+    entity: PermissionEntity;
+    entityId: string | string[];
+    permission: PermissionKey;
+    user: any;
+    req: any;
+  }) {}
 }
 
 export { BaseModelSqlv2 };

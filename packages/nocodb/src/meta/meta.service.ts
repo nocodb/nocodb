@@ -198,10 +198,11 @@ export class MetaService {
     }
 
     for (const d of Array.isArray(data) ? data : [data]) {
-      const id = d?.id || (await this.genNanoid(target));
       const tempObj = {
         ...d,
-        ...(ignoreIdGeneration ? {} : { id }),
+        ...(ignoreIdGeneration
+          ? {}
+          : { id: d?.id || (await this.genNanoid(target)) }),
         ...commonProps,
       };
       insertObj.push(tempObj);
@@ -338,6 +339,8 @@ export class MetaService {
       [MetaTable.SNAPSHOT]: 'snap',
       [MetaTable.SCRIPTS]: 'scr',
       [MetaTable.SYNC_CONFIGS]: 'sync',
+      [MetaTable.PERMISSIONS]: 'perm',
+      [MetaTable.PERMISSION_SUBJECTS]: 'pers',
     };
 
     const prefix = prefixMap[target] || 'nc';

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnReqType, type ColumnType, isAIPromptCol, isSupportedDisplayValueColumn } from 'nocodb-sdk'
+import { type ColumnReqType, type ColumnType, UITypesSearchTerms, isAIPromptCol, isSupportedDisplayValueColumn } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   UITypes,
@@ -548,7 +548,14 @@ const submitBtnLabel = computed(() => {
 })
 
 const filterOption = (input: string, option: { value: UITypes }) => {
-  return searchCompare([option.value, ...(UITypesName[option.value] ? [UITypesName[option.value]] : [])], input)
+  return searchCompare(
+    [
+      option.value,
+      ...(UITypesName[option.value] ? [UITypesName[option.value]] : []),
+      ...(UITypesSearchTerms[option.value] || []),
+    ],
+    input,
+  )
 }
 
 const triggerDescriptionEnable = () => {

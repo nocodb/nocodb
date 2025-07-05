@@ -46,7 +46,7 @@ export function useGridCellHandler(params: {
     path: Array<number>,
   ) => { x: number; y: number; width: number; height: number }
   actionManager: ActionManager
-  makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+  makeCellEditable: MakeCellEditableFn
   updateOrSaveRow: (
     row: Row,
     property?: string,
@@ -351,7 +351,8 @@ export function useGridCellHandler(params: {
         readonly: !params.hasEditPermission.value,
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
-        makeCellEditable,
+        makeCellEditable: (row, clickedColumn, showEditCellRestrictionTooltip = ctx.event.detail === 2) =>
+          makeCellEditable(row, clickedColumn, showEditCellRestrictionTooltip),
         isPublic: isPublic.value,
         openDetachedExpandedForm,
         openDetachedLongText,

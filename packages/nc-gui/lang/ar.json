@@ -156,8 +156,8 @@
     "upgradeToUploadWsImageSubtitle": "تسمح خطتك الحالية {activePlan} بالأيقونات والرموز التعبيرية فقط. قم بالترقية إلى خطة {plan} لتحميل صورة مخصصة كصورة رمزية لمساحة العمل.",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
-    "upgradeToUseRowColoring": "Upgrade to use row coloring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data."
+    "upgradeToUseRowColoring": "Upgrade to use row colouring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data."
   },
   "general": {
     "script": "Script",
@@ -808,8 +808,8 @@
     "youAreLeavingNocoDB": "أنت تغادر NocoDB",
     "onlyProceedIfYouTrustThisLink": "تابع فقط إذا كنت تثق بهذا الرابط.",
     "reAssignViewModalSubtitle": "عند إعادة التعيين، لن يتمكن المالك الحالي من تحرير تكوين العرض.",
-    "getMoreFromNocodb": "Get more from NocoDB",
-    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
+    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
+    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
     "loyaltyBannerTitle": "الولاء يؤتي ثماره — استمتع بأسعار محددة!",
     "loyaltyBannerSubtitle": "افتح مقاعد غير محدودة، سجلات إضافية، سعة تخزين أكبر، Webhooks شرطية، SSO، تكاملات، والمزيد!",
     "selectTimezone": "عرض المنطقة الزمنية",

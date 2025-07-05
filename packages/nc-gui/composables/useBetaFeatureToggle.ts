@@ -1,6 +1,3 @@
-import { onMounted, ref } from 'vue'
-import { createSharedComposable } from '@vueuse/core'
-
 import rfdc from 'rfdc'
 
 const deepClone = rfdc()
@@ -49,15 +46,6 @@ const FEATURES = [
     isEngineering: true,
   },
   {
-    id: 'payment',
-    title: 'Payment Flows',
-    description: 'Enable NocoDB Payment Flows.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-    isEE: true,
-  },
-  {
     id: 'ai_features',
     title: 'AI features',
     description: 'Unlock AI features to enhance your NocoDB experience.',
@@ -70,9 +58,8 @@ const FEATURES = [
     id: 'nocodb_scripts',
     title: 'NocoDB Scripts',
     description: 'Enable NocoDB Scripts to automate repetitive workflow',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
+    enabled: true,
+    version: 2,
     isEE: true,
   },
   {
@@ -151,22 +138,6 @@ const FEATURES = [
     isEngineering: true,
   },
   {
-    id: 'expanded_form_file_preview_mode',
-    title: 'Expanded form file preview mode',
-    description: 'Preview mode allows you to see attachments inline',
-    enabled: true,
-    version: 2,
-    isEE: true,
-  },
-  {
-    id: 'expanded_form_discussion_mode',
-    title: 'Expanded form discussion mode',
-    description: 'Discussion mode allows you to see the comments and records audits combined in one place',
-    enabled: true,
-    version: 2,
-    isEE: true,
-  },
-  {
     id: 'language',
     title: 'Language',
     description: 'Community/AI Translated',
@@ -189,6 +160,14 @@ const FEATURES = [
     description: 'Allows user to create custom links using existing fields.',
     enabled: false,
     version: 1,
+    isEE: true,
+  },
+  {
+    id: 'table_and_field_permissions',
+    title: 'Table and Field Permissions',
+    description: 'Allows user to manage table and field permissions.',
+    enabled: true,
+    version: 2,
     isEE: true,
   },
 ] as const
@@ -228,7 +207,6 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
       }))
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(featuresToSave))
-      window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }))
     } catch (error) {
       console.error('Failed to save features:', error)
     }
@@ -294,22 +272,6 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
 
     saveFeatures()
   }
-
-  const handleStorageEvent = (event: StorageEvent) => {
-    if (event.key === STORAGE_KEY && event.newValue !== null) {
-      if (JSON.parse(event.newValue) !== features.value) {
-        initializeFeatures()
-      }
-    }
-  }
-
-  onMounted(() => {
-    window.addEventListener('storage', handleStorageEvent)
-  })
-
-  onUnmounted(() => {
-    window.removeEventListener('storage', handleStorageEvent)
-  })
 
   return {
     features,

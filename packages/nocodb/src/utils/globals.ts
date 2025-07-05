@@ -38,6 +38,7 @@ export enum MetaTable {
   AUDIT = 'nc_audit_v2',
   HOOKS = 'nc_hooks_v2',
   HOOK_LOGS = 'nc_hook_logs_v2',
+  HOOK_TRIGGER_FIELDS = 'nc_hook_trigger_fields',
   PLUGIN = 'nc_plugins_v2',
   PROJECT_USERS = 'nc_base_users_v2',
   MODEL_ROLE_VISIBILITY = 'nc_disabled_models_for_role_v2',
@@ -67,6 +68,9 @@ export enum MetaTable {
   SYNC_MAPPINGS = 'nc_sync_mappings',
   USAGE_STATS = 'nc_usage_stats',
   MCP_TOKENS = 'nc_mcp_tokens',
+  DB_SERVERS = 'nc_db_servers',
+  PERMISSIONS = 'nc_permissions',
+  PERMISSION_SUBJECTS = 'nc_permission_subjects',
 }
 
 export enum MetaTableOldV2 {
@@ -102,6 +106,7 @@ export const orderedMetaTables = [
   MetaTable.FILTER_EXP,
   MetaTable.HOOK_LOGS,
   MetaTable.HOOKS,
+  MetaTable.HOOK_TRIGGER_FIELDS,
   MetaTable.VIEWS,
   MetaTable.COL_FORMULA,
   MetaTable.COL_ROLLUP,
@@ -211,6 +216,9 @@ export enum CacheScope {
   STORAGE_STATS = 'storageStats',
   CLOUD_FEATURES = 'cloudFeatures',
   MCP_TOKEN = 'mcpToken',
+  DB_SERVERS = 'dbServers',
+  PERMISSION = 'permission',
+  PERMISSION_USER = 'permissionUser',
 }
 
 export enum CacheGetType {

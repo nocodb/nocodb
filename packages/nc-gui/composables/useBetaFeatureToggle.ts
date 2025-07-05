@@ -20,7 +20,7 @@ const FEATURES = [
     id: 'dashboard',
     title: 'Dashboard',
     isEngineering: true,
-    description: 'Create and manage dashboards for quick access to your data.',
+    description: 'Build interactive dashboards with charts, widgets, and visualizations to monitor your data at a glance.',
     enabled: false,
     version: 1,
     isEE: true,

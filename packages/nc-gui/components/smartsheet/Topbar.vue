@@ -73,7 +73,6 @@ const topbarBreadcrumbItemWidth = computed(() => {
             !isSharedBase &&
             !activeAutomationId &&
             !activeDashboardId &&
-            isFeatureEnabled(FEATURE_FLAG.EXTENSIONS) &&
             openedViewsTab === 'view' &&
             !isMobileMode
           "

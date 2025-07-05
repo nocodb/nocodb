@@ -158,11 +158,7 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
 
     if (baseId) {
-      if (tableId) {
-        path = `/${workspaceId}/${baseId}${tablePath}${queryParams}`
-      } else {
-        path = `/${workspaceId}/${baseId}${queryParams}`
-      }
+      path = `/${workspaceId}/${baseId}${tablePath}${queryParams}`
     } else {
       path = `/${workspaceId}${queryParams}`
     }

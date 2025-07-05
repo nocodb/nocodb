@@ -173,3 +173,5 @@ const down = async (knex) => {
     table.foreign('fk_widget_id').references(`${MetaTableOldV2.WIDGET}.id`);
   });
 };
+
+export { up, down };

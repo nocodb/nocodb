@@ -254,7 +254,6 @@ export const useBase = defineStore('baseStore', () => {
     id,
     type: _type,
     isSharedBase,
-    isAutomation,
     projectPage,
   }: {
     id: string
@@ -272,10 +271,6 @@ export const useBase = defineStore('baseStore', () => {
 
     const workspaceId = workspaceStore.activeWorkspaceId
     const basUrl = `/${workspaceId}/${id}`
-
-    if (isAutomation) {
-      return `${basUrl}/automations`
-    }
 
     return `${basUrl}${projectPage ? `?page=${projectPage}` : ''}`
   }

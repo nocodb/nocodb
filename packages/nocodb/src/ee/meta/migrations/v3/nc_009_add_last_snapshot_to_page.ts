@@ -37,3 +37,4 @@ const down = async (_knex: Knex) => {
     );
   } */
 };
+export { up, down };

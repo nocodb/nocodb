@@ -20,3 +20,5 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (_knex: Knex) => {};
+
+export { up, down };

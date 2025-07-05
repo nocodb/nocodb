@@ -3,15 +3,13 @@ const { t } = useI18n()
 
 const dashboardStore = useDashboardStore()
 
+const { isDashboardEnabled } = storeToRefs(dashboardStore)
+
 const { openNewDashboardModal: _openNewDashboardModal } = dashboardStore
 
 const { openedProject } = storeToRefs(useBases())
 
 const { isSharedBase } = storeToRefs(useBase())
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const isDashboardEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.DASHBOARD))
 
 const label = computed(() => {
   return `${t('general.create')} ${t('general.empty')} ${t('objects.dashboard')}`

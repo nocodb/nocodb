@@ -10,7 +10,11 @@ const route = router.currentRoute
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
-const { openNewDashboardModal } = useDashboardStore()
+const dashboardStore = useDashboardStore()
+
+const { isDashboardEnabled } = storeToRefs(dashboardStore)
+
+const { openNewDashboardModal } = dashboardStore
 
 const { openNewScriptModal } = useAutomationStore()
 
@@ -243,7 +247,6 @@ onKeyStroke('Escape', () => {
 })
 
 const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
-const isDashboardEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.DASHBOARD))
 
 const openBaseHomePage = async () => {
   const isSharedBase = route.value.params.typeOrId === 'base'
@@ -351,11 +354,14 @@ const showCreateNewAsDropdown = computed(() => {
                 </NcMenuItem>
                 <NcMenuItem
                   v-if="isDashboardEnabled"
+                  inner-class="w-full"
                   data-testid="create-new-script"
                   @click="openNewDashboardModal({ baseId: base.id })"
                 >
                   <GeneralIcon icon="dashboards" />
                   New Dashboard
+                  <div class="flex-1 w-full" />
+                  <NcBadge :border="false" size="xs" class="!text-brand-600 !bg-brand-50"> Beta </NcBadge>
                 </NcMenuItem>
               </NcMenu>
             </template>
@@ -635,7 +641,7 @@ const showCreateNewAsDropdown = computed(() => {
         </div>
       </div>
       <Automation v-if="isAutomationEnabled && !isSharedBase && isUIAllowed('scriptList')" :base-id="base.id" />
-      <Dashboard v-if="!isSharedBase" :base-id="base.id" />
+      <Dashboard v-if="isDashboardEnabled && !isSharedBase && isUIAllowed('dashboardList')" :base-id="base.id" />
     </div>
 
     <slot name="footer"> </slot>

@@ -307,6 +307,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     // Getters
     activeBaseDashboards,
     activeDashboardId,
+    isDashboardEnabled,
 
     // Actions
     loadDashboards,

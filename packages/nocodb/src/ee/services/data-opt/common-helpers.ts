@@ -30,7 +30,13 @@ export function shouldSkipCache(
   return (
     process.env.NC_DISABLE_CACHE === 'true' ||
     ctx.validateFormula ||
-    queryParamKeys.some((key) => key in ctx.params) ||
+    queryParamKeys.some(
+      (key) =>
+        key in ctx.params &&
+        ctx.params[key] !== '' &&
+        ctx.params[key] !== null &&
+        ctx.params[key] !== undefined,
+    ) ||
     ctx.customConditions?.length > 0
   );
 }

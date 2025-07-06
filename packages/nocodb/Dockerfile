@@ -2,8 +2,8 @@
 
 ####################
 # Litestream Builder
-###########
-FROM golang:alpine3.20 as lt-builder
+####################
+FROM golang:bookworm AS lt-builder
 
 WORKDIR /usr/src/
 
@@ -15,9 +15,11 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-ins
     make \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# build litestream
-RUN git clone https://github.com/benbjohnson/litestream.git litestream
-RUN cd litestream && go install ./cmd/litestream
+# Build litestream
+RUN git clone https://github.com/benbjohnson/litestream.git litestream\
+    && cd litestream \
+    && go install ./cmd/litestream \
+    && cp $GOPATH/bin/litestream /usr/local/bin/litestream
 
 ################
 # NocoDB Builder
@@ -72,20 +74,19 @@ ENV LITESTREAM_S3_SKIP_VERIFY=false \
 
 # Install runtime dependencies
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates `# required by wget for HTTPS support` \
     curl \
     dumb-init \
-    wget `# for convenience of downstream users` \
     && curl -L "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_$(dpkg --print-architecture)" -o /usr/local/bin/dasel \
     && chmod +x /usr/local/bin/dasel \
+    && apt-get purge curl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy litestream binary and config file
-COPY --link --from=lt-builder /go/bin/litestream /usr/local/bin/litestream
+COPY --link --from=lt-builder /usr/local/bin/litestream /usr/local/bin/litestream
 COPY --link ./docker/litestream.yml /etc/litestream.yml
 
 # Copy production code & main entry file
-COPY --link --from=builder /usr/src/app/ /usr/src/app/
+COPY --link --from=builder /usr/src/app/      /usr/src/app/
 COPY --link --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 
 EXPOSE 8080

@@ -3,8 +3,8 @@
 
 ####################
 # Litestream Builder
-###########
-FROM --platform=$BUILDPLATFORM golang:alpine3.20 as lt-builder
+####################
+FROM --platform=$BUILDPLATFORM golang:bookworm AS lt-builder
 
 WORKDIR /usr/src/
 
@@ -19,7 +19,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-ins
 # Build litestream for the target platform
 RUN git clone https://github.com/benbjohnson/litestream.git litestream \
     && cd litestream \
-    && GOARCH=$(echo $TARGETPLATFORM | cut -d '/' -f 2) GOOS=$(echo $TARGETPLATFORM | cut -d '/' -f 1) go install ./cmd/litestream
+    && GOARCH=$(echo $TARGETPLATFORM | cut -d '/' -f 2) GOOS=$(echo $TARGETPLATFORM | cut -d '/' -f 1) go install ./cmd/litestream \
+    && cp $GOPATH/bin/litestream /usr/local/bin/litestream
 
 ################
 # NocoDB Builder
@@ -52,14 +53,14 @@ RUN echo "node-linker=hoisted" > .npmrc
 # Install production dependencies, reduce node_modules size with modclean,
 # remove sqlite deps, and add execute permission to start.sh
 RUN pnpm install --prod --shamefully-hoist \
-    && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**,@linear/**" --run  \
+    && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**" --run \
     && rm -rf ./node_modules/sqlite3/deps \
     && chmod +x /usr/src/appEntry/start.sh
 
 #############################
 # Binary Dependencies Builder
 #############################
-FROM --platform=$TARGETPLATFORM node:22-slim AS bin-builder
+FROM --platform=$TARGETPLATFORM node:22-slim as bin-builder
 WORKDIR /usr/src/app
 
 # Install node-gyp dependencies and other build tools
@@ -98,16 +99,15 @@ ENV LITESTREAM_S3_SKIP_VERIFY=false \
 
 # Install runtime dependencies
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates `# required by wget for HTTPS support` \
     curl \
     dumb-init \
-    wget `# for convenience of downstream users` \
     && curl -L "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_$(dpkg --print-architecture)" -o /usr/local/bin/dasel \
     && chmod +x /usr/local/bin/dasel \
+    && apt-get purge curl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy litestream binary and config file
-COPY --link --from=lt-builder /go/bin/litestream /usr/local/bin/litestream
+COPY --link --from=lt-builder /usr/local/bin/litestream /usr/local/bin/litestream
 COPY --link ./docker/litestream.yml /etc/litestream.yml
 
 # Copy production code & main entry file

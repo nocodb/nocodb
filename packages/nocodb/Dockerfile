@@ -2,8 +2,8 @@
 
 ####################
 # Litestream Builder
-####################
-FROM golang:bookworm AS lt-builder
+###########
+FROM golang:alpine3.20 as lt-builder
 
 WORKDIR /usr/src/
 
@@ -15,11 +15,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-ins
     make \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Build litestream
-RUN git clone https://github.com/benbjohnson/litestream.git litestream\
-    && cd litestream \
-    && go install ./cmd/litestream \
-    && cp $GOPATH/bin/litestream /usr/local/bin/litestream
+# build litestream
+RUN git clone https://github.com/benbjohnson/litestream.git litestream
+RUN cd litestream && go install ./cmd/litestream
 
 ################
 # NocoDB Builder
@@ -83,7 +81,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-ins
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy litestream binary and config file
-COPY --link --from=lt-builder /usr/local/bin/litestream /usr/local/bin/litestream
+COPY --link --from=lt-builder /go/bin/litestream /usr/local/bin/litestream
 COPY --link ./docker/litestream.yml /etc/litestream.yml
 
 # Copy production code & main entry file

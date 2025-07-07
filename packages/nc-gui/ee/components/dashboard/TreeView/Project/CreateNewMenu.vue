@@ -16,40 +16,21 @@ const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_
 
 <template>
   <NcMenu variant="large" @click="vVisible = false">
-    <div class="nc-menu-item-combo">
-      <NcMenuItem inner-class="w-full !opacity-100" data-testid="create-new-dashboard">
-        <GeneralIcon icon="table" class="!w-4 !h-4" />
-        Dashboard
-      </NcMenuItem>
-      <div class="h-7 w-px flex-none bg-nc-border-gray-medium" />
-
-      <NcSubMenu variant="medium" title-class="!p-0 hover:bg-brand-100" @click.stop>
-        <template #title>
-          <div class="flex items-center justify-center h-8 w-8 rounded-lg">
-            <GeneralIcon icon="ncChevronRight" />
-          </div>
-        </template>
-        <template #expandIcon> </template>
-        <NcMenuItemLabel>
-          <span class="normal-case"> Import Options </span>
-        </NcMenuItemLabel>
-        <NcMenuItem inner-class="w-full !opacity-100" data-testid="create-new-dashboard">
-          <GeneralIcon icon="ncImport" class="!w-4 !h-4" />
-          Import from CSV
-        </NcMenuItem>
-      </NcSubMenu>
-    </div>
-    <NcMenuComboWrapper>
-      <template #ncMenuItem>
-        <NcMenuItem inner-class="w-full !opacity-100" data-testid="create-new-dashboard">
+    <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-dashboard">
+      <div class="w-full flex items-center">
+        <div class="flex-1 flex items-center gap-2">
           <GeneralIcon icon="table" class="!w-4 !h-4" />
-          Dashboard
-        </NcMenuItem>
-      </template>
-      <template #ncSubMenu>
-        <NcSubMenu variant="medium" title-class="!p-0 hover:bg-brand-100" @click.stop>
+          Table
+        </div>
+        <div class="px-1 cursor-default flex items-center h-9 -my-2" @click.stop>
+          <div class="h-7 w-px flex-none bg-nc-border-gray-medium" />
+        </div>
+
+        <NcSubMenu variant="medium" class="nc-sub-menu-item-icon-only" title-class="!p-0 hover:bg-brand-50" @click.stop>
           <template #title>
-            <GeneralIcon icon="ncChevronRight" />
+            <div class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer">
+              <GeneralIcon icon="ncChevronRight" />
+            </div>
           </template>
           <template #expandIcon> </template>
           <NcMenuItemLabel>
@@ -60,11 +41,11 @@ const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_
             Import from CSV
           </NcMenuItem>
         </NcSubMenu>
-      </template>
-    </NcMenuComboWrapper>
+      </div>
+    </NcMenuItem>
 
-    <NcMenuItem inner-class="w-full !opacity-100" data-testid="create-new-dashboard" :selectable="false">
-      <GeneralIcon icon="ncTable" class="!w-4 !h-4" />
+    <NcMenuItem inner-class="w-full" disabled data-testid="create-new-dashboard">
+      <GeneralIcon icon="ncLayout" class="w-4 h-4" />
       Dashboard
       <div class="flex-1 w-full" />
       <NcBadge :border="false" size="xs" class="!text-brand-600 !bg-brand-50"> Soon </NcBadge>
@@ -80,16 +61,7 @@ const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_
         <div class="flex-1 w-full" />
         <NcBadge :border="false" size="xs" class="!text-brand-600 !bg-brand-50"> Beta </NcBadge>
       </NcMenuItem>
-      <NcMenuItem
-        inner-class="w-full"
-        data-testid="create-new-automation"
-        :selectable="false"
-        @click.stop="
-          () => {
-            console.log('clicked')
-          }
-        "
-      >
+      <NcMenuItem inner-class="w-full" data-testid="create-new-automation" disabled>
         <GeneralIcon icon="ncAutomation" />
         Automation
         <div class="flex-1 w-full" />
@@ -101,10 +73,14 @@ const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_
 
 <style lang="scss">
 .nc-menu-item-combo {
-  @apply mx-1 flex flex-row items-center hover:bg-gray-100 rounded-lg;
+  @apply !pr-1;
+}
+
+.nc-sub-menu-item-icon-only {
+  @apply !mx-0 -my-1;
 
   .ant-dropdown-menu-submenu-title {
-    @apply !px-0 !w-8;
+    @apply !px-0 !w-8 children:w-8 flex items-center !justify-center;
   }
 }
 </style>

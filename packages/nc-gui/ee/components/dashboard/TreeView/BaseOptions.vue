@@ -1,10 +1,22 @@
 <script lang="ts" setup>
 import type { BaseType, SourceType } from 'nocodb-sdk'
 
-const props = defineProps<{
-  source: SourceType
-  base: BaseType
-}>()
+const props = withDefaults(
+  defineProps<{
+    source: SourceType
+    base: BaseType
+    variant?: 'small' | 'medium' | 'large'
+    titleClass?: string
+    class?: string
+    showLabel?: boolean
+  }>(),
+  {
+    variant: 'small',
+    titleClass: '',
+    class: '',
+    showLabel: false,
+  },
+)
 
 const emits = defineEmits(['update:base'])
 
@@ -147,14 +159,25 @@ function openQuickImportDialog(type: string) {
       )
     "
     class="py-0"
+    :class="class"
     data-testid="nc-sidebar-base-import"
-    variant="small"
+    :variant="variant"
+    :title-class="titleClass"
+    @click.stop
   >
     <template #title>
-      <GeneralIcon icon="download" />
+      <slot name="title">
+        <GeneralIcon icon="download" />
 
-      {{ $t('labels.importData') }}
+        {{ $t('labels.importData') }}
+      </slot>
     </template>
+
+    <template v-if="$slots.expandIcon" #expandIcon>
+      <slot name="expandIcon"> </slot>
+    </template>
+
+    <slot name="label"> </slot>
 
     <NcMenuItem
       v-if="isUIAllowed('airtableImport', { roles: baseRole, source })"

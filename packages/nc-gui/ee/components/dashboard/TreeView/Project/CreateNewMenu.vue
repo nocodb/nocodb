@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { SourceType } from 'nocodb-sdk'
+
 interface Props {
   visible: boolean
 }
@@ -9,24 +11,59 @@ const emits = defineEmits(['@update:visible', 'newTable', 'newScript'])
 
 const vVisible = useVModel(props, 'visible', emits)
 
+const base = inject(ProjectInj)!
+
+const source = computed(() => {
+  return base.value.sources?.[0]
+})
+
+const { isUIAllowed } = useRoles()
+
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
+
+const showBaseOption = (source: SourceType) => {
+  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
+}
 </script>
 
 <template>
   <NcMenu variant="large" @click="vVisible = false">
-    <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-dashboard">
+    <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-dashboard" @click="emits('newTable')">
       <div class="w-full flex items-center">
-        <div class="flex-1 flex items-center gap-2">
+        <div class="flex-1 flex items-center gap-2 cursor-pointer">
           <GeneralIcon icon="table" class="!w-4 !h-4" />
           Table
         </div>
-        <div class="px-1 cursor-default flex items-center h-9 -my-2" @click.stop>
-          <div class="h-7 w-px flex-none bg-nc-border-gray-medium" />
-        </div>
+        <template v-if="source && showBaseOption(source)">
+          <div class="px-1 cursor-default flex items-center h-9 -my-2" @click.stop>
+            <div class="h-7 w-px flex-none bg-nc-border-gray-medium" />
+          </div>
 
-        <NcSubMenu variant="medium" class="nc-sub-menu-item-icon-only" title-class="!p-0 hover:bg-brand-50" @click.stop>
+          <DashboardTreeViewBaseOptions
+            v-model:base="base"
+            :source="source"
+            variant="large"
+            class="nc-sub-menu-item-icon-only"
+            title-class="!p-0 hover:bg-brand-50 !h-8"
+            @click.stop
+          >
+            <template #title>
+              <div class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer">
+                <GeneralIcon icon="ncChevronRight" />
+              </div>
+            </template>
+            <template #expandIcon> </template>
+            <template #label>
+              <NcMenuItemLabel>
+                <span class="normal-case"> Import Options </span>
+              </NcMenuItemLabel>
+            </template>
+          </DashboardTreeViewBaseOptions>
+        </template>
+
+        <!-- <NcSubMenu variant="medium" class="nc-sub-menu-item-icon-only" title-class="!p-0 hover:bg-brand-50" @click.stop>
           <template #title>
             <div class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer">
               <GeneralIcon icon="ncChevronRight" />
@@ -40,7 +77,7 @@ const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_
             <GeneralIcon icon="ncImport" class="!w-4 !h-4" />
             Import from CSV
           </NcMenuItem>
-        </NcSubMenu>
+        </NcSubMenu> -->
       </div>
     </NcMenuItem>
 
@@ -81,6 +118,10 @@ const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_
 
   .ant-dropdown-menu-submenu-title {
     @apply !px-0 !w-8 children:w-8 flex items-center !justify-center;
+
+    .nc-submenu-title {
+      @apply !min-h-8;
+    }
   }
 }
 </style>

@@ -39,7 +39,7 @@ export interface ExtensionManifest {
    * @default 'creator'
    * Todo: @rameshmane7218
    */
-  minAccessRole?: 'owner' | 'creator' | 'editor' | 'commenter' | 'viewer' | 'no-access'
+  minAccessRole?: 'owner' | 'creator' | 'editor' | 'commenter' | 'viewer'
   /**
    * `showAsBeta` released as a beta extension.
    * We will add beta tab in market, details and extension places.

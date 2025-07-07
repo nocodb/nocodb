@@ -1,0 +1,83 @@
+// Prompt user to pick Source & Target table
+const sourceTable = await input.tableAsync("Select Source table");
+const targetTable = await input.tableAsync("Select Target table");
+
+// Prompt for matching field in Source
+const fieldInSource = await input.fieldAsync("Select matching field in Source table", sourceTable);
+
+// Prompt for matching field in Target
+const fieldInTarget = await input.fieldAsync("Select matching field in Target table", targetTable);
+
+// Prompt for linked record field in Source (should link to Target)
+const linkFieldInSource = await input.fieldAsync("Select linked record field in Source table", sourceTable);
+
+// Fetch all records from Target with pagination
+let targetQuery = await targetTable.selectRecordsAsync({
+    fields: [fieldInTarget],
+    pageSize: 100
+});
+
+const mapTarget = new Map();
+function indexTargetRecords(records) {
+    for (let record of records) {
+        const key = record.getCellValueAsString(fieldInTarget)?.trim();
+        if (key) {
+            mapTarget.set(key, record);
+        }
+    }
+}
+indexTargetRecords(targetQuery.records);
+
+while (targetQuery.hasMoreRecords) {
+    await targetQuery.loadMoreRecords();
+    indexTargetRecords(targetQuery.records.slice(-100));
+}
+
+// Fetch all records from Source with pagination
+let sourceQuery = await sourceTable.selectRecordsAsync({
+    fields: [fieldInSource, linkFieldInSource],
+    pageSize: 100
+});
+
+let totalProcessed = 0;
+let totalLinked = 0;
+let totalUnmatched = 0;
+
+async function linkSourceRecords(records) {
+    for (let record of records) {
+        const valueSource = record.getCellValueAsString(fieldInSource)?.trim();
+        const matchingTargetRecord = mapTarget.get(valueSource);
+
+        if (matchingTargetRecord) {
+            await sourceTable.updateRecordAsync(record.id, {
+                [linkFieldInSource.id]: [{ id: matchingTargetRecord.id }]
+            });
+            totalLinked++;
+        } else {
+            totalUnmatched++;
+        }
+
+        totalProcessed++;
+        output.clear();
+        output.text(`Processed ${totalProcessed} records...`);
+    }
+}
+
+// Process first page
+await linkSourceRecords(sourceQuery.records);
+
+// Process remaining pages
+while (sourceQuery.hasMoreRecords) {
+    await sourceQuery.loadMoreRecords();
+    const newRecords = sourceQuery.records.slice(-100);
+    await linkSourceRecords(newRecords);
+}
+
+// Output final summary (vertical format)
+output.markdown(`### ✅ Summary`);
+output.table({
+    "Total Records Processed": totalProcessed,
+    "Records Linked": totalLinked,
+    "Unmatched Records": totalUnmatched
+});
+

@@ -1,0 +1,21 @@
+{
+  "id": "unique-field-values-summary",
+  "title": "Unique Field Values Summary",
+  "subTitle": "View unique values and their frequencies in any field",
+  "description": "unique-field-values-summary/description.md",
+  "entry": "unique-field-values-summary/index.txt",
+  "version": "0.1",
+  "iconUrl": "unique-field-values-summary/assets/icon.svg",
+  "publisher": {
+    "name": "NocoDB",
+    "email": "contact@nocodb.com",
+    "url": "https://www.nocodb.com",
+    "icon": {
+      "src": "unique-field-values-summary/assets/publisher-icon.svg",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "links": [],
+  "order": 8
+}

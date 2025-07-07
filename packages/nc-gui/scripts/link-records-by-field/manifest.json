@@ -1,0 +1,21 @@
+{
+  "id": "link-records-by-field",
+  "title": "Link Records by Field",
+  "subTitle": "Link records between two tables using matching field values",
+  "description": "link-records-by-field/description.md",
+  "entry": "link-records-by-field/index.txt",
+  "version": "0.1",
+  "iconUrl": "link-records-by-field/assets/icon.svg",
+  "publisher": {
+    "name": "NocoDB",
+    "email": "contact@nocodb.com",
+    "url": "https://www.nocodb.com",
+    "icon": {
+      "src": "link-records-by-field/assets/publisher-icon.svg",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "links": [],
+  "order": 7
+}

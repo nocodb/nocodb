@@ -17,6 +17,11 @@ export default defineNuxtPlugin(() => {
       ([email, params]) => {
         if (!chatwootReady || !chatwoot || !window.$chatwoot) return
 
+        if (ncIsPlaywright()) {
+          window.$chatwoot.toggleBubbleVisibility('hide')
+          return
+        }
+
         if (!email) {
           window.$chatwoot.toggleBubbleVisibility('hide')
           return
@@ -54,6 +59,11 @@ export default defineNuxtPlugin(() => {
 
     router.afterEach((to) => {
       if (!chatwootReady || !chatwoot || !window.$chatwoot) return
+
+      if (ncIsPlaywright()) {
+        window.$chatwoot.toggleBubbleVisibility('hide')
+        return
+      }
 
       if (!user?.value) {
         window.$chatwoot.toggleBubbleVisibility('hide')

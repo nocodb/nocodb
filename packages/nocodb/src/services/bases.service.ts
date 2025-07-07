@@ -83,11 +83,14 @@ export class BasesService {
       base: ProjectUpdateReqType;
       user: UserType;
       req: NcRequest;
+      apiVersion?: NcApiVersion;
     },
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUpdateReq',
       param.base,
+      false,
+      { api_version: param.apiVersion } as any,
     );
 
     const base = await Base.getWithInfo(context, param.baseId);

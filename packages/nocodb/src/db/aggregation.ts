@@ -7,6 +7,7 @@ import {
   NumericalAggregations,
   UITypes,
 } from 'nocodb-sdk';
+import type { NcContext } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { BarcodeColumn, QrCodeColumn } from '~/models';
 import { Column } from '~/models';
@@ -17,6 +18,7 @@ import { genSqlite3AggregateQuery } from '~/db/aggregations/sqlite3';
 import { getColumnNameQuery } from '~/db/getColumnNameQuery';
 
 export const validateAggregationColType = (
+  context: NcContext,
   column: Column,
   aggregation: string,
   throwError = true,
@@ -30,7 +32,7 @@ export const validateAggregationColType = (
     if (!throwError) {
       return false;
     }
-    NcError.badRequest(
+    NcError.get(context).badRequest(
       `Aggregation ${aggregation} is not available for column type ${column.uidt}`,
     );
   }
@@ -105,15 +107,17 @@ export default async function applyAggregation({
   - attachment   - attachment aggregations like attachment size.
   - unknown      - if the aggregation is not supported yet
   */
-  const aggType = validateAggregationColType(column, aggregation);
+  const aggType = validateAggregationColType(context, column, aggregation);
 
   if (aggType === false) {
-    NcError.notImplemented(`Aggregation ${aggregation} is not implemented yet`);
+    NcError.get(context).notImplemented(
+      `Aggregation ${aggregation} is not implemented yet`,
+    );
   }
 
   // If the aggregation is not available for the column type, we throw an error.
   if (aggType === 'unknown') {
-    NcError.notImplemented(`Aggregation ${aggregation} is not implemented yet`);
+    NcError.get(context).notImplemented(`Aggregation ${aggregation} is not implemented yet`);
   }
 
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
@@ -174,7 +178,7 @@ export default async function applyAggregation({
       alias: alias,
     });
   } else {
-    NcError.notImplemented(
+    NcError.get(context).notImplemented(
       `Aggregation is not implemented for ${knex.client.config.client} yet.`,
     );
   }

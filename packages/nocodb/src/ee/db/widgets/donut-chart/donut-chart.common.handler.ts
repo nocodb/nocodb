@@ -105,6 +105,7 @@ export class DonutChartCommonHandler {
         addError('data.value.column_id', 'Column not found');
       } else if (
         !validateAggregationColType(
+          context,
           column,
           value.aggregation as unknown as string,
           false,

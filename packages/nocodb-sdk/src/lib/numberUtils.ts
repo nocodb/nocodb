@@ -1,3 +1,6 @@
+import type { ColumnType } from '~/lib/Api';
+import { parseProp } from '~/lib/helperFunctions';
+
 export const numberize = (value?: string | number) => {
   if (value === undefined || value === null) {
     return value as undefined;
@@ -10,5 +13,39 @@ export const numberize = (value?: string | number) => {
       return undefined;
     }
     return result;
+  }
+};
+
+export const roundTo = (num: unknown, precision = 1) => {
+  if (!num || Number.isNaN(num)) return num;
+  const factor = 10 ** precision;
+  return Math.round(+num * factor) / factor;
+};
+
+export const getCurrencyValue = (
+  modelValue: string | number | null | undefined,
+  col: ColumnType
+): string => {
+  const currencyMeta = {
+    currency_locale: 'en-US',
+    currency_code: 'USD',
+    ...parseProp(col.meta),
+  };
+  try {
+    if (
+      modelValue === null ||
+      modelValue === undefined ||
+      Number.isNaN(modelValue)
+    ) {
+      return modelValue === null || modelValue === undefined
+        ? ''
+        : (modelValue as string);
+    }
+    return new Intl.NumberFormat(currencyMeta.currency_locale || 'en-US', {
+      style: 'currency',
+      currency: currencyMeta.currency_code || 'USD',
+    }).format(+modelValue);
+  } catch (e) {
+    return modelValue as string;
   }
 };

@@ -66,7 +66,7 @@ export class MetricCommonHandler {
       if (!column) {
         addError('metric.column_id', 'Column not found');
       } else if (
-        !validateAggregationColType(column, metric.aggregation, false)
+        !validateAggregationColType(context, column, metric.aggregation, false)
       ) {
         addError(
           'metric.aggregation',

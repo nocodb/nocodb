@@ -162,8 +162,6 @@ const rolePermissions = {
       sourceCreate: true,
       baseAuditList: true,
       reAssignViewOwner: true,
-
-      extensionList: true,
       // Scripts
       scriptCreateOrEdit: true,
 
@@ -218,6 +216,9 @@ const rolePermissions = {
       newUser: true,
       manageMCP: true,
       dashboardList: true,
+
+      // Extensions
+      extensionList: true,
     },
   },
   [ProjectRoles.NO_ACCESS]: {

@@ -88,8 +88,6 @@ const rolePermissions = {
       sourceCreate: true,
       baseAuditList: true,
 
-      extensionList: true,
-
       // Row colouring
       rowColourUpdate: true,
 
@@ -130,6 +128,9 @@ const rolePermissions = {
       recordAuditList: true,
       newUser: true,
       manageMCP: true,
+
+      // Extensions
+      extensionList: true,
     },
   },
   [ProjectRoles.NO_ACCESS]: {

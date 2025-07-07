@@ -637,7 +637,7 @@ export const isFilterValueConsistOf = (
         k.replace(evalNeedle, option.replace),
       );
     }
-    return { exists: result, value: filterValue as string };
+    return { exists: result, value: filterValue as unknown as string };
   } else if (typeof filterValue === 'string') {
     const result = filterValue
       .split(',')
@@ -648,7 +648,7 @@ export const isFilterValueConsistOf = (
         .map((k) => k.replace(evalNeedle, option.replace))
         .join(',');
     }
-    return { exists: result, value: filterValue as string };
+    return { exists: result, value: filterValue as unknown as string };
   }
   return { exists: false };
 };

@@ -106,6 +106,7 @@ const rolePermissions = {
       airtableImport: true,
       jsonImport: true,
       excelImport: true,
+      nocodbImport: true,
       workspaceIntegrations: true,
     },
   },

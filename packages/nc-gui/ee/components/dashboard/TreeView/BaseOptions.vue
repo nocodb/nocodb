@@ -9,12 +9,14 @@ const props = withDefaults(
     titleClass?: string
     class?: string
     showLabel?: boolean
+    showNocoDbImport?: boolean
   }>(),
   {
     variant: 'small',
     titleClass: '',
     class: '',
     showLabel: false,
+    showNocoDbImport: false,
   },
 )
 
@@ -31,6 +33,8 @@ const baseRole = computed(() => base.project_role || base.workspace_role)
 const { $e } = useNuxtApp()
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const TODOMagic = ref(false)
 
@@ -121,6 +125,33 @@ function openQuickImportDialog(type: string) {
     close(1000)
   }
 }
+
+async function openNocoDbImportDialog(baseId?: string) {
+  if (!baseId) return
+
+  $e('a:actions:import-nocodb')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgNocoDbImport'), {
+    'modelValue': isOpen,
+    'baseId': baseId,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+const isNocoDbImportAllowed = computed(() => {
+  return (
+    props.showNocoDbImport &&
+    isFeatureEnabled(FEATURE_FLAG.IMPORT_FROM_NOCODB) &&
+    isUIAllowed('nocodbImport', { roles: baseRole.value, source: source.value })
+  )
+})
 </script>
 
 <template>
@@ -156,7 +187,7 @@ function openQuickImportDialog(type: string) {
     v-if="
       ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
         isUIAllowed(permission, { roles: baseRole, source }),
-      )
+      ) || isNocoDbImportAllowed
     "
     class="py-0"
     :class="class"
@@ -217,6 +248,11 @@ function openQuickImportDialog(type: string) {
     >
       <GeneralIcon icon="ncFileTypeExcel" class="w-4 h-4" />
       {{ $t('labels.microsoftExcel') }}
+    </NcMenuItem>
+
+    <NcMenuItem v-if="isNocoDbImportAllowed" key="quick-import-nocodb" @click="openNocoDbImportDialog(base.id)">
+      <GeneralIcon icon="nocodb1" class="w-4 h-4" />
+      {{ $t('objects.syncData.nocodb') }}
     </NcMenuItem>
   </NcSubMenu>
 </template>

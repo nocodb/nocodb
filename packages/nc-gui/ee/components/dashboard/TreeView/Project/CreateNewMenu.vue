@@ -47,7 +47,7 @@ const showBaseOption = (source: SourceType) => {
             variant="large"
             class="nc-sub-menu-item-icon-only"
             title-class="!p-0 hover:bg-brand-50 !h-8"
-            @click.stop
+            show-noco-db-import
           >
             <template #title>
               <div class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer">

@@ -676,13 +676,19 @@ export const dataWrapper = (data: any) => {
       id: string;
       title: string;
     }) => {
-      return data?.[column.column_name] !== undefined
-        ? data?.[column.column_name]
-        : data?.[column.title] !== undefined
-        ? data?.[column.title]
-        : data?.[column.id] !== undefined
-        ? data?.[column.id]
-        : undefined;
+      if (column.column_name in data) {
+        return data[column.column_name];
+      }
+
+      if (column.title in data) {
+        return data[column.title];
+      }
+
+      if (column.id in data) {
+        return data[column.id];
+      }
+
+      return undefined;
     },
     getColumnKeyName: (column: {
       column_name: string;
